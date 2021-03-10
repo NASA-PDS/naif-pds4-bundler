@@ -30,7 +30,7 @@ class Log(object):
             logger.addHandler(fh)
 
 
-    def Start(self):
+    def start(self):
         start_message = f'naif-pd4-bundle-{self.setup.version} for ' \
                         f'{self.setup.name} run on '                 \
                         f'{socket.gethostname()} started at '        \
@@ -42,7 +42,7 @@ class Log(object):
         return
 
 
-    def Stop(self):
+    def stop(self):
         logging.info(f'naif-pd4-bundle-{self.setup.version} for {self.setup.name} run on '
                      f'{socket.gethostname()} finished at '
                      f'{str(datetime.datetime.now())[:-7]}')
@@ -50,3 +50,8 @@ class Log(object):
         logging.info('End of log.')
 
         return
+
+def error_message(message):
+    error = f'{message}.'
+    logging.error(f'-- {message}')
+    raise Exception(error)

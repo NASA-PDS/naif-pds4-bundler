@@ -8,7 +8,7 @@ import os
 from npb.utils.files import extension2type
 from npb.utils.files import check_list_duplicates
 from npb.utils.files import fill_template
-
+from npb.classes.log import error_message
 
 class List(object):
 
@@ -288,9 +288,8 @@ class KernelsList(List):
             logging.info('-- Checking kernel list against plan:')
             for ker in ker_in_list:
                 if ker not in self.kernel_list:
-                    error = f'   {ker} not in list'
-                    logging.error(f'{error}')
-                    raise Exception (error)
+                    error_message(f'   {ker} not in list')
+
                 else:
                     logging.info(f'     {ker} in list.')
             logging.info('')
@@ -300,9 +299,7 @@ class KernelsList(List):
             #
             logging.info('-- Checking for duplicates in kernel list:')
             if check_list_duplicates(ker_in_list):
-                error = f'List contains duplicates.'
-                logging.error(f'     {error}')
-                raise Exception(error)
+                error_message('List contains duplicates.')
             else:
                 logging.info(f'     List contains no duplicates.')
             logging.info('')
@@ -335,27 +332,29 @@ class KernelsList(List):
                 logging.info(f'     {option}')
             logging.info('')
 
-            logging.info('-- Check that all template tags used in the list are present in template:')
-            template = self.setup.root_dir + f'/config/{self.setup.mission_accronym }_mission_template_pds.1'
-            with open(template, 'r') as o:
-                template_lines = o.readlines()
+            #
+            # The PDS Mission Template file is not required for PDS4
+            #
+            if self.setup.pds == 3:
+                logging.info('-- Check that all template tags used in the list are present in template:')
+                template = self.setup.root_dir + f'/config/{self.setup.mission_accronym }_mission_template_pds.1'
+                with open(template, 'r') as o:
+                    template_lines = o.readlines()
 
 
-            for option in opt_in_list:
-                present = False
-                for line in template_lines:
-                    if '--' + option in line:
-                        present = True
-                if present:
-                    logging.info(f'     {option} is present.')
-                else:
-                    error = f'{option} not in template.'
-                    logging.error(f'     {error}')
-                    raise Exception (error)
+                for option in opt_in_list:
+                    present = False
+                    for line in template_lines:
+                        if '--' + option in line:
+                            present = True
+                    if present:
+                        logging.info(f'     {option} is present.')
+                    else:
+                        error_message(f'{option} not in template.')
 
-            logging.info('')
+                logging.info('')
 
-            if self.setup.interactive:
-                input(">> Press Enter to continue...")
+                if self.setup.interactive:
+                    input(">> Press Enter to continue...")
 
         return
