@@ -62,20 +62,22 @@ optional arguments:
 
 """
 
-import json
-import logging
+
 import datetime
+import json
 import os
 
 from types import SimpleNamespace
 from textwrap import dedent
 
-
 from os.path import dirname
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 
-from .classes.list import KernelsList
-from .classes.log import Log
+from .classes.log        import Log
+from .classes.list       import KernelsList
+from .classes.bundle     import Bundle
+from .classes.collection import SpiceKernelsCollection
+from .classes.product    import SpiceKernelProduct
 
 
 def main(config=False, plan=False, log=False, silent=False, interactive=False):
@@ -96,10 +98,10 @@ def main(config=False, plan=False, log=False, silent=False, interactive=False):
         header  = dedent(
         f'''\
     
-         naif-pds4-bundle-{version}, PDS4/PDS4 SPICE archive generation pipeline 
+         naif-pds4-bundle-{version}, PDS4/PDS3 SPICE archive generation pipeline 
     
            naif-pds4-bundle is a command-line utility program that generates PDS4 
-           Bundles and PDS3 Data Sets for SPICE kernel data sets.
+           Bundles and PDS3 data sets for SPICE kernels.
         ''')
 
         #
@@ -166,7 +168,7 @@ def main(config=False, plan=False, log=False, silent=False, interactive=False):
     #
     #  -- Start the pipeline
     #
-    log.Start()
+    log.start()
 
     #
     # -- Generate the kernel list object
@@ -174,16 +176,34 @@ def main(config=False, plan=False, log=False, silent=False, interactive=False):
     #    * The kernel list object will generate the kernel list
     #      non-archivable product.
     #
-    kernel_list = KernelsList(setup, plan)
+    list = KernelsList(setup, plan)
 
     #
     #    * Escape if the sole purpose of the execution is to generate
     #      the kernel list
     #
     if setup.faucet == 'list':
-        log.Stop()
+        log.stop()
         return
 
-    log.Stop()
+    #
+    # -- Generate the bundle or data set structure
+    #
+    bundle = Bundle(setup)
+
+    #
+    # -- Generate the SPICE kernels collection to be populated
+    #
+    spice_kernels_collection = SpiceKernelsCollection(setup)
+
+    #
+    # -- Now we populate the SPICE kernels collection from the kernels
+    #    in the Kernel list
+    #
+    for kernel in list.kernel_list:
+            spice_kernels_collection.add( SpiceKernelProduct(setup, kernel) )
+
+
+    log.stop()
     return
 
