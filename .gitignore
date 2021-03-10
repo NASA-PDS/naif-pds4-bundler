@@ -1,0 +1,32 @@
+# General files
+.DS_Store
+.DS_Store?
+*.o
+.tar
+.gz
+.zip
+*.pyc
+*.so
+
+# Test
+/npb/tests/*.csv
+/npb/tests/*.xml
+/nbo/tests/desc_pattern_check.txt
+
+# Docs
+docs/make.bat
+docs/Makefile
+
+# Pycharm specific things
+.idea/
+
+# python things
+*.egg-info*
+dist/
+.cache/
+__pycache__/
+.eggs/
+build/
+
+# Log file
+*.log

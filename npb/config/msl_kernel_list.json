@@ -1,0 +1,62 @@
+{
+  "msl_76_sclkscet_[0-9]{5}.tsc": [
+    {
+      "mklabel_options": "NAIF",
+      "description": "SCLK file providing the official, OPS correlation data for the primary MSL on-board clock. The original name of this file was MSL_76_SCLKSCET.$VERSION.tsc.",
+      "patterns": [{ "VERSION":"16->21" }]
+    }],
+  "msl_76_sclkscet_refit_\\w*.tsc": [
+    {
+      "mklabel_options": "NAIF",
+      "description": "SCLK file providing the improved correlation data for the primary MSL on-board clock. The original name of this file was MSL_76_SCLKSCET_REFIT_$VERSION.tsc.",
+      "patterns": [{ "VERSION":"upper,22->24" }]
+    }],
+  "msl_surf_ra_tlmenc_[0-9]{4}_[0-9]{4}_v[0-9].bc": [
+    {
+      "mklabel_options": "RA $PHASES NAIF",
+      "description": "CK file containing the orientation of the Robotic Arm (RA) relative to the rover frame, created using encoder angles from telemetry view data from OPGS PLACES server, covering SOLs $START to $FINISH, version $VERSION.",
+      "patterns": [{ "VERSION":"30->31", "START":"19->23", "FINISH":"24->28" }]
+    }],
+  "msl_surf_ra_tlmres_[0-9]{4}_[0-9]{4}_v[0-9].bc": [
+    {
+      "mklabel_options": "RA $PHASES NAIF",
+      "description": "CK file containing the orientation of the Robotic Arm (RA) relative to the rover frame, created using resolver angles from telemetry view data from OPGS PLACES server, covering SOLs $START to $FINISH, version $VERSION.",
+      "patterns": [{ "VERSION":"30->31", "START":"19->23", "FINISH":"24->28" }]
+    }],
+  "msl_surf_rover_tlm_[0-9]{4}_[0-9]{4}_v[0-9].bc": [
+    {
+      "mklabel_options": "ROVER $PHASES NAIF",
+      "description": "CK file containing the orientation of the rover relative to the local level frame, created using telemetry view data from OPGS PLACES server, covering SOLs $START to $FINISH, version $VERSION.",
+      "patterns": [{ "VERSION":"30->31", "START":"19->23", "FINISH":"24->28" }]
+    }],
+  "msl_surf_rsm_tlmenc_[0-9]{4}_[0-9]{4}_v[0-9].bc": [
+    {
+      "mklabel_options": "RSM $PHASES NAIF",
+      "description": "CK file containing the orientation of the Remote Sensing Mast (RSM) relative to the rover frame, created using encoder angles telemetry view data from OPGS PLACES server, covering SOLs $START to $FINISH, version $VERSION.",
+      "patterns": [{ "VERSION":"31->32", "START":"20->24", "FINISH":"25->29" }]
+    }],
+  "msl_surf_rsm_tlmres_[0-9]{4}_[0-9]{4}_v[0-9].bc": [
+    {
+      "mklabel_options": "RSM $PHASES NAIF",
+      "description": "CK file containing the orientation of the Remote Sensing Mast (RSM) relative to the rover frame, created using resolver angles telemetry view data from OPGS PLACES server, covering SOLs $START to $FINISH, version $VERSION.",
+      "patterns": [{ "VERSION":"31->32", "START":"20->24", "FINISH":"25->29" }]
+    }],
+  "msl_surf_rover_tlm_[0-9]{4}_[0-9]{4}_v[0-9].bsp": [
+    {
+      "mklabel_options": "$PHASES NAIF",
+      "description": "SPK file containing the telemetry-based location of sites along the path relative to the landing site and the telemetry-based location of the rover relative to these sites, created using the telemetry view data from the OPGS PLACES server, covering SOLs $START to $FINISH, version $VERSION.",
+      "patterns": [{ "VERSION":"30->31", "START":"19->23", "FINISH":"24->28" }]
+    }],
+  "msl_surf_rover_loc_[0-9]{4}_[0-9]{4}_v[0-9].bsp": [
+    {
+      "mklabel_options": "$PHASES NAIF",
+      "description": "SPK file containing the localized locations of sites along the path relative to the center of Mars and the localized location of the rover relative to the center of Mars, created using the localized_interp view data from the OPGS PLACES server, covering SOLs $START to $FINISH, version $VERSION.",
+      "patterns": [{ "VERSION":"30->31", "START":"19->23", "FINISH":"24->28" }]
+    }],
+  "msl_surf_hga_tlm_[0-9]{4}_[0-9]{4}_v[0-9].bc": [
+    {
+      "mklabel_options": "HGA $PHASES NAIF",
+      "description": "CK file containing the orientation of the High Gain Antenna (HGA) relative to the rover frame, created using telemetry view data from OPGS PLACES server, covering SOLs $START to $FINISH, version $VERSION.",
+      "patterns": [{ "VERSION":"28->39", "START":"17->21", "FINISH":"22->26" }]
+    }]
+}

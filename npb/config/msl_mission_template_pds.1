@@ -1,0 +1,243 @@
+MISSION_NAME                = "MARS SCIENCE LABORATORY"
+SPACECRAFT_NAME             = "MARS SCIENCE LABORATORY"
+TARGET_NAME                 = "MARS"
+DATA_SET_ID                 = "MSL-M-SPICE-6-V1.0"
+PRODUCT_VERSION_TYPE        = "ACTUAL"
+MISSION_PHASE_NAME          = {
+                              "DEVELOPMENT",
+                              "LAUNCH",
+                              "CRUISE AND APPROACH",
+                              "ENTRY, DESCENT, AND LANDING",
+                              "PRIMARY SURFACE MISSION",
+                              "EXTENDED SURFACE MISSION"
+                              }
+SOURCE_PRODUCT_ID           = "N/A"
+NOTE                        = "See comments in the file for details"
+
+--$
+--$ Version 1.0 -- by Boris Semenov, NAIF/JPL, February 20, 2013
+--$
+
+--$ 
+--$ Label key for mission phases. From msl_mission-012913.cat
+--$ (2013-01-28 MSL:crisp)
+--$
+--$    DEVELOPMENT
+--$    -----------
+--$      Mission Phase Start Time : 2003-10-01
+--$      Mission Phase Stop Time  : 2011-11-26
+--$
+--$    LAUNCH
+--$    ------
+--$      Mission Phase Start Time : 2011-11-26
+--$      Mission Phase Stop Time  : 2011-11-26
+--$
+--$    CRUISE AND APPROACH
+--$    -------------------
+--$      Mission Phase Start Time : 2011-11-26
+--$      Mission Phase Stop Time  : 2012-08-06
+--$
+--$    ENTRY, DESCENT, AND LANDING
+--$    ---------------------------
+--$      Mission Phase Start Time : 2012-08-06
+--$      Mission Phase Stop Time  : 2012-08-06
+--$
+--$    PRIMARY SURFACE MISSION
+--$    -----------------------
+--$      Mission Phase Start Time : 2012-08-06
+--$      Mission Phase Stop Time  : 2014-06-26
+--$
+--$    EXTENDED SURFACE MISSION
+--$    ------------------------
+--$      Mission Phase Start Time : 2014-06-26
+--$      Mission Phase Stop Time  : UNK
+--$
+
+--DEVELOPMENT
+      MISSION_PHASE_NAME        = "DEVELOPMENT"
+--LAUNCH
+      MISSION_PHASE_NAME        = "LAUNCH"
+--CRUISE
+      MISSION_PHASE_NAME        = "CRUISE AND APPROACH"
+--EDL
+      MISSION_PHASE_NAME        = "ENTRY, DESCENT, AND LANDING"
+--PRIMARY
+      MISSION_PHASE_NAME        = "PRIMARY SURFACE MISSION"
+--EXTENDED
+      MISSION_PHASE_NAME        = "EXTENDED SURFACE MISSION"
+
+--LAUNCH_CRUISE
+      MISSION_PHASE_NAME        = {
+                                  "LAUNCH",
+                                  "CRUISE AND APPROACH"
+                                  }
+--LAUNCH_CRUISE_EDL
+      MISSION_PHASE_NAME        = {
+                                  "LAUNCH",
+                                  "CRUISE AND APPROACH",
+                                  "ENTRY, DESCENT, AND LANDING"
+                                  }
+--PRIMARY_EXTENDED
+      MISSION_PHASE_NAME        = {
+                                  "PRIMARY SURFACE MISSION",
+                                  "EXTENDED SURFACE MISSION"
+                                  }
+
+--ALL
+      MISSION_PHASE_NAME        = {
+                                  "DEVELOPMENT",
+                                  "LAUNCH",
+                                  "CRUISE AND APPROACH",
+                                  "ENTRY, DESCENT, AND LANDING",
+                                  "PRIMARY SURFACE MISSION",
+                                  "EXTENDED SURFACE MISSION"
+                                  }
+
+--$ 
+--$ Label keys for producer IDs
+--$ 
+
+--NAIF
+      PRODUCER_ID               = "NAIF/JPL"
+--MSLNAV
+      PRODUCER_ID               = "MSLNAV/JPL"
+--SSD
+      PRODUCER_ID               = "SSD/JPL"
+--MSLACS
+      PRODUCER_ID               = "MSLACS/JPL"
+
+--$ 
+--$ Label keys for product version types
+--$ 
+
+--ACTUAL
+      PRODUCT_VERSION_TYPE      = "ACTUAL"
+--PREDICT
+      PRODUCT_VERSION_TYPE      = "PREDICT"
+      
+--$ 
+--$ Label keys for instrument/mounting platform names.
+--$ 
+
+--CRUISE_STAGE
+      INSTRUMENT_NAME           = "CRUISE STAGE"
+      PLATFORM_OR_MOUNTING_NAME = "N/A"
+
+--ROVER
+      INSTRUMENT_NAME           = "ROVER"
+      PLATFORM_OR_MOUNTING_NAME = "N/A"
+
+--RSM
+      INSTRUMENT_NAME           = "REMOTE SENSING MAST"
+      PLATFORM_OR_MOUNTING_NAME = "ROVER"
+
+--RA
+      INSTRUMENT_NAME           = "ROBOTIC ARM"
+      PLATFORM_OR_MOUNTING_NAME = "ROVER"
+
+--RATOOLS
+      INSTRUMENT_NAME           = {
+                                  "MARS HAND LENS IMAGER",
+                                  "ALPHA PARTICLE X-RAY SPECTROMETER"
+                                  "POWDER ACQUISITION DRILL SYSTEM"
+                                  "DUST REMOVAL TOOL"
+                                  "COLLECTION AND HANDLING FOR IN-SITU MARTIAN ROCK ANALYSIS"
+                                  }
+      PLATFORM_OR_MOUNTING_NAME = "ROBOTIC ARM"
+
+--RAD
+      INSTRUMENT_NAME           = "RADIATION ASSESSMENT DETECTOR"
+      PLATFORM_OR_MOUNTING_NAME = "ROVER"
+
+--MARDI
+      INSTRUMENT_NAME           = "MARS DESCENT IMAGER"
+      PLATFORM_OR_MOUNTING_NAME = "ROVER"
+
+--APXS
+      INSTRUMENT_NAME           = "ALPHA PARTICLE X-RAY SPECTROMETER"
+      PLATFORM_OR_MOUNTING_NAME = "ROBOTIC ARM"
+
+--MAHLI
+      INSTRUMENT_NAME           = "MARS HAND LENS IMAGER"
+      PLATFORM_OR_MOUNTING_NAME = "ROBOTIC ARM"
+
+--MASTCAM
+      INSTRUMENT_NAME           = "MAST CAMERA"
+      PLATFORM_OR_MOUNTING_NAME = "REMOTE SENSING MAST"
+
+--CHEMCAM_LIBS
+      INSTRUMENT_NAME           = "CHEMISTRY CAMERA LASER INDUCED BREAKDOWN SPECTROMETER"
+      PLATFORM_OR_MOUNTING_NAME = "REMOTE SENSING MAST"
+
+--CHEMCAM_RMI
+      INSTRUMENT_NAME           = "CHEMISTRY CAMERA REMOTE MICRO-IMAGER"
+      PLATFORM_OR_MOUNTING_NAME = "REMOTE SENSING MAST"
+
+--CHEMIN
+      INSTRUMENT_NAME           = "CHEMISTRY AND MINERALOGY"
+      PLATFORM_OR_MOUNTING_NAME = "ROVER"
+
+--DAN
+      INSTRUMENT_NAME           = "DYNAMIC ALBEDO OF NEUTRONS"
+      PLATFORM_OR_MOUNTING_NAME = "ROVER"
+
+--HAZCAM
+      INSTRUMENT_NAME           = "HAZARD AVOIDANCE CAMERA"
+      PLATFORM_OR_MOUNTING_NAME = "ROVER"
+
+--NAVCAM
+      INSTRUMENT_NAME           = "NAVIGATION CAMERA"
+      PLATFORM_OR_MOUNTING_NAME = "REMOTE SENSING MAST"
+
+--REMS
+      INSTRUMENT_NAME           = "ROVER ENVIRONMENTAL MONITORING STATION"
+      PLATFORM_OR_MOUNTING_NAME = { 
+                                  "ROVER",
+                                  "REMOTE SENSING MAST"
+                                  }
+
+--SAM
+      INSTRUMENT_NAME           = "SAMPLE ANALYSIS AT MARS"
+      PLATFORM_OR_MOUNTING_NAME = "ROVER"
+
+--AUX
+      INSTRUMENT_NAME           = {
+                                  "CHEMISTRY CAMERA LASER INDUCED BREAKDOWN SPECTROMETER",
+                                  "RADIATION ASSESSMENT DETECTOR",
+                                  "ROVER ENVIRONMENTAL MONITORING STATION",
+                                  "DYNAMIC ALBEDO OF NEUTRONS",
+                                  "ALPHA PARTICLE X-RAY SPECTROMETER",
+                                  }
+      PLATFORM_OR_MOUNTING_NAME = { 
+                                  "ROVER",
+                                  "REMOTE SENSING MAST",
+                                  "ROBOTIC ARM"
+                                  }
+
+--ANTENNA
+      INSTRUMENT_NAME           = {
+                                  "PARACHUTE CONE LOW GAIN ANTENNA",
+                                  "TILTED LOW GAIN ANTENNA",
+                                  "PARACHUTE CONE UHF ANTENNA",
+                                  "CRUISE MEDIUM GAIN ANTENNA",
+                                  "DESCENT STAGE LOW GAIN ANTENNA",
+                                  "DESCENT STAGE UHF ANTENNA",
+                                  "ROVER LOW GAIN ANTENNA",
+                                  "ROVER UHF ANTENNA",
+                                  "HIGH GAIN ANTENNA"
+                                  }
+      PLATFORM_OR_MOUNTING_NAME = { 
+                                  "CRUISE STAGE",
+                                  "DESCENT STAGE",
+                                  "ROVER"
+                                  }
+
+--HGA
+      INSTRUMENT_NAME           = "HIGH GAIN ANTENNA"
+      PLATFORM_OR_MOUNTING_NAME = "ROVER"
+
+
+--$
+--$ End of the definitions flag.
+--$
+--END
