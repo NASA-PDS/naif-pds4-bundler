@@ -1,3 +1,4 @@
+import os
 import socket
 import logging
 import datetime
@@ -20,7 +21,7 @@ class Log(object):
             logger.addHandler(ch)
 
         if log_file:
-            log_file = config['log_dir'] + os.sep + \
+            log_file = setup.log_dir + os.sep + \
                        f'npd_{self.setup.mission_accronym}_{self.setup.today}.log'
 
             fh = logging.FileHandler(log_file)
@@ -32,7 +33,7 @@ class Log(object):
 
     def start(self):
         start_message = f'naif-pd4-bundle-{self.setup.version} for ' \
-                        f'{self.setup.name} run on '                 \
+                        f'{self.setup.mission_accronym} run on '     \
                         f'{socket.gethostname()} started at '        \
                         f'{str(datetime.datetime.now())[:-7]}'
         logging.info(start_message)
@@ -43,7 +44,7 @@ class Log(object):
 
 
     def stop(self):
-        logging.info(f'naif-pd4-bundle-{self.setup.version} for {self.setup.name} run on '
+        logging.info(f'naif-pd4-bundle-{self.setup.version} for {self.setup.mission_name} run on '
                      f'{socket.gethostname()} finished at '
                      f'{str(datetime.datetime.now())[:-7]}')
         logging.info('')

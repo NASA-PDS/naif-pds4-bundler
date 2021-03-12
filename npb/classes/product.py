@@ -7,12 +7,13 @@ import spiceypy
 from npb.classes.label import BundlePDS4Label
 from npb.classes.label import SpiceKernelPDS4Label
 from npb.classes.log   import error_message
-from npb.utils.files import md5
-from npb.utils.time import creation_time
-from npb.utils.files import add_carriage_return
+from npb.utils.files   import md5
+from npb.utils.time    import creation_time
+from npb.utils.files   import add_carriage_return
 
 from npb.utils.files import extension2type
 from npb.utils.files import safe_make_directory
+
 
 class Product(object):
     
@@ -21,20 +22,22 @@ class Product(object):
         stat_info          = os.stat(self.path)
         self.size          = str(stat_info.st_size)
         self.checksum      = str(md5(self.path))
-        self.creation_time = creation_time(self.path)
+        self.creation_time = creation_time(self.path)[:-5]
 
 
 class SpiceKernelProduct(Product):
 
-    def __init__(self, setup, name):
+    def __init__(self, setup, name, collection):
+
+        self.collection = collection
+        self.setup      = setup
+        self.name       = name
+        self.extension  = name.split('.')[-1].strip()
+        self.type       = extension2type(self)
 
 
-        self.setup     = setup
-        self.name      = name
+        self.path      = setup.kernel_directory + os.sep + self.type
 
-        self.path      = setup.kernel_directory
-        self.extension = name.split('.')[-1].strip()
-        self.type      = extension2type(self)
 
         if self.extension[0].lower() == 'b':
             self.file_format = 'Binary'
@@ -48,9 +51,9 @@ class SpiceKernelProduct(Product):
             print('HOLD IT')
 
 
-        self.description = self.description()
+        self.description = self.get_description()
 
-        self.collection_path = setup.bundle_directory + os.sep + \
+        self.collection_path = setup.staging_directory + os.sep + \
                        'spice_kernels' + os.sep
 
         product_path = self.collection_path + self.type + os.sep
@@ -67,8 +70,12 @@ class SpiceKernelProduct(Product):
         # We copy the kernel to the staging directory.
         #
         if not os.path.isfile(product_path + self.name):
-            shutil.copy2(self.path, product_path + self.name)
-            self.new_product = True
+            try:
+                shutil.copy2(self.path + os.sep + self.name,
+                             product_path + os.sep + self.name)
+                self.new_product = True
+            except:
+                error_message(f'{self.name} not present in {self.path}')
         else:
             logging.error('{} already present in staging directory'.format(self.name))
             self.new_product = False
@@ -85,7 +92,7 @@ class SpiceKernelProduct(Product):
         #
         # The kernel is labeled.
         #
-        self.label = SPICEKernelPDSLabel(setup, self)
+        self.label = SpiceKernelPDS4Label(setup, self)
 
 
         return
@@ -95,7 +102,7 @@ class SpiceKernelProduct(Product):
 
         product_lid = \
             'urn:nasa:pds:{}.spice:spice_kernels:{}_{}'.format(
-                    self.setup.accronym,
+                    self.setup.mission_accronym,
                     self.type,
                     self.name)
 
@@ -120,8 +127,8 @@ class SpiceKernelProduct(Product):
             (self.start_time, self.stop_time) = self.sclk_coverage()
 
         else:
-            self.start_time = self.setup.start
-            self.stop_time = self.setup.stop
+            self.start_time = self.setup.mission_start
+            self.stop_time = self.setup.mission_stop
 
 
     def spk_coverage(self):
@@ -330,9 +337,9 @@ class SpiceKernelProduct(Product):
     #
     # Obtain the kernel description information
     #
-    def description(self):
+    def get_description(self):
 
-        kernel_list_file = self.setup.working_directory + \
+        kernel_list_file = self.setup.working_directory + os.sep + \
                            f'{self.setup.mission_accronym}_release_' \
                            f'{self.setup.release}.kernel_list'
 
@@ -342,8 +349,9 @@ class SpiceKernelProduct(Product):
         for line in fileinput.input(kernel_list_file):
             if self.name in line:
                 get_descr = True
-            if get_descr and 'DESCRIPTION' in line:
-                description = line.split('=').strip()
+            if  get_descr and 'DESCRIPTION' in line:
+                description = line.split('=')[-1].strip()
+                get_descr = False
 
         if not description:
             error_message(f'{self.name} does not have '

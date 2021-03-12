@@ -139,7 +139,8 @@ class KernelsList(List):
 
         fill_template(self, list_name, list_dictionary)
 
-        with open(list_name, "a+") as f:
+        with open(self.setup.working_directory + os.sep +
+                  list_name, "a+") as f:
 
             for kernel in self.kernel_list:
 
@@ -202,7 +203,10 @@ class KernelsList(List):
 # TODO: Substitute block by mission phase searching function
 
 # -----------------------------------------------------------------------------
-                        kerdir = 'data/' + extension2type(kernel)
+                        if self.setup.pds == '3':
+                            kerdir = 'data/' + extension2type(kernel)
+                        else:
+                            kerdir = 'spice_kernels/' + extension2type(kernel)
 
                         f.write(f'FILE             = {kerdir}/{kernel}\n')
                         f.write(f'MAKLABEL_OPTIONS = {options}\n')
@@ -308,9 +312,9 @@ class KernelsList(List):
             # Check that all files listed are available in OPS area;
             # This does not raise an error but only a warning.
             #
-            logging.info(f'-- Checking that are present in {self.setup.kernels_directory}:')
+            logging.info(f'-- Checking that are present in {self.setup.kernel_directory}:')
             for ker in ker_in_list:
-                if not os.path.isfile(self.setup.kernels_directory + os.sep +
+                if not os.path.isfile(self.setup.kernel_directory + os.sep +
                                       extension2type(ker) + os.sep + ker):
                     present = True
                     logging.warning(f'     {ker} not present.')
@@ -335,7 +339,7 @@ class KernelsList(List):
             #
             # The PDS Mission Template file is not required for PDS4
             #
-            if self.setup.pds == 3:
+            if self.setup.pds == '3':
                 logging.info('-- Check that all template tags used in the list are present in template:')
                 template = self.setup.root_dir + f'/config/{self.setup.mission_accronym }_mission_template_pds.1'
                 with open(template, 'r') as o:

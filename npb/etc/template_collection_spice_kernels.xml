@@ -1,10 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <?xml-model href="$XML_MODEL"
     schematypens="http://purl.oclc.org/dsdl/schematron"?>
 
-
-<Product_Collection xmlns="http://pds.nasa.gov/pds4/pds/v1"
- xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
- xsi:schemaLocation="$SCHEMA_LOCATION">
+<Product_Collection xmlns="http://pds.nasa.gov/pds4/pds/v1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="$SCHEMA_LOCATION">
     
     <Identification_Area>
         <logical_identifier>$COLLECTION_LID</logical_identifier>
@@ -37,9 +35,9 @@
             </Internal_Reference>
         </Investigation_Area>
         <Observing_System>
-$SKD_SPACECRAFTS
+$SPACECRAFTS
         </Observing_System>
-$SKD_TARGETS
+$TARGETS
     </Context_Area>
     <Reference_List>
         <Internal_Reference>

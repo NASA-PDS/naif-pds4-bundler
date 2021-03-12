@@ -41,7 +41,7 @@
             </Internal_Reference>
         </Investigation_Area>
         <Observing_System>
-$SKD_SPACECRAFTS
+$SPACECRAFTS
         </Observing_System>
     </Context_Area>
     <Document>

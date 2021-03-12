@@ -40,7 +40,7 @@ class TestKernelList(TestCase):
             for line in f:
                 old_file += line
 
-        self.assertEqual(old_file.split('\n')[2:],new_file.split('\n')[2:])
+        self.assertEqual(old_file.split('\n')[9:],new_file.split('\n')[9:])
 
         os.remove('msl_release_26.kernel_list')
 

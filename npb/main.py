@@ -111,7 +111,7 @@ def main(config=False, plan=False, log=False, silent=False, interactive=False):
                                 description=header)
         parser.add_argument('config', metavar='CONFIG', type=str, nargs='+',
                             help='Mission specific configuration file')
-        parser.add_argument('plan', metavar='CONFIG', type=str, nargs='+',
+        parser.add_argument('plan', metavar='PLAN', type=str, nargs='+',
                             help='Release specific plan file')
         parser.add_argument('-l', '--log',
                             help='Write log in file.',
@@ -156,6 +156,7 @@ def main(config=False, plan=False, log=False, silent=False, interactive=False):
     setup.interactive = interact
     setup.today       = datetime.date.today().strftime("%Y%m%d")
 
+
     #
     # -- Setup the logging
     #
@@ -194,14 +195,16 @@ def main(config=False, plan=False, log=False, silent=False, interactive=False):
     #
     # -- Generate the SPICE kernels collection to be populated
     #
-    spice_kernels_collection = SpiceKernelsCollection(setup)
+    spice_kernels_collection = SpiceKernelsCollection(setup, bundle)
 
     #
-    # -- Now we populate the SPICE kernels collection from the kernels
-    #    in the Kernel list
+    # -- Populate the SPICE kernels collection from the kernels in
+    #    the Kernel list
     #
     for kernel in list.kernel_list:
-            spice_kernels_collection.add( SpiceKernelProduct(setup, kernel) )
+            spice_kernels_collection.add(
+                SpiceKernelProduct(setup, kernel, spice_kernels_collection)
+                                        )
 
 
     log.stop()

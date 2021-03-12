@@ -27,16 +27,17 @@ class Collection(object):
 
     def collection_vid(self):
 
-        return '{}.0'.format(int(self.setup.version))
+        return '{}.0'.format(int(self.setup.release))
 
 
 class SpiceKernelsCollection(Collection):
 
-    def __init__(self, setup):
+    def __init__(self, setup, bundle):
 
-        self.type = 'spice_kernels'
-        self.start_time = setup.start
-        self.stop_time = setup.stop
+        self.bundle      = bundle
+        self.type        = 'spice_kernels'
+        self.start_time  = setup.mission_start
+        self.stop_time   = setup.mission_stop
 
         Collection.__init__(self, self.type, setup)
 
@@ -47,9 +48,9 @@ class DocumentCollection(Collection):
 
     def __init__(self, setup):
 
-        if int( str( setup.pds ) ) == 3:
+        if setup.pds == '3':
             self.type = 'DOCUMENT'
-        elif int( str( setup.pds ) ) == 4:
+        elif setup.pds == '4':
             self.type = 'document'
 
         Collection.__init__(self, self.type, setup)

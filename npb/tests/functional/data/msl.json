@@ -2,7 +2,7 @@
   "name": "MSL Configuration File",
   "pds":                   "3",
   "mission_name":          "MSL",
-  "target":                "Mars",
+  "target":                "MARS",
   "spacecraft":            "MSL",
   "secondary_spacecraft":  "",
   "secondary_targets":     "",

@@ -1,6 +1,8 @@
 import os
 
 from npb.utils.files import safe_make_directory
+from npb.utils.files import get_context_products
+
 from npb.classes.product import ReadmeProduct
 
 class Bundle(object):
@@ -9,6 +11,9 @@ class Bundle(object):
 
         self.collections = []
 
+        #
+        # Generate the bundle or data set structure
+        #
         if setup.pds == '3':
 
             safe_make_directory(setup.staging_directory)
@@ -27,9 +32,61 @@ class Bundle(object):
             safe_make_directory(setup.staging_directory + os.sep + 'spice_kernels')
             safe_make_directory(setup.staging_directory + os.sep + 'document')
 
+        #
+        # Assign the Bundle LID and VID and the Internal Reference LID
+        #
         self.setup = setup
         self.vid = self.bundle_vid()
         self.lid = self.bundle_lid()
+
+        self.lid_reference = \
+            f'urn:nasa:pds:context:investigation:mission.{setup.mission_accronym}'
+
+        #
+        #  Get the context products
+        #
+        if setup.pds == '4':
+
+#             self.errata                 = setup.errata
+             self.context_products       = get_context_products(self.setup)
+#             self.producer_name          = setup.producer_name
+#             self.producer_email         = setup.email
+#             self.producer_phone         = setup.phone
+             #self.doi                    = setup.doi
+
+        #else: # PDS3 specific fields
+        #     self.dataset                = config['dataset']
+        #     self.dataset_name           = config['dataset_name']
+        #     self.volume                 = config['volume_id']
+        #
+        # Determine if the Bundle is an increment
+        #
+
+
+        #
+        #             #
+        #             # PDS4 version increment (implies inventory and meta-kernel)
+        #             #
+        #             if self.increment:
+        #                 copy(self.increment + os.sep, self.bundle_directory + os.sep)
+        #
+        #                 versions = glob.glob(self.increment + os.sep +
+        #                                  f'bundle_{self.accronym}_spice_v*')
+        #                 versions.sort()
+        #                 version = int(versions[-1].split('_spice_v')[-1].split('.')[0]) + 1
+        #                 version = '{:03}'.format(version)
+        #
+        #                 current_version = int(versions[-1].split('_spice_v')[-1].split('.')[0])
+        #                 current_version = '{:03}'.format(current_version)
+        #
+        #             else:
+        #                 version = '001'
+        #                 current_version = ''
+        #
+        #             self.version = version
+        #             self.current_version = current_version
+        #
+
 
         return
 

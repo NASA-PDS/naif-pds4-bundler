@@ -36,9 +36,9 @@
             </Internal_Reference>
         </Investigation_Area>
         <Observing_System>
-$SKD_SPACECRAFTS
+$SPACECRAFTS
         </Observing_System>
-$SKD_TARGETS
+$TARGETS
     </Context_Area>
     <Reference_List>
         <Internal_Reference>

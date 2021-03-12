@@ -128,3 +128,10 @@ def fill_template(object, product_file, product_dictionary):
     return
 
 
+def get_context_products(setup):
+
+    registered_context_products_file = f'{setup.root_dir}/config/registered_context_products.json'
+    with open(registered_context_products_file, 'r') as f:
+            context_products = json.load(f)['Product_Context']
+
+    return context_products
