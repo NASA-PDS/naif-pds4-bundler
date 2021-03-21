@@ -76,12 +76,7 @@ class KernelsList(List):
         self.json_config = json_config
 
         json_formatted_str = json.dumps(self.json_config, indent=2)
-        json_formatted_lst = json_formatted_str.split('\n')
-
-        logging.info(f'-- Display {self.setup.mission_name} kernel list configuration file:')
-        for line in json_formatted_lst:
-            logging.info(line)
-        logging.info('')
+        self.json_formatted_lst = json_formatted_str.split('\n')
 
         if self.setup.interactive:
             input(">> Press Enter to continue...")
@@ -262,7 +257,7 @@ class KernelsList(List):
                     #
                     ker_in_list.append(line.split('/')[-1].strip())
 
-                elif ('OPTIONS' in line) and (line.split('=')[-1].strip()):
+                elif ('OPTIONS' in line):
                     num_opti += 1
                     #
                     # We add options to display and compare to template
@@ -277,10 +272,17 @@ class KernelsList(List):
 
             if (num_file != num_opti) or (num_opti != num_desc):
                 error = 'List does not have the same number of entries'
-                logging.error(f'{error} for:')
-                logging.error(f'   FILE             ({num_file})')
-                logging.error(f'   MAKLABEL_OPTIONS ({num_opti})')
-                logging.error(f'   DESCRIPTION      ({num_desc})')
+                logging.critical(f'{error} for:')
+                logging.critical(f'   FILE             ({num_file})')
+                logging.crtical(f'   MAKLABEL_OPTIONS ({num_opti})')
+                logging.critical(f'   DESCRIPTION      ({num_desc})')
+                logging.critical('')
+
+                logging.critical(f'-- Display {self.setup.mission_name} kernel list configuration file to double-check.')
+                for line in self.json_formatted_lst:
+                    logging.info(line)
+                logging.critical('')
+
                 raise Exception(error)
             else:
                 logging.info(f'     PASS with total of {num_file} entries.')
