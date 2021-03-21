@@ -66,7 +66,7 @@ $TARGETS
                 <fields>2</fields>
                 <groups>0</groups>
                 <Field_Delimited>
-                    <name>Member Status</name>
+                    <name>Member_Status</name>
                     <field_number>1</field_number>
                     <data_type>ASCII_String</data_type>
                     <maximum_field_length unit="byte">1</maximum_field_length>
