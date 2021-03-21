@@ -1,10 +1,11 @@
 class Collection(object):
 
-    def __init__(self, type, setup):
+    def __init__(self, type, setup, bundle):
 
         self.product = []
         self.name = type
         self.setup = setup
+        self.bundle = bundle
 
         self.lid = self.collection_lid()
         self.vid = self.collection_vid()
@@ -39,20 +40,27 @@ class SpiceKernelsCollection(Collection):
         self.start_time  = setup.mission_start
         self.stop_time   = setup.mission_stop
 
-        Collection.__init__(self, self.type, setup)
+        Collection.__init__(self, self.type, setup, bundle)
 
+        return
+
+    def validate(self):
+
+        #
+        # Check that every kernel has its label
+        #
         return
 
 
 class DocumentCollection(Collection):
 
-    def __init__(self, setup):
+    def __init__(self, setup, bundle):
 
         if setup.pds == '3':
             self.type = 'DOCUMENT'
         elif setup.pds == '4':
             self.type = 'document'
 
-        Collection.__init__(self, self.type, setup)
+        Collection.__init__(self, self.type, setup, bundle)
 
         return
