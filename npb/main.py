@@ -161,7 +161,7 @@ def main(config=False, plan=False, log=False, silent=False, interactive=False):
     #
     # -- Check the existence of a previous release
     #
-    setup.get_increment()
+    setup.increment = Setup.get_increment(setup)
 
     #
     # -- Generate the kernel list object
