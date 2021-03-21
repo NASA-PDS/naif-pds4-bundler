@@ -20,7 +20,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 def get_version():
 
-    with open('npb/config/version', 'r') as f:
+    with open('version', 'r') as f:
         for line in f:
             version = line
 
