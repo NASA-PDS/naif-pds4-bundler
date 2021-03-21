@@ -1,6 +1,7 @@
 import datetime
 import os
 
+
 def current_time():
 
     time = str(datetime.datetime.now())
@@ -8,6 +9,13 @@ def current_time():
     time = time.split('.')[0]
 
     return time
+
+
+def current_date():
+
+    time = datetime.datetime.now()
+    date = datetime.datetime.strftime(time, '%m %d, %Y')
+    return date
 
 
 def creation_time(path):
@@ -18,6 +26,18 @@ def creation_time(path):
     creation_time = "%s.%03d" % (dt, int(micro) / 1000) + 'Z'
 
     return creation_time
+
+
+def creation_date(path):
+
+    t = os.path.getmtime(path)
+    timestamp = datetime.datetime.fromtimestamp(t)
+    creation_date = datetime.datetime.strftime(timestamp, '%m %dT, %Y')
+
+    #creation_et = spiceypy.utc2et(creation_time[:-1])
+    #creation_date = spiceypy.timout(creation_et, 'Mon DD, YYYY ::UTC', 48)
+
+    return creation_date
 
 
 def PDS3_label_gen_date(file):
