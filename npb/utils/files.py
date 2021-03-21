@@ -29,7 +29,7 @@ def copy(src, dest):
         if e.errno == errno.ENOTDIR:
             shutil.copy(src, dest)
         else:
-            logging.warning('Directory not copied, probably because the increment '
+            logging.warning(f'-- Directory {src.split(os.sep)[-1]} not copied, probably because the increment '
                   'directory exists.\n Error: %s' % e)
 
 
@@ -130,8 +130,109 @@ def fill_template(object, product_file, product_dictionary):
 
 def get_context_products(setup):
 
-    registered_context_products_file = f'{setup.root_dir}/config/registered_context_products.json'
+    registered_context_products_file = f'{setup.root_dir}/etc/registered_context_products.json'
     with open(registered_context_products_file, 'r') as f:
             context_products = json.load(f)['Product_Context']
 
     return context_products
+
+
+def mk2list(mk):
+
+    path_symbol = ''
+    ker_mk_list = []
+    with open(mk, 'r') as f:
+        for line in f:
+
+            if path_symbol:
+                if path_symbol in line:
+
+                    kernel = line.split(path_symbol)[1]
+                    kernel = kernel.strip()
+                    kernel = kernel[:-1]
+                    kernel = kernel.split('/')[-1]
+
+                    ker_mk_list.append(kernel)
+
+            if 'PATH_SYMBOLS' in line.upper():
+                path_symbol = '$' + line.split("'")[1]
+
+    return ker_mk_list
+
+
+def get_latest_kernel(kernel_type, path, pattern, dates=False,
+                      excluded_kernels=False,
+                      mkgen=False):
+    """
+    Returns the name of the latest MK, LSK, FK or SCLK present in the path
+
+    :param kernel_type: Kernel type (lsk, sclk, fk) which also defines the subdirectory name.
+    :type kernel_type: str
+    :param path: Path to the root of the SPICE directory where the kernels are store in a directory named ``type``.
+    :type path: str
+    :param patterns: Patterns to search for that defines the kernel ``type`` file naming scheme.
+    :type patterns: list
+    :return: Name of the latest kernel of ``type`` that matches the naming scheme defined in ``token`` present in the ``path`` directory.
+    :rtype: strÐ
+    :raises:
+       KernelNotFound if no kernel of ``type`` matching the naming scheme
+       defined in ``token is present in the ``path`` directory
+    """
+    kernels = []
+    kernel_path = os.path.join(path, kernel_type)
+
+    #
+    # Get the kernels of type ``type`` from the ``path``/``type`` directory.
+    #
+    kernels_with_path = glob.glob(kernel_path + '/' + pattern)
+
+    #
+    # Include kernels in former_versions if the directory exists except for
+    # meta-kernel generation
+    #
+    if os.path.isdir(kernel_path + '/former_versions') and not mkgen:
+        kernels_with_path += glob.glob(kernel_path + '/former_versions/' + pattern )
+
+
+    for kernel in kernels_with_path:
+        kernels.append(kernel.split('/')[-1])
+
+    #
+    # Put the kernels in order
+    #
+    kernels.sort()
+
+    #
+    # We remove the kernel if it is included in the excluded kernels list
+    #
+    if excluded_kernels:
+        for excluded_kernel in excluded_kernels:
+            for kernel in kernels:
+                if excluded_kernel.split('*')[0] in kernel:
+                    kernels.remove(kernel)
+
+    if not dates:
+        #
+        # Return the latest kernel
+        #
+        try:
+            return kernels.pop()
+        except:
+            logging.warning('No kernels found with pattern {}'.format(pattern))
+            return []
+    else:
+        #
+        # Return all the kernels with a given date
+        #
+        previous_kernel = ''
+        kernels_date = []
+        for kernel in kernels:
+            if previous_kernel \
+                    and re.split('_V\d\d', previous_kernel.upper())[0] == re.split('_V\d\d', kernel.upper())[0]\
+                    or re.split('_V\d\d\d', previous_kernel.upper())[0] == re.split('_V\d\d\d', kernel.upper())[0]:
+                kernels_date.remove(previous_kernel)
+
+            previous_kernel = kernel
+            kernels_date.append(kernel)
+
+        return kernels_date
