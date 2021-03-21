@@ -1013,7 +1013,7 @@ class ReadmeProduct(Product):
                     if '$UNDERLINE' in line:
                         line = line.replace('$UNDERLINE', '='*line_length)
 
-                    line_length = len(line)
+                    line_length = len(line)-1
                     line        = add_carriage_return(line)
 
 

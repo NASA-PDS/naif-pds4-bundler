@@ -157,6 +157,12 @@ def main(config=False, plan=False, log=False, silent=False, interactive=False):
     #
     log.start()
 
+
+    #
+    # -- Check the existence of a previous release
+    #
+    setup.get_increment()
+
     #
     # -- Generate the kernel list object
     #
