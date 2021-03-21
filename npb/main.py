@@ -61,23 +61,21 @@ optional arguments:
   -i, --interactive  Activate interactive execution
 
 """
-
-
-import datetime
-import json
-import os
-
-from types import SimpleNamespace
 from textwrap import dedent
 
 from os.path import dirname
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 
+from .classes.setup      import Setup
 from .classes.log        import Log
 from .classes.list       import KernelsList
 from .classes.bundle     import Bundle
 from .classes.collection import SpiceKernelsCollection
 from .classes.product    import SpiceKernelProduct
+from .classes.product    import MetaKernelProduct
+from .classes.product    import InventoryProduct
+from .classes.collection import DocumentCollection
+from .classes.product    import SpicedsProduct
 
 
 def main(config=False, plan=False, log=False, silent=False, interactive=False):
@@ -88,7 +86,7 @@ def main(config=False, plan=False, log=False, silent=False, interactive=False):
     generation pipeline. This execution can be interactive or not.
     """
 
-    with open(dirname(__file__) + '/config/version',
+    with open(dirname(__file__) + '/../version',
               'r') as f:
         for line in f:
             version = line
@@ -143,19 +141,7 @@ def main(config=False, plan=False, log=False, silent=False, interactive=False):
     #    * Parse JSON into an object with attributes corresponding
     #      to dict keys.
     #
-    with open(config, 'r') as file:
-        f = file.read().replace('\n', '')
-    setup = json.loads(f, object_hook=lambda d: SimpleNamespace(**d))
-    setup.root_dir = os.path.dirname(__file__)
-
-    #
-    #    *  Populate the setup object with attributes beyond the
-    #       configuration file.
-    #
-    setup.version     = version
-    setup.interactive = interact
-    setup.today       = datetime.date.today().strftime("%Y%m%d")
-
+    setup = Setup(config, version, interact).setup
 
     #
     # -- Setup the logging
@@ -181,19 +167,23 @@ def main(config=False, plan=False, log=False, silent=False, interactive=False):
 
     #
     #    * Escape if the sole purpose of the execution is to generate
-    #      the kernel list
+    #      the kernel list.
     #
     if setup.faucet == 'list':
         log.stop()
         return
 
     #
-    # -- Generate the bundle or data set structure
+    # -- Generate the bundle or data set structure.
     #
     bundle = Bundle(setup)
 
     #
-    # -- Generate the SPICE kernels collection to be populated
+    # -- Prepare the staging area with the relevant information from the
+    #    previous release (do not copy kernels).
+    #
+
+    #
     #
     spice_kernels_collection = SpiceKernelsCollection(setup, bundle)
 
@@ -202,9 +192,71 @@ def main(config=False, plan=False, log=False, silent=False, interactive=False):
     #    the Kernel list
     #
     for kernel in list.kernel_list:
-            spice_kernels_collection.add(
-                SpiceKernelProduct(setup, kernel, spice_kernels_collection)
-                                        )
+            if not '.tm' in kernel:
+                spice_kernels_collection.add(
+                SpiceKernelProduct(setup, kernel, spice_kernels_collection))
+
+            #
+            # -- Generate the meta-kernel(s)
+            #
+            else:
+
+                spice_kernels_collection.add(
+                    MetaKernelProduct(setup, kernel, spice_kernels_collection))
+
+    #
+    # -- Validate the SPICE Kernels collection:
+    #
+    #    * Check that there is a XML label for each file under spice_kernels.
+    #      That is, we are validating the spice_kernel_collection.
+    #
+    #    * Check that all labels are within the correct time bounds.
+    #
+    #spice_kernels_collection.validate()
+
+    #
+    # -- Generate the SPICE kernels collection inventory product.
+    #
+    InventoryProduct(setup, spice_kernels_collection)
+
+
+    #
+    # -- Generate the document collection
+    #
+    document_collection = DocumentCollection(setup, bundle)
+
+
+    #
+    # -- Generation of SPICEDS document
+    #
+    if setup.pds == '4':
+
+        spiceds = SpicedsProduct(setup, document_collection)
+
+        #
+        # -- If the SPICEDS document is generated then the document
+        #    collection needs to be updated.
+        #
+        if spiceds.generated:
+            document_collection.add(spiceds)
+
+            #
+            # -- Generation of the documents inventory
+            #
+            InventoryProduct(setup, document_collection)
+
+        #
+        # -- Add Collections to the Bundle
+        #
+        bundle.add(spice_kernels_collection)
+        if spiceds.generated:
+            bundle.add(document_collection)
+
+        #
+        # -- Generate bundle label and if necessary readme file.
+        #
+        bundle.write_readme()
+
 
 
     log.stop()
