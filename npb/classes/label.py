@@ -217,6 +217,7 @@ class PDSLabel(object):
                 f.write(line)
 
         logging.info(f'-- Created {label_name}')
+        logging.info('')
 
         return
     
@@ -353,7 +354,9 @@ class InventoryPDS4Label(PDSLabel):
         self.FILE_NAME = inventory.name
 
         # Count number of lines in the inventory file
-        self.N_RECORDS = str(len(open(self.product.path).readlines()))
+        f = open(self.product.path)
+        self.N_RECORDS = str(len(f.readlines()))
+        f.close()
 
         self.name = collection.name.split('.')[0] + '.xml'
 
