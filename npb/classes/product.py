@@ -6,6 +6,8 @@ import difflib
 import fileinput
 import spiceypy
 
+import numpy as np
+
 from npb.classes.label import SpiceKernelPDS4Label
 from npb.classes.label import MetaKernelPDS4Label
 from npb.classes.label import InventoryPDS4Label
@@ -106,15 +108,21 @@ class SpiceKernelProduct(Product):
         #
         # We copy the kernel to the staging directory.
         #
+        logging.info(f'-- Copying  {self.name} to staging directory.')
         if not os.path.isfile(product_path + self.name):
             try:
                 shutil.copy2(self.path + os.sep + self.name,
                              product_path + os.sep + self.name)
                 self.new_product = True
+                logging.info(f'     Copied {self.name}')
             except:
                 error_message(f'{self.name} not present in {self.path}')
         else:
-            logging.error('{} already present in staging directory'.format(self.name))
+            logging.error('     {} already present in final directory'.format(self.name))
+
+            if self.setup.interactive:
+                input(">> Press Enter to continue...")
+
             self.new_product = False
             return
 
@@ -129,6 +137,7 @@ class SpiceKernelProduct(Product):
         #
         # The kernel is labeled.
         #
+        logging.info(f'-- Labeling {self.name}')
         self.label = SpiceKernelPDS4Label(setup, self)
 
 
@@ -438,6 +447,9 @@ class MetaKernelProduct(Product):
         :param spice_kernels_collection:
         :param product: We can input a meta-kernel such that the meta-kernel does not have to be generated
         '''
+
+        logging.info(f'-- Generating meta-kernel: {kernel}')
+
         self.new_product = True
         self.template = setup.root_dir + f'/config/{setup.mission_accronym}_metakernel.tm'
         self.path = self.template
@@ -472,8 +484,7 @@ class MetaKernelProduct(Product):
 
         self.PDS4_MISSION_NAME = self.setup.mission_name
 
-        # TODO: Update format
-        self.CURRENT_DATE = current_time().split('T')[0]
+        self.CURRENT_DATE = current_date()
 
         #
         # Generate the meta-kernel directory if not present
@@ -514,6 +525,8 @@ class MetaKernelProduct(Product):
         Product.__init__(self)
 
         if self.setup.pds == '4':
+            logging.info('')
+            logging.info(f'-- Labeling meta-kernel: {kernel}')
             self.label = MetaKernelPDS4Label(setup, self)
 
         return
@@ -585,6 +598,7 @@ class MetaKernelProduct(Product):
                     excluded_kernels.append(
                             kernel_grammar.split('exclude:')[-1])
 
+            logging.info(f'-- Matching {kernel_type} with meta-kernel grammar.')
             for kernel_grammar in kernel_grammar_list:
 
                 if 'date:' in kernel_grammar:
@@ -631,13 +645,28 @@ class MetaKernelProduct(Product):
         # Subset the SPICE kernels collection with the kernels in the MK
         # only.
         #
-        collection_metakernel = []
+        collection_metakernel     = []
+        collection_not_metakernel = []
         for spice_kernel in self.collection.product:
             for name in mkgen_kernels:
                 if spice_kernel.name in name:
                     collection_metakernel.append(spice_kernel)
 
         self.collection_metakernel = collection_metakernel
+
+        #
+        # Report kernels  present in meta-kernel
+        #
+        logging.info(f'-- Archived kernels present in meta-kernel')
+        for kernel in collection_metakernel:
+            logging.info(f'     {kernel.name}')
+        logging.info('')
+
+        num_ker_total = len(self.collection.product)
+        num_ker_mk    = len(collection_metakernel)
+
+        logging.warning(f'-- Archived kernels:           {num_ker_total}')
+        logging.warning(f'-- Kernels in meta-kernel:     {num_ker_mk}')
 
         #
         # The kernel list for the new mk is formatted accordingly
@@ -682,15 +711,40 @@ class InventoryProduct(Product):
 
     def __init__(self, setup, collection):
 
+
+        line = f'Step {setup.step} - Generation of {collection.name} collection'
+        logging.info(line)
+        logging.info('-'*len(line))
+        logging.info('')
+        setup.step += 1
+
         self.setup = setup
         self.collection = collection
+
+
 
         if setup.pds == '3':
             self.path = setup.final_directory + os.sep + 'INDEX' \
                         + os.sep + 'INDEX.TAB'
 
         elif setup.pds == '4':
-            self.name = f'collection_{collection.name}_inventory_v{setup.release}.csv'
+
+            #
+            # Determine the inventory version
+            #
+            if self.setup.increment:
+                inventory_files = glob.glob(self.setup.final_directory + \
+                                            f'/{self.setup.mission_accronym}_spice/' + \
+                                            os.sep + collection.name + os.sep +  \
+                                            f'collection_{collection.name}_inventory_v*.csv')
+                inventory_files.sort()
+                latest_file = inventory_files[-1]
+                latest_version = latest_file.split('_v')[-1].split('.')[0]
+                self.version = int(latest_version) + 1
+            else:
+                self.version = 1
+
+            self.name = f'collection_{collection.name}_inventory_v{self.version:03}.csv'
             self.path = setup.staging_directory + os.sep + collection.name \
                         + os.sep + self.name
             self.path_current = setup.working_directory + os.sep + collection.name \
@@ -725,7 +779,7 @@ class InventoryProduct(Product):
 
     def product_vid(self):
 
-        return '{}.0'.format(int(self.setup.release))
+        return '{}.0'.format(int(self.version))
 
 
     def write_product(self):
@@ -741,8 +795,9 @@ class InventoryProduct(Product):
                 # the previous version as SECONDARY members
                 #
                 if self.setup.increment:
-                    prev_collection_path = self.path_current.replace(self.setup.release+'.csv',
-                                                                     self.setup.current_release+'.csv')
+                    prev_collection_path = self.setup.final_directory + os.sep + self.setup.mission_accronym + \
+                                           '_spice/' + self.collection.name + os.sep + \
+                                           self.name.replace(str(self.version), str(self.version-1))
                     with open(prev_collection_path, "r") as r:
                         for line in r:
                             if 'P,urn' in line:
@@ -813,8 +868,8 @@ class InventoryProduct(Product):
                                             file.split('.')[0] + '.LBL"'
                         new_kernel_element = '"' + file + '"'
 
-                        generation_date = PDS3_label_gen_date(
-                            data_files + '/' + file.split('.')[0] + '.LBL')
+#                        generation_date = PDS3_label_gen_date(
+#                            data_files + '/' + file.split('.')[0] + '.LBL')
                         if not 'T' in generation_date:
                             generation_date = generation_date   # + '         '
                         # See above remark about DVal message.
@@ -875,7 +930,9 @@ class SpicedsProduct(object):
         #
         # - Obtain the previous spiceds file if it exists
         #
-        path = setup.final_directory + os.sep + collection.name
+        path = setup.final_directory + os.sep + \
+               setup.mission_accronym + '_spice' + os.sep + \
+                collection.name
         if self.setup.increment:
             spiceds_files = glob.glob(path + os.sep + 'spiceds_v*.html')
             spiceds_files.sort()
@@ -980,20 +1037,38 @@ class ReadmeProduct(Product):
 
     def __init__(self, setup, bundle):
 
+        logging.info('')
+        logging.info(f'Step {setup.step} - Generating bundle products')
+        logging.info('-----------------------------------')
+        logging.info('')
+        setup.step += 1
+
         self.name = 'readme.txt'
         self.bundle = bundle
         self.path = setup.staging_directory + os.sep + self.name
         self.setup = setup
         self.vid = bundle.vid
 
+        logging.info('-- Generating readme file')
         self.write_product()
         Product.__init__(self)
+
+        try:
+            os.path.exists(self.setup.final_directory +
+                           f'/{self.setup.mission_accronym}_spice/readme.txt')
+            logging.info('-- Readme file already exists in final; file is removed from staging.')
+            os.remove(self.path)
+        except:
+            pass
+
+        logging.info('')
 
         #
         # Now we change the path for the difference of the name in the label
         #
         self.path = setup.staging_directory + os.sep + bundle.name
 
+        logging.info('-- Generating bundle label.')
         self.label = BundlePDS4Label(setup, self)
 
         return
