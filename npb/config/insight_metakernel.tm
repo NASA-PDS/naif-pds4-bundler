@@ -1,14 +1,14 @@
 KPL/MK
 
-   This meta-kernel lists the $SPICE_NAME SPICE kernels providing coverage
+   This meta-kernel lists the INSIGHT SPICE kernels providing coverage
    for the whole mission. All of the kernels listed below are archived
-   in the PDS $PDS4_MISSION_NAME SPICE kernel archive. This set of files and the
+   in the PDS INSIGHT SPICE kernel archive. This set of files and the
    order in which they are listed were picked to provide the best
    available data and the most complete coverage for the specified year
    based on the information about the kernels available at the time
    this meta-kernel was made. For detailed information about the
    kernels listed below refer to the internal comments included in the
-   kernels and the documentation accompanying the $SPICE_NAME SPICE kernel
+   kernels and the documentation accompanying the INSIGHT SPICE kernel
    archive.
 
    This meta-kernel also includes keywords setting the SPICE CHRONOS
@@ -17,7 +17,7 @@ KPL/MK
 
    It is recommended that users make a local copy of this file and
    modify the value of the PATH_VALUES keyword to point to the actual
-   location of the $SPICE_NAME SPICE kernel archives' ``spice_kernels''
+   location of the INSIGHT SPICE kernel archives' ``spice_kernels''
    directory on their system. Replacing ``/'' with ``\'' and converting
    line terminators to the format native to the user's system may also
    be required if this meta-kernel is to be used on a non-UNIX
