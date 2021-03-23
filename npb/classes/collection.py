@@ -1,3 +1,8 @@
+import os
+import logging
+
+from npb.classes.log   import error_message
+
 class Collection(object):
 
     def __init__(self, type, setup, bundle):
@@ -35,6 +40,11 @@ class SpiceKernelsCollection(Collection):
 
     def __init__(self, setup, bundle):
 
+        logging.info(f'Step {setup.step} - SPICE kernel collection/data processing')
+        logging.info('------------------------------------------------')
+        logging.info('')
+        setup.step += 1
+
         self.bundle      = bundle
         self.type        = 'spice_kernels'
         self.start_time  = setup.mission_start
@@ -46,9 +56,26 @@ class SpiceKernelsCollection(Collection):
 
     def validate(self):
 
+        logging.info(f'Step {self.setup.step} - Validating SPICE kernel collection generation')
+        logging.info('-------------------------------------------------------')
+        logging.info('')
+        self.setup.step += 1
+
         #
-        # Check that every kernel has its label
+        # Check that all the kernels have been labeled.
         #
+        logging.info('-- Checking that all the kernels have been labeled.')
+        logging.info('')
+
+        for product in self.product:
+            try:
+                os.path.exists(self.setup.staging_directory + '/spice_kernels/' + product.type + os.sep + product.name)
+                os.path.exists(self.setup.staging_directory + '/spice_kernels/' + product.type + os.sep + product.name.split('.')[0] + '.xml')
+            except:
+                error_message(f'-- {product.name} has not been labeled.')
+
+
+
         return
 
 
