@@ -37,6 +37,8 @@ def safe_make_directory(i):
     '''Makes a folder if not present'''
     try:  
         os.mkdir(i)
+        logging.info(f'-- Generated directory: {i}  ')
+        logging.info('')
     except:
         pass
 
@@ -218,7 +220,7 @@ def get_latest_kernel(kernel_type, path, pattern, dates=False,
         try:
             return kernels.pop()
         except:
-            logging.warning('No kernels found with pattern {}'.format(pattern))
+            logging.warning('     No kernels found with pattern {}'.format(pattern))
             return []
     else:
         #
