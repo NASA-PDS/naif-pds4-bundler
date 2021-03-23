@@ -10,6 +10,6 @@ class TestConsole(TestCase):
         config = 'data/insight.json'
         plan   = 'data/insight_release_26.plan'
 
-        main(config,plan,silent=True)
+        main(config,plan, silent=True, log=True)
 
 
