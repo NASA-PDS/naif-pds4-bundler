@@ -172,6 +172,24 @@ def main(config=False, plan=False, log=False, silent=False, interactive=False):
     list = KernelsList(setup, plan)
 
     #
+    # -- Validate the Kernel List:
+    #
+    #    * To check that the list has the same number of FILE,
+    #      MAKLABEL_OPTIONS and DESCRIPTION entries.
+    #
+    #    * To check list against plan
+    #
+    #    * To check that list for duplicate files
+    #
+    #    * To check that all files listed in the list are on the ops directory
+    #
+    #    * To check that the files are not in the archive
+    #
+    #    * To check all the MAKLABL_OPTIONS used
+    #
+    list.validate()
+
+    #
     #    * Escape if the sole purpose of the execution is to generate
     #      the kernel list.
     #
@@ -185,11 +203,7 @@ def main(config=False, plan=False, log=False, silent=False, interactive=False):
     bundle = Bundle(setup)
 
     #
-    # -- Prepare the staging area with the relevant information from the
-    #    previous release (do not copy kernels).
-    #
-
-    #
+    # -- Initialise the SPICE kernels collection.
     #
     spice_kernels_collection = SpiceKernelsCollection(setup, bundle)
 
@@ -206,7 +220,6 @@ def main(config=False, plan=False, log=False, silent=False, interactive=False):
             # -- Generate the meta-kernel(s)
             #
             else:
-
                 spice_kernels_collection.add(
                     MetaKernelProduct(setup, kernel, spice_kernels_collection))
 
@@ -216,21 +229,17 @@ def main(config=False, plan=False, log=False, silent=False, interactive=False):
     #    * Check that there is a XML label for each file under spice_kernels.
     #      That is, we are validating the spice_kernel_collection.
     #
-    #    * Check that all labels are within the correct time bounds.
-    #
-    #spice_kernels_collection.validate()
+    spice_kernels_collection.validate()
 
     #
     # -- Generate the SPICE kernels collection inventory product.
     #
     InventoryProduct(setup, spice_kernels_collection)
 
-
     #
     # -- Generate the document collection
     #
     document_collection = DocumentCollection(setup, bundle)
-
 
     #
     # -- Generation of SPICEDS document
@@ -263,7 +272,13 @@ def main(config=False, plan=False, log=False, silent=False, interactive=False):
         #
         bundle.write_readme()
 
-
+        #
+        # -- Stop the pipeline if you do not want to move the files from the
+        #    staging area.
+        #
+        if setup.faucet == 'staging':
+            log.stop()
+            return
 
     log.stop()
     return
