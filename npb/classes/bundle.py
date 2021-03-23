@@ -14,6 +14,14 @@ class Bundle(object):
 
     def __init__(self, setup):
 
+
+        logging.info(f'Step {setup.step} - Bundle/data set structure generation')
+        logging.info('---------------------------------------------')
+        logging.info('')
+        logging.info('-- Directory structure generation occurs if reported.')
+        logging.info('')
+        setup.step += 1
+
         self.collections = []
 
         #
@@ -37,26 +45,27 @@ class Bundle(object):
             safe_make_directory(setup.staging_directory + os.sep + 'spice_kernels')
             safe_make_directory(setup.staging_directory + os.sep + 'document')
 
-        #
-        # Assign the Bundle LID and VID and the Internal Reference LID
-        #
+
         self.setup = setup
-        self.vid = self.bundle_vid()
-        self.lid = self.bundle_lid()
 
-        self.lid_reference = \
-            f'urn:nasa:pds:context:investigation:mission.{setup.mission_accronym}'
 
-        #
-        #  Get the context products.
-        #
         if setup.pds == '4':
 
-            self.context_products       = get_context_products(self.setup)
+            #
+            # Assign the Bundle LID and VID and the Internal Reference LID
+            #
+            self.vid = self.bundle_vid()
+            self.lid = self.bundle_lid()
 
-        #
-        # Determine the archive release number
-        #
+            self.lid_reference = \
+                f'urn:nasa:pds:context:investigation:mission.{setup.mission_accronym}'
+
+            #
+            #  Get the context products.
+            #
+            self.context_products = get_context_products(self.setup)
+
+        logging.info('')
 
         return
 
@@ -66,7 +75,12 @@ class Bundle(object):
 
 
     def write_readme(self):
+        #
+        # Write the readme product if it does not exist.
+        #
         ReadmeProduct(self.setup, self)
+
+        return
 
 
     def bundle_vid(self):
