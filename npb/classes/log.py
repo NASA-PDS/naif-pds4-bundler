@@ -1,4 +1,5 @@
 import os
+import shutil
 import socket
 import logging
 import datetime
@@ -21,14 +22,16 @@ class Log(object):
             logger.addHandler(ch)
 
         if log_file:
-            log_file = setup.log_dir + os.sep + \
-                       f'npd_{self.setup.mission_accronym}_{self.setup.today}.log'
+            log_file = setup.working_directory + os.sep + \
+                       f'{self.setup.mission_accronym}_release_temp.log'
 
             fh = logging.FileHandler(log_file)
             fh.setLevel(logging.INFO)
             formatter = logging.Formatter(log_format)
             fh.setFormatter(formatter)
             logger.addHandler(fh)
+
+            self.log_file = log_file
 
 
     def start(self):
@@ -49,6 +52,12 @@ class Log(object):
                      f'{str(datetime.datetime.now())[:-7]}')
         logging.info('')
         logging.info('End of log.')
+
+        #
+        # We rename the log file according to the version
+        #
+        shutil.move(self.log_file, self.log_file.replace('temp', self.setup.release))
+
 
         return
 
