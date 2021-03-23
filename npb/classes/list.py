@@ -28,6 +28,11 @@ class KernelsList(List):
 
     def __init__(self, setup, plan):
 
+        logging.info(f'Step {setup.step} - Kernel List generation')
+        logging.info('-------------------------------')
+        logging.info('')
+        setup.step += 1
+
         List.__init__(self, setup)
 
         #
@@ -46,8 +51,6 @@ class KernelsList(List):
         self.read_config()
         self.kernel_list = self.read_plan(plan)
         self.write_kernel_list()
-
-        self.validate()
 
         return
     
@@ -132,7 +135,8 @@ class KernelsList(List):
 
         list_dictionary = vars(self)
 
-        fill_template(self, list_name, list_dictionary)
+        fill_template(self, self.setup.working_directory + os.sep +
+                  list_name, list_dictionary)
 
         with open(self.setup.working_directory + os.sep +
                   list_name, "a+") as f:
@@ -213,18 +217,20 @@ class KernelsList(List):
 
     # ------------------------------------------------------------------------
     #
-    # Validation of the list is perfomed such that:
+    # Validation of the list is performed such that:
     #
-    # To check that the list has the same number of FILE, MAKLABEL_OPTIONS,
-    # and DESCRIPTION entries.
+    # -- To check that the list has the same number of FILE, MAKLABEL_OPTIONS,
+    #    and DESCRIPTION entries.
     #
-    # To check list against plan
+    # -- To check list against plan
     #
-    # To check that list for duplicate files
+    # -- To check that list for duplicate files
     #
-    # To check that all files listed in the list are on the ops directory
+    # -- To check that all files listed in the list are on the ops directory
     #
-    # To check all the MAKLABL_OPTIONS used
+    # -- To check that the files are not in the archive
+    #
+    # -- To check all the MAKLABL_OPTIONS used
     #
     # -----------------------------------------------------------------------
     def validate(self):
@@ -238,8 +244,7 @@ class KernelsList(List):
         ker_in_list = []
         opt_in_list = []
 
-        with open(self.list_name, 'r') as l:
-
+        with open(self.setup.working_directory + os.sep + self.list_name, 'r') as l:
 
             #
             # Check that the list has the same number of FILE, MAKLABEL_OPTIONS,
@@ -314,7 +319,7 @@ class KernelsList(List):
             # Check that all files listed are available in OPS area;
             # This does not raise an error but only a warning.
             #
-            logging.info(f'-- Checking that are present in {self.setup.kernel_directory}:')
+            logging.info(f'-- Checking that kernels are present in {self.setup.kernel_directory}:')
             for ker in ker_in_list:
                 if not os.path.isfile(self.setup.kernel_directory + os.sep +
                                       extension2type(ker) + os.sep + ker):
@@ -322,6 +327,24 @@ class KernelsList(List):
                     logging.warning(f'     {ker} not present.')
             if not present:
                 logging.info('     All kernels present in directory.')
+            logging.info('')
+
+            if self.setup.interactive:
+                input(">> Press Enter to continue...")
+
+
+            #
+            # Check that no file is in the final area.
+            #
+            logging.info(f'-- Checking that kernels are present in {self.setup.final_directory}:')
+            for ker in ker_in_list:
+                if os.path.isfile(self.setup.final_directory + \
+                                      f'/{self.setup.mission_accronym}_spice/spice_kernels/' + \
+                                      extension2type(ker) + os.sep + ker):
+                    present = True
+                    logging.error(f'     {ker} present.')
+            if not present:
+                logging.info('     No kernels present in final area.')
             logging.info('')
 
             if self.setup.interactive:
