@@ -1,4 +1,5 @@
 import datetime
+import calendar
 import os
 
 
@@ -15,6 +16,8 @@ def current_date():
 
     time = datetime.datetime.now()
     date = datetime.datetime.strftime(time, '%m %d, %Y')
+
+    date = calendar.month_name[int(date[0:2])] + date[2:]
     return date
 
 
