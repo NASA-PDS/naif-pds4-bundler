@@ -1,6 +1,7 @@
 import fileinput
 import datetime
 import logging
+import glob
 import json
 import re
 import os
@@ -131,7 +132,7 @@ class KernelsList(List):
     #
     def write_kernel_list(self):
 
-        list_name = f'{self.setup.mission_accronym}_release_{self.setup.release}.kernel_list'
+        list_name = f'{self.setup.mission_accronym}_release_{int(self.setup.release):02d}.kernel_list'
 
         list_dictionary = vars(self)
 
@@ -231,6 +232,8 @@ class KernelsList(List):
     # -- To check that the files are not in the archive
     #
     # -- To check all the MAKLABL_OPTIONS used
+    #
+    # -- To check that the complete kernel list has no duplicates
     #
     # -----------------------------------------------------------------------
     def validate(self):
@@ -385,5 +388,36 @@ class KernelsList(List):
 
                 if self.setup.interactive:
                     input(">> Press Enter to continue...")
+
+
+            #
+            # Check complete list for duplicate entries
+            #
+            logging.info('-- Checking for duplicates in complete kernel list:')
+
+            kernel_lists = glob.glob(self.setup.working_directory + os.sep + \
+                                     f'{self.setup.mission_accronym}_release*.kernel_list')
+
+            ker_in_list = []
+            for kernel_list in kernel_lists:
+
+                with open(kernel_list, 'r') as l:
+
+                    #
+                    # Check that the list has the same number of FILE, MAKLABEL_OPTIONS,
+                    # and DESCRIPTION entries
+                    #
+                    logging.info(f'     Adding {kernel_list} in check.')
+
+                    for line in l:
+                        if ('FILE' in line) and (line.split('=')[-1].strip()):
+                            ker_in_list.append(line.split('/')[-1].strip())
+
+            if check_list_duplicates(ker_in_list):
+                error_message('Complete list contains duplicates.')
+            else:
+                logging.info(f'     Complete list contains no duplicates.')
+            logging.info('')
+
 
         return
