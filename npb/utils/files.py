@@ -7,6 +7,7 @@ import glob
 import re
 import logging
 import json
+import platform
 
 from os import listdir
 from os.path import isfile, join, dirname
@@ -238,3 +239,14 @@ def get_latest_kernel(kernel_type, path, pattern, dates=False,
             kernels_date.append(kernel)
 
         return kernels_date
+
+
+def get_exe_dir():
+
+    if platform.system() == 'Darwin':
+        if platform.machine() == 'x86_64':
+            executables_dir = '/exe/macintel_osx_64bit'
+    else:
+        executables_dir = '/exe/pc_linux_64bit'
+
+    return executables_dir
