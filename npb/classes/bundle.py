@@ -30,11 +30,11 @@ class Bundle(object):
         if setup.pds == '3':
 
             safe_make_directory(setup.staging_directory)
-            safe_make_directory(setup.staging_directory + os.sep + 'CATALOG')
-            safe_make_directory(setup.staging_directory + os.sep + 'DATA')
-            safe_make_directory(setup.staging_directory + os.sep + 'DOCUMENT')
-            safe_make_directory(setup.staging_directory + os.sep + 'EXTRAS')
-            safe_make_directory(setup.staging_directory + os.sep + 'INDEX')
+            safe_make_directory(setup.staging_directory + os.sep + 'catalog')
+            safe_make_directory(setup.staging_directory + os.sep + 'data')
+            safe_make_directory(setup.staging_directory + os.sep + 'document')
+            safe_make_directory(setup.staging_directory + os.sep + 'extras')
+            safe_make_directory(setup.staging_directory + os.sep + 'index')
 
         elif setup.pds == '4':
 
