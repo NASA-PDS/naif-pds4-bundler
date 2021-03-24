@@ -1,5 +1,9 @@
 import fileinput
 import logging
+import difflib
+import glob
+import os
+import sys
 
 from npb.utils.time import current_time
 from npb.utils.files import add_carriage_return
@@ -110,6 +114,7 @@ class PDSLabel(object):
 
         return
 
+
     def get_spacecrafts(self):
 
         sc = ['{}'.format(self.setup.spacecraft)]
@@ -204,6 +209,9 @@ class PDSLabel(object):
 
         label_name = self.product.path.split('.')[0] + label_extension
 
+        if 'inventory' in label_name:
+            label_name = label_name.replace('inventory_','')
+
         with open(label_name, "w+") as f:
 
             for line in fileinput.input(self.template):
@@ -216,11 +224,116 @@ class PDSLabel(object):
 
                 f.write(line)
 
+        self.name = label_name
+
         logging.info(f'-- Created {label_name}')
-        logging.info('')
+
+        self.validate()
 
         return
-    
+
+
+    def validate(self):
+        '''
+        The label is validated by comparing it to a similar label from the
+        previous release of the archive.
+
+        For new archives a 'similar' archive is used.
+        :return:
+        '''
+
+        logging.info(f'-- Validating  {self.name}')
+        logging.info('')
+
+        #
+        # 1-Look for a different version of the same file.
+        #
+        # What we do is that we keep trying to match the label name
+        # advancing one character each iteration, in such a way that
+        # we find, in order, the label that has the closest name to the
+        # one we are generating.
+        #
+        val_label = ''
+        try:
+
+            match_flag = True
+            val_label_path = self.setup.final_directory + \
+                             f'/{self.setup.mission_accronym}_spice/' + \
+                             self.product.collection.name + os.sep
+
+            #
+            # If this is the spice_kernels collection, we need to add the
+            # kernel type directory.
+            #
+
+            if (self.product.collection.name == 'spice_kernels') and  ('collection' not in self.name):
+                val_label_path += self.name.split(os.sep)[-2] + os.sep
+
+            val_label_name = self.name.split(os.sep)[-1]
+            i = 1
+
+            while match_flag:
+                if i < len(val_label_name)-1:
+                    val_labels = glob.glob(val_label_path + val_label_name[0:i] + '*.xml')
+                    if val_labels:
+                        val_labels = sorted(val_labels)
+                        val_label = val_labels[-1]
+                        match_flag = True
+                    else:
+                        match_flag = False
+                    i += 1
+
+        except:
+            pass
+
+        #
+        # 2-If a prior version of the same file cannot be found look for
+        #   the label of a kernel of the same type.
+        #
+
+        #
+        # 3-If we cannot find a kernel of the same type; for example is a
+        #   first version of an archvie, we compare with an example
+        #    label.
+        #
+
+
+        #
+        # If a similar label has been found the labels are compared and a
+        # diff is being shown in the log. On top of that an HTML file with
+        # the comparison is being generated.
+        #
+        if val_label:
+
+            fromfile = val_label
+            tofile   = self.name
+
+            with open(fromfile) as ff:
+                fromlines = ff.readlines()
+            with open(tofile) as tf:
+                tolines = tf.readlines()
+
+            logging.info(f'     Comparing {fromfile.split(os.sep)[-1]} with {tofile.split(os.sep)[-1]}')
+
+            diff = difflib.Differ()
+            diff_list = list(diff.compare(fromlines, tolines))
+            for line in diff_list:
+                if (line[0] == '+') or (line[0] == '-') or (line[0] == '?'):
+                    logging.info(line[:-1])
+            logging.info('')
+
+            diff = difflib.HtmlDiff().make_file(fromlines, tolines, fromfile, tofile, context=False, numlines=False)
+            diff_html = open(self.setup.working_directory + \
+                             f"/diff_{fromfile.split(os.sep)[-1].split('.')[0]}_{tofile.split(os.sep)[-1].split('.')[0]}.html", "w")
+            diff_html.writelines(diff)
+            diff_html.close()
+
+        logging.info('')
+        if self.setup.interactive:
+            input(">> Press enter to continue...")
+
+        return
+
 
 class BundlePDS4Label(PDSLabel):
 
@@ -364,27 +477,9 @@ class InventoryPDS4Label(PDSLabel):
 
         return
 
+
     def get_target_reference_type(self):
         return "collection_to_target"
-
-    def write_label(self):
-
-        label_dictionary = vars(self)
-        label_name = self.product.path.split('_inventory')[0] + self.product.path.split('_inventory')[-1].split('.')[0] + '.xml'
-
-        with open(label_name, "w+") as f:
-
-            for line in fileinput.input(self.template):
-                line = line.rstrip()
-                for key, value in label_dictionary.items():
-                    if isinstance(value, str) and key in line and '$' in line:
-                        line = line.replace('$'+key, value)
-
-                line = add_carriage_return(line)
-
-                f.write(line)
-
-        return
 
 
 class InventoryPDS3Label(PDSLabel):
@@ -440,6 +535,8 @@ class InventoryPDS3Label(PDSLabel):
                     f.write('END_OBJECT               = COLUMN\n')
                 else:
                     f.write(line)
+
+        self.name = 'INDEX.LBL'
 
         return
 
