@@ -646,7 +646,6 @@ class MetaKernelProduct(Product):
         # only.
         #
         collection_metakernel     = []
-        collection_not_metakernel = []
         for spice_kernel in self.collection.product:
             for name in mkgen_kernels:
                 if spice_kernel.name in name:
@@ -705,7 +704,26 @@ class MetaKernelProduct(Product):
                 f.write(line + '\n')
 
         return
-    
+
+    def validate(self):
+
+        spk_1 = spk
+        spk_2 = f'ker_val/spk/{spk.split(os.sep)[-1]}'
+        fk = 'ker_dir/fk/bc_mpo_v24.tf'
+
+        if not os.path.exists(spk_1): raise NameError(f"SPK Kernel {spk_1} does not exist")
+        if not os.path.exists(spk_2): raise NameError(f"SPK Kernel {spk_2} does not exist")
+
+        command = f'../..{exe_dir}/brief -k {fk} {spk_1}  {spk_2}'
+        print_html(command)
+        command_process = subprocess.Popen(command, shell=True,
+                                           stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+
+        process_output, _ = command_process.communicate()
+        text = process_output.decode('utf-8')
+
+
+        return
     
 class InventoryProduct(Product):
 
@@ -1038,8 +1056,8 @@ class ReadmeProduct(Product):
     def __init__(self, setup, bundle):
 
         logging.info('')
-        logging.info(f'Step {setup.step} - Generating bundle products')
-        logging.info('-----------------------------------')
+        logging.info(f'Step {setup.step} - Generate bundle products')
+        logging.info('---------------------------------')
         logging.info('')
         setup.step += 1
 
@@ -1048,6 +1066,8 @@ class ReadmeProduct(Product):
         self.path = setup.staging_directory + os.sep + self.name
         self.setup = setup
         self.vid = bundle.vid
+        self.collection = Object()
+        self.collection.name = ''
 
         logging.info('-- Generating readme file')
         self.write_product()
@@ -1095,3 +1115,7 @@ class ReadmeProduct(Product):
                     f.write(line)
 
         return
+
+
+class Object(object):
+    pass
