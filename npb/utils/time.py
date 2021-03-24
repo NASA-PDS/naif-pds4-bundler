@@ -35,10 +35,9 @@ def creation_date(path):
 
     t = os.path.getmtime(path)
     timestamp = datetime.datetime.fromtimestamp(t)
-    creation_date = datetime.datetime.strftime(timestamp, '%m %dT, %Y')
+    date = datetime.datetime.strftime(timestamp, '%m %dT, %Y')
 
-    #creation_et = spiceypy.utc2et(creation_time[:-1])
-    #creation_date = spiceypy.timout(creation_et, 'Mon DD, YYYY ::UTC', 48)
+    date = calendar.month_name[int(date[0:2])] + date[2:]
 
     return creation_date
 
