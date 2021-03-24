@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 #
 #   NAIF PDS4 Bundle Generator (naif-pds4-bundle)
 #
@@ -213,6 +214,9 @@ def main(config=False, plan=False, log=False, silent=False, interactive=False):
     #
     for kernel in list.kernel_list:
             if not '.tm' in kernel:
+                #
+                # * Each label is validated after generation.
+                #
                 spice_kernels_collection.add(
                 SpiceKernelProduct(setup, kernel, spice_kernels_collection))
 
@@ -280,6 +284,17 @@ def main(config=False, plan=False, log=False, silent=False, interactive=False):
             log.stop()
             return
 
+        #
+        # -- Copy all files to the staging area to continue the archive
+        #    generation.
+        #
+
+
+
     log.stop()
     return
 
+
+if __name__ == '__main__':
+    main(config ='tests/functional/data/insight.json',
+         plan   =  'tests/functional/data/insight_release_26.plan')
