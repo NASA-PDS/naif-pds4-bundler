@@ -32,6 +32,8 @@ class Log(object):
             logger.addHandler(fh)
 
             self.log_file = log_file
+        else:
+            self.log_file = ''
 
 
     def start(self):
@@ -56,8 +58,8 @@ class Log(object):
         #
         # We rename the log file according to the version
         #
-        shutil.move(self.log_file, self.log_file.replace('temp', self.setup.release))
-
+        if self.log_file:
+            shutil.move(self.log_file, self.log_file.replace('temp', self.setup.release))
 
         return
 
