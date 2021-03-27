@@ -13,8 +13,15 @@
 #
 
 $scriptname  = "xfer_index.pl";
-$version     = "Version 2.7.0 -- BVS/NAIF, May 16, 2019 ";
+$version     = "Version 3.0.0 -- BVS/NAIF, MCS/NAIF, March 26, 2019 ";
 
+#
+#  Version 3.0.0 -- Mar 26, 2021 -- MCS/NAIF
+#
+#     Script is now able to generate the index with PDS4 labels.
+#     DATASETID can be extracted from the kernel list. It can still
+#     be extracted from the PDS3 label.
+#     Fixed random INDEXED_FILE_NAME order in label.
 #
 #  Version 2.7.0 -- May 16, 2019 -- BVS/NAIF
 #
@@ -70,7 +77,7 @@ $indexlabel2 = "index.lbl";
 #
 print "\nScript that creates an index table file (and a label file for ".
       "it)\nfor a collection of SPICE kernels listed in a text file.\n\n".
-      "Version $version.\n";
+      "$version.\n";
 
 
 #
@@ -121,11 +128,16 @@ while ( $line = <LIST> ) {
       $RELEASEID = $line ;
       $RELEASEID =~ s/^RELEASE_ID\s*=\s*//;
 
-
    } elsif     ( $line =~ /^RELEASE_DATE\s*=\s*/ ) {
 
       $RELEASEDATE = $line ;
       $RELEASEDATE =~ s/^RELEASE_DATE\s*=\s*//;
+
+#  This is for PDS4 labels that do not have DATASETID
+   } elsif     ( $line =~ /^DATASETID\s*=\s*/ ) {
+
+      $DATASETID = $line ;
+      $DATASETID =~ s/^DATASETID\s*=\s*//;
 
    } elsif     ( $line =~ /^FILE\s*=\s*/ ) {
 
@@ -141,14 +153,17 @@ while ( $line = <LIST> ) {
       #
       if ( $kernelfile !~ /\/mk\/.*\.tm$/i ) {
 
-         #
-         #  Save it in the buffer, figure out label file name
+     #
+     #  Save it in the buffer, figure out label file name
 	 #  and check whether the label file exists.
 	 #
 	 push( @kernels, $kernelfile );
 
 	 $labelfile  = $kernelfile;
 	 $labelfile  =~ s/\.\w+$/\.lbl/;
+     unless (-e $labelfile) {
+        $labelfile  =~ s/\.\w+$/\.xml/;
+     }
 
 	 if ( -e $labelfile ) {
 
@@ -170,8 +185,13 @@ while ( $line = <LIST> ) {
 	    $release_id{$kernelfile} = $RELEASEID ;
 	    $release_date{$kernelfile} = $RELEASEDATE ;
 
+	    #  Save DATASETID in the buffer if read from kernel list.
+	    if( length $DATASETID ){
+	        $DATASETID{$kernelfile} = $DATASETID ;
+	    }
+
 	 }  else {
-	    print "   ERROR: '$labelfile' doesn't exist.\n";
+	    print "   ERROR: '$labelfile(or *.lbl)'  doesn't exist.\n";
 	 }
 
       }
@@ -277,10 +297,28 @@ foreach $kernelfile ( @kernels ) {
             $STARTTIMEL = length($STARTTIME{$kernelfile});
          }
 
+      } elsif ( $line =~ /start_date_time/ ) {
+
+         $STARTTIME{$kernelfile} = $line;
+         $STARTTIME{$kernelfile} =~ s/\s*<start_date_time>//;
+         $STARTTIME{$kernelfile} =~ s/\s*Z<\/start_date_time>//;
+         if ( length($STARTTIME{$kernelfile}) > $STARTTIMEL ) {
+            $STARTTIMEL = length($STARTTIME{$kernelfile});
+         }
+
       } elsif ( $line =~ /^STOP_TIME\s*=\s*/ ) {
 
          $STOPTIME{$kernelfile} = $line;
          $STOPTIME{$kernelfile} =~ s/^STOP_TIME\s*=\s*//;
+         if ( length($STOPTIME{$kernelfile}) > $STOPTIMEL ) {
+            $STOPTIMEL = length($STOPTIME{$kernelfile});
+         }
+
+      } elsif ( $line =~ /stop_date_time/ ) {
+
+         $STOPTIME{$kernelfile} = $line;
+         $STOPTIME{$kernelfile} =~ s/\s*<stop_date_time>//;
+         $STOPTIME{$kernelfile} =~ s/\s*Z<\/stop_date_time>//;
          if ( length($STOPTIME{$kernelfile}) > $STOPTIMEL ) {
             $STOPTIMEL = length($STOPTIME{$kernelfile});
          }
@@ -290,6 +328,12 @@ foreach $kernelfile ( @kernels ) {
          $FILENAME{$kernelfile} = $line;
          $FILENAME{$kernelfile} =~ s/^PRODUCT_ID\s*=\s*//;
          $FILENAME{$kernelfile} =~ s/\"//g;
+
+      } elsif ( $line =~ /file_name/  ) {
+
+         $FILENAME{$kernelfile} = $line;
+         $FILENAME{$kernelfile} =~ s/\s*<file_name>//;
+         $FILENAME{$kernelfile} =~ s/\s*<\/file_name>//;
 
       } elsif ( $line =~ /^DATA_SET_ID\s*=\s*/ ) {
 
@@ -308,10 +352,28 @@ foreach $kernelfile ( @kernels ) {
             $CREATIONTIMEL = length($CREATIONTIME{$kernelfile});
          }
 
+      } elsif ( $line =~ /creation_date_time/ ) {
+
+         $CREATIONTIME{$kernelfile} = $line;
+         $CREATIONTIME{$kernelfile} =~ s/\s*<creation_date_time>//;
+         $CREATIONTIME{$kernelfile} =~ s/\s*<\/creation_date_time>//;
+         if ( length($CREATIONTIME{$kernelfile}) > $CREATIONTIMEL ) {
+            $CREATIONTIMEL = length($CREATIONTIME{$kernelfile});
+         }
+
       } elsif ( $line =~ /^KERNEL_TYPE_ID\s*=\s*/ ) {
 
          $KERNELTYPEID{$kernelfile} = $line;
          $KERNELTYPEID{$kernelfile} =~ s/^KERNEL_TYPE_ID\s*=\s*//;
+         if ( length($KERNELTYPEID{$kernelfile}) > $KERNELTYPEIDL ) {
+            $KERNELTYPEIDL = length($KERNELTYPEID{$kernelfile});
+         }
+
+      } elsif ( $line =~ /kernel_type/ ) {
+
+         $KERNELTYPEID{$kernelfile} = $line;
+         $KERNELTYPEID{$kernelfile} =~ s/\s*<kernel_type>//;
+         $KERNELTYPEID{$kernelfile} =~ s/\s*<\/kernel_type>//;
          if ( length($KERNELTYPEID{$kernelfile}) > $KERNELTYPEIDL ) {
             $KERNELTYPEIDL = length($KERNELTYPEID{$kernelfile});
          }
@@ -338,6 +400,12 @@ foreach $kernelfile ( @kernels ) {
    close( LABEL ) ||
       die "\nERROR:$scriptname: cannot close label file  ".
           "'$labels{$kernelfile}'.\n\n";
+
+
+   #
+   #  Get DATA_SET_ID from kernel list for PDS4 labels
+   #
+
 
    #
    #  Check all values that we have collected from the current label.
@@ -475,6 +543,7 @@ $COLUMNS          = "10";               #LSE
 
 $FILEEXTENSIONS   = "\n";
 @tmparr           = keys %extensions;
+@tmparr           = sort @tmparr;
 foreach $file ( @tmparr ) {
   $FILEEXTENSIONS = $FILEEXTENSIONS.
                     "                               \"$file\",\n";
@@ -534,7 +603,7 @@ OBJECT                     = INDEX_TABLE
   ROWS                     = $ROWS
   COLUMNS                  = $COLUMNS
   INDEX_TYPE               = SINGLE
-  INDEXED_FILE_NAME        = { $FILEEXTENSIONS                             }
+  INDEXED_FILE_NAME        = {$FILEEXTENSIONS                             }
 
   OBJECT                   = COLUMN
     NAME                   = START_TIME
