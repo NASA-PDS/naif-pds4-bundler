@@ -250,3 +250,7 @@ def get_exe_dir():
         executables_dir = '/exe/pc_linux_64bit'
 
     return executables_dir
+
+
+def check_consecutive(l):
+    return sorted(l) == list(range(1, max(l)+1))
