@@ -3,10 +3,9 @@ SPACECRAFT = MSL
 NAIFER = Marc Costa Sitja
 PHONE = 6264691244
 EMAIL = Marc.Costa.Sitja@jpl.nasa.gov
-DATASETID = msl-m-spice-6-v1.0
 VOLUMEID = mslsp_1000
 RELEASE_ID = 0026
-RELEASE_DATE = 2021-03-16
+RELEASE_DATE = 2020-03-16
 $EOH
 FILE             = data/ck/msl_surf_hga_tlm_2837_2934_v1.bc
 MAKLABEL_OPTIONS = HGA EXTENDED NAIF

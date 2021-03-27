@@ -7,6 +7,7 @@
   "secondary_spacecraft":  "",
   "target":                "MARS",
   "secondary_targets":     "",
+  "dataset_id":            "ody-m-spice-6-v1.0",
   "volume_id":             "odsp_1000",
   "author":                "Marc Costa Sitja",
   "email":                 "Marc.Costa.Sitja@jpl.nasa.gov",
@@ -18,7 +19,7 @@
   "mission_start":         "2016-03-14T08:13:00.000Z",
   "mission_stop":          "2050-01-01T00:00:00.000Z",
   "increment_stop":        "2020-01-01T23:59:58.526Z",
-  "release_date":          "2020-03-16",
+  "release_date":          "2021-03-16",
   "phase":                 "EXTENDED",
   "faucet":                "list"
 }

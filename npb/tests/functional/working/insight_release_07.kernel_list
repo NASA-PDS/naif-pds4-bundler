@@ -1,0 +1,12 @@
+DATE = 2021-03-23
+SPACECRAFT = InSight Mars Lander Spacecraft
+NAIFER = Marc Costa Sitja
+PHONE = 6264691244
+EMAIL = Marc.Costa.Sitja@jpl.nasa.gov
+VOLUMEID = NSYTSP_1000
+RELEASE_ID = 0008
+RELEASE_DATE = 2020-03-16
+$EOH
+FILE             = spice_kernels/fk/insight_v04.tf
+MAKLABEL_OPTIONS = DEF_TIMES
+DESCRIPTION      = SPICE FK file defining reference frames the INSIGHT lander, its structures, and science instruments, created by NAIF, JPL.
