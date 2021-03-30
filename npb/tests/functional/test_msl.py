@@ -1,6 +1,6 @@
 """Functional tests for the List generator.
 """
-`import coverage
+import coverage
 
 from unittest import TestCase
 from npb.main import main
