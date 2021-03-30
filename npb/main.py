@@ -69,7 +69,7 @@ from argparse import ArgumentParser, RawDescriptionHelpFormatter
 
 from .classes.setup      import Setup
 from .classes.log        import Log
-from .classes.list       import KernelsList
+from .classes.list       import KernelList
 from .classes.bundle     import Bundle
 from .classes.collection import SpiceKernelsCollection
 from .classes.product    import SpiceKernelProduct
@@ -122,18 +122,20 @@ def main(config=False, plan=False, log=False, silent=False, interactive=False):
                             help='Activate interactive execution',
                             action='store_true')
 
-        args     = parser.parse_args()
-        config   = args.config[0]
-        plan     = args.plan[0]
-        log_file = args.log
-        silent   = args.silent
-        interact = args.interactive
+        args        = parser.parse_args()
+        config      = args.config[0]
+        plan        = args.plan[0]
+        log_file    = args.log
+        silent      = args.silent
+        interact    = args.interactive
+        meta_kernel = ''
     else:
-        config   = config
-        plan     = plan
-        log_file = log
-        silent   = silent
-        interact = interactive
+        config      = config
+        plan        = plan
+        log_file    = log
+        silent      = silent
+        interact    = interactive
+        meta_kernel = ''
 
     #
     # -- Generate setup object
@@ -170,25 +172,7 @@ def main(config=False, plan=False, log=False, silent=False, interactive=False):
     #    * The kernel list object will generate the kernel list
     #      non-archivable product.
     #
-    list = KernelsList(setup, plan)
-
-    #
-    # -- Validate the Kernel List:
-    #
-    #    * To check that the list has the same number of FILE,
-    #      MAKLABEL_OPTIONS and DESCRIPTION entries.
-    #
-    #    * To check list against plan
-    #
-    #    * To check that list for duplicate files
-    #
-    #    * To check that all files listed in the list are on the ops directory
-    #
-    #    * To check that the files are not in the archive
-    #
-    #    * To check all the MAKLABL_OPTIONS used
-    #
-    list.validate()
+    list = KernelList(setup, plan)
 
     #
     #    * Escape if the sole purpose of the execution is to generate
@@ -206,7 +190,7 @@ def main(config=False, plan=False, log=False, silent=False, interactive=False):
     #
     # -- Initialise the SPICE kernels collection.
     #
-    spice_kernels_collection = SpiceKernelsCollection(setup, bundle)
+    spice_kernels_collection = SpiceKernelsCollection(setup, bundle, list)
 
     #
     # -- Populate the SPICE kernels collection from the kernels in
@@ -224,11 +208,15 @@ def main(config=False, plan=False, log=False, silent=False, interactive=False):
             # -- Generate the meta-kernel(s)
             #
             else:
-                spice_kernels_collection.add(
-                    MetaKernelProduct(setup, kernel, spice_kernels_collection))
+                meta_kernel = MetaKernelProduct(setup, kernel, spice_kernels_collection)
+                spice_kernels_collection.add(meta_kernel)
 
     #
     # -- Validate the SPICE Kernels collection:
+    #
+    #    * Note the validation of products is performed after writing the
+    #      product itself and therefore it is not explicitely executed
+    #      from the main function.
     #
     #    * Check that there is a XML label for each file under spice_kernels.
     #      That is, we are validating the spice_kernel_collection.
@@ -238,7 +226,7 @@ def main(config=False, plan=False, log=False, silent=False, interactive=False):
     #
     # -- Generate the SPICE kernels collection inventory product.
     #
-    InventoryProduct(setup, spice_kernels_collection)
+    spice_kernels_collection_inventory = InventoryProduct(setup, spice_kernels_collection)
 
     #
     # -- Generate the document collection
@@ -262,7 +250,7 @@ def main(config=False, plan=False, log=False, silent=False, interactive=False):
             #
             # -- Generation of the documents inventory
             #
-            InventoryProduct(setup, document_collection)
+            document_collection_inventory = InventoryProduct(setup, document_collection)
 
         #
         # -- Add Collections to the Bundle
@@ -276,25 +264,68 @@ def main(config=False, plan=False, log=False, silent=False, interactive=False):
         #
         bundle.write_readme()
 
+    elif setup.pds == '3':
+        pass
         #
-        # -- Stop the pipeline if you do not want to move the files from the
-        #    staging area.
-        #
-        if setup.faucet == 'staging':
-            log.stop()
-            return
-
-        #
-        # -- Copy all files to the staging area to continue the archive
-        #    generation.
-        #
+        #     if platform.system() == 'Darwin':
+        #         maklabel = '../../exe/maklabel.macos'
+        #     else:
+        #         maklabel = '../../exe/maklabel.linux'
 
 
+    #
+    # -- Stop the pipeline if you do not want to move the files from the
+    #    staging area. Note that the complete list and the index file
+    #    will not be generated.
+    #
+    if setup.faucet == 'staging':
+        log.stop()
+        return
+
+    #TODO: Armonise the process with the PDS3 archvie generation.
+
+    #
+    # -- If the current is not the first release, copy all files to the
+    #    staging area to continue the archive generation.
+    #
+    if setup.current_release:
+        bundle.copy_to_staging()
+
+    #
+    # -- Generate index files, this includes generating the complete
+    #    kernel list.
+    #
+    list.write_complete_list()
+    spice_kernels_collection_inventory.write_index()
+
+    #
+    # -- Stop the pipeline if you do not want to copy the files to the final
+    #    area.
+    #
+    if setup.faucet == 'final':
+        log.stop()
+        return
+
+    #
+    # -- Copy files to final area.
+    #
+    bundle.copy_to_final()
+
+    #
+    # -- Generate checksum file at final area.
+    #
+    bundle.write_checksum()
+
+    #
+    # -- Validate meta-kernel
+    #
+    if meta_kernel:
+        meta_kernel.validate()
 
     log.stop()
     return
 
 
 if __name__ == '__main__':
-    main(config ='tests/functional/data/insight.json',
+    main(config =  'tests/functional/data/insight.json',
          plan   =  'tests/functional/data/insight_release_26.plan')
