@@ -2,12 +2,12 @@
   "naif[0-9][0-9][0-9][0-9].tls": [
     {
       "mklabel_options": "DEF_TIMES",
-      "description": "SPICE LSK file incorporating leapseconds up to TBD, created by NAIF, JPL."
+      "description": "SPICE LSK file incorporating leapseconds up to 2017-JAN-01, created by NAIF, JPL."
     }],
   "pck[0-9][0-9][0-9][0-9][0-9].tpc": [
     {
       "mklabel_options": "DEF_TIMES",
-      "description": "SPICE text PCK file containing constants from the IAU TDB report, created by NAIF, JPL."
+      "description": "SPICE text PCK file containing constants from the IAU 2009 report, created by NAIF, JPL."
     }],
   "insight_v[0-9][0-9].tf": [
     {
