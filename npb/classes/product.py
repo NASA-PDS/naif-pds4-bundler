@@ -5,6 +5,7 @@ import shutil
 import difflib
 import fileinput
 import spiceypy
+import subprocess
 
 import numpy as np
 
@@ -16,17 +17,19 @@ from npb.classes.label import DocumentPDS4Label
 from npb.classes.label import BundlePDS4Label
 
 from npb.classes.log   import error_message
-from npb.utils.files   import md5
 from npb.utils.time    import creation_time
 from npb.utils.time    import creation_date
-from npb.utils.time    import current_time
 from npb.utils.time    import current_date
+from npb.utils.files   import md5
 from npb.utils.files   import add_carriage_return
+from npb.utils.files   import add_crs_to_file
 from npb.utils.files   import extension2type
 from npb.utils.files   import safe_make_directory
 from npb.utils.files   import mk2list
 from npb.utils.files   import get_latest_kernel
 from npb.utils.files   import type2extension
+from npb.utils.files   import compare_files
+
 
 class Product(object):
     
@@ -45,7 +48,7 @@ class Product(object):
 
         kernel_list_file = self.setup.working_directory + os.sep + \
                            f'{self.setup.mission_accronym}_release_' \
-                           f'{self.setup.release}.kernel_list'
+                           f'{int(self.setup.release):02d}.kernel_list'
 
         get_descr   = False
         description = False
@@ -114,7 +117,6 @@ class SpiceKernelProduct(Product):
                 shutil.copy2(self.path + os.sep + self.name,
                              product_path + os.sep + self.name)
                 self.new_product = True
-                logging.info(f'     Copied {self.name}')
             except:
                 error_message(f'{self.name} not present in {self.path}')
         else:
@@ -562,12 +564,16 @@ class MetaKernelProduct(Product):
 
         from collections import OrderedDict
 
+
+
         #
         # Parse the meta-kernel grammar to obtain the kernel grammar.
         #
         mk_grammar = self.setup.root_dir + \
                      f'/config/{self.setup.mission_accronym}_metakernel.grammar'
-        
+        logging.info(f'-- Writing meta-kernel using: {mk_grammar}')
+
+
         with open(mk_grammar, 'r') as kg:
             kernel_grammar_list = []
 
@@ -580,7 +586,7 @@ class MetaKernelProduct(Product):
         #
         # We scan the kernel directory to obtain the list of available kernels
         #
-        kernel_type_list = ['lsk', 'pck', 'ik', 'sclk', 'spk', 'ck', 'dsk']
+        kernel_type_list = ['lsk', 'pck', 'fk', 'ik', 'sclk', 'spk', 'ck', 'dsk']
 
         #
         # All the files of the directory are read into a list
@@ -598,7 +604,7 @@ class MetaKernelProduct(Product):
                     excluded_kernels.append(
                             kernel_grammar.split('exclude:')[-1])
 
-            logging.info(f'-- Matching {kernel_type} with meta-kernel grammar.')
+            logging.info(f'     Matching {kernel_type} with meta-kernel grammar.')
             for kernel_grammar in kernel_grammar_list:
 
                 if 'date:' in kernel_grammar:
@@ -705,32 +711,54 @@ class MetaKernelProduct(Product):
 
         return
 
+
     def validate(self):
 
-        spk_1 = spk
-        spk_2 = f'ker_val/spk/{spk.split(os.sep)[-1]}'
-        fk = 'ker_dir/fk/bc_mpo_v24.tf'
 
-        if not os.path.exists(spk_1): raise NameError(f"SPK Kernel {spk_1} does not exist")
-        if not os.path.exists(spk_2): raise NameError(f"SPK Kernel {spk_2} does not exist")
+        line = f'Step {self.setup.step} - Meta-kernel validation'
+        logging.info(line)
+        logging.info('-'*len(line))
+        logging.info('')
+        self.setup.step += 1
 
-        command = f'../..{exe_dir}/brief -k {fk} {spk_1}  {spk_2}'
-        print_html(command)
-        command_process = subprocess.Popen(command, shell=True,
-                                           stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+        rel_path = self.path.split(f'/{self.setup.mission_accronym}_spice/')[-1]
+        path = self.setup.final_directory.split(f'{self.setup.mission_accronym}_spice')[0] + f'/{self.setup.mission_accronym}_spice/' + rel_path
 
-        process_output, _ = command_process.communicate()
-        text = process_output.decode('utf-8')
+        cwd   = os.getcwd()
+        mkdir = os.sep.join(path.split(os.sep)[:-1])
+        os.chdir(mkdir)
 
+        spiceypy.furnsh(path)
+
+        #
+        # In KTOTAL, all meta-kernels are counted in the total; therefore
+        # we need to substract 1 kernel.
+        #
+        ker_num_fr = spiceypy.ktotal('ALL') - 1
+        ker_num_mk = self.collection_metakernel.__len__()
+
+        logging.info(f'-- Kernels loaded with FURNSH: {ker_num_fr}')
+        logging.info(f'-- Kernels present in {self.name}: {ker_num_mk}')
+        logging.info('')
+
+        if (ker_num_fr != ker_num_mk):
+            spiceypy.kclear()
+            error_message('Number of kernels loaded is not equal to kernels present in meta-kernel.')
+
+        spiceypy.kclear()
+
+        os.chdir(cwd)
 
         return
-    
+
+
 class InventoryProduct(Product):
 
     def __init__(self, setup, collection):
 
 
         line = f'Step {setup.step} - Generation of {collection.name} collection'
+        logging.info('')
         logging.info(line)
         logging.info('-'*len(line))
         logging.info('')
@@ -738,8 +766,6 @@ class InventoryProduct(Product):
 
         self.setup = setup
         self.collection = collection
-
-
 
         if setup.pds == '3':
             self.path = setup.final_directory + os.sep + 'INDEX' \
@@ -757,15 +783,21 @@ class InventoryProduct(Product):
                                             f'collection_{collection.name}_inventory_v*.csv')
                 inventory_files.sort()
                 latest_file = inventory_files[-1]
+
+                #
+                # We store the previous version to use it to validate the
+                # generated one.
+                #
+                self.path_current = latest_file
+
                 latest_version = latest_file.split('_v')[-1].split('.')[0]
                 self.version = int(latest_version) + 1
             else:
                 self.version = 1
+                self.path_current = ''
 
             self.name = f'collection_{collection.name}_inventory_v{self.version:03}.csv'
             self.path = setup.staging_directory + os.sep + collection.name \
-                        + os.sep + self.name
-            self.path_current = setup.working_directory + os.sep + collection.name \
                         + os.sep + self.name
 
         self.lid = self.product_lid()
@@ -805,137 +837,161 @@ class InventoryProduct(Product):
         #
         # PDS4 collection file generation
         #
-        if self.setup.pds == '4':
-
-            with open(self.path, "w+") as f:
-                #
-                # If there is an existing version we need to add the items from
-                # the previous version as SECONDARY members
-                #
-                if self.setup.increment:
-                    prev_collection_path = self.setup.final_directory + os.sep + self.setup.mission_accronym + \
-                                           '_spice/' + self.collection.name + os.sep + \
-                                           self.name.replace(str(self.version), str(self.version-1))
-                    with open(prev_collection_path, "r") as r:
-                        for line in r:
-                            if 'P,urn' in line:
-                                # All primary items in previous version shall be included as secondary in the new one
-                                line = line.replace('P,urn', 'S,urn')
-                            line = add_carriage_return(line)
-                            f.write(line)
-
-                for product in self.collection.product:
-                    if product.new_product:
-                        line = '{},{}::{}\r\n'.format('P', product.label.PRODUCT_LID, product.label.PRODUCT_VID)
+        with open(self.path, "w+") as f:
+            #
+            # If there is an existing version we need to add the items from
+            # the previous version as SECONDARY members
+            #
+            if self.setup.increment:
+                prev_collection_path = self.setup.final_directory + os.sep + self.setup.mission_accronym + \
+                                       '_spice/' + self.collection.name + os.sep + \
+                                       self.name.replace(str(self.version), str(self.version-1))
+                with open(prev_collection_path, "r") as r:
+                    for line in r:
+                        if 'P,urn' in line:
+                            # All primary items in previous version shall be included as secondary in the new one
+                            line = line.replace('P,urn', 'S,urn')
                         line = add_carriage_return(line)
                         f.write(line)
 
-        #
-        # PDS3 INDEX file generation
-        #
-        if self.setup.pds == '3':
-
-            current_index = list()
-            kernel_list = list()
-            kernel_directory_list = ['IK', 'FK', 'SCLK', 'LSK', 'PCK', 'CK', 'SPK']
-
-            # In MEX the DSK folder has nothing to export
-            if os.path.exists(self.setup.bundle_directory + '/DATA/DSK'):
-                kernel_directory_list.append('DSK')
-
-            if os.path.exists(self.setup.bundle_directory + '/DATA/EK'):
-                kernel_directory_list.append('EK')
-
-        #  Note that PCK was doubled here. This accounted for a spurious extra line
-        #  in the INDEX.TAB.
-
-            if self.setup.increment:
-                existing_index = self.setup.increment + '/INDEX/INDEX.TAB'
-
-                with open(existing_index, 'r') as f:
-
-                    for line in f:
-
-                        if line.strip() == '': break
-
-                        current_index.append(
-                                [line.split(',')[0].replace(' ', ''),
-                                 line.split(',')[1].replace(' ', ''),
-                                 line.split(',')[2],
-                        # A DVal message is that the times in INDEX.TAB are invalid,
-                        # which is because they contain only date, not time. Just adding noon
-                        # time to all dates removes this error, however, for the time being, we decided
-                        # to leave it as is.
-                                 line.split(',')[3].replace('\n', '\r\n') ]
-                                )
-                        line = line.split(',')[1]
-                        line = line[1:-1].rstrip()
-                        kernel_list.append(line)
+            for product in self.collection.product:
+                if product.new_product:
+                    line = '{},{}::{}\r\n'.format('P', product.label.PRODUCT_LID, product.label.PRODUCT_VID)
+                    line = add_carriage_return(line)
+                    f.write(line)
 
 
-            new_index = []
-
-            for directory in kernel_directory_list:
-
-                data_files = self.setup.bundle_directory + '/DATA/' + directory
-
-                for file in os.listdir(data_files):
-
-                    if file.split('.')[1] != 'LBL' and file not in kernel_list:
-                        new_label_element = '"DATA/' + directory + '/' + \
-                                            file.split('.')[0] + '.LBL"'
-                        new_kernel_element = '"' + file + '"'
-
-#                        generation_date = PDS3_label_gen_date(
-#                            data_files + '/' + file.split('.')[0] + '.LBL')
-                        if not 'T' in generation_date:
-                            generation_date = generation_date   # + '         '
-                        # See above remark about DVal message.
-
-                        new_index.append([new_label_element, new_kernel_element,
-                                          generation_date,
-                                          '"' + self.setup.dataset + '"\r\n'])
-
-            #
-            # We merge both lists
-            #
-            index = current_index + new_index
-
-            #
-            # We sort out which is the kernel that has the most characters
-            # and we add blank spaces to the rest
-            #
-            lab_filenam_list = list()
-            ker_filenam_list = list()
-
-            for element in index:
-                lab_filenam_list.append(element[0])
-                ker_filenam_list.append(element[1])
-
-            longest_lab_name = (max(lab_filenam_list, key=len))
-            max_lab_name_len = len(longest_lab_name)
-
-            longest_ker_name = (max(ker_filenam_list, key=len))
-            max_ker_name_len = len(longest_ker_name)
-
-            index_list = list()
-            dates = []   # used to sort out according to generation date the index_list
-            for element in index:
-                blanks = max_lab_name_len - (len(element[0]))
-                label = element[0][:-1] + ' ' * blanks + element[0][-1]
-
-                blanks = max_ker_name_len - (len(element[1]))
-                kernel = element[1][:-1] + ' ' * blanks + element[1][-1]
-                if '\n' in element[-1]:
-                    index_list.append(label + ',' + kernel + ',' + element[2] + ',' + element[3])
-                else:
-                    index_list.append(label + ',' + kernel + ',' + element[2] + ',' + element[3] + '\n')
-                dates.append(element[2])
-            with open(self.setup.bundle_directory + '/INDEX/INDEX.TAB', 'w+') as f:
-                for element in [x for _,x in sorted(zip(dates, index_list))]: f.write(element)
+        logging.info(f'-- Generated {self.path}')
+        self.validate()
 
         return
 
+
+    def validate(self):
+        '''
+        The label is validated by comparing the Inventory Product with
+        the previous version and if it does not exist with the sample
+        inventory product.
+
+        :return:
+        '''
+
+        logging.info(f'-- Validating  {self.name}')
+        logging.info('')
+
+        #
+        # Use the prior version of the same product, if it does not
+        # exist use the sample.
+        #
+
+        if self.path_current:
+
+            fromfile = self.path_current
+            tofile   = self.path
+            dir      = self.setup.working_directory
+
+            compare_files(fromfile, tofile, dir)
+
+        logging.info('')
+        if self.setup.interactive:
+            input(">> Press enter to continue...")
+
+        return
+
+
+    def write_index(self):
+
+        line = f'Step {self.setup.step} - Generation of index files'
+        logging.info(line)
+        logging.info('-'*len(line))
+        logging.info('')
+        self.setup.step += 1
+
+        cwd = os.getcwd()
+        os.chdir(self.setup.staging_directory)
+
+        list   = f'{self.setup.working_directory}/{self.collection.list.complete_list}'
+        command = f'perl {self.setup.root_dir}exe/xfer_index.pl {list}'
+        logging.info(f'-- Executing: {command}')
+
+        command_process = subprocess.Popen(command, shell=True,
+                                           stdout=subprocess.PIPE,
+                                           stderr=subprocess.STDOUT)
+
+        process_output, _ = command_process.communicate()
+        text = process_output.decode('utf-8')
+
+        os.chdir(cwd)
+
+        for line in text.split('\n'):
+            logging.info('   ' + line)
+
+        #
+        # The Perl script returns an error message if there is a problem.
+        #
+        if ('ERROR' in text) or ('command not found' in text):
+            error_message(text)
+
+        #
+        # Move index files to appropriate directory
+        #
+        index       = f'{self.setup.staging_directory}/index.tab'
+        index_lbl   = f'{self.setup.staging_directory}/index.lbl'
+        dsindex     = f'{self.setup.staging_directory}/dsindex.tab'
+        dsindex_lbl = f'{self.setup.staging_directory}/dsindex.lbl'
+
+        #
+        # Add CRS to the index files.
+        #
+
+        if self.setup.pds == '4':
+            os.remove(index)
+            os.remove(index_lbl)
+
+            dsindex     = shutil.move(dsindex, self.setup.staging_directory + '/../')
+            dsindex_lbl = shutil.move(dsindex_lbl, self.setup.staging_directory + '/../')
+
+            logging.info('-- Adding CRs to index files.')
+            logging.info('')
+            add_crs_to_file(dsindex)
+            add_crs_to_file(dsindex_lbl)
+
+            self.index       = ''
+            self.index_lbl   = ''
+            self.dsindex     = dsindex
+            self.dsindex_lbl = dsindex_lbl
+
+        self.validate_index()
+
+        return
+
+
+    def validate_index(self):
+        '''
+        The index and the index label are validated by comparing with
+        the previous versions
+
+        :return:
+        '''
+
+        #
+        # Compare with previous index file, if exists. Otherwise it is
+        # not compared.
+        #
+        indexes = [self.index, self.index_lbl, self.dsindex, self.dsindex_lbl]
+
+        for index in indexes:
+            if index:
+                try:
+                    current_index = self.setup.final_directory + os.sep + index.split(os.sep)[-1]
+                    compare_files(index, current_index, self.setup.working_directory)
+                except:
+                    logging.warning(f'-- File to compare with does not exist: {index}')
+
+        if self.setup.interactive:
+            input(">> Press enter to continue...")
+
+        return
 
 
 class SpicedsProduct(object):
@@ -958,12 +1014,12 @@ class SpicedsProduct(object):
             latest_version = latest_spiceds.split('_v')[-1].split('.')[0]
             self.latest_spiceds = latest_spiceds
             self.latest_version = latest_version
-            version = int(latest_version) + 1
+            self.version = int(latest_version) + 1
         else:
-            version = 1
+            self.version = 1
             self.latest_spiceds = ''
 
-        self.name = 'spiceds_v{0:0=3d}.html'.format(version)
+        self.name = 'spiceds_v{0:0=3d}.html'.format(self.version)
         self.path = setup.staging_directory + os.sep + collection.name \
                     + os.sep + self.name
         self.template = setup.root_dir + f'/config/{self.setup.mission_accronym}_spiceds.html'
@@ -1004,7 +1060,7 @@ class SpicedsProduct(object):
 
     def product_vid(self):
 
-        return '{}.0'.format(int(self.setup.release))
+        return '{}.0'.format(int(self.version))
 
 
     def write_product(self):
