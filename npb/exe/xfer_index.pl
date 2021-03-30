@@ -13,7 +13,7 @@
 #
 
 $scriptname  = "xfer_index.pl";
-$version     = "Version 3.0.0 -- BVS/NAIF, MCS/NAIF, March 26, 2019 ";
+$version     = "Version 3.0.0 -- BVS/NAIF, MCS/NAIF, March 26, 2021 ";
 
 #
 #  Version 3.0.0 -- Mar 26, 2021 -- MCS/NAIF
@@ -499,6 +499,14 @@ foreach $kernelfile ( @kernels ) {
    #  Write almost identical record for the label.
    #
    $labelfile = $labels{$kernelfile};
+
+   #
+   # Rename *.xml labels to *.lbl for the index.
+   #
+   if (index($labelfile, ".xml") != -1)  {
+        $labelfile  =~ s/\.\w+$/\.lbl/;
+   }
+
    printf TABLE "\%-${STARTTIMEL}s,\%-${STOPTIMEL}s,\"\%-${LABELNAMEL}s\",". #LSE
           "\"\%-${DATASETIDL}s\",\%-${CREATIONTIMEL}s,\"\%-${RELEASEIDL}s\",". #LSE
           "\%-${RELEASEDATEL}s,\"\%-${KERNELTYPEIDL}s\",".
@@ -543,8 +551,7 @@ $COLUMNS          = "10";               #LSE
 
 $FILEEXTENSIONS   = "\n";
 @tmparr           = keys %extensions;
-@tmparr           = sort @tmparr;
-foreach $file ( @tmparr ) {
+foreach $file ( sort @tmparr ) {
   $FILEEXTENSIONS = $FILEEXTENSIONS.
                     "                               \"$file\",\n";
 }
@@ -704,7 +711,7 @@ close( TABLELABEL ) ||
 print "done.\n";
 
 print "\nIndex table file '$indexfile' and index label file ".
-      "'$indexlabel' were\nsuccessfuly created\n\n";
+      "'$indexlabel' were\nsuccessfully created\n\n";
 
 #
 # Final touch: copy "ds" index table and label to their counter parts
@@ -726,7 +733,7 @@ if ( $status ) {
 }
 
 print "\nIndex table file '$indexfile2' and index label file ".
-      "'$indexlabel2' were\nsuccessfuly created\n\n";
+      "'$indexlabel2' were\nsuccessfully created\n\n";
 
 
 #
