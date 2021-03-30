@@ -59,9 +59,10 @@ class Log(object):
         # We rename the log file according to the version
         #
         if self.log_file:
-            shutil.move(self.log_file, self.log_file.replace('temp', self.setup.release))
+            shutil.move(self.log_file, self.log_file.replace('temp', f'{int(self.setup.release):02d}'))
 
         return
+
 
 def error_message(message):
     error = f'{message}.'
