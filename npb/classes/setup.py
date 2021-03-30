@@ -1,5 +1,4 @@
 import os
-import os
 import json
 import glob
 import logging
@@ -7,18 +6,12 @@ import datetime
 
 from types import SimpleNamespace
 
-from npb.utils.files import copy
-from npb.utils.files import get_exe_dir
+from npb.classes.log import error_message
+
 
 class Setup(object):
 
     def __init__(self, config, version, interact):
-
-        step = 1
-        logging.info('')
-        logging.info(f'Step {step} - Setting up the archive generation')
-        logging.info('------------------------------------------------')
-        logging.info('')
 
         with open(config, 'r') as file:
             f = file.read().replace('\n', '')
@@ -26,20 +19,56 @@ class Setup(object):
         setup = json.loads(f, object_hook=lambda d: SimpleNamespace(**d))
 
         #
-        #    *  Populate the setup object with attributes beyond the
-        #       configuration file.
+        # Populate the setup object with attributes beyond the
+        # configuration file.
         #
         setup.root_dir    = os.path.dirname(__file__)[:-7]
-        setup.step        = step + 1
+        setup.step        = 1
         setup.version     = version
         setup.interactive = interact
         setup.today       = datetime.date.today().strftime("%Y%m%d")
-        setup.exe_dir     = get_exe_dir()
 
-        self.setup        = setup
+        #
+        # Sort out if directories are provided as relative paths and
+        # if so convert them in absolute for the execution
+        #
+        cwd = os.getcwd()
+
+        os.chdir('/')
+
+        if os.path.isdir(cwd + os.sep + setup.working_directory):
+            setup.working_directory = cwd + os.sep + setup.working_directory
+        if not os.path.isdir(setup.working_directory):
+            error_message(f'Directory does not exist: {setup.working_directory}')
+
+        if os.path.isdir(cwd + os.sep + setup.staging_directory):
+            setup.staging_directory = cwd + os.sep + setup.staging_directory + f'/{setup.mission_accronym}_spice'
+        if not os.path.isdir(setup.staging_directory):
+            print(f'Creating missing directory: {setup.staging_directory}')
+            os.mkdir(setup.staging_directory)
+
+        if os.path.isdir(cwd + os.sep + setup.final_directory):
+            setup.final_directory = cwd + os.sep + setup.final_directory
+        if not os.path.isdir(setup.final_directory):
+            error_message(f'Directory does not exist: {setup.final_directory}')
+
+        if os.path.isdir(cwd + os.sep + setup.kernel_directory):
+            setup.kernel_directory = cwd + os.sep + setup.kernel_directory
+        if not os.path.isdir(setup.kernel_directory):
+            error_message(f'Directory does not exist: {setup.kernel_directory}')
+
+        os.chdir(cwd)
+
+        self.setup = setup
 
 
     def get_increment(setup):
+
+
+        logging.info(f'Step {setup.step} - Setting up the archive generation')
+        logging.info('------------------------------------------------')
+        logging.info('')
+        setup.step += 1
 
         #
         # PDS4 release increment (implies inventory and meta-kernel)
