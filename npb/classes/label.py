@@ -1,12 +1,13 @@
 import fileinput
 import logging
-import difflib
 import glob
 import os
 import sys
 
+
 from npb.utils.time import current_time
 from npb.utils.files import add_carriage_return
+from npb.utils.files import compare_files
 #from npb.utils.files import get_spacecrafts
 #from npb.utils.files import get_targets
 
@@ -233,6 +234,30 @@ class PDSLabel(object):
         return
 
 
+    def write_pds3_labels(self):
+
+        line = f'Step {self.setup.step} Generating index files'
+        logging.info(line)
+        logging.info('-'*len(line))
+        logging.info('')
+        self.setup.step += 1
+
+        command = f'perl ../../exe/xfer_index.pl ' \
+                  f'{self.setup.working_directory}/' \
+                  f'{self.collection.list.complete_list}'
+        logging.info(f'-- Executing: {command}')
+
+        command_process = subprocess.Popen(command, shell=True,
+                                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+        process_output, _ = command_process.communicate()
+        text = process_output.decode('utf-8')
+
+        logging.info(f'     {text}')
+
+        return
+
+
     def validate(self):
         '''
         The label is validated by comparing it to a similar label from the
@@ -297,7 +322,6 @@ class PDSLabel(object):
         #    label.
         #
 
-
         #
         # If a similar label has been found the labels are compared and a
         # diff is being shown in the log. On top of that an HTML file with
@@ -307,28 +331,10 @@ class PDSLabel(object):
 
             fromfile = val_label
             tofile   = self.name
+            dir      = self.setup.working_directory
 
-            with open(fromfile) as ff:
-                fromlines = ff.readlines()
-            with open(tofile) as tf:
-                tolines = tf.readlines()
+            compare_files(fromfile, tofile, dir)
 
-            logging.info(f'     Comparing {fromfile.split(os.sep)[-1]} with {tofile.split(os.sep)[-1]}')
-
-            diff = difflib.Differ()
-            diff_list = list(diff.compare(fromlines, tolines))
-            for line in diff_list:
-                if (line[0] == '+') or (line[0] == '-') or (line[0] == '?'):
-                    logging.info(line[:-1])
-            logging.info('')
-
-            diff = difflib.HtmlDiff().make_file(fromlines, tolines, fromfile, tofile, context=False, numlines=False)
-            diff_html = open(self.setup.working_directory + \
-                             f"/diff_{fromfile.split(os.sep)[-1].split('.')[0]}_{tofile.split(os.sep)[-1].split('.')[0]}.html", "w")
-            diff_html.writelines(diff)
-            diff_html.close()
-
-        logging.info('')
         if self.setup.interactive:
             input(">> Press enter to continue...")
 
@@ -440,8 +446,7 @@ class MetaKernelPDS4Label(PDSLabel):
 
             kernel_list_for_label += \
             '    <Internal_Reference>\r\n' + \
-            '      <lid_reference>{}\r\n'.format(kernel.lid) + \
-            '      </lid_reference>\r\n' + \
+           f'      <lid_reference>{kernel.lid}</lid_reference>\r\n'.format() + \
             '      <reference_type>data_to_associate</reference_type>\r\n' +\
             '    </Internal_Reference>\r\n'
 
