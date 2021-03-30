@@ -8,10 +8,9 @@ import re
 import logging
 import json
 import platform
+import difflib
 
-from os import listdir
-from os.path import isfile, join, dirname
-from shutil import copyfile
+from npb.classes.log import error_message
 
 
 def md5(fname):
@@ -107,6 +106,23 @@ def add_carriage_return(line):
         line += '\r\n'
 
     return line
+
+
+def add_crs_to_file(file):
+
+    try:
+        file_crs = file.split('.')[0] + 'crs_tmp'
+        with open(file, "r") as r:
+            with open(file_crs, "w+") as f:
+                for line in r:
+                    line = add_carriage_return(line)
+                    f.write(line)
+        shutil.move(file_crs, file)
+
+    except:
+        error_message(f'Carriage return adding error for {file}')
+
+    return
 
 
 def check_list_duplicates(listOfElems):
@@ -240,17 +256,31 @@ def get_latest_kernel(kernel_type, path, pattern, dates=False,
 
         return kernels_date
 
-
-def get_exe_dir():
-
-    if platform.system() == 'Darwin':
-        if platform.machine() == 'x86_64':
-            executables_dir = '/exe/macintel_osx_64bit'
-    else:
-        executables_dir = '/exe/pc_linux_64bit'
-
-    return executables_dir
-
-
 def check_consecutive(l):
     return sorted(l) == list(range(1, max(l)+1))
+
+
+def compare_files(fromfile, tofile, dir):
+
+    with open(fromfile) as ff:
+        fromlines = ff.readlines()
+    with open(tofile) as tf:
+        tolines = tf.readlines()
+
+    logging.info(f'     Comparing {fromfile.split(os.sep)[-1]} with {tofile.split(os.sep)[-1]}')
+    logging.info('')
+
+    diff = difflib.Differ()
+    diff_list = list(diff.compare(fromlines, tolines))
+    for line in diff_list:
+        if (line[0] == '+') or (line[0] == '-') or (line[0] == '?'):
+            logging.info(line[:-1])
+
+    diff = difflib.HtmlDiff().make_file(fromlines, tolines, fromfile, tofile, context=False, numlines=False)
+    diff_html = open(dir + \
+                     f"/diff_{fromfile.split(os.sep)[-1].replace('.','_')}_{tofile.split(os.sep)[-1].replace('.','_')}.html",
+                     "w")
+    diff_html.writelines(diff)
+    diff_html.close()
+
+    return
