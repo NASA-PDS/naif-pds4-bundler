@@ -38,7 +38,7 @@ class Collection(object):
 
 class SpiceKernelsCollection(Collection):
 
-    def __init__(self, setup, bundle):
+    def __init__(self, setup, bundle, list):
 
         logging.info(f'Step {setup.step} - SPICE kernel collection/data processing')
         logging.info('------------------------------------------------')
@@ -46,6 +46,7 @@ class SpiceKernelsCollection(Collection):
         setup.step += 1
 
         self.bundle      = bundle
+        self.list        = list
         self.type        = 'spice_kernels'
         self.start_time  = setup.mission_start
         self.stop_time   = setup.mission_stop
@@ -54,12 +55,35 @@ class SpiceKernelsCollection(Collection):
 
         return
 
-    def validate(self):
 
+    def validate(self):
+        #
+        # -- Validate the SPICE Kernels collection:
+        #
+        #    * Check that there is a XML label for each file under spice_kernels.
+        #      That is, we are validating the spice_kernel_collection.
+        #
+        logging.info('')
         logging.info(f'Step {self.setup.step} - Validating SPICE kernel collection generation')
         logging.info('-------------------------------------------------------')
         logging.info('')
         self.setup.step += 1
+
+        #
+        # Check that all the kernels from the list are present
+        #
+        logging.info('-- Checking that all the kernels from list are present.')
+        logging.info('')
+
+        for product in self.product:
+            try:
+                os.path.exists(self.setup.staging_directory + '/spice_kernels/' + product.type + os.sep + product.name)
+                os.path.exists(
+                    self.setup.staging_directory + '/spice_kernels/' + product.type + os.sep + product.name.split('.')[
+                        0] + '.xml')
+            except:
+                error_message(f'-- {product.name} has not been labeled.')
+
 
         #
         # Check that all the kernels have been labeled.
@@ -73,8 +97,6 @@ class SpiceKernelsCollection(Collection):
                 os.path.exists(self.setup.staging_directory + '/spice_kernels/' + product.type + os.sep + product.name.split('.')[0] + '.xml')
             except:
                 error_message(f'-- {product.name} has not been labeled.')
-
-
 
         return
 
