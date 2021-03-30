@@ -9,6 +9,7 @@ import os
 from npb.utils.files import extension2type
 from npb.utils.files import check_list_duplicates
 from npb.utils.files import fill_template
+from npb.utils.files import check_consecutive
 from npb.classes.log import error_message
 
 class List(object):
@@ -25,7 +26,7 @@ class List(object):
         self.files.append(element)
 
 
-class KernelsList(List):
+class KernelList(List):
 
     def __init__(self, setup, plan):
 
@@ -44,6 +45,7 @@ class KernelsList(List):
         self.AUTHOR       = setup.author
         self.PHONE        = setup.phone
         self.EMAIL        = setup.email
+        self.DATASETID    = setup.dataset_id
         self.VOLID        = setup.volume_id
         self.RELID        = f'{int(setup.release):04d}'
         self.RELDATE      = setup.release_date
@@ -51,7 +53,7 @@ class KernelsList(List):
         self.template = setup.root_dir + '/etc/template_kernel_list.txt'
         self.read_config()
         self.kernel_list = self.read_plan(plan)
-        self.write_kernel_list()
+        self.write_list()
 
         return
     
@@ -130,7 +132,7 @@ class KernelsList(List):
     # The list is not an archival product, therefore it is not generated
     # by any of the product classes.
     #
-    def write_kernel_list(self):
+    def write_list(self):
 
         list_name = f'{self.setup.mission_accronym}_release_{int(self.setup.release):02d}.kernel_list'
 
@@ -214,7 +216,49 @@ class KernelsList(List):
 
                         self.list_name = list_name
 
+        self.validate()
+
         return
+
+
+    def write_complete_list(self):
+
+        line = f'Step {self.setup.step} - Generate complete kernel list'
+        logging.info(line)
+        logging.info('-'*len(line))
+        logging.info('')
+        self.setup.step += 1
+
+        kernel_lists = glob.glob(self.setup.working_directory + os.sep + \
+                                 f'{self.setup.mission_accronym}_release*.kernel_list')
+
+        #
+        # Sort list in inverse order in such way that the DATASETID is obtained from
+        # the header of the latest list.
+        #
+        kernel_lists.sort(reverse=True)
+
+        complete_list = f'{self.setup.mission_accronym}_complete.kernel_list'
+
+        release_list = []
+        with open(self.setup.working_directory  + os.sep + complete_list, 'w+') as c:
+            for kernel_list in kernel_lists:
+                logging.info(f'-- Adding {kernel_list}')
+                release_list.append( int( kernel_list.replace('_','.').split('.')[-3] ) )
+                with open(kernel_list, 'r') as l:
+                    for line in l:
+                        c.write(line)
+
+        if not check_consecutive(release_list):
+            logging.warning(f'-- Incomplete Kernel lists available: {release_list}')
+
+
+        self.complete_list = complete_list
+
+        self.validate_complete()
+
+        return
+
 
     # ------------------------------------------------------------------------
     #
@@ -369,7 +413,7 @@ class KernelsList(List):
             #
             if self.setup.pds == '3':
                 logging.info('-- Check that all template tags used in the list are present in template:')
-                template = self.setup.root_dir + f'/config/{self.setup.mission_accronym }_mission_template_pds.1'
+                template = self.setup.root_dir + f'/config/{self.setup.mission_accronym }_mission_template.pds'
                 with open(template, 'r') as o:
                     template_lines = o.readlines()
 
@@ -414,10 +458,120 @@ class KernelsList(List):
                             ker_in_list.append(line.split('/')[-1].strip())
 
             if check_list_duplicates(ker_in_list):
-                error_message('Complete list contains duplicates.')
+                error_message('List contains duplicates.')
             else:
-                logging.info(f'     Complete list contains no duplicates.')
+                logging.info(f'     List contains no duplicates.')
             logging.info('')
 
+
+        return
+
+
+    def validate_complete(self):
+
+        present = False
+
+        num_file = 0
+        num_opti = 0
+        num_desc = 0
+
+        ker_in_list = []
+        opt_in_list = []
+
+        with open(self.setup.working_directory + os.sep + self.complete_list, 'r') as l:
+
+            #
+            # Check that the list has the same number of FILE, MAKLABEL_OPTIONS,
+            # and DESCRIPTION entries
+            #
+            logging.info('-- Checking list number of entries coherence:')
+
+            for line in l:
+
+                if ('FILE' in line) and (line.split('=')[-1].strip()):
+                    num_file += 1
+                    #
+                    # We add kernels to compare plan and list and to look
+                    # for duplicates.
+                    #
+                    ker_in_list.append(line.split('/')[-1].strip())
+
+                elif ('OPTIONS' in line):
+                    num_opti += 1
+                    #
+                    # We add options to display and compare to template
+                    #
+                    options = line.split('=')[-1].split()
+                    for option in options:
+                        opt_in_list.append(option)
+
+
+                elif ('DESCRIPTION' in line) and (line.split('=')[-1].strip()):
+                    num_desc += 1
+
+            if (num_file != num_opti) or (num_opti != num_desc):
+                error = 'List does not have the same number of entries'
+                logging.critical(f'{error} for:')
+                logging.critical(f'   FILE             ({num_file})')
+                logging.crtical(f'   MAKLABEL_OPTIONS ({num_opti})')
+                logging.critical(f'   DESCRIPTION      ({num_desc})')
+                logging.critical('')
+
+                logging.critical(f'-- Display {self.setup.mission_name} kernel list configuration file to double-check.')
+                for line in self.json_formatted_lst:
+                    logging.info(line)
+                logging.critical('')
+
+                raise Exception(error)
+            else:
+                logging.info(f'     PASS with total of {num_file} entries.')
+                logging.info('')
+
+            #
+            # Check list for duplicate entries
+            #
+            logging.info('-- Checking for duplicates in kernel list:')
+            if check_list_duplicates(ker_in_list):
+                error_message('List contains duplicates.')
+            else:
+                logging.info(f'     List contains no duplicates.')
+            logging.info('')
+
+
+            #
+            # Display all the MAKLABL_OPTIONS used
+            #
+            opt_in_list = list(dict.fromkeys(opt_in_list))
+            opt_in_list.sort()
+            logging.info(f'-- Display all the MAKLABEL_OPTIONS:')
+            for option in opt_in_list:
+                logging.info(f'     {option}')
+            logging.info('')
+
+
+            #
+            # The PDS Mission Template file is not required for PDS4
+            #
+            if self.setup.pds == '3':
+                logging.info('-- Check that all template tags used in the list are present in template:')
+                template = self.setup.root_dir + f'/config/{self.setup.mission_accronym }_mission_template.pds'
+                with open(template, 'r') as o:
+                    template_lines = o.readlines()
+
+
+                for option in opt_in_list:
+                    present = False
+                    for line in template_lines:
+                        if '--' + option in line:
+                            present = True
+                    if present:
+                        logging.info(f'     {option} is present.')
+                    else:
+                        error_message(f'{option} not in template.')
+
+                logging.info('')
+
+                if self.setup.interactive:
+                    input(">> Press Enter to continue...")
 
         return
