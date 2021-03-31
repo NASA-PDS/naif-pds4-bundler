@@ -3,6 +3,7 @@
 import coverage
 import os
 import shutil
+import unittest
 
 from unittest import TestCase
 from npb.main import main
@@ -45,3 +46,5 @@ class TestConsole(TestCase):
         #cov.html_report()
 
 
+if __name__ == '__main__':
+    unittest.main()
