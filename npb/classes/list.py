@@ -45,8 +45,8 @@ class KernelList(List):
         self.AUTHOR       = setup.author
         self.PHONE        = setup.phone
         self.EMAIL        = setup.email
-        self.DATASETID    = setup.dataset_id
-        self.VOLID        = setup.volume_id
+        self.DATASETID    = setup.dataset_id.upper()
+        self.VOLID        = setup.volume_id.upper()
         self.RELID        = f'{int(setup.release):04d}'
         self.RELDATE      = setup.release_date
 

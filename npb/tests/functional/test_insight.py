@@ -22,7 +22,7 @@ class TestConsole(TestCase):
 
         shutil.rmtree('insight', ignore_errors=True)
         shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('staging', ignore_errors=True )
+        shutil.rmtree('staging', ignore_errors=True)
 
         os.mkdir('working')
         shutil.copy2('data/insight_release_07.kernel_list',
@@ -30,7 +30,12 @@ class TestConsole(TestCase):
         os.mkdir('staging')
         os.mkdir('staging/insight')
         os.mkdir('staging/insight/insight_spice')
-        shutil.copytree('pds4/insight', 'insight')
+
+        shutil.copytree('data/insight', 'insight')
+        with open('data/insight.list', 'r') as i:
+            for line in i:
+                with open(f'insight/insight_spice/{line[0:-1]}', 'w') as fp:
+                    pass
 
         main(config,plan, silent=False, log=True)
 

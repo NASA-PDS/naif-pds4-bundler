@@ -1,0 +1,178 @@
+KPL/IK
+
+INSIGHT Auxiliary Instrument Kernel
+===============================================================================
+
+   This Instrument Kernel (IK) file contains Field-Of-View (FOV)
+   definitions for a few INSIGHT instruments and structures that don't
+   yet or will never have their own IKs.
+
+
+Version and Date
+-------------------------------------------------------------------------------
+
+   Version 0.0 -- September 18, 2014 -- Boris Semenov, NAIF
+
+      Initial Release.
+
+
+References
+-------------------------------------------------------------------------------
+
+   1. Kernel Pool Required Reading
+
+   2. GETFOV, getfoc_c, cspice_getfov headers
+
+   3. INSIGHT FK file, latest version
+
+
+Contact Information
+-------------------------------------------------------------------------------
+
+   Boris V. Semenov, NAIF/JPL, (818)-354-8136, Boris.Semenov@jpl.nasa.gov
+
+
+Implementation Notes
+-------------------------------------------------------------------------------
+
+   This file is used by the SPICE system as follows: programs that make
+   use of this kernel must ``load'' the kernel, normally during program
+   initialization. The SPICE routine FURNSH loads a kernel file into
+   the pool as shown below.
+
+      CALL FURNSH ( 'frame_kernel_name; )    -- FORTRAN
+      furnsh_c ( "frame_kernel_name" );      -- C
+      cspice_furnsh, frame_kernel_name       -- IDL
+      cspice_furnsh( 'frame_kernel_name' )   -- MATLAB
+
+   Once the file has been loaded, the SPICE routine GETFOV (getfov_c in
+   C, cspice_getfov in IDL and MATLAB) can be used to retrieve FOV
+   parameters for a given instrument or structure.
+ 
+   This file was created and may be updated with a text editor or word
+   processor.
+
+
+Naming Conventions
+----------------------------------------------------------
+
+   All names referencing values in this IK file start with the
+   characters `INS' followed by the NAIF INSIGHT ID number (-189)
+   followed by a NAIF three digit ID code for one of the structures.
+   This is the full list of names and IDs for the structures described
+   by this IK file:
+
+      INSIGHT_CLGA_TX                -189410
+      INSIGHT_CLGA_RX                -189420
+      INSIGHT_CMGA                   -189430
+      INSIGHT_LMGA_EAST              -189440
+      INSIGHT_LMGA_WEST              -189450
+      INSIGHT_HELIX                  -189460
+      INSIGHT_WPA                    -189470
+
+   The remainder of the keyword name is an underscore character
+   followed by the unique name of the data item. For example, the
+   Cruise MGA boresight direction in the HGA frame is specified by:
+
+      INS-189430_BORESIGHT
+
+   The upper bound on the length of the name of any data item is 32
+   characters.
+ 
+   If the same item is included in more than one file, or if the same
+   item appears more than once within a single file, the latest value
+   supersedes any earlier values.
+
+
+Structure Descriptions
+---------------------------------------------------------
+
+   N/A
+
+
+Mounting Alignment
+--------------------------------------------------------
+
+   Refer to the latest version of the INSIGHT Frames Definition Kernel
+   (FK) [3] for the INSIGHT structures reference frame definitions and
+   mounting alignment information.
+
+
+Antenna FOVs
+----------------------------------------------------------
+
+   This section defines FOVs for the following instruments or structures:
+
+          NAME                   ID     HALFSIZE  SHAPE   BSIGHT
+      -----------------------  -------  --------  -------  ------
+      INSIGHT_CLGA_TX          -189410  85.0 deg    cone     Z
+      INSIGHT_CLGA_RX          -189420  83.0 deg    cone     Z
+      INSIGHT_CMGA             -189430  45.0 deg    cone     Z
+      INSIGHT_LMGA_EAST        -189440  45.0 deg    cone     Z
+      INSIGHT_LMGA_WEST        -189450  45.0 deg    cone     Z
+      INSIGHT_HELIX            -189460  60.0 deg    cone     Z
+      INSIGHT_WPA              -189470  89.0 deg    cone     Z
+
+   The FOVs are defined in this data block.
+
+      \begindata
+
+      INS-189410_FOV_CLASS_SPEC       = 'ANGLES'
+      INS-189410_FOV_SHAPE            = 'CIRCLE'
+      INS-189410_FOV_FRAME            = 'INSIGHT_CLGA_TX'
+      INS-189410_BORESIGHT            = ( 0.0, 0.0, 1.0 )
+      INS-189410_FOV_REF_VECTOR       = ( 1.0, 0.0, 0.0 )
+      INS-189410_FOV_REF_ANGLE        = ( 85.0 )
+      INS-189410_FOV_ANGLE_UNITS      = ( 'DEGREES' )
+
+      INS-189420_FOV_CLASS_SPEC       = 'ANGLES'
+      INS-189420_FOV_SHAPE            = 'CIRCLE'
+      INS-189420_FOV_FRAME            = 'INSIGHT_CLGA_RX'
+      INS-189420_BORESIGHT            = ( 0.0, 0.0, 1.0 )
+      INS-189420_FOV_REF_VECTOR       = ( 1.0, 0.0, 0.0 )
+      INS-189420_FOV_REF_ANGLE        = ( 83.0 )
+      INS-189420_FOV_ANGLE_UNITS      = ( 'DEGREES' )
+
+      INS-189430_FOV_CLASS_SPEC       = 'ANGLES'
+      INS-189430_FOV_SHAPE            = 'CIRCLE'
+      INS-189430_FOV_FRAME            = 'INSIGHT_CMGA'
+      INS-189430_BORESIGHT            = ( 0.0, 0.0, 1.0 )
+      INS-189430_FOV_REF_VECTOR       = ( 1.0, 0.0, 0.0 )
+      INS-189430_FOV_REF_ANGLE        = ( 45.0 )
+      INS-189430_FOV_ANGLE_UNITS      = ( 'DEGREES' )
+
+      INS-189440_FOV_CLASS_SPEC       = 'ANGLES'
+      INS-189440_FOV_SHAPE            = 'CIRCLE'
+      INS-189440_FOV_FRAME            = 'INSIGHT_LMGA_EAST'
+      INS-189440_BORESIGHT            = ( 0.0, 0.0, 1.0 )
+      INS-189440_FOV_REF_VECTOR       = ( 1.0, 0.0, 0.0 )
+      INS-189440_FOV_REF_ANGLE        = ( 45.0 )
+      INS-189440_FOV_ANGLE_UNITS      = ( 'DEGREES' )
+
+      INS-189450_FOV_CLASS_SPEC       = 'ANGLES'
+      INS-189450_FOV_SHAPE            = 'CIRCLE'
+      INS-189450_FOV_FRAME            = 'INSIGHT_LMGA_WEST'
+      INS-189450_BORESIGHT            = ( 0.0, 0.0, 1.0 )
+      INS-189450_FOV_REF_VECTOR       = ( 1.0, 0.0, 0.0 )
+      INS-189450_FOV_REF_ANGLE        = ( 45.0 )
+      INS-189450_FOV_ANGLE_UNITS      = ( 'DEGREES' )
+
+      INS-189460_FOV_CLASS_SPEC       = 'ANGLES'
+      INS-189460_FOV_SHAPE            = 'CIRCLE'
+      INS-189460_FOV_FRAME            = 'INSIGHT_HELIX'
+      INS-189460_BORESIGHT            = ( 0.0, 0.0, 1.0 )
+      INS-189460_FOV_REF_VECTOR       = ( 1.0, 0.0, 0.0 )
+      INS-189460_FOV_REF_ANGLE        = ( 60.0 )
+      INS-189460_FOV_ANGLE_UNITS      = ( 'DEGREES' )
+
+      INS-189470_FOV_CLASS_SPEC       = 'ANGLES'
+      INS-189470_FOV_SHAPE            = 'CIRCLE'
+      INS-189470_FOV_FRAME            = 'INSIGHT_WPA'
+      INS-189470_BORESIGHT            = ( 0.0, 0.0, 1.0 )
+      INS-189470_FOV_REF_VECTOR       = ( 1.0, 0.0, 0.0 )
+      INS-189470_FOV_REF_ANGLE        = ( 89.0 )
+      INS-189470_FOV_ANGLE_UNITS      = ( 'DEGREES' )
+
+      \begintext
+
+End of the IK file.

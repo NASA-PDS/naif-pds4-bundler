@@ -18,7 +18,7 @@
   "working_directory":     "working",
   "staging_directory":     "staging/insight",
   "final_directory":       "insight",
-  "kernel_directory":      "kernels",
+  "kernel_directory":      "data/kernels",
   "mission_start":         "2018-05-05T11:05:00Z",
   "mission_stop":          "2050-01-01T00:00:00Z",
   "increment_stop":        "2020-01-01T23:59:58Z",

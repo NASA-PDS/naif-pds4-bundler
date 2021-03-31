@@ -45,7 +45,10 @@ class Setup(object):
             setup.staging_directory = cwd + os.sep + setup.staging_directory + f'/{setup.mission_accronym}_spice'
         if not os.path.isdir(setup.staging_directory):
             print(f'Creating missing directory: {setup.staging_directory}')
-            os.mkdir(setup.staging_directory)
+            try:
+                os.mkdir(setup.staging_directory)
+            except Exception as e:
+                print(e)
 
         if os.path.isdir(cwd + os.sep + setup.final_directory):
             setup.final_directory = cwd + os.sep + setup.final_directory
