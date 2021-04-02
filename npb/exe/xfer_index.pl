@@ -13,15 +13,21 @@
 #
 
 $scriptname  = "xfer_index.pl";
-$version     = "Version 3.0.0 -- BVS/NAIF, MCS/NAIF, March 26, 2021 ";
+$version     = "Version 3.0.0 -- MCS/NAIF, April 1, 2021";
 
 #
-#  Version 3.0.0 -- Mar 26, 2021 -- MCS/NAIF
+#  Version 3.0.0 -- April 1, 2021 -- MCS/NAIF
 #
 #     Script is now able to generate the index with PDS4 labels.
 #     DATASETID can be extracted from the kernel list. It can still
 #     be extracted from the PDS3 label.
-#     Fixed random INDEXED_FILE_NAME order in label.
+#
+#     Enforced lower case for VOLUMEID (against the PDS3 standard but
+#     used for all peer-reviwed SPICE PDS3 data sets). Only for PDS3
+#     archive indexes.
+#
+#     Sorting list of INDEXED_FILE_NAME extensions to avoid random
+#     order.
 #
 #  Version 2.7.0 -- May 16, 2019 -- BVS/NAIF
 #
@@ -66,6 +72,8 @@ $version     = "Version 3.0.0 -- BVS/NAIF, MCS/NAIF, March 26, 2021 ";
 #  Version 1.0.0 -- October 24, 2002 -- LSE/NAIF
 #
 
+$PDS         = 3;                        # Default to a PDS3 archvie index
+
 $indexfile   = "dsindex.tab";            # LSE
 $indexlabel  = "dsindex.lbl";            # LSE
 
@@ -78,7 +86,6 @@ $indexlabel2 = "index.lbl";
 print "\nScript that creates an index table file (and a label file for ".
       "it)\nfor a collection of SPICE kernels listed in a text file.\n\n".
       "$version.\n";
-
 
 #
 #
@@ -161,8 +168,14 @@ while ( $line = <LIST> ) {
 
 	 $labelfile  = $kernelfile;
 	 $labelfile  =~ s/\.\w+$/\.lbl/;
+
      unless (-e $labelfile) {
+     #
+     # We take advantage to determine whether if this is a PDS3 or PDS4
+     # archive.
+     #
         $labelfile  =~ s/\.\w+$/\.xml/;
+        $PDS = 4;
      }
 
 	 if ( -e $labelfile ) {
@@ -277,6 +290,16 @@ $RELEASEIDL = 4     ;                                     # LSE
 
 #  Note: additional length fields, $RELEASEDATEL and $RELEASEIDL are defined
 #  at the beginning of the program.
+
+#
+# Enforce lowecase for VOLUMEID if we have a PDS3 archive.
+#
+if( $PDS == 3 ){
+  $VOLUMEID = lc $VOLUMEID
+}
+else {
+  print "\nVOLID lowercase not enforced for PDS4 index files ...\n";
+}
 
 foreach $kernelfile ( @kernels ) {
 
@@ -400,12 +423,6 @@ foreach $kernelfile ( @kernels ) {
    close( LABEL ) ||
       die "\nERROR:$scriptname: cannot close label file  ".
           "'$labels{$kernelfile}'.\n\n";
-
-
-   #
-   #  Get DATA_SET_ID from kernel list for PDS4 labels
-   #
-
 
    #
    #  Check all values that we have collected from the current label.
@@ -711,7 +728,7 @@ close( TABLELABEL ) ||
 print "done.\n";
 
 print "\nIndex table file '$indexfile' and index label file ".
-      "'$indexlabel' were\nsuccessfully created\n\n";
+      "'$indexlabel' were\nsuccessfully created\n";
 
 #
 # Final touch: copy "ds" index table and label to their counter parts
@@ -733,8 +750,7 @@ if ( $status ) {
 }
 
 print "\nIndex table file '$indexfile2' and index label file ".
-      "'$indexlabel2' were\nsuccessfully created\n\n";
-
+      "'$indexlabel2' were\nsuccessfully created\n";
 
 #
 #  All done.
