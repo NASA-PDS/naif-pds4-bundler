@@ -78,7 +78,7 @@ class SpiceKernelProduct(Product):
         self.type       = extension2type(self)
 
 
-        self.path      = setup.kernel_directory + os.sep + self.type
+        self.path      = setup.kernels_directory + os.sep + self.type
 
 
         if self.extension[0].lower() == 'b':
@@ -111,6 +111,7 @@ class SpiceKernelProduct(Product):
         #
         # We copy the kernel to the staging directory.
         #
+        logging.info('')
         logging.info(f'-- Copying  {self.name} to staging directory.')
         if not os.path.isfile(product_path + self.name):
             try:
@@ -120,7 +121,7 @@ class SpiceKernelProduct(Product):
             except:
                 error_message(f'{self.name} not present in {self.path}')
         else:
-            logging.error('     {} already present in final directory'.format(self.name))
+            logging.error('     {} already present in staging directory'.format(self.name))
 
             if self.setup.interactive:
                 input(">> Press Enter to continue...")
@@ -229,13 +230,13 @@ class SpiceKernelProduct(Product):
         MAXOBJ = 10000
 
         ids = spiceypy.support_types.SPICEINT_CELL(MAXOBJ)
-        ids = spiceypy.ckobj(ck=self.path, out_cell=ids)
+        ids = spiceypy.ckobj(ck=f'{self.path}/{self.name}', out_cell=ids)
 
         for id in ids:
 
             coverage = spiceypy.support_types.SPICEDOUBLE_CELL(WINSIZ)
             spiceypy.scard, 0, coverage
-            coverage = spiceypy.ckcov(ck=self.path, idcode=id, needav=False,
+            coverage = spiceypy.ckcov(ck=f'{self.path}/{self.name}', idcode=id, needav=False,
                                     level='SEGMENT', tol=0.0, timsys='TDB',
                                     cover=coverage)
 
@@ -270,7 +271,7 @@ class SpiceKernelProduct(Product):
 
         ids = spiceypy.support_types.SPICEINT_CELL(MAXOBJ)
 
-        spiceypy.pckfrm(self.path, ids)
+        spiceypy.pckfrm(f'{self.path}/{self.name}', ids)
 
         coverage = spiceypy.support_types.SPICEDOUBLE_CELL(WINSIZ)
 
@@ -280,7 +281,7 @@ class SpiceKernelProduct(Product):
         for id in ids:
 
             spiceypy.scard, 0, coverage
-            spiceypy.pckcov(pck=self.path, idcode=id, cover=coverage)
+            spiceypy.pckcov(pck=f'{self.path}/{self.name}', idcode=id, cover=coverage)
 
             num_inter = spiceypy.wncard(coverage)
 
@@ -308,9 +309,9 @@ class SpiceKernelProduct(Product):
 
         TIMLEN = 62
 
-        spiceypy.furnsh(self.path)
+        spiceypy.furnsh(f'{self.path}/{self.name}')
 
-        with open(self.path, "r") as f:
+        with open(f'{self.path}/{self.name}', "r") as f:
 
             for line in f:
 
@@ -333,16 +334,16 @@ class SpiceKernelProduct(Product):
         start_time_cal = spiceypy.timout(start_time_tdb,
                                        "YYYY-MM-DDTHR:MN:SC.###::UTC", TIMLEN) + 'Z'
 
-        stop_time_cal = self.setup.stop
+        stop_time_cal = self.setup.mission_stop
 
         return [start_time_cal, stop_time_cal]
 
     #
     # IK kernel processing
     #
-    def ik_kernel_ids(self, path):
+    def ik_kernel_ids(self):
 
-        with open(path, "r") as f:
+        with open(f'{self.path}/{self.name}', "r") as f:
 
             id_list = list()
             parse_bool = False
@@ -450,6 +451,7 @@ class MetaKernelProduct(Product):
         :param product: We can input a meta-kernel such that the meta-kernel does not have to be generated
         '''
 
+        logging.info('')
         logging.info(f'-- Generating meta-kernel: {kernel}')
 
         self.new_product = True
@@ -728,6 +730,7 @@ class MetaKernelProduct(Product):
         mkdir = os.sep.join(path.split(os.sep)[:-1])
         os.chdir(mkdir)
 
+        spiceypy.kclear()
         spiceypy.furnsh(path)
 
         #
@@ -782,19 +785,42 @@ class InventoryProduct(Product):
                                             os.sep + collection.name + os.sep +  \
                                             f'collection_{collection.name}_inventory_v*.csv')
                 inventory_files.sort()
-                latest_file = inventory_files[-1]
+                try:
+                    latest_file = inventory_files[-1]
 
-                #
-                # We store the previous version to use it to validate the
-                # generated one.
-                #
-                self.path_current = latest_file
+                    #
+                    # We store the previous version to use it to validate the
+                    # generated one.
+                    #
+                    self.path_current = latest_file
 
-                latest_version = latest_file.split('_v')[-1].split('.')[0]
-                self.version = int(latest_version) + 1
+                    latest_version = latest_file.split('_v')[-1].split('.')[0]
+                    self.version = int(latest_version) + 1
+
+                    logging.info(f'-- Previous inventory file is: {latest_file}')
+                    logging.info(f'-- Generate version {self.version}.')
+
+                except:
+                    self.version = 1
+                    self.path_current = ''
+
+                    logging.error(f'-- Previous inventory file not found.')
+                    logging.error(f'-- Default to version {self.version}.')
+                    logging.error(f'-- The version of this file might be incorrect.')
+
+                    if self.setup.interactive:
+                        input(">> Press Enter to continue...")
+
             else:
                 self.version = 1
                 self.path_current = ''
+
+                logging.warning(f'-- Default to version {self.version}.')
+                logging.warning(f'-- Make sure this is the first release of the archive.')
+
+                if self.setup.interactive:
+                    input(">> Press Enter to continue...")
+
 
             self.name = f'collection_{collection.name}_inventory_v{self.version:03}.csv'
             self.path = setup.staging_directory + os.sep + collection.name \
@@ -843,16 +869,19 @@ class InventoryProduct(Product):
             # the previous version as SECONDARY members
             #
             if self.setup.increment:
-                prev_collection_path = self.setup.final_directory + os.sep + self.setup.mission_accronym + \
-                                       '_spice/' + self.collection.name + os.sep + \
-                                       self.name.replace(str(self.version), str(self.version-1))
-                with open(prev_collection_path, "r") as r:
-                    for line in r:
-                        if 'P,urn' in line:
-                            # All primary items in previous version shall be included as secondary in the new one
-                            line = line.replace('P,urn', 'S,urn')
-                        line = add_carriage_return(line)
-                        f.write(line)
+                try:
+                    prev_collection_path = self.setup.final_directory + os.sep + self.setup.mission_accronym + \
+                                           '_spice/' + self.collection.name + os.sep + \
+                                           self.name.replace(str(self.version), str(self.version-1))
+                    with open(prev_collection_path, "r") as r:
+                        for line in r:
+                            if 'P,urn' in line:
+                                # All primary items in previous version shall be included as secondary in the new one
+                                line = line.replace('P,urn', 'S,urn')
+                            line = add_carriage_return(line)
+                            f.write(line)
+                except:
+                    logging.error('-- A previous collection was expected. The generated collection might be incorrect.')
 
             for product in self.collection.product:
                 if product.new_product:
@@ -860,8 +889,13 @@ class InventoryProduct(Product):
                     line = add_carriage_return(line)
                     f.write(line)
 
+        if self.setup.interactive:
+            input(">> Press Enter to continue...")
 
         logging.info(f'-- Generated {self.path}')
+
+
+
         self.validate()
 
         return
@@ -876,8 +910,7 @@ class InventoryProduct(Product):
         :return:
         '''
 
-        logging.info(f'-- Validating  {self.name}')
-        logging.info('')
+        logging.info(f'-- Validating {self.name}')
 
         #
         # Use the prior version of the same product, if it does not
@@ -889,6 +922,18 @@ class InventoryProduct(Product):
             fromfile = self.path_current
             tofile   = self.path
             dir      = self.setup.working_directory
+
+            compare_files(fromfile, tofile, dir)
+
+        else:
+
+            logging.warning('-- Comparing with InSight test inventory product.')
+            fromfiles = glob.glob(f'{self.setup.root_dir}tests/functional/data/insight/' \
+                        f'insight_spice/{self.collection.type}/collection_{self.collection.name}_inventory_*.csv')
+            fromfiles.sort()
+            fromfile  = fromfiles[-1]
+            tofile    = self.path
+            dir       = self.setup.working_directory
 
             compare_files(fromfile, tofile, dir)
 
@@ -1010,11 +1055,16 @@ class SpicedsProduct(object):
         if self.setup.increment:
             spiceds_files = glob.glob(path + os.sep + 'spiceds_v*.html')
             spiceds_files.sort()
-            latest_spiceds = spiceds_files[-1]
-            latest_version = latest_spiceds.split('_v')[-1].split('.')[0]
-            self.latest_spiceds = latest_spiceds
-            self.latest_version = latest_version
-            self.version = int(latest_version) + 1
+            try:
+                latest_spiceds = spiceds_files[-1]
+                latest_version = latest_spiceds.split('_v')[-1].split('.')[0]
+                self.latest_spiceds = latest_spiceds
+                self.latest_version = latest_version
+                self.version = int(latest_version) + 1
+            except:
+                logging.error('-- No previous version of spiceds_v*.html file found. Generated file might be incorrect.')
+                self.version = 1
+                self.latest_spiceds = ''
         else:
             self.version = 1
             self.latest_spiceds = ''
