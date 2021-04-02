@@ -30,8 +30,9 @@ class KernelList(List):
 
     def __init__(self, setup, plan):
 
-        logging.info(f'Step {setup.step} - Kernel List generation')
-        logging.info('-------------------------------')
+        line = f'Step {setup.step} - Kernel List generation'
+        logging.info(line)
+        logging.info('-'*len(line))
         logging.info('')
         setup.step += 1
 
@@ -45,8 +46,8 @@ class KernelList(List):
         self.AUTHOR       = setup.author
         self.PHONE        = setup.phone
         self.EMAIL        = setup.email
-        self.DATASETID    = setup.dataset_id.upper()
-        self.VOLID        = setup.volume_id.upper()
+        self.DATASETID    = setup.dataset_id
+        self.VOLID        = setup.volume_id
         self.RELID        = f'{int(setup.release):04d}'
         self.RELDATE      = setup.release_date
 
@@ -84,9 +85,6 @@ class KernelList(List):
         json_formatted_str = json.dumps(self.json_config, indent=2)
         self.json_formatted_lst = json_formatted_str.split('\n')
 
-        if self.setup.interactive:
-            input(">> Press Enter to continue...")
-
         return
 
 
@@ -106,7 +104,7 @@ class KernelList(List):
                 #
                 else:
                     if line.strip():
-                        logging.info(line[:-1])
+                        logging.info('     ' + line[:-1])
 
         if self.setup.interactive:
             input(">> Press Enter to continue...")
@@ -177,7 +175,9 @@ class KernelList(List):
                                     try:
                                         (upper, value) = value.split(',')
                                     except:
-                                        logging.warning(f"   No upper/lower indication for {el} in {kernel}")
+                                        logging.warning(f"-- No upper/lower indication for {el} in {kernel}")
+                                        logging.info('')
+
                                         upper = False
                                         pass
 
@@ -366,9 +366,9 @@ class KernelList(List):
             # Check that all files listed are available in OPS area;
             # This does not raise an error but only a warning.
             #
-            logging.info(f'-- Checking that kernels are present in {self.setup.kernel_directory}:')
+            logging.info(f'-- Checking that kernels are present in {self.setup.kernels_directory}:')
             for ker in ker_in_list:
-                if not os.path.isfile(self.setup.kernel_directory + os.sep +
+                if not os.path.isfile(self.setup.kernels_directory + os.sep +
                                       extension2type(ker) + os.sep + ker):
                     present = True
                     logging.warning(f'     {ker} not present.')
@@ -383,6 +383,7 @@ class KernelList(List):
             #
             # Check that no file is in the final area.
             #
+            present = False
             logging.info(f'-- Checking that kernels are present in {self.setup.final_directory}:')
             for ker in ker_in_list:
                 if os.path.isfile(self.setup.final_directory + \
@@ -463,6 +464,8 @@ class KernelList(List):
                 logging.info(f'     List contains no duplicates.')
             logging.info('')
 
+        if self.setup.interactive:
+            input(">> Press Enter to continue...")
 
         return
 
