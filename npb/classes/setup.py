@@ -2,6 +2,7 @@ import os
 import json
 import glob
 import logging
+import spiceypy
 import datetime
 
 from types import SimpleNamespace
@@ -55,10 +56,10 @@ class Setup(object):
         if not os.path.isdir(setup.final_directory):
             error_message(f'Directory does not exist: {setup.final_directory}')
 
-        if os.path.isdir(cwd + os.sep + setup.kernel_directory):
-            setup.kernel_directory = cwd + os.sep + setup.kernel_directory
-        if not os.path.isdir(setup.kernel_directory):
-            error_message(f'Directory does not exist: {setup.kernel_directory}')
+        if os.path.isdir(cwd + os.sep + setup.kernels_directory):
+            setup.kernels_directory = cwd + os.sep + setup.kernels_directory
+        if not os.path.isdir(setup.kernels_directory):
+            error_message(f'Directory does not exist: {setup.kernels_directory}')
 
         os.chdir(cwd)
 
@@ -67,9 +68,9 @@ class Setup(object):
 
     def get_increment(setup):
 
-
-        logging.info(f'Step {setup.step} - Setting up the archive generation')
-        logging.info('------------------------------------------------')
+        line = f'Step {setup.step} - Setup the archive generation'
+        logging.info(line)
+        logging.info('-'*len(line))
         logging.info('')
         setup.step += 1
 
@@ -123,4 +124,85 @@ class Setup(object):
 
         logging.info('')
 
+        if setup.interactive:
+            input(">> Press Enter to continue...")
+
         return increment
+
+
+    def load_kernels(setup):
+
+        logging.info('')
+        line = f'Step {setup.step} - Load LSK, FK and SCLK kernels'
+        logging.info(line)
+        logging.info('-'*len(line))
+        logging.info('')
+        setup.step += 1
+
+        #
+        # To get the appropriate kernels, use the meta-kernel grammar.
+        # First extract the patterns for each kernel type of interest.
+        #
+        fk_patterns   = []
+        sclk_patterns = []
+        lsk_patterns  = []
+
+        mk_grammar = setup.root_dir + \
+                     f'/config/{setup.mission_accronym}_metakernel.grammar'
+        with open(mk_grammar, 'r') as m:
+            for line in m:
+                if '.tf' in line.lower():
+                    fk_patterns.append(line.strip())
+                elif '.tsc' in line.lower():
+                    sclk_patterns.append(line.strip())
+                elif '.tls' in line.lower():
+                    lsk_patterns.append(line.strip())
+
+        #
+        # Search the latest version for each pattern of each kernel type.
+        #
+        fks = []
+        for pattern in fk_patterns:
+            fks_pattern = glob.glob(f'{setup.kernels_directory}/fk/{pattern}')
+            if fks_pattern:
+                if len(fks_pattern) > 1: fks_pattern.sort()
+                spiceypy.furnsh(fks_pattern[-1])
+                fks.append(fks_pattern[-1])
+        if not fks:
+            logging.error(f'-- No FK found.')
+        logging.info(f'-- FK(s)   loaded: {fks}')
+
+        sclks = []
+        for pattern in sclk_patterns:
+            sclks_pattern = glob.glob(f'{setup.kernels_directory}/sclk/{pattern}')
+            if sclks_pattern:
+                if len(sclks_pattern) > 1: sclks_pattern.sort()
+                sclks.append(sclks_pattern[-1])
+                spiceypy.furnsh(sclks_pattern[-1])
+        if not sclks:
+            logging.error(f'-- No SCLK found.')
+        logging.info(f'-- SCLK(s) loaded: {sclks}')
+
+        lsk = []
+        for pattern in lsk_patterns:
+            lsk_pattern = glob.glob(f'{setup.kernels_directory}/lsk/{pattern}')
+            if lsk_pattern:
+                if len(lsk_pattern) > 1: lsk_pattern.sort()
+                lsk.append(lsk_pattern[-1])
+                spiceypy.furnsh(lsk_pattern[-1])
+        if not lsk:
+            logging.error(f'-- No LSK found.')
+        if len(lsk) > 1:
+            error_message('Only one LSK should be obtained.')
+        logging.info(f'-- LSK     loaded: {lsk}')
+
+        logging.info('')
+
+        setup.fks   = fks
+        setup.sclks = sclks
+        setup.lsk   = lsk
+
+        if setup.interactive:
+            input(">> Press Enter to continue...")
+
+        return
