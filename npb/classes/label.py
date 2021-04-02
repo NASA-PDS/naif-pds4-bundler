@@ -267,8 +267,7 @@ class PDSLabel(object):
         :return:
         '''
 
-        logging.info(f'-- Validating  {self.name}')
-        logging.info('')
+        logging.info(f'-- Validating {self.name}')
 
         #
         # 1-Look for a different version of the same file.
@@ -290,7 +289,6 @@ class PDSLabel(object):
             # If this is the spice_kernels collection, we need to add the
             # kernel type directory.
             #
-
             if (self.product.collection.name == 'spice_kernels') and  ('collection' not in self.name):
                 val_label_path += self.name.split(os.sep)[-2] + os.sep
 
@@ -308,19 +306,111 @@ class PDSLabel(object):
                         match_flag = False
                     i += 1
 
+            if not val_label:
+                raise Exception("No label for comparison found.")
+
         except:
-            pass
+            logging.warning(f'-- No other version of {self.name} has been found.')
 
-        #
-        # 2-If a prior version of the same file cannot be found look for
-        #   the label of a kernel of the same type.
-        #
+            #
+            # 2-If a prior version of the same file cannot be found look for
+            #   the label of a kernel of the same type.
+            #
+            try:
+                val_label_path = self.setup.final_directory + \
+                                 f'/{self.setup.mission_accronym}_spice/' + \
+                                 self.product.collection.name + os.sep
 
-        #
-        # 3-If we cannot find a kernel of the same type; for example is a
-        #   first version of an archvie, we compare with an example
-        #    label.
-        #
+                #
+                # If this is the spice_kernels collection, we need to add the
+                # kernel type directory.
+                #
+                if (self.product.collection.name == 'spice_kernels') and ('collection' not in self.name):
+                    val_label_path += self.name.split(os.sep)[-2] + os.sep
+
+                product_extension = self.product.name.split('.')[-1]
+                val_products = glob.glob(f'{val_label_path}*.{product_extension}')
+                val_products.sort()
+
+                #
+                # Simply pick the last one
+                #
+                if ('collection' in self.name):
+                    val_label = glob.glob(val_products[-1].replace('inventory_', '').split('.')[0] + '.xml')[0]
+                elif ('bundle' in self.name):
+                    val_labels = glob.glob(f'{val_label_path}bundle_*.xml')
+                    val_labels.sort()
+                    val_label = val_labels[-1]
+                else:
+                    val_label = glob.glob(val_products[-1].split('.')[0] + '.xml')[0]
+
+
+
+                if not val_label:
+                    raise Exception("No label for comparison found.")
+
+            except:
+
+                logging.warning(f'-- No similar label to {self.name} has been found.')
+                #
+                # 3-If we cannot find a kernel of the same type; for example
+                #   is a first version of an archvie, we compare with an
+                #   a label available in the test data directories.
+                #
+                try:
+                    val_label_path = self.setup.root_dir + \
+                                     f'tests/functional/data/insight/insight_spice/' + \
+                                     self.product.collection.name + os.sep
+
+                    #
+                    # If this is the spice_kernels collection, we need to add the
+                    # kernel type directory.
+                    #
+                    if (self.product.collection.name == 'spice_kernels') and ('collection' not in self.name):
+                        val_label_path += self.name.split(os.sep)[-2] + os.sep
+
+                        #
+                        # Generate the empty files from the test case.
+                        #
+                        with open(self.setup.root_dir + \
+                                  f'tests/functional/data/insight.list', 'r') as i:
+                            for line in i:
+                                with open(self.setup.root_dir + \
+                                          f'tests/functional/data/insight/insight_spice/{line[0:-1]}', 'w') as fp:
+                                    pass
+
+                    #
+                    # Simply pick the last one
+                    #
+                    product_extension = self.product.name.split('.')[-1]
+                    val_products = glob.glob(f'{val_label_path}*.{product_extension}')
+                    val_products.sort()
+
+                    if ('collection' in self.name):
+                        val_label = glob.glob(val_products[-1].replace('inventory_','').split('.')[0] + '.xml')[0]
+                    elif ('bundle'in self.name) :
+                        val_labels = glob.glob(f'{val_label_path}bundle_*.xml')
+                        val_labels.sort()
+                        val_label = val_labels[-1]
+                    else:
+                        val_label = glob.glob(val_products[-1].split('.')[0] + '.xml')[0]
+
+                    #
+                    # Delete the empty files from the test case.
+                    #
+                    if (self.product.collection.name == 'spice_kernels') and ('collection' not in self.name):
+                        with open(self.setup.root_dir + \
+                                  f'tests/functional/data/insight.list', 'r') as i:
+                            for line in i:
+                                os.remove(self.setup.root_dir + \
+                                  f'tests/functional/data/insight/insight_spice/{line[0:-1]}')
+
+                    if not val_label:
+                        raise Exception("No label for comparison found.")
+
+                    logging.warning('-- Comparing with InSight test label.')
+                except:
+                    logging.error("-- No label for comparison found.")
 
         #
         # If a similar label has been found the labels are compared and a
@@ -329,11 +419,14 @@ class PDSLabel(object):
         #
         if val_label:
 
+            logging.info('')
             fromfile = val_label
             tofile   = self.name
             dir      = self.setup.working_directory
 
             compare_files(fromfile, tofile, dir)
+        else:
+            logging.info('')
 
         if self.setup.interactive:
             input(">> Press enter to continue...")
