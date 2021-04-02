@@ -187,6 +187,13 @@ def main(config=False, plan=False, log=False, silent=False, interactive=False):
     #
     bundle = Bundle(setup)
 
+
+    #
+    # -- Load LSK, FK and SCLK kernels for coverage computations
+    #
+    Setup.load_kernels(setup)
+
+
     #
     # -- Initialise the SPICE kernels collection.
     #
@@ -315,6 +322,10 @@ def main(config=False, plan=False, log=False, silent=False, interactive=False):
     # -- Generate checksum file at final area.
     #
     bundle.write_checksum()
+
+    #
+    # -- Make sure directory and file permissions are correct.
+    #
 
     #
     # -- Validate meta-kernel
