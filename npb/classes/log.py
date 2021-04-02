@@ -2,6 +2,7 @@ import os
 import shutil
 import socket
 import logging
+import spiceypy
 import datetime
 
 class Log(object):
@@ -22,8 +23,12 @@ class Log(object):
             logger.addHandler(ch)
 
         if log_file:
+
             log_file = setup.working_directory + os.sep + \
                        f'{self.setup.mission_accronym}_release_temp.log'
+
+            if os.path.exists(log_file):
+                os.remove(log_file)
 
             fh = logging.FileHandler(log_file)
             fh.setLevel(logging.INFO)
@@ -49,6 +54,7 @@ class Log(object):
 
 
     def stop(self):
+        logging.info('')
         logging.info(f'naif-pd4-bundle-{self.setup.version} for {self.setup.mission_name} run on '
                      f'{socket.gethostname()} finished at '
                      f'{str(datetime.datetime.now())[:-7]}')
@@ -56,15 +62,25 @@ class Log(object):
         logging.info('End of log.')
 
         #
-        # We rename the log file according to the version
+        # Rename the log file according to the version
         #
         if self.log_file:
             shutil.move(self.log_file, self.log_file.replace('temp', f'{int(self.setup.release):02d}'))
+
+        #
+        # Clear the kernel pool
+        #
+        spiceypy.kclear()
 
         return
 
 
 def error_message(message):
+
     error = f'{message}.'
     logging.error(f'-- {message}')
+
+    spiceypy.kclear()
+
     raise Exception(error)
+
