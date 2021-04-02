@@ -23,7 +23,6 @@ class Bundle(object):
         logging.info('-'*len(line))
         logging.info('')
         logging.info('-- Directory structure generation occurs if reported.')
-        logging.info('')
         setup.step += 1
 
         self.collections = []

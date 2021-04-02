@@ -42,7 +42,6 @@ class SpiceKernelsCollection(Collection):
 
         logging.info(f'Step {setup.step} - SPICE kernel collection/data processing')
         logging.info('------------------------------------------------')
-        logging.info('')
         setup.step += 1
 
         self.bundle      = bundle

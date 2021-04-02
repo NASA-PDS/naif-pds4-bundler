@@ -38,7 +38,6 @@ def safe_make_directory(i):
     try:  
         os.mkdir(i)
         logging.info(f'-- Generated directory: {i}  ')
-        logging.info('')
     except:
         pass
 
@@ -277,6 +276,7 @@ def compare_files(fromfile, tofile, dir):
             logging.info(line[:-1])
 
     diff = difflib.HtmlDiff().make_file(fromlines, tolines, fromfile, tofile, context=False, numlines=False)
+
     diff_html = open(dir + \
                      f"/diff_{fromfile.split(os.sep)[-1].replace('.','_')}_{tofile.split(os.sep)[-1].replace('.','_')}.html",
                      "w")
