@@ -1,6 +1,8 @@
 """Functional tests for the List generator.
 """
 import os
+import shutil
+import unittest
 
 from unittest import TestCase
 from npb.main import main
@@ -28,6 +30,10 @@ class TestKernelList(TestCase):
         config = 'data/msl_release_26.json'
         plan   = 'data/msl_release_26.plan'
 
+        shutil.rmtree('working', ignore_errors=True)
+        os.mkdir('working')
+        shutil.copy2('data/msl_release_25.kernel_list', 'working')
+
         main(config=config, plan=plan, silent=True)
 
         new_file = ''
@@ -42,7 +48,7 @@ class TestKernelList(TestCase):
 
         self.assertEqual(old_file.split('\n')[9:],new_file.split('\n')[9:])
 
-        os.remove('working/msl_release_26.kernel_list')
+        shutil.rmtree('working', ignore_errors=True)
 
 
     def test_pds3_m01_list(self):
@@ -56,6 +62,9 @@ class TestKernelList(TestCase):
         config = 'data/m01_release_75.json'
         plan   = 'data/m01_release_75.plan'
 
+        shutil.rmtree('working', ignore_errors=True)
+        os.mkdir('working')
+        shutil.copy2('data/m01_release_74.kernel_list', 'working')
 
         main(config=config, plan=plan, silent=True)
 
@@ -71,7 +80,7 @@ class TestKernelList(TestCase):
 
         self.assertEqual(old_file.split('\n')[9:],new_file.split('\n')[9:])
 
-        os.remove('working/m01_release_75.kernel_list')
+        shutil.rmtree('working', ignore_errors=True)
 
 
 
@@ -84,6 +93,10 @@ class TestKernelList(TestCase):
 
         config = 'data/insight_release_08.json'
         plan   = 'data/insight_release_08.plan'
+
+        shutil.rmtree('working', ignore_errors=True)
+        os.mkdir('working')
+        shutil.copy2('data/insight_release_07.kernel_list', 'working')
 
         main(config=config, plan=plan, silent=True)
 
@@ -99,5 +112,8 @@ class TestKernelList(TestCase):
 
         self.assertEqual(old_file.split('\n')[9:],new_file.split('\n')[9:])
 
-        os.remove('working/insight_release_08.kernel_list')
+        shutil.rmtree('working', ignore_errors=True)
 
+
+if __name__ == '__main__':
+    unittest.main()

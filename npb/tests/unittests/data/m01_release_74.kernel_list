@@ -1,0 +1,10 @@
+DATE = 2021-03-24
+SPACECRAFT = ODY
+NAIFER = Marc Costa Sitja
+PHONE = 6264691244
+EMAIL = Marc.Costa.Sitja@jpl.nasa.gov
+DATASETID = ody-m-spice-6-v1.0
+VOLUMEID = odsp_1000
+RELEASE_ID = 0074
+RELEASE_DATE = 2021-03-16
+$EOH

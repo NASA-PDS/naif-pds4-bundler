@@ -2,8 +2,8 @@
 """
 import os
 import filecmp
+import unittest
 import subprocess
-
 
 
 from unittest import TestCase
@@ -96,3 +96,7 @@ class TestIndex(TestCase):
         os.remove('index.lbl')
         os.remove('dsindex.tab')
         os.remove('dsindex.lbl')
+
+
+if __name__ == '__main__':
+    unittest.main()

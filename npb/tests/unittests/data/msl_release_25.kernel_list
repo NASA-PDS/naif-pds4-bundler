@@ -1,0 +1,10 @@
+DATE = 2021-03-08
+SPACECRAFT = MSL
+NAIFER = Marc Costa Sitja
+PHONE = 6264691244
+EMAIL = Marc.Costa.Sitja@jpl.nasa.gov
+DATASETID = msl-m-spice-6-v1.0
+VOLUMEID = mslsp_1000
+RELEASE_ID = 0025
+RELEASE_DATE = 2021-03-16
+$EOH
