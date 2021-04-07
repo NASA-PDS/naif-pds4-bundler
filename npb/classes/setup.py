@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import glob
 import logging
@@ -163,10 +164,10 @@ class Setup(object):
         #
         fks = []
         for pattern in fk_patterns:
-            fks_pattern = glob.glob(f'{setup.kernels_directory}/fk/{pattern}')
+            fks_pattern = [f for f in os.listdir(f'{setup.kernels_directory}/fk/') if re.search(pattern, f)]
             if fks_pattern:
                 if len(fks_pattern) > 1: fks_pattern.sort()
-                spiceypy.furnsh(fks_pattern[-1])
+                spiceypy.furnsh(f'{setup.kernels_directory}/fk/{fks_pattern[-1]}')
                 fks.append(fks_pattern[-1])
         if not fks:
             logging.error(f'-- No FK found.')
@@ -174,22 +175,22 @@ class Setup(object):
 
         sclks = []
         for pattern in sclk_patterns:
-            sclks_pattern = glob.glob(f'{setup.kernels_directory}/sclk/{pattern}')
+            sclks_pattern = [f for f in os.listdir(f'{setup.kernels_directory}/sclk/') if re.search(pattern, f)]
             if sclks_pattern:
                 if len(sclks_pattern) > 1: sclks_pattern.sort()
                 sclks.append(sclks_pattern[-1])
-                spiceypy.furnsh(sclks_pattern[-1])
+                spiceypy.furnsh(f'{setup.kernels_directory}/sclk/{sclks_pattern[-1]}')
         if not sclks:
             logging.error(f'-- No SCLK found.')
         logging.info(f'-- SCLK(s) loaded: {sclks}')
 
         lsk = []
         for pattern in lsk_patterns:
-            lsk_pattern = glob.glob(f'{setup.kernels_directory}/lsk/{pattern}')
+            lsk_pattern = [f for f in os.listdir(f'{setup.kernels_directory}/lsk/') if re.search(pattern, f)]
             if lsk_pattern:
                 if len(lsk_pattern) > 1: lsk_pattern.sort()
                 lsk.append(lsk_pattern[-1])
-                spiceypy.furnsh(lsk_pattern[-1])
+                spiceypy.furnsh(f'{setup.kernels_directory}/lsk/{lsk_pattern[-1]}')
         if not lsk:
             logging.error(f'-- No LSK found.')
         if len(lsk) > 1:
