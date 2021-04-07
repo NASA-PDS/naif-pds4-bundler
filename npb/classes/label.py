@@ -8,6 +8,7 @@ import sys
 from npb.utils.time import current_time
 from npb.utils.files import add_carriage_return
 from npb.utils.files import compare_files
+from npb.utils.files import extension2type
 #from npb.utils.files import get_spacecrafts
 #from npb.utils.files import get_targets
 
@@ -354,7 +355,7 @@ class PDSLabel(object):
                 logging.warning(f'-- No similar label to {self.name} has been found.')
                 #
                 # 3-If we cannot find a kernel of the same type; for example
-                #   is a first version of an archvie, we compare with an
+                #   is a first version of an archvie, we compare with
                 #   a label available in the test data directories.
                 #
                 try:
@@ -386,9 +387,9 @@ class PDSLabel(object):
                     val_products = glob.glob(f'{val_label_path}*.{product_extension}')
                     val_products.sort()
 
-                    if ('collection' in self.name):
+                    if ('collection' in self.name.split(os.sep)):
                         val_label = glob.glob(val_products[-1].replace('inventory_','').split('.')[0] + '.xml')[0]
-                    elif ('bundle'in self.name) :
+                    elif ('bundle'in self.name.split(os.sep)) :
                         val_labels = glob.glob(f'{val_label_path}bundle_*.xml')
                         val_labels.sort()
                         val_label = val_labels[-1]
@@ -537,9 +538,18 @@ class MetaKernelPDS4Label(PDSLabel):
         kernel_list_for_label = ''
         for kernel in self.product.collection_metakernel:
 
+
+            #
+            # The kernel lid cannot be ontained from the list; it is
+            # merely a list of strings.
+            #
+            kernel_type = extension2type(kernel)
+            kernel_lid  = f'urn:nasa:pds:{self.setup.mission_accronym}.' \
+                          f'spice:spice_kernels:{kernel_type}_{kernel}'
+
             kernel_list_for_label += \
             '    <Internal_Reference>\r\n' + \
-           f'      <lid_reference>{kernel.lid}</lid_reference>\r\n'.format() + \
+           f'      <lid_reference>{kernel_lid}</lid_reference>\r\n'.format() + \
             '      <reference_type>data_to_associate</reference_type>\r\n' +\
             '    </Internal_Reference>\r\n'
 
