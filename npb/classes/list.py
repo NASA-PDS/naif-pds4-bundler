@@ -73,7 +73,7 @@ class KernelList(List):
             json_config = json.load(f)
 
         #
-        # Build a list of compuled regular expressions from the JSON config
+        # Build a list of computed regular expressions from the JSON config
         #
         re_config = []
         for pattern in json_config:
@@ -371,7 +371,10 @@ class KernelList(List):
                 if not os.path.isfile(self.setup.kernels_directory + os.sep +
                                       extension2type(ker) + os.sep + ker):
                     present = True
-                    logging.warning(f'     {ker} not present.')
+                    if '.tm' in ker:
+                        logging.info(f'     {ker} not present as expected.')
+                    else:
+                        logging.error(f'     {ker} not present.')
             if not present:
                 logging.info('     All kernels present in directory.')
             logging.info('')
