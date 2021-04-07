@@ -2,36 +2,36 @@ naif0012.tls
 
 pck00010.tpc
 
-insight_v??.tf
-marcoa_v??.tf
-marcob_v??.tf
+insight_v[0-9]{2}.tf
+marcoa_v[0-9]{2}.tf
+marcob_v[0-9]{2}.tf
 
-insight_ant_v??.ti
-insight_hp3_rad_v??.ti
-insight_icc_????????_c??.ti
-insight_idc_????????_c??.ti
+insight_ant_v[0-9]{2}.ti
+insight_hp3_rad_v[0-9]{2}?.ti
+insight_icc_[0-9]{8}_c[0-9]{2}.ti
+insight_idc_[0-9]{8}_c[0-9]{2}.ti
 
-NSY_SCLKSCET.?????.tsc
-nsy_sclkscet_?????.tsc
-insight_lmst_ops181206_v?.tsc
-marcoa_fake_v??.tsc
-marcob_fake_v??.tsc
+NSY_SCLKSCET.[0-9]{5}.tsc
+nsy_sclkscet_[0-9]{5}.tsc
+insight_lmst_ops181206_v[0-9].tsc
+marcoa_fake_v[0-9]{2}.tsc
+marcob_fake_v[0-9]{2}.tsc
 
-marcoa_180505_190110_200101_v?.bsp
-marcob_180505_181228_200101_v?.bsp
+marcoa_180505_190110_200101_v[0-9].bsp
+marcob_180505_181228_200101_v[0-9].bsp
 de430s.bsp
 mar097s.bsp
-insight_struct_v??.bsp
-insight_cru_ops_v?.bsp
-insight_edl_rec_v?.bsp
-insight_ls_ops181206_iau2000_v?.bsp
-insight_atls_ops181206_v?.bsp
+insight_struct_v[0-9]{2}.bsp
+insight_cru_ops_v[0-9].bsp
+insight_edl_rec_v[0-9].bsp
+insight_ls_ops181206_iau2000_v[0-9].bsp
+insight_atls_ops181206_v[0-9].bsp
 
-marcoa_cru_rec_181125_181127_v01.bc
-marcob_cru_rec_181126_181127_v01.bc
-date:insight_ida_enc_??????_??????_v?.bc
-insight_cruise2lander_v?.bc
-insight_lander2cruise_v?.bc
-insight_cru_rec_180505_181126_v??.bc
-insight_edl_rec_v?.bc
-insight_surf_ops_v?.bc
+marcoa_cru_rec_181125_181127_v[0-9]{2}.bc
+marcob_cru_rec_181126_181127_v[0-9]{2}.bc
+date:insight_ida_enc_[0-9]{6}_[0-9]{6}_v[0-9].bc
+insight_cruise2lander_v[0-9].bc
+insight_lander2cruise_v[0-9].bc
+insight_cru_rec_180505_181126_v[0-9]{2}.bc
+insight_edl_rec_v[0-9].bc
+insight_surf_ops_v[0-9].bc
