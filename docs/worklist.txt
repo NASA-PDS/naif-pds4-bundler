@@ -1,0 +1,51 @@
+naif-pds4-bundle worklist by MCS/NAIF, updated 6 April, 2021
+============================================================
+
+v0.1.0 - Generation of kernel lists.
+
+v0.2.0 - Generation of a PDS4 Bundle with examples.
+
+v0.3.0 - Generation of InSight Bundle from existing archive.
+
+  -- Add test case for using similar labels from previous increment
+     (that is case 2; not the appropriate one).
+
+v0.4.0 - BVS/NAIF feedback incorporation.
+
+  -- Beware of meta-kernels with "_v" in name besides from version.
+  -- Split meta-kernel by year.
+  -- The facuet item of the configuration file to be a parameter instead
+  -- Format of the Plan file can be reviewed and made more convenient for
+     users.
+  -- Kernel List, meta-kernel grammar, meta-kernel template to be part
+     of the configuration file.
+  -- spiceds template to be versioned, after all it will change continuously.
+  -- Step 3 - Bundle/dataset structure generation to incldue staging area
+     reference to make it clear to users.
+  -- Convert configuration file to a format similar to NDT or an XML file
+     that can be validated against a schematron. JSON can still be used as an
+     intermediate format if need be.
+  -- Files that need a change in the filename to be a configuration item
+     (kernel list will then be generated easier).
+  -- PCK file needs to be loaded as well. Maybe after all it is just better
+     to generate and load a meta-kernel.
+  -- Label and product comparison log visualization to be an option. Default
+     to be set to false.
+  -- Incorporate a validation at the end of the processs that reports on
+     sensible field such as descriptions, start and stop times, and other
+     fields to be considered, this report could be presented as table.
+  -- Incorporate a comparison of selected files as well (as with the previous
+     point, for those subject to user errors from configuration etc.)
+  -- URN or LID to be fully configuratble (for example KPLO will need that).
+  -- Automated documentation to be genetared from function and class
+     headers with Spynx. This will be useful for developers and for the
+     community.
+  -- Documentation of the process not to use faketex or any NAIF style instead
+     use MD for example.
+  -- For PDS3 first implement generation with MKLABL with the ultimate goal
+     to replace it completely with Python code.
+  -- Same approach for Perl scritps, end up replacing them with Python code.
+  -- dsindex files not required for PDS4 archives (update in generation
+     index Perl script not really required).
+
+v1.0.0 - First 'public' release.
