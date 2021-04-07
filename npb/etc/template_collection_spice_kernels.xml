@@ -11,7 +11,6 @@
     <product_class>Product_Collection</product_class>
     <Citation_Information>
       <publication_year>$CURRENT_YEAR</publication_year>
-      <doi>$DOI</doi>
       <keyword>Observation Geometry</keyword>
       <description>This collection contains SPICE kernels for the $PDS4_SPACECRAFT_NAME spacecraft and its instruments.</description>
     </Citation_Information>
