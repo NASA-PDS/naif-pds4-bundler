@@ -30,6 +30,8 @@ from npb.utils.files   import get_latest_kernel
 from npb.utils.files   import type2extension
 from npb.utils.files   import compare_files
 
+from collections import OrderedDict
+
 
 class Product(object):
     
@@ -307,34 +309,8 @@ class SpiceKernelProduct(Product):
     #
     def sclk_coverage(self):
 
-        TIMLEN = 62
-
-        spiceypy.furnsh(f'{self.path}/{self.name}')
-
-        with open(f'{self.path}/{self.name}', "r") as f:
-
-            for line in f:
-
-                if 'SCLK_DATA_TYPE_' in line:
-                    line = line.lstrip()
-                    line = line.split("SCLK_DATA_TYPE_")
-                    line = line[1].split("=")[0]
-                    id = int('-' + line.rstrip())
-
-        partitions = spiceypy.scpart(id)
-
-        #
-        # We need to take into account clocks that have more than one partition
-        #
-        if len(partitions[0]) > 1.0:
-            partitions = partitions[0]
-        start_time_tdb = spiceypy.sct2e(id, partitions[0])
-        if isinstance(start_time_tdb, (list, np.ndarray)):
-            start_time_tdb = start_time_tdb[0]
-        start_time_cal = spiceypy.timout(start_time_tdb,
-                                       "YYYY-MM-DDTHR:MN:SC.###::UTC", TIMLEN) + 'Z'
-
-        stop_time_cal = self.setup.mission_stop
+        start_time_cal = self.setup.mission_start
+        stop_time_cal  = self.setup.mission_stop
 
         return [start_time_cal, stop_time_cal]
 
@@ -455,12 +431,13 @@ class MetaKernelProduct(Product):
         logging.info(f'-- Generating meta-kernel: {kernel}')
 
         self.new_product = True
-        self.template = setup.root_dir + f'/config/{setup.mission_accronym}_metakernel.tm'
-        self.path = self.template
-        self.setup = setup
-        self.name = kernel
-        self.extension = self.path.split('.')[1]
-        self.collection = spice_kernels_collection
+        self.template    = setup.root_dir + f'/config/{setup.mission_accronym}_metakernel.tm'
+        self.path        = self.template
+        self.setup       = setup
+        self.name        = kernel
+        self.version     = int(self.name.split('.')[0][-1])
+        self.extension   = self.path.split('.')[1]
+        self.collection  = spice_kernels_collection
 
         self.type = extension2type(self)
 
@@ -507,6 +484,15 @@ class MetaKernelProduct(Product):
 
         self.FILE_NAME = self.name
 
+        #
+        # Check product version. Note that the meta-kernel version is provided
+        # in the kernel list. The version is checked.
+        #
+        self.check_version()
+
+        #
+        # Generate the product LIDVID.
+        #
         self.lid = self.product_lid()
         self.vid = self.product_vid()
 
@@ -519,11 +505,12 @@ class MetaKernelProduct(Product):
         #
         if not product:
             self.write_product()
-        else:
-            #
-            # If we don't generate the product then we need to read the kernels
-            #
-            self.collection_metakernel = mk2list(product)
+
+        #
+        # Following the product generation we read the kernels again to
+        # include all the kernels present.
+        #
+        self.collection_metakernel = mk2list(self.path)
 
 
         Product.__init__(self)
@@ -532,6 +519,57 @@ class MetaKernelProduct(Product):
             logging.info('')
             logging.info(f'-- Labeling meta-kernel: {kernel}')
             self.label = MetaKernelPDS4Label(setup, self)
+
+        return
+
+
+    def check_version(self):
+
+        logging.info(f'-- Meta-kernel version {self.version} from kernel list.')
+
+        if not self.setup.increment:
+            return
+
+        logging.info(f'-- Check version from previous increment.')
+
+        #
+        # Collection versions are not equal to the release number,
+        #
+        if self.setup.pds == '4':
+            versions = glob.glob(f'{self.setup.final_directory}/'
+                                 f'{self.setup.mission_accronym}_spice/'
+                                 f'spice_kernels/mk/'
+                                 f'{self.name.split("v")[0]}*.tm')
+        else:
+            #TODO: adapt to PDS3
+            versions = glob.glob(f'{self.setup.final_directory}/'
+                                 f'{self.setup.mission_accronym}_spice/'
+                                 f'spice_kernels/mk/'
+                                 f'{self.name.split("v")[0]}*')
+
+        versions.sort()
+        try:
+            version = int(versions[-1].split('v')[-1].split('.')[0]) + 1
+        except:
+            logging.error(f'    Meta-kernel from previous increment is not available.')
+            logging.error(f'    It is recommended to stop the execution and fix the issue.')
+            logging.error(f'    Version from kernel list will be used: {self.version}.')
+
+            if self.setup.interactive:
+                input(">> Press Enter to continue...")
+
+            return
+
+        if version == self.version:
+            logging.info(f'     Version from kernel list and from previous increment agree: {version}.')
+        else:
+            logging.error(f'    Version discrepancy. From kernel list: {self.version}. From increment: {version}.')
+            logging.error(f'    It is recommended to stop the execution and fix the issue.')
+            logging.error(f'    Version from kernel list will be used: {self.version}.')
+
+        if self.setup.interactive:
+            input(">> Press Enter to continue...")
+
 
         return
 
@@ -551,10 +589,11 @@ class MetaKernelProduct(Product):
 
         return product_lid
 
+
     def product_vid(self):
 
         try:
-            product_vid = str(int(self.name.split('.')[0][-1])) + '.0'
+            product_vid = str(self.version) + '.0'
         except:
             logging.warning(f'{self.name} No vid explicit in kernel name: set to 1.0')
             product_vid = '1.0'
@@ -563,10 +602,6 @@ class MetaKernelProduct(Product):
 
 
     def write_product(self):
-
-        from collections import OrderedDict
-
-
 
         #
         # Parse the meta-kernel grammar to obtain the kernel grammar.
@@ -617,22 +652,39 @@ class MetaKernelProduct(Product):
 
 
                 #
-                # Kernels can come from the staging directory or from the
-                # final directory.
+                # Kernels can come from several kernel directories or from the
+                # previous meta-kernel. Paths are provided by the parameter
+                # paths and meta-kernels with mks.
                 #
+                paths = []
+                mks   = []
                 if kernel_grammar.split('.')[-1].lower() in type2extension(kernel_type):
                     try:
                         if self.setup.pds == '3':
-                            path = self.setup.staging_directory + '/DATA'
+                            paths.append(self.setup.staging_directory + '/DATA')
+
                         else:
-                            path = self.setup.staging_directory+'/spice_kernels'
-                        latest_kernel = get_latest_kernel(kernel_type,
-                                                          path,
-                                                          kernel_grammar,
-                                                          dates=dates,
+                            paths.append(self.setup.staging_directory+'/spice_kernels')
+                        #paths.append(self.setup.kernels_directory)
+
+                        #
+                        # Try to look for meta-kernels from previous
+                        # increments.
+                        #
+                        try:
+                            mks = glob.glob(f'{self.setup.final_directory}/'
+                                            f'{self.setup.mission_accronym}'
+                                            f'_spice/spice_kernels/mk/{self.name.split("_v")[0]}*.tm')
+                        except:
+                            if self.setup.increment:
+                                logging.warning('-- No meta-kernels from previous increment available.')
+
+                        latest_kernel = get_latest_kernel(kernel_type, paths,
+                                                          kernel_grammar, dates=dates,
                                                           excluded_kernels=excluded_kernels,
-                                                          mkgen=True)
-                    except:
+                                                          mks=mks)
+                    except Exception as e:
+                        logging.error(f'-- Exception: {e}')
                         latest_kernel = []
 
                     if latest_kernel:
@@ -640,6 +692,7 @@ class MetaKernelProduct(Product):
                             latest_kernel = [latest_kernel]
 
                         for kernel in latest_kernel:
+                            logging.info(f'        Matched: {kernel}')
                             mkgen_kernels.append(kernel_type + '/' + kernel)
 
 
@@ -662,8 +715,9 @@ class MetaKernelProduct(Product):
         self.collection_metakernel = collection_metakernel
 
         #
-        # Report kernels  present in meta-kernel
+        # Report kernels present in meta-kernel
         #
+        logging.info('')
         logging.info(f'-- Archived kernels present in meta-kernel')
         for kernel in collection_metakernel:
             logging.info(f'     {kernel.name}')
@@ -689,7 +743,7 @@ class MetaKernelProduct(Product):
             kernel_dir_name = kernel.split('.')[1]
 
 
-            kernels += f"{' '*27}'$KERNELS/{kernel}'\n"
+            kernels += f"{' '*26}'$KERNELS/{kernel}'\n"
 
         self.KERNELS_IN_METAKERNEL = kernels[:-1]
 
@@ -711,7 +765,66 @@ class MetaKernelProduct(Product):
                         line = line.replace(key, value)
                 f.write(line + '\n')
 
+        self.product = self.path
+
+        logging.info(f'-- Meta-kernel generated.')
+        if self.setup.interactive:
+            input(">> Press Enter to continue...")
+
+        self.validate_diff()
+
         return
+
+
+    def validate_diff(self):
+
+        #
+        # Compare meta-kernel with latest. First try with previous increment.
+        #
+        val_mk = ''
+        try:
+
+            match_flag = True
+            val_mk_path = f'{self.setup.final_directory}/' \
+                          f'{self.setup.mission_accronym}_spice/' + \
+                          f'spice_kernels/mk/'
+
+            val_mk_name = self.name.split(os.sep)[-1]
+            i = 1
+
+            while match_flag:
+                if i < len(val_mk_name) - 1:
+                    val_mks = glob.glob(val_mk_path + val_mk_name[0:i] + '*.tm')
+                    if val_mks:
+                        val_mks = sorted(val_mks)
+                        val_mk = val_mks[-1]
+                        match_flag = True
+                    else:
+                        match_flag = False
+                    i += 1
+
+            if not val_mk:
+                raise Exception("No label for comparison found.")
+
+        except:
+            #
+            # If previous increment does not work, compare with template.
+            #
+            logging.warning(f'-- No other version of {self.name} has been found.')
+            logging.warning(f'-- Comparing with meta-kernel template.')
+
+            val_mk = f'{self.setup.root_dir}/config/{self.setup.mission_accronym}' \
+                     f'_metakernel.tm'
+
+        logging.info('')
+        fromfile = val_mk
+        tofile = self.path
+        dir = self.setup.working_directory
+
+        compare_files(fromfile, tofile, dir)
+
+        if self.setup.interactive:
+            input(">> Press enter to continue...")
 
 
     def validate(self):
@@ -751,6 +864,20 @@ class MetaKernelProduct(Product):
         spiceypy.kclear()
 
         os.chdir(cwd)
+
+        if self.setup.interactive:
+            input(">> Press enter to continue...")
+
+        return
+
+
+    def log(setup):
+
+        line = f'Step {setup.step} - Generation of meta-kernel(s)'
+        logging.info('')
+        logging.info(line)
+        logging.info('-'*len(line))
+        setup.step += 1
 
         return
 
@@ -903,20 +1030,39 @@ class InventoryProduct(Product):
 
     def validate(self):
         '''
-        The label is validated by comparing the Inventory Product with
-        the previous version and if it does not exist with the sample
-        inventory product.
+        The label is validated by checking that all the products are present
+        and by comparing the Inventory Product with the previous version and
+        if it does not exist with the sample inventory product.
 
         :return:
         '''
 
         logging.info(f'-- Validating {self.name}')
 
+
+        #
+        # Check that all the products are listed in the collection product.
+        #
+        logging.info('      Check that all the products are in the collection.')
+
+        with open(self.path, 'r') as c:
+            for product in self.collection.product:
+                product_found = False
+                for line in c:
+                    if product.lid in line:
+                        product_found = True
+                if not product_found:
+                    logging.error(f'      Product {product.lid} not found. Consider increment re-generation.')
+
+        logging.info('')
+        if self.setup.interactive:
+            input(">> Press enter to continue...")
+
+
         #
         # Use the prior version of the same product, if it does not
         # exist use the sample.
         #
-
         if self.path_current:
 
             fromfile = self.path_current
@@ -1095,7 +1241,14 @@ class SpicedsProduct(object):
         #
         Product.__init__(self)
 
+
+        #
+        # Validate the product and then generate the label.
+        #
+        self.validate()
+
         self.label = DocumentPDS4Label(setup, collection, self)
+
 
         return
 
@@ -1155,6 +1308,48 @@ class SpicedsProduct(object):
                 logging.warning('')
 
         return generate_spiceds
+
+
+    def validate(self):
+
+        #
+        # Compare spiceds with latest. First try with previous increment.
+        #
+        val_spd = ''
+        try:
+
+            val_spd_path = f'{self.setup.final_directory}/' \
+                           f'{self.setup.mission_accronym}_spice/' + \
+                          f'document'
+
+            val_spds     = glob.glob(f'{val_spd_path}/spiceds_v*.html')
+            val_spds.sort()
+            val_spd  = val_spds[-1]
+
+
+        except:
+            #
+            # If previous increment does not work, compare with template.
+            #
+            logging.warning(f'-- No other version of {self.name} has been found.')
+            logging.warning(f'-- Comparing with spiceds template.')
+
+            val_spd = f'{self.setup.root_dir}/config/{self.setup.mission_accronym}' \
+                      f'_spiceds.html'
+
+        logging.info('')
+        fromfile = val_spd
+        tofile = self.path
+        dir = self.setup.working_directory
+
+        compare_files(fromfile, tofile, dir)
+
+        logging.info('')
+
+        if self.setup.interactive:
+            input(">> Press enter to continue...")
+
+        return
 
 
 class ReadmeProduct(Product):
