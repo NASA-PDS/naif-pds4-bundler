@@ -204,19 +204,21 @@ def main(config=False, plan=False, log=False, silent=False, interactive=False):
     #    the Kernel list
     #
     for kernel in list.kernel_list:
-            if not '.tm' in kernel:
-                #
-                # * Each label is validated after generation.
-                #
-                spice_kernels_collection.add(
-                SpiceKernelProduct(setup, kernel, spice_kernels_collection))
+        if not '.tm' in kernel:
+            #
+            # * Each label is validated after generation.
+            #
+            spice_kernels_collection.add(
+            SpiceKernelProduct(setup, kernel, spice_kernels_collection))
 
-            #
-            # -- Generate the meta-kernel(s)
-            #
-            else:
-                meta_kernel = MetaKernelProduct(setup, kernel, spice_kernels_collection)
-                spice_kernels_collection.add(meta_kernel)
+    #
+    # -- Generate the meta-kernel(s)
+    #
+    MetaKernelProduct.log(setup)
+    for kernel in list.kernel_list:
+        if '.tm' in kernel:
+             meta_kernel = MetaKernelProduct(setup, kernel, spice_kernels_collection)
+             spice_kernels_collection.add(meta_kernel)
 
     #
     # -- Validate the SPICE Kernels collection:
