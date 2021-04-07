@@ -178,9 +178,8 @@ def mk2list(mk):
     return ker_mk_list
 
 
-def get_latest_kernel(kernel_type, path, pattern, dates=False,
-                      excluded_kernels=False,
-                      mkgen=False):
+def get_latest_kernel(kernel_type, paths, pattern, dates=False,
+                      excluded_kernels=False, mks=False):
     """
     Returns the name of the latest MK, LSK, FK or SCLK present in the path
 
@@ -197,23 +196,35 @@ def get_latest_kernel(kernel_type, path, pattern, dates=False,
        defined in ``token is present in the ``path`` directory
     """
     kernels = []
-    kernel_path = os.path.join(path, kernel_type)
+    kernels_with_path = []
 
-    #
-    # Get the kernels of type ``type`` from the ``path``/``type`` directory.
-    #
-    kernels_with_path = glob.glob(kernel_path + '/' + pattern)
+    for path in paths:
+        try:
+            kernel_path = os.path.join(path, kernel_type)
 
-    #
-    # Include kernels in former_versions if the directory exists except for
-    # meta-kernel generation
-    #
-    if os.path.isdir(kernel_path + '/former_versions') and not mkgen:
-        kernels_with_path += glob.glob(kernel_path + '/former_versions/' + pattern )
+            #
+            # Get the kernels of type ``type`` from the ``path``/``type`` directory.
+            #
+            kernels_with_path += [f for f in os.listdir(f'{kernel_path}/') if re.search(pattern, f)]
 
+        except:
+            pass
+
+    if mks:
+        for mk in mks:
+            with open(mk, 'r') as m:
+                for line in m:
+                    if re.findall(pattern, line):
+                        kernels_with_path.append(line.strip())
+
+    kernels_with_path = list(dict.fromkeys(kernels_with_path))
 
     for kernel in kernels_with_path:
-        kernels.append(kernel.split('/')[-1])
+        kernel = kernel.split('/')[-1].split("'")[0]
+        if "'" in kernel:
+            kernels.append(kernel[:-1])
+        else:
+            kernels.append(kernel)
 
     #
     # Put the kernels in order
@@ -236,7 +247,7 @@ def get_latest_kernel(kernel_type, path, pattern, dates=False,
         try:
             return kernels.pop()
         except:
-            logging.warning('     No kernels found with pattern {}'.format(pattern))
+            logging.warning('        No kernels found with pattern {}'.format(pattern))
             return []
     else:
         #
@@ -246,14 +257,14 @@ def get_latest_kernel(kernel_type, path, pattern, dates=False,
         kernels_date = []
         for kernel in kernels:
             if previous_kernel \
-                    and re.split('_V\d\d', previous_kernel.upper())[0] == re.split('_V\d\d', kernel.upper())[0]\
-                    or re.split('_V\d\d\d', previous_kernel.upper())[0] == re.split('_V\d\d\d', kernel.upper())[0]:
+                    and re.split('_V[0-9]*', previous_kernel.upper())[0] == re.split('_V[0-9]*', kernel.upper())[0]:
                 kernels_date.remove(previous_kernel)
 
             previous_kernel = kernel
             kernels_date.append(kernel)
 
         return kernels_date
+
 
 def check_consecutive(l):
     return sorted(l) == list(range(1, max(l)+1))
@@ -266,7 +277,7 @@ def compare_files(fromfile, tofile, dir):
     with open(tofile) as tf:
         tolines = tf.readlines()
 
-    logging.info(f'     Comparing {fromfile.split(os.sep)[-1]} with {tofile.split(os.sep)[-1]}')
+    logging.info(f'      Comparing {fromfile.split(os.sep)[-1]} with {tofile.split(os.sep)[-1]}')
     logging.info('')
 
     diff = difflib.Differ()
