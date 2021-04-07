@@ -68,6 +68,9 @@ class Bundle(object):
             #
             self.context_products = get_context_products(self.setup)
 
+            if self.setup.interactive:
+                input(">> Press Enter to continue...")
+
         return
 
 
