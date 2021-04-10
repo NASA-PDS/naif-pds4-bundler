@@ -19,8 +19,7 @@
   "reports_directory":     "",
   "mission_start":         "2016-03-14T08:13:00.000Z",
   "mission_stop":          "2050-01-01T00:00:00.000Z",
-  "increment_stop":        "2020-01-01T23:59:58.526Z",
+  "increment_finish":        "2020-01-01T23:59:58.526Z",
   "release_date":          "2021-03-16",
-  "phase":                 "EXTENDED",
-  "faucet":                "list"
+  "phase":                 "EXTENDED"
 }

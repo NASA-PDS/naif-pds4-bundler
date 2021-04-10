@@ -3,6 +3,8 @@
   "xml_model":             "http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.sch",
   "schema_location":       "http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd",
   "information_model":     "1.5.0.0",
+  "national_agency":       "nasa",
+  "archiving_agency":      "pds",
   "mission_name":          "InSight Mars Lander Mission",
   "mission_accronym":      "insight",
   "spice_name":            "INSIGHT",
@@ -22,8 +24,9 @@
   "reports_directory":     "reports",
   "mission_start":         "2018-05-05T11:05:00Z",
   "mission_stop":          "2050-01-01T00:00:00Z",
-  "increment_stop":        "2020-01-01T23:59:58Z",
-  "release_date":          "2020-03-16",
-  "phase":                 "EXTENDED",
-  "faucet":                ""
+  "increment_finish_kernels": [ "insight_cru_ops_v[0-9].bsp",
+                                "insight_edl_rec_v[0-9].bsp",
+                                "insight_ida_enc_[0-9]{6}_[0-9]{6}_v[0-9].bc"],
+  "release_date":          "2021-03-16",
+  "phase":                 "EXTENDED"
 }
