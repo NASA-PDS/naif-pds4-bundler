@@ -42,7 +42,12 @@ class PDSLabel(object):
 
         self.CURRENT_YEAR               = current_time().split('-')[0]
         self.BUNDLE_DESCRIPTION_LID     = \
-            'urn:nasa:pds:{}.spice:document:spiceds'.format(self.mission_accronym)
+                'urn:{}:{}:{}.spice:document:spiceds'.format(
+                    setup.national_agency,
+                    setup.archiving_agency,
+                    setup.mission_accronym
+
+                )
 
         self.PRODUCT_CREATION_TIME      = product.creation_time
         self.PRODUCT_CREATION_DATE      = product.creation_date
@@ -230,7 +235,10 @@ class PDSLabel(object):
 
         logging.info(f'-- Created {label_name}')
 
-        self.validate()
+        if self.setup.diff:
+            self.compare()
+        else:
+            logging.info('')
 
         return
 
@@ -259,16 +267,16 @@ class PDSLabel(object):
         return
 
 
-    def validate(self):
+    def compare(self):
         '''
-        The label is validated by comparing it to a similar label from the
-        previous release of the archive.
+        The label is compared to a similar label from the previous release
+        of the archive.
 
         For new archives a 'similar' archive is used.
         :return:
         '''
 
-        logging.info(f'-- Validating {self.name}')
+        logging.info(f'-- Comparing {self.name}...')
 
         #
         # 1-Look for a different version of the same file.
@@ -425,7 +433,7 @@ class PDSLabel(object):
             tofile   = self.name
             dir      = self.setup.working_directory
 
-            compare_files(fromfile, tofile, dir)
+            compare_files(fromfile, tofile, dir, self.setup.diff)
         else:
             logging.info('')
 
@@ -447,8 +455,8 @@ class BundlePDS4Label(PDSLabel):
         self.BUNDLE_LID = self.product.bundle.lid
         self.BUNDLE_VID = self.product.bundle.vid
 
-        self.START_TIME = setup.mission_start
-        self.STOP_TIME = setup.increment_stop
+        self.START_TIME = setup.increment_start
+        self.STOP_TIME = setup.increment_finish
         self.FILE_NAME = readme.name
         self.CURRENT_TIME = current_time()
         self.CURRENT_DATE =self.CURRENT_TIME.split('T')[0]
@@ -515,8 +523,8 @@ class MetaKernelPDS4Label(PDSLabel):
         self.FILE_NAME = product.name
         self.PRODUCT_LID = self.product.lid
         self.FILE_FORMAT = 'Character'
-        self.START_TIME = product.start_time
-        self.STOP_TIME = product.stop_time
+        self.START_TIME = setup.increment_start
+        self.STOP_TIME = setup.increment_finish
         self.KERNEL_TYPE_ID = product.type.upper()
         self.PRODUCT_VID = self.product.vid
         self.SPICE_KERNEL_DESCRIPTION = product.description
@@ -544,12 +552,16 @@ class MetaKernelPDS4Label(PDSLabel):
             # merely a list of strings.
             #
             kernel_type = extension2type(kernel)
-            kernel_lid  = f'urn:nasa:pds:{self.setup.mission_accronym}.' \
-                          f'spice:spice_kernels:{kernel_type}_{kernel}'
+            kernel_lid  = 'urn:{}:{}:{}.spice:spice_kernels:{}_{}'.format(
+                                self.setup.national_agency,
+                                self.setup.archiving_agency,
+                                self.setup.mission_accronym,
+                                kernel_type,
+                                kernel)
 
             kernel_list_for_label += \
             '    <Internal_Reference>\r\n' + \
-           f'      <lid_reference>{kernel_lid}</lid_reference>\r\n'.format() + \
+           f'      <lid_reference>{kernel_lid}</lid_reference>\r\n' + \
             '      <reference_type>data_to_associate</reference_type>\r\n' +\
             '    </Internal_Reference>\r\n'
 
@@ -570,8 +582,8 @@ class InventoryPDS4Label(PDSLabel):
 
         self.COLLECTION_LID = self.collection.lid
         self.COLLECTION_VID = self.collection.vid
-        self.START_TIME = setup.mission_start
-        self.STOP_TIME = setup.increment_stop
+        self.START_TIME = setup.increment_start
+        self.STOP_TIME = setup.increment_finish
         self.FILE_NAME = inventory.name
 
         # Count number of lines in the inventory file
