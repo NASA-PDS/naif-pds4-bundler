@@ -270,28 +270,30 @@ def check_consecutive(l):
     return sorted(l) == list(range(1, max(l)+1))
 
 
-def compare_files(fromfile, tofile, dir):
+def compare_files(fromfile, tofile, dir, display):
 
     with open(fromfile) as ff:
         fromlines = ff.readlines()
     with open(tofile) as tf:
         tolines = tf.readlines()
 
-    logging.info(f'      Comparing {fromfile.split(os.sep)[-1]} with {tofile.split(os.sep)[-1]}')
-    logging.info('')
+    if display in ['all','log']:
+        logging.info(f'      Comparing {fromfile.split(os.sep)[-1]} with {tofile.split(os.sep)[-1]}')
+        logging.info('')
 
-    diff = difflib.Differ()
-    diff_list = list(diff.compare(fromlines, tolines))
-    for line in diff_list:
-        if (line[0] == '+') or (line[0] == '-') or (line[0] == '?'):
-            logging.info(line[:-1])
+        diff = difflib.Differ()
+        diff_list = list(diff.compare(fromlines, tolines))
+        for line in diff_list:
+            if (line[0] == '+') or (line[0] == '-') or (line[0] == '?'):
+                logging.info(line[:-1])
 
-    diff = difflib.HtmlDiff().make_file(fromlines, tolines, fromfile, tofile, context=False, numlines=False)
+    if display in ['all','files']:
+        diff = difflib.HtmlDiff().make_file(fromlines, tolines, fromfile, tofile, context=False, numlines=False)
 
-    diff_html = open(dir + \
-                     f"/diff_{fromfile.split(os.sep)[-1].replace('.','_')}_{tofile.split(os.sep)[-1].replace('.','_')}.html",
-                     "w")
-    diff_html.writelines(diff)
-    diff_html.close()
+        diff_html = open(dir + \
+                         f"/diff_{fromfile.split(os.sep)[-1].replace('.','_')}_{tofile.split(os.sep)[-1].replace('.','_')}.html",
+                         "w")
+        diff_html.writelines(diff)
+        diff_html.close()
 
     return
