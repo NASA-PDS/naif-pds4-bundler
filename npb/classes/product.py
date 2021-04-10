@@ -881,7 +881,6 @@ class MetaKernelProduct(Product):
         return
 
 
-
     def log(setup):
 
         line = f'Step {setup.step} - Generation of meta-kernel(s)'
