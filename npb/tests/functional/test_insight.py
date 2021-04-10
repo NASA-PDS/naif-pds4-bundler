@@ -19,6 +19,7 @@ class TestInsight(TestCase):
 
         config = 'data/insight.json'
         plan   = 'data/insight_release_26.plan'
+        faucet = ''
 
         #
         # Debugging does not work while using coverage.
@@ -44,7 +45,7 @@ class TestInsight(TestCase):
                 with open(f'insight/insight_spice/{line[0:-1]}', 'w') as fp:
                     pass
 
-        main(config, plan, silent=False, log=True)
+        main(config, plan, faucet, silent=False, log=True, diff='all')
 
         shutil.rmtree('insight', ignore_errors=True)
         shutil.rmtree('working', ignore_errors=True)
@@ -56,15 +57,18 @@ class TestInsight(TestCase):
         #cov.html_report()
 
 
-    def test_insight_diff_previous(self):
+    def test_insight_diff_previous_none(self):
         '''
         Testcase in which products are compared with previous increment of the
-        archive. The pipeline stops before copying the previous increment files
+        archive. The reporting of diff files is set to none; therefore
+        only the files that are diff'ed by default are reported.
+        The pipeline stops before copying the previous increment files
         to the staging area.
         '''
 
         config = 'data/insight_release_08.json'
         plan   = 'data/insight_release_08.plan'
+        faucet = 'staging'
 
         shutil.rmtree('insight', ignore_errors=True)
         shutil.rmtree('working', ignore_errors=True)
@@ -82,7 +86,109 @@ class TestInsight(TestCase):
             shutil.copy2(file,
                         'working')
 
-        main(config, plan, silent=False, log=True)
+        main(config, plan, faucet, silent=False, log=True, diff='')
+
+        shutil.rmtree('insight', ignore_errors=True)
+        shutil.rmtree('working', ignore_errors=True)
+        shutil.rmtree('staging', ignore_errors=True)
+
+
+    def test_insight_diff_previous_all(self):
+        '''
+        Testcase in which products are compared with previous increment of the
+        archive. The pipeline stops before copying the previous increment files
+        to the staging area.
+        '''
+
+        config = 'data/insight_release_08.json'
+        plan   = 'data/insight_release_08.plan'
+        faucet = 'staging'
+
+        shutil.rmtree('insight', ignore_errors=True)
+        shutil.rmtree('working', ignore_errors=True)
+        shutil.rmtree('staging', ignore_errors=True)
+
+        os.mkdir('working')
+        for file in glob.glob('data/insight_release_[0-9][0-9].kernel_list'):
+            shutil.copy2(file,
+                        'working')
+        os.mkdir('staging')
+        os.mkdir('staging/insight')
+        os.mkdir('staging/insight/insight_spice')
+        shutil.copytree('data/insight', 'insight')
+        for file in glob.glob('data/insight_release_[0-9][0-9].kernel_list'):
+            shutil.copy2(file,
+                        'working')
+
+        main(config, plan, faucet, silent=False, log=True, diff='all')
+
+        shutil.rmtree('insight', ignore_errors=True)
+        shutil.rmtree('working', ignore_errors=True)
+        shutil.rmtree('staging', ignore_errors=True)
+
+
+    def test_insight_diff_previous_files(self):
+        '''
+        Testcase in which products are compared with previous increment of the
+        archive. The pipeline stops before copying the previous increment files
+        to the staging area.
+        '''
+
+        config = 'data/insight_release_08.json'
+        plan   = 'data/insight_release_08.plan'
+        faucet = 'staging'
+
+        shutil.rmtree('insight', ignore_errors=True)
+        shutil.rmtree('working', ignore_errors=True)
+        shutil.rmtree('staging', ignore_errors=True)
+
+        os.mkdir('working')
+        for file in glob.glob('data/insight_release_[0-9][0-9].kernel_list'):
+            shutil.copy2(file,
+                        'working')
+        os.mkdir('staging')
+        os.mkdir('staging/insight')
+        os.mkdir('staging/insight/insight_spice')
+        shutil.copytree('data/insight', 'insight')
+        for file in glob.glob('data/insight_release_[0-9][0-9].kernel_list'):
+            shutil.copy2(file,
+                        'working')
+
+        main(config, plan, faucet, silent=False, log=True, diff='files')
+
+        shutil.rmtree('insight', ignore_errors=True)
+        shutil.rmtree('working', ignore_errors=True)
+        shutil.rmtree('staging', ignore_errors=True)
+
+
+    def test_insight_diff_previous_log(self):
+        '''
+        Testcase in which products are compared with previous increment of the
+        archive. The pipeline stops before copying the previous increment files
+        to the staging area.
+        '''
+
+        config = 'data/insight_release_08.json'
+        plan   = 'data/insight_release_08.plan'
+        faucet = 'staging'
+
+        shutil.rmtree('insight', ignore_errors=True)
+        shutil.rmtree('working', ignore_errors=True)
+        shutil.rmtree('staging', ignore_errors=True)
+
+        os.mkdir('working')
+        for file in glob.glob('data/insight_release_[0-9][0-9].kernel_list'):
+            shutil.copy2(file,
+                        'working')
+        os.mkdir('staging')
+        os.mkdir('staging/insight')
+        os.mkdir('staging/insight/insight_spice')
+        shutil.copytree('data/insight', 'insight')
+        for file in glob.glob('data/insight_release_[0-9][0-9].kernel_list'):
+            shutil.copy2(file,
+                        'working')
+
+        main(config, plan, faucet, silent=False, log=True, diff='log')
 
         shutil.rmtree('insight', ignore_errors=True)
         shutil.rmtree('working', ignore_errors=True)
@@ -109,6 +215,7 @@ class TestInsight(TestCase):
 
         config = 'data/insight_release_08.json'
         plan   = 'data/insight_release_08.plan'
+        faucet = 'staging'
 
         shutil.rmtree('insight', ignore_errors=True)
         shutil.rmtree('working', ignore_errors=True)
@@ -123,7 +230,7 @@ class TestInsight(TestCase):
         os.mkdir('staging/insight/insight_spice')
         os.mkdir('insight')
 
-        main(config, plan, silent=False, log=True)
+        main(config, plan, faucet, silent=False, log=True, diff='all')
 
         shutil.rmtree('insight', ignore_errors=True)
         shutil.rmtree('working', ignore_errors=True)
@@ -140,6 +247,7 @@ class TestInsight(TestCase):
 
         config = 'data/insight_release_08.json'
         plan   = 'data/insight_release_08.plan'
+        faucet = 'staging'
 
 
         shutil.rmtree('insight', ignore_errors=True)
@@ -155,15 +263,11 @@ class TestInsight(TestCase):
         os.mkdir('staging/insight/insight_spice')
         os.mkdir('insight')
 
-        main(config, plan, silent=False, log=True)
+        main(config, plan, faucet, silent=False, log=True, diff='all')
 
         shutil.rmtree('insight', ignore_errors=True)
         shutil.rmtree('working', ignore_errors=True)
         shutil.rmtree('staging', ignore_errors=True)
-        #cov.stop()
-        #cov.save()
-        #
-        #cov.html_report()
 
 
 if __name__ == '__main__':

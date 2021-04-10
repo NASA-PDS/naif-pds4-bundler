@@ -2,7 +2,6 @@
 """
 import os
 import shutil
-import coverage
 
 from unittest import TestCase
 from npb.main import main
@@ -12,6 +11,7 @@ class TestConsole(TestCase):
 
         config = 'data/msl.json'
         plan   = 'data/msl_release_26.plan'
+        faucet = 'list'
 
         shutil.rmtree('working', ignore_errors=True)
         shutil.rmtree('final', ignore_errors=True)
@@ -19,7 +19,7 @@ class TestConsole(TestCase):
         os.mkdir('working')
         os.mkdir('final')
 
-        main(config,plan)
+        main(config, plan, faucet)
 
         shutil.rmtree('working', ignore_errors=True)
         shutil.rmtree('final', ignore_errors=True)

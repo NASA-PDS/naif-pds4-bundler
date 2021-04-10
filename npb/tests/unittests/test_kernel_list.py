@@ -29,12 +29,13 @@ class TestKernelList(TestCase):
 
         config = 'data/msl_release_26.json'
         plan   = 'data/msl_release_26.plan'
+        faucet = 'list'
 
         shutil.rmtree('working', ignore_errors=True)
         os.mkdir('working')
         shutil.copy2('data/msl_release_25.kernel_list', 'working')
 
-        main(config=config, plan=plan, silent=True)
+        main(config, plan, faucet, silent=True)
 
         new_file = ''
         with open('working/msl_release_26.kernel_list', 'r') as f:
@@ -61,12 +62,13 @@ class TestKernelList(TestCase):
 
         config = 'data/m01_release_75.json'
         plan   = 'data/m01_release_75.plan'
+        faucet = 'list'
 
         shutil.rmtree('working', ignore_errors=True)
         os.mkdir('working')
         shutil.copy2('data/m01_release_74.kernel_list', 'working')
 
-        main(config=config, plan=plan, silent=True)
+        main(config, plan, faucet, silent=True)
 
         new_file = ''
         with open('working/m01_release_75.kernel_list', 'r') as f:
@@ -93,12 +95,13 @@ class TestKernelList(TestCase):
 
         config = 'data/insight_release_08.json'
         plan   = 'data/insight_release_08.plan'
+        faucet = 'list'
 
         shutil.rmtree('working', ignore_errors=True)
         os.mkdir('working')
         shutil.copy2('data/insight_release_07.kernel_list', 'working')
 
-        main(config=config, plan=plan, silent=True)
+        main(config, plan, faucet, silent=True)
 
         new_file = ''
         with open('working/insight_release_08.kernel_list', 'r') as f:
