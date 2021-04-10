@@ -223,7 +223,7 @@ class KernelList(List):
 
     def write_complete_list(self):
 
-        line = f'Step {self.setup.step} - Generate complete kernel list'
+        line = f'Step {self.setup.step} - Generation of complete kernel list'
         logging.info(line)
         logging.info('-'*len(line))
         logging.info('')
