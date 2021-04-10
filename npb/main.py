@@ -62,6 +62,8 @@ optional arguments:
   -i, --interactive  Activate interactive execution
 
 """
+import re
+
 from textwrap import dedent
 
 from os.path import dirname
@@ -79,7 +81,9 @@ from .classes.collection import DocumentCollection
 from .classes.product    import SpicedsProduct
 
 
-def main(config=False, plan=False, log=False, silent=False, interactive=False):
+def main(config = False, plan   = False, faucet      = '',
+         log    = False, silent = False, diff        = '',
+         start  = '',    finish = '',    interactive = False):
     """
     Main routine for the NAIF PDS4 Bundle Generator (naif-pds4-bundle).
 
@@ -112,30 +116,87 @@ def main(config=False, plan=False, log=False, silent=False, interactive=False):
                             help='Mission specific configuration file')
         parser.add_argument('plan', metavar='PLAN', type=str, nargs='+',
                             help='Release specific plan file')
+        parser.add_argument('-f', '--faucet',
+                            default= '',
+                            action='store', type = str,
+                            help='Optional end point of the pipeline. '
+                                 'Allowed values are: "list", "staging" or '
+                                 '"final"')
+        parser.add_argument('-d', '--diff',
+                            default= '',
+                            action='store', type = str,
+                            help='Optional generation of diff reports for '
+                                 'products. Allowed values are: "all", '
+                                 '"log" or "files".')
+        parser.add_argument('-a', '--start',
+                            default= '',
+                            action='store', type = str,
+                            help='Increment start time provided as a UTC calendar'
+                                 'string. Use the following format: YYYY-MM-DDThh:mm:ssZ e.g.,'
+                                 '2021-04-09T15:11:12Z.')
+        parser.add_argument('-z', '--finish',
+                            default= '',
+                            action='store', type = str,
+                            help='Increment stop time provided as a UTC calendar'
+                                 'string. Use the following format: YYYY-MM-DDThh:mm:ssZ e.g.,'
+                                 '2021-04-09T15:11:12Z.')
         parser.add_argument('-l', '--log',
                             help='Write log in file.',
                             action='store_true')
-        parser.add_argument('-s', '--silent',
-                            help='Log will not be prompted.',
+        parser.add_argument('-t', '--silent',
+                            help='Log will not be prompted on the terminal.',
                             action='store_true')
         parser.add_argument('-i', '--interactive',
                             help='Activate interactive execution',
                             action='store_true')
 
+
         args        = parser.parse_args()
         config      = args.config[0]
         plan        = args.plan[0]
+        faucet      = args.faucet
         log_file    = args.log
         silent      = args.silent
+        diff        = args.diff
+        start       = args.start
+        finish      = args.finish
         interact    = args.interactive
-        meta_kernel = ''
+
     else:
         config      = config
         plan        = plan
+        faucet      = faucet
         log_file    = log
         silent      = silent
+        diff        = diff
+        start       = start
+        finish      = finish
         interact    = interactive
-        meta_kernel = ''
+
+
+    #
+    # Turn lowercase or uppercase arguments that need it.
+    #
+    faucet = faucet.lower()
+    diff   = diff.lower()
+    start  = start.upper()
+    finish = finish.upper()
+
+    #
+    # Check if string optional parameters are correct.
+    #
+    if diff not in ['all', 'log', 'files', '']:
+        raise  Exception('-d, --diff argument has incorrect value.')
+    if faucet not in ['list', 'staging', 'final', '']:
+        raise  Exception('-f, --faucet argument has incorrect value.')
+    if start:
+        pattern = re.compile('[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z]')
+        if not pattern.match(start):
+            raise Exception('-s, --start argument does not match the required format.')
+    if finish:
+        pattern = re.compile('[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z]')
+        if not pattern.match(finish):
+            raise Exception('-s, --start argument does not match the required format.')
 
     #
     # -- Generate setup object
@@ -144,7 +205,8 @@ def main(config=False, plan=False, log=False, silent=False, interactive=False):
     #    * Parse JSON into an object with attributes corresponding
     #      to dict keys.
     #
-    setup = Setup(config, version, interact).setup
+    setup = Setup(config, version, interact,
+                  faucet, diff, start, finish).setup
 
     #
     # -- Setup the logging
@@ -212,7 +274,7 @@ def main(config=False, plan=False, log=False, silent=False, interactive=False):
             SpiceKernelProduct(setup, kernel, spice_kernels_collection))
 
     #
-    # -- Generate the meta-kernel(s)
+    # -- Generate the meta-kernel(s).
     #
     MetaKernelProduct.log(setup)
     for kernel in list.kernel_list:
@@ -257,7 +319,7 @@ def main(config=False, plan=False, log=False, silent=False, interactive=False):
             document_collection.add(spiceds)
 
             #
-            # -- Generation of the documents inventory
+            # -- Generate the documents inventory.
             #
             document_collection_inventory = InventoryProduct(setup, document_collection)
 
@@ -304,8 +366,9 @@ def main(config=False, plan=False, log=False, silent=False, interactive=False):
     # -- Generate index files, this includes generating the complete
     #    kernel list.
     #
-    list.write_complete_list()
-    spice_kernels_collection_inventory.write_index()
+    # OnlyFor PDS3
+    #list.write_complete_list()
+    #spice_kernels_collection_inventory.write_index()
 
     #
     # -- Stop the pipeline if you do not want to copy the files to the final
