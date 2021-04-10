@@ -25,15 +25,15 @@ class Setup(object):
         # Populate the setup object with attributes beyond the
         # configuration file.
         #
-        setup.root_dir        = os.path.dirname(__file__)[:-7]
-        setup.step            = 1
-        setup.version         = version
-        setup.interactive     = interact
-        setup.faucet          = faucet.lower()
-        setup.diff            = diff.lower()
-        setup.today           = datetime.date.today().strftime("%Y%m%d")
-        setup.increment_start = start
-        setup.increment_finish  = finish
+        setup.root_dir           = os.path.dirname(__file__)[:-7]
+        setup.step               = 1
+        setup.version            = version
+        setup.interactive        = interact
+        setup.faucet             = faucet.lower()
+        setup.diff               = diff.lower()
+        setup.today              = datetime.date.today().strftime("%Y%m%d")
+        setup.increment_start    = start
+        setup.increment_finish   = finish
 
         #
         # Sort out if directories are provided as relative paths and
