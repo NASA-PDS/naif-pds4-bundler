@@ -162,6 +162,9 @@ def main(config = False, plan   = False, faucet      = '',
         finish      = args.finish
         interact    = args.interactive
 
+        if ((not start) and (finish)) or ((start) and (not finish)):
+            raise Exception('-a, -z (--start, --finish) arguments need to be provided together.')
+
     else:
         config      = config
         plan        = plan
