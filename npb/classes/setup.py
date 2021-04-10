@@ -13,7 +13,8 @@ from npb.classes.log import error_message
 
 class Setup(object):
 
-    def __init__(self, config, version, interact):
+    def __init__(self, config, version, interact,
+                 faucet, diff, start, finish):
 
         with open(config, 'r') as file:
             f = file.read().replace('\n', '')
@@ -24,11 +25,15 @@ class Setup(object):
         # Populate the setup object with attributes beyond the
         # configuration file.
         #
-        setup.root_dir    = os.path.dirname(__file__)[:-7]
-        setup.step        = 1
-        setup.version     = version
-        setup.interactive = interact
-        setup.today       = datetime.date.today().strftime("%Y%m%d")
+        setup.root_dir        = os.path.dirname(__file__)[:-7]
+        setup.step            = 1
+        setup.version         = version
+        setup.interactive     = interact
+        setup.faucet          = faucet.lower()
+        setup.diff            = diff.lower()
+        setup.today           = datetime.date.today().strftime("%Y%m%d")
+        setup.increment_start = start
+        setup.increment_finish  = finish
 
         #
         # Sort out if directories are provided as relative paths and
@@ -90,7 +95,7 @@ class Setup(object):
             release         = int(current_release) + 1
             release         = f'{release:03}'
 
-            logging.info(f'     Generating release {release}')
+            logging.info(f'     Generating release {release}.')
 
             increment = True
 
@@ -134,7 +139,7 @@ class Setup(object):
     def load_kernels(setup):
 
         logging.info('')
-        line = f'Step {setup.step} - Load LSK, FK and SCLK kernels'
+        line = f'Step {setup.step} - Load LSK, PCK, FK and SCLK kernels'
         logging.info(line)
         logging.info('-'*len(line))
         logging.info('')
@@ -146,6 +151,7 @@ class Setup(object):
         #
         fk_patterns   = []
         sclk_patterns = []
+        pck_patterns = []
         lsk_patterns  = []
 
         mk_grammar = setup.root_dir + \
@@ -156,12 +162,41 @@ class Setup(object):
                     fk_patterns.append(line.strip())
                 elif '.tsc' in line.lower():
                     sclk_patterns.append(line.strip())
+                elif '.tpc' in line.lower():
+                    sclk_patterns.append(line.strip())
                 elif '.tls' in line.lower():
                     lsk_patterns.append(line.strip())
 
         #
         # Search the latest version for each pattern of each kernel type.
         #
+        lsk = []
+        for pattern in lsk_patterns:
+            lsk_pattern = [f for f in os.listdir(f'{setup.kernels_directory}/lsk/') if re.search(pattern, f)]
+            if lsk_pattern:
+                if len(lsk_pattern) > 1: lsk_pattern.sort()
+                lsk.append(lsk_pattern[-1])
+                spiceypy.furnsh(f'{setup.kernels_directory}/lsk/{lsk_pattern[-1]}')
+        if not lsk:
+            logging.error(f'-- LSK not found.')
+        else:
+            logging.info(f'-- LSK     loaded: {lsk}')
+        if len(lsk) > 1:
+            error_message('Only one LSK should be obtained.')
+
+
+
+        pcks = []
+        for pattern in pck_patterns:
+            pcks_pattern = [f for f in os.listdir(f'{setup.kernels_directory}/pck/') if re.search(pattern, f)]
+            if pcks_pattern:
+                if len(pcks_pattern) > 1: pcks_pattern.sort()
+                spiceypy.furnsh(f'{setup.kernels_directory}/fk/{pcks_pattern[-1]}')
+                pcks.append(pcks_pattern[-1])
+        if not pcks:
+            logging.warning(f'-- PCK not found.')
+        else: logging.info(f'-- PCK(s)   loaded: {pcks}')
+
         fks = []
         for pattern in fk_patterns:
             fks_pattern = [f for f in os.listdir(f'{setup.kernels_directory}/fk/') if re.search(pattern, f)]
@@ -170,8 +205,8 @@ class Setup(object):
                 spiceypy.furnsh(f'{setup.kernels_directory}/fk/{fks_pattern[-1]}')
                 fks.append(fks_pattern[-1])
         if not fks:
-            logging.error(f'-- No FK found.')
-        logging.info(f'-- FK(s)   loaded: {fks}')
+            logging.warning(f'-- FK not found.')
+        else: logging.info(f'-- FK(s)   loaded: {fks}')
 
         sclks = []
         for pattern in sclk_patterns:
@@ -181,21 +216,10 @@ class Setup(object):
                 sclks.append(sclks_pattern[-1])
                 spiceypy.furnsh(f'{setup.kernels_directory}/sclk/{sclks_pattern[-1]}')
         if not sclks:
-            logging.error(f'-- No SCLK found.')
-        logging.info(f'-- SCLK(s) loaded: {sclks}')
+            logging.error(f'-- SCLK not found.')
+        else: logging.info(f'-- SCLK(s) loaded: {sclks}')
 
-        lsk = []
-        for pattern in lsk_patterns:
-            lsk_pattern = [f for f in os.listdir(f'{setup.kernels_directory}/lsk/') if re.search(pattern, f)]
-            if lsk_pattern:
-                if len(lsk_pattern) > 1: lsk_pattern.sort()
-                lsk.append(lsk_pattern[-1])
-                spiceypy.furnsh(f'{setup.kernels_directory}/lsk/{lsk_pattern[-1]}')
-        if not lsk:
-            logging.error(f'-- No LSK found.')
-        if len(lsk) > 1:
-            error_message('Only one LSK should be obtained.')
-        logging.info(f'-- LSK     loaded: {lsk}')
+
 
         logging.info('')
 
@@ -205,5 +229,25 @@ class Setup(object):
 
         if setup.interactive:
             input(">> Press Enter to continue...")
+
+
+    def check_times(self):
+
+        try:
+            et_msn_strt = spiceypy.utc2et(self.mission_start)
+            et_inc_strt = spiceypy.utc2et(self.increment_start)
+            et_inc_stop = spiceypy.utc2et(self.increment_finish)
+            et_mis_stop = spiceypy.utc2et(self.mission_stop)
+            logging.info('-- Provided dates are loadable with current setup.')
+
+        except Exception as e:
+            logging.error('-- Provided dates are not loadable with current setup.')
+            error_message(e)
+
+        if not (et_msn_strt <  et_inc_strt) or not \
+               (et_inc_strt <= et_inc_stop) or not \
+               (et_inc_stop <= et_mis_stop) or not \
+               (et_msn_strt <  et_mis_stop):
+            error_message('-- Provided dates are note correct. Check the archive coverage.')
 
         return
