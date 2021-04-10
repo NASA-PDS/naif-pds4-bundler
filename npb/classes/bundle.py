@@ -18,7 +18,7 @@ class Bundle(object):
 
     def __init__(self, setup):
 
-        line = f'Step {setup.step} - Bundle/data set structure generation'
+        line = f'Step {setup.step} - Bundle/data set structure generation at staging area'
         logging.info(line)
         logging.info('-'*len(line))
         logging.info('')
@@ -61,7 +61,10 @@ class Bundle(object):
             self.lid = self.bundle_lid()
 
             self.lid_reference = \
-                f'urn:nasa:pds:context:investigation:mission.{setup.mission_accronym}'
+                'urn:{}:{}:context:investigation:mission.{}'.format(
+                    setup.national_agency,
+                    setup.archiving_agency,
+                    setup.mission_accronym)
 
             #
             #  Get the context products.
@@ -94,7 +97,10 @@ class Bundle(object):
 
     def bundle_lid(self):
 
-        product_lid = f'urn:nasa:pds:{self.setup.mission_accronym}.spice'
+        product_lid = 'urn:{}:{}:{}.spice'.format(
+                self.setup.national_agency,
+                self.setup.archiving_agency,
+                self.setup.mission_accronym)
 
         return product_lid
 
@@ -107,7 +113,7 @@ class Bundle(object):
         '''
 
         logging.info('')
-        line = f'Step {self.setup.step} - Copying files to staging area.'
+        line = f'Step {self.setup.step} - Copy files to staging area'
         logging.info(line)
         logging.info('-'*len(line))
         logging.info('')
@@ -163,13 +169,16 @@ class Bundle(object):
             logging.warning(line)
         logging.info('')
 
+        if self.setup.interactive:
+            input(">> Press enter to continue...")
+
         return
 
 
     def copy_to_final(self):
 
         logging.info('')
-        line = f'Step {self.setup.step} - Copying files to final area.'
+        line = f'Step {self.setup.step} - Copy files to final area'
         logging.info(line)
         logging.info('-'*len(line))
         logging.info('')
@@ -178,7 +187,7 @@ class Bundle(object):
         #
         # Index files are added to the new_files list.
         #
-        if self.setup.pds == '4':
+        if self.setup.pds == '3':
             self.new_files.append(self.setup.staging_directory + '/../dsindex.tab')
             self.new_files.append(self.setup.staging_directory + '/../dsindex.lbl')
 
@@ -230,13 +239,15 @@ class Bundle(object):
             logging.warning(line)
         logging.info('')
 
-        return
+        if self.setup.interactive:
+            input(">> Press enter to continue...")
 
+        return
 
 
     def write_checksum(self):
 
-        line = f'Step {self.setup.step} - Generation of checksum files'
+        line = f'Step {self.setup.step} - Generate checksum files'
         logging.info(line)
         logging.info('-'*len(line))
         logging.info('')
@@ -291,19 +302,26 @@ class Bundle(object):
         if ('ERROR' in text) or ('command not found' in text):
             error_message(text)
 
-        self.validate_checksum()
+        if self.setup.interactive:
+            input(">> Press enter to continue...")
+
+        logging.info('-- Comparing checksum with previous version...')
+        self.compare_checksum()
+
+        if self.setup.interactive:
+            input(">> Press enter to continue...")
 
         return
 
 
-    def validate_checksum(self):
+    def compare_checksum(self):
 
         #
         # Compare with previous checksum file, if exists. Otherwise it is
         # not compared.
         #
         try:
-            compare_files(self.current_checksum, self.checksum, self.setup.working_directory)
+            compare_files(self.current_checksum, self.checksum, self.setup.working_directory, 'all')
         except:
             logging.warning(f'-- File to compare with does not exist: {self.checksum}')
 
