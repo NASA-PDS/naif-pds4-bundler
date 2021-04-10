@@ -1,4 +1,5 @@
 import os
+import re
 import glob
 import logging
 import shutil
@@ -20,6 +21,10 @@ from npb.classes.log   import error_message
 from npb.utils.time    import creation_time
 from npb.utils.time    import creation_date
 from npb.utils.time    import current_date
+from npb.utils.time    import spk_coverage
+from npb.utils.time    import ck_coverage
+from npb.utils.time    import pck_coverage
+from npb.utils.time    import dsk_coverage
 from npb.utils.files   import md5
 from npb.utils.files   import add_carriage_return
 from npb.utils.files   import add_crs_to_file
@@ -88,14 +93,9 @@ class SpiceKernelProduct(Product):
         else:
             self.file_format = 'Character'
 
+        self.description = self.get_description()
 
         self.coverage()
-
-        if setup.pds == '3':
-            print('HOLD IT')
-
-
-        self.description = self.get_description()
 
         self.collection_path = setup.staging_directory + os.sep + \
                        'spice_kernels' + os.sep
@@ -104,6 +104,8 @@ class SpiceKernelProduct(Product):
 
         self.lid = self.product_lid()
         self.vid = self.product_vid()
+
+
 
         #
         # We generate the kernel directory if not present
@@ -114,7 +116,7 @@ class SpiceKernelProduct(Product):
         # We copy the kernel to the staging directory.
         #
         logging.info('')
-        logging.info(f'-- Copying  {self.name} to staging directory.')
+        logging.info(f'-- Copy {self.name} to staging directory.')
         if not os.path.isfile(product_path + self.name):
             try:
                 shutil.copy2(self.path + os.sep + self.name,
@@ -142,9 +144,8 @@ class SpiceKernelProduct(Product):
         #
         # The kernel is labeled.
         #
-        logging.info(f'-- Labeling {self.name}')
+        logging.info(f'-- Labeling {self.name}...')
         self.label = SpiceKernelPDS4Label(setup, self)
-
 
         return
 
@@ -152,7 +153,9 @@ class SpiceKernelProduct(Product):
     def product_lid(self):
 
         product_lid = \
-            'urn:nasa:pds:{}.spice:spice_kernels:{}_{}'.format(
+            'urn:{}:{}:{}.spice:spice_kernels:{}_{}'.format(
+                    self.setup.national_agency,
+                    self.setup.archiving_agency,
                     self.setup.mission_accronym,
                     self.type,
                     self.name)
@@ -169,150 +172,16 @@ class SpiceKernelProduct(Product):
 
     def coverage(self):
         if self.type.lower() == 'spk':
-            (self.start_time, self.stop_time) = self.spk_coverage()
+            (self.start_time, self.stop_time) = spk_coverage(self.path + os.sep + self.name)
         elif self.type.lower() == 'ck':
-            (self.start_time, self.stop_time) = self.ck_coverage()
+            (self.start_time, self.stop_time) = ck_coverage(self.path + os.sep + self.name)
         elif self.extension.lower() == 'bpc':
-            (self.start_time, self.stop_time) = self.pck_coverage()
-        elif self.type.lower() == 'sclk':
-            (self.start_time, self.stop_time) = self.sclk_coverage()
-
+            (self.start_time, self.stop_time) = pck_coverage(self.path + os.sep + self.name)
+        elif self.type.lower() == 'dsk':
+            (self.start_time, self.stop_time) = dsk_coverage(self.path + os.sep + self.name)
         else:
             self.start_time = self.setup.mission_start
             self.stop_time = self.setup.mission_stop
-
-
-    def spk_coverage(self):
-
-        ids = spiceypy.spkobj(self.path)
-
-        MAXIV = 1000
-        WINSIZ = 2 * MAXIV
-        TIMLEN = 62
-
-        coverage = spiceypy.support_types.SPICEDOUBLE_CELL(WINSIZ)
-
-        start_points_list = list()
-        end_points_list = list()
-
-        for id in ids:
-
-            spiceypy.scard, 0, coverage
-            spiceypy.spkcov(spk=self.path, idcode=id, cover=coverage)
-
-            num_inter = spiceypy.wncard(coverage)
-
-            for i in range(0, num_inter):
-                endpoints = spiceypy.wnfetd(coverage, i)
-
-                start_points_list.append(endpoints[0])
-                end_points_list.append(endpoints[1])
-
-
-        start_time = min(start_points_list)
-        stop_time = max(end_points_list)
-
-        start_time_cal = spiceypy.timout(start_time,
-                                         "YYYY-MM-DDTHR:MN:SC.###::UTC", TIMLEN) + 'Z'
-        stop_time_cal = spiceypy.timout(stop_time,
-                                        "YYYY-MM-DDTHR:MN:SC.###::UTC", TIMLEN) + 'Z'
-
-        return [start_time_cal, stop_time_cal]
-
-
-    def ck_coverage(self):
-
-
-        start_points_list = list()
-        end_points_list = list()
-
-        MAXIV = 10000
-        WINSIZ = 2 * MAXIV
-        TIMLEN = 500
-        MAXOBJ = 10000
-
-        ids = spiceypy.support_types.SPICEINT_CELL(MAXOBJ)
-        ids = spiceypy.ckobj(ck=f'{self.path}/{self.name}', out_cell=ids)
-
-        for id in ids:
-
-            coverage = spiceypy.support_types.SPICEDOUBLE_CELL(WINSIZ)
-            spiceypy.scard, 0, coverage
-            coverage = spiceypy.ckcov(ck=f'{self.path}/{self.name}', idcode=id, needav=False,
-                                    level='SEGMENT', tol=0.0, timsys='TDB',
-                                    cover=coverage)
-
-            num_inter = spiceypy.wncard(coverage)
-
-            for j in range(0, num_inter):
-                endpoints = spiceypy.wnfetd(coverage, j)
-
-                start_points_list.append(endpoints[0])
-                end_points_list.append(endpoints[1])
-
-
-        start_time = min(start_points_list)
-        stop_time = max(end_points_list)
-
-        start_time_cal = spiceypy.timout(start_time,
-                                       "YYYY-MM-DDTHR:MN:SC.###::UTC", TIMLEN) + 'Z'
-        stop_time_cal = spiceypy.timout(stop_time, "YYYY-MM-DDTHR:MN:SC.###::UTC",
-                                      TIMLEN) + 'Z'
-
-        return [start_time_cal, stop_time_cal]
-
-    #
-    # PCK kernel processing
-    #
-    def pck_coverage(self):
-
-        MAXIV = 1000
-        WINSIZ = 2 * MAXIV
-        TIMLEN = 62
-        MAXOBJ = 1000
-
-        ids = spiceypy.support_types.SPICEINT_CELL(MAXOBJ)
-
-        spiceypy.pckfrm(f'{self.path}/{self.name}', ids)
-
-        coverage = spiceypy.support_types.SPICEDOUBLE_CELL(WINSIZ)
-
-        start_points_list = list()
-        end_points_list = list()
-
-        for id in ids:
-
-            spiceypy.scard, 0, coverage
-            spiceypy.pckcov(pck=f'{self.path}/{self.name}', idcode=id, cover=coverage)
-
-            num_inter = spiceypy.wncard(coverage)
-
-            for i in range(0, num_inter):
-                endpoints = spiceypy.wnfetd(coverage, i)
-
-                start_points_list.append(endpoints[0])
-                end_points_list.append(endpoints[1])
-
-        start_time_tbd = min(start_points_list)
-        stop_time_tbd = max(end_points_list)
-
-        start_time_cal = spiceypy.timout(start_time_tbd,
-                                       "YYYY-MM-DDTHR:MN:SC.###::UTC", TIMLEN) + 'Z'
-        stop_time_cal = spiceypy.timout(stop_time_tbd,
-                                      "YYYY-MM-DDTHR:MN:SC.###::UTC", TIMLEN) + 'Z'
-
-
-        return [start_time_cal, stop_time_cal]
-
-    #
-    # SCLK kernel processing
-    #
-    def sclk_coverage(self):
-
-        start_time_cal = self.setup.mission_start
-        stop_time_cal  = self.setup.mission_stop
-
-        return [start_time_cal, stop_time_cal]
 
     #
     # IK kernel processing
@@ -428,7 +297,7 @@ class MetaKernelProduct(Product):
         '''
 
         logging.info('')
-        logging.info(f'-- Generating meta-kernel: {kernel}')
+        logging.info(f'-- Generate meta-kernel: {kernel}')
 
         self.new_product = True
         self.template    = setup.root_dir + f'/config/{setup.mission_accronym}_metakernel.tm'
@@ -455,8 +324,9 @@ class MetaKernelProduct(Product):
             product_path = self.collection_path + self.type + os.sep
             self.KERNELPATH = '..'
 
-        self.start_time = self.setup.mission_start
-        self.stop_time = self.setup.increment_stop
+
+        self.start_time = self.setup.increment_start
+        self.stop_time = self.setup.increment_finish
 
         if self.setup.pds == '4':
             self.AUTHOR = self.setup.author
@@ -512,12 +382,16 @@ class MetaKernelProduct(Product):
         #
         self.collection_metakernel = mk2list(self.path)
 
+        #
+        # Set the increment times with the meta-kernel
+        #
+        self.set_increment_times()
 
         Product.__init__(self)
 
         if self.setup.pds == '4':
             logging.info('')
-            logging.info(f'-- Labeling meta-kernel: {kernel}')
+            logging.info(f'-- Labeling meta-kernel: {kernel}...')
             self.label = MetaKernelPDS4Label(setup, self)
 
         return
@@ -581,7 +455,9 @@ class MetaKernelProduct(Product):
         else:
             name = self.name
 
-        product_lid = 'urn:nasa:pds:{}.spice:spice_kernels:{}_{}'.format(
+        product_lid = 'urn:{}:{}:{}.spice:spice_kernels:{}_{}'.format(
+                        self.setup.national_agency,
+                        self.setup.archiving_agency,
                         self.setup.mission_accronym,
                         self.type,
                         name)
@@ -771,12 +647,12 @@ class MetaKernelProduct(Product):
         if self.setup.interactive:
             input(">> Press Enter to continue...")
 
-        self.validate_diff()
+        self.compare()
 
         return
 
 
-    def validate_diff(self):
+    def compare(self):
 
         #
         # Compare meta-kernel with latest. First try with previous increment.
@@ -821,7 +697,7 @@ class MetaKernelProduct(Product):
         tofile = self.path
         dir = self.setup.working_directory
 
-        compare_files(fromfile, tofile, dir)
+        compare_files(fromfile, tofile, dir, 'all')
 
         if self.setup.interactive:
             input(">> Press enter to continue...")
@@ -869,6 +745,141 @@ class MetaKernelProduct(Product):
             input(">> Press enter to continue...")
 
         return
+
+
+    def set_increment_times(self):
+        '''
+        Determine the archive increment start and finish times; this is done
+        based on the identification of the coverage of a given SPK or CK
+        kernel. Alternatively it can be provided as a parameter of the
+        execution.
+
+        :return:
+        '''
+        logging.info('')
+        line = f'Step {self.setup.step} - Determine archive increment start and finish times'
+        logging.info(line)
+        logging.info('-'*len(line))
+        logging.info('')
+        self.setup.step += 1
+
+        #
+        # Check if an increment stop time has been provided as an input
+        # parameter.
+        #
+        if self.setup.increment_start:
+            logging.info(f'-- Increment stop time set to: {self.setup.increment_start} '
+                         f'as provided with configuration file')
+
+        if self.setup.increment_finish:
+            logging.info(f'-- Increment finish time set to: {self.setup.increment_finish} '
+                             f'as provided with configuration file')
+
+        if self.setup.increment_finish and self.setup.increment_start:
+            return
+
+        #
+        # Match the pattern with the kernels in the meta-kernel.
+        #
+        kernels = []
+        for pattern in self.setup.increment_finish_kernels:
+            for kernel in self.collection_metakernel:
+                if re.match(pattern, kernel):
+                    kernels.append(kernel)
+
+        start_times  = []
+        finish_times = []
+        if kernels:
+            #
+            # Look for the identified kernel in the collection, if the kernel
+            # is not present the coverage will have to be computed.
+            #
+            if kernels:
+                for kernel in kernels:
+                    ker_found = False
+                    for product in self.collection.product:
+                        if kernel == product.name:
+                            start_times.append(spiceypy.utc2et(product.start_time[:-1]))
+                            finish_times.append(spiceypy.utc2et(product.stop_time[:-1]))
+                            ker_found = True
+
+                    #
+                    # When the kernels is not present in the current
+                    # collection, the coverage is computed.
+                    #
+                    if not ker_found:
+                        path = f'{self.setup.final_directory}/{self.setup.mission_accronym}_spice/spice_kernels/' \
+                               f'{extension2type(kernel)}/{kernel}'
+
+                        try:
+                            if extension2type(kernel) == 'spk':
+                                (start_time, stop_time) = spk_coverage(path)
+                            elif extension2type(kernel) == 'ck':
+                                (start_time, stop_time) = ck_coverage(path)
+                            else:
+                                error_message('Kernel used to determine coverage is not a SPK or CK kernel.')
+
+                            start_times.append(spiceypy.utc2et(start_time[:-1]))
+                            finish_times.append(spiceypy.utc2et(stop_time[:-1]))
+
+                        except:
+                            #
+                            # If the kernels are not available it has to be signaled.
+                            #
+                            logging.error(f'-- File not present in final area: {path}')
+
+        try:
+            increment_start  = spiceypy.et2utc(min(start_times), 'ISOC', 0, 80) + 'Z'
+            increment_finish = spiceypy.et2utc(max(finish_times), 'ISOC', 0, 80) + 'Z'
+            logging.info('-- Increment interval for meta-kernel, collection and bundle set to:')
+            logging.info(f'   {increment_start} - {increment_finish}')
+
+        except:
+            #
+            # The alternative is to set the increment stop time to the
+            # end time of the mission.
+            #
+            increment_start = self.setup.mission_start
+            increment_finish = self.setup.mission_stop
+            logging.error(f'-- No kernel(s) found to determine increment stop time. Mission times will be used:')
+            logging.info(f'   {increment_start} - {increment_finish}')
+
+        #
+        # We check the coverage with the previous increment.
+        #
+        try:
+            #
+            # The first alternative option is to set the time to the time of
+            # the previous increment since we might be generating an increment
+            # that does not extend the coverage.
+            #
+            bundles = glob.glob(self.setup.final_directory + os.sep +
+                                self.setup.mission_accronym + '_spice' + os.sep +
+                                f'bundle_{self.setup.mission_accronym}_spice_v*')
+            bundles.sort()
+
+            with open(bundles[-1], 'r') as b:
+                for line in b:
+                    if '<start_date_time>' in line:
+                        prev_increment_start  = line.split('>')[-2].split('<')[0]
+                    if '<stop_date_time>' in line:
+                        prev_increment_finish = line.split('>')[-2].split('<')[0]
+
+            #
+            # Provide different logging level depending on the times
+            # combination.
+            #
+            logging.info('-- Previous bundle increment interval is:')
+            logging.info(f'   {prev_increment_start} - {prev_increment_finish}')
+
+        except:
+            logging.warning(f'-- Previous bundle not found.')
+
+        self.setup.increment_finish = increment_finish
+        self.setup.increment_start  = increment_start
+
+        return
+
 
 
     def log(setup):
@@ -974,8 +985,11 @@ class InventoryProduct(Product):
     def product_lid(self):
 
         product_lid = \
-            'urn:esa:psa:{}_spice:document:spiceds'.format(
-                    self.setup.mission_accronym)
+            'urn:{}:{}:{}_spice:document:spiceds'.format(
+                self.setup.national_agency,
+                self.setup.archiving_agency,
+                self.setup.mission_accronym)
+
 
         return product_lid
 
@@ -1021,9 +1035,10 @@ class InventoryProduct(Product):
 
         logging.info(f'-- Generated {self.path}')
 
-
-
         self.validate()
+
+        if self.setup.diff:
+            self.compare()
 
         return
 
@@ -1037,7 +1052,7 @@ class InventoryProduct(Product):
         :return:
         '''
 
-        logging.info(f'-- Validating {self.name}')
+        logging.info(f'-- Validating {self.name}...')
 
 
         #
@@ -1045,19 +1060,35 @@ class InventoryProduct(Product):
         #
         logging.info('      Check that all the products are in the collection.')
 
-        with open(self.path, 'r') as c:
-            for product in self.collection.product:
-                product_found = False
+        products_found = True
+        for product in self.collection.product:
+            product_found = False
+            with open(self.path, 'r') as c:
                 for line in c:
                     if product.lid in line:
                         product_found = True
                 if not product_found:
                     logging.error(f'      Product {product.lid} not found. Consider increment re-generation.')
+                    products_found = False
 
+        logging.info('      OK')
         logging.info('')
         if self.setup.interactive:
             input(">> Press enter to continue...")
 
+        return
+
+
+    def compare(self):
+        '''
+        The label is compared the Inventory Product with the previous version and
+        if it does not exist with the sample inventory product.
+
+        :return:
+        '''
+
+
+        logging.info(f'-- Comparing {self.name}...')
 
         #
         # Use the prior version of the same product, if it does not
@@ -1069,19 +1100,19 @@ class InventoryProduct(Product):
             tofile   = self.path
             dir      = self.setup.working_directory
 
-            compare_files(fromfile, tofile, dir)
+            compare_files(fromfile, tofile, dir, self.setup.diff)
 
         else:
 
             logging.warning('-- Comparing with InSight test inventory product.')
-            fromfiles = glob.glob(f'{self.setup.root_dir}tests/functional/data/insight/' \
-                        f'insight_spice/{self.collection.type}/collection_{self.collection.name}_inventory_*.csv')
+            fromfiles = glob.glob(f'{self.setup.root_dir}tests/functional/data/insight/'
+                                  f'insight_spice/{self.collection.type}/collection_{self.collection.name}_inventory_*.csv')
             fromfiles.sort()
             fromfile  = fromfiles[-1]
             tofile    = self.path
             dir       = self.setup.working_directory
 
-            compare_files(fromfile, tofile, dir)
+            compare_files(fromfile, tofile, dir, self.setup.diff)
 
         logging.info('')
         if self.setup.interactive:
@@ -1175,7 +1206,7 @@ class InventoryProduct(Product):
             if index:
                 try:
                     current_index = self.setup.final_directory + os.sep + index.split(os.sep)[-1]
-                    compare_files(index, current_index, self.setup.working_directory)
+                    compare_files(index, current_index, self.setup.working_directory, 'all')
                 except:
                     logging.warning(f'-- File to compare with does not exist: {index}')
 
@@ -1243,9 +1274,9 @@ class SpicedsProduct(object):
 
 
         #
-        # Validate the product and then generate the label.
+        # Validate the product by comparign it and then generate the label.
         #
-        self.validate()
+        self.compare()
 
         self.label = DocumentPDS4Label(setup, collection, self)
 
@@ -1256,8 +1287,11 @@ class SpicedsProduct(object):
     def product_lid(self):
 
         product_lid = \
-            'urn:nasa:pds:{}.spice:document:spiceds'.format(
-                    self.setup.mission_accronym)
+            'urn:{}:{}:{}.spice:document:spiceds'.format(
+                self.setup.national_agency,
+                self.setup.archiving_agency,
+                self.setup.mission_accronym)
+
 
         return product_lid
 
@@ -1304,13 +1338,13 @@ class SpicedsProduct(object):
 
             if not generate_spiceds:
                 os.remove(self.path)
-                logging.warning('-- SPICEDS document does not need to be updated')
+                logging.warning('-- spiceds document does not need to be updated.')
                 logging.warning('')
 
         return generate_spiceds
 
 
-    def validate(self):
+    def compare(self):
 
         #
         # Compare spiceds with latest. First try with previous increment.
@@ -1342,7 +1376,7 @@ class SpicedsProduct(object):
         tofile = self.path
         dir = self.setup.working_directory
 
-        compare_files(fromfile, tofile, dir)
+        compare_files(fromfile, tofile, dir, 'all')
 
         logging.info('')
 
@@ -1357,8 +1391,9 @@ class ReadmeProduct(Product):
     def __init__(self, setup, bundle):
 
         logging.info('')
-        logging.info(f'Step {setup.step} - Generate bundle products')
-        logging.info('---------------------------------')
+        line = f'Step {setup.step} - Generation of bundle products'
+        logging.info(line)
+        logging.info('-'*len(line))
         logging.info('')
         setup.step += 1
 
@@ -1370,7 +1405,7 @@ class ReadmeProduct(Product):
         self.collection = Object()
         self.collection.name = ''
 
-        logging.info('-- Generating readme file')
+        logging.info('-- Generating readme file...')
         self.write_product()
         Product.__init__(self)
 
@@ -1389,8 +1424,11 @@ class ReadmeProduct(Product):
         #
         self.path = setup.staging_directory + os.sep + bundle.name
 
-        logging.info('-- Generating bundle label.')
+        logging.info('-- Generating bundle label...')
         self.label = BundlePDS4Label(setup, self)
+
+        if self.setup.interactive:
+            input(">> Press enter to continue...")
 
         return
 
