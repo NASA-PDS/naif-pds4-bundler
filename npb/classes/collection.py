@@ -1,8 +1,12 @@
 import os
+import re
 import glob
 import logging
+import spiceypy
 
 from npb.classes.log   import error_message
+from npb.utils.files   import extension2type
+
 
 class Collection(object):
 
@@ -26,9 +30,11 @@ class Collection(object):
     def collection_lid(self):
 
         collection_lid = \
-            'urn:nasa:pds:{}.spice:{}'.format(
-                    self.setup.mission_accronym,
-                    self.type)
+            'urn:{}:{}:{}.spice:{}'.format(
+                self.setup.national_agency,
+                self.setup.archiving_agency,
+                self.setup.mission_accronym,
+                self.type)
 
         return collection_lid
 
@@ -77,8 +83,9 @@ class SpiceKernelsCollection(Collection):
 
     def __init__(self, setup, bundle, list):
 
-        logging.info(f'Step {setup.step} - SPICE kernel collection/data processing')
-        logging.info('------------------------------------------------')
+        line = f'Step {setup.step} - SPICE kernel collection/data processing'
+        logging.info(line)
+        logging.info('-'*len(line))
         setup.step += 1
 
         self.bundle      = bundle
@@ -100,8 +107,9 @@ class SpiceKernelsCollection(Collection):
         #      That is, we are validating the spice_kernel_collection.
         #
         logging.info('')
-        logging.info(f'Step {self.setup.step} - Validating SPICE kernel collection generation')
-        logging.info('-------------------------------------------------------')
+        line = f'Step {self.setup.step} - Validate SPICE kernel collection generation'
+        logging.info(line)
+        logging.info('-'*len(line))
         logging.info('')
         self.setup.step += 1
 
