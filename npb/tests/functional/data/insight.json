@@ -14,6 +14,7 @@
   "secondary_target":      "",
   "dataset_id":            "NSYT-M-SPICE-6-V1.0",
   "volume_id":             "NSYTSP_1000",
+  "doi":                   "10.17189/1520436",
   "author":                "Marc Costa Sitja",
   "email":                 "Marc.Costa.Sitja@jpl.nasa.gov",
   "phone":                 "6264691244",
@@ -27,6 +28,5 @@
   "increment_finish_kernels": [ "insight_cru_ops_v[0-9].bsp",
                                 "insight_edl_rec_v[0-9].bsp",
                                 "insight_ida_enc_[0-9]{6}_[0-9]{6}_v[0-9].bc"],
-  "release_date":          "2021-03-16",
   "phase":                 "EXTENDED"
 }

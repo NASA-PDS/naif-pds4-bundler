@@ -27,6 +27,5 @@
   "increment_finish_kernels": [ "insight_cru_ops_v[0-9].bsp",
                                 "insight_edl_rec_v[0-9].bsp",
                                 "insight_ida_enc_[0-9]{6}_[0-9]{6}_v[0-9].bc"],
-  "release_date":          "2021-03-16",
   "phase":                 "EXTENDED"
 }

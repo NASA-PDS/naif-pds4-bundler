@@ -65,22 +65,22 @@
       "mklabel_options": "DEF_TIMES",
       "description": "SPICE SCLK file containing fictitious MARCO-B clock correlation data required to access MARCO-B CKs, created by NAIF, JPL."
     }],
-  "de[0-9][0-9][0-9]s*.bsp": [
+  "de[0-9][0-9][0-9]s.bsp": [
     {
       "mklabel_options": "",
       "description": "SPICE SPK file containing JPL planetary ephemerides version $VER, created by the Solar System Dynamics group (SSD), JPL."
     }],
-  "mar[0-9][0-9][0-9]s*.bsp": [
+  "mar[0-9][0-9][0-9]s.bsp": [
     {
       "mklabel_options": "",
       "description": "SPICE SPK file containing JPL Martian satellite ephemerides version $VER, created by the Solar System Dynamics group (SSD), JPL."
     }],
-  "insight_cru_.*_v[0-9].bsp": [
+  "insight_cru_.{0,}_v[0-9].bsp": [
     {
       "mklabel_options": "",
       "description": "SPICE SPK file containing reconstructed INSIGHT cruise trajectory, created by the INSIGHT NAV Team, JPL."
     }],
-  "insight_edl_.*_v[0-9].bsp": [
+  "insight_edl_.{0,}_v[0-9].bsp": [
     {
       "mklabel_options": "",
       "description": "SPICE SPK file containing reconstructed INSIGHT Entry Descent Landing (EDL) trajectory, created by the INSIGHT EDL Team, LMCO."
