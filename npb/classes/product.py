@@ -1217,11 +1217,13 @@ class InventoryProduct(Product):
 
 class SpicedsProduct(object):
 
-    def __init__(self, setup, collection):
+    def __init__(self, setup, collection, spiceds):
 
-        self.new_product  = True
+
         self.setup        = setup
         self.collection   = collection
+        self.new_product  = True
+
         #
         # - Obtain the previous spiceds file if it exists
         #
@@ -1262,18 +1264,22 @@ class SpicedsProduct(object):
         self.PRODUCER_EMAIL = setup.email
         self.PRODUCER_PHONE = setup.phone
 
-        self.generated = self.write_product()
-        if not self.generated:
-            return
+        if not spiceds:
+            self.generated = self.write_product()
+            if not self.generated:
+                return
+        else:
+            logging.info(f'-- spiceds file provided as input moved to staging area as {self.name}')
+            shutil.copy2(spiceds, self.path)
+            self.generated = True
 
         #
         # Kernels are already generated products but Inventories are not.
         #
         Product.__init__(self)
 
-
         #
-        # Validate the product by comparign it and then generate the label.
+        # Validate the product by comparing it and then generate the label.
         #
         self.compare()
 
@@ -1348,7 +1354,6 @@ class SpicedsProduct(object):
         #
         # Compare spiceds with latest. First try with previous increment.
         #
-        val_spd = ''
         try:
 
             val_spd_path = f'{self.setup.final_directory}/' \
