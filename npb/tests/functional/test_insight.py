@@ -270,6 +270,41 @@ class TestInsight(TestCase):
         shutil.rmtree('staging', ignore_errors=True)
 
 
+    def test_insight_spiceds(self):
+        '''
+        Testcase for when the spiceds file is provided from the command
+        line.
+        '''
+
+        config  = 'data/insight_release_08.json'
+        plan    = 'data/insight_release_08.plan'
+        faucet  = 'staging'
+        spiceds = 'data/spiceds_test.html'
+
+        shutil.rmtree('insight', ignore_errors=True)
+        shutil.rmtree('working', ignore_errors=True)
+        shutil.rmtree('staging', ignore_errors=True)
+
+        os.mkdir('working')
+        for file in glob.glob('data/insight_release_[0-9][0-9].kernel_list'):
+            shutil.copy2(file,
+                        'working')
+        os.mkdir('staging')
+        os.mkdir('staging/insight')
+        os.mkdir('staging/insight/insight_spice')
+        shutil.copytree('data/insight', 'insight')
+        for file in glob.glob('data/insight_release_[0-9][0-9].kernel_list'):
+            shutil.copy2(file,
+                        'working')
+
+        main(config, plan, faucet, silent=False, log=True, diff='all',
+             spiceds=spiceds)
+
+        shutil.rmtree('insight', ignore_errors=True)
+        shutil.rmtree('working', ignore_errors=True)
+        shutil.rmtree('staging', ignore_errors=True)
+
+
 if __name__ == '__main__':
 
     unittest.main()
