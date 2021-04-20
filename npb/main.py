@@ -81,9 +81,10 @@ from .classes.collection import DocumentCollection
 from .classes.product    import SpicedsProduct
 
 
-def main(config = False, plan   = False, faucet      = '',
-         log    = False, silent = False, diff        = '',
-         start  = '',    finish = '',    interactive = False):
+def main(config      = False, plan   = False, faucet  = '',
+         log         = False, silent = False, diff    = '',
+         release     = '',    start  = '',    finish  = '',
+         interactive = False, spiceds = ''                ):
     """
     Main routine for the NAIF PDS4 Bundle Generator (naif-pds4-bundle).
 
@@ -114,32 +115,46 @@ def main(config = False, plan   = False, faucet      = '',
                                 description=header)
         parser.add_argument('config', metavar='CONFIG', type=str, nargs='+',
                             help='Mission specific configuration file')
-        parser.add_argument('plan', metavar='PLAN', type=str, nargs='+',
-                            help='Release specific plan file')
-        parser.add_argument('-f', '--faucet',
+        parser.add_argument('-p', '--plan',
+                            action='store', type=str,
+                            help='Files planned to be included in the increment. If this argument is not provided, '
+                                 'all the kernels found in the kernels directory specified in the configuration file '
+                                 'in addition to new meta-kernels will be included in the increment.')
+        parser.add_argument('-s', '--spiceds',
                             default= '',
                             action='store', type = str,
-                            help='Optional end point of the pipeline. '
-                                 'Allowed values are: "list", "staging" or '
-                                 '"final"')
+                            help='Path to spiceds HTML document provided as input. Note that the filename will'
+                                 'be updated.')
+        parser.add_argument('-r', '--release',
+                            default= '',
+                            action='store', type = str,
+                            help='Release date as a UTC calendar string. '
+                                 'Use the following format: YYYY-MM-DD e.g.,'
+                                 '2021-04-09.')
+        parser.add_argument('-a', '--start',
+                            default= '',
+                            action='store', type = str,
+                            help='Increment start time provided as a UTC calendar'
+                                 'string, requires -z/--finish argument. Use the following format: YYYY-MM-DDThh:mm:ssZ e.g.,'
+                                 '2021-04-09T15:11:12Z.')
+        parser.add_argument('-z', '--finish',
+                            default= '',
+                            action='store', type = str,
+                            help='Increment stop time provided as a UTC calendar'
+                                 'string, requires -s/--start argument. Use the following format: YYYY-MM-DDThh:mm:ssZ e.g.,'
+                                 '2021-04-09T15:11:12Z.')
         parser.add_argument('-d', '--diff',
                             default= '',
                             action='store', type = str,
                             help='Optional generation of diff reports for '
                                  'products. Allowed values are: "all", '
                                  '"log" or "files".')
-        parser.add_argument('-a', '--start',
+        parser.add_argument('-f', '--faucet',
                             default= '',
                             action='store', type = str,
-                            help='Increment start time provided as a UTC calendar'
-                                 'string. Use the following format: YYYY-MM-DDThh:mm:ssZ e.g.,'
-                                 '2021-04-09T15:11:12Z.')
-        parser.add_argument('-z', '--finish',
-                            default= '',
-                            action='store', type = str,
-                            help='Increment stop time provided as a UTC calendar'
-                                 'string. Use the following format: YYYY-MM-DDThh:mm:ssZ e.g.,'
-                                 '2021-04-09T15:11:12Z.')
+                            help='Optional end point of the pipeline. '
+                                 'Allowed values are: "list", "staging" or '
+                                 '"final"')
         parser.add_argument('-l', '--log',
                             help='Write log in file.',
                             action='store_true')
@@ -153,14 +168,16 @@ def main(config = False, plan   = False, faucet      = '',
 
         args        = parser.parse_args()
         config      = args.config[0]
-        plan        = args.plan[0]
+        plan        = args.plan
         faucet      = args.faucet
         log_file    = args.log
         silent      = args.silent
         diff        = args.diff
+        release     = args.release
         start       = args.start
         finish      = args.finish
         interact    = args.interactive
+        spiceds     = args.spiceds
 
         if ((not start) and (finish)) or ((start) and (not finish)):
             raise Exception('-a, -z (--start, --finish) arguments need to be provided together.')
@@ -172,10 +189,11 @@ def main(config = False, plan   = False, faucet      = '',
         log_file    = log
         silent      = silent
         diff        = diff
+        release    = release
         start       = start
         finish      = finish
         interact    = interactive
-
+        spiceds     = spiceds
 
     #
     # Turn lowercase or uppercase arguments that need it.
@@ -192,6 +210,10 @@ def main(config = False, plan   = False, faucet      = '',
         raise  Exception('-d, --diff argument has incorrect value.')
     if faucet not in ['list', 'staging', 'final', '']:
         raise  Exception('-f, --faucet argument has incorrect value.')
+    if release:
+        pattern = re.compile('[0-9]{4}-[0-9]{2}-[0-9]{2}')
+        if not pattern.match(release):
+            raise Exception('-r, --release argument does not match the required format.')
     if start:
         pattern = re.compile('[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z]')
         if not pattern.match(start):
@@ -208,8 +230,8 @@ def main(config = False, plan   = False, faucet      = '',
     #    * Parse JSON into an object with attributes corresponding
     #      to dict keys.
     #
-    setup = Setup(config, version, interact,
-                  faucet, diff, start, finish).setup
+    setup = Setup(config, version, interact, faucet, diff, release, start,
+                  finish).setup
 
     #
     # -- Setup the logging
@@ -312,7 +334,7 @@ def main(config = False, plan   = False, faucet      = '',
     #
     if setup.pds == '4':
 
-        spiceds = SpicedsProduct(setup, document_collection)
+        spiceds = SpicedsProduct(setup, document_collection, spiceds)
 
         #
         # -- If the SPICEDS document is generated then the document
