@@ -53,7 +53,16 @@ class KernelList(List):
 
         self.template = setup.root_dir + '/etc/template_kernel_list.txt'
         self.read_config()
-        self.kernel_list = self.read_plan(plan)
+
+        #
+        # If a plan file is provided it is processed otherwise a plan is
+        # generated from the kernels directory.
+        #
+        if plan:
+            self.kernel_list = self.read_plan(plan)
+        else:
+            self.kernel_list = self.write_plan()
+
         self.write_list()
 
         return
@@ -92,22 +101,90 @@ class KernelList(List):
 
         kernels = []
 
-        logging.info(f'-- Reporting the lines in Plan that do not contain products:')
-
+        patterns = self.json_config.keys()
         with open(plan, 'r') as f:
             for line in f:
-                if '\\' in line:
-                    kernels.append(line.split('\\')[0].strip())
-
-                #
-                # Report the lines that are not appended in the kernels list
-                #
-                else:
-                    if line.strip():
-                        logging.info('     ' + line[:-1])
+                for pattern in patterns:
+                    if re.search(pattern, line):
+                        ker_line = re.search(pattern, line)
+                        kernels.append(ker_line.group(0))
 
         if self.setup.interactive:
             input(">> Press Enter to continue...")
+
+        logging.info(f'-- Reporting the products in Plan:')
+
+        #
+        # Report the kernels that will be included in the Kernel List
+        #
+        for kernel in kernels:
+            logging.info(f'     {kernel}')
+
+        logging.info("")
+        if self.setup.interactive:
+            input(">> Press Enter to continue...")
+
+
+        return kernels
+
+
+    def write_plan(self):
+
+        kernels = []
+
+        logging.info(f'-- Generate archiving plan from kernels directory {self.setup.kernels_directory}:')
+
+        plan_name = f'{self.setup.mission_accronym}_release_{int(self.setup.release):02d}.plan'
+
+        kernels_in_dir = glob.glob(f'{self.setup.kernels_directory}/**/*', recursive=True)
+
+        #
+        # Filter the kernels with the patterns in the kernel list from the
+        # configuration. The patterns are present in the json_config
+        # attribute dictionary.
+        #
+        patterns = self.json_config.keys()
+        for kernel in kernels_in_dir:
+            for pattern in patterns:
+                if re.match(pattern, kernel.split(os.sep)[-1]):
+                    kernels.append(kernel.split(os.sep)[-1])
+
+        #
+        # Deduct the meta-kernels that need to be added.
+        #
+        kernels_in_dir = glob.glob(f'{self.setup.final_directory}/**/*', recursive=True)
+        mks_in_dir = []
+        for mk in kernels_in_dir:
+            if '/mk/' in mk and '.tm' in mk.lower():
+                mks_in_dir.append(mk.split(os.sep)[-1])
+
+        mks_in_dir.sort()
+
+        if not mks_in_dir:
+            logging.error(f'-- No former meta-kernel found to generate meta-kernel for the list.')
+        else:
+
+            mk_new_name = ''
+            for pattern in patterns:
+                mk_name = mks_in_dir[-1]
+                if re.match(pattern, mk_name):
+
+                    version     = re.findall(r'_v[0-9]+', mk_name)[0]
+                    new_version = '_v' + str(int(version[2:]) + 1).zfill(len(version)-2)
+                    mk_new_name = f'{mk_name.split(version)[0]}{new_version}{mk_name.split(version)[-1]}'
+
+                    logging.warning(f'-- Plan will include {mk_new_name}')
+                    kernels.append(mk_new_name)
+
+            if not mk_new_name:
+                logging.error(f'-- No former meta-kernel found to generate meta-kernel for the list.')
+
+        if self.setup.interactive:
+            input(">> Press Enter to continue...")
+
+        with open(self.setup.working_directory + os.sep + plan_name, 'w') as p:
+            for kernel in kernels:
+                p.write(f'{kernel}\n')
 
         logging.info("")
         logging.info(f'-- Reporting the products in Plan:')
@@ -297,8 +374,6 @@ class KernelList(List):
             # Check that the list has the same number of FILE, MAKLABEL_OPTIONS,
             # and DESCRIPTION entries
             #
-            logging.info('-- Checking list number of entries coherence:')
-
             for line in l:
 
                 if ('FILE' in line) and (line.split('=')[-1].strip()):
@@ -336,31 +411,19 @@ class KernelList(List):
                 logging.critical('')
 
                 raise Exception(error)
-            else:
-                logging.info(f'     PASS with total of {num_file} entries.')
-                logging.info('')
 
             #
             # Check list against plan
             #
-            logging.info('-- Checking kernel list against plan:')
             for ker in ker_in_list:
                 if ker not in self.kernel_list:
                     error_message(f'   {ker} not in list')
 
-                else:
-                    logging.info(f'     {ker} in list.')
-            logging.info('')
-
             #
             # Check list for duplicate entries
             #
-            logging.info('-- Checking for duplicates in kernel list:')
             if check_list_duplicates(ker_in_list):
                 error_message('List contains duplicates.')
-            else:
-                logging.info(f'     List contains no duplicates.')
-            logging.info('')
 
             #
             # Check that all files listed are available in OPS area;
