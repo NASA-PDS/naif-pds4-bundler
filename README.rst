@@ -1,4 +1,5 @@
-# naif-pds4-bundle
+naif-pds4-bundle
+================
 
 The PDS4 Bundle Generator (naif-pds4-bundle) is a a pipeline that
 generates a SPICE archive in the shape of a PDS4 Bundle or a PDS3
