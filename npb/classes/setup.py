@@ -14,7 +14,7 @@ from npb.classes.log import error_message
 class Setup(object):
 
     def __init__(self, config, version, interact,
-                 faucet, diff, start, finish):
+                 faucet, diff, release, start, finish):
 
         with open(config, 'r') as file:
             f = file.read().replace('\n', '')
@@ -34,6 +34,14 @@ class Setup(object):
         setup.today              = datetime.date.today().strftime("%Y%m%d")
         setup.increment_start    = start
         setup.increment_finish   = finish
+
+        #
+        # If a release date is not specified it is set to today.
+        #
+        if not release:
+            setup.release_date = datetime.date.today().strftime("%Y-%m-%d")
+        else:
+            setup.release_date = release
 
         #
         # Sort out if directories are provided as relative paths and
