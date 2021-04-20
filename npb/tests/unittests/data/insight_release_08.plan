@@ -23,7 +23,7 @@ No IKs in this release.
 
 --- SCLK
 
-nsy_sclkscet_00019.tsc \
+`nsy_sclkscet_00019.tsc
 
 
 No LMST SCLKs in this release.
@@ -53,7 +53,7 @@ No Marco SPKs in this release.
 --- CK
 
 insight_ida_enc_200829_201220_v1.bc \
-insight_ida_pot_200829_201220_v1.bc \
+insight_ida_pot_200829_201220_v1.bc
 
 No Cruise CKs in this release.
 
