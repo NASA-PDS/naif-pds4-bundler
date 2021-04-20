@@ -3,4 +3,4 @@ beautifulsoup4>=4.9.3
 numpy>=1.19.4
 setuptools>=50.3.0
 coverage
-HtmlTestRunner
+html-testRunner
