@@ -1,6 +1,7 @@
 """Functional tests for the index generator.
 """
 import os
+import shutil
 import filecmp
 import unittest
 import subprocess
@@ -28,7 +29,7 @@ class TestIndex(TestCase):
 
         """
 
-        list   = 'data/msl_release_index.kernel_list'
+        list   = '../data/msl_release_index.kernel_list'
         command = f'perl ../../exe/xfer_index.pl {list}'
         print(f'-- Executing: {command}')
 
@@ -44,13 +45,13 @@ class TestIndex(TestCase):
         if 'ERROR' in text:
             raise Exception()
 
-        equal = filecmp.cmp('index.tab',   'data/msl_index.tab'  )
+        equal = filecmp.cmp('index.tab',   '../data/msl_index.tab'  )
         if not equal: raise Exception('index.tab and data/msl_index.tab not equal')
-        equal = filecmp.cmp('dsindex.tab', 'data/msl_dsindex.tab')
+        equal = filecmp.cmp('dsindex.tab', '../data/msl_dsindex.tab')
         if not equal: raise Exception('dsindex.tab and data/msl_dsindex.tab not equal')
-        equal = filecmp.cmp('index.lbl',   'data/msl_index.lbl'  )
+        equal = filecmp.cmp('index.lbl',   '../data/msl_index.lbl'  )
         if not equal: raise Exception('index.lbl and data/msl_index.lbl not equal')
-        equal = filecmp.cmp('dsindex.lbl', 'data/msl_dsindex.lbl')
+        equal = filecmp.cmp('dsindex.lbl', '../data/msl_dsindex.lbl')
         if not equal: raise Exception('dsindex.lbl and data/msl_dsindex.lbl not equal')
 
         os.remove('index.tab')
@@ -67,7 +68,7 @@ class TestIndex(TestCase):
 
         """
 
-        list   = 'data/insight_release_08.kernel_list'
+        list   = '../data/insight_release_index.kernel_list'
         command = f'perl ../../exe/xfer_index.pl {list}'
         print(f'-- Executing: {command}')
 
@@ -83,13 +84,13 @@ class TestIndex(TestCase):
         if 'ERROR' in text:
             raise Exception()
 
-        equal = filecmp.cmp('index.tab',   'data/insight_index.tab'  )
+        equal = filecmp.cmp('index.tab',   '../data/insight_index.tab'  )
         if not equal: raise Exception('index.tab and data/insight_index.tab not equal')
-        equal = filecmp.cmp('dsindex.tab', 'data/insight_dsindex.tab')
+        equal = filecmp.cmp('dsindex.tab', '../data/insight_dsindex.tab')
         if not equal: raise Exception('dsindex.tab and data/insight_dsindex.tab not equal')
-        equal = filecmp.cmp('index.lbl',   'data/insight_index.lbl'  )
+        equal = filecmp.cmp('index.lbl',   '../data/insight_index.lbl'  )
         if not equal: raise Exception('index.lbl and data/insight_index.lbl not equal')
-        equal = filecmp.cmp('dsindex.lbl', 'data/insight_dsindex.lbl')
+        equal = filecmp.cmp('dsindex.lbl', '../data/insight_dsindex.lbl')
         if not equal: raise Exception('dsindex.lbl and data/insight_dsindex.lbl not equal')
 
         os.remove('index.tab')

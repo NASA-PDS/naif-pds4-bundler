@@ -27,13 +27,16 @@ class TestKernelList(TestCase):
 
         """
 
-        config = 'data/msl_release_26.json'
-        plan   = 'data/msl_release_26.plan'
+        config = '../data/config/msl.xml'
+        plan   = '../data/msl_release_26.plan'
         faucet = 'list'
 
-        shutil.rmtree('working', ignore_errors=True)
-        os.mkdir('working')
-        shutil.copy2('data/msl_release_25.kernel_list', 'working')
+        dirs = ['working', 'staging', 'final', 'kernels']
+        for dir in dirs:
+            shutil.rmtree(dir, ignore_errors=True)
+            os.mkdir(dir)
+
+        shutil.copy2('../data/msl_release_25.kernel_list', 'working')
 
         main(config, plan, faucet, silent=True)
 
@@ -43,13 +46,15 @@ class TestKernelList(TestCase):
                 new_file += line
 
         old_file = ''
-        with open('data/msl_release_26.kernel_list', 'r') as f:
+        with open('../data/msl_release_26.kernel_list', 'r') as f:
             for line in f:
                 old_file += line
 
         self.assertEqual(old_file.split('\n')[9:],new_file.split('\n')[9:])
 
-        shutil.rmtree('working', ignore_errors=True)
+        dirs = ['working', 'staging', 'final', 'kernels']
+        for dir in dirs:
+            shutil.rmtree(dir, ignore_errors=True)
 
 
     def test_pds3_m01_list(self):
@@ -60,29 +65,40 @@ class TestKernelList(TestCase):
 
         """
 
-        config = 'data/m01_release_75.json'
-        plan   = 'data/m01_release_75.plan'
+        config = '../data/config/m01.xml'
+        plan   = '../data/m01_release_75.plan'
         faucet = 'list'
 
-        shutil.rmtree('working', ignore_errors=True)
-        os.mkdir('working')
-        shutil.copy2('data/m01_release_74.kernel_list', 'working')
+        #
+        # Test preparation
+        #
+        dirs = ['working', 'staging', 'final', 'kernels']
+        for dir in dirs:
+            shutil.rmtree(dir, ignore_errors=True)
+            os.mkdir(dir)
+
+        shutil.copy2('../data/m01_release_74.kernel_list', 'working')
 
         main(config, plan, faucet, silent=True)
 
         new_file = ''
-        with open('working/m01_release_75.kernel_list', 'r') as f:
+        with open('../data/m01_release_75.kernel_list', 'r') as f:
             for line in f:
                 new_file += line
 
         old_file = ''
-        with open('data/m01_release_75.kernel_list', 'r') as f:
+        with open('../data/m01_release_75.kernel_list', 'r') as f:
             for line in f:
                 old_file += line
 
         self.assertEqual(old_file.split('\n')[9:],new_file.split('\n')[9:])
 
-        shutil.rmtree('working', ignore_errors=True)
+        #
+        # Cleanup test facility
+        #
+        dirs = ['working', 'staging', 'final', 'kernels']
+        for dir in dirs:
+            shutil.rmtree(dir, ignore_errors=True)
 
 
 

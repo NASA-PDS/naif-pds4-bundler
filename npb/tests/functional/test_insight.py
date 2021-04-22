@@ -17,8 +17,8 @@ class TestInsight(TestCase):
         no SCLK).
         '''
 
-        config = 'data/insight.json'
-        plan   = 'data/insight_release_26.plan'
+        config = '../data/insight.json'
+        plan   = '../data/insight_release_26.plan'
         faucet = ''
 
         #
@@ -33,14 +33,14 @@ class TestInsight(TestCase):
         shutil.rmtree('staging', ignore_errors=True)
 
         os.mkdir('working')
-        shutil.copy2('data/insight_release_basic.kernel_list',
+        shutil.copy2('../data/insight_release_basic.kernel_list',
                      'working/insight_release_07.kernel_list')
         os.mkdir('staging')
         os.mkdir('staging/insight')
         os.mkdir('staging/insight/insight_spice')
 
-        shutil.copytree('data/insight', 'insight')
-        with open('data/insight.list', 'r') as i:
+        shutil.copytree('../data/insight', 'insight')
+        with open('../data/insight.list', 'r') as i:
             for line in i:
                 with open(f'insight/insight_spice/{line[0:-1]}', 'w') as fp:
                     pass

@@ -1,0 +1,167 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<naif-pds4-bundle_configuration>
+
+    <!-- =========================== -->
+    <!-- PDS parameters              -->
+    <!-- =========================== -->
+    <pds_parameters>
+        <pds_version>3</pds_version>
+    </pds_parameters>
+
+    <!-- =========================== -->
+    <!-- Bundle parameters           -->
+    <!-- =========================== -->
+    <bundle_parameters>
+        <author_name>Marc Costa Sitja</author_name>
+        <author_email>Marc.Costa.Sitja@jpl.nasa.gov</author_email>
+        <author_phone>6264691244</author_phone>
+        <dataset_id>MSL-M-SPICE-6-V1.0</dataset_id>
+        <volume_id>MSLSP_1000</volume_id>
+        <doi>10.17189/1520113</doi>
+    </bundle_parameters>
+
+    <!-- =========================== -->
+    <!-- Mission Parameters          -->
+    <!-- =========================== -->
+    <mission_parameters>
+        <mission_accronym>msl</mission_accronym>
+        <mission_name>MSL</mission_name>
+        <spice_name>MSL</spice_name>
+        <spacecraft>MSL</spacecraft>
+        <target>MARS</target>
+        <phases>
+            <EXTENDED></EXTENDED>
+        </phases>
+        <secondary_spacecraft></secondary_spacecraft>
+        <secondary_target></secondary_target>
+        <mission_start>2016-03-14T08:13:00Z</mission_start>
+        <mission_stop>2050-01-01T00:00:00Z</mission_stop>
+    </mission_parameters>
+
+    <!-- =========================== -->
+    <!-- Directories                 -->
+    <!-- =========================== -->
+    <directories>
+        <working_directory>working</working_directory>
+        <kernels_directory>kernels</kernels_directory>
+        <staging_directory>staging</staging_directory>
+        <final_directory>final</final_directory>
+        <reports_directory>reports</reports_directory>
+    </directories>
+
+    <!-- =========================== -->
+    <!-- Kernel List                 -->
+    <!-- =========================== -->
+    <kernel_list>
+        <kernel pattern="msl_76_sclkscet_[0-9][0-9][0-9][0-9][0-9].tsc">
+            <mapping>MSL_76_SCLKSCET.[0-9][0-9][0-9][0-9][0-9].tsc</mapping>
+            <mklabel_options>NAIF</mklabel_options>
+            <description>SCLK file providing the official, OPS correlation data for the primary MSL on-board clock. The original name of this file was MSL_76_SCLKSCET.$VERSION.tsc.</description>
+            <patterns>
+                <KERNEL>MSL_76_SCLKSCET.[0-9][0-9][0-9][0-9][0-9].tsc</KERNEL>
+            </patterns>
+        </kernel>
+        <kernel pattern="msl_76_sclkscet_refit_[a-z][0-9].tsc">
+            <mapping>MSL_76_SCLKSCET_REFIT.[a-z][0-9].tsc</mapping>
+            <mklabel_options>NAIF</mklabel_options>
+            <description>SCLK file providing the improved correlation data for the primary MSL on-board clock. The original name of this file was MSL_76_SCLKSCET_REFIT.$VERSION.tsc.
+            </description>
+            <patterns>
+                <KERNEL>MSL_76_SCLKSCET_REFIT.[a-z][0-9].tsc</KERNEL>
+            </patterns>
+        </kernel>
+        <kernel pattern="msl_surf_ra_tlmenc_[0-9]{4}_[0-9]{4}_v[0-9].bc">
+            <mklabel_options>RA $PHASES NAIF</mklabel_options>
+            <description>CK file containing the orientation of the Robotic Arm (RA) relative to the rover frame, created using encoder angles from telemetry view data from OPGS PLACES server, covering SOLs $START to $FINISH, version $VERSION.
+            </description>
+            <patterns>
+                <START pattern="kernel">msl_surf_ra_tlmenc_$START_[0-9]{4}_v[0-9].bc</START>
+                <FINISH pattern="kernel">msl_surf_ra_tlmenc_[0-9]{4}_$FINISH_v[0-9].bc</FINISH>
+                <VERSION pattern="kernel">msl_surf_ra_tlmenc_[0-9]{4}_[0-9]{4}_v$VERSION.bc</VERSION>
+            </patterns>
+        </kernel>
+        <kernel pattern="msl_surf_ra_tlmres_[0-9]{4}_[0-9]{4}_v[0-9].bc">
+            <mklabel_options>RA $PHASES NAIF</mklabel_options>
+            <description>CK file containing the orientation of the Robotic Arm (RA) relative to the rover frame, created using resolver angles from telemetry view data from OPGS PLACES server, covering SOLs $START to $FINISH, version $VERSION.
+            </description>
+            <patterns>
+                <START pattern="kernel">msl_surf_ra_tlmres_$START_[0-9]{4}_v[0-9].bc</START>
+                <FINISH pattern="kernel">msl_surf_ra_tlmres_[0-9]{4}_$FINISH_v[0-9].bc</FINISH>
+                <VERSION pattern="kernel">msl_surf_ra_tlmres_[0-9]{4}_[0-9]{4}_v$VERSION.bc</VERSION>
+            </patterns>
+        </kernel>
+        <kernel pattern="msl_surf_rover_tlm_[0-9]{4}_[0-9]{4}_v[0-9].bc">
+            <mklabel_options>ROVER $PHASES NAIF</mklabel_options>
+            <description>CK file containing the orientation of the rover relative to the local level frame, created using telemetry view data from OPGS PLACES server, covering SOLs $START to $FINISH, version $VERSION.
+            </description>
+            <patterns>
+                <START pattern="kernel">msl_surf_rover_tlm_$START_[0-9]{4}_v[0-9].bc</START>
+                <FINISH pattern="kernel">msl_surf_rover_tlm_[0-9]{4}_$FINISH_v[0-9].bc</FINISH>
+                <VERSION pattern="kernel">msl_surf_rover_tlm_[0-9]{4}_[0-9]{4}_v$VERSION.bc</VERSION>
+            </patterns>
+        </kernel>
+        <kernel pattern="msl_surf_rsm_tlmenc_[0-9]{4}_[0-9]{4}_v[0-9].bc">
+            <mklabel_options>RSM $PHASES NAIF</mklabel_options>
+            <description>CK file containing the orientation of the Remote Sensing Mast (RSM) relative to the rover frame, created using encoder angles telemetry view data from OPGS PLACES server, covering SOLs $START to $FINISH, version $VERSION.
+            </description>
+            <patterns>
+                <START pattern="kernel">msl_surf_rsm_tlmenc_$START_[0-9]{4}_v[0-9].bc</START>
+                <FINISH pattern="kernel">msl_surf_rsm_tlmenc_[0-9]{4}_$FINISH_v[0-9].bc</FINISH>
+                <VERSION pattern="kernel">msl_surf_rsm_tlmenc_[0-9]{4}_[0-9]{4}_v$VERSION.bc</VERSION>
+            </patterns>
+        </kernel>
+        <kernel pattern="msl_surf_rsm_tlmres_[0-9]{4}_[0-9]{4}_v[0-9].bc">
+            <mklabel_options>RSM $PHASES NAIF</mklabel_options>
+            <description>CK file containing the orientation of the Remote Sensing Mast (RSM) relative to the rover frame, created using resolver angles telemetry view data from OPGS PLACES server, covering SOLs $START to $FINISH, version $VERSION.
+            </description>
+            <patterns>
+                <START pattern="kernel">msl_surf_rsm_tlmres_$START_[0-9]{4}_v[0-9].bc</START>
+                <FINISH pattern="kernel">msl_surf_rsm_tlmres_[0-9]{4}_$FINISH_v[0-9].bc</FINISH>
+                <VERSION pattern="kernel">msl_surf_rsm_tlmres_[0-9]{4}_[0-9]{4}_v$VERSION.bc</VERSION>
+            </patterns>
+        </kernel>
+        <kernel pattern="msl_surf_rover_tlm_[0-9]{4}_[0-9]{4}_v[0-9].bsp">
+            <mklabel_options>$PHASES NAIF</mklabel_options>
+            <description>SPK file containing the telemetry-based location of sites along the path relative to the landing site and the telemetry-based location of the rover relative to these sites, created using the telemetry view data from the OPGS PLACES server, covering SOLs $START to $FINISH, version $VERSION.
+            </description>
+            <patterns>
+                <START pattern="kernel">msl_surf_rover_tlm_$START_[0-9]{4}_v[0-9].bsp</START>
+                <FINISH pattern="kernel">msl_surf_rover_tlm_[0-9]{4}_$FINISH_v[0-9].bsp</FINISH>
+                <VERSION pattern="kernel">msl_surf_rover_tlm_[0-9]{4}_[0-9]{4}_v$VERSION.bsp</VERSION>
+            </patterns>
+        </kernel>
+        <kernel pattern="msl_surf_rover_loc_[0-9]{4}_[0-9]{4}_v[0-9].bsp">
+            <mklabel_options>$PHASES NAIF</mklabel_options>
+            <description>SPK file containing the localized locations of sites along the path relative to the center of Mars and the localized location of the rover relative to the center of Mars, created using the localized_interp view data from the OPGS PLACES server, covering SOLs $START to $FINISH, version $VERSION.
+            </description>
+            <patterns>
+                <START pattern="kernel">msl_surf_rover_loc_$START_[0-9]{4}_v[0-9].bsp</START>
+                <FINISH pattern="kernel">msl_surf_rover_loc_[0-9]{4}_$FINISH_v[0-9].bsp</FINISH>
+                <VERSION pattern="kernel">msl_surf_rover_loc_[0-9]{4}_[0-9]{4}_v$VERSION.bsp</VERSION>
+            </patterns>
+        </kernel>
+        <kernel pattern="msl_surf_hga_tlm_[0-9]{4}_[0-9]{4}_v[0-9].bc">
+            <mklabel_options>HGA $PHASES NAIF</mklabel_options>
+            <description>CK file containing the orientation of the High Gain Antenna (HGA) relative to the rover frame, created using telemetry view data from OPGS PLACES server, covering SOLs $START to $FINISH, version $VERSION.
+            </description>
+            <patterns>
+                <START pattern="kernel">msl_surf_hga_tlm_$START_[0-9]{4}_v[0-9].bc</START>
+                <FINISH pattern="kernel">msl_surf_hga_tlm_[0-9]{4}_$FINISH_v[0-9].bc</FINISH>
+                <VERSION pattern="kernel">msl_surf_hga_tlm_[0-9]{4}_[0-9]{4}_v$VERSION.bc</VERSION>
+            </patterns>
+        </kernel>
+    </kernel_list>
+
+    <!-- =========================== -->
+    <!-- Meta-kernel                 -->
+    <!-- =========================== -->
+    <meta-kernel>
+    </meta-kernel>
+
+    <!-- =========================== -->
+    <!-- spiceds file                -->
+    <!-- =========================== -->
+    <spiceds>
+    </spiceds>
+
+</naif-pds4-bundle_configuration>
