@@ -300,7 +300,7 @@ class MetaKernelProduct(Product):
         logging.info(f'-- Generate meta-kernel: {kernel}')
 
         self.new_product = True
-        self.template    = setup.root_dir + f'/config/{setup.mission_accronym}_metakernel.tm'
+        self.template    = setup.root_dir + f'etc/template_metakernel.tm'
         self.path        = self.template
         self.setup       = setup
         self.name        = kernel
@@ -310,14 +310,14 @@ class MetaKernelProduct(Product):
 
         self.type = extension2type(self)
 
-        if setup.pds == '3':
+        if setup.pds_version == '3':
             self.collection_path = setup.staging_directory + os.sep + \
                                    'EXTRAS' + os.sep
-        elif setup.pds == '4':
+        elif setup.pds_version == '4':
             self.collection_path = setup.staging_directory + os.sep + \
                                    'spice_kernels' + os.sep
 
-        if self.setup.pds == '3':
+        if self.setup.pds_version == '3':
             product_path = self.collection_path + self.type.upper() + os.sep
             self.KERNELPATH = './DATA'
         else:
@@ -328,10 +328,10 @@ class MetaKernelProduct(Product):
         self.start_time = self.setup.increment_start
         self.stop_time = self.setup.increment_finish
 
-        if self.setup.pds == '4':
-            self.AUTHOR = self.setup.author
+        if self.setup.pds_version == '4':
+            self.AUTHOR = self.setup.author_name
         else:
-            self.AUTHOR = self.setup.author
+            self.AUTHOR = self.setup.author_name
 
         self.PDS4_MISSION_NAME = self.setup.mission_name
 
@@ -343,7 +343,7 @@ class MetaKernelProduct(Product):
         safe_make_directory(product_path)
 
         #
-        # Name the metakernel; if the meta-kernel is manually provided this
+        # Name the meta-kernel; if the meta-kernel is manually provided this
         # step is skipped.
         #
         if product:
@@ -389,7 +389,7 @@ class MetaKernelProduct(Product):
 
         Product.__init__(self)
 
-        if self.setup.pds == '4':
+        if self.setup.pds_version == '4':
             logging.info('')
             logging.info(f'-- Labeling meta-kernel: {kernel}...')
             self.label = MetaKernelPDS4Label(setup, self)
@@ -409,7 +409,7 @@ class MetaKernelProduct(Product):
         #
         # Collection versions are not equal to the release number,
         #
-        if self.setup.pds == '4':
+        if self.setup.pds_version == '4':
             versions = glob.glob(f'{self.setup.final_directory}/'
                                  f'{self.setup.mission_accronym}_spice/'
                                  f'spice_kernels/mk/'
@@ -480,21 +480,9 @@ class MetaKernelProduct(Product):
     def write_product(self):
 
         #
-        # Parse the meta-kernel grammar to obtain the kernel grammar.
+        # Obtain meta-kernel grammar from configuration.
         #
-        mk_grammar = self.setup.root_dir + \
-                     f'/config/{self.setup.mission_accronym}_metakernel.grammar'
-        logging.info(f'-- Writing meta-kernel using: {mk_grammar}')
-
-
-        with open(mk_grammar, 'r') as kg:
-            kernel_grammar_list = []
-
-            for line in kg:
-
-                if line.strip() != '':
-                    line = line.split("\n")[0]
-                    kernel_grammar_list.append(line)
+        kernel_grammar_list = self.setup.mk_grammar['pattern']
 
         #
         # We scan the kernel directory to obtain the list of available kernels
@@ -536,7 +524,7 @@ class MetaKernelProduct(Product):
                 mks   = []
                 if kernel_grammar.split('.')[-1].lower() in type2extension(kernel_type):
                     try:
-                        if self.setup.pds == '3':
+                        if self.setup.pds_version == '3':
                             paths.append(self.setup.staging_directory + '/DATA')
 
                         else:
@@ -622,6 +610,23 @@ class MetaKernelProduct(Product):
             kernels += f"{' '*26}'$KERNELS/{kernel}'\n"
 
         self.KERNELS_IN_METAKERNEL = kernels[:-1]
+
+        #
+        # Introduce and curate the rest of fields from configuration
+        #
+        data = self.setup.mk_metadata['data']
+        desc = self.setup.mk_metadata['description']
+
+        curated_data = ''
+        curated_desc = ''
+
+        for line in data.split('\n'):
+            curated_data += ' '*7 + line.strip() + '\n'
+        for line in desc.split('\n'):
+            curated_desc += ' '*3 + line.strip() + '\n'
+
+        self.DATA        = curated_data
+        self.DESCRIPTION = curated_desc
 
         metakernel_dictionary = vars(self)
 
@@ -782,7 +787,7 @@ class MetaKernelProduct(Product):
         # Match the pattern with the kernels in the meta-kernel.
         #
         kernels = []
-        for pattern in self.setup.increment_finish_kernels:
+        for pattern in self.setup.coverage_kernels['pattern']:
             for kernel in self.collection_metakernel:
                 if re.match(pattern, kernel):
                     kernels.append(kernel)
@@ -907,11 +912,11 @@ class InventoryProduct(Product):
         self.setup = setup
         self.collection = collection
 
-        if setup.pds == '3':
+        if setup.pds_version == '3':
             self.path = setup.final_directory + os.sep + 'INDEX' \
                         + os.sep + 'INDEX.TAB'
 
-        elif setup.pds == '4':
+        elif setup.pds_version == '4':
 
             #
             # Determine the inventory version
@@ -973,9 +978,9 @@ class InventoryProduct(Product):
         Product.__init__(self)
 
 
-        if setup.pds == '3':
+        if setup.pds_version == '3':
             self.label = InventoryPDS3Label(setup, collection, self)
-        elif setup.pds == '4':
+        elif setup.pds_version == '4':
             self.label = InventoryPDS4Label(setup, collection, self)
 
         return
@@ -1165,7 +1170,7 @@ class InventoryProduct(Product):
         # Add CRS to the index files.
         #
 
-        if self.setup.pds == '4':
+        if self.setup.pds_version == '4':
             os.remove(index)
             os.remove(index_lbl)
 
@@ -1260,9 +1265,9 @@ class SpicedsProduct(object):
         # We provide the values as if it was a label
         #
         self.PRODUCT_CREATION_DATE = current_date()
-        self.PRODUCER_NAME = setup.author
-        self.PRODUCER_EMAIL = setup.email
-        self.PRODUCER_PHONE = setup.phone
+        self.PRODUCER_NAME = setup.author_name
+        self.PRODUCER_EMAIL = setup.author_email
+        self.PRODUCER_PHONE = setup.author_phone
 
         if not spiceds:
             self.generated = self.write_product()
@@ -1447,7 +1452,7 @@ class ReadmeProduct(Product):
                     if '$SPICE_NAME' in line:
                         line = line.replace('$SPICE_NAME', self.setup.spice_name)
                     if '$AUTHOR' in line:
-                        line = line.replace('$AUTHOR', self.setup.author)
+                        line = line.replace('$AUTHOR', self.setup.author_name)
                     if '$UNDERLINE' in line:
                         line = line.replace('$UNDERLINE', '='*line_length)
 
