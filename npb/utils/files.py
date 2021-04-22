@@ -10,7 +10,41 @@ import json
 import platform
 import difflib
 
+from collections import defaultdict
+
 from npb.classes.log import error_message
+
+
+def etree_to_dict(t):
+    '''
+    The following XML-to-Python-dict snippet parses entities as well as
+    attributes following this XML-to-JSON "specification". It is the most
+    general solution handling all cases of XML.
+
+    https://www.xml.com/pub/a/2006/05/31/converting-between-xml-and-json.html
+
+    :param t:
+    :return:
+    '''
+
+    d = {t.tag: {} if t.attrib else None}
+    children = list(t)
+    if children:
+        dd = defaultdict(list)
+        for dc in map(etree_to_dict, children):
+            for k, v in dc.items():
+                dd[k].append(v)
+        d = {t.tag: {k:v[0] if len(v) == 1 else v for k, v in dd.items()}}
+    if t.attrib:
+        d[t.tag].update(('@' + k, v) for k, v in t.attrib.items())
+    if t.text:
+        text = t.text.strip()
+        if children or t.attrib:
+            if text:
+              d[t.tag]['#text'] = text
+        else:
+            d[t.tag] = text
+    return d
 
 
 def md5(fname):
