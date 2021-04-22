@@ -26,13 +26,31 @@ class TestPlan(TestCase):
 
         """
 
-        config = 'data/insight_release_08.json'
+        config = '../data/config/insight.xml'
         plan   = ''
         faucet = 'list'
 
-        shutil.rmtree('working', ignore_errors=True)
-        os.mkdir('working')
-        shutil.copy2('data/insight_release_07.kernel_list', 'working')
+
+        #
+        # Test preparation
+        #
+        dirs = ['working', 'staging', 'insight', 'kernels']
+        for dir in dirs:
+            shutil.rmtree(dir, ignore_errors=True)
+            os.mkdir(dir)
+
+        os.mkdir('kernels/fk')
+        os.mkdir('kernels/sclk')
+        os.mkdir('kernels/ck')
+        os.mkdir('kernels/lsk')
+
+        shutil.copy2('../data/kernels/fk/insight_v05.tf', 'kernels/fk')
+        shutil.copy2('../data/kernels/lsk/naif0012.tls', 'kernels/lsk')
+        shutil.copy2('../data/kernels/ck/insight_ida_enc_200829_201220_v1.bc','kernels/ck')
+        shutil.copy2('../data/kernels/ck/insight_ida_pot_200829_201220_v1.bc','kernels/ck')
+        shutil.copy2('../data/kernels/sclk/nsy_sclkscet_00019.tsc', 'kernels/sclk')
+
+        shutil.copy2('../data/insight_release_empty.kernel_list', 'working/insight_release_07.kernel_list')
 
         main(config, plan, faucet, silent=True)
 
@@ -42,13 +60,18 @@ class TestPlan(TestCase):
                 new_file += line
 
         old_file = ''
-        with open('data/insight_release_test.plan', 'r') as f:
+        with open('../data/insight_release_test.plan', 'r') as f:
             for line in f:
                 old_file += line
 
         self.assertEqual(old_file.split('\n')[9:],new_file.split('\n')[9:])
 
-        shutil.rmtree('working', ignore_errors=True)
+        #
+        # Cleanup test facility
+        #
+        dirs = ['working', 'staging', 'insight', 'kernels']
+        for dir in dirs:
+            shutil.rmtree(dir, ignore_errors=True)
 
 
 if __name__ == '__main__':
