@@ -43,9 +43,9 @@ class KernelList(List):
         #
         self.CURRENTDATE  = str(datetime.datetime.now())[:10]
         self.SC           = setup.spacecraft
-        self.AUTHOR       = setup.author
-        self.PHONE        = setup.phone
-        self.EMAIL        = setup.email
+        self.AUTHOR       = setup.author_name
+        self.PHONE        = setup.author_phone
+        self.EMAIL        = setup.author_email
         self.DATASETID    = setup.dataset_id
         self.VOLID        = setup.volume_id
         self.RELID        = f'{int(setup.release):04d}'
@@ -77,9 +77,7 @@ class KernelList(List):
 
     def read_config(self):
 
-        config = self.setup.root_dir + f'/config/{self.setup.mission_accronym }_kernel_list.json'
-        with open(config, 'r') as f:
-            json_config = json.load(f)
+        json_config = self.setup.kernel_list_config
 
         #
         # Build a list of computed regular expressions from the JSON config
@@ -228,10 +226,10 @@ class KernelList(List):
 
                     if pattern.match(kernel):
 
-                        options = self.json_config[pattern.pattern][0]['mklabel_options']
-                        description = self.json_config[pattern.pattern][0]['description']
+                        options = self.json_config[pattern.pattern]['mklabel_options']
+                        description = self.json_config[pattern.pattern]['description']
                         try:
-                            patterns = self.json_config[pattern.pattern][0]['patterns'][0]
+                            patterns = self.json_config[pattern.pattern]['patterns']
                         except:
                             patterns = False
 
@@ -246,43 +244,56 @@ class KernelList(List):
                                     value = patterns[el]
 
                                     #
-                                    # We test if there is an indication for
-                                    # uppercase or lowercase for the pattern
+                                    # There are to distinct patterns:
+                                    #    * Kernels
+                                    #    * extracted form the filename
+                                    #    * defined in the configuration file.
                                     #
-                                    try:
-                                        (upper, value) = value.split(',')
-                                    except:
-                                        logging.warning(f"-- No upper/lower indication for {el} in {kernel}")
-                                        logging.info('')
+                                    if el == "KERNEL":
+                                        #
+                                        # For Kernels, the pattern (uppercase or lowercase)
+                                        # Needs to be fit. Note that this pattern is also
+                                        # used when copying the kernels from the kernels
+                                        # directory to the staging area,
+                                        #
+                                        if re.match(value.lower(), kernel.lower()):
+                                            version = re.findall(r'[0-9]+', kernel)[0]
+                                            value = f'{value.split("[0-9]")[0]}{version}{value.split("[0-9]")[-1]}'
 
-                                        upper = False
-                                        pass
-
-                                    (idx_start, idx_stop) = value.split('->')
-                                    idx_start = int(idx_start)
-                                    try:
-                                        idx_stop = int(idx_stop)
-                                    except:
-                                        idx_stop = kernel[idx_start:].find(idx_stop)
-                                        idx_stop = idx_stop[1:]
-
-                                    value = kernel[idx_start:idx_stop]
-
-                                    if upper:
-                                        description = description.replace('$' + el, value.upper())
+                                    elif patterns[el]['@pattern'].lower() == 'kernel':
+                                        value =
                                     else:
-                                        description = description.replace('$' + el, value)
+                                        #
+                                        # For non-kernels the value is based on the value
+                                        # within the tag that needs to be provided by the
+                                        # user; there is no way this can be done
+                                        # automatically.
+                                        #
+                                        for val in patterns[el]:
+                                            if kernel == val['@value']:
+                                                value = val['#text']
 
+                                        if isinstance(value, list):
+                                            error_message('-- Kernel description could not be updated with pattern.')
 
-                        for option in options.split():
-                            if ('$' + 'PHASES') in option:
-                                if self.setup.phase:
-                                    options = options.replace( '$' + 'PHASES', self.setup.phase)
-# -----------------------------------------------------------------------------
-# TODO: Substitute block by mission phase searching function
+                                    description = description.replace('$' + el, value)
 
-# -----------------------------------------------------------------------------
-                        if self.setup.pds == '3':
+                        if options:
+                            for option in options.split():
+                                if ('$' + 'PHASES') in option:
+                                    if self.setup.phase:
+                                        # TODO: Substitute block by mission phase searching function
+                                        options = options.replace( '$' + 'PHASES', self.setup.phase)
+
+                        #
+                        # Reformat the description, given that format of the
+                        # XML file is not restrictive (spaces or newlines might
+                        # be present).
+                        #
+                        description = description.replace('\n', ' ')
+                        description = ' '.join(description.split())
+
+                        if self.setup.pds_version == '3':
                             kerdir = 'data/' + extension2type(kernel)
                         else:
                             kerdir = 'spice_kernels/' + extension2type(kernel)
@@ -478,7 +489,7 @@ class KernelList(List):
             #
             # The PDS Mission Template file is not required for PDS4
             #
-            if self.setup.pds == '3':
+            if self.setup.pds_version == '3':
                 logging.info('-- Check that all template tags used in the list are present in template:')
                 template = self.setup.root_dir + f'/config/{self.setup.mission_accronym }_mission_template.pds'
                 with open(template, 'r') as o:
@@ -621,7 +632,7 @@ class KernelList(List):
             #
             # The PDS Mission Template file is not required for PDS4
             #
-            if self.setup.pds == '3':
+            if self.setup.pds_version == '3':
                 logging.info('-- Check that all template tags used in the list are present in template:')
                 template = self.setup.root_dir + f'/config/{self.setup.mission_accronym }_mission_template.pds'
                 with open(template, 'r') as o:
