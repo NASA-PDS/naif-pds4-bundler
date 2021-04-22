@@ -81,10 +81,10 @@ from .classes.collection import DocumentCollection
 from .classes.product    import SpicedsProduct
 
 
-def main(config      = False, plan   = False, faucet  = '',
-         log         = False, silent = False, diff    = '',
-         release     = '',    start  = '',    finish  = '',
-         interactive = False, spiceds = ''                ):
+def main(config       = False, plan   = False, faucet  = '',
+         log          = False, silent = False, diff    = '',
+         release_date = '',    start  = '',    finish  = '',
+         interactive  = False, spiceds = ''                ):
     """
     Main routine for the NAIF PDS4 Bundle Generator (naif-pds4-bundle).
 
@@ -166,34 +166,34 @@ def main(config      = False, plan   = False, faucet  = '',
                             action='store_true')
 
 
-        args        = parser.parse_args()
-        config      = args.config[0]
-        plan        = args.plan
-        faucet      = args.faucet
-        log_file    = args.log
-        silent      = args.silent
-        diff        = args.diff
-        release     = args.release
-        start       = args.start
-        finish      = args.finish
-        interact    = args.interactive
-        spiceds     = args.spiceds
+        args         = parser.parse_args()
+        config       = args.config[0]
+        plan         = args.plan
+        faucet       = args.faucet
+        log_file     = args.log
+        silent       = args.silent
+        diff         = args.diff
+        release_date = args.release
+        start        = args.start
+        finish       = args.finish
+        interact     = args.interactive
+        spiceds      = args.spiceds
 
         if ((not start) and (finish)) or ((start) and (not finish)):
             raise Exception('-a, -z (--start, --finish) arguments need to be provided together.')
 
     else:
-        config      = config
-        plan        = plan
-        faucet      = faucet
-        log_file    = log
-        silent      = silent
-        diff        = diff
-        release    = release
-        start       = start
-        finish      = finish
-        interact    = interactive
-        spiceds     = spiceds
+        config       = config
+        plan         = plan
+        faucet       = faucet
+        log_file     = log
+        silent       = silent
+        diff         = diff
+        release_date = release_date
+        start        = start
+        finish       = finish
+        interact     = interactive
+        spiceds      = spiceds
 
     #
     # Turn lowercase or uppercase arguments that need it.
@@ -210,9 +210,9 @@ def main(config      = False, plan   = False, faucet  = '',
         raise  Exception('-d, --diff argument has incorrect value.')
     if faucet not in ['list', 'staging', 'final', '']:
         raise  Exception('-f, --faucet argument has incorrect value.')
-    if release:
+    if release_date:
         pattern = re.compile('[0-9]{4}-[0-9]{2}-[0-9]{2}')
-        if not pattern.match(release):
+        if not pattern.match(release_date):
             raise Exception('-r, --release argument does not match the required format.')
     if start:
         pattern = re.compile('[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z]')
@@ -230,8 +230,8 @@ def main(config      = False, plan   = False, faucet  = '',
     #    * Parse JSON into an object with attributes corresponding
     #      to dict keys.
     #
-    setup = Setup(config, version, interact, faucet, diff, release, start,
-                  finish).setup
+    setup = Setup(config, version, interact, faucet, diff, release_date, start,
+                  finish)
 
     #
     # -- Setup the logging
@@ -251,7 +251,7 @@ def main(config      = False, plan   = False, faucet  = '',
     #
     # -- Check the existence of a previous release
     #
-    setup.increment = Setup.get_increment(setup)
+    setup.set_release()
 
     #
     # -- Generate the kernel list object
@@ -278,7 +278,7 @@ def main(config      = False, plan   = False, faucet  = '',
     #
     # -- Load LSK, FK and SCLK kernels for coverage computations
     #
-    Setup.load_kernels(setup)
+    setup.load_kernels()
 
 
     #
@@ -332,7 +332,7 @@ def main(config      = False, plan   = False, faucet  = '',
     #
     # -- Generation of SPICEDS document
     #
-    if setup.pds == '4':
+    if setup.pds_version == '4':
 
         spiceds = SpicedsProduct(setup, document_collection, spiceds)
 
@@ -360,7 +360,7 @@ def main(config      = False, plan   = False, faucet  = '',
         #
         bundle.write_readme()
 
-    elif setup.pds == '3':
+    elif setup.pds_version == '3':
         pass
         #
         #     if platform.system() == 'Darwin':
