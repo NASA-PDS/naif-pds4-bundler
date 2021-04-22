@@ -153,9 +153,9 @@ class DocumentCollection(Collection):
 
     def __init__(self, setup, bundle):
 
-        if setup.pds == '3':
+        if setup.pds_version == '3':
             self.type = 'DOCUMENT'
-        elif setup.pds == '4':
+        elif setup.pds_version == '4':
             self.type = 'document'
 
         Collection.__init__(self, self.type, setup, bundle)
