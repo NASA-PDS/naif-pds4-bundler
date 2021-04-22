@@ -126,9 +126,12 @@ class PDSLabel(object):
 
         sc = ['{}'.format(self.setup.spacecraft)]
 
-        sec_scs = self.setup.secondary_spacecraft.split(',')
-        if not isinstance(sec_scs, list):
-            sec_scs = [sec_scs]
+        if self.setup.secondary_spacecraft:
+            sec_scs = self.setup.secondary_spacecraft.split(',')
+            if not isinstance(sec_scs, list):
+                sec_scs = [sec_scs]
+        else:
+            sec_scs = []
 
         scs = sc + sec_scs
 
@@ -167,9 +170,12 @@ class PDSLabel(object):
 
         tar = [self.setup.target]
 
-        sec_tar = self.setup.secondary_target.split(',')
-        if not isinstance(sec_tar, list):
-            sec_tar = [sec_tar]
+        if self.setup.secondary_target:
+            sec_tar = self.setup.secondary_target.split(',')
+            if not isinstance(sec_tar, list):
+                sec_tar = [sec_tar]
+        else:
+            sec_tar = []
 
         tars = tar + sec_tar
 
