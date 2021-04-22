@@ -1,47 +1,76 @@
 import os
 import re
-import json
 import glob
 import logging
 import spiceypy
 import datetime
 
-from types import SimpleNamespace
+from pathlib import Path
+from xml.etree import cElementTree as ET
 
+from npb.utils.files import etree_to_dict
 from npb.classes.log import error_message
 
 
 class Setup(object):
 
     def __init__(self, config, version, interact,
-                 faucet, diff, release, start, finish):
+                 faucet, diff, release_date, start, finish):
 
-        with open(config, 'r') as file:
-            f = file.read().replace('\n', '')
+        #
+        # Converting XML setup file into a dictionary and then into
+        # attributes for the object
+        #
+        config = Path(config).read_text()
+        entries = etree_to_dict(ET.XML(config))
 
-        setup = json.loads(f, object_hook=lambda d: SimpleNamespace(**d))
+        #
+        # Re-arrange the resulting dictionary into one-level attributes
+        # adept to be used (as if we were loading a JSON file prior to
+        # v0.5.0).
+        #
+        config = entries['naif-pds4-bundle_configuration']
+
+        self.__dict__.update(config['pds_parameters'])
+        self.__dict__.update(config['bundle_parameters'])
+        self.__dict__.update(config['mission_parameters'])
+        self.__dict__.update(config['directories'])
+
+        #
+        # Kernel list configuration needs refractoring.
+        #
+        self.__dict__.update(config['kernel_list'])
+
+        kernel_list_config = {}
+        for ker in self.kernel:
+            kernel_list_config[ker['@pattern']] = ker
+
+        self.kernel_list_config = kernel_list_config
+        del self.kernel
+
+        self.__dict__.update(config['meta-kernel'])
 
         #
         # Populate the setup object with attributes beyond the
         # configuration file.
         #
-        setup.root_dir           = os.path.dirname(__file__)[:-7]
-        setup.step               = 1
-        setup.version            = version
-        setup.interactive        = interact
-        setup.faucet             = faucet.lower()
-        setup.diff               = diff.lower()
-        setup.today              = datetime.date.today().strftime("%Y%m%d")
-        setup.increment_start    = start
-        setup.increment_finish   = finish
+        self.root_dir           = os.path.dirname(__file__)[:-7]
+        self.step               = 1
+        self.version            = version
+        self.interactive        = interact
+        self.faucet             = faucet.lower()
+        self.diff               = diff.lower()
+        self.today              = datetime.date.today().strftime("%Y%m%d")
+        self.increment_start    = start
+        self.increment_finish   = finish
 
         #
         # If a release date is not specified it is set to today.
         #
-        if not release:
-            setup.release_date = datetime.date.today().strftime("%Y-%m-%d")
+        if not release_date:
+            self.release_date = datetime.date.today().strftime("%Y-%m-%d")
         else:
-            setup.release_date = release
+            self.release_date = release_date
 
         #
         # Sort out if directories are provided as relative paths and
@@ -51,42 +80,40 @@ class Setup(object):
 
         os.chdir('/')
 
-        if os.path.isdir(cwd + os.sep + setup.working_directory):
-            setup.working_directory = cwd + os.sep + setup.working_directory
-        if not os.path.isdir(setup.working_directory):
-            error_message(f'Directory does not exist: {setup.working_directory}')
+        if os.path.isdir(cwd + os.sep + self.working_directory):
+            self.working_directory = cwd + os.sep + self.working_directory
+        if not os.path.isdir(self.working_directory):
+            error_message(f'Directory does not exist: {self.working_directory}')
 
-        if os.path.isdir(cwd + os.sep + setup.staging_directory):
-            setup.staging_directory = cwd + os.sep + setup.staging_directory + f'/{setup.mission_accronym}_spice'
-        if not os.path.isdir(setup.staging_directory):
-            print(f'Creating missing directory: {setup.staging_directory}')
+        if os.path.isdir(cwd + os.sep + self.staging_directory):
+            self.staging_directory = cwd + os.sep + self.staging_directory + f'/{self.mission_accronym}_spice'
+        if not os.path.isdir(self.staging_directory):
+            print(f'Creating missing directory: {self.staging_directory}')
             try:
-                os.mkdir(setup.staging_directory)
+                os.mkdir(self.staging_directory)
             except Exception as e:
                 print(e)
 
-        if os.path.isdir(cwd + os.sep + setup.final_directory):
-            setup.final_directory = cwd + os.sep + setup.final_directory
-        if not os.path.isdir(setup.final_directory):
-            error_message(f'Directory does not exist: {setup.final_directory}')
+        if os.path.isdir(cwd + os.sep + self.final_directory):
+            self.final_directory = cwd + os.sep + self.final_directory
+        if not os.path.isdir(self.final_directory):
+            error_message(f'Directory does not exist: {self.final_directory}')
 
-        if os.path.isdir(cwd + os.sep + setup.kernels_directory):
-            setup.kernels_directory = cwd + os.sep + setup.kernels_directory
-        if not os.path.isdir(setup.kernels_directory):
-            error_message(f'Directory does not exist: {setup.kernels_directory}')
+        if os.path.isdir(cwd + os.sep + self.kernels_directory):
+            self.kernels_directory = cwd + os.sep + self.kernels_directory
+        if not os.path.isdir(self.kernels_directory):
+            error_message(f'Directory does not exist: {self.kernels_directory}')
 
         os.chdir(cwd)
 
-        self.setup = setup
 
+    def set_release(self):
 
-    def get_increment(setup):
-
-        line = f'Step {setup.step} - Setup the archive generation'
+        line = f'Step {self.step} - self the archive generation'
         logging.info(line)
         logging.info('-'*len(line))
         logging.info('')
-        setup.step += 1
+        self.step += 1
 
         #
         # PDS4 release increment (implies inventory and meta-kernel)
@@ -94,9 +121,9 @@ class Setup(object):
         logging.info( '-- Checking existence of previous release' )
 
         try:
-            releases = glob.glob(setup.final_directory + os.sep +
-                                 setup.mission_accronym + '_spice' + os.sep +
-                                 f'bundle_{setup.mission_accronym}_spice_v*')
+            releases = glob.glob(self.final_directory + os.sep +
+                                 self.mission_accronym + '_spice' + os.sep +
+                                 f'bundle_{self.mission_accronym}_spice_v*')
             releases.sort()
             current_release = int(releases[-1].split('_spice_v')[-1].split('.')[0])
             current_release = f'{current_release:03}'
@@ -111,8 +138,8 @@ class Setup(object):
             logging.warning('-- Bundle label not found. Checking previous kernel list')
 
             try:
-                releases = glob.glob(setup.working_directory +
-                                     f'/{setup.mission_accronym}_release_*.kernel_list')
+                releases = glob.glob(self.working_directory +
+                                     f'/{self.mission_accronym}_release_*.kernel_list')
 
                 releases.sort()
                 current_release = int(releases[-1].split('_release_')[-1].split('.')[0])
@@ -133,25 +160,27 @@ class Setup(object):
                 increment = False
 
 
-        setup.release         = release
-        setup.current_release = current_release
+        self.release         = release
+        self.current_release = current_release
 
         logging.info('')
 
-        if setup.interactive:
+        if self.interactive:
             input(">> Press Enter to continue...")
 
-        return increment
+        self.increment = increment
+
+        return
 
 
-    def load_kernels(setup):
+    def load_kernels(self):
 
         logging.info('')
-        line = f'Step {setup.step} - Load LSK, PCK, FK and SCLK kernels'
+        line = f'Step {self.step} - Load LSK, PCK, FK and SCLK kernels'
         logging.info(line)
         logging.info('-'*len(line))
         logging.info('')
-        setup.step += 1
+        self.step += 1
 
         #
         # To get the appropriate kernels, use the meta-kernel grammar.
@@ -162,8 +191,8 @@ class Setup(object):
         pck_patterns = []
         lsk_patterns  = []
 
-        mk_grammar = setup.root_dir + \
-                     f'/config/{setup.mission_accronym}_metakernel.grammar'
+        mk_grammar = self.root_dir + \
+                     f'/config/{self.mission_accronym}_metakernel.grammar'
         with open(mk_grammar, 'r') as m:
             for line in m:
                 if '.tf' in line.lower():
@@ -180,11 +209,11 @@ class Setup(object):
         #
         lsk = []
         for pattern in lsk_patterns:
-            lsk_pattern = [f for f in os.listdir(f'{setup.kernels_directory}/lsk/') if re.search(pattern, f)]
+            lsk_pattern = [f for f in os.listdir(f'{self.kernels_directory}/lsk/') if re.search(pattern, f)]
             if lsk_pattern:
                 if len(lsk_pattern) > 1: lsk_pattern.sort()
                 lsk.append(lsk_pattern[-1])
-                spiceypy.furnsh(f'{setup.kernels_directory}/lsk/{lsk_pattern[-1]}')
+                spiceypy.furnsh(f'{self.kernels_directory}/lsk/{lsk_pattern[-1]}')
         if not lsk:
             logging.error(f'-- LSK not found.')
         else:
@@ -196,10 +225,10 @@ class Setup(object):
 
         pcks = []
         for pattern in pck_patterns:
-            pcks_pattern = [f for f in os.listdir(f'{setup.kernels_directory}/pck/') if re.search(pattern, f)]
+            pcks_pattern = [f for f in os.listdir(f'{self.kernels_directory}/pck/') if re.search(pattern, f)]
             if pcks_pattern:
                 if len(pcks_pattern) > 1: pcks_pattern.sort()
-                spiceypy.furnsh(f'{setup.kernels_directory}/fk/{pcks_pattern[-1]}')
+                spiceypy.furnsh(f'{self.kernels_directory}/fk/{pcks_pattern[-1]}')
                 pcks.append(pcks_pattern[-1])
         if not pcks:
             logging.warning(f'-- PCK not found.')
@@ -207,10 +236,10 @@ class Setup(object):
 
         fks = []
         for pattern in fk_patterns:
-            fks_pattern = [f for f in os.listdir(f'{setup.kernels_directory}/fk/') if re.search(pattern, f)]
+            fks_pattern = [f for f in os.listdir(f'{self.kernels_directory}/fk/') if re.search(pattern, f)]
             if fks_pattern:
                 if len(fks_pattern) > 1: fks_pattern.sort()
-                spiceypy.furnsh(f'{setup.kernels_directory}/fk/{fks_pattern[-1]}')
+                spiceypy.furnsh(f'{self.kernels_directory}/fk/{fks_pattern[-1]}')
                 fks.append(fks_pattern[-1])
         if not fks:
             logging.warning(f'-- FK not found.')
@@ -218,11 +247,11 @@ class Setup(object):
 
         sclks = []
         for pattern in sclk_patterns:
-            sclks_pattern = [f for f in os.listdir(f'{setup.kernels_directory}/sclk/') if re.search(pattern, f)]
+            sclks_pattern = [f for f in os.listdir(f'{self.kernels_directory}/sclk/') if re.search(pattern, f)]
             if sclks_pattern:
                 if len(sclks_pattern) > 1: sclks_pattern.sort()
                 sclks.append(sclks_pattern[-1])
-                spiceypy.furnsh(f'{setup.kernels_directory}/sclk/{sclks_pattern[-1]}')
+                spiceypy.furnsh(f'{self.kernels_directory}/sclk/{sclks_pattern[-1]}')
         if not sclks:
             logging.error(f'-- SCLK not found.')
         else: logging.info(f'-- SCLK(s) loaded: {sclks}')
@@ -231,11 +260,11 @@ class Setup(object):
 
         logging.info('')
 
-        setup.fks   = fks
-        setup.sclks = sclks
-        setup.lsk   = lsk
+        self.fks   = fks
+        self.sclks = sclks
+        self.lsk   = lsk
 
-        if setup.interactive:
+        if self.interactive:
             input(">> Press Enter to continue...")
 
 
