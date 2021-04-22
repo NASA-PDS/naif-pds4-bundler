@@ -30,7 +30,7 @@ class Bundle(object):
         #
         # Generate the bundle or data set structure
         #
-        if setup.pds == '3':
+        if setup.pds_version == '3':
 
             safe_make_directory(setup.staging_directory)
             safe_make_directory(setup.staging_directory + os.sep + 'catalog')
@@ -39,7 +39,7 @@ class Bundle(object):
             safe_make_directory(setup.staging_directory + os.sep + 'extras')
             safe_make_directory(setup.staging_directory + os.sep + 'index')
 
-        elif setup.pds == '4':
+        elif setup.pds_version == '4':
 
             self.name = f'bundle_{setup.mission_accronym}' \
                         f'_spice_v{setup.release}.xml'
@@ -52,7 +52,7 @@ class Bundle(object):
         self.setup = setup
 
 
-        if setup.pds == '4':
+        if setup.pds_version == '4':
 
             #
             # Assign the Bundle LID and VID and the Internal Reference LID
@@ -187,7 +187,7 @@ class Bundle(object):
         #
         # Index files are added to the new_files list.
         #
-        if self.setup.pds == '3':
+        if self.setup.pds_version == '3':
             self.new_files.append(self.setup.staging_directory + '/../dsindex.tab')
             self.new_files.append(self.setup.staging_directory + '/../dsindex.lbl')
 
