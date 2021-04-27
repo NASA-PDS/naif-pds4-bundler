@@ -29,12 +29,7 @@ class Collection(object):
 
     def collection_lid(self):
 
-        collection_lid = \
-            'urn:{}:{}:{}.spice:{}'.format(
-                self.setup.national_agency,
-                self.setup.archiving_agency,
-                self.setup.mission_accronym,
-                self.type)
+        collection_lid = f'{self.setup.logical_identifier}:{self.type}'
 
         return collection_lid
 
@@ -54,7 +49,6 @@ class Collection(object):
                 versions.sort()
                 version = int(versions[-1].split('v')[-1].split('.')[0]) + 1
                 vid = '{}.0'.format(version)
-                logging.info('')
                 logging.info(f'-- Collection of {self.type} version set to {version}, derived from:')
                 logging.info(f'   {versions[-1]}')
                 logging.info('')
@@ -72,6 +66,7 @@ class Collection(object):
             logging.warning(f'-- Collection of {self.type} version set to release number: {int(self.setup.release)}.')
             vid = '{}.0'.format(int(self.setup.release))
             logging.info('')
+            logging.info('')
 
             if self.setup.interactive:
                 input(">> Press Enter to continue...")
@@ -84,9 +79,12 @@ class SpiceKernelsCollection(Collection):
     def __init__(self, setup, bundle, list):
 
         line = f'Step {setup.step} - SPICE kernel collection/data processing'
+        logging.info('')
         logging.info(line)
         logging.info('-'*len(line))
+        logging.info('')
         setup.step += 1
+        if not setup.args.silent and not setup.args.verbose: print('-- ' + line.split(' - ')[-1] + '.')
 
         self.bundle      = bundle
         self.list        = list
@@ -106,12 +104,13 @@ class SpiceKernelsCollection(Collection):
         #    * Check that there is a XML label for each file under spice_kernels.
         #      That is, we are validating the spice_kernel_collection.
         #
-        logging.info('')
         line = f'Step {self.setup.step} - Validate SPICE kernel collection generation'
+        logging.info('')
         logging.info(line)
         logging.info('-'*len(line))
         logging.info('')
         self.setup.step += 1
+        if not self.setup.args.silent and not self.setup.args.verbose: print('-- ' + line.split(' - ')[-1] + '.')
 
         #
         # Check that all the kernels from the list are present
@@ -143,6 +142,7 @@ class SpiceKernelsCollection(Collection):
                 error_message(f'-- {product.name} has not been labeled.')
         logging.info('   OK')
 
+        logging.info('')
         if self.setup.interactive:
             input(">> Press Enter to continue...")
 
