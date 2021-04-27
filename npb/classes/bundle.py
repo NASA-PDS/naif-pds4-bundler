@@ -18,12 +18,17 @@ class Bundle(object):
 
     def __init__(self, setup):
 
+
         line = f'Step {setup.step} - Bundle/data set structure generation at staging area'
+        logging.info('')
         logging.info(line)
         logging.info('-'*len(line))
         logging.info('')
-        logging.info('-- Directory structure generation occurs if reported.')
         setup.step += 1
+        if not setup.args.silent and not setup.args.verbose: print('-- ' + line.split(' - ')[-1] + '.')
+
+        logging.info('-- Directory structure generation occurs if reported.')
+        logging.info('')
 
         self.collections = []
 
@@ -61,10 +66,9 @@ class Bundle(object):
             self.lid = self.bundle_lid()
 
             self.lid_reference = \
-                'urn:{}:{}:context:investigation:mission.{}'.format(
-                    setup.national_agency,
-                    setup.archiving_agency,
-                    setup.mission_accronym)
+                '{}:context:investigation:mission.{}'.format(
+                    ':'.join(setup.logical_identifier.split(':')[0:-1]),
+                    self.setup.mission_accronym)
 
             #
             #  Get the context products.
@@ -97,29 +101,24 @@ class Bundle(object):
 
     def bundle_lid(self):
 
-        product_lid = 'urn:{}:{}:{}.spice'.format(
-                self.setup.national_agency,
-                self.setup.archiving_agency,
-                self.setup.mission_accronym)
+        product_lid = self.setup.logical_identifier
 
         return product_lid
 
 
-    def copy_to_staging(self):
+    def files_in_staging(self):
         '''
-        This method copies all the files to staging to proceed with the
-        increment.
+        This method lists all the files in the staging area.
         :return:
         '''
-
+        line = f'Step {self.setup.step} - Recap files in staging area'
         logging.info('')
-        line = f'Step {self.setup.step} - Copy files to staging area'
         logging.info(line)
         logging.info('-'*len(line))
         logging.info('')
         self.setup.step += 1
+        if not self.setup.args.silent and not self.setup.args.verbose: print('-- ' + line.split(' - ')[-1] + '.')
 
-        # TODO: Update with required PDS3 extensions
 
         #
         # A list of the new files in the staging area is generated first.
@@ -131,44 +130,10 @@ class Bundle(object):
 
         self.new_files = new_files
 
-        #
-        # Sort what will be copied, a list is created to be checked
-        # afterwards.
-        #
-        matches = ['.xml', '.csv', '.txt', '.lbl', '.tab', '.html']
-
-        final_files = []
-        final_dirs  = []
-
-        for root, dirs, files in os.walk(self.setup.final_directory + f'/{self.setup.mission_accronym}_spice', topdown=True):
-            for name in files:
-                if any(x in name for x in matches):
-                    final_files.append(os.path.join(root, name))
-            for name in dirs:
-                final_dirs.append(os.path.join(root, name))
-
-        for dir in final_dirs:
-            os.makedirs(self.setup.staging_directory + dir.split(f'/{self.setup.mission_accronym}_spice')[-1] , exist_ok=True)
-
-        copied_files = []
-        for file in final_files:
-            src = file
-            dst = self.setup.staging_directory + file.split(f'/{self.setup.mission_accronym}_spice')[-1]
-            if not os.path.exists(dst) or not filecmp.cmp(src, dst):
-                copied_files.append(file)
-                shutil.copy2(src, dst)
-                logging.warning(f'-- Copied: {file}')
-            else:
-                logging.warning(f'-- Not copied: {file}')
-
+        logging.info(f'-- The following files are present in the staging area:')
+        for file in new_files:
+            logging.info(f'     {file}')
         logging.info('')
-        line = f'-- Found {len(final_files)} file(s). Copied {len(copied_files)} file(s).'
-        if len(final_files) == len(copied_files):
-            logging.info(line)
-        else:
-            logging.warning(line)
-        logging.info('')
-
         if self.setup.interactive:
             input(">> Press enter to continue...")
 
@@ -177,12 +142,13 @@ class Bundle(object):
 
     def copy_to_final(self):
 
-        logging.info('')
         line = f'Step {self.setup.step} - Copy files to final area'
+        logging.info('')
         logging.info(line)
         logging.info('-'*len(line))
         logging.info('')
         self.setup.step += 1
+        if not self.setup.args.silent and not self.setup.args.verbose: print('-- ' + line.split(' - ')[-1] + '.')
 
         #
         # Index files are added to the new_files list.
@@ -194,10 +160,9 @@ class Bundle(object):
         copied_files = []
         for file in self.new_files:
             src = file
-
             rel_path = file.split(f'/{self.setup.mission_accronym}_spice/')[-1]
             rel_path = os.sep.join(rel_path.split(os.sep)[:-1])
-            dst = self.setup.final_directory.split(f'{self.setup.mission_accronym}_spice')[0] + f'/{self.setup.mission_accronym}_spice/' + rel_path
+            dst = self.setup.final_directory + f'/{self.setup.mission_accronym}_spice/' + rel_path
 
             if not os.path.exists(dst) or not filecmp.cmp(src, dst):
                 copied_files.append(file)
@@ -248,10 +213,12 @@ class Bundle(object):
     def write_checksum(self):
 
         line = f'Step {self.setup.step} - Generate checksum files'
+        logging.info('')
         logging.info(line)
         logging.info('-'*len(line))
         logging.info('')
         self.setup.step += 1
+        if not self.setup.args.silent and not self.setup.args.verbose: print('-- ' + line.split(' - ')[-1] + '.')
 
         cwd = os.getcwd()
         os.chdir(self.setup.final_directory)
