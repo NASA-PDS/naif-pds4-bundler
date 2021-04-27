@@ -72,6 +72,7 @@ def safe_make_directory(i):
     try:  
         os.mkdir(i)
         logging.info(f'-- Generated directory: {i}  ')
+        logging.info('')
     except:
         pass
 
@@ -182,9 +183,42 @@ def fill_template(object, product_file, product_dictionary):
 
 def get_context_products(setup):
 
-    registered_context_products_file = f'{setup.root_dir}/etc/registered_context_products.json'
+    #
+    # First look into the setup object and check if the context product is
+    # available, otherwise get it from the json file included in the
+    # package.
+    #
+
+    #
+    # Load the default context products
+    #
+    registered_context_products_file = f'{setup.root_dir}/templates/registered_context_products.json'
     with open(registered_context_products_file, 'r') as f:
             context_products = json.load(f)['Product_Context']
+
+    #
+    # Overwrite the default context products with the ones provided in the
+    # configuration file.
+    #
+    appended_products = []
+    for product in setup.context_products['product']:
+        updated_product = False
+        index = 0
+        for registered_product in context_products:
+            if registered_product['name'][0] ==  product['@name']:
+                updated_product = True
+                context_products[index]['type'] = [product['type']]
+                context_products[index]['lidvid'] = product['lidvid']
+            index += 1
+        if not updated_product:
+            appended_products.append(
+                {'name':[product['@name']],
+                 'type':[product['type']],
+                 'lidvid':product['lidvid']})
+
+    if appended_products:
+        for product in appended_products:
+            setup.context_products['product'].append(product)
 
     return context_products
 
@@ -312,8 +346,6 @@ def compare_files(fromfile, tofile, dir, display):
         tolines = tf.readlines()
 
     if display in ['all','log']:
-        logging.info(f'      Comparing {fromfile.split(os.sep)[-1]} with {tofile.split(os.sep)[-1]}')
-        logging.info('')
 
         diff = difflib.Differ()
         diff_list = list(diff.compare(fromlines, tolines))
