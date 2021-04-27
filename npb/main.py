@@ -79,12 +79,12 @@ from .classes.product    import MetaKernelProduct
 from .classes.product    import InventoryProduct
 from .classes.collection import DocumentCollection
 from .classes.product    import SpicedsProduct
+from .classes.product    import Object
 
 
-def main(config       = False, plan   = False, faucet  = '',
-         log          = False, silent = False, diff    = '',
-         release_date = '',    start  = '',    finish  = '',
-         interactive  = False, spiceds = ''                ):
+def main(config = False, plan   = False, faucet  = '',
+         log    = False, silent = False, verbose  = False,
+         diff   = '',    interactive  = False ):
     """
     Main routine for the NAIF PDS4 Bundle Generator (naif-pds4-bundle).
 
@@ -102,7 +102,7 @@ def main(config       = False, plan   = False, faucet  = '',
         header  = dedent(
         f'''\
     
-         naif-pds4-bundle-{version}, PDS4/PDS3 SPICE archive generation pipeline 
+         naif-pds4-bundle-{version}, NAIF PDS4/PDS3 SPICE archive generation pipeline 
     
            naif-pds4-bundle is a command-line utility program that generates PDS4 
            Bundles and PDS3 data sets for SPICE kernels.
@@ -120,29 +120,6 @@ def main(config       = False, plan   = False, faucet  = '',
                             help='Files planned to be included in the increment. If this argument is not provided, '
                                  'all the kernels found in the kernels directory specified in the configuration file '
                                  'in addition to new meta-kernels will be included in the increment.')
-        parser.add_argument('-s', '--spiceds',
-                            default= '',
-                            action='store', type = str,
-                            help='Path to spiceds HTML document provided as input. Note that the filename will'
-                                 'be updated.')
-        parser.add_argument('-r', '--release',
-                            default= '',
-                            action='store', type = str,
-                            help='Release date as a UTC calendar string. '
-                                 'Use the following format: YYYY-MM-DD e.g.,'
-                                 '2021-04-09.')
-        parser.add_argument('-a', '--start',
-                            default= '',
-                            action='store', type = str,
-                            help='Increment start time provided as a UTC calendar'
-                                 'string, requires -z/--finish argument. Use the following format: YYYY-MM-DDThh:mm:ssZ e.g.,'
-                                 '2021-04-09T15:11:12Z.')
-        parser.add_argument('-z', '--finish',
-                            default= '',
-                            action='store', type = str,
-                            help='Increment stop time provided as a UTC calendar'
-                                 'string, requires -s/--start argument. Use the following format: YYYY-MM-DDThh:mm:ssZ e.g.,'
-                                 '2021-04-09T15:11:12Z.')
         parser.add_argument('-d', '--diff',
                             default= '',
                             action='store', type = str,
@@ -156,72 +133,61 @@ def main(config       = False, plan   = False, faucet  = '',
                                  'Allowed values are: "list", "staging" or '
                                  '"final"')
         parser.add_argument('-l', '--log',
-                            help='Write log in file.',
+                            help='Write log in file',
                             action='store_true')
-        parser.add_argument('-t', '--silent',
-                            help='Log will not be prompted on the terminal.',
+        parser.add_argument('-s', '--silent',
+                            help='Log will not be prompted on the terminal during execution.',
+                            action='store_true')
+        parser.add_argument('-v', '--verbose',
+                            help='Full log will be prompted on the terminal during execution. If argumet is set to True, silent argument is omitted.',
                             action='store_true')
         parser.add_argument('-i', '--interactive',
-                            help='Activate interactive execution',
+                            help='Activate interactive execution. If chosen, verbose argument will be set to True.',
                             action='store_true')
 
 
         args         = parser.parse_args()
-        config       = args.config[0]
-        plan         = args.plan
-        faucet       = args.faucet
-        log_file     = args.log
-        silent       = args.silent
-        diff         = args.diff
-        release_date = args.release
-        start        = args.start
-        finish       = args.finish
-        interact     = args.interactive
-        spiceds      = args.spiceds
-
-        if ((not start) and (finish)) or ((start) and (not finish)):
-            raise Exception('-a, -z (--start, --finish) arguments need to be provided together.')
+        args.config  = args.config[0]
 
     else:
-        config       = config
-        plan         = plan
-        faucet       = faucet
-        log_file     = log
-        silent       = silent
-        diff         = diff
-        release_date = release_date
-        start        = start
-        finish       = finish
-        interact     = interactive
-        spiceds      = spiceds
+
+        args              = Object()
+        args.config       = config
+        args.plan         = plan
+        args.faucet       = faucet
+        args.log          = log
+        args.silent       = silent
+        args.verbose      = verbose
+        args.diff         = diff
+        args.interactive  = interactive
 
     #
     # Turn lowercase or uppercase arguments that need it.
     #
-    faucet = faucet.lower()
-    diff   = diff.lower()
-    start  = start.upper()
-    finish = finish.upper()
+    args.faucet = args.faucet.lower()
+    args.diff   = args.diff.lower()
+
+    #
+    # Force verbosity if interactive argument is set to true.
+    #
+    if args.interactive:
+        args.verbose = True
+        args.silent  = False
+
+    #
+    # Set silent to False if verbose is set to true.
+    #
+    if args.verbose:
+        args.silent = False
 
     #
     # Check if string optional parameters are correct.
     #
-    if diff not in ['all', 'log', 'files', '']:
+    if args.diff not in ['all', 'log', 'files', '']:
         raise  Exception('-d, --diff argument has incorrect value.')
-    if faucet not in ['list', 'staging', 'final', '']:
+    if args.faucet not in ['list', 'staging', 'final', '']:
         raise  Exception('-f, --faucet argument has incorrect value.')
-    if release_date:
-        pattern = re.compile('[0-9]{4}-[0-9]{2}-[0-9]{2}')
-        if not pattern.match(release_date):
-            raise Exception('-r, --release argument does not match the required format.')
-    if start:
-        pattern = re.compile('[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z]')
-        if not pattern.match(start):
-            raise Exception('-s, --start argument does not match the required format.')
-    if finish:
-        pattern = re.compile('[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z]')
-        if not pattern.match(finish):
-            raise Exception('-s, --start argument does not match the required format.')
+
 
     #
     # -- Generate setup object
@@ -230,8 +196,7 @@ def main(config       = False, plan   = False, faucet  = '',
     #    * Parse JSON into an object with attributes corresponding
     #      to dict keys.
     #
-    setup = Setup(config, version, interact, faucet, diff, release_date, start,
-                  finish)
+    setup = Setup(args, version)
 
     #
     # -- Setup the logging
@@ -240,13 +205,12 @@ def main(config       = False, plan   = False, faucet  = '',
     #      option is chosen.
     #    * The log file will be written in the working directory
     #
-    log = Log(setup, log_file, silent)
+    log = Log(setup, args)
 
     #
     #  -- Start the pipeline
     #
     log.start()
-
 
     #
     # -- Check the existence of a previous release
@@ -259,7 +223,7 @@ def main(config       = False, plan   = False, faucet  = '',
     #    * The kernel list object will generate the kernel list
     #      non-archivable product.
     #
-    list = KernelList(setup, plan)
+    list = KernelList(setup, args.plan)
 
     #
     #    * Escape if the sole purpose of the execution is to generate
@@ -334,7 +298,7 @@ def main(config       = False, plan   = False, faucet  = '',
     #
     if setup.pds_version == '4':
 
-        spiceds = SpicedsProduct(setup, document_collection, spiceds)
+        spiceds = SpicedsProduct(setup, document_collection)
 
         #
         # -- If the SPICEDS document is generated then the document
@@ -362,11 +326,11 @@ def main(config       = False, plan   = False, faucet  = '',
 
     elif setup.pds_version == '3':
         pass
-        #
-        #     if platform.system() == 'Darwin':
-        #         maklabel = '../../exe/maklabel.macos'
-        #     else:
-        #         maklabel = '../../exe/maklabel.linux'
+
+    #
+    # -- List the files present in the stagging area
+    #
+    bundle.files_in_staging()
 
 
     #
@@ -381,13 +345,6 @@ def main(config       = False, plan   = False, faucet  = '',
     #TODO: Armonise the process with the PDS3 archvie generation.
 
     #
-    # -- If the current is not the first release, copy all files to the
-    #    staging area to continue the archive generation.
-    #
-    if setup.current_release:
-        bundle.copy_to_staging()
-
-    #
     # -- Generate index files, this includes generating the complete
     #    kernel list.
     #
@@ -396,17 +353,17 @@ def main(config       = False, plan   = False, faucet  = '',
     #spice_kernels_collection_inventory.write_index()
 
     #
-    # -- Stop the pipeline if you do not want to copy the files to the final
-    #    area.
+    # -- Copy files to final area.
+    #
+    bundle.copy_to_final()
+
+    #
+    # -- Stop the pipeline if you do not want to write checksums and
+    #    validate the bundle.
     #
     if setup.faucet == 'final':
         log.stop()
         return
-
-    #
-    # -- Copy files to final area.
-    #
-    bundle.copy_to_final()
 
     #
     # -- Generate checksum file at final area.
@@ -428,5 +385,4 @@ def main(config       = False, plan   = False, faucet  = '',
 
 
 if __name__ == '__main__':
-    main(config =  'tests/functional/data/insight.json',
-         plan   =  'tests/functional/data/insight_release_26.plan')
+    main()
