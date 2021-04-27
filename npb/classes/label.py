@@ -36,18 +36,12 @@ class PDSLabel(object):
         self.XML_MODEL                  = setup.xml_model
         self.SCHEMA_LOCATION            = setup.schema_location
         self.INFORMATION_MODEL_VERSION  = setup.information_model
-        self.SPICE_NAME                 = setup.spice_name
         self.PDS4_MISSION_NAME          = setup.mission_name
         self.PDS4_SPACECRAFT_NAME       = setup.spacecraft
 
         self.CURRENT_YEAR               = current_time().split('-')[0]
         self.BUNDLE_DESCRIPTION_LID     = \
-                'urn:{}:{}:{}.spice:document:spiceds'.format(
-                    setup.national_agency,
-                    setup.archiving_agency,
-                    setup.mission_accronym
-
-                )
+            f'{setup.logical_identifier}:document:spiceds'
 
         self.PRODUCT_CREATION_TIME      = product.creation_time
         self.PRODUCT_CREATION_DATE      = product.creation_date
@@ -240,11 +234,12 @@ class PDSLabel(object):
         self.name = label_name
 
         logging.info(f'-- Created {label_name}')
+        if not self.setup.args.silent and not self.setup.args.verbose: print(f'   * Created {label_name.split(self.setup.staging_directory)[-1]}' + '.')
 
         if self.setup.diff:
             self.compare()
-        else:
-            logging.info('')
+
+        logging.info('')
 
         return
 
@@ -252,10 +247,12 @@ class PDSLabel(object):
     def write_pds3_labels(self):
 
         line = f'Step {self.setup.step} Generating index files'
+        logging.info('')
         logging.info(line)
         logging.info('-'*len(line))
         logging.info('')
         self.setup.step += 1
+        if not self.setup.args.silent and not self.setup.args.verbose: print('-- ' + line.split(' - ')[-1] + '.')
 
         command = f'perl ../../exe/xfer_index.pl ' \
                   f'{self.setup.working_directory}/' \
@@ -350,9 +347,9 @@ class PDSLabel(object):
                 #
                 # Simply pick the last one
                 #
-                if ('collection' in self.name):
+                if ('collection' in self.name.split(os.sep)[-1]):
                     val_label = glob.glob(val_products[-1].replace('inventory_', '').split('.')[0] + '.xml')[0]
-                elif ('bundle' in self.name):
+                elif ('bundle' in self.name.split(os.sep)[-1]):
                     val_labels = glob.glob(f'{val_label_path}bundle_*.xml')
                     val_labels.sort()
                     val_label = val_labels[-1]
@@ -456,17 +453,18 @@ class BundlePDS4Label(PDSLabel):
         PDSLabel.__init__(self, setup, readme)
 
         self.template = self.root_dir + \
-                        '/etc/template_bundle.xml'
+                        '/templates/template_bundle.xml'
 
-        self.BUNDLE_LID = self.product.bundle.lid
-        self.BUNDLE_VID = self.product.bundle.vid
+        self.BUNDLE_LID   = self.product.bundle.lid
+        self.BUNDLE_VID   = self.product.bundle.vid
 
-        self.START_TIME = setup.increment_start
-        self.STOP_TIME = setup.increment_finish
-        self.FILE_NAME = readme.name
+        self.AUTHOR_LIST  = setup.author_list
+        self.START_TIME   = setup.increment_start
+        self.STOP_TIME    = setup.increment_finish
+        self.FILE_NAME    = readme.name
         self.CURRENT_TIME = current_time()
-        self.CURRENT_DATE =self.CURRENT_TIME.split('T')[0]
-        self.DOI = '' #setup.doi
+        self.CURRENT_DATE = self.CURRENT_TIME.split('T')[0]
+        self.DOI          = '' #setup.doi
 
 
         for collection in self.product.bundle.collections:
@@ -492,7 +490,7 @@ class SpiceKernelPDS4Label(PDSLabel):
         PDSLabel.__init__(self, mission, product)
 
         self.template = self.root_dir + \
-                        '/etc/template_product_spice_kernel.xml'
+                        '/templates/template_product_spice_kernel.xml'
 
         #
         # Fields from Kernels
@@ -521,7 +519,7 @@ class MetaKernelPDS4Label(PDSLabel):
 
         PDSLabel.__init__(self, setup, product)
 
-        self.template = self.root_dir + '/etc/template_product_spice_kernel_mk.xml'
+        self.template = self.root_dir + '/templates/template_product_spice_kernel_mk.xml'
 
         #
         # Fields from Kernels
@@ -558,10 +556,8 @@ class MetaKernelPDS4Label(PDSLabel):
             # merely a list of strings.
             #
             kernel_type = extension2type(kernel)
-            kernel_lid  = 'urn:{}:{}:{}.spice:spice_kernels:{}_{}'.format(
-                                self.setup.national_agency,
-                                self.setup.archiving_agency,
-                                self.setup.mission_accronym,
+            kernel_lid  = '{}:spice_kernels:{}_{}'.format(
+                                self.setup.logical_identifier,
                                 kernel_type,
                                 kernel)
 
@@ -584,7 +580,7 @@ class InventoryPDS4Label(PDSLabel):
 
         self.collection = collection
         self.template = self.root_dir + \
-                        '/etc/template_collection_{}.xml'.format(collection.type)
+                        '/templates/template_collection_{}.xml'.format(collection.type)
 
         self.COLLECTION_LID = self.collection.lid
         self.COLLECTION_VID = self.collection.vid
@@ -616,7 +612,7 @@ class InventoryPDS3Label(PDSLabel):
 
         self.collection = collection
         self.template = self.root_dir + \
-                        '/etc/template_collection_{}.LBL'.format(
+                        '/templates/template_collection_{}.LBL'.format(
                             collection.type)
 
         self.VOLUME = setup.volume
@@ -676,7 +672,7 @@ class DocumentPDS4Label(PDSLabel):
         self.setup = setup
         self.collection = collection
         self.template = self.root_dir + \
-                        '/etc/template_product_html_document.xml'
+                        '/templates/template_product_html_document.xml'
 
         self.PRODUCT_LID = inventory.lid
         self.PRODUCT_VID = inventory.vid
