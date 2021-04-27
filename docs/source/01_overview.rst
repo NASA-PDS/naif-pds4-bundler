@@ -119,7 +119,8 @@ When the keyword information is provided directly via configuration
 then the tag present is value and is equal to the kernel name that
 provides a given value to the tag.
 
-
+Kernel mapping only happens if the kernel is provided in the input plan
+with the archived name; not with the original name of the file.
 
 Requirements
 ============
