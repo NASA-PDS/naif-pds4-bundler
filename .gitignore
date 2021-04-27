@@ -16,6 +16,9 @@
 # Docs
 docs/make.bat
 docs/Makefile
+/docs/_build/
+/docs/_static/
+/docs/_templates/
 
 # Pycharm specific things
 .idea/
@@ -30,6 +33,3 @@ build/
 
 # Log file
 *.log
-/docs/_build/
-/docs/_static/
-/docs/_templates/
