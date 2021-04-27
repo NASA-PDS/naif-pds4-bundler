@@ -105,8 +105,6 @@ class SpiceKernelProduct(Product):
         self.lid = self.product_lid()
         self.vid = self.product_vid()
 
-
-
         #
         # We generate the kernel directory if not present
         #
@@ -115,23 +113,28 @@ class SpiceKernelProduct(Product):
         #
         # We copy the kernel to the staging directory.
         #
-        logging.info('')
         logging.info(f'-- Copy {self.name} to staging directory.')
         if not os.path.isfile(product_path + self.name):
             try:
                 shutil.copy2(self.path + os.sep + self.name,
                              product_path + os.sep + self.name)
                 self.new_product = True
+
             except:
-                error_message(f'{self.name} not present in {self.path}')
+                try:
+                    shutil.copy2(self.path + os.sep + self.product_mapping(),
+                                 product_path + os.sep + self.name)
+                    self.new_product = True
+                    logging.info(f'-- Mapping {self.product_mapping()} with {self.name}')
+                except:
+                    error_message(f'{self.name} not present in {self.path}')
         else:
-            logging.error('     {} already present in staging directory'.format(self.name))
+            logging.error('     {} already present in staging directory.'.format(self.name))
 
             if self.setup.interactive:
                 input(">> Press Enter to continue...")
 
             self.new_product = False
-            return
 
         #
         # We update the path after having copied the kernel.
@@ -153,10 +156,8 @@ class SpiceKernelProduct(Product):
     def product_lid(self):
 
         product_lid = \
-            'urn:{}:{}:{}.spice:spice_kernels:{}_{}'.format(
-                    self.setup.national_agency,
-                    self.setup.archiving_agency,
-                    self.setup.mission_accronym,
+            '{}:spice_kernels:{}_{}'.format(
+                    self.setup.logical_identifier,
                     self.type,
                     self.name)
 
@@ -286,6 +287,30 @@ class SpiceKernelProduct(Product):
         return
 
 
+    def product_mapping(self):
+
+        '''Obtain the kernel mapping.'''
+        kernel_list_file = self.setup.working_directory + os.sep + \
+                           f'{self.setup.mission_accronym}_release_' \
+                           f'{int(self.setup.release):02d}.kernel_list'
+
+        get_map   = False
+        mapping = False
+
+        for line in fileinput.input(kernel_list_file):
+            if self.name in line:
+                get_map = True
+            if  get_map and 'MAPPING' in line:
+                mapping = line.split('=')[-1].strip()
+                get_map = False
+
+        if not mapping:
+            error_message(f'{self.name} does not have '
+                          f'mapping on {kernel_list_file}')
+
+        return mapping
+
+
 class MetaKernelProduct(Product):
 
     def __init__(self, setup, kernel, spice_kernels_collection, product=False):
@@ -300,7 +325,7 @@ class MetaKernelProduct(Product):
         logging.info(f'-- Generate meta-kernel: {kernel}')
 
         self.new_product = True
-        self.template    = setup.root_dir + f'etc/template_metakernel.tm'
+        self.template    = setup.root_dir + f'templates/template_metakernel.tm'
         self.path        = self.template
         self.setup       = setup
         self.name        = kernel
@@ -329,9 +354,9 @@ class MetaKernelProduct(Product):
         self.stop_time = self.setup.increment_finish
 
         if self.setup.pds_version == '4':
-            self.AUTHOR = self.setup.author_name
+            self.AUTHOR = self.setup.producer_name
         else:
-            self.AUTHOR = self.setup.author_name
+            self.AUTHOR = self.setup.producer_name
 
         self.PDS4_MISSION_NAME = self.setup.mission_name
 
@@ -374,7 +399,14 @@ class MetaKernelProduct(Product):
         # Generate the meta-kernel.
         #
         if not product:
+            if os.path.exists(self.path):
+                logging.error(f'-- Meta-kernel already exists: {self.path}')
+                logging.warning(f'-- The meta-kernel will be generated and the one present in the staging are will be overwtitten.')
+                logging.warning(f'-- Note that to provide a meta-kernel as an input, it must be provided via configuration file.')
             self.write_product()
+        else:
+            # Implement manual provision of meta-kernel.
+            pass
 
         #
         # Following the product generation we read the kernels again to
@@ -393,6 +425,9 @@ class MetaKernelProduct(Product):
             logging.info('')
             logging.info(f'-- Labeling meta-kernel: {kernel}...')
             self.label = MetaKernelPDS4Label(setup, self)
+
+            if self.setup.interactive:
+                input(">> Press Enter to continue...")
 
         return
 
@@ -455,10 +490,8 @@ class MetaKernelProduct(Product):
         else:
             name = self.name
 
-        product_lid = 'urn:{}:{}:{}.spice:spice_kernels:{}_{}'.format(
-                        self.setup.national_agency,
-                        self.setup.archiving_agency,
-                        self.setup.mission_accronym,
+        product_lid = '{}:spice_kernels:{}_{}'.format(
+                        self.setup.logical_identifier,
                         self.type,
                         name)
 
@@ -621,9 +654,22 @@ class MetaKernelProduct(Product):
         curated_desc = ''
 
         for line in data.split('\n'):
-            curated_data += ' '*7 + line.strip() + '\n'
+            #
+            # We want to remove the blanks if the line is empty.
+            #
+            if line.strip() == '':
+                curated_data += ''
+            else:
+                curated_data += ' '*6 + line.strip() + '\n'
+
         for line in desc.split('\n'):
-            curated_desc += ' '*3 + line.strip() + '\n'
+            #
+            # We want to remove the blanks if the line is empty.
+            #
+            if line.strip() == '':
+                curated_desc += ''
+            else:
+                curated_desc += ' '*3 + line.strip() + '\n'
 
         self.DATA        = curated_data
         self.DESCRIPTION = curated_desc
@@ -649,10 +695,13 @@ class MetaKernelProduct(Product):
         self.product = self.path
 
         logging.info(f'-- Meta-kernel generated.')
+        if not self.setup.args.silent and not self.setup.args.verbose: print(f'   * Created {self.product.split(self.setup.staging_directory)[-1]}.')
         if self.setup.interactive:
+            logging.info(f'-- You might take a moment to double-check the metakernel and to do manual edits before proceeding.')
             input(">> Press Enter to continue...")
 
         self.compare()
+        logging.info('')
 
         return
 
@@ -689,19 +738,18 @@ class MetaKernelProduct(Product):
 
         except:
             #
-            # If previous increment does not work, compare with template.
+            # If previous increment does not work, compare with insight example.
             #
             logging.warning(f'-- No other version of {self.name} has been found.')
             logging.warning(f'-- Comparing with meta-kernel template.')
 
-            val_mk = f'{self.setup.root_dir}/config/{self.setup.mission_accronym}' \
-                     f'_metakernel.tm'
+            val_mk = f'{self.setup.root_dir}/templates/template_metakernel.tm'
 
-        logging.info('')
         fromfile = val_mk
         tofile = self.path
         dir = self.setup.working_directory
 
+        logging.info(f'-- Comparing {self.name}...')
         compare_files(fromfile, tofile, dir, 'all')
 
         if self.setup.interactive:
@@ -712,10 +760,12 @@ class MetaKernelProduct(Product):
 
 
         line = f'Step {self.setup.step} - Meta-kernel validation'
+        logging.info('')
         logging.info(line)
         logging.info('-'*len(line))
         logging.info('')
         self.setup.step += 1
+        if not self.setup.args.silent and not self.setup.args.verbose: print('-- ' + line.split(' - ')[-1] + '.')
 
         rel_path = self.path.split(f'/{self.setup.mission_accronym}_spice/')[-1]
         path = self.setup.final_directory.split(f'{self.setup.mission_accronym}_spice')[0] + f'/{self.setup.mission_accronym}_spice/' + rel_path
@@ -736,7 +786,6 @@ class MetaKernelProduct(Product):
 
         logging.info(f'-- Kernels loaded with FURNSH: {ker_num_fr}')
         logging.info(f'-- Kernels present in {self.name}: {ker_num_mk}')
-        logging.info('')
 
         if (ker_num_fr != ker_num_mk):
             spiceypy.kclear()
@@ -763,10 +812,12 @@ class MetaKernelProduct(Product):
         '''
         logging.info('')
         line = f'Step {self.setup.step} - Determine archive increment start and finish times'
+        logging.info('')
         logging.info(line)
         logging.info('-'*len(line))
         logging.info('')
         self.setup.step += 1
+        if not self.setup.args.silent and not self.setup.args.verbose: print('-- ' + line.split(' - ')[-1] + '.')
 
         #
         # Check if an increment stop time has been provided as an input
@@ -880,6 +931,9 @@ class MetaKernelProduct(Product):
         except:
             logging.warning(f'-- Previous bundle not found.')
 
+        if self.setup.interactive:
+            input(">> Press Enter to continue...")
+
         self.setup.increment_finish = increment_finish
         self.setup.increment_start  = increment_start
 
@@ -893,6 +947,7 @@ class MetaKernelProduct(Product):
         logging.info(line)
         logging.info('-'*len(line))
         setup.step += 1
+        if not setup.args.silent and not setup.args.verbose: print('-- ' + line.split(' - ')[-1] + '.')
 
         return
 
@@ -908,6 +963,7 @@ class InventoryProduct(Product):
         logging.info('-'*len(line))
         logging.info('')
         setup.step += 1
+        if not setup.args.silent and not setup.args.verbose: print('-- ' + line.split(' - ')[-1] + '.')
 
         self.setup = setup
         self.collection = collection
@@ -989,11 +1045,7 @@ class InventoryProduct(Product):
     def product_lid(self):
 
         product_lid = \
-            'urn:{}:{}:{}_spice:document:spiceds'.format(
-                self.setup.national_agency,
-                self.setup.archiving_agency,
-                self.setup.mission_accronym)
-
+            f'{self.setup.logical_identifier}:document:spiceds'
 
         return product_lid
 
@@ -1038,11 +1090,13 @@ class InventoryProduct(Product):
             input(">> Press Enter to continue...")
 
         logging.info(f'-- Generated {self.path}')
+        if not self.setup.args.silent and not self.setup.args.verbose: print(f'   * Created {self.path.split(self.setup.staging_directory)[-1]}.')
 
         self.validate()
 
         if self.setup.diff:
             self.compare()
+            logging.info('')
 
         return
 
@@ -1064,7 +1118,6 @@ class InventoryProduct(Product):
         #
         logging.info('      Check that all the products are in the collection.')
 
-        products_found = True
         for product in self.collection.product:
             product_found = False
             with open(self.path, 'r') as c:
@@ -1073,7 +1126,6 @@ class InventoryProduct(Product):
                         product_found = True
                 if not product_found:
                     logging.error(f'      Product {product.lid} not found. Consider increment re-generation.')
-                    products_found = False
 
         logging.info('      OK')
         logging.info('')
@@ -1109,7 +1161,7 @@ class InventoryProduct(Product):
         else:
 
             logging.warning('-- Comparing with InSight test inventory product.')
-            fromfiles = glob.glob(f'{self.setup.root_dir}tests/functional/data/insight/'
+            fromfiles = glob.glob(f'{self.setup.root_dir}tests/data/insight/'
                                   f'insight_spice/{self.collection.type}/collection_{self.collection.name}_inventory_*.csv')
             fromfiles.sort()
             fromfile  = fromfiles[-1]
@@ -1128,10 +1180,12 @@ class InventoryProduct(Product):
     def write_index(self):
 
         line = f'Step {self.setup.step} - Generation of index files'
+        logging.info('')
         logging.info(line)
         logging.info('-'*len(line))
         logging.info('')
         self.setup.step += 1
+        if not self.setup.args.silent and not self.setup.args.verbose: print('-- ' + line.split(' - ')[-1] + '.')
 
         cwd = os.getcwd()
         os.chdir(self.setup.staging_directory)
@@ -1222,12 +1276,24 @@ class InventoryProduct(Product):
 
 class SpicedsProduct(object):
 
-    def __init__(self, setup, collection, spiceds):
-
+    def __init__(self, setup, collection):
 
         self.setup        = setup
         self.collection   = collection
         self.new_product  = True
+        spiceds = self.setup.spiceds
+
+        line = f'Step {self.setup.step} - Processing spiceds file'
+        logging.info('')
+        logging.info(line)
+        logging.info('-'*len(line))
+        logging.info('')
+        self.setup.step += 1
+        if not self.setup.args.silent and not self.setup.args.verbose: print('-- ' + line.split(' - ')[-1] + '.')
+
+
+        if not spiceds:
+            logging.info('-- No spiceds file provided.')
 
         #
         # - Obtain the previous spiceds file if it exists
@@ -1244,39 +1310,35 @@ class SpicedsProduct(object):
                 self.latest_spiceds = latest_spiceds
                 self.latest_version = latest_version
                 self.version = int(latest_version) + 1
+
+                if not spiceds:
+                    logging.info(f'-- Previous spiceds found: {latest_spiceds}')
+                    self.generated = False
+                    return
+
             except:
-                logging.error('-- No previous version of spiceds_v*.html file found. Generated file might be incorrect.')
+                logging.warning('-- No previous version of spiceds_v*.html file found.')
+                if not spiceds:
+                    error_message('spiceds not provided and not available form previous releases')
                 self.version = 1
                 self.latest_spiceds = ''
         else:
             self.version = 1
             self.latest_spiceds = ''
+            if not spiceds:
+                error_message('spiceds not provided and not available form previous releases')
 
         self.name = 'spiceds_v{0:0=3d}.html'.format(self.version)
         self.path = setup.staging_directory + os.sep + collection.name \
                     + os.sep + self.name
-        self.template = setup.root_dir + f'/config/{self.setup.mission_accronym}_spiceds.html'
         self.mission = setup
 
         self.lid = self.product_lid()
         self.vid = self.product_vid()
 
-        #
-        # We provide the values as if it was a label
-        #
-        self.PRODUCT_CREATION_DATE = current_date()
-        self.PRODUCER_NAME = setup.author_name
-        self.PRODUCER_EMAIL = setup.author_email
-        self.PRODUCER_PHONE = setup.author_phone
+        logging.info(f'-- spiceds file provided as input moved to staging area as {self.name}')
+        shutil.copy2(spiceds, self.path)
 
-        if not spiceds:
-            self.generated = self.write_product()
-            if not self.generated:
-                return
-        else:
-            logging.info(f'-- spiceds file provided as input moved to staging area as {self.name}')
-            shutil.copy2(spiceds, self.path)
-            self.generated = True
 
         #
         # Kernels are already generated products but Inventories are not.
@@ -1284,11 +1346,18 @@ class SpicedsProduct(object):
         Product.__init__(self)
 
         #
+        # Check if the spiceds has not changed.
+        #
+        self.generated = self.check_product()
+
+        #
         # Validate the product by comparing it and then generate the label.
         #
-        self.compare()
+        if self.generated:
+            self.compare()
+            logging.info('')
 
-        self.label = DocumentPDS4Label(setup, collection, self)
+            self.label = DocumentPDS4Label(setup, collection, self)
 
 
         return
@@ -1296,35 +1365,15 @@ class SpicedsProduct(object):
 
     def product_lid(self):
 
-        product_lid = \
-            'urn:{}:{}:{}.spice:document:spiceds'.format(
-                self.setup.national_agency,
-                self.setup.archiving_agency,
-                self.setup.mission_accronym)
+        return f'{self.setup.logical_identifier}:document:spiceds'
 
-
-        return product_lid
 
     def product_vid(self):
 
         return '{}.0'.format(int(self.version))
 
 
-    def write_product(self):
-
-        with open(self.path, "w+") as f:
-
-            spiceds_dictionary = vars(self)
-
-            for line in fileinput.input(self.template):
-                for key, value in spiceds_dictionary.items():
-                    if isinstance(value, str) and key in line and '$' in line:
-                        line = line.replace(key, value)
-                        line = line.replace('$', '')
-
-                line = add_carriage_return(line)
-
-                f.write(line)
+    def check_product(self):
 
         #
         # If the previous spiceds document is the same then it does not
@@ -1372,13 +1421,12 @@ class SpicedsProduct(object):
 
         except:
             #
-            # If previous increment does not work, compare with template.
+            # If previous increment does not work, compare with InSight example.
             #
             logging.warning(f'-- No other version of {self.name} has been found.')
-            logging.warning(f'-- Comparing with spiceds template.')
+            logging.warning(f'-- Comparing with default InSight example.')
 
-            val_spd = f'{self.setup.root_dir}/config/{self.setup.mission_accronym}' \
-                      f'_spiceds.html'
+            val_spd = f'{self.setup.root_dir}tests/data/spiceds_test.html'
 
         logging.info('')
         fromfile = val_spd
@@ -1392,6 +1440,10 @@ class SpicedsProduct(object):
         if self.setup.interactive:
             input(">> Press enter to continue...")
 
+        # TODO: Implement a smart comparison of spiceds files in such way
+        # that a warning is provided if something looks fishy (type of file
+        # not present for example)
+
         return
 
 
@@ -1399,12 +1451,14 @@ class ReadmeProduct(Product):
 
     def __init__(self, setup, bundle):
 
-        logging.info('')
         line = f'Step {setup.step} - Generation of bundle products'
+        logging.info('')
         logging.info(line)
         logging.info('-'*len(line))
         logging.info('')
         setup.step += 1
+        if not setup.args.silent and not setup.args.verbose: print('-- ' + line.split(' - ')[-1] + '.')
+
 
         self.name = 'readme.txt'
         self.bundle = bundle
@@ -1414,17 +1468,17 @@ class ReadmeProduct(Product):
         self.collection = Object()
         self.collection.name = ''
 
-        logging.info('-- Generating readme file...')
-        self.write_product()
-        Product.__init__(self)
+        path = self.setup.final_directory + \
+               f'/{self.setup.mission_accronym}_spice/readme.txt'
 
-        try:
-            os.path.exists(self.setup.final_directory +
-                           f'/{self.setup.mission_accronym}_spice/readme.txt')
-            logging.info('-- Readme file already exists in final; file is removed from staging.')
-            os.remove(self.path)
-        except:
-            pass
+        if  os.path.exists(path):
+            self.path = path
+            logging.info('-- Readme file already exists in final area.')
+        else:
+            logging.info('-- Generating readme file...')
+            self.write_product()
+
+        Product.__init__(self)
 
         logging.info('')
 
@@ -1441,26 +1495,44 @@ class ReadmeProduct(Product):
 
         return
 
+
     def write_product(self):
 
         line_length = 0
 
         if not os.path.isfile(self.path):
             with open(self.path, "w+") as f:
-
-                for line in fileinput.input(self.setup.root_dir + '/etc/template_readme.txt'):
+                for line in fileinput.input(self.setup.root_dir + '/templates/template_readme.txt'):
                     if '$SPICE_NAME' in line:
-                        line = line.replace('$SPICE_NAME', self.setup.spice_name)
-                    if '$AUTHOR' in line:
-                        line = line.replace('$AUTHOR', self.setup.author_name)
-                    if '$UNDERLINE' in line:
+                        line = line.replace('$SPICE_NAME', self.setup.readme['spice_name'])
+                        line_length = len(line) - 1
+                        line = add_carriage_return(line)
+                        f.write(line)
+                    elif '$UNDERLINE' in line:
                         line = line.replace('$UNDERLINE', '='*line_length)
+                        line_length = len(line) - 1
+                        line = add_carriage_return(line)
+                        f.write(line)
+                    elif '$OVERVIEW' in line:
+                        overview = self.setup.readme['overview']
+                        for line in overview.split('\n'):
+                            line = ' '*3 + line.strip() + '\n'
+                            line = add_carriage_return(line)
+                            f.write(line)
+                    elif '$COGNISANT_PERSONS' in line:
+                        cognisant = self.setup.readme['cognisant_persons']
+                        for line in cognisant.split('\n'):
+                            line = ' '*3 + line.strip() + '\n'
+                            line = add_carriage_return(line)
+                            f.write(line)
+                    else:
+                        line_length = len(line) - 1
+                        line = add_carriage_return(line)
+                        f.write(line)
 
-                    line_length = len(line)-1
-                    line        = add_carriage_return(line)
-
-
-                    f.write(line)
+        logging.info('-- readme file generated.')
+        if not self.setup.args.silent and not self.setup.args.verbose: print(
+            f'   * readme file generated.')
 
         return
 
