@@ -27,7 +27,7 @@ class TestKernelList(TestCase):
 
         """
 
-        config = '../data/config/msl.xml'
+        config = '../config/msl.xml'
         plan   = '../data/msl_release_26.plan'
         faucet = 'list'
 
@@ -50,7 +50,7 @@ class TestKernelList(TestCase):
             for line in f:
                 old_file += line
 
-        self.assertEqual(old_file.split('\n')[9:],new_file.split('\n')[9:])
+        self.assertEqual(old_file.split('\n')[7:],new_file.split('\n')[7:])
 
         dirs = ['working', 'staging', 'final', 'kernels']
         for dir in dirs:
@@ -65,7 +65,7 @@ class TestKernelList(TestCase):
 
         """
 
-        config = '../data/config/m01.xml'
+        config = '../config/m01.xml'
         plan   = '../data/m01_release_75.plan'
         faucet = 'list'
 
@@ -91,7 +91,7 @@ class TestKernelList(TestCase):
             for line in f:
                 old_file += line
 
-        self.assertEqual(old_file.split('\n')[9:],new_file.split('\n')[9:])
+        self.assertEqual(old_file.split('\n')[7:],new_file.split('\n')[7:])
 
         #
         # Cleanup test facility
@@ -109,13 +109,19 @@ class TestKernelList(TestCase):
 
         """
 
-        config = 'data/insight_release_08.json'
-        plan   = 'data/insight_release_08.plan'
+        config = '../config/insight.xml'
+        plan   = '../data/insight_release_08.plan'
         faucet = 'list'
 
-        shutil.rmtree('working', ignore_errors=True)
-        os.mkdir('working')
-        shutil.copy2('data/insight_release_07.kernel_list', 'working')
+        #
+        # Test preparation
+        #
+        dirs = ['working', 'staging', 'insight', 'kernels']
+        for dir in dirs:
+            shutil.rmtree(dir, ignore_errors=True)
+            os.mkdir(dir)
+
+        shutil.copy2('../data/insight_release_07.kernel_list', 'working')
 
         main(config, plan, faucet, silent=True)
 
@@ -125,13 +131,19 @@ class TestKernelList(TestCase):
                 new_file += line
 
         old_file = ''
-        with open('data/insight_release_08.kernel_list', 'r') as f:
+        with open('../data/insight_release_08.kernel_list', 'r') as f:
             for line in f:
                 old_file += line
 
-        self.assertEqual(old_file.split('\n')[9:],new_file.split('\n')[9:])
+        self.assertEqual(old_file.split('\n')[7:],new_file.split('\n')[7:])
 
-        shutil.rmtree('working', ignore_errors=True)
+        #
+        # Cleanup test facility
+        #
+        dirs = ['working', 'staging', 'insight', 'kernels']
+        for dir in dirs:
+            shutil.rmtree(dir, ignore_errors=True)
+
 
 
 if __name__ == '__main__':

@@ -12,6 +12,7 @@ from npb.main               import main
 from npb.utils.files        import etree_to_dict
 from npb.classes.setup      import Setup
 from npb.classes.list       import KernelList
+from npb.classes.product    import Object
 
 class TestXML(TestCase):
 
@@ -40,7 +41,7 @@ class TestXML(TestCase):
         #
         # Basic test of XML parsing.
         #
-        config = Path('../data/config/insight.xml').read_text()
+        config = Path('../config/insight.xml').read_text()
         config = etree_to_dict(ET.XML(config))
         print(json.dumps(config, indent=4))
 
@@ -48,29 +49,28 @@ class TestXML(TestCase):
         #
         # Testing of the initialisation of the Setup class
         #
-        config = '../data/insight.xml'
 
         #
         # Dummy initialization values for Setup class
         #
-        version       = 'X.Y.Z'
-        interact      = False
-        faucet        = ''
-        diff          = ''
-        release_date  = ''
-        start         = ''
-        finish        = ''
+        version = 'X.Y.Z'
+        args = Object()
 
-        setup = Setup(config, version, interact, faucet, diff, release_date, start,
-                      finish)
+        args.config   = '../config/insight.xml'
+        args.plan     = False
+        args.faucet   = ''
+        args.diff     = ''
+        args.interact = False
+
+        setup = Setup(args, version)
 
         #
         # Testing of the initialisation of the List class
         #
-        plan          = False
+
         setup.release = '008'
 
-        list = KernelList(setup, plan)
+        list = KernelList(setup, args.plan)
 
 
         #
@@ -87,7 +87,7 @@ class TestXML(TestCase):
         :return:
         '''
 
-        config = '../data/config/insight.xml'
+        config = '../config/insight.xml'
 
 
         dirs = ['working', 'staging', 'kernels']

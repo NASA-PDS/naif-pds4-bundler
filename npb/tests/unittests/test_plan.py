@@ -26,7 +26,7 @@ class TestPlan(TestCase):
 
         """
 
-        config = '../data/config/insight.xml'
+        config = '../config/insight.xml'
         plan   = ''
         faucet = 'list'
 
