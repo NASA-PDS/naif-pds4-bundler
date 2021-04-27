@@ -10,9 +10,8 @@
     <information_model_version>$INFORMATION_MODEL_VERSION</information_model_version>
     <product_class>Product_Bundle</product_class>
     <Citation_Information>
-      <author_list>Semenov B. V.; Costa Sitja M.</author_list>
+      <author_list>$AUTHOR_LIST</author_list>
       <publication_year>$CURRENT_YEAR</publication_year>
-      <doi>$DOI</doi>
       <keyword>Observation Geometry</keyword>
       <description>This bundle contains $PDS4_MISSION_NAME SPICE kernels and related documentation.</description>
     </Citation_Information>

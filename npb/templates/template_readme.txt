@@ -4,9 +4,7 @@ $UNDERLINE
 Overview
 ========
 
-   The $SPICE_NAME SPICE archive bundle contains observation geometry and
-   other ancillary data in the form of SPICE System kernel files for
-   the $SPICE_NAME $OBSERVER and its instruments.
+$OVERVIEW
 
    The detailed description of the $SPICE_NAME SPICE archive is provided
    in the latest version of spiceds_v*.html included in the
@@ -41,9 +39,7 @@ References
 Cognizant Persons
 =================
 
-   This archive bundle was produced by $AUTHOR, Planetary Data
-   System Navigation and Ancillary Information Facility Node,
-   Jet Propulsion Laboratory, Pasadena, California.
+$COGNISANT_PERSONS
 
 
 End of $SPICE_NAME SPICE archive bundle readme.

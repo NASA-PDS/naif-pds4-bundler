@@ -464,9 +464,9 @@
                     "InSight Mars Lander Spacecraft"
                ],
                "type": [
-                    "Spacecraft"
+                    "Lander"
                ],
-               "lidvid": "urn:nasa:pds:context:instrument_host:spacecraft.insight::2.0"
+               "lidvid": "urn:nasa:pds:context:instrument_host:lander.insight::2.0"
           },
           {
                "name": [
