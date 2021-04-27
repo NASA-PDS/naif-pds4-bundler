@@ -31,10 +31,12 @@ class KernelList(List):
     def __init__(self, setup, plan):
 
         line = f'Step {setup.step} - Kernel List generation'
+        logging.info('')
         logging.info(line)
         logging.info('-'*len(line))
         logging.info('')
         setup.step += 1
+        if not setup.args.silent and not setup.args.verbose: print('-- ' + line.split(' - ')[-1] + '.')
 
         List.__init__(self, setup)
 
@@ -43,15 +45,15 @@ class KernelList(List):
         #
         self.CURRENTDATE  = str(datetime.datetime.now())[:10]
         self.SC           = setup.spacecraft
-        self.AUTHOR       = setup.author_name
-        self.PHONE        = setup.author_phone
-        self.EMAIL        = setup.author_email
+        self.AUTHOR       = setup.producer_name
+        self.PHONE        = setup.producer_phone
+        self.EMAIL        = setup.producer_email
         self.DATASETID    = setup.dataset_id
         self.VOLID        = setup.volume_id
         self.RELID        = f'{int(setup.release):04d}'
         self.RELDATE      = setup.release_date
 
-        self.template = setup.root_dir + '/etc/template_kernel_list.txt'
+        self.template = setup.root_dir + '/templates/template_kernel_list.txt'
         self.read_config()
 
         #
@@ -99,16 +101,22 @@ class KernelList(List):
 
         kernels = []
 
-        patterns = self.json_config.keys()
+        #
+        # Add mapping kernel patterns in list.
+        #
+        patterns = []
+        for pattern in self.json_config:
+            patterns.append(pattern)
+            if  'mapping' in self.json_config[pattern]:
+                patterns.append(self.json_config[pattern]['mapping'])
+
+
         with open(plan, 'r') as f:
             for line in f:
                 for pattern in patterns:
                     if re.search(pattern, line):
                         ker_line = re.search(pattern, line)
                         kernels.append(ker_line.group(0))
-
-        if self.setup.interactive:
-            input(">> Press Enter to continue...")
 
         logging.info(f'-- Reporting the products in Plan:')
 
@@ -130,7 +138,7 @@ class KernelList(List):
 
         kernels = []
 
-        logging.info(f'-- Generate archiving plan from kernels directory {self.setup.kernels_directory}:')
+        logging.info(f'-- Generate archiving plan from kernels directory: {self.setup.kernels_directory}.')
 
         plan_name = f'{self.setup.mission_accronym}_release_{int(self.setup.release):02d}.plan'
 
@@ -141,7 +149,12 @@ class KernelList(List):
         # configuration. The patterns are present in the json_config
         # attribute dictionary.
         #
-        patterns = self.json_config.keys()
+        patterns = []
+        for pattern in self.json_config:
+            patterns.append(pattern)
+            if  'mapping' in self.json_config[pattern]:
+                patterns.append(self.json_config[pattern]['mapping'])
+
         for kernel in kernels_in_dir:
             for pattern in patterns:
                 if re.match(pattern, kernel.split(os.sep)[-1]):
@@ -232,6 +245,10 @@ class KernelList(List):
                             patterns = self.json_config[pattern.pattern]['patterns']
                         except:
                             patterns = False
+                        try:
+                            mapping = self.json_config[pattern.pattern]['mapping']
+                        except:
+                            mapping = ''
 
                         #
                         # ``options'' and ``descriptions'' require to
@@ -244,24 +261,52 @@ class KernelList(List):
                                     value = patterns[el]
 
                                     #
-                                    # There are to distinct patterns:
-                                    #    * Kernels
+                                    # There are two distinct patterns:
                                     #    * extracted form the filename
                                     #    * defined in the configuration file.
                                     #
-                                    if el == "KERNEL":
+                                    if '@pattern' in patterns[el] and \
+                                            patterns[el]['@pattern'].lower() == 'kernel':
                                         #
-                                        # For Kernels, the pattern (uppercase or lowercase)
-                                        # Needs to be fit. Note that this pattern is also
-                                        # used when copying the kernels from the kernels
-                                        # directory to the staging area,
+                                        # When extracted from the filename, the keyword
+                                        # is matched in between patterns.
                                         #
-                                        if re.match(value.lower(), kernel.lower()):
-                                            version = re.findall(r'[0-9]+', kernel)[0]
-                                            value = f'{value.split("[0-9]")[0]}{version}{value.split("[0-9]")[-1]}'
 
-                                    elif patterns[el]['@pattern'].lower() == 'kernel':
-                                        value =
+                                        #
+                                        # First Turn the regex set into a single
+                                        # character to be able to know were int he filename
+                                        # is.
+                                        #
+                                        patt_ker = value['#text'].replace('[0-9]',  '$')
+                                        patt_ker = patt_ker.replace('[a-z]',        '$')
+                                        patt_ker = patt_ker.replace('[A-Z]',        '$')
+                                        patt_ker = patt_ker.replace('[a-zA-Z]',     '$')
+
+                                        #
+                                        # Split the resulting pattern to build up the
+                                        # indexes to extract the value from the kernel name.
+                                        #
+                                        patt_split = patt_ker.split(f'${el}')
+
+                                        #
+                                        # Create a list with the length of each part.
+                                        #
+                                        indexes = []
+                                        for element in patt_split:
+                                            indexes.append(len(element))
+
+                                        #
+                                        # Extract the value with the index from the kernel
+                                        # name.
+                                        #
+                                        if len(indexes) == 2:
+                                            value = kernel[indexes[0]:len(kernel) - indexes[1]]
+                                            if patterns[el]['@pattern'].isupper():
+                                                value = value.upper()
+                                        else:
+                                            error_message('Kernel pattern not adept to write description. '
+                                                          'Remember a metacharacter cannot start or finish '
+                                                          'a kernel pattern.')
                                     else:
                                         #
                                         # For non-kernels the value is based on the value
@@ -281,9 +326,9 @@ class KernelList(List):
                         if options:
                             for option in options.split():
                                 if ('$' + 'PHASES') in option:
-                                    if self.setup.phase:
+                                    if list(self.setup.phases.keys())[0]:
                                         # TODO: Substitute block by mission phase searching function
-                                        options = options.replace( '$' + 'PHASES', self.setup.phase)
+                                        options = options.replace( '$' + 'PHASES', list(self.setup.phases.keys())[0])
 
                         #
                         # Reformat the description, given that format of the
@@ -298,9 +343,15 @@ class KernelList(List):
                         else:
                             kerdir = 'spice_kernels/' + extension2type(kernel)
 
+                        if not options: options = ''
+
                         f.write(f'FILE             = {kerdir}/{kernel}\n')
                         f.write(f'MAKLABEL_OPTIONS = {options}\n')
                         f.write(f'DESCRIPTION      = {description}\n')
+
+                        if mapping:
+                            logging.info(f'-- Mapping {kernel}')
+                            f.write(f'MAPPING          = {mapping.replace("$"+el,value)}\n')
 
                         self.list_name = list_name
 
@@ -312,10 +363,12 @@ class KernelList(List):
     def write_complete_list(self):
 
         line = f'Step {self.setup.step} - Generation of complete kernel list'
+        logging.info('')
         logging.info(line)
         logging.info('-'*len(line))
         logging.info('')
         self.setup.step += 1
+        if not self.setup.args.silent and not self.setup.args.verbose: print('-- ' + line.split(' - ')[-1] + '.')
 
         kernel_lists = glob.glob(self.setup.working_directory + os.sep + \
                                  f'{self.setup.mission_accronym}_release*.kernel_list')
@@ -402,7 +455,8 @@ class KernelList(List):
                     #
                     options = line.split('=')[-1].split()
                     for option in options:
-                        opt_in_list.append(option)
+                        if option != 'None':
+                            opt_in_list.append(option)
 
 
                 elif ('DESCRIPTION' in line) and (line.split('=')[-1].strip()):
@@ -448,7 +502,7 @@ class KernelList(List):
                     if '.tm' in ker:
                         logging.info(f'     {ker} not present as expected.')
                     else:
-                        logging.error(f'     {ker} not present.')
+                        logging.error(f'     {ker} not present. Kernel might be mapped.')
             if not present:
                 logging.info('     All kernels present in directory.')
             logging.info('')
@@ -519,6 +573,7 @@ class KernelList(List):
 
             kernel_lists = glob.glob(self.setup.working_directory + os.sep + \
                                      f'{self.setup.mission_accronym}_release*.kernel_list')
+            kernel_lists.sort()
 
             ker_in_list = []
             for kernel_list in kernel_lists:
