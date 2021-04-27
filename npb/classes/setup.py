@@ -14,14 +14,13 @@ from npb.classes.log import error_message
 
 class Setup(object):
 
-    def __init__(self, config, version, interact,
-                 faucet, diff, release_date, start, finish):
+    def __init__(self, args, version):
 
         #
         # Converting XML setup file into a dictionary and then into
         # attributes for the object
         #
-        config = Path(config).read_text()
+        config = Path(args.config).read_text()
         entries = etree_to_dict(ET.XML(config))
 
         #
@@ -57,20 +56,48 @@ class Setup(object):
         self.root_dir           = os.path.dirname(__file__)[:-7]
         self.step               = 1
         self.version            = version
-        self.interactive        = interact
-        self.faucet             = faucet.lower()
-        self.diff               = diff.lower()
+        self.args               = args
+        self.interactive        = args.interactive
+        self.faucet             = args.faucet.lower()
+        self.diff               = args.diff.lower()
         self.today              = datetime.date.today().strftime("%Y%m%d")
-        self.increment_start    = start
-        self.increment_finish   = finish
 
+        #
+        # Check of optional input
         #
         # If a release date is not specified it is set to today.
         #
-        if not release_date:
+        if not self.release_date:
             self.release_date = datetime.date.today().strftime("%Y-%m-%d")
         else:
-            self.release_date = release_date
+            pattern = re.compile('[0-9]{4}-[0-9]{2}-[0-9]{2}')
+            if not pattern.match(self.release_date):
+                error_message('release_date parameter does not match the required format: YYYY-MM-DD.')
+
+        #
+        # Increment (Bundle) start and finish times.
+        #
+
+        if self.increment_start:
+            pattern = re.compile('[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z')
+            if not pattern.match(self.increment_start):
+                error_message('increment_start parameter does not match the required format: YYYY-MM-DDThh:mm:ssZ.')
+        if self.increment_finish:
+            pattern = re.compile('[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z')
+            if not pattern.match(self.increment_finish):
+                error_message('increment_finish does not match the required format: YYYY-MM-DDThh:mm:ssZ.')
+
+        if ((not self.increment_start) and (self.increment_finish)) or ((self.increment_start) and (not self.increment_finish)):
+            error_message('If provided via configuration, increment_start and increment_finish parameters need to be provided together.')
+
+        #
+        # Fill PDS4 missing fields,
+        #
+        if self.pds_version == '4':
+            self.producer_phone = ''
+            self.producer_email = ''
+            self.dataset_id     = ''
+            self.volume_id      = ''
 
         #
         # Sort out if directories are provided as relative paths and
@@ -87,12 +114,14 @@ class Setup(object):
 
         if os.path.isdir(cwd + os.sep + self.staging_directory):
             self.staging_directory = cwd + os.sep + self.staging_directory + f'/{self.mission_accronym}_spice'
-        if not os.path.isdir(self.staging_directory):
-            print(f'Creating missing directory: {self.staging_directory}')
+        elif not os.path.isdir(self.staging_directory):
+            print(f'Creating missing directory: {self.staging_directory}/{self.mission_accronym}_spice')
             try:
                 os.mkdir(self.staging_directory)
             except Exception as e:
                 print(e)
+        elif f'/{self.mission_accronym}_spice' not in self.staging_directory:
+            self.staging_directory += f'/{self.mission_accronym}_spice'
 
         if os.path.isdir(cwd + os.sep + self.final_directory):
             self.final_directory = cwd + os.sep + self.final_directory
@@ -109,11 +138,13 @@ class Setup(object):
 
     def set_release(self):
 
-        line = f'Step {self.step} - self the archive generation'
+        line = f'Step {self.step} - Setup the archive generation'
+        logging.info('')
         logging.info(line)
         logging.info('-'*len(line))
         logging.info('')
         self.step += 1
+        if not self.args.silent and not self.args.verbose: print('-- ' + line.split(' - ')[-1] + '.')
 
         #
         # PDS4 release increment (implies inventory and meta-kernel)
@@ -175,12 +206,13 @@ class Setup(object):
 
     def load_kernels(self):
 
-        logging.info('')
         line = f'Step {self.step} - Load LSK, PCK, FK and SCLK kernels'
+        logging.info('')
         logging.info(line)
         logging.info('-'*len(line))
         logging.info('')
         self.step += 1
+        if not self.args.silent and not self.args.verbose: print('-- ' + line.split(' - ')[-1] + '.')
 
         #
         # To get the appropriate kernels, use the meta-kernel grammar.
@@ -191,18 +223,15 @@ class Setup(object):
         pck_patterns = []
         lsk_patterns  = []
 
-        mk_grammar = self.root_dir + \
-                     f'/config/{self.mission_accronym}_metakernel.grammar'
-        with open(mk_grammar, 'r') as m:
-            for line in m:
-                if '.tf' in line.lower():
-                    fk_patterns.append(line.strip())
-                elif '.tsc' in line.lower():
-                    sclk_patterns.append(line.strip())
-                elif '.tpc' in line.lower():
-                    sclk_patterns.append(line.strip())
-                elif '.tls' in line.lower():
-                    lsk_patterns.append(line.strip())
+        for pattern in self.mk_grammar['pattern']:
+            if '.tf' in pattern.lower():
+                fk_patterns.append(pattern.strip())
+            elif '.tsc' in pattern.lower():
+                sclk_patterns.append(pattern.strip())
+            elif '.tpc' in pattern.lower():
+                sclk_patterns.append(pattern.strip())
+            elif '.tls' in pattern.lower():
+                lsk_patterns.append(pattern.strip())
 
         #
         # Search the latest version for each pattern of each kernel type.
