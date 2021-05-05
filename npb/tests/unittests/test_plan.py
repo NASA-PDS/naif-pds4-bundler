@@ -48,7 +48,6 @@ class TestPlan(TestCase):
         shutil.copy2('../data/kernels/lsk/naif0012.tls', 'kernels/lsk')
         shutil.copy2('../data/kernels/ck/insight_ida_enc_200829_201220_v1.bc','kernels/ck')
         shutil.copy2('../data/kernels/ck/insight_ida_pot_200829_201220_v1.bc','kernels/ck')
-        shutil.copy2('../data/kernels/sclk/nsy_sclkscet_00019.tsc', 'kernels/sclk')
 
         shutil.copy2('../data/insight_release_empty.kernel_list', 'working/insight_release_07.kernel_list')
 

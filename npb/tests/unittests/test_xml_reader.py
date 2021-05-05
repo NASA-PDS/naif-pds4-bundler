@@ -35,7 +35,7 @@ class TestXML(TestCase):
         shutil.copy2('../data/kernels/lsk/naif0012.tls', 'kernels/lsk')
         shutil.copy2('../data/kernels/ck/insight_ida_enc_200829_201220_v1.bc','kernels/ck')
         shutil.copy2('../data/kernels/ck/insight_ida_pot_200829_201220_v1.bc','kernels/ck')
-        shutil.copy2('../data/kernels/sclk/nsy_sclkscet_00019.tsc', 'kernels/sclk')
+        shutil.copy2('../data/kernels/sclk/NSY_SCLKSCET.00019.tsc', 'kernels/sclk')
 
 
         #
@@ -56,11 +56,13 @@ class TestXML(TestCase):
         version = 'X.Y.Z'
         args = Object()
 
-        args.config   = '../config/insight.xml'
-        args.plan     = False
-        args.faucet   = ''
-        args.diff     = ''
-        args.interact = False
+        args.config      = '../config/insight.xml'
+        args.plan        = False
+        args.faucet      = ''
+        args.diff        = ''
+        args.interactive = False
+        args.silent      = False
+        args.verbose     = True
 
         setup = Setup(args, version)
 
@@ -108,7 +110,7 @@ class TestXML(TestCase):
         shutil.copy2('../data/kernels/lsk/naif0012.tls', 'kernels/lsk')
         shutil.copy2('../data/kernels/ck/insight_ida_enc_200829_201220_v1.bc','kernels/ck')
         shutil.copy2('../data/kernels/ck/insight_ida_pot_200829_201220_v1.bc','kernels/ck')
-        shutil.copy2('../data/kernels/sclk/nsy_sclkscet_00019.tsc', 'kernels/sclk')
+        shutil.copy2('../data/kernels/sclk/NSY_SCLKSCET.00019.tsc', 'kernels/sclk')
 
         shutil.copytree('../data/insight', 'insight')
 

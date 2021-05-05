@@ -145,6 +145,49 @@ class TestKernelList(TestCase):
             shutil.rmtree(dir, ignore_errors=True)
 
 
+    def test_pds4_maven_list(self):
+        """
+        Basic test for MAVEN kernel list generation. This is a PDS4 Bundle.
+        Implemented following the generation of the kernel list for release 8.
+
+        """
+
+        config = '../config/maven.xml'
+        plan   = '../data/maven_release_24.plan'
+        faucet = 'list'
+
+        #
+        # Test preparation
+        #
+        dirs = ['working', 'staging', 'maven', 'kernels']
+        for dir in dirs:
+            shutil.rmtree(dir, ignore_errors=True)
+            os.mkdir(dir)
+
+        #shutil.copy2('../data/insight_release_07.kernel_list', 'working')
+
+        main(config, plan, faucet, silent=True)
+
+        new_file = ''
+        with open('working/maven_release_01.kernel_list', 'r') as f:
+            for line in f:
+                new_file += line
+
+        old_file = ''
+        with open('../data/maven_release_24.kernel_list', 'r') as f:
+            for line in f:
+                old_file += line
+
+        self.assertEqual(old_file.split('\n')[7:],new_file.split('\n')[7:])
+
+        #
+        # Cleanup test facility
+        #
+        dirs = ['working', 'staging', 'maven', 'kernels']
+        for dir in dirs:
+            shutil.rmtree(dir, ignore_errors=True)
+
+
 
 if __name__ == '__main__':
     unittest.main()
