@@ -97,6 +97,110 @@ class SpiceKernelsCollection(Collection):
         return
 
 
+    def determine_meta_kernels(self):
+
+        line = f'Step {self.setup.step} - Generation of meta-kernel(s)'
+        logging.info('')
+        logging.info(line)
+        logging.info('-'*len(line))
+        self.setup.step += 1
+        if not self.setup.args.silent and not self.setup.args.verbose: print('-- ' + line.split(' - ')[-1] + '.')
+
+        meta_kernels = []
+
+        #
+        # First check if meta-kernel has been provided via configuration by
+        # the user. If so, only the provided meta-kernels will be taken into
+        # account (there is no hybrid possibility but npb provides a warning
+        # message if more meta-kernels are expected).
+        #
+        for mk_input in self.setup.mk_inputs:
+            if not mk_input['file'] == None:
+                if not os.path.exists(mk_input['file']):
+                    logging.info('')
+                    logging.error(f'-- Meta-kernel provided via configuration'
+                                  f' does not exist: {mk_input["file"]}')
+                else:
+                    meta_kernels.append(mk_input['file'])
+
+        if meta_kernels:
+            user_input = True
+        else:
+            user_input = False
+
+        #
+        # Although the kernels that will be used are already known, generate
+        # list of expected meta-kernels to generate to be compared to the
+        # input meta-kernels, if the meta-kernels diverge, a warning message
+        # will be displayed.
+        #
+        #
+        # Generate automatically the required meta-kernels
+        #
+        #
+        # First check if any of the increment are present in
+        # each meta-kernel configuration.
+        #
+        for kernel_product in self.product:
+            for mk in self.setup.mk:
+                #
+                # Boolean to determine whether if the meta-kernel needs to
+                # be generated.
+                #
+                generate_mk = False
+                for pattern in mk['grammar']['pattern']:
+                    #
+                    # meta-kernel grammars might have prefixes followed by
+                    # a colon, so we need to make sure we only use the name
+                    # and we do not use the ones with 'exclude:'.
+                    #
+                    if  ('excluded:' not in pattern) and re.match(pattern.split(':')[-1], kernel_product.name):
+                        generate_mk = True
+
+                #
+                # Now we need to determine whether if this is a
+                # meta-kernel that needs to be generated multiple times.
+                #
+                # In addition the patterns of the meta-kernel name need to
+                # be completed. Currently there are two supported patterns:
+                #    - VERSION
+                #    - YEAR
+                #
+                if generate_mk:
+
+                    #
+                    # Loop the patterns.
+                    #
+                    if not isinstance(mk['name'], list):
+                        patterns = [mk['name']]
+                    else:
+                        patterns = mk['name']
+
+                    #
+                    # First we need to determine if multiple instances of this
+                    # meta-kernel are required; yearly meta-kernel.
+                    #
+
+                    for pattern in mk['name']:
+                        #
+                        # If present, determine the version.
+                        #
+                        if pattern['#text'] == "VERSION":
+                            pass
+
+                    meta_kernels.append(mk['@name'])
+
+
+            print('aha')
+            #
+            # First check if any of the increment are present in
+            # each meta-kernel configuration.
+            #
+
+
+        return (meta_kernels, user_input)
+
+
     def validate(self):
         #
         # -- Validate the SPICE Kernels collection:
