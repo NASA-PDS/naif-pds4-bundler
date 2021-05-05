@@ -21,7 +21,6 @@ class PDSLabel(object):
         except:
             context_products = product.bundle.context_products
 
-
         #
         # The product to be labeled.
         #
@@ -214,7 +213,14 @@ class PDSLabel(object):
 
         label_extension = '.xml'
 
-        label_name = self.product.path.split('.')[0] + label_extension
+        if not '.xml' in self.product.path:
+            label_name = self.product.path.split(f'.{self.product.extension}')[0] + label_extension
+        else:
+            #
+            # This accounts for the bundle label, that doest not come
+            # from the bundle product itself.
+            #
+            label_name = self.product.path
 
         if 'inventory' in label_name:
             label_name = label_name.replace('inventory_','')
@@ -452,8 +458,7 @@ class BundlePDS4Label(PDSLabel):
 
         PDSLabel.__init__(self, setup, readme)
 
-        self.template = self.root_dir + \
-                        '/templates/template_bundle.xml'
+        self.template = f'{setup.templates_directory}/template_bundle.xml'
 
         self.BUNDLE_LID   = self.product.bundle.lid
         self.BUNDLE_VID   = self.product.bundle.vid
@@ -489,8 +494,7 @@ class SpiceKernelPDS4Label(PDSLabel):
 
         PDSLabel.__init__(self, mission, product)
 
-        self.template = self.root_dir + \
-                        '/templates/template_product_spice_kernel.xml'
+        self.template = f'{self.setup.templates_directory}/template_product_spice_kernel.xml'
 
         #
         # Fields from Kernels
@@ -519,7 +523,7 @@ class MetaKernelPDS4Label(PDSLabel):
 
         PDSLabel.__init__(self, setup, product)
 
-        self.template = self.root_dir + '/templates/template_product_spice_kernel_mk.xml'
+        self.template = f'{setup.templates_directory}/template_product_spice_kernel_mk.xml'
 
         #
         # Fields from Kernels
@@ -579,8 +583,7 @@ class InventoryPDS4Label(PDSLabel):
         PDSLabel.__init__(self, setup, inventory)
 
         self.collection = collection
-        self.template = self.root_dir + \
-                        '/templates/template_collection_{}.xml'.format(collection.type)
+        self.template =  f'{setup.templates_directory}/template_collection_{collection.type}.xml'
 
         self.COLLECTION_LID = self.collection.lid
         self.COLLECTION_VID = self.collection.vid
@@ -671,8 +674,7 @@ class DocumentPDS4Label(PDSLabel):
 
         self.setup = setup
         self.collection = collection
-        self.template = self.root_dir + \
-                        '/templates/template_product_html_document.xml'
+        self.template =  f'{setup.templates_directory}/template_product_html_document.xml'
 
         self.PRODUCT_LID = inventory.lid
         self.PRODUCT_VID = inventory.vid
