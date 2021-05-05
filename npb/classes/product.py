@@ -34,6 +34,7 @@ from npb.utils.files   import mk2list
 from npb.utils.files   import get_latest_kernel
 from npb.utils.files   import type2extension
 from npb.utils.files   import compare_files
+from npb.utils.files   import match_patterns
 
 from collections import OrderedDict
 
@@ -47,31 +48,7 @@ class Product(object):
         self.checksum      = str(md5(self.path))
         self.creation_time = creation_time(self.path)[:-5]
         self.creation_date = creation_date(self.path)
-
-    #
-    # Obtain the product (kernel or mk) description information
-    #
-    def get_description(self):
-
-        kernel_list_file = self.setup.working_directory + os.sep + \
-                           f'{self.setup.mission_accronym}_release_' \
-                           f'{int(self.setup.release):02d}.kernel_list'
-
-        get_descr   = False
-        description = False
-
-        for line in fileinput.input(kernel_list_file):
-            if self.name in line:
-                get_descr = True
-            if  get_descr and 'DESCRIPTION' in line:
-                description = line.split('=')[-1].strip()
-                get_descr = False
-
-        if not description:
-            error_message(f'{self.name} does not have '
-                          f'a description on {kernel_list_file}')
-
-        return description
+        self.extension     = self.path.split(os.sep)[-1].split('.')[-1]
 
 
 class SpiceKernelProduct(Product):
@@ -167,8 +144,33 @@ class SpiceKernelProduct(Product):
 
         product_vid = '1.0'
 
-
         return product_vid
+
+
+    #
+    # Obtain the kernel product description information
+    #
+    def get_description(self):
+
+        kernel_list_file = self.setup.working_directory + os.sep + \
+                           f'{self.setup.mission_accronym}_release_' \
+                           f'{int(self.setup.release):02d}.kernel_list'
+
+        get_descr   = False
+        description = False
+
+        for line in fileinput.input(kernel_list_file):
+            if self.name in line:
+                get_descr = True
+            if  get_descr and 'DESCRIPTION' in line:
+                description = line.split('=')[-1].strip()
+                get_descr = False
+
+        if not description:
+            error_message(f'{self.name} does not have '
+                          f'a description on {kernel_list_file}')
+
+        return description
 
 
     def coverage(self):
@@ -313,27 +315,62 @@ class SpiceKernelProduct(Product):
 
 class MetaKernelProduct(Product):
 
-    def __init__(self, setup, kernel, spice_kernels_collection, product=False):
+    def __init__(self, setup, kernel, spice_kernels_collection,
+                 user_input = False):
         '''
 
         :param mission:
         :param spice_kernels_collection:
         :param product: We can input a meta-kernel such that the meta-kernel does not have to be generated
         '''
+        if user_input:
+            logging.info('')
+            logging.info(f'-- Copy meta-kernel: {kernel}')
+            self.path = kernel
+        else:
+            logging.info('')
+            logging.info(f'-- Generate meta-kernel: {kernel}')
+            self.template = f'{setup.root_dir}templates/template_metakernel.tm'
+            self.path = self.template
 
-        logging.info('')
-        logging.info(f'-- Generate meta-kernel: {kernel}')
 
         self.new_product = True
-        self.template    = setup.root_dir + f'templates/template_metakernel.tm'
-        self.path        = self.template
         self.setup       = setup
-        self.name        = kernel
-        self.version     = int(self.name.split('.')[0][-1])
-        self.extension   = self.path.split('.')[1]
         self.collection  = spice_kernels_collection
 
-        self.type = extension2type(self)
+        if os.sep in kernel:
+            self.name        = kernel.split(os.sep)[-1]
+        else:
+            self.name =kernel
+
+        self.extension   = self.path.split('.')[1]
+
+        self.type = extension2type(self.name)
+
+        #
+        # Add the configuration items for the meta-kernel.
+        # This includes sorting out the meta-kernel name.
+        #
+        for mk in setup.mk:
+
+            patterns_dict = mk['name']['pattern']
+            if not isinstance(patterns_dict, list):
+                patterns = []
+                dictionary_copy = patterns_dict.copy()
+                patterns.append(dictionary_copy)
+            else:
+                patterns = patterns_dict
+
+            try:
+                values = match_patterns(self.name, mk['@name'],patterns)
+                self.mk_setup = mk
+                self.version = values['VERSION']
+            except:
+                pass
+
+        if not hasattr(self, 'mk_setup'):
+            error_message(f'Meta-kernel {self.name} has not been matched in configuration.')
+
 
         if setup.pds_version == '3':
             self.collection_path = setup.staging_directory + os.sep + \
@@ -371,17 +408,16 @@ class MetaKernelProduct(Product):
         # Name the meta-kernel; if the meta-kernel is manually provided this
         # step is skipped.
         #
-        if product:
-            self.name = product.split(os.sep)[-1]
-            self.path = product
+        if user_input:
+            self.name = kernel.split(os.sep)[-1]
+            self.path = kernel
         else:
             self.path = product_path + self.name
 
         self.FILE_NAME = self.name
 
         #
-        # Check product version. Note that the meta-kernel version is provided
-        # in the kernel list. The version is checked.
+        # Check product version.
         #
         self.check_version()
 
@@ -398,7 +434,7 @@ class MetaKernelProduct(Product):
         #
         # Generate the meta-kernel.
         #
-        if not product:
+        if not user_input:
             if os.path.exists(self.path):
                 logging.error(f'-- Meta-kernel already exists: {self.path}')
                 logging.warning(f'-- The meta-kernel will be generated and the one present in the staging are will be overwtitten.')
@@ -406,7 +442,8 @@ class MetaKernelProduct(Product):
             self.write_product()
         else:
             # Implement manual provision of meta-kernel.
-            pass
+            shutil.copy2(self.path, f'{product_path}{self.name}')
+            self.path = f'{product_path}{self.name}'
 
         #
         # Following the product generation we read the kernels again to
@@ -423,7 +460,7 @@ class MetaKernelProduct(Product):
 
         if self.setup.pds_version == '4':
             logging.info('')
-            logging.info(f'-- Labeling meta-kernel: {kernel}...')
+            logging.info(f'-- Labeling meta-kernel: {self.name}...')
             self.label = MetaKernelPDS4Label(setup, self)
 
             if self.setup.interactive:
@@ -462,7 +499,7 @@ class MetaKernelProduct(Product):
         except:
             logging.error(f'    Meta-kernel from previous increment is not available.')
             logging.error(f'    It is recommended to stop the execution and fix the issue.')
-            logging.error(f'    Version from kernel list will be used: {self.version}.')
+            logging.error(f'    Version will be set to one: {self.version}.')
 
             if self.setup.interactive:
                 input(">> Press Enter to continue...")
@@ -508,6 +545,115 @@ class MetaKernelProduct(Product):
             product_vid = '1.0'
 
         return product_vid
+
+
+    #
+    # Obtain the kernel product description information,
+    #
+    def get_description(self):
+
+        description = ''
+        self.json_config = self.setup.kernel_list_config
+
+        kernel = self.name
+        for pattern in self.setup.re_config:
+
+            if pattern.match(kernel):
+
+
+                options = self.json_config[pattern.pattern]['mklabel_options']
+                description = self.json_config[pattern.pattern]['description']
+                try:
+                    patterns = self.json_config[pattern.pattern]['patterns']
+                except:
+                    patterns = False
+                try:
+                    mapping = self.json_config[pattern.pattern]['mapping']
+                except:
+                    mapping = ''
+
+                #
+                # ``options'' and ``descriptions'' require to
+                # substitute parameters derived from the filenames
+                # themselves.
+                #
+                if patterns:
+                    for el in patterns:
+                        if ("$" + el) in description:
+                            value = patterns[el]
+
+                            #
+                            # There are two distinct patterns:
+                            #    * extracted form the filename
+                            #    * defined in the configuration file.
+                            #
+                            if '@pattern' in patterns[el] and \
+                                    patterns[el]['@pattern'].lower() == 'kernel':
+                                #
+                                # When extracted from the filename, the keyword
+                                # is matched in between patterns.
+                                #
+
+                                #
+                                # First Turn the regex set into a single
+                                # character to be able to know were int he filename
+                                # is.
+                                #
+                                patt_ker = value['#text'].replace('[0-9]', '$')
+                                patt_ker = patt_ker.replace('[a-z]', '$')
+                                patt_ker = patt_ker.replace('[A-Z]', '$')
+                                patt_ker = patt_ker.replace('[a-zA-Z]', '$')
+
+                                #
+                                # Split the resulting pattern to build up the
+                                # indexes to extract the value from the kernel name.
+                                #
+                                patt_split = patt_ker.split(f'${el}')
+
+                                #
+                                # Create a list with the length of each part.
+                                #
+                                indexes = []
+                                for element in patt_split:
+                                    indexes.append(len(element))
+
+                                #
+                                # Extract the value with the index from the kernel
+                                # name.
+                                #
+                                if len(indexes) == 2:
+                                    value = kernel[indexes[0]:len(kernel) - indexes[1]]
+                                    if patterns[el]['@pattern'].isupper():
+                                        value = value.upper()
+                                else:
+                                    error_message('Kernel pattern not adept to write description. '
+                                                    'Remember a metacharacter cannot start or finish '
+                                                    'a kernel pattern.')
+                            else:
+                                #
+                                # For non-kernels the value is based on the value
+                                # within the tag that needs to be provided by the
+                                # user; there is no way this can be done
+                                # automatically.
+                                #
+                                for val in patterns[el]:
+                                    if kernel == val['@value']:
+                                        value = val['#text']
+
+                                if isinstance(value, list):
+                                    error_message('-- Kernel description could not be updated with pattern.')
+
+                            description = description.replace('$' + el, value)
+
+        description = description.replace('\n','')
+        while '  ' in description:
+            description = description.replace('  ', ' ')
+
+        if not description:
+            error_message(f'{self.name} does not have '
+                          f'a description on configuration file.')
+
+        return description
 
 
     def write_product(self):
@@ -936,18 +1082,6 @@ class MetaKernelProduct(Product):
 
         self.setup.increment_finish = increment_finish
         self.setup.increment_start  = increment_start
-
-        return
-
-
-    def log(setup):
-
-        line = f'Step {setup.step} - Generation of meta-kernel(s)'
-        logging.info('')
-        logging.info(line)
-        logging.info('-'*len(line))
-        setup.step += 1
-        if not setup.args.silent and not setup.args.verbose: print('-- ' + line.split(' - ')[-1] + '.')
 
         return
 
