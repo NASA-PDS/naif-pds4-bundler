@@ -1,4 +1,4 @@
-naif-pds4-bundle worklist by MCS/NAIF, updated 6 April, 2021
+snaif-pds4-bundle worklist by MCS/NAIF, updated 5 May, 2021
 ============================================================
 
 v0.1.0 - Generation of kernel lists.
@@ -7,9 +7,9 @@ v0.2.0 - Generation of a PDS4 Bundle with examples.
 
 v0.3.0 - Generation of InSight Bundle from existing archive.
 
-v0.4.0 - BVS/NAIF feedback incorporation (1/2)
+v0.4.0 - BVS/NAIF feedback incorporation, first round.
 
-  -- The facuet item of the configuration file to be a parameter instead
+  -- The faucet item of the configuration file to be a parameter instead
   --  Format of the Plan file can be reviewed and made more convenient for
      users.
   -- Kernel List, meta-kernel grammar, meta-kernel template to be part
@@ -33,28 +33,44 @@ v0.4.0 - BVS/NAIF feedback incorporation (1/2)
   -- dsindex files not required for PDS4 archives (update in generation
      index Perl script not really required).
 
-v0.5.0
+v0.5.0 - Generation of MAVEN Bundle with user input meta-kernels.
 
   -- Add test case for using similar labels from previous increment
      (that is case 2; not the appropriate one).
-  -- Beware of meta-kernels with "_v" in name besides from version.
-  -- Split meta-kernel by year.
+  -- Files that need a change in the filename to be a configuration item
+     (kernel list will then be generated easier).
+  -- Label templates for specific information models. Include:
+        * 1.5.0.0
+        * 1.11.0.0
+        * latest model available at the time of implementation
+  -- Label templates to be provided by users. Check if exiting use these
+     if present.
   -- Convert configuration file to a format similar to NDT or an XML file
      that can be validated against a schematron. JSON can still be used as an
      intermediate format if need be.
-  -- Files that need a change in the filename to be a configuration item
-     (kernel list will then be generated easier).  
+
+v0.6.0
+
+v1.0.0 - First 'public' release.
+
+Work List:
+
+  CHECK: Include DOI in Citation Information Description as a workaround
+         for information model 1.5.0.0?
+
+  -- Beware of meta-kernels with "_v" in name besides from version.
+  -- Split meta-kernel by year.
   -- Incorporate a validation at the end of the process that reports on
      sensible field such as descriptions, start and stop times, and other
      fields to be considered, this report could be presented as table.  
   -- For PDS3 first implement generation with MKLABL with the ultimate goal
      to replace it completely with Python code.
   -- Same approach for Perl scripts, end up replacing them with Python code.        
-  -- Evaluate or assess file permissions, changing could be optional.®     
+  -- Evaluate or assess file permissions, changing could be optional.
 
   -- Include DOIs in configurations:
-        OREX:    10.17189/1520435
-        MAVEN:   10.17189/1520434
+      * OREX:    10.17189/1520435
+      * MAVEN:   10.17189/1520434
       * INSIGHT: 10.17189/1520436
 
         Cassini SPICE Kernels V1.0: 10.17189/1520114
@@ -79,4 +95,30 @@ v0.5.0
         Stardust SPICE Kernels V1.0: 10.17189/1520106
         Viking Orbiter 1 and 2 SPICE Kernels V1.0: 10.17189/1520112
 
-v1.0.0 - First 'public' release.
+    -- Generation of labels only.
+    -- Implement a smart comparison of spiceds files in such way
+       that a warning is provided if something looks fishy (type of file
+       not present for example)
+    -- Implement coverage tests in master test file:
+
+        #
+        # Debugging does not work while using coverage.
+        # See: https://github.com/microsoft/vscode-python/issues/693
+        #
+        #cov = coverage.Coverage()
+        #cov.start()
+
+        (... some code ...)
+
+        #cov.stop()
+        #cov.save()
+        #
+        #cov.html_report()
+
+    -- TBD: Implement schema validation for config file as in here:
+       https://stackoverflow.com/questions/299588/validating-with-an-xml-schema-in-python
+
+    -- Implement archvie time boundaries tests (there is one sketched in
+       configuration).
+
+
