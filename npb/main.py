@@ -84,7 +84,7 @@ from .classes.product    import Object
 
 def main(config = False, plan   = False, faucet  = '',
          log    = False, silent = False, verbose  = False,
-         diff   = '',    interactive  = False ):
+         diff   = '',    interactive  = False, debug = True ):
     """
     Main routine for the NAIF PDS4 Bundle Generator (naif-pds4-bundle).
 
@@ -205,12 +205,17 @@ def main(config = False, plan   = False, faucet  = '',
     #      option is chosen.
     #    * The log file will be written in the working directory
     #
-    log = Log(setup, args)
+    log = Log(setup, args, debug)
 
     #
     #  -- Start the pipeline
     #
     log.start()
+
+    #
+    # With the log started we check the current configuration
+    #
+    setup.check_configuration()
 
     #
     # -- Check the existence of a previous release
@@ -255,7 +260,7 @@ def main(config = False, plan   = False, faucet  = '',
     #    the Kernel list
     #
     for kernel in list.kernel_list:
-        if not '.tm' in kernel:
+        if not '.tm' in kernel.lower():
             #
             # * Each label is validated after generation.
             #
@@ -265,11 +270,10 @@ def main(config = False, plan   = False, faucet  = '',
     #
     # -- Generate the meta-kernel(s).
     #
-    MetaKernelProduct.log(setup)
-    for kernel in list.kernel_list:
-        if '.tm' in kernel:
-             meta_kernel = MetaKernelProduct(setup, kernel, spice_kernels_collection)
-             spice_kernels_collection.add(meta_kernel)
+    (meta_kernels, user_input) = spice_kernels_collection.determine_meta_kernels()
+    for mk in meta_kernels:
+        meta_kernel = MetaKernelProduct(setup, mk, spice_kernels_collection, user_input=user_input)
+        spice_kernels_collection.add(meta_kernel)
 
     #
     # -- Validate the SPICE Kernels collection:
