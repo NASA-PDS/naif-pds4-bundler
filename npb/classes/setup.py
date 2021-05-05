@@ -47,7 +47,18 @@ class Setup(object):
         self.kernel_list_config = kernel_list_config
         del self.kernel
 
+        #
+        # Meta-kernel configuration, if there is one meta-kernel
+        # mk is a dictionary, otherwise it is a list of dictionaries.
+        # It is processed in such a way that it is always a list of
+        # dictionaries. Same applies to meta-kernels from configutarion
+        # as user input.
+        #
         self.__dict__.update(config['meta-kernel'])
+        if isinstance(self.mk, dict):
+            self.mk = [self.mk]
+        if isinstance(self.mk_inputs, dict):
+            self.mk_inputs = [self.mk_inputs]
 
         #
         # Populate the setup object with attributes beyond the
@@ -63,8 +74,6 @@ class Setup(object):
         self.today              = datetime.date.today().strftime("%Y%m%d")
 
         #
-        # Check of optional input
-        #
         # If a release date is not specified it is set to today.
         #
         if not self.release_date:
@@ -72,23 +81,14 @@ class Setup(object):
         else:
             pattern = re.compile('[0-9]{4}-[0-9]{2}-[0-9]{2}')
             if not pattern.match(self.release_date):
-                error_message('release_date parameter does not match the required format: YYYY-MM-DD.')
+                error_message('release_date parameter does not match '
+                              'the required format: YYYY-MM-DD.')
 
         #
-        # Increment (Bundle) start and finish times.
+        # Determination of the templates used.
         #
-
-        if self.increment_start:
-            pattern = re.compile('[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z')
-            if not pattern.match(self.increment_start):
-                error_message('increment_start parameter does not match the required format: YYYY-MM-DDThh:mm:ssZ.')
-        if self.increment_finish:
-            pattern = re.compile('[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z')
-            if not pattern.match(self.increment_finish):
-                error_message('increment_finish does not match the required format: YYYY-MM-DDThh:mm:ssZ.')
-
-        if ((not self.increment_start) and (self.increment_finish)) or ((self.increment_start) and (not self.increment_finish)):
-            error_message('If provided via configuration, increment_start and increment_finish parameters need to be provided together.')
+        if self.templates_directory == None:
+            self.templates_directory = f'{self.root_dir}templates/{self.information_model}'
 
         #
         # Fill PDS4 missing fields,
@@ -98,6 +98,30 @@ class Setup(object):
             self.producer_email = ''
             self.dataset_id     = ''
             self.volume_id      = ''
+
+
+    def check_configuration(self):
+
+        #
+        # Increment (Bundle) start and finish times.
+        #
+        if hasattr(self, 'increment_start') and self.increment_start:
+            pattern = re.compile('[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z')
+            if not pattern.match(self.increment_start):
+                error_message('increment_start parameter does not match the '
+                              'required format: YYYY-MM-DDThh:mm:ssZ.')
+        if hasattr(self, 'increment_finish') and self.increment_finish:
+            pattern = re.compile('[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z')
+            if not pattern.match(self.increment_finish):
+                error_message('increment_finish does not match the required '
+                              'format: YYYY-MM-DDThh:mm:ssZ.')
+
+        if hasattr(self, 'increment_start') and hasattr(self, 'increment_finish'):
+            if ((not self.increment_start) and (self.increment_finish)) or (
+                    (self.increment_start) and (not self.increment_finish)):
+                error_message(
+                    'If provided via configuration, increment_start and '
+                    'increment_finish parameters need to be provided together.')
 
         #
         # Sort out if directories are provided as relative paths and
@@ -134,6 +158,96 @@ class Setup(object):
             error_message(f'Directory does not exist: {self.kernels_directory}')
 
         os.chdir(cwd)
+
+        #
+        # Check existance of templates according to the information_model
+        # or user-defined templates.
+        #
+        if not os.path.isdir(self.templates_directory):
+            logging.warning('-- Path provided/derived for templates is not available.')
+
+            config_schema = self.information_model.split('.')
+            config_schema = float(f'{int(config_schema[0]):03d}'
+                                  f'{int(config_schema[1]):03d}'
+                                  f'{int(config_schema[2]):03d}'
+                                  f'{int(config_schema[3]):03d}')
+
+            schemas = [os.path.basename(x[:-1]) for x in glob.glob(f'{self.root_dir}templates/*/')]
+
+            schemas_eval = []
+            for schema in schemas:
+                schema = schema.split('.')
+                schema = float(f'{int(schema[0]):03d}'
+                               f'{int(schema[1]):03d}'
+                               f'{int(schema[2]):03d}'
+                               f'{int(schema[3]):03d}')
+                schemas_eval.append(schema)
+
+            schemas_eval = sorted(schemas_eval)
+
+            i = 0
+            while i < len(schemas_eval):
+                if config_schema < schemas_eval[i]:
+                    try:
+                        schema = schemas[i-1]
+                    except:
+                        schema = schemas[0]
+                    break
+                if config_schema > schemas_eval[i]:
+                    schema = schemas[i]
+                    break
+                i += 1
+
+            self.templates_directory = f'{self.root_dir}/templates/{schema}/'
+
+            logging.warning(f'-- Label templates will use the ones from information model {schema}.')
+            logging.warning('')
+        else:
+            labels_check = [os.path.basename(x[:-1]) for x in glob.glob(f'{self.root_dir}templates/1.5.0.0/*')]
+            labels       = [os.path.basename(x[:-1]) for x in glob.glob(f'{self.templates_directory}/*')]
+            for label in labels_check:
+                if label not in labels:
+                    error_message(f'Template {label} has not been provided.')
+
+        #
+        # Check meta-kernel configuration
+        #
+        for metak in self.mk:
+
+            #
+            # Turn all name_patterns to lists.
+            #
+            if not isinstance(metak['name'], list):
+                metak['name_patterns'] = list(metak['name'])
+
+            metal_name_check = metak['@name']
+
+            #
+            # Fix no list or list of lists.
+            #
+            patterns_dict = metak['name']['pattern']
+            if not isinstance(patterns_dict, list):
+                patterns = []
+                dictionary_copy = patterns_dict.copy()
+                patterns.append(dictionary_copy)
+            else:
+                patterns = patterns_dict
+
+            for pattern in patterns:
+                name_pattern = pattern['#text']
+                if not name_pattern in metal_name_check:
+                    error_message(f"The meta-kernel pattern {name_pattern} is not provided.")
+
+                metal_name_check = metal_name_check.replace('$' + name_pattern, '')
+
+            #
+            # If there are remmaining $ characters in the metal_name_check this means that there are
+            # remaining patterns to define in the configuration file.
+            #
+            if '$' in metal_name_check:
+                error_message(f'The meta-kernel patterns for are not defined via configuration.')
+
+            return
 
 
     def set_release(self):
@@ -223,15 +337,16 @@ class Setup(object):
         pck_patterns = []
         lsk_patterns  = []
 
-        for pattern in self.mk_grammar['pattern']:
-            if '.tf' in pattern.lower():
-                fk_patterns.append(pattern.strip())
-            elif '.tsc' in pattern.lower():
-                sclk_patterns.append(pattern.strip())
-            elif '.tpc' in pattern.lower():
-                sclk_patterns.append(pattern.strip())
-            elif '.tls' in pattern.lower():
-                lsk_patterns.append(pattern.strip())
+        for mk in self.mk:
+            for pattern in mk['grammar']['pattern']:
+                if '.tf' in pattern.lower():
+                    fk_patterns.append(pattern.strip())
+                elif '.tsc' in pattern.lower():
+                    sclk_patterns.append(pattern.strip())
+                elif '.tpc' in pattern.lower():
+                    sclk_patterns.append(pattern.strip())
+                elif '.tls' in pattern.lower():
+                    lsk_patterns.append(pattern.strip())
 
         #
         # Search the latest version for each pattern of each kernel type.
