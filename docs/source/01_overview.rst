@@ -142,7 +142,9 @@ Then the two entries specified hereunder must be provided in the kernel list:
 ``<kernel pattern="msl_76_sclkscet_refit_[a-z][0-9].tsc"> (...)``
 ``<kernel pattern="msl_76_sclkscet_refit_[a-z][0-9][0-9].tsc"> (...)``
 
+Remember meta-kernels are ignored if provided with the kernel list.
 
+For metakernels this does not work: insight_$YEAR$VERSION.tm
 
 Configuration
 =============
