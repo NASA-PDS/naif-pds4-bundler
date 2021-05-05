@@ -185,13 +185,11 @@ class SpiceKernelsCollection(Collection):
                         #
                         # If present, determine the version.
                         #
-                        if pattern['#text'] == "VERSION":
-                            pass
+                        #if pattern['#text'] == "VERSION":
+                        pass
 
-                    meta_kernels.append(mk['@name'])
+                    #meta_kernels.append(mk['@name'])
 
-
-            print('aha')
             #
             # First check if any of the increment are present in
             # each meta-kernel configuration.
