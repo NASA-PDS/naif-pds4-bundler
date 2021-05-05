@@ -363,3 +363,61 @@ def compare_files(fromfile, tofile, dir, display):
         diff_html.close()
 
     return
+
+
+def match_patterns(name, name_w_pattern, patterns):
+    '''
+    Function to match the meta-kernel names with the patterns provided via
+    configuration.
+    '''
+
+    #
+    # This list will help us determine the order of the patterns in the file
+    # name because later on the patterns need to be correlated with the
+    # pattern values.
+    #
+    pattern_name_order = {}
+    name_check = name_w_pattern
+
+    for pattern in patterns:
+        pattern_name_order[pattern['#text']] = name_w_pattern.find(pattern['#text'])
+        name_check = name_check.replace('$' + pattern['#text'], '$'*int(pattern['@lenght']))
+
+    #
+    # Convert the pattern_name_order_dictionary into an ordered lis
+    #
+    pattern_name_order = list({k: v for k, v in sorted(pattern_name_order.items(), key=lambda item: item[1])}.keys())
+
+    #
+    # Generate a list of values extracted from the comparison of the original
+    # file and the file with patterns.
+    #
+    values_list = []
+    value = ''
+    value_bool = False
+
+    for i in range(len(name_check)):
+        if (name_check[i] == name[i]) and (not value_bool):
+            continue
+        if (name_check[i] == name[i]) and value_bool:
+            value_bool = False
+            values_list.append(value)
+            value = ''
+        elif (name_check[i] == '$') and (not value_bool):
+            value_bool = True
+            value += name[i]
+        elif (name_check[i] == '$') and value_bool:
+            value += name[i]
+        else:
+            error_message(f'Missmatch of values in meta-kernel pattern.')
+
+    #
+    # Correlate the values with their position in the file name with
+    # patterns.
+    #
+    values = {}
+    for i in range(len(values_list)):
+        values[pattern_name_order[i]] = values_list[i]
+
+    return values
+
