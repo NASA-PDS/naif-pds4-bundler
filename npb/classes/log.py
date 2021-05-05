@@ -7,14 +7,18 @@ import datetime
 
 class Log(object):
 
-    def __init__(self, setup, args):
+    def __init__(self, setup, args, debug = True):
 
         self.setup = setup
         self.args = args
 
         logger = logging.getLogger()
         logger.setLevel(logging.INFO)
-        log_format = '%(levelname)-8s %(module)-12s %(funcName)-20s %(message)s'
+
+        if debug:
+            log_format = '%(module)-12s %(funcName)-23s || %(levelname)-8s: %(message)s'
+        else:
+            log_format = '%(levelname)-8s: %(message)s'
 
         if args.verbose:
             ch = logging.StreamHandler()
@@ -44,7 +48,7 @@ class Log(object):
 
     def start(self):
         start_message = f'naif-pd4-bundle-{self.setup.version} for ' \
-                        f'{self.setup.readme["spice_name"]} run on '     \
+                        f'{self.setup.mission_name} run on '     \
                         f'{socket.gethostname()} started  at '        \
                         f'{str(datetime.datetime.now())[:-7]}'
         logging.info(start_message)
@@ -70,7 +74,7 @@ class Log(object):
 
 
     def stop(self):
-        stop_message = f'naif-pd4-bundle-{self.setup.version} for {self.setup.readme["spice_name"]} run on ' \
+        stop_message = f'naif-pd4-bundle-{self.setup.version} for {self.setup.mission_name} run on ' \
                        f'{socket.gethostname()} finished at '                                        \
                        f'{str(datetime.datetime.now())[:-7]}'
         logging.info('')
