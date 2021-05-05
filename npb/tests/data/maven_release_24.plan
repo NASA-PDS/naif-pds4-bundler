@@ -1,0 +1,80 @@
+--- LSK
+
+       No new LSKs in this release
+
+
+--- PCK
+
+       No new PCKs in this release
+
+
+--- FKs
+
+       No new FKs in this release
+
+
+--- IK
+
+       No new IKs in this release
+
+
+--- SCLK
+
+mvn_sclkscet_00085.tsc \
+mvn_sclkscet_00086.tsc \
+
+
+--- SPK
+
+maven_orb_rec_201001_210101_v1.bsp \
+
+       No DE SPKs in this release
+
+       No SE SPKs in this release
+
+       No structure SPKs in this release
+
+
+--- CK
+
+mvn_app_rel_201005_201011_v01.bc \
+mvn_app_rel_201012_201018_v01.bc \
+mvn_app_rel_201019_201025_v02.bc \
+mvn_app_rel_201026_201101_v02.bc \
+mvn_app_rel_201102_201108_v02.bc \
+mvn_app_rel_201109_201115_v01.bc \
+mvn_app_rel_201116_201122_v02.bc \
+mvn_app_rel_201123_201129_v01.bc \
+mvn_app_rel_201130_201206_v02.bc \
+mvn_app_rel_201207_201213_v01.bc \
+mvn_app_rel_201214_201220_v01.bc \
+mvn_app_rel_201221_201227_v01.bc \
+mvn_app_rel_201228_210103_v02.bc \
+
+mvn_iuvs_rem_201001_201231_v01.bc \
+
+mvn_sc_rel_201005_201011_v01.bc \
+mvn_sc_rel_201012_201018_v01.bc \
+mvn_sc_rel_201019_201025_v02.bc \
+mvn_sc_rel_201026_201101_v02.bc \
+mvn_sc_rel_201102_201108_v01.bc \
+mvn_sc_rel_201109_201115_v01.bc \
+mvn_sc_rel_201116_201122_v03.bc \
+mvn_sc_rel_201123_201129_v01.bc \
+mvn_sc_rel_201130_201206_v02.bc \
+mvn_sc_rel_201207_201213_v01.bc \
+mvn_sc_rel_201214_201220_v01.bc \
+mvn_sc_rel_201221_201227_v01.bc \
+mvn_sc_rel_201228_210103_v02.bc \
+
+       No SC pred CKs in this release
+
+       No SWEA nom CKs in this release
+
+
+--- MK
+
+maven_2020_v04.tm \
+maven_2019_v03.tm \
+
+--- end

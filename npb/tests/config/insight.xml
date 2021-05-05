@@ -1,0 +1,408 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<naif-pds4-bundle_configuration>
+
+    <!-- =========================== -->
+    <!-- PDS parameters              -->
+    <!-- =========================== -->
+    <pds_parameters>
+        <pds_version>4</pds_version>
+        <information_model>1.5.0.0</information_model>
+        <xml_model>http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.sch</xml_model>
+        <schema_location>http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd
+        </schema_location>
+        <logical_identifier>urn:nasa:pds:insight.spice</logical_identifier>
+        <!-- Optional parameters -->
+        <context_products>
+            <product name="InSight Mars Lander Spacecraft">
+                <type>Spacecraft</type>
+                <lidvid>urn:nasa:pds:context:instrument_host:spacecraft.insight::2.0</lidvid>
+            </product>
+            <product name="Oumuamua">
+                <type>Hyperbolic Asteroid</type>
+                <lidvid>urn:nasa:pds:context:target:asteroid.oumauma::2.0</lidvid>
+            </product>
+        </context_products>
+    </pds_parameters>
+
+    <!-- =========================== -->
+    <!-- Bundle parameters           -->
+    <!-- =========================== -->
+    <bundle_parameters>
+        <producer_name>Marc Costa Sitja</producer_name>
+        <author_list>Semenov B. V.; Costa Sitja M.</author_list>
+        <institution>NAIF/JPL</institution>
+        <doi>10.17189/1520436</doi>
+        <spiceds>../data/spiceds_test.html</spiceds>
+        <readme>
+            <spice_name>INSIGHT</spice_name>
+            <overview>
+               The INSIGHT SPICE archive bundle contains observation geometry and
+               other ancillary data in the form of SPICE System kernel files for
+               the INSIGHT lander and its instruments.
+            </overview>
+            <cognisant_persons>
+               This archive bundle was produced by Boris Semenov, Planetary Data
+               System Navigation and Ancillary Information Facility Node, Jet
+               Propulsion Laboratory, Pasadena, California.
+            </cognisant_persons>
+        </readme>
+        <!-- Optional parameters -->
+        <!-- Release date as a UTC calendar string. Use the following format:
+             YYYY-MM-DD e.g. 2021-04-09. -->
+        <release_date></release_date>
+        <!-- Increment start and stop times provided as a UTC calendar string.
+             They require to be present. Use the following format:
+             YYYY-MM-DDThh:mm:ssZ e.g., 2021-04-09T15:11:12Z. -->
+        <increment_start></increment_start>
+        <increment_finish></increment_finish>
+    </bundle_parameters>
+
+    <!-- =========================== -->
+    <!-- Mission Parameters          -->
+    <!-- =========================== -->
+    <mission_parameters>
+        <mission_accronym>insight</mission_accronym>
+        <mission_name>InSight Mars Lander Mission</mission_name>
+        <mission_start>2018-05-05T11:05:00Z</mission_start>
+        <mission_stop>2050-01-01T00:00:00Z</mission_stop>
+        <spacecraft>InSight Mars Lander Spacecraft</spacecraft>
+        <target>MARS</target>
+        <phases>
+            <EXTENDED></EXTENDED>
+        </phases>
+        <!-- Optional parameters -->
+        <secondary_spacecraft></secondary_spacecraft>
+        <secondary_target></secondary_target>
+    </mission_parameters>
+
+    <!-- =========================== -->
+    <!-- Directories                 -->
+    <!-- =========================== -->
+    <directories>
+        <working_directory>working</working_directory>
+        <kernels_directory>kernels</kernels_directory>
+        <staging_directory>staging</staging_directory>
+        <final_directory>insight</final_directory>
+        <templates_directory></templates_directory>
+        <reports_directory>working</reports_directory>
+    </directories>
+
+    <!-- =========================== -->
+    <!-- Kernel List                 -->
+    <!-- =========================== -->
+    <kernel_list>
+        <!-- The kernel list provides a number of patterns that are used -->
+        <kernel pattern="naif[0-9][0-9][0-9][0-9].tls">
+            <mklabel_options>DEF_TIMES</mklabel_options>
+            <description>SPICE LSK file incorporating leapseconds up to $DATE, created by NAIF, JPL.</description>
+            <patterns>
+                <DATE value="naif0011.tls">2015-JAN-01</DATE>
+                <DATE value="naif0012.tls">2017-JAN-01</DATE>
+            </patterns>
+        </kernel>
+        <kernel pattern="pck[0-9][0-9][0-9][0-9][0-9].tpc">
+            <mklabel_options>DEF_TIMES</mklabel_options>
+            <description>SPICE text PCK file containing constants from the $REPORT report, created by NAIF, JPL.
+            </description>
+            <patterns>
+                <REPORT value="pck0010.tpc">IAU 2009</REPORT>
+            </patterns>
+        </kernel>
+        <kernel pattern="insight_v[0-9][0-9].tf">
+            <mklabel_options>DEF_TIMES</mklabel_options>
+            <description>SPICE FK file defining reference frames the INSIGHT lander, its structures, and science
+                instruments, created by NAIF, JPL.
+            </description>
+        </kernel>
+        <kernel pattern="marcoa_v[0-9][0-9].tf">
+            <mklabel_options>DEF_TIMES</mklabel_options>
+            <description>SPICE FK file defining reference frames the MARCO-A spacecraft, its structures, and
+                instruments, and FOVs for its structures and instruments, created by NAIF, JPL.
+            </description>
+        </kernel>
+        <kernel pattern="marcob_v[0-9][0-9].tf">
+            <mklabel_options>DEF_TIMES</mklabel_options>
+            <description>SPICE FK file defining reference frames the MARCO-B spacecraft, its structures, and
+                instruments, and FOVs for its structures and instruments, created by NAIF, JPL.
+            </description>
+        </kernel>
+        <kernel pattern="insight_ant_v[0-9][0-9].ti">
+            <mklabel_options>DEF_TIMES</mklabel_options>
+            <description>SPICE IK file providing FOV definitions and other instrument parameters for the INSIGHT
+                antennas, created by NAIF, JPL.
+            </description>
+        </kernel>
+        <kernel pattern="insight_hp3_rad_v[0-9][0-9].ti">
+            <mklabel_options>DEF_TIMES</mklabel_options>
+            <description>SPICE IK file providing FOV definitions for the INSIGHT Heat Flow and Physical Properties
+                Package (HP3) Radiometer instrument, created by HP3 Team, DLR.
+            </description>
+        </kernel>
+        <kernel pattern="insight_icc_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_c[0-9][0-9].ti">
+            <mklabel_options>DEF_TIMES</mklabel_options>
+            <description>SPICE IK file providing FOV definitions and other instrument parameters for the INSIGHT
+                Instrument Context Camera (ICC) instrument, created by NAIF, JPL.
+            </description>
+        </kernel>
+        <kernel pattern="insight_idc_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_c[0-9][0-9].ti">
+            <mklabel_options>DEF_TIMES</mklabel_options>
+            <description>SPICE IK file providing FOV definitions and other instrument parameters for the INSIGHT
+                Instrument Deployment Camera (IDC) instrument, created by NAIF, JPL.
+            </description>
+        </kernel>
+        <kernel pattern="nsy_sclkscet_[0-9][0-9][0-9][0-9][0-9].tsc">
+            <mapping>NSY_SCLKSCET.$VERSION.tsc</mapping>
+            <mklabel_options>DEF_TIMES</mklabel_options>
+            <description>SPICE SCLK file containing time correlation data for the main INSIGHT on-board clock, created
+                by NAIF, JPL. The original name of this file was NSY_SCLKSCET.$VERSION.tsc.
+            </description>
+            <patterns>
+                <VERSION pattern="KERNEL">NSY_SCLKSCET.$VERSION.tsc</VERSION>
+            </patterns>
+        </kernel>
+        <kernel pattern="insight_lmst_ops[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9].tsc">
+            <mklabel_options>DEF_TIMES</mklabel_options>
+            <description>SPICE SCLK file implementing INSIGHT Local Mean Solar Time (LMST), created by NAIF, JPL.
+            </description>
+        </kernel>
+        <kernel pattern="marcoa_fake_v[0-9][0-9].tsc">
+            <mklabel_options>DEF_TIMES</mklabel_options>
+            <description>SPICE SCLK file containing fictitious MARCO-A clock correlation data required to access MARCO-A
+                CKs, created by NAIF, JPL.
+            </description>
+        </kernel>
+        <kernel pattern="marcob_fake_v[0-9][0-9].tsc">
+            <mklabel_options>DEF_TIMES</mklabel_options>
+            <description>SPICE SCLK file containing fictitious MARCO-B clock correlation data required to access MARCO-B
+                CKs, created by NAIF, JPL.
+            </description>
+        </kernel>
+        <kernel pattern="de[0-9][0-9][0-9]s.bsp">
+            <mklabel_options></mklabel_options>
+            <description>SPICE SPK file containing JPL planetary ephemerides version $VERSION, created by the Solar
+                System Dynamics group (SSD), JPL.
+            </description>
+            <patterns>
+                <VERSION pattern="de430s.bsp">DE430</VERSION>
+            </patterns>
+        </kernel>
+        <kernel pattern="mar[0-9][0-9][0-9]s.bsp">
+            <mklabel_options></mklabel_options>
+            <description>SPICE SPK file containing JPL Martian satellite ephemerides version $VERSION, created by the
+                Solar System Dynamics group (SSD), JPL.
+            </description>
+            <patterns>
+                <VERSION pattern="mar097s.bsp">MAR097</VERSION>
+            </patterns>
+        </kernel>
+        <kernel pattern="insight_cru_.*_v[0-9].bsp">
+            <mklabel_options></mklabel_options>
+            <description>SPICE SPK file containing reconstructed INSIGHT cruise trajectory, created by the INSIGHT NAV
+                Team, JPL.
+            </description>
+        </kernel>
+        <kernel pattern="insight_edl_.*_v[0-9].bsp">
+            <mklabel_options></mklabel_options>
+            <description>SPICE SPK file containing reconstructed INSIGHT Entry Descent Landing (EDL) trajectory, created
+                by the INSIGHT EDL Team, LMCO.
+            </description>
+        </kernel>
+        <kernel pattern="insight_ls_ops[0-9][0-9][0-9][0-9][0-9][0-9]_iau2000_v[0-9].bsp">
+            <mklabel_options></mklabel_options>
+            <description>SPICE SPK file containing actual INSIGHT landing site location, created by NAIF, JPL.
+            </description>
+        </kernel>
+        <kernel pattern="insight_atls_ops[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9].bsp">
+            <mklabel_options></mklabel_options>
+            <description>SPICE SPK file containing the INSIGHT lander (zero) offset with respect to the landing site,
+                created by NAIF, JPL.
+            </description>
+        </kernel>
+        <kernel pattern="insight_struct_v[0-9][0-9].bsp">
+            <mklabel_options></mklabel_options>
+            <description>SPICE SPK file containing relative locations of selected INSIGHT structures and science
+                instruments, created by NAIF, JPL.
+            </description>
+        </kernel>
+        <kernel pattern="marcoa_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9].bsp">
+            <mklabel_options></mklabel_options>
+            <description>SPICE SPK file containing reconstructed MARCO-A cruise trajectory, created by the MARCO NAV
+                Team, JPL.
+            </description>
+        </kernel>
+        <kernel pattern="marcob_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9].bsp">
+            <mklabel_options></mklabel_options>
+            <description>SPICE SPK file containing reconstructed MARCO-B cruise trajectory, created by the MARCO NAV
+                Team, JPL.
+            </description>
+        </kernel>
+        <kernel pattern="insight_idc_rec_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9].bsp">
+            <mklabel_options></mklabel_options>
+            <description>SPICE SPK file containing deflected (gravity-compensated) position of the INSIGHT Instrument
+                Deployment Camera (IDC), covering only IDC image times, created by NAIF, JPL.
+            </description>
+        </kernel>
+        <kernel pattern="insight_cru_rec_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9].bc">
+            <mklabel_options></mklabel_options>
+            <description>SPICE CK file containing reconstructed INSIGHT spacecraft cruise orientation, created by NAIF,
+                JPL.
+            </description>
+        </kernel>
+        <kernel pattern="insight_edl_rec_v[0-9].bc">
+            <mklabel_options></mklabel_options>
+            <description>SPICE CK file containing reconstructed INSIGHT spacecraft Entry Descent Landing (EDL)
+                orientation, created the INSIGHT EDL Team, LMCO.
+            </description>
+        </kernel>
+        <kernel pattern="insight_surf_ops_v[0-9].bc">
+            <mklabel_options></mklabel_options>
+            <description>SPICE CK file containing reconstructed INSIGHT spacecraft landed orientation, created by NAIF,
+                JPL.
+            </description>
+        </kernel>
+        <kernel pattern="insight_cruise2lander_v[0-9].bc">
+            <mklabel_options></mklabel_options>
+            <description>SPICE CK file containing fixed rotation between the INSIGHT cruise and lander frames, covering
+                cruise and EDL, created by NAIF, JPL.
+            </description>
+        </kernel>
+        <kernel pattern="insight_lander2cruise_v[0-9].bc">
+            <mklabel_options></mklabel_options>
+            <description>SPICE CK file containing fixed rotation between the INSIGHT lander and cruise frames, covering
+                surface operations, created by NAIF, JPL.
+            </description>
+        </kernel>
+        <kernel pattern="marcoa_cru_rec_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9].bc">
+            <mklabel_options></mklabel_options>
+            <description>SPICE CK file containing reconstructed MARCO-A orientation, created by NAIF, JPL.</description>
+        </kernel>
+        <kernel pattern="marcob_cru_rec_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9].bc">
+            <mklabel_options></mklabel_options>
+            <description>SPICE CK file containing reconstructed MARCO-B orientation, created by NAIF, JPL.</description>
+        </kernel>
+        <kernel pattern="insight_ida_enc_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9].bc">
+            <mklabel_options></mklabel_options>
+            <description>SPICE CK file containing reconstructed orientation of the INSIGHT Instrument Deployment Arm
+                (IDA), encoder-based, created by NAIF, JPL.
+            </description>
+        </kernel>
+        <kernel pattern="insight_ida_pot_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9].bc">
+            <mklabel_options></mklabel_options>
+            <description>SPICE CK file containing reconstructed orientation of the INSIGHT Instrument Deployment Arm
+                (IDA), potentiometer-based, created by NAIF, JPL.
+            </description>
+        </kernel>
+        <kernel pattern="insight_idc_enc_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9].bc">
+            <mklabel_options></mklabel_options>
+            <description>SPICE CK file containing deflected (gravity-compensated) orientation of the INSIGHT Instrument
+                Deployment Camera (IDC), covering only IDC image times, encoder-based, created by NAIF, JPL.
+            </description>
+        </kernel>
+        <kernel pattern="insight_idc_pot_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9].bc">
+            <mklabel_options></mklabel_options>
+            <description>SPICE CK file containing deflected (gravity-compensated) orientation of the INSIGHT Instrument
+                Deployment Camera (IDC), covering only IDC image times, potentiometer-based, created by NAIF, JPL.
+            </description>
+        </kernel>
+        <kernel pattern="insight_v[0-9][0-9].tm">
+            <mklabel_options></mklabel_options>
+            <description>SPICE MK file listing kernels for the whole mission and including CHRONOS setup parameters,
+                created by NAIF, JPL.
+            </description>
+        </kernel>
+    </kernel_list>
+
+    <!-- =========================== -->
+    <!-- Meta-kernel                 -->
+    <!-- =========================== -->
+    <meta-kernel>
+        <!-- A resulting meta-kernel will look like -->
+        <mk_inputs>
+            <file></file>
+        </mk_inputs>
+        <coverage_kernels>
+            <!-- These kernels determine the coverage of the bundle
+                 increment
+            -->
+            <pattern>insight_cru_ops_v[0-9].bsp</pattern>
+            <pattern>insight_edl_rec_v[0-9].bsp</pattern>
+            <pattern>insight_ida_enc_[0-9]{6}_[0-9]{6}_v[0-9].bc</pattern>
+        </coverage_kernels>
+        <mk name="insight_v$VERSION.tm">
+            <name>
+                <pattern lenght="2">VERSION</pattern>
+            </name>
+            <grammar>
+                <!-- LSK -->
+                <pattern>naif0012.tls</pattern>
+                <!-- PCK -->
+                <pattern>pck00010.tpc</pattern>
+                <!-- FK -->
+                <pattern>insight_v[0-9]{2}.tf</pattern>
+                <pattern>marcoa_v[0-9]{2}.tf</pattern>
+                <pattern>marcob_v[0-9]{2}.tf</pattern>
+                <!-- IK -->
+                <pattern>insight_ant_v[0-9]{2}.ti</pattern>
+                <pattern>insight_hp3_rad_v[0-9]{2}?.ti</pattern>
+                <pattern>insight_icc_[0-9]{8}_c[0-9]{2}.ti</pattern>
+                <pattern>insight_idc_[0-9]{8}_c[0-9]{2}.ti</pattern>
+                <!-- SCLK -->
+                <pattern>NSY_SCLKSCET.[0-9]{5}.tsc</pattern>
+                <pattern>nsy_sclkscet_[0-9]{5}.tsc</pattern>
+                <pattern>insight_lmst_ops181206_v[0-9].tsc</pattern>
+                <pattern>marcoa_fake_v[0-9]{2}.tsc</pattern>
+                <pattern>marcob_fake_v[0-9]{2}.tsc</pattern>
+                <!-- SPK -->
+                <pattern>marcoa_180505_190110_200101_v[0-9].bsp</pattern>
+                <pattern>marcob_180505_181228_200101_v[0-9].bsp</pattern>
+                <pattern>de430s.bsp</pattern>
+                <pattern>mar097s.bsp</pattern>
+                <pattern>insight_struct_v[0-9]{2}.bsp</pattern>
+                <pattern>insight_cru_ops_v[0-9].bsp</pattern>
+                <pattern>insight_edl_rec_v[0-9].bsp</pattern>
+                <pattern>insight_ls_ops181206_iau2000_v[0-9].bsp</pattern>
+                <pattern>insight_atls_ops181206_v[0-9].bsp</pattern>
+                <!-- CK -->
+                <pattern>marcoa_cru_rec_181125_181127_v[0-9]{2}.bc</pattern>
+                <pattern>marcob_cru_rec_181126_181127_v[0-9]{2}.bc</pattern>
+                <pattern>date:insight_ida_enc_[0-9]{6}_[0-9]{6}_v[0-9].bc</pattern>
+                <pattern>insight_cruise2lander_v[0-9].bc</pattern>
+                <pattern>insight_lander2cruise_v[0-9].bc</pattern>
+                <pattern>insight_cru_rec_180505_181126_v[0-9]{2}.bc</pattern>
+                <pattern>insight_edl_rec_v[0-9].bc</pattern>
+                <pattern>insight_surf_ops_v[0-9].bc</pattern>
+                <!-- DSK -->
+            </grammar>
+            <metadata>
+                <description>
+                    This meta-kernel lists the INSIGHT SPICE kernels providing coverage
+                    for the whole mission. All of the kernels listed below are archived
+                    in the PDS INSIGHT SPICE kernel archive. This set of files and the
+                    order in which they are listed were picked to provide the best
+                    available data and the most complete coverage for the specified year
+                    based on the information about the kernels available at the time
+                    this meta-kernel was made. For detailed information about the
+                    kernels listed below refer to the internal comments included in the
+                    kernels and the documentation accompanying the INSIGHT SPICE kernel
+                    archive.
+
+                    This meta-kernel also includes keywords setting the SPICE CHRONOS
+                    utility configuration parameters (spacecraft ID, planet ID, landing UTC,
+                    landing SOL index, and Sun GM).
+                </description>
+                <!-- The keyword field is used to speficy parameters such as the
+                     meta-kernel year.
+                -->
+                <keyword>
+                </keyword>
+                <data>
+                    SPACECRAFT_ID     = -189
+                    CENTER_ID         = 499
+                    LANDING_TIME      = '2018-11-26T19:44:52.444'
+                    LANDING_SOL_INDEX = 0
+                    BODY10_GM         = 1.3271244004193938E+11
+                </data>
+            </metadata>
+        </mk>
+    </meta-kernel>
+</naif-pds4-bundle_configuration>
