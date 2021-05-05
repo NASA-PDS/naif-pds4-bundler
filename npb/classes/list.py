@@ -53,7 +53,7 @@ class KernelList(List):
         self.RELID        = f'{int(setup.release):04d}'
         self.RELDATE      = setup.release_date
 
-        self.template = setup.root_dir + '/templates/template_kernel_list.txt'
+        self.template = f'{setup.root_dir}/templates/template_kernel_list.txt'
         self.read_config()
 
         #
@@ -89,6 +89,11 @@ class KernelList(List):
             re_config.append(re.compile(pattern))
 
         self.re_config = re_config
+        #
+        # Also store it in setup for later use in meta-kernel description
+        # generation.
+        #
+        self.setup.re_config = re_config
         self.json_config = json_config
 
         json_formatted_str = json.dumps(self.json_config, indent=2)
@@ -543,27 +548,27 @@ class KernelList(List):
             #
             # The PDS Mission Template file is not required for PDS4
             #
-            if self.setup.pds_version == '3':
-                logging.info('-- Check that all template tags used in the list are present in template:')
-                template = self.setup.root_dir + f'/config/{self.setup.mission_accronym }_mission_template.pds'
-                with open(template, 'r') as o:
-                    template_lines = o.readlines()
-
-
-                for option in opt_in_list:
-                    present = False
-                    for line in template_lines:
-                        if '--' + option in line:
-                            present = True
-                    if present:
-                        logging.info(f'     {option} is present.')
-                    else:
-                        error_message(f'{option} not in template.')
-
-                logging.info('')
-
-                if self.setup.interactive:
-                    input(">> Press Enter to continue...")
+            #if self.setup.pds_version == '3':
+            #    logging.info('-- Check that all template tags used in the list are present in template:')
+            #    template = self.setup.root_dir + f'/config/{self.setup.mission_accronym }_mission_template.pds'
+            #    with open(template, 'r') as o:
+            #        template_lines = o.readlines()
+            #
+            #
+            #    for option in opt_in_list:
+            #        present = False
+            #        for line in template_lines:
+            #            if '--' + option in line:
+            #                present = True
+            #        if present:
+            #            logging.info(f'     {option} is present.')
+            #        else:
+            #            error_message(f'{option} not in template.')
+            #
+            #    logging.info('')
+            #
+            #    if self.setup.interactive:
+            #        input(">> Press Enter to continue...")
 
 
             #
