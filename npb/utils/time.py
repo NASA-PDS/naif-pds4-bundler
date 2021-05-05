@@ -36,7 +36,7 @@ def creation_date(path):
 
     t = os.path.getmtime(path)
     timestamp = datetime.datetime.fromtimestamp(t)
-    date = datetime.datetime.strftime(timestamp, '%m %dT, %Y')
+    date = datetime.datetime.strftime(timestamp, '%m %d, %Y')
 
     creation_date = calendar.month_name[int(date[0:2])] + date[2:]
 
