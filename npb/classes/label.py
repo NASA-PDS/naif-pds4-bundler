@@ -443,8 +443,6 @@ class PDSLabel(object):
             dir      = self.setup.working_directory
 
             compare_files(fromfile, tofile, dir, self.setup.diff)
-        else:
-            logging.info('')
 
         if self.setup.interactive:
             input(">> Press enter to continue...")
@@ -469,7 +467,7 @@ class BundlePDS4Label(PDSLabel):
         self.FILE_NAME    = readme.name
         self.CURRENT_TIME = current_time()
         self.CURRENT_DATE = self.CURRENT_TIME.split('T')[0]
-        self.DOI          = '' #setup.doi
+        self.DOI          = self.setup.doi
 
 
         for collection in self.product.bundle.collections:

@@ -55,7 +55,7 @@ class Collection(object):
 
             except:
                 logging.warning(f'-- No {self.type} collection available in previous increment.')
-                logging.warning(f'-- Collection of {self.type} version set to release number: {int(self.setup.release)}.')
+                logging.warning(f'-- Collection of {self.type} version set to: {int(self.setup.release)}.')
                 vid = '{}.0'.format(int(self.setup.release))
                 logging.info('')
 
@@ -63,9 +63,8 @@ class Collection(object):
                     input(">> Press Enter to continue...")
 
         else:
-            logging.warning(f'-- Collection of {self.type} version set to release number: {int(self.setup.release)}.')
+            logging.warning(f'-- Collection of {self.type} version set to: {int(self.setup.release)}.')
             vid = '{}.0'.format(int(self.setup.release))
-            logging.info('')
             logging.info('')
 
             if self.setup.interactive:
@@ -141,59 +140,60 @@ class SpiceKernelsCollection(Collection):
         # First check if any of the increment are present in
         # each meta-kernel configuration.
         #
-        for kernel_product in self.product:
-            for mk in self.setup.mk:
-                #
-                # Boolean to determine whether if the meta-kernel needs to
-                # be generated.
-                #
-                generate_mk = False
-                for pattern in mk['grammar']['pattern']:
+        if self.setup.mk:
+            for kernel_product in self.product:
+                for mk in self.setup.mk:
                     #
-                    # meta-kernel grammars might have prefixes followed by
-                    # a colon, so we need to make sure we only use the name
-                    # and we do not use the ones with 'exclude:'.
+                    # Boolean to determine whether if the meta-kernel needs to
+                    # be generated.
                     #
-                    if  ('excluded:' not in pattern) and re.match(pattern.split(':')[-1], kernel_product.name):
-                        generate_mk = True
-
-                #
-                # Now we need to determine whether if this is a
-                # meta-kernel that needs to be generated multiple times.
-                #
-                # In addition the patterns of the meta-kernel name need to
-                # be completed. Currently there are two supported patterns:
-                #    - VERSION
-                #    - YEAR
-                #
-                if generate_mk:
-
-                    #
-                    # Loop the patterns.
-                    #
-                    if not isinstance(mk['name'], list):
-                        patterns = [mk['name']]
-                    else:
-                        patterns = mk['name']
-
-                    #
-                    # First we need to determine if multiple instances of this
-                    # meta-kernel are required; yearly meta-kernel.
-                    #
-
-                    for pattern in mk['name']:
+                    generate_mk = False
+                    for pattern in mk['grammar']['pattern']:
                         #
-                        # If present, determine the version.
+                        # meta-kernel grammars might have prefixes followed by
+                        # a colon, so we need to make sure we only use the name
+                        # and we do not use the ones with 'exclude:'.
                         #
-                        #if pattern['#text'] == "VERSION":
-                        pass
+                        if  ('excluded:' not in pattern) and re.match(pattern.split(':')[-1], kernel_product.name):
+                            generate_mk = True
 
-                    #meta_kernels.append(mk['@name'])
+                    #
+                    # Now we need to determine whether if this is a
+                    # meta-kernel that needs to be generated multiple times.
+                    #
+                    # In addition the patterns of the meta-kernel name need to
+                    # be completed. Currently there are two supported patterns:
+                    #    - VERSION
+                    #    - YEAR
+                    #
+                    if generate_mk:
 
-            #
-            # First check if any of the increment are present in
-            # each meta-kernel configuration.
-            #
+                        #
+                        # Loop the patterns.
+                        #
+                        if not isinstance(mk['name'], list):
+                            patterns = [mk['name']]
+                        else:
+                            patterns = mk['name']
+
+                        #
+                        # First we need to determine if multiple instances of this
+                        # meta-kernel are required; yearly meta-kernel.
+                        #
+
+                        for pattern in mk['name']:
+                            #
+                            # If present, determine the version.
+                            #
+                            #if pattern['#text'] == "VERSION":
+                            pass
+
+                        #meta_kernels.append(mk['@name'])
+
+                #
+                # First check if any of the increment are present in
+                # each meta-kernel configuration.
+                #
 
 
         return (meta_kernels, user_input)

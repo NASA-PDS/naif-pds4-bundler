@@ -72,6 +72,9 @@ Work List:
       * OREX:    10.17189/1520435
       * MAVEN:   10.17189/1520434
       * INSIGHT: 10.17189/1520436
+      * LADEE:   10.17189/1522402
+        Galileo: 10.17189/1522403
+
 
         Cassini SPICE Kernels V1.0: 10.17189/1520114
         Clementine SPICE Kernels V1.0: 10.17189/1520111

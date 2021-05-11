@@ -212,40 +212,43 @@ class Setup(object):
         #
         # Check meta-kernel configuration
         #
-        for metak in self.mk:
+        if self.mk:
+            for metak in self.mk:
 
-            #
-            # Turn all name_patterns to lists.
-            #
-            if not isinstance(metak['name'], list):
-                metak['name_patterns'] = list(metak['name'])
+                #
+                # Turn all name_patterns to lists.
+                #
+                if not isinstance(metak['name'], list):
+                    metak['name_patterns'] = list(metak['name'])
 
-            metal_name_check = metak['@name']
+                metal_name_check = metak['@name']
 
-            #
-            # Fix no list or list of lists.
-            #
-            patterns_dict = metak['name']['pattern']
-            if not isinstance(patterns_dict, list):
-                patterns = []
-                dictionary_copy = patterns_dict.copy()
-                patterns.append(dictionary_copy)
+                #
+                # Fix no list or list of lists.
+                #
+                patterns_dict = metak['name']['pattern']
+                if not isinstance(patterns_dict, list):
+                    patterns = []
+                    dictionary_copy = patterns_dict.copy()
+                    patterns.append(dictionary_copy)
+                else:
+                    patterns = patterns_dict
+
+                for pattern in patterns:
+                    name_pattern = pattern['#text']
+                    if not name_pattern in metal_name_check:
+                        error_message(f"The meta-kernel pattern {name_pattern} is not provided.")
+
+                    metal_name_check = metal_name_check.replace('$' + name_pattern, '')
+
+                #
+                # If there are remmaining $ characters in the metal_name_check this means that there are
+                # remaining patterns to define in the configuration file.
+                #
+                if '$' in metal_name_check:
+                    error_message(f'The meta-kernel patterns for are not defined via configuration.')
             else:
-                patterns = patterns_dict
-
-            for pattern in patterns:
-                name_pattern = pattern['#text']
-                if not name_pattern in metal_name_check:
-                    error_message(f"The meta-kernel pattern {name_pattern} is not provided.")
-
-                metal_name_check = metal_name_check.replace('$' + name_pattern, '')
-
-            #
-            # If there are remmaining $ characters in the metal_name_check this means that there are
-            # remaining patterns to define in the configuration file.
-            #
-            if '$' in metal_name_check:
-                error_message(f'The meta-kernel patterns for are not defined via configuration.')
+                logging.warning('-- There is no meta-kernel configuration to check.')
 
             return
 
@@ -263,7 +266,7 @@ class Setup(object):
         #
         # PDS4 release increment (implies inventory and meta-kernel)
         #
-        logging.info( '-- Checking existence of previous release' )
+        logging.info( '-- Checking existence of previous release.' )
 
         try:
             releases = glob.glob(self.final_directory + os.sep +
@@ -280,7 +283,7 @@ class Setup(object):
             increment = True
 
         except:
-            logging.warning('-- Bundle label not found. Checking previous kernel list')
+            logging.warning('-- Bundle label not found. Checking previous kernel list.')
 
             try:
                 releases = glob.glob(self.working_directory +
@@ -337,16 +340,16 @@ class Setup(object):
         pck_patterns = []
         lsk_patterns  = []
 
-        for mk in self.mk:
-            for pattern in mk['grammar']['pattern']:
-                if '.tf' in pattern.lower():
-                    fk_patterns.append(pattern.strip())
-                elif '.tsc' in pattern.lower():
-                    sclk_patterns.append(pattern.strip())
-                elif '.tpc' in pattern.lower():
-                    sclk_patterns.append(pattern.strip())
-                elif '.tls' in pattern.lower():
-                    lsk_patterns.append(pattern.strip())
+        for ker in self.kernel_list_config:
+            pattern = str(ker)
+            if '.tf' in pattern.lower():
+                fk_patterns.append(pattern.strip())
+            elif '.tsc' in pattern.lower():
+                sclk_patterns.append(pattern.strip())
+            elif '.tpc' in pattern.lower():
+                sclk_patterns.append(pattern.strip())
+            elif '.tls' in pattern.lower():
+                lsk_patterns.append(pattern.strip())
 
         #
         # Search the latest version for each pattern of each kernel type.

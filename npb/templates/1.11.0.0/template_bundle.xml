@@ -12,6 +12,7 @@
     <Citation_Information>
       <author_list>$AUTHOR_LIST</author_list>
       <publication_year>$CURRENT_YEAR</publication_year>
+      <doi>$DOI</doi>
       <keyword>Observation Geometry</keyword>
       <description>This bundle contains $PDS4_MISSION_NAME SPICE kernels and related documentation.</description>
     </Citation_Information>

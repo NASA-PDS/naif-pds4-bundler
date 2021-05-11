@@ -319,7 +319,14 @@ class KernelList(List):
                                         # user; there is no way this can be done
                                         # automatically.
                                         #
-                                        for val in patterns[el]:
+
+                                        #
+                                        # First we convert into a list in case there is just one
+                                        #
+                                        patterns_el = patterns[el]
+                                        if not isinstance(patterns_el, list):
+                                            patterns_el = [patterns_el]
+                                        for val in patterns_el:
                                             if kernel == val['@value']:
                                                 value = val['#text']
 

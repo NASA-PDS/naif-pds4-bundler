@@ -201,7 +201,11 @@ def get_context_products(setup):
     # configuration file.
     #
     appended_products = []
-    for product in setup.context_products['product']:
+    if not isinstance(setup.context_products['product'], list):
+        context_products_list = [setup.context_products['product']]
+    else:
+        context_products = setup.context_products['product']
+    for product in context_products_list:
         updated_product = False
         index = 0
         for registered_product in context_products:

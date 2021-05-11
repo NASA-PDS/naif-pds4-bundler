@@ -162,9 +162,16 @@ class Bundle(object):
             src = file
             rel_path = file.split(f'/{self.setup.mission_accronym}_spice/')[-1]
             rel_path = os.sep.join(rel_path.split(os.sep)[:-1])
-            dst = self.setup.final_directory + f'/{self.setup.mission_accronym}_spice/' + rel_path
+
+            dst = self.setup.final_directory + f'/{self.setup.mission_accronym}_spice/'
+            if not os.path.exists(dst):
+                os.mkdir(dst)
+
+            dst += rel_path
 
             if not os.path.exists(dst) or not filecmp.cmp(src, dst):
+                if not os.path.exists(dst):
+                    os.mkdir(dst)
                 copied_files.append(file)
                 shutil.copy2(src, dst)
                 logging.info(f'-- Copied: {file}')
@@ -227,15 +234,17 @@ class Bundle(object):
         # First of all we move the current version of the checksum file, if
         # it exists, in order to compare it with the new one afterwards.
         #
-        mtime = os.path.getmtime(f'{self.setup.final_directory}/checksum.tab')
+        if os.path.exists(f'{self.setup.final_directory}/checksum.tab'):
 
-        date_time = datetime.datetime.fromtimestamp(mtime).strftime("%Y%m%d")
+            mtime = os.path.getmtime(f'{self.setup.final_directory}/checksum.tab')
 
-        self.checksum         =  f'{self.setup.final_directory}/checksum.tab'
-        self.current_checksum =  f'{self.setup.final_directory}/checksum.tab.{date_time}'
+            date_time = datetime.datetime.fromtimestamp(mtime).strftime("%Y%m%d")
 
-        logging.info(f'-- Temporarily moving current checksum to {self.current_checksum}')
-        shutil.move(self.checksum, self.current_checksum)
+            self.checksum         =  f'{self.setup.final_directory}/checksum.tab'
+            self.current_checksum =  f'{self.setup.final_directory}/checksum.tab.{date_time}'
+
+            logging.info(f'-- Temporarily moving current checksum to {self.current_checksum}')
+            shutil.move(self.checksum, self.current_checksum)
 
         #
         # We remove spurious .DS_Store files if we are working with MacOS.
@@ -272,8 +281,9 @@ class Bundle(object):
         if self.setup.interactive:
             input(">> Press enter to continue...")
 
-        logging.info('-- Comparing checksum with previous version...')
-        self.compare_checksum()
+        if hasattr(self, 'current_checksum'):
+            logging.info('-- Comparing checksum with previous version...')
+            self.compare_checksum()
 
         if self.setup.interactive:
             input(">> Press enter to continue...")

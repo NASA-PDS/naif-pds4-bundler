@@ -351,26 +351,26 @@ class MetaKernelProduct(Product):
         # Add the configuration items for the meta-kernel.
         # This includes sorting out the meta-kernel name.
         #
-        for mk in setup.mk:
+        if setup.mk and not user_input:
+            for mk in setup.mk:
 
-            patterns_dict = mk['name']['pattern']
-            if not isinstance(patterns_dict, list):
-                patterns = []
-                dictionary_copy = patterns_dict.copy()
-                patterns.append(dictionary_copy)
-            else:
-                patterns = patterns_dict
+                patterns_dict = mk['name']['pattern']
+                if not isinstance(patterns_dict, list):
+                    patterns = []
+                    dictionary_copy = patterns_dict.copy()
+                    patterns.append(dictionary_copy)
+                else:
+                    patterns = patterns_dict
 
-            try:
-                values = match_patterns(self.name, mk['@name'],patterns)
-                self.mk_setup = mk
-                self.version = values['VERSION']
-            except:
-                pass
+                try:
+                    values = match_patterns(self.name, mk['@name'],patterns)
+                    self.mk_setup = mk
+                    self.version = values['VERSION']
+                except:
+                    pass
 
-        if not hasattr(self, 'mk_setup'):
-            error_message(f'Meta-kernel {self.name} has not been matched in configuration.')
-
+            if not hasattr(self, 'mk_setup'):
+                error_message(f'Meta-kernel {self.name} has not been matched in configuration.')
 
         if setup.pds_version == '3':
             self.collection_path = setup.staging_directory + os.sep + \
@@ -419,7 +419,12 @@ class MetaKernelProduct(Product):
         #
         # Check product version.
         #
-        self.check_version()
+        #TODO remove this try except statement and reimplement the version
+        #check for.
+        try:
+            self.check_version()
+        except:
+            pass
 
         #
         # Generate the product LIDVID.
@@ -541,7 +546,7 @@ class MetaKernelProduct(Product):
         try:
             product_vid = str(self.version) + '.0'
         except:
-            logging.warning(f'{self.name} No vid explicit in kernel name: set to 1.0')
+            logging.warning(f'-- {self.name} No vid explicit in kernel name: set to 1.0')
             product_vid = '1.0'
 
         return product_vid
@@ -1489,7 +1494,6 @@ class SpicedsProduct(object):
         #
         if self.generated:
             self.compare()
-            logging.info('')
 
             self.label = DocumentPDS4Label(setup, collection, self)
 
@@ -1560,7 +1564,7 @@ class SpicedsProduct(object):
             logging.warning(f'-- No other version of {self.name} has been found.')
             logging.warning(f'-- Comparing with default InSight example.')
 
-            val_spd = f'{self.setup.root_dir}tests/data/spiceds_test.html'
+            val_spd = f'{self.setup.root_dir}tests/data/spiceds_insight.html'
 
         logging.info('')
         fromfile = val_spd

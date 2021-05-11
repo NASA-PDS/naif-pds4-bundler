@@ -1,28 +1,26 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
-<title>The INSIGHT SPICE Data Archive</title>
+<title>The LADEE SPICE Data Archive</title>
 </head>
 <body>
 
 <pre>
-The INSIGHT SPICE Data Archive
+The LADEE SPICE Data Archive
 ========================================================================
 
-   Last update: March 11, 2021
+   Last update: May 6, 2021
 
 <A NAME="Introduction"></A>
 Introduction
 ============
 
-   This document describes the INSIGHT SPICE archive, containing
+   This document describes the LADEE SPICE archive, containing
    observation geometry and other ancillary data in the form of SPICE
-   System kernel files for the INSIGHT lander and its instruments and
-   structures, and for MARCO-A and MARCO-B spacecraft and their
-   instruments and structures. It describes the archive directory
-   structure, kernels included in the archive, their naming
-   conventions, and provides pointers to the SPICE software and
-   documentation.
+   System kernel files for the LADEE spacecraft and its instruments and
+   structures. It describes the archive directory structure, kernels
+   included in the archive, their naming conventions, and provides
+   pointers to the SPICE software and documentation.
 
 <A NAME="Table of Contents"></A>
 Table of Contents
@@ -53,23 +51,20 @@ Table of Contents
 Overview
 ========
 
-   This archive includes the complete set of INSIGHT, MARCO-A, and
-   MARCO-B SPICE data files (kernel files), which can be accessed using
-   SPICE software. The SPICE data contain geometric and other ancillary
-   information needed to recover the full value of science instrument
-   data. In particular SPICE kernels provide spacecraft and planetary
-   ephemerides, spacecraft and instrument orientation, instrument
-   mounting alignments, and data needed for relevant time conversions.
-   Data in the SPICE kernel files must be accessed using the software
-   called the SPICE Toolkit produced and distributed by the Navigation
-   and Ancillary Information Facility (NAIF) Node of the Planetary Data
-   System.
+   This archive includes the complete set of LADEE, SPICE data files
+   (kernel files), which can be accessed using SPICE software. The
+   SPICE data contain geometric and other ancillary information needed
+   to recover the full value of science instrument data. In particular
+   SPICE kernels provide spacecraft and planetary ephemerides, spacecraft
+   and instrument orientation, instrument mounting alignments, and data
+   needed for relevant time conversions. Data in the SPICE kernel files
+   must be accessed using the software called the SPICE Toolkit produced
+   and distributed by the Navigation and Ancillary Information Facility
+   (NAIF) Node of the Planetary Data System.
 
-   This archive includes data covering from INSIGHT launch, 2018-05-05,
-   through the end time of the latest Instrument Deployment Arm (IDA)
-   orientation file supplied in the archive. Until the end of the
-   spacecraft lifespan this archive will be accumulating with new data
-   added according to the project archiving plan.
+   This archive includes data covering from the later phase of the LADEE
+   launch, 2013-09-07, through the approximate lunar impact end-of-mission,
+   2014-04-18.
 
 <p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
 <A NAME="Errata"></A>
@@ -85,21 +80,6 @@ Errata
       style consistent across all archives, this document continues
       to exist in this archive as an HTML document.
 
-   2. All MARCO-A and MARCO-B kernels included in the archive
-      are labeled as being associate the INSIGHT instrument host.
-
-   3. No SCLK kernels the instrument clocks (LOBT and AOBT) are
-      provided or planned to be provided for.
-
-   4. No deflected IDC SPKs and CKs are yet included in the archive.
-      Some may be included in subsequent releases.
-
-   5. The IDC and ICC frames definitions provided in the INSIGHT mission
-      FK and their parameters provided in the corresponding IKs have
-      not been full validated and, if used to compute derived geometry
-      for these instruments, may produce results differing from the
-      same kinds of geometric parameters provided in the image labels.
-
 <p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
 <A NAME="Archive Contents"></A>
 Archive Contents
@@ -113,7 +93,7 @@ Archive Contents
 
    <a href="../">[top-level-directory]</a>
    |
-   |- bundle_insight_spice_v*.xml         Bundle PDS4 label, one or more versions.
+   |- bundle_ladee_spice_v*.xml         Bundle PDS4 label, one or more versions.
    |- <a href="../readme.txt">readme.txt</a>                        Bundle top-level readme file.
    |
    |-<a href="../spice_kernels/">[spice_kernels]</a>                     Directory containing SPICE kernels.
@@ -149,7 +129,7 @@ Archive Contents
    | |
    | |-<a href="../spice_kernels/pck/">[pck]</a>                             Directory containing PCK files.
    | | |
-   | | |-- *.tpc                         Text PCK files.
+   | | |-- *.tpc                         Text and binary PCK files.
    | | +-- *.xml                         PDS4 labels for PCK files.
    | |
    | |-<a href="../spice_kernels/sclk/">[sclk]</a>                            Directory containing SCLK files.
@@ -255,56 +235,19 @@ SPK Files
             These SPKs contain ephemeris data for the Solar System
             planet barycenters, and Sun, Mercury, Venus, Earth, and
             Moon, determined by the JPL Solar System Dynamics group and
-            are named DEXXX, e.g. DE430.
+            are named DEXXX, e.g. DE432.
 
-      -  Martian satellite ephemeris SPKs
+      -  reconstructed spacecraft trajectory SPKs
 
-            These SPKs contain ephemeris data for Mars, Phobos, Deimos,
-            Sun, Earth barycenter, and Earth, determined by the
-            JPL Solar System Dynamics group and are named MARXXX, e.g.
-            MAR097.
+            These SPKs contain the reconstructed LADEE spacecraft
+            trajectory for cruise determined by the LADEE Navigation
+            (NAV) team, GSFC.
 
-      -  reconstructed spacecraft cruise trajectory SPKs
+      -  actual impact site position SPKs
 
-            These SPKs contain the reconstructed INSIGHT spacecraft
-            trajectory for cruise determined by the INSIGHT Navigation
-            (NAV) team, JPL.
-
-      -  reconstructed spacecraft EDL trajectory SPKs
-
-            These SPKs contain the reconstructed INSIGHT spacecraft
-            trajectory during Entry Descent Landing (EDL) determined by
-            the INSIGHT EDL team, LMCO.
-
-      -  actual landing site position SPKs
-
-            These SPKs contain the actual location of the INSIGHT
-            landing site in the Mars body-fixed frame, determined by
-            the INSIGHT science team.
-
-      -  landing site -to- lander offset SPKs
-
-            These SPKs contain the zero offset between the INSIGHT landing
-            site and the lander.
-
-      -  structures SPKs
-
-            These SPKs contain fixed locations of selected spacecraft
-            structures and science instruments, based on the INSIGHT
-            engineering documentation.
-
-      -  deflected IDC position SPKs
-
-            These SPKs contain the deflected (gravity-compensated)
-            position of the INSIGHT Instrument Deployment Camera (IDC),
-            based on IDA telemetry and covering only IDC image times.
-
-      -  MARCO-A and MARCO-B trajectory SPKs
-
-            These SPKs contain the reconstructed MARCO-A and MARCO-B
-            spacecraft trajectories for cruise determined by the JPL
-            Navigation (NAV) team, JPL.
-
+            These SPKs contain the actual location of the LADEE
+            end-of-mission impact site in the Moon body-fixed frame,
+            determined by the LADEE Navigation (NAV) team, GSFC.
 
    The SPK files are provided under the <a href="../spice_kernels/spk/">spice_kernels/spk</a>
    directory and are named according to the following schemes:
@@ -321,115 +264,35 @@ SPK Files
                          coverage was shortened to reduce the file
                          size.
 
-      -  Martian satellite ephemeris SPKs
-
-               marVVVs.bsp
-
-            where
-
-               VVV       is the ephemeris version.
-
-               s         (optional) indicates that the original file
-                         coverage was shortened to reduce the file
-                         size.
-
       -  reconstructed spacecraft cruise trajectory SPKs
 
-               insight_cru_SSS_vV.bsp
+               ladee_r_YYMMDD_YYMMDD_PPP_vVV.bsp
 
             where
 
-               SSS       is the solution source:
+               YYMMDD    are the file coverage start and stop dates
 
-                            ops    operational solution
+               PPP       is the mission phase:
 
-               V         is the version; the file with the latest
-                         version supersedes all similarly named files
-                         with earlier versions.
-
-      -  reconstructed spacecraft EDL trajectory SPKs
-
-               insight_edl_rec_vV.bsp
-
-            where
-
-               V         is the version; the file with the latest
-                         version supersedes all similarly named files
-                         with earlier versions.
-
-      -  actual landing site position SPKs
-
-               insight_ls_opsYYMMDD_iauYYYY_vV.bsp
-
-            where
-
-               YYMMDD    is the date when the landing site location
-                         stored in the file was determined or
-                         released.
-
-               YYYY      is the publication year of the IAU Mars
-                         rotation model, with which this SPK should be
-                         used.
-
-               V         is the version; the file with the latest
-                         version supersedes all similarly named files
-                         with earlier versions.
-
-      -  landing site -to- lander offset SPKs
-
-               insight_atls_opsYYMMDD_vV.bsp
-
-            where
-
-               YYMMDD    is the date consistent with the corresponding
-                         landing site position SPK.
-
-               V         is the version; the file with the latest
-                         version supersedes all similarly named files
-                         with earlier versions.
-
-      -  structures SPKs
-
-               insight_struct_vVV.bsp
-
-            where
+                            pha    launch and phasing loop
+                            loa    lunar orbit acquisiton and comissioning
+                            sci    primary and extended science phases
 
                VV        is the version; the file with the latest
                          version supersedes all similarly named files
                          with earlier versions.
 
-      -  deflected IDC position SPKs
+    -  actual impact site position SPKs
 
-               insight_idc_rec_YYMMDD_YYMMDD_vV.bsp
-
-            where
-
-               YYMMDD    are the file coverage start and stop dates.
-
-               V         is the version; the file with the latest
-                         version supersedes all similarly named files
-                         with earlier versions.
-
-      -  MARCO-A and MARCO-B trajectory SPKs
-
-               marcoS_YYMMDD_yymmdd_YYMMDD_vV.bsp
+               ladee_r_YYMMDD_YYMMDD_imp_vVV.bsp
 
             where
 
-               S         is the spacecraft identifier:
+               YYMMDD    are the file coverage start and stop dates
 
-                            a      MARCO-A
-                            b      MARCO-B
-
-               YYMMDD    are the file coverage start and stop dates.
-
-               yymmdd    is the end date of the reconstructed part of the
-                         file.
-
-               V         is the version; the file with the latest
+               VV        is the version; the file with the latest
                          version supersedes all similarly named files
                          with earlier versions.
-
 
    The most detailed description of the data in each SPK file is
    provided in metadata included inside the comment area of the file.
@@ -445,10 +308,25 @@ PCK Files
    size and shape specifications, and orientation of the spin axis and
    prime meridian.
 
-   This archive includes generic text PCK files produced by NAIF,
-   containing data from the reports of the IAU Working Group on
-   Cartographic Coordinates and Rotational Elements. The generic text
-   PCK version 00010 contains data from the 2009 report.
+   This archive includes text and binary PCK files containing the following
+   kind of data:
+
+      - generic text PCKs
+
+           These PCKs contain data from the reports of the IAU Working
+           Group on Cartographic Coordinates and Rotational Elements.
+           The generic text PCK version 00010 contains data from the 2009
+           report. Produced by NAIF, JLP.
+
+      - high accuracy lunar orientation binary PCKs
+
+           These PCKs contain high accuracy lunar orientation data from the
+           JPL Solar System Dynamics Group's planetary ephemeris DE421. This
+           kernel yields the orientation the the lunar principal axes (PA)
+           reference frame (defined by DE421) relative to the ICRF.
+           Applications using this file will also need to load a generic
+           lunar frame kernel also provided in this archive. Produced by
+           NAIF, JLP.
 
    The PCK files are provided under the <a href="../spice_kernels/pck/">spice_kernels/pck</a>
    directory and are named according to the following scheme:
@@ -465,9 +343,24 @@ PCK Files
                          or an earlier version, is appropriate
                          for his/her analysis task.
 
+      -  high accuracy lunar orientation PCKs
+
+              moon_pa_deVVV_YYYY_YYYY.bpc
+
+            where
+
+               VVV       is the ephemeris version
+
+               YYYY      are the file coverage start and stop years.
+
    The most detailed description of the data in a text PCK file is
    provided in metadata included inside the description area of the
    file. This information can be viewed using any text editor program.
+
+   The most detailed description of the data in a binary PCK file is
+   provided in metadata included inside the comment area of the file.
+   This information can be viewed using the utility program COMMNT
+   included in the NAIF Toolkit.
 
 <p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
 <A NAME="IK Files"></A>
@@ -478,40 +371,26 @@ IK Files
    field-of-view definitions, CCD and optical distortion
    characteristics, and internal timing parameters.
 
-   This archive includes text IK files for INSIGHT instruments, for
+   This archive includes text IK files for LADEE instruments, for
    which common instrument geometric parameters normally stored in IKs
-   are applicable, such as Instrument Context Camera (ICC), Instrument
-   Deployment Camera (IDD), and Heat Flow and Physical Properties
-   Package (HP3) Radiometer, and for the INSIGHT antennas.
+   are applicable, such as Lunar Dust EXperiment (LDEX), Neutral Mass
+   Spectometer (NMS), and Ultraviolet and Visible light Spectrometer (UVS).
 
    The IK files are provided under the <a href="../spice_kernels/ik/">spice_kernels/ik</a>
    directory and are named according to the following scheme:
 
-      -  instruments (other than cameras) and antennae IK files
+      -  instruments IK files
 
-               insight_NAME_vVV.ti
-
-            where
-
-               NAME      is the instrument acronym:
-
-                            ant      (for antennae)
-                            hp3_rad  (for HP3 Radiometer)
-
-               VV        is the version; the file with the latest
-                         version supersedes all similarly named
-                         files with earlier versions.
-
-      -  camera IK files
-
-               insight_NAME_YYYYMMDD_c03.ti
+               ladee_NAME_vVV.ti
 
             where
 
                NAME      is the instrument acronym:
 
-                            icc      (Instrument Context Camera)
-                            idc      (Instrument Deployment Camera
+                            ldx    Lunar Dust EXperiment (LDEX)
+                            nms    Neutral Mass Spectometer (NMS)
+                            uvs    Ultraviolet and Visible light
+                                   Spectrometer (UVS)
 
                VV        is the version; the file with the latest
                          version supersedes all similarly named
@@ -529,149 +408,23 @@ CK Files
    spacecraft, articulating spacecraft structures, and articulating
    science instruments.
 
-   This archive includes binary CK files containing the following kinds
-   of orientation data:
-
-      -  reconstructed spacecraft cruise orientation CKs
-
-            These CKs contain the reconstructed INSIGHT spacecraft
-            cruise attitude determined on-board and downlinked in
-            spacecraft telemetry.
-
-      -  reconstructed spacecraft EDL orientation CKs
-
-            These CKs contain the reconstructed INSIGHT spacecraft EDL
-            attitude, from the EDL entry point to landing, determined
-            by INSIGHT EDL team,
-
-      -  reconstructed spacecraft landed orientation CKs
-
-            These CKs contain the reconstructed INSIGHT spacecraft
-            landed attitude based on post-landing assessment done by the
-            project engineering team.
-
-      -  cruise-lander frame connection CKs
-
-            These CKs contain the fixed rotations between the INSIGHT
-            lander and cruise frames needed to complete SPICE reference
-            chains at all times.
-
-      -  MARCO-A and MARCO-B orientation CKs
-
-            These CKs contain the reconstructed MARCO-A and MARCO-B
-            attitude determined on-board and downlinked in spacecraft
-            telemetry.
-
-      -  IDA orientation CKs
-
-            These CKs contain the reconstructed encoder or
-            potentiometer telemetry-based orientation of the INSIGHT
-            Instrument Deployment Arm (IDA) joints.
-
-      -  deflected IDC orientation CKs
-
-            These CKs contain the deflected (gravity-compensated)
-            encoder or potentiometer telemetry-based orientation of the
-            INSIGHT Instrument Deployment Camera (IDC).
-
+   This archive includes binary CK files containing the reconstructed
+   spacecraft orientation covering the whole mission.
 
    The CK files are provided under the <a href="../spice_kernels/ck/">spice_kernels/ck</a>
    directory and are named according to the following scheme:
 
       -  reconstructed spacecraft cruise orientation CKs
 
-               insight_cru_rec_YYMMDD_YYMMDD_vVV.bc
+               ladee_YYMMDD_YYMMDD_vVV.bc
 
             where
 
-               YYMMDD    are the file coverage start and stop dates.
+               YYMMDD    are the file coverage start and stop dates
 
                VV        is the version; the file with the latest
                          version supersedes all similarly named files
                          with earlier versions.
-
-      -  reconstructed spacecraft EDL orientation CKs
-
-               insight_edl_rec_vV.bc
-
-            where
-
-               V         is the version; the file with the latest
-                         version supersedes all similarly named files
-                         with earlier versions.
-
-      -  reconstructed spacecraft landed orientation CKs
-
-               insight_surf_ops_vV.bc
-
-            where
-
-               V         is the version; the file with the latest
-                         version supersedes all similarly named files
-                         with earlier versions.
-
-      -  cruise-lander frame connection CKs
-
-               insight_cruise2lander_vV.bc
-               insight_lander2cruise_vV.bc
-
-            where
-
-               V         is the version; the file with the latest
-                         version supersedes all similarly named files
-                         with earlier versions.
-
-      -  MARCO-A and MARCO-B orientation CKs
-
-               marcoS_cru_rec_YYMMDD_YYMMDD_vVV.bc
-
-            where
-
-               S         is the spacecraft identifier:
-
-                            a      MARCO-A
-                            b      MARCO-B
-
-               YYMMDD    are the file coverage start and stop dates.
-
-               VV        is the version; the file with the latest
-                         version supersedes all similarly named files
-                         with earlier versions.
-
-      -  IDA orientation CKs
-
-               insight_ida_SSS_YYMMDD_YYMMDD_vV.bc
-
-            where
-
-               SSS       is the IDA joint angle value source:
-
-                            enc    encoders
-                            pot    potentiometers
-
-               YYMMDD    are the file coverage start and stop dates.
-
-               V         is the version; the file with the latest
-                         version supersedes all similarly named files
-                         with earlier versions.
-
-      -  deflected IDC orientation CKs
-
-               insight_idc_SSS_YYMMDD_YYMMDD_vV.bc
-
-            where
-
-               SSS       is the IDA joint angle value source:
-
-                            enc    encoders
-                            pot    potentiometers
-
-               YYMMDD    are the file coverage start and stop dates.
-
-               V         is the version; the file with the latest
-                         version supersedes all similarly named files
-                         with earlier versions.
-
 
    The most detailed description of the data in each CK file is
    provided in metadata included inside the comment area of the file.
@@ -689,8 +442,8 @@ LSK Files
 
    This archive includes generic text LSK files produced by NAIF,
    containing leapsecond information based on the IERS announcements.
-   The generic text LSK version 0012 contains leap second data up to
-   and including the January 1, 2017 leapsecond.
+   The generic text LSK version 0010 contains leap second data up to
+   and including the June 30, 2012 leapsecond.
 
    The LSK files are provided under the <a href="../spice_kernels/lsk/">spice_kernels/lsk</a>
    directory and are named according to the following scheme:
@@ -718,53 +471,22 @@ SCLK Files
    time (ET) and spacecraft on-board time (SCLK).
 
    This archive includes text SCLK files containing correlation data
-   for the main INSIGHT on-board clock, text SCLK files supporting
-   INSIGHT Local Mean Solar Time (LMST) to Ephemeris Time conversions,
-   and text SCLK files implementing fictitious clock correlations for
-   MARCO-A and MARCO-B required to access their CK files.
+   for the main LADEE on-board clock.
 
    The SCLK files are provided under the <a href="../spice_kernels/sclk/">spice_kernels/sclk</a>
    directory and are named according to the following scheme:
 
-      -  main INSIGHT spacecraft clock SCLK files
+      -  main LADEE spacecraft clock SCLK files
 
-               nsy_sclkscet_VVVVV.tsc
-
-            where
-
-               VVVVV     is the version; the file with the latest
-                         version supersedes all similarly named
-                         files with earlier versions.
-
-
-      -  INSIGHT LMST SCLK files
-
-               insight_lmst_opsYYMMDD_vV.tsc
+               ladee_clkcor_YYMMDD_YYMMDD_VV.tsc
 
             where
 
-               YYMMDD    is the date consistent with the corresponding
-                         landing site position SPK.
-
-               V         is the version; the file with the latest
-                         version supersedes all similarly named
-                         files with earlier versions.
-
-      -  MARCO fictitious SCLK files
-
-               marcoS_fake_vVV.tsc
-
-            where
-
-               S         is the spacecraft identifier:
-
-                            a      MARCO-A
-                            b      MARCO-B
+               YYMMDD    are the file applicability start and stop dates
 
                VV        is the version; the file with the latest
                          version supersedes all similarly named
                          files with earlier versions.
-
 
    The most detailed description of the data in a text SCLK file is
    provided in metadata included inside the description area of the
@@ -782,20 +504,19 @@ FK Files
    instruments.
 
    This archive includes text FK files defining reference frames for
-   the INSIGHT lander, its structures, and science instruments, and for
-   MARCO-A and MARCO-B spacecraft and their structures and instruments.
-   The MARCO-A and MARCO-B FK files also include definitions of structure
-   and instrument FOVs. These FKs were produced by NAIF using the
-   spacecraft and instrument design documentation as well as actual
-   instrument alignment values determined pre-launch and as the result
-   of in-flight calibrations.
+   the LADEE spacecraft, its structures, and science instruments.
+
+   It also includes text FK files specifying lunar body-fixed reference
+   frames associated with high-accuracy lunar orientation data and text
+   FK files to either associate ``Mean Earth'' (ME) or ``Principal Axis''
+   (PA) frames with the Moon.
 
    The FK files are provided under the <a href="../spice_kernels/fk/">spice_kernels/fk</a>
    directory and are named according to the following scheme:
 
-      -  INSIGHT mission FK files
+      -  LADEE mission FK files
 
-               insight_vVV.tf
+               ladee_vVV.tf
 
             where
 
@@ -803,20 +524,24 @@ FK Files
                          version supersedes all similarly named
                          files with earlier versions.
 
-      -  MARCO FK files
+      -  Lunar reference frame specification FK files
 
-               marcoS_vVV.tf
+               moon_YYMMDD.tf
 
             where
 
-               S         is the spacecraft identifier:
+               YYMMDD    is the original release date of the file.
 
-                            a      MARCO-A
-                            b      MARCO-B
+      -  Lunar reference frame association FK files
 
-               VV        is the version; the file with the latest
-                         version supersedes all similarly named
-                         files with earlier versions.
+               moon_assoc_FF.tf
+
+            where
+
+                FF       is the frame to associate with the Moon:
+
+                            me     Mean Earth
+                            pa     Principal Axis.
 
    The most detailed description of the data in a text MK file is
    provided in metadata included inside the description area of the
@@ -835,33 +560,15 @@ MK Files
    The text MK files are provided under the <a href="../spice_kernels/mk/">spice_kernels/mk</a>
    directory and are named according to the following scheme:
 
-      -  INSIGHT whole mission MK files
+      -  LADEE whole mission MK files
 
-               insight_vVV.tm
+               ladee_vVV.tm
 
             when
 
                VV        is the version; the file with the latest
                          version supersedes all similarly named
                          files with earlier versions.
-
-   Multiple versions of a meta-kernel for the same year may exist if
-   new kernels were added to the archive in a later release and the
-   meta-kernel for that year had to be updated to incorporate them. The
-   reasons for adding new kernels include (but are not limited to)
-   adding new kinds of kernels, adding new versions of existing kernels
-   containing more complete or more accurate data, and adding new
-   versions of existing kernels superseding the existing kernels that
-   had errors. If more than one meta-kernel file for the same year is
-   present, then the file with the latest version number supersedes all
-   earlier versions. The latest yearly meta-kernels can be loaded
-   together sorted by year to provide coverage for more than one year.
-   (Note that on some environments loading too many kernels at once may
-   slow down data access.)
-
-   In addition, all meta-kernels also includes keywords setting the
-   SPICE CHRONOS utility configuration parameters (spacecraft ID,
-   planet ID, landing UTC, landing SOL index, and Sun GM).
 
    Although the meta-kernels were created such that on a UNIX
    workstation they can be loaded into a SPICE-based application
@@ -881,11 +588,10 @@ MK Files
    these meta-kernels:
 
       -  the latest archived versions of LSK, PCK, and each kind of
-         SCLKs, IKs, FKs, SPKs, and CKs (except for IDA and IDC CKs)
-         were included
+         SCLKs, IKs, FKs, SPKs, and CKs were included
 
-      -  for IDA and IDC CKs, only latest encoder-based CKs were
-         included
+      -  the lunar reference frame is associated with the 'Principal Axes'
+         frame.
 
    Additional description of the kernels sets listed in a text MK file is
    provided in metadata included inside the description area of the
@@ -919,7 +625,7 @@ File Formats
    to the native format of the platform of interest. BINGO is available
    from the utilities page at the NAIF Node of the PDS:
 
-      <a href="http://naif.jpl.nasa.gov/naif/utilities.html">http://naif.jpl.nasa.gov/naif/utilities.html</a>
+      <a href="https://naif.jpl.nasa.gov/naif/utilities.html">https://naif.jpl.nasa.gov/naif/utilities.html</a>
 
 <p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
 <A NAME="SPICE Software and Documentation"></A>
@@ -930,17 +636,17 @@ SPICE Software and Documentation
    additional utility programs, documentation, tutorials, and hands-on
    lessons are available at the NAIF Node of the PDS:
 
-      <a href="http://naif.jpl.nasa.gov">http://naif.jpl.nasa.gov</a>
+      <a href="https://naif.jpl.nasa.gov">https://naif.jpl.nasa.gov</a>
 
    specifically:
 
-      Toolkit:   <a href="http://naif.jpl.nasa.gov/naif/toolkit.html">http://naif.jpl.nasa.gov/naif/toolkit.html</a>
+      Toolkit:   <a href="https://naif.jpl.nasa.gov/naif/toolkit.html">https://naif.jpl.nasa.gov/naif/toolkit.html</a>
 
-      Utilities: <a href="http://naif.jpl.nasa.gov/naif/utilities.html">http://naif.jpl.nasa.gov/naif/utilities.html</a>
+      Utilities: <a href="https://naif.jpl.nasa.gov/naif/utilities.html">https://naif.jpl.nasa.gov/naif/utilities.html</a>
 
-      Tutorials: <a href="http://naif.jpl.nasa.gov/naif/tutorials.html">http://naif.jpl.nasa.gov/naif/tutorials.html</a>
+      Tutorials: <a href="https://naif.jpl.nasa.gov/naif/tutorials.html">https://naif.jpl.nasa.gov/naif/tutorials.html</a>
 
-      Lessons:   <a href="http://naif.jpl.nasa.gov/naif/lessons.html">http://naif.jpl.nasa.gov/naif/lessons.html</a>
+      Lessons:   <a href="https://naif.jpl.nasa.gov/naif/lessons.html">https://naif.jpl.nasa.gov/naif/lessons.html</a>
 
 <p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
 <A NAME="Contact Information"></A>
@@ -954,7 +660,7 @@ Contact Information
    4800 Oak Grove Drive
    Pasadena, CA, 91109-8099
    818-354-8136
-   WWW Site: <a href="http://naif.jpl.nasa.gov">http://naif.jpl.nasa.gov</a>
+   WWW Site: <a href="https://naif.jpl.nasa.gov">https://naif.jpl.nasa.gov</a>
 
 <p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
 <A NAME="Cognizant Persons"></A>
@@ -966,7 +672,7 @@ Cognizant Persons
    Facility Node, Jet Propulsion Laboratory, Pasadena, California.
 
 
-End of INSIGHT SPICE archive description.
+End of LADEE SPICE archive description.
 <p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
 </pre>
 

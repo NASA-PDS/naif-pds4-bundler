@@ -221,6 +221,18 @@
                 JPL.
             </description>
         </kernel>
+        <kernel pattern="mvn_sc_pred_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9].bc">
+            <mklabel_options></mklabel_options>
+            <description>SPICE CK file containing predicted orientation of the MAVEN spacecraft, created by NAIF,
+                JPL.
+            </description>
+        </kernel>
+        <kernel pattern="mvn_app_pred_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9].bc">
+            <mklabel_options></mklabel_options>
+            <description>SPICE CK file containing predicted orientation of the MAVEN Articulated Payload Platform
+                (APP), created by NAIF, JPL.
+            </description>
+        </kernel>
         <kernel pattern="maven_[0-9][0-9][0-9][0-9]_v[0-9][0-9].tm">
             <mklabel_options></mklabel_options>
             <description>SPICE MK file listing kernels for $YEAR, created by NAIF, JPL.</description>
@@ -275,8 +287,10 @@
                 <pattern>maven_struct_v[0-9]{2}.bsp</pattern>
                 <pattern>date:maven_orb_rec_[0-9]{6}_[0-9]{6}_v[0-9].bsp</pattern>
                 <!-- CK -->
+                <pattern>date:mvn_app_pred_[0-9]{6}_[0-9]{6}_v[0-9]{2}.bc</pattern>
                 <pattern>date:mvn_app_rel_[0-9]{6}_[0-9]{6}_v[0-9]{2}.bc</pattern>
                 <pattern>mvn_swea_nom_131118_300101_v[0-9]{2}.bc</pattern>
+                <pattern>date:mvn_sc_pred_[0-9]{6}_[0-9]{6}_v[0-9]{2}.bc</pattern>
                 <pattern>date:mvn_sc_rel_[0-9]{6}_[0-9]{6}_v[0-9]{2}.bc</pattern>
                 <!-- DSK -->
             </grammar>
