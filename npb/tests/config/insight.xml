@@ -61,7 +61,7 @@
         <kernels_to_load>
             <lsk>naif[0-9][0-9][0-9][0-9].tls</lsk>
             <sclk>NSY_SCLKSCET_[0-9][0-9][0-9][0-9][0-9].tsc</sclk>
-            <fk>insight_v[0-9][0-9].tf</fk>
+            <fk>../data/kernels/fk/insight_v05.tf</fk>
             <sclk>marcoa_fake_v[0-9][0-9].tsc</sclk>
             <fk>marcob_v[0-9][0-9].tf</fk>
         </kernels_to_load>

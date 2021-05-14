@@ -383,7 +383,7 @@ class Setup(object):
         if not lsk:
             logging.error(f'-- LSK not found.')
         else:
-            logging.info(f'-- LSK     loaded: {lsk}')
+            logging.info(f'-- LSK     loaded: {lsks}')
         if len(lsks) > 1:
             error_message('Only one LSK should be obtained.')
 
