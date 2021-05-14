@@ -562,14 +562,14 @@ class TestInsight(TestCase):
             with open(updated_config, 'w') as n:
                 for line in c:
                     if '<file></file>' in line:
-                        n.write('            <file>working/insight_2021_v08.tm</file>\n')
-                        n.write('            <file>working/insight_2021_v09.tm</file>\n')
+                        n.write('            <file>working/insight_v08.tm</file>\n')
+                        n.write('            <file>working/insight_v09.tm</file>\n')
                     else:
                         n.write(line)
 
-        with open('working/insight_2021_v08.tm', 'w') as p:
+        with open('working/insight_v08.tm', 'w') as p:
             p.write('test')
-        with open('working/insight_2021_v09.tm', 'w') as p:
+        with open('working/insight_v09.tm', 'w') as p:
             p.write('test')
 
         with open('working/insight.plan', 'w') as p:
@@ -578,8 +578,7 @@ class TestInsight(TestCase):
         for file in glob.glob('../data/insight_release_0[0-7].kernel_list'):
             shutil.copy2(file,'working')
 
-        with self.assertRaises(RuntimeError):
-            main(updated_config, plan, faucet, silent=False, log=True, diff='all')
+        main(updated_config, plan, faucet, verbose=True, log=True, diff='all')
 
         shutil.rmtree('insight', ignore_errors=True)
         shutil.rmtree('working', ignore_errors=True)

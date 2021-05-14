@@ -276,6 +276,11 @@ def main(config = False, plan   = False, faucet  = '',
         spice_kernels_collection.add(meta_kernel)
 
     #
+    # -- Set the increment times
+    #
+    spice_kernels_collection.set_increment_times()
+
+    #
     # -- Validate the SPICE Kernels collection:
     #
     #    * Note the validation of products is performed after writing the

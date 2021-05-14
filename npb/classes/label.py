@@ -529,8 +529,8 @@ class MetaKernelPDS4Label(PDSLabel):
         self.FILE_NAME = product.name
         self.PRODUCT_LID = self.product.lid
         self.FILE_FORMAT = 'Character'
-        self.START_TIME = setup.increment_start
-        self.STOP_TIME = setup.increment_finish
+        self.START_TIME = product.start_time
+        self.STOP_TIME = product.stop_time
         self.KERNEL_TYPE_ID = product.type.upper()
         self.PRODUCT_VID = self.product.vid
         self.SPICE_KERNEL_DESCRIPTION = product.description

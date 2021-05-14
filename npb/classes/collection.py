@@ -202,6 +202,105 @@ class SpiceKernelsCollection(Collection):
         return (meta_kernels, user_input)
 
 
+    def set_increment_times(self):
+        '''
+        Determine the archive increment start and finish times; this is done
+        based on the identification of the coverage of a given SPK or CK
+        kernel. Alternatively it can be provided as a parameter of the
+        execution.
+
+        :return:
+        '''
+        logging.info('')
+        line = f'Step {self.setup.step} - Determine archive increment start and finish times'
+        logging.info('')
+        logging.info(line)
+        logging.info('-' * len(line))
+        logging.info('')
+        self.setup.step += 1
+        if not self.setup.args.silent and not self.setup.args.verbose: print('-- ' + line.split(' - ')[-1] + '.')
+
+        #
+        # Check if an increment stop time has been provided as an input
+        # parameter.
+        #
+        if self.setup.increment_start:
+            logging.info(f'-- Increment stop time set to: {self.setup.increment_start} '
+                         f'as provided with configuration file')
+
+        if self.setup.increment_finish:
+            logging.info(f'-- Increment finish time set to: {self.setup.increment_finish} '
+                         f'as provided with configuration file')
+
+        if self.setup.increment_finish and self.setup.increment_start:
+            return
+
+        #
+        # Match the pattern with the kernels in the meta-kernel.
+        #
+        try:
+            increment_starts = []
+            increment_finishs = []
+            for prod in self.product:
+                if prod.type == 'mk':
+                    increment_starts.append(prod.start_time)
+                    increment_finishs.append(prod.stop_time)
+
+            increment_start = increment_starts[increment_finishs.index(max(increment_finishs))]
+            increment_finish = increment_finishs[increment_finishs.index(max(increment_finishs))]
+
+            logging.info('-- Increment interval for collection and bundle set to:')
+            logging.info(f'   {increment_start} - {increment_finish}')
+
+        except:
+            #
+            # The alternative is to set the increment stop time to the
+            # end time of the mission.
+            #
+            increment_start = self.setup.mission_start
+            increment_finish = self.setup.mission_stop
+            logging.error(f'-- No kernel(s) found to determine increment stop time. Mission times will be used:')
+            logging.info(f'   {increment_start} - {increment_finish}')
+
+        #
+        # We check the coverage with the previous increment.
+        #
+        try:
+            #
+            # The first alternative option is to set the time to the time of
+            # the previous increment since we might be generating an increment
+            # that does not extend the coverage.
+            #
+            bundles = glob.glob(self.setup.final_directory + os.sep +
+                                self.setup.mission_accronym + '_spice' + os.sep +
+                                f'bundle_{self.setup.mission_accronym}_spice_v*')
+            bundles.sort()
+
+            with open(bundles[-1], 'r') as b:
+                for line in b:
+                    if '<start_date_time>' in line:
+                        prev_increment_start = line.split('>')[-2].split('<')[0]
+                    if '<stop_date_time>' in line:
+                        prev_increment_finish = line.split('>')[-2].split('<')[0]
+
+            #
+            # Provide different logging level depending on the times
+            # combination.
+            #
+            logging.info('-- Previous bundle increment interval is:')
+            logging.info(f'   {prev_increment_start} - {prev_increment_finish}')
+
+        except:
+            logging.warning(f'-- Previous bundle not found.')
+
+        if self.setup.interactive:
+            input(">> Press Enter to continue...")
+
+        self.setup.increment_finish = increment_finish
+        self.setup.increment_start = increment_start
+
+        return
+
     def validate(self):
         #
         # -- Validate the SPICE Kernels collection:
