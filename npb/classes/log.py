@@ -47,7 +47,7 @@ class Log(object):
 
 
     def start(self):
-        start_message = f'naif-pd4-bundle-{self.setup.version} for ' \
+        start_message = f'naif-pds4-bundle-{self.setup.version} for ' \
                         f'{self.setup.mission_name} run on '     \
                         f'{socket.gethostname()} started  at '        \
                         f'{str(datetime.datetime.now())[:-7]}'
@@ -74,7 +74,7 @@ class Log(object):
 
 
     def stop(self):
-        stop_message = f'naif-pd4-bundle-{self.setup.version} for {self.setup.mission_name} run on ' \
+        stop_message = f'naif-pds4-bundle-{self.setup.version} for {self.setup.mission_name} run on ' \
                        f'{socket.gethostname()} finished at '                                        \
                        f'{str(datetime.datetime.now())[:-7]}'
         logging.info('')
