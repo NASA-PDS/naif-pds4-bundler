@@ -369,54 +369,65 @@ class Setup(object):
         #
         # Search the latest version for each pattern of each kernel type.
         #
-        lsk = []
+        lsks = []
         for pattern in lsk_patterns:
             if os.path.exists(pattern):
-                lsk.append(lsk_patterns)
+                lsks.append(pattern)
+                spiceypy.furnsh(pattern)
             else:
                 lsk_pattern = [f for f in os.listdir(f'{self.kernels_directory}/lsk/') if re.search(pattern, f)]
                 if lsk_pattern:
                     if len(lsk_pattern) > 1: lsk_pattern.sort()
-                    lsk.append(lsk_pattern[-1])
+                    lsks.append(lsk_pattern[-1])
                     spiceypy.furnsh(f'{self.kernels_directory}/lsk/{lsk_pattern[-1]}')
         if not lsk:
             logging.error(f'-- LSK not found.')
         else:
             logging.info(f'-- LSK     loaded: {lsk}')
-        if len(lsk) > 1:
+        if len(lsks) > 1:
             error_message('Only one LSK should be obtained.')
-
-
 
         pcks = []
         for pattern in pck_patterns:
-            pcks_pattern = [f for f in os.listdir(f'{self.kernels_directory}/pck/') if re.search(pattern, f)]
-            if pcks_pattern:
-                if len(pcks_pattern) > 1: pcks_pattern.sort()
-                spiceypy.furnsh(f'{self.kernels_directory}/pck/{pcks_pattern[-1]}')
-                pcks.append(pcks_pattern[-1])
+            if os.path.exists(pattern):
+                pcks.append(pattern)
+                spiceypy.furnsh(pattern)
+            else:
+                pcks_pattern = [f for f in os.listdir(f'{self.kernels_directory}/pck/') if re.search(pattern, f)]
+                if pcks_pattern:
+                    if len(pcks_pattern) > 1: pcks_pattern.sort()
+                    spiceypy.furnsh(f'{self.kernels_directory}/pck/{pcks_pattern[-1]}')
+                    pcks.append(pcks_pattern[-1])
         if not pcks:
             logging.warning(f'-- PCK not found.')
         else: logging.info(f'-- PCK(s)   loaded: {pcks}')
 
         fks = []
         for pattern in fk_patterns:
-            fks_pattern = [f for f in os.listdir(f'{self.kernels_directory}/fk/') if re.search(pattern, f)]
-            if fks_pattern:
-                if len(fks_pattern) > 1: fks_pattern.sort()
-                spiceypy.furnsh(f'{self.kernels_directory}/fk/{fks_pattern[-1]}')
-                fks.append(fks_pattern[-1])
+            if os.path.exists(pattern):
+                fks.append(pattern)
+                spiceypy.furnsh(pattern)
+            else:
+                fks_pattern = [f for f in os.listdir(f'{self.kernels_directory}/fk/') if re.search(pattern, f)]
+                if fks_pattern:
+                    if len(fks_pattern) > 1: fks_pattern.sort()
+                    spiceypy.furnsh(f'{self.kernels_directory}/fk/{fks_pattern[-1]}')
+                    fks.append(fks_pattern[-1])
         if not fks:
             logging.warning(f'-- FK not found.')
         else: logging.info(f'-- FK(s)   loaded: {fks}')
 
         sclks = []
         for pattern in sclk_patterns:
-            sclks_pattern = [f for f in os.listdir(f'{self.kernels_directory}/sclk/') if re.search(pattern, f)]
-            if sclks_pattern:
-                if len(sclks_pattern) > 1: sclks_pattern.sort()
-                sclks.append(sclks_pattern[-1])
-                spiceypy.furnsh(f'{self.kernels_directory}/sclk/{sclks_pattern[-1]}')
+            if os.path.exists(pattern):
+                sclks.append(pattern)
+                spiceypy.furnsh(pattern)
+            else:
+                sclks_pattern = [f for f in os.listdir(f'{self.kernels_directory}/sclk/') if re.search(pattern, f)]
+                if sclks_pattern:
+                    if len(sclks_pattern) > 1: sclks_pattern.sort()
+                    sclks.append(sclks_pattern[-1])
+                    spiceypy.furnsh(f'{self.kernels_directory}/sclk/{sclks_pattern[-1]}')
         if not sclks:
             logging.error(f'-- SCLK not found.')
         else: logging.info(f'-- SCLK(s) loaded: {sclks}')
