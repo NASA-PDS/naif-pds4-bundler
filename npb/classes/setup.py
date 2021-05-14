@@ -237,7 +237,7 @@ class Setup(object):
                 for pattern in patterns:
                     name_pattern = pattern['#text']
                     if not name_pattern in metal_name_check:
-                        error_message(f"The meta-kernel pattern {name_pattern} is not provided.")
+                        error_message(f"The meta-kernel pattern {name_pattern} is not provided")
 
                     metal_name_check = metal_name_check.replace('$' + name_pattern, '')
 
@@ -246,7 +246,7 @@ class Setup(object):
                 # remaining patterns to define in the configuration file.
                 #
                 if '$' in metal_name_check:
-                    error_message(f'The meta-kernel patterns for are not defined via configuration.')
+                    error_message(f'The meta-kernel patterns for are not defined via configuration')
             else:
                 logging.warning('-- There is no meta-kernel configuration to check.')
 
@@ -460,6 +460,6 @@ class Setup(object):
                (et_inc_strt <= et_inc_stop) or not \
                (et_inc_stop <= et_mis_stop) or not \
                (et_msn_strt <  et_mis_stop):
-            error_message('-- Provided dates are note correct. Check the archive coverage.')
+            error_message('-- Provided dates are note correct. Check the archive coverage')
 
         return

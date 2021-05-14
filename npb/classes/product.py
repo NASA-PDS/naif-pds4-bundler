@@ -368,7 +368,7 @@ class MetaKernelProduct(Product):
                     pass
 
             if not hasattr(self, 'mk_setup'):
-                error_message(f'Meta-kernel {self.name} has not been matched in configuration.')
+                error_message(f'Meta-kernel {self.name} has not been matched in configuration')
 
         if setup.pds_version == '3':
             self.collection_path = setup.staging_directory + os.sep + \
@@ -621,7 +621,7 @@ class MetaKernelProduct(Product):
                                 else:
                                     error_message('Kernel pattern not adept to write description. '
                                                     'Remember a metacharacter cannot start or finish '
-                                                    'a kernel pattern.')
+                                                    'a kernel pattern')
                             else:
                                 #
                                 # For non-kernels the value is based on the value
@@ -634,7 +634,7 @@ class MetaKernelProduct(Product):
                                         value = val['#text']
 
                                 if isinstance(value, list):
-                                    error_message('-- Kernel description could not be updated with pattern.')
+                                    error_message('-- Kernel description could not be updated with pattern')
 
                             description = description.replace('$' + el, value)
 
@@ -928,7 +928,7 @@ class MetaKernelProduct(Product):
 
         if (ker_num_fr != ker_num_mk):
             spiceypy.kclear()
-            error_message('Number of kernels loaded is not equal to kernels present in meta-kernel.')
+            error_message('Number of kernels loaded is not equal to kernels present in meta-kernel')
 
         spiceypy.kclear()
 
@@ -981,7 +981,7 @@ class MetaKernelProduct(Product):
                             elif extension2type(kernel) == 'ck':
                                 (start_time, stop_time) = ck_coverage(path)
                             else:
-                                error_message('Kernel used to determine coverage is not a SPK or CK kernel.')
+                                error_message('Kernel used to determine coverage is not a SPK or CK kernel')
 
                             start_times.append(spiceypy.utc2et(start_time[:-1]))
                             finish_times.append(spiceypy.utc2et(stop_time[:-1]))

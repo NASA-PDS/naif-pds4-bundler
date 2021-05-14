@@ -15,8 +15,8 @@ class TestMatchPatterns(TestCase):
         #
         name_w_pattern = 'insight_$YEAR_v$VERSION.tm'
         name           = 'insight_2021_v02.tm'
-        patterns       = [{'@lenght':'2','#text':'VERSION'},
-                          {'@lenght':'4','#text':'YEAR'}]
+        patterns       = [{'@length':'2','#text':'VERSION'},
+                          {'@length':'4','#text':'YEAR'}]
 
         values = match_patterns(name, name_w_pattern, patterns)
 
@@ -27,7 +27,7 @@ class TestMatchPatterns(TestCase):
 
         name_w_pattern = 'insight_$YEAR_v$VERSION.tm'
         name           = 'insight_2021_v02.tm'
-        patterns       = [{'@lenght':'2','#text':'VERSION'}]
+        patterns       = [{'@length':'2','#text':'VERSION'}]
 
         with self.assertRaises(RuntimeError):
             values = match_patterns(name, name_w_pattern, patterns)
@@ -35,8 +35,8 @@ class TestMatchPatterns(TestCase):
 
         name_w_pattern = 'insight_$YER_v$VERSION.tm'
         name           = 'insight_2021_v02.tm'
-        patterns       = [{'@lenght':'2','#text':'VERSION'},
-                          {'@lenght':'4','#text':'YEAR'}]
+        patterns       = [{'@length':'2','#text':'VERSION'},
+                          {'@length':'4','#text':'YEAR'}]
 
         with self.assertRaises(RuntimeError):
             values = match_patterns(name, name_w_pattern, patterns)
@@ -44,16 +44,16 @@ class TestMatchPatterns(TestCase):
 
         name_w_pattern = 'insight_$YEAR_v$VERSION.tm'
         name           = 'insight_2021_v02.tm'
-        patterns       = [{'@lenght':'2','#text':'VERSION'},
-                          {'@lenght':'4','#text':'YAR'}]
+        patterns       = [{'@length':'2','#text':'VERSION'},
+                          {'@length':'4','#text':'YAR'}]
 
         with self.assertRaises(RuntimeError):
             values = match_patterns(name, name_w_pattern, patterns)
 
         name_w_pattern = 'insight_$YEAR_v$VERSION.tm'
         name           = 'insight_2021_v02.tm'
-        patterns       = [{'@lenght':'2','#text':'VERSION'},
-                          {'@lenght':'10','#text':'YEAR'}]
+        patterns       = [{'@length':'2','#text':'VERSION'},
+                          {'@length':'10','#text':'YEAR'}]
 
         with self.assertRaises(RuntimeError):
             values = match_patterns(name, name_w_pattern, patterns)

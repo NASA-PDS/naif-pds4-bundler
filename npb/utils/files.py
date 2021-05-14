@@ -387,7 +387,7 @@ def match_patterns(name, name_w_pattern, patterns):
 
     for pattern in patterns:
         pattern_name_order[pattern['#text']] = name_w_pattern.find(pattern['#text'])
-        name_check = name_check.replace('$' + pattern['#text'], '$'*int(pattern['@lenght']))
+        name_check = name_check.replace('$' + pattern['#text'], '$'*int(pattern['@length']))
 
     #
     # Convert the pattern_name_order_dictionary into an ordered lis
@@ -415,7 +415,7 @@ def match_patterns(name, name_w_pattern, patterns):
         elif (name_check[i] == '$') and value_bool:
             value += name[i]
         else:
-            error_message(f'Missmatch of values in meta-kernel pattern.')
+            error_message(f'Missmatch of values in meta-kernel pattern')
 
     #
     # Correlate the values with their position in the file name with

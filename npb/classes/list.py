@@ -311,7 +311,7 @@ class KernelList(List):
                                         else:
                                             error_message('Kernel pattern not adept to write description. '
                                                           'Remember a metacharacter cannot start or finish '
-                                                          'a kernel pattern.')
+                                                          'a kernel pattern')
                                     else:
                                         #
                                         # For non-kernels the value is based on the value
@@ -331,7 +331,7 @@ class KernelList(List):
                                                 value = val['#text']
 
                                         if isinstance(value, list):
-                                            error_message('-- Kernel description could not be updated with pattern.')
+                                            error_message('-- Kernel description could not be updated with pattern')
 
                                     description = description.replace('$' + el, value)
 
@@ -500,7 +500,7 @@ class KernelList(List):
             # Check list for duplicate entries
             #
             if check_list_duplicates(ker_in_list):
-                error_message('List contains duplicates.')
+                error_message('List contains duplicates')
 
             #
             # Check that all files listed are available in OPS area;
@@ -603,7 +603,7 @@ class KernelList(List):
                             ker_in_list.append(line.split('/')[-1].strip())
 
             if check_list_duplicates(ker_in_list):
-                error_message('List contains duplicates.')
+                error_message('List contains duplicates')
             else:
                 logging.info(f'     List contains no duplicates.')
             logging.info('')
@@ -679,7 +679,7 @@ class KernelList(List):
             #
             logging.info('-- Checking for duplicates in kernel list:')
             if check_list_duplicates(ker_in_list):
-                error_message('List contains duplicates.')
+                error_message('List contains duplicates')
             else:
                 logging.info(f'     List contains no duplicates.')
             logging.info('')

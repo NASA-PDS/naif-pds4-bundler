@@ -341,7 +341,7 @@ class SpiceKernelsCollection(Collection):
                     self.setup.staging_directory + '/spice_kernels/' + product.type + os.sep + product.name.split('.')[
                         0] + '.xml')
             except:
-                error_message(f'-- {product.name} has not been labeled.')
+                error_message(f'-- {product.name} has not been labeled')
         logging.info('   OK')
         logging.info('')
 
@@ -355,7 +355,7 @@ class SpiceKernelsCollection(Collection):
                 os.path.exists(self.setup.staging_directory + '/spice_kernels/' + product.type + os.sep + product.name)
                 os.path.exists(self.setup.staging_directory + '/spice_kernels/' + product.type + os.sep + product.name.split('.')[0] + '.xml')
             except:
-                error_message(f'-- {product.name} has not been labeled.')
+                error_message(f'-- {product.name} has not been labeled')
         logging.info('   OK')
 
         logging.info('')
