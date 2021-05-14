@@ -110,19 +110,19 @@
         </kernel>
         <kernel pattern="insight_v[0-9][0-9].tf">
             <mklabel_options>DEF_TIMES</mklabel_options>
-            <description>SPICE FK file defining reference frames the INSIGHT lander, its structures, and science
+            <description>SPICE FK file defining reference frames for the INSIGHT lander, its structures, and science
                 instruments, created by NAIF, JPL.
             </description>
         </kernel>
         <kernel pattern="marcoa_v[0-9][0-9].tf">
             <mklabel_options>DEF_TIMES</mklabel_options>
-            <description>SPICE FK file defining reference frames the MARCO-A spacecraft, its structures, and
+            <description>SPICE FK file defining reference frames for the MARCO-A spacecraft, its structures, and
                 instruments, and FOVs for its structures and instruments, created by NAIF, JPL.
             </description>
         </kernel>
         <kernel pattern="marcob_v[0-9][0-9].tf">
             <mklabel_options>DEF_TIMES</mklabel_options>
-            <description>SPICE FK file defining reference frames the MARCO-B spacecraft, its structures, and
+            <description>SPICE FK file defining reference frames for the MARCO-B spacecraft, its structures, and
                 instruments, and FOVs for its structures and instruments, created by NAIF, JPL.
             </description>
         </kernel>

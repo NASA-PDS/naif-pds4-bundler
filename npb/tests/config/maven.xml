@@ -100,7 +100,7 @@
         </kernel>
         <kernel pattern="maven_v[0-9][0-9].tf">
             <mklabel_options>DEF_TIMES</mklabel_options>
-            <description>SPICE FK file defining reference frames the MAVEN spacecraft, its structures, and science
+            <description>SPICE FK file defining reference frames for the MAVEN spacecraft, its structures, and science
                 instruments, created by NAIF, JPL.
             </description>
         </kernel>
@@ -224,14 +224,28 @@
         <kernel pattern="mvn_sc_pred_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9].bc">
             <mklabel_options></mklabel_options>
             <description>SPICE CK file containing predicted orientation of the MAVEN spacecraft, created by NAIF,
-                JPL.
+                JPL. The original name of this file was $ORIGINAL.
             </description>
+            <patterns>
+                <ORIGINAL pattern="mvn_sc_pred_210104_210120_v01.bc">mvn_sc_pred_210104_210120_vm321_322_v03.bc</ORIGINAL>
+                <ORIGINAL pattern="mvn_sc_pred_141205_141209_v01.bc">mvn_sc_pred_141205_141209_vm002OTM_v02.bc</ORIGINAL>
+                <ORIGINAL pattern="mvn_sc_pred_141223_150109_v01.bc">mvn_sc_pred_141223_150109_vm004_v02.bc</ORIGINAL>
+                <ORIGINAL pattern="mvn_sc_pred_150302_150315_v01.bc">mvn_sc_pred_150302_150315_vm013ar01_v01.bc</ORIGINAL>
+                <ORIGINAL pattern="mvn_sc_pred_150630_150707_v01.bc">mvn_sc_pred_150630_150707_vm027b_v01.bc</ORIGINAL>
+            </patterns>
         </kernel>
         <kernel pattern="mvn_app_pred_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9].bc">
             <mklabel_options></mklabel_options>
             <description>SPICE CK file containing predicted orientation of the MAVEN Articulated Payload Platform
-                (APP), created by NAIF, JPL.
+                (APP), created by NAIF, JPL. The original name of this file was $ORIGINAL.
             </description>
+            <patterns>
+                <ORIGINAL pattern="mvn_app_pred_210104_210120_v01.bc">mvn_app_pred_210104_210120_vm321_322_v03.bc</ORIGINAL>
+                <ORIGINAL pattern="mvn_app_pred_141205_141209_v01.bc">mvn_app_pred_141205_141209_vm002OTM_v02.bc</ORIGINAL>
+                <ORIGINAL pattern="mvn_app_pred_141223_150109_v01.bc">mvn_app_pred_141223_150109_vm004_v02.bc</ORIGINAL>
+                <ORIGINAL pattern="mvn_app_pred_150302_150315_v01.bc">mvn_app_pred_150302_150315_vm013ar01_v01.bc</ORIGINAL>
+                <ORIGINAL pattern="mvn_app_pred_150630_150707_v01.bc">mvn_app_pred_150630_150707_vm027b_v01.bc</ORIGINAL>
+            </patterns>
         </kernel>
         <kernel pattern="maven_[0-9][0-9][0-9][0-9]_v[0-9][0-9].tm">
             <mklabel_options></mklabel_options>

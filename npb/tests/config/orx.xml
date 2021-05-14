@@ -104,7 +104,7 @@
         </kernel>
         <kernel pattern="orx_v[0-9][0-9].tf">
             <mklabel_options>DEF_TIMES</mklabel_options>
-            <description>SPICE FK file defining reference frames the ORX spacecraft, its structures, and science instruments, created by NAIF, JPL.</description>
+            <description>SPICE FK file defining reference frames for the ORX spacecraft, its structures, and science instruments, created by NAIF, JPL.</description>
         </kernel>
         <kernel pattern="orx_shape_v[0-9][0-9].tf">
             <mklabel_options>DEF_TIMES</mklabel_options>

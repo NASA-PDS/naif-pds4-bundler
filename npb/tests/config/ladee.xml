@@ -125,7 +125,7 @@
         </kernel>
         <kernel pattern="ladee_frames_2021126_v01.tf">
             <mklabel_options>DEF_TIMES</mklabel_options>
-            <description>SSPICE FK file defining reference frames for the LADEE spacecraft, its structures, and science
+            <description>SPICE FK file defining reference frames for the LADEE spacecraft, its structures, and science
                 instruments, created by NAIF, JPL.
             </description>
         </kernel>
