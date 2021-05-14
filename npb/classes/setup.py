@@ -350,7 +350,7 @@ class Setup(object):
             elif 'sclk' in type:
                 sclks = self.kernels_to_load[type]
                 if not isinstance(sclks, list):
-                    sclks = [fks]
+                    sclks = [sclks]
                 for sclk in sclks:
                     sclk_patterns.append(sclk)
             elif 'pck' in type:
