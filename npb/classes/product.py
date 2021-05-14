@@ -532,7 +532,7 @@ class MetaKernelProduct(Product):
     def product_vid(self):
 
         try:
-            product_vid = str(self.version) + '.0'
+            product_vid = str(self.version).lstrip("0") + '.0'
         except:
             logging.warning(f'-- {self.name} No vid explicit in kernel name: set to 1.0')
             product_vid = '1.0'

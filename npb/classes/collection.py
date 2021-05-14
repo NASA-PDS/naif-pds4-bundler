@@ -199,6 +199,10 @@ class SpiceKernelsCollection(Collection):
                 # each meta-kernel configuration.
                 #
 
+        #
+        # Sort the list of meta-kernels alphabetically.
+        #
+        meta_kernels = sorted(meta_kernels)
 
         return (meta_kernels, user_input)
 
@@ -292,7 +296,7 @@ class SpiceKernelsCollection(Collection):
             #
             if prev_increment_start < increment_start:
                 increment_start = prev_increment_start
-                logging.warning('-- Increment start corrected form previous bundle')
+                logging.warning('-- Increment start corrected from previous bundle')
 
             if prev_increment_finish > increment_finish:
                 increment_finish = prev_increment_sinish

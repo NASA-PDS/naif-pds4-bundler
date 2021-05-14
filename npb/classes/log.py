@@ -87,6 +87,7 @@ class Log(object):
         if not self.setup.args.silent and not self.setup.args.verbose:
             print('=' * len(stop_message))
             print(stop_message)
+            print('')
 
         #
         # Rename the log file according to the version

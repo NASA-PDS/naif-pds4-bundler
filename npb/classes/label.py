@@ -53,7 +53,7 @@ class PDSLabel(object):
             self.PDS4_MISSION_LID        = product.bundle.lid_reference
 
         for context_product in context_products:
-            if context_product['name'][0] == setup.spacecraft:
+            if (context_product['name'][0] == setup.spacecraft) and (context_product['type'][0].lower() != 'mission'):
                 self.PDS4_SPACECRAFT_TYPE = context_product['type'][0].capitalize()
                 self.PDS4_SPACECRAFT_LID  = context_product['lidvid'].split('::')[0]
 
@@ -73,7 +73,7 @@ class PDSLabel(object):
                             self.PDS4_SPACECRAFT_NAME = sc
 
                             for context_product in context_products:
-                                if context_product['name'][0].upper() == sc.upper():
+                                if (context_product['name'][0] == setup.spacecraft) and (context_product['type'][0].lower() != 'mission'):
                                     self.PDS4_SPACECRAFT_TYPE = context_product['type'][0].capitalize()
                                     self.PDS4_SPACECRAFT_LID = context_product['lidvid'].split('::')[0]
 
