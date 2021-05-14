@@ -207,19 +207,20 @@ def get_context_products(setup):
         else:
             context_products_list = setup.context_products['product']
         for product in context_products_list:
-            updated_product = False
-            index = 0
-            for registered_product in context_products:
-                if registered_product['name'][0] ==  product['@name']:
-                    updated_product = True
-                    context_products[index]['type'] = [product['type']]
-                    context_products[index]['lidvid'] = product['lidvid']
-                index += 1
-            if not updated_product:
-                appended_products.append(
-                    {'name':[product['@name']],
-                     'type':[product['type']],
-                     'lidvid':product['lidvid']})
+            if product:
+                updated_product = False
+                index = 0
+                for registered_product in context_products:
+                    if registered_product['name'][0] ==  product['@name']:
+                        updated_product = True
+                        context_products[index]['type'] = [product['type']]
+                        context_products[index]['lidvid'] = product['lidvid']
+                    index += 1
+                if not updated_product:
+                    appended_products.append(
+                        {'name':[product['@name']],
+                         'type':[product['type']],
+                         'lidvid':product['lidvid']})
 
     if appended_products:
         for product in appended_products:
