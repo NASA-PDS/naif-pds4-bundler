@@ -491,8 +491,8 @@ class MetaKernelProduct(Product):
         try:
             version = int(versions[-1].split('v')[-1].split('.')[0]) + 1
         except:
-            logging.error(f'-- Meta-kernel from previous increment is not available. It is recommended to stop the execution and fix the issue.')
-            logging.error(f'   Version will be set to: {self.version}.')
+            logging.warning(f'-- Meta-kernel from previous increment is not available.')
+            logging.warning(f'   Version will be set to: {self.version}.')
 
             if self.setup.interactive:
                 input(">> Press Enter to continue...")
@@ -502,10 +502,9 @@ class MetaKernelProduct(Product):
         if version == self.version:
             logging.info(f'-- Version from kernel list and from previous increment agree: {version}.')
         else:
-            logging.error(f'-- Version discrepancy. Version set to: {self.version}, whereas from'
-                          f'   the previous increment it should be: {version}.')
+            logging.error(f'-- The meta-kernel version is not as expected from previous increment.')
+            logging.error(f'   Version set to: {self.version}, whereas it is expected to be: {version}.')
             logging.error(f'   It is recommended to stop the execution and fix the issue.')
-            logging.error(f'   Version from kernel list will be used: {self.version}.')
 
         if self.setup.interactive:
             input(">> Press Enter to continue...")
