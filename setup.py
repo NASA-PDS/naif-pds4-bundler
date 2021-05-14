@@ -26,6 +26,15 @@ def get_version():
 
     return version
 
+def get_requirements():
+
+    with open('requirements.txt', 'r') as f:
+        requirements = []
+        for line in f:
+            requirements.append(line)
+
+    return requirements
+
 setup(
         name='naif-pds4-bundle',
 
@@ -59,7 +68,7 @@ setup(
         #
         # Packages
         #
-        install_reqs = parse_requirements('requirements.txt', session='hack'),
+        install_requires=get_requirements(),
 
         #
         # Include additional files into the package
