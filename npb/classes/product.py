@@ -349,7 +349,7 @@ class MetaKernelProduct(Product):
         # Add the configuration items for the meta-kernel.
         # This includes sorting out the meta-kernel name.
         #
-        if setup.mk and not user_input:
+        if setup.mk:
             for mk in setup.mk:
 
                 patterns_dict = mk['name']['pattern']
@@ -417,12 +417,8 @@ class MetaKernelProduct(Product):
         #
         # Check product version.
         #
-        #TODO remove this try except statement and reimplement the version
-        #check for.
-        try:
+        if self.setup.increment:
             self.check_version()
-        except:
-            pass
 
         #
         # Generate the product LIDVID.
@@ -474,12 +470,7 @@ class MetaKernelProduct(Product):
 
     def check_version(self):
 
-        logging.info(f'-- Meta-kernel version {self.version} from kernel list.')
-
-        if not self.setup.increment:
-            return
-
-        logging.info(f'-- Check version from previous increment.')
+        #TODO: Update with version obtention from patterns.
 
         #
         # Collection versions are not equal to the release number,
@@ -500,9 +491,8 @@ class MetaKernelProduct(Product):
         try:
             version = int(versions[-1].split('v')[-1].split('.')[0]) + 1
         except:
-            logging.error(f'    Meta-kernel from previous increment is not available.')
-            logging.error(f'    It is recommended to stop the execution and fix the issue.')
-            logging.error(f'    Version will be set to one: {self.version}.')
+            logging.error(f'-- Meta-kernel from previous increment is not available. It is recommended to stop the execution and fix the issue.')
+            logging.error(f'   Version will be set to: {self.version}.')
 
             if self.setup.interactive:
                 input(">> Press Enter to continue...")
@@ -510,11 +500,12 @@ class MetaKernelProduct(Product):
             return
 
         if version == self.version:
-            logging.info(f'     Version from kernel list and from previous increment agree: {version}.')
+            logging.info(f'-- Version from kernel list and from previous increment agree: {version}.')
         else:
-            logging.error(f'    Version discrepancy. From kernel list: {self.version}. From increment: {version}.')
-            logging.error(f'    It is recommended to stop the execution and fix the issue.')
-            logging.error(f'    Version from kernel list will be used: {self.version}.')
+            logging.error(f'-- Version discrepancy. Version set to: {self.version}, whereas from'
+                          f'   the previous increment it should be: {version}.')
+            logging.error(f'   It is recommended to stop the execution and fix the issue.')
+            logging.error(f'   Version from kernel list will be used: {self.version}.')
 
         if self.setup.interactive:
             input(">> Press Enter to continue...")

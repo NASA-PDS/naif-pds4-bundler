@@ -102,6 +102,7 @@ class SpiceKernelsCollection(Collection):
         logging.info('')
         logging.info(line)
         logging.info('-'*len(line))
+        logging.info('')
         self.setup.step += 1
         if not self.setup.args.silent and not self.setup.args.verbose: print('-- ' + line.split(' - ')[-1] + '.')
 
@@ -246,11 +247,8 @@ class SpiceKernelsCollection(Collection):
                     increment_starts.append(prod.start_time)
                     increment_finishs.append(prod.stop_time)
 
-            increment_start = increment_starts[increment_finishs.index(max(increment_finishs))]
-            increment_finish = increment_finishs[increment_finishs.index(max(increment_finishs))]
-
-            logging.info('-- Increment interval for collection and bundle set to:')
-            logging.info(f'   {increment_start} - {increment_finish}')
+            increment_start = min(increment_starts)
+            increment_finish = max(increment_finishs)
 
         except:
             #
@@ -259,8 +257,7 @@ class SpiceKernelsCollection(Collection):
             #
             increment_start = self.setup.mission_start
             increment_finish = self.setup.mission_stop
-            logging.error(f'-- No kernel(s) found to determine increment stop time. Mission times will be used:')
-            logging.info(f'   {increment_start} - {increment_finish}')
+            logging.error(f'-- No kernel(s) found to determine increment stop time. Mission times will be used.')
 
         #
         # We check the coverage with the previous increment.
@@ -290,8 +287,23 @@ class SpiceKernelsCollection(Collection):
             logging.info('-- Previous bundle increment interval is:')
             logging.info(f'   {prev_increment_start} - {prev_increment_finish}')
 
+            #
+            # Correct the increment interval with previous interval if required.
+            #
+            if prev_increment_start < increment_start:
+                increment_start = prev_increment_start
+                logging.warning('-- Increment start corrected form previous bundle')
+
+            if prev_increment_finish > increment_finish:
+                increment_finish = prev_increment_sinish
+                logging.warning('-- Increment finish corrected form previous bundle')
+
         except:
             logging.warning(f'-- Previous bundle not found.')
+
+        logging.info('-- Increment interval for collection and bundle set to:')
+        logging.info(f'   {increment_start} - {increment_finish}')
+        logging.info('')
 
         if self.setup.interactive:
             input(">> Press Enter to continue...")

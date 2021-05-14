@@ -55,6 +55,7 @@ class Log(object):
         logging.info('='*len(start_message))
         logging.info('')
         if not self.setup.args.silent and not self.setup.args.verbose:
+            print('')
             print(start_message + '\n'  + '=' * len(start_message))
 
         #
