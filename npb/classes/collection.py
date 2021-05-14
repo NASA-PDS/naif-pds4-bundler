@@ -113,14 +113,17 @@ class SpiceKernelsCollection(Collection):
         # account (there is no hybrid possibility but npb provides a warning
         # message if more meta-kernels are expected).
         #
-        for mk_input in self.setup.mk_inputs:
-            if not mk_input['file'] == None:
-                if not os.path.exists(mk_input['file']):
+        if not self.setup.mk_inputs[0]['file'] == None:
+            mks = self.setup.mk_inputs[0]['file']
+            if not isinstance(mks, list):
+                mks = [mks]
+            for mk in mks:
+                if not os.path.exists(mk):
                     logging.info('')
                     logging.error(f'-- Meta-kernel provided via configuration'
-                                  f' does not exist: {mk_input["file"]}')
+                                  f' does not exist: {mk}')
                 else:
-                    meta_kernels.append(mk_input['file'])
+                    meta_kernels.append(mk)
 
         if meta_kernels:
             user_input = True
