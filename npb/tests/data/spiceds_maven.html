@@ -9,7 +9,7 @@
 The MAVEN SPICE Data Archive
 ========================================================================
 
-   Last update: May 10, 2021
+   Last update: May 12, 2021
 
 <A NAME="Introduction"></A>
 Introduction
@@ -102,11 +102,16 @@ Errata
       complete daily CKs, and were added to the archive as "v02" files,
       fully superseding "v01" files.
 
-   5. Some of the reconstructed CK spacecraft and post-deploy Articulating
+   5. Some of the daily IUVS CK files used as input in generating the
+      "v01" merged IUVS CKs covering from January to March 2021 were
+      incomplete, missing data on 2021-01-22 and 2021-01-24.
+
+   6. Some of the reconstructed CK spacecraft and post-deploy Articulating
       Payload Platform (APP) files present data gaps. When these gaps are
       significant (when they have a duration of several hours), these data
       gaps are covered by the corresponding predicted CK files. In the
-      current release these gaps are present on 2021-01-14 and 2021-01-15.
+      current release these gaps are present on 2014-12-08, 2014-12-26,
+      2015-03-03, 2015-06-30, 2021-01-14 and 2021-01-15.
 
 <p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
 <A NAME="Archive Contents"></A>
@@ -445,9 +450,10 @@ CK Files
       -  predicted spacecraft orientation CKs
 
             These CKs created by NAIF contain the predicted MAVEN
-            spacecraft attitude determined from quaternions and
-            angular rates extracted from the corresponding simulated
-            Attitude Control System data file.
+            spacecraft attitude and angular velocities from the
+            Attitude Articulation Prediction/Simulation (AtArPS)
+            Data Return Files (DRF) produced by the Spacecraft
+            Team, LMCO.
 
       -  reconstructed post-deploy Articulating Payload Platform
          (APP) orientation CKs
@@ -460,8 +466,8 @@ CK Files
          (APP) orientation CKs
 
             These CKs created by NAIF contain the predicted MAVEN
-            APP attitude determined from gimbal angles computed from
-            the MAVEN project database.
+            APP gimbal rotations and rates from the AtArPS DRF files
+            produced by the Spacecraft Team, LMCO.
 
       -  reconstructed pre-deploy APP orientation CKs
 
