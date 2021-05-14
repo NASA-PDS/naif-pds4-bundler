@@ -32,7 +32,7 @@ setup(
         version=get_version(),
 
         description='PDS4 Bundle and PDS3 data set SPICE kernels archive generation',
-        url="https://mcosta@repos.cosmos.esa.int/socci/scm/spice/arcgen.git",
+        url="https://github-fn.jpl.nasa.gov/NAIF/naif-pds4-bundle",
 
         author='Marc Costa Sitja (JPL)',
         author_email='Marc.Costa.Sitja@jpl.nasa.gov',
@@ -59,7 +59,7 @@ setup(
         #
         # Packages
         #
-        packages=find_packages(),
+        install_reqs = parse_requirements('requirements.txt', session='hack'),
 
         #
         # Include additional files into the package
@@ -69,7 +69,7 @@ setup(
         #
         # Dependent packages (distributions)
         #
-        python_requires='>=3',
+        python_requires='>=3.8',
 
         #
         # Scripts
