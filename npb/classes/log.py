@@ -51,6 +51,7 @@ class Log(object):
                         f'{self.setup.mission_name} run on '     \
                         f'{socket.gethostname()} started  at '        \
                         f'{str(datetime.datetime.now())[:-7]}'
+        logging.info('')
         logging.info(start_message)
         logging.info('='*len(start_message))
         logging.info('')
