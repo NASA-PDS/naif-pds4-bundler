@@ -51,6 +51,11 @@
              YYYY-MM-DDThh:mm:ssZ e.g., 2021-04-09T15:11:12Z. -->
         <increment_start>2013-09-07T03:51:00Z</increment_start>
         <increment_finish>2014-04-18T04:32:00Z</increment_finish>
+        <kernels_to_load>
+            <lsk>naif[0-9][0-9][0-9][0-9].tls</lsk>
+            <sclk>ladee_clkcor_13250_14108_v01.tsc</sclk>
+            <fk>ladee_frames_2021126_v01.tf</fk>
+        </kernels_to_load>
     </bundle_parameters>
 
     <!-- =========================== -->

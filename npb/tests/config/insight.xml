@@ -32,7 +32,7 @@
         <author_list>Semenov B. V.; Costa Sitja M.</author_list>
         <institution>NAIF/JPL</institution>
         <doi>10.17189/1520436</doi>
-        <spiceds>../data/spiceds_test.html</spiceds>
+        <spiceds>../data/spiceds_insight.html</spiceds>
         <readme>
             <spice_name>INSIGHT</spice_name>
             <overview>
@@ -55,6 +55,16 @@
              YYYY-MM-DDThh:mm:ssZ e.g., 2021-04-09T15:11:12Z. -->
         <increment_start></increment_start>
         <increment_finish></increment_finish>
+        <!-- Specify a path to the file or a pattern that will be used to
+             automatically find the kernel in the kernels directory,
+             there can be multiple of each type -->
+        <kernels_to_load>
+            <lsk>naif[0-9][0-9][0-9][0-9].tls</lsk>
+            <sclk>NSY_SCLKSCET_[0-9][0-9][0-9][0-9][0-9].tsc</sclk>
+            <fk>insight_v[0-9][0-9].tf</fk>
+            <sclk>marcoa_fake_v[0-9][0-9].tsc</sclk>
+            <fk>marcob_v[0-9][0-9].tf</fk>
+        </kernels_to_load>
     </bundle_parameters>
 
     <!-- =========================== -->

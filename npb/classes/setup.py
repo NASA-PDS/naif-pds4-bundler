@@ -332,7 +332,7 @@ class Setup(object):
         if not self.args.silent and not self.args.verbose: print('-- ' + line.split(' - ')[-1] + '.')
 
         #
-        # To get the appropriate kernels, use the meta-kernel grammar.
+        # To get the appropriate kernels, use the kernel list config.
         # First extract the patterns for each kernel type of interest.
         #
         fk_patterns   = []
@@ -340,27 +340,45 @@ class Setup(object):
         pck_patterns = []
         lsk_patterns  = []
 
-        for ker in self.kernel_list_config:
-            pattern = str(ker)
-            if '.tf' in pattern.lower():
-                fk_patterns.append(pattern.strip())
-            elif '.tsc' in pattern.lower():
-                sclk_patterns.append(pattern.strip())
-            elif '.tpc' in pattern.lower():
-                sclk_patterns.append(pattern.strip())
-            elif '.tls' in pattern.lower():
-                lsk_patterns.append(pattern.strip())
+        for type in self.kernels_to_load:
+            if 'fk' in type:
+                fks = self.kernels_to_load[type]
+                if not isinstance(fks, list):
+                    fks = [fks]
+                for fk in fks:
+                    fk_patterns.append(fk)
+            elif 'sclk' in type:
+                sclks = self.kernels_to_load[type]
+                if not isinstance(sclks, list):
+                    sclks = [fks]
+                for sclk in sclks:
+                    sclk_patterns.append(sclk)
+            elif 'pck' in type:
+                pcks = self.kernels_to_load[type]
+                if not isinstance(pcks, list):
+                    pcks = [pcks]
+                for pck in pcks:
+                    pck_patterns.append(pck)
+            elif 'lsk' in type:
+                lsks = self.kernels_to_load[type]
+                if not isinstance(lsks, list):
+                    lsks = [lsks]
+                for lsk in lsks:
+                    lsk_patterns.append(lsk)
 
         #
         # Search the latest version for each pattern of each kernel type.
         #
         lsk = []
         for pattern in lsk_patterns:
-            lsk_pattern = [f for f in os.listdir(f'{self.kernels_directory}/lsk/') if re.search(pattern, f)]
-            if lsk_pattern:
-                if len(lsk_pattern) > 1: lsk_pattern.sort()
-                lsk.append(lsk_pattern[-1])
-                spiceypy.furnsh(f'{self.kernels_directory}/lsk/{lsk_pattern[-1]}')
+            if os.path.exists(pattern):
+                lsk.append(lsk_patterns)
+            else:
+                lsk_pattern = [f for f in os.listdir(f'{self.kernels_directory}/lsk/') if re.search(pattern, f)]
+                if lsk_pattern:
+                    if len(lsk_pattern) > 1: lsk_pattern.sort()
+                    lsk.append(lsk_pattern[-1])
+                    spiceypy.furnsh(f'{self.kernels_directory}/lsk/{lsk_pattern[-1]}')
         if not lsk:
             logging.error(f'-- LSK not found.')
         else:
@@ -375,7 +393,7 @@ class Setup(object):
             pcks_pattern = [f for f in os.listdir(f'{self.kernels_directory}/pck/') if re.search(pattern, f)]
             if pcks_pattern:
                 if len(pcks_pattern) > 1: pcks_pattern.sort()
-                spiceypy.furnsh(f'{self.kernels_directory}/fk/{pcks_pattern[-1]}')
+                spiceypy.furnsh(f'{self.kernels_directory}/pck/{pcks_pattern[-1]}')
                 pcks.append(pcks_pattern[-1])
         if not pcks:
             logging.warning(f'-- PCK not found.')
@@ -402,7 +420,6 @@ class Setup(object):
         if not sclks:
             logging.error(f'-- SCLK not found.')
         else: logging.info(f'-- SCLK(s) loaded: {sclks}')
-
 
 
         logging.info('')
