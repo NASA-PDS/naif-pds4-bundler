@@ -274,12 +274,11 @@
                  increment
             -->
             <pattern>maven_orb_rec_[0-9]{6}_[0-9]{6}_v[0-9].bsp</pattern>
-            <pattern>mvn_sc_rel_[0-9]{6}_[0-9]{6}_v[0-9]{2}.bc</pattern>
         </coverage_kernels>
         <mk name="maven_$YEAR_v$VERSION.tm">
             <name>
                 <pattern length="2">VERSION</pattern>
-                <pattern lenght="4">YEAR</pattern>
+                <pattern length="4">YEAR</pattern>
             </name>
             <grammar>
                 <!-- LSK -->
