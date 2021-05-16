@@ -146,6 +146,39 @@ Remember meta-kernels are ignored if provided with the kernel list.
 
 For metakernels this does not work: insight_$YEAR$VERSION.tm
 
+
+Bundle label construction
+=========================
+
+The creation_date_time tag of the readme.txt file is set to the bundle
+increment generation time, rather than the readme.txt file time
+
+And because this is the only way to embed the creation date within the
+bundle .xml file -- from a quick look through IM I don't see any other
+ways -- I would continue doing this and would not even bother to mention
+this in errata.
+
+The creation_date_time tag can be set to the readme.txt product creation
+time by providina a modified label for the bundle using the configuration.
+Instead of:
+
+    <File>
+      <file_name>$FILE_NAME</file_name>
+      <creation_date_time>$CURRENT_TIME</creation_date_time>
+      <file_size unit="byte">$FILE_SIZE</file_size>
+      <md5_checksum>$FILE_CHECKSUM</md5_checksum>
+    </File>
+
+the template should contain:
+
+    <File>
+      <file_name>$FILE_NAME</file_name>
+      <creation_date_time>$PRODUCT_CREATION_TIME</creation_date_time>
+      <file_size unit="byte">$FILE_SIZE</file_size>
+      <md5_checksum>$FILE_CHECKSUM</md5_checksum>
+    </File>
+
+
 Configuration
 =============
 
