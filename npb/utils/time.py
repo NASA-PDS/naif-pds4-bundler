@@ -74,9 +74,9 @@ def spk_coverage(path):
     stop_time = max(end_points_list)
 
     start_time_cal = spiceypy.timout(start_time,
-                                     "YYYY-MM-DDTHR:MN:SC.###::UTC::RND", TIMLEN) + 'Z'
+                                     "YYYY-MM-DDTHR:MN:SC.##::UTC::RND", TIMLEN) + 'Z'
     stop_time_cal = spiceypy.timout(stop_time,
-                                    "YYYY-MM-DDTHR:MN:SC.###::UTC::RND", TIMLEN) + 'Z'
+                                    "YYYY-MM-DDTHR:MN:SC.##::UTC::RND", TIMLEN) + 'Z'
 
     return [start_time_cal, stop_time_cal]
 
@@ -157,9 +157,9 @@ def pck_coverage(path):
     stop_time_tbd = max(end_points_list)
 
     start_time_cal = spiceypy.timout(start_time_tbd,
-                                   "YYYY-MM-DDTHR:MN:SC.###::UTC::RND", TIMLEN) + 'Z'
+                                   "YYYY-MM-DDTHR:MN:SC.##::UTC::RND", TIMLEN) + 'Z'
     stop_time_cal = spiceypy.timout(stop_time_tbd,
-                                  "YYYY-MM-DDTHR:MN:SC.###::UTC::RND", TIMLEN) + 'Z'
+                                  "YYYY-MM-DDTHR:MN:SC.##::UTC::RND", TIMLEN) + 'Z'
 
 
     return [start_time_cal, stop_time_cal]
