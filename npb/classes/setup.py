@@ -250,7 +250,15 @@ class Setup(object):
             else:
                 logging.warning('-- There is no meta-kernel configuration to check.')
 
-            return
+        #
+        # Check coverage kernels configuration (needed if there is only one
+        # entry).
+        #
+        if hasattr(self, 'coverage_kernels'):
+            if not isinstance(self.coverage_kernels, list):
+                self.coverage_kernels = [self.coverage_kernels]
+
+        return
 
 
     def set_release(self):
