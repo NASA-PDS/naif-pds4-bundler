@@ -364,6 +364,12 @@ class MetaKernelProduct(Product):
                     values = match_patterns(self.name, mk['@name'],patterns)
                     self.mk_setup = mk
                     self.version = values['VERSION']
+                    #
+                    # If it is a yearly meta-kernel we need the year to set
+                    # set the coverage of the meta-kenrel.
+                    #
+                    if 'YEAR' in values:
+                        self.year = values['YEAR']
                 except:
                     pass
 
@@ -618,6 +624,10 @@ class MetaKernelProduct(Product):
                                     value = kernel[indexes[0]:len(kernel) - indexes[1]]
                                     if patterns[el]['@pattern'].isupper():
                                         value = value.upper()
+                                        #
+                                        # Write the value of the pattern for future use.
+                                        #
+                                        patterns[el]['&value'] = value
                                 else:
                                     error_message('Kernel pattern not adept to write description. '
                                                     'Remember a metacharacter cannot start or finish '
@@ -632,6 +642,10 @@ class MetaKernelProduct(Product):
                                 for val in patterns[el]:
                                     if kernel == val['@value']:
                                         value = val['#text']
+                                        #
+                                        # Write the value of the pattern for future use.
+                                        #
+                                        patterns[el]['&value'] = value
 
                                 if isinstance(value, list):
                                     error_message('-- Kernel description could not be updated with pattern')
@@ -941,14 +955,28 @@ class MetaKernelProduct(Product):
 
 
     def coverage(self):
+        '''
+        Meta-kernel coverage is determined by:
+
+        -  for whole mission meta-kernels start_date_time and stop_date_time
+           are set to the coverage provided by spacecraft SPK or CKs, at the
+           discretion of the archive producer.
+
+        -  for yearly mission meta-kernels start_date_time and stop_date_time
+           are set to the coverage from Jan 1 00:00 of the year to either the
+           end of coverage provided by spacecraft SPK or CKs, or the end of the
+           year (whichever is earlier)
+
+        :return:
+        '''
 
         #
         # Match the pattern with the kernels in the meta-kernel.
         #
         kernels = []
-        for pattern in self.setup.coverage_kernels['pattern']:
+        for coverage_kernel in self.setup.coverage_kernels:
             for kernel in self.collection_metakernel:
-                if re.match(pattern, kernel):
+                if re.match(coverage_kernel['pattern'], kernel):
                     kernels.append(kernel)
 
         start_times  = []
@@ -968,7 +996,7 @@ class MetaKernelProduct(Product):
                             ker_found = True
 
                     #
-                    # When the kernels is not present in the current
+                    # When the kernels are not present in the current
                     # collection, the coverage is computed.
                     #
                     if not ker_found:
@@ -992,7 +1020,33 @@ class MetaKernelProduct(Product):
                             #
                             logging.error(f'-- File not present in final area: {path}')
 
+        #
+        # If it is a yearly meta-kernel; we need to handle it separately.
+        #
+        if hasattr(self, 'year') and start_times and finish_times:
+
+            #
+            # The date can be January 1st, of the year or the mission start
+            # date, but it should not be later or earlier than that.
+            #
+            et_mission_start = spiceypy.utc2et(self.setup.mission_start[:-1])
+            et_year_start    = spiceypy.utc2et(f'{self.year}-01-01T00:00:00')
+
+            if (et_year_start > et_mission_start):
+                start_times = [et_year_start]
+            else:
+                start_times = [et_mission_start]
+
+            #
+            # Update the end time of the meta-kernel
+            #
+            et_year_stop    = spiceypy.utc2et(f'{int(self.year)+1}-01-01T00:00:00')
+
+            if max(finish_times) > et_year_stop:
+                finish_times = [et_year_stop]
+
         try:
+
             start_time  = spiceypy.et2utc(min(start_times), 'ISOC', 0, 80) + 'Z'
             stop_time = spiceypy.et2utc(max(finish_times), 'ISOC', 0, 80) + 'Z'
             logging.info(f'-- Meta-kernel coverage: {start_time} - {stop_time}')
