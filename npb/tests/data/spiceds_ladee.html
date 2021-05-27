@@ -9,7 +9,7 @@
 The LADEE SPICE Data Archive
 ========================================================================
 
-   Last update: May 6, 2021
+   Last update: May 20, 2021
 
 <A NAME="Introduction"></A>
 Introduction
@@ -275,7 +275,7 @@ SPK Files
                PPP       is the mission phase:
 
                             pha    launch and phasing loop
-                            loa    lunar orbit acquisiton and comissioning
+                            loa    lunar orbit acquisition and commissioning
                             sci    primary and extended science phases
 
                VV        is the version; the file with the latest
@@ -387,7 +387,7 @@ IK Files
 
                NAME      is the instrument acronym:
 
-                            ldx    Lunar Dust EXperiment (LDEX)
+                            ldex   Lunar Dust EXperiment (LDEX)
                             nms    Neutral Mass Spectometer (NMS)
                             uvs    Ultraviolet and Visible light
                                    Spectrometer (UVS)
@@ -470,19 +470,31 @@ SCLK Files
    calibration data required to perform a mapping between Ephemeris
    time (ET) and spacecraft on-board time (SCLK).
 
-   This archive includes text SCLK files containing correlation data
-   for the main LADEE on-board clock.
+   This archive includes text SCLK files containing nominal and actual
+   correlation data for the main LADEE on-board clock.
 
    The SCLK files are provided under the <a href="../spice_kernels/sclk/">spice_kernels/sclk</a>
    directory and are named according to the following scheme:
 
-      -  main LADEE spacecraft clock SCLK files
+      -  main LADEE spacecraft clock SCLK files containing actual data
 
-               ladee_clkcor_YYMMDD_YYMMDD_VV.tsc
+               ladee_clkcor_YYMMDD_YYMMDD_vVV.tsc
 
             where
 
                YYMMDD    are the file applicability start and stop dates
+
+               VV        is the version; the file with the latest
+                         version supersedes all similarly named
+                         files with earlier versions.
+
+      -  main LADEE spacecraft clock SCLK files containing nominal data
+
+               ladee_clkcor_YYYYDOY_vVV.tsc
+
+            where
+
+               YYYYDOY   is the product creation time in day of year format
 
                VV        is the version; the file with the latest
                          version supersedes all similarly named
@@ -667,7 +679,7 @@ Contact Information
 Cognizant Persons
 =================
 
-   This archive was produced by Boris Semenov and Marc Costa Sitja,
+   This archive was produced by Marc Costa Sitja and Boris Semenov,
    Planetary Data System Navigation and Ancillary Information
    Facility Node, Jet Propulsion Laboratory, Pasadena, California.
 

@@ -25,7 +25,7 @@
     <!-- =========================== -->
     <bundle_parameters>
         <producer_name>Marc Costa Sitja</producer_name>
-        <author_list>Semenov B. V.; Costa Sitja M.</author_list>
+        <author_list>Costa Sitja M.; Semenov B. V.</author_list>
         <institution>NAIF/JPL</institution>
         <doi>10.17189/1522402</doi>
         <spiceds>../data/spiceds_ladee.html</spiceds>
@@ -37,9 +37,9 @@
                 the LADEE spacecraft, its instruments, and targets.
             </overview>
             <cognisant_persons>
-                This archive bundle was produced by Marc Costa Sitja, Planetary
-                Data System Navigation and Ancillary Information Facility Node,
-                Jet Propulsion Laboratory, Pasadena, California.
+                This archive bundle was produced by Planetary Data System (PDS)
+                Navigation and Ancillary Information Facility (NAIF) Node, Jet
+                Propulsion Laboratory, Pasadena, California.
             </cognisant_persons>
         </readme>
         <!-- Optional parameters -->
@@ -49,13 +49,14 @@
         <!-- Increment start and stop times provided as a UTC calendar string.
              They require to be present. Use the following format:
              YYYY-MM-DDThh:mm:ssZ e.g., 2021-04-09T15:11:12Z. -->
-        <increment_start>2013-09-07T03:51:00Z</increment_start>
-        <increment_finish>2014-04-18T04:32:00Z</increment_finish>
+        <increment_start></increment_start>
+        <increment_finish></increment_finish>
         <kernels_to_load>
             <lsk>naif[0-9][0-9][0-9][0-9].tls</lsk>
             <sclk>ladee_clkcor_13250_14108_v01.tsc</sclk>
-            <fk>ladee_frames_2021126_v01.tf</fk>
+            <fk>ladee_frames_2021140_v01.tf</fk>
         </kernels_to_load>
+        <date_format>maklabel</date_format>
     </bundle_parameters>
 
     <!-- =========================== -->
@@ -65,7 +66,7 @@
         <mission_accronym>ladee</mission_accronym>
         <mission_name>LADEE</mission_name>
         <mission_start>2013-09-07T03:51:00Z</mission_start>
-        <mission_stop>2014-04-18T04:32:00Z</mission_stop>
+        <mission_stop>2050-01-01T00:00:00Z</mission_stop>
         <spacecraft>LADEE</spacecraft>
         <target>MOON</target>
         <phases>
@@ -128,7 +129,7 @@
                 ephemerides DE421, created by NAIF, JPL.
             </description>
         </kernel>
-        <kernel pattern="ladee_frames_2021126_v01.tf">
+        <kernel pattern="ladee_frames_2021140_v01.tf">
             <mklabel_options>DEF_TIMES</mklabel_options>
             <description>SPICE FK file defining reference frames for the LADEE spacecraft, its structures, and science
                 instruments, created by NAIF, JPL.
@@ -151,7 +152,13 @@
         </kernel>
         <kernel pattern="ladee_clkcor_13250_14108_v01.tsc">
             <mklabel_options>DEF_TIMES</mklabel_options>
-            <description>SPICE SCLK file containing time correlation data for the actual LADEE on-board clock, created
+            <description>SPICE SCLK file containing actual time correlation data for the LADEE on-board clock, created
+                by NAIF, JPL.
+            </description>
+        </kernel>
+        <kernel pattern="ladee_clkcor_2013015_v01.tsc">
+            <mklabel_options>DEF_TIMES</mklabel_options>
+            <description>SPICE SCLK file containing nominal time correlation data for the LADEE on-board clock, created
                 by NAIF, JPL.
             </description>
         </kernel>
@@ -208,6 +215,8 @@
             <file>../data/ladee_v01.tm</file>
         </mk_inputs>
         <coverage_kernels>
+            <pattern>ladee_r_13250_13279_pha_v01.bsp</pattern>
+            <pattern>ladee_r_13325_14108_sci_v01.bsp</pattern>
         </coverage_kernels>
         <mk></mk>
     </meta-kernel>

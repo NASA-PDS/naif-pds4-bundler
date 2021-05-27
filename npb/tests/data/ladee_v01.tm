@@ -4,12 +4,11 @@ KPL/MK
    for the whole mission. All of the kernels listed below are archived
    in the PDS LADEE SPICE kernel archive. This set of files and the
    order in which they are listed were picked to provide the best
-   available data and the most complete coverage for the specified year
-   based on the information about the kernels available at the time
-   this meta-kernel was made. For detailed information about the
-   kernels listed below refer to the internal comments included in the
-   kernels and the documentation accompanying the LADEE SPICE kernel
-   archive.
+   available data and the most complete coverage based on the information
+   about the kernels available at the time this meta-kernel was made.
+   For detailed information about the kernels listed below refer to the
+   internal comments included in the kernels and the documentation
+   accompanying the LADEE SPICE kernel archive.
 
    It is recommended that users make a local copy of this file and
    modify the value of the PATH_VALUES keyword to point to the actual
@@ -19,7 +18,7 @@ KPL/MK
    be required if this meta-kernel is to be used on a non-UNIX
    workstation.
 
-   This file was created on May 6, 2021 by Marc Costa Sitja, NAIF/JPL.
+   This file was created on May 25, 2021 by Marc Costa Sitja, NAIF/JPL.
    The original name of this file was ladee_v01.tm.
 
    \begindata
@@ -37,7 +36,7 @@ KPL/MK
 
                           '$KERNELS/fk/moon_assoc_me.tf'
                           '$KERNELS/fk/moon_080317.tf'
-                          '$KERNELS/fk/ladee_frames_2021126_v01.tf'
+                          '$KERNELS/fk/ladee_frames_2021140_v01.tf'
 
                           '$KERNELS/ik/ladee_ldex_v01.ti'
                           '$KERNELS/ik/ladee_nms_v00.ti'

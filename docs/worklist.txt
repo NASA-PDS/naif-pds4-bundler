@@ -49,7 +49,10 @@ v0.5.0 - Generation of MAVEN Bundle with user input meta-kernels.
      that can be validated against a schematron. JSON can still be used as an
      intermediate format if need be.
 
-v0.6.0
+v0.6.0 - Generation of LADEE Bundle.
+
+  -- Beware of meta-kernels with "_v" in name besides from version.
+  -- Split meta-kernel by year.
 
 v1.0.0 - First 'public' release.
 
@@ -58,8 +61,7 @@ Work List:
   CHECK: Include DOI in Citation Information Description as a workaround
          for information model 1.5.0.0?
 
-  -- Beware of meta-kernels with "_v" in name besides from version.
-  -- Split meta-kernel by year.
+
   -- Incorporate a validation at the end of the process that reports on
      sensible field such as descriptions, start and stop times, and other
      fields to be considered, this report could be presented as table.  
@@ -124,4 +126,40 @@ Work List:
     -- Implement archvie time boundaries tests (there is one sketched in
        configuration).
 
+    -- Summary to be included, as per BVS suggestion
+
+      foreach FF ( logical_identifier version_id title description start_date_time stop_date_time file_name file_size md5_checksum object_length kernel_type encoding_type )
+         echo -------------------------------------------------------------------------- $FF
+         grep $FF `find spice_kernels -name '*.xml' -mtime -1 -print | sort`
+      end
+
+      -- check that there is a XML label for each file under spice_kernels
+
+      foreach FF ( `ls -1 spice_kernels/*/*.* | grep -vi '\.xml$'` )
+         if ( ! -e $FF:r.xml && ! -e $FF:r.XML ) then
+            echo NO XML label for $FF
+         endif
+      end
+
+    -- From MAKLABEL
+
+C     3) All files that are to have labels generated must have a NAIF
+C        file ID word as the first "word" on the first line of the
+C        file.The SPICE binary kernel files are guaranteed to have
+C        this ID word, but the ASCII text kernels, IK, LSK, PCK, SCLK,
+C        are not. for completeness, the appropriate ID words are listed
+C        here, so that they may be inserted into the ASCII text kernel
+C        files if necessary.
+C
+C           ASCII Text File Type      ID Word
+C           --------------------      --------
+C           IK                        KPL/IK
+C           LSK                       KPL/LSK
+C           PCK                       KPL/PCK
+C           SCLK                      KPL/SCLK
+C           FRAMES                    KPL/FK
+C
+C        The ID words must be the first item in the file, and it
+C        should appear on a line by itself, e.g., suppose we have
+C        a leapseconds text kernel file that is missing the ID word,
 

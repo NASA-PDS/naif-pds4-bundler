@@ -50,6 +50,9 @@
             <sclk>MVN_SCLKSCET.[0-9][0-9][0-9][0-9][0-9].tsc</sclk>
             <fk>maven_v[0-9][0-9].tf</fk>
         </kernels_to_load>
+        <!-- Date format can be maklabel style or infomod2 the parameter
+             is not required and the default value is infomod2 -->
+        <date_format>maklabel</date_format>
     </bundle_parameters>
 
     <!-- =========================== -->
@@ -232,11 +235,11 @@
                 JPL. The original name of this file was $ORIGINAL.
             </description>
             <patterns>
-                <ORIGINAL pattern="mvn_sc_pred_210104_210120_v01.bc">mvn_sc_pred_210104_210120_vm321_322_v03.bc</ORIGINAL>
-                <ORIGINAL pattern="mvn_sc_pred_141205_141209_v01.bc">mvn_sc_pred_141205_141209_vm002OTM_v02.bc</ORIGINAL>
-                <ORIGINAL pattern="mvn_sc_pred_141223_150109_v01.bc">mvn_sc_pred_141223_150109_vm004_v02.bc</ORIGINAL>
-                <ORIGINAL pattern="mvn_sc_pred_150302_150315_v01.bc">mvn_sc_pred_150302_150315_vm013ar01_v01.bc</ORIGINAL>
-                <ORIGINAL pattern="mvn_sc_pred_150630_150707_v01.bc">mvn_sc_pred_150630_150707_vm027b_v01.bc</ORIGINAL>
+                <ORIGINAL value="mvn_sc_pred_210104_210120_v01.bc">mvn_sc_pred_210104_210120_vm321_322_v03.bc</ORIGINAL>
+                <ORIGINAL value="mvn_sc_pred_141205_141209_v01.bc">mvn_sc_pred_141205_141209_vm002OTM_v02.bc</ORIGINAL>
+                <ORIGINAL value="mvn_sc_pred_141223_150109_v01.bc">mvn_sc_pred_141223_150109_vm004_v02.bc</ORIGINAL>
+                <ORIGINAL value="mvn_sc_pred_150302_150315_v01.bc">mvn_sc_pred_150302_150315_vm013ar01_v01.bc</ORIGINAL>
+                <ORIGINAL value="mvn_sc_pred_150630_150707_v01.bc">mvn_sc_pred_150630_150707_vm027b_v01.bc</ORIGINAL>
             </patterns>
         </kernel>
         <kernel pattern="mvn_app_pred_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9].bc">
@@ -245,11 +248,11 @@
                 (APP), created by NAIF, JPL. The original name of this file was $ORIGINAL.
             </description>
             <patterns>
-                <ORIGINAL pattern="mvn_app_pred_210104_210120_v01.bc">mvn_app_pred_210104_210120_vm321_322_v03.bc</ORIGINAL>
-                <ORIGINAL pattern="mvn_app_pred_141205_141209_v01.bc">mvn_app_pred_141205_141209_vm002OTM_v02.bc</ORIGINAL>
-                <ORIGINAL pattern="mvn_app_pred_141223_150109_v01.bc">mvn_app_pred_141223_150109_vm004_v02.bc</ORIGINAL>
-                <ORIGINAL pattern="mvn_app_pred_150302_150315_v01.bc">mvn_app_pred_150302_150315_vm013ar01_v01.bc</ORIGINAL>
-                <ORIGINAL pattern="mvn_app_pred_150630_150707_v01.bc">mvn_app_pred_150630_150707_vm027b_v01.bc</ORIGINAL>
+                <ORIGINAL value="mvn_app_pred_210104_210120_v01.bc">mvn_app_pred_210104_210120_vm321_322_v03.bc</ORIGINAL>
+                <ORIGINAL value="mvn_app_pred_141205_141209_v01.bc">mvn_app_pred_141205_141209_vm002OTM_v02.bc</ORIGINAL>
+                <ORIGINAL value="mvn_app_pred_141223_150109_v01.bc">mvn_app_pred_141223_150109_vm004_v02.bc</ORIGINAL>
+                <ORIGINAL value="mvn_app_pred_150302_150315_v01.bc">mvn_app_pred_150302_150315_vm013ar01_v01.bc</ORIGINAL>
+                <ORIGINAL value="mvn_app_pred_150630_150707_v01.bc">mvn_app_pred_150630_150707_vm027b_v01.bc</ORIGINAL>
             </patterns>
         </kernel>
         <kernel pattern="maven_[0-9][0-9][0-9][0-9]_v[0-9][0-9].tm">

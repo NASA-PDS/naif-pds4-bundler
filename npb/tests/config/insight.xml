@@ -65,6 +65,9 @@
             <sclk>marcoa_fake_v[0-9][0-9].tsc</sclk>
             <fk>marcob_v[0-9][0-9].tf</fk>
         </kernels_to_load>
+        <!-- Date format can be maklabel style or infomod2 the parameter
+             is not required and the default value is infomod2 -->
+        <date_format>maklabel</date_format>
     </bundle_parameters>
 
     <!-- =========================== -->
@@ -389,12 +392,11 @@
                     for the whole mission. All of the kernels listed below are archived
                     in the PDS INSIGHT SPICE kernel archive. This set of files and the
                     order in which they are listed were picked to provide the best
-                    available data and the most complete coverage for the specified year
-                    based on the information about the kernels available at the time
-                    this meta-kernel was made. For detailed information about the
-                    kernels listed below refer to the internal comments included in the
-                    kernels and the documentation accompanying the INSIGHT SPICE kernel
-                    archive.
+                    available data and the most complete coverage based on the information
+                    about the kernels available at the time this meta-kernel was made.
+                    For detailed information about the kernels listed below refer to the
+                    internal comments included in the kernels and the documentation
+                    accompanying the INSIGHT SPICE kernel archive.
 
                     This meta-kernel also includes keywords setting the SPICE CHRONOS
                     utility configuration parameters (spacecraft ID, planet ID, landing UTC,

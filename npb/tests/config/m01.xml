@@ -21,6 +21,7 @@
         <release_date></release_date>
         <increment_start></increment_start>
         <increment_finish></increment_finish>
+        <date_format>maklabel</date_format>
     </bundle_parameters>
 
     <!-- =========================== -->
