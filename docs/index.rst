@@ -12,6 +12,8 @@ NAIF PDS4 Bundle Generator documentation
    :caption: Contents:
 
    source/01_overview
+   source/20_main.rst
+   source/30_api_docs
 
 Indices and tables
 ==================

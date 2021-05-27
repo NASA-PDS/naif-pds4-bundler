@@ -182,7 +182,13 @@ the template should contain:
 Configuration
 =============
 
-.. automodule:: npb.main
+Configuration file
 
+The value of PREC, the number of digits used
+to report fractional seconds, must be
+non-negative.  The value input was #.'
 
-.. automodule:: npb.main.main
+Fractional seconds, or for Julian dates, fractional
+                  days, are rounded to the precision level specified
+                  by the input argument PREC.
+
