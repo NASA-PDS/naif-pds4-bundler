@@ -1,8 +1,7 @@
-#!/usr/bin/env python3
 #
 #   NAIF PDS4 Bundle Generator (naif-pds4-bundle)
 #
-#   --------------------------------------------------------------------------
+#   -------------------------------------------------------------------------
 #   @author: Marc Costa Sitja (JPL)
 #
 #   THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE
@@ -27,7 +26,7 @@
 #   THE SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY
 #   CALTECH AND NASA FOR ALL THIRD-PARTY CLAIMS RESULTING FROM THE
 #   ACTIONS OF RECIPIENT IN THE USE OF THE SOFTWARE.
-#   --------------------------------------------------------------------------
+#   -------------------------------------------------------------------------
 """
 The PDS4 Bundle Generator (naif-pds4-bundle) is a a pipeline that
 generates a SPICE archive in the shape of a PDS4 Bundle or a PDS3
@@ -45,7 +44,7 @@ Using naif-pds4-bundle
 ----------------------
 ::
 
-usage: naif-pds4-bundle [-h] [-l] [-i] CONFIG [CONFIG ...] CONFIG [CONFIG ...]
+usage: naif-pds4-bundle [-h] [-l] [-i] CONFIG [CONFIG ...]
 
 naif-pds4-bundle-0.1.0, PDS4/PDS4 SPICE archive generation pipeline
 
@@ -62,50 +61,70 @@ optional arguments:
   -i, --interactive  Activate interactive execution
 
 """
-import re
-
 from textwrap import dedent
-
 from os.path import dirname
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
-
-from .classes.setup      import Setup
-from .classes.log        import Log
-from .classes.list       import KernelList
-from .classes.bundle     import Bundle
+from .classes.setup import Setup
+from .classes.log import Log
+from .classes.list import KernelList
+from .classes.bundle import Bundle
 from .classes.collection import SpiceKernelsCollection
-from .classes.product    import SpiceKernelProduct
-from .classes.product    import MetaKernelProduct
-from .classes.product    import InventoryProduct
+from .classes.product import SpiceKernelProduct
+from .classes.product import MetaKernelProduct
+from .classes.product import InventoryProduct
 from .classes.collection import DocumentCollection
-from .classes.product    import SpicedsProduct
-from .classes.product    import Object
+from .classes.product import SpicedsProduct
+from .classes.product import Object
 
 
-def main(config = False, plan   = False, faucet  = '',
-         log    = False, silent = False, verbose  = False,
-         diff   = '',    interactive  = False, debug = True ):
+def main(config=False, plan=False, faucet='', log=False, silent=False,
+         verbose=False, diff='', interactive=False, debug=True):
     """
     Main routine for the NAIF PDS4 Bundle Generator (naif-pds4-bundle).
+    This routine gets the command line arguments or the parameter
+    arbuments and runs the archive generation pipeline.
 
-    This routine gets the command line arguments and executes the archive
-    generation pipeline. This execution can be interactive or not.
+    :param config: XML Configuration file
+    :param plan: Release plan file listing the kernels to be archived.
+                 If this argument is not provided, all the kernels found in
+                 the kernels directory specified in the configuration file
+                 in addition to new meta-kernels will be included in the
+                 increment
+    :param faucet: Optional indication for end point of the pipeline.
+                   Allowed values are: `list', `staging', or `final'
+    :param log: Write log in file
+    :param silent: Log will not be prompted on the terminal during execution
+    :param verbose: Full log will be prompted on the terminal  during
+                    execution. If argumet is set to True, silent argument
+                    is omitted
+    :param diff: Optional generation of diff reports for products. Allowed
+                 values are: `all', `log', or `files'
+    :param interactive: Activate interactive execution. If chosen, verbose
+                       argument will be set to True
+    :param debug: Indicate whether if the pipeline is running in debug mode
     """
-
+    #
+    # Load the naif-pds4-bundle version as provided by the version file.
+    #
     with open(dirname(__file__) + '/../version',
               'r') as f:
         for line in f:
             version = line
 
+    #
+    # Determine whether if the pipeline is being executed directly from
+    # the command line of called by another Python function. If this is
+    # not the case, then the arguments are taken from the command line.
+    #
     if not config and not plan:
 
-        header  = dedent(
-        f'''\
+        header = dedent(
+            f'''\
     
-         naif-pds4-bundle-{version}, NAIF PDS4/PDS3 SPICE archive generation pipeline 
+    naif-pds4-bundle-{version}, NAIF PDS4 SPICE archive generation pipeline 
     
-           naif-pds4-bundle is a command-line utility program that generates PDS4 
-           Bundles and PDS3 data sets for SPICE kernels.
+      naif-pds4-bundle is a command-line utility program that generates PDS4 
+      Bundles and PDS3 data sets for SPICE kernels.
         ''')
 
         #
@@ -114,68 +133,84 @@ def main(config = False, plan   = False, faucet  = '',
         parser = ArgumentParser(formatter_class=RawDescriptionHelpFormatter,
                                 description=header)
         parser.add_argument('config', metavar='CONFIG', type=str, nargs='+',
-                            help='Mission specific configuration file')
+                            help='XML Configuration file')
         parser.add_argument('-p', '--plan',
                             action='store', type=str,
-                            help='Files planned to be included in the increment. If this argument is not provided, '
-                                 'all the kernels found in the kernels directory specified in the configuration file '
-                                 'in addition to new meta-kernels will be included in the increment.')
-        parser.add_argument('-d', '--diff',
-                            default= '',
-                            action='store', type = str,
-                            help='Optional generation of diff reports for '
-                                 'products. Allowed values are: "all", '
-                                 '"log" or "files".')
+                            help="Release plan file listing the kernels to "
+                                 "be archived. If this argument is not "
+                                 "provided, all the kernels found in the "
+                                 "kernels directory specified in the "
+                                 "configuration file in addition to new "
+                                 "meta-kernels will be included in the "
+                                 "increment.")
         parser.add_argument('-f', '--faucet',
-                            default= '',
-                            action='store', type = str,
-                            help='Optional end point of the pipeline. '
-                                 'Allowed values are: "list", "staging" or '
-                                 '"final"')
+                            default='',
+                            action='store', type=str,
+                            help="Optional indication for end point of the "
+                                 "pipeline. Allowed values are: `list', "
+                                 "`staging', or `final'.")
         parser.add_argument('-l', '--log',
                             help='Write log in file',
                             action='store_true')
         parser.add_argument('-s', '--silent',
-                            help='Log will not be prompted on the terminal during execution.',
+                            help="Log will not be prompted on the terminal "
+                                 "during execution.",
                             action='store_true')
         parser.add_argument('-v', '--verbose',
-                            help='Full log will be prompted on the terminal during execution. If argumet is set to True, silent argument is omitted.',
+                            help="Full log will be prompted on the terminal "
+                                 "during execution. If argumet is set to "
+                                 "True, silent argument is omitted.",
                             action='store_true')
+        parser.add_argument('-d', '--diff',
+                            default='',
+                            action='store', type=str,
+                            help="Optional generation of diff reports for "
+                                 "products. Allowed values are: `all', "
+                                 "`log', or `files'.")
         parser.add_argument('-i', '--interactive',
-                            help='Activate interactive execution. If chosen, verbose argument will be set to True.',
+                            help="Activate interactive execution. If "
+                                 "chosen, verbose argument will be set to "
+                                 "True.",
                             action='store_true')
 
+        #
+        # Store the arguments in the args object.
+        #
+        args = parser.parse_args()
+        args.config = args.config[0]
 
-        args         = parser.parse_args()
-        args.config  = args.config[0]
-
+    #
+    # If npb is not executed from the command line then an args object is
+    # initialised and the argument attributes are obtained from the
+    # main function argument list.
+    #
     else:
 
-        args              = Object()
-        args.config       = config
-        args.plan         = plan
-        args.faucet       = faucet
-        args.log          = log
-        args.silent       = silent
-        args.verbose      = verbose
-        args.diff         = diff
-        args.interactive  = interactive
+        args = Object()
+        args.config = config
+        args.plan = plan
+        args.faucet = faucet
+        args.log = log
+        args.silent = silent
+        args.verbose = verbose
+        args.diff = diff
+        args.interactive = interactive
 
     #
     # Turn lowercase or uppercase arguments that need it.
     #
     args.faucet = args.faucet.lower()
-    args.diff   = args.diff.lower()
+    args.diff = args.diff.lower()
 
     #
-    # Force verbosity if interactive argument is set to true.
+    # Force verbosity if interactive argument is set to True.
     #
     if args.interactive:
         args.verbose = True
-        args.silent  = False
+        args.silent = False
 
     #
-    # Set silent to False if verbose is set to true.
+    # Set silent to False if verbose is set to True.
     #
     if args.verbose:
         args.silent = False
@@ -184,11 +219,12 @@ def main(config = False, plan   = False, faucet  = '',
     # Check if string optional parameters are correct.
     #
     if args.diff not in ['all', 'log', 'files', '']:
-        raise  Exception('-d, --diff argument has incorrect value.')
+        raise Exception('-d, --diff argument has incorrect value.')
     if args.faucet not in ['list', 'staging', 'final', '']:
-        raise  Exception('-f, --faucet argument has incorrect value.')
+        raise Exception('-f, --faucet argument has incorrect value.')
 
-
+    #
+    # The pipeline is exectued now
     #
     # -- Generate setup object
     #
@@ -243,12 +279,10 @@ def main(config = False, plan   = False, faucet  = '',
     #
     bundle = Bundle(setup)
 
-
     #
     # -- Load LSK, FK and SCLK kernels for coverage computations
     #
     setup.load_kernels()
-
 
     #
     # -- Initialise the SPICE kernels collection.
@@ -265,14 +299,16 @@ def main(config = False, plan   = False, faucet  = '',
             # * Each label is validated after generation.
             #
             spice_kernels_collection.add(
-            SpiceKernelProduct(setup, kernel, spice_kernels_collection))
+                SpiceKernelProduct(setup, kernel, spice_kernels_collection))
 
     #
     # -- Generate the meta-kernel(s).
     #
-    (meta_kernels, user_input) = spice_kernels_collection.determine_meta_kernels()
+    (meta_kernels, user_input) = \
+        spice_kernels_collection.determine_meta_kernels()
     for mk in meta_kernels:
-        meta_kernel = MetaKernelProduct(setup, mk, spice_kernels_collection, user_input=user_input)
+        meta_kernel = MetaKernelProduct(setup, mk, spice_kernels_collection,
+                                        user_input=user_input)
         spice_kernels_collection.add(meta_kernel)
 
     #
@@ -295,7 +331,8 @@ def main(config = False, plan   = False, faucet  = '',
     #
     # -- Generate the SPICE kernels collection inventory product.
     #
-    spice_kernels_collection_inventory = InventoryProduct(setup, spice_kernels_collection)
+    spice_kernels_collection_inventory = InventoryProduct(setup,
+                                             spice_kernels_collection)
 
     #
     # -- Generate the document collection
@@ -319,7 +356,8 @@ def main(config = False, plan   = False, faucet  = '',
             #
             # -- Generate the documents inventory.
             #
-            document_collection_inventory = InventoryProduct(setup, document_collection)
+            document_collection_inventory = InventoryProduct(setup,
+                                                document_collection)
 
         #
         # -- Add Collections to the Bundle
@@ -341,7 +379,6 @@ def main(config = False, plan   = False, faucet  = '',
     #
     bundle.files_in_staging()
 
-
     #
     # -- Stop the pipeline if you do not want to move the files from the
     #    staging area. Note that the complete list and the index file
@@ -351,15 +388,13 @@ def main(config = False, plan   = False, faucet  = '',
         log.stop()
         return
 
-    #TODO: Armonise the process with the PDS3 archvie generation.
-
     #
     # -- Generate index files, this includes generating the complete
     #    kernel list.
     #
     # OnlyFor PDS3
-    #list.write_complete_list()
-    #spice_kernels_collection_inventory.write_index()
+    # list.write_complete_list()
+    # spice_kernels_collection_inventory.write_index()
 
     #
     # -- Copy files to final area.
@@ -390,7 +425,8 @@ def main(config = False, plan   = False, faucet  = '',
         meta_kernel.validate()
 
     log.stop()
-    return
+
+    return None
 
 
 if __name__ == '__main__':

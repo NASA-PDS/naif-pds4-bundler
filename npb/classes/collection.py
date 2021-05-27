@@ -4,8 +4,9 @@ import glob
 import logging
 import spiceypy
 
-from npb.classes.log   import error_message
-from npb.utils.files   import extension2type
+from npb.classes.log import error_message
+from npb.utils.files import extension2type
+from npb.utils.time import get_years
 
 
 class Collection(object):
@@ -22,9 +23,8 @@ class Collection(object):
 
         return
 
-
     def add(self, element):
-        
+
         self.product.append(element)
 
     def collection_lid(self):
@@ -32,7 +32,6 @@ class Collection(object):
         collection_lid = f'{self.setup.logical_identifier}:{self.type}'
 
         return collection_lid
-
 
     def collection_vid(self):
 
@@ -49,13 +48,16 @@ class Collection(object):
                 versions.sort()
                 version = int(versions[-1].split('v')[-1].split('.')[0]) + 1
                 vid = '{}.0'.format(version)
-                logging.info(f'-- Collection of {self.type} version set to {version}, derived from:')
+                logging.info(f'-- Collection of {self.type} version set to '
+                             f'{version}, derived from:')
                 logging.info(f'   {versions[-1]}')
                 logging.info('')
 
             except:
-                logging.warning(f'-- No {self.type} collection available in previous increment.')
-                logging.warning(f'-- Collection of {self.type} version set to: {int(self.setup.release)}.')
+                logging.warning(f'-- No {self.type} collection available in '
+                                f'previous increment.')
+                logging.warning(f'-- Collection of {self.type} version set '
+                                f'to: {int(self.setup.release)}.')
                 vid = '{}.0'.format(int(self.setup.release))
                 logging.info('')
 
@@ -63,7 +65,8 @@ class Collection(object):
                     input(">> Press Enter to continue...")
 
         else:
-            logging.warning(f'-- Collection of {self.type} version set to: {int(self.setup.release)}.')
+            logging.warning(f'-- Collection of {self.type} version set '
+                            f'to: {int(self.setup.release)}.')
             vid = '{}.0'.format(int(self.setup.release))
             logging.info('')
 
@@ -80,31 +83,32 @@ class SpiceKernelsCollection(Collection):
         line = f'Step {setup.step} - SPICE kernel collection/data processing'
         logging.info('')
         logging.info(line)
-        logging.info('-'*len(line))
+        logging.info('-' * len(line))
         logging.info('')
         setup.step += 1
-        if not setup.args.silent and not setup.args.verbose: print('-- ' + line.split(' - ')[-1] + '.')
+        if not setup.args.silent and not setup.args.verbose:
+            print('-- ' + line.split(' - ')[-1] + '.')
 
-        self.bundle      = bundle
-        self.list        = list
-        self.type        = 'spice_kernels'
-        self.start_time  = setup.mission_start
-        self.stop_time   = setup.mission_stop
+        self.bundle = bundle
+        self.list = list
+        self.type = 'spice_kernels'
+        self.start_time = setup.mission_start
+        self.stop_time = setup.mission_stop
 
         Collection.__init__(self, self.type, setup, bundle)
 
         return
-
 
     def determine_meta_kernels(self):
 
         line = f'Step {self.setup.step} - Generation of meta-kernel(s)'
         logging.info('')
         logging.info(line)
-        logging.info('-'*len(line))
+        logging.info('-' * len(line))
         logging.info('')
         self.setup.step += 1
-        if not self.setup.args.silent and not self.setup.args.verbose: print('-- ' + line.split(' - ')[-1] + '.')
+        if not self.setup.args.silent and not self.setup.args.verbose:
+            print('-- ' + line.split(' - ')[-1] + '.')
 
         meta_kernels = []
 
@@ -115,6 +119,26 @@ class SpiceKernelsCollection(Collection):
         # message if more meta-kernels are expected).
         #
         if not self.setup.mk_inputs[0]['file'] == None:
+            mks = self.setup.mk_inputs[0]['file']
+            if not isinstance(mks, list):
+                mks = [mks]
+            for mk in mks:
+                if not os.path.exists(mk):
+                    logging.info('')
+                    logging.error(f'-- Meta-kernel provided via configuration'
+                                  f' does not exist: {mk}')
+                else:
+                    meta_kernels.append(mk)
+
+        #
+        # Second we check if meta-kernels are indicated with the kernel list.
+        # Note that if kernels are provided as input, the ones present in the
+        # kernel list are ignored.
+        #
+        else:
+
+            logging.info('f-- No meta-kernel provided in the kernel list or '
+                         'via configuration.')
             mks = self.setup.mk_inputs[0]['file']
             if not isinstance(mks, list):
                 mks = [mks]
@@ -155,10 +179,12 @@ class SpiceKernelsCollection(Collection):
                     for pattern in mk['grammar']['pattern']:
                         #
                         # meta-kernel grammars might have prefixes followed by
-                        # a colon, so we need to make sure we only use the name
-                        # and we do not use the ones with 'exclude:'.
+                        # a colon, so we need to make sure we only use the
+                        # name and we do not use the ones with 'exclude:'.
                         #
-                        if  ('excluded:' not in pattern) and re.match(pattern.split(':')[-1], kernel_product.name):
+                        if ('exclude:' not in pattern) and \
+                                re.match(pattern.split(':')[-1],
+                                         kernel_product.name):
                             generate_mk = True
 
                     #
@@ -166,7 +192,8 @@ class SpiceKernelsCollection(Collection):
                     # meta-kernel that needs to be generated multiple times.
                     #
                     # In addition the patterns of the meta-kernel name need to
-                    # be completed. Currently there are two supported patterns:
+                    # be completed. Currently there are two supported
+                    # patterns:
                     #    - VERSION
                     #    - YEAR
                     #
@@ -175,24 +202,75 @@ class SpiceKernelsCollection(Collection):
                         #
                         # Loop the patterns.
                         #
-                        if not isinstance(mk['name'], list):
-                            patterns = [mk['name']]
+                        if not isinstance(mk['name']['pattern'], list):
+                            patterns = [mk['name']['pattern']]
                         else:
-                            patterns = mk['name']
+                            patterns = mk['name']['pattern']
 
                         #
-                        # First we need to determine if multiple instances of this
-                        # meta-kernel are required; yearly meta-kernel.
+                        # First we need to determine which yearly meta-kernels
+                        # Need to be produced.
                         #
+                        years = []
+                        for pattern in patterns:
+                            if pattern['#text'] == "YEAR":
+                                #
+                                # We check the coverage of the kernel, except
+                                # if it is a SCLK.
+                                #
+                                for kernel in self.product:
+                                    start_time = kernel.start_time
+                                    stop_time = kernel.stop_time
+                                    kernel_years = get_years(start_time,
+                                                             stop_time)
 
-                        for pattern in mk['name']:
-                            #
-                            # If present, determine the version.
-                            #
-                            #if pattern['#text'] == "VERSION":
-                            pass
+                                    years += kernel_years
 
-                        #meta_kernels.append(mk['@name'])
+                                years = list(dict.fromkeys(years))
+
+                                if self.setup.increment:
+                                    mks_previous_incremenet = False
+
+                                else:
+                                    #
+                                    # If this is the first version of the
+                                    # increment then simply generate the first
+                                    # version of each yearly required
+                                    # meta-kernel.
+                                    #
+                                    for year in years:
+                                        #
+                                        # Check that we do not generate any
+                                        # meta-kernel prior to the start of
+                                        # the mission. Or beyond the increment
+                                        # release year.
+                                        #
+                                        mission_start_year = \
+                                            self.setup.mission_start.split(
+                                                '-')[0]
+                                        current_year = \
+                                            self.setup.release_date.split(
+                                                '-')[0]
+
+                                        if (year >= mission_start_year) and \
+                                                (year <= current_year):
+
+                                            for pattern in patterns:
+                                                if 'VERSION' in \
+                                                        pattern['#text']:
+                                                    version_lenght = \
+                                                        pattern['@length']
+                                            version = \
+                                                '0' * (version_lenght - 1) + \
+                                                '1'
+
+                                            metaker = \
+                                                metaker['@name'].replace(
+                                                    '$YEAR', year)
+                                            metaker = \
+                                                metaker['@name'].replace(
+                                                    '$VERSION', version)
+                                            meta_kernels.append(mk)
 
                 #
                 # First check if any of the increment are present in
@@ -206,7 +284,6 @@ class SpiceKernelsCollection(Collection):
 
         return (meta_kernels, user_input)
 
-
     def set_increment_times(self):
         '''
         Determine the archive increment start and finish times; this is done
@@ -217,25 +294,29 @@ class SpiceKernelsCollection(Collection):
         :return:
         '''
         logging.info('')
-        line = f'Step {self.setup.step} - Determine archive increment start and finish times'
+        line = f'Step {self.setup.step} - Determine archive increment ' \
+               f'start and finish times'
         logging.info('')
         logging.info(line)
         logging.info('-' * len(line))
         logging.info('')
         self.setup.step += 1
-        if not self.setup.args.silent and not self.setup.args.verbose: print('-- ' + line.split(' - ')[-1] + '.')
+        if not self.setup.args.silent and not self.setup.args.verbose:
+            print('-- ' + line.split(' - ')[-1] + '.')
 
         #
         # Check if an increment stop time has been provided as an input
         # parameter.
         #
         if self.setup.increment_start:
-            logging.info(f'-- Increment stop time set to: {self.setup.increment_start} '
-                         f'as provided with configuration file')
+            logging.info(f'-- Increment stop time set to: '
+                         f'{self.setup.increment_start} '
+                         f'as provided from configuration file')
 
         if self.setup.increment_finish:
-            logging.info(f'-- Increment finish time set to: {self.setup.increment_finish} '
-                         f'as provided with configuration file')
+            logging.info(f'-- Increment finish time set to: '
+                         f'{self.setup.increment_finish} '
+                         f'as provided from configuration file')
 
         if self.setup.increment_finish and self.setup.increment_start:
             return
@@ -261,7 +342,8 @@ class SpiceKernelsCollection(Collection):
             #
             increment_start = self.setup.mission_start
             increment_finish = self.setup.mission_stop
-            logging.error(f'-- No kernel(s) found to determine increment stop time. Mission times will be used.')
+            logging.error(f'-- No kernel(s) found to determine increment '
+                          f'stop time. Mission times will be used.')
 
         #
         # We check the coverage with the previous increment.
@@ -273,39 +355,47 @@ class SpiceKernelsCollection(Collection):
             # that does not extend the coverage.
             #
             bundles = glob.glob(self.setup.final_directory + os.sep +
-                                self.setup.mission_accronym + '_spice' + os.sep +
-                                f'bundle_{self.setup.mission_accronym}_spice_v*')
+                                self.setup.mission_accronym + '_spice' +
+                                os.sep +
+                                f'bundle_{self.setup.mission_accronym}'
+                                f'_spice_v*')
             bundles.sort()
 
             with open(bundles[-1], 'r') as b:
                 for line in b:
                     if '<start_date_time>' in line:
-                        prev_increment_start = line.split('>')[-2].split('<')[0]
+                        prev_increment_start = line.split(
+                            '>')[-2].split('<')[0]
                     if '<stop_date_time>' in line:
-                        prev_increment_finish = line.split('>')[-2].split('<')[0]
+                        prev_increment_finish = line.split(
+                            '>')[-2].split('<')[0]
 
             #
             # Provide different logging level depending on the times
             # combination.
             #
             logging.info('-- Previous bundle increment interval is:')
-            logging.info(f'   {prev_increment_start} - {prev_increment_finish}')
+            logging.info(f'   {prev_increment_start} - '
+                         f'{prev_increment_finish}')
 
             #
             # Correct the increment interval with previous interval if required.
             #
             if prev_increment_start < increment_start:
                 increment_start = prev_increment_start
-                logging.warning('-- Increment start corrected from previous bundle')
+                logging.warning('-- Increment start corrected from '
+                                'previous bundle')
 
             if prev_increment_finish > increment_finish:
                 increment_finish = prev_increment_sinish
-                logging.warning('-- Increment finish corrected form previous bundle')
+                logging.warning('-- Increment finish corrected form '
+                                'previous bundle')
 
         except:
             logging.warning(f'-- Previous bundle not found.')
 
-        logging.info('-- Increment interval for collection and bundle set to:')
+        logging.info('-- Increment interval for collection and bundle set '
+                     'to:')
         logging.info(f'   {increment_start} - {increment_finish}')
         logging.info('')
 
@@ -318,32 +408,38 @@ class SpiceKernelsCollection(Collection):
         return
 
     def validate(self):
+        """
+        Validate the SPICE Kernels collection.
+
+        """
+        #  Check that there is a XML label for each file under spice_kernels.
+        #  That is, we are validating the spice_kernel_collection.
         #
-        # -- Validate the SPICE Kernels collection:
-        #
-        #    * Check that there is a XML label for each file under spice_kernels.
-        #      That is, we are validating the spice_kernel_collection.
-        #
-        line = f'Step {self.setup.step} - Validate SPICE kernel collection generation'
+        line = f'Step {self.setup.step} - Validate SPICE kernel collection ' \
+               f'generation'
         logging.info('')
         logging.info(line)
-        logging.info('-'*len(line))
+        logging.info('-' * len(line))
         logging.info('')
         self.setup.step += 1
-        if not self.setup.args.silent and not self.setup.args.verbose: print('-- ' + line.split(' - ')[-1] + '.')
+        if not self.setup.args.silent and not self.setup.args.verbose:
+            print('-- ' + line.split(' - ')[-1] + '.')
 
         #
         # Check that all the kernels from the list are present
         #
-        logging.info('-- Checking that all the kernels from list are present...')
-
+        logging.info('-- Checking that all the kernels from list are '
+                     'present...')
 
         for product in self.product:
             try:
-                os.path.exists(self.setup.staging_directory + '/spice_kernels/' + product.type + os.sep + product.name)
+                os.path.exists(self.setup.staging_directory +
+                               '/spice_kernels/' + product.type +
+                               os.sep + product.name)
                 os.path.exists(
-                    self.setup.staging_directory + '/spice_kernels/' + product.type + os.sep + product.name.split('.')[
-                        0] + '.xml')
+                    self.setup.staging_directory + '/spice_kernels/' +
+                    product.type + os.sep + product.name.split('.')[0] +
+                    '.xml')
             except:
                 error_message(f'-- {product.name} has not been labeled')
         logging.info('   OK')
@@ -356,8 +452,13 @@ class SpiceKernelsCollection(Collection):
 
         for product in self.product:
             try:
-                os.path.exists(self.setup.staging_directory + '/spice_kernels/' + product.type + os.sep + product.name)
-                os.path.exists(self.setup.staging_directory + '/spice_kernels/' + product.type + os.sep + product.name.split('.')[0] + '.xml')
+                os.path.exists(
+                    self.setup.staging_directory + '/spice_kernels/' +
+                    product.type + os.sep + product.name)
+                os.path.exists(
+                    self.setup.staging_directory + '/spice_kernels/' +
+                    product.type + os.sep + product.name.split('.')[
+                        0] + '.xml')
             except:
                 error_message(f'-- {product.name} has not been labeled')
         logging.info('   OK')
@@ -366,7 +467,7 @@ class SpiceKernelsCollection(Collection):
         if self.setup.interactive:
             input(">> Press Enter to continue...")
 
-        return
+        return None
 
 
 class DocumentCollection(Collection):

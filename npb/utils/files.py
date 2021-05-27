@@ -1,3 +1,33 @@
+#   -------------------------------------------------------------------------
+#   @author: Marc Costa Sitja (JPL)
+#
+#   THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE
+#   CALIFORNIA INSTITUTE OF TECHNOLOGY (CALTECH) UNDER A U.S.
+#   GOVERNMENT CONTRACT WITH THE NATIONAL AERONAUTICS AND SPACE
+#   ADMINISTRATION (NASA). THE SOFTWARE IS TECHNOLOGY AND SOFTWARE
+#   PUBLICLY AVAILABLE UNDER U.S. EXPORT LAWS AND IS PROVIDED "AS-IS"
+#   TO THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY
+#   WARRANTIES OF PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A
+#   PARTICULAR USE OR PURPOSE (AS SET FORTH IN UNITED STATES UCC
+#   SECTIONS 2312-2313) OR FOR ANY PURPOSE WHATSOEVER, FOR THE
+#   SOFTWARE AND RELATED MATERIALS, HOWEVER USED.
+#
+#   IN NO EVENT SHALL CALTECH, ITS JET PROPULSION LABORATORY, OR NASA
+#   BE LIABLE FOR ANY DAMAGES AND/OR COSTS, INCLUDING, BUT NOT
+#   LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF ANY KIND,
+#   INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST PROFITS,
+#   REGARDLESS OF WHETHER CALTECH, JPL, OR NASA BE ADVISED, HAVE
+#   REASON TO KNOW, OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
+#
+#   RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF
+#   THE SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY
+#   CALTECH AND NASA FOR ALL THIRD-PARTY CLAIMS RESULTING FROM THE
+#   ACTIONS OF RECIPIENT IN THE USE OF THE SOFTWARE.
+#   -------------------------------------------------------------------------
+"""
+File and Text Management Functions
+------------------------------------
+"""
 import hashlib
 import os
 import errno
@@ -9,9 +39,7 @@ import logging
 import json
 import platform
 import difflib
-
 from collections import defaultdict
-
 from npb.classes.log import error_message
 
 
@@ -23,10 +51,9 @@ def etree_to_dict(t):
 
     https://www.xml.com/pub/a/2006/05/31/converting-between-xml-and-json.html
 
-    :param t:
-    :return:
+    :param t: Element Tree read from XML file
+    :return: XML File converted into a JSON file
     '''
-
     d = {t.tag: {} if t.attrib else None}
     children = list(t)
     if children:
@@ -34,64 +61,98 @@ def etree_to_dict(t):
         for dc in map(etree_to_dict, children):
             for k, v in dc.items():
                 dd[k].append(v)
-        d = {t.tag: {k:v[0] if len(v) == 1 else v for k, v in dd.items()}}
+        d = {t.tag: {k: v[0] if len(v) == 1 else v for k, v in dd.items()}}
     if t.attrib:
         d[t.tag].update(('@' + k, v) for k, v in t.attrib.items())
     if t.text:
         text = t.text.strip()
         if children or t.attrib:
             if text:
-              d[t.tag]['#text'] = text
+                d[t.tag]['#text'] = text
         else:
             d[t.tag] = text
+
     return d
 
 
 def md5(fname):
+    """
+    Returns the MD5 sum (checksum) of the provided file.
+
+    :param fname: Filename
+    :return: Checksum value of the file
+    :rtype stroing
+    """
     hash_md5 = hashlib.md5()
     with open(fname, "rb") as f:
         for chunk in iter(lambda: f.read(4096), b""):
             hash_md5.update(chunk)
+
     return hash_md5.hexdigest()
 
 
 def copy(src, dest):
+    """
+    Creates a directory and raises an error if the directort already
+    exists.
+
+    :param src: Source directory with path.
+    :param dest: Destination directory with path.
+    """
     try:
         shutil.copytree(src, dest)
     except OSError as e:
-        # If the error was caused because the source wasn't a directory
+        #
+        # If the error was caused because the source was not a directory.
+        #
         if e.errno == errno.ENOTDIR:
             shutil.copy(src, dest)
         else:
-            logging.warning(f'-- Directory {src.split(os.sep)[-1]} not copied, probably because the increment '
-                  'directory exists.\n Error: %s' % e)
+            logging.warning(f'-- Directory {src.split(os.sep)[-1]} not '
+                            f'copied, probably because the increment '
+                            'directory exists.\n Error: %s' % e)
+
+    return None
 
 
-def safe_make_directory(i):
-    '''Makes a folder if not present'''
-    try:  
-        os.mkdir(i)
-        logging.info(f'-- Generated directory: {i}  ')
+def safe_make_directory(dir):
+    """
+    Creates a directory if it is not present
+
+    :param i: Directory with path.
+    """
+    try:
+        os.mkdir(dir)
+        logging.info(f'-- Generated directory: {dir}  ')
         logging.info('')
     except:
         pass
 
+    return None
+
 
 def extension2type(kernel):
+    """
+    Given a SPICE kernel provide the SPICE kernel type.
 
+    :param kernel: SPICE Kernel name
+    :return: SPICE Kernel type of the input SPICE kernel name.
+    :rtype: str
+    """
     kernel_type_map = {
-        "TI":  "IK",
-        "TF":  "FK",
-        "TM":  "MK",
+        "TI": "IK",
+        "TF": "FK",
+        "TM": "MK",
         "TSC": "SCLK",
         "TLS": "LSK",
         "TPC": "PCK",
-        "BC":  "CK",
+        "BC": "CK",
         "BSP": "SPK",
         "BPC": "PCK",
         "BES": "EK",
         "BDS": "DSK",
-        "ORB": "ORB"
+        "ORB": "ORB",
+        "NRB": "ORB"
     }
 
     try:
@@ -109,9 +170,14 @@ def extension2type(kernel):
 
 
 def type2extension(kernel_type):
+    """
+    Given a SPICE kernel type provide the SPICE kernel extension.
 
+    :param kernel_type: SPICE kernel type
+    :return: Spice Kernel extension
+    :rtype: str
+    """
     kernel_type = kernel_type.upper()
-
 
     kernel_type_map = {
         "IK": ["ti"],
@@ -119,7 +185,7 @@ def type2extension(kernel_type):
         "MK": ["tm"],
         "SCLK": ["tsc"],
         "LSK": ["tls"],
-        "PCK": ["tpc","bpc"],
+        "PCK": ["tpc", "bpc"],
         "CK": ["bc"],
         "SPK": ["bsp"],
         "DSK": ["bds"]
@@ -131,9 +197,13 @@ def type2extension(kernel_type):
 
 
 def add_carriage_return(line):
-    #
-    # Adding CR to line
-    #
+    '''
+    Adds Carriage Return (CR) to a line
+
+    :param line: Input line
+    :return: Input line with CR
+    :rtype: str
+    '''
     if '\r\n' not in line:
         line = line.replace('\n', '\r\n')
     if '\r\n' not in line:
@@ -143,7 +213,12 @@ def add_carriage_return(line):
 
 
 def add_crs_to_file(file):
+    '''
+    Adds Carriage Return (CR) to a file
 
+    :param line: Input file
+    :raise: If CR cannot be added to the file
+    '''
     try:
         file_crs = file.split('.')[0] + 'crs_tmp'
         with open(file, "r") as r:
@@ -156,19 +231,33 @@ def add_crs_to_file(file):
     except:
         error_message(f'Carriage return adding error for {file}')
 
-    return
+    return None
 
 
 def check_list_duplicates(listOfElems):
-    ''' Check if given list contains any duplicates '''
+    '''
+    Check if given list contains any duplicates.
+
+    :param listOfElems: List of SPICE kernel names
+    :return: Boolean that indicats if the input list contains
+             duplicates or not
+    :rtype: bool
+    '''
     for elem in listOfElems:
         if listOfElems.count(elem) > 1:
             return True
+
     return False
 
 
 def fill_template(object, product_file, product_dictionary):
+    """
 
+    :param object:
+    :param product_file:
+    :param product_dictionary:
+    :return:
+    """
     with open(product_file, "w+") as f:
 
         for line in fileinput.input(object.template):
@@ -178,23 +267,29 @@ def fill_template(object, product_file, product_dictionary):
                     line = line.replace('$' + key, value)
             f.write(f'{line}\n')
 
-    return
+    return None
 
 
 def get_context_products(setup):
+    """
+    Obtain the context products from the PDS4 registered context products
+    tempalte or from the XML configuration file.
 
+    :param setup: Setup object already constructed
+    :return: dictionary with the JSON structure of the context products
+    :rtype: dict
+    """
     #
     # First look into the setup object and check if the context product is
     # available, otherwise get it from the json file included in the
     # package.
     #
-
-    #
     # Load the default context products
     #
-    registered_context_products_file = f'{setup.root_dir}/templates/registered_context_products.json'
+    registered_context_products_file = \
+        f'{setup.root_dir}/templates/registered_context_products.json'
     with open(registered_context_products_file, 'r') as f:
-            context_products = json.load(f)['Product_Context']
+        context_products = json.load(f)['Product_Context']
 
     #
     # Overwrite the default context products with the ones provided in the
@@ -211,16 +306,16 @@ def get_context_products(setup):
                 updated_product = False
                 index = 0
                 for registered_product in context_products:
-                    if registered_product['name'][0] ==  product['@name']:
+                    if registered_product['name'][0] == product['@name']:
                         updated_product = True
                         context_products[index]['type'] = [product['type']]
                         context_products[index]['lidvid'] = product['lidvid']
                     index += 1
                 if not updated_product:
                     appended_products.append(
-                        {'name':[product['@name']],
-                         'type':[product['type']],
-                         'lidvid':product['lidvid']})
+                        {'name': [product['@name']],
+                         'type': [product['type']],
+                         'lidvid': product['lidvid']})
 
     if appended_products:
         for product in appended_products:
@@ -230,7 +325,15 @@ def get_context_products(setup):
 
 
 def mk2list(mk):
+    """
+    Generate a list of kernels from a meta-kernel. This function assumes
+    that the meta-kernel will contain a PATH_SYMBOLS definition that will
+    be present in each kernel entry preceeded by a dollar sign ($).
 
+    :param mk: Meta-kernel
+    :return: List of kernels present in the meta-kernel
+    :rtype: list
+    """
     path_symbol = ''
     ker_mk_list = []
     with open(mk, 'r') as f:
@@ -238,7 +341,6 @@ def mk2list(mk):
 
             if path_symbol:
                 if path_symbol in line:
-
                     kernel = line.split(path_symbol)[1]
                     kernel = kernel.strip()
                     kernel = kernel[:-1]
@@ -255,19 +357,29 @@ def mk2list(mk):
 def get_latest_kernel(kernel_type, paths, pattern, dates=False,
                       excluded_kernels=False, mks=False):
     """
-    Returns the name of the latest MK, LSK, FK or SCLK present in the path
+    Returns the name of the latest SPICE kernel of a given type present
+    in the path. This function is exclusively used find the latest version
+    of the kernels to be included in a meta-kernel.
 
-    :param kernel_type: Kernel type (lsk, sclk, fk) which also defines the subdirectory name.
-    :type kernel_type: str
-    :param path: Path to the root of the SPICE directory where the kernels are store in a directory named ``type``.
-    :type path: str
-    :param patterns: Patterns to search for that defines the kernel ``type`` file naming scheme.
-    :type patterns: list
-    :return: Name of the latest kernel of ``type`` that matches the naming scheme defined in ``token`` present in the ``path`` directory.
-    :rtype: strÐ
-    :raises:
-       KernelNotFound if no kernel of ``type`` matching the naming scheme
-       defined in ``token is present in the ``path`` directory
+    :param kernel_type: SPICE Kernel type which also defines
+                        the subdirectory name
+    :param paths: List of paths to the roots of the SPICE Kernels directories
+                  where the kernels are store in a subdirectory named `type'.
+    :param pattern: Patterns to search for that defines the kernel `type'
+                    file naming scheme. This pattern follows the format of
+                    the meta-kernel grammar provided in the XML configuration
+                    file
+    :param dates: Indicates that the pattern of the kernel includes dates
+                  and that the last version of each kernel with a date has
+                  to be included. If this parameter is set to False then
+                  only the latest date and latest version is included
+    :param excluded_kernels: Indicates that a specific kernel might have
+                             to be excluded from the search.
+    :mks: Indicates that the kernels present in the list of provided
+          meta-kernels have to be incldued for consideration to obtain
+          the latest version of the given kernel
+    :return: Name of the latest kernels as specified by the pattern.
+    :rtype: list
     """
     kernels = []
     kernels_with_path = []
@@ -275,12 +387,12 @@ def get_latest_kernel(kernel_type, paths, pattern, dates=False,
     for path in paths:
         try:
             kernel_path = os.path.join(path, kernel_type)
-
             #
-            # Get the kernels of type ``type`` from the ``path``/``type`` directory.
+            # Get the kernels of type `type' from the `path`'/`type`
+            # directory.
             #
-            kernels_with_path += [f for f in os.listdir(f'{kernel_path}/') if re.search(pattern, f)]
-
+            kernels_with_path += [f for f in os.listdir(f'{kernel_path}/')
+                                  if re.search(pattern, f)]
         except:
             pass
 
@@ -306,7 +418,7 @@ def get_latest_kernel(kernel_type, paths, pattern, dates=False,
     kernels.sort()
 
     #
-    # We remove the kernel if it is included in the excluded kernels list
+    # Remove the kernel if it is included in the excluded kernels list
     #
     if excluded_kernels:
         for excluded_kernel in excluded_kernels:
@@ -321,7 +433,8 @@ def get_latest_kernel(kernel_type, paths, pattern, dates=False,
         try:
             return kernels.pop()
         except:
-            logging.warning('        No kernels found with pattern {}'.format(pattern))
+            logging.warning('        No kernels found with pattern '
+                            '{}'.format(pattern))
             return []
     else:
         #
@@ -331,7 +444,8 @@ def get_latest_kernel(kernel_type, paths, pattern, dates=False,
         kernels_date = []
         for kernel in kernels:
             if previous_kernel \
-                    and re.split('_V[0-9]*', previous_kernel.upper())[0] == re.split('_V[0-9]*', kernel.upper())[0]:
+                    and re.split('_V[0-9]*', previous_kernel.upper())[0] == \
+                    re.split('_V[0-9]*', kernel.upper())[0]:
                 kernels_date.remove(previous_kernel)
 
             previous_kernel = kernel
@@ -341,17 +455,43 @@ def get_latest_kernel(kernel_type, paths, pattern, dates=False,
 
 
 def check_consecutive(l):
-    return sorted(l) == list(range(1, max(l)+1))
+    """
+    Check if a list of names with enumeration include all the elements
+    in such a way that the enumeartion contains all expected numbers.
+
+    :param l: List of names that include an enumeration
+    :return: Check if the list has a complete enumeration
+    :rtype: Bool
+    """
+    return sorted(l) == list(range(1, max(l) + 1))
 
 
 def compare_files(fromfile, tofile, dir, display):
+    """
+    Compares two files and provides the logic to determine whether if the
+    comparison should be added to the log or to an individual file with the
+    comparison. The default name of the possible resuling file is:
 
+    diff_`fromfile'[extension removed]_`tofile'[extension_removed].html
+
+    The format for the log output is ASCII and follows a simplified Unix
+    diff format.
+
+    The format for the file output is HTML and mocks a simplified Unix
+    GUI diff tool such as tkdiff.
+
+    :param fromfile: Path of first file to be compared
+    :param tofile: Path of second file to be comapred
+    :param dir: Resulting diff diles destination directory
+    :param display: Indication if the fie will only be written in log or
+                    if a specific diff file will be generated
+    """
     with open(fromfile) as ff:
         fromlines = ff.readlines()
     with open(tofile) as tf:
         tolines = tf.readlines()
 
-    if display in ['all','log']:
+    if display in ['all', 'log']:
 
         diff = difflib.Differ()
         diff_list = list(diff.compare(fromlines, tolines))
@@ -359,24 +499,44 @@ def compare_files(fromfile, tofile, dir, display):
             if (line[0] == '+') or (line[0] == '-') or (line[0] == '?'):
                 logging.info(line[:-1])
 
-    if display in ['all','files']:
-        diff = difflib.HtmlDiff().make_file(fromlines, tolines, fromfile, tofile, context=False, numlines=False)
+    if display in ['all', 'files']:
+        diff = difflib.HtmlDiff().make_file(fromlines, tolines, fromfile,
+                                            tofile, context=False,
+                                            numlines=False)
 
         diff_html = open(dir + \
-                         f"/diff_{fromfile.split(os.sep)[-1].replace('.','_')}_{tofile.split(os.sep)[-1].replace('.','_')}.html",
-                         "w")
+                         f"/diff_"
+                         f"{fromfile.split(os.sep)[-1].replace('.', '_')}_"
+                         f"{tofile.split(os.sep)[-1].replace('.', '_')}"
+                         f".html","w")
         diff_html.writelines(diff)
         diff_html.close()
 
-    return
+    return None
 
 
 def match_patterns(name, name_w_pattern, patterns):
     '''
-    Function to match the meta-kernel names with the patterns provided via
-    configuration.
-    '''
+    Given a SPICE kernel name, a SPICE Kernel name with patterns, and the
+    possible patterns, provide a dictionary with the patterns as keys and
+    the patterns values as value after mathcing it betweent he SPICE Kernel
+    name with patterns and without patterns.
 
+    For example, given the following:
+       name: insight_v01.tm
+       name_w_pattern: insight_v$VERSION.tm
+
+    The function will return:
+        {VERSION: '01'}
+
+    :param name: Name of the SPICE Kernel
+    :param name_w_pattern: Name of the SPICE Kernel with patterns
+    :param patterns: List of the possible patterns present in the
+                     SPICE Kernel name with patterns
+    :return: Dictionary providing the patterns and their value as defined
+             by the SPICE kernel
+    :rtype: dict
+    '''
     #
     # This list will help us determine the order of the patterns in the file
     # name because later on the patterns need to be correlated with the
@@ -386,17 +546,22 @@ def match_patterns(name, name_w_pattern, patterns):
     name_check = name_w_pattern
 
     for pattern in patterns:
-        pattern_name_order[pattern['#text']] = name_w_pattern.find(pattern['#text'])
-        name_check = name_check.replace('$' + pattern['#text'], '$'*int(pattern['@length']))
+        pattern_name_order[pattern['#text']] = \
+            name_w_pattern.find(pattern['#text'])
+        name_check = \
+            name_check.replace('$' + pattern['#text'], '$' *
+                               int(pattern['@length']))
 
     #
     # Convert the pattern_name_order_dictionary into an ordered lis
     #
-    pattern_name_order = list({k: v for k, v in sorted(pattern_name_order.items(), key=lambda item: item[1])}.keys())
+    pattern_name_order = list(
+        {k: v for k, v in sorted(pattern_name_order.items(),
+                                 key=lambda item: item[1])}.keys())
 
     #
-    # Generate a list of values extracted from the comparison of the original
-    # file and the file with patterns.
+    # Generate a list of values extracted from the comparison of the
+    # original file and the file with patterns.
     #
     values_list = []
     value = ''
@@ -426,4 +591,3 @@ def match_patterns(name, name_w_pattern, patterns):
         values[pattern_name_order[i]] = values_list[i]
 
     return values
-

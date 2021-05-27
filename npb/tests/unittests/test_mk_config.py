@@ -41,7 +41,8 @@ class TestPlan(TestCase):
             with open(updated_config, 'w') as n:
                 for line in c:
                     if '<mk name="insight_v$VERSION.tm">' in line:
-                        n.write('        <mk name="insight_$YEAR_v$VERSION.tm">\n')
+                        n.write('        '
+                                '<mk name="insight_$YEAR_v$VERSION.tm">\n')
                     else:
                         n.write(line)
 
@@ -81,10 +82,13 @@ class TestPlan(TestCase):
             with open(updated_config, 'w') as n:
                 for line in c:
                     if '<mk name="insight_v$VERSION.tm">' in line:
-                        n.write('        <mk name="insight_$YEAR_v$VERSION.tm">\n')
+                        n.write('        '
+                                '<mk name="insight_$YEAR_v$VERSION.tm">\n')
                     elif '<pattern lenght="2">VERSION</pattern>' in line:
-                        n.write('                <pattern lenght="2">VERSION</pattern>\n')
-                        n.write('                <pattern lenght="4">YEAR</pattern>\n')
+                        n.write('                '
+                                '<pattern lenght="2">VERSION</pattern>\n')
+                        n.write('                '
+                                '<pattern lenght="4">YEAR</pattern>\n')
                     else:
                         n.write(line)
 

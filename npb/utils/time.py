@@ -1,3 +1,33 @@
+#   -------------------------------------------------------------------------
+#   @author: Marc Costa Sitja (JPL)
+#
+#   THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE
+#   CALIFORNIA INSTITUTE OF TECHNOLOGY (CALTECH) UNDER A U.S.
+#   GOVERNMENT CONTRACT WITH THE NATIONAL AERONAUTICS AND SPACE
+#   ADMINISTRATION (NASA). THE SOFTWARE IS TECHNOLOGY AND SOFTWARE
+#   PUBLICLY AVAILABLE UNDER U.S. EXPORT LAWS AND IS PROVIDED "AS-IS"
+#   TO THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY
+#   WARRANTIES OF PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A
+#   PARTICULAR USE OR PURPOSE (AS SET FORTH IN UNITED STATES UCC
+#   SECTIONS 2312-2313) OR FOR ANY PURPOSE WHATSOEVER, FOR THE
+#   SOFTWARE AND RELATED MATERIALS, HOWEVER USED.
+#
+#   IN NO EVENT SHALL CALTECH, ITS JET PROPULSION LABORATORY, OR NASA
+#   BE LIABLE FOR ANY DAMAGES AND/OR COSTS, INCLUDING, BUT NOT
+#   LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF ANY KIND,
+#   INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST PROFITS,
+#   REGARDLESS OF WHETHER CALTECH, JPL, OR NASA BE ADVISED, HAVE
+#   REASON TO KNOW, OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
+#
+#   RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF
+#   THE SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY
+#   CALTECH AND NASA FOR ALL THIRD-PARTY CLAIMS RESULTING FROM THE
+#   ACTIONS OF RECIPIENT IN THE USE OF THE SOFTWARE.
+#   -------------------------------------------------------------------------
+"""
+Time Functions
+-----------------
+"""
 import datetime
 import calendar
 import spiceypy
@@ -5,7 +35,12 @@ import os
 
 
 def current_time():
+    """
+    Returns the current date and time in %Y-%m-%dT%H:%M:%S format.
 
+    :return: Current date and time
+    :rtype: str
+    """
     time = str(datetime.datetime.now())
     time = time.replace(' ', 'T')
     time = time.split('.')[0]
@@ -14,26 +49,48 @@ def current_time():
 
 
 def current_date():
+    """
+    Returns the current date in %Y-%m-%d format.
 
+    :return:
+    :return: Current date
+    :rtype: str
+    """
     time = datetime.datetime.now()
     date = datetime.datetime.strftime(time, '%m %d, %Y')
 
     date = calendar.month_name[int(date[0:2])] + date[2:]
+
     return date
 
 
 def creation_time(path):
+    """
+    Returns the creation date and time of a given file in
+    %Y-%m-%dT%H:%M:%S.%f format.
 
+    :param path: File path
+
+    :return: Current date
+    :rtype: str
+    """
     t = os.path.getmtime(path)
     timestamp = datetime.datetime.fromtimestamp(t)
-    dt, micro = datetime.datetime.strftime(timestamp, '%Y-%m-%dT%H:%M:%S.%f').split('.')
+    dt, micro = datetime.datetime.strftime(timestamp,
+                                           '%Y-%m-%dT%H:%M:%S.%f').split('.')
     creation_time = "%s.%03d" % (dt, int(micro) / 1000) + 'Z'
 
     return creation_time
 
 
 def creation_date(path):
+    """
+    Returns the creation date of a given file in %Y-%m-%d format.
 
+    :param path: File path
+    :return:
+    :rtype:
+    """
     t = os.path.getmtime(path)
     timestamp = datetime.datetime.fromtimestamp(t)
     date = datetime.datetime.strftime(timestamp, '%m %d, %Y')
@@ -43,12 +100,28 @@ def creation_date(path):
     return creation_date
 
 
-def spk_coverage(path):
+def spk_coverage(path, date_format='infomod2'):
+    """
+    Returns the coverage of a SPK file. The function assumes that the
+    appropriate kernels have already been loaded.
 
+    :param path: File path
+    :param date_format: Date format, the default is the one
+                        provided by the PDS4 Information Model 2.0 that
+                        rounds the milliseconds and then implements an
+                        inward addition for the coverage start time and
+                        inward substraction for the coverage stop time.
+                        The other option is the MAKLABEL style that
+                        rounds to the second.
+    :raise: if the date_format parameter argument is not `infomod2' or
+            `maklabel'
+    :return: start and finish coverage
+    :rtype: list of str
+    """
     ids = spiceypy.spkobj(path)
 
     MAXIV = 1000
-    WINSIZ = 2 * MAXIV
+    WINSIZ = 2*MAXIV
     TIMLEN = 62
 
     coverage = spiceypy.support_types.SPICEDOUBLE_CELL(WINSIZ)
@@ -69,20 +142,44 @@ def spk_coverage(path):
             start_points_list.append(endpoints[0])
             end_points_list.append(endpoints[1])
 
-
     start_time = min(start_points_list)
     stop_time = max(end_points_list)
 
-    start_time_cal = spiceypy.timout(start_time,
-                                     "YYYY-MM-DDTHR:MN:SC.##::UTC::RND", TIMLEN) + 'Z'
-    stop_time_cal = spiceypy.timout(stop_time,
-                                    "YYYY-MM-DDTHR:MN:SC.##::UTC::RND", TIMLEN) + 'Z'
+    if date_format == 'infomod2':
+        inwards_seconds = 0.001
+        time_format = "YYYY-MM-DDTHR:MN:SC.###::UTC::RND"
+    elif date_format == 'maklabel':
+        inwards_seconds = 0.0
+        time_format = "YYYY-MM-DDTHR:MN:SC::UTC::RND"
+    else:
+        raise ValueError("date_format argument is incorrect.")
+
+    start_time_cal = spiceypy.timout(start_time + inwards_seconds,
+                                     time_format, TIMLEN) + 'Z'
+    stop_time_cal = spiceypy.timout(stop_time - inwards_seconds,
+                                    time_format, TIMLEN) + 'Z'
 
     return [start_time_cal, stop_time_cal]
 
 
-def ck_coverage(path):
+def ck_coverage(path, date_format='infomod2'):
+    """
+    Returns the coverage of a CK file. The function assumes that the
+    appropriate kernels have already been loaded.
 
+    :param path: File path
+    :param date_format: Date format, the default is the one
+                        provided by the PDS4 Information Model 2.0 that
+                        rounds the milliseconds and then implements an
+                        inward addition for the coverage start time and
+                        inward substraction for the coverage stop time.
+                        The other option is the MAKLABEL style that
+                        rounds to the millisecond.
+    :raise: if the date_format parameter argument is not `infomod2' or
+            `maklabel'
+    :return: start and finish coverage
+    :rtype: list of str
+    """
     start_points_list = list()
     end_points_list = list()
 
@@ -95,12 +192,11 @@ def ck_coverage(path):
     ids = spiceypy.ckobj(ck=path, out_cell=ids)
 
     for id in ids:
-
         coverage = spiceypy.support_types.SPICEDOUBLE_CELL(WINSIZ)
         spiceypy.scard, 0, coverage
         coverage = spiceypy.ckcov(ck=path, idcode=id, needav=False,
-                                level='SEGMENT', tol=0.0, timsys='TDB',
-                                cover=coverage)
+                                  level='SEGMENT', tol=0.0, timsys='TDB',
+                                  cover=coverage)
 
         num_inter = spiceypy.wncard(coverage)
 
@@ -110,22 +206,44 @@ def ck_coverage(path):
             start_points_list.append(endpoints[0])
             end_points_list.append(endpoints[1])
 
-
     start_time = min(start_points_list)
     stop_time = max(end_points_list)
 
-    start_time_cal = spiceypy.timout(start_time,
-                                   "YYYY-MM-DDTHR:MN:SC.###::UTC::RND", TIMLEN) + 'Z'
-    stop_time_cal = spiceypy.timout(stop_time, "YYYY-MM-DDTHR:MN:SC.###::UTC::RND",
-                                  TIMLEN) + 'Z'
+    if date_format == 'infomod2':
+        inwards_seconds = 0.001
+        time_format = "YYYY-MM-DDTHR:MN:SC.###::UTC::RND"
+    elif date_format == 'maklabel':
+        inwards_seconds = 0.0
+        time_format = "YYYY-MM-DDTHR:MN:SC.###::UTC::RND"
+    else:
+        raise ValueError("date_format argument is incorrect.")
+
+    start_time_cal = spiceypy.timout(start_time + inwards_seconds,
+                                     time_format, TIMLEN) + 'Z'
+    stop_time_cal = spiceypy.timout(stop_time - inwards_seconds,
+                                    time_format, TIMLEN) + 'Z'
 
     return [start_time_cal, stop_time_cal]
 
-#
-# PCK kernel processing
-#
-def pck_coverage(path):
 
+def pck_coverage(path, date_format='infomod2'):
+    """
+    Returns the coverage of a PCK file. The function assumes that the
+    appropriate kernels have already been loaded.
+
+    :param path: File path
+    :param date_format: Date format, the default is the one
+                        provided by the PDS4 Information Model 2.0 that
+                        rounds the milliseconds and then implements an
+                        inward addition for the coverage start time and
+                        inward substraction for the coverage stop time.
+                        The other option is the MAKLABEL style that
+                        rounds to the second.
+    :raise: if the date_format parameter argument is not `infomod2' or
+            `maklabel'
+    :return: start and finish coverage
+    :rtype: list of str
+    """
     MAXIV = 1000
     WINSIZ = 2 * MAXIV
     TIMLEN = 62
@@ -153,31 +271,58 @@ def pck_coverage(path):
             start_points_list.append(endpoints[0])
             end_points_list.append(endpoints[1])
 
-    start_time_tbd = min(start_points_list)
-    stop_time_tbd = max(end_points_list)
+    start_time = min(start_points_list)
+    stop_time = max(end_points_list)
 
-    start_time_cal = spiceypy.timout(start_time_tbd,
-                                   "YYYY-MM-DDTHR:MN:SC.##::UTC::RND", TIMLEN) + 'Z'
-    stop_time_cal = spiceypy.timout(stop_time_tbd,
-                                  "YYYY-MM-DDTHR:MN:SC.##::UTC::RND", TIMLEN) + 'Z'
+    if date_format == 'infomod2':
+        inwards_seconds = 0.001
+        time_format = "YYYY-MM-DDTHR:MN:SC.###::UTC::RND"
+    elif date_format == 'maklabel':
+        inwards_seconds = 0.0
+        time_format = "YYYY-MM-DDTHR:MN:SC::UTC::RND"
+    else:
+        raise ValueError("date_format argument is incorrect.")
 
+    start_time_cal = spiceypy.timout(start_time + inwards_seconds,
+                                     time_format, TIMLEN) + 'Z'
+    stop_time_cal = spiceypy.timout(stop_time - inwards_seconds,
+                                    time_format, TIMLEN) + 'Z'
 
     return [start_time_cal, stop_time_cal]
 
-#
-# DSK kernel processing
-#
-def dsk_coverage(self):
 
+def dsk_coverage(self, date_format='infomod2'):
+    """
+    Returns the coverage of a DSK file. The function assumes that the
+    appropriate kernels have already been loaded.
+
+    :param path: File path
+    :param date_format: Date format, the default is the one
+                        provided by the PDS4 Information Model 2.0 that
+                        rounds the milliseconds and then implements an
+                        inward addition for the coverage start time and
+                        inward substraction for the coverage stop time.
+                        The other option is the MAKLABEL style that
+                        rounds to the second
+    :raise: if the date_format parameter argument is not `infomod2' or
+            `maklabel'
+    :return: start and finish coverage
+    :rtype: list of str
+    """
     start_time_cal = self.setup.mission_start
-    stop_time_cal  = self.setup.mission_stop
+    stop_time_cal = self.setup.mission_stop
 
     return [start_time_cal, stop_time_cal]
-
 
 
 def PDS3_label_gen_date(file):
+    """
+    Returns the creation date of a given PDS3 label.
 
+    :param path: File path
+    :return: Creation date
+    :rtype: str
+    """
     generation_date = 'N/A'
 
     with open(file, 'r') as f:
@@ -187,3 +332,26 @@ def PDS3_label_gen_date(file):
                 generation_date = line.split('=')[1].strip()
 
     return generation_date
+
+
+def get_years(start_time, stop_time):
+    """
+    Returns the list of years contained in between the provided
+    start time and the stop time.
+
+    :param start_time: Start time to determine list of years
+    :param stop_time: Stop time to determine list of years
+    :return: Creation date
+    :rtype: list of str
+    """
+    years = []
+
+    start_year = start_time.split('-')[0]
+    finish_year = stop_time.split('-')[0]
+
+    year = int(start_year)
+    while year <= int(finish_year):
+        years.append(str(year))
+        year += 1
+
+    return years

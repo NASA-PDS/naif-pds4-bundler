@@ -3,29 +3,34 @@ import time
 import shutil
 import filecmp
 import logging
-import datetime
 import subprocess
-
-from npb.utils.files     import safe_make_directory
-from npb.utils.files     import get_context_products
-from npb.utils.files     import compare_files
-
+from datetime import datetime
+from npb.utils.files import safe_make_directory
+from npb.utils.files import get_context_products
+from npb.utils.files import compare_files
 from npb.classes.product import ReadmeProduct
-from npb.classes.log     import error_message
+from npb.classes.log import error_message
 
 
 class Bundle(object):
-
+    """
+    Class to generate the PDS4 Bundle.
+    """
     def __init__(self, setup):
+        """
+        Constructor
 
-
-        line = f'Step {setup.step} - Bundle/data set structure generation at staging area'
+        :param setup:
+        """
+        line = f'Step {setup.step} - Bundle/data set structure generation ' \
+               f'at staging area'
         logging.info('')
         logging.info(line)
-        logging.info('-'*len(line))
+        logging.info('-' * len(line))
         logging.info('')
         setup.step += 1
-        if not setup.args.silent and not setup.args.verbose: print('-- ' + line.split(' - ')[-1] + '.')
+        if not setup.args.silent and not setup.args.verbose: print('-- ' +
+            line.split(' - ')[-1] + '.')
 
         logging.info('-- Directory structure generation occurs if reported.')
         logging.info('')
@@ -50,12 +55,12 @@ class Bundle(object):
                         f'_spice_v{setup.release}.xml'
 
             safe_make_directory(setup.staging_directory)
-            safe_make_directory(setup.staging_directory + os.sep + 'spice_kernels')
-            safe_make_directory(setup.staging_directory + os.sep + 'document')
-
+            safe_make_directory(setup.staging_directory + os.sep +
+                                'spice_kernels')
+            safe_make_directory(setup.staging_directory + os.sep +
+                                'document')
 
         self.setup = setup
-
 
         if setup.pds_version == '4':
 
@@ -78,12 +83,10 @@ class Bundle(object):
             if self.setup.interactive:
                 input(">> Press Enter to continue...")
 
-        return
-
+        return None
 
     def add(self, element):
         self.collections.append(element)
-
 
     def write_readme(self):
         #
@@ -91,20 +94,17 @@ class Bundle(object):
         #
         ReadmeProduct(self.setup, self)
 
-        return
-
+        return None
 
     def bundle_vid(self):
 
         return f'{int(self.setup.release)}.0'
-
 
     def bundle_lid(self):
 
         product_lid = self.setup.logical_identifier
 
         return product_lid
-
 
     def files_in_staging(self):
         '''
@@ -114,56 +114,64 @@ class Bundle(object):
         line = f'Step {self.setup.step} - Recap files in staging area'
         logging.info('')
         logging.info(line)
-        logging.info('-'*len(line))
+        logging.info('-' * len(line))
         logging.info('')
         self.setup.step += 1
-        if not self.setup.args.silent and not self.setup.args.verbose: print('-- ' + line.split(' - ')[-1] + '.')
-
+        if not self.setup.args.silent and not self.setup.args.verbose:
+            print('-- ' + line.split(' - ')[-1] + '.')
 
         #
         # A list of the new files in the staging area is generated first.
         #
         new_files = []
-        for root, dirs, files in os.walk(self.setup.staging_directory, topdown=True):
+        for root, dirs, files in os.walk(self.setup.staging_directory,
+                                         topdown=True):
             for name in files:
                 new_files.append(os.path.join(root, name))
 
         self.new_files = new_files
 
-        logging.info(f'-- The following files are present in the staging area:')
+        logging.info(f'-- The following files are present in the staging '
+                     f'area:')
         for file in new_files:
-            logging.info(f'     {file}')
+            relative_path = \
+                f"{os.sep}{self.setup.mission_accronym}_spice{os.sep}"
+            logging.info(f'     {file.split(relative_path)[-1]}')
         logging.info('')
         if self.setup.interactive:
             input(">> Press enter to continue...")
 
-        return
-
+        return None
 
     def copy_to_final(self):
 
         line = f'Step {self.setup.step} - Copy files to final area'
         logging.info('')
         logging.info(line)
-        logging.info('-'*len(line))
+        logging.info('-' * len(line))
         logging.info('')
         self.setup.step += 1
-        if not self.setup.args.silent and not self.setup.args.verbose: print('-- ' + line.split(' - ')[-1] + '.')
+        if not self.setup.args.silent and not self.setup.args.verbose:
+            print('-- ' + line.split(' - ')[-1] + '.')
 
         #
         # Index files are added to the new_files list.
         #
         if self.setup.pds_version == '3':
-            self.new_files.append(self.setup.staging_directory + '/../dsindex.tab')
-            self.new_files.append(self.setup.staging_directory + '/../dsindex.lbl')
+            self.new_files.append(self.setup.staging_directory +
+                                  '/../dsindex.tab')
+            self.new_files.append(self.setup.staging_directory +
+                                  '/../dsindex.lbl')
 
         copied_files = []
         for file in self.new_files:
             src = file
-            rel_path = file.split(f'/{self.setup.mission_accronym}_spice/')[-1]
+            relative_path = \
+                f"{os.sep}{self.setup.mission_accronym}_spice{os.sep}"
+            rel_path = file.split(relative_path)[-1]
             rel_path = os.sep.join(rel_path.split(os.sep)[:-1])
 
-            dst = self.setup.final_directory + f'/{self.setup.mission_accronym}_spice/'
+            dst = self.setup.final_directory + relative_path
             if not os.path.exists(dst):
                 os.mkdir(dst)
 
@@ -174,12 +182,14 @@ class Bundle(object):
                     os.mkdir(dst)
                 copied_files.append(file)
                 shutil.copy2(src, dst)
-                logging.info(f'-- Copied: {file}')
+                logging.info(f'-- Copied: {file.split(relative_path)[-1]}')
             else:
-                logging.warning(f'-- Not copied: {file}')
+                logging.warning(f'-- Not copied: '
+                                f'{file.split(relative_path)[-1]}')
 
         logging.info('')
-        line = f'-- Found {len(self.new_files)} new file(s). Copied {len(copied_files)} file(s).'
+        line = f'-- Found {len(self.new_files)} new file(s). Copied ' \
+               f'{len(copied_files)} file(s).'
         if len(self.new_files) == len(copied_files):
             logging.info(line)
         else:
@@ -195,16 +205,19 @@ class Bundle(object):
         newer_file = []
 
         # List all files newer than xdays
-        logging.info(f"-- Files in final directory newer than {str(xdays)} days:")
+        logging.info(f"-- Files in final directory less than {str(xdays)} "
+                     f"days old:")
         for root, dirs, files in os.walk(self.setup.final_directory):
             for name in files:
                 filename = os.path.join(root, name)
                 if os.stat(filename).st_mtime > now - (xdays * 86400):
-                    logging.info(f'   {filename}')
+                    relative_path = f"{self.setup.mission_accronym}_spice/"
+                    logging.info(f'   {filename.split(relative_path)[-1]}')
                     newer_file.append(filename)
 
         logging.info('')
-        line = f'-- Found {len(newer_file)} newer file(s), copied {len(copied_files)} file(s) from staging directory.'
+        line = f'-- Found {len(newer_file)} newer file(s), copied ' \
+               f'{len(copied_files)} file(s) from staging directory.'
         if len(newer_file) == len(copied_files):
             logging.info(line)
         else:
@@ -214,18 +227,18 @@ class Bundle(object):
         if self.setup.interactive:
             input(">> Press enter to continue...")
 
-        return
-
+        return None
 
     def write_checksum(self):
 
         line = f'Step {self.setup.step} - Generate checksum files'
         logging.info('')
         logging.info(line)
-        logging.info('-'*len(line))
+        logging.info('-' * len(line))
         logging.info('')
         self.setup.step += 1
-        if not self.setup.args.silent and not self.setup.args.verbose: print('-- ' + line.split(' - ')[-1] + '.')
+        if not self.setup.args.silent and not self.setup.args.verbose:
+            print('-- ' + line.split(' - ')[-1] + '.')
 
         cwd = os.getcwd()
         os.chdir(self.setup.final_directory)
@@ -235,15 +248,17 @@ class Bundle(object):
         # it exists, in order to compare it with the new one afterwards.
         #
         if os.path.exists(f'{self.setup.final_directory}/checksum.tab'):
+            mtime = os.path.getmtime(f'{self.setup.final_directory}'
+                                     f'/checksum.tab')
 
-            mtime = os.path.getmtime(f'{self.setup.final_directory}/checksum.tab')
+            date_time = datetime.fromtimestamp(mtime).strftime("%Y%m%d")
 
-            date_time = datetime.datetime.fromtimestamp(mtime).strftime("%Y%m%d")
+            self.checksum = f'{self.setup.final_directory}/checksum.tab'
+            self.current_checksum = f'{self.setup.final_directory}' \
+                                    f'/checksum.tab.{date_time}'
 
-            self.checksum         =  f'{self.setup.final_directory}/checksum.tab'
-            self.current_checksum =  f'{self.setup.final_directory}/checksum.tab.{date_time}'
-
-            logging.info(f'-- Temporarily moving current checksum to {self.current_checksum}')
+            logging.info(f'-- Temporarily moving current checksum to '
+                         f'{self.current_checksum}')
             shutil.move(self.checksum, self.current_checksum)
 
         #
@@ -256,8 +271,9 @@ class Bundle(object):
                     logging.info(f'-- Removing {file}')
                     os.remove(path)
 
-
-        command = f'perl {self.setup.root_dir}exe/mkpdssum.pl -p {self.setup.final_directory}/{self.setup.mission_accronym}_spice'
+        command = f'perl {self.setup.root_dir}exe/mkpdssum.pl -p ' \
+                  f'{self.setup.final_directory}/' \
+                  f'{self.setup.mission_accronym}_spice'
         logging.info(f'-- Executing: {command}')
 
         command_process = subprocess.Popen(command, shell=True,
@@ -288,8 +304,7 @@ class Bundle(object):
         if self.setup.interactive:
             input(">> Press enter to continue...")
 
-        return
-
+        return None
 
     def compare_checksum(self):
 
@@ -298,9 +313,11 @@ class Bundle(object):
         # not compared.
         #
         try:
-            compare_files(self.current_checksum, self.checksum, self.setup.working_directory, 'all')
+            compare_files(self.current_checksum, self.checksum,
+                          self.setup.working_directory, 'all')
         except:
-            logging.warning(f'-- File to compare with does not exist: {self.checksum}')
+            logging.warning(f'-- File to compare with does not exist: '
+                            f'{self.checksum}')
 
         logging.info('')
         if self.setup.interactive:
@@ -313,4 +330,4 @@ class Bundle(object):
         #
         os.remove(self.current_checksum)
 
-        return
+        return None

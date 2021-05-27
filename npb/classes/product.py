@@ -3,52 +3,48 @@ import re
 import glob
 import logging
 import shutil
+import filecmp
 import difflib
 import fileinput
 import spiceypy
 import subprocess
-
-import numpy as np
-
+from collections import OrderedDict
+from datetime import date
 from npb.classes.label import SpiceKernelPDS4Label
 from npb.classes.label import MetaKernelPDS4Label
 from npb.classes.label import InventoryPDS4Label
 from npb.classes.label import InventoryPDS3Label
 from npb.classes.label import DocumentPDS4Label
 from npb.classes.label import BundlePDS4Label
-
-from npb.classes.log   import error_message
-from npb.utils.time    import creation_time
-from npb.utils.time    import creation_date
-from npb.utils.time    import current_date
-from npb.utils.time    import spk_coverage
-from npb.utils.time    import ck_coverage
-from npb.utils.time    import pck_coverage
-from npb.utils.time    import dsk_coverage
-from npb.utils.files   import md5
-from npb.utils.files   import add_carriage_return
-from npb.utils.files   import add_crs_to_file
-from npb.utils.files   import extension2type
-from npb.utils.files   import safe_make_directory
-from npb.utils.files   import mk2list
-from npb.utils.files   import get_latest_kernel
-from npb.utils.files   import type2extension
-from npb.utils.files   import compare_files
-from npb.utils.files   import match_patterns
-
-from collections import OrderedDict
+from npb.classes.log import error_message
+from npb.utils.time import creation_time
+from npb.utils.time import creation_date
+from npb.utils.time import current_date
+from npb.utils.time import spk_coverage
+from npb.utils.time import ck_coverage
+from npb.utils.time import pck_coverage
+from npb.utils.time import dsk_coverage
+from npb.utils.files import md5
+from npb.utils.files import add_carriage_return
+from npb.utils.files import add_crs_to_file
+from npb.utils.files import extension2type
+from npb.utils.files import safe_make_directory
+from npb.utils.files import mk2list
+from npb.utils.files import get_latest_kernel
+from npb.utils.files import type2extension
+from npb.utils.files import compare_files
+from npb.utils.files import match_patterns
 
 
 class Product(object):
-    
-    def __init__(self):
 
-        stat_info          = os.stat(self.path)
-        self.size          = str(stat_info.st_size)
-        self.checksum      = str(md5(self.path))
+    def __init__(self):
+        stat_info = os.stat(self.path)
+        self.size = str(stat_info.st_size)
+        self.checksum = str(md5(self.path))
         self.creation_time = creation_time(self.path)[:-5]
         self.creation_date = creation_date(self.path)
-        self.extension     = self.path.split(os.sep)[-1].split('.')[-1]
+        self.extension = self.path.split(os.sep)[-1].split('.')[-1]
 
 
 class SpiceKernelProduct(Product):
@@ -56,14 +52,12 @@ class SpiceKernelProduct(Product):
     def __init__(self, setup, name, collection):
 
         self.collection = collection
-        self.setup      = setup
-        self.name       = name
-        self.extension  = name.split('.')[-1].strip()
-        self.type       = extension2type(self)
+        self.setup = setup
+        self.name = name
+        self.extension = name.split('.')[-1].strip()
+        self.type = extension2type(self)
 
-
-        self.path      = setup.kernels_directory + os.sep + self.type
-
+        self.path = setup.kernels_directory + os.sep + self.type
 
         if self.extension[0].lower() == 'b':
             self.file_format = 'Binary'
@@ -75,7 +69,7 @@ class SpiceKernelProduct(Product):
         self.coverage()
 
         self.collection_path = setup.staging_directory + os.sep + \
-                       'spice_kernels' + os.sep
+                               'spice_kernels' + os.sep
 
         product_path = self.collection_path + self.type + os.sep
 
@@ -102,11 +96,13 @@ class SpiceKernelProduct(Product):
                     shutil.copy2(self.path + os.sep + self.product_mapping(),
                                  product_path + os.sep + self.name)
                     self.new_product = True
-                    logging.info(f'-- Mapping {self.product_mapping()} with {self.name}')
+                    logging.info(f'-- Mapping {self.product_mapping()} '
+                                 f'with {self.name}')
                 except:
                     error_message(f'{self.name} not present in {self.path}')
         else:
-            logging.error('     {} already present in staging directory.'.format(self.name))
+            logging.error(f'     {self.name} already present in staging '
+                          f'directory.')
 
             if self.setup.interactive:
                 input(">> Press Enter to continue...")
@@ -118,7 +114,6 @@ class SpiceKernelProduct(Product):
         #
         self.path = product_path + self.name
 
-
         Product.__init__(self)
 
         #
@@ -129,14 +124,13 @@ class SpiceKernelProduct(Product):
 
         return
 
-
     def product_lid(self):
 
         product_lid = \
             '{}:spice_kernels:{}_{}'.format(
-                    self.setup.logical_identifier,
-                    self.type,
-                    self.name)
+                self.setup.logical_identifier,
+                self.type,
+                self.name)
 
         return product_lid
 
@@ -145,7 +139,6 @@ class SpiceKernelProduct(Product):
         product_vid = '1.0'
 
         return product_vid
-
 
     #
     # Obtain the kernel product description information
@@ -156,13 +149,13 @@ class SpiceKernelProduct(Product):
                            f'{self.setup.mission_accronym}_release_' \
                            f'{int(self.setup.release):02d}.kernel_list'
 
-        get_descr   = False
+        get_descr = False
         description = False
 
         for line in fileinput.input(kernel_list_file):
             if self.name in line:
                 get_descr = True
-            if  get_descr and 'DESCRIPTION' in line:
+            if get_descr and 'DESCRIPTION' in line:
                 description = line.split('=')[-1].strip()
                 get_descr = False
 
@@ -172,16 +165,23 @@ class SpiceKernelProduct(Product):
 
         return description
 
-
     def coverage(self):
         if self.type.lower() == 'spk':
-            (self.start_time, self.stop_time) = spk_coverage(self.path + os.sep + self.name)
+            (self.start_time, self.stop_time) = \
+                spk_coverage(self.path + os.sep + self.name,
+                             date_format=self.setup.date_format)
         elif self.type.lower() == 'ck':
-            (self.start_time, self.stop_time) = ck_coverage(self.path + os.sep + self.name)
+            (self.start_time, self.stop_time) = \
+                ck_coverage(self.path + os.sep + self.name,
+                            date_format=self.setup.date_format)
         elif self.extension.lower() == 'bpc':
-            (self.start_time, self.stop_time) = pck_coverage(self.path + os.sep + self.name)
+            (self.start_time, self.stop_time) = \
+                pck_coverage(self.path + os.sep + self.name,
+                             date_format=self.setup.date_format)
         elif self.type.lower() == 'dsk':
-            (self.start_time, self.stop_time) = dsk_coverage(self.path + os.sep + self.name)
+            (self.start_time, self.stop_time) = \
+                dsk_coverage(self.path + os.sep + self.name,
+                             date_format=self.setup.date_format)
         else:
             self.start_time = self.setup.mission_start
             self.stop_time = self.setup.mission_stop
@@ -213,15 +213,16 @@ class SpiceKernelProduct(Product):
 
         return [id_list]
 
-
     def kernel_setup_phase(self):
 
         # avoid reading the Z at the end of UTC tag
-        start_time = self.start_time[0:-1] if self.start_time != 'N/A' else 'N/A'
-        stop_time = self.stop_time[0:-1] if self.stop_time != 'N/A' else 'N/A'
+        start_time = \
+            self.start_time[0:-1] if self.start_time != 'N/A' else 'N/A'
+        stop_time = \
+            self.stop_time[0:-1] if self.stop_time != 'N/A' else 'N/A'
 
-        setup_phase_map = self.setup.root_dir + \
-                            '/config/{}.phases'.format(self.setup.accronym.lower())
+        setup_phase_map = f'{self.setup.root_dir}/config/' \
+                          f'{self.setup.accronym.lower()}.phases'
 
         with open(setup_phase_map, 'r') as f:
             setup_phases = list()
@@ -267,7 +268,8 @@ class SpiceKernelProduct(Product):
                     stop_phase_tdb += 86400
                     #  One day added to account for gap between phases.
 
-                    if next_phases_bool == True and start_phase_tdb >= stop_tdb:
+                    if next_phases_bool == True and \
+                            start_phase_tdb >= stop_tdb:
                         break
                     # if next_phases_bool == True:
                     #     setup_phases.append(line.split('   ')[0])
@@ -280,14 +282,14 @@ class SpiceKernelProduct(Product):
 
         setup_phases_str = ''
         for phase in setup_phases:
-            setup_phases_str += '                                 ' + phase + ',\r\n'
+            setup_phases_str += '                                 ' \
+                                '' + phase + ',\r\n'
 
         setup_phases_str = setup_phases_str[0:-3]
 
         self.setup_phases = setup_phases_str
 
         return
-
 
     def product_mapping(self):
 
@@ -296,13 +298,13 @@ class SpiceKernelProduct(Product):
                            f'{self.setup.mission_accronym}_release_' \
                            f'{int(self.setup.release):02d}.kernel_list'
 
-        get_map   = False
+        get_map = False
         mapping = False
 
         for line in fileinput.input(kernel_list_file):
             if self.name in line:
                 get_map = True
-            if  get_map and 'MAPPING' in line:
+            if get_map and 'MAPPING' in line:
                 mapping = line.split('=')[-1].strip()
                 get_map = False
 
@@ -316,32 +318,33 @@ class SpiceKernelProduct(Product):
 class MetaKernelProduct(Product):
 
     def __init__(self, setup, kernel, spice_kernels_collection,
-                 user_input = False):
+                 user_input=False):
         '''
 
         :param mission:
         :param spice_kernels_collection:
-        :param product: We can input a meta-kernel such that the meta-kernel does not have to be generated
+        :param product: We can input a meta-kernel such that the meta-kernel
+                        does not have to be generated
         '''
         if user_input:
             logging.info(f'-- Copy meta-kernel: {kernel}')
             self.path = kernel
         else:
             logging.info(f'-- Generate meta-kernel: {kernel}')
-            self.template = f'{setup.root_dir}templates/template_metakernel.tm'
+            self.template = \
+                f'{setup.root_dir}templates/template_metakernel.tm'
             self.path = self.template
 
-
         self.new_product = True
-        self.setup       = setup
-        self.collection  = spice_kernels_collection
+        self.setup = setup
+        self.collection = spice_kernels_collection
 
         if os.sep in kernel:
-            self.name        = kernel.split(os.sep)[-1]
+            self.name = kernel.split(os.sep)[-1]
         else:
-            self.name =kernel
+            self.name = kernel
 
-        self.extension   = self.path.split('.')[1]
+        self.extension = self.path.split('.')[1]
 
         self.type = extension2type(self.name)
 
@@ -361,9 +364,10 @@ class MetaKernelProduct(Product):
                     patterns = patterns_dict
 
                 try:
-                    values = match_patterns(self.name, mk['@name'],patterns)
+                    values = match_patterns(self.name, mk['@name'], patterns)
                     self.mk_setup = mk
                     self.version = values['VERSION']
+                    self.values = values
                     #
                     # If it is a yearly meta-kernel we need the year to set
                     # set the coverage of the meta-kenrel.
@@ -374,7 +378,8 @@ class MetaKernelProduct(Product):
                     pass
 
             if not hasattr(self, 'mk_setup'):
-                error_message(f'Meta-kernel {self.name} has not been matched in configuration')
+                error_message(f'Meta-kernel {self.name} has not been matched '
+                              f'in configuration')
 
         if setup.pds_version == '3':
             self.collection_path = setup.staging_directory + os.sep + \
@@ -389,7 +394,6 @@ class MetaKernelProduct(Product):
         else:
             product_path = self.collection_path + self.type + os.sep
             self.KERNELPATH = '..'
-
 
         self.start_time = self.setup.increment_start
         self.stop_time = self.setup.increment_finish
@@ -442,8 +446,12 @@ class MetaKernelProduct(Product):
         if not user_input:
             if os.path.exists(self.path):
                 logging.error(f'-- Meta-kernel already exists: {self.path}')
-                logging.warning(f'-- The meta-kernel will be generated and the one present in the staging are will be overwtitten.')
-                logging.warning(f'-- Note that to provide a meta-kernel as an input, it must be provided via configuration file.')
+                logging.warning(
+                    f'-- The meta-kernel will be generated and the one '
+                    f'present in the staging are will be overwtitten.')
+                logging.warning(
+                    f'-- Note that to provide a meta-kernel as an input, '
+                    f'it must be provided via configuration file.')
             self.write_product()
         else:
             # Implement manual provision of meta-kernel.
@@ -473,31 +481,37 @@ class MetaKernelProduct(Product):
 
         return
 
-
     def check_version(self):
 
-        #TODO: Update with version obtention from patterns.
+        #
+        # Distinguish in between the different kernels we can find in the
+        # previous increment.
+        #
+        pattern = self.mk_setup['@name']
+        for key in self.values:
 
-        #
-        # Collection versions are not equal to the release number,
-        #
-        if self.setup.pds_version == '4':
-            versions = glob.glob(f'{self.setup.final_directory}/'
-                                 f'{self.setup.mission_accronym}_spice/'
-                                 f'spice_kernels/mk/'
-                                 f'{self.name.split("v")[0]}*.tm')
-        else:
-            #TODO: adapt to PDS3
-            versions = glob.glob(f'{self.setup.final_directory}/'
-                                 f'{self.setup.mission_accronym}_spice/'
-                                 f'spice_kernels/mk/'
-                                 f'{self.name.split("v")[0]}*')
+            if key == 'YEAR':
+                pattern = pattern.replace('$' + key, self.year)
+            else:
+                pattern = pattern.replace(
+                    '$' + key, '?' * len(self.values[key]))
+
+        versions = glob.glob(f'{self.setup.final_directory}/'
+                             f'{self.setup.mission_accronym}_spice/'
+                             f'spice_kernels/mk/{pattern}')
 
         versions.sort()
         try:
-            version = int(versions[-1].split('v')[-1].split('.')[0]) + 1
+            version_index = pattern.find('?')
+
+            version = versions[-1].split(os.sep)[-1]
+            version = \
+                version[version_index:version_index + len(self.values[key])]
+            version = int(version) + 1
+
         except:
-            logging.warning(f'-- Meta-kernel from previous increment is not available.')
+            logging.warning(f'-- Meta-kernel from previous increment is '
+                            f'not available.')
             logging.warning(f'   Version will be set to: {self.version}.')
 
             if self.setup.interactive:
@@ -505,19 +519,21 @@ class MetaKernelProduct(Product):
 
             return
 
-        if version == self.version:
-            logging.info(f'-- Version from kernel list and from previous increment agree: {version}.')
+        if version == int(self.version):
+            logging.info(f'-- Version from kernel list and from previous '
+                         f'increment agree: {version}.')
         else:
-            logging.error(f'-- The meta-kernel version is not as expected from previous increment.')
-            logging.error(f'   Version set to: {self.version}, whereas it is expected to be: {version}.')
-            logging.error(f'   It is recommended to stop the execution and fix the issue.')
+            logging.error(f'-- The meta-kernel version is not as expected '
+                          f'from previous increment.')
+            logging.error(f'   Version set to: {int(self.version)}, whereas '
+                          f'it is expected to be: {version}.')
+            logging.error(f'   It is recommended to stop the execution and '
+                          f'fix the issue.')
 
         if self.setup.interactive:
             input(">> Press Enter to continue...")
 
-
         return
-
 
     def product_lid(self):
 
@@ -527,24 +543,22 @@ class MetaKernelProduct(Product):
             name = self.name
 
         product_lid = '{}:spice_kernels:{}_{}'.format(
-                        self.setup.logical_identifier,
-                        self.type,
-                        name)
-
+            self.setup.logical_identifier,
+            self.type,
+            name)
 
         return product_lid
-
 
     def product_vid(self):
 
         try:
             product_vid = str(self.version).lstrip("0") + '.0'
         except:
-            logging.warning(f'-- {self.name} No vid explicit in kernel name: set to 1.0')
+            logging.warning(f'-- {self.name} No vid explicit in kernel name: '
+                            f'set to 1.0')
             product_vid = '1.0'
 
         return product_vid
-
 
     #
     # Obtain the kernel product description information,
@@ -558,7 +572,6 @@ class MetaKernelProduct(Product):
         for pattern in self.setup.re_config:
 
             if pattern.match(kernel):
-
 
                 options = self.json_config[pattern.pattern]['mklabel_options']
                 description = self.json_config[pattern.pattern]['description']
@@ -587,25 +600,28 @@ class MetaKernelProduct(Product):
                             #    * defined in the configuration file.
                             #
                             if '@pattern' in patterns[el] and \
-                                    patterns[el]['@pattern'].lower() == 'kernel':
+                                    patterns[el]['@pattern'].lower() == \
+                                    'kernel':
                                 #
-                                # When extracted from the filename, the keyword
-                                # is matched in between patterns.
+                                # When extracted from the filename, the
+                                # keyword is matched in between patterns.
                                 #
 
                                 #
                                 # First Turn the regex set into a single
-                                # character to be able to know were int he filename
-                                # is.
+                                # character to be able to know were in the
+                                # filename is.
                                 #
-                                patt_ker = value['#text'].replace('[0-9]', '$')
+                                patt_ker = value['#text'].replace(
+                                    '[0-9]', '$')
                                 patt_ker = patt_ker.replace('[a-z]', '$')
                                 patt_ker = patt_ker.replace('[A-Z]', '$')
                                 patt_ker = patt_ker.replace('[a-zA-Z]', '$')
 
                                 #
                                 # Split the resulting pattern to build up the
-                                # indexes to extract the value from the kernel name.
+                                # indexes to extract the value from the kernel
+                                # name.
                                 #
                                 patt_split = patt_ker.split(f'${el}')
 
@@ -617,42 +633,50 @@ class MetaKernelProduct(Product):
                                     indexes.append(len(element))
 
                                 #
-                                # Extract the value with the index from the kernel
-                                # name.
+                                # Extract the value with the index from the
+                                # kernel name.
                                 #
                                 if len(indexes) == 2:
-                                    value = kernel[indexes[0]:len(kernel) - indexes[1]]
+                                    value = \
+                                        kernel[
+                                        indexes[0]:len(kernel) - indexes[1]]
                                     if patterns[el]['@pattern'].isupper():
                                         value = value.upper()
                                         #
-                                        # Write the value of the pattern for future use.
+                                        # Write the value of the pattern for
+                                        # future use.
                                         #
                                         patterns[el]['&value'] = value
                                 else:
-                                    error_message('Kernel pattern not adept to write description. '
-                                                    'Remember a metacharacter cannot start or finish '
-                                                    'a kernel pattern')
+                                    error_message('Kernel pattern not adept '
+                                                  'to write description. '
+                                                  'Remember a metacharacter '
+                                                  'cannot start or finish '
+                                                  'a kernel pattern')
                             else:
                                 #
-                                # For non-kernels the value is based on the value
-                                # within the tag that needs to be provided by the
-                                # user; there is no way this can be done
-                                # automatically.
+                                # For non-kernels the value is based on the
+                                # value within the tag that needs to be
+                                # provided by the user; there is no way this
+                                # can be done automatically.
                                 #
                                 for val in patterns[el]:
                                     if kernel == val['@value']:
                                         value = val['#text']
                                         #
-                                        # Write the value of the pattern for future use.
+                                        # Write the value of the pattern for
+                                        # future use.
                                         #
                                         patterns[el]['&value'] = value
 
                                 if isinstance(value, list):
-                                    error_message('-- Kernel description could not be updated with pattern')
+                                    error_message('-- Kernel description '
+                                                  'could not be updated with '
+                                                  'pattern')
 
                             description = description.replace('$' + el, value)
 
-        description = description.replace('\n','')
+        description = description.replace('\n', '')
         while '  ' in description:
             description = description.replace('  ', ' ')
 
@@ -661,7 +685,6 @@ class MetaKernelProduct(Product):
                           f'a description on configuration file.')
 
         return description
-
 
     def write_product(self):
 
@@ -673,7 +696,8 @@ class MetaKernelProduct(Product):
         #
         # We scan the kernel directory to obtain the list of available kernels
         #
-        kernel_type_list = ['lsk', 'pck', 'fk', 'ik', 'sclk', 'spk', 'ck', 'dsk']
+        kernel_type_list = \
+            ['lsk', 'pck', 'fk', 'ik', 'sclk', 'spk', 'ck', 'dsk']
 
         #
         # All the files of the directory are read into a list
@@ -689,9 +713,10 @@ class MetaKernelProduct(Product):
             for kernel_grammar in kernel_grammar_list:
                 if 'exclude:' in kernel_grammar:
                     excluded_kernels.append(
-                            kernel_grammar.split('exclude:')[-1])
+                        kernel_grammar.split('exclude:')[-1])
 
-            logging.info(f'     Matching {kernel_type} with meta-kernel grammar.')
+            logging.info(
+                f'     Matching {kernel_type} with meta-kernel grammar.')
             for kernel_grammar in kernel_grammar_list:
 
                 if 'date:' in kernel_grammar:
@@ -700,22 +725,24 @@ class MetaKernelProduct(Product):
                 else:
                     dates = False
 
-
                 #
                 # Kernels can come from several kernel directories or from the
                 # previous meta-kernel. Paths are provided by the parameter
                 # paths and meta-kernels with mks.
                 #
                 paths = []
-                mks   = []
-                if kernel_grammar.split('.')[-1].lower() in type2extension(kernel_type):
+                mks = []
+                if kernel_grammar.split('.')[-1].lower() in \
+                        type2extension(kernel_type):
                     try:
                         if self.setup.pds_version == '3':
-                            paths.append(self.setup.staging_directory + '/DATA')
+                            paths.append(self.setup.staging_directory +
+                                         '/DATA')
 
                         else:
-                            paths.append(self.setup.staging_directory+'/spice_kernels')
-                        #paths.append(self.setup.kernels_directory)
+                            paths.append(self.setup.staging_directory +
+                                         '/spice_kernels')
+                        # paths.append(self.setup.kernels_directory)
 
                         #
                         # Try to look for meta-kernels from previous
@@ -724,15 +751,18 @@ class MetaKernelProduct(Product):
                         try:
                             mks = glob.glob(f'{self.setup.final_directory}/'
                                             f'{self.setup.mission_accronym}'
-                                            f'_spice/spice_kernels/mk/{self.name.split("_v")[0]}*.tm')
+                                            f'_spice/spice_kernels/mk/'
+                                            f'{self.name.split("_v")[0]}*.tm')
                         except:
                             if self.setup.increment:
-                                logging.warning('-- No meta-kernels from previous increment available.')
+                                logging.warning('-- No meta-kernels from '
+                                                'previous increment '
+                                                'available.')
 
                         latest_kernel = get_latest_kernel(kernel_type, paths,
-                                                          kernel_grammar, dates=dates,
-                                                          excluded_kernels=excluded_kernels,
-                                                          mks=mks)
+                                            kernel_grammar, dates=dates,
+                                            excluded_kernels=excluded_kernels,
+                                            mks=mks)
                     except Exception as e:
                         logging.error(f'-- Exception: {e}')
                         latest_kernel = []
@@ -745,7 +775,6 @@ class MetaKernelProduct(Product):
                             logging.info(f'        Matched: {kernel}')
                             mkgen_kernels.append(kernel_type + '/' + kernel)
 
-
         #
         # Remove duplicate entries from the kernel list (possible depending on
         # the grammar).
@@ -756,7 +785,7 @@ class MetaKernelProduct(Product):
         # Subset the SPICE kernels collection with the kernels in the MK
         # only.
         #
-        collection_metakernel     = []
+        collection_metakernel = []
         for spice_kernel in self.collection.product:
             for name in mkgen_kernels:
                 if spice_kernel.name in name:
@@ -774,7 +803,7 @@ class MetaKernelProduct(Product):
         logging.info('')
 
         num_ker_total = len(self.collection.product)
-        num_ker_mk    = len(collection_metakernel)
+        num_ker_mk = len(collection_metakernel)
 
         logging.warning(f'-- Archived kernels:           {num_ker_total}')
         logging.warning(f'-- Kernels in meta-kernel:     {num_ker_mk}')
@@ -792,8 +821,7 @@ class MetaKernelProduct(Product):
 
             kernel_dir_name = kernel.split('.')[1]
 
-
-            kernels += f"{' '*26}'$KERNELS/{kernel}'\n"
+            kernels += f"{' ' * 26}'$KERNELS/{kernel}'\n"
 
         self.KERNELS_IN_METAKERNEL = kernels[:-1]
 
@@ -813,7 +841,7 @@ class MetaKernelProduct(Product):
             if line.strip() == '':
                 curated_data += ''
             else:
-                curated_data += ' '*6 + line.strip() + '\n'
+                curated_data += ' ' * 6 + line.strip() + '\n'
 
         for line in desc.split('\n'):
             #
@@ -822,9 +850,9 @@ class MetaKernelProduct(Product):
             if line.strip() == '':
                 curated_desc += ''
             else:
-                curated_desc += ' '*3 + line.strip() + '\n'
+                curated_desc += ' ' * 3 + line.strip() + '\n'
 
-        self.DATA        = curated_data
+        self.DATA = curated_data
         self.DESCRIPTION = curated_desc
 
         metakernel_dictionary = vars(self)
@@ -848,16 +876,19 @@ class MetaKernelProduct(Product):
         self.product = self.path
 
         logging.info(f'-- Meta-kernel generated.')
-        if not self.setup.args.silent and not self.setup.args.verbose: print(f'   * Created {self.product.split(self.setup.staging_directory)[-1]}.')
+        if not self.setup.args.silent and not self.setup.args.verbose: print(
+            f'   * Created '
+            f'{self.product.split(self.setup.staging_directory)[-1]}.')
         if self.setup.interactive:
-            logging.info(f'-- You might take a moment to double-check the metakernel and to do manual edits before proceeding.')
+            logging.info(
+                f'-- You might take a moment to double-check the metakernel '
+                f'and to do manual edits before proceeding.')
             input(">> Press Enter to continue...")
 
         self.compare()
         logging.info('')
 
         return
-
 
     def compare(self):
 
@@ -877,7 +908,8 @@ class MetaKernelProduct(Product):
 
             while match_flag:
                 if i < len(val_mk_name) - 1:
-                    val_mks = glob.glob(val_mk_path + val_mk_name[0:i] + '*.tm')
+                    val_mks = \
+                        glob.glob(val_mk_path + val_mk_name[0:i] + '*.tm')
                     if val_mks:
                         val_mks = sorted(val_mks)
                         val_mk = val_mks[-1]
@@ -891,39 +923,45 @@ class MetaKernelProduct(Product):
 
         except:
             #
-            # If previous increment does not work, compare with insight example.
+            # If previous increment does not work, compare with insight
+            # example.
             #
-            logging.warning(f'-- No other version of {self.name} has been found.')
+            logging.warning(f'-- No other version of {self.name} has been '
+                            f'found.')
             logging.warning(f'-- Comparing with meta-kernel template.')
 
             val_mk = f'{self.setup.root_dir}/templates/template_metakernel.tm'
 
-        fromfile = val_mk
-        tofile = self.path
+        fromfile = self.path
+        tofile = val_mk
         dir = self.setup.working_directory
 
-        logging.info(f'-- Comparing {self.name}...')
+        logging.info(f'-- Comparing '
+            f'{self.name.split(f"{self.setup.mission_accronym}_spice/")}...')
         compare_files(fromfile, tofile, dir, 'all')
 
         if self.setup.interactive:
             input(">> Press enter to continue...")
 
-
     def validate(self):
-
 
         line = f'Step {self.setup.step} - Meta-kernel validation'
         logging.info('')
         logging.info(line)
-        logging.info('-'*len(line))
+        logging.info('-' * len(line))
         logging.info('')
         self.setup.step += 1
-        if not self.setup.args.silent and not self.setup.args.verbose: print('-- ' + line.split(' - ')[-1] + '.')
+        if not self.setup.args.silent and not self.setup.args.verbose:
+            print('-- ' + line.split(' - ')[-1] + '.')
 
-        rel_path = self.path.split(f'/{self.setup.mission_accronym}_spice/')[-1]
-        path = self.setup.final_directory.split(f'{self.setup.mission_accronym}_spice')[0] + f'/{self.setup.mission_accronym}_spice/' + rel_path
+        rel_path = \
+            self.path.split(f'/{self.setup.mission_accronym}_spice/')[-1]
+        path = \
+            self.setup.final_directory.split(f'{self.setup.mission_accronym}'
+                                             f'_spice')[
+                   0] + f'/{self.setup.mission_accronym}_spice/' + rel_path
 
-        cwd   = os.getcwd()
+        cwd = os.getcwd()
         mkdir = os.sep.join(path.split(os.sep)[:-1])
         os.chdir(mkdir)
 
@@ -942,7 +980,8 @@ class MetaKernelProduct(Product):
 
         if (ker_num_fr != ker_num_mk):
             spiceypy.kclear()
-            error_message('Number of kernels loaded is not equal to kernels present in meta-kernel')
+            error_message('Number of kernels loaded is not equal to kernels '
+                          'present in meta-kernel')
 
         spiceypy.kclear()
 
@@ -952,7 +991,6 @@ class MetaKernelProduct(Product):
             input(">> Press enter to continue...")
 
         return
-
 
     def coverage(self):
         '''
@@ -964,8 +1002,8 @@ class MetaKernelProduct(Product):
 
         -  for yearly mission meta-kernels start_date_time and stop_date_time
            are set to the coverage from Jan 1 00:00 of the year to either the
-           end of coverage provided by spacecraft SPK or CKs, or the end of the
-           year (whichever is earlier)
+           end of coverage provided by spacecraft SPK or CKs, or the end of
+           the year (whichever is earlier)
 
         :return:
         '''
@@ -974,12 +1012,16 @@ class MetaKernelProduct(Product):
         # Match the pattern with the kernels in the meta-kernel.
         #
         kernels = []
-        for coverage_kernel in self.setup.coverage_kernels:
+        if isinstance(self.setup.coverage_kernels, list):
+            coverage_kernels = self.setup.coverage_kernels[0]['pattern']
+        else:
+            coverage_kernels = self.setup.coverage_kernels['pattern']
+        for pattern in coverage_kernels:
             for kernel in self.collection_metakernel:
-                if re.match(coverage_kernel['pattern'], kernel):
+                if re.match(pattern, kernel):
                     kernels.append(kernel)
 
-        start_times  = []
+        start_times = []
         finish_times = []
         if kernels:
             #
@@ -991,8 +1033,10 @@ class MetaKernelProduct(Product):
                     ker_found = False
                     for product in self.collection.product:
                         if kernel == product.name:
-                            start_times.append(spiceypy.utc2et(product.start_time[:-1]))
-                            finish_times.append(spiceypy.utc2et(product.stop_time[:-1]))
+                            start_times.append(
+                                spiceypy.utc2et(product.start_time[:-1]))
+                            finish_times.append(
+                                spiceypy.utc2et(product.stop_time[:-1]))
                             ker_found = True
 
                     #
@@ -1000,7 +1044,9 @@ class MetaKernelProduct(Product):
                     # collection, the coverage is computed.
                     #
                     if not ker_found:
-                        path = f'{self.setup.final_directory}/{self.setup.mission_accronym}_spice/spice_kernels/' \
+                        path = f'{self.setup.final_directory}/' \
+                               f'{self.setup.mission_accronym}_spice/' \
+                               f'spice_kernels/' \
                                f'{extension2type(kernel)}/{kernel}'
 
                         try:
@@ -1009,16 +1055,22 @@ class MetaKernelProduct(Product):
                             elif extension2type(kernel) == 'ck':
                                 (start_time, stop_time) = ck_coverage(path)
                             else:
-                                error_message('Kernel used to determine coverage is not a SPK or CK kernel')
+                                error_message('Kernel used to determine '
+                                              'coverage is not a SPK or CK '
+                                              'kernel')
 
-                            start_times.append(spiceypy.utc2et(start_time[:-1]))
-                            finish_times.append(spiceypy.utc2et(stop_time[:-1]))
+                            start_times.append(
+                                spiceypy.utc2et(start_time[:-1]))
+                            finish_times.append(
+                                spiceypy.utc2et(stop_time[:-1]))
 
                         except:
                             #
-                            # If the kernels are not available it has to be signaled.
+                            # If the kernels are not available it has to be
+                            # signaled.
                             #
-                            logging.error(f'-- File not present in final area: {path}')
+                            logging.error(f'-- File not present in final '
+                                          f'area: {path}')
 
         #
         # If it is a yearly meta-kernel; we need to handle it separately.
@@ -1030,7 +1082,7 @@ class MetaKernelProduct(Product):
             # date, but it should not be later or earlier than that.
             #
             et_mission_start = spiceypy.utc2et(self.setup.mission_start[:-1])
-            et_year_start    = spiceypy.utc2et(f'{self.year}-01-01T00:00:00')
+            et_year_start = spiceypy.utc2et(f'{self.year}-01-01T00:00:00')
 
             if (et_year_start > et_mission_start):
                 start_times = [et_year_start]
@@ -1040,16 +1092,20 @@ class MetaKernelProduct(Product):
             #
             # Update the end time of the meta-kernel
             #
-            et_year_stop    = spiceypy.utc2et(f'{int(self.year)+1}-01-01T00:00:00')
+            et_year_stop = \
+                spiceypy.utc2et(f'{int(self.year) + 1}-01-01T00:00:00')
 
             if max(finish_times) > et_year_stop:
                 finish_times = [et_year_stop]
 
         try:
 
-            start_time  = spiceypy.et2utc(min(start_times), 'ISOC', 0, 80) + 'Z'
-            stop_time = spiceypy.et2utc(max(finish_times), 'ISOC', 0, 80) + 'Z'
-            logging.info(f'-- Meta-kernel coverage: {start_time} - {stop_time}')
+            start_time = \
+                spiceypy.et2utc(min(start_times), 'ISOC', 0, 80) + 'Z'
+            stop_time = \
+                spiceypy.et2utc(max(finish_times), 'ISOC', 0, 80) + 'Z'
+            logging.info(f'-- Meta-kernel coverage: '
+                         f'{start_time} - {stop_time}')
 
         except:
             #
@@ -1058,12 +1114,12 @@ class MetaKernelProduct(Product):
             #
             start_time = self.setup.mission_start
             stop_time = self.setup.mission_stop
-            logging.error(f'-- No kernel(s) found to determine meta-kernel coverage. Mission times will be used:')
+            logging.error(f'-- No kernel(s) found to determine meta-kernel '
+                          f'coverage. Mission times will be used:')
             logging.info(f'   {start_time} - {stop_time}')
 
-
         self.start_time = start_time
-        self.stop_time  = stop_time
+        self.stop_time = stop_time
 
         return
 
@@ -1072,14 +1128,15 @@ class InventoryProduct(Product):
 
     def __init__(self, setup, collection):
 
-
-        line = f'Step {setup.step} - Generation of {collection.name} collection'
+        line = f'Step {setup.step} - Generation of {collection.name} ' \
+               f'collection'
         logging.info('')
         logging.info(line)
-        logging.info('-'*len(line))
+        logging.info('-' * len(line))
         logging.info('')
         setup.step += 1
-        if not setup.args.silent and not setup.args.verbose: print('-- ' + line.split(' - ')[-1] + '.')
+        if not setup.args.silent and not setup.args.verbose:
+            print('-- ' + line.split(' - ')[-1] + '.')
 
         self.setup = setup
         self.collection = collection
@@ -1095,9 +1152,9 @@ class InventoryProduct(Product):
             #
             if self.setup.increment:
                 inventory_files = glob.glob(self.setup.final_directory + \
-                                            f'/{self.setup.mission_accronym}_spice/' + \
-                                            os.sep + collection.name + os.sep +  \
-                                            f'collection_{collection.name}_inventory_v*.csv')
+                    f'/{self.setup.mission_accronym}_spice/' + \
+                    os.sep + collection.name + os.sep + \
+                    f'collection_{collection.name}_inventory_v*.csv')
                 inventory_files.sort()
                 try:
                     latest_file = inventory_files[-1]
@@ -1111,7 +1168,8 @@ class InventoryProduct(Product):
                     latest_version = latest_file.split('_v')[-1].split('.')[0]
                     self.version = int(latest_version) + 1
 
-                    logging.info(f'-- Previous inventory file is: {latest_file}')
+                    logging.info(f'-- Previous inventory file is: '
+                                 f'{latest_file}')
                     logging.info(f'-- Generate version {self.version}.')
 
                 except:
@@ -1120,7 +1178,8 @@ class InventoryProduct(Product):
 
                     logging.error(f'-- Previous inventory file not found.')
                     logging.error(f'-- Default to version {self.version}.')
-                    logging.error(f'-- The version of this file might be incorrect.')
+                    logging.error(f'-- The version of this file might be '
+                                  f'incorrect.')
 
                     if self.setup.interactive:
                         input(">> Press Enter to continue...")
@@ -1130,13 +1189,14 @@ class InventoryProduct(Product):
                 self.path_current = ''
 
                 logging.warning(f'-- Default to version {self.version}.')
-                logging.warning(f'-- Make sure this is the first release of the archive.')
+                logging.warning(f'-- Make sure this is the first release of '
+                                f'the archive.')
 
                 if self.setup.interactive:
                     input(">> Press Enter to continue...")
 
-
-            self.name = f'collection_{collection.name}_inventory_v{self.version:03}.csv'
+            self.name = f'collection_{collection.name}_' \
+                        f'inventory_v{self.version:03}.csv'
             self.path = setup.staging_directory + os.sep + collection.name \
                         + os.sep + self.name
 
@@ -1149,14 +1209,12 @@ class InventoryProduct(Product):
         self.write_product()
         Product.__init__(self)
 
-
         if setup.pds_version == '3':
             self.label = InventoryPDS3Label(setup, collection, self)
         elif setup.pds_version == '4':
             self.label = InventoryPDS4Label(setup, collection, self)
 
         return
-
 
     def product_lid(self):
 
@@ -1165,11 +1223,9 @@ class InventoryProduct(Product):
 
         return product_lid
 
-
     def product_vid(self):
 
         return '{}.0'.format(int(self.version))
-
 
     def write_product(self):
 
@@ -1183,22 +1239,32 @@ class InventoryProduct(Product):
             #
             if self.setup.increment:
                 try:
-                    prev_collection_path = self.setup.final_directory + os.sep + self.setup.mission_accronym + \
-                                           '_spice/' + self.collection.name + os.sep + \
-                                           self.name.replace(str(self.version), str(self.version-1))
+                    prev_collection_path = \
+                        self.setup.final_directory + os.sep + \
+                        self.setup.mission_accronym + \
+                        '_spice/' + self.collection.name + os.sep + \
+                        self.name.replace(str(self.version),
+                                          str(self.version - 1))
                     with open(prev_collection_path, "r") as r:
                         for line in r:
                             if 'P,urn' in line:
-                                # All primary items in previous version shall be included as secondary in the new one
+                                #
+                                # All primary items in previous version shall
+                                # be included as secondary in the new one
+                                #
                                 line = line.replace('P,urn', 'S,urn')
                             line = add_carriage_return(line)
                             f.write(line)
                 except:
-                    logging.error('-- A previous collection was expected. The generated collection might be incorrect.')
+                    logging.error('-- A previous collection was expected. '
+                                  'The generated collection might be '
+                                  'incorrect.')
 
             for product in self.collection.product:
                 if product.new_product:
-                    line = '{},{}::{}\r\n'.format('P', product.label.PRODUCT_LID, product.label.PRODUCT_VID)
+                    line = f'P,' \
+                           f'{product.label.PRODUCT_LID}::' \
+                           f'{product.label.PRODUCT_VID}\r\n'
                     line = add_carriage_return(line)
                     f.write(line)
 
@@ -1206,7 +1272,9 @@ class InventoryProduct(Product):
             input(">> Press Enter to continue...")
 
         logging.info(f'-- Generated {self.path}')
-        if not self.setup.args.silent and not self.setup.args.verbose: print(f'   * Created {self.path.split(self.setup.staging_directory)[-1]}.')
+        if not self.setup.args.silent and not self.setup.args.verbose: print(
+            f'   * Created '
+            f'{self.path.split(self.setup.staging_directory)[-1]}.')
 
         self.validate()
 
@@ -1215,7 +1283,6 @@ class InventoryProduct(Product):
             logging.info('')
 
         return
-
 
     def validate(self):
         '''
@@ -1228,11 +1295,11 @@ class InventoryProduct(Product):
 
         logging.info(f'-- Validating {self.name}...')
 
-
         #
         # Check that all the products are listed in the collection product.
         #
-        logging.info('      Check that all the products are in the collection.')
+        logging.info('      Check that all the products are in the '
+                     'collection.')
 
         for product in self.collection.product:
             product_found = False
@@ -1241,7 +1308,8 @@ class InventoryProduct(Product):
                     if product.lid in line:
                         product_found = True
                 if not product_found:
-                    logging.error(f'      Product {product.lid} not found. Consider increment re-generation.')
+                    logging.error(f'      Product {product.lid} not found. '
+                                  f'Consider increment re-generation.')
 
         logging.info('      OK')
         logging.info('')
@@ -1250,17 +1318,18 @@ class InventoryProduct(Product):
 
         return
 
-
     def compare(self):
         '''
-        The label is compared the Inventory Product with the previous version and
+        The label is compared the Inventory Product with the previous
+        version and
         if it does not exist with the sample inventory product.
 
         :return:
         '''
-
-
-        logging.info(f'-- Comparing {self.name}...')
+        mission_accronym = self.setup.mission_accronym
+        logging.info(f'-- Comparing '
+                     f'{self.name.split(f"{mission_accronym}_spice/")}'
+                     f'...')
 
         #
         # Use the prior version of the same product, if it does not
@@ -1269,20 +1338,23 @@ class InventoryProduct(Product):
         if self.path_current:
 
             fromfile = self.path_current
-            tofile   = self.path
-            dir      = self.setup.working_directory
+            tofile = self.path
+            dir = self.setup.working_directory
 
             compare_files(fromfile, tofile, dir, self.setup.diff)
 
         else:
 
-            logging.warning('-- Comparing with InSight test inventory product.')
+            logging.warning('-- Comparing with InSight test inventory '
+                            'product.')
             fromfiles = glob.glob(f'{self.setup.root_dir}tests/data/insight/'
-                                  f'insight_spice/{self.collection.type}/collection_{self.collection.name}_inventory_*.csv')
+                                  f'insight_spice/{self.collection.type}/'
+                                  f'collection_{self.collection.name}'
+                                  f'_inventory_*.csv')
             fromfiles.sort()
-            fromfile  = fromfiles[-1]
-            tofile    = self.path
-            dir       = self.setup.working_directory
+            fromfile = fromfiles[-1]
+            tofile = self.path
+            dir = self.setup.working_directory
 
             compare_files(fromfile, tofile, dir, self.setup.diff)
 
@@ -1292,21 +1364,22 @@ class InventoryProduct(Product):
 
         return
 
-
     def write_index(self):
 
         line = f'Step {self.setup.step} - Generation of index files'
         logging.info('')
         logging.info(line)
-        logging.info('-'*len(line))
+        logging.info('-' * len(line))
         logging.info('')
         self.setup.step += 1
-        if not self.setup.args.silent and not self.setup.args.verbose: print('-- ' + line.split(' - ')[-1] + '.')
+        if not self.setup.args.silent and not self.setup.args.verbose:
+            print('-- ' + line.split(' - ')[-1] + '.')
 
         cwd = os.getcwd()
         os.chdir(self.setup.staging_directory)
 
-        list   = f'{self.setup.working_directory}/{self.collection.list.complete_list}'
+        list = f'{self.setup.working_directory}/' \
+               f'{self.collection.list.complete_list}'
         command = f'perl {self.setup.root_dir}exe/xfer_index.pl {list}'
         logging.info(f'-- Executing: {command}')
 
@@ -1331,9 +1404,9 @@ class InventoryProduct(Product):
         #
         # Move index files to appropriate directory
         #
-        index       = f'{self.setup.staging_directory}/index.tab'
-        index_lbl   = f'{self.setup.staging_directory}/index.lbl'
-        dsindex     = f'{self.setup.staging_directory}/dsindex.tab'
+        index = f'{self.setup.staging_directory}/index.tab'
+        index_lbl = f'{self.setup.staging_directory}/index.lbl'
+        dsindex = f'{self.setup.staging_directory}/dsindex.tab'
         dsindex_lbl = f'{self.setup.staging_directory}/dsindex.lbl'
 
         #
@@ -1344,23 +1417,25 @@ class InventoryProduct(Product):
             os.remove(index)
             os.remove(index_lbl)
 
-            dsindex     = shutil.move(dsindex, self.setup.staging_directory + '/../')
-            dsindex_lbl = shutil.move(dsindex_lbl, self.setup.staging_directory + '/../')
+            dsindex = \
+                shutil.move(dsindex, self.setup.staging_directory + '/../')
+            dsindex_lbl = \
+                shutil.move(dsindex_lbl, self.setup.staging_directory +
+                            '/../')
 
             logging.info('-- Adding CRs to index files.')
             logging.info('')
             add_crs_to_file(dsindex)
             add_crs_to_file(dsindex_lbl)
 
-            self.index       = ''
-            self.index_lbl   = ''
-            self.dsindex     = dsindex
+            self.index = ''
+            self.index_lbl = ''
+            self.dsindex = dsindex
             self.dsindex_lbl = dsindex_lbl
 
         self.validate_index()
 
         return
-
 
     def validate_index(self):
         '''
@@ -1369,7 +1444,6 @@ class InventoryProduct(Product):
 
         :return:
         '''
-
         #
         # Compare with previous index file, if exists. Otherwise it is
         # not compared.
@@ -1379,10 +1453,13 @@ class InventoryProduct(Product):
         for index in indexes:
             if index:
                 try:
-                    current_index = self.setup.final_directory + os.sep + index.split(os.sep)[-1]
-                    compare_files(index, current_index, self.setup.working_directory, 'all')
+                    current_index = self.setup.final_directory + os.sep + \
+                                    index.split(os.sep)[-1]
+                    compare_files(index, current_index,
+                                  self.setup.working_directory, 'all')
                 except:
-                    logging.warning(f'-- File to compare with does not exist: {index}')
+                    logging.warning(f'-- File to compare with does not '
+                                    f'exist: {index}')
 
         if self.setup.interactive:
             input(">> Press enter to continue...")
@@ -1394,19 +1471,19 @@ class SpicedsProduct(object):
 
     def __init__(self, setup, collection):
 
-        self.setup        = setup
-        self.collection   = collection
-        self.new_product  = True
+        self.setup = setup
+        self.collection = collection
+        self.new_product = True
         spiceds = self.setup.spiceds
 
         line = f'Step {self.setup.step} - Processing spiceds file'
         logging.info('')
         logging.info(line)
-        logging.info('-'*len(line))
+        logging.info('-' * len(line))
         logging.info('')
         self.setup.step += 1
-        if not self.setup.args.silent and not self.setup.args.verbose: print('-- ' + line.split(' - ')[-1] + '.')
-
+        if not self.setup.args.silent and not self.setup.args.verbose:
+            print('-- ' + line.split(' - ')[-1] + '.')
 
         if not spiceds:
             logging.info('-- No spiceds file provided.')
@@ -1416,7 +1493,7 @@ class SpicedsProduct(object):
         #
         path = setup.final_directory + os.sep + \
                setup.mission_accronym + '_spice' + os.sep + \
-                collection.name
+               collection.name
         if self.setup.increment:
             spiceds_files = glob.glob(path + os.sep + 'spiceds_v*.html')
             spiceds_files.sort()
@@ -1433,16 +1510,19 @@ class SpicedsProduct(object):
                     return
 
             except:
-                logging.warning('-- No previous version of spiceds_v*.html file found.')
+                logging.warning('-- No previous version of spiceds_v*.html '
+                                'file found.')
                 if not spiceds:
-                    error_message('spiceds not provided and not available form previous releases')
+                    error_message('spiceds not provided and not available '
+                                  'from previous releases')
                 self.version = 1
                 self.latest_spiceds = ''
         else:
             self.version = 1
             self.latest_spiceds = ''
             if not spiceds:
-                error_message('spiceds not provided and not available form previous releases')
+                error_message('spiceds not provided and not available from '
+                              'previous releases')
 
         self.name = 'spiceds_v{0:0=3d}.html'.format(self.version)
         self.path = setup.staging_directory + os.sep + collection.name \
@@ -1452,9 +1532,21 @@ class SpicedsProduct(object):
         self.lid = self.product_lid()
         self.vid = self.product_vid()
 
-        logging.info(f'-- spiceds file provided as input moved to staging area as {self.name}')
+        logging.info(f'-- spiceds file provided as input moved to staging '
+                     f'area as {self.name}')
+
+        #
+        # The provuided spiceds file is moved to the staging area.
+        #
         shutil.copy2(spiceds, self.path)
 
+        #
+        # The appropriate line endings are provided to the spiceds file,
+        # If line endings did not have Carriage Return (CR), they are
+        # added and the file timestamp is updated. Note that if the file
+        # already had CRs the original timestamp is preserved.
+        #
+        self.check_cr()
 
         #
         # Kernels are already generated products but Inventories are not.
@@ -1474,19 +1566,43 @@ class SpicedsProduct(object):
 
             self.label = DocumentPDS4Label(setup, collection, self)
 
-
         return
-
 
     def product_lid(self):
 
         return f'{self.setup.logical_identifier}:document:spiceds'
 
-
     def product_vid(self):
 
         return '{}.0'.format(int(self.version))
 
+    def check_cr(self):
+
+        #
+        # We add the date to the temporary file to have a unique name.
+        #
+        today = date.today()
+        time_string = today.strftime('%Y-%m-%dT%H:%M:%S.%f')
+        temporary_file = f'{self.path}.{time_string}'
+
+        with open(self.path, "r") as s:
+            with open(temporary_file, "w+") as t:
+                for line in s:
+                    line = add_carriage_return(line)
+                    t.write(line)
+
+        #
+        # If CRs have been added then we update the spiceds file.
+        # The operator is notified.
+        #
+        if filecmp.cmp(temporary_file, self.path):
+            os.remove(temporary_file)
+        else:
+            shutil.move(temporary_file, self.path)
+            logging.info('-- Carriage Return has been added to lines in '
+                         'the spiceds file.')
+
+        return
 
     def check_product(self):
 
@@ -1507,16 +1623,17 @@ class SpicedsProduct(object):
             generate_spiceds = False
             for line in diff:
                 if line[0] == '-':
-                    if 'Last update' not in line and line.strip() != '-' and line.strip() != '-\n':
+                    if 'Last update' not in line and line.strip() != \
+                            '-' and line.strip() != '-\n':
                         generate_spiceds = True
 
             if not generate_spiceds:
                 os.remove(self.path)
-                logging.warning('-- spiceds document does not need to be updated.')
+                logging.warning('-- spiceds document does not need to be '
+                                'updated.')
                 logging.warning('')
 
         return generate_spiceds
-
 
     def compare(self):
 
@@ -1527,18 +1644,20 @@ class SpicedsProduct(object):
 
             val_spd_path = f'{self.setup.final_directory}/' \
                            f'{self.setup.mission_accronym}_spice/' + \
-                          f'document'
+                           f'document'
 
-            val_spds     = glob.glob(f'{val_spd_path}/spiceds_v*.html')
+            val_spds = glob.glob(f'{val_spd_path}/spiceds_v*.html')
             val_spds.sort()
-            val_spd  = val_spds[-1]
+            val_spd = val_spds[-1]
 
 
         except:
+
             #
             # If previous increment does not work, compare with InSight example.
             #
-            logging.warning(f'-- No other version of {self.name} has been found.')
+            logging.warning(f'-- No other version of {self.name} has been '
+                            f'found.')
             logging.warning(f'-- Comparing with default InSight example.')
 
             val_spd = f'{self.setup.root_dir}tests/data/spiceds_insight.html'
@@ -1567,11 +1686,11 @@ class ReadmeProduct(Product):
         line = f'Step {setup.step} - Generation of bundle products'
         logging.info('')
         logging.info(line)
-        logging.info('-'*len(line))
+        logging.info('-' * len(line))
         logging.info('')
         setup.step += 1
-        if not setup.args.silent and not setup.args.verbose: print('-- ' + line.split(' - ')[-1] + '.')
-
+        if not setup.args.silent and not setup.args.verbose:
+            print('-- ' + line.split(' - ')[-1] + '.')
 
         self.name = 'readme.txt'
         self.bundle = bundle
@@ -1584,7 +1703,7 @@ class ReadmeProduct(Product):
         path = self.setup.final_directory + \
                f'/{self.setup.mission_accronym}_spice/readme.txt'
 
-        if  os.path.exists(path):
+        if os.path.exists(path):
             self.path = path
             logging.info('-- Readme file already exists in final area.')
         else:
@@ -1608,34 +1727,35 @@ class ReadmeProduct(Product):
 
         return
 
-
     def write_product(self):
 
         line_length = 0
 
         if not os.path.isfile(self.path):
             with open(self.path, "w+") as f:
-                for line in fileinput.input(self.setup.root_dir + '/templates/template_readme.txt'):
+                for line in fileinput.input(self.setup.root_dir +
+                                            '/templates/template_readme.txt'):
                     if '$SPICE_NAME' in line:
-                        line = line.replace('$SPICE_NAME', self.setup.readme['spice_name'])
+                        line = line.replace('$SPICE_NAME',
+                                            self.setup.readme['spice_name'])
                         line_length = len(line) - 1
                         line = add_carriage_return(line)
                         f.write(line)
                     elif '$UNDERLINE' in line:
-                        line = line.replace('$UNDERLINE', '='*line_length)
+                        line = line.replace('$UNDERLINE', '=' * line_length)
                         line_length = len(line) - 1
                         line = add_carriage_return(line)
                         f.write(line)
                     elif '$OVERVIEW' in line:
                         overview = self.setup.readme['overview']
                         for line in overview.split('\n'):
-                            line = ' '*3 + line.strip() + '\n'
+                            line = ' ' * 3 + line.strip() + '\n'
                             line = add_carriage_return(line)
                             f.write(line)
                     elif '$COGNISANT_PERSONS' in line:
                         cognisant = self.setup.readme['cognisant_persons']
                         for line in cognisant.split('\n'):
-                            line = ' '*3 + line.strip() + '\n'
+                            line = ' ' * 3 + line.strip() + '\n'
                             line = add_carriage_return(line)
                             f.write(line)
                     else:

@@ -77,7 +77,8 @@ pygments_style = 'sphinx'
 # A list of ignored prefixes for module index sorting.
 # modindex_common_prefix = []
 
-# If true, keep warnings as "system message" paragraphs in the built documents.
+# If true, keep warnings as "system message" paragraphs in the built
+# documents.
 # keep_warnings = False
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
@@ -132,7 +133,8 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'naifpds4bundlegenerator', u'NAIF PDS4 Bundle Generator Documentation',
+    (master_doc, 'naifpds4bundlegenerator',
+     u'NAIF PDS4 Bundle Generator Documentation',
      [author], 1)
 ]
 
@@ -147,7 +149,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'NAIFPDS4BundleGenerator', u'NAIF PDS4 Bundle Generator Documentation',
+    (master_doc, 'NAIFPDS4BundleGenerator',
+     u'NAIF PDS4 Bundle Generator Documentation',
      author, 'NAIFPDS4BundleGenerator', 'One line description of project.',
      'Miscellaneous'),
 ]

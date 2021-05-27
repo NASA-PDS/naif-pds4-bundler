@@ -33,9 +33,12 @@ class TestXML(TestCase):
 
         shutil.copy2('../data/kernels/fk/insight_v05.tf', 'kernels/fk')
         shutil.copy2('../data/kernels/lsk/naif0012.tls', 'kernels/lsk')
-        shutil.copy2('../data/kernels/ck/insight_ida_enc_200829_201220_v1.bc','kernels/ck')
-        shutil.copy2('../data/kernels/ck/insight_ida_pot_200829_201220_v1.bc','kernels/ck')
-        shutil.copy2('../data/kernels/sclk/NSY_SCLKSCET.00019.tsc', 'kernels/sclk')
+        shutil.copy2('../data/kernels/ck/insight_ida_enc_200829_201220_v1.bc',
+                     'kernels/ck')
+        shutil.copy2('../data/kernels/ck/insight_ida_pot_200829_201220_v1.bc',
+                     'kernels/ck')
+        shutil.copy2('../data/kernels/sclk/NSY_SCLKSCET.00019.tsc',
+                     'kernels/sclk')
 
 
         #
@@ -108,9 +111,12 @@ class TestXML(TestCase):
 
         shutil.copy2('../data/kernels/fk/insight_v05.tf', 'kernels/fk')
         shutil.copy2('../data/kernels/lsk/naif0012.tls', 'kernels/lsk')
-        shutil.copy2('../data/kernels/ck/insight_ida_enc_200829_201220_v1.bc','kernels/ck')
-        shutil.copy2('../data/kernels/ck/insight_ida_pot_200829_201220_v1.bc','kernels/ck')
-        shutil.copy2('../data/kernels/sclk/NSY_SCLKSCET.00019.tsc', 'kernels/sclk')
+        shutil.copy2('../data/kernels/ck/insight_ida_enc_200829_201220_v1.bc',
+                     'kernels/ck')
+        shutil.copy2('../data/kernels/ck/insight_ida_pot_200829_201220_v1.bc',
+                     'kernels/ck')
+        shutil.copy2('../data/kernels/sclk/NSY_SCLKSCET.00019.tsc',
+                     'kernels/sclk')
 
         shutil.copytree('../data/insight', 'insight')
 
