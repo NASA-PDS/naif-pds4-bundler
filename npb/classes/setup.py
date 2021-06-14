@@ -11,11 +11,12 @@ from npb.classes.log import error_message
 
 
 class Setup(object):
-    """Class that parses and processes the NPB XML configuration file
+    """
+    Class that parses and processes the NPB XML configuration file
     and makes it available to all other classes.
 
-    :param args: Parameters arguments from NDT's main function.
-    :param version: NDT version.
+    :param args: Parameters arguments from NPB's main function.
+    :param version: NPB version.
     """
 
     def __init__(self, args, version):
@@ -66,7 +67,17 @@ class Setup(object):
             self.mk_inputs = [self.mk_inputs]
 
         #
-        # Populate the setup object with attributes beyond the
+        # Orbnum configuration: if there is one orbnum file orbnum is a
+        # dictionary, otherwise it is a list of dictionaries. It is
+        # processed in such a way that it is always a list of dictionaries
+        #
+        if 'orbit_number_file' in config:
+            self.__dict__.update(config['orbit_number_file'])
+            if isinstance(self.orbnum, dict):
+                self.orbnum = [self.orbnum]
+
+        #
+        # Populate the setup object with attributes not present in the
         # configuration file.
         #
         self.root_dir = os.path.dirname(__file__)[:-7]
@@ -112,7 +123,6 @@ class Setup(object):
             self.dataset_id = ''
             self.volume_id = ''
 
-        return None
 
     def check_configuration(self):
         """
@@ -186,7 +196,7 @@ class Setup(object):
         os.chdir(cwd)
 
         #
-        # Check existance of templates according to the information_model
+        # Check existence of templates according to the information_model
         # or user-defined templates.
         #
         if not os.path.isdir(self.templates_directory):
@@ -311,7 +321,7 @@ class Setup(object):
             print('-- ' + line.split(' - ')[-1] + '.')
 
         #
-        # PDS4 release increment (implies inventory and meta-kernel)
+        # PDS4 release increment (implies inventory and meta-kernel).
         #
         logging.info('-- Checking existence of previous release.')
 
@@ -372,7 +382,10 @@ class Setup(object):
 
     def load_kernels(self):
         """
-        Loads the r
+        Loads the kernels required to run NPB. Note that kernels that
+        are not required might be loaded as well, but given that the
+        required memory is not much, we stay on the safe side by loading
+        additional kernels.
         """
         line = f'Step {self.step} - Load LSK, PCK, FK and SCLK kernels'
         logging.info('')
@@ -511,7 +524,10 @@ class Setup(object):
         return None
 
     def check_times(self):
-
+        """
+        Check the correctness of the times provided from the configuration
+        file.q
+        """
         try:
             et_msn_strt = spiceypy.utc2et(self.mission_start)
             et_inc_strt = spiceypy.utc2et(self.increment_start)
