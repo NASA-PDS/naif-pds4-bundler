@@ -80,8 +80,9 @@ def md5(fname):
     Returns the MD5 sum (checksum) of the provided file.
 
     :param fname: Filename
+    :type fname: str
     :return: Checksum value of the file
-    :rtype stroing
+    :rtype str
     """
     hash_md5 = hashlib.md5()
     with open(fname, "rb") as f:
@@ -273,10 +274,10 @@ def fill_template(object, product_file, product_dictionary):
 def get_context_products(setup):
     """
     Obtain the context products from the PDS4 registered context products
-    tempalte or from the XML configuration file.
+    templte or from the XML configuration file.
 
     :param setup: Setup object already constructed
-    :return: dictionary with the JSON structure of the context products
+    :return: dictionary with the JSON structure of the bundle context products
     :rtype: dict
     """
     #
@@ -319,9 +320,20 @@ def get_context_products(setup):
 
     if appended_products:
         for product in appended_products:
-            setup.context_products['product'].append(product)
+            context_products['product'].append(product)
 
-    return context_products
+    #
+    # Return the context products used in the bundle.
+    #
+    bundle_context_products = []
+    #TODO: This list has to be extended with secondary tar and sc.
+    config_context_products = [setup.spacecraft, setup.target]
+    for context_product in context_products:
+        for config_product in config_context_products:
+            if context_product['name'][0] == config_product:
+                bundle_context_products.append(context_product)
+
+    return bundle_context_products
 
 
 def mk2list(mk):
@@ -481,10 +493,14 @@ def compare_files(fromfile, tofile, dir, display):
     GUI diff tool such as tkdiff.
 
     :param fromfile: Path of first file to be compared
+    :type fromfile: str
     :param tofile: Path of second file to be comapred
+    :type tofile: str
     :param dir: Resulting diff diles destination directory
+    :type dir: str
     :param display: Indication if the fie will only be written in log or
                     if a specific diff file will be generated
+    :type display: str
     """
     with open(fromfile) as ff:
         fromlines = ff.readlines()
@@ -591,3 +607,14 @@ def match_patterns(name, name_w_pattern, patterns):
         values[pattern_name_order[i]] = values_list[i]
 
     return values
+
+def utf8len(s):
+    '''
+    Length of a string in bytes
+
+    :param s: string
+    :type s: str
+    :return: lenght of string in bytes
+    :rtype: int
+    '''
+    return len(s.encode('utf-8'))
