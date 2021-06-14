@@ -70,10 +70,13 @@ from .classes.list import KernelList
 from .classes.bundle import Bundle
 from .classes.collection import SpiceKernelsCollection
 from .classes.product import SpiceKernelProduct
+from .classes.product import OrbnumFileProduct
 from .classes.product import MetaKernelProduct
 from .classes.product import InventoryProduct
 from .classes.collection import DocumentCollection
+from .classes.collection import MiscellaneousCollection
 from .classes.product import SpicedsProduct
+from .classes.product import ChecksumProduct
 from .classes.product import Object
 
 
@@ -90,18 +93,26 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
                  the kernels directory specified in the configuration file
                  in addition to new meta-kernels will be included in the
                  increment
+    :type plan: str
     :param faucet: Optional indication for end point of the pipeline.
                    Allowed values are: `list', `staging', or `final'
+    :type faucet: str
     :param log: Write log in file
+    :type log: bool
     :param silent: Log will not be prompted on the terminal during execution
+    :type silent: bool
     :param verbose: Full log will be prompted on the terminal  during
                     execution. If argumet is set to True, silent argument
                     is omitted
+    :type verbose: bool
     :param diff: Optional generation of diff reports for products. Allowed
                  values are: `all', `log', or `files'
+    :type diff: str
     :param interactive: Activate interactive execution. If chosen, verbose
                        argument will be set to True
+    :type interactive: bool
     :param debug: Indicate whether if the pipeline is running in debug mode
+    :type debug: bool
     """
     #
     # Load the naif-pds4-bundle version as provided by the version file.
@@ -290,26 +301,36 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
     spice_kernels_collection = SpiceKernelsCollection(setup, bundle, list)
 
     #
+    # -- Initialise the miscellaneous collection
+    #
+    miscellaneous_collection = MiscellaneousCollection(setup, bundle)
+
+    #
     # -- Populate the SPICE kernels collection from the kernels in
     #    the Kernel list
     #
     for kernel in list.kernel_list:
-        if not '.tm' in kernel.lower():
-            #
-            # * Each label is validated after generation.
-            #
+        #
+        # * Each label is validated after generation.
+        #
+        if ('.nrb' in kernel.lower()) or  ('.orb' in kernel.lower()):
+            miscellaneous_collection.add(
+                OrbnumFileProduct(setup, kernel, miscellaneous_collection))
+        elif not '.tm' in kernel.lower():
             spice_kernels_collection.add(
                 SpiceKernelProduct(setup, kernel, spice_kernels_collection))
+
 
     #
     # -- Generate the meta-kernel(s).
     #
     (meta_kernels, user_input) = \
         spice_kernels_collection.determine_meta_kernels()
-    for mk in meta_kernels:
-        meta_kernel = MetaKernelProduct(setup, mk, spice_kernels_collection,
-                                        user_input=user_input)
-        spice_kernels_collection.add(meta_kernel)
+    if meta_kernels:
+        for mk in meta_kernels:
+            meta_kernel = MetaKernelProduct(setup, mk, spice_kernels_collection,
+                                            user_input=user_input)
+            spice_kernels_collection.add(meta_kernel)
 
     #
     # -- Set the increment times
@@ -333,6 +354,7 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
     #
     spice_kernels_collection_inventory = InventoryProduct(setup,
                                              spice_kernels_collection)
+    spice_kernels_collection.add(spice_kernels_collection_inventory)
 
     #
     # -- Generate the document collection
@@ -358,24 +380,47 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
             #
             document_collection_inventory = InventoryProduct(setup,
                                                 document_collection)
+            document_collection.add(document_collection_inventory)
+
 
         #
         # -- Add Collections to the Bundle
         #
         bundle.add(spice_kernels_collection)
+        bundle.add(miscellaneous_collection)
         if spiceds.generated:
             bundle.add(document_collection)
+
+        #
+        # -- Generate the miscellaneous collection. The checksum product
+        #    is initialised in such a way that its name can be obtained.
+        #
+        checksum = ChecksumProduct(setup, miscellaneous_collection)
+        miscellaneous_collection.add(checksum)
+
+        miscellaneous_collection_inventory = InventoryProduct(setup,
+                                                miscellaneous_collection)
+        miscellaneous_collection.add(miscellaneous_collection_inventory)
 
         #
         # -- Generate bundle label and if necessary readme file.
         #
         bundle.write_readme()
 
+        #
+        # -- Generate the checksum product a posteriory in such a way
+        #    that the miscellaneous collection inventory includes the
+        #    chekcsum and the checksum includes the md5 hash of the
+        #    miscellaneous collection inventory.
+        #
+        checksum.generate()
+        miscellaneous_collection.add(checksum)
+
     elif setup.pds_version == '3':
         pass
 
     #
-    # -- List the files present in the stagging area
+    # -- List the files present in the staging area
     #
     bundle.files_in_staging()
 
@@ -410,11 +455,6 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
         return
 
     #
-    # -- Generate checksum file at final area.
-    #
-    bundle.write_checksum()
-
-    #
     # -- Make sure directory and file permissions are correct.
     #
 
@@ -424,6 +464,9 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
     if meta_kernel:
         meta_kernel.validate()
 
+    #
+    # -- Validate checksum file
+    #
     log.stop()
 
     return None
