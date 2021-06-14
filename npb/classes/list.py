@@ -111,18 +111,37 @@ class KernelList(List):
             if 'mapping' in self.json_config[pattern]:
                 patterns.append(self.json_config[pattern]['mapping'])
 
+
         with open(plan, 'r') as f:
             for line in f:
+                ker_matched = False
                 for pattern in patterns:
                     if re.search(pattern, line):
                         ker_line = re.search(pattern, line)
                         kernels.append(ker_line.group(0))
-
-        logging.info(f'-- Reporting the products in Plan:')
+                        ker_matched = True
+                if not ker_matched:
+                    #
+                    # Add the  orbnum files that need to be added.
+                    # Match the pattern with the file.
+                    #
+                    if hasattr(self.setup, 'orbnum'):
+                        for orb in self.setup.orbnum:
+                            pattern = orb['@pattern']
+                            if re.search(pattern, line):
+                                ker_line = re.search(pattern, line)
+                                kernels.append(ker_line.group(0))
+                                ker_matched = True
+                    if not ker_matched:
+                        logging.warning('-- The following Plan line has '
+                                        'not been matched:')
+                        logging.warning(f'   {line}')
 
         #
         # Report the kernels that will be included in the Kernel List
         #
+        logging.info(f'-- Reporting the products in Plan:')
+
         for kernel in kernels:
             logging.info(f'     {kernel}')
 
@@ -162,7 +181,7 @@ class KernelList(List):
                     kernels.append(kernel.split(os.sep)[-1])
 
         #
-        # Deduct the meta-kernels that need to be added.
+        # Sort the meta-kernels that need to be added.
         #
         kernels_in_dir = glob.glob(f'{self.setup.final_directory}/**/*',
                                    recursive=True)
@@ -196,6 +215,15 @@ class KernelList(List):
             if not mk_new_name:
                 logging.error(f'-- No former meta-kernel found to generate '
                               f'meta-kernel for the list.')
+
+        #
+        # Sort the orbnum files that need to be added
+        # TODO: Add possibility to get the orbnum files.
+        print('')
+
+        #
+        # The kernel list is complete.
+        #
 
         if self.setup.interactive:
             input(">> Press Enter to continue...")
@@ -238,7 +266,7 @@ class KernelList(List):
                   list_name, "a+") as f:
 
             for kernel in self.kernel_list:
-
+                ker_added_to_list = False
                 #
                 # Find the correspondence of the filename in the JSON file
                 #
@@ -399,7 +427,15 @@ class KernelList(List):
                             f.write(f'MAPPING          = '
                                     f'{mapping.replace("$" + el, value)}\n')
 
-                        self.list_name = list_name
+                        ker_added_to_list = True
+
+                if not ker_added_to_list:
+                    f.write(f'FILE             = miscellaneous/orbnum/'
+                            f'{kernel}\n')
+                    f.write(f'MAKLABEL_OPTIONS = VOID\n')
+                    f.write(f'DESCRIPTION      = VOID\n')
+
+        self.list_name = list_name
 
         self.validate()
 
@@ -517,7 +553,7 @@ class KernelList(List):
                 error = 'List does not have the same number of entries'
                 logging.critical(f'{error} for:')
                 logging.critical(f'   FILE             ({num_file})')
-                logging.crtical(f'   MAKLABEL_OPTIONS ({num_opti})')
+                logging.critical(f'   MAKLABEL_OPTIONS ({num_opti})')
                 logging.critical(f'   DESCRIPTION      ({num_desc})')
                 logging.critical('')
 
