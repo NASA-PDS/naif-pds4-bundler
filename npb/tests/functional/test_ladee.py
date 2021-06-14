@@ -20,7 +20,7 @@ class TestLadee(TestCase):
         shutil.rmtree('ladee', ignore_errors=True)
         shutil.rmtree('working', ignore_errors=True)
         shutil.rmtree('staging', ignore_errors=True)
-        shutil.rmtree('kernels_ladee', ignore_errors=True)
+        shutil.rmtree('kernels', ignore_errors=True)
 
         shutil.copytree(
             '/Users/mcosta/workspace/pds/npb_workspace/ops/LADEE/kernels',
