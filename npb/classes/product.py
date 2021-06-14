@@ -1,20 +1,23 @@
 import os
 import re
 import glob
-import logging
 import shutil
+import logging
 import filecmp
 import difflib
-import fileinput
 import spiceypy
+import datetime
+import fileinput
 import subprocess
 from collections import OrderedDict
 from datetime import date
 from npb.classes.label import SpiceKernelPDS4Label
 from npb.classes.label import MetaKernelPDS4Label
+from npb.classes.label import OrbnumFilePDS4Label
 from npb.classes.label import InventoryPDS4Label
 from npb.classes.label import InventoryPDS3Label
 from npb.classes.label import DocumentPDS4Label
+from npb.classes.label import ChecksumPDS4Label
 from npb.classes.label import BundlePDS4Label
 from npb.classes.log import error_message
 from npb.utils.time import creation_time
@@ -34,11 +37,20 @@ from npb.utils.files import get_latest_kernel
 from npb.utils.files import type2extension
 from npb.utils.files import compare_files
 from npb.utils.files import match_patterns
+from npb.utils.files import utf8len
 
 
 class Product(object):
+    """
+    Parent Class that defines a generic archive product.
+    """
 
     def __init__(self):
+        """
+        Constructor method. Assigns values to the common attributes for
+        all Products: file size, creation time and date, and file
+        extension.
+        """
         stat_info = os.stat(self.path)
         self.size = str(stat_info.st_size)
         self.checksum = str(md5(self.path))
@@ -48,9 +60,22 @@ class Product(object):
 
 
 class SpiceKernelProduct(Product):
+    """
+    Product child Class that defines a SPICE Kernel file archive product.
+
+    :param setup: NPB run Setup Object
+    :type setup: Object
+    :param name: SPICE Kernel filename
+    :type name: str
+    :param collection: SPICE Kernel collection that will be a container of
+                       the SPICE Kernel Product Object
+    :type collection: Object
+    """
 
     def __init__(self, setup, name, collection):
-
+        """
+        Constructor method.
+        """
         self.collection = collection
         self.setup = setup
         self.name = name
@@ -59,22 +84,44 @@ class SpiceKernelProduct(Product):
 
         self.path = setup.kernels_directory + os.sep + self.type
 
+        #
+        # Determine if it is a binary or a text kernel.
+        #
         if self.extension[0].lower() == 'b':
             self.file_format = 'Binary'
         else:
             self.file_format = 'Character'
 
-        self.description = self.get_description()
+        #
+        # From the header of MAKLABEL:
+        #
+        #    All files that are to have labels generated must have a NAIF
+        #    file ID word as the first "word" on the first line of the
+        #    file.The SPICE binary kernel files are guaranteed to have
+        #    this ID word, but the ASCII text kernels, IK, LSK, PCK, SCLK,
+        #    are not. for completeness, the appropriate ID words are listed
+        #    here, so that they may be inserted into the ASCII text kernel
+        #    files if necessary.
+        #
+        #            ASCII Text File Type      ID Word
+        #            --------------------      --------
+        #            IK                        KPL/IK
+        #            LSK                       KPL/LSK
+        #            PCK                       KPL/PCK
+        #            SCLK                      KPL/SCLK
+        #            FRAMES                    KPL/FK
+        #
+        self.description = self.__get_description()
 
-        self.coverage()
+        self.__coverage()
 
         self.collection_path = setup.staging_directory + os.sep + \
                                'spice_kernels' + os.sep
 
         product_path = self.collection_path + self.type + os.sep
 
-        self.lid = self.product_lid()
-        self.vid = self.product_vid()
+        self.lid = self.__product_lid()
+        self.vid = self.__product_vid()
 
         #
         # We generate the kernel directory if not present
@@ -122,10 +169,14 @@ class SpiceKernelProduct(Product):
         logging.info(f'-- Labeling {self.name}...')
         self.label = SpiceKernelPDS4Label(setup, self)
 
-        return
 
-    def product_lid(self):
+    def __product_lid(self):
+        '''
+        Determine product logical identifier (LID).
 
+        :return: product LID
+        :rtype: str
+        '''
         product_lid = \
             '{}:spice_kernels:{}_{}'.format(
                 self.setup.logical_identifier,
@@ -134,7 +185,7 @@ class SpiceKernelProduct(Product):
 
         return product_lid
 
-    def product_vid(self):
+    def __product_vid(self):
 
         product_vid = '1.0'
 
@@ -143,7 +194,7 @@ class SpiceKernelProduct(Product):
     #
     # Obtain the kernel product description information
     #
-    def get_description(self):
+    def __get_description(self):
 
         kernel_list_file = self.setup.working_directory + os.sep + \
                            f'{self.setup.mission_accronym}_release_' \
@@ -165,11 +216,11 @@ class SpiceKernelProduct(Product):
 
         return description
 
-    def coverage(self):
+    def __coverage(self):
         if self.type.lower() == 'spk':
             (self.start_time, self.stop_time) = \
                 spk_coverage(self.path + os.sep + self.name,
-                             date_format=self.setup.date_format)
+                                 date_format=self.setup.date_format)
         elif self.type.lower() == 'ck':
             (self.start_time, self.stop_time) = \
                 ck_coverage(self.path + os.sep + self.name,
@@ -189,7 +240,7 @@ class SpiceKernelProduct(Product):
     #
     # IK kernel processing
     #
-    def ik_kernel_ids(self):
+    def __ik_kernel_ids(self):
 
         with open(f'{self.path}/{self.name}', "r") as f:
 
@@ -291,7 +342,7 @@ class SpiceKernelProduct(Product):
 
         return
 
-    def product_mapping(self):
+    def __product_mapping(self):
 
         '''Obtain the kernel mapping.'''
         kernel_list_file = self.setup.working_directory + os.sep + \
@@ -536,7 +587,12 @@ class MetaKernelProduct(Product):
         return
 
     def product_lid(self):
+        '''
+        Determine product logical identifier (LID).
 
+        :return: product LID
+        :rtype: str
+        '''
         if self.type == 'mk':
             name = self.name.split('_v')[0]
         else:
@@ -1124,6 +1180,885 @@ class MetaKernelProduct(Product):
         return
 
 
+class OrbnumFileProduct(Product):
+    '''
+    Orbit number file class.
+    '''
+
+    def __init__(self, setup, name, collection):
+
+        self.collection = collection
+        self.setup = setup
+        self.name = name
+        self.extension = name.split('.')[-1].strip()
+        self.path = setup.orbnum_directory
+        self.collection_path = setup.staging_directory + os.sep + \
+                               'miscellaneous'
+        product_path = self.collection_path + os.sep + 'orbnum' + os.sep
+
+        #
+        # Map the orbnum file with its configuration.
+        #
+        for orbnum_type in setup.orbnum:
+            if re.match(orbnum_type['@pattern'], name):
+                self._orbnum_type = orbnum_type
+
+        if not hasattr(self, '_orbnum_type'):
+            error_message("The orbnum file does not match any type "
+                          "described in the configuration")
+
+        self.lid = self.__product_lid()
+        self.vid = self.__product_vid()
+
+        #
+        # We generate the kernel directory if not present
+        #
+        safe_make_directory(product_path)
+
+        #
+        # We copy the file to the staging directory.
+        #
+        logging.info(f'-- Copy {self.name} to staging directory.')
+        if not os.path.isfile(product_path + self.name):
+            shutil.copy2(self.path + os.sep + self.name,
+                         product_path + os.sep + self.name)
+            self.new_product = True
+        else:
+            logging.error(f'     {self.name} already present in staging '
+                          f'directory.')
+
+            if self.setup.interactive:
+                input(">> Press Enter to continue...")
+
+            self.new_product = False
+
+        #
+        # Add CRs to the orbnum file
+        #
+        add_crs_to_file(product_path + os.sep + self.name)
+
+        #
+        # We update the path after having copied the kernel.
+        #
+        self.path = product_path + self.name
+
+        #
+        # We obtain the parameters required to fill the label.
+        #
+        header = self.__read_header()
+        self.__set_event_detection_key(header)
+        self.header_length = self.__get_header_length()
+        self.description = self.__get_description()
+        self.records = self.__get_records()
+        self.records_length = self.__get_records_length()
+        self._sample_record =self.__get_sample_record()
+
+        self.__get_params(header)
+        self.__set_params(header)
+
+        self.__coverage()
+
+        Product.__init__(self)
+
+        #
+        # The kernel is labeled.
+        #
+        logging.info(f'-- Labeling {self.name}...')
+        self.label = OrbnumFilePDS4Label(setup, self)
+
+        return
+
+    def __product_lid(self):
+        '''
+        Determine product logical identifier (LID).
+
+        :return: product LID
+        :rtype: str
+        '''
+        product_lid = \
+            '{}:miscellaneous:orbnum_{}'.format(
+                self.setup.logical_identifier,
+                self.name)
+
+        return product_lid
+
+    def __product_vid(self):
+
+        product_vid = '1.0'
+
+        return product_vid
+
+
+    def __read_header(self):
+        """
+        Read and process an orbnum file header
+
+        :return: header line
+        :rtype: str
+        """
+        header = []
+        with open(self.path, 'r') as o:
+
+            if int(self._orbnum_type['header_start_line']) > 1:
+                for i in range(int(self._orbnum_type['header_start_line'])-1):
+                    o.readline()
+
+
+            header.append(o.readline())
+            header.append(o.readline())
+
+        #
+        # Perform a minimal check to determine if the orbnum file has
+        # the appropriate header. Include the old ORBNUM utility header format
+        # for Descending and Ascending node events (Odyssey).
+        #
+        if (not 'Event' in header[0]) and (not 'Node' in header[0]):
+            error_message(f"The header of the orbnum file {self.name} is not "
+                          f"as expected" )
+
+        if not '===' in header[1]:
+            error_message(f"The header of the orbnum file {self.name} is not "
+                          f"as expected" )
+
+        return header
+
+    def __get_header_length(self):
+        """
+        Read an orbnum file and return the length of the header in bytes.
+
+        :return: header line
+        :rtype: str
+        """
+        header_length = 0
+        with open(self.path, 'r') as o:
+            lines = 0
+            header_start = int(self._orbnum_type['header_start_line'])
+            for line in o:
+                lines += 1
+                if lines < header_start + 2:
+                    header_length += utf8len(line)
+                else:
+                    break
+
+        return header_length
+
+    def __get_sample_record(self):
+        """
+        Read an orbnum file and return one record sample. This sample (one
+        data line) will be used to determine the format of each parameter
+        of the orbnum file. The sample is re-processed in such a way that it
+        contains no spaces for the UTC dates
+        :return: sample record line
+        :rtype: str
+        """
+        sample_record = ''
+        with open(self.path, 'r') as o:
+            lines = 0
+            header_start = int(self._orbnum_type['header_start_line'])
+            for line in o:
+                lines += 1
+                if lines > header_start + 1:
+                    #
+                    # The original condition was: `if line.strip():`
+                    # But some orbnum files have records that only have the
+                    # orbit number and nothing else. E.g.:
+                    #
+                    # header[0]        No.     Event UTC PERI
+                    # header[1]      =====  ====================
+                    # skip               2
+                    # sample_record      3  1976 JUN 22 18:07:09
+                    #
+                    if len(line.strip()) > 5:
+                        sample_record = line
+                        break
+
+        if not sample_record:
+            error_message("The orbnum file has no records")
+
+        sample_record = self.__utc_blanks_to_dashes(sample_record)
+
+        return sample_record
+
+    def __utc_blanks_to_dashes(self, sample_record):
+        '''
+        Re-process the UTC string fields of an orbnum sample row
+        to remove blankspaces.
+
+        :param sample_record: sample row with UTC string with blankspaces
+        :type sample_record: str
+        :return: sample row with UTC string with dashes
+        :rtype: str
+        '''
+        #
+        utc_pattern = r'[0-9]{4}[ ][A-Z]{3}[ ][0-9]{2}[ ]' \
+                      r'[0-9]{2}[:][0-9]{2}[:][0-9]{2}'
+
+        matches = re.finditer(utc_pattern, sample_record)
+        for match in matches:
+            #
+            # Turn the string to a list to modify it.
+            #
+            sample_record = \
+                sample_record.replace(match.group(0),
+                                      match.group(0).replace(' ','-'))
+
+        return sample_record
+
+    def __get_records(self):
+        """
+        Read an orbnum file and return the number of records.
+
+        :return: header line
+        :rtype: str
+        """
+        with open(self.path, 'r') as o:
+            records = 0
+            lines = 0
+            header_start = int(self._orbnum_type['header_start_line'])
+            for line in o:
+                lines += 1
+                if lines > header_start + 1:
+                    if line.strip():
+                        records += 1
+
+        return records
+
+    def __get_records_length(self):
+        """
+        Read an orbnum file and return the length of the records.
+
+        :return: header line
+        :rtype: str
+        """
+        with open(self.path, 'r') as o:
+            lines = 0
+            header_start = int(self._orbnum_type['header_start_line'])
+            for line in o:
+                lines += 1
+                if lines > header_start + 1:
+                    records_length = utf8len(line)
+                    break
+
+        return records_length
+
+    def __set_event_detection_key(self, header):
+        """
+        Obtain the orbnum event detection key. The event detection key is
+        a string identifying which geometric event signifies the start of
+        an orbit. The possible events are:
+
+           'APO'           signals a search for apoapsis
+
+           'PERI'          signals a search for periapsis
+
+           'A-NODE'        signals a search for passage through
+                           the ascending node
+
+           'D-NODE'        signals a search for passage through
+                           the descending node
+
+           'MINLAT'        signals a search for the time of
+                           minimum planetocentric latitude
+
+           'MAXLAT'        signals a search for the time of
+                           maximum planetocentric latitude
+
+           'MINZ'          signals a search for the time of the
+                           minimum value of the Z (Cartesian)
+                           coordinate
+
+           'MAXZ'          signals a search for the time of the
+                           maximum value of the Z (Cartesian)
+                           coordinate
+
+        """
+        events = ['APO','PERI','A-NODE','D-NODE','MINLAT', 'MAXLAT',
+                  'MINZ','MAXZ']
+        for event in events:
+            if header[0].count(event) >= 2:
+                self._event_detection_key = event
+                break
+
+        #
+        # For orbnum files generated with older versions of the ORBNUM
+        # utility, the event colums have a different format. For example,
+        # for Odissey (m01_ext64.nrb):
+        #
+        #  No.      Desc-Node UTC         Node SCLK          Asc-Node UTC  ...
+        # ===== ====================  ================  ====================
+        # 82266 2020 JUL 01 01:24:31  4/1278034592.076  2020 JUL 01 02:23:12
+        # 82267 2020 JUL 01 03:23:06  4/1278041706.241  2020 JUL 01 04:21:46
+        # 82268 2020 JUL 01 05:21:38  4/1278048819.054  2020 JUL 01 06:20:18
+        #
+        if not hasattr(self, '_event_detection_key'):
+            if ('Desc-Node' in header[0]) or ('Asc-Node' in header[0]):
+                desc_node_index = header[0].index('Desc-Node')
+                asc_node_index = header[0].index('Asc-Node')
+                if asc_node_index < desc_node_index:
+                    self._event_detection_key = 'A-NODE'
+                else:
+                    self._event_detection_key = 'D-NODE'
+
+        if not hasattr(self, '_event_detection_key'):
+            error_message('orbnum event detection key is incorrect')
+
+        return None
+
+    def __event_mapping(self, event):
+        """
+        Maps the event keyword to the event name/description.
+
+        :return: event description
+        :rtype: str
+        """
+        event_dict = {'APO': 'apocenter',
+                      'PERI': 'pericenter',
+                      'A-NODE': 'passage through the ascending node',
+                      'D-NODE': 'passage through the descending node',
+                      'MINLAT': 'minimum planetocentric latitude',
+                      'MAXLAT': 'maximum planetocentric latitude',
+                      'MINZ': 'minimum value of the cartesian Z coordinate',
+                      'MAXZ': 'maximum value of the cartesian Z coordinate',
+                      }
+
+        return event_dict[event]
+
+    def __opposite_event_mapping(self, event):
+        """
+        Maps the event keyword to the opposite event keyword.
+
+        :return: opposite event keyword
+        :rtype: str
+        """
+        opp_event_dict = {'APO': 'PERI',
+                          'PERI': 'APO',
+                          'A-NODE': 'D-NODE',
+                          'D-NODE': 'A-NODE',
+                          'MINLAT': 'MAXLAT',
+                          'MAXLAT': 'MINLAT',
+                          'MINZ': 'MAXZ',
+                          'MAXZ': 'MINZ',
+                      }
+
+        return opp_event_dict[event]
+
+    def __get_params(self, header):
+        """
+        Obtain the parameters present in the orbnum file.
+        Currently there are 4 ground set parameters (not for CLEMENTINE
+        orbnum files).
+        Currently There are 11 orbital parameters available:
+
+           'No.'           The orbit number of a descending node event.
+
+           'Event UTC'     The UTC time of that event.
+
+           'Event SCLK'    The SCLK time of the event.
+
+           'OP-Event UTC'  The UTC time of the opposite event.
+
+           'Sub Sol Lon'   Sub-solar planetodetic longitude at event
+                           time (DEGS).
+
+           'Sub Sol Lat'   Sub-solar planetodetic latitude at event
+                           time (DEGS).
+
+           'Sub SC Lon'    Sub-target planetodetic longitude (DEGS).
+
+           'Sub SC Lat'    Sub-target planetodetic latitude (DEGS).
+
+           'Alt'           Altitude of the target above the observer
+                           body at event time (KM).
+
+           'Inc'           Inclination of the vehicle orbit plane at
+                           event time (DEGS).
+
+           'Ecc'           Eccentricity of the target orbit about
+                           the primary body at event time (DEGS),
+
+           'Lon Node'      Longitude of the ascending node of the
+                           orbit plane at event time (DEGS).
+
+           'Arg Per'       Argument of periapsis of the orbit plane at
+                           event time (DEGS).
+
+           'Sol Dist'      Solar distance from target at event
+                           time (KM).
+
+           'Semi Axis'     Semi-major axis of the target's orbit at
+                           event time (KM).
+        """
+        parameters = []
+        params = ['No.', 'Event UTC', 'Desc-Node UTC', 'Event SCLK',
+                  'Node SCLK', 'OP-Event UTC', 'Asc-Node UTC',
+                  'SolLon','SolLat','SC Lon','SC Lat','Alt','Inc','Ecc',
+                  'LonNode', 'Arg Per', 'Sol Dist', 'Semi Axis']
+        for param in params:
+            if param in header[0]:
+                parameters.append(param)
+
+        self._params = parameters
+
+        return None
+
+    def __set_params(self, header):
+
+        #
+        # Define the parameters template dictionary.
+        # The orbit number, UTC date and angular parameters have fixed
+        # lengths, which are provided in the parameters template.
+        # The length of the rest of the parameters depends on each orbnum
+        # file and are obtained from the orbum file itself.
+        #
+        params_template = \
+            {'No.':{
+                'location': '1',
+                'type': 'ASCII_Integer',
+                'length': '5',
+                'format': 'I5',
+                'description':'Number that provides an incremental orbit '
+                              'count determined by the $EVENT event.'
+                },
+             'Event UTC':{
+                'type': 'ASCII_String',
+                'location': '8',
+                'length': '20',
+                'format': 'A20',
+                'description':'UTC time of $EVENT event that '
+                              'signifies the start of an orbit.'
+                },
+             'Desc-Node UTC': {
+                    'type': 'ASCII_String',
+                    'location': '8',
+                    'length': '20',
+                    'format': 'A20',
+                    'description': 'UTC time of $EVENT event that '
+                                   'signifies the start of an orbit.'
+                },
+             'Event SCLK':{
+                'type': 'ASCII_String',
+                'format': 'A',
+                'description':'SCKL time of $EVENT event that '
+                              'signifies the start of an orbit.'
+                },
+             'Node SCLK': {
+                    'type': 'ASCII_String',
+                    'format': 'A',
+                    'description': 'SCKL time of $EVENT event that '
+                                   'signifies the start of an orbit.'
+                },
+             'OP-Event UTC':{
+                 'type': 'ASCII_String',
+                 'length': '20',
+                 'format': 'A20',
+                 'description': 'UTC time of opposite event ($OPPEVENT).'
+                },
+             'Asc-Node UTC': {
+                    'type': 'ASCII_String',
+                    'length': '20',
+                    'format': 'A20',
+                    'description': 'UTC time of opposite event ($OPPEVENT).'
+                },
+             'SolLon':{
+                'type': 'ASCII_Real',
+                'format': 'F',
+                'description': 'Sub-solar planetodetic longitude at event '
+                               'time in the $FRAME.',
+                'unit': 'deg'
+             },
+             'SolLat': {
+                'type': 'ASCII_Real',
+                'format': 'F',
+                'description': 'Sub-solar planetodetic latitude at event '
+                               'time in the $FRAME.',
+                'unit': 'deg'
+             },
+              'SC Lon':{
+                'type': 'ASCII_Real',
+                'format': 'F',
+                'description': 'Sub-target planetodetic longitude at event '
+                               'time in the $FRAME.',
+                'unit': 'deg'
+             },
+              'SC Lat':{
+                'type': 'ASCII_Real',
+                'format': 'F',
+                'description': 'Sub-target planetodetic latitude at event '
+                               'time in the $FRAME.',
+                'unit': 'deg'
+             },
+              'Alt':{
+                'type': 'ASCII_Real',
+                'format': 'F',
+                'description': 'Altitude of the target above the observer '
+                               'body at event time relative to the $TARGET '
+                               'ellipsoid.',
+                'unit': 'km'
+             },
+              'Inc':{
+                'type': 'ASCII_Real',
+                'format': 'F',
+                'description': 'Inclination of the vehicle orbit plane at '
+                               'event time.',
+                'unit': 'km'
+              },
+              'Ecc':{
+                'type': 'ASCII_Real',
+                'format': 'F',
+                'description': 'Eccentricity of the target orbit about '
+                               'the primary body at event time.',
+                'unit': 'deg'
+              },
+              'LonNode':{
+                'type': 'ASCII_Real',
+                'format': 'F',
+                'description': 'Longitude of the ascending node of the'
+                               ' orbit plane at event time.',
+                'unit': 'deg'
+              },
+              'Arg Per':{
+                'type': 'ASCII_Real',
+                'format': 'F',
+                'description': 'Argument of periapsis of the orbit plane at '
+                               'event time.',
+                'unit': 'deg'
+              },
+              'Sol Dist':{
+                'type': 'ASCII_Real',
+                'format': 'F',
+                'description': 'Solar distance from target at event time.',
+                'unit': 'km'
+              },
+              'Semi Axis':{
+                'type': 'ASCII_Real',
+                'format': 'F',
+                'description': "Semi-major axis of the target's orbit at"
+                               " event time.",
+                'unit': 'km'
+              }
+            }
+
+        #
+        # Define the complete list of parameters.
+        #
+        params = self._params
+
+        sample_record = self._sample_record
+
+        #
+        # Iterate the parameters and generate a dictionary for each based on
+        # the parameters template dictionary.
+        #
+        # The parameters are first initialised. The orbnum header with two
+        # re-processed records will look as follows:
+        #
+        # header[1]     No.     Event UTC PERI       Event SCLK PERI      ...
+        # header[2]    =====  ====================  ====================  ...
+        # param_record  1954  2015-OCT-01T01:33:57    2/0496935200.34677  ...
+        #               1955  2015-OCT-01T06:06:54    2/0496951577.40847  ...
+        #
+        # The length of each parameter is based on the second header line.
+        # Please note that what will be used is the maximum potential length
+        # of each parameter.
+        #
+        number = 0
+        location = 1
+        length = 0
+        params_dict = {}
+        blankspace_iter = re.finditer(r'[ ]', header[1])
+
+        for param in params:
+
+            name = param
+            #
+            # Parameter location; offset with respect to the line start.
+            # Use the length from the previous iteration and add the
+            # blank spaces in between parameter columns.
+            #
+            # To find blank spaces we use a regular expression iterator.
+            #
+            if number > 0:
+                blankspaces_loc = blankspace_iter.__next__().regs[0]
+                blankspaces = blankspaces_loc[1] - blankspaces_loc[0] + 1
+                location += int(length) + blankspaces
+
+            type = params_template[param]['type']
+
+            if 'length' in params_template[param]:
+                length = params_template[param]['length']
+                format = params_template[param]['format']
+            else:
+                #
+                # Obtain the parameter length as the length of the table
+                # separator from the header.
+                #
+                length = str(len(header[1].split()[number]))
+                format = params_template[param]['format'] + length
+
+                #
+                # If the parameter is a float we need to include the decimal
+                # part.
+                #
+                if 'F' in params_template[param]['format']:
+                    #
+                    # We need to sort the number of decimals.
+                    #
+                    param_record = sample_record.split()[number]
+                    param_length = str(len(param_record.split('.')[-1]))
+                    format += '.' + param_length
+            #
+            # Parameter number (column number)
+            #
+            number += 1
+
+            #
+            # Description. It can contain $EVENT, $TARGET and/or $FRAME. If
+            # so is substituted by the appropriate value.
+            #
+            description = params_template[param]['description']
+
+            if '$EVENT' in description:
+                event_desc = self.__event_mapping(self._event_detection_key)
+                description = description.replace('$EVENT', event_desc)
+
+
+            if '$TARGET' in description:
+                target = self.setup.target.title()
+                description = description.replace('$TARGET', target)
+
+            if '$FRAME' in description:
+                frame_dict = self._orbnum_type['event_detection_frame']
+                frame = f"{frame_dict['description']} " \
+                        f"({frame_dict['spice_name']})"
+                description = description.replace('$FRAME', frame)
+
+            if '$OPPEVENT' in description:
+                #
+                # For the opposite event correct the field description as
+                # well.
+                #
+                oppevent = \
+                    self.__opposite_event_mapping(self._event_detection_key)
+                oppevent_desc = self.__event_mapping(oppevent)
+                description = description.replace('$OPPEVENT', oppevent_desc)
+
+            #
+            # Add event type in names.
+            #
+            if (name == 'Event UTC') or (name == 'Event SCLK'):
+                name += ' ' + self._event_detection_key
+            if (name == 'OP-Event UTC'):
+                name += ' ' + oppevent
+
+            #
+            # If the parameter has a unit, get it from the template.
+            #
+            if 'unit' in params_template[param]:
+                unit = params_template[param]['unit']
+            else:
+                unit = None
+
+            #
+            # build the dictionary for the parameter and add it to the
+            # parameter list
+            #
+            params_dict[param] = { 'name': name,
+                                   'number': number,
+                                   'location': location,
+                                   'type': type,
+                                   'length': length,
+                                   'format': format,
+                                   'description': description,
+                                   'unit': unit}
+
+        self.params = params_dict
+
+        return None
+
+    def __get_description(self):
+        '''
+        Write the orbnum product description information based on the orbit
+        determination event and the PCK kernel used.
+        '''
+        event_mapping = {'PERI':'periapsis',
+                         'APO':'apoapsis',
+                         'A-NODE':'ascending node',
+                         'D-NODE':'descending node',
+                         'MINLAT':'minimum planetocentric latitude',
+                         'MAXLAT':'maximum planetocentric latitude',
+                         'MINZ':'minimum value of Z (cartesian) coordinate',
+                         'MAXZ':'maximum value of Z (cartesian) coordinate'}
+
+        event = event_mapping[self._event_detection_key]
+
+        pck_mapping = self._orbnum_type['pck']
+        report = f"{pck_mapping['description']} " \
+                 f"({pck_mapping['kernel_name']})"
+
+        description = f'SPICE text orbit number file containing a set of ' \
+                      f'orbit parameters numbered by {event} events (orbit ' \
+                      f'start times). This file was generated using the ' \
+                      f'SPICE text PCK file constants from the {report}. ' \
+                      f'Created by NAIF, JPL.'
+
+        return description
+
+    def __coverage(self):
+        """
+        The coverage of the orbnum file can be determined in three different
+        ways:
+
+           -- If there is a one to one correspondence with an SPK file, the
+              SPK file can be provided with the <kernel> tag. The tag can be
+              a path to a specific kernel that does not have to be part of
+              the increment, a pattern of a kernel present in the increment
+              or a pattern of a kernel present in the final directory of the
+              archive.
+
+           -- A user can provide a look up table with this file, as follows:
+
+                <lookup_table>
+                   <file name="maven_orb_rec_210101_210401_v1.orb">
+                      <start>2021-01-01T00:00:00.000Z</start>
+                      <finish>2021-04-01T01:00:00.000Z</finish>
+                   </file>
+                </lookup_table>
+
+              Note that in this particular case the first three and
+              last three lines of the orbnum files would have provided:
+
+                   Event UTC PERI
+                   ====================
+                   2021 JAN 01 00:14:15
+                   2021 JAN 01 03:50:43
+                   2021 JAN 01 07:27:09
+                   (...)
+                   2021 MAR 31 15:00:05
+                   2021 MAR 31 18:36:29
+                   2021 MAR 31 22:12:54
+
+           -- If nothing is provided NPB will provide the coverage based on
+              the event time of the first orbit and the opposite event time
+              of the last orbit.
+        """
+        coverage_source = self._orbnum_type['coverage']
+        coverage_found = False
+
+        if 'kernel' in coverage_source:
+            if coverage_source['kernel']:
+                coverage_kernel = coverage_source['kernel']
+                #
+                # Search the kernel that provides coverage, Note that
+                # this kernel is either
+                #
+                #   -- present in the increment
+                #   -- in the previous increment
+                #   -- provided by the user
+                #
+                if os.path.isfile(coverage_kernel):
+                    #
+                    # Kernel provided by the user and directly available.
+                    #
+                    (start_time, stop_time) = spk_coverage(coverage_kernel,
+                        date_format='maklabel')
+
+                else:
+                    #
+                    # The kernel is present in the increment or in the final
+                    # area of the archive.
+                    #
+                    paths = [f'{self.setup.staging_directory}'
+                             f'/spice_kernels',
+                             f'{self.setup.final_directory}'
+                             f'/{self.setup.mission_accronym}_spice'
+                             f'/spice_kernels']
+                    pattern = coverage_kernel
+                    coverage_kernel = get_latest_kernel('spk', paths, pattern)
+
+                    kernel = f'{self.setup.staging_directory}' \
+                             f'/spice_kernels/spk/{coverage_kernel}'
+
+                    if not os.path.isfile(kernel):
+                        kernel = f'{self.setup.final_directory}' \
+                             f'/{self.setup.mission_accronym}_spice' \
+                             f'/spice_kernels/spk/{coverage_kernel}'
+
+                    (start_time, stop_time) = spk_coverage(kernel,
+                                                date_format='maklabel')
+                    coverage_found = True
+            else:
+                coverage_found = False
+        elif 'lookup_table' in coverage_source:
+            if coverage_source['lookup_table']:
+                if coverage_found:
+                    logging.warning('-- Orbnum file lookup table cov. found '
+                                    'but cov. already provided by SPK file.')
+                for file in coverage_source['lookup_table'][0].items():
+                    if file[1]['@name'] == self.name:
+                        start_time = file[1]['start']
+                        stop_time = file[1]['finish']
+                        coverage_found = True
+                        break
+            else:
+                coverage_found = False
+
+        if not coverage_found:
+            #
+            # Set the start and stop times to the first and last
+            # time-tags of the orbnum file.
+            #
+            start_time = self._sample_record.split()[1]
+            start = datetime.datetime.strptime(start_time,
+                                               '%Y-%b-%d-%H:%M:%S')
+            start_time = start.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+            #
+            # Read the orbnum file in binary mode in order to start
+            # from the end of the file.
+            #
+            with open(self.path, 'rb') as f:
+                f.seek(-2, os.SEEK_END)
+                while f.read(1) != b'\n':
+                    f.seek(-2, os.SEEK_CUR)
+                last_line = f.readline().decode()
+                #
+                # Replace the spaces in the UTC strings for dashes in order
+                # to be able to split the file with blank spaces.
+                #
+            last_line = self.__utc_blanks_to_dashes(last_line)
+            #
+            # If the opposite event is outside of the coverage of the SPK file
+            # with which the orbnum has been generated, there is no UTC time
+            # or the opposite event, in such case we will use the UTC time
+            # of the last event.
+            #
+            if 'Unable to determine' in last_line:
+                stop_time = last_line.split()[1]
+            else:
+                stop_time = last_line.split()[3]
+
+            try:
+                stop = datetime.datetime.strptime(stop_time,
+                                              '%Y-%b-%d-%H:%M:%S')
+                stop_time = stop.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+            except:
+                #
+                # Exception to cope with orbnum files without all the ground
+                # set of parameters.
+                #
+                stop_time = last_line.split()[1]
+                stop = datetime.datetime.strptime(stop_time,
+                                              '%Y-%b-%d-%H:%M:%S')
+                stop_time = stop.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+
+        self.start_time = start_time
+        self.stop_time = stop_time
+
+        return None
+
+
 class InventoryProduct(Product):
 
     def __init__(self, setup, collection):
@@ -1217,7 +2152,12 @@ class InventoryProduct(Product):
         return
 
     def product_lid(self):
+        '''
+        Determine product logical identifier (LID).
 
+        :return: product LID
+        :rtype: str
+        '''
         product_lid = \
             f'{self.setup.logical_identifier}:document:spiceds'
 
@@ -1263,15 +2203,16 @@ class InventoryProduct(Product):
             for product in self.collection.product:
                 if product.new_product:
                     line = f'P,' \
-                           f'{product.label.PRODUCT_LID}::' \
-                           f'{product.label.PRODUCT_VID}\r\n'
+                           f'{product.lid}::' \
+                           f'{product.vid}\r\n'
                     line = add_carriage_return(line)
                     f.write(line)
 
         if self.setup.interactive:
             input(">> Press Enter to continue...")
 
-        logging.info(f'-- Generated {self.path}')
+        logging.info(f'-- Generated '
+                     f'{self.path.split(self.setup.staging_directory)[-1]}')
         if not self.setup.args.silent and not self.setup.args.verbose: print(
             f'   * Created '
             f'{self.path.split(self.setup.staging_directory)[-1]}.')
@@ -1569,7 +2510,12 @@ class SpicedsProduct(object):
         return
 
     def product_lid(self):
+        '''
+        Determine product logical identifier (LID).
 
+        :return: product LID
+        :rtype: str
+        '''
         return f'{self.setup.logical_identifier}:document:spiceds'
 
     def product_vid(self):
@@ -1710,6 +2656,12 @@ class ReadmeProduct(Product):
             logging.info('-- Generating readme file...')
             self.write_product()
 
+            #
+            # If the product is generated we define a checksum attribute for
+            # the Bundle object.
+            #
+            self.bundle.checksum = md5(self.path)
+
         Product.__init__(self)
 
         logging.info('')
@@ -1768,6 +2720,282 @@ class ReadmeProduct(Product):
             f'   * readme file generated.')
 
         return
+
+
+class ChecksumProduct(Product):
+
+    def __init__(self, setup, collection):
+
+        #
+        # The initialisation of the checksum class is lighter than the
+        # initialisation of the other products because the purpose is
+        # solely to obtain the LID and the  VID of the checksum in order
+        # to be able to include it in the miscellaneous collection
+        # inventory file; the checksum file needs to be included in the
+        # inventory file before the actual checksum file is generated.
+        #
+        self.setup = setup
+        self.collection = collection
+        self.collection_path = self.setup.staging_directory + os.sep + \
+                               'miscellaneous' + os.sep
+
+        #
+        # We generate the kernel directory if not present
+        #
+        product_path = self.collection_path + 'checksum' + os.sep
+        safe_make_directory(product_path)
+
+        #
+        # Initialise the checksum dictionary; we use a dictionary to be
+        # able to sort it by value into a list to generate the checkum
+        # table.
+        #
+        self.md5_dict = {}
+
+        self.read_current_product()
+
+        self.start_time = self.setup.mission_start
+        self.stop_time = self.setup.mission_stop
+
+        self.lid = self.product_lid()
+        self.vid = self.product_vid()
+
+    def generate(self):
+
+        #
+        # This acts as the second part of the Checksum product initialization.
+        #
+        self.write_product()
+
+        #
+        # Call the constructor of the parent class to fill the common
+        # attributes.
+        #
+        Product.__init__(self)
+
+        self.compare()
+
+        #
+        # The checksum is labeled.
+        #
+        logging.info(f'-- Labeling {self.name}...')
+        self.label = ChecksumPDS4Label(self.setup, self)
+
+    def read_current_product(self):
+        '''
+        Reads the current checksum file and determines the version of the
+        new checksum file.
+        '''
+        #
+        # Determine the checksum version
+        #
+        if self.setup.increment:
+            checksum_files = glob.glob(self.setup.final_directory + \
+                f'/{self.setup.mission_accronym}_spice/' + \
+                os.sep + self.collection.name + os.sep + \
+                f'checksum_v*.tab')
+            checksum_files.sort()
+            try:
+                latest_file = checksum_files[-1]
+
+                #
+                # Store the previous version to use it to validate the
+                # generated one.
+                #
+                self.path_current = latest_file
+                self.name_current = latest_file.split(os.sep)[-1]
+
+                latest_version = latest_file.split('_v')[-1].split('.')[0]
+                self.version = int(latest_version) + 1
+
+                logging.info(f'-- Previous checksum file is: '
+                             f'{latest_file}')
+                logging.info(f'-- Generate version {self.version}.')
+
+            except:
+                self.version = 1
+                self.path_current = ''
+
+                logging.error(f'-- Previous checksum file not found.')
+                logging.error(f'-- Default to version {self.version}.')
+                logging.error(f'-- The version of this file might be '
+                              f'incorrect.')
+
+                if self.setup.interactive:
+                    input(">> Press Enter to continue...")
+
+        else:
+            self.version = 1
+            self.path_current = ''
+
+            logging.warning(f'-- Default to version {self.version}.')
+            logging.warning(f'-- Make sure this is the first release of '
+                            f'the archive.')
+
+            if self.setup.interactive:
+                input(">> Press Enter to continue...")
+
+        self.name = f'checksum_v{self.version:03}.tab'
+        self.path = self.setup.staging_directory + os.sep + \
+                    self.collection.name + os.sep + 'checksum' + \
+                    os.sep + self.name
+
+        #
+        # Add each element of current checksum into the md5_sum attribute.
+        #
+        if self.path_current:
+            with open(self.path_current, 'r') as c:
+                for line in c:
+                    #
+                    # Check the format of the current checksum file.
+                    #
+                    try:
+                        (md5, filename) = line.split()
+                    except:
+                        error_message(f'Checksum file {self.path_current} is '
+                                      f'corrupted.')
+                    if not os.path.exists(filename):
+                        logging.error(f'File: {filename} in '
+                                      f'{self.path_current} is not present.')
+
+                    if ( len(md5) == 32 ):
+                        self.md5_dict[md5] = filename
+                    else:
+                        error_message(f'Checksum file {self.path_current} '
+                                      f'corrupted entry: {line}')
+            self.new_product = False
+        else:
+            self.new_product = True
+
+        return None
+
+    def product_lid(self):
+        '''
+        Determine product logical identifier (LID).
+
+        :return: product LID
+        :rtype: str
+        '''
+        product_lid = \
+            f'{self.setup.logical_identifier}:miscellaneous:checksum_checksum'
+
+        return product_lid
+
+    def product_vid(self):
+
+        return '{}.0'.format(int(self.version))
+
+    def write_product(self):
+
+        line = f'Step {self.setup.step} - Generate checksum file'
+        logging.info('')
+        logging.info(line)
+        logging.info('-' * len(line))
+        logging.info('')
+        self.setup.step += 1
+        if not self.setup.args.silent and not self.setup.args.verbose:
+            print('-- ' + line.split(' - ')[-1] + '.')
+
+
+        msn_acr = self.setup.mission_accronym
+
+        #
+        # Iterate the collections to obtain the checksum of each product.
+        #
+        for collection in self.collection.bundle.collections:
+            for product in collection.product:
+                if hasattr(product, 'checksum'):
+                    self.md5_dict[product.checksum] = \
+                        product.path.split(f"/{msn_acr}_spice/")[-1]
+                else:
+                    pass
+            #
+            # Generate the MD5 checksum of the label.
+            #
+            if hasattr(product, 'label'):
+                label_checksum = md5(product.label.name)
+                self.md5_dict[label_checksum] = \
+                    product.label.name.split(f"/{msn_acr}_spice/")[-1]
+            else:
+                pass
+
+        #
+        # Include the readme file checksum if it has been generated in
+        # this run. This is a bundle level product.
+        #
+        if hasattr(self.collection.bundle, 'checksum'):
+            self.md5_dict[self.collection.bundle.checksum] = 'readme.txt'
+
+        #
+        # The resulting dictionary needs to be transformed into a list
+        # sorted by filename alphabetical order (second column of the
+        # resulting table)
+        #
+        md5_list = []
+
+        md5_sorted_dict = dict(sorted(self.md5_dict.items(),
+                                      key=lambda item: item[1]))
+
+        for key, value in md5_sorted_dict.items():
+            md5_list.append(f'{key}  {value}')
+
+        #
+        # We remove spurious .DS_Store files if we are working with MacOS.
+        #
+        for root, dirs, files in os.walk(self.setup.final_directory):
+            for file in files:
+                if file.endswith('.DS_Store'):
+                    path = os.path.join(root, file)
+                    logging.info(f'-- Removing {file}')
+                    os.remove(path)
+
+        #
+        # Write the checksum file.
+        #
+        with open(self.path, 'w') as c:
+            for entry in md5_list:
+                entry = add_carriage_return(entry)
+                c.write(entry)
+
+        if self.setup.interactive:
+            input(">> Press enter to continue...")
+
+        if hasattr(self, 'current_checksum'):
+            logging.info('-- Comparing checksum with previous version...')
+            self.compare()
+
+        if self.setup.interactive:
+            input(">> Press enter to continue...")
+
+        return None
+
+    def sort_checksum(self):
+        """
+        Sorted the list by alphabetical order from the filename
+        (second column of the resulting table),
+        """
+
+
+        return None
+
+
+    def compare(self):
+        """
+        Compare with previous checksum file, if exists. Otherwise it is
+        not compared.
+        """
+        try:
+            compare_files(self.path_current, self.path,
+                          self.setup.working_directory, 'all')
+        except:
+            logging.warning(f'-- Checksum from previous increment does not '
+                            f'exist.')
+
+        logging.info('')
+        if self.setup.interactive:
+            input(">> Press enter to continue...")
+
+        return None
 
 
 class Object(object):
