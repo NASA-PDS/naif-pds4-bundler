@@ -13,6 +13,6 @@ The main function can also be called from Python as indicated in the
 next section.
 
 **main** function
-------------
+-----------------
 
 .. automodule:: npb.main.main
