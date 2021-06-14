@@ -19,6 +19,9 @@ class PDSLabel(object):
 
         try:
             context_products = product.collection.bundle.context_products
+            if not context_products:
+                raise Exception("No context products from bundle in "
+                                "collection")
         except:
             context_products = product.bundle.context_products
 
@@ -122,8 +125,6 @@ class PDSLabel(object):
             #
             self.SPACECRAFTS = self.get_spacecrafts()
             self.TARGETS = self.get_targets()
-
-        return None
 
     def get_spacecrafts(self):
 
@@ -585,6 +586,85 @@ class MetaKernelPDS4Label(PDSLabel):
         return kernel_list_for_label
 
 
+class OrbnumFilePDS4Label(PDSLabel):
+
+    def __init__(self, setup, product):
+        PDSLabel.__init__(self, setup, product)
+
+        self.template = f'{setup.templates_directory}/' \
+                        f'template_product_orbnum_table.xml'
+
+        #
+        # Fields from orbnum object.
+        #
+        self.FILE_NAME = product.name
+        self.PRODUCT_LID = self.product.lid
+        self.PRODUCT_VID = self.product.vid
+        self.FILE_FORMAT = 'Character'
+        self.START_TIME = product.start_time
+        self.STOP_TIME = product.stop_time
+        self.DESCRIPTION = product.description
+        self.HEADER_LENGTH = str(product.header_length)
+
+        #
+        # The orbnum table data starts one byte after the header section.
+        #
+        self.TABLE_OFFSET = str(product.header_length + 1)
+
+        self.TABLE_RECORDS = str(product.records)
+
+        #
+        # The ORBNUM utility produces an information ground set regardless
+        # of the parameters listed in ORBIT_PARAMS. This set consists of 4
+        # parameters.
+        #
+        self.NUMBER_OF_FIELDS = str(len(product.params.keys()))
+        self.FIELDS_LENGTH = str(product.records_length)
+        self.FIELDS = \
+            self.__get_table_character_fields()
+
+        self.name = product.name.split('.')[0] + '.xml'
+
+        self.write_label()
+
+        return
+
+    def __get_table_character_fields(self):
+
+        fields = ''
+        for param in  self.product.params.values():
+            field = self.__field_template(param['name'], param['number'],
+                                          param['location'], param['type'],
+                                          param['length'], param['format'],
+                                          param['description'], param['unit'])
+            fields += field
+
+        return fields
+
+    def __field_template(self, name, number, location, type, length, format,
+                         description, unit):
+
+        field = \
+            f'{" " * 8}<Field_Character>\r\n' \
+            f'{" " * 8}  <name>{name}</name>\r\n' \
+            f'{" " * 8}  <field_number>{number}</field_number>\r\n' \
+            f'{" " * 8}  <field_location unit="byte">{location}' \
+            f'</field_location>\r\n' \
+            f'{" " * 8}  <data_type>{type}</data_type>\r\n' \
+            f'{" " * 8}  <field_length unit="byte">{length}' \
+            f'</field_length>\r\n' \
+            f'{" " * 8}  <field_format>{format}</field_format>\r\n' \
+            f'{" " * 8}  <description>{description}</description>\r\n'
+        if unit:
+            field += \
+                f'{" " * 8}  <unit>{unit}</unit>\r\n' \
+                f'{" " * 8}</Field_Character>\r\n'
+        else:
+            field += \
+                f'{" " * 8}</Field_Character>\r\n'
+        return field
+
+
 class InventoryPDS4Label(PDSLabel):
 
     def __init__(self, setup, collection, inventory):
@@ -696,6 +776,28 @@ class DocumentPDS4Label(PDSLabel):
         self.CURRENT_DATE = self.CURRENT_TIME.split('T')[0]
 
         self.name = collection.name.split('.')[0] + '.xml'
+
+        self.write_label()
+
+        return
+
+
+class ChecksumPDS4Label(PDSLabel):
+
+    def __init__(self, setup, product):
+        PDSLabel.__init__(self, setup, product)
+
+        self.template = f'{setup.templates_directory}/' \
+                        f'template_product_checksum_table.xml'
+
+        self.FILE_NAME = product.name
+        self.PRODUCT_LID = self.product.lid
+        self.PRODUCT_VID = self.product.vid
+        self.FILE_FORMAT = 'Character'
+        self.START_TIME = setup.mission_start
+        self.STOP_TIME = setup.mission_stop
+
+        self.name = product.name.split('.')[0] + '.xml'
 
         self.write_label()
 
