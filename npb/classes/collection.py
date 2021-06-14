@@ -2,10 +2,8 @@ import os
 import re
 import glob
 import logging
-import spiceypy
 
 from npb.classes.log import error_message
-from npb.utils.files import extension2type
 from npb.utils.time import get_years
 
 
@@ -137,11 +135,17 @@ class SpiceKernelsCollection(Collection):
         #
         else:
 
-            logging.info('f-- No meta-kernel provided in the kernel list or '
+            logging.info('-- No meta-kernel provided in the kernel list or '
                          'via configuration.')
             mks = self.setup.mk_inputs[0]['file']
             if not isinstance(mks, list):
                 mks = [mks]
+
+            if not mks[0]:
+                logging.info('')
+                logging.error(f'-- No Meta-kernel will be generated.')
+                return (None, None)
+
             for mk in mks:
                 if not os.path.exists(mk):
                     logging.info('')
@@ -161,9 +165,7 @@ class SpiceKernelsCollection(Collection):
         # input meta-kernels, if the meta-kernels diverge, a warning message
         # will be displayed.
         #
-        #
         # Generate automatically the required meta-kernels
-        #
         #
         # First check if any of the increment are present in
         # each meta-kernel configuration.
@@ -229,7 +231,7 @@ class SpiceKernelsCollection(Collection):
                                 years = list(dict.fromkeys(years))
 
                                 if self.setup.increment:
-                                    mks_previous_incremenet = False
+                                    mks_previous_increment = False
 
                                 else:
                                     #
@@ -255,13 +257,18 @@ class SpiceKernelsCollection(Collection):
                                         if (year >= mission_start_year) and \
                                                 (year <= current_year):
 
+                                            #
+                                            # Default version length.
+                                            #
+                                            version_length = 2
                                             for pattern in patterns:
+
                                                 if 'VERSION' in \
                                                         pattern['#text']:
-                                                    version_lenght = \
+                                                    version_length = \
                                                         pattern['@length']
                                             version = \
-                                                '0' * (version_lenght - 1) + \
+                                                '0' * (version_length - 1) + \
                                                 '1'
 
                                             metaker = \
@@ -379,7 +386,8 @@ class SpiceKernelsCollection(Collection):
                          f'{prev_increment_finish}')
 
             #
-            # Correct the increment interval with previous interval if required.
+            # Correct the increment interval with previous interval if
+            # required.
             #
             if prev_increment_start < increment_start:
                 increment_start = prev_increment_start
@@ -387,7 +395,7 @@ class SpiceKernelsCollection(Collection):
                                 'previous bundle')
 
             if prev_increment_finish > increment_finish:
-                increment_finish = prev_increment_sinish
+                increment_finish = prev_increment_finish
                 logging.warning('-- Increment finish corrected form '
                                 'previous bundle')
 
@@ -481,4 +489,11 @@ class DocumentCollection(Collection):
 
         Collection.__init__(self, self.type, setup, bundle)
 
-        return
+
+class MiscellaneousCollection(Collection):
+
+    def __init__(self, setup, bundle):
+
+        self.type = 'miscellaneous'
+
+        Collection.__init__(self, self.type, setup, bundle)
