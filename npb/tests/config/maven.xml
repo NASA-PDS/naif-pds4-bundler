@@ -79,6 +79,7 @@
     <directories>
         <working_directory>working</working_directory>
         <kernels_directory>kernels</kernels_directory>
+        <orbnum_directory>misc/orbnum</orbnum_directory>
         <staging_directory>staging</staging_directory>
         <final_directory>maven</final_directory>
         <templates_directory></templates_directory>
@@ -336,4 +337,64 @@
                 <data></data>
             </metadata>
     </meta-kernel>
+
+    <!-- =========================== -->
+    <!-- Orbit number file           -->
+    <!-- =========================== -->
+    <orbit_number_file>
+        <orbnum pattern="maven_orb_rec_[0-9]{6}_[0-9]{6}_v[0-9].orb">
+            <!-- Parameters from the orbnum generation preference file -->
+            <event_detection_frame>
+                <spice_name>IAU_MARS</spice_name>
+                <description>Mars body-fixed frame</description>
+            </event_detection_frame>
+            <header_start_line>1</header_start_line >
+            <pck>
+                <kernel_name>pck0010.tpc</kernel_name>
+                <description>IAU 2009 report</description>
+            </pck>
+            <coverage>
+            <!-- The coverage of the orbnum file can be determined by three
+                 different ways:
+
+                   * If there is a one to one correspondence with an SPK
+                     file, the SPK file can be provided with the <kernel>
+                     tag. The tag can be a path to a specific kernel that
+                     does not have to be part of the increment, a pattern
+                     of a kernel present in the increment or a pattern of
+                     a kernel present in the final directory of the archive.
+
+                   * A user can provide a look up table with this
+                     configuration file, as follows:
+
+                        <lookup_table>
+                           <file name="maven_orb_rec_210101_210401_v1.orb">
+                              <start>2021-01-01T00:00:00Z</start>
+                              <finish>2021-04-01T01:00:00Z</finish>
+                           </file>
+                        </lookup_table>
+
+                     Note that in this particular case the first three and
+                     last three lines of the orbnum files would have provided:
+
+                        Event UTC PERI
+                        ====================
+                        2021 JAN 01 00:14:15
+                        2021 JAN 01 03:50:43
+                        2021 JAN 01 07:27:09
+                        (...)
+                        2021 MAR 31 15:00:05
+                        2021 MAR 31 18:36:29
+                        2021 MAR 31 22:12:54
+
+                     * If nothing is provided NPB will provide the coverage
+                       based on the event time of the first orbit and the
+                       opposite event time of the last orbit.
+            -->
+            <!--    <kernel>maven_orb_rec_[0-9]{6}_[0-9]{6}_v[0-9].bsp</kernel> -->
+                <kernel>../data/kernels/spk/maven_orb_rec_210101_210401_v2.bsp</kernel>
+                <lookup_table></lookup_table>
+            </coverage>
+        </orbnum>
+    </orbit_number_file>
 </naif-pds4-bundle_configuration>
