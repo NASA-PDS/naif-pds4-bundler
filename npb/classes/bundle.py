@@ -14,13 +14,18 @@ from npb.classes.log import error_message
 
 class Bundle(object):
     """
-    Class to generate the PDS4 Bundle.
+    Class to generate the PDS4 Bundle structure. The class construction
+    will generate the top level directory structure as follows::
+
+      maven_spice/
+      |-- spice_kernels
+      |-- document
+      '-- miscellaneous
+
     """
     def __init__(self, setup):
         """
-        Constructor
-
-        :param setup:
+        Constructor.
         """
         line = f'Step {setup.step} - Bundle/data set structure generation ' \
                f'at staging area'
@@ -59,6 +64,8 @@ class Bundle(object):
                                 'spice_kernels')
             safe_make_directory(setup.staging_directory + os.sep +
                                 'document')
+            safe_make_directory(setup.staging_directory + os.sep +
+                                'miscellaneous')
 
         self.setup = setup
 
@@ -82,8 +89,6 @@ class Bundle(object):
 
             if self.setup.interactive:
                 input(">> Press Enter to continue...")
-
-        return None
 
     def add(self, element):
         self.collections.append(element)
@@ -174,18 +179,27 @@ class Bundle(object):
             dst = self.setup.final_directory + relative_path
             if not os.path.exists(dst):
                 os.mkdir(dst)
+                os.chmod(dst, 0o775)
 
             dst += rel_path
 
             if not os.path.exists(dst) or not filecmp.cmp(src, dst):
                 if not os.path.exists(dst):
                     os.mkdir(dst)
+                    os.chmod(dst, 0o775)
                 copied_files.append(file)
-                shutil.copy2(src, dst)
+                #
+                # We do not use copy2 (copy data and metadata) because
+                # we want to 'touch' the files for them to have the
+                # timestamp of the day the archive increment was generated.
+                #
+                shutil.copy(src, dst)
+                os.chmod(dst, 0o664)
+
                 logging.info(f'-- Copied: {file.split(relative_path)[-1]}')
             else:
-                logging.warning(f'-- Not copied: '
-                                f'{file.split(relative_path)[-1]}')
+                logging.warning(f'-- File already exists and has not been '
+                                f'copied: {file.split(relative_path)[-1]}')
 
         logging.info('')
         line = f'-- Found {len(self.new_files)} new file(s). Copied ' \
@@ -204,7 +218,9 @@ class Bundle(object):
         now = time.time()
         newer_file = []
 
-        # List all files newer than xdays
+        #
+        # List all files newer than 'x' days
+        #
         logging.info(f"-- Files in final directory less than {str(xdays)} "
                      f"days old:")
         for root, dirs, files in os.walk(self.setup.final_directory):
@@ -226,108 +242,5 @@ class Bundle(object):
 
         if self.setup.interactive:
             input(">> Press enter to continue...")
-
-        return None
-
-    def write_checksum(self):
-
-        line = f'Step {self.setup.step} - Generate checksum files'
-        logging.info('')
-        logging.info(line)
-        logging.info('-' * len(line))
-        logging.info('')
-        self.setup.step += 1
-        if not self.setup.args.silent and not self.setup.args.verbose:
-            print('-- ' + line.split(' - ')[-1] + '.')
-
-        cwd = os.getcwd()
-        os.chdir(self.setup.final_directory)
-
-        #
-        # First of all we move the current version of the checksum file, if
-        # it exists, in order to compare it with the new one afterwards.
-        #
-        if os.path.exists(f'{self.setup.final_directory}/checksum.tab'):
-            mtime = os.path.getmtime(f'{self.setup.final_directory}'
-                                     f'/checksum.tab')
-
-            date_time = datetime.fromtimestamp(mtime).strftime("%Y%m%d")
-
-            self.checksum = f'{self.setup.final_directory}/checksum.tab'
-            self.current_checksum = f'{self.setup.final_directory}' \
-                                    f'/checksum.tab.{date_time}'
-
-            logging.info(f'-- Temporarily moving current checksum to '
-                         f'{self.current_checksum}')
-            shutil.move(self.checksum, self.current_checksum)
-
-        #
-        # We remove spurious .DS_Store files if we are working with MacOS.
-        #
-        for root, dirs, files in os.walk(self.setup.final_directory):
-            for file in files:
-                if file.endswith('.DS_Store'):
-                    path = os.path.join(root, file)
-                    logging.info(f'-- Removing {file}')
-                    os.remove(path)
-
-        command = f'perl {self.setup.root_dir}exe/mkpdssum.pl -p ' \
-                  f'{self.setup.final_directory}/' \
-                  f'{self.setup.mission_accronym}_spice'
-        logging.info(f'-- Executing: {command}')
-
-        command_process = subprocess.Popen(command, shell=True,
-                                           stdout=subprocess.PIPE,
-                                           stderr=subprocess.STDOUT)
-
-        process_output, _ = command_process.communicate()
-        text = process_output.decode('utf-8')
-
-        os.chdir(cwd)
-
-        for line in text.split('\n'):
-            logging.info('   ' + line)
-
-        #
-        # The Perl script returns an error message if there is a problem.
-        #
-        if ('ERROR' in text) or ('command not found' in text):
-            error_message(text)
-
-        if self.setup.interactive:
-            input(">> Press enter to continue...")
-
-        if hasattr(self, 'current_checksum'):
-            logging.info('-- Comparing checksum with previous version...')
-            self.compare_checksum()
-
-        if self.setup.interactive:
-            input(">> Press enter to continue...")
-
-        return None
-
-    def compare_checksum(self):
-
-        #
-        # Compare with previous checksum file, if exists. Otherwise it is
-        # not compared.
-        #
-        try:
-            compare_files(self.current_checksum, self.checksum,
-                          self.setup.working_directory, 'all')
-        except:
-            logging.warning(f'-- File to compare with does not exist: '
-                            f'{self.checksum}')
-
-        logging.info('')
-        if self.setup.interactive:
-            input(">> Press enter to continue...")
-
-        logging.info(f'-- Removing: {self.current_checksum}')
-        logging.info('')
-        #
-        # Now we remove the previous checksum version.
-        #
-        os.remove(self.current_checksum)
 
         return None
