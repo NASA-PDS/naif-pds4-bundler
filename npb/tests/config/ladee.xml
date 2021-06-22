@@ -6,18 +6,11 @@
     <!-- =========================== -->
     <pds_parameters>
         <pds_version>4</pds_version>
-        <information_model>1.11.0.0</information_model>
-        <xml_model>http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1B00.sch</xml_model>
-        <schema_location>http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1B00.xsd
+        <information_model>1.16.0.0</information_model>
+        <xml_model>http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1G00.sch</xml_model>
+        <schema_location>http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1G00.xsd
         </schema_location>
         <logical_identifier>urn:nasa:pds:ladee.spice</logical_identifier>
-        <!-- Optional parameters -->
-        <context_products>
-            <product name="LADEE">
-                <type>Spacecraft</type>
-                <lidvid>urn:nasa:pds:context:instrument_host:spacecraft.ladee::1.0</lidvid>
-            </product>
-        </context_products>
     </pds_parameters>
 
     <!-- =========================== -->
@@ -43,20 +36,18 @@
             </cognisant_persons>
         </readme>
         <!-- Optional parameters -->
-        <!-- Release date as a UTC calendar string. Use the following format:
-             YYYY-MM-DD e.g. 2021-04-09. -->
-        <release_date></release_date>
         <!-- Increment start and stop times provided as a UTC calendar string.
              They require to be present. Use the following format:
              YYYY-MM-DDThh:mm:ssZ e.g., 2021-04-09T15:11:12Z. -->
-        <increment_start></increment_start>
-        <increment_finish></increment_finish>
+        <increment_start>2013-09-07T03:51:00.000Z</increment_start>
+        <increment_finish>2050-01-01T00:00:00.000Z</increment_finish>
         <kernels_to_load>
             <lsk>naif[0-9][0-9][0-9][0-9].tls</lsk>
             <sclk>ladee_clkcor_13250_14108_v01.tsc</sclk>
             <fk>ladee_frames_2021140_v01.tf</fk>
         </kernels_to_load>
-        <date_format>maklabel</date_format>
+        <date_format>infomod2</date_format>
+        <end_of_line>LF</end_of_line>
     </bundle_parameters>
 
     <!-- =========================== -->
@@ -65,16 +56,10 @@
     <mission_parameters>
         <mission_accronym>ladee</mission_accronym>
         <mission_name>LADEE</mission_name>
-        <mission_start>2013-09-07T03:51:00Z</mission_start>
-        <mission_stop>2050-01-01T00:00:00Z</mission_stop>
+        <mission_start>2013-09-07T03:51:00.000Z</mission_start>
+        <mission_finish>2050-01-01T00:00:00.000Z</mission_finish>
         <spacecraft>LADEE</spacecraft>
         <target>MOON</target>
-        <phases>
-            <EXTENDED></EXTENDED>
-        </phases>
-        <!-- Optional parameters -->
-        <secondary_spacecraft></secondary_spacecraft>
-        <secondary_target></secondary_target>
     </mission_parameters>
 
     <!-- =========================== -->
@@ -85,7 +70,6 @@
         <kernels_directory>kernels</kernels_directory>
         <staging_directory>staging</staging_directory>
         <final_directory>ladee</final_directory>
-        <templates_directory></templates_directory>
         <reports_directory>working</reports_directory>
     </directories>
 
@@ -214,10 +198,5 @@
         <mk_inputs>
             <file>../data/ladee_v01.tm</file>
         </mk_inputs>
-        <coverage_kernels>
-            <pattern>ladee_r_13250_13279_pha_v01.bsp</pattern>
-            <pattern>ladee_r_13325_14108_sci_v01.bsp</pattern>
-        </coverage_kernels>
-        <mk></mk>
     </meta-kernel>
 </naif-pds4-bundle_configuration>
