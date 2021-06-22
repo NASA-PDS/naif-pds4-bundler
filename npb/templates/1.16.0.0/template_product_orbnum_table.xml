@@ -29,7 +29,7 @@
       <type>Mission</type>
       <Internal_Reference>
         <lid_reference>$PDS4_MISSION_LID</lid_reference>
-        <reference_type>data_to_investigation</reference_type>
+        <reference_type>ancillary_to_investigation</reference_type>
       </Internal_Reference>
     </Investigation_Area>
     <Observing_System>
@@ -59,8 +59,8 @@ $TARGETS
     <Table_Character>
       <name>Orbit number table</name>
       <offset unit="byte">$TABLE_OFFSET</offset>
-      <records>$TABLE_RECORDS</records>
-      <record_delimiter>Carriage-Return Line-Feed</record_delimiter>
+      <records>$TABLE_RECORDS</records>$TABLE_CHARACTER_DESCRIPTION
+      <record_delimiter>$END_OF_LINE</record_delimiter>
       <Record_Character>
         <fields>$NUMBER_OF_FIELDS</fields>
         <groups>0</groups>

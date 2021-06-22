@@ -29,7 +29,7 @@
             <type>Mission</type>
             <Internal_Reference>
                 <lid_reference>$PDS4_MISSION_LID</lid_reference>
-                <reference_type>data_to_investigation</reference_type>
+                <reference_type>ancillary_to_investigation</reference_type>
             </Internal_Reference>
         </Investigation_Area>
         <Observing_System>
@@ -53,7 +53,7 @@ $TARGETS
         <Checksum_Manifest>
             <offset unit="byte">0</offset>
             <parsing_standard_id>MD5Deep 4.n</parsing_standard_id>
-            <record_delimiter>Carriage-Return Line-Feed</record_delimiter>
+            <record_delimiter>$END_OF_LINE</record_delimiter>
         </Checksum_Manifest>
     </File_Area_Ancillary>
 </Product_Ancillary>
