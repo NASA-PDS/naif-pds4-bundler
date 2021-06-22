@@ -2,12 +2,11 @@ import fileinput
 import logging
 import glob
 import os
-import sys
 from npb.utils.time import current_time
 from npb.utils.files import add_carriage_return
 from npb.utils.files import compare_files
 from npb.utils.files import extension2type
-
+from npb.classes.log import error_message
 
 # from npb.utils.files import get_spacecrafts
 # from npb.utils.files import get_targets
@@ -41,6 +40,14 @@ class PDSLabel(object):
         self.INFORMATION_MODEL_VERSION = setup.information_model
         self.PDS4_MISSION_NAME = setup.mission_name
         self.PDS4_SPACECRAFT_NAME = setup.spacecraft
+        
+        if setup.end_of_line == 'CRLF':
+            self.END_OF_LINE = 'Carriage-Return Line-Feed'
+        elif setup.end_of_line == 'LF':
+            self.END_OF_LINE =  'Line-Feed'
+        else:
+            error_message('End of Line provided via configuration is not '
+                          'CRLF nor LF')
 
         self.CURRENT_YEAR = current_time().split('-')[0]
         self.BUNDLE_DESCRIPTION_LID = \
@@ -67,7 +74,7 @@ class PDSLabel(object):
             #
             # For Bundles with multiple s/c
             #
-            if setup.secondary_spacecraft:
+            if hasattr(setup, 'secondary_spacecraft'):
 
                 #
                 # We sort out how many S/C we have
@@ -101,7 +108,7 @@ class PDSLabel(object):
             #
             # For Bundles with multiple targets
             #
-            if setup.secondary_target:
+            if hasattr(setup, 'secondary_target'):
 
                 #
                 # We sort out how many S/C we have
@@ -130,7 +137,7 @@ class PDSLabel(object):
 
         sc = ['{}'.format(self.setup.spacecraft)]
 
-        if self.setup.secondary_spacecraft:
+        if hasattr(self.setup, 'secondary_spacecraft'):
             sec_scs = self.setup.secondary_spacecraft.split(',')
             if not isinstance(sec_scs, list):
                 sec_scs = [sec_scs]
@@ -146,6 +153,8 @@ class PDSLabel(object):
         except:
             context_products = self.product.bundle.context_products
 
+        eol = self.setup.eol
+
         for sc in scs:
             if sc:
                 sc_name = sc.split(',')[0]
@@ -155,18 +164,18 @@ class PDSLabel(object):
                         sc_lid = product['lidvid'].split('::')[0]
 
                 sc_list_for_label += \
-                    '      <Observing_System_Component>\r\n' + \
-                    f'        <name>{sc_name}</name>\r\n' + \
-                    '        <type>Spacecraft</type>\r\n' + \
-                    '        <Internal_Reference>\r\n' + \
+                    f'      <Observing_System_Component>{eol}' + \
+                    f'        <name>{sc_name}</name>{eol}' + \
+                    f'        <type>Spacecraft</type>{eol}' + \
+                    f'        <Internal_Reference>{eol}' + \
                     f'          <lid_reference>{sc_lid}' \
-                    f'</lid_reference>\r\n' + \
+                    f'</lid_reference>{eol}' + \
                     '          <reference_type>is_instrument_host' \
-                    '</reference_type>\r\n' + \
-                    '        </Internal_Reference>\r\n' + \
-                    '      </Observing_System_Component>\r\n'
+                    f'</reference_type>{eol}' + \
+                    f'        </Internal_Reference>{eol}' + \
+                    f'      </Observing_System_Component>{eol}'
 
-        sc_list_for_label = sc_list_for_label.rstrip() + '\r\n'
+        sc_list_for_label = sc_list_for_label.rstrip() + eol
 
         return sc_list_for_label
 
@@ -174,7 +183,7 @@ class PDSLabel(object):
 
         tar = [self.setup.target]
 
-        if self.setup.secondary_target:
+        if hasattr(self.setup, 'secondary_target'):
             sec_tar = self.setup.secondary_target.split(',')
             if not isinstance(sec_tar, list):
                 sec_tar = [sec_tar]
@@ -190,6 +199,8 @@ class PDSLabel(object):
         except:
             context_products = self.product.bundle.context_products
 
+        eol = self.setup.eol
+
         for tar in tars:
             if tar:
 
@@ -200,24 +211,30 @@ class PDSLabel(object):
                         target_type = product['type'][0].capitalize()
 
                 tar_list_for_label += \
-                    '    <Target_Identification>\r\n' + \
-                    f'      <name>{target_name}</name>\r\n' + \
-                    f'      <type>{target_type}</type>\r\n' + \
-                    '      <Internal_Reference>\r\n' + \
+                    f'    <Target_Identification>{eol}' + \
+                    f'      <name>{target_name}</name>{eol}' + \
+                    f'      <type>{target_type}</type>{eol}' + \
+                    f'      <Internal_Reference>{eol}' + \
                     f'        <lid_reference>{target_lid}' \
-                    f'</lid_reference>\r\n' + \
+                    f'</lid_reference>{eol}' + \
                     f'        <reference_type>' \
                     f'{self.get_target_reference_type()}' \
-                    f'</reference_type>\r\n' + \
-                    '      </Internal_Reference>\r\n' + \
-                    '    </Target_Identification>\r\n'
+                    f'</reference_type>{eol}' + \
+                    f'      </Internal_Reference>{eol}' + \
+                    f'    </Target_Identification>{eol}'
 
-        tar_list_for_label = tar_list_for_label.rstrip() + '\r\n'
+        tar_list_for_label = tar_list_for_label.rstrip() + eol
 
         return tar_list_for_label
 
     def get_target_reference_type(self):
-        return "data_to_target"
+            
+        if self.product.collection.name == 'miscellaneous':
+            type = "ancillary_to_target"
+        else:
+            type = "data_to_target"
+        
+        return type
 
     def write_label(self):
 
@@ -246,7 +263,7 @@ class PDSLabel(object):
                     if isinstance(value, str) and key in line and '$' in line:
                         line = line.replace('$' + key, value)
 
-                line = add_carriage_return(line)
+                line = add_carriage_return(line, self.setup.eol)
 
                 f.write(line)
 
@@ -392,14 +409,16 @@ class PDSLabel(object):
                         #
                         # Generate the empty files from the test case.
                         #
-                        with open(f'{self.setup.root_dir}' \
+                        with open(f'{self.setup.root_dir}' 
                                   f'tests/functional/data/insight.list',
                                   'r') as i:
                             for line in i:
-                                with open(f'{self.setup.root_dir}' \
-                                          f'tests/functional/data/insight/' \
-                                          f'insight_spice/' \
+                                with open(f'{self.setup.root_dir}' 
+                                          f'tests/functional/data/insight/' 
+                                          f'insight_spice/' 
                                           f'{line[0:-1]}', 'w') as fp:
+                                    
+                                    #TODO: Something has to be added here.
                                     pass
 
                     #
@@ -478,7 +497,7 @@ class BundlePDS4Label(PDSLabel):
         self.START_TIME = setup.increment_start
         self.STOP_TIME = setup.increment_finish
         self.FILE_NAME = readme.name
-        self.CURRENT_TIME = current_time()
+        self.CURRENT_TIME = current_time(setup.date_format)
         self.CURRENT_DATE = self.CURRENT_TIME.split('T')[0]
         self.DOI = self.setup.doi
 
@@ -525,8 +544,6 @@ class SpiceKernelPDS4Label(PDSLabel):
 
         self.write_label()
 
-        return
-
 
 class MetaKernelPDS4Label(PDSLabel):
 
@@ -555,9 +572,10 @@ class MetaKernelPDS4Label(PDSLabel):
 
         self.write_label()
 
-        return
-
     def get_kernel_internal_references(self):
+        
+        eol = self.setup.eol
+        
         #
         # From the collection we only use kernels in the MK
         #
@@ -574,14 +592,14 @@ class MetaKernelPDS4Label(PDSLabel):
                 kernel)
 
             kernel_list_for_label += \
-                '    <Internal_Reference>\r\n' + \
+                f'    <Internal_Reference>{eol}' + \
                 f'      <lid_reference>{kernel_lid}' \
-                f'</lid_reference>\r\n' + \
-                '      <reference_type>data_to_associate' \
-                '</reference_type>\r\n' + \
-                '    </Internal_Reference>\r\n'
+                f'</lid_reference>{eol}' + \
+                f'      <reference_type>data_to_associate' \
+                f'</reference_type>{eol}' + \
+                f'    </Internal_Reference>{eol}'
 
-        kernel_list_for_label = kernel_list_for_label.rstrip() + '\r\n'
+        kernel_list_for_label = kernel_list_for_label.rstrip() + eol
 
         return kernel_list_for_label
 
@@ -605,6 +623,7 @@ class OrbnumFilePDS4Label(PDSLabel):
         self.STOP_TIME = product.stop_time
         self.DESCRIPTION = product.description
         self.HEADER_LENGTH = str(product.header_length)
+        self.TABLE_CHARACTER_DESCRIPTION = product.table_char_description
 
         #
         # The orbnum table data starts one byte after the header section.
@@ -619,15 +638,18 @@ class OrbnumFilePDS4Label(PDSLabel):
         # parameters.
         #
         self.NUMBER_OF_FIELDS = str(len(product.params.keys()))
-        self.FIELDS_LENGTH = str(product.records_length)
+        self.FIELDS_LENGTH = str(product.record_fixed_length + 1 )
         self.FIELDS = \
             self.__get_table_character_fields()
+
+        if self.TABLE_CHARACTER_DESCRIPTION:
+            self.TABLE_CHARACTER_DESCRIPTION = \
+                self.__get_table_character_description()
+            
 
         self.name = product.name.split('.')[0] + '.xml'
 
         self.write_label()
-
-        return
 
     def __get_table_character_fields(self):
 
@@ -636,32 +658,47 @@ class OrbnumFilePDS4Label(PDSLabel):
             field = self.__field_template(param['name'], param['number'],
                                           param['location'], param['type'],
                                           param['length'], param['format'],
-                                          param['description'], param['unit'])
+                                          param['description'], param['unit'],
+                                          self.product.blank_records)
             fields += field
 
         return fields
 
+    def __get_table_character_description(self):
+        
+        description = f"{self.setup.eol}      <description>" \
+                      f"{self.product.table_char_description}" \
+                      f"</description>{self.setup.eol}"
+    
+        return description
+
     def __field_template(self, name, number, location, type, length, format,
-                         description, unit):
+                         description, unit, blanks):
+
+        eol = self.setup.eol
 
         field = \
-            f'{" " * 8}<Field_Character>\r\n' \
-            f'{" " * 8}  <name>{name}</name>\r\n' \
-            f'{" " * 8}  <field_number>{number}</field_number>\r\n' \
+            f'{" " * 8}<Field_Character>{eol}' \
+            f'{" " * 8}  <name>{name}</name>{eol}' \
+            f'{" " * 8}  <field_number>{number}</field_number>{eol}' \
             f'{" " * 8}  <field_location unit="byte">{location}' \
-            f'</field_location>\r\n' \
-            f'{" " * 8}  <data_type>{type}</data_type>\r\n' \
+            f'</field_location>{eol}' \
+            f'{" " * 8}  <data_type>{type}</data_type>{eol}' \
             f'{" " * 8}  <field_length unit="byte">{length}' \
-            f'</field_length>\r\n' \
-            f'{" " * 8}  <field_format>{format}</field_format>\r\n' \
-            f'{" " * 8}  <description>{description}</description>\r\n'
+            f'</field_length>{eol}' \
+            f'{" " * 8}  <field_format>{format}</field_format>{eol}'
         if unit:
             field += \
-                f'{" " * 8}  <unit>{unit}</unit>\r\n' \
-                f'{" " * 8}</Field_Character>\r\n'
-        else:
-            field += \
-                f'{" " * 8}</Field_Character>\r\n'
+                f'{" " * 8}  <unit>{unit}</unit>{eol}'   
+        field += \
+            f'{" " * 8}  <description>{description}</description>{eol}' 
+        if blanks and name != 'No.':
+            field += f'{" " * 8}  <Special_Constants>{eol}' \
+                     f'{" " * 8}    <missing_constant>blank space' \
+                     f'</missing_constant>{eol}' \
+                     f'{" " * 8}  </Special_Constants>{eol}' 
+        field += f'{" " * 8}</Field_Character>{eol}'
+
         return field
 
 
@@ -689,8 +726,6 @@ class InventoryPDS4Label(PDSLabel):
 
         self.write_label()
 
-        return
-
     def get_target_reference_type(self):
         return "collection_to_target"
 
@@ -707,7 +742,7 @@ class InventoryPDS3Label(PDSLabel):
                             collection.type)
 
         self.VOLUME = setup.volume
-        self.PRODUCT_CREATION_TIME = current_time()
+        self.PRODUCT_CREATION_TIME = current_time(setup.date_format)
         self.DATASET = setup.dataset
 
         indexfile = open(
@@ -729,8 +764,6 @@ class InventoryPDS3Label(PDSLabel):
 
         self.write_label()
 
-        return
-
     def write_label(self):
 
         label_dictionary = vars(self)
@@ -744,7 +777,7 @@ class InventoryPDS3Label(PDSLabel):
                     if isinstance(value, str) and key in line and '$' in line:
                         line = line.replace('$' + key, value)
 
-                line = add_carriage_return(line)
+                line = add_carriage_return(line, self.setup.eol)
 
                 if 'END_OBJECT' in line and line[:10] != 'END_OBJECT':
                     f.write(line.split('END_OBJECT')[0])
@@ -770,16 +803,14 @@ class DocumentPDS4Label(PDSLabel):
         self.PRODUCT_LID = inventory.lid
         self.PRODUCT_VID = inventory.vid
         self.START_TIME = setup.mission_start
-        self.STOP_TIME = setup.mission_stop
+        self.STOP_TIME = setup.mission_finish
         self.FILE_NAME = inventory.name
-        self.CURRENT_TIME = current_time()
+        self.CURRENT_TIME = current_time(setup.date_format)
         self.CURRENT_DATE = self.CURRENT_TIME.split('T')[0]
 
         self.name = collection.name.split('.')[0] + '.xml'
 
         self.write_label()
-
-        return
 
 
 class ChecksumPDS4Label(PDSLabel):
@@ -795,10 +826,8 @@ class ChecksumPDS4Label(PDSLabel):
         self.PRODUCT_VID = self.product.vid
         self.FILE_FORMAT = 'Character'
         self.START_TIME = setup.mission_start
-        self.STOP_TIME = setup.mission_stop
+        self.STOP_TIME = setup.mission_finish
 
         self.name = product.name.split('.')[0] + '.xml'
 
         self.write_label()
-
-        return
