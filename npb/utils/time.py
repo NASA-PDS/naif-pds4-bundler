@@ -34,16 +34,22 @@ import spiceypy
 import os
 
 
-def current_time():
+def current_time(format='infomod2'):
     """
     Returns the current date and time in %Y-%m-%dT%H:%M:%S format.
-
+    
+    :param format: Time format from configuration.
+    :type format: string
     :return: Current date and time
     :rtype: str
     """
     time = str(datetime.datetime.now())
     time = time.replace(' ', 'T')
-    time = time.split('.')[0]
+    
+    if format == 'maklabel':
+        time = time.split('.')[0]
+    elif format == 'infomod2':
+        time = time[:-3] + 'Z'
 
     return time
 
@@ -64,9 +70,10 @@ def current_date():
     return date
 
 
-def creation_time(path):
+def creation_time(path, format='infomod2'):
     """
-    Returns the creation date and time of a given file in
+    Returns the creation date and time of a given file in either 
+    makelbl or infomod2.
     %Y-%m-%dT%H:%M:%S.%f format.
 
     :param path: File path
@@ -79,6 +86,9 @@ def creation_time(path):
     dt, micro = datetime.datetime.strftime(timestamp,
                                            '%Y-%m-%dT%H:%M:%S.%f').split('.')
     creation_time = "%s.%03d" % (dt, int(micro) / 1000) + 'Z'
+    
+    if format == 'makelbl':
+        creation_time = creation_time[:-5]
 
     return creation_time
 
@@ -310,7 +320,7 @@ def dsk_coverage(self, date_format='infomod2'):
     :rtype: list of str
     """
     start_time_cal = self.setup.mission_start
-    stop_time_cal = self.setup.mission_stop
+    stop_time_cal = self.setup.mission_finish
 
     return [start_time_cal, stop_time_cal]
 
