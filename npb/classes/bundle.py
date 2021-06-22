@@ -3,13 +3,9 @@ import time
 import shutil
 import filecmp
 import logging
-import subprocess
-from datetime import datetime
 from npb.utils.files import safe_make_directory
 from npb.utils.files import get_context_products
-from npb.utils.files import compare_files
 from npb.classes.product import ReadmeProduct
-from npb.classes.log import error_message
 
 
 class Bundle(object):
@@ -97,7 +93,7 @@ class Bundle(object):
         #
         # Write the readme product if it does not exist.
         #
-        ReadmeProduct(self.setup, self)
+        self.readme = ReadmeProduct(self.setup, self)
 
         return None
 
@@ -173,20 +169,15 @@ class Bundle(object):
             src = file
             relative_path = \
                 f"{os.sep}{self.setup.mission_accronym}_spice{os.sep}"
-            rel_path = file.split(relative_path)[-1]
-            rel_path = os.sep.join(rel_path.split(os.sep)[:-1])
+            relative_path += file.split(relative_path)[-1]
 
             dst = self.setup.final_directory + relative_path
+            
+            if not os.path.exists(os.sep.join(dst.split(os.sep)[:-1])):
+                os.mkdir(os.sep.join(dst.split(os.sep)[:-1]))
+                os.chmod(os.sep.join(dst.split(os.sep)[:-1]), 0o775)
+
             if not os.path.exists(dst):
-                os.mkdir(dst)
-                os.chmod(dst, 0o775)
-
-            dst += rel_path
-
-            if not os.path.exists(dst) or not filecmp.cmp(src, dst):
-                if not os.path.exists(dst):
-                    os.mkdir(dst)
-                    os.chmod(dst, 0o775)
                 copied_files.append(file)
                 #
                 # We do not use copy2 (copy data and metadata) because
@@ -196,10 +187,15 @@ class Bundle(object):
                 shutil.copy(src, dst)
                 os.chmod(dst, 0o664)
 
-                logging.info(f'-- Copied: {file.split(relative_path)[-1]}')
+                logging.info(f'-- Copied: {dst.split(os.sep)[-1]}')
             else:
+                if not filecmp.cmp(src, dst):
+                    logging.warning(f'-- File already exists but content is '
+                                    f'different: '
+                                    f'{dst.split(os.sep)[-1]}')
+
                 logging.warning(f'-- File already exists and has not been '
-                                f'copied: {file.split(relative_path)[-1]}')
+                                f'copied: {dst.split(os.sep)[-1]}')
 
         logging.info('')
         line = f'-- Found {len(self.new_files)} new file(s). Copied ' \
