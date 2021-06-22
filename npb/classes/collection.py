@@ -91,7 +91,7 @@ class SpiceKernelsCollection(Collection):
         self.list = list
         self.type = 'spice_kernels'
         self.start_time = setup.mission_start
-        self.stop_time = setup.mission_stop
+        self.stop_time = setup.mission_finish
 
         Collection.__init__(self, self.type, setup, bundle)
 
@@ -170,7 +170,7 @@ class SpiceKernelsCollection(Collection):
         # First check if any of the increment are present in
         # each meta-kernel configuration.
         #
-        if self.setup.mk:
+        if hasattr(self.setup, 'mk'):
             for kernel_product in self.product:
                 for mk in self.setup.mk:
                     #
@@ -348,7 +348,7 @@ class SpiceKernelsCollection(Collection):
             # end time of the mission.
             #
             increment_start = self.setup.mission_start
-            increment_finish = self.setup.mission_stop
+            increment_finish = self.setup.mission_finish
             logging.error(f'-- No kernel(s) found to determine increment '
                           f'stop time. Mission times will be used.')
 
