@@ -53,6 +53,7 @@
         <!-- Date format can be maklabel style or infomod2 the parameter
              is not required and the default value is infomod2 -->
         <date_format>maklabel</date_format>
+        <end_of_line>CRLF</end_of_line>
     </bundle_parameters>
 
     <!-- =========================== -->
@@ -62,15 +63,22 @@
         <mission_accronym>maven</mission_accronym>
         <mission_name>MAVEN</mission_name>
         <mission_start>2013-11-18T19:20:43Z</mission_start>
-        <mission_stop>2050-01-01T00:00:00Z</mission_stop>
+        <mission_finish>2050-01-01T00:00:00Z</mission_finish>
         <spacecraft>MAVEN</spacecraft>
         <target>MARS</target>
         <phases>
-            <EXTENDED></EXTENDED>
+            <phase name="EXTENDED">
+                <start></start>
+                <finish></finish>
+            </phase>
         </phases>
         <!-- Optional parameters -->
-        <secondary_spacecraft></secondary_spacecraft>
-        <secondary_target></secondary_target>
+        <secondary_spacecrafts>
+            <spacecraft></spacecraft>
+        </secondary_spacecrafts>
+        <secondary_targets>
+            <target></target>
+        </secondary_targets>
     </mission_parameters>
 
     <!-- =========================== -->
@@ -354,7 +362,7 @@
                 <description>IAU 2009 report</description>
             </pck>
             <coverage>
-            <!-- The coverage of the orbnum file can be determined by three
+            <!-- The coverage of the orbnum file can be determined by four
                  different ways:
 
                    * If there is a one to one correspondence with an SPK
@@ -363,6 +371,17 @@
                      does not have to be part of the increment, a pattern
                      of a kernel present in the increment or a pattern of
                      a kernel present in the final directory of the archive.
+
+                   * If there is a quasi one to one correspondence with an
+                     SPK file with a given cutoff time prior to the end
+                     of the SPK file, the SPK file can be provided with the
+                     <kernel> tag. The tag can be a path to a specific kernel
+                     that does not have to be part of the increment, a pattern
+                     of a kernel present in the increment or a pattern of
+                     a kernel present in the final directory of the archive.
+                     Currently the only cutoff pattern available is the
+                     boundary of the previous day of the SPK coverage stop
+                     time.
 
                    * A user can provide a look up table with this
                      configuration file, as follows:
@@ -392,7 +411,7 @@
                        opposite event time of the last orbit.
             -->
             <!--    <kernel>maven_orb_rec_[0-9]{6}_[0-9]{6}_v[0-9].bsp</kernel> -->
-                <kernel>../data/kernels/spk/maven_orb_rec_210101_210401_v2.bsp</kernel>
+                <kernel cutoff="True">../data/kernels/spk/maven_orb_rec_210101_210401_v2.bsp</kernel>
                 <lookup_table></lookup_table>
             </coverage>
         </orbnum>
