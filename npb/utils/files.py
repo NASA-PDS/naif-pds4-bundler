@@ -197,27 +197,43 @@ def type2extension(kernel_type):
     return kernel_extension
 
 
-def add_carriage_return(line):
+def add_carriage_return(line, eol):
     '''
     Adds Carriage Return (CR) to a line
 
     :param line: Input line
+    :type line: str
+    :param eol: EOL defined by setup.
+    :type eol: str
     :return: Input line with CR
     :rtype: str
     '''
-    if '\r\n' not in line:
+    if eol == '\r\n' and '\r\n' not in line:
         line = line.replace('\n', '\r\n')
-    if '\r\n' not in line:
-        line += '\r\n'
+    elif eol == '\r\n' and '\r\n' not in line:
+        if '\r\n' not in line:
+            line += '\r\n'
+        else:
+            error_message(f'File has incorrect CR at line: {line}')
+    if eol == '\n' and '\r\n' in line:
+        line = line.replace('\r\n', '\n')
+    elif eol and not '\n' in line:
+        line += '\n'
+    else:
+        if '\n' not in line:
+            error_message(f'File has incorrect CR at line: {line}')
 
     return line
 
 
-def add_crs_to_file(file):
+def add_crs_to_file(file, eol):
     '''
     Adds Carriage Return (CR) to a file
 
     :param line: Input file
+    :type line: str
+    :param eol: End of Line character as indicated by setup
+    :type eol: str
     :raise: If CR cannot be added to the file
     '''
     try:
@@ -225,7 +241,7 @@ def add_crs_to_file(file):
         with open(file, "r") as r:
             with open(file_crs, "w+") as f:
                 for line in r:
-                    line = add_carriage_return(line)
+                    line = add_carriage_return(line, eol)
                     f.write(line)
         shutil.move(file_crs, file)
 
@@ -297,7 +313,7 @@ def get_context_products(setup):
     # configuration file.
     #
     appended_products = []
-    if setup.context_products:
+    if hasattr(setup, 'context_products'):
         if not isinstance(setup.context_products['product'], list):
             context_products_list = [setup.context_products['product']]
         else:
@@ -535,7 +551,7 @@ def match_patterns(name, name_w_pattern, patterns):
     '''
     Given a SPICE kernel name, a SPICE Kernel name with patterns, and the
     possible patterns, provide a dictionary with the patterns as keys and
-    the patterns values as value after mathcing it betweent he SPICE Kernel
+    the patterns values as value after matching it between the SPICE Kernel
     name with patterns and without patterns.
 
     For example, given the following:
