@@ -54,7 +54,7 @@ class Product(object):
         stat_info = os.stat(self.path)
         self.size = str(stat_info.st_size)
         self.checksum = str(md5(self.path))
-        self.creation_time = creation_time(self.path)[:-5]
+        self.creation_time = creation_time(self.path)
         self.creation_date = creation_date(self.path)
         self.extension = self.path.split(os.sep)[-1].split('.')[-1]
 
@@ -169,7 +169,6 @@ class SpiceKernelProduct(Product):
         logging.info(f'-- Labeling {self.name}...')
         self.label = SpiceKernelPDS4Label(setup, self)
 
-
     def __product_lid(self):
         '''
         Determine product logical identifier (LID).
@@ -235,7 +234,7 @@ class SpiceKernelProduct(Product):
                              date_format=self.setup.date_format)
         else:
             self.start_time = self.setup.mission_start
-            self.stop_time = self.setup.mission_stop
+            self.stop_time = self.setup.mission_finish
 
     #
     # IK kernel processing
@@ -403,7 +402,7 @@ class MetaKernelProduct(Product):
         # Add the configuration items for the meta-kernel.
         # This includes sorting out the meta-kernel name.
         #
-        if setup.mk:
+        if hasattr(setup, 'mk'):
             for mk in setup.mk:
 
                 patterns_dict = mk['name']['pattern']
@@ -541,6 +540,10 @@ class MetaKernelProduct(Product):
         pattern = self.mk_setup['@name']
         for key in self.values:
 
+            #
+            # So far, only the pattern key YEAR is incorporated to sort out
+            # the version of the meta-kernel name.
+            # 
             if key == 'YEAR':
                 pattern = pattern.replace('$' + key, self.year)
             else:
@@ -877,7 +880,7 @@ class MetaKernelProduct(Product):
 
             kernel_dir_name = kernel.split('.')[1]
 
-            kernels += f"{' ' * 26}'$KERNELS/{kernel}'\n"
+            kernels += f"{' ' * 26}'$KERNELS/{kernel}'{self.setup.eol}"
 
         self.KERNELS_IN_METAKERNEL = kernels[:-1]
 
@@ -927,7 +930,7 @@ class MetaKernelProduct(Product):
                             line and '#' in line:
                         line = line.replace('#', '')
                         line = line.replace(key, value)
-                f.write(line + '\n')
+                f.write(line + self.setup.eol)
 
         self.product = self.path
 
@@ -1068,14 +1071,15 @@ class MetaKernelProduct(Product):
         # Match the pattern with the kernels in the meta-kernel.
         #
         kernels = []
-        if isinstance(self.setup.coverage_kernels, list):
-            coverage_kernels = self.setup.coverage_kernels[0]['pattern']
-        else:
-            coverage_kernels = self.setup.coverage_kernels['pattern']
-        for pattern in coverage_kernels:
-            for kernel in self.collection_metakernel:
-                if re.match(pattern, kernel):
-                    kernels.append(kernel)
+        if hasattr(self.setup, 'coverage_kernels'):
+            if isinstance(self.setup.coverage_kernels, list):
+                coverage_kernels = self.setup.coverage_kernels[0]['pattern']
+            else:
+                coverage_kernels = self.setup.coverage_kernels['pattern']
+            for pattern in coverage_kernels:
+                for kernel in self.collection_metakernel:
+                    if re.match(pattern, kernel):
+                        kernels.append(kernel)
 
         start_times = []
         finish_times = []
@@ -1169,7 +1173,7 @@ class MetaKernelProduct(Product):
             # end time of the mission.
             #
             start_time = self.setup.mission_start
-            stop_time = self.setup.mission_stop
+            stop_time = self.setup.mission_finish
             logging.error(f'-- No kernel(s) found to determine meta-kernel '
                           f'coverage. Mission times will be used:')
             logging.info(f'   {start_time} - {stop_time}')
@@ -1202,6 +1206,7 @@ class OrbnumFileProduct(Product):
         for orbnum_type in setup.orbnum:
             if re.match(orbnum_type['@pattern'], name):
                 self._orbnum_type = orbnum_type
+                self._pattern = orbnum_type['@pattern']
 
         if not hasattr(self, '_orbnum_type'):
             error_message("The orbnum file does not match any type "
@@ -1235,7 +1240,7 @@ class OrbnumFileProduct(Product):
         #
         # Add CRs to the orbnum file
         #
-        add_crs_to_file(product_path + os.sep + self.name)
+        add_crs_to_file(product_path + os.sep + self.name, self.setup.eol)
 
         #
         # We update the path after having copied the kernel.
@@ -1248,10 +1253,16 @@ class OrbnumFileProduct(Product):
         header = self.__read_header()
         self.__set_event_detection_key(header)
         self.header_length = self.__get_header_length()
-        self.description = self.__get_description()
-        self.records = self.__get_records()
-        self.records_length = self.__get_records_length()
+        self.__set_previous_orbnum()
+        self.__read_records()
         self._sample_record =self.__get_sample_record()
+        self.description = self.__get_description()
+        
+        #
+        # Table character description is only obtained if there are missing
+        # records.
+        #
+        self.table_char_description = self.__table_character_description()
 
         self.__get_params(header)
         self.__set_params(header)
@@ -1288,10 +1299,82 @@ class OrbnumFileProduct(Product):
 
         return product_vid
 
+    def __set_previous_orbnum(self):
+        """
+        For some cases, more than one orbit number file
+        may exist for a given SPK, with only one file having the same name
+        as the SPK and other files having a version token appended to the
+        SPK name. It is also possible that a version token is always present.
+        This method finds the latest version of such an orbnum file in the
+        final area.
+        
+        NPB assumes that the version pattern of the orbnum file name follows
+        the REGEX pattern;
+           
+           r'_[vV]\[0\-9\]*[\.]'
+           
+        E.g.: (...)_v01.orb   or
+              (...)_V9999.nrb or
+              (...)_v1.orb 
+        
+        This method provides values to the _previous_orbnum and 
+        _orbnum_version protected attributes, both are strings.
+
+        """
+        path = [f'{self.setup.final_directory}/{self.setup.mission_accronym}'
+                f'_spice//miscellaneous/']
+        previous_orbnum = get_latest_kernel( 'orbnum', path, self._pattern,
+                                             dates=True)
+
+        if previous_orbnum:
+            
+            version_pattern = r'_[vV][0-9]*[\.]'
+            version_match = re.search(version_pattern, previous_orbnum[0])
+            version = re.findall(r'\d+', version_match.group(0))
+            version = ''.join(version)
+            
+            self._previous_version = version
+            self.previous_orbnum = previous_orbnum[0]
+
+        #
+        # If a previous orbnum file is not found, it might be due to the
+        # fact that the file does not have a version explicitely indicated
+        # by the filename.
+        #
+        else:
+            
+            #
+            # Try to remove the version part of the filename pattern. For
+            # the time being this implementation is limited to NAIF
+            # orbnum files with this characteristics.
+            #
+            try:
+                version_pattern = r'_[vV]\[0\-9\]*[\.]'
+                version_match = re.search(version_pattern, self._pattern)
+                pattern = '.'.join(self._pattern.split(version_match.group(0)))
+            except:
+                #
+                # The pattern already does not have an explicit version 
+                # number.
+                # 
+                pattern = self._pattern
+                
+            previous_orbnum = get_latest_kernel( 'orbnum', path, pattern,
+                                                 dates=True)
+            if not previous_orbnum:
+                self._previous_orbnum = '' 
+            else:
+                self._previous_orbnum = previous_orbnum
+            
+            self._previous_version = '1'
+        
+            
 
     def __read_header(self):
         """
-        Read and process an orbnum file header
+        Read and process an orbnum file header. Define the
+        record_fixed_length attribute that provides the lenght of
+        a record.
 
         :return: header line
         :rtype: str
@@ -1320,6 +1403,11 @@ class OrbnumFileProduct(Product):
             error_message(f"The header of the orbnum file {self.name} is not "
                           f"as expected" )
 
+        #
+        # Set the fixed record length from the header.
+        #
+        self.record_fixed_length = len(header[1])  
+
         return header
 
     def __get_header_length(self):
@@ -1340,7 +1428,7 @@ class OrbnumFileProduct(Product):
                 else:
                     break
 
-        return header_length
+        return header_length + 1
 
     def __get_sample_record(self):
         """
@@ -1404,42 +1492,131 @@ class OrbnumFileProduct(Product):
 
         return sample_record
 
-    def __get_records(self):
+    def __read_records(self):
         """
-        Read an orbnum file and return the number of records.
+        Read an orbnum file and set the number of records attribute,
+        the length of the records attribute, determine which lines have blank
+        records and, perform simple checks of the records.
 
         :return: header line
         :rtype: str
         """
+        blank_records = []
+
         with open(self.path, 'r') as o:
+            previous_orbit_number = None
             records = 0
             lines = 0
             header_start = int(self._orbnum_type['header_start_line'])
             for line in o:
                 lines += 1
                 if lines > header_start + 1:
+                    orbit_number = int(line.split()[0])
+                    records_length = utf8len(line)
+
+                    #
+                    # Checks are performed from the first record.
+                    #
+                    if lines > header_start:
+                        if previous_orbit_number and \
+                                (orbit_number - previous_orbit_number != 1):
+                            logging.warning(f'-- Orbit number '
+                                            f'{previous_orbit_number} record '
+                                            f'is followed by {orbit_number}.')
+                        if not line.strip():
+                            error_message(f'Orbnum record number {line} '
+                                          f'is blank.')
+                        elif line.strip() and \
+                                records_length != self.record_fixed_length:
+                            logging.warning(f'-- Orbit number {orbit_number} '
+                                            f'record has an incorrect length,'
+                                            f' the record will be expanded '
+                                            f'to cover the adequate fixed '
+                                            f'length.')
+                            
+                            blank_records.append(str(orbit_number))
+
                     if line.strip():
                         records += 1
 
+                    previous_orbit_number = orbit_number
+
+        #
+        # If there are blank records, we need to add blank spaces and 
+        # generate a new version of the orbnum file.
+        #
+        if blank_records:
+            
+            #
+            # Generate the name for the new orbnum file. This is the only
+            # place where the version of the previous orbnum file is used.
+            # 
+            matches = re.search(r'_[vV][0-9]*[\.]', self.name)
+        
+            if not matches:
+                
+                #
+                # If the name does not have an explicit version, the version
+                # is set to 2.
+                #
+                name = self.name.split('.')[0] + '_v2.' +  \
+                       self.name.split('.')[-1]
+                path = f'{os.sep}'.join(self.path.split(os.sep)[:-1]) + \
+                       os.sep + name
+                
+                logging.warning(f'-- Orbnum name updated with explicit '
+                                f'version number to: {name}')
+
+            else:
+                version = re.findall(r'\d+', matches.group(0))
+                version_number = ''.join(version)
+            
+                new_version_number = int(version_number) + 1
+                leading_zeros = len(version_number) - \
+                                len(str(new_version_number))
+                new_version_number = \
+                    str(new_version_number).zfill(leading_zeros)
+            
+                new_version = matches.group(0).replace(version_number, 
+                                                       new_version_number)
+                
+                name = self.name.replace(matches.group(0), new_version)
+                path = self.path.replace(matches.group(0), new_version)    
+                
+                logging.warning(f'-- Orbnum name updated to: {name}')
+
+            #
+            # Following the name, write the new file and remove the 
+            # provided orbnum file.
+            #
+            with open(self.path, 'r') as o:
+                with open(path, 'w') as n:
+                    i = 1
+                    for line in o:
+                        if i > int(header_start) + 1:
+                            orbit_number = int(line.split()[0])
+                            if str(orbit_number) in blank_records:
+                                #
+                                # Careful, Python will change the EOL to 
+                                # Line Feed when reading the file.
+                                #
+                                line = line.split('\n')[0]
+                                n.write(line + " "*(self.record_fixed_length - 
+                                    len(line)-1) + self.setup.eol)
+                            else:
+                                n.write(line.split('\n')[0] + self.setup.eol)
+                        else:
+                            n.write(line.split('\n')[0] + self.setup.eol)
+                        i += 1
+                os.remove(self.path)
+             
+            self.path = path
+            self.name = name
+            
+        self.blank_records = blank_records
+        self.records = records
+
         return records
-
-    def __get_records_length(self):
-        """
-        Read an orbnum file and return the length of the records.
-
-        :return: header line
-        :rtype: str
-        """
-        with open(self.path, 'r') as o:
-            lines = 0
-            header_start = int(self._orbnum_type['header_start_line'])
-            for line in o:
-                lines += 1
-                if lines > header_start + 1:
-                    records_length = utf8len(line)
-                    break
-
-        return records_length
 
     def __set_event_detection_key(self, header):
         """
@@ -1624,7 +1801,7 @@ class OrbnumFileProduct(Product):
                 'location': '8',
                 'length': '20',
                 'format': 'A20',
-                'description':'UTC time of $EVENT event that '
+                'description':'UTC time of the $EVENT event that '
                               'signifies the start of an orbit.'
                 },
              'Desc-Node UTC': {
@@ -1632,19 +1809,19 @@ class OrbnumFileProduct(Product):
                     'location': '8',
                     'length': '20',
                     'format': 'A20',
-                    'description': 'UTC time of $EVENT event that '
+                    'description': 'UTC time of the $EVENT event that '
                                    'signifies the start of an orbit.'
                 },
              'Event SCLK':{
                 'type': 'ASCII_String',
                 'format': 'A',
-                'description':'SCKL time of $EVENT event that '
+                'description':'SCLK time of the $EVENT event that '
                               'signifies the start of an orbit.'
                 },
              'Node SCLK': {
                     'type': 'ASCII_String',
                     'format': 'A',
-                    'description': 'SCKL time of $EVENT event that '
+                    'description': 'SCLK time of the $EVENT event that '
                                    'signifies the start of an orbit.'
                 },
              'OP-Event UTC':{
@@ -1662,37 +1839,37 @@ class OrbnumFileProduct(Product):
              'SolLon':{
                 'type': 'ASCII_Real',
                 'format': 'F',
-                'description': 'Sub-solar planetodetic longitude at event '
-                               'time in the $FRAME.',
+                'description': 'Sub-solar planetodetic longitude at the '
+                               '$EVENT event time in the $FRAME.',
                 'unit': 'deg'
              },
              'SolLat': {
                 'type': 'ASCII_Real',
                 'format': 'F',
-                'description': 'Sub-solar planetodetic latitude at event '
-                               'time in the $FRAME.',
+                'description': 'Sub-solar planetodetic latitude at the '
+                               '$EVENT event time in the $FRAME.',
                 'unit': 'deg'
              },
               'SC Lon':{
                 'type': 'ASCII_Real',
                 'format': 'F',
-                'description': 'Sub-target planetodetic longitude at event '
-                               'time in the $FRAME.',
+                'description': 'Sub-target planetodetic longitude at the '
+                               '$EVENT event time in the $FRAME.',
                 'unit': 'deg'
              },
               'SC Lat':{
                 'type': 'ASCII_Real',
                 'format': 'F',
-                'description': 'Sub-target planetodetic latitude at event '
-                               'time in the $FRAME.',
+                'description': 'Sub-target planetodetic latitude at at the '
+                               '$EVENT event time in the $FRAME.',
                 'unit': 'deg'
              },
               'Alt':{
                 'type': 'ASCII_Real',
                 'format': 'F',
                 'description': 'Altitude of the target above the observer '
-                               'body at event time relative to the $TARGET '
-                               'ellipsoid.',
+                               'body at the $EVENT event time relative to'
+                               ' the $TARGET ellipsoid.',
                 'unit': 'km'
              },
               'Inc':{
@@ -1706,34 +1883,35 @@ class OrbnumFileProduct(Product):
                 'type': 'ASCII_Real',
                 'format': 'F',
                 'description': 'Eccentricity of the target orbit about '
-                               'the primary body at event time.',
+                               'the primary body at the $EVENT event time.',
                 'unit': 'deg'
               },
               'LonNode':{
                 'type': 'ASCII_Real',
                 'format': 'F',
                 'description': 'Longitude of the ascending node of the'
-                               ' orbit plane at event time.',
+                               ' orbit plane at the $EVENT event time.',
                 'unit': 'deg'
               },
               'Arg Per':{
                 'type': 'ASCII_Real',
                 'format': 'F',
                 'description': 'Argument of periapsis of the orbit plane at '
-                               'event time.',
+                               'the $EVENT event time.',
                 'unit': 'deg'
               },
               'Sol Dist':{
                 'type': 'ASCII_Real',
                 'format': 'F',
-                'description': 'Solar distance from target at event time.',
+                'description': 'Solar distance from target at the $EVENT '
+                               'event time.',
                 'unit': 'km'
               },
               'Semi Axis':{
                 'type': 'ASCII_Real',
                 'format': 'F',
                 'description': "Semi-major axis of the target's orbit at"
-                               " event time.",
+                               " the $EVENT event time.",
                 'unit': 'km'
               }
             }
@@ -1895,11 +2073,41 @@ class OrbnumFileProduct(Product):
         report = f"{pck_mapping['description']} " \
                  f"({pck_mapping['kernel_name']})"
 
-        description = f'SPICE text orbit number file containing a set of ' \
-                      f'orbit parameters numbered by {event} events (orbit ' \
-                      f'start times). This file was generated using the ' \
-                      f'SPICE text PCK file constants from the {report}. ' \
-                      f'Created by NAIF, JPL.'
+        description = f'SPICE text orbit number file containing orbit ' \
+                      f'numbers and start times for orbits numbered by/' \
+                      f'starting at {event} events, and sets of selected ' \
+                      f'geometric parameters at the orbit start times. ' \
+                      f'SPICE text PCK file constants from the {report}.' \
+
+        if hasattr(self, '_previous_orbnum'):
+            if self._previous_orbnum:
+                description += f' This file supersedes the following orbit ' \
+                               f'number file: {self._previous_orbnum}.'
+
+        description +=  f' Created by NAIF, JPL.'
+
+        return description
+        
+    def __table_character_description(self):
+        '''
+        Write the orbnum table character description information
+        determination event and the PCK kernel used.
+        '''
+        description = ''
+        
+        if self.blank_records:
+            number_of_records = len(self.blank_records)
+            if int(number_of_records) == 1:
+                plural = ''
+            else:
+                plural = 's'
+
+            description += f'Since the SPK file(s) used to ' \
+                f'generate this orbit number file did not provide ' \
+                f'continuous coverage, the file contains ' \
+                f'{number_of_records} record{plural} that only provide the ' \
+                f'orbit number in the first field (No.) with all other ' \
+                f'fields set to blank spaces.'
 
         return description
 
@@ -1908,12 +2116,23 @@ class OrbnumFileProduct(Product):
         The coverage of the orbnum file can be determined in three different
         ways:
 
-           -- If there is a one to one correspondence with an SPK file, the
-              SPK file can be provided with the <kernel> tag. The tag can be
-              a path to a specific kernel that does not have to be part of
-              the increment, a pattern of a kernel present in the increment
-              or a pattern of a kernel present in the final directory of the
-              archive.
+           -- If there is a one to one correspondence with an SPK
+              file, the SPK file can be provided with the <kernel>
+              tag. The tag can be a path to a specific kernel that
+              does not have to be part of the increment, a pattern
+              of a kernel present in the increment or a pattern of
+              a kernel present in the final directory of the archive.
+
+           -- If there is a quasi one to one correspondence with an
+              SPK file with a given cutoff time prior to the end
+              of the SPK file, the SPK file can be provided with the
+              <kernel> tag. The tag can be a path to a specific kernel
+              that does not have to be part of the increment, a pattern
+              of a kernel present in the increment or a pattern of
+              a kernel present in the final directory of the archive.
+              Currently the only cutoff pattern available is the
+              boundary of the previous day of the SPK coverage stop
+              time.
 
            -- A user can provide a look up table with this file, as follows:
 
@@ -1946,7 +2165,7 @@ class OrbnumFileProduct(Product):
 
         if 'kernel' in coverage_source:
             if coverage_source['kernel']:
-                coverage_kernel = coverage_source['kernel']
+                coverage_kernel = coverage_source['kernel']['#text']
                 #
                 # Search the kernel that provides coverage, Note that
                 # this kernel is either
@@ -1962,6 +2181,20 @@ class OrbnumFileProduct(Product):
                     (start_time, stop_time) = spk_coverage(coverage_kernel,
                         date_format='maklabel')
 
+                    #
+                    # If the XML tag has a cutoff attribute, apply the cutoff.
+                    #
+                    if coverage_source['kernel']['@cutoff'] == "True":
+                        stop_time = datetime.datetime.strptime(
+                            stop_time, '%Y-%m-%dT%H:%M:%SZ')
+                        stop_time = stop_time.strftime("%Y-%m-%dT00:00:00Z")
+                    elif coverage_source['kernel']['@cutoff'] == "False":
+                        pass
+                    else:
+                        logging.error('-- cutoff value of <kernel>'
+                                      'configuration item is not set to '
+                                      'a parseable value: "True" or "False".')
+                    coverage_found = True
                 else:
                     #
                     # The kernel is present in the increment or in the final
@@ -2193,7 +2426,7 @@ class InventoryProduct(Product):
                                 # be included as secondary in the new one
                                 #
                                 line = line.replace('P,urn', 'S,urn')
-                            line = add_carriage_return(line)
+                            line = add_carriage_return(line, self.setup.eol)
                             f.write(line)
                 except:
                     logging.error('-- A previous collection was expected. '
@@ -2205,7 +2438,7 @@ class InventoryProduct(Product):
                     line = f'P,' \
                            f'{product.lid}::' \
                            f'{product.vid}\r\n'
-                    line = add_carriage_return(line)
+                    line = add_carriage_return(line, self.setup.eol)
                     f.write(line)
 
         if self.setup.interactive:
@@ -2366,8 +2599,8 @@ class InventoryProduct(Product):
 
             logging.info('-- Adding CRs to index files.')
             logging.info('')
-            add_crs_to_file(dsindex)
-            add_crs_to_file(dsindex_lbl)
+            add_crs_to_file(dsindex, self.setup.eol)
+            add_crs_to_file(dsindex_lbl, self.setup.eol)
 
             self.index = ''
             self.index_lbl = ''
@@ -2446,7 +2679,8 @@ class SpicedsProduct(object):
                 self.version = int(latest_version) + 1
 
                 if not spiceds:
-                    logging.info(f'-- Previous spiceds found: {latest_spiceds}')
+                    logging.info(f'-- Previous spiceds found: '
+                                 f'{latest_spiceds}')
                     self.generated = False
                     return
 
@@ -2534,7 +2768,7 @@ class SpicedsProduct(object):
         with open(self.path, "r") as s:
             with open(temporary_file, "w+") as t:
                 for line in s:
-                    line = add_carriage_return(line)
+                    line = add_carriage_return(line, self.setup.eol)
                     t.write(line)
 
         #
@@ -2600,7 +2834,8 @@ class SpicedsProduct(object):
         except:
 
             #
-            # If previous increment does not work, compare with InSight example.
+            # If previous increment does not work, compare with InSight
+            # example.
             #
             logging.warning(f'-- No other version of {self.name} has been '
                             f'found.')
@@ -2677,8 +2912,6 @@ class ReadmeProduct(Product):
         if self.setup.interactive:
             input(">> Press enter to continue...")
 
-        return
-
     def write_product(self):
 
         line_length = 0
@@ -2691,28 +2924,28 @@ class ReadmeProduct(Product):
                         line = line.replace('$SPICE_NAME',
                                             self.setup.readme['spice_name'])
                         line_length = len(line) - 1
-                        line = add_carriage_return(line)
+                        line = add_carriage_return(line, self.setup.eol)
                         f.write(line)
                     elif '$UNDERLINE' in line:
                         line = line.replace('$UNDERLINE', '=' * line_length)
                         line_length = len(line) - 1
-                        line = add_carriage_return(line)
+                        line = add_carriage_return(line, self.setup.eol)
                         f.write(line)
                     elif '$OVERVIEW' in line:
                         overview = self.setup.readme['overview']
                         for line in overview.split('\n'):
                             line = ' ' * 3 + line.strip() + '\n'
-                            line = add_carriage_return(line)
+                            line = add_carriage_return(line, self.setup.eol)
                             f.write(line)
                     elif '$COGNISANT_PERSONS' in line:
                         cognisant = self.setup.readme['cognisant_persons']
                         for line in cognisant.split('\n'):
                             line = ' ' * 3 + line.strip() + '\n'
-                            line = add_carriage_return(line)
+                            line = add_carriage_return(line, self.setup.eol)
                             f.write(line)
                     else:
                         line_length = len(line) - 1
-                        line = add_carriage_return(line)
+                        line = add_carriage_return(line, self.setup.eol)
                         f.write(line)
 
         logging.info('-- readme file generated.')
@@ -2755,7 +2988,7 @@ class ChecksumProduct(Product):
         self.read_current_product()
 
         self.start_time = self.setup.mission_start
-        self.stop_time = self.setup.mission_stop
+        self.stop_time = self.setup.mission_finish
 
         self.lid = self.product_lid()
         self.vid = self.product_vid()
@@ -2909,15 +3142,15 @@ class ChecksumProduct(Product):
                         product.path.split(f"/{msn_acr}_spice/")[-1]
                 else:
                     pass
-            #
-            # Generate the MD5 checksum of the label.
-            #
-            if hasattr(product, 'label'):
-                label_checksum = md5(product.label.name)
-                self.md5_dict[label_checksum] = \
-                    product.label.name.split(f"/{msn_acr}_spice/")[-1]
-            else:
-                pass
+                #
+                # Generate the MD5 checksum of the label.
+                #
+                if hasattr(product, 'label'):
+                    label_checksum = md5(product.label.name)
+                    self.md5_dict[label_checksum] = \
+                        product.label.name.split(f"/{msn_acr}_spice/")[-1]
+                else:
+                    pass
 
         #
         # Include the readme file checksum if it has been generated in
@@ -2925,6 +3158,14 @@ class ChecksumProduct(Product):
         #
         if hasattr(self.collection.bundle, 'checksum'):
             self.md5_dict[self.collection.bundle.checksum] = 'readme.txt'
+
+        #
+        # Include the bundle label, that is paired to the readme file.
+        #
+        label_checksum = md5(self.collection.bundle.readme.label.name)
+        self.md5_dict[label_checksum] = \
+            self.collection.bundle.readme.label.name.split(
+                f"/{msn_acr}_spice/")[-1]
 
         #
         # The resulting dictionary needs to be transformed into a list
@@ -2954,7 +3195,7 @@ class ChecksumProduct(Product):
         #
         with open(self.path, 'w') as c:
             for entry in md5_list:
-                entry = add_carriage_return(entry)
+                entry = add_carriage_return(entry, self.setup.eol)
                 c.write(entry)
 
         if self.setup.interactive:
