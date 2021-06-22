@@ -4,7 +4,9 @@ import glob
 import logging
 import spiceypy
 import datetime
+import xmlschema
 from pathlib import Path
+from os.path import dirname
 from xml.etree import cElementTree as ET
 from npb.utils.files import etree_to_dict
 from npb.classes.log import error_message
@@ -23,6 +25,16 @@ class Setup(object):
         """
         Constructor method.
         """
+        #
+        # Check that the configuration file validates with its schema
+        #
+        try:
+            xmlschema.validate(args.config, dirname(__file__) + 
+                               '/../templates/configuration.xsd')
+        except Exception as inst:
+            print(inst)
+            
+        
         #
         # Converting XML setup file into a dictionary and then into
         # attributes for the object.
@@ -61,10 +73,12 @@ class Setup(object):
         # as user input.
         #
         self.__dict__.update(config['meta-kernel'])
-        if isinstance(self.mk, dict):
-            self.mk = [self.mk]
-        if isinstance(self.mk_inputs, dict):
-            self.mk_inputs = [self.mk_inputs]
+        if hasattr(self, 'mk'):
+            if isinstance(self.mk, dict):
+                self.mk = [self.mk]
+        if hasattr(self, 'mk_inputs'):
+            if isinstance(self.mk_inputs, dict):
+                self.mk_inputs = [self.mk_inputs]
 
         #
         # Orbnum configuration: if there is one orbnum file orbnum is a
@@ -92,7 +106,7 @@ class Setup(object):
         #
         # If a release date is not specified it is set to today.
         #
-        if not self.release_date:
+        if not hasattr(self, 'release_date'):
             self.release_date = datetime.date.today().strftime("%Y-%m-%d")
         else:
             pattern = re.compile('[0-9]{4}-[0-9]{2}-[0-9]{2}')
@@ -103,7 +117,7 @@ class Setup(object):
         #
         # Determination of the templates used.
         #
-        if self.templates_directory == None:
+        if hasattr(self, 'templates_directory'):
             self.templates_directory = \
                 f'{self.root_dir}templates/{self.information_model}'
 
@@ -115,6 +129,19 @@ class Setup(object):
             self.date_format = 'infomod2'
 
         #
+        # Check End of Line format and set EoL length.
+        #
+        if self.end_of_line == 'CRLF':
+            self.eol = '\r\n'
+            self.eol_len = 2
+        elif self.end_of_line == 'LF':
+            self.eol = '\n'
+            self.eol_len = 1
+        else:
+            error_message('End of Line provided via configuration is not '
+                          'CRLF nor LF')
+
+        #
         # Fill PDS4 missing fields.
         #
         if self.pds_version == '4':
@@ -123,28 +150,47 @@ class Setup(object):
             self.dataset_id = ''
             self.volume_id = ''
 
-
     def check_configuration(self):
         """
         Performs a number of checks on some of the loaded configuration
         items.
         """
         #
-        # Check Bundle increment start and finish times.
+        # Check Bundle increment start and finish times. For the two accepted
+        # formats
         #
+        if self.date_format == 'infomod2':
+        
+            pattern = re.compile(
+                    '[0-9]{4}-[0-9]{2}-[0-9]{2}T'
+                    '[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}Z')
+            format = 'YYYY-MM-DDThh:mm:ss.sssZ'
+        elif self.date_format == 'maklabl':
+            
+            pattern = re.compile(
+                    '[0-9]{4}-[0-9]{2}-[0-9]{2}T'
+                    '[0-9]{2}:[0-9]{2}:[0-9]{2}Z')
+            format = 'YYYY-MM-DDThh:mm:ssZ'
+        else:
+            error_message('date_format parameter is not infomod2 or'
+                          'makelbl.')
+            
+        if hasattr(self, 'mission_start') and self.mission_start:
+            if not pattern.match(self.mission_start):
+                error_message(f'mission_start parameter does not match the '
+                              f'required format: {format}.')
+        if hasattr(self, 'mission_finish') and self.mission_finish:
+            if not pattern.match(self.mission_finish):
+                error_message(f'mission_finish does not match the required '
+                              f'format: {format}.')
         if hasattr(self, 'increment_start') and self.increment_start:
-            pattern = re.compile(
-                '[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z')
             if not pattern.match(self.increment_start):
-                error_message('increment_start parameter does not match the '
-                              'required format: YYYY-MM-DDThh:mm:ssZ.')
+                error_message(f'increment_start parameter does not match the '
+                              f'required format: {format}.')
         if hasattr(self, 'increment_finish') and self.increment_finish:
-            pattern = re.compile(
-                '[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z')
             if not pattern.match(self.increment_finish):
-                error_message('increment_finish does not match the required '
-                              'format: YYYY-MM-DDThh:mm:ssZ.')
-
+                error_message(f'increment_finish does not match the required '
+                              f'format: {format}.')
         if hasattr(self, 'increment_start') and \
                 hasattr(self, 'increment_finish'):
             if ((not self.increment_start) and (self.increment_finish)) or (
@@ -199,9 +245,7 @@ class Setup(object):
         # Check existence of templates according to the information_model
         # or user-defined templates.
         #
-        if not os.path.isdir(self.templates_directory):
-            logging.warning('-- Path provided/derived for templates '
-                            'is not available.')
+        if not hasattr(self, 'templates_directory'):
 
             config_schema = self.information_model.split('.')
             config_schema = float(f'{int(config_schema[0]):03d}'
@@ -242,6 +286,9 @@ class Setup(object):
                             f'information model {schema}.')
             logging.warning('')
         else:
+            if not os.path.isdir(self.templates_directory):
+                error_message('Path provided/derived for templates '
+                                'is not available')
             labels_check = [os.path.basename(x[:-1]) for x in
                             glob.glob(f'{self.root_dir}templates/1.5.0.0/*')]
             labels = [os.path.basename(x[:-1]) for x in
@@ -253,7 +300,7 @@ class Setup(object):
         #
         # Check meta-kernel configuration
         #
-        if self.mk:
+        if hasattr(self, 'mk'):
             for metak in self.mk:
 
                 #
@@ -532,7 +579,7 @@ class Setup(object):
             et_msn_strt = spiceypy.utc2et(self.mission_start)
             et_inc_strt = spiceypy.utc2et(self.increment_start)
             et_inc_stop = spiceypy.utc2et(self.increment_finish)
-            et_mis_stop = spiceypy.utc2et(self.mission_stop)
+            et_mis_stop = spiceypy.utc2et(self.mission_finish)
             logging.info('-- Provided dates are loadable with current setup.')
 
         except Exception as e:
