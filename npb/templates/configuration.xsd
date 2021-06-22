@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Created with Liquid Technologies Online Tools 1.0 (https://www.liquid-technologies.com) -->
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="naif-pds4-bundle_configuration">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="pds_parameters">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="pds_version" >
+                <xs:simpleType>
+                  <xs:restriction base="xs:unsignedByte">
+                    <xs:enumeration value="3"/>
+                    <xs:enumeration value="4"/>
+                  </xs:restriction>
+                </xs:simpleType>              
+              </xs:element>
+              <xs:element name="information_model" type="xs:string" />
+              <xs:element name="xml_model" type="xs:string" />
+              <xs:element name="schema_location" type="xs:string" />
+              <xs:element name="logical_identifier" type="xs:string" />
+              <xs:element name="context_products" minOccurs="0">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element maxOccurs="unbounded" name="product">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="type" type="xs:string" />
+                          <xs:element name="lidvid" type="xs:string" />
+                        </xs:sequence>
+                        <xs:attribute name="name" type="xs:string" use="required" />
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="bundle_parameters">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="producer_name" type="xs:string" />
+              <xs:element name="author_list" type="xs:string" />
+              <xs:element name="institution" type="xs:string" />
+              <xs:element name="doi" type="xs:string" minOccurs="0" />
+              <xs:element name="spiceds" type="xs:string" minOccurs="0" />
+              <xs:element name="readme">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="spice_name" type="xs:string" />
+                    <xs:element name="overview" type="xs:string" />
+                    <xs:element name="cognisant_persons" type="xs:string" />
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="release_date" type="xs:string" minOccurs="0"/>
+              <xs:element name="increment_start" type="xs:string" minOccurs="0"/>
+              <xs:element name="increment_finish" type="xs:string" minOccurs="0"/>
+              <xs:element name="kernels_to_load">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="lsk" type="xs:string" />
+                    <xs:element name="sclk" type="xs:string" />
+                    <xs:element name="fk" type="xs:string" />
+                    <xs:element name="pck" type="xs:string" minOccurs="0"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="date_format" >
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:enumeration value="infomod2"/>
+                    <xs:enumeration value="makelbl"/>
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>                      
+              <xs:element name="end_of_line" >
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:enumeration value="CRLF"/>
+                    <xs:enumeration value="LF"/>
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="mission_parameters">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:choice maxOccurs="unbounded">
+                <xs:element name="mission_accronym" type="xs:string" />
+                <xs:element name="mission_name" type="xs:string" />
+                <xs:element name="mission_start" type="xs:dateTime" />
+                <xs:element name="mission_finish" type="xs:dateTime" />
+                <xs:element name="spacecraft" type="xs:string" />
+                <xs:element name="target" type="xs:string" />
+                <xs:element name="phases">
+                  <xs:complexType>
+                    <xs:sequence>
+                      <xs:element name="phase" minOccurs="0">
+                        <xs:complexType>
+                          <xs:sequence>
+                            <xs:element name="start" type="xs:string" />
+                            <xs:element name="finish" type="xs:string" />
+                          </xs:sequence>
+                          <xs:attribute name="name" type="xs:string" use="required" />
+                        </xs:complexType>
+                      </xs:element>
+                    </xs:sequence>
+                  </xs:complexType>
+                </xs:element>
+                <xs:element name="secondary_spacecrafts" minOccurs="0">
+                  <xs:complexType>
+                    <xs:sequence>
+                      <xs:element name="spacecraft" type="xs:string" maxOccurs="unbounded" />
+                    </xs:sequence>
+                  </xs:complexType>
+                </xs:element>
+                <xs:element name="secondary_targets" minOccurs="0">
+                  <xs:complexType>
+                    <xs:sequence>
+                      <xs:element name="target" type="xs:string" maxOccurs="unbounded" />
+                    </xs:sequence>
+                  </xs:complexType>
+                </xs:element>
+              </xs:choice>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="directories">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="working_directory" type="xs:string" />
+              <xs:element name="kernels_directory" type="xs:string" />
+              <xs:element name="orbnum_directory" type="xs:string" minOccurs="0"/>
+              <xs:element name="staging_directory" type="xs:string" />
+              <xs:element name="final_directory" type="xs:string" />
+              <xs:element name="templates_directory" type="xs:string" minOccurs="0"/>
+              <xs:element name="reports_directory" type="xs:string" minOccurs="0"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="kernel_list">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element maxOccurs="unbounded" name="kernel">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element minOccurs="0" name="mapping" type="xs:string" />
+                    <xs:element name="mklabel_options" type="xs:string" minOccurs="0"/>
+                    <xs:element name="description" type="xs:string" />
+                    <xs:element minOccurs="0" name="patterns">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element minOccurs="0" name="YEAR">
+                            <xs:complexType>
+                              <xs:simpleContent>
+                                <xs:extension base="xs:string">
+                                  <xs:attribute name="pattern" type="xs:string" use="required" />
+                                </xs:extension>
+                              </xs:simpleContent>
+                            </xs:complexType>
+                          </xs:element>
+                          <xs:element minOccurs="0" maxOccurs="unbounded" name="ORIGINAL">
+                            <xs:complexType>
+                              <xs:simpleContent>
+                                <xs:extension base="xs:string">
+                                  <xs:attribute name="value" type="xs:string" use="required" />
+                                </xs:extension>
+                              </xs:simpleContent>
+                            </xs:complexType>
+                          </xs:element>
+                          <xs:element minOccurs="0" name="VERSION">
+                            <xs:complexType>
+                              <xs:simpleContent>
+                                <xs:extension base="xs:string">
+                                  <xs:attribute name="pattern" type="xs:string" use="required" />
+                                </xs:extension>
+                              </xs:simpleContent>
+                            </xs:complexType>
+                          </xs:element>
+                          <xs:element minOccurs="0" name="REPORT">
+                            <xs:complexType>
+                              <xs:simpleContent>
+                                <xs:extension base="xs:string">
+                                  <xs:attribute name="value" type="xs:string" use="required" />
+                                </xs:extension>
+                              </xs:simpleContent>
+                            </xs:complexType>
+                          </xs:element>
+                          <xs:element minOccurs="0" maxOccurs="unbounded" name="DATE">
+                            <xs:complexType>
+                              <xs:simpleContent>
+                                <xs:extension base="xs:string">
+                                  <xs:attribute name="value" type="xs:string" use="required" />
+                                </xs:extension>
+                              </xs:simpleContent>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                  <xs:attribute name="pattern" type="xs:string" use="required" />
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="meta-kernel">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="mk_inputs" minOccurs="0">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="file" maxOccurs="unbounded"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="coverage_kernels" minOccurs="0">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="pattern" type="xs:string" maxOccurs="unbounded"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="mk" minOccurs="0">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="name">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element maxOccurs="unbounded" name="pattern">
+                            <xs:complexType>
+                              <xs:simpleContent>
+                                <xs:extension base="xs:string">
+                                  <xs:attribute name="length" type="xs:unsignedByte" use="required" />
+                                </xs:extension>
+                              </xs:simpleContent>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element name="grammar">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element maxOccurs="unbounded" name="pattern" type="xs:string" />
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element name="metadata">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="description" type="xs:string" />
+                          <xs:element name="keyword" type="xs:string" />
+                          <xs:element name="data" type="xs:string"/>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>                      
+                  </xs:sequence>
+                  <xs:attribute name="name" type="xs:string" use="required" />
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="orbit_number_file" minOccurs="0">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="orbnum">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="event_detection_frame">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="spice_name" type="xs:string" />
+                          <xs:element name="description" type="xs:string" />
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element name="header_start_line" type="xs:unsignedByte" />
+                    <xs:element name="pck">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="kernel_name" type="xs:string" />
+                          <xs:element name="description" type="xs:string" />
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element name="coverage">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="kernel">
+                            <xs:complexType>
+                              <xs:simpleContent>
+                                <xs:extension base="xs:string">
+                                  <xs:attribute name="cutoff" type="xs:string" use="required" />
+                                </xs:extension>
+                              </xs:simpleContent>
+                            </xs:complexType>
+                          </xs:element>
+                          <xs:element name="lookup_table" minOccurs="0">
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element name="file" maxOccurs="unbounded">
+                                  <xs:complexType>
+                                    <xs:sequence>
+                                      <xs:element name="start" type="xs:string" />
+                                      <xs:element name="finish" type="xs:string" />
+                                    </xs:sequence>
+                                    <xs:attribute name="name" type="xs:string" use="required" />
+                                  </xs:complexType>
+                                </xs:element>
+                              </xs:sequence>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                  <xs:attribute name="pattern" type="xs:string" use="required" />
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
