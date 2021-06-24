@@ -56,6 +56,12 @@ class Setup(object):
         self.__dict__.update(config['directories'])
 
         #
+        # Kernel directory needs to be turned into a list.
+        # 
+        if not isinstance(self.kernels_directory, list):
+            self.kernels_directory = [self.kernels_directory]
+
+        #
         # Kernel list configuration needs refractoring.
         #
         self.__dict__.update(config['kernel_list'])
@@ -173,8 +179,6 @@ class Setup(object):
                     '[0-9]{4}-[0-9]{2}-[0-9]{2}T'
                     '[0-9]{2}:[0-9]{2}:[0-9]{2}Z')
             format = 'YYYY-MM-DDThh:mm:ssZ'
-        else:
-            error_message('date_format parameter is not infomod2 or makelbl.')
             
         if hasattr(self, 'mission_start') and self.mission_start:
             if not pattern.match(self.mission_start):
@@ -234,11 +238,17 @@ class Setup(object):
             error_message(f'Directory does not exist: '
                           f'{self.final_directory}')
 
-        if os.path.isdir(cwd + os.sep + self.kernels_directory):
-            self.kernels_directory = cwd + os.sep + self.kernels_directory
-        if not os.path.isdir(self.kernels_directory):
-            error_message(f'Directory does not exist: '
-                          f'{self.kernels_directory}')
+        #
+        # There might be more than one kernels directory
+        #
+        ker_dir = []
+        for dir in self.kernels_directory:
+            if os.path.isdir(cwd + os.sep + dir):
+                ker_dir.append(cwd + os.sep + dir)
+            if not os.path.isdir(cwd + os.sep + dir):
+                error_message(f'Directory does not exist: '
+                              f'{cwd + os.sep + dir}')
+        self.kernels_directory = ker_dir
 
         os.chdir(cwd)
 
@@ -489,14 +499,15 @@ class Setup(object):
                 lsks.append(pattern)
                 spiceypy.furnsh(pattern)
             else:
-                lsk_pattern = [f for f in os.listdir(
-                    f'{self.kernels_directory}/lsk/')
-                               if re.search(pattern, f)]
-                if lsk_pattern:
-                    if len(lsk_pattern) > 1: lsk_pattern.sort()
-                    lsks.append(lsk_pattern[-1])
-                    spiceypy.furnsh(f'{self.kernels_directory}/lsk/'
-                                    f'{lsk_pattern[-1]}')
+                for dir in self.kernels_directory:
+                    lsk_pattern = [f for f in os.listdir(
+                        f'{dir}/lsk/')
+                                   if re.search(pattern, f)]
+                    if lsk_pattern:
+                        if len(lsk_pattern) > 1: lsk_pattern.sort()
+                        lsks.append(lsk_pattern[-1])
+                        spiceypy.furnsh(f'{dir}/lsk/{lsk_pattern[-1]}')
+                        break
         if not lsk:
             logging.error(f'-- LSK not found.')
         else:
@@ -510,14 +521,14 @@ class Setup(object):
                 pcks.append(pattern)
                 spiceypy.furnsh(pattern)
             else:
-                pcks_pattern = [f for f in os.listdir(
-                    f'{self.kernels_directory}/pck/') if
-                                re.search(pattern, f)]
-                if pcks_pattern:
-                    if len(pcks_pattern) > 1: pcks_pattern.sort()
-                    spiceypy.furnsh(f'{self.kernels_directory}/pck/'
-                                    f'{pcks_pattern[-1]}')
-                    pcks.append(pcks_pattern[-1])
+                for dir in self.kernels_directory:
+                    pcks_pattern = [f for f in os.listdir(f'{dir}/pck/') if
+                                    re.search(pattern, f)]
+                    if pcks_pattern:
+                        if len(pcks_pattern) > 1: pcks_pattern.sort()
+                        spiceypy.furnsh(f'{dir}/pck/{pcks_pattern[-1]}')
+                        pcks.append(pcks_pattern[-1])
+                        break
         if not pcks:
             logging.warning(f'-- PCK not found.')
         else:
@@ -529,14 +540,15 @@ class Setup(object):
                 fks.append(pattern)
                 spiceypy.furnsh(pattern)
             else:
-                fks_pattern = [f for f in os.listdir(
-                    f'{self.kernels_directory}/fk/') if
-                               re.search(pattern, f)]
-                if fks_pattern:
-                    if len(fks_pattern) > 1: fks_pattern.sort()
-                    spiceypy.furnsh(f'{self.kernels_directory}/fk/'
-                                    f'{fks_pattern[-1]}')
-                    fks.append(fks_pattern[-1])
+                for dir in self.kernels_directory:
+                    fks_pattern = [f for f in os.listdir(
+                                   f'{self.kernels_directory}/fk/') if
+                                   re.search(pattern, f)]
+                    if fks_pattern:
+                        if len(fks_pattern) > 1: fks_pattern.sort()
+                        spiceypy.furnsh(f'{dir}/fk/{fks_pattern[-1]}')
+                        fks.append(fks_pattern[-1])
+                        break
         if not fks:
             logging.warning(f'-- FK not found.')
         else:
@@ -548,14 +560,13 @@ class Setup(object):
                 sclks.append(pattern)
                 spiceypy.furnsh(pattern)
             else:
-                sclks_pattern = [f for f in os.listdir(
-                    f'{self.kernels_directory}/sclk/') if
-                                 re.search(pattern, f)]
-                if sclks_pattern:
-                    if len(sclks_pattern) > 1: sclks_pattern.sort()
-                    sclks.append(sclks_pattern[-1])
-                    spiceypy.furnsh(f'{self.kernels_directory}/sclk/'
-                                    f'{sclks_pattern[-1]}')
+                for dir in self.kernels_directory:
+                    sclks_pattern = [f for f in os.listdir(f'{dir}/sclk/') if
+                                     re.search(pattern, f)]
+                    if sclks_pattern:
+                        if len(sclks_pattern) > 1: sclks_pattern.sort()
+                        sclks.append(sclks_pattern[-1])
+                        spiceypy.furnsh(f'{dir}/sclk/{sclks_pattern[-1]}')
         if not sclks:
             logging.error(f'-- SCLK not found.')
         else:
