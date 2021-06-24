@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Created with Liquid Technologies Online Tools 1.0 (https://www.liquid-technologies.com) -->
-<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning" vc:minVersion="1.1">
   <xs:element name="naif-pds4-bundle_configuration">
     <xs:complexType>
       <xs:sequence>
@@ -15,10 +14,10 @@
                   </xs:restriction>
                 </xs:simpleType>              
               </xs:element>
-              <xs:element name="information_model" type="xs:string" />
-              <xs:element name="xml_model" type="xs:string" />
-              <xs:element name="schema_location" type="xs:string" />
-              <xs:element name="logical_identifier" type="xs:string" />
+              <xs:element name="information_model" type="xs:string" minOccurs="0" />
+              <xs:element name="xml_model" type="xs:string" minOccurs="0" />
+              <xs:element name="schema_location" type="xs:string" minOccurs="0" />
+              <xs:element name="logical_identifier" type="xs:string" minOccurs="0" />
               <xs:element name="context_products" minOccurs="0">
                 <xs:complexType>
                   <xs:sequence>
@@ -35,17 +34,25 @@
                 </xs:complexType>
               </xs:element>
             </xs:sequence>
+            <xs:assert test="not(pds_version = 4) or information_model" />
+            <xs:assert test="not(pds_version = 4) or xml_model" />  
+            <xs:assert test="not(pds_version = 4) or schema_location" />  
+            <xs:assert test="not(pds_version = 4) or logical_identifier" />  
           </xs:complexType>
         </xs:element>
         <xs:element name="bundle_parameters">
           <xs:complexType>
             <xs:sequence>
-              <xs:element name="producer_name" type="xs:string" />
-              <xs:element name="author_list" type="xs:string" />
-              <xs:element name="institution" type="xs:string" />
+              <xs:element name="producer_name" type="xs:string" minOccurs="0" />
+              <xs:element name="producer_email" type="xs:string" minOccurs="0" />
+              <xs:element name="producer_phone" type="xs:string" minOccurs="0" />
+              <xs:element name="author_list" type="xs:string" minOccurs="0" />
+              <xs:element name="institution" type="xs:string" minOccurs="0" />
+              <xs:element name="dataset_id" type="xs:string" minOccurs="0" />
+              <xs:element name="volume_id" type="xs:string" minOccurs="0" />               
               <xs:element name="doi" type="xs:string" minOccurs="0" />
               <xs:element name="spiceds" type="xs:string" minOccurs="0" />
-              <xs:element name="readme">
+              <xs:element name="readme" minOccurs="0">
                 <xs:complexType>
                   <xs:sequence>
                     <xs:element name="spice_name" type="xs:string" />
@@ -84,6 +91,11 @@
                 </xs:simpleType>
               </xs:element>
             </xs:sequence>
+            <xs:assert test="not(pds_version = 3) or producer_email" />
+            <xs:assert test="not(pds_version = 3) or producer_phone" />  
+            <xs:assert test="not(pds_version = 3) or dataset_id" />  
+            <xs:assert test="not(pds_version = 3) or volume_id" />  
+            <xs:assert test="not(pds_version = 4) or spiceds" />  
           </xs:complexType>
         </xs:element>
         <xs:element name="mission_parameters">

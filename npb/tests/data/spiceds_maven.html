@@ -9,7 +9,7 @@
 The MAVEN SPICE Data Archive
 ========================================================================
 
-   Last update: May 12, 2021
+   Last update: June 1, 2021
 
 <A NAME="Introduction"></A>
 Introduction
@@ -41,6 +41,10 @@ Table of Contents
       <A HREF="#SCLK Files">SCLK Files</A>
       <A HREF="#FK Files">FK Files</A>
       <A HREF="#MK Files">MK Files</A>
+   <A HREF="#Miscellaneous Files">File Formats</A>
+   <A HREF="#Archived Miscellaneous Files Details">Archived Miscellaneous Files Details</A>
+      <A HREF="#Orbit Number Files">Orbit Number Files</A>
+      <A HREF="#Checksum Files">Checksum Files</A>
    <A HREF="#File Formats">File Formats</A>
    <A HREF="#SPICE Software and Documentation">SPICE Software and Documentation</A>
    <A HREF="#Contact Information">Contact Information</A>
@@ -174,6 +178,22 @@ Archive Contents
    |   |
    |   |-- *.bsp                         Binary SPK files.
    |   +-- *.xml                         PDS4 labels for SPK files.
+   |
+   |-+-<a href="../miscellaneous/">[miscellaneous]</a>                          Directory miscellaneous files.
+   | |
+   | |- collection_miscellaneous_v*.xml  PDS4 labels for miscellaneous collections.
+   | |- collection_miscellaneous_inventory_v*.tab
+   | |                                   Document miscellaneous' inventories.
+   | |
+   | |-<a href="../miscellaneous/orbnum/">[orbnum]</a>                              Directory containing orbit number files.
+   | | |
+   | | |-- *.nrb                         Text orbit number files.
+   | | +-- *.xml                         PDS4 labels for orbit number files.
+   | |
+   | +-<a href="../miscellaneous/checksum/">[checksum]</a>                        Directory containing checksum files.
+   |   |
+   |   |-- *.tab                         Text checksum files.
+   |   +-- *.xml                         PDS4 labels for checksum files.
    |
    +-<a href="../document/">[document]</a>                          Directory containing documents.
      |
@@ -695,6 +715,16 @@ MK Files
    Additional description of the kernels sets listed in a text MK file is
    provided in metadata included inside the description area of the
    file. This information can be viewed using any text editor program.
+
+<p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
+<A NAME="Miscellaneous Files"></A>
+Miscellaneous Files
+===================
+
+    32-character hexadecimal number that is computed on a file and is
+    used to verify its integrity. File fingerprint.
+
+
 
 <p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
 <A NAME="File Formats"></A>
