@@ -241,14 +241,13 @@ class Setup(object):
         #
         # There might be more than one kernels directory
         #
-        ker_dir = []
-        for dir in self.kernels_directory:
-            if os.path.isdir(cwd + os.sep + dir):
-                ker_dir.append(cwd + os.sep + dir)
-            if not os.path.isdir(cwd + os.sep + dir):
+        for i in range(len(self.kernels_directory)):
+            if os.path.isdir(cwd + os.sep + self.kernels_directory[i]):
+                self.kernels_directory[i] = \
+                    (cwd + os.sep + self.kernels_directory[i])
+            if not os.path.isdir(self.kernels_directory[i]):
                 error_message(f'Directory does not exist: '
-                              f'{cwd + os.sep + dir}')
-        self.kernels_directory = ker_dir
+                              f'{self.kernels_directory[i]}')
 
         os.chdir(cwd)
 
