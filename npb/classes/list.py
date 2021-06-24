@@ -5,11 +5,11 @@ import glob
 import json
 import re
 import os
-
 from npb.utils.files import extension2type
 from npb.utils.files import check_list_duplicates
 from npb.utils.files import fill_template
 from npb.utils.files import check_consecutive
+from npb.utils.files import compare_files
 from npb.classes.log import error_message
 
 
@@ -132,7 +132,11 @@ class KernelList(List):
                                 ker_line = re.search(pattern, line)
                                 kernels.append(ker_line.group(0))
                                 ker_matched = True
-                    if not ker_matched:
+                    #
+                    # Display the lines that have not been match unless
+                    # they only contain blank spaces.
+                    #
+                    if not ker_matched and line.strip():
                         logging.warning('-- The following Plan line has '
                                         'not been matched:')
                         logging.warning(f'   {line}')
@@ -155,13 +159,16 @@ class KernelList(List):
 
         kernels = []
 
-        logging.info(f'-- Generate archiving plan from kernels directory: '
-                     f'{self.setup.kernels_directory}.')
+        logging.info(f'-- Generate archiving plan from kernels directories:')
+        for dir in self.setup.kernels_directory:
+            logging.info(f'   {dir}')
 
         plan_name = f'{self.setup.mission_accronym}_release_' \
                     f'{int(self.setup.release):02d}.plan'
 
-        kernels_in_dir = glob.glob(f'{self.setup.kernels_directory}/**/*',
+        kernels_in_dir = []
+        for dir in self.setup.kernels_directory:
+            kernels_in_dir += glob.glob(f'{dir}/**/*',
                                    recursive=True)
 
         #
@@ -583,18 +590,26 @@ class KernelList(List):
             # Check that all files listed are available in OPS area;
             # This does not raise an error but only a warning.
             #
-            logging.info(f'-- Checking that kernels are present in '
-                         f'{self.setup.kernels_directory}:')
+            logging.info(f'-- Checking that kernels are present in: ')
+            
+            for dir in self.setup.kernels_directory:
+                logging.info(f'   {dir}')
+            
+            present = False
+            all_present = True
             for ker in ker_in_list:
-                if not os.path.isfile(self.setup.kernels_directory + os.sep +
-                                      extension2type(ker) + os.sep + ker):
-                    present = True
+                for dir in self.setup.kernels_directory:
+                    if os.path.isfile(dir + os.sep + extension2type(ker) 
+                                          + os.sep + ker):
+                        present = True
+                if not present:
                     if '.tm' in ker:
                         logging.info(f'     {ker} not present as expected.')
                     else:
                         logging.error(f'     {ker} not present. Kernel might '
                                       f'be mapped.')
-            if not present:
+                        all_present = False
+            if all_present:
                 logging.info('     All kernels present in directory.')
             logging.info('')
 
@@ -690,6 +705,22 @@ class KernelList(List):
 
         if self.setup.interactive:
             input(">> Press Enter to continue...")
+
+        if self.setup.diff:
+            #
+            # Compare list with previous list
+            #
+            logging.info('-- Comparing current list with previous list:')
+    
+            logging.info('')
+            fromfile = kernel_lists[-1]
+            tofile = kernel_lists[-2]
+            dir = self.setup.working_directory
+    
+            compare_files(fromfile, tofile, dir, self.setup.diff)
+    
+            if self.setup.interactive:
+                input(">> Press Enter to continue...")
 
         return
 
