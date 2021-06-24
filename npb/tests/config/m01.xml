@@ -15,13 +15,17 @@
         <producer_name>Marc Costa Sitja</producer_name>
         <producer_email>Marc.Costa.Sitja@jpl.nasa.gov</producer_email>
         <producer_phone>6264691244</producer_phone>
+        <author_list>Semenov B. V.; Costa Sitja M.</author_list>
         <dataset_id>ODY-M-SPICE-6-V1.0</dataset_id>
         <volume_id>ODSP_1000</volume_id>
         <doi>10.17189/1520115</doi>
-        <release_date></release_date>
-        <increment_start></increment_start>
-        <increment_finish></increment_finish>
-        <date_format>maklabel</date_format>
+        <kernels_to_load>
+            <lsk>naif[0-9][0-9][0-9][0-9].tls</lsk>
+            <sclk> </sclk>
+            <fk> </fk>
+        </kernels_to_load>
+        <date_format>makelbl</date_format>
+        <end_of_line>LF</end_of_line>
     </bundle_parameters>
 
     <!-- =========================== -->
@@ -33,10 +37,11 @@
         <spacecraft>ODY</spacecraft>
         <target>MARS</target>
         <phases>
-            <EXTENDED></EXTENDED>
+            <phase name="EXTENDED">
+                <start>2016-03-14T08:13:00Z</start>
+                <finish>2050-01-01T00:00:00Z</finish>
+            </phase>
         </phases>
-        <secondary_spacecraft></secondary_spacecraft>
-        <secondary_target></secondary_target>
         <mission_start>2016-03-14T08:13:00Z</mission_start>
         <mission_finish>2050-01-01T00:00:00Z</mission_finish>
     </mission_parameters>
@@ -97,11 +102,5 @@
     <!-- =========================== -->
     <meta-kernel>
     </meta-kernel>
-
-    <!-- =========================== -->
-    <!-- spiceds file                -->
-    <!-- =========================== -->
-    <spiceds>
-    </spiceds>
 
 </naif-pds4-bundle_configuration>
