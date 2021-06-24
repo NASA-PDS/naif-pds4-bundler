@@ -145,7 +145,7 @@
           <xs:complexType>
             <xs:sequence>
               <xs:element name="working_directory" type="xs:string" />
-              <xs:element name="kernels_directory" type="xs:string" />
+              <xs:element name="kernels_directory" type="xs:string" maxOccurs="unbounded"/>
               <xs:element name="orbnum_directory" type="xs:string" minOccurs="0"/>
               <xs:element name="staging_directory" type="xs:string" />
               <xs:element name="final_directory" type="xs:string" />
