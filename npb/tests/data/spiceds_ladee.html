@@ -9,7 +9,7 @@
 The LADEE SPICE Data Archive
 ========================================================================
 
-   Last update: May 20, 2021
+   Last update: June 22, 2021
 
 <A NAME="Introduction"></A>
 Introduction
@@ -41,6 +41,8 @@ Table of Contents
       <A HREF="#SCLK Files">SCLK Files</A>
       <A HREF="#FK Files">FK Files</A>
       <A HREF="#MK Files">MK Files</A>
+   <A HREF="#Miscellaneous Files">Miscellaneous Files</A>
+      <A HREF="#Checksum Files">Checksum Files</A>
    <A HREF="#File Formats">File Formats</A>
    <A HREF="#SPICE Software and Documentation">SPICE Software and Documentation</A>
    <A HREF="#Contact Information">Contact Information</A>
@@ -93,8 +95,8 @@ Archive Contents
 
    <a href="../">[top-level-directory]</a>
    |
-   |- bundle_ladee_spice_v*.xml         Bundle PDS4 label, one or more versions.
-   |- <a href="../readme.txt">readme.txt</a>                        Bundle top-level readme file.
+   |- bundle_ladee_spice_v*.xml          Bundle PDS4 label, one or more versions.
+   |- <a href="../readme.txt">readme.txt</a>                         Bundle top-level readme file.
    |
    |-<a href="../spice_kernels/">[spice_kernels]</a>                     Directory containing SPICE kernels.
    | |
@@ -141,6 +143,17 @@ Archive Contents
    |   |
    |   |-- *.bsp                         Binary SPK files.
    |   +-- *.xml                         PDS4 labels for SPK files.
+   |
+   |-+-<a href="../miscellaneous/">[miscellaneous]</a>                   Directory miscellaneous files.
+   | |
+   | |- collection_miscellaneous_v*.xml  PDS4 labels for miscellaneous collections.
+   | |- collection_miscellaneous_inventory_v*.tab
+   | |                                   Document miscellaneous' inventories.
+   | |
+   | +-<a href="../miscellaneous/checksum/">[checksum]</a>                        Directory containing checksum files.
+   |   |
+   |   |-- *.tab                         Text checksum files.
+   |   +-- *.xml                         PDS4 labels for checksum files.
    |
    +-<a href="../document/">[document]</a>                          Directory containing documents.
      |
@@ -210,6 +223,7 @@ Kernel Types
    routine FURNSH. MK files are located the <a href="../spice_kernels/mk/">spice_kernels/mk</a>
    directory of this archive.
 
+<p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
 <A NAME="Archived Kernel Details"></A>
 Archived Kernel Details
 =======================
@@ -610,15 +624,49 @@ MK Files
    file. This information can be viewed using any text editor program.
 
 <p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
+<A NAME="Miscellaneous Files"></A>
+Miscellaneous Files
+===================
+    
+   Miscellaneous files provide value added elements that are outside the
+   scope of the PDS archive requirements. Items included in this archive 
+   are currently limited to checksum files.
+    
+   The subsection below provides details for the miscellaneous files 
+   included in this archive.    
+
+<p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
+<A NAME="Checksum Files"></A>
+Checksum Files
+
+   Checksum files provide a table of MD5 checksums for all the files in this 
+   archive, except for themselves and their label. Checksum files, however, 
+   provide the MD5 checksums of former versions of checksum files and their 
+   labels.
+
+   The checksum files are provided under the <a href="../miscellaneous/checksum/">miscellaneous/checksum</a>
+   directory and are named according to the following scheme:
+
+      -  LADEE checksum files
+
+               checksum_vVVV.tab
+
+            when
+
+               VVV       is the version; the file with the latest
+                         version supersedes all similarly named
+                         files with earlier versions.
+    
+<p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
 <A NAME="File Formats"></A>
 File Formats
 ============
 
    All text documents and other meta information files such as
-   descriptions, detached PDS4 labels, and inventory tables are stream
-   format files, with a carriage return (ASCII 13) and a line feed
-   character (ASCII 10) at the end of the records.  This allows the
-   files to be read by most operating systems.
+   descriptions, checksum files, detached PDS4 labels, and inventory tables 
+   are stream format files, with a line feed character (ASCII 10) at the 
+   end of the records. This allows the files to be read by most operating 
+   systems.
 
    The text kernel files in this archive -- LSKs, PCKs, SCLKs, IKs, and
    FKs -- are UNIX text files, with a line feed character (ASCII 10) at
