@@ -82,7 +82,17 @@ class SpiceKernelProduct(Product):
         self.extension = name.split('.')[-1].strip()
         self.type = extension2type(self)
 
-        self.path = setup.kernels_directory + os.sep + self.type
+        #
+        # There can be several kernel directories provided via 
+        # configuration.
+        #
+        self.path = ''
+        for dir in setup.kernels_directory:
+            path = dir + os.sep + self.type 
+            if os.path.exists(path + os.sep + self.name):
+                self.path = path
+        if not self.path:
+            error_message(f'{self.name} not found.')
 
         #
         # Determine if it is a binary or a text kernel.
@@ -2737,7 +2747,8 @@ class SpicedsProduct(object):
         # Validate the product by comparing it and then generate the label.
         #
         if self.generated:
-            self.compare()
+            if self.setup.diff:
+                self.compare()
 
             self.label = DocumentPDS4Label(setup, collection, self)
 
@@ -2848,14 +2859,10 @@ class SpicedsProduct(object):
         tofile = self.path
         dir = self.setup.working_directory
 
-        compare_files(fromfile, tofile, dir, 'all')
+        compare_files(fromfile, tofile, dir, self.setup.diff)
 
         if self.setup.interactive:
             input(">> Press enter to continue...")
-
-        # TODO: Implement a smart comparison of spiceds files in such way
-        # that a warning is provided if something looks fishy (type of file
-        # not present for example)
 
         return
 
@@ -3209,16 +3216,6 @@ class ChecksumProduct(Product):
             input(">> Press enter to continue...")
 
         return None
-
-    def sort_checksum(self):
-        """
-        Sorted the list by alphabetical order from the filename
-        (second column of the resulting table),
-        """
-
-
-        return None
-
 
     def compare(self):
         """
