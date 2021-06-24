@@ -29,8 +29,10 @@ class Setup(object):
         # Check that the configuration file validates with its schema
         #
         try:
-            xmlschema.validate(args.config, dirname(__file__) + 
-                               '/../templates/configuration.xsd')
+            schema = xmlschema.XMLSchema11(dirname(__file__) + 
+                                           '/../templates/configuration.xsd')
+            schema.validate(args.config)
+            
         except Exception as inst:
             print(inst)
             
@@ -165,15 +167,14 @@ class Setup(object):
                     '[0-9]{4}-[0-9]{2}-[0-9]{2}T'
                     '[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}Z')
             format = 'YYYY-MM-DDThh:mm:ss.sssZ'
-        elif self.date_format == 'maklabl':
+        elif self.date_format == 'makelbl':
             
             pattern = re.compile(
                     '[0-9]{4}-[0-9]{2}-[0-9]{2}T'
                     '[0-9]{2}:[0-9]{2}:[0-9]{2}Z')
             format = 'YYYY-MM-DDThh:mm:ssZ'
         else:
-            error_message('date_format parameter is not infomod2 or'
-                          'makelbl.')
+            error_message('date_format parameter is not infomod2 or makelbl.')
             
         if hasattr(self, 'mission_start') and self.mission_start:
             if not pattern.match(self.mission_start):
@@ -245,7 +246,8 @@ class Setup(object):
         # Check existence of templates according to the information_model
         # or user-defined templates.
         #
-        if not hasattr(self, 'templates_directory'):
+        if not hasattr(self, 'templates_directory') and \
+                self.pds_version == "4":
 
             config_schema = self.information_model.split('.')
             config_schema = float(f'{int(config_schema[0]):03d}'
@@ -285,7 +287,7 @@ class Setup(object):
             logging.warning(f'-- Label templates will use the ones from '
                             f'information model {schema}.')
             logging.warning('')
-        else:
+        elif self.pds_version == '4':
             if not os.path.isdir(self.templates_directory):
                 error_message('Path provided/derived for templates '
                                 'is not available')
