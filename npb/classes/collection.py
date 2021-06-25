@@ -16,8 +16,9 @@ class Collection(object):
         self.setup = setup
         self.bundle = bundle
 
-        self.lid = self.collection_lid()
-        self.vid = self.collection_vid()
+        if self.setup.pds_version == '4':
+            self.lid = self.collection_lid()
+            self.vid = self.collection_vid()
 
         return
 
@@ -315,18 +316,20 @@ class SpiceKernelsCollection(Collection):
         # Check if an increment stop time has been provided as an input
         # parameter.
         #
-        if self.setup.increment_start:
+        if hasattr(self.setup, 'increment_start'):
             logging.info(f'-- Increment stop time set to: '
                          f'{self.setup.increment_start} '
                          f'as provided from configuration file')
 
-        if self.setup.increment_finish:
+        if hasattr(self.setup, 'increment_finish'):
             logging.info(f'-- Increment finish time set to: '
                          f'{self.setup.increment_finish} '
                          f'as provided from configuration file')
 
-        if self.setup.increment_finish and self.setup.increment_start:
-            return
+        if hasattr(self.setup, 'increment_finish') and  \
+                hasattr(self.setup, 'increment_finish'):
+            if self.setup.increment_finish and self.setup.increment_start:
+                return
 
         #
         # Match the pattern with the kernels in the meta-kernel.
@@ -439,15 +442,22 @@ class SpiceKernelsCollection(Collection):
         logging.info('-- Checking that all the kernels from list are '
                      'present...')
 
+        if self.setup.pds_version == '3':
+            ker_dir = '/data/'
+            lbl_ext = '.lbl'
+        else:
+            ker_dir = '/spice_kernels/'
+            lbl_ext = '.xml'
+
         for product in self.product:
             try:
                 os.path.exists(self.setup.staging_directory +
-                               '/spice_kernels/' + product.type +
+                               ker_dir + product.type +
                                os.sep + product.name)
                 os.path.exists(
-                    self.setup.staging_directory + '/spice_kernels/' +
+                    self.setup.staging_directory + ker_dir +
                     product.type + os.sep + product.name.split('.')[0] +
-                    '.xml')
+                    lbl_ext)
             except:
                 error_message(f'-- {product.name} has not been labeled')
         logging.info('   OK')
@@ -461,12 +471,12 @@ class SpiceKernelsCollection(Collection):
         for product in self.product:
             try:
                 os.path.exists(
-                    self.setup.staging_directory + '/spice_kernels/' +
+                    self.setup.staging_directory + ker_dir +
                     product.type + os.sep + product.name)
                 os.path.exists(
-                    self.setup.staging_directory + '/spice_kernels/' +
+                    self.setup.staging_directory + ker_dir +
                     product.type + os.sep + product.name.split('.')[
-                        0] + '.xml')
+                        0] + lbl_ext)
             except:
                 error_message(f'-- {product.name} has not been labeled')
         logging.info('   OK')
@@ -494,6 +504,9 @@ class MiscellaneousCollection(Collection):
 
     def __init__(self, setup, bundle):
 
-        self.type = 'miscellaneous'
+        if setup.pds_version == '4':
+            self.type = 'miscellaneous'
+        else:
+            self.type = 'extras'
 
         Collection.__init__(self, self.type, setup, bundle)
