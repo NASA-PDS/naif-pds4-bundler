@@ -9,7 +9,7 @@
 The OSIRIS-REx SPICE Data Archive
 ========================================================================
 
-   Last update: May 13, 2021
+   Last update: June 30, 2021
 
 <A NAME="Introduction"></A>
 Introduction
@@ -43,6 +43,8 @@ Table of Contents
       <A HREF="#FK Files">FK Files</A>
       <A HREF="#DSK Files">DSK Files</A>
       <A HREF="#MK Files">MK Files</A>
+   <A HREF="#Miscellaneous Files">Miscellaneous Files</A>
+      <A HREF="#Checksum Files">Checksum Files</A>
    <A HREF="#File Formats">File Formats</A>
    <A HREF="#SPICE Software and Documentation">SPICE Software and Documentation</A>
    <A HREF="#Contact Information">Contact Information</A>
@@ -179,10 +181,21 @@ Archive Contents
    |   |-- *.bsp                         Binary SPK files.
    |   +-- *.xml                         PDS4 labels for SPK files.
    |
+   |-+-<a href="../miscellaneous/">[miscellaneous]</a>                   Directory miscellaneous files.
+   | |
+   | |- collection_miscellaneous_v*.xml  PDS4 labels for miscellaneous collections.
+   | |- collection_miscellaneous_inventory_v*.tab
+   | |                                   Miscellaneous collections' inventories.
+   | |
+   | +-<a href="../miscellaneous/checksum/">[checksum]</a>                        Directory containing checksum files.
+   |   |
+   |   |-- *.tab                         Text checksum files.
+   |   +-- *.xml                         PDS4 labels for checksum files.
+   |
    +-<a href="../document/">[document]</a>                          Directory containing documents.
      |
      |- collection_document_v*.xml       PDS4 labels for document collections.
-     |- collection_document_inventory_v*.tab       
+     |- collection_document_inventory_v*.tab
      |                                   Document collections' inventories.
      |
      |- spiceds_v*.html                  This file and its earlier versions.
@@ -818,21 +831,56 @@ MK Files
    file. This information can be viewed using any text editor program.
 
 <p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
+<A NAME="Miscellaneous Files"></A>
+Miscellaneous Files
+===================
+    
+   Miscellaneous files provide value added elements that are outside the
+   scope of the PDS archive requirements. Miscellaneous files included in 
+   this archive are currently limited to checksum files.
+
+   The subsection below provides details for these files.
+
+<p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
+<A NAME="Checksum Files"></A>
+Checksum Files
+
+   A checksum file provides a table of MD5 checksums for all files in the 
+   archive as of a particular archive (bundle) version, including
+   checksums for all previous checksums files and their labels but
+   excluding the checksum for the checksum file itself and its label.
+
+   The checksum files are provided under the <a href="../miscellaneous/checksum/">miscellaneous/checksum</a>
+   directory and are named according to the following scheme:
+
+      -  OSIRIS-REx checksum files
+
+               checksum_vVVV.tab
+
+            where
+
+               VVV       is the version; the file with the latest
+                         version supersedes all similarly named
+                         files with earlier versions and can be
+                         used to validate the archive in its
+                         entirety.
+    
+<p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
 <A NAME="File Formats"></A>
 File Formats
 ============
 
    All text documents and other meta information files such as
-   descriptions, detached PDS4 labels, and inventory tables are stream
-   format files, with a carriage return (ASCII 13) and a line feed
-   character (ASCII 10) at the end of the records.  This allows the
-   files to be read by most operating systems.
+   descriptions, detached PDS4 labels, inventory tables, and checksum
+   files are stream format files, with a carriage return (ASCII 13) and 
+   a line feed character (ASCII 10) at the end of the records. This 
+   allows the files to be read by most operating systems.
 
-   The text kernel files in this archive -- LSKs, PCKs, SCLKs, IKs, and
-   FKs -- are UNIX text files, with a line feed character (ASCII 10) at
-   the end of the line, and binary kernels files -- SPKs, CKs, and DSKs
-   -- are IEEE LSB binary files. While data files in this archive can
-   be used 'as is' with SPICE toolkits for the majority of supported
+   The text kernel files in this archive -- LSKs, PCKs, SCLKs, IKs, FKs, 
+   and MKs -- are UNIX text files, with a line feed character (ASCII 10) 
+   at the end of the line, and binary kernels files -- SPKs, CKs, and 
+   DSKs -- are IEEE LSB binary files. While data files in this archive 
+   can be used 'as is' with SPICE toolkits for the majority of supported
    environments, converting the files to the binary or text format
    native to the user's computer may be required for use of the data
    with FORTRAN toolkits on incompatible environments. Refer to the
@@ -845,7 +893,7 @@ File Formats
    to the native format of the platform of interest. BINGO is available
    from the utilities page at the NAIF Node of the PDS:
 
-      <a href="http://naif.jpl.nasa.gov/naif/utilities.html">http://naif.jpl.nasa.gov/naif/utilities.html</a>    
+      <a href="https://naif.jpl.nasa.gov/naif/utilities.html">https://naif.jpl.nasa.gov/naif/utilities.html</a>
 
 <p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
 <A NAME="SPICE Software and Documentation"></A>
@@ -854,20 +902,19 @@ SPICE Software and Documentation
 
    The latest SPICE Toolkit for a variety of computer platforms,
    additional utility programs, documentation, tutorials, and hands-on
-   SPICE-focused programming lessons are available at the NAIF Node of
-   the PDS:
+   lessons are available at the NAIF Node of the PDS:
 
-      <a href="http://naif.jpl.nasa.gov">http://naif.jpl.nasa.gov</a>    
+      <a href="https://naif.jpl.nasa.gov">https://naif.jpl.nasa.gov</a>
 
    specifically:
 
-      Toolkit:   <a href="http://naif.jpl.nasa.gov/naif/toolkit.html">http://naif.jpl.nasa.gov/naif/toolkit.html</a>    
+      Toolkit:   <a href="https://naif.jpl.nasa.gov/naif/toolkit.html">https://naif.jpl.nasa.gov/naif/toolkit.html</a>
 
-      Utilities: <a href="http://naif.jpl.nasa.gov/naif/utilities.html">http://naif.jpl.nasa.gov/naif/utilities.html</a>    
+      Utilities: <a href="https://naif.jpl.nasa.gov/naif/utilities.html">https://naif.jpl.nasa.gov/naif/utilities.html</a>
 
-      Tutorials: <a href="http://naif.jpl.nasa.gov/naif/tutorials.html">http://naif.jpl.nasa.gov/naif/tutorials.html</a>
+      Tutorials: <a href="https://naif.jpl.nasa.gov/naif/tutorials.html">https://naif.jpl.nasa.gov/naif/tutorials.html</a>
 
-      Lessons:   <a href="http://naif.jpl.nasa.gov/naif/lessons.html">http://naif.jpl.nasa.gov/naif/lessons.html</a>
+      Lessons:   <a href="https://naif.jpl.nasa.gov/naif/lessons.html">https://naif.jpl.nasa.gov/naif/lessons.html</a>
 
 <p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
 <A NAME="Contact Information"></A>
@@ -881,7 +928,7 @@ Contact Information
    4800 Oak Grove Drive
    Pasadena, CA, 91109-8099
    818-354-8136
-   WWW Site: <a href="http://naif.jpl.nasa.gov">http://naif.jpl.nasa.gov</a>    
+   WWW Site: <a href="https://naif.jpl.nasa.gov">https://naif.jpl.nasa.gov</a>
 
 <p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
 <A NAME="Cognizant Persons"></A>

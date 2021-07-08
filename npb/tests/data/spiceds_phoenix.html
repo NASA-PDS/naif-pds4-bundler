@@ -9,7 +9,7 @@
 The PHOENIX SPICE Data Archive
 ========================================================================
 
-   Last update: May 24, 2021
+   Last update: June 30, 2021
 
 <A NAME="Introduction"></A>
 Introduction
@@ -41,6 +41,8 @@ Table of Contents
       <A HREF="#SCLK Files">SCLK Files</A>
       <A HREF="#FK Files">FK Files</A>
       <A HREF="#MK Files">MK Files</A>
+   <A HREF="#Miscellaneous Files">Miscellaneous Files</A>
+      <A HREF="#Checksum Files">Checksum Files</A>
    <A HREF="#File Formats">File Formats</A>
    <A HREF="#SPICE Software and Documentation">SPICE Software and Documentation</A>
    <A HREF="#Contact Information">Contact Information</A>
@@ -93,7 +95,7 @@ Archive Contents
 
    <a href="../">[top-level-directory]</a>
    |
-   |- bundle_ladee_spice_v*.xml         Bundle PDS4 label, one or more versions.
+   |- bundle_phoenix_spice_v*.xml         Bundle PDS4 label, one or more versions.
    |- <a href="../readme.txt">readme.txt</a>                        Bundle top-level readme file.
    |
    |-<a href="../spice_kernels/">[spice_kernels]</a>                     Directory containing SPICE kernels.
@@ -129,7 +131,7 @@ Archive Contents
    | |
    | |-<a href="../spice_kernels/pck/">[pck]</a>                             Directory containing PCK files.
    | | |
-   | | |-- *.tpc                         Text and binary PCK files.
+   | | |-- *.tpc                         Text PCK files.
    | | +-- *.xml                         PDS4 labels for PCK files.
    | |
    | |-<a href="../spice_kernels/sclk/">[sclk]</a>                            Directory containing SCLK files.
@@ -141,6 +143,17 @@ Archive Contents
    |   |
    |   |-- *.bsp                         Binary SPK files.
    |   +-- *.xml                         PDS4 labels for SPK files.
+   |
+   |-+-<a href="../miscellaneous/">[miscellaneous]</a>                   Directory miscellaneous files.
+   | |
+   | |- collection_miscellaneous_v*.xml  PDS4 labels for miscellaneous collections.
+   | |- collection_miscellaneous_inventory_v*.tab
+   | |                                   Miscellaneous collections' inventories.
+   | |
+   | +-<a href="../miscellaneous/checksum/">[checksum]</a>                        Directory containing checksum files.
+   |   |
+   |   |-- *.tab                         Text checksum files.
+   |   +-- *.xml                         PDS4 labels for checksum files.
    |
    +-<a href="../document/">[document]</a>                          Directory containing documents.
      |
