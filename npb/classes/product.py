@@ -54,7 +54,8 @@ class Product(object):
         stat_info = os.stat(self.path)
         self.size = str(stat_info.st_size)
         self.checksum = str(md5(self.path))
-        self.creation_time = creation_time(self.path)
+        self.creation_time = creation_time(self.path, 
+                                           format=self.setup.date_format)
         self.creation_date = creation_date(self.path)
         self.extension = self.path.split(os.sep)[-1].split('.')[-1]
 
