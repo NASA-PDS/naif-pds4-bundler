@@ -5,7 +5,7 @@ import logging
 
 from npb.classes.log import error_message
 from npb.utils.time import get_years
-
+from npb.utils.files import extension2type
 
 class Collection(object):
 
@@ -99,7 +99,12 @@ class SpiceKernelsCollection(Collection):
         return
 
     def determine_meta_kernels(self):
-
+        """
+        Meta-kernel generation can be indicated in multiple ways. These
+        
+        
+        :return: 
+        """
         line = f'Step {self.setup.step} - Generation of meta-kernel(s)'
         logging.info('')
         logging.info(line)
@@ -110,55 +115,75 @@ class SpiceKernelsCollection(Collection):
             print('-- ' + line.split(' - ')[-1] + '.')
 
         meta_kernels = []
+        user_input = False
+        mks = []
 
         #
-        # First check if meta-kernel has been provided via configuration by
+        # First check if a meta-kernel has been provided via configuration by
         # the user. If so, only the provided meta-kernels will be taken into
         # account (there is no hybrid possibility but npb provides a warning
         # message if more meta-kernels are expected).
         #
-        if not self.setup.mk_inputs[0]['file'] == None:
-            mks = self.setup.mk_inputs[0]['file']
-            if not isinstance(mks, list):
-                mks = [mks]
-            for mk in mks:
-                if not os.path.exists(mk):
-                    logging.info('')
-                    logging.error(f'-- Meta-kernel provided via configuration'
-                                  f' does not exist: {mk}')
-                else:
-                    meta_kernels.append(mk)
-
+        if hasattr(self.setup, 'mk_inputs'):
+            if self.setup.mk_inputs[0]['file']:
+                mks = self.setup.mk_inputs[0]['file']
+                if not isinstance(mks, list):
+                    mks = [mks]
+                for mk in mks:
+                    if not os.path.exists(mk):
+                        logging.info('')
+                        logging.error(f'-- Meta-kernel provided via'
+                                      f'  configuration'
+                                      f' does not exist: {mk}')
+                    else:
+                        meta_kernels.append(mk)
+                        user_input = True
+            else:
+                logging.warning('-- Configuration item mk_inputs is empty.')
+    
         #
         # Second we check if meta-kernels are indicated with the kernel list.
         # Note that if kernels are provided as input, the ones present in the
         # kernel list are ignored.
         #
-        else:
+        if not meta_kernels:
+            for kernel in self.list.kernel_list:
+                if '.tm' in kernel:
+                    meta_kernels.append(kernel)
+         
+        #
+        # If no meta-kernels are provided as inputs or in the kernel list, 
+        #  
+        if not meta_kernels:
 
             logging.info('-- No meta-kernel provided in the kernel list or '
                          'via configuration.')
-            mks = self.setup.mk_inputs[0]['file']
-            if not isinstance(mks, list):
-                mks = [mks]
-
-            if not mks[0]:
+            
+            #
+            # NPB will try to determine if a meta-kernel can be generated
+            # only using the information from the configuration file. 
+            # This will only work if the bundle only includes one meta-kernel
+            # and the only pattern in the filename is the VERSION.
+            #
+            if hasattr(self.setup, 'mk'):
+                if self.setup.mk.__len__() == 1 and \
+                        self.setup.mk[0]['name'].__len__() == 1 and \
+                        self.setup.mk[0]['name'][0].__len__() == 1 and \
+                        self.setup.mk[0]['name'][0]['pattern'].__len__() == 1:
+                    
+                    if self.setup.mk[0]['name'][0]['pattern']['#text'] == \
+                            'VERSION':
+                        version_length = \
+                        int(self.setup.mk[0]['name'][0]['pattern']['@length'])
+                    
+                        meta_kernels.append(self.setup.mk[0]['@name'].replace(
+                        '$VERSION', '1'.zfill(version_length)))
+                    
+            if not meta_kernels:
                 logging.info('')
                 logging.error(f'-- No Meta-kernel will be generated.')
-                return (None, None)
+                return ('', None)
 
-            for mk in mks:
-                if not os.path.exists(mk):
-                    logging.info('')
-                    logging.error(f'-- Meta-kernel provided via configuration'
-                                  f' does not exist: {mk}')
-                else:
-                    meta_kernels.append(mk)
-
-        if meta_kernels:
-            user_input = True
-        else:
-            user_input = False
 
         #
         # Although the kernels that will be used are already known, generate
@@ -171,6 +196,7 @@ class SpiceKernelsCollection(Collection):
         # First check if any of the increment are present in
         # each meta-kernel configuration.
         #
+        expected_mks = []
         if hasattr(self.setup, 'mk'):
             for kernel_product in self.product:
                 for mk in self.setup.mk:
@@ -205,85 +231,91 @@ class SpiceKernelsCollection(Collection):
                         #
                         # Loop the patterns.
                         #
-                        if not isinstance(mk['name']['pattern'], list):
-                            patterns = [mk['name']['pattern']]
-                        else:
-                            patterns = mk['name']['pattern']
+                        patterns = mk['name']
 
                         #
                         # First we need to determine which yearly meta-kernels
                         # Need to be produced.
                         #
                         years = []
-                        for pattern in patterns:
-                            if pattern['#text'] == "YEAR":
-                                #
-                                # We check the coverage of the kernel, except
-                                # if it is a SCLK.
-                                #
-                                for kernel in self.product:
-                                    start_time = kernel.start_time
-                                    stop_time = kernel.stop_time
-                                    kernel_years = get_years(start_time,
-                                                             stop_time)
-
-                                    years += kernel_years
-
-                                years = list(dict.fromkeys(years))
-
-                                if self.setup.increment:
-                                    mks_previous_increment = False
-
-                                else:
+                        patterns_dict = patterns[0]
+                        for patterns in patterns_dict.values():
+                            if isinstance(patterns, dict):
+                                patterns = [patterns]
+                            for pattern in patterns:
+                                if pattern['#text'] == "YEAR":
                                     #
-                                    # If this is the first version of the
-                                    # increment then simply generate the first
-                                    # version of each yearly required
-                                    # meta-kernel.
+                                    # We check the coverage of the kernel, 
+                                    # except if it is a SCLK.
                                     #
-                                    for year in years:
+                                    for kernel in self.product:
+                                        start_time = kernel.start_time
+                                        stop_time = kernel.stop_time
+                                        kernel_years = get_years(start_time,
+                                                                 stop_time)
+    
+                                        years += kernel_years
+    
+                                    years = list(dict.fromkeys(years))
+    
+                                    if self.setup.increment:
+                                        mks_previous_increment = False
+    
+                                    else:
                                         #
-                                        # Check that we do not generate any
-                                        # meta-kernel prior to the start of
-                                        # the mission. Or beyond the increment
-                                        # release year.
+                                        # If this is the first version of the
+                                        # increment then simply generate the 
+                                        # first version of each yearly 
+                                        # required meta-kernel.
                                         #
-                                        mission_start_year = \
+                                        for year in years:
+                                            #
+                                            # Check that we do not generate 
+                                            # any meta-kernel prior to the 
+                                            # start of the mission. Or beyond 
+                                            # the increment release year.
+                                            #
+                                            mission_start_year = \
                                             self.setup.mission_start.split(
-                                                '-')[0]
-                                        current_year = \
+                                                    '-')[0]
+                                            current_year = \
                                             self.setup.release_date.split(
-                                                '-')[0]
-
-                                        if (year >= mission_start_year) and \
-                                                (year <= current_year):
-
-                                            #
-                                            # Default version length.
-                                            #
-                                            version_length = 2
-                                            for pattern in patterns:
-
-                                                if 'VERSION' in \
-                                                        pattern['#text']:
-                                                    version_length = \
-                                                        pattern['@length']
-                                            version = \
-                                                '0' * (version_length - 1) + \
-                                                '1'
-
-                                            metaker = \
-                                                metaker['@name'].replace(
-                                                    '$YEAR', year)
-                                            metaker = \
-                                                metaker['@name'].replace(
-                                                    '$VERSION', version)
-                                            meta_kernels.append(mk)
+                                                    '-')[0]
+    
+                                            if (year >= mission_start_year) \
+                                                    and \
+                                                    (year <= current_year):
+    
+                                                #
+                                                # Default version length.
+                                                #
+                                                version_length = 2
+                                                for pattern in patterns:
+    
+                                                    if 'VERSION' in \
+                                                            pattern['#text']:
+                                                        version_length = \
+                                                            pattern['@length']
+                                                version = \
+                                                    '0' * \
+                                                    (int(
+                                                        version_length) 
+                                                     - 1) + \
+                                                    '1'
+    
+                                                metaker = \
+                                                    mk['@name'].replace(
+                                                        '$YEAR', year)
+                                                metaker = \
+                                                    metaker.replace(
+                                                        '$VERSION', version)
+                                                expected_mks.append(metaker)
 
                 #
                 # First check if any of the increment are present in
                 # each meta-kernel configuration.
                 #
+                
 
         #
         # Sort the list of meta-kernels alphabetically.
@@ -301,7 +333,6 @@ class SpiceKernelsCollection(Collection):
 
         :return:
         '''
-        logging.info('')
         line = f'Step {self.setup.step} - Determine archive increment ' \
                f'start and finish times'
         logging.info('')
@@ -444,23 +475,32 @@ class SpiceKernelsCollection(Collection):
 
         if self.setup.pds_version == '3':
             ker_dir = '/data/'
+            orbnum_dir = '/extras/orbnum/'
             lbl_ext = '.lbl'
         else:
             ker_dir = '/spice_kernels/'
+            orbnum_dir = '/miscellaneous/orbnum/'                    
             lbl_ext = '.xml'
 
-        for product in self.product:
-            try:
-                os.path.exists(self.setup.staging_directory +
-                               ker_dir + product.type +
-                               os.sep + product.name)
-                os.path.exists(
-                    self.setup.staging_directory + ker_dir +
-                    product.type + os.sep + product.name.split('.')[0] +
-                    lbl_ext)
-            except:
-                error_message(f'-- {product.name} has not been labeled')
-        logging.info('   OK')
+        non_present_products = []
+        for product in self.list.kernel_list:
+            if not os.path.exists(self.setup.staging_directory +
+                               ker_dir + extension2type(product) +
+                               os.sep + product) and \
+                    not os.path.exists(self.setup.staging_directory +
+                               orbnum_dir + product):
+                non_present_products.append(product)
+                
+        if non_present_products:
+            logging.error('-- The following products from the list are not '
+                          'present:')
+            for product in non_present_products:
+                logging.error(f'   {product}')
+                error_message(f'Some products from the list are not'
+                              f' present.')
+                
+        else:
+            logging.info('   OK')
         logging.info('')
 
         #
@@ -468,18 +508,29 @@ class SpiceKernelsCollection(Collection):
         #
         logging.info('-- Checking that all the kernels have been labeled...')
 
+        non_labeled_products = []
         for product in self.product:
-            try:
-                os.path.exists(
-                    self.setup.staging_directory + ker_dir +
-                    product.type + os.sep + product.name)
-                os.path.exists(
-                    self.setup.staging_directory + ker_dir +
-                    product.type + os.sep + product.name.split('.')[
-                        0] + lbl_ext)
-            except:
-                error_message(f'-- {product.name} has not been labeled')
-        logging.info('   OK')
+            if not os.path.exists(self.setup.staging_directory +
+                                  ker_dir + product.type +
+                                  os.sep + product.name) or \
+                    not os.path.exists(self.setup.staging_directory + 
+                                       ker_dir + product.type + os.sep +
+                                       product.name.split('.')[0] +
+                                       lbl_ext):
+                if self.setup.pds_version == '3' and \
+                        not '.tm' in product.name:
+                    non_labeled_products.append(product.name)
+
+        if non_labeled_products:
+            logging.error('-- The following products have not been labeled:')
+            for product in non_labeled_products:
+                logging.error(f'   {product}')
+                # TODO: This IF statement goes after implementing PDS3 labeling.
+                if self.setup.pds_version == '4':
+                    error_message(f'Some products have not been labeled')
+
+        else:
+            logging.info('   OK')
 
         logging.info('')
         if self.setup.interactive:
