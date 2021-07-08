@@ -102,7 +102,7 @@
           <xs:complexType>
             <xs:sequence>
               <xs:choice maxOccurs="unbounded">
-                <xs:element name="mission_accronym" type="xs:string" />
+                <xs:element name="mission_acronym" type="xs:string" />
                 <xs:element name="mission_name" type="xs:string" />
                 <xs:element name="mission_start" type="xs:dateTime" />
                 <xs:element name="mission_finish" type="xs:dateTime" />
