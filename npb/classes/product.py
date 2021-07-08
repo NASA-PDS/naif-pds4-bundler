@@ -83,18 +83,6 @@ class SpiceKernelProduct(Product):
         self.type = extension2type(self)
 
         #
-        # There can be several kernel directories provided via 
-        # configuration.
-        #
-        self.path = ''
-        for dir in setup.kernels_directory:
-            path = dir + os.sep + self.type 
-            if os.path.exists(path + os.sep + self.name):
-                self.path = path
-        if not self.path:
-            error_message(f'{self.name} not found.')
-
-        #
         # Determine if it is a binary or a text kernel.
         #
         if self.extension[0].lower() == 'b':
@@ -121,17 +109,19 @@ class SpiceKernelProduct(Product):
         #            SCLK                      KPL/SCLK
         #            FRAMES                    KPL/FK
         #
-        self.description = self.__get_description()
 
-        self.__coverage()
+
+        if self.setup.pds_version == '4':
+            self.lid = self.__product_lid()
+            self.vid = self.__product_vid()
+            ker_dir = 'spice_kernels'
+        else:
+            ker_dir = 'data'
 
         self.collection_path = setup.staging_directory + os.sep + \
-                               'spice_kernels' + os.sep
+                               ker_dir + os.sep
 
         product_path = self.collection_path + self.type + os.sep
-
-        self.lid = self.__product_lid()
-        self.vid = self.__product_vid()
 
         #
         # We generate the kernel directory if not present
@@ -143,20 +133,30 @@ class SpiceKernelProduct(Product):
         #
         logging.info(f'-- Copy {self.name} to staging directory.')
         if not os.path.isfile(product_path + self.name):
-            try:
-                shutil.copy2(self.path + os.sep + self.name,
-                             product_path + os.sep + self.name)
-                self.new_product = True
-
-            except:
+            for path in self.setup.kernels_directory:
                 try:
-                    shutil.copy2(self.path + os.sep + self.product_mapping(),
+                    file = [os.path.join(root, ker)
+                            for root, dirs, files in os.walk(path)
+                            for ker in files
+                            if name == ker]    
+                    shutil.copy2(file[0],
                                  product_path + os.sep + self.name)
                     self.new_product = True
-                    logging.info(f'-- Mapping {self.product_mapping()} '
-                                 f'with {self.name}')
                 except:
-                    error_message(f'{self.name} not present in {self.path}')
+                    try:
+                        file = [os.path.join(root, ker)
+                                for root, dirs, files in os.walk(path)
+                                for ker in files
+                                if self.__product_mapping() == ker]
+                        shutil.copy2(file[0],
+                                     product_path + os.sep + self.name)
+                        self.new_product = True
+                        logging.info(f'-- Mapping {self.__product_mapping()} '
+                                     f'with {self.name}')
+                    except:
+                        error_message(f'{self.name} not present in {path}')
+                if self.new_product:
+                    break
         else:
             logging.error(f'     {self.name} already present in staging '
                           f'directory.')
@@ -171,13 +171,17 @@ class SpiceKernelProduct(Product):
         #
         self.path = product_path + self.name
 
+        self.__coverage()
+        self.description = self.__get_description()
+
         Product.__init__(self)
 
         #
         # The kernel is labeled.
         #
-        logging.info(f'-- Labeling {self.name}...')
-        self.label = SpiceKernelPDS4Label(setup, self)
+        if self.setup.pds_version == '4':
+            logging.info(f'-- Labeling {self.name}...')
+            self.label = SpiceKernelPDS4Label(setup, self)
 
     def __product_lid(self):
         '''
@@ -228,20 +232,16 @@ class SpiceKernelProduct(Product):
     def __coverage(self):
         if self.type.lower() == 'spk':
             (self.start_time, self.stop_time) = \
-                spk_coverage(self.path + os.sep + self.name,
-                                 date_format=self.setup.date_format)
+                spk_coverage(self.path, date_format=self.setup.date_format)
         elif self.type.lower() == 'ck':
             (self.start_time, self.stop_time) = \
-                ck_coverage(self.path + os.sep + self.name,
-                            date_format=self.setup.date_format)
+                ck_coverage(self.path, date_format=self.setup.date_format)
         elif self.extension.lower() == 'bpc':
             (self.start_time, self.stop_time) = \
-                pck_coverage(self.path + os.sep + self.name,
-                             date_format=self.setup.date_format)
+                pck_coverage(self.path, date_format=self.setup.date_format)
         elif self.type.lower() == 'dsk':
             (self.start_time, self.stop_time) = \
-                dsk_coverage(self.path + os.sep + self.name,
-                             date_format=self.setup.date_format)
+                dsk_coverage(self.path, date_format=self.setup.date_format)
         else:
             self.start_time = self.setup.mission_start
             self.stop_time = self.setup.mission_finish
@@ -413,24 +413,25 @@ class MetaKernelProduct(Product):
         # This includes sorting out the meta-kernel name.
         #
         if hasattr(setup, 'mk'):
-            for mk in setup.mk:
+            for metak in setup.mk:
 
-                patterns_dict = mk['name']['pattern']
-                if not isinstance(patterns_dict, list):
-                    patterns = []
-                    dictionary_copy = patterns_dict.copy()
-                    patterns.append(dictionary_copy)
-                else:
-                    patterns = patterns_dict
-
+                patterns = []
+                for name in metak['name']:
+                    name_pattern = name['pattern']
+                    if not isinstance(name_pattern, list):
+                        patterns.append(name_pattern)
+                    else:
+                        patterns += name_pattern
+                    
                 try:
-                    values = match_patterns(self.name, mk['@name'], patterns)
-                    self.mk_setup = mk
+                    values = match_patterns(self.name, metak['@name'], 
+                                            patterns)
+                    self.mk_setup = metak
                     self.version = values['VERSION']
                     self.values = values
                     #
                     # If it is a yearly meta-kernel we need the year to set
-                    # set the coverage of the meta-kenrel.
+                    # set the coverage of the meta-kernel.
                     #
                     if 'YEAR' in values:
                         self.year = values['YEAR']
@@ -443,20 +444,17 @@ class MetaKernelProduct(Product):
 
         if setup.pds_version == '3':
             self.collection_path = setup.staging_directory + os.sep + \
-                                   'EXTRAS' + os.sep
+                                   'extras' + os.sep
         elif setup.pds_version == '4':
             self.collection_path = setup.staging_directory + os.sep + \
                                    'spice_kernels' + os.sep
 
         if self.setup.pds_version == '3':
-            product_path = self.collection_path + self.type.upper() + os.sep
-            self.KERNELPATH = './DATA'
+            product_path = self.collection_path + self.type + os.sep
+            self.KERNELPATH = './data'
         else:
             product_path = self.collection_path + self.type + os.sep
             self.KERNELPATH = '..'
-
-        self.start_time = self.setup.increment_start
-        self.stop_time = self.setup.increment_finish
 
         if self.setup.pds_version == '4':
             self.AUTHOR = self.setup.producer_name
@@ -485,21 +483,25 @@ class MetaKernelProduct(Product):
         self.FILE_NAME = self.name
 
         #
-        # Check product version.
+        # Check product version if the current archive is not the 
+        # first release or if the mk_setup configuration section has been 
+        # provided.
         #
-        if self.setup.increment:
+        if self.setup.increment and  hasattr(self.setup, 'mk_setup'):
             self.check_version()
 
         #
         # Generate the product LIDVID.
         #
-        self.lid = self.product_lid()
-        self.vid = self.product_vid()
+        if self.setup.pds_version == '4':
+            self.lid = self.product_lid()
+            self.vid = self.product_vid()
 
-        #
-        # The meta-kernel must be named before fetching the description.
-        #
-        self.description = self.get_description()
+            #
+            # The meta-kernel must be named before fetching the description.
+            #
+            self.description = self.get_description()
+            
         #
         # Generate the meta-kernel.
         #
@@ -508,7 +510,7 @@ class MetaKernelProduct(Product):
                 logging.error(f'-- Meta-kernel already exists: {self.path}')
                 logging.warning(
                     f'-- The meta-kernel will be generated and the one '
-                    f'present in the staging are will be overwtitten.')
+                    f'present in the staging are will be overwritten.')
                 logging.warning(
                     f'-- Note that to provide a meta-kernel as an input, '
                     f'it must be provided via configuration file.')
@@ -642,12 +644,16 @@ class MetaKernelProduct(Product):
 
             if pattern.match(kernel):
 
-                options = self.json_config[pattern.pattern]['mklabel_options']
                 description = self.json_config[pattern.pattern]['description']
                 try:
                     patterns = self.json_config[pattern.pattern]['patterns']
                 except:
                     patterns = False
+                try:
+                    options = \
+                        self.json_config[pattern.pattern]['mklabel_options']
+                except:
+                    options = ''
                 try:
                     mapping = self.json_config[pattern.pattern]['mapping']
                 except:
@@ -760,7 +766,7 @@ class MetaKernelProduct(Product):
         #
         # Obtain meta-kernel grammar from configuration.
         #
-        kernel_grammar_list = self.setup.mk_grammar['pattern']
+        kernel_grammar_list = self.mk_setup['grammar']['pattern']
 
         #
         # We scan the kernel directory to obtain the list of available kernels
@@ -897,8 +903,14 @@ class MetaKernelProduct(Product):
         #
         # Introduce and curate the rest of fields from configuration
         #
-        data = self.setup.mk_metadata['data']
-        desc = self.setup.mk_metadata['description']
+        if 'data' in self.mk_setup['metadata']:
+            data = self.mk_setup['metadata']['data']
+        else:
+            data = ''
+        if 'description' in self.mk_setup['metadata']:
+            desc = self.mk_setup['metadata']['description']
+        else:
+            desc = ''
 
         curated_data = ''
         curated_desc = ''
@@ -953,8 +965,9 @@ class MetaKernelProduct(Product):
                 f'-- You might take a moment to double-check the metakernel '
                 f'and to do manual edits before proceeding.')
             input(">> Press Enter to continue...")
-
-        self.compare()
+        
+        if self.setup.diff:
+            self.compare()
         logging.info('')
 
         return
@@ -1006,8 +1019,9 @@ class MetaKernelProduct(Product):
         dir = self.setup.working_directory
 
         logging.info(f'-- Comparing '
-            f'{self.name.split(f"{self.setup.mission_accronym}_spice/")}...')
-        compare_files(fromfile, tofile, dir, 'all')
+            f'{self.name.split(f"{self.setup.mission_accronym}_spice/")[-1]}'
+                     f'...')
+        compare_files(fromfile, tofile, dir, self.setup.diff)
 
         if self.setup.interactive:
             input(">> Press enter to continue...")
@@ -1082,11 +1096,11 @@ class MetaKernelProduct(Product):
         #
         kernels = []
         if hasattr(self.setup, 'coverage_kernels'):
-            if isinstance(self.setup.coverage_kernels, list):
-                coverage_kernels = self.setup.coverage_kernels[0]['pattern']
-            else:
-                coverage_kernels = self.setup.coverage_kernels['pattern']
-            for pattern in coverage_kernels:
+            coverage_kernels = self.setup.coverage_kernels
+            patterns = coverage_kernels[0]['pattern']
+            if not isinstance(patterns, list):
+                patterns = [patterns]
+            for pattern in patterns:
                 for kernel in self.collection_metakernel:
                     if re.match(pattern, kernel):
                         kernels.append(kernel)
@@ -1199,9 +1213,10 @@ class OrbnumFileProduct(Product):
     Orbit number file class.
     '''
 
-    def __init__(self, setup, name, collection):
+    def __init__(self, setup, name, collection, kernels_collection):
 
         self.collection = collection
+        self.kernels_collection = kernels_collection
         self.setup = setup
         self.name = name
         self.extension = name.split('.')[-1].strip()
@@ -1214,9 +1229,9 @@ class OrbnumFileProduct(Product):
         # Map the orbnum file with its configuration.
         #
         for orbnum_type in setup.orbnum:
-            if re.match(orbnum_type['@pattern'], name):
+            if re.match(orbnum_type['pattern'], name):
                 self._orbnum_type = orbnum_type
-                self._pattern = orbnum_type['@pattern']
+                self._pattern = orbnum_type['pattern']
 
         if not hasattr(self, '_orbnum_type'):
             error_message("The orbnum file does not match any type "
@@ -1569,6 +1584,7 @@ class OrbnumFileProduct(Product):
                 # If the name does not have an explicit version, the version
                 # is set to 2.
                 #
+                original_name = self.name
                 name = self.name.split('.')[0] + '_v2.' +  \
                        self.name.split('.')[-1]
                 path = f'{os.sep}'.join(self.path.split(os.sep)[:-1]) + \
@@ -1590,10 +1606,20 @@ class OrbnumFileProduct(Product):
                 new_version = matches.group(0).replace(version_number, 
                                                        new_version_number)
                 
+                original_name = matches.string
                 name = self.name.replace(matches.group(0), new_version)
                 path = self.path.replace(matches.group(0), new_version)    
                 
                 logging.warning(f'-- Orbnum name updated to: {name}')
+
+            #
+            # The updated name needs to be propagated to the kernel
+            # list.
+            #
+            for index, item in enumerate(
+                    self.kernels_collection.list.kernel_list):
+                if item == original_name:
+                    self.kernels_collection.list.kernel_list[index] = name
 
             #
             # Following the name, write the new file and remove the 
@@ -2170,7 +2196,11 @@ class OrbnumFileProduct(Product):
               the event time of the first orbit and the opposite event time
               of the last orbit.
         """
-        coverage_source = self._orbnum_type['coverage']
+        if 'coverage' in self._orbnum_type:
+            coverage_source = self._orbnum_type['coverage']
+        else:
+            coverage_source = ''
+            
         coverage_found = False
 
         if 'kernel' in coverage_source:
@@ -2320,8 +2350,8 @@ class InventoryProduct(Product):
         self.collection = collection
 
         if setup.pds_version == '3':
-            self.path = setup.final_directory + os.sep + 'INDEX' \
-                        + os.sep + 'INDEX.TAB'
+            self.path = setup.final_directory + os.sep + 'index' \
+                        + os.sep + 'index.tab'
 
         elif setup.pds_version == '4':
 
@@ -2378,19 +2408,19 @@ class InventoryProduct(Product):
             self.path = setup.staging_directory + os.sep + collection.name \
                         + os.sep + self.name
 
-        self.lid = self.product_lid()
-        self.vid = self.product_vid()
+            self.lid = self.product_lid()
+            self.vid = self.product_vid()
 
         #
         # Kernels are already generated products but Inventories are not.
         #
         self.write_product()
-        Product.__init__(self)
-
-        if setup.pds_version == '3':
-            self.label = InventoryPDS3Label(setup, collection, self)
-        elif setup.pds_version == '4':
+        if setup.pds_version == '4':
+            Product.__init__(self)
             self.label = InventoryPDS4Label(setup, collection, self)
+
+        #elif setup.pds_version == '3':
+        #    self.label = InventoryPDS3Label(setup, collection, self)
 
         return
 
@@ -2415,6 +2445,30 @@ class InventoryProduct(Product):
         #
         # PDS4 collection file generation
         #
+        if self.setup.pds_version == '4':
+            self.__write_pds4_collection_product()
+        else:
+            return
+            self.__write_pds3_index_product()
+
+        if self.setup.interactive:
+            input(">> Press Enter to continue...")
+
+        logging.info(f'-- Generated '
+                     f'{self.path.split(self.setup.staging_directory)[-1]}')
+        if not self.setup.args.silent and not self.setup.args.verbose: print(
+            f'   * Created '
+            f'{self.path.split(self.setup.staging_directory)[-1]}.')
+
+        self.validate()
+
+        if self.setup.diff:
+            self.compare()
+
+        return
+
+    def __write_pds4_collection_product(self):
+        
         with open(self.path, "w+") as f:
             #
             # If there is an existing version we need to add the items from
@@ -2436,7 +2490,7 @@ class InventoryProduct(Product):
                                 # be included as secondary in the new one
                                 #
                                 line = line.replace('P,urn', 'S,urn')
-                            line = add_carriage_return(line, self.setup.eol)
+                            line = add_carriage_return(line, self.setup.pds4_eol)
                             f.write(line)
                 except:
                     logging.error('-- A previous collection was expected. '
@@ -2448,24 +2502,110 @@ class InventoryProduct(Product):
                     line = f'P,' \
                            f'{product.lid}::' \
                            f'{product.vid}\r\n'
-                    line = add_carriage_return(line, self.setup.eol)
+                    line = add_carriage_return(line, self.setup.pds4_eol)
                     f.write(line)
+        
+        return
 
-        if self.setup.interactive:
-            input(">> Press Enter to continue...")
+    def __write_pds3_index_product(self):
+        
+        #
+        # PDS3 INDEX file generation
+        #
 
-        logging.info(f'-- Generated '
-                     f'{self.path.split(self.setup.staging_directory)[-1]}')
-        if not self.setup.args.silent and not self.setup.args.verbose: print(
-            f'   * Created '
-            f'{self.path.split(self.setup.staging_directory)[-1]}.')
+        current_index = list()
+        kernel_list = list()
+        kernel_directory_list = ['IK', 'FK', 'SCLK', 'LSK', 'PCK', 'CK', 'SPK']
 
-        self.validate()
+        # In MEX the DSK folder has nothing to export
+        if os.path.exists(self.mission.bundle_directory + '/DATA/DSK'):
+            kernel_directory_list.append('DSK')
 
-        if self.setup.diff:
-            self.compare()
-            logging.info('')
+        if os.path.exists(self.mission.bundle_directory + '/DATA/EK'):
+            kernel_directory_list.append('EK')
 
+        # Note that PCK was doubled here. This accounted for a spurious extra line
+        # n the INDEX.TAB.
+
+        if self.mission.increment:
+            existing_index = self.mission.increment + '/INDEX/INDEX.TAB'
+
+            with open(existing_index, 'r') as f:
+
+                for line in f:
+
+                    if line.strip() == '': break
+
+                    current_index.append(
+                            [line.split(',')[0].replace(' ', ''),
+                             line.split(',')[1].replace(' ', ''),
+                             line.split(',')[2],
+                             line.split(',')[3].replace('\n', '\r\n') ]
+                            )
+                    line = line.split(',')[1]
+                    line = line[1:-1].rstrip()
+                    kernel_list.append(line)
+
+        new_index = []
+
+        for directory in kernel_directory_list:
+
+            data_files = self.mission.bundle_directory + '/data/' + directory
+
+            for file in os.listdir(data_files):
+
+                if file.split('.')[1] != 'LBL' and file not in kernel_list:
+                    new_label_element = '"DATA/' + directory + '/' + \
+                                        file.split('.')[0] + '.LBL"'
+                    new_kernel_element = '"' + file + '"'
+
+                    generation_date = PDS3_label_gen_date(
+                        data_files + '/' + file.split('.')[0] + '.LBL')
+                    if not 'T' in generation_date:
+                        generation_date = generation_date
+
+                    new_index.append([new_label_element, new_kernel_element,
+                                      generation_date,
+                                      '"' + self.mission.dataset + '"\r\n'])
+
+        #
+        # Merge both lists
+        #
+        index = current_index + new_index
+
+        #
+        # Sort out which is the kernel that has the most characters
+        # and we add blank spaces to the rest
+        #
+        lab_filenam_list = list()
+        ker_filenam_list = list()
+
+        for element in index:
+            lab_filenam_list.append(element[0])
+            ker_filenam_list.append(element[1])
+
+        longest_lab_name = (max(lab_filenam_list, key=len))
+        max_lab_name_len = len(longest_lab_name)
+
+        longest_ker_name = (max(ker_filenam_list, key=len))
+        max_ker_name_len = len(longest_ker_name)
+
+        index_list = list()
+        dates = []   # used to sort out according to generation date the index_list
+        for element in index:
+            blanks = max_lab_name_len - (len(element[0]))
+            label = element[0][:-1] + ' ' * blanks + element[0][-1]
+
+            blanks = max_ker_name_len - (len(element[1]))
+            kernel = element[1][:-1] + ' ' * blanks + element[1][-1]
+            if '\n' in element[-1]:
+                index_list.append(label + ',' + kernel + ',' + element[2] + ',' + element[3])
+            else:
+                index_list.append(label + ',' + kernel + ',' + element[2] + ',' + element[3] + '\n')
+            dates.append(element[2])
+        with open(self.mission.bundle_directory + '/index/index.tab', 'w+') as f:
+            for element in [x for _,x in sorted(zip(dates, index_list))]: f.write(element)
+             
         return
 
     def validate(self):
@@ -2609,8 +2749,8 @@ class InventoryProduct(Product):
 
             logging.info('-- Adding CRs to index files.')
             logging.info('')
-            add_crs_to_file(dsindex, self.setup.eol)
-            add_crs_to_file(dsindex_lbl, self.setup.eol)
+            add_crs_to_file(dsindex, self.setup.pds4_eol)
+            add_crs_to_file(dsindex_lbl, self.setup.pds4_eol)
 
             self.index = ''
             self.index_lbl = ''
@@ -2779,7 +2919,7 @@ class SpicedsProduct(object):
         with open(self.path, "r") as s:
             with open(temporary_file, "w+") as t:
                 for line in s:
-                    line = add_carriage_return(line, self.setup.eol)
+                    line = add_carriage_return(line, self.setup.pds4_eol)
                     t.write(line)
 
         #
@@ -2931,12 +3071,12 @@ class ReadmeProduct(Product):
                         line = line.replace('$SPICE_NAME',
                                             self.setup.readme['spice_name'])
                         line_length = len(line) - 1
-                        line = add_carriage_return(line, self.setup.eol)
+                        line = add_carriage_return(line, self.setup.pds4_eol)
                         f.write(line)
                     elif '$UNDERLINE' in line:
                         line = line.replace('$UNDERLINE', '=' * line_length)
                         line_length = len(line) - 1
-                        line = add_carriage_return(line, self.setup.eol)
+                        line = add_carriage_return(line, self.setup.pds4_eol)
                         f.write(line)
                     elif '$OVERVIEW' in line:
                         overview = self.setup.readme['overview']
@@ -2955,9 +3095,9 @@ class ReadmeProduct(Product):
                         line = add_carriage_return(line, self.setup.eol)
                         f.write(line)
 
-        logging.info('-- readme file generated.')
+        logging.info('-- Created readme file.')
         if not self.setup.args.silent and not self.setup.args.verbose: print(
-            f'   * readme file generated.')
+            f'   * Created readme file.')
 
         return
 
@@ -3071,6 +3211,7 @@ class ChecksumProduct(Product):
             logging.warning(f'-- Default to version {self.version}.')
             logging.warning(f'-- Make sure this is the first release of '
                             f'the archive.')
+            logging.warning('')
 
             if self.setup.interactive:
                 input(">> Press Enter to continue...")
