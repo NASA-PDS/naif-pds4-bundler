@@ -21,10 +21,10 @@
         <doi>10.17189/1520115</doi>
         <kernels_to_load>
             <lsk>naif[0-9][0-9][0-9][0-9].tls</lsk>
-            <sclk> </sclk>
-            <fk> </fk>
+            <sclk>ORB1_SCLKSCET.[0-9]{5}.tsc</sclk>
+            <fk>m01_v[0-9][0-9].tf</fk>
         </kernels_to_load>
-        <date_format>makelbl</date_format>
+        <date_format>maklabel</date_format>
         <end_of_line>LF</end_of_line>
     </bundle_parameters>
 
@@ -51,8 +51,9 @@
     <!-- =========================== -->
     <directories>
         <working_directory>working</working_directory>
+        <kernels_directory>/Users/mcosta/workspace/pds/npb_workspace/m01_area/kernels</kernels_directory>
         <kernels_directory>kernels</kernels_directory>
-        <kernels_directory>misc/orbnum</kernels_directory>
+        <orbnum_directory>kernels/spk</orbnum_directory>
         <staging_directory>staging</staging_directory>
         <final_directory>final</final_directory>
         <reports_directory>reports</reports_directory>
@@ -63,8 +64,12 @@
     <!-- =========================== -->
     <kernel_list>
         <kernel pattern="orb1_sclkscet_[0-9][0-9][0-9][0-9][0-9].tsc">
+            <mapping>ORB1_SCLKSCET.$VERSION.tsc</mapping>
             <mklabel_options>NAIF SC</mklabel_options>
             <description>This file is a SPICE spacecraft clock (SCLK) kernel containing information required for M01 spacecraft on-board clock to UTC conversion.</description>
+            <patterns>
+                <VERSION pattern="KERNEL">ORB1_SCLKSCET.$VERSION.tsc</VERSION>
+            </patterns>            
         </kernel>
         <kernel pattern="m01_hga_ext[0-9][0-9].bc">
             <mklabel_options>NAIF HGA EXTENDED</mklabel_options>
@@ -102,6 +107,18 @@
     <!-- Meta-kernel                 -->
     <!-- =========================== -->
     <meta-kernel>
+        <mk_inputs>
+            <file>../data/m01_2020_v03.tm</file>
+        </mk_inputs>
     </meta-kernel>
 
+    <!-- =========================== -->
+    <!-- Orbit number file           -->
+    <!-- =========================== -->
+    <orbit_number_file>
+        <orbnum>
+            <pattern>m01_ext[0-9]{2}.nrb</pattern>
+        </orbnum>
+    </orbit_number_file>
+    
 </naif-pds4-bundle_configuration>

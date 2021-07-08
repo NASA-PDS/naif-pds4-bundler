@@ -6,9 +6,9 @@
     <!-- =========================== -->
     <pds_parameters>
         <pds_version>4</pds_version>
-        <information_model>1.16.0.0</information_model>
-        <xml_model>http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1G00.sch</xml_model>
-        <schema_location>http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1G00.xsd
+        <information_model>1.5.0.0</information_model>
+        <xml_model>http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.sch</xml_model>
+        <schema_location>http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd
         </schema_location>
         <logical_identifier>urn:nasa:pds:ladee.spice</logical_identifier>
     </pds_parameters>
@@ -30,7 +30,7 @@
                 the LADEE spacecraft, its instruments, and targets.
             </overview>
             <cognisant_persons>
-                This archive bundle was produced by Planetary Data System (PDS)
+                This archive bundle was produced by the Planetary Data System (PDS)
                 Navigation and Ancillary Information Facility (NAIF) Node, Jet
                 Propulsion Laboratory, Pasadena, California.
             </cognisant_persons>
@@ -98,8 +98,6 @@
             <description>SPICE text PCK file containing high-accuracy lunar orientation data from the JPL Solar
                 System Dynamics Group's planetary ephemeris DE421, created by NAIF, JPL.
             </description>
-            <patterns>
-            </patterns>
         </kernel>
         <kernel pattern="moon_assoc_me.tf">
             <mklabel_options>DEF_TIMES</mklabel_options>

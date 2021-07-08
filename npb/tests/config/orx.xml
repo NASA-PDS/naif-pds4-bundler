@@ -11,8 +11,6 @@
         <schema_location>http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd
         </schema_location>
         <logical_identifier>urn:nasa:pds:orex.spice</logical_identifier>
-        <!-- Optional parameters -->
-        <context_products></context_products>
     </pds_parameters>
 
     <!-- =========================== -->
@@ -36,20 +34,13 @@
                 Propulsion Laboratory, Pasadena, California.
             </cognisant_persons>
         </readme>
-        <!-- Optional parameters -->
-        <!-- Release date as a UTC calendar string. Use the following format:
-             YYYY-MM-DD e.g. 2021-04-09. -->
-        <release_date></release_date>
-        <!-- Increment start and stop times provided as a UTC calendar string.
-             They require to be present. Use the following format:
-             YYYY-MM-DDThh:mm:ssZ e.g., 2021-04-09T15:11:12Z. -->
-        <increment_start></increment_start>
-        <increment_finish></increment_finish>
         <kernels_to_load>
             <lsk>naif[0-9][0-9][0-9][0-9].tls</lsk>
             <sclk>ORX_SCLKSCET.[0-9][0-9][0-9][0-9][0-9].tsc</sclk>
             <fk>orx_v[0-9][0-9].tff</fk>
         </kernels_to_load>
+        <date_format>maklabel</date_format>
+        <end_of_line>CRLF</end_of_line>
     </bundle_parameters>
 
     <!-- =========================== -->
@@ -63,11 +54,11 @@
         <spacecraft>MAVEN</spacecraft>
         <target>(101955) Bennu</target>
         <phases>
-            <EXTENDED></EXTENDED>
+            <phase name="EXTENDED">
+                <start> </start>
+                <finish> </finish>
+            </phase>
         </phases>
-        <!-- Optional parameters -->
-        <secondary_spacecraft></secondary_spacecraft>
-        <secondary_target></secondary_target>
     </mission_parameters>
 
     <!-- =========================== -->
@@ -195,8 +186,8 @@
             <mklabel_options></mklabel_options>
             <description>SPICE CK file containing reconstructed orientation of the ORX OLA instrument internal mirror, created by the OLA Team, JHU/APL. The original name of this file was $ORIGNAME."</description>
             <patterns>
-                <DATE pattern="KERNEL">$DATE_ola_scil2id[0-9][0-9][0-9][0-9][0-9].bc</DATE>
                 <VERSION pattern="KERNEL">[0-9][0-9][0-9][0-9][0-9][0-9]_ola_scil2id$VERSION.bc</VERSION>
+                <DATE pattern="KERNEL">$DATE_ola_scil2id[0-9][0-9][0-9][0-9][0-9].bc</DATE>                
             </patterns>
         </kernel>
         <kernel pattern="orx_p_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_od[0-9][0-9][0-9]_v[0-9][0-9].bc">
@@ -216,8 +207,8 @@
             <description>SPICE CK file containing reconstructed orientation of the ORX spacecraft, created by NAIF, JPL.</description>
         </kernel>
         <kernel pattern="bennu_g_[0-9][0-9][0-9][0-9][0-9]mm_alt_obj_[0-9][0-9][0-9][0-9][ns][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds">
-            <mklabel_options></mklabel_options>
             <mapping>g_$RESOLUTIONmm_alt_obj_$REFERENCE_v$VERSION.bds</mapping>
+            <mklabel_options></mklabel_options>
             <description>SPICE DSK file containing shape model data for the surface of asteroid (101955) Bennu, with Global coverage at $RESOLUTION meter resolution, ALT-based, version $VERSION,
                 created by the ORX Altimetry Working Group (AltWG). The original name of this file was $COVERAGE_$RESOLUTIONmm_alt_obj_$REFERENCE_v$VERSION.bds.</description>
             <patterns>
@@ -228,8 +219,8 @@
             </patterns>
         </kernel>
         <kernel pattern="bennu_l_[0-9][0-9][0-9][0-9][0-9]mm_alt_obj_[0-9][0-9][0-9][0-9][ns][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds">
-            <mklabel_options></mklabel_options>
             <mapping>l_$RESOLUTIONmm_alt_obj_$REFERENCE_v$VERSION.bds</mapping>
+            <mklabel_options></mklabel_options>
             <description>SPICE DSK file containing shape model data for the surface of asteroid (101955) Bennu, with Local coverage at $RESOLUTION meter resolution, ALT-based, version $VERSION,
                 created by the ORX Altimetry Working Group (AltWG). The original name of this file was $COVERAGE_$RESOLUTIONmm_alt_obj_$REFERENCE_v$VERSION.bds.</description>
             <patterns>
@@ -253,21 +244,17 @@
     <!-- Meta-kernel                 -->
     <!-- =========================== -->
     <meta-kernel>
-        <!-- A resulting meta-kernel will look like -->
-        <mk_inputs>
-            <file></file>
-        </mk_inputs>
         <coverage_kernels>
             <!-- These kernels determine the coverage of the bundle
                  increment
             -->
-            <pattern>maven_orb_rec_[0-9]{6}_[0-9]{6}_v[0-9].bsp</pattern>
-            <pattern>mvn_sc_rel_[0-9]{6}_[0-9]{6}_v[0-9]{2}.bc</pattern>
+            <pattern>orx_[0-9]{6}_[0-9]{6}_od[0-9][0-9][0-9]_v[0-9].bsp</pattern>
+            <pattern>orx_sc_rel_[0-9]{6}_[0-9]{6}_v[0-9]{2}.bc</pattern>
         </coverage_kernels>
         <mk name="orx_$YEAR_v$VERSION">
             <name>
-                <pattern lenght="2">VERSION</pattern>
-                <pattern lenght="4">YEAR</pattern>
+                <pattern length="2">VERSION</pattern>
+                <pattern length="4">YEAR</pattern>
             </name>
             <grammar>
                 <!-- LSK -->
@@ -334,6 +321,10 @@
             </metadata>
         </mk>
         <mk name="orx_noola_$YEAR_v$VERSION">
+            <name>
+                <pattern length="2">VERSION</pattern>
+                <pattern length="4">YEAR</pattern>
+            </name>
             <grammar>
                 <!-- LSK -->
                 <pattern>naif0012.tls</pattern>
@@ -382,12 +373,6 @@
                     OSIRIS-REx SPICE kernel archive.
 
                 </description>
-            <!-- The keyword field is used to speficy parameters such as the
-                 meta-kernel year.
-            -->
-                <keyword>
-                </keyword>
-                <data></data>
             </metadata>
         </mk>
     </meta-kernel>

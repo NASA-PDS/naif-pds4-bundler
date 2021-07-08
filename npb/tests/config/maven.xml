@@ -12,7 +12,16 @@
         </schema_location>
         <logical_identifier>urn:nasa:pds:maven.spice</logical_identifier>
         <!-- Optional parameters -->
-        <context_products></context_products>
+        <context_products>
+            <product name="MAVEN">
+                <type>Spacecraft</type>
+                <lidvid>urn:nasa:pds:context:instrument_host:spacecraft.maven::1.0</lidvid>
+            </product>
+            <product name="Oumuamua">
+                <type>Hyperbolic Asteroid</type>
+                <lidvid>urn:nasa:pds:context:target:asteroid.oumauma::2.0</lidvid>
+            </product>
+        </context_products>
     </pds_parameters>
 
     <!-- =========================== -->
@@ -39,12 +48,12 @@
         <!-- Optional parameters -->
         <!-- Release date as a UTC calendar string. Use the following format:
              YYYY-MM-DD e.g. 2021-04-09. -->
-        <release_date></release_date>
+        <release_date>2021-06-25</release_date>
         <!-- Increment start and stop times provided as a UTC calendar string.
              They require to be present. Use the following format:
              YYYY-MM-DDThh:mm:ssZ e.g., 2021-04-09T15:11:12Z. -->
-        <increment_start></increment_start>
-        <increment_finish></increment_finish>
+        <increment_start> </increment_start>
+        <increment_finish> </increment_finish>
         <kernels_to_load>
             <lsk>naif[0-9][0-9][0-9][0-9].tls</lsk>
             <sclk>MVN_SCLKSCET.[0-9][0-9][0-9][0-9][0-9].tsc</sclk>
@@ -68,16 +77,16 @@
         <target>MARS</target>
         <phases>
             <phase name="EXTENDED">
-                <start></start>
-                <finish></finish>
+                <start> </start>
+                <finish> </finish>
             </phase>
         </phases>
         <!-- Optional parameters -->
         <secondary_spacecrafts>
-            <spacecraft></spacecraft>
+            <spacecraft> </spacecraft>
         </secondary_spacecrafts>
         <secondary_targets>
-            <target></target>
+            <target> </target>
         </secondary_targets>
     </mission_parameters>
 
@@ -112,7 +121,7 @@
             <description>SPICE text PCK file containing constants from the $REPORT report, created by NAIF, JPL.
             </description>
             <patterns>
-                <REPORT value="pck0010.tpc">IAU 2009</REPORT>
+                <REPORT value="pck00010.tpc">IAU 2009</REPORT>
             </patterns>
         </kernel>
         <kernel pattern="maven_v[0-9][0-9].tf">
@@ -279,7 +288,7 @@
     <meta-kernel>
         <!-- A resulting meta-kernel will look like -->
         <mk_inputs>
-            <file></file>
+            <file> </file>
         </mk_inputs>
         <coverage_kernels>
             <!-- These kernels determine the coverage of the bundle
@@ -324,7 +333,6 @@
                 <pattern>date:mvn_sc_rel_[0-9]{6}_[0-9]{6}_v[0-9]{2}.bc</pattern>
                 <!-- DSK -->
             </grammar>
-        </mk>
             <metadata>
                 <description>
                     This meta-kernel lists the MAVEN SPICE kernels providing coverage
@@ -340,17 +348,18 @@
                 <!-- The keyword field is used to speficy parameters such as the
                      meta-kernel year.
                 -->
-                <keyword>
-                </keyword>
-                <data></data>
+                <keyword> </keyword>
+                <data> </data>
             </metadata>
+        </mk>
     </meta-kernel>
 
     <!-- =========================== -->
     <!-- Orbit number file           -->
     <!-- =========================== -->
     <orbit_number_file>
-        <orbnum pattern="maven_orb_rec_[0-9]{6}_[0-9]{6}_v[0-9].orb">
+        <orbnum>
+            <pattern>maven_orb_rec_[0-9]{6}_[0-9]{6}_v[0-9].orb</pattern>
             <!-- Parameters from the orbnum generation preference file -->
             <event_detection_frame>
                 <spice_name>IAU_MARS</spice_name>
@@ -412,7 +421,6 @@
             -->
             <!--    <kernel>maven_orb_rec_[0-9]{6}_[0-9]{6}_v[0-9].bsp</kernel> -->
                 <kernel cutoff="True">../data/kernels/spk/maven_orb_rec_210101_210401_v2.bsp</kernel>
-                <lookup_table></lookup_table>
             </coverage>
         </orbnum>
     </orbit_number_file>
