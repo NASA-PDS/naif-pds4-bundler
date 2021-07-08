@@ -179,6 +179,43 @@ the template should contain:
     </File>
 
 
+spiceds
+=======
+
+-- why did you remove
+
+       with a carriage return (ASCII 13) and
+
+from
+
+    All text documents and other meta information files such as
+    descriptions, detached PDS4 labels, and inventory tables are stream
+    format files, with a carriage return (ASCII 13) and a line feed
+    character (ASCII 10) at the end of the records.  This allows the
+    files to be read by most operating systems.
+
+We are going to continue adding CRs to all text, XML, and other PDS
+meta-files that we have in PDS4 archives as dictated by the standard, right?
+
+And we should add CRs to checksum tables as well.
+
+So please restore this.
+
+The only files we will not add CRs to are text kernels and ORBNUM files
+in bundles created using 1.G+ IM. So such bundles we should just add
+ORBNUMs to the next paragraph that talks about text kernels, i.e.
+
+    All text kernel files -- LSKs, PCKs, SCLKs, IKs, and FKs, -- and
+    ORBNUM files in this archive are UNIX text files, with a line feed
+    character (ASCII 10) at ...
+
+For pre-1.G bundles we should add ORBNUMs to the paragraph above, i.e.
+
+    All text documents and other meta information files such as
+    descriptions, detached PDS4 labels, and inventory tables as well as
+    ORBNUM files are stream format files, with a carriage return (ASCII
+    13) and a line feed ...
+
 Configuration
 =============
 
