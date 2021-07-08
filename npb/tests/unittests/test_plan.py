@@ -1,23 +1,32 @@
-"""Functional tests for the List generator.
-"""
 import os
 import shutil
 import unittest
-
 from unittest import TestCase
 from npb.main import main
 
 
 class TestPlan(TestCase):
     """
-    Test family for the plan generation.
-    The data sources are contained in the::
-
-        data/
-
-    directory.
-
+    Test Family for the plan generation.
     """
+
+    @classmethod
+    def setUpClass(cls):
+        '''
+        Method that will be executed once for this test case class.
+        It will execute before all tests methods.
+
+        '''
+        print(f"NPB - Unit Tests - {cls.__name__}")
+
+        os.chdir(os.path.dirname(__file__))
+
+    def setUp(self):
+        '''
+        This method will be executed before each test function.
+        '''
+        unittest.TestCase.setUp(self)
+        print(f"    * {self._testMethodName}")
 
     def test_pds4_insight_plan(self):
         """
@@ -25,11 +34,9 @@ class TestPlan(TestCase):
         Implemented following the generation of the kernel list for release 8.
 
         """
-
         config = '../config/insight.xml'
         plan   = ''
         faucet = 'list'
-
 
         #
         # Test preparation

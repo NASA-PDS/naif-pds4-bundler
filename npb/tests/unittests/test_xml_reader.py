@@ -16,20 +16,43 @@ from npb.classes.product    import Object
 
 class TestXML(TestCase):
 
-    def test_xml_reader_basic(self):
+    @classmethod
+    def setUpClass(cls):
+        '''
+        Method that will be executed once for this test case class.
+        It will execute before all tests methods.
 
-        #
-        # Test preparation
-        #
+        '''
+        print(f"NPB - Functional Tests - {cls.__name__}")
+
+        os.chdir(os.path.dirname(__file__))
+
         dirs = ['working', 'staging', 'insight', 'kernels']
         for dir in dirs:
             shutil.rmtree(dir, ignore_errors=True)
+
+    def setUp(self):
+        '''
+        This method will be executed before each test function.
+        '''
+        unittest.TestCase.setUp(self)
+        print(f"    * {self._testMethodName}")
+
+        dirs = ['working', 'staging', 'kernels']
+        for dir in dirs:
             os.mkdir(dir)
 
-        os.mkdir('kernels/fk')
-        os.mkdir('kernels/sclk')
-        os.mkdir('kernels/ck')
-        os.mkdir('kernels/lsk')
+    def tearDown(self):
+        '''
+        This method will be executed after each test function.
+        '''
+        unittest.TestCase.tearDown(self)
+
+        dirs = ['working', 'staging', 'insight', 'kernels']
+        for dir in dirs:
+            shutil.rmtree(dir, ignore_errors=True)
+
+    def test_xml_reader_basic(self):
 
         shutil.copy2('../data/kernels/fk/insight_v05.tf', 'kernels/fk')
         shutil.copy2('../data/kernels/lsk/naif0012.tls', 'kernels/lsk')
@@ -40,6 +63,7 @@ class TestXML(TestCase):
         shutil.copy2('../data/kernels/sclk/NSY_SCLKSCET.00019.tsc',
                      'kernels/sclk')
 
+        os.mkdir('insight')
 
         #
         # Basic test of XML parsing.
@@ -47,11 +71,6 @@ class TestXML(TestCase):
         config = Path('../config/insight.xml').read_text()
         config = etree_to_dict(ET.XML(config))
         print(json.dumps(config, indent=4))
-
-
-        #
-        # Testing of the initialisation of the Setup class
-        #
 
         #
         # Dummy initialization values for Setup class
@@ -72,34 +91,16 @@ class TestXML(TestCase):
         #
         # Testing of the initialisation of the List class
         #
-
         setup.release = '008'
 
-        list = KernelList(setup, args.plan)
-
-
-        #
-        # Cleanup test facility
-        #
-        dirs = ['working', 'staging', 'insight', 'kernels']
-        for dir in dirs:
-            shutil.rmtree(dir, ignore_errors=True)
-
+        KernelList(setup, args.plan)
 
     def test_xml_reader_mk(self):
         '''
         Testing the initialisation of the meta-kernel
         :return:
         '''
-
         config = '../config/insight.xml'
-
-
-        dirs = ['working', 'staging', 'kernels']
-        for dir in dirs:
-            shutil.rmtree(dir, ignore_errors=True)
-            os.mkdir(dir)
-        shutil.rmtree('insight', ignore_errors=True)
 
         os.mkdir('staging/insight')
         os.mkdir('staging/insight/insight_spice')
@@ -121,11 +122,7 @@ class TestXML(TestCase):
         shutil.copytree('../data/insight', 'insight')
 
         main(config, '', 'final', silent=True, log=False, diff='')
-
-        dirs = ['working', 'staging', 'insight', 'kernels']
-        for dir in dirs:
-            shutil.rmtree(dir, ignore_errors=True)
-
+        
 
 if __name__ == '__main__':
 

@@ -20,6 +20,14 @@ class TestIndex(TestCase):
 
     directory.
     """
+    
+    # This method will be executed only once for this test case class.
+    # It will execute before all test methods. Must decorated with
+    # @classmethod.
+    @classmethod
+    def setUpClass(cls):
+        print("setUpClass execute. ")
+        os.chdir(os.path.dirname(__file__))
 
     def test_pds3_msl_index(self):
         """
@@ -62,50 +70,6 @@ class TestIndex(TestCase):
         os.remove('index.lbl')
         os.remove('dsindex.tab')
         os.remove('dsindex.lbl')
-
-
-    def test_pds4_insight_index(self):
-        """
-        Basic test for InSight index generation. This is a PDS3 data set.
-        Implemented following the generation of the kernel list for
-        release 26.
-
-        """
-
-        list   = '../data/insight_release_index.kernel_list'
-        command = f'perl ../../exe/xfer_index.pl {list}'
-        print(f'-- Executing: {command}')
-
-        command_process = subprocess.Popen(command, shell=True,
-                                           stdout=subprocess.PIPE,
-                                           stderr=subprocess.STDOUT)
-
-        process_output, _ = command_process.communicate()
-        text = process_output.decode('utf-8')
-
-        print(text)
-
-        if 'ERROR' in text:
-            raise Exception()
-
-        equal = filecmp.cmp('index.tab',   '../data/insight_index.tab'  )
-        if not equal: raise Exception(
-            'index.tab and data/insight_index.tab not equal')
-        equal = filecmp.cmp('dsindex.tab', '../data/insight_dsindex.tab')
-        if not equal: raise Exception(
-            'dsindex.tab and data/insight_dsindex.tab not equal')
-        equal = filecmp.cmp('index.lbl',   '../data/insight_index.lbl'  )
-        if not equal: raise Exception(
-            'index.lbl and data/insight_index.lbl not equal')
-        equal = filecmp.cmp('dsindex.lbl', '../data/insight_dsindex.lbl')
-        if not equal: raise Exception(
-            'dsindex.lbl and data/insight_dsindex.lbl not equal')
-
-        os.remove('index.tab')
-        os.remove('index.lbl')
-        os.remove('dsindex.tab')
-        os.remove('dsindex.lbl')
-
 
 if __name__ == '__main__':
     unittest.main()

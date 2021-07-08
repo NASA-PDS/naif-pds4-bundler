@@ -8,72 +8,84 @@ from unittest import TestCase
 from npb.main import main
 
 
-class TestPlan(TestCase):
+class TestOrbnum(TestCase):
     """
     Test family for the plan generation.
-    The data sources are contained in the::
-
-        data/
-
-    directory.
-
     """
+    @classmethod
+    def setUpClass(cls):
+        '''
+        Method that will be executed once for this test case class.
+        It will execute before all tests methods.
 
-    def test_pds4_maven_orbnum_coverage_user_spk(self):
+        '''
+        print(f"NPB - Functional Tests - {cls.__name__}")
+
+        os.chdir(os.path.dirname(__file__))
+
+        dirs = ['working', 'staging', 'final', 'kernels', 'misc', 'maven']
+        for dir in dirs:
+            shutil.rmtree(dir, ignore_errors=True)
+        
+        cls.faucet = 'staging'
+
+    def setUp(self):
+        '''
+        This method will be executed before each test function.
+        '''
+        unittest.TestCase.setUp(self)
+        print(f"    * {self._testMethodName}")
+
+        dirs = ['working', 'staging', 'maven']
+        for dir in dirs:
+            os.mkdir(dir)
+            
+        shutil.copytree('../data/kernels', 'kernels')
+        shutil.copytree('../data/misc', 'misc')
+
+        dirs = ['maven/maven_spice',
+                'maven/maven_spice/spice_kernels',
+                'maven/maven_spice/spice_kernels/spk',
+                'maven/maven_spice/miscellaneous',
+                'maven/maven_spice/miscellaneous/orbnum']
+        for dir in dirs:
+            os.mkdir(dir)
+        
+    def tearDown(self):
+        '''
+        This method will be executed after each test function.
+        '''
+        unittest.TestCase.tearDown(self)
+
+        dirs = ['working', 'staging', 'final', 'kernels', 'misc', 'maven']
+        for dir in dirs:
+            shutil.rmtree(dir, ignore_errors=True)
+        
+        try:
+            os.remove('maven_orbnum.plan')
+        except:
+            pass
+
+    def test_pds4_orbnum_coverage_user_spk(self):
         """
         Test for meta-kernel configuration loading error cases.
         """
         config = '../config/maven.xml'
-        faucet = 'staging'
         plan = 'maven_orbnum.plan'
-
-        shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('kernels', ignore_errors=True)
-        shutil.rmtree('misc', ignore_errors=True)
-
-        shutil.copytree('../data/kernels', 'kernels')
-        shutil.copytree('../data/misc', 'misc')
-        os.mkdir('working')
 
         with open(plan, 'w') as p:
             p.write('maven_orb_rec_210101_210401_v1.orb')
             p.write('\nmaven_orb_rec_210101_210401_v1.nrb')
 
-        #
-        # Test preparation
-        #
-        dirs = ['staging', 'maven']
-        for dir in dirs:
-            shutil.rmtree(dir, ignore_errors=True)
-            os.mkdir(dir)
+        main(config, plan, self.faucet, silent=True)
 
-        main(config, plan, faucet, silent=True)
-
-        #
-        # Cleanup test facility
-        #
-        dirs = ['working', 'staging', 'maven', 'kernels', 'misc']
-        for dir in dirs:
-           shutil.rmtree(dir, ignore_errors=True)
-
-        return None
-
-    def test_pds4_maven_orbnum_coverage_increment_spk(self):
+    def test_pds4_orbnum_coverage_increment_spk(self):
         '''
          Testcase for when the readme file is not present.
          '''
         config = '../config/maven.xml'
         updated_config = 'working/maven.xml'
-        faucet = 'staging'
         plan = 'maven_orbnum.plan'
-
-        shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('kernels', ignore_errors=True)
-        shutil.rmtree('misc', ignore_errors=True)
-
-        shutil.copytree('../data/kernels', 'kernels')
-        shutil.copytree('../data/misc', 'misc')
-        os.mkdir('working')
 
         with open(plan, 'w') as p:
             p.write('maven_orb_rec_210101_210401_v2.bsp')
@@ -90,42 +102,15 @@ class TestPlan(TestCase):
                     else:
                         n.write(line)
 
-        #
-        # Test preparation
-        #
-        dirs = ['staging', 'maven']
-        for dir in dirs:
-            shutil.rmtree(dir, ignore_errors=True)
-            os.mkdir(dir)
+        main(updated_config, plan, self.faucet, silent=True)
 
-        main(updated_config, plan, faucet, silent=True)
-
-        #
-        # Cleanup test facility
-        #
-        dirs = ['working', 'staging', 'maven', 'kernels', 'misc']
-        #for dir in dirs:
-        #   shutil.rmtree(dir, ignore_errors=True)
-
-        return None
-
-    def test_pds4_maven_orbnum_coverage_archived_spk(self):
-
+    def test_pds4_orbnum_coverage_archived_spk(self):
         '''
          Testcase for when the readme file is not present.
          '''
         config = '../config/maven.xml'
         updated_config = 'working/maven.xml'
-        faucet = 'staging'
         plan = 'maven_orbnum.plan'
-
-        shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('kernels', ignore_errors=True)
-        shutil.rmtree('misc', ignore_errors=True)
-
-        shutil.copytree('../data/kernels', 'kernels')
-        shutil.copytree('../data/misc', 'misc')
-        os.mkdir('working')
 
         with open(plan, 'w') as p:
             p.write('\nmaven_orb_rec_210101_210401_v1.orb')
@@ -141,48 +126,18 @@ class TestPlan(TestCase):
                     else:
                         n.write(line)
 
-        #
-        # Test preparation
-        #
-        dirs = ['staging', 'maven', 'maven/maven_spice',
-                'maven/maven_spice/spice_kernels',
-                'maven/maven_spice/spice_kernels/spk']
-        for dir in dirs:
-            shutil.rmtree(dir, ignore_errors=True)
-            os.mkdir(dir)
-
-
         shutil.copy2('../data/kernels/spk/maven_orb_rec_210101_210401_v2.bsp',
                      'maven/maven_spice/spice_kernels/spk/')
 
-        main(updated_config, plan, faucet, silent=True)
+        main(updated_config, plan, self.faucet, silent=True)
 
-        #
-        # Cleanup test facility
-        #
-        dirs = ['working', 'staging', 'maven', 'kernels', 'misc']
-        for dir in dirs:
-           shutil.rmtree(dir, ignore_errors=True)
-
-        return None
-
-
-    def test_pds4_maven_orbnum_coverage_lookup_table(self):
+    def test_pds4_orbnum_coverage_lookup_table(self):
         '''
          Testcase for when the readme file is not present.
          '''
         config = '../config/maven.xml'
         updated_config = 'working/maven.xml'
-        faucet = 'staging'
         plan = 'maven_orbnum.plan'
-
-        shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('kernels', ignore_errors=True)
-        shutil.rmtree('misc', ignore_errors=True)
-
-        shutil.copytree('../data/kernels', 'kernels')
-        shutil.copytree('../data/misc', 'misc')
-        os.mkdir('working')
 
         with open(plan, 'w') as p:
             p.write('\nmaven_orb_rec_210101_210401_v1.orb')
@@ -201,45 +156,17 @@ class TestPlan(TestCase):
                             '  </file>\n'
                             '</lookup_table>\n')
                     else:
-                        n.write(line)
+                        n.write(line) 
 
-        #
-        # Test preparation
-        #
-        dirs = ['staging', 'maven']
-        for dir in dirs:
-            shutil.rmtree(dir, ignore_errors=True)
-            os.mkdir(dir)
+        main(updated_config, plan, self.faucet, silent=True)
 
-        main(updated_config, plan, faucet, silent=True)
-
-        #
-        # Cleanup test facility
-        #
-
-        dirs = ['working', 'staging', 'maven', 'kernels', 'misc']
-        #for dir in dirs:
-        #    shutil.rmtree(dir, ignore_errors=True)
-
-        return None
-
-
-    def test_pds4_maven_orbnum_coverage_estimate(self):
+    def test_pds4_orbnum_coverage_estimate(self):
         """
         Test for meta-kernel configuration loading error cases.
         """
         config = '../config/maven.xml'
         updated_config = 'working/maven.xml'
-        faucet = 'staging'
         plan = 'maven_orbnum.plan'
-
-        shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('kernels', ignore_errors=True)
-        shutil.rmtree('misc', ignore_errors=True)
-
-        shutil.copytree('../data/kernels', 'kernels')
-        shutil.copytree('../data/misc', 'misc')
-        os.mkdir('working')
 
         with open(config, 'r') as c:
             with open(updated_config, 'w') as n:
@@ -253,41 +180,14 @@ class TestPlan(TestCase):
         with open(plan, 'w') as p:
             p.write('maven_orb_rec_210101_210401_v1.orb')
 
-        #
-        # Test preparation
-        #
-        dirs = ['staging', 'maven']
-        for dir in dirs:
-            shutil.rmtree(dir, ignore_errors=True)
-            os.mkdir(dir)
+        main(updated_config, plan, self.faucet, silent=True)
 
-        main(updated_config, plan, faucet, silent=True)
-
-        #
-        # Cleanup test facility
-        #
-        dirs = ['working', 'staging', 'maven', 'kernels', 'misc']
-        for dir in dirs:
-           shutil.rmtree(dir, ignore_errors=True)
-
-        return None
-
-
-    def test_pds4_maven_orbnum_with_former_version(self):
+    def test_pds4_orbnum_with_former_version(self):
         """
         Test for meta-kernel configuration loading error cases.
         """
         config = '../config/maven.xml'
-        faucet = 'staging'
         plan = 'maven_orbnum.plan'
-
-        shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('kernels', ignore_errors=True)
-        shutil.rmtree('misc', ignore_errors=True)
-
-        shutil.copytree('../data/kernels', 'kernels')
-        shutil.copytree('../data/misc', 'misc')
-        os.mkdir('working')
 
         with open(plan, 'w') as p:
             p.write('maven_orb_rec_210101_210401_v2.orb')
@@ -295,33 +195,16 @@ class TestPlan(TestCase):
         #
         # Test preparation
         #
-        dirs = ['staging', 'maven']
-        for dir in dirs:
-            shutil.rmtree(dir, ignore_errors=True)
-            os.mkdir(dir)
-        os.mkdir('maven/maven_spice')
-        os.mkdir('maven/maven_spice/miscellaneous')
-        os.mkdir('maven/maven_spice/miscellaneous/orbnum')
         with open('maven/maven_spice/miscellaneous/orbnum/'
-                  'maven_orb_rec_210101_210401_v1.orb', 'w') as p:
+                  'maven_orb_rec_210101_210401_v1.orb', 'w'):
             pass
         with open('maven/maven_spice/miscellaneous/orbnum/'
-                  'maven_orb_rec_210101_2105401_v2.orb', 'w') as p:
+                  'maven_orb_rec_210101_2105401_v2.orb', 'w'):
             pass
 
-        main(config, plan, faucet, silent=True)
+        main(config, plan, self.faucet, silent=True)
 
-        #
-        # Cleanup test facility
-        #
-        dirs = ['working', 'staging', 'maven', 'kernels', 'misc']
-        for dir in dirs:
-          shutil.rmtree(dir, ignore_errors=True)
-
-        return None
-
-
-    def test_pds4_maven_orbnum_with_former(self):
+    def test_pds4_orbnum_with_former(self):
         """
         Test for orbnum generation when the prior file does not have an
         explicit version. Note that the orbnum file provided by the user
@@ -329,151 +212,56 @@ class TestPlan(TestCase):
         configuration as well).
         """
         config = '../config/maven.xml'
-        faucet = 'staging'
         plan = 'maven_orbnum.plan'
-
-        shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('kernels', ignore_errors=True)
-        shutil.rmtree('misc', ignore_errors=True)
-
-        shutil.copytree('../data/kernels', 'kernels')
-        shutil.copytree('../data/misc', 'misc')
-        os.mkdir('working')
 
         with open(plan, 'w') as p:
             p.write('maven_orb_rec_210101_210401_v1.orb')
-
-        #
-        # Test preparation
-        #
-        dirs = ['staging', 'maven']
-        for dir in dirs:
-            shutil.rmtree(dir, ignore_errors=True)
-            os.mkdir(dir)
-        os.mkdir('maven/maven_spice')
-        os.mkdir('maven/maven_spice/miscellaneous')
-        os.mkdir('maven/maven_spice/miscellaneous/orbnum')
+            
         with open('maven/maven_spice/miscellaneous/orbnum/'
-                  'maven_orb_rec_210101_210401.orb', 'w') as p:
+                  'maven_orb_rec_210101_210401.orb', 'w'):
             pass
 
-        main(config, plan, faucet, silent=True)
+        main(config, plan, self.faucet, silent=True)
 
-        #
-        # Cleanup test facility
-        #
-        dirs = ['working', 'staging', 'maven', 'kernels', 'misc']
-        #for dir in dirs:
-        #  shutil.rmtree(dir, ignore_errors=True)
-        #  shutil.rmtree(dir, ignore_errors=True)
-
-        return None
-
-
-    def test_pds4_maven_orbnum_blank_records(self):
+    def test_pds4_orbnum_blank_records(self):
         """
         Test an orbnum file with blank records.
         """
         config = '../config/maven.xml'
-        faucet = 'staging'
         plan = 'maven_orbnum.plan'
-
-        shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('kernels', ignore_errors=True)
-        shutil.rmtree('misc', ignore_errors=True)
-
-        shutil.copytree('../data/kernels', 'kernels')
-        shutil.copytree('../data/misc', 'misc')
-        os.mkdir('working')
 
         with open(plan, 'w') as p:
             p.write('maven_orb_rec_210101_210401_v3.orb')
 
-        #
-        # Test preparation
-        #
-        dirs = ['staging', 'maven']
-        for dir in dirs:
-            shutil.rmtree(dir, ignore_errors=True)
-            os.mkdir(dir)
-        os.mkdir('maven/maven_spice')
-        os.mkdir('maven/maven_spice/miscellaneous')
-        os.mkdir('maven/maven_spice/miscellaneous/orbnum')
+
         with open('maven/maven_spice/miscellaneous/orbnum/'
-                  'maven_orb_rec_210101_210401_v1.orb', 'w') as p:
+                  'maven_orb_rec_210101_210401_v1.orb', 'w'):
             pass
         with open('maven/maven_spice/miscellaneous/orbnum/'
-                  'maven_orb_rec_210101_2105401_v2.orb', 'w') as p:
+                  'maven_orb_rec_210101_2105401_v2.orb', 'w'):
             pass
 
-        main(config, plan, faucet, silent=True)
+        main(config, plan, self.faucet, silent=True)
 
-        #
-        # Cleanup test facility
-        #
-        dirs = ['working', 'staging', 'maven', 'kernels', 'misc']
-        for dir in dirs:
-          shutil.rmtree(dir, ignore_errors=True)
-
-        return None
-
-    def test_pds4_maven_orbnum_blank_records_no_former(self):
+    def test_pds4_orbnum_blank_records_no_former(self):
         """
         Test an orbnum file with blank records.
         """
         config = '../config/maven.xml'
-        faucet = 'staging'
         plan = 'maven_orbnum.plan'
-
-        shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('kernels', ignore_errors=True)
-        shutil.rmtree('misc', ignore_errors=True)
-
-        shutil.copytree('../data/kernels', 'kernels')
-        shutil.copytree('../data/misc', 'misc')
-        os.mkdir('working')
 
         with open(plan, 'w') as p:
             p.write('maven_orb_rec_210101_210401_v3.orb')
 
-        #
-        # Test preparation
-        #
-        dirs = ['staging', 'maven']
-        for dir in dirs:
-            shutil.rmtree(dir, ignore_errors=True)
-            os.mkdir(dir)
-        os.mkdir('maven/maven_spice')
-        os.mkdir('maven/maven_spice/miscellaneous')
-        os.mkdir('maven/maven_spice/miscellaneous/orbnum')
+        main(config, plan, self.faucet, silent=True)
 
-        main(config, plan, faucet, silent=True)
-
-        #
-        # Cleanup test facility
-        #
-        dirs = ['working', 'staging', 'maven', 'kernels', 'misc']
-        for dir in dirs:
-            shutil.rmtree(dir, ignore_errors=True)
-
-        return None
-
-    def test_pds4_maven_orbnum_blank_records_no_version(self):
+    def test_pds4_orbnum_blank_records_no_version(self):
         """
         Test an orbnum file with blank records.
         """
         config = '../config/maven.xml'
         updated_config = 'working/maven.xml'
-        faucet = 'staging'
         plan = 'maven_orbnum.plan'
-
-        shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('kernels', ignore_errors=True)
-        shutil.rmtree('misc', ignore_errors=True)
-
-        shutil.copytree('../data/kernels', 'kernels')
-        shutil.copytree('../data/misc', 'misc')
-        os.mkdir('working')
 
         with open(config, 'r') as c:
             with open(updated_config, 'w') as n:
@@ -481,7 +269,7 @@ class TestPlan(TestCase):
                     if '<orbnum pattern=' \
                        '"maven_orb_rec_[0-9]{6}_[0-9]{6}_v[0-9].orb">' in \
                             line:
-                        n.write('<orbnum pattern=' \
+                        n.write('<orbnum pattern=' 
                        '"maven_orb_rec_[0-9]{6}_[0-9]{6}.orb">')
                     else:
                         n.write(line)
@@ -489,42 +277,13 @@ class TestPlan(TestCase):
         with open(plan, 'w') as p:
             p.write('maven_orb_rec_210101_210401.orb')
 
-        #
-        # Test preparation
-        #
-        dirs = ['staging', 'maven']
-        for dir in dirs:
-            shutil.rmtree(dir, ignore_errors=True)
-            os.mkdir(dir)
-        os.mkdir('maven/maven_spice')
-        os.mkdir('maven/maven_spice/miscellaneous')
-        os.mkdir('maven/maven_spice/miscellaneous/orbnum')
-
-        main(updated_config, plan, faucet, silent=True)
-
-        #
-        # Cleanup test facility
-        #
-        dirs = ['working', 'staging', 'maven', 'kernels', 'misc']
-        for dir in dirs:
-          shutil.rmtree(dir, ignore_errors=True)
-
-        return None
+        main(updated_config, plan, self.faucet, silent=True)
 
     def test_pds3_orbnum_files(self):
 
         config = '../config/maven.xml'
         updated_config = 'working/maven.xml'
-        faucet = 'staging'
         plan = 'maven_orbnum.plan'
-
-        shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('kernels', ignore_errors=True)
-        shutil.rmtree('misc', ignore_errors=True)
-
-        shutil.copytree('../data/kernels', 'kernels')
-        shutil.copytree('../data/misc', 'misc')
-        os.mkdir('working')
 
         orbnum_list = ['cas_v40.orb',
                       'clem.orb',
@@ -547,7 +306,8 @@ class TestPlan(TestCase):
             for file in orbnum_list:
                 p.write(f'{file}\n')
                 orbnum_config += \
-                  f'<orbnum pattern="{file}">\n' \
+                  f'<orbnum>\n' \
+                  f'    <pattern>{file}</pattern>\n' \
                    "    <event_detection_frame>\n" \
                    "        <spice_name>IAU_MARS</spice_name>\n" \
                    "        <description>Mars body-fixed frame</description>\n" \
@@ -557,8 +317,6 @@ class TestPlan(TestCase):
                    "        <kernel_name>pck0010.tpc</kernel_name>\n" \
                    "        <description>IAU 2009 report</description>\n" \
                    "    </pck>\n" \
-                   "    <coverage>\n" \
-                   "    </coverage>\n" \
                    "</orbnum>\n"
 
         with open(config, 'r') as c:
@@ -573,42 +331,15 @@ class TestPlan(TestCase):
                     else:
                         n.write(line)
 
-        #
-        # Test preparation
-        #
-        dirs = ['staging', 'maven']
-        for dir in dirs:
-            shutil.rmtree(dir, ignore_errors=True)
-            os.mkdir(dir)
-
-        main(updated_config, plan, faucet, silent=True)
-
-        #
-        # Cleanup test facility
-        #
-        dirs = ['working', 'staging', 'maven', 'kernels', 'misc']
-        #for dir in dirs:
-        #   shutil.rmtree(dir, ignore_errors=True)
-
-        return None
-    
-
-    def test_pds4_maven_orbnum_eol_line_feed(self):
+        main(updated_config, plan, self.faucet, silent=True)
+        
+    def test_pds4_orbnum_eol_line_feed(self):
         """
         Test for meta-kernel configuration loading error cases.
         """
         config = '../config/maven.xml'
         updated_config = 'working/maven.xml'
-        faucet = 'staging'
         plan = 'maven_orbnum.plan'
-
-        shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('kernels', ignore_errors=True)
-        shutil.rmtree('misc', ignore_errors=True)
-
-        shutil.copytree('../data/kernels', 'kernels')
-        shutil.copytree('../data/misc', 'misc')
-        os.mkdir('working')
 
         with open(config, 'r') as c:
             with open(updated_config, 'w') as n:
@@ -626,24 +357,20 @@ class TestPlan(TestCase):
         with open(plan, 'w') as p:
             p.write('maven_orb_rec_210101_210401_v1.orb')
 
-        #
-        # Test preparation
-        #
-        dirs = ['staging', 'maven']
-        for dir in dirs:
-            shutil.rmtree(dir, ignore_errors=True)
-            os.mkdir(dir)
+        main(updated_config, plan, self.faucet, silent=True)
+    
+    def test_pds4_orbnum_generated_list(self):
+        """
+        Test orbnum file generation with automatic plan generation
+        (plan is not provided by the user.)
+        """
+        config = '../config/maven.xml'
 
-        main(updated_config, plan, faucet, silent=True)
+        shutil.copy('../data/misc/orbnum/maven_orb_rec_210101_210401_v1.orb', 
+                    'misc/orbnum/')
 
-        #
-        # Cleanup test facility
-        #
-        dirs = ['working', 'staging', 'maven', 'kernels', 'misc']
-        #for dir in dirs:
-        #   shutil.rmtree(dir, ignore_errors=True)
+        main(config, faucet=self.faucet, silent=True)
 
-        return None
 
 if __name__ == '__main__':
     unittest.main()

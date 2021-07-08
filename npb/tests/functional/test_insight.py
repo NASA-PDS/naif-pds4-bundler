@@ -1,15 +1,47 @@
-"""
-This test is used to compare labels with the test labels.
-"""
 import os
 import glob
 import shutil
 import unittest
-
 from unittest import TestCase
 from npb.main import main
 
-class TestInsight(TestCase):
+
+class TestINSIGHT(TestCase):
+    '''
+    Test Family for INSIGHT archive generation. 
+    '''
+
+    @classmethod
+    def setUpClass(cls):
+        '''
+        Method that will be executed once for this test case class.
+        It will execute before all tests methods.
+         
+        '''
+        print(f"NPB - Functional Tests - {cls.__name__}")
+
+        os.chdir(os.path.dirname(__file__))
+
+        dirs = ['working', 'staging', 'insight', 'kernels']
+        for dir in dirs:
+            shutil.rmtree(dir, ignore_errors=True)
+
+    def setUp(self):
+        '''
+        This method will be executed before each test function.
+        '''
+        unittest.TestCase.setUp(self)
+        print(f"    * {self._testMethodName}")
+
+    def tearDown(self):
+        '''
+        This method will be executed after each test function.
+        '''
+        unittest.TestCase.tearDown(self)
+
+        dirs = ['working', 'staging', 'insight', 'kernels']
+        for dir in dirs:
+            shutil.rmtree(dir, ignore_errors=True)
 
     def test_insight_basic(self):
         '''
@@ -17,38 +49,23 @@ class TestInsight(TestCase):
         no SCLK).
 
         '''
-
         config = '../config/insight.xml'
-        plan   = '../data/insight_release_26.plan'
+        plan = '../data/insight_release_26.plan'
         faucet = 'final'
 
-        dirs = ['working', 'staging']
-        for dir in dirs:
-            shutil.rmtree(dir, ignore_errors=True)
-            os.mkdir(dir)
-        shutil.rmtree('insight', ignore_errors=True)
-        shutil.rmtree('kernels_ladee', ignore_errors=True)
-
+        os.mkdir('working')
+        os.mkdir('staging')
         shutil.copy2('../data/insight_release_basic.kernel_list',
-                    'working/insight_release_07.kernel_list')
-
+                     'working/insight_release_07.kernel_list')
         shutil.copytree('../data/insight', 'insight')
-        shutil.copytree('../data/kernels', 'kernels_ladee')
+        shutil.copytree('../data/kernels', 'kernels')
 
         with open('../data/insight.list', 'r') as i:
             for line in i:
-                with open(f'insight/insight_spice/{line[0:-1]}', 'w') as fp:
+                with open(f'insight/insight_spice/{line[0:-1]}', 'w'):
                     pass
 
-        main(config, plan, faucet, verbose=True, log=True, diff='all')
-
-        #
-        # Cleanup test facility
-        #
-        #dirs = ['working', 'staging', 'insight', 'kernels']
-        #for dir in dirs:
-        #    shutil.rmtree(dir, ignore_errors=True)
-
+        main(config, plan, faucet, silent=False, log=True, diff='all')
 
     def test_insight_diff_previous_none(self):
         '''
@@ -60,29 +77,19 @@ class TestInsight(TestCase):
         '''
 
         config = '../config/insight.xml'
-        plan   = '../data/insight_release_08.plan'
+        plan = '../data/insight_release_08.plan'
         faucet = 'staging'
-
-        shutil.rmtree('insight', ignore_errors=True)
-        shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('staging', ignore_errors=True)
-        shutil.rmtree('kernels_ladee', ignore_errors=True)
-
-        shutil.copytree('../data/kernels', 'kernels_ladee')
+        
+        os.mkdir('staging')
         os.mkdir('working')
+        shutil.copytree('../data/kernels', 'kernels')
         for file in glob.glob('data/insight_release_0[0-7].kernel_list'):
             shutil.copy2(file,
-                        'working')
-        os.mkdir('staging')
+                         'working')
         shutil.copytree('../data/insight', 'insight')
 
+
         main(config, plan, faucet, silent=False, log=True, diff='')
-
-        shutil.rmtree('insight', ignore_errors=True)
-        shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('staging', ignore_errors=True)
-        shutil.rmtree('kernels_ladee', ignore_errors=True)
-
 
     def test_insight_diff_previous_all(self):
         '''
@@ -92,29 +99,18 @@ class TestInsight(TestCase):
         '''
 
         config = '../config/insight.xml'
-        plan   = '../data/insight_release_08.plan'
+        plan = '../data/insight_release_08.plan'
         faucet = 'staging'
 
-        shutil.rmtree('insight', ignore_errors=True)
-        shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('staging', ignore_errors=True)
-        shutil.rmtree('kernels_ladee', ignore_errors=True)
-
-        shutil.copytree('../data/kernels', 'kernels_ladee')
+        os.mkdir('staging')
         os.mkdir('working')
+        shutil.copytree('../data/kernels', 'kernels')
         for file in glob.glob('../data/insight_release_0[0-7].kernel_list'):
             shutil.copy2(file,
-                        'working')
-        os.mkdir('staging')
+                         'working')
         shutil.copytree('../data/insight', 'insight')
 
         main(config, plan, faucet, silent=False, log=True, diff='all')
-
-        shutil.rmtree('insight', ignore_errors=True)
-        shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('staging', ignore_errors=True)
-        shutil.rmtree('kernels_ladee', ignore_errors=True)
-
 
     def test_insight_diff_previous_files(self):
         '''
@@ -124,29 +120,17 @@ class TestInsight(TestCase):
         '''
 
         config = '../config/insight.xml'
-        plan   = '../data/insight_release_08.plan'
+        plan = '../data/insight_release_08.plan'
         faucet = 'staging'
 
-        shutil.rmtree('insight', ignore_errors=True)
-        shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('staging', ignore_errors=True)
-        shutil.rmtree('kernels_ladee', ignore_errors=True)
-
-        shutil.copytree('../data/kernels', 'kernels_ladee')
-        os.mkdir('working')
-        for file in glob.glob('../data/insight_release_0[0-7].kernel_list'):
-            shutil.copy2(file,
-                        'working')
         os.mkdir('staging')
+        os.mkdir('working')
+        shutil.copytree('../data/kernels', 'kernels')
+        for file in glob.glob('../data/insight_release_0[0-7].kernel_list'):
+            shutil.copy2(file, 'working')
         shutil.copytree('../data/insight', 'insight')
 
         main(config, plan, faucet, silent=False, log=True, diff='files')
-
-        shutil.rmtree('insight', ignore_errors=True)
-        shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('staging', ignore_errors=True)
-        shutil.rmtree('kernels_ladee', ignore_errors=True)
-
 
     def test_insight_diff_previous_log(self):
         '''
@@ -154,31 +138,18 @@ class TestInsight(TestCase):
         archive. The pipeline stops before copying the previous increment
         files to the staging area.
         '''
-
         config = '../config/insight.xml'
-        plan   = '../data/insight_release_08.plan'
+        plan = '../data/insight_release_08.plan'
         faucet = 'staging'
 
-        shutil.rmtree('insight', ignore_errors=True)
-        shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('staging', ignore_errors=True)
-        shutil.rmtree('kernels_ladee', ignore_errors=True)
-
-        shutil.copytree('../data/kernels', 'kernels_ladee')
-        os.mkdir('working')
-        for file in glob.glob('../data/insight_release_0[0-7].kernel_list'):
-            shutil.copy2(file,
-                        'working')
         os.mkdir('staging')
+        os.mkdir('working')
+        shutil.copytree('../data/kernels', 'kernels')
+        for file in glob.glob('../data/insight_release_0[0-7].kernel_list'):
+            shutil.copy2(file, 'working')
         shutil.copytree('../data/insight', 'insight')
 
         main(config, plan, faucet, silent=False, log=True, diff='log')
-
-        shutil.rmtree('insight', ignore_errors=True)
-        shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('staging', ignore_errors=True)
-        shutil.rmtree('kernels_ladee', ignore_errors=True)
-
 
     def test_insight_diff_templates(self):
         '''
@@ -187,21 +158,16 @@ class TestInsight(TestCase):
         files are not present. The pipeline stops before copying the
         previous increment files to the staging area.
         '''
-
         config = '../config/insight.xml'
-        plan   = '../data/insight_release_08.plan'
+        plan = '../data/insight_release_08.plan'
         faucet = 'staging'
 
-        shutil.rmtree('insight', ignore_errors=True)
-        shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('staging', ignore_errors=True)
-        shutil.rmtree('kernels_ladee', ignore_errors=True)
-
-        shutil.copytree('../data/kernels', 'kernels_ladee')
-        os.mkdir('working')
-        for file in glob.glob('../data/insight_release_0[0-7].kernel_list'):
-            shutil.copy2(file,'working')
         os.mkdir('staging')
+        os.mkdir('working')
+        shutil.copytree('../data/kernels', 'kernels')
+        for file in glob.glob('../data/insight_release_0[0-7].kernel_list'):
+            shutil.copy2(file, 'working')
+
         os.mkdir('insight')
         os.mkdir('insight/insight_spice')
         os.mkdir('insight/insight_spice/spice_kernels')
@@ -210,17 +176,11 @@ class TestInsight(TestCase):
                      'marcob_fake_v01.xml',
                      'insight/insight_spice/spice_kernels/sclk')
         with open(
-            f'insight/insight_spice/spice_kernels/sclk/marcob_fake_v01.tsc',
-            'w') as fp:
+                f'insight/insight_spice/spice_kernels/sclk/'
+                f'marcob_fake_v01.tsc', 'w'):
             pass
 
         main(config, plan, faucet, silent=False, log=True, diff='all')
-
-        shutil.rmtree('insight', ignore_errors=True)
-        shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('staging', ignore_errors=True)
-        shutil.rmtree('kernels_ladee', ignore_errors=True)
-
 
     def test_insight_files_in_staging(self):
         '''
@@ -231,38 +191,26 @@ class TestInsight(TestCase):
         '''
 
         config = '../config/insight.xml'
-        plan   = '../data/insight_release_08.plan'
+        plan = '../data/insight_release_08.plan'
         faucet = 'staging'
 
-        shutil.rmtree('insight', ignore_errors=True)
-        shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('staging', ignore_errors=True)
-        shutil.rmtree('kernels_ladee', ignore_errors=True)
-
-        shutil.copytree('../data/kernels', 'kernels_ladee')
         os.mkdir('working')
+        shutil.copytree('../data/kernels', 'kernels')
         for file in glob.glob('../data/insight_release_0[0-7].kernel_list'):
-            shutil.copy2(file,'working')
+            shutil.copy2(file, 'working')
         shutil.copytree('../data/insight', 'staging')
         with open('../data/insight.list', 'r') as i:
             for line in i:
-                with open(f'staging/insight_spice/{line[0:-1]}', 'w') as fp:
+                with open(f'staging/insight_spice/{line[0:-1]}', 'w'):
                     pass
         with open('../data/insight_08.list', 'r') as i:
             for line in i:
-                with open(f'staging/insight_spice/{line[0:-1]}', 'w') as fp:
+                with open(f'staging/insight_spice/{line[0:-1]}', 'w'):
                     pass
-
 
         os.mkdir('insight')
 
         main(config, plan, faucet, silent=False, log=True, diff='all')
-
-        shutil.rmtree('insight', ignore_errors=True)
-        shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('staging', ignore_errors=True)
-        shutil.rmtree('kernels_ladee', ignore_errors=True)
-
 
     def test_insight_no_spiceds(self):
         '''
@@ -271,17 +219,13 @@ class TestInsight(TestCase):
         '''
         config = '../config/insight.xml'
         updated_config = 'working/insight.xml'
-        plan   = '../data/insight_release_08.plan'
+        plan = '../data/insight_release_08.plan'
         faucet = 'staging'
 
-        shutil.rmtree('insight', ignore_errors=True)
-        shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('staging', ignore_errors=True)
-        shutil.rmtree('kernels_ladee', ignore_errors=True)
-
-        shutil.copytree('../data/kernels', 'kernels_ladee')
+        shutil.copytree('../data/kernels', 'kernels')
+        
+        os.mkdir('staging')
         os.mkdir('working')
-
         with open(config, 'r') as c:
             with open(updated_config, 'w') as n:
                 for line in c:
@@ -291,20 +235,11 @@ class TestInsight(TestCase):
                         n.write(line)
 
         for file in glob.glob('../data/insight_release_0[0-7].kernel_list'):
-            shutil.copy2(file,'working')
-
-
-        os.mkdir('insight')
+            shutil.copy2(file, 'working')
 
         with self.assertRaises(RuntimeError):
             main(updated_config, plan, faucet, silent=False, log=True,
                  diff='all')
-
-        shutil.rmtree('insight', ignore_errors=True)
-        shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('staging', ignore_errors=True)
-        shutil.rmtree('kernels_ladee', ignore_errors=True)
-
 
     def test_insight_previous_spiceds(self):
         '''
@@ -314,16 +249,12 @@ class TestInsight(TestCase):
         '''
         config = '../config/insight.xml'
         updated_config = 'working/insight.xml'
-        plan   = '../data/insight_release_08.plan'
+        plan = '../data/insight_release_08.plan'
         faucet = 'staging'
 
-        shutil.rmtree('insight', ignore_errors=True)
-        shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('staging', ignore_errors=True)
-        shutil.rmtree('kernels_ladee', ignore_errors=True)
-
-        shutil.copytree('../data/kernels', 'kernels_ladee')
+        os.mkdir('staging')
         os.mkdir('working')
+        shutil.copytree('../data/kernels', 'kernels')
         shutil.copytree('../data/insight', 'insight')
 
         with open(config, 'r') as c:
@@ -335,16 +266,9 @@ class TestInsight(TestCase):
                         n.write(line)
 
         for file in glob.glob('../data/insight_release_0[0-7].kernel_list'):
-            shutil.copy2(file,'working')
+            shutil.copy2(file, 'working')
 
         main(updated_config, plan, faucet, silent=False, log=True, diff='all')
-
-        shutil.rmtree('insight', ignore_errors=True)
-        shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('staging', ignore_errors=True)
-        shutil.rmtree('kernels_ladee', ignore_errors=True)
-        return
-
 
     def test_insight_start_finish(self):
         '''
@@ -354,20 +278,17 @@ class TestInsight(TestCase):
 
         config = '../config/insight.xml'
         updated_config = 'working/insight.xml'
-        plan   = '../data/insight_release_08.plan'
+        plan = '../data/insight_release_08.plan'
         faucet = 'staging'
-
-        shutil.rmtree('insight', ignore_errors=True)
-        shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('staging', ignore_errors=True)
-        shutil.rmtree('kernels_ladee', ignore_errors=True)
-
-        shutil.copytree('../data/kernels', 'kernels_ladee')
+        
+        os.mkdir('staging')
         os.mkdir('working')
+
+        shutil.copytree('../data/kernels', 'kernels')
         shutil.copytree('../data/insight', 'insight')
 
         for file in glob.glob('../data/insight_release_0[0-7].kernel_list'):
-            shutil.copy2(file,'working')
+            shutil.copy2(file, 'working')
 
         with open(config, 'r') as c:
             with open(updated_config, 'w') as n:
@@ -388,13 +309,6 @@ class TestInsight(TestCase):
 
         main(updated_config, plan, faucet, silent=False, log=True, diff='')
 
-        shutil.rmtree('insight', ignore_errors=True)
-        shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('staging', ignore_errors=True)
-        shutil.rmtree('kernels_ladee', ignore_errors=True)
-        return
-
-
     def test_insight_incorrect_times(self):
         '''
         Testcase providing increment start and finish times via
@@ -402,20 +316,16 @@ class TestInsight(TestCase):
         '''
         config = '../config/insight.xml'
         updated_config = 'working/insight.xml'
-        plan   = '../data/insight_release_08.plan'
+        plan = '../data/insight_release_08.plan'
         faucet = 'staging'
 
-        shutil.rmtree('insight', ignore_errors=True)
-        shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('staging', ignore_errors=True)
-        shutil.rmtree('kernels_ladee', ignore_errors=True)
-
-        shutil.copytree('../data/kernels', 'kernels_ladee')
+        os.mkdir('staging')
         os.mkdir('working')
+        shutil.copytree('../data/kernels', 'kernels')
         shutil.copytree('../data/insight', 'insight')
 
         for file in glob.glob('../data/insight_release_0[0-7].kernel_list'):
-            shutil.copy2(file,'working')
+            shutil.copy2(file, 'working')
 
         with open(config, 'r') as c:
             with open(updated_config, 'w') as n:
@@ -449,7 +359,6 @@ class TestInsight(TestCase):
             main(updated_config, plan, faucet, silent=False, log=True,
                  diff='')
 
-
         with open(config, 'r') as c:
             with open(updated_config, 'w') as n:
                 for line in c:
@@ -462,60 +371,38 @@ class TestInsight(TestCase):
             main(updated_config, plan, faucet, silent=False, log=True,
                  diff='')
 
-        shutil.rmtree('insight', ignore_errors=True)
-        shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('staging', ignore_errors=True)
-        shutil.rmtree('kernels_ladee', ignore_errors=True)
-        return
-
-
     def test_insight_no_readme(self):
         '''
         Testcase for when the readme file is not present.
         '''
         config = '../config/insight.xml'
-        plan   = '../data/insight_release_08.plan'
+        plan = '../data/insight_release_08.plan'
         faucet = 'final'
-
-        shutil.rmtree('insight', ignore_errors=True)
-        shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('staging', ignore_errors=True)
-        shutil.rmtree('kernels_ladee', ignore_errors=True)
-
-        shutil.copytree('../data/kernels', 'kernels_ladee')
+        
         os.mkdir('working')
+        os.mkdir('staging')
+        
+        shutil.copytree('../data/kernels', 'kernels')
 
         for file in glob.glob('../data/insight_release_0[0-7].kernel_list'):
-            shutil.copy2(file,'working')
-
+            shutil.copy2(file, 'working')
 
         os.mkdir('insight')
 
         main(config, plan, faucet, silent=False, log=True, diff='all')
 
-        shutil.rmtree('insight', ignore_errors=True)
-        shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('staging', ignore_errors=True)
-        shutil.rmtree('kernels_ladee', ignore_errors=True)
-
-
     def test_insight_mk_input(self):
         '''
         Testcase for when the readme file is not present.
         '''
-        config         = '../config/insight.xml'
+        config = '../config/insight.xml'
         updated_config = 'working/insight.xml'
-        plan           = 'working/insight.plan'
-        faucet         = 'staging'
+        plan = 'working/insight.plan'
+        faucet = 'staging'
 
-        shutil.rmtree('insight', ignore_errors=True)
-        shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('staging', ignore_errors=True)
-        shutil.rmtree('kernels_ladee', ignore_errors=True)
-
-        shutil.copytree('../data/kernels', 'kernels_ladee')
         os.mkdir('working')
         os.mkdir('staging')
+        shutil.copytree('../data/kernels', 'kernels')
         os.mkdir('insight')
 
         with open(config, 'r') as c:
@@ -534,12 +421,11 @@ class TestInsight(TestCase):
             p.write('nsy_sclkscet_00019.tsc')
 
         for file in glob.glob('../data/insight_release_0[0-7].kernel_list'):
-            shutil.copy2(file,'working')
+            shutil.copy2(file, 'working')
 
         with self.assertRaises(RuntimeError):
             main(updated_config, plan, faucet, silent=False, log=True,
                  diff='all')
-
 
         with open(config, 'r') as c:
             with open(updated_config, 'w') as n:
@@ -555,29 +441,18 @@ class TestInsight(TestCase):
         main(updated_config, plan, faucet, silent=False, log=True, diff='all',
              verbose=True)
 
-        shutil.rmtree('insight', ignore_errors=True)
-        shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('staging', ignore_errors=True)
-        shutil.rmtree('kernels_ladee', ignore_errors=True)
-
-
     def test_insight_mks_input(self):
         '''
         Testcase for when the readme file is not present.
         '''
-        config         = '../config/insight.xml'
+        config = '../config/insight.xml'
         updated_config = 'working/insight.xml'
-        plan           = 'working/insight.plan'
-        faucet         = 'staging'
-
-        shutil.rmtree('insight', ignore_errors=True)
-        shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('staging', ignore_errors=True)
-        shutil.rmtree('kernels_ladee', ignore_errors=True)
-
-        shutil.copytree('../data/kernels', 'kernels_ladee')
+        plan = 'working/insight.plan'
+        faucet = 'staging'
+        
         os.mkdir('working')
         os.mkdir('staging')
+        shutil.copytree('../data/kernels', 'kernels')
         os.mkdir('insight')
 
         with open(config, 'r') as c:
@@ -600,15 +475,10 @@ class TestInsight(TestCase):
             p.write('nsy_sclkscet_00019.tsc')
 
         for file in glob.glob('../data/insight_release_0[0-7].kernel_list'):
-            shutil.copy2(file,'working')
+            shutil.copy2(file, 'working')
 
         main(updated_config, plan, faucet, verbose=True, log=True, diff='all')
 
-        shutil.rmtree('insight', ignore_errors=True)
-        shutil.rmtree('working', ignore_errors=True)
-        shutil.rmtree('staging', ignore_errors=True)
-        shutil.rmtree('kernels_ladee', ignore_errors=True)
 
 if __name__ == '__main__':
-
     unittest.main()
