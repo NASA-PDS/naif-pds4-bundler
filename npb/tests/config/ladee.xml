@@ -39,15 +39,15 @@
         <!-- Increment start and stop times provided as a UTC calendar string.
              They require to be present. Use the following format:
              YYYY-MM-DDThh:mm:ssZ e.g., 2021-04-09T15:11:12Z. -->
-        <increment_start>2013-09-07T03:51:00.000Z</increment_start>
-        <increment_finish>2050-01-01T00:00:00.000Z</increment_finish>
+        <increment_start>2013-09-07T03:51:00Z</increment_start>
+        <increment_finish>2050-01-01T00:00:00Z</increment_finish>
         <kernels_to_load>
             <lsk>naif[0-9][0-9][0-9][0-9].tls</lsk>
             <sclk>ladee_clkcor_13250_14108_v01.tsc</sclk>
             <fk>ladee_frames_2021140_v01.tf</fk>
         </kernels_to_load>
-        <date_format>infomod2</date_format>
-        <end_of_line>LF</end_of_line>
+        <date_format>maklabel</date_format>
+        <end_of_line>CRLF</end_of_line>
     </bundle_parameters>
 
     <!-- =========================== -->
@@ -56,8 +56,8 @@
     <mission_parameters>
         <mission_accronym>ladee</mission_accronym>
         <mission_name>LADEE</mission_name>
-        <mission_start>2013-09-07T03:51:00.000Z</mission_start>
-        <mission_finish>2050-01-01T00:00:00.000Z</mission_finish>
+        <mission_start>2013-09-07T03:51:00Z</mission_start>
+        <mission_finish>2050-01-01T00:00:00Z</mission_finish>
         <spacecraft>LADEE</spacecraft>
         <target>MOON</target>
     </mission_parameters>
