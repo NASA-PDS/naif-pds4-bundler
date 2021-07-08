@@ -4,7 +4,7 @@ import socket
 import logging
 import spiceypy
 import datetime
-
+import platform
 
 class Log(object):
     """Class that parses and processes the NPB XML configuration file
@@ -14,7 +14,7 @@ class Log(object):
     :param version: NDT version.
     """
 
-    def __init__(self, setup, args, debug=True):
+    def __init__(self, setup, args, debug):
         """
         Constructor method.
         """
@@ -22,7 +22,7 @@ class Log(object):
         self.args = args
 
         logger = logging.getLogger()
-        logger.setLevel(logging.INFO)
+        logger.setLevel(logging.CRITICAL)
 
         if debug:
             log_format = '%(module)-12s %(funcName)-23s || ' \
@@ -30,12 +30,13 @@ class Log(object):
         else:
             log_format = '%(levelname)-8s: %(message)s'
 
-        if args.verbose:
-            ch = logging.StreamHandler()
-            ch.setLevel(logging.INFO)
-            formatter = logging.Formatter(log_format)
-            ch.setFormatter(formatter)
-            logger.addHandler(ch)
+        if not args.silent:
+            if args.verbose:
+                ch = logging.StreamHandler()
+                ch.setLevel(logging.INFO)
+                formatter = logging.Formatter(log_format)
+                ch.setFormatter(formatter)
+                logger.addHandler(ch)
 
         if args.log:
 
@@ -61,8 +62,9 @@ class Log(object):
         :return:
         """
         start_message = f'naif-pds4-bundle-{self.setup.version} for ' \
-                        f'{self.setup.mission_name} run on ' \
-                        f'{socket.gethostname()} started  at ' \
+                        f'{self.setup.mission_name}'
+        exec_message = '-- Executed on ' \
+                        f'{socket.gethostname()} at ' \
                         f'{str(datetime.datetime.now())[:-7]}'
         logging.info('')
         logging.info(start_message)
@@ -71,10 +73,20 @@ class Log(object):
         if not self.setup.args.silent and not self.setup.args.verbose:
             print('')
             print(start_message + '\n' + '=' * len(start_message))
+            print(exec_message)
+
+        #
+        # Display execution platform and time.
+        #
+        logging.info(exec_message)
+        logging.info(f'-- Platform: {platform.platform()}')
+        logging.info(f'-- Python version: {platform.python_version()} '
+                     f'(Build: {platform.python_build()[1]})')
 
         #
         # Display the arguments
         #
+        logging.info('')
         logging.info('-- The following arguments have been provided:')
         argument_dict = self.args.__dict__
         whitespaces = len(max(argument_dict.keys(), key=len))
@@ -95,17 +107,13 @@ class Log(object):
 
         :return:
         """
-        stop_message = f'naif-pds4-bundle-{self.setup.version} for ' \
-                       f'{self.setup.mission_name} run on ' \
-                       f'{socket.gethostname()} finished at ' \
+        stop_message = f'Execution finished at ' \
                        f'{str(datetime.datetime.now())[:-7]}'
-        logging.info('')
         logging.info('')
         logging.info(stop_message)
         logging.info('')
         logging.info('End of log.')
         if not self.setup.args.silent and not self.setup.args.verbose:
-            print('=' * len(stop_message))
             print(stop_message)
             print('')
 
