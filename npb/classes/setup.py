@@ -35,6 +35,7 @@ class Setup(object):
             
         except Exception as inst:
             print(inst)
+            raise
             
         
         #
@@ -77,16 +78,35 @@ class Setup(object):
         # Meta-kernel configuration; if there is one meta-kernel
         # mk is a dictionary, otherwise it is a list of dictionaries.
         # It is processed in such a way that it is always a list of
-        # dictionaries. Same applies to meta-kernels from configutarion
+        # dictionaries. Same applies to meta-kernels from configuration
         # as user input.
         #
         self.__dict__.update(config['meta-kernel'])
+        
         if hasattr(self, 'mk'):
             if isinstance(self.mk, dict):
                 self.mk = [self.mk]
         if hasattr(self, 'mk_inputs'):
             if isinstance(self.mk_inputs, dict):
                 self.mk_inputs = [self.mk_inputs]
+                
+        #
+        # Meta-kernel configuration; if there is one pattern for 
+        # the meta-kernel name, convert it into a list of 
+        # dictionaries.
+        #
+        if hasattr(self, 'mk'):
+            for i in range(len(self.mk)):
+                if isinstance(self.mk[i]['name'], dict):
+                    self.mk[i]['name'] = [self.mk[i]['name']]
+
+        #
+        # Meta-kernel configuration; if there is one coverage kernel, convert
+        # it into a list of coverage kernels.
+        #
+        if hasattr(self, 'coverage_kernels'):
+            if isinstance(self.coverage_kernels, dict):
+                self.coverage_kernels = [self.coverage_kernels]
 
         #
         # Orbnum configuration: if there is one orbnum file orbnum is a
@@ -139,6 +159,10 @@ class Setup(object):
         #
         # Check End of Line format and set EoL length.
         #
+        # CRs are added to all text, XML, and other PDS meta-files 
+        # present in PDS4 archives as dictated by the standard.
+        # CRs are added to checksum tables as well.
+        # 
         if self.end_of_line == 'CRLF':
             self.eol = '\r\n'
             self.eol_len = 2
@@ -148,6 +172,9 @@ class Setup(object):
         else:
             error_message('End of Line provided via configuration is not '
                           'CRLF nor LF')
+
+        self.pds4_eol = '\r\n'
+        self.pds4_eol_len = 1
 
         #
         # Fill PDS4 missing fields.
@@ -173,7 +200,7 @@ class Setup(object):
                     '[0-9]{4}-[0-9]{2}-[0-9]{2}T'
                     '[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}Z')
             format = 'YYYY-MM-DDThh:mm:ss.sssZ'
-        elif self.date_format == 'makelbl':
+        elif self.date_format == 'maklabel':
             
             pattern = re.compile(
                     '[0-9]{4}-[0-9]{2}-[0-9]{2}T'
@@ -213,6 +240,16 @@ class Setup(object):
 
         os.chdir('/')
 
+        #
+        # Set the staging directory WRT PDS3 or PDS4
+        #
+        if self.pds_version == '4':
+            mission_dir = f'{self.mission_accronym}_spice'
+        else:
+            mission_dir = f'{self.volume_id.lower()}'
+        
+        
+
         if os.path.isdir(cwd + os.sep + self.working_directory):
             self.working_directory = cwd + os.sep + self.working_directory
         if not os.path.isdir(self.working_directory):
@@ -221,16 +258,16 @@ class Setup(object):
 
         if os.path.isdir(cwd + os.sep + self.staging_directory):
             self.staging_directory = cwd + os.sep + self.staging_directory + \
-                                     f'/{self.mission_accronym}_spice'
+                                     f'/{mission_dir}'
         elif not os.path.isdir(self.staging_directory):
             print(f'Creating missing directory: {self.staging_directory}/'
-                  f'{self.mission_accronym}_spice')
+                  f'{mission_dir}')
             try:
                 os.mkdir(self.staging_directory)
             except Exception as e:
                 print(e)
-        elif f'/{self.mission_accronym}_spice' not in self.staging_directory:
-            self.staging_directory += f'/{self.mission_accronym}_spice'
+        elif f'/{mission_dir}' not in self.staging_directory:
+            self.staging_directory += f'/{mission_dir}'
 
         if os.path.isdir(cwd + os.sep + self.final_directory):
             self.final_directory = cwd + os.sep + self.final_directory
@@ -266,7 +303,7 @@ class Setup(object):
 
             schemas = [os.path.basename(x[:-1]) for x in
                        glob.glob(f'{self.root_dir}templates/*/')]
-
+            
             schemas_eval = []
             for schema in schemas:
                 schema = schema.split('.')
@@ -276,8 +313,6 @@ class Setup(object):
                                f'{int(schema[3]):03d}')
                 schemas_eval.append(schema)
 
-            schemas_eval = sorted(schemas_eval)
-
             i = 0
             while i < len(schemas_eval):
                 if config_schema < schemas_eval[i]:
@@ -286,7 +321,7 @@ class Setup(object):
                     except:
                         schema = schemas[0]
                     break
-                if config_schema > schemas_eval[i]:
+                if config_schema >= schemas_eval[i]:
                     schema = schemas[i]
                     break
                 i += 1
@@ -295,7 +330,6 @@ class Setup(object):
 
             logging.warning(f'-- Label templates will use the ones from '
                             f'information model {schema}.')
-            logging.warning('')
         elif self.pds_version == '4':
             if not os.path.isdir(self.templates_directory):
                 error_message('Path provided/derived for templates '
@@ -314,41 +348,36 @@ class Setup(object):
         if hasattr(self, 'mk'):
             for metak in self.mk:
 
-                #
-                # Turn all name_patterns to lists.
-                #
-                if not isinstance(metak['name'], list):
-                    metak['name_patterns'] = list(metak['name'])
-
-                metal_name_check = metak['@name']
+                metak_name_check = metak['@name']
 
                 #
                 # Fix no list or list of lists.
                 #
-                patterns_dict = metak['name']['pattern']
-                if not isinstance(patterns_dict, list):
-                    patterns = []
-                    dictionary_copy = patterns_dict.copy()
-                    patterns.append(dictionary_copy)
-                else:
-                    patterns = patterns_dict
+                patterns = []
+                for name in metak['name']:
+                    
+                    if not isinstance(name['pattern'], list):
+                        patterns = [name['pattern']]
+                    else:
+                        for pattern in name['pattern']:
+                            patterns.append(pattern)
 
                 for pattern in patterns:
                     name_pattern = pattern['#text']
-                    if not name_pattern in metal_name_check:
+                    if not name_pattern in metak_name_check:
                         error_message(f"The meta-kernel pattern "
                                       f"{name_pattern} is not provided")
 
-                    metal_name_check = metal_name_check.replace('$' +
+                    metak_name_check = metak_name_check.replace('$' +
                                                                 name_pattern,
                                                                 '')
 
                 #
-                # If there are remmaining $ characters in the metal_name_check
+                # If there are remaining $ characters in the metak_name_check
                 # this means that there are remaining patterns to define in
                 # the configuration file.
                 #
-                if '$' in metal_name_check:
+                if '$' in metak_name_check:
                     error_message(f'The meta-kernel patterns for are not '
                                   f'defined via configuration')
             else:
@@ -370,6 +399,7 @@ class Setup(object):
         Determines the Bundle release number.
         """
         line = f'Step {self.step} - Setup the archive generation'
+        logging.info('')
         logging.info('')
         logging.info(line)
         logging.info('-' * len(line))
@@ -499,13 +529,14 @@ class Setup(object):
                 spiceypy.furnsh(pattern)
             else:
                 for dir in self.kernels_directory:
-                    lsk_pattern = [f for f in os.listdir(
-                        f'{dir}/lsk/')
-                                   if re.search(pattern, f)]
+                    lsk_pattern = [os.path.join(root, name)
+                                    for root, dirs, files in os.walk(dir)
+                                    for name in files
+                                    if re.search(pattern, name)]
                     if lsk_pattern:
                         if len(lsk_pattern) > 1: lsk_pattern.sort()
-                        lsks.append(lsk_pattern[-1])
-                        spiceypy.furnsh(f'{dir}/lsk/{lsk_pattern[-1]}')
+                        spiceypy.furnsh(lsk_pattern[-1])
+                        lsks.append(lsk_pattern[-1].split(os.sep)[-1])
                         break
         if not lsk:
             logging.error(f'-- LSK not found.')
@@ -521,12 +552,14 @@ class Setup(object):
                 spiceypy.furnsh(pattern)
             else:
                 for dir in self.kernels_directory:
-                    pcks_pattern = [f for f in os.listdir(f'{dir}/pck/') if
-                                    re.search(pattern, f)]
+                    pcks_pattern = [os.path.join(root, name)
+                                    for root, dirs, files in os.walk(dir)
+                                    for name in files
+                                    if re.search(pattern, name)]
                     if pcks_pattern:
                         if len(pcks_pattern) > 1: pcks_pattern.sort()
-                        spiceypy.furnsh(f'{dir}/pck/{pcks_pattern[-1]}')
-                        pcks.append(pcks_pattern[-1])
+                        spiceypy.furnsh(pcks_pattern[-1])
+                        pcks.append(pcks_pattern[-1].split(os.sep)[-1])
                         break
         if not pcks:
             logging.warning(f'-- PCK not found.')
@@ -540,13 +573,15 @@ class Setup(object):
                 spiceypy.furnsh(pattern)
             else:
                 for dir in self.kernels_directory:
-                    fks_pattern = [f for f in os.listdir(
-                                   f'{self.kernels_directory}/fk/') if
-                                   re.search(pattern, f)]
+                    fks_pattern = [os.path.join(root, name) 
+                                   for root, dirs, files in os.walk(dir)
+                                   for name in files
+                                   if re.search(pattern, name)]
+                    
                     if fks_pattern:
                         if len(fks_pattern) > 1: fks_pattern.sort()
-                        spiceypy.furnsh(f'{dir}/fk/{fks_pattern[-1]}')
-                        fks.append(fks_pattern[-1])
+                        spiceypy.furnsh(fks_pattern[-1])
+                        fks.append(fks_pattern[-1].split(os.sep)[-1])
                         break
         if not fks:
             logging.warning(f'-- FK not found.')
@@ -560,12 +595,14 @@ class Setup(object):
                 spiceypy.furnsh(pattern)
             else:
                 for dir in self.kernels_directory:
-                    sclks_pattern = [f for f in os.listdir(f'{dir}/sclk/') if
-                                     re.search(pattern, f)]
+                    sclks_pattern = [os.path.join(root, name) 
+                                     for root, dirs, files in os.walk(dir)
+                                     for name in files
+                                     if re.search(pattern, name)]
                     if sclks_pattern:
                         if len(sclks_pattern) > 1: sclks_pattern.sort()
-                        sclks.append(sclks_pattern[-1])
-                        spiceypy.furnsh(f'{dir}/sclk/{sclks_pattern[-1]}')
+                        spiceypy.furnsh(sclks_pattern[-1])
+                        sclks.append(sclks_pattern[-1].split(os.sep)[-1])
         if not sclks:
             logging.error(f'-- SCLK not found.')
         else:
