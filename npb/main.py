@@ -102,7 +102,7 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
     :param silent: Log will not be prompted on the terminal during execution
     :type silent: bool
     :param verbose: Full log will be prompted on the terminal  during
-                    execution. If argumet is set to True, silent argument
+                    execution. If argument is set to True, silent argument
                     is omitted
     :type verbose: bool
     :param diff: Optional generation of diff reports for products. Allowed
@@ -273,7 +273,7 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
     # -- Generate the kernel list object
     #
     #    * The kernel list object will generate the kernel list
-    #      non-archivable product.
+    #      non-archival product.
     #
     list = KernelList(setup, args.plan)
 
@@ -286,7 +286,7 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
         return
 
     #
-    # -- Generate the bundle or data set structure.
+    # -- Generate the PDS4 bundle or PDS3 data set structure.
     #
     bundle = Bundle(setup)
 
@@ -314,8 +314,14 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
         # * Each label is validated after generation.
         #
         if ('.nrb' in kernel.lower()) or  ('.orb' in kernel.lower()):
+            #
+            # The OrbnumFileProduct has to be provided the kernels collection
+            # because it might require to update the kernel list if the
+            # orbnum file name is updated.
+            #
             miscellaneous_collection.add(
-                OrbnumFileProduct(setup, kernel, miscellaneous_collection))
+                OrbnumFileProduct(setup, kernel, miscellaneous_collection,
+                                  spice_kernels_collection))
         elif not '.tm' in kernel.lower():
             spice_kernels_collection.add(
                 SpiceKernelProduct(setup, kernel, spice_kernels_collection))
@@ -459,10 +465,14 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
     #
 
     #
-    # -- Validate meta-kernel
+    # -- Validate meta-kernel(s)
     #
-    if meta_kernel:
-        meta_kernel.validate()
+    
+    
+    for kernel in spice_kernels_collection.product:
+        if type(kernel) == 'npb.classes.product.MetaKernelProduct':
+            print(type(kernel))
+            kernel.validate()
 
     #
     # -- Validate checksum file
