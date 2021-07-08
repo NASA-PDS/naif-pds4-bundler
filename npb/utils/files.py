@@ -336,7 +336,7 @@ def get_context_products(setup):
 
     if appended_products:
         for product in appended_products:
-            context_products['product'].append(product)
+            context_products.append(product)
 
     #
     # Return the context products used in the bundle.
