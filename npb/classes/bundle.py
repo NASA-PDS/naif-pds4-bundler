@@ -217,8 +217,7 @@ class Bundle(object):
         #
         # List all files newer than 'x' days
         #
-        logging.info(f"-- Files in final directory less than {str(xdays)} "
-                     f"days old:")
+        logging.info(f"-- Files in final directory less than 1 day old:")
         for root, dirs, files in os.walk(self.setup.final_directory):
             for name in files:
                 filename = os.path.join(root, name)
