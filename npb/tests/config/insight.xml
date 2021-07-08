@@ -56,7 +56,7 @@
     <!-- Mission Parameters          -->
     <!-- =========================== -->
     <mission_parameters>
-        <mission_accronym>insight</mission_accronym>
+        <mission_acronym>insight</mission_acronym>
         <mission_name>InSight Mars Lander Mission</mission_name>
         <mission_start>2018-05-05T11:05:00Z</mission_start>
         <mission_finish>2050-01-01T00:00:00Z</mission_finish>

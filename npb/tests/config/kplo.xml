@@ -53,7 +53,7 @@
     <!-- Mission Parameters          -->
     <!-- =========================== -->
     <mission_parameters>
-        <mission_accronym>kplo</mission_accronym>
+        <mission_acronym>kplo</mission_acronym>
         <mission_name>Korea Pathfinder Lunar Orbiter</mission_name>
         <mission_start>2022-08-01T00:00:00Z</mission_start>
         <mission_finish>2024-01-01T00:00:00Z</mission_finish>

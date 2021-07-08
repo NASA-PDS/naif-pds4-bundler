@@ -34,7 +34,7 @@ class PDSLabel(object):
         # Fields from setup
         #
         self.root_dir = setup.root_dir
-        self.mission_accronym = setup.mission_accronym
+        self.mission_acronym = setup.mission_acronym
         self.XML_MODEL = setup.xml_model
         self.SCHEMA_LOCATION = setup.schema_location
         self.INFORMATION_MODEL_VERSION = setup.information_model
@@ -310,7 +310,7 @@ class PDSLabel(object):
 
             match_flag = True
             val_label_path = self.setup.final_directory + \
-                             f'/{self.setup.mission_accronym}_spice/' + \
+                             f'/{self.setup.mission_acronym}_spice/' + \
                              self.product.collection.name + os.sep
 
             #
@@ -350,7 +350,7 @@ class PDSLabel(object):
             #
             try:
                 val_label_path = self.setup.final_directory + \
-                                 f'/{self.setup.mission_accronym}_spice/' + \
+                                 f'/{self.setup.mission_acronym}_spice/' + \
                                  self.product.collection.name + os.sep
 
                 #

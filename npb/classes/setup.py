@@ -244,7 +244,7 @@ class Setup(object):
         # Set the staging directory WRT PDS3 or PDS4
         #
         if self.pds_version == '4':
-            mission_dir = f'{self.mission_accronym}_spice'
+            mission_dir = f'{self.mission_acronym}_spice'
         else:
             mission_dir = f'{self.volume_id.lower()}'
         
@@ -415,8 +415,8 @@ class Setup(object):
 
         try:
             releases = glob.glob(self.final_directory + os.sep +
-                                 self.mission_accronym + '_spice' + os.sep +
-                                 f'bundle_{self.mission_accronym}_spice_v*')
+                                 self.mission_acronym + '_spice' + os.sep +
+                                 f'bundle_{self.mission_acronym}_spice_v*')
             releases.sort()
             current_release = \
                 int(releases[-1].split('_spice_v')[-1].split('.')[0])
@@ -434,7 +434,7 @@ class Setup(object):
 
             try:
                 releases = glob.glob(self.working_directory +
-                                     f'/{self.mission_accronym}'
+                                     f'/{self.mission_acronym}'
                                      f'_release_*.kernel_list')
 
                 releases.sort()

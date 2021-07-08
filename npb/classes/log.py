@@ -41,7 +41,7 @@ class Log(object):
         if args.log:
 
             log_file = setup.working_directory + os.sep + \
-                       f'{setup.mission_accronym}_release_temp.log'
+                       f'{setup.mission_acronym}_release_temp.log'
 
             if os.path.exists(log_file):
                 os.remove(log_file)

@@ -32,7 +32,7 @@
     <!-- Mission Parameters          -->
     <!-- =========================== -->
     <mission_parameters>
-        <mission_accronym>msl</mission_accronym>
+        <mission_acronym>msl</mission_acronym>
         <mission_name>MSL</mission_name>
         <spacecraft>MSL</spacecraft>
         <target>MARS</target>

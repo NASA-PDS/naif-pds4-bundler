@@ -163,7 +163,7 @@ class KernelList(List):
         for dir in self.setup.kernels_directory:
             logging.info(f'   {dir}')
 
-        plan_name = f'{self.setup.mission_accronym}_release_' \
+        plan_name = f'{self.setup.mission_acronym}_release_' \
                     f'{int(self.setup.release):02d}.plan'
 
         kernels_in_dir = []
@@ -275,7 +275,7 @@ class KernelList(List):
     #
     def write_list(self):
 
-        list_name = f'{self.setup.mission_accronym}_release_' \
+        list_name = f'{self.setup.mission_acronym}_release_' \
                     f'{int(self.setup.release):02d}.kernel_list'
 
         list_dictionary = vars(self)
@@ -481,7 +481,7 @@ class KernelList(List):
             print('-- ' + line.split(' - ')[-1] + '.')
 
         kernel_lists = glob.glob(self.setup.working_directory + os.sep + \
-                                 f'{self.setup.mission_accronym}_release*'
+                                 f'{self.setup.mission_acronym}_release*'
                                  f'.kernel_list')
 
         #
@@ -490,7 +490,7 @@ class KernelList(List):
         #
         kernel_lists.sort(reverse=True)
 
-        complete_list = f'{self.setup.mission_accronym}_complete.kernel_list'
+        complete_list = f'{self.setup.mission_acronym}_complete.kernel_list'
 
         release_list = []
         with open(
@@ -652,7 +652,7 @@ class KernelList(List):
                          f'{self.setup.final_directory}:')
             for ker in ker_in_list:
                 if os.path.isfile(self.setup.final_directory + \
-                                  f'/{self.setup.mission_accronym}_spice/'
+                                  f'/{self.setup.mission_acronym}_spice/'
                                   f'spice_kernels/' + \
                                   extension2type(ker) + os.sep + ker):
                     present = True
@@ -679,7 +679,7 @@ class KernelList(List):
             #
             # if self.setup.pds_version == '3':
             #    logging.info('-- Check that all template tags used in the list are present in template:')
-            #    template = self.setup.root_dir + f'/config/{self.setup.mission_accronym }_mission_template.pds'
+            #    template = self.setup.root_dir + f'/config/{self.setup.mission_acronym }_mission_template.pds'
             #    with open(template, 'r') as o:
             #        template_lines = o.readlines()
             #
@@ -706,7 +706,7 @@ class KernelList(List):
                          'list:')
 
             kernel_lists = glob.glob(self.setup.working_directory + os.sep + \
-                                     f'{self.setup.mission_accronym}_release*'
+                                     f'{self.setup.mission_acronym}_release*'
                                      f'.kernel_list')
             kernel_lists.sort()
 
@@ -846,7 +846,7 @@ class KernelList(List):
                              'list are present in template:')
                 template = \
                     self.setup.root_dir + \
-                    f'/config/{self.setup.mission_accronym}' \
+                    f'/config/{self.setup.mission_acronym}' \
                     f'_mission_template.pds'
                 with open(template, 'r') as o:
                     template_lines = o.readlines()

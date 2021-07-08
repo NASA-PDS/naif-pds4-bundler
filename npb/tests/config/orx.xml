@@ -47,7 +47,7 @@
     <!-- Mission Parameters          -->
     <!-- =========================== -->
     <mission_parameters>
-        <mission_accronym>orx</mission_accronym>
+        <mission_acronym>orx</mission_acronym>
         <mission_name>OSIRIS-REx</mission_name>
         <mission_start>2016-09-08T23:05:00Z</mission_start>
         <mission_finish>2050-01-01T00:00:00Z</mission_finish>

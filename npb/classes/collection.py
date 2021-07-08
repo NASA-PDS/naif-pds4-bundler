@@ -41,7 +41,7 @@ class Collection(object):
 
             try:
                 versions = glob.glob(f'{self.setup.final_directory}/'
-                                     f'{self.setup.mission_accronym}_spice/'
+                                     f'{self.setup.mission_acronym}_spice/'
                                      f'{self.name}/*{self.name}*')
 
                 versions.sort()
@@ -396,9 +396,9 @@ class SpiceKernelsCollection(Collection):
             # that does not extend the coverage.
             #
             bundles = glob.glob(self.setup.final_directory + os.sep +
-                                self.setup.mission_accronym + '_spice' +
+                                self.setup.mission_acronym + '_spice' +
                                 os.sep +
-                                f'bundle_{self.setup.mission_accronym}'
+                                f'bundle_{self.setup.mission_acronym}'
                                 f'_spice_v*')
             bundles.sort()
 

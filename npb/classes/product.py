@@ -211,7 +211,7 @@ class SpiceKernelProduct(Product):
     def __get_description(self):
 
         kernel_list_file = self.setup.working_directory + os.sep + \
-                           f'{self.setup.mission_accronym}_release_' \
+                           f'{self.setup.mission_acronym}_release_' \
                            f'{int(self.setup.release):02d}.kernel_list'
 
         get_descr = False
@@ -283,7 +283,7 @@ class SpiceKernelProduct(Product):
             self.stop_time[0:-1] if self.stop_time != 'N/A' else 'N/A'
 
         setup_phase_map = f'{self.setup.root_dir}/config/' \
-                          f'{self.setup.accronym.lower()}.phases'
+                          f'{self.setup.acronym.lower()}.phases'
 
         with open(setup_phase_map, 'r') as f:
             setup_phases = list()
@@ -356,7 +356,7 @@ class SpiceKernelProduct(Product):
 
         '''Obtain the kernel mapping.'''
         kernel_list_file = self.setup.working_directory + os.sep + \
-                           f'{self.setup.mission_accronym}_release_' \
+                           f'{self.setup.mission_acronym}_release_' \
                            f'{int(self.setup.release):02d}.kernel_list'
 
         get_map = False
@@ -564,7 +564,7 @@ class MetaKernelProduct(Product):
                     '$' + key, '?' * len(self.values[key]))
 
         versions = glob.glob(f'{self.setup.final_directory}/'
-                             f'{self.setup.mission_accronym}_spice/'
+                             f'{self.setup.mission_acronym}_spice/'
                              f'spice_kernels/mk/{pattern}')
 
         versions.sort()
@@ -826,7 +826,7 @@ class MetaKernelProduct(Product):
                         #
                         try:
                             mks = glob.glob(f'{self.setup.final_directory}/'
-                                            f'{self.setup.mission_accronym}'
+                                            f'{self.setup.mission_acronym}'
                                             f'_spice/spice_kernels/mk/'
                                             f'{self.name.split("_v")[0]}*.tm')
                         except:
@@ -983,7 +983,7 @@ class MetaKernelProduct(Product):
 
             match_flag = True
             val_mk_path = f'{self.setup.final_directory}/' \
-                          f'{self.setup.mission_accronym}_spice/' + \
+                          f'{self.setup.mission_acronym}_spice/' + \
                           f'spice_kernels/mk/'
 
             val_mk_name = self.name.split(os.sep)[-1]
@@ -1020,7 +1020,7 @@ class MetaKernelProduct(Product):
         dir = self.setup.working_directory
 
         logging.info(f'-- Comparing '
-            f'{self.name.split(f"{self.setup.mission_accronym}_spice/")[-1]}'
+            f'{self.name.split(f"{self.setup.mission_acronym}_spice/")[-1]}'
                      f'...')
         compare_files(fromfile, tofile, dir, self.setup.diff)
 
@@ -1039,11 +1039,11 @@ class MetaKernelProduct(Product):
             print('-- ' + line.split(' - ')[-1] + '.')
 
         rel_path = \
-            self.path.split(f'/{self.setup.mission_accronym}_spice/')[-1]
+            self.path.split(f'/{self.setup.mission_acronym}_spice/')[-1]
         path = \
-            self.setup.final_directory.split(f'{self.setup.mission_accronym}'
+            self.setup.final_directory.split(f'{self.setup.mission_acronym}'
                                              f'_spice')[
-                   0] + f'/{self.setup.mission_accronym}_spice/' + rel_path
+                   0] + f'/{self.setup.mission_acronym}_spice/' + rel_path
 
         cwd = os.getcwd()
         mkdir = os.sep.join(path.split(os.sep)[:-1])
@@ -1130,7 +1130,7 @@ class MetaKernelProduct(Product):
                     #
                     if not ker_found:
                         path = f'{self.setup.final_directory}/' \
-                               f'{self.setup.mission_accronym}_spice/' \
+                               f'{self.setup.mission_acronym}_spice/' \
                                f'spice_kernels/' \
                                f'{extension2type(kernel)}/{kernel}'
 
@@ -1347,7 +1347,7 @@ class OrbnumFileProduct(Product):
         _orbnum_version protected attributes, both are strings.
 
         """
-        path = [f'{self.setup.final_directory}/{self.setup.mission_accronym}'
+        path = [f'{self.setup.final_directory}/{self.setup.mission_acronym}'
                 f'_spice//miscellaneous/']
         previous_orbnum = get_latest_kernel( 'orbnum', path, self._pattern,
                                              dates=True)
@@ -2244,7 +2244,7 @@ class OrbnumFileProduct(Product):
                     paths = [f'{self.setup.staging_directory}'
                              f'/spice_kernels',
                              f'{self.setup.final_directory}'
-                             f'/{self.setup.mission_accronym}_spice'
+                             f'/{self.setup.mission_acronym}_spice'
                              f'/spice_kernels']
                     pattern = coverage_kernel
                     coverage_kernel = get_latest_kernel('spk', paths, pattern)
@@ -2254,7 +2254,7 @@ class OrbnumFileProduct(Product):
 
                     if not os.path.isfile(kernel):
                         kernel = f'{self.setup.final_directory}' \
-                             f'/{self.setup.mission_accronym}_spice' \
+                             f'/{self.setup.mission_acronym}_spice' \
                              f'/spice_kernels/spk/{coverage_kernel}'
 
                     (start_time, stop_time) = spk_coverage(kernel,
@@ -2361,7 +2361,7 @@ class InventoryProduct(Product):
             #
             if self.setup.increment:
                 inventory_files = glob.glob(self.setup.final_directory + \
-                    f'/{self.setup.mission_accronym}_spice/' + \
+                    f'/{self.setup.mission_acronym}_spice/' + \
                     os.sep + collection.name + os.sep + \
                     f'collection_{collection.name}_inventory_v*.csv')
                 inventory_files.sort()
@@ -2479,7 +2479,7 @@ class InventoryProduct(Product):
                 try:
                     prev_collection_path = \
                         self.setup.final_directory + os.sep + \
-                        self.setup.mission_accronym + \
+                        self.setup.mission_acronym + \
                         '_spice/' + self.collection.name + os.sep + \
                         self.name.replace(str(self.version),
                                           str(self.version - 1))
@@ -2651,9 +2651,9 @@ class InventoryProduct(Product):
 
         :return:
         '''
-        mission_accronym = self.setup.mission_accronym
+        mission_acronym = self.setup.mission_acronym
         logging.info(f'-- Comparing '
-                     f'{self.name.split(f"{mission_accronym}_spice/")}'
+                     f'{self.name.split(f"{mission_acronym}_spice/")}'
                      f'...')
 
         #
@@ -2817,7 +2817,7 @@ class SpicedsProduct(object):
         # - Obtain the previous spiceds file if it exists
         #
         path = setup.final_directory + os.sep + \
-               setup.mission_accronym + '_spice' + os.sep + \
+               setup.mission_acronym + '_spice' + os.sep + \
                collection.name
         if self.setup.increment:
             spiceds_files = glob.glob(path + os.sep + 'spiceds_v*.html')
@@ -2975,7 +2975,7 @@ class SpicedsProduct(object):
         try:
 
             val_spd_path = f'{self.setup.final_directory}/' \
-                           f'{self.setup.mission_accronym}_spice/' + \
+                           f'{self.setup.mission_acronym}_spice/' + \
                            f'document'
 
             val_spds = glob.glob(f'{val_spd_path}/spiceds_v*.html')
@@ -3030,7 +3030,7 @@ class ReadmeProduct(Product):
         self.collection.name = ''
 
         path = self.setup.final_directory + \
-               f'/{self.setup.mission_accronym}_spice/readme.txt'
+               f'/{self.setup.mission_acronym}_spice/readme.txt'
 
         if os.path.exists(path):
             self.path = path
@@ -3172,7 +3172,7 @@ class ChecksumProduct(Product):
         #
         if self.setup.increment:
             checksum_files = glob.glob(self.setup.final_directory + \
-                f'/{self.setup.mission_accronym}_spice/' + \
+                f'/{self.setup.mission_acronym}_spice/' + \
                 os.sep + self.collection.name + os.sep + \
                 f'checksum_v*.tab')
             checksum_files.sort()
@@ -3279,7 +3279,7 @@ class ChecksumProduct(Product):
             print('-- ' + line.split(' - ')[-1] + '.')
 
 
-        msn_acr = self.setup.mission_accronym
+        msn_acr = self.setup.mission_acronym
 
         #
         # Iterate the collections to obtain the checksum of each product.

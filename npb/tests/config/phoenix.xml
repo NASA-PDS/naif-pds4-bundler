@@ -63,7 +63,7 @@
     <!-- Mission Parameters          -->
     <!-- =========================== -->
     <mission_parameters>
-        <mission_accronym>phoenix</mission_accronym>
+        <mission_acronym>phoenix</mission_acronym>
         <mission_name>PHOENIX</mission_name>
         <mission_start>2013-09-07T03:51:00Z</mission_start>
         <mission_finish>2014-04-18T04:32:00Z</mission_finish>

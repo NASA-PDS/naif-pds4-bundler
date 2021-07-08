@@ -52,7 +52,7 @@ class Bundle(object):
 
         elif setup.pds_version == '4':
 
-            self.name = f'bundle_{setup.mission_accronym}' \
+            self.name = f'bundle_{setup.mission_acronym}' \
                         f'_spice_v{setup.release}.xml'
 
             safe_make_directory(setup.staging_directory)
@@ -76,7 +76,7 @@ class Bundle(object):
             self.lid_reference = \
                 '{}:context:investigation:mission.{}'.format(
                     ':'.join(setup.logical_identifier.split(':')[0:-1]),
-                    self.setup.mission_accronym)
+                    self.setup.mission_acronym)
 
             #
             #  Get the context products.
@@ -136,7 +136,7 @@ class Bundle(object):
                      f'area:')
         for file in new_files:
             relative_path = \
-                f"{os.sep}{self.setup.mission_accronym}_spice{os.sep}"
+                f"{os.sep}{self.setup.mission_acronym}_spice{os.sep}"
             logging.info(f'     {file.split(relative_path)[-1]}')
         logging.info('')
         if self.setup.interactive:
@@ -168,7 +168,7 @@ class Bundle(object):
         for file in self.new_files:
             src = file
             relative_path = \
-                f"{os.sep}{self.setup.mission_accronym}_spice{os.sep}"
+                f"{os.sep}{self.setup.mission_acronym}_spice{os.sep}"
             relative_path += file.split(relative_path)[-1]
 
             dst = self.setup.final_directory + relative_path
@@ -222,7 +222,7 @@ class Bundle(object):
             for name in files:
                 filename = os.path.join(root, name)
                 if os.stat(filename).st_mtime > now - (xdays * 86400):
-                    relative_path = f"{self.setup.mission_accronym}_spice/"
+                    relative_path = f"{self.setup.mission_acronym}_spice/"
                     logging.info(f'   {filename.split(relative_path)[-1]}')
                     newer_file.append(filename)
 
