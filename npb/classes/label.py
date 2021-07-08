@@ -153,7 +153,7 @@ class PDSLabel(object):
         except:
             context_products = self.product.bundle.context_products
 
-        eol = self.setup.eol
+        eol = self.setup.pds4_eol
 
         for sc in scs:
             if sc:
@@ -199,7 +199,7 @@ class PDSLabel(object):
         except:
             context_products = self.product.bundle.context_products
 
-        eol = self.setup.eol
+        eol = self.setup.pds4_eol
 
         for tar in tars:
             if tar:
@@ -263,7 +263,7 @@ class PDSLabel(object):
                     if isinstance(value, str) and key in line and '$' in line:
                         line = line.replace('$' + key, value)
 
-                line = add_carriage_return(line, self.setup.eol)
+                line = add_carriage_return(line, self.setup.pds4_eol)
 
                 f.write(line)
 
@@ -273,7 +273,7 @@ class PDSLabel(object):
         logging.info(
             f'-- Created {label_name.split(f"{stag_dir}{os.sep}")[-1]}')
         if not self.setup.args.silent and not self.setup.args.verbose:
-            print(f'   * Created {label_name.split(f"{stag_dir}{os.sep}")}.')
+            print(f'   * Created {label_name.split(f"{stag_dir}{os.sep}")[-1]}.')
 
         if self.setup.diff:
             self.compare()
@@ -461,7 +461,7 @@ class PDSLabel(object):
 
                     logging.warning('-- Comparing with InSight test label.')
                 except:
-                    logging.error("-- No label for comparison found.")
+                    logging.warning("-- No label for comparison found.")
 
         #
         # If a similar label has been found the labels are compared and a
@@ -574,7 +574,7 @@ class MetaKernelPDS4Label(PDSLabel):
 
     def get_kernel_internal_references(self):
         
-        eol = self.setup.eol
+        eol = self.setup.pds4_eol
         
         #
         # From the collection we only use kernels in the MK
@@ -582,7 +582,7 @@ class MetaKernelPDS4Label(PDSLabel):
         kernel_list_for_label = ''
         for kernel in self.product.collection_metakernel:
             #
-            # The kernel lid cannot be ontained from the list; it is
+            # The kernel lid cannot be obtained from the list; it is
             # merely a list of strings.
             #
             kernel_type = extension2type(kernel)
@@ -666,16 +666,16 @@ class OrbnumFilePDS4Label(PDSLabel):
 
     def __get_table_character_description(self):
         
-        description = f"{self.setup.eol}      <description>" \
+        description = f"{self.setup.pds4_eol}      <description>" \
                       f"{self.product.table_char_description}" \
-                      f"</description>{self.setup.eol}"
+                      f"</description>{self.setup.pds4_eol}"
     
         return description
 
     def __field_template(self, name, number, location, type, length, format,
                          description, unit, blanks):
 
-        eol = self.setup.eol
+        eol = self.setup.pds4_eol
 
         field = \
             f'{" " * 8}<Field_Character>{eol}' \
@@ -777,7 +777,7 @@ class InventoryPDS3Label(PDSLabel):
                     if isinstance(value, str) and key in line and '$' in line:
                         line = line.replace('$' + key, value)
 
-                line = add_carriage_return(line, self.setup.eol)
+                line = add_carriage_return(line, self.setup.pds4_eol)
 
                 if 'END_OBJECT' in line and line[:10] != 'END_OBJECT':
                     f.write(line.split('END_OBJECT')[0])
