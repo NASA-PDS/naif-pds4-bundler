@@ -48,7 +48,7 @@ class KernelList(List):
         self.PHONE = setup.producer_phone
         self.EMAIL = setup.producer_email
         self.DATASETID = setup.dataset_id
-        self.VOLID = setup.volume_id
+        self.VOLID = setup.volume_id.lower()
         self.RELID = f'{int(setup.release):04d}'
         self.RELDATE = setup.release_date
 
@@ -127,7 +127,7 @@ class KernelList(List):
                     #
                     if hasattr(self.setup, 'orbnum'):
                         for orb in self.setup.orbnum:
-                            pattern = orb['@pattern']
+                            pattern = orb['pattern']
                             if re.search(pattern, line):
                                 ker_line = re.search(pattern, line)
                                 kernels.append(ker_line.group(0))
@@ -170,7 +170,13 @@ class KernelList(List):
         for dir in self.setup.kernels_directory:
             kernels_in_dir += glob.glob(f'{dir}/**/*',
                                    recursive=True)
-
+        #
+        # Filter out the meta-kernels from the automatically generated
+        # list.
+        #
+        kernels_in_dir = [item for item in kernels_in_dir if 
+                          '.tm' not in item]
+            
         #
         # Filter the kernels with the patterns in the kernel list from the
         # configuration. The patterns are present in the json_config
@@ -200,7 +206,7 @@ class KernelList(List):
         mks_in_dir.sort()
 
         if not mks_in_dir:
-            logging.error(f'-- No former meta-kernel found to generate '
+            logging.warning(f'-- No former meta-kernel found to generate '
                           f'meta-kernel for the list.')
         else:
 
@@ -224,14 +230,22 @@ class KernelList(List):
                               f'meta-kernel for the list.')
 
         #
-        # Sort the orbnum files that need to be added
-        # TODO: Add possibility to get the orbnum files.
-        print('')
-
+        # Add possible orbnum files.
+        #  
+        if hasattr(self.setup, 'orbnum_directory'):
+            orbnums_in_dir = glob.glob(f'{self.setup.orbnum_directory}/*')
+            for orbnum_in_dir in orbnums_in_dir:
+                for orbnum in self.setup.orbnum:
+                    if re.match(
+                            orbnum['pattern'], 
+                            orbnum_in_dir.split(os.sep)[-1]):
+                        logging.warning(
+                            f'-- Plan will include {orbnum_in_dir}')
+                        kernels.append(orbnum_in_dir.split(os.sep)[-1])
+            
         #
         # The kernel list is complete.
         #
-
         if self.setup.interactive:
             input(">> Press Enter to continue...")
 
@@ -281,11 +295,17 @@ class KernelList(List):
 
                     if pattern.match(kernel):
 
-                        options = \
-                            self.json_config[
-                                pattern.pattern]['mklabel_options']
+                        #
+                        # Description is the only mandatory field.
+                        #
                         description = \
                             self.json_config[pattern.pattern]['description']
+                        try:
+                            options = \
+                                self.json_config[
+                                    pattern.pattern]['mklabel_options']
+                        except:
+                            options = ''
                         try:
                             patterns = \
                                 self.json_config[pattern.pattern]['patterns']
@@ -304,7 +324,8 @@ class KernelList(List):
                         #
                         if patterns:
                             for el in patterns:
-                                if ("$" + el) in description:
+                                if ("$" + el) in description or \
+                                        ("$" + el) in mapping:
                                     value = patterns[el]
 
                                     #
@@ -406,14 +427,14 @@ class KernelList(List):
                                         options = \
                                             options.replace(
                                                 '$' + 'PHASES',
-                                                list(
-                                                    self.setup.phases.keys())
-                                                [0])
+                                                self.setup.phases
+                                                ['phase']['@name'])
+                                                
 
                         #
                         # Reformat the description, given that format of the
-                        # XML file is not restrictive (spaces or newlines might
-                        # be present).
+                        # XML file is not restrictive (spaces or newlines 
+                        # might be present).
                         #
                         description = description.replace('\n', ' ')
                         description = ' '.join(description.split())
@@ -599,8 +620,15 @@ class KernelList(List):
             all_present = True
             for ker in ker_in_list:
                 for dir in self.setup.kernels_directory:
-                    if os.path.isfile(dir + os.sep + extension2type(ker) 
-                                          + os.sep + ker):
+                    #
+                    # We cannot assume that the file is under a certain 
+                    # directory, it can be in any sub-directory.
+                    #
+                    file = [os.path.join(root, name)
+                            for root, dirs, files in os.walk(dir)
+                            for name in files
+                            if name == ker]            
+                    if file:
                         present = True
                 if not present:
                     if '.tm' in ker:
@@ -706,7 +734,7 @@ class KernelList(List):
         if self.setup.interactive:
             input(">> Press Enter to continue...")
 
-        if self.setup.diff:
+        if self.setup.diff and self.setup.increment:
             #
             # Compare list with previous list
             #
@@ -714,10 +742,13 @@ class KernelList(List):
     
             logging.info('')
             fromfile = kernel_lists[-1]
-            tofile = kernel_lists[-2]
-            dir = self.setup.working_directory
-    
-            compare_files(fromfile, tofile, dir, self.setup.diff)
+            try:
+                tofile = kernel_lists[-2]
+                dir = self.setup.working_directory
+                compare_files(fromfile, tofile, dir, self.setup.diff)
+            except:
+                logging.error('-- Previous list not available.')
+
     
             if self.setup.interactive:
                 input(">> Press Enter to continue...")
