@@ -68,8 +68,8 @@
                 <xs:complexType>
                   <xs:sequence>
                     <xs:element name="lsk" type="xs:string" />
-                    <xs:element name="sclk" type="xs:string" />
-                    <xs:element name="fk" type="xs:string" />
+                    <xs:element name="sclk" type="xs:string" maxOccurs="unbounded" />
+                    <xs:element name="fk" type="xs:string" maxOccurs="unbounded" />
                     <xs:element name="pck" type="xs:string" minOccurs="0"/>
                   </xs:sequence>
                 </xs:complexType>
@@ -78,7 +78,7 @@
                 <xs:simpleType>
                   <xs:restriction base="xs:string">
                     <xs:enumeration value="infomod2"/>
-                    <xs:enumeration value="makelbl"/>
+                    <xs:enumeration value="maklabel"/>
                   </xs:restriction>
                 </xs:simpleType>
               </xs:element>                      
@@ -184,7 +184,16 @@
                               </xs:simpleContent>
                             </xs:complexType>
                           </xs:element>
-                          <xs:element minOccurs="0" name="VERSION">
+                          <xs:element minOccurs="0" name="START">
+                            <xs:complexType>
+                              <xs:simpleContent>
+                                <xs:extension base="xs:string">
+                                  <xs:attribute name="pattern" type="xs:string" use="required" />
+                                </xs:extension>
+                              </xs:simpleContent>
+                            </xs:complexType>
+                          </xs:element>        
+                          <xs:element minOccurs="0" name="FINISH">
                             <xs:complexType>
                               <xs:simpleContent>
                                 <xs:extension base="xs:string">
@@ -193,6 +202,42 @@
                               </xs:simpleContent>
                             </xs:complexType>
                           </xs:element>
+                          <xs:element minOccurs="0" name="COVERAGE">
+                            <xs:complexType>
+                              <xs:simpleContent>
+                                <xs:extension base="xs:string">
+                                  <xs:attribute name="pattern" type="xs:string" use="required" />
+                                </xs:extension>
+                              </xs:simpleContent>
+                            </xs:complexType>
+                          </xs:element>
+                          <xs:element minOccurs="0" name="RESOLUTION">
+                            <xs:complexType>
+                              <xs:simpleContent>
+                                <xs:extension base="xs:string">
+                                  <xs:attribute name="pattern" type="xs:string" use="required" />
+                                </xs:extension>
+                              </xs:simpleContent>
+                            </xs:complexType>
+                          </xs:element>
+                          <xs:element minOccurs="0" name="REFERENCE">
+                            <xs:complexType>
+                              <xs:simpleContent>
+                                <xs:extension base="xs:string">
+                                  <xs:attribute name="pattern" type="xs:string" use="required" />
+                                </xs:extension>
+                              </xs:simpleContent>
+                            </xs:complexType>
+                          </xs:element>
+                          <xs:element minOccurs="0" name="VERSION">
+                            <xs:complexType>
+                              <xs:simpleContent>
+                                <xs:extension base="xs:string">
+                                  <xs:attribute name="pattern" type="xs:string" use="required" />
+                                </xs:extension>
+                              </xs:simpleContent>
+                            </xs:complexType>
+                          </xs:element>                          
                           <xs:element minOccurs="0" name="REPORT">
                             <xs:complexType>
                               <xs:simpleContent>
@@ -206,7 +251,8 @@
                             <xs:complexType>
                               <xs:simpleContent>
                                 <xs:extension base="xs:string">
-                                  <xs:attribute name="value" type="xs:string" use="required" />
+                                  <xs:attribute name="value" type="xs:string" />
+                                  <xs:attribute name="pattern" type="xs:string" />
                                 </xs:extension>
                               </xs:simpleContent>
                             </xs:complexType>
@@ -238,7 +284,7 @@
                   </xs:sequence>
                 </xs:complexType>
               </xs:element>
-              <xs:element name="mk" minOccurs="0">
+              <xs:element name="mk" minOccurs="0" maxOccurs="unbounded" >
                 <xs:complexType>
                   <xs:sequence>
                     <xs:element name="name">
@@ -267,8 +313,8 @@
                       <xs:complexType>
                         <xs:sequence>
                           <xs:element name="description" type="xs:string" />
-                          <xs:element name="keyword" type="xs:string" />
-                          <xs:element name="data" type="xs:string"/>
+                          <xs:element name="keyword" type="xs:string" minOccurs="0" />
+                          <xs:element name="data" type="xs:string" minOccurs="0" />
                         </xs:sequence>
                       </xs:complexType>
                     </xs:element>                      
@@ -282,10 +328,11 @@
         <xs:element name="orbit_number_file" minOccurs="0">
           <xs:complexType>
             <xs:sequence>
-              <xs:element name="orbnum">
+              <xs:element name="orbnum" maxOccurs="unbounded">
                 <xs:complexType>
                   <xs:sequence>
-                    <xs:element name="event_detection_frame">
+                    <xs:element name="pattern" type="xs:string" />
+                    <xs:element name="event_detection_frame" minOccurs="0" >
                       <xs:complexType>
                         <xs:sequence>
                           <xs:element name="spice_name" type="xs:string" />
@@ -293,8 +340,8 @@
                         </xs:sequence>
                       </xs:complexType>
                     </xs:element>
-                    <xs:element name="header_start_line" type="xs:unsignedByte" />
-                    <xs:element name="pck">
+                    <xs:element name="header_start_line" type="xs:unsignedByte" minOccurs="0" />
+                    <xs:element name="pck" minOccurs="0">
                       <xs:complexType>
                         <xs:sequence>
                           <xs:element name="kernel_name" type="xs:string" />
@@ -302,7 +349,7 @@
                         </xs:sequence>
                       </xs:complexType>
                     </xs:element>
-                    <xs:element name="coverage">
+                    <xs:element name="coverage" minOccurs="0">
                       <xs:complexType>
                         <xs:sequence>
                           <xs:element name="kernel">
@@ -333,7 +380,8 @@
                       </xs:complexType>
                     </xs:element>
                   </xs:sequence>
-                  <xs:attribute name="pattern" type="xs:string" use="required" />
+                  <xs:assert test="not(event_detection_frame) or header_start_line" />
+                  <xs:assert test="not(event_detection_frame) or pck" />  
                 </xs:complexType>
               </xs:element>
             </xs:sequence>
