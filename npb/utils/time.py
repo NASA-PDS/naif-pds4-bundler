@@ -73,7 +73,7 @@ def current_date():
 def creation_time(path, format='infomod2'):
     """
     Returns the creation date and time of a given file in either 
-    makelbl or infomod2.
+    maklabel or infomod2.
     %Y-%m-%dT%H:%M:%S.%f format.
 
     :param path: File path
@@ -87,7 +87,7 @@ def creation_time(path, format='infomod2'):
                                            '%Y-%m-%dT%H:%M:%S.%f').split('.')
     creation_time = "%s.%03d" % (dt, int(micro) / 1000) + 'Z'
     
-    if format == 'makelbl':
+    if format == 'maklabel':
         creation_time = creation_time[:-5]
 
     return creation_time
@@ -162,7 +162,8 @@ def spk_coverage(path, date_format='infomod2'):
         inwards_seconds = 0.0
         time_format = "YYYY-MM-DDTHR:MN:SC::UTC::RND"
     else:
-        raise ValueError("date_format argument is incorrect.")
+        raise ValueError(f"date_format = "
+                         f"{date_format} argument is incorrect.")
 
     start_time_cal = spiceypy.timout(start_time + inwards_seconds,
                                      time_format, TIMLEN) + 'Z'
