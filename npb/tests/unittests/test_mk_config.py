@@ -20,7 +20,7 @@ class TestMetaKernelConfiguration(TestCase):
         It will execute before all tests methods.
 
         '''
-        print(f"NPB - Functional Tests - {cls.__name__}")
+        print(f"NPB - Unit Tests - {cls.__name__}")
 
         os.chdir(os.path.dirname(__file__))
 

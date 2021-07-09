@@ -20,8 +20,6 @@ class TestINSIGHT(TestCase):
         '''
         print(f"NPB - Functional Tests - {cls.__name__}")
 
-        os.chdir(os.path.dirname(__file__))
-
         dirs = ['working', 'staging', 'insight', 'kernels']
         for dir in dirs:
             shutil.rmtree(dir, ignore_errors=True)
@@ -32,6 +30,8 @@ class TestINSIGHT(TestCase):
         '''
         unittest.TestCase.setUp(self)
         print(f"    * {self._testMethodName}")
+        
+        os.chdir(os.path.dirname(__file__))
 
     def tearDown(self):
         '''
@@ -43,6 +43,9 @@ class TestINSIGHT(TestCase):
         for dir in dirs:
             shutil.rmtree(dir, ignore_errors=True)
 
+        if os.path.exists('staging'):
+            os.remove('staging')
+
     def test_insight_basic(self):
         '''
         Test complete pipeline with basic Insight data (no binary kernels,
@@ -53,12 +56,15 @@ class TestINSIGHT(TestCase):
         plan = '../data/insight_release_26.plan'
         faucet = 'final'
 
-        os.mkdir('working')
-        os.mkdir('staging')
+        os.makedirs('working', mode=0o777, exist_ok=True)
+        os.makedirs('staging', mode=0o777, exist_ok=True)
         shutil.copy2('../data/insight_release_basic.kernel_list',
                      'working/insight_release_07.kernel_list')
         shutil.copytree('../data/insight', 'insight')
-        shutil.copytree('../data/kernels', 'kernels')
+        try:
+            shutil.copytree('../data/kernels', 'kernels')
+        except:
+            pass
 
         with open('../data/insight.list', 'r') as i:
             for line in i:
@@ -80,14 +86,14 @@ class TestINSIGHT(TestCase):
         plan = '../data/insight_release_08.plan'
         faucet = 'staging'
         
-        os.mkdir('staging')
-        os.mkdir('working')
+        os.makedirs('staging', mode=0o777)
+        os.makedirs('working', mode=0o777)
         shutil.copytree('../data/kernels', 'kernels')
         for file in glob.glob('data/insight_release_0[0-7].kernel_list'):
             shutil.copy2(file,
                          'working')
         shutil.copytree('../data/insight', 'insight')
-
+    
 
         main(config, plan, faucet, silent=False, log=True, diff='')
 
@@ -102,8 +108,8 @@ class TestINSIGHT(TestCase):
         plan = '../data/insight_release_08.plan'
         faucet = 'staging'
 
-        os.mkdir('staging')
-        os.mkdir('working')
+        os.makedirs('staging', mode=0o777)
+        os.makedirs('working', mode=0o777)
         shutil.copytree('../data/kernels', 'kernels')
         for file in glob.glob('../data/insight_release_0[0-7].kernel_list'):
             shutil.copy2(file,
@@ -123,8 +129,8 @@ class TestINSIGHT(TestCase):
         plan = '../data/insight_release_08.plan'
         faucet = 'staging'
 
-        os.mkdir('staging')
-        os.mkdir('working')
+        os.makedirs('staging', mode=0o777)
+        os.makedirs('working', mode=0o777)
         shutil.copytree('../data/kernels', 'kernels')
         for file in glob.glob('../data/insight_release_0[0-7].kernel_list'):
             shutil.copy2(file, 'working')
@@ -142,8 +148,8 @@ class TestINSIGHT(TestCase):
         plan = '../data/insight_release_08.plan'
         faucet = 'staging'
 
-        os.mkdir('staging')
-        os.mkdir('working')
+        os.makedirs('staging', mode=0o777)
+        os.makedirs('working', mode=0o777)
         shutil.copytree('../data/kernels', 'kernels')
         for file in glob.glob('../data/insight_release_0[0-7].kernel_list'):
             shutil.copy2(file, 'working')
@@ -162,21 +168,17 @@ class TestINSIGHT(TestCase):
         plan = '../data/insight_release_08.plan'
         faucet = 'staging'
 
-        os.mkdir('staging')
-        os.mkdir('working')
+        os.makedirs('staging', mode=0o777)
+        os.makedirs('working', mode=0o777)
         shutil.copytree('../data/kernels', 'kernels')
         for file in glob.glob('../data/insight_release_0[0-7].kernel_list'):
             shutil.copy2(file, 'working')
 
-        os.mkdir('insight')
-        os.mkdir('insight/insight_spice')
-        os.mkdir('insight/insight_spice/spice_kernels')
-        os.mkdir('insight/insight_spice/spice_kernels/sclk')
+        os.makedirs('insight/insight_spice/spice_kernels/sclk', mode=0o777)
         shutil.copy2('../data/insight/insight_spice/spice_kernels/sclk/'
                      'marcob_fake_v01.xml',
                      'insight/insight_spice/spice_kernels/sclk')
-        with open(
-                f'insight/insight_spice/spice_kernels/sclk/'
+        with open(f'insight/insight_spice/spice_kernels/sclk/'
                 f'marcob_fake_v01.tsc', 'w'):
             pass
 
@@ -194,52 +196,37 @@ class TestINSIGHT(TestCase):
         plan = '../data/insight_release_08.plan'
         faucet = 'staging'
 
-        os.mkdir('working')
+        os.makedirs('working', mode=0o777)
         shutil.copytree('../data/kernels', 'kernels')
         for file in glob.glob('../data/insight_release_0[0-7].kernel_list'):
             shutil.copy2(file, 'working')
         shutil.copytree('../data/insight', 'staging')
+
+        #
+        # The files that are added on top of the staging area need to have
+        # their coverage extracted. Those are the files provided in the
+        # insight_08.list.
+        #
         with open('../data/insight.list', 'r') as i:
             for line in i:
                 with open(f'staging/insight_spice/{line[0:-1]}', 'w'):
                     pass
-        with open('../data/insight_08.list', 'r') as i:
-            for line in i:
-                with open(f'staging/insight_spice/{line[0:-1]}', 'w'):
-                    pass
+        
+        shutil.copy2('../data/kernels/sclk/NSY_SCLKSCET.00019.tsc',
+            'staging/insight_spice/spice_kernels/sclk/nsy_sclkscet_00019.tsc')
 
-        os.mkdir('insight')
+        shutil.copy2('../data/kernels/ck/insight_ida_enc_200829_201220_v1.bc',
+                     'staging/insight_spice/spice_kernels/ck/')
+        
+        shutil.copy2('../data/kernels/ck/insight_ida_pot_200829_201220_v1.bc',
+                     'staging/insight_spice/spice_kernels/ck/')
+        
+        shutil.copy2('../data/kernels/mk/insight_v08.tm',
+                     'staging/insight_spice/spice_kernels/mk/')
+        
+        os.makedirs('insight', mode=0o777)
 
         main(config, plan, faucet, silent=False, log=True, diff='all')
-
-    def test_insight_no_spiceds(self):
-        '''
-        Testcase for when the spiceds file is not provided
-        via configuration and the previous version is not available.
-        '''
-        config = '../config/insight.xml'
-        updated_config = 'working/insight.xml'
-        plan = '../data/insight_release_08.plan'
-        faucet = 'staging'
-
-        shutil.copytree('../data/kernels', 'kernels')
-        
-        os.mkdir('staging')
-        os.mkdir('working')
-        with open(config, 'r') as c:
-            with open(updated_config, 'w') as n:
-                for line in c:
-                    if '<spiceds>../data/spiceds_test.html</spiceds>' in line:
-                        n.write('        <spiceds></spiceds>\n')
-                    else:
-                        n.write(line)
-
-        for file in glob.glob('../data/insight_release_0[0-7].kernel_list'):
-            shutil.copy2(file, 'working')
-
-        with self.assertRaises(RuntimeError):
-            main(updated_config, plan, faucet, silent=False, log=True,
-                 diff='all')
 
     def test_insight_previous_spiceds(self):
         '''
@@ -252,16 +239,19 @@ class TestINSIGHT(TestCase):
         plan = '../data/insight_release_08.plan'
         faucet = 'staging'
 
-        os.mkdir('staging')
-        os.mkdir('working')
-        shutil.copytree('../data/kernels', 'kernels')
+        print(os.getcwd())
+
+        os.makedirs('staging', mode=0o777, exist_ok=True)
+        os.makedirs('working', mode=0o777, exist_ok=True)
+        shutil.rmtree('kernels', ignore_errors=True)
+        shutil.copytree('../data/kernels', 'kernels', )
         shutil.copytree('../data/insight', 'insight')
 
         with open(config, 'r') as c:
             with open(updated_config, 'w') as n:
                 for line in c:
                     if '<spiceds>../data/spiceds_test.html</spiceds>' in line:
-                        n.write('        <spiceds></spiceds>\n')
+                        n.write('        <spiceds> </spiceds>\n')
                     else:
                         n.write(line)
 
@@ -281,8 +271,8 @@ class TestINSIGHT(TestCase):
         plan = '../data/insight_release_08.plan'
         faucet = 'staging'
         
-        os.mkdir('staging')
-        os.mkdir('working')
+        os.makedirs('staging', mode=0o777)
+        os.makedirs('working', mode=0o777)
 
         shutil.copytree('../data/kernels', 'kernels')
         shutil.copytree('../data/insight', 'insight')
@@ -293,15 +283,11 @@ class TestINSIGHT(TestCase):
         with open(config, 'r') as c:
             with open(updated_config, 'w') as n:
                 for line in c:
-                    if '<release_date></release_date>' in line:
-                        n.write('        '
-                                '<release_date>2021-04-04</release_date>\n')
-                    elif '<increment_start></increment_start>' in line:
-                        n.write('        '
+                    if '</readme>' in line:
+                        n.write('</readme>\n'
+                                '<release_date>2021-04-04</release_date>\n'
                                 '<increment_start>2021-04-03T20:53:00Z'
-                                '</increment_start>\n')
-                    elif '<increment_finish></increment_finish>' in line:
-                        n.write('        '
+                                '</increment_start>\n'
                                 '<increment_finish>'
                                 '2021-04-23T20:53:00Z</increment_finish>\n')
                     else:
@@ -319,8 +305,8 @@ class TestINSIGHT(TestCase):
         plan = '../data/insight_release_08.plan'
         faucet = 'staging'
 
-        os.mkdir('staging')
-        os.mkdir('working')
+        os.makedirs('staging', mode=0o777)
+        os.makedirs('working', mode=0o777)
         shutil.copytree('../data/kernels', 'kernels')
         shutil.copytree('../data/insight', 'insight')
 
@@ -330,14 +316,11 @@ class TestINSIGHT(TestCase):
         with open(config, 'r') as c:
             with open(updated_config, 'w') as n:
                 for line in c:
-                    if '<increment_finish></increment_finish>' in line:
+                    if '<mission_start>2018-05-05T11:05:00Z</mission_start>' \
+                            in line:
                         n.write('        '
-                                '<increment_finish>2021-04-23T20:53:00'
-                                '</increment_finish>\n')
-                    elif '<increment_finish></increment_finish>' in line:
-                        n.write('        '
-                                '<increment_finish>2021-04-23T20:53:00Z'
-                                '</increment_finish>\n')
+                                '<mission_start>2018-05-05T11:05:00'
+                                '</mission_start>\n')
                     else:
                         n.write(line)
 
@@ -348,48 +331,15 @@ class TestINSIGHT(TestCase):
         with open(config, 'r') as c:
             with open(updated_config, 'w') as n:
                 for line in c:
-                    if '<increment_finish></increment_finish>' in line:
-                        n.write('        '
-                                '<increment_finish>2021-04-23T20:53:00Z'
-                                '</increment_finish>\n')
+                    if '</readme>' in line:
+                        n.write('        </readme>\n'
+                                '        <release_date>2021</release_date>\n')
                     else:
                         n.write(line)
 
         with self.assertRaises(RuntimeError):
             main(updated_config, plan, faucet, silent=False, log=True,
                  diff='')
-
-        with open(config, 'r') as c:
-            with open(updated_config, 'w') as n:
-                for line in c:
-                    if '<release_date></release_date>' in line:
-                        n.write('        <release_date>2021</release_date>\n')
-                    else:
-                        n.write(line)
-
-        with self.assertRaises(RuntimeError):
-            main(updated_config, plan, faucet, silent=False, log=True,
-                 diff='')
-
-    def test_insight_no_readme(self):
-        '''
-        Testcase for when the readme file is not present.
-        '''
-        config = '../config/insight.xml'
-        plan = '../data/insight_release_08.plan'
-        faucet = 'final'
-        
-        os.mkdir('working')
-        os.mkdir('staging')
-        
-        shutil.copytree('../data/kernels', 'kernels')
-
-        for file in glob.glob('../data/insight_release_0[0-7].kernel_list'):
-            shutil.copy2(file, 'working')
-
-        os.mkdir('insight')
-
-        main(config, plan, faucet, silent=False, log=True, diff='all')
 
     def test_insight_mk_input(self):
         '''
@@ -400,15 +350,15 @@ class TestINSIGHT(TestCase):
         plan = 'working/insight.plan'
         faucet = 'staging'
 
-        os.mkdir('working')
-        os.mkdir('staging')
+        os.makedirs('working', mode=0o777)
+        os.makedirs('staging', mode=0o777)
         shutil.copytree('../data/kernels', 'kernels')
-        os.mkdir('insight')
+        os.makedirs('insight', mode=0o777)
 
         with open(config, 'r') as c:
             with open(updated_config, 'w') as n:
                 for line in c:
-                    if '<file></file>' in line:
+                    if '<file> </file>' in line:
                         n.write('            '
                                 '<file>working/insight_2021_v08.tm</file>\n')
                     else:
@@ -430,7 +380,7 @@ class TestINSIGHT(TestCase):
         with open(config, 'r') as c:
             with open(updated_config, 'w') as n:
                 for line in c:
-                    if '<file></file>' in line:
+                    if '<file> </file>' in line:
                         n.write('            <file>../data/insight_v08.tm'
                                 '</file>\n')
                     else:
@@ -450,10 +400,10 @@ class TestINSIGHT(TestCase):
         plan = 'working/insight.plan'
         faucet = 'staging'
         
-        os.mkdir('working')
-        os.mkdir('staging')
+        os.makedirs('working', mode=0o777)
+        os.makedirs('staging', mode=0o777)
         shutil.copytree('../data/kernels', 'kernels')
-        os.mkdir('insight')
+        os.makedirs('insight', mode=0o777)
 
         with open(config, 'r') as c:
             with open(updated_config, 'w') as n:
@@ -479,6 +429,54 @@ class TestINSIGHT(TestCase):
 
         main(updated_config, plan, faucet, verbose=True, log=True, diff='all')
 
+    def test_insight_no_spiceds(self):
+        '''
+        Testcase for when the spiceds file is not provided
+        via configuration and the previous version is not available.
+        '''
+        config = '../config/insight.xml'
+        updated_config = 'working/insight.xml'
+        plan = '../data/insight_release_08.plan'
+        faucet = 'staging'
 
+        shutil.copytree('../data/kernels', 'kernels')
+
+        os.makedirs('staging', mode=0o777)
+        os.makedirs('working', mode=0o777)
+        with open(config, 'r') as c:
+            with open(updated_config, 'w') as n:
+                for line in c:
+                    if '<spiceds>../data/spiceds_test.html</spiceds>' in line:
+                        n.write('        <spiceds></spiceds>\n')
+                    else:
+                        n.write(line)
+
+        for file in glob.glob('../data/insight_release_0[0-7].kernel_list'):
+            shutil.copy2(file, 'working')
+
+        with self.assertRaises(RuntimeError):
+            main(updated_config, plan, faucet, silent=False, log=True,
+                 diff='all')
+
+    def test_insight_no_readme(self):
+        '''
+        Testcase for when the readme file is not present.
+        '''
+        config = '../config/insight.xml'
+        plan = '../data/insight_release_08.plan'
+        faucet = 'final'
+
+        os.makedirs('working', mode=0o777)
+        os.makedirs('staging', mode=0o777)
+
+        shutil.copytree('../data/kernels', 'kernels')
+
+        for file in glob.glob('../data/insight_release_0[0-7].kernel_list'):
+            shutil.copy2(file, 'working')
+
+        os.makedirs('insight')
+
+        main(config, plan, faucet, silent=False, log=True, diff='all')
+            
 if __name__ == '__main__':
     unittest.main()

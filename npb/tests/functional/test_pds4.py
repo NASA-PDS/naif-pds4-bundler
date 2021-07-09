@@ -31,15 +31,13 @@ class TestPDS4(TestCase):
 
         dirs = ['working', 'staging', 'final', 'misc', 'kplo', 'ladee']
         for dir in dirs:
-            os.mkdir(dir)
+            os.makedirs(dir, 0o766, exist_ok=True)
 
     def tearDown(self):
         '''
         This method will be executed after each test function.
         '''
         unittest.TestCase.tearDown(self)
-        
-        return
         
         dirs = ['working', 'staging', 'final', 'kernels', 'misc', 'kplo',
                 'ladee']
@@ -54,9 +52,8 @@ class TestPDS4(TestCase):
         '''
         config = '../config/ladee.xml'
 
-        shutil.copytree(
-            '/Users/mcosta/workspace/pds/npb_workspace/ops/LADEE/kernels',
-            'kernels')
+        shutil.copytree('../data/ladee/ladee_spice/spice_kernels','kernels',
+                        ignore=shutil.ignore_patterns('*.xml','*.csv'))
 
         main(config, silent=False, verbose=False, log=True, diff='files')
 
@@ -66,9 +63,8 @@ class TestPDS4(TestCase):
         '''
         config = '../config/kplo.xml'
 
-        shutil.copytree(
-            '/Users/mcosta/workspace/pds/npb_workspace/kplo_area/kernels',
-            'kernels')
+        shutil.copytree('../data/kplo/kplo_spice/spice_kernels','kernels',
+                        ignore=shutil.ignore_patterns('*.xml','*.csv'))
 
         main(config, silent=False, verbose=False, log=True, diff='files')
 
