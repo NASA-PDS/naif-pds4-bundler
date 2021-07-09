@@ -229,3 +229,13 @@ Fractional seconds, or for Julian dates, fractional
                   days, are rounded to the precision level specified
                   by the input argument PREC.
 
+
+Tests
+=====
+
+Run tests with
+
+coverage run -m nose --cover-package=.
+
+under naif-pds4-bundle/npb
+
