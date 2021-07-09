@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.sch"
+    schematypens="http://purl.oclc.org/dsdl/schematron"?>
+
+<Product_SPICE_Kernel xmlns="http://pds.nasa.gov/pds4/pds/v1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd">
+  <Identification_Area>
+    <logical_identifier>urn:kari:kpds:kplo.spice:spice_kernels:ck_kplo_sc_230117_230121_v01.bc</logical_identifier>
+    <version_id>1.0</version_id>
+    <title>kplo_sc_230117_230121_v01.bc</title>
+    <information_model_version>1.5.0.0</information_model_version>
+    <product_class>Product_SPICE_Kernel</product_class>
+    <Citation_Information>
+      <publication_year>2021</publication_year>
+      <keyword>Observation Geometry</keyword>
+      <description>SPICE CK file containing 0.25 Hz on-board SC attitude and 8 Hz on-board attitude of the KPLO spacecraft, created by MPS/ADG KDGS, KARI.</description>
+    </Citation_Information>
+  </Identification_Area>
+  <Context_Area>
+    <Time_Coordinates>
+      <start_date_time>2023-01-18T00:00:00.000Z</start_date_time>
+      <stop_date_time>2023-01-18T00:00:00.000Z</stop_date_time>
+    </Time_Coordinates>
+    <Primary_Result_Summary>
+      <purpose>Observation Geometry</purpose>
+      <processing_level>Derived</processing_level>
+    </Primary_Result_Summary>
+    <Investigation_Area>
+      <name>Korea Pathfinder Lunar Orbiter</name>
+      <type>Mission</type>
+      <Internal_Reference>
+        <lid_reference>urn:kari:kpds:context:investigation:mission.kplo</lid_reference>
+        <reference_type>data_to_investigation</reference_type>
+      </Internal_Reference>
+    </Investigation_Area>
+    <Observing_System>
+      <Observing_System_Component>
+        <name>Korea Pathfinder Lunar Orbiter Spacecraft</name>
+        <type>Spacecraft</type>
+        <Internal_Reference>
+          <lid_reference>urn:kari:kpds:context:instrument_host:spacecraft.kplo</lid_reference>
+          <reference_type>is_instrument_host</reference_type>
+        </Internal_Reference>
+      </Observing_System_Component>
+    </Observing_System>
+    <Target_Identification>
+      <name>MOON</name>
+      <type>Satellite</type>
+      <Internal_Reference>
+        <lid_reference>urn:nasa:pds:context:target:satellite.earth.moon</lid_reference>
+        <reference_type>data_to_target</reference_type>
+      </Internal_Reference>
+    </Target_Identification>
+  </Context_Area>
+  <Reference_List>
+    <Internal_Reference>
+      <lid_reference>urn:kari:kpds:kplo.spice:document:spiceds</lid_reference>
+      <reference_type>data_to_document</reference_type>
+    </Internal_Reference>
+  </Reference_List>
+  <File_Area_SPICE_Kernel>
+    <File>
+      <file_name>kplo_sc_230117_230121_v01.bc</file_name>
+      <creation_date_time>2021-07-08T18:03:57</creation_date_time>
+      <file_size unit="byte">8192</file_size>
+      <md5_checksum>84695d5c5e30f2f040dd5aa19cb56862</md5_checksum>
+    </File>
+    <SPICE_Kernel>
+      <offset unit="byte">0</offset>
+      <object_length unit="byte">8192</object_length>
+      <parsing_standard_id>SPICE</parsing_standard_id>
+      <description>SPICE CK file containing 0.25 Hz on-board SC attitude and 8 Hz on-board attitude of the KPLO spacecraft, created by MPS/ADG KDGS, KARI.</description>
+      <kernel_type>CK</kernel_type>
+      <encoding_type>Binary</encoding_type>
+    </SPICE_Kernel>
+  </File_Area_SPICE_Kernel>
+</Product_SPICE_Kernel>
+
+
