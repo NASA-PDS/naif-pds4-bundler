@@ -106,7 +106,7 @@
                 <xs:element name="mission_name" type="xs:string" />
                 <xs:element name="mission_start" type="xs:dateTime" />
                 <xs:element name="mission_finish" type="xs:dateTime" />
-                <xs:element name="spacecraft" type="xs:string" />
+                <xs:element name="observer" type="xs:string" />
                 <xs:element name="target" type="xs:string" />
                 <xs:element name="phases">
                   <xs:complexType>
@@ -123,10 +123,10 @@
                     </xs:sequence>
                   </xs:complexType>
                 </xs:element>
-                <xs:element name="secondary_spacecrafts" minOccurs="0">
+                <xs:element name="secondary_observers" minOccurs="0">
                   <xs:complexType>
                     <xs:sequence>
-                      <xs:element name="spacecraft" type="xs:string" maxOccurs="unbounded" />
+                      <xs:element name="observer" type="xs:string" maxOccurs="unbounded" />
                     </xs:sequence>
                   </xs:complexType>
                 </xs:element>
@@ -260,6 +260,13 @@
                         </xs:sequence>
                       </xs:complexType>
                     </xs:element>
+                  <xs:element name="targets" minOccurs="0">
+                  <xs:complexType>
+                    <xs:sequence>
+                      <xs:element name="target" type="xs:string" maxOccurs="unbounded" />
+                    </xs:sequence>
+                  </xs:complexType>
+                  </xs:element>
                   </xs:sequence>
                   <xs:attribute name="pattern" type="xs:string" use="required" />
                 </xs:complexType>
