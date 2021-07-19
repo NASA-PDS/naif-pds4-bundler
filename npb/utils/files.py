@@ -342,14 +342,14 @@ def get_context_products(setup):
     # Return the context products used in the bundle.
     #
     bundle_context_products = []
-    config_context_products = [setup.spacecraft, setup.target]
+    config_context_products = [setup.observer, setup.target]
     
     #
     # Check the secondary s/c and if present add them to the
     # Congiguration for context products.3
     #
-    if hasattr(setup, 'secondary_spacecrafts'):
-        for sc in setup.secondary_spacecrafts:
+    if hasattr(setup, 'secondary_observers'):
+        for sc in setup.secondary_observers:
             config_context_products.append(sc)
 
     #
