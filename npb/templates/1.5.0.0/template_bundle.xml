@@ -34,7 +34,7 @@
       </Internal_Reference>
     </Investigation_Area>
     <Observing_System>
-$SPACECRAFTS
+$OBSERVERS
     </Observing_System>
 $TARGETS
   </Context_Area>

@@ -67,13 +67,13 @@
         <mission_name>PHOENIX</mission_name>
         <mission_start>2013-09-07T03:51:00Z</mission_start>
         <mission_finish>2014-04-18T04:32:00Z</mission_finish>
-        <spacecraft>PHOENIX</spacecraft>
+        <observer>PHOENIX</observer>
         <target>MARS</target>
         <phases>
             <EXTENDED></EXTENDED>
         </phases>
         <!-- Optional parameters -->
-        <secondary_spacecraft></secondary_spacecraft>
+        <secondary_observer></secondary_observer>
         <secondary_target></secondary_target>
     </mission_parameters>
 

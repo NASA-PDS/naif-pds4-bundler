@@ -73,7 +73,7 @@
         <mission_name>MAVEN</mission_name>
         <mission_start>2013-11-18T19:20:43Z</mission_start>
         <mission_finish>2050-01-01T00:00:00Z</mission_finish>
-        <spacecraft>MAVEN</spacecraft>
+        <observer>MAVEN</observer>
         <target>MARS</target>
         <phases>
             <phase name="EXTENDED">
@@ -82,9 +82,9 @@
             </phase>
         </phases>
         <!-- Optional parameters -->
-        <secondary_spacecrafts>
-            <spacecraft> </spacecraft>
-        </secondary_spacecrafts>
+        <secondary_observers>
+            <observer> </observer>
+        </secondary_observers>
         <secondary_targets>
             <target> </target>
         </secondary_targets>

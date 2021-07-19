@@ -8,7 +8,7 @@ from npb.utils.files import compare_files
 from npb.utils.files import extension2type
 from npb.classes.log import error_message
 
-# from npb.utils.files import get_spacecrafts
+# from npb.utils.files import get_observers
 # from npb.utils.files import get_targets
 
 
@@ -39,7 +39,7 @@ class PDSLabel(object):
         self.SCHEMA_LOCATION = setup.schema_location
         self.INFORMATION_MODEL_VERSION = setup.information_model
         self.PDS4_MISSION_NAME = setup.mission_name
-        self.PDS4_SPACECRAFT_NAME = setup.spacecraft
+        self.PDS4_OBSERVER_NAME = setup.observer
         
         if setup.end_of_line == 'CRLF':
             self.END_OF_LINE = 'Carriage-Return Line-Feed'
@@ -63,90 +63,27 @@ class PDSLabel(object):
         except:
             self.PDS4_MISSION_LID = product.bundle.lid_reference
 
-        for context_product in context_products:
-            if (context_product['name'][0] == setup.spacecraft) and \
-                    (context_product['type'][0].lower() != 'mission'):
-                self.PDS4_SPACECRAFT_TYPE = \
-                    context_product['type'][0].capitalize()
-                self.PDS4_SPACECRAFT_LID = \
-                    context_product['lidvid'].split('::')[0]
-
-            #
-            # For Bundles with multiple s/c
-            #
-            if hasattr(setup, 'secondary_spacecraft'):
-
-                #
-                # We sort out how many S/C we have
-                #
-                sec_scs = setup.secondary_spacecraft.split(',')
-
-                for sc in sec_scs:
-                    if sc:
-                        if sc.lower() in product.name.lower():
-                            self.PDS4_SPACECRAFT_NAME = sc
-
-                            for cntxt_prdct in context_products:
-                                if (context_product['name'][0] ==
-                                    setup.spacecraft) and (
-                                        cntxt_prdct['type'][0].lower() !=
-                                        'mission'):
-                                    self.PDS4_SPACECRAFT_TYPE = \
-                                        cntxt_prdct['type'][0].capitalize()
-                                    self.PDS4_SPACECRAFT_LID = \
-                                        cntxt_prdct['lidvid'].split('::')[0]
-
-            self.PDS4_TARGET_NAME = setup.target.upper()
-
-            for cntxt_prdct in context_products:
-                if cntxt_prdct['name'][0].upper() == setup.target.upper():
-                    self.PDS4_TARGET_TYPE = \
-                        cntxt_prdct['type'][0].capitalize()
-                    self.PDS4_TARGET_LID = \
-                        cntxt_prdct['lidvid'].split('::')[0]
-
-            #
-            # For Bundles with multiple targets
-            #
-            if hasattr(setup, 'secondary_target'):
-
-                #
-                # We sort out how many S/C we have
-                #
-                sec_tars = setup.secondary_target.split(',')
-
-                for tar in sec_tars:
-                    if tar:
-                        if tar.lower() in product.name.lower():
-                            self.PDS4_TARGET_NAME = tar
-                            for cntxt_prdct in setup.context_products:
-                                if cntxt_prdct['name'][0].upper() == \
-                                        tar.upper():
-                                    self.PDS4_TARGET_TYPE = \
-                                        cntxt_prdct['type'][0].capitalize()
-                                    self.PDS4_TARGET_LID = \
-                                        cntxt_prdct['lidvid'].split('::')[0]
-
-            #
-            # For labels that need to include all S/C and Targets of the setup
-            #
-            self.SPACECRAFTS = self.get_spacecrafts()
+        #
+        # For labels that need to include all S/C and Targets of the setup
+        #
+        if self.product.type:
+            self.OBSERVERS = self.get_observers()
             self.TARGETS = self.get_targets()
 
-    def get_spacecrafts(self):
+    def get_observers(self):
 
-        sc = ['{}'.format(self.setup.spacecraft)]
+        obs = ['{}'.format(self.setup.observer)]
 
-        if hasattr(self.setup, 'secondary_spacecraft'):
-            sec_scs = self.setup.secondary_spacecraft.split(',')
-            if not isinstance(sec_scs, list):
-                sec_scs = [sec_scs]
+        if hasattr(self.setup, 'secondary_observers'):
+            sec_obs = self.setup.secondary_observers
+            if not isinstance(sec_obs, list):
+                sec_scs = [sec_obs]
         else:
             sec_scs = []
 
-        scs = sc + sec_scs
+        obs = obs + sec_obs
 
-        sc_list_for_label = ''
+        obs_list_for_label = ''
 
         try:
             context_products = self.product.collection.bundle.context_products
@@ -155,36 +92,36 @@ class PDSLabel(object):
 
         eol = self.setup.pds4_eol
 
-        for sc in scs:
-            if sc:
-                sc_name = sc.split(',')[0]
+        for ob in obs:
+            if ob:
+                ob_name = ob.split(',')[0]
                 for product in context_products:
-                    if product['name'][0] == sc_name and \
+                    if product['name'][0] == ob_name and \
                             product['type'][0] == 'Spacecraft':
-                        sc_lid = product['lidvid'].split('::')[0]
+                        ob_lid = product['lidvid'].split('::')[0]
 
-                sc_list_for_label += \
+                obs_list_for_label += \
                     f'      <Observing_System_Component>{eol}' + \
-                    f'        <name>{sc_name}</name>{eol}' + \
+                    f'        <name>{ob_name}</name>{eol}' + \
                     f'        <type>Spacecraft</type>{eol}' + \
                     f'        <Internal_Reference>{eol}' + \
-                    f'          <lid_reference>{sc_lid}' \
+                    f'          <lid_reference>{ob_lid}' \
                     f'</lid_reference>{eol}' + \
                     '          <reference_type>is_instrument_host' \
                     f'</reference_type>{eol}' + \
                     f'        </Internal_Reference>{eol}' + \
                     f'      </Observing_System_Component>{eol}'
 
-        sc_list_for_label = sc_list_for_label.rstrip() + eol
+        obs_list_for_label = obs_list_for_label.rstrip() + eol
 
-        return sc_list_for_label
+        return obs_list_for_label
 
     def get_targets(self):
 
         tar = [self.setup.target]
 
-        if hasattr(self.setup, 'secondary_target'):
-            sec_tar = self.setup.secondary_target.split(',')
+        if hasattr(self.setup, 'secondary_targets'):
+            sec_tar = self.setup.secondary_targets
             if not isinstance(sec_tar, list):
                 sec_tar = [sec_tar]
         else:
@@ -226,6 +163,73 @@ class PDSLabel(object):
         tar_list_for_label = tar_list_for_label.rstrip() + eol
 
         return tar_list_for_label
+    
+    def _get_kernel_targets(self):
+        
+        self.PDS4_TARGET_NAME = self.product.target.upper()
+
+        for cntxt_prdct in context_products:
+            if cntxt_prdct['name'][0].upper() == setup.target.upper():
+                self.PDS4_TARGET_TYPE = \
+                    cntxt_prdct['type'][0].capitalize()
+                self.PDS4_TARGET_LID = \
+                    cntxt_prdct['lidvid'].split('::')[0]
+
+        #
+        # For Bundles with multiple targets
+        #
+        if hasattr(setup, 'secondary_targets'):
+            #
+            # We sort out how many targets we have
+            #
+            sec_tars = setup.secondary_targets
+            for tar in sec_tars:
+                if tar:
+                    if tar.lower() in product.name.lower():
+                        self.PDS4_TARGET_NAME = tar
+                        for cntxt_prdct in setup.context_products:
+                            if cntxt_prdct['@name'][0].upper() == \
+                                    tar.upper():
+                                self.PDS4_TARGET_TYPE = \
+                                    cntxt_prdct['type'][0].capitalize()
+                                self.PDS4_TARGET_LID = \
+                                    cntxt_prdct['lidvid'].split('::')[0]
+
+    def _get_kernel_observers(self):
+
+        for context_product in context_products:
+            if (context_product['name'][0] == self.product.observer) and \
+                    (context_product['type'][0].lower() != 'mission'):
+                self.PDS4_OBSERVER_TYPE = \
+                    context_product['type'][0].capitalize()
+                self.PDS4_OBSERVER_LID = \
+                    context_product['lidvid'].split('::')[0]
+
+            #
+            # For Bundles with multiple s/c
+            #
+            if hasattr(setup, 'secondary_observers'):
+
+                #
+                # We sort out how many S/C we have
+                #
+                sec_scs = setup.secondary_observers
+
+                for sc in sec_scs:
+                    if sc:
+                        if sc.lower() in product.name.lower():
+                            self.PDS4_OBSERVER_NAME = sc
+
+                            for cntxt_prdct in context_products:
+                                if (context_product['name'][0] ==
+                                    setup.observer) and (
+                                        cntxt_prdct['type'][0].lower() !=
+                                        'mission'):
+                                    self.PDS4_OBSERVER_TYPE = \
+                                        cntxt_prdct['type'][0].capitalize()
+                                    self.PDS4_OBSERVER_LID = \
+                                        cntxt_prdct['lidvid'].split('::')[0]
+
 
     def get_target_reference_type(self):
             

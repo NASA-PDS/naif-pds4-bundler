@@ -342,11 +342,30 @@ def get_context_products(setup):
     # Return the context products used in the bundle.
     #
     bundle_context_products = []
-    #TODO: This list has to be extended with secondary tar and sc.
     config_context_products = [setup.spacecraft, setup.target]
+    
+    #
+    # Check the secondary s/c and if present add them to the
+    # Congiguration for context products.3
+    #
+    if hasattr(setup, 'secondary_spacecrafts'):
+        for sc in setup.secondary_spacecrafts:
+            config_context_products.append(sc)
+
+    #
+    # Check the secondary targets and if present add them to the
+    # Configuration for context products.3
+    #
+    if hasattr(setup, 'secondary_targets'):
+        for tar in setup.secondary_targets:
+            config_context_products.append(tar)
+
     for context_product in context_products:
         for config_product in config_context_products:
-            if context_product['name'][0] == config_product:
+            #
+            # For the conditional statement we need to put both names lowecase.
+            #
+            if context_product['name'][0].lower() == config_product.lower():
                 bundle_context_products.append(context_product)
 
     return bundle_context_products

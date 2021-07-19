@@ -34,7 +34,7 @@
     <mission_parameters>
         <mission_acronym>m01</mission_acronym>
         <mission_name>M01</mission_name>
-        <spacecraft>ODY</spacecraft>
+        <observer>ODY</observer>
         <target>MARS</target>
         <phases>
             <phase name="EXTENDED">

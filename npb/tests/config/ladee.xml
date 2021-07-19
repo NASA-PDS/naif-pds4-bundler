@@ -58,7 +58,7 @@
         <mission_name>LADEE</mission_name>
         <mission_start>2013-09-07T03:51:00Z</mission_start>
         <mission_finish>2050-01-01T00:00:00Z</mission_finish>
-        <spacecraft>LADEE</spacecraft>
+        <observer>LADEE</observer>
         <target>MOON</target>
     </mission_parameters>
 

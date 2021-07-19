@@ -57,7 +57,7 @@
         <mission_name>Korea Pathfinder Lunar Orbiter</mission_name>
         <mission_start>2022-08-01T00:00:00Z</mission_start>
         <mission_finish>2024-01-01T00:00:00Z</mission_finish>
-        <spacecraft>Korea Pathfinder Lunar Orbiter Spacecraft</spacecraft>
+        <observer>Korea Pathfinder Lunar Orbiter Spacecraft</spacecraft>
         <target>MOON</target>
         <phases>
             <phase name="EXTENDED">
