@@ -230,6 +230,22 @@ Fractional seconds, or for Julian dates, fractional
                   by the input argument PREC.
 
 
+Multiple spacecrafts and mutliple targets. NPB incorporates the possibility to
+have mutliple spacecrafts and targets in a Bundle. This is provided via 
+configuration. If so, the default spacecraft will be the primary spacecraft
+which is specified in the configuration file. Otherwise it needs to be 
+specified in the Kernel List section of the configuration file. The non-kernels
+bundle products will include all the targets and all the spacecrafts in the 
+labels.
+
+Please note that specifying secondary targets and spacecrafts is not a requirement
+and it is valid to only include the primary spacecraft and target and label oll the
+products in such  a way (for example MAVEN). This is especially convenient for 
+these missions that clearly have a spacecraft or target that is clearly identifiable
+as main. For other mission such as BepiColombo it is mandatory to include two 
+spacecrafts, given that the relevance of the two spacecrafts is of the same order
+and the mission cannot be uniquely identified with one of them. 
+
 Tests
 =====
 
