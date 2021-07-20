@@ -303,7 +303,7 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
     #
     # -- Initialise the miscellaneous collection
     #
-    miscellaneous_collection = MiscellaneousCollection(setup, bundle)
+    miscellaneous_collection = MiscellaneousCollection(setup, bundle ,list)
 
     #
     # -- Populate the SPICE kernels collection from the kernels in
