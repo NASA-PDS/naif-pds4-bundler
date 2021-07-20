@@ -388,9 +388,11 @@ def mk2list(mk):
 
             if path_symbol:
                 if path_symbol in line:
-                    kernel = line.split(path_symbol)[1]
+                    kernel = line.split("'")[1]
+                    kernel = kernel.split(path_symbol)[1]
                     kernel = kernel.strip()
-                    kernel = kernel[:-1]
+                    kernel = kernel.split('\n')[0]
+                    kernel = kernel.split('\r')[0]
                     kernel = kernel.split('/')[-1]
 
                     ker_mk_list.append(kernel)
