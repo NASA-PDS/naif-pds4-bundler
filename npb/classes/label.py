@@ -64,25 +64,52 @@ class PDSLabel(object):
             self.PDS4_MISSION_LID = product.bundle.lid_reference
 
         #
-        # For labels that need to include all S/C and Targets of the setup
+        # For labels that need to include all observers and targets of the 
+        # setup.
         #
-        if self.product.type:
-            self.OBSERVERS = self.get_observers()
-            self.TARGETS = self.get_targets()
+        if type(self).__name__ != 'SpiceKernelPDS4Label' and \
+           type(self).__name__ != 'MetaKernelPDS4Label' and \
+           type(self).__name__ != 'OrbnumFilePDS4Label':
+            #
+            # Obtain all observers.
+            #
+            obs = ['{}'.format(self.setup.observer)]
 
-    def get_observers(self):
+            if hasattr(self.setup, 'secondary_observers'):
+                sec_obs = self.setup.secondary_observers
+                if not isinstance(sec_obs, list):
+                    sec_obs = [sec_obs]
+            else:
+                sec_obs = []
 
-        obs = ['{}'.format(self.setup.observer)]
+            self.observers = obs + sec_obs
 
-        if hasattr(self.setup, 'secondary_observers'):
-            sec_obs = self.setup.secondary_observers
-            if not isinstance(sec_obs, list):
-                sec_scs = [sec_obs]
+            #
+            # Obtain all targets.
+            #
+            tar = [self.setup.target]
+
+            if hasattr(self.setup, 'secondary_targets'):
+                sec_tar = self.setup.secondary_targets
+                if not isinstance(sec_tar, list):
+                    sec_tar = [sec_tar]
+            else:
+                sec_tar = []
+
+            self.targets = tar + sec_tar
         else:
-            sec_scs = []
+            self.observers = product.observers
+            self.targets = product.targets
+        
+        self.OBSERVERS = self.__get_observers()
+        self.TARGETS = self.__get_targets()
 
-        obs = obs + sec_obs
+    def __get_observers(self):
 
+        obs = self.observers
+        if not isinstance(obs, list):
+            obs = [obs]
+        
         obs_list_for_label = ''
 
         try:
@@ -94,11 +121,15 @@ class PDSLabel(object):
 
         for ob in obs:
             if ob:
+                ob_lid = ''
                 ob_name = ob.split(',')[0]
                 for product in context_products:
                     if product['name'][0] == ob_name and \
                             product['type'][0] == 'Spacecraft':
                         ob_lid = product['lidvid'].split('::')[0]
+                
+                if not ob_lid:
+                    print('Test')
 
                 obs_list_for_label += \
                     f'      <Observing_System_Component>{eol}' + \
@@ -116,18 +147,11 @@ class PDSLabel(object):
 
         return obs_list_for_label
 
-    def get_targets(self):
+    def __get_targets(self):
 
-        tar = [self.setup.target]
-
-        if hasattr(self.setup, 'secondary_targets'):
-            sec_tar = self.setup.secondary_targets
-            if not isinstance(sec_tar, list):
-                sec_tar = [sec_tar]
-        else:
-            sec_tar = []
-
-        tars = tar + sec_tar
+        tars = self.targets
+        if not isinstance(tars, list):
+            tars = [tars]
 
         tar_list_for_label = ''
 
@@ -164,73 +188,6 @@ class PDSLabel(object):
 
         return tar_list_for_label
     
-    def _get_kernel_targets(self):
-        
-        self.PDS4_TARGET_NAME = self.product.target.upper()
-
-        for cntxt_prdct in context_products:
-            if cntxt_prdct['name'][0].upper() == setup.target.upper():
-                self.PDS4_TARGET_TYPE = \
-                    cntxt_prdct['type'][0].capitalize()
-                self.PDS4_TARGET_LID = \
-                    cntxt_prdct['lidvid'].split('::')[0]
-
-        #
-        # For Bundles with multiple targets
-        #
-        if hasattr(setup, 'secondary_targets'):
-            #
-            # We sort out how many targets we have
-            #
-            sec_tars = setup.secondary_targets
-            for tar in sec_tars:
-                if tar:
-                    if tar.lower() in product.name.lower():
-                        self.PDS4_TARGET_NAME = tar
-                        for cntxt_prdct in setup.context_products:
-                            if cntxt_prdct['@name'][0].upper() == \
-                                    tar.upper():
-                                self.PDS4_TARGET_TYPE = \
-                                    cntxt_prdct['type'][0].capitalize()
-                                self.PDS4_TARGET_LID = \
-                                    cntxt_prdct['lidvid'].split('::')[0]
-
-    def _get_kernel_observers(self):
-
-        for context_product in context_products:
-            if (context_product['name'][0] == self.product.observer) and \
-                    (context_product['type'][0].lower() != 'mission'):
-                self.PDS4_OBSERVER_TYPE = \
-                    context_product['type'][0].capitalize()
-                self.PDS4_OBSERVER_LID = \
-                    context_product['lidvid'].split('::')[0]
-
-            #
-            # For Bundles with multiple s/c
-            #
-            if hasattr(setup, 'secondary_observers'):
-
-                #
-                # We sort out how many S/C we have
-                #
-                sec_scs = setup.secondary_observers
-
-                for sc in sec_scs:
-                    if sc:
-                        if sc.lower() in product.name.lower():
-                            self.PDS4_OBSERVER_NAME = sc
-
-                            for cntxt_prdct in context_products:
-                                if (context_product['name'][0] ==
-                                    setup.observer) and (
-                                        cntxt_prdct['type'][0].lower() !=
-                                        'mission'):
-                                    self.PDS4_OBSERVER_TYPE = \
-                                        cntxt_prdct['type'][0].capitalize()
-                                    self.PDS4_OBSERVER_LID = \
-                                        cntxt_prdct['lidvid'].split('::')[0]
-
-
     def get_target_reference_type(self):
             
         if self.product.collection.name == 'miscellaneous':
