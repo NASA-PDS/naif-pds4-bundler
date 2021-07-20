@@ -260,13 +260,20 @@
                         </xs:sequence>
                       </xs:complexType>
                     </xs:element>
-                  <xs:element name="targets" minOccurs="0">
-                  <xs:complexType>
-                    <xs:sequence>
-                      <xs:element name="target" type="xs:string" maxOccurs="unbounded" />
-                    </xs:sequence>
-                  </xs:complexType>
-                  </xs:element>
+                    <xs:element name="observers" minOccurs="0">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="observer" type="xs:string" maxOccurs="unbounded" />
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>                    
+                    <xs:element name="targets" minOccurs="0">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="target" type="xs:string" maxOccurs="unbounded" />
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
                   </xs:sequence>
                   <xs:attribute name="pattern" type="xs:string" use="required" />
                 </xs:complexType>
