@@ -34,6 +34,7 @@ import spiceypy
 import os
 
 
+
 def current_time(format='infomod2'):
     """
     Returns the current date and time in %Y-%m-%dT%H:%M:%S format.
@@ -196,7 +197,6 @@ def ck_coverage(path, date_format='infomod2'):
 
     MAXIV = 10000
     WINSIZ = 2 * MAXIV
-    TIMLEN = 500
     MAXOBJ = 10000
 
     ids = spiceypy.support_types.SPICEINT_CELL(MAXOBJ)
@@ -220,21 +220,7 @@ def ck_coverage(path, date_format='infomod2'):
     start_time = min(start_points_list)
     stop_time = max(end_points_list)
 
-    if date_format == 'infomod2':
-        inwards_seconds = 0.001
-        time_format = "YYYY-MM-DDTHR:MN:SC.###::UTC::RND"
-    elif date_format == 'maklabel':
-        inwards_seconds = 0.0
-        time_format = "YYYY-MM-DDTHR:MN:SC.###::UTC::RND"
-    else:
-        raise ValueError("date_format argument is incorrect.")
-
-    start_time_cal = spiceypy.timout(start_time + inwards_seconds,
-                                     time_format, TIMLEN) + 'Z'
-    stop_time_cal = spiceypy.timout(stop_time - inwards_seconds,
-                                    time_format, TIMLEN) + 'Z'
-
-    return [start_time_cal, stop_time_cal]
+    return et2date(start_time, stop_time, date_format=date_format)
 
 
 def pck_coverage(path, date_format='infomod2'):
@@ -257,7 +243,6 @@ def pck_coverage(path, date_format='infomod2'):
     """
     MAXIV = 1000
     WINSIZ = 2 * MAXIV
-    TIMLEN = 62
     MAXOBJ = 1000
 
     ids = spiceypy.support_types.SPICEINT_CELL(MAXOBJ)
@@ -285,27 +270,16 @@ def pck_coverage(path, date_format='infomod2'):
     start_time = min(start_points_list)
     stop_time = max(end_points_list)
 
-    if date_format == 'infomod2':
-        inwards_seconds = 0.001
-        time_format = "YYYY-MM-DDTHR:MN:SC.###::UTC::RND"
-    elif date_format == 'maklabel':
-        inwards_seconds = 0.0
-        time_format = "YYYY-MM-DDTHR:MN:SC::UTC::RND"
-    else:
-        raise ValueError("date_format argument is incorrect.")
-
-    start_time_cal = spiceypy.timout(start_time + inwards_seconds,
-                                     time_format, TIMLEN) + 'Z'
-    stop_time_cal = spiceypy.timout(stop_time - inwards_seconds,
-                                    time_format, TIMLEN) + 'Z'
-
-    return [start_time_cal, stop_time_cal]
+    return et2date(start_time, stop_time, date_format=date_format)
 
 
-def dsk_coverage(self, date_format='infomod2'):
+def dsk_coverage(path, date_format='infomod2'):
     """
     Returns the coverage of a DSK file. The function assumes that the
-    appropriate kernels have already been loaded.
+    appropriate kernels (LSK) have already been loaded.
+
+    This function is based on the DSKLBL ( Generate an MGSO or PDS DSK 
+    label file ) subroutinr that belongs to the MAKLABEL NAIF utility.
 
     :param path: File path
     :param date_format: Date format, the default is the one
@@ -320,9 +294,68 @@ def dsk_coverage(self, date_format='infomod2'):
     :return: start and finish coverage
     :rtype: list of str
     """
-    start_time_cal = self.setup.mission_start
-    stop_time_cal = self.setup.mission_finish
+    found = True
+    beget = []
+    endet = []
+    
+    #
+    # Open the DSK file.
+    #
+    handle = spiceypy.dasopr(path)
+    
+    #
+    # Search the first segment in the file, obtain the segment's DLA 
+    # descriptor
+    #
+    nxtdsc = spiceypy.dlabfs(handle)
+    dladsc = nxtdsc
+    
+    #
+    #  Loop through segments to get the earliest starting epoch and the
+    #  latest ending epoch.
+    #
+    while found:
+        dskdsc = spiceypy.dskgd(handle, dladsc)
+        
+        beget.append(dskdsc.start)
+        endet.append(dskdsc.stop)
+        
+        currnt = dladsc
+        try:
+            (dladsc, found) = spiceypy.dlafns(handle, currnt)
+        except:
+            #
+            # Close the DSK file
+            #
+            spiceypy.dascls(handle)
+            
+            break
 
+    start_time = min(beget)
+    stop_time = max(endet)
+
+    return et2date(start_time, stop_time, date_format=date_format)
+
+
+def et2date(beget, endet, date_format='infomod2'):
+    
+    time_lenght = 62
+    
+    if date_format == 'infomod2':
+        inwards_seconds = 0.001
+        time_format = "YYYY-MM-DDTHR:MN:SC.###::UTC::RND"
+    elif date_format == 'maklabel':
+        inwards_seconds = 0.0
+        time_format = "YYYY-MM-DDTHR:MN:SC::UTC::RND"
+    else:
+        raise ValueError("date_format argument is incorrect.")
+
+    start_time_cal = spiceypy.timout(beget + inwards_seconds,
+                                     time_format, time_lenght) + 'Z'
+    stop_time_cal = spiceypy.timout(endet - inwards_seconds,
+                                    time_format, time_lenght) + 'Z'
+    
+    
     return [start_time_cal, stop_time_cal]
 
 
