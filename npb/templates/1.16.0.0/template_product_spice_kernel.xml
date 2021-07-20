@@ -33,23 +33,9 @@
       </Internal_Reference>
     </Investigation_Area>
     <Observing_System>
-      <Observing_System_Component>
-        <name>$PDS4_SPACECRAFT_NAME</name>
-        <type>$PDS4_SPACECRAFT_TYPE</type>
-        <Internal_Reference>
-          <lid_reference>$PDS4_SPACECRAFT_LID</lid_reference>
-          <reference_type>is_instrument_host</reference_type>
-        </Internal_Reference>
-      </Observing_System_Component>
+$OBSERVERS
     </Observing_System>
-    <Target_Identification>
-      <name>$PDS4_TARGET_NAME</name>
-      <type>$PDS4_TARGET_TYPE</type>
-      <Internal_Reference>
-        <lid_reference>$PDS4_TARGET_LID</lid_reference>
-        <reference_type>data_to_target</reference_type>
-      </Internal_Reference>
-    </Target_Identification>
+$TARGETS
   </Context_Area>
   <Reference_List>
     <Internal_Reference>

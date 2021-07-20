@@ -12,7 +12,7 @@
     <Citation_Information>
       <publication_year>$CURRENT_YEAR</publication_year>
       <keyword>Observation Geometry</keyword>
-      <description>This collection contains SPICE kernels for the $PDS4_SPACECRAFT_NAME spacecraft and its instruments.</description>
+      <description>This collection contains SPICE kernels for the $PDS4_OBSERVER_NAME spacecraft and its instruments.</description>
     </Citation_Information>
   </Identification_Area>
   <Context_Area>
@@ -45,7 +45,7 @@ $TARGETS
   </Reference_List>
   <Collection>
     <collection_type>SPICE Kernel</collection_type>
-    <description>This collection contains SPICE kernels for the $PDS4_SPACECRAFT_NAME spacecraft and its instruments.</description>
+    <description>This collection contains SPICE kernels for the $PDS4_OBSERVER_NAME spacecraft and its instruments.</description>
   </Collection>
   <File_Area_Inventory>
     <File>
