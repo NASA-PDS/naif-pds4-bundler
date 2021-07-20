@@ -43,7 +43,7 @@ class KernelList(List):
         # Object attributes to be replaced in template
         #
         self.CURRENTDATE = str(datetime.datetime.now())[:10]
-        self.SC = setup.spacecraft
+        self.OBS = setup.observer
         self.AUTHOR = setup.producer_name
         self.PHONE = setup.producer_phone
         self.EMAIL = setup.producer_email
@@ -410,9 +410,10 @@ class KernelList(List):
                                             if kernel == val['@value']:
                                                 value = val['#text']
 
-                                        if isinstance(value, list):
-                                            error_message('-- Kernel '
-                                                'description could not be '
+                                        if isinstance(value, list) or \
+                                                isinstance(value, dict):
+                                            error_message(f'-- Kernel {kernel}'
+                                                ' description could not be '
                                                 'updated with pattern')
 
                                     description = \
