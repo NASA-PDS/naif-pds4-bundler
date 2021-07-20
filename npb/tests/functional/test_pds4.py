@@ -18,7 +18,7 @@ class TestPDS4(TestCase):
         os.chdir(os.path.dirname(__file__))
 
         dirs = ['working', 'staging', 'final', 'kernels', 'misc', 'kplo', 
-                'ladee']
+                'ladee', 'dart']
         for dir in dirs:
             shutil.rmtree(dir, ignore_errors=True)
 
@@ -29,7 +29,8 @@ class TestPDS4(TestCase):
         unittest.TestCase.setUp(self)
         print(f"    * {self._testMethodName}")
 
-        dirs = ['working', 'staging', 'final', 'misc', 'kplo', 'ladee']
+        dirs = ['working', 'staging', 'final', 'misc', 'kplo', 'ladee',
+                'dart']
         for dir in dirs:
             os.makedirs(dir, 0o766, exist_ok=True)
 
@@ -40,7 +41,7 @@ class TestPDS4(TestCase):
         unittest.TestCase.tearDown(self)
         
         dirs = ['working', 'staging', 'final', 'kernels', 'misc', 'kplo',
-                'ladee']
+                'ladee', 'dart']
         for dir in dirs:
             shutil.rmtree(dir, ignore_errors=True)
 
@@ -67,7 +68,19 @@ class TestPDS4(TestCase):
                         ignore=shutil.ignore_patterns('*.xml','*.csv'))
 
         main(config, silent=False, verbose=False, log=True, diff='files')
+        
+    def test_dart(self):
+        '''
+        Test to generate the DART archive. This test includes multiple
+        targets and spacecrafts.
+        '''
+        config = '../config/dart.xml'
 
+        shutil.copytree('/Users/mcosta/workspace/dart/DART/kernels/','kernels',
+                        ignore=shutil.ignore_patterns('*.xml','*.csv'))
+
+        main(config, silent=False, verbose=True, log=True, diff='files')
+        print('')
 
 if __name__ == '__main__':
     unittest.main()
