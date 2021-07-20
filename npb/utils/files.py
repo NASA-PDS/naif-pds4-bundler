@@ -210,14 +210,14 @@ def add_carriage_return(line, eol):
     '''
     if eol == '\r\n' and '\r\n' not in line:
         line = line.replace('\n', '\r\n')
-    elif eol == '\r\n' and '\r\n' not in line:
+    if eol == '\r\n' and '\r\n' not in line:
         if '\r\n' not in line:
             line += '\r\n'
         else:
             error_message(f'File has incorrect CR at line: {line}')
     if eol == '\n' and '\r\n' in line:
         line = line.replace('\r\n', '\n')
-    elif eol and not '\n' in line:
+    elif eol == '\n'and not '\n' in line:
         line += '\n'
     else:
         if '\n' not in line:
