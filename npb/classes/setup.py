@@ -57,13 +57,29 @@ class Setup(object):
         self.__dict__.update(config['directories'])
 
         #
+        # Re-arrange secondary spacecrafts and secondary targets parameters.
+        #
+        if hasattr(self, 'secondary_observers'):
+            if not isinstance(self.secondary_observers['observer'], list):
+                self.secondary_observers = [self.secondary_observers['observer']]
+            else:
+                self.secondary_observers = self.secondary_observers['observer']
+
+
+        if hasattr(self, 'secondary_targets'):
+            if not isinstance(self.secondary_targets['target'], list):
+                self.secondary_targets = [self.secondary_targets['target']]
+            else:
+                self.secondary_targets = self.secondary_targets['target']
+
+        #
         # Kernel directory needs to be turned into a list.
         # 
         if not isinstance(self.kernels_directory, list):
             self.kernels_directory = [self.kernels_directory]
 
         #
-        # Kernel list configuration needs refractoring.
+        # Kernel list configuration needs refactoring.
         #
         self.__dict__.update(config['kernel_list'])
 
