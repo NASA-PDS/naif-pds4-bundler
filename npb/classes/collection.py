@@ -553,11 +553,16 @@ class DocumentCollection(Collection):
 
 class MiscellaneousCollection(Collection):
 
-    def __init__(self, setup, bundle):
+    def __init__(self, setup, bundle, list):
 
         if setup.pds_version == '4':
             self.type = 'miscellaneous'
         else:
             self.type = 'extras'
+
+        #
+        # Included for ORBNUM files observers and targets.
+        #
+        self.list = list
 
         Collection.__init__(self, self.type, setup, bundle)
