@@ -59,6 +59,53 @@ class Product(object):
         self.creation_date = creation_date(self.path)
         self.extension = self.path.split(os.sep)[-1].split('.')[-1]
 
+    def get_observer_and_target(self):
+        '''
+        Read the configuration to extract the observers and the targets.
+        :return: observers and targets 
+        :rtype: tuple
+        '''
+        observers = []
+        targets = []
+
+        for pattern in self.collection.list.json_config.values():
+
+            #
+            # If the pattern is matched for the kernel name, extract
+            # the target and observer from the kernel list 
+            # configuration.
+            #
+            if re.match(pattern['@pattern'], self.name):
+
+                ker_config = \
+                    self.setup.kernel_list_config[pattern['@pattern']]
+
+                #
+                # Check if the kernel has specified targets.
+                # Note that the mission target will not be used in this case.
+                #
+                if 'targets' in ker_config:
+                    targets = ker_config['targets']['target']
+                #
+                # If the kernel has no targets then the mission target is used.
+                #
+                else:
+                    targets = [self.setup.target]
+
+                #
+                # Check if the kernel has specified observers.
+                # Note that the mission observer will not be used in this case.
+                #
+                if 'observers' in ker_config:
+                    observers = ker_config['observers']['observer']
+                #
+                # If the kernel has no observers then the mission observer is 
+                # used.
+                #
+                else:
+                    observers = [self.setup.observer]
+
+        return (observers, targets)
 
 class SpiceKernelProduct(Product):
     """
@@ -173,9 +220,18 @@ class SpiceKernelProduct(Product):
         self.path = product_path + self.name
 
         self.__coverage()
-        self.description = self.__get_description()
-
+        self.description = self.__read_description()
+        
         Product.__init__(self)
+
+        #
+        # Extract the required information from the kernel list read from
+        # configuration for the product.
+        #
+        (observers, targets) = self.get_observer_and_target()
+
+        self.targets = targets
+        self.observers = observers
 
         #
         # The kernel is labeled.
@@ -208,22 +264,28 @@ class SpiceKernelProduct(Product):
     #
     # Obtain the kernel product description information
     #
-    def __get_description(self):
+    def __read_description(self):
+        '''
+        Read the kernel list to return the description. The generated 
+        kernel list file must be used because it contains the description.
+        :return: 
+        :rtype: tuple
+        '''    
 
         kernel_list_file = self.setup.working_directory + os.sep + \
                            f'{self.setup.mission_acronym}_release_' \
                            f'{int(self.setup.release):02d}.kernel_list'
 
-        get_descr = False
+        get_token = False
         description = False
 
         for line in fileinput.input(kernel_list_file):
             if self.name in line:
-                get_descr = True
-            if get_descr and 'DESCRIPTION' in line:
+                get_token = True
+            if get_token and 'DESCRIPTION' in line:
                 description = line.split('=')[-1].strip()
-                get_descr = False
-
+                get_token = False
+            
         if not description:
             error_message(f'{self.name} does not have '
                           f'a description on {kernel_list_file}')
@@ -531,6 +593,15 @@ class MetaKernelProduct(Product):
         # Set the meta-kernel times
         #
         self.coverage()
+
+        #
+        # Extract the required information from the kernel list read from
+        # configuration for the product.
+        #
+        (observers, targets) = self.get_observer_and_target()
+
+        self.targets = targets
+        self.observers = observers
 
         Product.__init__(self)
 
@@ -1294,6 +1365,15 @@ class OrbnumFileProduct(Product):
         self.__set_params(header)
 
         self.__coverage()
+
+        #
+        # Extract the required information from the kernel list read from
+        # configuration for the product.
+        #
+        (observers, targets) = self.get_observer_and_target()
+
+        self.targets = targets
+        self.observers = observers
 
         Product.__init__(self)
 
