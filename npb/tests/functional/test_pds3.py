@@ -21,6 +21,8 @@ class TestPDS3(TestCase):
         dirs = ['working', 'staging', 'final', 'kernels']
         for dir in dirs:
             shutil.rmtree(dir, ignore_errors=True)
+            
+        cls.silent = True
 
     def setUp(self):
         '''
@@ -55,7 +57,7 @@ class TestPDS3(TestCase):
 
         shutil.copy2('../data/m01_release_74.kernel_list', 'working')
 
-        main(config, plan, faucet, silent=True, diff='log')
+        main(config, plan, faucet, silent=self.silent)
 
 
 if __name__ == '__main__':

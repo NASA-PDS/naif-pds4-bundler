@@ -21,6 +21,9 @@ class TestPDS4(TestCase):
                 'ladee', 'dart']
         for dir in dirs:
             shutil.rmtree(dir, ignore_errors=True)
+            
+        cls.silent = True
+        cls.log = False
 
     def setUp(self):
         '''
@@ -56,7 +59,7 @@ class TestPDS4(TestCase):
         shutil.copytree('../data/ladee/ladee_spice/spice_kernels','kernels',
                         ignore=shutil.ignore_patterns('*.xml','*.csv'))
 
-        main(config, silent=False, verbose=False, log=True, diff='files')
+        main(config, silent=self.silent, log=self.log)
 
     def test_kplo(self):
         '''
@@ -67,7 +70,7 @@ class TestPDS4(TestCase):
         shutil.copytree('../data/kplo/kplo_spice/spice_kernels','kernels',
                         ignore=shutil.ignore_patterns('*.xml','*.csv'))
 
-        main(config, silent=False, verbose=False, log=True, diff='files')
+        main(config, silent=self.silent, log=self.log)
         
     def test_dart(self):
         '''
@@ -80,7 +83,7 @@ class TestPDS4(TestCase):
                         ignore=shutil.ignore_patterns('*.xml','*.csv'))
 
         main(config, silent=False, verbose=True, log=True, diff='files')
-        print('')
+        
 
 if __name__ == '__main__':
     unittest.main()

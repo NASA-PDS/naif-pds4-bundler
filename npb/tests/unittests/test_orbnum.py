@@ -28,6 +28,7 @@ class TestOrbnum(TestCase):
             shutil.rmtree(dir, ignore_errors=True)
         
         cls.faucet = 'staging'
+        cls.silent = True
 
     def setUp(self):
         '''
@@ -77,7 +78,7 @@ class TestOrbnum(TestCase):
             p.write('maven_orb_rec_210101_210401_v1.orb')
             p.write('\nmaven_orb_rec_210101_210401_v1.nrb')
 
-        main(config, plan, self.faucet, silent=True)
+        main(config, plan, self.faucet, silent=self.silent)
 
     def test_pds4_orbnum_coverage_increment_spk(self):
         '''
@@ -102,7 +103,7 @@ class TestOrbnum(TestCase):
                     else:
                         n.write(line)
 
-        main(updated_config, plan, self.faucet, silent=True)
+        main(updated_config, plan, self.faucet, silent=self.silent)
 
     def test_pds4_orbnum_coverage_archived_spk(self):
         '''
@@ -129,7 +130,7 @@ class TestOrbnum(TestCase):
         shutil.copy2('../data/kernels/spk/maven_orb_rec_210101_210401_v2.bsp',
                      'maven/maven_spice/spice_kernels/spk/')
 
-        main(updated_config, plan, self.faucet, silent=True)
+        main(updated_config, plan, self.faucet, silent=self.silent)
 
     def test_pds4_orbnum_coverage_lookup_table(self):
         '''
@@ -158,7 +159,7 @@ class TestOrbnum(TestCase):
                     else:
                         n.write(line) 
 
-        main(updated_config, plan, self.faucet, silent=True)
+        main(updated_config, plan, self.faucet, silent=self.silent)
 
     def test_pds4_orbnum_coverage_estimate(self):
         """
@@ -180,7 +181,7 @@ class TestOrbnum(TestCase):
         with open(plan, 'w') as p:
             p.write('maven_orb_rec_210101_210401_v1.orb')
 
-        main(updated_config, plan, self.faucet, silent=True)
+        main(updated_config, plan, self.faucet, silent=self.silent)
 
     def test_pds4_orbnum_with_former_version(self):
         """
@@ -202,7 +203,7 @@ class TestOrbnum(TestCase):
                   'maven_orb_rec_210101_2105401_v2.orb', 'w'):
             pass
 
-        main(config, plan, self.faucet, silent=True)
+        main(config, plan, self.faucet, silent=self.silent)
 
     def test_pds4_orbnum_with_former(self):
         """
@@ -221,7 +222,7 @@ class TestOrbnum(TestCase):
                   'maven_orb_rec_210101_210401.orb', 'w'):
             pass
 
-        main(config, plan, self.faucet, silent=True)
+        main(config, plan, self.faucet, silent=self.silent)
 
     def test_pds4_orbnum_blank_records(self):
         """
@@ -241,7 +242,7 @@ class TestOrbnum(TestCase):
                   'maven_orb_rec_210101_2105401_v2.orb', 'w'):
             pass
 
-        main(config, plan, self.faucet, silent=True)
+        main(config, plan, self.faucet, silent=self.silent)
 
     def test_pds4_orbnum_blank_records_no_former(self):
         """
@@ -253,7 +254,7 @@ class TestOrbnum(TestCase):
         with open(plan, 'w') as p:
             p.write('maven_orb_rec_210101_210401_v3.orb')
 
-        main(config, plan, self.faucet, silent=True)
+        main(config, plan, self.faucet, silent=self.silent)
 
     def test_pds4_orbnum_blank_records_no_version(self):
         """
@@ -277,7 +278,7 @@ class TestOrbnum(TestCase):
         with open(plan, 'w') as p:
             p.write('maven_orb_rec_210101_210401.orb')
 
-        main(updated_config, plan, self.faucet, silent=True)
+        main(updated_config, plan, self.faucet, silent=self.silent)
 
     def test_pds3_orbnum_files(self):
 
@@ -331,7 +332,7 @@ class TestOrbnum(TestCase):
                     else:
                         n.write(line)
 
-        main(updated_config, plan, self.faucet, silent=True)
+        main(updated_config, plan, self.faucet, silent=self.silent)
         
     def test_pds4_orbnum_eol_line_feed(self):
         """
@@ -357,7 +358,7 @@ class TestOrbnum(TestCase):
         with open(plan, 'w') as p:
             p.write('maven_orb_rec_210101_210401_v1.orb')
 
-        main(updated_config, plan, self.faucet, silent=True)
+        main(updated_config, plan, self.faucet, silent=self.silent)
     
     def test_pds4_orbnum_generated_list(self):
         """
@@ -369,7 +370,7 @@ class TestOrbnum(TestCase):
         shutil.copy('../data/misc/orbnum/maven_orb_rec_210101_210401_v1.orb', 
                     'misc/orbnum/')
 
-        main(config, faucet=self.faucet, silent=True)
+        main(config, faucet=self.faucet, silent=self.silent)
 
 
 if __name__ == '__main__':

@@ -23,6 +23,9 @@ class TestINSIGHT(TestCase):
         dirs = ['working', 'staging', 'insight', 'kernels']
         for dir in dirs:
             shutil.rmtree(dir, ignore_errors=True)
+            
+        cls.silent = False
+        cls.log = True
 
     def setUp(self):
         '''
@@ -71,7 +74,7 @@ class TestINSIGHT(TestCase):
                 with open(f'insight/insight_spice/{line[0:-1]}', 'w'):
                     pass
 
-        main(config, plan, faucet, silent=False, log=True, diff='all')
+        main(config, plan, faucet, silent=self.silent, log=self.log, diff='all')
 
     def test_insight_diff_previous_none(self):
         '''
@@ -95,7 +98,7 @@ class TestINSIGHT(TestCase):
         shutil.copytree('../data/insight', 'insight')
     
 
-        main(config, plan, faucet, silent=False, log=True, diff='')
+        main(config, plan, faucet, silent=self.silent, log=self.log, diff='')
 
     def test_insight_diff_previous_all(self):
         '''
@@ -116,7 +119,7 @@ class TestINSIGHT(TestCase):
                          'working')
         shutil.copytree('../data/insight', 'insight')
 
-        main(config, plan, faucet, silent=False, log=True, diff='all')
+        main(config, plan, faucet, silent=self.silent, log=self.log, diff='all')
 
     def test_insight_diff_previous_files(self):
         '''
@@ -136,7 +139,8 @@ class TestINSIGHT(TestCase):
             shutil.copy2(file, 'working')
         shutil.copytree('../data/insight', 'insight')
 
-        main(config, plan, faucet, silent=False, log=True, diff='files')
+        main(config, plan, faucet, silent=self.silent, log=self.log, 
+             diff='files')
 
     def test_insight_diff_previous_log(self):
         '''
@@ -155,7 +159,7 @@ class TestINSIGHT(TestCase):
             shutil.copy2(file, 'working')
         shutil.copytree('../data/insight', 'insight')
 
-        main(config, plan, faucet, silent=False, log=True, diff='log')
+        main(config, plan, faucet, silent=self.silent, log=self.log, diff='log')
 
     def test_insight_diff_templates(self):
         '''
@@ -182,7 +186,7 @@ class TestINSIGHT(TestCase):
                 f'marcob_fake_v01.tsc', 'w'):
             pass
 
-        main(config, plan, faucet, silent=False, log=True, diff='all')
+        main(config, plan, faucet, silent=self.silent, log=self.log, diff='all')
 
     def test_insight_files_in_staging(self):
         '''
@@ -226,7 +230,7 @@ class TestINSIGHT(TestCase):
         
         os.makedirs('insight', mode=0o777)
 
-        main(config, plan, faucet, silent=False, log=True, diff='all')
+        main(config, plan, faucet, silent=self.silent, log=self.log, diff='all')
 
     def test_insight_previous_spiceds(self):
         '''
@@ -258,7 +262,8 @@ class TestINSIGHT(TestCase):
         for file in glob.glob('../data/insight_release_0[0-7].kernel_list'):
             shutil.copy2(file, 'working')
 
-        main(updated_config, plan, faucet, silent=False, log=True, diff='all')
+        main(updated_config, plan, faucet, silent=self.silent, log=self.log, 
+             diff='all')
 
     def test_insight_start_finish(self):
         '''
@@ -293,7 +298,8 @@ class TestINSIGHT(TestCase):
                     else:
                         n.write(line)
 
-        main(updated_config, plan, faucet, silent=False, log=True, diff='')
+        main(updated_config, plan, faucet, silent=self.silent, log=self.log, 
+             diff='')
 
     def test_insight_incorrect_times(self):
         '''
@@ -325,7 +331,7 @@ class TestINSIGHT(TestCase):
                         n.write(line)
 
         with self.assertRaises(RuntimeError):
-            main(updated_config, plan, faucet, silent=False, log=True,
+            main(updated_config, plan, faucet, silent=self.silent, log=self.log,
                  diff='')
 
         with open(config, 'r') as c:
@@ -374,8 +380,8 @@ class TestINSIGHT(TestCase):
             shutil.copy2(file, 'working')
 
         with self.assertRaises(RuntimeError):
-            main(updated_config, plan, faucet, silent=False, log=True,
-                 diff='all')
+            main(updated_config, plan, faucet, silent=self.silent, 
+                 log=self.log, diff='all')
 
         with open(config, 'r') as c:
             with open(updated_config, 'w') as n:
@@ -427,7 +433,8 @@ class TestINSIGHT(TestCase):
         for file in glob.glob('../data/insight_release_0[0-7].kernel_list'):
             shutil.copy2(file, 'working')
 
-        main(updated_config, plan, faucet, verbose=True, log=True, diff='all')
+        main(updated_config, plan, faucet, silent=self.silent, log=self.log, 
+             diff='all')
 
     def test_insight_no_spiceds(self):
         '''
@@ -455,7 +462,7 @@ class TestINSIGHT(TestCase):
             shutil.copy2(file, 'working')
 
         with self.assertRaises(RuntimeError):
-            main(updated_config, plan, faucet, silent=False, log=True,
+            main(updated_config, plan, faucet, silent=self.silent, log=self.log,
                  diff='all')
 
     def test_insight_no_readme(self):
@@ -476,7 +483,7 @@ class TestINSIGHT(TestCase):
 
         os.makedirs('insight')
 
-        main(config, plan, faucet, silent=False, log=True, diff='all')
+        main(config, plan, faucet, silent=self.silent, log=self.log, diff='all')
             
 if __name__ == '__main__':
     unittest.main()

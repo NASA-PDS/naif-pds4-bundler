@@ -21,6 +21,10 @@ class TestMAVEN(TestCase):
         dirs = ['working', 'staging', 'final', 'kernels', 'misc', 'maven']
         for dir in dirs:
             shutil.rmtree(dir, ignore_errors=True)
+            
+        cls.verbose = False    
+        cls.silent = False
+        cls.log = True
 
     def setUp(self):
         '''
@@ -81,8 +85,8 @@ class TestMAVEN(TestCase):
         with open('working/maven.plan', 'w') as p:
             p.write('mvn_sclkscet_00088.tsc')
 
-        main(updated_config, plan=plan, faucet=faucet, silent=False,
-             verbose=False, log=True, diff='all')
+        main(updated_config, plan=plan, faucet=faucet, silent=self.silent,
+             verbose=self.verbose, log=self.log, diff='all')
 
     def test_maven_mks_list(self):
         '''
@@ -96,8 +100,8 @@ class TestMAVEN(TestCase):
             p.write('maven_2015_v09.tm\n')
             p.write('maven_2020_v06.tm')
 
-        main(config, plan=plan, faucet=faucet, silent=False,
-             verbose=False, log=True, diff='all')
+        main(config, plan=plan, faucet=faucet, silent=self.silent,
+             verbose=self.verbose, log=self.log, diff='all')
 
     def test_maven_first_release(self):
         '''
@@ -110,8 +114,8 @@ class TestMAVEN(TestCase):
         with open('working/maven.plan', 'w') as p:
             p.write('mvn_sclkscet_00088.tsc')
 
-        main(config, plan=plan, faucet=faucet, silent=False,
-             verbose=False, log=True, diff='all')
+        main(config, plan=plan, faucet=faucet, silent=self.silent,
+             verbose=self.verbose, log=self.log, diff='all')
 
 
 if __name__ == '__main__':
