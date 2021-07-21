@@ -43,19 +43,19 @@
         <xs:element name="bundle_parameters">
           <xs:complexType>
             <xs:sequence>
-              <xs:element name="producer_name" type="xs:string" minOccurs="0" />
+              <xs:element name="producer_name" type="xs:string" />
               <xs:element name="producer_email" type="xs:string" minOccurs="0" />
               <xs:element name="producer_phone" type="xs:string" minOccurs="0" />
-              <xs:element name="author_list" type="xs:string" minOccurs="0" />
-              <xs:element name="institution" type="xs:string" minOccurs="0" />
+              <xs:element name="author_list" type="xs:string" />
+              <xs:element name="institution" type="xs:string" />
               <xs:element name="dataset_id" type="xs:string" minOccurs="0" />
               <xs:element name="volume_id" type="xs:string" minOccurs="0" />               
               <xs:element name="doi" type="xs:string" minOccurs="0" />
               <xs:element name="spiceds" type="xs:string" minOccurs="0" />
+              <xs:element name="spice_name" type="xs:string" />
               <xs:element name="readme" minOccurs="0">
                 <xs:complexType>
                   <xs:sequence>
-                    <xs:element name="spice_name" type="xs:string" />
                     <xs:element name="overview" type="xs:string" />
                     <xs:element name="cognisant_persons" type="xs:string" />
                   </xs:sequence>
