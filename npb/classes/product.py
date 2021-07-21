@@ -106,6 +106,7 @@ class Product(object):
                     observers = [self.setup.observer]
 
         return (observers, targets)
+    
 
 class SpiceKernelProduct(Product):
     """
@@ -124,9 +125,11 @@ class SpiceKernelProduct(Product):
         """
         Constructor method.
         """
+        
         self.collection = collection
         self.setup = setup
         self.name = name
+        
         self.extension = name.split('.')[-1].strip()
         self.type = extension2type(self)
 
@@ -137,27 +140,6 @@ class SpiceKernelProduct(Product):
             self.file_format = 'Binary'
         else:
             self.file_format = 'Character'
-
-        #
-        # From the header of MAKLABEL:
-        #
-        #    All files that are to have labels generated must have a NAIF
-        #    file ID word as the first "word" on the first line of the
-        #    file.The SPICE binary kernel files are guaranteed to have
-        #    this ID word, but the ASCII text kernels, IK, LSK, PCK, SCLK,
-        #    are not. for completeness, the appropriate ID words are listed
-        #    here, so that they may be inserted into the ASCII text kernel
-        #    files if necessary.
-        #
-        #            ASCII Text File Type      ID Word
-        #            --------------------      --------
-        #            IK                        KPL/IK
-        #            LSK                       KPL/LSK
-        #            PCK                       KPL/PCK
-        #            SCLK                      KPL/SCLK
-        #            FRAMES                    KPL/FK
-        #
-
 
         if self.setup.pds_version == '4':
             self.lid = self.__product_lid()
@@ -186,8 +168,11 @@ class SpiceKernelProduct(Product):
                     file = [os.path.join(root, ker)
                             for root, dirs, files in os.walk(path)
                             for ker in files
-                            if name == ker]    
-                    shutil.copy2(file[0],
+                            if name == ker]
+                    
+                    origin_path = file[0]
+                    
+                    shutil.copy2(origin_path,
                                  product_path + os.sep + self.name)
                     self.new_product = True
                 except:
@@ -196,13 +181,19 @@ class SpiceKernelProduct(Product):
                                 for root, dirs, files in os.walk(path)
                                 for ker in files
                                 if self.__product_mapping() == ker]
-                        shutil.copy2(file[0],
+
+                        origin_path = file[0]
+                        
+                        shutil.copy2(origin_path,
                                      product_path + os.sep + self.name)
                         self.new_product = True
                         logging.info(f'-- Mapping {self.__product_mapping()} '
                                      f'with {self.name}')
                     except:
                         error_message(f'{self.name} not present in {path}')
+
+                self.check_kernel_integrity(origin_path)
+                
                 if self.new_product:
                     break
         else:
@@ -436,7 +427,48 @@ class SpiceKernelProduct(Product):
                           f'mapping on {kernel_list_file}')
 
         return mapping
+    
+    def check_kernel_integrity(object, path):
 
+        #
+        # All files that are to have labels generated must have a NAIF
+        # file ID word as the first "word" on the first line of the
+        # file. Check if it is the case.
+        #
+        (arch, type) = spiceypy.getfat(path)
+
+        if object.file_format == 'Binary':
+            
+            #
+            # A binary file could have the following architectures:
+            # 
+            #   DAF - The file is based on the DAF architecture. 
+            #   DAS - The file is based on the DAS architecture. 
+            #   XFR - The file is in a SPICE transfer file format.
+            #
+            # But for an archive only DAF is acceptable.
+            #
+            if arch != 'DAF':
+                error_message(f'Kernel {object.name} architecture {arch} '
+                              f'is invalid')
+            else:
+                pass
+        elif object.file_format == 'Character':
+            
+            #
+            # Text kernels must have KPL architecture:
+            #
+            #    KPL -- Kernel Pool File (i.e., a text kernel) 
+            #
+            if arch != 'KPL':
+                error_message(f'Kernel {object.name} architecture {arch} '
+                              f'is invalid')
+                
+        if type != object.type.upper():
+            error_message(f'Kernel {object.name} type {object.type.upper()} '
+                          f'is not the one expected: {type}')
+            
+        return
 
 class MetaKernelProduct(Product):
 
@@ -461,6 +493,7 @@ class MetaKernelProduct(Product):
         self.new_product = True
         self.setup = setup
         self.collection = spice_kernels_collection
+        self.file_format = 'Character'
 
         if os.sep in kernel:
             self.name = kernel.split(os.sep)[-1]
@@ -540,6 +573,12 @@ class MetaKernelProduct(Product):
         if user_input:
             self.name = kernel.split(os.sep)[-1]
             self.path = kernel
+            
+            #
+            # If the meta-kernel is provided by the user check the 
+            # integrity.
+            #
+            SpiceKernelProduct.check_kernel_integrity(self, self.path)
         else:
             self.path = product_path + self.name
 
