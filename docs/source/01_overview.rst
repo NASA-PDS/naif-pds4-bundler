@@ -246,6 +246,22 @@ as main. For other mission such as BepiColombo it is mandatory to include two
 spacecrafts, given that the relevance of the two spacecrafts is of the same order
 and the mission cannot be uniquely identified with one of them. 
 
+
+All files that are to have labels generated must have a NAIF
+file ID word as the first "word" on the first line of the
+file.The SPICE binary kernel files are guaranteed to have
+this ID word, but the ASCII text kernels, IK, LSK, PCK, SCLK,
+are not. for completeness, the appropriate ID words are listed
+here, so that they may be inserted into the ASCII text kernel
+files if necessary.
+        ASCII Text File Type      ID Word
+        --------------------      --------
+        IK                        KPL/IK
+        LSK                       KPL/LSK
+        PCK                       KPL/PCK
+        SCLK                      KPL/SCLK
+        FRAMES                    KPL/FK
+
 Tests
 =====
 
