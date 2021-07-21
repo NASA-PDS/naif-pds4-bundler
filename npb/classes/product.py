@@ -556,7 +556,7 @@ class MetaKernelProduct(Product):
 
         self.PDS4_MISSION_NAME = self.setup.mission_name
         self.CURRENT_DATE = current_date()
-        self.SPICE_NAME = self.setup.readme['spice_name']
+        self.SPICE_NAME = self.setup.spice_name
         self.INSTITUTION = self.setup.institution
 
         #
@@ -3136,7 +3136,7 @@ class ReadmeProduct(Product):
                                             '/templates/template_readme.txt'):
                     if '$SPICE_NAME' in line:
                         line = line.replace('$SPICE_NAME',
-                                            self.setup.readme['spice_name'])
+                                            self.setup.spice_name)
                         line_length = len(line) - 1
                         line = add_carriage_return(line, self.setup.pds4_eol)
                         f.write(line)
