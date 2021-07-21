@@ -176,6 +176,11 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
         #
         args = parser.parse_args()
         args.config = args.config[0]
+        
+        #
+        # When executing from the command line, debug mode is not available.
+        #
+        debug = False
 
     #
     # If NPB is not executed from the command line then an args object is
