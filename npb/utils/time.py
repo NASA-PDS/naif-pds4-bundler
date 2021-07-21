@@ -154,24 +154,9 @@ def spk_coverage(path, date_format='infomod2'):
             end_points_list.append(endpoints[1])
 
     start_time = min(start_points_list)
-    stop_time = max(end_points_list)
+    stop_time = max(end_points_list) 
 
-    if date_format == 'infomod2':
-        inwards_seconds = 0.001
-        time_format = "YYYY-MM-DDTHR:MN:SC.###::UTC::RND"
-    elif date_format == 'maklabel':
-        inwards_seconds = 0.0
-        time_format = "YYYY-MM-DDTHR:MN:SC::UTC::RND"
-    else:
-        raise ValueError(f"date_format = "
-                         f"{date_format} argument is incorrect.")
-
-    start_time_cal = spiceypy.timout(start_time + inwards_seconds,
-                                     time_format, TIMLEN) + 'Z'
-    stop_time_cal = spiceypy.timout(stop_time - inwards_seconds,
-                                    time_format, TIMLEN) + 'Z'
-
-    return [start_time_cal, stop_time_cal]
+    return et2date(start_time, stop_time, date_format=date_format)
 
 
 def ck_coverage(path, date_format='infomod2'):
@@ -220,7 +205,8 @@ def ck_coverage(path, date_format='infomod2'):
     start_time = min(start_points_list)
     stop_time = max(end_points_list)
 
-    return et2date(start_time, stop_time, date_format=date_format)
+    return et2date(start_time, stop_time, date_format=date_format,
+                   kernel_type = 'ck')
 
 
 def pck_coverage(path, date_format='infomod2'):
@@ -271,7 +257,6 @@ def pck_coverage(path, date_format='infomod2'):
     stop_time = max(end_points_list)
 
     return et2date(start_time, stop_time, date_format=date_format)
-
 
 def dsk_coverage(path, date_format='infomod2'):
     """
@@ -337,7 +322,7 @@ def dsk_coverage(path, date_format='infomod2'):
     return et2date(start_time, stop_time, date_format=date_format)
 
 
-def et2date(beget, endet, date_format='infomod2'):
+def et2date(beget, endet, date_format='infomod2', kernel_type='Text'):
     
     time_lenght = 62
     
@@ -346,7 +331,10 @@ def et2date(beget, endet, date_format='infomod2'):
         time_format = "YYYY-MM-DDTHR:MN:SC.###::UTC::RND"
     elif date_format == 'maklabel':
         inwards_seconds = 0.0
-        time_format = "YYYY-MM-DDTHR:MN:SC::UTC::RND"
+        if kernel_type.upper() == 'CK':
+            time_format = "YYYY-MM-DDTHR:MN:SC.###::UTC::RND"
+        else:
+            time_format = "YYYY-MM-DDTHR:MN:SC::UTC::RND"
     else:
         raise ValueError("date_format argument is incorrect.")
 
