@@ -169,7 +169,7 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
                             action='store_true')
         parser.add_argument('-v', '--verbose',
                             help="Full log will be prompted on the terminal "
-                                 "during execution. If argumet is set to "
+                                 "during execution. If argument is set to "
                                  "True, silent argument is omitted.",
                             action='store_true')
         parser.add_argument('-d', '--diff',
@@ -191,12 +191,11 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
         args.config = args.config[0]
 
     #
-    # If npb is not executed from the command line then an args object is
+    # If NPB is not executed from the command line then an args object is
     # initialised and the argument attributes are obtained from the
     # main function argument list.
     #
     else:
-
         args = Object()
         args.config = config
         args.plan = plan
@@ -235,7 +234,7 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
         raise Exception('-f, --faucet argument has incorrect value.')
 
     #
-    # The pipeline is exectued now
+    # The pipeline is executed now
     #
     # -- Generate setup object
     #
@@ -325,7 +324,6 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
         elif not '.tm' in kernel.lower():
             spice_kernels_collection.add(
                 SpiceKernelProduct(setup, kernel, spice_kernels_collection))
-
 
     #
     # -- Generate the meta-kernel(s).
@@ -467,8 +465,6 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
     #
     # -- Validate meta-kernel(s)
     #
-    
-    
     for kernel in spice_kernels_collection.product:
         if type(kernel) == 'npb.classes.product.MetaKernelProduct':
             print(type(kernel))
