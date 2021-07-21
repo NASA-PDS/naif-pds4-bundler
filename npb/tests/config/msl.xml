@@ -16,9 +16,11 @@
         <producer_email>Marc.Costa.Sitja@jpl.nasa.gov</producer_email>
         <producer_phone>6264691244</producer_phone>
         <author_list>Semenov B. V.; Costa Sitja M.</author_list>
+        <institution>NAIF/JPL</institution>        
         <dataset_id>MSL-M-SPICE-6-V1.0</dataset_id>
         <volume_id>MSLSP_1000</volume_id>
         <doi>10.17189/1520113</doi>
+        <spice_name>MSL</spice_name>        
         <kernels_to_load>
             <lsk>naif[0-9][0-9][0-9][0-9].tls</lsk>
             <sclk>msl_76_sclkscet_refit_s[0-9].tsc</sclk>

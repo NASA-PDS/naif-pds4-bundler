@@ -22,8 +22,8 @@
         <institution>NAIF/JPL</institution>
         <doi>10.17189/1522402</doi>
         <spiceds>../data/spiceds_ladee.html</spiceds>
+        <spice_name>LADEE</spice_name>        
         <readme>
-            <spice_name>LADEE</spice_name>
             <overview>
                 The LADEE SPICE archive bundle contains observation geometry and
                 other ancillary data in the form of SPICE System kernel files for

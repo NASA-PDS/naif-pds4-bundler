@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='UTF-8'?>
+ <?xml version='1.0' encoding='UTF-8'?>
 <naif-pds4-bundle_configuration>
 
     <!-- =========================== -->
@@ -29,8 +29,8 @@
         <institution>NAIF/JPL</institution>
         <doi>10.17189/1522487</doi>
         <spiceds>../data/spiceds_phoenix.html</spiceds>
+        <spice_name>PHOENIX</spice_name>
         <readme>
-            <spice_name>PHOENIX</spice_name>
             <overview>
                 The PHOENIX SPICE archive bundle contains observation geometry and
                 other ancillary data in the form of SPICE System kernel files for

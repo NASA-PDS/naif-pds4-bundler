@@ -28,8 +28,8 @@
         <institution>KARI</institution>
         <doi>10.17189/1520436</doi>
         <spiceds>../data/spiceds_kplo.html</spiceds>
+        <spice_name>KPLO</spice_name>
         <readme>
-            <spice_name>KPLO</spice_name>
             <overview>
                The KPLO SPICE archive bundle contains observation geometry and
                other ancillary data in the form of SPICE System kernel files for

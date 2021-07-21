@@ -30,10 +30,11 @@
     <bundle_parameters>
         <producer_name>Marc Costa Sitja</producer_name>
         <author_list>Semenov B. V.; Costa Sitja M.</author_list>
+        <institution>NAIF/JPL</institution>        
         <doi>10.17189/1520434</doi>
         <spiceds>../data/spiceds_maven.html</spiceds>
+        <spice_name>MAVEN</spice_name>
         <readme>
-            <spice_name>MAVEN</spice_name>
             <overview>
                 The MAVEN SPICE archive bundle contains observation geometry and
                 other ancillary data in the form of SPICE System kernel files for

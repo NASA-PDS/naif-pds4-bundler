@@ -44,8 +44,8 @@
         <institution>NAIF/JPL</institution>
         <doi>10.17189/1522402</doi>
         <spiceds>../data/spiceds_dart.html</spiceds>
+        <spice_name>DART</spice_name>
         <readme>
-            <spice_name>DART</spice_name>
             <overview>
                 The DART SPICE archive bundle contains observation geometry and
                 other ancillary data in the form of SPICE System kernel files for
