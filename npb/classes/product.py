@@ -555,8 +555,9 @@ class MetaKernelProduct(Product):
             self.AUTHOR = self.setup.producer_name
 
         self.PDS4_MISSION_NAME = self.setup.mission_name
-
         self.CURRENT_DATE = current_date()
+        self.SPICE_NAME = self.setup.readme['spice_name']
+        self.INSTITUTION = self.setup.institution
 
         #
         # Generate the meta-kernel directory if not present
@@ -1028,7 +1029,7 @@ class MetaKernelProduct(Product):
             # We want to remove the blanks if the line is empty.
             #
             if line.strip() == '':
-                curated_desc += ''
+                curated_desc += '\n'
             else:
                 curated_desc += ' ' * 3 + line.strip() + '\n'
 
@@ -1044,13 +1045,7 @@ class MetaKernelProduct(Product):
                 for key, value in metakernel_dictionary.items():
                     if isinstance(value, str) and key.isupper() and key in \
                             line and '$' in line:
-                        line = line.replace('$', '')
-                        line = line.replace(key, value)
-                for key, value in metakernel_dictionary.items():
-                    if isinstance(value, str) and key.isupper() and key in \
-                            line and '#' in line:
-                        line = line.replace('#', '')
-                        line = line.replace(key, value)
+                        line = line.replace('$' + key, value)
                 f.write(line + self.setup.eol)
 
         self.product = self.path

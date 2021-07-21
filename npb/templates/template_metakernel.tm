@@ -21,7 +21,6 @@ $DESCRIPTION
       KERNELS_TO_LOAD   = (
 
 $KERNELS_IN_METAKERNEL
-
                           )
 
 $DATA
