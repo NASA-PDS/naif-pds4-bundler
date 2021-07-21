@@ -82,7 +82,6 @@ class TestXML(TestCase):
         args.plan        = False
         args.faucet      = ''
         args.diff        = ''
-        args.interactive = False
         args.silent      = False
         args.verbose     = True
 

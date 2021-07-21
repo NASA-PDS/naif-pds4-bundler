@@ -35,10 +35,6 @@ data set.
 The pipeline is constructed by the orchestration of a family of
 classes that can also be used independently.
 
-In order to facilitate its usage the pipeline can be run in an
-interactive mode that will allow the operator to check the
-validity and/or correctness of each step of the process.
-
 
 Using naif-pds4-bundle
 ----------------------
@@ -58,7 +54,6 @@ positional arguments:
 optional arguments:
   -h, --help         show this help message and exit
   -l, --log          Prompt log during execution
-  -i, --interactive  Activate interactive execution
 
 """
 from textwrap import dedent
@@ -81,7 +76,7 @@ from .classes.product import Object
 
 
 def main(config=False, plan=False, faucet='', log=False, silent=False,
-         verbose=False, diff='', interactive=False, debug=True):
+         verbose=False, diff='', debug=True):
     """
     Main routine for the NAIF PDS4 Bundle Generator (naif-pds4-bundle).
     This routine gets the command line arguments or the parameter
@@ -108,9 +103,6 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
     :param diff: Optional generation of diff reports for products. Allowed
                  values are: `all', `log', or `files'
     :type diff: str
-    :param interactive: Activate interactive execution. If chosen, verbose
-                       argument will be set to True
-    :type interactive: bool
     :param debug: Indicate whether if the pipeline is running in debug mode
     :type debug: bool
     """
@@ -178,11 +170,6 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
                             help="Optional generation of diff reports for "
                                  "products. Allowed values are: `all', "
                                  "`log', or `files'.")
-        parser.add_argument('-i', '--interactive',
-                            help="Activate interactive execution. If "
-                                 "chosen, verbose argument will be set to "
-                                 "True.",
-                            action='store_true')
 
         #
         # Store the arguments in the args object.
@@ -204,20 +191,12 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
         args.silent = silent
         args.verbose = verbose
         args.diff = diff
-        args.interactive = interactive
 
     #
     # Turn lowercase or uppercase arguments that need it.
     #
     args.faucet = args.faucet.lower()
     args.diff = args.diff.lower()
-
-    #
-    # Force verbosity if interactive argument is set to True.
-    #
-    if args.interactive:
-        args.verbose = True
-        args.silent = False
 
     #
     # Set silent to False if verbose is set to True.

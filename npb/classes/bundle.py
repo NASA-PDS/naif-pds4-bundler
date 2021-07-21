@@ -83,9 +83,6 @@ class Bundle(object):
             #
             self.context_products = get_context_products(self.setup)
 
-            if self.setup.interactive:
-                input(">> Press Enter to continue...")
-
     def add(self, element):
         self.collections.append(element)
 
@@ -139,8 +136,6 @@ class Bundle(object):
                 f"{os.sep}{self.setup.mission_acronym}_spice{os.sep}"
             logging.info(f'     {file.split(relative_path)[-1]}')
         logging.info('')
-        if self.setup.interactive:
-            input(">> Press enter to continue...")
 
         return None
 
@@ -234,8 +229,5 @@ class Bundle(object):
         else:
             logging.warning(line)
         logging.info('')
-
-        if self.setup.interactive:
-            input(">> Press enter to continue...")
 
         return None

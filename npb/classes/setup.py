@@ -142,7 +142,6 @@ class Setup(object):
         self.step = 1
         self.version = version
         self.args = args
-        self.interactive = args.interactive
         self.faucet = args.faucet.lower()
         self.diff = args.diff.lower()
         self.today = datetime.date.today().strftime("%Y%m%d")
@@ -477,9 +476,6 @@ class Setup(object):
 
         logging.info('')
 
-        if self.interactive:
-            input(">> Press Enter to continue...")
-
         self.increment = increment
 
         return None
@@ -629,9 +625,6 @@ class Setup(object):
         self.fks = fks
         self.sclks = sclks
         self.lsk = lsk
-
-        if self.interactive:
-            input(">> Press Enter to continue...")
 
         return None
 

@@ -150,8 +150,6 @@ class KernelList(List):
             logging.info(f'     {kernel}')
 
         logging.info("")
-        if self.setup.interactive:
-            input(">> Press Enter to continue...")
 
         return kernels
 
@@ -246,9 +244,6 @@ class KernelList(List):
         #
         # The kernel list is complete.
         #
-        if self.setup.interactive:
-            input(">> Press Enter to continue...")
-
         with open(
                 self.setup.working_directory + os.sep + plan_name, 'w') as p:
             for kernel in kernels:
@@ -264,8 +259,6 @@ class KernelList(List):
             logging.info(f'     {kernel}')
 
         logging.info("")
-        if self.setup.interactive:
-            input(">> Press Enter to continue...")
 
         return kernels
 
@@ -642,9 +635,6 @@ class KernelList(List):
                 logging.info('     All kernels present in directory.')
             logging.info('')
 
-            if self.setup.interactive:
-                input(">> Press Enter to continue...")
-
             #
             # Check that no file is in the final area.
             #
@@ -661,9 +651,6 @@ class KernelList(List):
             if not present:
                 logging.info('     No kernels present in final area.')
             logging.info('')
-
-            if self.setup.interactive:
-                input(">> Press Enter to continue...")
 
             #
             # Display all the MAKLABL_OPTIONS used
@@ -696,9 +683,7 @@ class KernelList(List):
             #            error_message(f'{option} not in template.')
             #
             #    logging.info('')
-            #
-            #    if self.setup.interactive:
-            #        input(">> Press Enter to continue...")
+
 
             #
             # Check complete list for duplicate entries
@@ -732,9 +717,6 @@ class KernelList(List):
                 logging.info(f'     List contains no duplicates.')
             logging.info('')
 
-        if self.setup.interactive:
-            input(">> Press Enter to continue...")
-
         if self.setup.diff and self.setup.increment:
             #
             # Compare list with previous list
@@ -749,10 +731,6 @@ class KernelList(List):
                 compare_files(fromfile, tofile, dir, self.setup.diff)
             except:
                 logging.error('-- Previous list not available.')
-
-    
-            if self.setup.interactive:
-                input(">> Press Enter to continue...")
 
         return
 
@@ -863,8 +841,5 @@ class KernelList(List):
                         error_message(f'{option} not in template.')
 
                 logging.info('')
-
-                if self.setup.interactive:
-                    input(">> Press Enter to continue...")
 
         return

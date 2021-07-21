@@ -200,9 +200,6 @@ class SpiceKernelProduct(Product):
             logging.error(f'     {self.name} already present in staging '
                           f'directory.')
 
-            if self.setup.interactive:
-                input(">> Press Enter to continue...")
-
             self.new_product = False
 
         #
@@ -649,9 +646,6 @@ class MetaKernelProduct(Product):
             logging.info(f'-- Labeling meta-kernel: {self.name}...')
             self.label = MetaKernelPDS4Label(setup, self)
 
-            if self.setup.interactive:
-                input(">> Press Enter to continue...")
-
         return
 
     def check_version(self):
@@ -691,9 +685,6 @@ class MetaKernelProduct(Product):
                             f'not available.')
             logging.warning(f'   Version will be set to: {self.version}.')
 
-            if self.setup.interactive:
-                input(">> Press Enter to continue...")
-
             return
 
         if version == int(self.version):
@@ -706,9 +697,6 @@ class MetaKernelProduct(Product):
                           f'it is expected to be: {version}.')
             logging.error(f'   It is recommended to stop the execution and '
                           f'fix the issue.')
-
-        if self.setup.interactive:
-            input(">> Press Enter to continue...")
 
         return
 
@@ -1071,11 +1059,6 @@ class MetaKernelProduct(Product):
         if not self.setup.args.silent and not self.setup.args.verbose: print(
             f'   * Created '
             f'{self.product.split(self.setup.staging_directory)[-1]}.')
-        if self.setup.interactive:
-            logging.info(
-                f'-- You might take a moment to double-check the metakernel '
-                f'and to do manual edits before proceeding.')
-            input(">> Press Enter to continue...")
         
         if self.setup.diff:
             self.compare()
@@ -1134,9 +1117,6 @@ class MetaKernelProduct(Product):
                      f'...')
         compare_files(fromfile, tofile, dir, self.setup.diff)
 
-        if self.setup.interactive:
-            input(">> Press enter to continue...")
-
     def validate(self):
 
         line = f'Step {self.setup.step} - Meta-kernel validation'
@@ -1180,9 +1160,6 @@ class MetaKernelProduct(Product):
         spiceypy.kclear()
 
         os.chdir(cwd)
-
-        if self.setup.interactive:
-            input(">> Press enter to continue...")
 
         return
 
@@ -1367,9 +1344,6 @@ class OrbnumFileProduct(Product):
         else:
             logging.error(f'     {self.name} already present in staging '
                           f'directory.')
-
-            if self.setup.interactive:
-                input(">> Press Enter to continue...")
 
             self.new_product = False
 
@@ -2509,9 +2483,6 @@ class InventoryProduct(Product):
                     logging.error(f'-- The version of this file might be '
                                   f'incorrect.')
 
-                    if self.setup.interactive:
-                        input(">> Press Enter to continue...")
-
             else:
                 self.version = 1
                 self.path_current = ''
@@ -2519,9 +2490,6 @@ class InventoryProduct(Product):
                 logging.warning(f'-- Default to version {self.version}.')
                 logging.warning(f'-- Make sure this is the first release of '
                                 f'the archive.')
-
-                if self.setup.interactive:
-                    input(">> Press Enter to continue...")
 
             self.name = f'collection_{collection.name}_' \
                         f'inventory_v{self.version:03}.csv'
@@ -2570,9 +2538,6 @@ class InventoryProduct(Product):
         else:
             return
             self.__write_pds3_index_product()
-
-        if self.setup.interactive:
-            input(">> Press Enter to continue...")
 
         logging.info(f'-- Generated '
                      f'{self.path.split(self.setup.staging_directory)[-1]}')
@@ -2757,8 +2722,6 @@ class InventoryProduct(Product):
 
         logging.info('      OK')
         logging.info('')
-        if self.setup.interactive:
-            input(">> Press enter to continue...")
 
         return
 
@@ -2803,8 +2766,6 @@ class InventoryProduct(Product):
             compare_files(fromfile, tofile, dir, self.setup.diff)
 
         logging.info('')
-        if self.setup.interactive:
-            input(">> Press enter to continue...")
 
         return
 
@@ -2904,10 +2865,7 @@ class InventoryProduct(Product):
                 except:
                     logging.warning(f'-- File to compare with does not '
                                     f'exist: {index}')
-
-        if self.setup.interactive:
-            input(">> Press enter to continue...")
-
+                    
         return
 
 
@@ -3121,9 +3079,6 @@ class SpicedsProduct(object):
 
         compare_files(fromfile, tofile, dir, self.setup.diff)
 
-        if self.setup.interactive:
-            input(">> Press enter to continue...")
-
         return
 
 
@@ -3175,9 +3130,6 @@ class ReadmeProduct(Product):
 
         logging.info('-- Generating bundle label...')
         self.label = BundlePDS4Label(setup, self)
-
-        if self.setup.interactive:
-            input(">> Press enter to continue...")
 
     def write_product(self):
 
@@ -3321,9 +3273,6 @@ class ChecksumProduct(Product):
                 logging.error(f'-- The version of this file might be '
                               f'incorrect.')
 
-                if self.setup.interactive:
-                    input(">> Press Enter to continue...")
-
         else:
             self.version = 1
             self.path_current = ''
@@ -3332,9 +3281,6 @@ class ChecksumProduct(Product):
             logging.warning(f'-- Make sure this is the first release of '
                             f'the archive.')
             logging.warning('')
-
-            if self.setup.interactive:
-                input(">> Press Enter to continue...")
 
         self.name = f'checksum_v{self.version:03}.tab'
         self.path = self.setup.staging_directory + os.sep + \
@@ -3466,15 +3412,9 @@ class ChecksumProduct(Product):
                 entry = add_carriage_return(entry, self.setup.eol)
                 c.write(entry)
 
-        if self.setup.interactive:
-            input(">> Press enter to continue...")
-
         if hasattr(self, 'current_checksum'):
             logging.info('-- Comparing checksum with previous version...')
             self.compare()
-
-        if self.setup.interactive:
-            input(">> Press enter to continue...")
 
         return None
 
@@ -3491,8 +3431,6 @@ class ChecksumProduct(Product):
                             f'exist.')
 
         logging.info('')
-        if self.setup.interactive:
-            input(">> Press enter to continue...")
 
         return None
 

@@ -60,17 +60,11 @@ class Collection(object):
                 vid = '{}.0'.format(int(self.setup.release))
                 logging.info('')
 
-                if self.setup.interactive:
-                    input(">> Press Enter to continue...")
-
         else:
             logging.warning(f'-- Collection of {self.type} version set '
                             f'to: {int(self.setup.release)}.')
             vid = '{}.0'.format(int(self.setup.release))
             logging.info('')
-
-            if self.setup.interactive:
-                input(">> Press Enter to continue...")
 
         return vid
 
@@ -441,9 +435,6 @@ class SpiceKernelsCollection(Collection):
         logging.info(f'   {increment_start} - {increment_finish}')
         logging.info('')
 
-        if self.setup.interactive:
-            input(">> Press Enter to continue...")
-
         self.setup.increment_finish = increment_finish
         self.setup.increment_start = increment_start
 
@@ -533,8 +524,6 @@ class SpiceKernelsCollection(Collection):
             logging.info('   OK')
 
         logging.info('')
-        if self.setup.interactive:
-            input(">> Press Enter to continue...")
 
         return None
 

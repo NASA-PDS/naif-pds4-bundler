@@ -437,9 +437,6 @@ class PDSLabel(object):
 
             compare_files(fromfile, tofile, dir, self.setup.diff)
 
-        if self.setup.interactive:
-            input(">> Press enter to continue...")
-
         return
 
 
