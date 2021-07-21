@@ -22,7 +22,7 @@ class Log(object):
         self.args = args
 
         logger = logging.getLogger()
-        logger.setLevel(logging.CRITICAL)
+        logger.setLevel(logging.INFO)
 
         if debug:
             log_format = '%(module)-12s %(funcName)-23s || ' \
