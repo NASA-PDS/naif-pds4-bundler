@@ -2,6 +2,7 @@ import os
 import glob
 import shutil
 import unittest
+import spiceypy
 from unittest import TestCase
 from npb.main import main
 
@@ -24,7 +25,7 @@ class TestINSIGHT(TestCase):
         for dir in dirs:
             shutil.rmtree(dir, ignore_errors=True)
             
-        cls.silent = False
+        cls.silent = True
         cls.log = True
 
     def setUp(self):
@@ -344,7 +345,7 @@ class TestINSIGHT(TestCase):
                         n.write(line)
 
         with self.assertRaises(RuntimeError):
-            main(updated_config, plan, faucet, silent=False, log=True,
+            main(updated_config, plan, faucet, silent=self.silent, log=self.log,
                  diff='')
 
     def test_insight_mk_input(self):
@@ -364,9 +365,12 @@ class TestINSIGHT(TestCase):
         with open(config, 'r') as c:
             with open(updated_config, 'w') as n:
                 for line in c:
-                    if '<file> </file>' in line:
-                        n.write('            '
-                                '<file>working/insight_2021_v08.tm</file>\n')
+                    if '        <coverage_kernels>' in line:
+                        n.write('        <mk_inputs>\n'
+                                '            <file>working/insight_2021_v08.tm'
+                                '</file>\n'
+                                '        </mk_inputs>\n'
+                                '        <coverage_kernels>\n')
                     else:
                         n.write(line)
 
@@ -394,7 +398,7 @@ class TestINSIGHT(TestCase):
 
         os.remove('working/insight_release_08.kernel_list')
 
-        main(updated_config, plan, faucet, silent=False, log=True, diff='all',
+        main(updated_config, plan, faucet, silent=self.silent, log=self.log, diff='all',
              verbose=True)
 
     def test_insight_mks_input(self):
@@ -414,11 +418,12 @@ class TestINSIGHT(TestCase):
         with open(config, 'r') as c:
             with open(updated_config, 'w') as n:
                 for line in c:
-                    if '<file></file>' in line:
-                        n.write('            '
-                                '<file>working/insight_v08.tm</file>\n')
-                        n.write('            '
-                                '<file>working/insight_v09.tm</file>\n')
+                    if '        <coverage_kernels>' in line:
+                        n.write('        <mk_inputs>\n'
+                                '<file>working/insight_v08.tm</file>\n'
+                                '<file>working/insight_v09.tm</file>\n'
+                                '        </mk_inputs>\n'
+                                '        <coverage_kernels>\n')
                     else:
                         n.write(line)
 
@@ -433,7 +438,8 @@ class TestINSIGHT(TestCase):
         for file in glob.glob('../data/insight_release_0[0-7].kernel_list'):
             shutil.copy2(file, 'working')
 
-        main(updated_config, plan, faucet, silent=self.silent, log=self.log, 
+        with self.assertRaises(spiceypy.utils.exceptions.SpiceFILEREADFAILED):
+            main(updated_config, plan, faucet, silent=self.silent, log=self.log, 
              diff='all')
 
     def test_insight_no_spiceds(self):
@@ -484,6 +490,108 @@ class TestINSIGHT(TestCase):
         os.makedirs('insight')
 
         main(config, plan, faucet, silent=self.silent, log=self.log, diff='all')
+        
+    def test_insight_no_kernels(self):
+        '''
+        Testcase for when the no kernels are provided as an input but an
+        updated spiceds file is.
+        '''
+        config = '../config/insight.xml'
+        faucet = 'final'
+
+        os.makedirs('working', mode=0o777)
+        os.makedirs('staging', mode=0o777)
+        os.makedirs('kernels', mode=0o777)
+
+        for file in glob.glob('../data/insight_release_0[0-7].kernel_list'):
+            shutil.copy2(file, 'working')
+
+        os.makedirs('insight')
+
+        main(config, plan=False, faucet=faucet, verbose=False, 
+             silent=self.silent, log=self.log, diff='all')
+        
+    def test_insight_no_kernels_with_bundle(self):
+        '''
+        Testcase for when the no kernels are provided as an input but an
+        updated spiceds file is.
+        '''
+        config = '../config/insight.xml'
+        faucet = 'final'
+
+        os.makedirs('working', mode=0o777)
+        os.makedirs('staging', mode=0o777)
+        os.makedirs('kernels', mode=0o777)
+
+        for file in glob.glob('../data/insight_release_0[0-7].kernel_list'):
+            shutil.copy2(file, 'working')
+
+        shutil.copytree('../data/insight', 'insight')
+
+        main(config, plan=False, faucet=faucet, silent=self.silent, 
+             log=self.log, diff='all')
+        
+    def test_insight_only_cheksums(self):
+        '''
+        Testcase for when the no inputs are provided at all but checksums
+        are generated.
+        '''
+        config = '../config/insight.xml'
+        updated_config = 'working/maven.xml'
+        faucet = 'final'
+
+        os.makedirs('working', mode=0o777)
+        os.makedirs('staging', mode=0o777)
+        os.makedirs('kernels', mode=0o777)
+
+        for file in glob.glob('../data/insight_release_0[0-7].kernel_list'):
+            shutil.copy2(file, 'working')
+
+        shutil.copytree('../data/insight', 'insight')
+
+        with open(config, 'r') as c:
+            with open(updated_config, 'w') as n:
+                for line in c:
+                    if '<spiceds>../data/spiceds_insight.html</spiceds>' in line:
+                        n.write('            '
+                                '<spiceds> </spiceds>\n')
+                    else:
+                        n.write(line)
+
+        main(updated_config, plan=False, faucet=faucet, silent=self.silent, 
+             log=self.log, diff='all')
+
+    def test_insight_null_run(self):
+        '''
+        Testcase for when the no inputs are provided at all but checksums
+        the checksum of the run is generated..
+        '''
+        config = '../config/insight.xml'
+        updated_config = 'working/insight.xml'
+        faucet = 'final'
+
+        os.makedirs('working', mode=0o777, exist_ok=True)
+        os.makedirs('staging', mode=0o777, exist_ok=True)
+        shutil.rmtree('kernels', onerror=True)
+        os.makedirs('kernels', mode=0o777, exist_ok=True)
+
+        for file in glob.glob('../data/insight_release_0[0-7].kernel_list'):
+            shutil.copy2(file, 'working')
+
+        shutil.copytree('../data/insight', 'insight')
+
+        with open(config, 'r') as c:
+            with open(updated_config, 'w') as n:
+                for line in c:
+                    if '<spiceds>../data/spiceds_insight.html</spiceds>' in line:
+                        n.write('            '
+                                '<spiceds> </spiceds>\n')
+                    else:
+                        n.write(line)
+
+        main(updated_config, plan=False, faucet=faucet, silent=self.silent, 
+             log=self.log, diff='all')
+
             
 if __name__ == '__main__':
     unittest.main()

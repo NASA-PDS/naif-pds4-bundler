@@ -53,13 +53,13 @@ class TestIndex(TestCase):
         if 'ERROR' in text:
             raise Exception()
 
-        equal = filecmp.cmp('index.tab',   '../data/msl_index.tab'  )
+        equal = filecmp.cmp('index.tab', '../data/msl_index.tab')
         if not equal: raise Exception(
             'index.tab and data/msl_index.tab not equal')
         equal = filecmp.cmp('dsindex.tab', '../data/msl_dsindex.tab')
         if not equal: raise Exception(
             'dsindex.tab and data/msl_dsindex.tab not equal')
-        equal = filecmp.cmp('index.lbl',   '../data/msl_index.lbl'  )
+        equal = filecmp.cmp('index.lbl', '../data/msl_index.lbl')
         if not equal: raise Exception(
             'index.lbl and data/msl_index.lbl not equal')
         equal = filecmp.cmp('dsindex.lbl', '../data/msl_dsindex.lbl')
