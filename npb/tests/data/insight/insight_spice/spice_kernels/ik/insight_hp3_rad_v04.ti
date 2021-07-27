@@ -1,0 +1,225 @@
+KPL/IK
+ 
+HP3 Radiometer Instrument Kernel
+==============================================================================
+
+   This instrument kernel (I-kernel) contains Field-Of-View (FOV) and
+   other geometric parameter definitions for the INSIGHT HP3 Radiometer
+   instrument.
+
+
+Version and Date
+----------------------------------------------------------
+
+   Version 0.4 -- May 21, 2019 -- Boris Semenov, JPL
+
+      Re-structured and re-wrapped comments. Removed non-printing
+      characters. Changed frame name to INSIGHT_HP3_RAD. No changes 
+      to the data.
+
+   Version 0.3 -- month day, year -- Nils Mueller, DLR
+
+      Refined FOVs as polygons derived from circular FOV.
+
+   Version 0.2 -- month day, year -- Nils Mueller, DLR
+
+      Defined FOVs as follows:
+
+         FOV 1:
+            Elevation - 55deg (below horizon)
+            Azimuth -20deg (west of nominal north, see frame kernel 
+            insight_dlr_v02.TF),
+            Maximum FOV width : 20 deg (+/- 10 Grad)
+
+         FOV 2:
+            Elevation - 25deg (below horizon)
+            Azimuth -20deg (west of nominal north)
+            Maximum FOV width : 20 deg
+
+   Version 0.1 -- month day, year -- Klaus-Dieter Matz, DLR
+
+      Initial Version.
+
+
+References
+----------------------------------------------------------
+
+   1. ``Kernel Pool Required Reading''
+
+   2. ``Frames Required Reading''
+
+
+Contact Information
+----------------------------------------------------------
+
+   Klaus-Dieter Matz, DLR, Klaus-Dieter.Matz@dlr.de
+
+   Nils.Mueller, DLR, Nils.Mueller@dlr.de
+
+
+Implementation Notes
+----------------------------------------------------------
+
+   This file is used by the SPICE system as follows: programs that make
+   use of this kernel must ``load'' the kernel, normally during program
+   initialization. The SPICE routine FURNSH loads a kernel file into
+   the pool as shown below.
+
+      CALL FURNSH ( 'frame_kernel_name; )    -- FORTRAN
+      furnsh_c ( "frame_kernel_name" );      -- C
+      cspice_furnsh, frame_kernel_name       -- IDL
+      cspice_furnsh( 'frame_kernel_name' )   -- MATLAB
+
+   Once the file has been loaded, the SPICE routine GETFOV (getfov_c in
+   C, cspice_getfov in IDL and MATLAB) can be used to retrieve FOV
+   parameters for a given instrument or structure.
+ 
+   This file was created and may be updated with a text editor or word
+   processor.
+
+
+Conventions for Specifying Data
+----------------------------------------------------------
+
+   All names referencing values in this I-kernel start with the
+   characters `INS' followed by the NAIF ID code for the particular
+   instrument detector:
+
+      INSIGHT_HP3_RAD            -189800
+      INSIGHT_HP3_RAD_NEAR       -189801
+      INSIGHT_HP3_RAD_FAR        -189802
+      INSIGHT_HP3_RAD_TEM        -189810
+
+   The remainder of the name is an underscore character followed by the
+   unique name of the data item. For example, the RAD NEAR boresight
+   direction is specified by:
+
+      INS-189801_BORESIGHT
+
+   The upper bound on the length of the name of any data item is 32
+   characters.
+
+   If the same item is included in more than one file, or if the same
+   item appears more than once within a single file, the latest value
+   supersedes any earlier values.
+
+
+Instrument Description
+----------------------------------------------------------
+
+   From [TBD]:
+
+      TBD.
+
+
+Mounting Alignment
+----------------------------------------------------------
+
+   Refer to the latest version of the INSIGHT Mission Frames Definition
+   Kernel (FK) for reference frame definitions and mounting alignment
+   information.
+
+
+HP3 Radiometer Field of View Parameters
+----------------------------------------------------------
+  
+   Nominally both HP3 Radiometer channels have circular FOVs:
+ 
+      ------------  ---------------------------
+      Detector         Diameter
+      ------------  ---------------------------
+      HP3_RAD_NEAR  20.0 degrees = 0.349066 rad
+      HP3_RAD_FAR   20.0 degrees = 0.349066 rad
+      ------------  ---------------------------
+
+   HP3_RAD_NEAR points 55 degrees down from the horizon, HP3_RAD_FAR
+   points 25 degrees down from the horizon. On a flat plane this would
+   mean the boresights intersect the surface in 0.70 meters and 2.14
+   meters distance resp., assuming the nominal position of HP3_RAD 1
+   meter above the surface.
+ 
+   The reference frame INSIGHT_HP3_RAD with respect to which these view
+   directions are defined has the +Z axis pointing in the middle, 40
+   degrees down from the horizon.
+ 
+   The circular FOV is partly obscured by the calibration towards nadir
+   and horizon. Defined here as a polygon derived from a circular FOV
+   with the upper and lower vectors omitted, so that the ratio of the
+   angular width of the first (height) and second (width) components
+   corresponds to the height and width of the RAD aperture.
+      
+   \begindata
+
+      INS-189801_IFOV                 = 0.349066
+      INS-189801_FOV_FRAME            = 'INSIGHT_HP3_RAD'
+      INS-189801_FOV_SHAPE            = 'POLYGON'
+      INS-189801_BORESIGHT            = ( -0.259, 0.0,  0.966 )
+      INS-189801_FOV_BOUNDARY_CORNERS = (    
+                               -0.14657985      0.13376229      0.98011327
+                               -0.17066205      0.15122040      0.97365648
+                               -0.19730651      0.16408375      0.96651268
+                               -0.22570369      0.17196149      0.95889896
+                               -0.25499076      0.17461427      0.95104665
+                               -0.28427780      0.17196149      0.94319433
+                               -0.31267497      0.16408375      0.93558061
+                               -0.33931944      0.15122040      0.92843676
+                               -0.36340165      0.13376230      0.92197996
+                               -0.36340165     -0.13376229      0.92197996
+                               -0.33931947     -0.15122040      0.92843676
+                               -0.31267500     -0.16408373      0.93558055
+                               -0.28427780     -0.17196149      0.94319433
+                               -0.25499076     -0.17461427      0.95104665
+                               -0.22570370     -0.17196149      0.95889896
+                               -0.19730651     -0.16408375      0.96651268
+                               -0.17066205     -0.15122040      0.97365648
+                               -0.14657986     -0.13376230      0.98011327
+                              )
+
+      INS-189802_IFOV                 = 0.349066
+      INS-189802_FOV_FRAME            = 'INSIGHT_HP3_RAD'
+      INS-189802_FOV_SHAPE            = 'POLYGON'
+      INS-189802_BORESIGHT            = ( 0.259, 0.0,  0.966 )
+      INS-189802_FOV_BOUNDARY_CORNERS = (     
+                                0.14657985     -0.13376229      0.98011327
+                                0.17066205     -0.15122040      0.97365648
+                                0.19730651     -0.16408375      0.96651268
+                                0.22570369     -0.17196149      0.95889896
+                                0.25499076     -0.17461427      0.95104665
+                                0.28427780     -0.17196149      0.94319433
+                                0.31267497     -0.16408375      0.93558061
+                                0.33931944     -0.15122040      0.92843676
+                                0.36340165     -0.13376230      0.92197996
+                                0.36340165      0.13376229      0.92197996
+                                0.33931947      0.15122040      0.92843676
+                                0.31267500      0.16408373      0.93558055
+                                0.28427780      0.17196149      0.94319433
+                                0.25499076      0.17461427      0.95104665
+                                0.22570370      0.17196149      0.95889896
+                                0.19730651      0.16408375      0.96651268
+                                0.17066205      0.15122040      0.97365648
+                                0.14657986      0.13376230      0.98011327
+                              )
+
+   \begintext
+
+
+HP3 Radiometer Detector Parameters
+----------------------------------------------------------
+    
+   Both HP3 Radiometer detectors may be considered as single pixel
+   instruments.
+
+   \begindata
+
+      INS-189801_FOV_CENTER_PIXEL      = ( 0, 0 )
+      INS-189801_PIXEL_SAMPLES         = ( 1 )
+      INS-189801_PIXEL_LINES           = ( 1 )
+ 
+      INS-189802_FOV_CENTER_PIXEL      = ( 0, 0 )
+      INS-189802_PIXEL_SAMPLES         = ( 1 )
+      INS-189802_PIXEL_LINES           = ( 1 )
+ 
+   \begintext
+
+
+End of IK file.

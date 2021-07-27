@@ -1,0 +1,300 @@
+KPL/IK
+
+Lunar Terrain Imager (LUTI) Instrument Kernel
+===========================================================================
+
+ This Lunar Terrain Imager instrument kernel (I-kernel) contains the instrument geometric parameters for the LLUTI.
+
+
+Version and Date
+---------------------------------------------------------------------------
+Version  4.0 -- March 18, 2020      -- SHIN Gwang Soo, KARI
+         LUTI(LUTI1 and LUTI2) Optical Distortion Coefficients updated: 
+
+Version  3.0 -- October 7, 2019      -- SHIN Gwang Soo, KARI
+         LUTI(LUTI1 and LUTI2) Optical Distortion Coefficients added: 
+          
+          
+Version  2.0 -- September 26, 2019      -- YIM Jo Ryeong, KARI
+         LUTI1 and LUTI2 Instrument ID modified: 
+          - LUTI1: 1551001 --> 155101
+          - LUTI2: 1551002 --> 155102
+
+Version  1.0 -- April 12, 2019      -- GMSIL KANG, KARI
+         Initial release.
+
+
+ References
+---------------------------------------------------------------------------
+
+   1. "Kernel Pool Required Reading"
+   2. LUTI Frames Definition Kernel (FK), latest version
+   3. LUTI CDR presentation material 
+   4. LUTI Geometric measurement data  (To be generated)
+
+
+ Contact Information
+---------------------------------------------------------------------------
+   Direct questions, comments or concerns about the contents of this kernel
+   should be sent to:
+
+   Gmsil KANG, KARI, wimikgs@kari.re.kr
+
+
+ Implementation Notes
+---------------------------------------------------------------------------
+
+   This file is used by the SPICE system as follows: programs that make use
+   of this frame kernel must "load" the kernel normally during program
+   initialization.  Loading the kernel associates the data items with
+   their names in a data structure called the "kernel pool".  The SPICELIB
+   routine FURNSH loads a kernel into the pool as shown below:
+
+      FORTRAN: (SPICELIB)
+
+         CALL FURNSH ( frame_kernel_name )
+
+      C: (CSPICE)
+
+         furnsh_c ( frame_kernel_name );
+
+      IDL: (ICY)
+
+         cspice_furnsh, frame_kernel_name
+
+   In order for a program or routine to extract data from the pool, the
+   SPICELIB routines GDPOOL, GIPOOL, and GCPOOL are used.  See [1] for
+   more details.
+
+   This file was created and may be updated with a text editor or word
+   processor.
+
+
+ Naming Conventions
+---------------------------------------------------------------------------
+
+There are three NAIF instrument IDs; -155100 for the LUTI, -155101 for the    
+LUTI1 and -155102 for the LUTI2. LUTI1 and LUTI2 represent the LUTI_A and the LUTI_B, respectively. 
+LUTI_B is located near the LUTI radiator and LUTI_A is located in opposite direction. 
+
+ LUTI Description
+---------------------------------------------------------------------------
+
+The LUTI is designed to acquire a high resolution visible image of lunar surface. 
+It consists of two identical cameras in order to comply requirement of image swath. (refer to Fig. 3.1) 
+There are optic module which is cassegrain type telescope (two mirrors & two lenses), 
+a linear CCD with optical filter (2048 pixles, 450nm ~ 850nm) and electronics including power unit. 
+GSD of the LUTI at nominal orbit (nadir view at 100Km altitude) is 2.5m. 
+
+The LUTI is a push-broom type imager, so it will generate a line-by-line scanning image in direction of along track. 
+Two cameras are integrated in single bezel with tilt angle (2.7 deg) in order to have overlap pixels more than 160 pixels. 
+Any difference between images from two cameras due to residual gain difference (after PRNU correction) 
+should be corrected through on-ground image processing.
+
+
+ LUTI First Order Optical Parameters:
+---------------------------------------------------------------------------
+
+  These values were taken from the LUTI CDR material.
+
+    FOCAL_LENGTH:
+  The focal length is expressed in millimeters. It was measured to be:
+    404 +/- 0 mm for LUTI1
+    404 +/- 0 mm for LUTI2
+
+    F/RATIO:
+  The focal ratio is unitless. It was measured to be:
+    4.49 for LUTI1
+    4.49 for LUTI2
+
+    FOV_ANGULAR_SIZE:
+  The crosstrack field of view is expressed in radians. The crosstrack  was
+  measured to be:
+    2.88 degrees or 5.0265E-2 radians for LUTI1
+    2.88 degrees or 5.0265E-2 radians for LUTI2
+
+  Since the LUTI cameras are line scan cameras, the downtrack field of view
+  is the same as the instantaneous field of view. 
+
+    IFOV:
+  The instantaneous field of view is expressed in radians. It was measured
+  to be:
+     24.75E-6 radians for LUTI1
+     24.75E-6 radians for LUTI2
+
+    WAVELENGTH_RANGE:
+  The wavelength range (or spectral response) of the optics is expressed
+  in nanometers. It was measured to be:
+    450 nm to 850 nm for LUTI1
+    450 nm to 850 nm for LUTI2
+
+    PIXEL_PITCH:
+  The pixel pitch is the distance between adjacent pixels on the CCD. It is
+  expressed in millimeters and was measured to be:
+    10.0E-3 mm for LUTI1
+    10.0E-3 mm for LUTI2
+
+    BORESIGHT_SAMPLE:
+  The boresight (the optical center on the CCD) sample is a pixel coordinate.
+  It was measured to be:
+    1024 +/- 20 for LUTI1
+    1024 +/- 20 for LUTI2
+
+    BORESIGHT_LINE:
+  Since the LUTI cameras are line scan cameras, there is only one pixel in
+  the line direction. Therefore, it is set to zero.
+
+ Lunar Terrain Imager (LUTI1):
+  \begindata
+  INS-155101_FOCAL_LENGTH       = ( 404 )
+  INS-155101_F/RATIO            = ( 4.49 )
+  INS-155101_FOV_ANGULAR_SIZE   = ( 5.0265E-2 , 24.75E-6 )
+  INS-155101_IFOV               = ( 24.75E-6, 24.75E-6 )
+  INS-155101_WAVELENGTH_RANGE   = ( 450, 850 )
+  INS-155101_PIXEL_PITCH        = ( 10.0E-3 )
+  INS-155101_BORESIGHT_SAMPLE   = 1024
+  INS-155101_BORESIGHT_LINE     = 0
+  \begintext
+
+ Lunar Terrain Imager (LUTI2):
+  \begindata
+  INS-155102_FOCAL_LENGTH       = ( 404 )
+  INS-155102_F/RATIO            = ( 4.49 )
+  INS-155102_FOV_ANGULAR_SIZE   = ( 5.0265E-2 , 24.75E-6 )
+  INS-155102_IFOV               = ( 24.75E-6, 24.75E-6 )
+  INS-155102_WAVELENGTH_RANGE   = ( 450, 850 )
+  INS-155102_PIXEL_PITCH        = ( 10.0E-3 )
+  INS-155102_BORESIGHT_SAMPLE   = 1024
+  INS-155102_BORESIGHT_LINE     = 0
+  \begintext
+
+ LUTI Field of View Definition:
+---------------------------------------------------------------------------
+
+   Lunar Terrain Imager A (LUTI1):
+   The LUTI1 field of view is a square boresighted on the Z-axis of
+   the KPLO_LUTI frame. The angular dimension of the field of view is
+   2.88 x 2.88 (degrees).
+
+   \begindata
+    INS-155101_FOV_FRAME       = 'KPLO_LUTI1'
+    INS-155101_FOV_SHAPE       = 'RECTANGLE'
+    INS-155101_BORESIGHT       = ( 0.0000000000000000
+                                 0.0000000000000000
+                                +1.0000000000000000 )
+    INS-155101_FOV_CLASS_SPEC  = 'ANGLES'
+    INS-155101_FOV_REF_VECTOR  = ( +1.0000000000000000
+                                   0.0000000000000000
+                                   0.0000000000000000 )
+    INS-155101_FOV_REF_ANGLE   = ( 2.8648E-4 )
+    INS-155101_FOV_CROSS_ANGLE = ( 1.44 )
+    INS-155101_FOV_ANGLE_UNITS = 'DEGREES'
+   \begintext
+
+   Lunar Terrain Imager B (LUTI2):
+   The LUTI1 field of view is a square boresighted on the Z-axis of
+   the KPLO_LUTI frame. The angular dimension of the field of view is
+   2.88 x 2.88 (degrees).
+
+   \begindata
+   INS-155102_FOV_FRAME        = 'KPLO_LUTI2'
+   INS-155102_FOV_CLASS_SPEC   = 'ANGLES'
+   INS-155102_BORESIGHT        = ( 0.0000000000000000
+                                  0.0000000000000000
+                                 +1.0000000000000000 )
+   INS-155102_FOV_SHAPE        = 'RECTANGLE'
+   INS-155102_FOV_REF_VECTOR   = ( +1.0000000000000000
+                                   0.0000000000000000
+                                   0.0000000000000000 )
+   INS-155102_FOV_REF_ANGLE    = ( 2.8648E-4 )
+   INS-155102_FOV_CROSS_ANGLE  = ( 1.44 )
+   INS-155102_FOV_ANGLE_UNITS  = 'DEGREES'
+   \begintext
+
+
+ LUTI Field of View Parameters:
+---------------------------------------------------------------------------
+
+ Lunar Terrain Imager A (LUTI1):
+  \begindata
+  INS-155101_PIXEL_SAMPLES     = ( 2048 )
+  INS-155101_PIXEL_LINES       = ( 1 )
+  INS-155101_PIXEL_SIZE        = ( 10.0E-3 , 10.0E-3 )
+  INS-155101_CCD_CENTER        = ( 1023.5 , 0.5 )
+  \begintext
+
+ Lunar Terrain Imager B (LUTI2):
+  \begindata
+  INS-155102_PIXEL_SAMPLES     = ( 2048 )
+  INS-155102_PIXEL_LINES       = ( 1 )
+  INS-155102_PIXEL_SIZE        = ( 10.0E-3 , 10.0E-3 )
+  INS-155102_CCD_CENTER        = ( 1023.5 , 0.5 )
+  \begintext
+
+LUTI Distortion Model Parameters
+---------------------------------------------------------------------------
+
+LUTI distortion model   
+
+    xd=xc*(1+k*r^2)
+
+  where "xd" is the distorted position (the measured position), "k" is
+  the distortion coefficient, and "r" is the distance from the optical center
+
+Parameter for optical distortion of the indicated instrument.
+
+ KPLO LUTI1
+  \begindata
+  INS-155101_OD_K                  = ( -5.46E-5 )
+  \begintext
+
+ KPLO LUTI2
+  \begindata
+  INS-155102_OD_K                  = ( -5.46E-5 )
+  \begintext
+
+Parameters for computing focal plane coordinates from CCD coordinates.
+
+ KPLO LUTI1
+  \begindata
+  INS-155101_TRANSX                = ( 0.0,  0.0,     10.0E-3 )
+  INS-155101_TRANSY                = ( 0.0,  10.0E-3,  0.0 )
+  \begintext
+
+ KPLO LUTI2
+  \begindata
+  INS-155102_TRANSX                = ( 0.0,  0.0,    -10.0E-3 )
+  INS-155102_TRANSY                = ( 0.0, -10.0E-3,  0.0 )
+  \begintext
+
+Parameters for computing CCD coordinates from focal plane coordinates.
+
+ KPLO LUTI1
+  \begindata
+  INS-155101_ITRANSS               = ( 0.0, 0.0, 100.000 )
+  INS-155101_ITRANSL               = ( 0.0, 100.000, 0.0 )
+  \begintext
+
+ KPLO LUTI2
+  \begindata
+  INS-155102_ITRANSS               = ( 0.0, 0.0, -100.000 )
+  INS-155102_ITRANSL               = ( 0.0, -100.000, 0.0 )
+  \begintext
+
+
+===========================================================================
+
+Platform ID
+---------------------------------------------------------------------------
+
+  \begindata
+
+  INS-155100_PLATFORM_ID           = ( -155000 )
+  INS-155101_PLATFORM_ID           = ( -155000 )
+  INS-155102_PLATFORM_ID           = ( -155000 )
+  
+
+  \begintext
+
+
+===========================================================================

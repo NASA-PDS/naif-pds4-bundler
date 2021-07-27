@@ -1,0 +1,41 @@
+KPL/SCLK
+ 
+Fake SCLK Kernel for MarCO-B (ID -66)
+--------------------------------------------------------
+ 
+   This SCLK kernel contains the data necessary for converting from
+   ephemeris time (ET) to ticks for a fake clock associated with the
+   MarCO-B spacecraft with ID code ID -66. This fake clock runs at the
+   same rate as ET, starting at ET 2000-JAN-01-12:00:00.000 and going
+   for 100 years. It has two fields -- seconds and milliseconds. The
+   clock's granularity is 1 millisecond.
+ 
+   WARNING: 
+
+      This SCLK kernel is intended to be used only to read MarCO-B
+      CK files that were made with it. It is *NOT* compatible with  
+      and must *NOT* be used to convert the actual MarCO-B SCLK times 
+      from telemetry.
+ 
+   This file was created by Boris Semenov, NAIF/JPL
+   on Sun Apr 21 09:04:08 PDT 2019.
+ 
+Kernel data
+--------------------------------------------------------
+ 
+   \begindata
+ 
+      SCLK_KERNEL_ID          = ( @2019-04-21/16:04:08 )
+      SCLK_DATA_TYPE_66       = ( 1 )
+      SCLK01_TIME_SYSTEM_66   = ( 1 )
+      SCLK01_N_FIELDS_66      = ( 2 )
+      SCLK01_MODULI_66        = ( 3155760000 1000 )
+      SCLK01_OFFSETS_66       = ( 0 0 )
+      SCLK01_OUTPUT_DELIM_66  = ( 1 )
+      SCLK_PARTITION_START_66 = ( 0.00000E+00 )
+      SCLK_PARTITION_END_66   = ( 3.15576E+12 )
+      SCLK01_COEFFICIENTS_66  = ( 0.0 @2000-JAN-01-12:00:00.000 1.0 )
+ 
+   \begintext
+ 
+End of SCLK kernel.
