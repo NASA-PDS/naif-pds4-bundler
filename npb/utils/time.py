@@ -55,7 +55,7 @@ def current_time(format='infomod2'):
     return time
 
 
-def current_date():
+def current_date(date=False):
     """
     Returns the current date in %Y-%m-%d format.
 
@@ -63,9 +63,12 @@ def current_date():
     :return: Current date
     :rtype: str
     """
-    time = datetime.datetime.now()
+    if date:
+        time = datetime.datetime.strptime(date, '%Y-%m-%dT%H:%M:%S')
+    else:
+        time = datetime.datetime.now()
+        
     date = datetime.datetime.strftime(time, '%m %d, %Y')
-
     date = calendar.month_name[int(date[0:2])] + date[2:]
 
     return date
