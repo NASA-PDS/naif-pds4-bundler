@@ -1,10 +1,13 @@
 import os
 import time
 import shutil
+import pprint
 import filecmp
 import logging
+from npb.classes.log import error_message
 from npb.utils.files import safe_make_directory
 from npb.utils.files import get_context_products
+from npb.utils.files import check_list_duplicates
 from npb.classes.product import ReadmeProduct
 
 
@@ -82,7 +85,12 @@ class Bundle(object):
             #  Get the context products.
             #
             self.context_products = get_context_products(self.setup)
-
+            
+            #
+            # Generate the bundle history
+            #
+            self.history = self.get_history()
+            
     def add(self, element):
         self.collections.append(element)
 
@@ -231,3 +239,274 @@ class Bundle(object):
         logging.info('')
 
         return None
+    
+    def get_history(object):
+        '''
+        This method provides the history of the bundle.
+        :return: 
+        '''
+
+        #
+        # Determine the number of previous releases.
+        #        
+        # The number of previous releases is obtained from the number/version
+        # of Bundle labels. That information is already known as it is 
+        # specified by the bundle vid
+        #
+        number_of_releases = int(object.vid.split('.')[0])
+        
+        #
+        # If the pipeline has not yet been executed, the current 
+        # version is substracted.
+        #
+        if not object.collections:
+            number_of_releases -= 1
+               
+        ker_col_ver = 0
+        doc_col_ver = 0
+        mis_col_ver = 0
+        
+        #
+        # The version extracted from the labels is initialised because the
+        # miscellaneous collection might not be present
+        #
+        rel_ker_col_ver = 0
+        rel_doc_col_ver = 0
+        rel_mis_col_ver = 0
+        
+        #
+        # Initialise the history dictionary.
+        #
+        history = {}
+        
+        for rel in range(1, number_of_releases + 1):
+            history[rel] = []
+            
+            if rel == 1:
+                history[rel].append('readme.txt')
+                
+            bundle_label = f'{object.name[:-7]}{rel:03d}.xml'
+            
+            #
+            # Check if the bundle label for the release exists, if not, signal
+            # an error but do not throw an exception.
+            #
+            if not os.path.isfile(object.setup.final_directory + 
+                      f'/{object.setup.mission_acronym}_spice/' + bundle_label):
+                line = 'Files from previous releases not available ' \
+                       'to generate Bundle history'
+                logging.error(f'-- {line}.')
+                if not object.setup.args.silent and \
+                        not object.setup.args.verbose:
+                    print('-- ' + 'ERROR: ' + line + '.')
+                return {}
+
+            history[rel].append(bundle_label)
+
+            #
+            # Reading XML label file into a dictionary.
+            # 
+            # The bundle label provides the version of the collections present
+            # in the bundle.
+            #
+            with open(object.setup.final_directory + 
+                                f'/{object.setup.mission_acronym}_spice/' + 
+                                bundle_label, 'r') as l:
+                for line in l:
+                    if '.spice:spice_kernels::' in line:
+                        rel_ker_col_ver = \
+                            int(line.split('.spice:spice_kernels::')[-1].split(
+                                '.0</lidvid_reference>')[0])
+                    elif '.spice:document::' in line:
+                        rel_doc_col_ver = \
+                            int(line.split('.spice:document::')[-1].split(
+                                '.0</lidvid_reference>')[0])
+                    elif '.spice:miscellaneous::' in line:
+                        rel_mis_col_ver = \
+                            int(line.split(
+                                '.spice:miscellaneous::')[-1].split(
+                                '.0</lidvid_reference>')[0])
+                    
+            #
+            # The SPICE Kernels collection inventory should have the same number
+            # of files; the kernels that correspond to each release will be
+            # determined from the inventories.
+            #
+            # If the kernel collection version is not equal to the one in 
+            # the release, then we add the kernels of the collection.
+            #
+            if rel_ker_col_ver != ker_col_ver:
+                ver = rel_ker_col_ver
+                ker_collection = \
+                    f'spice_kernels/' \
+                    f'collection_spice_kernels_inventory_v{ver:03d}.csv'
+                history[rel].append(ker_collection)
+            
+                ker_collection_lbl = f'spice_kernels/' \
+                                 f'collection_spice_kernels_v{ver:03d}.xml'
+                history[rel].append(ker_collection_lbl)
+
+            
+                with open(object.setup.final_directory + 
+                          f'/{object.setup.mission_acronym}_spice/' + 
+                          ker_collection, 'r') as c:
+                    for line in c:
+                        
+                        if ('P' in line) and (not ':mk_' in line):
+                            product = f'spice_kernels/' \
+                                      f'{line.split(":")[5].replace("_","/",1)}'
+                            history[rel].append(product)
+
+                            ext = product.split('.')[-1]
+                            lbl = product.replace('.' + ext,'.xml')    
+                                                        
+                            history[rel].append(lbl)
+                            
+                        elif ('P' in line) and (':mk_' in line):
+                            product = f'spice_kernels/' \
+                                f'{line.split(":")[5].replace("_", "/", 1)}_' \
+                                f'v{ver:02d}.tm'
+                            history[rel].append(product)
+                            history[rel].append(product.replace('.tm', '.xml'))
+
+            #
+            # The Miscellaneous collection, if present, should have the same
+            # number of files.
+            #
+            if rel_mis_col_ver != mis_col_ver:
+                ver = rel_mis_col_ver
+                mis_collection = f'miscellaneous/' \
+                    f'collection_miscellaneous_inventory_v{ver:03d}.csv'
+                
+                if os.path.exists(object.setup.final_directory + 
+                              f'/{object.setup.mission_acronym}_spice/' 
+                              + mis_collection):
+                    history[rel].append(mis_collection)
+            
+                    mis_collection_lbl = f'miscellaneous/' \
+                                     f'collection_miscellaneous_v{ver:03d}.xml'
+                    history[rel].append(mis_collection_lbl)
+
+                    with open(object.setup.final_directory + 
+                          f'/{object.setup.mission_acronym}_spice/' + 
+                          mis_collection,'r') as c:
+                        for line in c:
+                            if ('P' in line) and (not ':checksum_' in line):
+                                product = f'miscellaneous/' \
+                                        f'{line.split(":")[5].replace("_", "/", 1)}'
+                                history[rel].append(product)
+                                lbl = lbl.replace('.orb','.xml')
+                                lbl = lbl.replace('.nrb','.xml')
+                            
+                                history[rel].append(lbl)
+                            
+                            elif ('P' in line) and (':checksum_' in line):
+                                product = f'miscellaneous/' \
+                                    f'{line.split(":")[5].replace("_", "/", 1)}' \
+                                          f'_v{rel:03d}.tab'
+                                history[rel].append(product)
+                                history[rel].append(product.replace('.tab', '.xml'))
+                            
+            #
+            # The document collection to be included in the release needs to be
+            # sorted out by from the bundle label, that indicates the 
+            # version of the document selection.
+            #
+            if rel_doc_col_ver != doc_col_ver:
+                ver = rel_doc_col_ver
+                doc_collection = \
+                    f'document/' \
+                    f'collection_document_inventory_v{ver:03d}.csv'
+                history[rel].append(doc_collection)
+
+                doc_collection_lbl = f'document/' \
+                                     f'collection_document_v{ver:03d}.xml'
+                history[rel].append(doc_collection_lbl)
+
+                with open(object.setup.final_directory +
+                          f'/{object.setup.mission_acronym}_spice/' +
+                          doc_collection, 'r') as c:
+                    for line in c:
+                        if ('P' in line):
+                            product = f'document/' \
+                                      f'{line.split(":")[5].replace("_", "/", 1)}_' \
+                                      f'v{ver:03d}.html'
+                            history[rel].append(product)
+                            history[rel].append(product.replace('.html', '.xml'))
+
+            ker_col_ver = rel_ker_col_ver 
+            doc_col_ver = rel_doc_col_ver 
+            mis_col_ver = rel_mis_col_ver
+     
+        #
+        # Perform a simple check of duplicate elements.
+        #
+        all_products = []
+        for release in history.values():
+            all_products += release
+        duplicates = check_list_duplicates(all_products)
+        
+        if duplicates:
+            logging.error('-- Bundle History contains duplicates.')
+        
+        return history
+    
+    def validate_history(self):
+        '''
+        Validate the bundle updated history with the checksum files.
+        In parallel writes in the log the complete bundle release history. 
+        :return: 
+        '''
+        line = f'Step {self.setup.step} - Validate bundle history with ' \
+               f'checksum files'
+        logging.info('')
+        logging.info(line)
+        logging.info('-' * len(line))
+        logging.info('')
+        self.setup.step += 1
+        if not self.setup.args.silent and not self.setup.args.verbose:
+            print('-- ' + line.split(' - ')[-1] + '.')
+        
+        history = self.get_history()
+        history_sting = pprint.pformat(history, indent=2)
+        for line in history_sting.split('\n'):
+            logging.info(f'    {line}')
+
+        products_in_history = []
+        for rel in history:
+                
+            products_in_history += history[rel]
+            products_in_history = sorted(products_in_history)
+            products_in_checksum = []
+            checksum_file = f'{self.setup.final_directory}' \
+                            f'/{self.setup.mission_acronym}_spice' \
+                            f'/miscellaneous' \
+                            f'/checksum/checksum_v{rel:03d}.tab'
+            with open(checksum_file) as c:
+                for line in c:
+                    products_in_checksum.append(line.split()[-1].strip())
+            
+            #
+            # The last checksum and its label has to be added to the products in 
+            # the checksum list
+            #
+            if rel == list(history)[-1]:
+                products_in_checksum.append(f'miscellaneous/checksum/'
+                                        f'checksum_v{rel:03d}.tab')
+                products_in_checksum.append(f'miscellaneous/checksum/'
+                                        f'checksum_v{rel:03d}.xml')
+            
+            products_in_checksum = sorted(products_in_checksum)
+            
+            if not (products_in_checksum == products_in_history):
+                
+                print(set(products_in_checksum) ^ set(products_in_history))
+
+                error_message(f'Products in {checksum_file} do not correspond '
+                              f'to the bundle release history')
+                    
+        return
+            
+        
+
+        
