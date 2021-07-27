@@ -57,6 +57,7 @@ optional arguments:
 
 """
 from textwrap import dedent
+from os.path import isdir
 from os.path import dirname
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from .classes.setup import Setup
@@ -324,7 +325,8 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
     # -- Set the increment times
     #
     spice_kernels_collection.set_increment_times()
-
+    spice_kernels_collection.set_collection_vid()
+    
     #
     # -- Validate the SPICE Kernels collection:
     #
@@ -338,57 +340,107 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
     spice_kernels_collection.validate()
 
     #
-    # -- Generate the SPICE kernels collection inventory product.
+    # -- Generate the SPICE kernels collection inventory product (if the
+    #    collection has been updated.)
     #
-    spice_kernels_collection_inventory = InventoryProduct(setup,
+    if spice_kernels_collection.updated:
+        
+        spice_kernels_collection.set_collection_vid()
+        spice_kernels_collection_inventory = InventoryProduct(setup,
                                              spice_kernels_collection)
-    spice_kernels_collection.add(spice_kernels_collection_inventory)
+        spice_kernels_collection.add(spice_kernels_collection_inventory)
 
     #
     # -- Generate the document collection
     #
     document_collection = DocumentCollection(setup, bundle)
+    document_collection.set_collection_vid()
 
     #
-    # -- Generation of SPICEDS document
+    # -- Generation of spiceds document
     #
     if setup.pds_version == '4':
 
         spiceds = SpicedsProduct(setup, document_collection)
 
         #
-        # -- If the SPICEDS document is generated then the document
+        # -- If the spiceds document is generated then the document
         #    collection needs to be updated.
         #
         if spiceds.generated:
             document_collection.add(spiceds)
-
+    
             #
             # -- Generate the documents inventory.
             #
+            document_collection.set_collection_vid()
             document_collection_inventory = InventoryProduct(setup,
                                                 document_collection)
             document_collection.add(document_collection_inventory)
-
 
         #
         # -- Add Collections to the Bundle
         #
         bundle.add(spice_kernels_collection)
         bundle.add(miscellaneous_collection)
-        if spiceds.generated:
-            bundle.add(document_collection)
+        bundle.add(document_collection)
 
         #
         # -- Generate the miscellaneous collection. The checksum product
         #    is initialised in such a way that its name can be obtained.
         #
+        # -- The first thing that is checked is whether if the current
+        #    Bundle has checksums, if so, all the checksums are generated, 
+        #    including the corresponding miscellaneous collection inventories 
+        #    and labels.
+        #
+        if setup.increment:
+            checksum_dir = setup.final_directory + \
+                       f'/{setup.mission_acronym}_spice/miscellaneous/checksum'
+            if not isdir(checksum_dir):
+                for release in bundle.history.items():
+                    release_checksum = ChecksumProduct(setup, 
+                                                   miscellaneous_collection)
+                    release_checksum.generate(history=release)
+
+                    #
+                    # Initialise a miscellaneous collection for this previous
+                    # release
+                    #
+                    release_miscellaneous_collection = \
+                        MiscellaneousCollection(setup, bundle, list)
+                    
+                    release_miscellaneous_collection.add(release_checksum)
+
+                    release_miscellaneous_collection.set_collection_vid()
+                    release_miscellaneous_collection_inventory = \
+                        InventoryProduct(setup, 
+                                         release_miscellaneous_collection)
+                    
+                    release_miscellaneous_collection.add(
+                        release_miscellaneous_collection_inventory)
+            
+            #
+            # set miscellaneous collection VID.
+            #
+            miscellaneous_collection.set_collection_vid()
+        
+        #
+        # From here on now, the checksum and the miscellaneous collection 
+        # for the current release are generated.
+        #
+        # The miscellaneous collection is the one to be guaranteed to be
+        # updated.
+        #
         checksum = ChecksumProduct(setup, miscellaneous_collection)
         miscellaneous_collection.add(checksum)
+        miscellaneous_collection.set_collection_vid()
 
         miscellaneous_collection_inventory = InventoryProduct(setup,
                                                 miscellaneous_collection)
         miscellaneous_collection.add(miscellaneous_collection_inventory)
+    
+
 
         #
         # -- Generate bundle label and if necessary readme file.
@@ -396,7 +448,7 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
         bundle.write_readme()
 
         #
-        # -- Generate the checksum product a posteriory in such a way
+        # -- Generate the checksum product a posteriori in such a way
         #    that the miscellaneous collection inventory includes the
         #    chekcsum and the checksum includes the md5 hash of the
         #    miscellaneous collection inventory.
@@ -450,13 +502,14 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
     # -- Validate meta-kernel(s)
     #
     for kernel in spice_kernels_collection.product:
-        if type(kernel) == 'npb.classes.product.MetaKernelProduct':
-            print(type(kernel))
+        if type(kernel) == MetaKernelProduct:
             kernel.validate()
 
     #
-    # -- Validate checksum file
+    # -- Validate checksum files against the updated bundle history.
     #
+    bundle.validate_history()
+    
     log.stop()
 
     return None
