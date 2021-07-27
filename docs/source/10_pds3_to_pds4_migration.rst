@@ -1,6 +1,15 @@
 Mapping SPICE PDS3 docs and catalogs to PDS4
 ==============================================================================
 
+    Looking forward, we will need to do the same when we add PDS4 stuff to 
+    PDS3 data sets -- create versioned bundles, versioned spice collections, 
+    and versioned misc collections based on archive releases. In the initial 
+    set of PDS4 stuff that we will make everything will A-Okey but as we 
+    will add more PDS3 releases and make additional PDS4 wrapping for them 
+    previous checksum files will become invalid because some PDS3 files 
+    (index, spiceds, PDS3 checksum) will change in each release.
+z
+
 
       aareadme.htm           --> document/spiceds_v*.html
       aareadme.txt           --> ***discard***
