@@ -28,6 +28,9 @@ class Setup(object):
         #
         # Check that the configuration file validates with its schema
         #
+        self.pds_version = None
+        self.mission_acronym = None
+        
         try:
             schema = xmlschema.XMLSchema11(dirname(__file__) + 
                                            '/../templates/configuration.xsd')
