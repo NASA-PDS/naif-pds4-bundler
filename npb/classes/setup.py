@@ -28,9 +28,6 @@ class Setup(object):
         #
         # Check that the configuration file validates with its schema
         #
-        self.pds_version = None
-        self.mission_acronym = None
-        
         try:
             schema = xmlschema.XMLSchema11(dirname(__file__) + 
                                            '/../templates/configuration.xsd')
@@ -305,6 +302,53 @@ class Setup(object):
                               f'{self.kernels_directory[i]}')
 
         os.chdir(cwd)
+
+        #
+        # Check IM, XML model and Schema Location coherence (since validate
+        # does not really care).
+        #
+        if hasattr(self, 'information_model'):
+            if re.match(r'[0-9]+[.][0-9]+[.][0-9]+[.][0-9]+',
+                        self.information_model):
+
+                major = int(self.information_model.split(".")[0])
+                minor = int(self.information_model.split(".")[1])
+                maint = int(self.information_model.split(".")[2])
+                build = int(self.information_model.split(".")[3])
+    
+                if major >= 10:
+                    major = chr(major + 55)
+                if minor >= 10:
+                    minor = chr(minor + 55)
+                if maint >= 10:
+                    maint = chr(maint + 55)
+                if build >= 10:
+                    build = chr(build + 55)
+    
+                short_version = f'{major}{minor}{maint}{build}'
+    
+                xml_model_version = self.xml_model.split('PDS4_PDS_')[-1]
+                xml_model_version = xml_model_version.split('.sch')[0]
+    
+                if xml_model_version != short_version:
+                    error_message(f'PDS4 Information Model '
+                                  f'{short_version} '
+                                  f'is incoherent with the XML Model version: '
+                                  f'{self.xml_model}')
+    
+                schema_loc_version = \
+                    self.schema_location.split('/PDS4_PDS_')[-1]
+                schema_loc_version = schema_loc_version.split('.xsd')[0]
+    
+                if schema_loc_version != short_version:
+                    error_message(f'PDS4 Information Model '
+                                  f'{short_version} '
+                                  f'is incoherent with the Schema location: '
+                                  f'{self.schema_location}')
+
+            else:
+                error_message(f'PDS4 Information Model {self.information_model}'
+                              f' format from configuration is incorrect')
 
         #
         # Check existence of templates according to the information_model
