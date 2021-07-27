@@ -57,27 +57,15 @@ KPL/MK
                           '$KERNELS/spk/de430s.bsp'
                           '$KERNELS/spk/mar097s.bsp'
                           '$KERNELS/spk/insight_struct_v01.bsp'
-                          '$KERNELS/spk/insight_cru_ops_v1.bsp'
-                          '$KERNELS/spk/insight_edl_rec_v1.bsp'
                           '$KERNELS/spk/insight_ls_ops181206_iau2000_v1.bsp'
                           '$KERNELS/spk/insight_atls_ops181206_v1.bsp'
 
                           '$KERNELS/ck/marcoa_cru_rec_181125_181127_v01.bc'
                           '$KERNELS/ck/marcob_cru_rec_181126_181127_v01.bc'
-                          '$KERNELS/ck/insight_ida_enc_180505_181127_v1.bc'
-                          '$KERNELS/ck/insight_ida_enc_181127_190331_v2.bc'
-                          '$KERNELS/ck/insight_ida_enc_190331_190629_v2.bc'
-                          '$KERNELS/ck/insight_ida_enc_190629_190918_v2.bc'
-                          '$KERNELS/ck/insight_ida_enc_190925_190929_v1.bc'
-                          '$KERNELS/ck/insight_ida_enc_190929_191120_v1.bc'
-                          '$KERNELS/ck/insight_ida_enc_191120_200321_v1.bc'
-                          '$KERNELS/ck/insight_ida_enc_200321_200623_v1.bc'
-                          '$KERNELS/ck/insight_ida_enc_200623_200829_v1.bc'
-                          '$KERNELS/ck/insight_cruise2lander_v2.bc'
+                          '$KERNELS/ck/insight_ida_enc_190929_191120_v1.bc'                          
                           '$KERNELS/ck/insight_lander2cruise_v2.bc'
-                          '$KERNELS/ck/insight_cru_rec_180505_181126_v01.bc'
-                          '$KERNELS/ck/insight_edl_rec_v1.bc'
-                          '$KERNELS/ck/insight_surf_ops_v1.bc'
+                          '$KERNELS/ck/insight_surf_ops_v1.bc'                          
+
 
                           )
 

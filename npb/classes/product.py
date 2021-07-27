@@ -56,7 +56,7 @@ class Product(object):
         self.checksum = str(md5(self.path))
         self.creation_time = creation_time(self.path, 
                                            format=self.setup.date_format)
-        self.creation_date = creation_date(self.path)
+        self.creation_date = self.creation_time.split('T')[0]
         self.extension = self.path.split(os.sep)[-1].split('.')[-1]
 
     def get_observer_and_target(self):
@@ -445,7 +445,7 @@ class SpiceKernelProduct(Product):
             #
             # But for an archive only DAF is acceptable.
             #
-            if arch != 'DAF':
+            if (arch != 'DAF') and (arch != 'DAS'):
                 error_message(f'Kernel {object.name} architecture {arch} '
                               f'is invalid')
             else:
@@ -555,7 +555,12 @@ class MetaKernelProduct(Product):
             self.AUTHOR = self.setup.producer_name
 
         self.PDS4_MISSION_NAME = self.setup.mission_name
-        self.CURRENT_DATE = current_date()
+        
+        if hasattr(self.setup, 'creation_date_time'):
+            self.MK_CREATION_DATE = current_date(
+                date=self.setup.creation_date_time)
+        else:
+            self.MK_CREATION_DATE = current_date()
         self.SPICE_NAME = self.setup.spice_name
         self.INSTITUTION = self.setup.institution
 
@@ -857,7 +862,7 @@ class MetaKernelProduct(Product):
 
         if not description:
             error_message(f'{self.name} does not have '
-                          f'a description on configuration file.')
+                          f'a description on configuration file')
 
         return description
 
@@ -1114,7 +1119,7 @@ class MetaKernelProduct(Product):
 
     def validate(self):
 
-        line = f'Step {self.setup.step} - Meta-kernel validation'
+        line = f'Step {self.setup.step} - Meta-kernel {self.name} validation'
         logging.info('')
         logging.info(line)
         logging.info('-' * len(line))
@@ -2452,6 +2457,9 @@ class InventoryProduct(Product):
                     f'/{self.setup.mission_acronym}_spice/' + \
                     os.sep + collection.name + os.sep + \
                     f'collection_{collection.name}_inventory_v*.csv')
+                inventory_files += glob.glob(self.setup.staging_directory + \
+                    os.sep + collection.name + os.sep + \
+                    f'collection_{collection.name}_inventory_v*.csv')
                 inventory_files.sort()
                 try:
                     latest_file = inventory_files[-1]
@@ -2549,20 +2557,12 @@ class InventoryProduct(Product):
 
     def __write_pds4_collection_product(self):
         
+        #
+        # If there is an existing version we need to add the items from
+        # the previous version as SECONDARY members
         with open(self.path, "w+") as f:
-            #
-            # If there is an existing version we need to add the items from
-            # the previous version as SECONDARY members
-            #
-            if self.setup.increment:
-                try:
-                    prev_collection_path = \
-                        self.setup.final_directory + os.sep + \
-                        self.setup.mission_acronym + \
-                        '_spice/' + self.collection.name + os.sep + \
-                        self.name.replace(str(self.version),
-                                          str(self.version - 1))
-                    with open(prev_collection_path, "r") as r:
+            if self.path_current:
+                    with open(self.path_current, "r") as r:
                         for line in r:
                             if 'P,urn' in line:
                                 #
@@ -2572,10 +2572,6 @@ class InventoryProduct(Product):
                                 line = line.replace('P,urn', 'S,urn')
                             line = add_carriage_return(line, self.setup.pds4_eol)
                             f.write(line)
-                except:
-                    logging.error('-- A previous collection was expected. '
-                                  'The generated collection might be '
-                                  'incorrect.')
 
             for product in self.collection.product:
                 if product.new_product:
@@ -2749,7 +2745,7 @@ class InventoryProduct(Product):
 
             logging.warning('-- Comparing with InSight test inventory '
                             'product.')
-            fromfiles = glob.glob(f'{self.setup.root_dir}tests/data/insight/'
+            fromfiles = glob.glob(f'{self.setup.root_dir}tests/data/regression/'
                                   f'insight_spice/{self.collection.type}/'
                                   f'collection_{self.collection.name}'
                                   f'_inventory_*.csv')
@@ -3176,7 +3172,7 @@ class ChecksumProduct(Product):
         #
         # The initialisation of the checksum class is lighter than the
         # initialisation of the other products because the purpose is
-        # solely to obtain the LID and the  VID of the checksum in order
+        # solely to obtain the LID and the VID of the checksum in order
         # to be able to include it in the miscellaneous collection
         # inventory file; the checksum file needs to be included in the
         # inventory file before the actual checksum file is generated.
@@ -3194,10 +3190,11 @@ class ChecksumProduct(Product):
 
         #
         # Initialise the checksum dictionary; we use a dictionary to be
-        # able to sort it by value into a list to generate the checkum
+        # able to sort it by value into a list to generate the checksum
         # table.
         #
         self.md5_dict = {}
+
 
         self.read_current_product()
 
@@ -3207,12 +3204,12 @@ class ChecksumProduct(Product):
         self.lid = self.product_lid()
         self.vid = self.product_vid()
 
-    def generate(self):
+    def generate(self, history=False):
 
         #
         # This acts as the second part of the Checksum product initialization.
         #
-        self.write_product()
+        self.write_product(history=history)
 
         #
         # Call the constructor of the parent class to fill the common
@@ -3241,6 +3238,10 @@ class ChecksumProduct(Product):
                 f'/{self.setup.mission_acronym}_spice/' + \
                 os.sep + self.collection.name + os.sep + \
                 f'checksum_v*.tab')
+
+            checksum_files += glob.glob(self.setup.staging_directory + \
+                                       os.sep + self.collection.name + \
+                                       '/checksum/checksum_v*.tab')
             checksum_files.sort()
             try:
                 latest_file = checksum_files[-1]
@@ -3296,18 +3297,14 @@ class ChecksumProduct(Product):
                     except:
                         error_message(f'Checksum file {self.path_current} is '
                                       f'corrupted.')
-                    if not os.path.exists(filename):
-                        logging.error(f'File: {filename} in '
-                                      f'{self.path_current} is not present.')
 
                     if ( len(md5) == 32 ):
                         self.md5_dict[md5] = filename
                     else:
                         error_message(f'Checksum file {self.path_current} '
                                       f'corrupted entry: {line}')
-            self.new_product = False
-        else:
-            self.new_product = True
+        
+        self.new_product = True
 
         return None
 
@@ -3327,7 +3324,7 @@ class ChecksumProduct(Product):
 
         return '{}.0'.format(int(self.version))
 
-    def write_product(self):
+    def write_product(self, history=False):
 
         line = f'Step {self.setup.step} - Generate checksum file'
         logging.info('')
@@ -3341,40 +3338,57 @@ class ChecksumProduct(Product):
 
         msn_acr = self.setup.mission_acronym
 
+        
         #
-        # Iterate the collections to obtain the checksum of each product.
+        # The checksum file of the current run is generated without the 
+        # bundle history and using the checksum hashes obtained during 
+        # the pipeline execution.
         #
-        for collection in self.collection.bundle.collections:
-            for product in collection.product:
-                if hasattr(product, 'checksum'):
-                    self.md5_dict[product.checksum] = \
-                        product.path.split(f"/{msn_acr}_spice/")[-1]
-                else:
-                    pass
-                #
-                # Generate the MD5 checksum of the label.
-                #
-                if hasattr(product, 'label'):
-                    label_checksum = md5(product.label.name)
-                    self.md5_dict[label_checksum] = \
-                        product.label.name.split(f"/{msn_acr}_spice/")[-1]
-                else:
-                    pass
-
+        if not history:
+            #
+            # Iterate the collections to obtain the checksum of each product.
+            #
+            for collection in self.collection.bundle.collections:
+                for product in collection.product:
+                    if hasattr(product, 'checksum'):
+                        self.md5_dict[product.checksum] = \
+                            product.path.split(f"/{msn_acr}_spice/")[-1]
+                    else:
+                        pass
+                    #
+                    # Generate the MD5 checksum of the label.
+                    #
+                    if hasattr(product, 'label'):
+                        label_checksum = md5(product.label.name)
+                        self.md5_dict[label_checksum] = \
+                            product.label.name.split(f"/{msn_acr}_spice/")[-1]
+                    else:
+                        pass
+    
+            #
+            # Include the readme file checksum if it has been generated in
+            # this run. This is a bundle level product.
+            #
+            if hasattr(self.collection.bundle, 'checksum'):
+                self.md5_dict[self.collection.bundle.checksum] = 'readme.txt'
+    
+            #
+            # Include the bundle label, that is paired to the readme file.
+            #
+            label_checksum = md5(self.collection.bundle.readme.label.name)
+            self.md5_dict[label_checksum] = \
+                self.collection.bundle.readme.label.name.split(
+                    f"/{msn_acr}_spice/")[-1]
+    
         #
-        # Include the readme file checksum if it has been generated in
-        # this run. This is a bundle level product.
+        # The missing checksum files are generated from the bundle history.
         #
-        if hasattr(self.collection.bundle, 'checksum'):
-            self.md5_dict[self.collection.bundle.checksum] = 'readme.txt'
-
-        #
-        # Include the bundle label, that is paired to the readme file.
-        #
-        label_checksum = md5(self.collection.bundle.readme.label.name)
-        self.md5_dict[label_checksum] = \
-            self.collection.bundle.readme.label.name.split(
-                f"/{msn_acr}_spice/")[-1]
+        if history:
+            for product in history[1]:
+                path = self.setup.final_directory + \
+                       f'/{self.setup.mission_acronym}_spice/' +  product
+                product_checksum = md5(path)
+                self.md5_dict[product_checksum] = product
 
         #
         # The resulting dictionary needs to be transformed into a list
@@ -3431,4 +3445,7 @@ class ChecksumProduct(Product):
 
 
 class Object(object):
+    def __init__(self):
+        self.working_directory = None
+
     pass

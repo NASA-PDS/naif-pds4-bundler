@@ -310,10 +310,6 @@
     <!-- Meta-kernel                 -->
     <!-- =========================== -->
     <meta-kernel>
-        <!-- A resulting meta-kernel will look like -->
-        <mk_inputs>
-            <file> </file>
-        </mk_inputs>
         <coverage_kernels>
             <!-- These kernels determine the coverage of the bundle
                  increment

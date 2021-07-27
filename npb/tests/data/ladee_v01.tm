@@ -32,7 +32,6 @@ KPL/MK
                           '$KERNELS/lsk/naif0010.tls'
 
                           '$KERNELS/pck/pck00010.tpc'
-                          '$KERNELS/pck/moon_pa_de421_1900_2050.bpc'
 
                           '$KERNELS/fk/moon_assoc_me.tf'
                           '$KERNELS/fk/moon_080317.tf'
@@ -45,13 +44,8 @@ KPL/MK
                           '$KERNELS/sclk/ladee_clkcor_13250_14108_v01.tsc'
 
                           '$KERNELS/spk/de432s.bsp'
-                          '$KERNELS/spk/ladee_r_13250_13279_pha_v01.bsp'
-                          '$KERNELS/spk/ladee_r_13278_13325_loa_v01.bsp'
                           '$KERNELS/spk/ladee_r_13325_14108_sci_v01.bsp'
-                          '$KERNELS/spk/ladee_r_14108_99001_imp_v01.bsp'
 
-                          '$KERNELS/ck/ladee_13250_13330_v04.bc'
-                          '$KERNELS/ck/ladee_13330_14030_v04.bc'
                           '$KERNELS/ck/ladee_14030_14108_v04.bc'
 
                           )

@@ -62,6 +62,7 @@
                 </xs:complexType>
               </xs:element>
               <xs:element name="release_date" type="xs:string" minOccurs="0"/>
+              <xs:element name="creation_date_time" type="xs:string" minOccurs="0"/>              
               <xs:element name="increment_start" type="xs:string" minOccurs="0"/>
               <xs:element name="increment_finish" type="xs:string" minOccurs="0"/>
               <xs:element name="kernels_to_load">
@@ -287,7 +288,7 @@
               <xs:element name="mk_inputs" minOccurs="0">
                 <xs:complexType>
                   <xs:sequence>
-                    <xs:element name="file" maxOccurs="unbounded"/>
+                    <xs:element name="file" type="xs:string" maxOccurs="unbounded"/>
                   </xs:sequence>
                 </xs:complexType>
               </xs:element>

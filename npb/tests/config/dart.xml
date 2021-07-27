@@ -141,6 +141,10 @@
             <description>SPICE FK file defining reference frames for the DART spacecraft, its structures, and science
                 instruments, created by NAIF, JPL.
             </description>
+            <targets>
+                <target>Didymos</target>
+                <target>Dimorphos</target>
+            </targets>              
         </kernel>
         <kernel pattern="licia_[0-9][0-9][0-9].tf">
             <mklabel_options>DEF_TIMES</mklabel_options>
@@ -154,7 +158,20 @@
                 <target>Didymos</target>
                 <target>Dimorphos</target>
             </targets>  
-        </kernel>        
+        </kernel>     
+        <kernel pattern="didymos_[0-9][0-9][0-9].tf">
+            <mklabel_options>DEF_TIMES</mklabel_options>
+            <description>SPICE FK file defining reference frames for the Didymos system, created by NAIF, JPL.
+            </description>
+            <observers>
+                <observer>DART</observer>
+                <observer>LICIA</observer>
+            </observers>
+            <targets>
+                <target>Didymos</target>
+                <target>Dimorphos</target>
+            </targets>  
+        </kernel>                
         <kernel pattern="dart_draco_[0-9][0-9][0-9].ti">
             <mklabel_options>DEF_TIMES</mklabel_options>
             <description>SPICE IK file providing FOV definitions for the DART Didymos
@@ -251,7 +268,7 @@
                 lunar impact time to 2099-01-01, created by NAIF, JPL.
             </description>
         </kernel>
-        <kernel pattern="D210426-L211124-EP-RA26-V01_impact.bc">
+        <kernel pattern="D210426-L211124-EP-RA26-V01_impact.bsp">
             <mklabel_options> </mklabel_options>
             <description>SPICE SPK file providing the location of LADEE at its end-of-mission impact site, covering from the approximate
                 lunar impact time to 2099-01-01, created by NAIF, JPL.
@@ -271,7 +288,30 @@
                 <target>Dimorphos</target>
             </targets>               
         </kernel>
-        <kernel pattern="dart_[0-9][0-9][0-9].tm">
+        <kernel pattern="g_50680mm_rdr_obj_dida_0000n00000_v001.bds">
+            <mklabel_options> </mklabel_options>
+            <description>SPICE DSK file containing the shape model for Didymos, created by NAIF,
+                JPL.
+            </description>
+            <observers>
+                <observer>DART</observer>
+                <observer>LICIA</observer>
+            </observers>    
+        </kernel>        
+        <kernel pattern="g_06650mm_rdr_obj_didb_0000n00000_v001.bds">
+            <mklabel_options> </mklabel_options>
+            <description>SPICE DSK file containing the shape model for Dimorphos, created by NAIF,
+                JPL.
+            </description>
+            <observers>
+                <observer>DART</observer>
+                <observer>LICIA</observer>
+            </observers>  
+            <targets>
+                <target>Dimorphos</target>
+            </targets>    
+        </kernel>        
+        <kernel pattern="dart_v[0-9][0-9].tm">
             <mklabel_options> </mklabel_options>
             <description>SPICE MK file listing kernels for the whole mission, created by NAIF, JPL.
             </description>
@@ -292,7 +332,7 @@
     <meta-kernel>
         <!-- A resulting meta-kernel will look like -->
         <mk_inputs>
-            <file>kernels/mk/dart_000.tm</file>
+            <file>kernels/mk/dart_v01.tm</file>
         </mk_inputs>
     </meta-kernel>
 </naif-pds4-bundle_configuration>
