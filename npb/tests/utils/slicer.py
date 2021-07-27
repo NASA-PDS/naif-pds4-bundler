@@ -96,7 +96,7 @@ def ckslicer(lsk_file, sclk_file, input_ck, output_ck, start_time, stop_time,
     print(" ")
 
     #
-    # Run prediCkt
+    # Run CKSLICER 
     #
     p = Popen(params, stdin=PIPE, stdout=PIPE, stderr=PIPE)
     output, err = p.communicate()
