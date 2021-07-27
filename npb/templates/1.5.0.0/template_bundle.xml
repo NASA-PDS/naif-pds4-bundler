@@ -11,7 +11,7 @@
     <product_class>Product_Bundle</product_class>
     <Citation_Information>
       <author_list>$AUTHOR_LIST</author_list>
-      <publication_year>$CURRENT_YEAR</publication_year>
+      <publication_year>$PRODUCT_CREATION_YEAR</publication_year>
       <keyword>Observation Geometry</keyword>
       <description>This bundle contains $PDS4_MISSION_NAME SPICE kernels and related documentation.</description>
     </Citation_Information>
@@ -51,7 +51,7 @@ $TARGETS
   <File_Area_Text>
     <File>
       <file_name>$FILE_NAME</file_name>
-      <creation_date_time>$CURRENT_TIME</creation_date_time>
+      <creation_date_time>$PRODUCT_CREATION_TIME</creation_date_time>
       <file_size unit="byte">$FILE_SIZE</file_size>
       <md5_checksum>$FILE_CHECKSUM</md5_checksum>
     </File>
@@ -66,6 +66,11 @@ $TARGETS
     <member_status>$SPICE_COLL_STATUS</member_status>
     <reference_type>bundle_has_spice_kernel_collection</reference_type>
   </Bundle_Member_Entry>
+  <Bundle_Member_Entry>
+    <lidvid_reference>$MISC_COLL_LIDVID</lidvid_reference>
+    <member_status>$MISC_COLL_STATUS</member_status>
+    <reference_type>bundle_has_member_collection</reference_type>
+  </Bundle_Member_Entry>  
   <Bundle_Member_Entry>
     <lidvid_reference>$DOC_COLL_LIDVID</lidvid_reference>
     <member_status>$DOC_COLL_STATUS</member_status>

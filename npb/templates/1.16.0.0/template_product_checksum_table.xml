@@ -10,7 +10,7 @@
         <information_model_version>$INFORMATION_MODEL_VERSION</information_model_version>
         <product_class>Product_Ancillary</product_class>
         <Citation_Information>
-            <publication_year>$CURRENT_YEAR</publication_year>
+            <publication_year>$PRODUCT_CREATION_YEAR</publication_year>
             <keyword>Observation Geometry</keyword>
             <description>Table of MD5 checksums for all files in this archive (excluding itself and this label file) at the time this file was published.</description>
         </Citation_Information>

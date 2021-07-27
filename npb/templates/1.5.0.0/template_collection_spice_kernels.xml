@@ -10,7 +10,7 @@
     <information_model_version>$INFORMATION_MODEL_VERSION</information_model_version>
     <product_class>Product_Collection</product_class>
     <Citation_Information>
-      <publication_year>$CURRENT_YEAR</publication_year>
+      <publication_year>$PRODUCT_CREATION_YEAR</publication_year>
       <keyword>Observation Geometry</keyword>
       <description>This collection contains SPICE kernels for the $PDS4_OBSERVER_NAME spacecraft and its instruments.</description>
     </Citation_Information>

@@ -9,7 +9,7 @@ $DESCRIPTION
    be required if this meta-kernel is to be used on a non-UNIX
    workstation.
 
-   This file was created on $CURRENT_DATE by $AUTHOR, $INSTITUTION.
+   This file was created on $MK_CREATION_DATE by $AUTHOR, $INSTITUTION.
    The original name of this file was $FILE_NAME.
 
    \begindata
