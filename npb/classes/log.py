@@ -140,7 +140,7 @@ def error_message(message):
     :param message:
     """
     error = f'{message}.'
-    logging.error(f'-- {message}')
+    logging.error(f'-- {message}.')
 
     spiceypy.kclear()
 
