@@ -194,38 +194,60 @@ class KernelList(List):
         #
         # Sort the meta-kernels that need to be added.
         #
-        kernels_in_dir = glob.glob(f'{self.setup.final_directory}/**/*',
-                                   recursive=True)
-        mks_in_dir = []
-        for mk in kernels_in_dir:
-            if '/mk/' in mk and '.tm' in mk.lower():
-                mks_in_dir.append(mk.split(os.sep)[-1])
-
-        mks_in_dir.sort()
-
-        if not mks_in_dir:
-            logging.warning(f'-- No former meta-kernel found to generate '
-                          f'meta-kernel for the list.')
-        else:
-
-            mk_new_name = ''
-            for pattern in patterns:
-                mk_name = mks_in_dir[-1]
-                if re.match(pattern, mk_name):
-                    version = re.findall(r'_v[0-9]+', mk_name)[0]
-                    new_version = \
-                        '_v' + \
-                        str(int(version[2:]) + 1).zfill(len(version) - 2)
-                    mk_new_name = \
-                        f'{mk_name.split(version)[0]}' \
-                        f'{new_version}{mk_name.split(version)[-1]}'
-
-                    logging.warning(f'-- Plan will include {mk_new_name}')
+        # First we look into the configuration file. If a meta-kernel is 
+        # present, it is the one that will be used.
+        #
+        if hasattr(self.setup, 'mk_inputs'):
+            for mk in self.setup.mk_inputs:
+                mk_new_name = mk['file'].split(os.sep)[-1]
+                if os.path.isfile(mk['file']):
                     kernels.append(mk_new_name)
-
-            if not mk_new_name:
-                logging.error(f'-- No former meta-kernel found to generate '
+                else:
+                    error_message(f'Meta-kernel provided via configuration '
+                                  f'{mk_new_name} does not exist')
+        else:
+            #
+            # If no meta-kernel was provided via configuration, try to 
+            # infer the on that needs to be generated.
+            # 
+            kernels_in_dir = glob.glob(f'{self.setup.final_directory}/**/*',
+                                       recursive=True)
+            mks_in_dir = []
+            for mk in kernels_in_dir:
+                if '/mk/' in mk and '.tm' in mk.lower():
+                    mks_in_dir.append(mk.split(os.sep)[-1])
+    
+            mks_in_dir.sort()
+    
+            if not mks_in_dir:
+                logging.warning(f'-- No former meta-kernel found to generate '
                               f'meta-kernel for the list.')
+            else:
+    
+                mk_new_name = ''
+                
+                #
+                # If kernels are present, a meta-kernel might be able to be 
+                # generated from the information of the bundle.
+                #
+                if kernels:
+                    for pattern in patterns:
+                        mk_name = mks_in_dir[-1]
+                        if re.match(pattern, mk_name):
+                            version = re.findall(r'_v[0-9]+', mk_name)[0]
+                            new_version = \
+                                '_v' + \
+                                str(int(version[2:]) + 1).zfill(len(version) - 2)
+                            mk_new_name = \
+                                f'{mk_name.split(version)[0]}' \
+                                f'{new_version}{mk_name.split(version)[-1]}'
+        
+                            logging.warning(f'-- Plan will include {mk_new_name}')
+                            kernels.append(mk_new_name)
+    
+                if not mk_new_name:
+                    logging.error(f'-- No former meta-kernel found to generate '
+                                  f'meta-kernel for the list.')
 
         #
         # Add possible orbnum files.
@@ -248,6 +270,12 @@ class KernelList(List):
                 self.setup.working_directory + os.sep + plan_name, 'w') as p:
             for kernel in kernels:
                 p.write(f'{kernel}\n')
+
+        if not kernels:
+            logging.info("")
+            logging.warning(f'-- No kernels will be added to the increment.')
+            logging.info("")
+            return kernels
 
         logging.info("")
         logging.info(f'-- Reporting the products in Plan:')
@@ -400,9 +428,16 @@ class KernelList(List):
                                         if not isinstance(patterns_el, list):
                                             patterns_el = [patterns_el]
                                         for val in patterns_el:
-                                            if kernel == val['@value']:
-                                                value = val['#text']
-
+                                            try:
+                                                if kernel == val['@value']:
+                                                    value = val['#text']
+                                            except KeyError:
+                                                error_message(f'Error '
+                                                      f'generating kernel'
+                                                      f' list with {kernel}. '
+                                                      f'Consider reviewing '
+                                                      f'your NPB setup')
+                                                
                                         if isinstance(value, list) or \
                                                 isinstance(value, dict):
                                             error_message(f'-- Kernel {kernel}'
