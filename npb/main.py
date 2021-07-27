@@ -410,7 +410,15 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
                     release_miscellaneous_collection = \
                         MiscellaneousCollection(setup, bundle, list)
                     
+                    #
+                    # Add the checksum at the release miscellaneous collection
+                    # to generate the adequate inventory file and add it to 
+                    # the current miscellaneous collection for it to be 
+                    # present at the checksum.
+                    #
                     release_miscellaneous_collection.add(release_checksum)
+                    
+                    miscellaneous_collection.add(release_checksum)
 
                     release_miscellaneous_collection.set_collection_vid()
                     release_miscellaneous_collection_inventory = \
@@ -419,7 +427,9 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
                     
                     release_miscellaneous_collection.add(
                         release_miscellaneous_collection_inventory)
-            
+                    miscellaneous_collection.add(
+                        release_miscellaneous_collection_inventory)
+                    
             #
             # set miscellaneous collection VID.
             #
@@ -433,6 +443,15 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
         # updated.
         #
         checksum = ChecksumProduct(setup, miscellaneous_collection)
+
+        #
+        # Before adding the checksum to the current collection
+        # we need to specify that is not a new product.
+        #
+        for product in miscellaneous_collection.product:
+            if type(product) == ChecksumProduct:
+                product.new_product = False
+        
         miscellaneous_collection.add(checksum)
         miscellaneous_collection.set_collection_vid()
 
