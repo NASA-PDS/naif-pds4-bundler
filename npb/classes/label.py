@@ -49,12 +49,20 @@ class PDSLabel(object):
             error_message('End of Line provided via configuration is not '
                           'CRLF nor LF')
 
-        self.CURRENT_YEAR = current_time().split('-')[0]
         self.BUNDLE_DESCRIPTION_LID = \
             f'{setup.logical_identifier}:document:spiceds'
 
-        self.PRODUCT_CREATION_TIME = product.creation_time
-        self.PRODUCT_CREATION_DATE = product.creation_date
+        if hasattr(self.setup, 'creation_date_time'):
+            creation_dt = self.setup.creation_date_time
+            self.PRODUCT_CREATION_TIME = creation_dt
+            self.PRODUCT_CREATION_DATE = creation_dt.split('T')[0]
+            self.PRODUCT_CREATION_YEAR = creation_dt.split('-')[0]
+        else:
+            self.PRODUCT_CREATION_TIME = product.creation_time
+            self.PRODUCT_CREATION_DATE = product.creation_date
+            self.PRODUCT_CREATION_YEAR = product.creation_date.split('-')[0]
+            
+        
         self.FILE_SIZE = product.size
         self.FILE_CHECKSUM = product.checksum
 
@@ -454,21 +462,32 @@ class BundlePDS4Label(PDSLabel):
         self.AUTHOR_LIST = setup.author_list
         self.START_TIME = setup.increment_start
         self.STOP_TIME = setup.increment_finish
-        self.FILE_NAME = readme.name
-        self.CURRENT_TIME = current_time(setup.date_format)
-        self.CURRENT_DATE = self.CURRENT_TIME.split('T')[0]
+        self.FILE_NAME = readme.name        
         self.DOI = self.setup.doi
+
 
         for collection in self.product.bundle.collections:
             if collection.name == 'spice_kernels':
                 self.SPICE_COLL_LIDVID = collection.lid + '::' + \
                                          collection.vid
-                self.SPICE_COLL_STATUS = 'Primary'
+                if collection.updated:
+                    self.SPICE_COLL_STATUS = 'Primary'
+                else:
+                    self.SPICE_COLL_STATUS = 'Secondary'
+            if collection.name == 'miscellaneous':
+                self.MISC_COLL_LIDVID = collection.lid + '::' + \
+                                       collection.vid
+                if collection.updated:
+                    self.MISC_COLL_STATUS = 'Primary'
+                else:
+                    self.MISC_COLL_STATUS = 'Secondary'
             if collection.name == 'document':
                 self.DOC_COLL_LIDVID = collection.lid + '::' + \
                                        collection.vid
-                self.DOC_COLL_STATUS = 'Primary'
-
+                if collection.updated:
+                    self.DOC_COLL_STATUS = 'Primary'
+                else:
+                    self.DOC_COLL_STATUS = 'Secondary'
         self.write_label()
 
         return
@@ -763,8 +782,6 @@ class DocumentPDS4Label(PDSLabel):
         self.START_TIME = setup.mission_start
         self.STOP_TIME = setup.mission_finish
         self.FILE_NAME = inventory.name
-        self.CURRENT_TIME = current_time(setup.date_format)
-        self.CURRENT_DATE = self.CURRENT_TIME.split('T')[0]
 
         self.name = collection.name.split('.')[0] + '.xml'
 
