@@ -61,8 +61,8 @@
         <File>
             <file_name>checksum_v008.tab</file_name>
             <creation_date_time>2021-06-25T08:00:00</creation_date_time>
-            <file_size unit="byte">9091</file_size>
-            <md5_checksum>7df5c172ee03716bb92060a9de6983f8</md5_checksum>
+            <file_size unit="byte">11387</file_size>
+            <md5_checksum>723d315614706ecb96817de366dfdc6e</md5_checksum>
         </File>
         <Checksum_Manifest>
             <offset unit="byte">0</offset>
