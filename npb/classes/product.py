@@ -2574,12 +2574,18 @@ class InventoryProduct(Product):
                             f.write(line)
 
             for product in self.collection.product:
-                if product.new_product:
-                    line = f'P,' \
-                           f'{product.lid}::' \
-                           f'{product.vid}\r\n'
-                    line = add_carriage_return(line, self.setup.pds4_eol)
-                    f.write(line)
+                #
+                # This conditional is added because miscellaneous inventories
+                # are added to the collection before generating the inventory
+                # product itself.
+                #
+                if type(product) != InventoryProduct:
+                    if product.new_product:
+                        line = f'P,' \
+                               f'{product.lid}::' \
+                               f'{product.vid}\r\n'
+                        line = add_carriage_return(line, self.setup.pds4_eol)
+                        f.write(line)
         
         return
 
@@ -3169,6 +3175,15 @@ class ChecksumProduct(Product):
 
     def __init__(self, setup, collection):
 
+        line = f'Step {setup.step} - Generate checksum file'
+        logging.info('')
+        logging.info(line)
+        logging.info('-' * len(line))
+        logging.info('')
+        setup.step += 1
+        if not setup.args.silent and not setup.args.verbose:
+            print('-- ' + line.split(' - ')[-1] + '.')
+
         #
         # The initialisation of the checksum class is lighter than the
         # initialisation of the other products because the purpose is
@@ -3326,19 +3341,8 @@ class ChecksumProduct(Product):
 
     def write_product(self, history=False):
 
-        line = f'Step {self.setup.step} - Generate checksum file'
-        logging.info('')
-        logging.info(line)
-        logging.info('-' * len(line))
-        logging.info('')
-        self.setup.step += 1
-        if not self.setup.args.silent and not self.setup.args.verbose:
-            print('-- ' + line.split(' - ')[-1] + '.')
-
-
         msn_acr = self.setup.mission_acronym
 
-        
         #
         # The checksum file of the current run is generated without the 
         # bundle history and using the checksum hashes obtained during 
