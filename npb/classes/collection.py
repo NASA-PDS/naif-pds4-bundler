@@ -15,49 +15,81 @@ class Collection(object):
         self.name = type
         self.setup = setup
         self.bundle = bundle
-
-        if self.setup.pds_version == '4':
-            self.lid = self.collection_lid()
-            self.vid = self.collection_vid()
-
+        
+        #
+        # To know whether if the collection has been updated or not.
+        #
+        self.updated = False
+        
+        self.set_collection_lid()
+        
         return
 
     def add(self, element):
 
         self.product.append(element)
+        
+        #
+        # If an element has been added to the collection then it is updated.
+        #
+        self.updated = True
 
-    def collection_lid(self):
+    def set_collection_lid(self):
 
-        collection_lid = f'{self.setup.logical_identifier}:{self.type}'
+        if self.setup.pds_version == '3':
+            return
+        
+        self.lid = f'{self.setup.logical_identifier}:{self.type}'
 
-        return collection_lid
 
-    def collection_vid(self):
+    def set_collection_vid(self):
 
         #
-        # Collection versions are not equal to the release number,
+        # Collection versions are not equal to the release number.
+        # If the collection has been updated we obtain the increased
+        # version, but if it has not been updated we use the previous
+        # version.
         #
         if self.setup.increment:
-
             try:
                 versions = glob.glob(f'{self.setup.final_directory}/'
                                      f'{self.setup.mission_acronym}_spice/'
                                      f'{self.name}/*{self.name}*')
+                versions += glob.glob(f'{self.setup.staging_directory}/'
+                                     f'{self.name}/*{self.name}*')
 
                 versions.sort()
-                version = int(versions[-1].split('v')[-1].split('.')[0]) + 1
+
+                if self.updated:
+                    version = int(versions[-1].split('v')[-1].split('.')[0]) + 1
+                else:
+                    version = int(versions[-1].split('v')[-1].split('.')[0])
+                
                 vid = '{}.0'.format(version)
                 logging.info(f'-- Collection of {self.type} version set to '
                              f'{version}, derived from:')
                 logging.info(f'   {versions[-1]}')
                 logging.info('')
-
+        
             except:
+                
+                #
+                # If it is the spice kernels collection assume is the same
+                # version as the bundle.
+                #
+                if self.name == 'spice_kernel':
+                    ver = int(self.setup.release)
+                else: 
+                    #
+                    # Otherwise set it to 1.
+                    #
+                    ver = 1
+                
                 logging.warning(f'-- No {self.type} collection available in '
                                 f'previous increment.')
                 logging.warning(f'-- Collection of {self.type} version set '
-                                f'to: {int(self.setup.release)}.')
-                vid = '{}.0'.format(int(self.setup.release))
+                                f'to: {ver}.')
+                vid = '{}.0'.format(ver)
                 logging.info('')
 
         else:
@@ -66,7 +98,7 @@ class Collection(object):
             vid = '{}.0'.format(int(self.setup.release))
             logging.info('')
 
-        return vid
+        self.vid = vid
 
 
 class SpiceKernelsCollection(Collection):
