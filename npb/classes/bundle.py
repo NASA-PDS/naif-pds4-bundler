@@ -275,6 +275,12 @@ class Bundle(object):
         rel_mis_col_ver = 0
         
         #
+        # Boolean to record all the misc collections if they were not 
+        # generated from the first version of the bundle
+        #
+        first_misc = True
+        
+        #
         # Initialise the history dictionary.
         #
         history = {}
@@ -375,38 +381,58 @@ class Bundle(object):
             #
             if rel_mis_col_ver != mis_col_ver:
                 ver = rel_mis_col_ver
-                mis_collection = f'miscellaneous/' \
-                    f'collection_miscellaneous_inventory_v{ver:03d}.csv'
                 
-                if os.path.exists(object.setup.final_directory + 
-                              f'/{object.setup.mission_acronym}_spice/' 
-                              + mis_collection):
-                    history[rel].append(mis_collection)
-            
-                    mis_collection_lbl = f'miscellaneous/' \
-                                     f'collection_miscellaneous_v{ver:03d}.xml'
-                    history[rel].append(mis_collection_lbl)
-
-                    with open(object.setup.final_directory + 
-                          f'/{object.setup.mission_acronym}_spice/' + 
-                          mis_collection,'r') as c:
-                        for line in c:
-                            if ('P' in line) and (not ':checksum_' in line):
-                                product = f'miscellaneous/' \
-                                        f'{line.split(":")[5].replace("_", "/", 1)}'
-                                history[rel].append(product)
-                                lbl = lbl.replace('.orb','.xml')
-                                lbl = lbl.replace('.nrb','.xml')
-                            
-                                history[rel].append(lbl)
-                            
-                            elif ('P' in line) and (':checksum_' in line):
-                                product = f'miscellaneous/' \
-                                    f'{line.split(":")[5].replace("_", "/", 1)}' \
-                                          f'_v{rel:03d}.tab'
-                                history[rel].append(product)
-                                history[rel].append(product.replace('.tab', '.xml'))
-                            
+                #
+                # If this is the first miscellaneous collection, add all
+                # the previous ones (which will have been generated in this
+                # release).
+                #
+                if first_misc:
+                    if ver != 1:
+                        misc_releases = range(1, number_of_releases + 1)
+                    else:
+                        misc_releases = [ver]
+                
+                
+                for mver in misc_releases:
+                
+                    mis_collection = f'miscellaneous/' \
+                        f'collection_miscellaneous_inventory_v{mver:03d}.csv'
+                    
+                    if os.path.exists(object.setup.final_directory + 
+                                  f'/{object.setup.mission_acronym}_spice/' 
+                                  + mis_collection):
+                        history[rel].append(mis_collection)
+                
+                        mis_collection_lbl = f'miscellaneous/' \
+                                f'collection_miscellaneous_v{mver:03d}.xml'
+                        history[rel].append(mis_collection_lbl)
+    
+                        with open(object.setup.final_directory + 
+                              f'/{object.setup.mission_acronym}_spice/' + 
+                              mis_collection,'r') as c:
+                            for line in c:
+                                if ('P' in line) and (not ':checksum_' in line):
+                                    product = f'miscellaneous/' \
+                                    f'{line.split(":")[5].replace("_", "/", 1)}'
+                                    history[rel].append(product)
+                                    lbl = lbl.replace('.orb','.xml')
+                                    lbl = lbl.replace('.nrb','.xml')
+                                
+                                    history[rel].append(lbl)
+                                
+                                elif ('P' in line) and (':checksum_' in line):
+                                    product_name = \
+                                        line.split(":")[5].replace("_", "/", 1)
+                                    product = \
+                                        f'miscellaneous/' \
+                                        f'{product_name}_v{mver:03d}.tab'
+                                    history[rel].append(product)
+                                    history[rel].append(product.replace('.tab', 
+                                                                        '.xml'))
+                
+                first_misc = False
+                
             #
             # The document collection to be included in the release needs to be
             # sorted out by from the bundle label, that indicates the 
@@ -457,6 +483,7 @@ class Bundle(object):
         In parallel writes in the log the complete bundle release history. 
         :return: 
         '''
+        logging.info('')
         line = f'Step {self.setup.step} - Validate bundle history with ' \
                f'checksum files'
         logging.info('')
@@ -466,6 +493,10 @@ class Bundle(object):
         self.setup.step += 1
         if not self.setup.args.silent and not self.setup.args.verbose:
             print('-- ' + line.split(' - ')[-1] + '.')
+
+        logging.info('')
+        logging.info('-- Display the list of products that belong to each '
+                     'release.')
         
         history = self.get_history()
         history_sting = pprint.pformat(history, indent=2)
@@ -505,6 +536,8 @@ class Bundle(object):
                 error_message(f'Products in {checksum_file} do not correspond '
                               f'to the bundle release history')
                     
+        logging.info('')
+        
         return
             
         
