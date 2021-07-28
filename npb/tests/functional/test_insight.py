@@ -65,10 +65,8 @@ class TestINSIGHT(TestCase):
         shutil.copy2('../data/insight_release_basic.kernel_list',
                      'working/insight_release_07.kernel_list')
         shutil.copytree('../data/insight', 'insight')
-        try:
-            shutil.copytree('../data/kernels', 'kernels')
-        except:
-            pass
+        shutil.rmtree('kernels', ignore_errors=True)
+        shutil.copytree('../data/kernels', 'kernels')
 
         with open('../data/insight.list', 'r') as i:
             for line in i:
