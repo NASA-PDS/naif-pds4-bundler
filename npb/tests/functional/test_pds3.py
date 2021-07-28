@@ -33,7 +33,10 @@ class TestPDS3(TestCase):
 
         dirs = ['working', 'staging', 'final', 'kernels']
         for dir in dirs:
-            os.mkdir(dir)
+            try:
+                os.mkdir(dir)
+            except:
+                pass
 
     def tearDown(self):
         '''
