@@ -31,6 +31,12 @@ pip3 install sphinx_rtd_theme
 pip3 install -e .
 
 #
+# Run the tests
+#
+cd npb
+
+coverage run -m nose --cover-package=.
+#
 # Now NPB can be used with:
 #  
 #  $naif-pds4-bundle

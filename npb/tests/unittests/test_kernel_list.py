@@ -60,7 +60,8 @@ class TestKernelList(TestCase):
         plan   = '../data/msl_release_26.plan'
         faucet = 'list'
 
-        shutil.copy2('../data/msl_release_25.kernel_list', 'working')
+        shutil.copy2('../data/msl_release_25.kernel_list', 
+                     'working/msl_release_25.kernel_list')
 
         main(config, plan, faucet, silent=self.silent)
 
@@ -87,7 +88,8 @@ class TestKernelList(TestCase):
         plan   = '../data/m01_release_75.plan'
         faucet = 'list'
 
-        shutil.copy2('../data/m01_release_74.kernel_list', 'working')
+        shutil.copy2('../data/m01_release_74.kernel_list', 
+                     'working/m01_release_74.kernel_list')
 
         main(config, plan, faucet, silent=self.silent)
 
@@ -114,7 +116,8 @@ class TestKernelList(TestCase):
         plan   = '../data/insight_release_08.plan'
         faucet = 'list'
 
-        shutil.copy2('../data/insight_release_07.kernel_list', 'working')
+        shutil.copy2('../data/insight_release_07.kernel_list', 
+                     'working/insight_release_07.kernel_list')
         
         os.mkdir('insight')
         
