@@ -61,6 +61,7 @@ class TestPDS3(TestCase):
         shutil.copy2('../data/m01_release_74.kernel_list', 'working')
 
         main(config, plan, faucet, silent=self.silent)
+        print('')
 
 
 if __name__ == '__main__':
