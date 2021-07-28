@@ -2,13 +2,14 @@ import os
 import shutil
 import unittest
 import glob
+import filecmp
 from unittest import TestCase
 from npb.main import main
 
 
-class TestPDS4(TestCase):
+class TestPDS4Strict(TestCase):
     '''
-    Note that EOL, label checksum tags and checksum files are not tested.
+    Tests will fail in Linux environment.
     '''
     @classmethod
     def setUpClass(cls):
@@ -51,26 +52,15 @@ class TestPDS4(TestCase):
         #
         # Compare the files. 
         #
-        files = glob.glob(f'{mis}/{mis}_spice/**/*.xml', recursive=True)
-        files += glob.glob(f'{mis}/{mis}_spice/**/*.csv', recursive=True)
-        files += glob.glob(f'{mis}/{mis}_spice/**/*.html', recursive=True)
-        files += glob.glob(f'{mis}/{mis}_spice/**/*.tm', recursive=True)
-        files += glob.glob(f'{mis}/{mis}_spice/**/*.txt', recursive=True)
+        files = glob.glob(f'{mis}/{mis}_spice/*/*/*')
         for product in files:
             if os.path.isfile(product):
-                test_product = product.replace(f'{mis}/','../data/regression/')
-                
-                with open(product) as ff:
-                    fromlines = ff.read().splitlines()
-                    fromlines =[item for item in fromlines if 'checksum' not in item]
-                with open(test_product) as tf:
-                    tolines = tf.read().splitlines()
-                    tolines = [item for item in tolines if 'checksum' not in item]
-
-                if fromlines != tolines:
+                test_product = product.replace(f'{mis}/', '../data/regression/')
+                assertion = filecmp.cmp(product, test_product, shallow=False)
+                if not assertion:
                     print(f'Assertion False for: {product}')
-                    self.assertTrue(False
-                                    ) 
+                self.assertTrue(assertion)
+                
         dirs = ['working', 'staging', 'kernels', mis]
         for dir in dirs:
             shutil.rmtree(dir, ignore_errors=True)
