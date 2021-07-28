@@ -62,10 +62,15 @@ class TestPDS4(TestCase):
                 
                 with open(product) as ff:
                     fromlines = ff.read().splitlines()
-                    fromlines =[item for item in fromlines if 'checksum' not in item]
+                    fromlines = [item for item in fromlines if 
+                                 ('checksum' not in item) and 
+                                 ('file_size' not in item)]
+                    fromlines = [item for item in fromlines if 'checksum' not in item]
                 with open(test_product) as tf:
                     tolines = tf.read().splitlines()
-                    tolines = [item for item in tolines if 'checksum' not in item]
+                    tolines = [item for item in tolines if 
+                                 ('checksum' not in item) and 
+                                 ('file_size' not in item)]
 
                 if fromlines != tolines:
                     print(f'Assertion False for: {product}')
