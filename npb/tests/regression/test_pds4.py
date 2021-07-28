@@ -34,6 +34,10 @@ class TestPDS4(TestCase):
         '''
         unittest.TestCase.setUp(self)
         print(f"    * {self._testMethodName}")
+        
+        dirs = ['working', 'staging', 'kernels', mis]
+        for dir in dirs:
+            shutil.rmtree(dir, ignore_errors=True)
 
     def tearDown(self):
         '''
