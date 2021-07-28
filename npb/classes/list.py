@@ -174,6 +174,7 @@ class KernelList(List):
         #
         kernels_in_dir = [item for item in kernels_in_dir if 
                           '.tm' not in item]
+        kernels_in_dir.sort()
             
         #
         # Filter the kernels with the patterns in the kernel list from the
