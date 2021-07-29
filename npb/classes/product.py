@@ -2733,7 +2733,7 @@ class InventoryProduct(Product):
         '''
         mission_acronym = self.setup.mission_acronym
         logging.info(f'-- Comparing '
-                     f'{self.name.split(f"{mission_acronym}_spice/")}'
+                     f'{self.name.split(f"{mission_acronym}_spice/")[-1]}'
                      f'...')
 
         #
