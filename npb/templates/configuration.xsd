@@ -151,7 +151,6 @@
               <xs:element name="staging_directory" type="xs:string" />
               <xs:element name="final_directory" type="xs:string" />
               <xs:element name="templates_directory" type="xs:string" minOccurs="0"/>
-              <xs:element name="reports_directory" type="xs:string" minOccurs="0"/>
             </xs:sequence>
           </xs:complexType>
         </xs:element>

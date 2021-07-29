@@ -284,9 +284,13 @@ class PDSLabel(object):
 
             #
             # If this is the spice_kernels collection, we need to add the
-            # kernel type directory.
+            # kernel type directory. If it is the miscellaneous collection,
+            # add the product type.
             #
             if (self.product.collection.name == 'spice_kernels') and \
+                    ('collection' not in self.name):
+                val_label_path += self.name.split(os.sep)[-2] + os.sep
+            elif (self.product.collection.name == 'miscellaneous') and \
                     ('collection' not in self.name):
                 val_label_path += self.name.split(os.sep)[-2] + os.sep
 
@@ -310,12 +314,12 @@ class PDSLabel(object):
                 raise Exception("No label for comparison found.")
 
         except:
-            logging.warning(f'-- No other version of the kernel label has '
+            logging.warning(f'-- No other version of the product label has '
                             f'been found.')
 
             #
             # 2-If a prior version of the same file cannot be found look for
-            #   the label of a kernel of the same type.
+            #   the label of a product of the same type.
             #
             try:
                 val_label_path = self.setup.final_directory + \
@@ -327,6 +331,9 @@ class PDSLabel(object):
                 # kernel type directory.
                 #
                 if (self.product.collection.name == 'spice_kernels') and \
+                        ('collection' not in self.name):
+                    val_label_path += self.name.split(os.sep)[-2] + os.sep
+                elif (self.product.collection.name == 'miscellaneous') and \
                         ('collection' not in self.name):
                     val_label_path += self.name.split(os.sep)[-2] + os.sep
 
@@ -363,7 +370,7 @@ class PDSLabel(object):
                 #
                 try:
                     val_label_path = f'{self.setup.root_dir}' \
-                                     f'tests/functional/data/insight/' \
+                                     f'tests/data/regression/' \
                                      f'insight_spice/' \
                                      f'{self.product.collection.name}/'
 
@@ -374,21 +381,9 @@ class PDSLabel(object):
                     if (self.product.collection.name == 'spice_kernels') \
                             and ('collection' not in self.name):
                         val_label_path += self.name.split(os.sep)[-2] + os.sep
-
-                        #
-                        # Generate the empty files from the test case.
-                        #
-                        with open(f'{self.setup.root_dir}' 
-                                  f'tests/functional/data/insight.list',
-                                  'r') as i:
-                            for line in i:
-                                with open(f'{self.setup.root_dir}' 
-                                          f'tests/functional/data/insight/' 
-                                          f'insight_spice/' 
-                                          f'{line[0:-1]}', 'w') as fp:
-                                    
-                                    #TODO: Something has to be added here.
-                                    pass
+                    elif (self.product.collection.name == 'miscellaneous') and \
+                         ('collection' not in self.name):
+                        val_label_path += self.name.split(os.sep)[-2] + os.sep
 
                     #
                     # Simply pick the last one
@@ -412,18 +407,6 @@ class PDSLabel(object):
                     else:
                         val_label = glob.glob(val_products[-1].split('.')[0] +
                                               '.xml')[0]
-
-                    #
-                    # Delete the empty files from the test case.
-                    #
-                    if (self.product.collection.name == 'spice_kernels') \
-                            and ('collection' not in self.name):
-                        with open(f'{self.setup.root_dir}tests/functional/'
-                                  f'data/insight.list', 'r') as i:
-                            for line in i:
-                                os.remove(self.setup.root_dir + \
-                                          f'tests/functional/data/insight/'
-                                          f'insight_spice/{line[0:-1]}')
 
                     if not val_label:
                         raise Exception("No label for comparison found.")

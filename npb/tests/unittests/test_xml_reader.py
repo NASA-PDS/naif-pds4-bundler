@@ -12,7 +12,7 @@ from npb.main               import main
 from npb.utils.files        import etree_to_dict
 from npb.classes.setup      import Setup
 from npb.classes.list       import KernelList
-from npb.classes.product    import Object
+from npb.classes.object    import Object
 
 class TestXML(TestCase):
 

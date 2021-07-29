@@ -19,6 +19,7 @@ from npb.classes.label import InventoryPDS3Label
 from npb.classes.label import DocumentPDS4Label
 from npb.classes.label import ChecksumPDS4Label
 from npb.classes.label import BundlePDS4Label
+from npb.classes.object import Object
 from npb.classes.log import error_message
 from npb.utils.time import creation_time
 from npb.utils.time import creation_date
@@ -896,7 +897,7 @@ class MetaKernelProduct(Product):
                         kernel_grammar.split('exclude:')[-1])
 
             logging.info(
-                f'     Matching {kernel_type} with meta-kernel grammar.')
+                f'     Matching {kernel_type.upper()}(s) with meta-kernel grammar.')
             for kernel_grammar in kernel_grammar_list:
 
                 if 'date:' in kernel_grammar:
@@ -2708,14 +2709,15 @@ class InventoryProduct(Product):
                      'collection.')
 
         for product in self.collection.product:
-            product_found = False
-            with open(self.path, 'r') as c:
-                for line in c:
-                    if product.lid in line:
-                        product_found = True
-                if not product_found:
-                    logging.error(f'      Product {product.lid} not found. '
-                                  f'Consider increment re-generation.')
+            if type(product).__name__ != 'InventoryProduct':
+                product_found = False
+                with open(self.path, 'r') as c:
+                    for line in c:
+                        if product.lid in line:
+                            product_found = True
+                    if not product_found:
+                        logging.error(f'      Product {product.lid} not found. '
+                                      f'Consider increment re-generation.')
 
         logging.info('      OK')
         logging.info('')
@@ -2725,8 +2727,7 @@ class InventoryProduct(Product):
     def compare(self):
         '''
         The label is compared the Inventory Product with the previous
-        version and
-        if it does not exist with the sample inventory product.
+        version and if it does not exist with the sample inventory product.
 
         :return:
         '''
@@ -3175,15 +3176,6 @@ class ChecksumProduct(Product):
 
     def __init__(self, setup, collection):
 
-        line = f'Step {setup.step} - Generate checksum file'
-        logging.info('')
-        logging.info(line)
-        logging.info('-' * len(line))
-        logging.info('')
-        setup.step += 1
-        if not setup.args.silent and not setup.args.verbose:
-            print('-- ' + line.split(' - ')[-1] + '.')
-
         #
         # The initialisation of the checksum class is lighter than the
         # initialisation of the other products because the purpose is
@@ -3221,6 +3213,15 @@ class ChecksumProduct(Product):
 
     def generate(self, history=False):
 
+        line = f'Step {self.setup.step} - Generate checksum file'
+        logging.info('')
+        logging.info(line)
+        logging.info('-' * len(line))
+        logging.info('')
+        self.setup.step += 1
+        if not self.setup.args.silent and not self.setup.args.verbose:
+            print('-- ' + line.split(' - ')[-1] + '.')
+
         #
         # This acts as the second part of the Checksum product initialization.
         #
@@ -3231,8 +3232,6 @@ class ChecksumProduct(Product):
         # attributes.
         #
         Product.__init__(self)
-
-        self.compare()
 
         #
         # The checksum is labeled.
@@ -3274,6 +3273,7 @@ class ChecksumProduct(Product):
                 logging.info(f'-- Previous checksum file is: '
                              f'{latest_file}')
                 logging.info(f'-- Generate version {self.version}.')
+                logging.info('')
 
             except:
                 self.version = 1
@@ -3425,7 +3425,7 @@ class ChecksumProduct(Product):
                 entry = add_carriage_return(entry, self.setup.eol)
                 c.write(entry)
 
-        if hasattr(self, 'current_checksum'):
+        if self.setup.diff:
             logging.info('-- Comparing checksum with previous version...')
             self.compare()
 
@@ -3437,8 +3437,9 @@ class ChecksumProduct(Product):
         not compared.
         """
         try:
+            logging.info('')
             compare_files(self.path_current, self.path,
-                          self.setup.working_directory, 'all')
+                          self.setup.working_directory, self.setup.diff)
         except:
             logging.warning(f'-- Checksum from previous increment does not '
                             f'exist.')
@@ -3446,10 +3447,3 @@ class ChecksumProduct(Product):
         logging.info('')
 
         return None
-
-
-class Object(object):
-    def __init__(self):
-        self.working_directory = None
-
-    pass

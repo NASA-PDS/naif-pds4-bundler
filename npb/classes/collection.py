@@ -9,7 +9,7 @@ from npb.utils.files import extension2type
 
 class Collection(object):
 
-    def __init__(self, type, setup, bundle):
+    def      __init__(self, type, setup, bundle):
 
         self.product = []
         self.name = type

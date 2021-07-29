@@ -430,6 +430,7 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
                     miscellaneous_collection.add(
                         release_miscellaneous_collection_inventory)
                     
+                    
             #
             # set miscellaneous collection VID.
             #

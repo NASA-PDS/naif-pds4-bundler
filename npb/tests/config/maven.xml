@@ -104,7 +104,7 @@
         <staging_directory>staging</staging_directory>
         <final_directory>maven</final_directory>
         <templates_directory></templates_directory>
-        <reports_directory>working</reports_directory>
+
     </directories>
 
     <!-- =========================== -->

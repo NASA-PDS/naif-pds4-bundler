@@ -56,7 +56,7 @@
         <kernels_directory>kernels</kernels_directory>
         <staging_directory>staging</staging_directory>
         <final_directory>final</final_directory>
-        <reports_directory>reports</reports_directory>
+
     </directories>
 
     <!-- =========================== -->

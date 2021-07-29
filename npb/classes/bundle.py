@@ -221,6 +221,7 @@ class Bundle(object):
         # List all files newer than 'x' days
         #
         logging.info(f"-- Files in final directory less than 1 day old:")
+        logging.info('')
         for root, dirs, files in os.walk(self.setup.final_directory):
             for name in files:
                 filename = os.path.join(root, name)
@@ -489,7 +490,6 @@ class Bundle(object):
         logging.info('')
         logging.info(line)
         logging.info('-' * len(line))
-        logging.info('')
         self.setup.step += 1
         if not self.setup.args.silent and not self.setup.args.verbose:
             print('-- ' + line.split(' - ')[-1] + '.')
@@ -497,6 +497,7 @@ class Bundle(object):
         logging.info('')
         logging.info('-- Display the list of products that belong to each '
                      'release.')
+        logging.info('')
         
         history = self.get_history()
         history_sting = pprint.pformat(history, indent=2)

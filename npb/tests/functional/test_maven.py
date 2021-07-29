@@ -23,7 +23,7 @@ class TestMAVEN(TestCase):
             shutil.rmtree(dir, ignore_errors=True)
             
         cls.verbose = False    
-        cls.silent = False
+        cls.silent = True
         cls.log = True
 
     def setUp(self):

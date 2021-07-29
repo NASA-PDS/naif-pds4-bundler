@@ -20,21 +20,20 @@ source bin/activate
 
 # or source bin/activate.csh
 
-pip3 install -U setuptools
+pip install -U setuptools
 
 cd naif-pds4-bundle
 
-pip3 install -r requirements.txt
+pip install -r requirements.txt
 
-pip3 install sphinx_rtd_theme
+pip install sphinx_rtd_theme
 
-pip3 install -e .
+pip install -e .
 
 #
 # Run the tests
 #
 cd npb
-
 coverage run -m nose --cover-package=.
 #
 # Now NPB can be used with:

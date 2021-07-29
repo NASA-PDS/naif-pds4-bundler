@@ -13,7 +13,7 @@ class Log(object):
     :param args: Parameters arguments from NDT's main function.
     :param version: NDT version.
     """
-
+    
     def __init__(self, setup, args, debug):
         """
         Constructor method.
@@ -30,13 +30,16 @@ class Log(object):
         else:
             log_format = '%(levelname)-8s: %(message)s'
 
-        if not args.silent:
-            if args.verbose:
-                ch = logging.StreamHandler()
-                ch.setLevel(logging.INFO)
-                formatter = logging.Formatter(log_format)
-                ch.setFormatter(formatter)
-                logger.addHandler(ch)
+        ch = logging.StreamHandler()
+
+        if not args.silent and args.verbose:
+            ch.setLevel(logging.INFO)
+        else:
+            ch.setLevel(logging.CRITICAL)
+        
+        formatter = logging.Formatter(log_format)
+        ch.setFormatter(formatter)
+        logger.addHandler(ch)
 
         if args.log:
 
@@ -48,7 +51,6 @@ class Log(object):
 
             fh = logging.FileHandler(log_file)
             fh.setLevel(logging.INFO)
-            formatter = logging.Formatter(log_format)
             fh.setFormatter(formatter)
             logger.addHandler(fh)
 

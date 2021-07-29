@@ -5,7 +5,7 @@ import shutil
 import unittest
 from unittest import TestCase
 from npb.classes.product import SpiceKernelProduct
-from npb.classes.product import Object
+from npb.classes.object import Object
 
 
 class TestKernelIntegrity(TestCase):

@@ -396,8 +396,8 @@ class TestINSIGHT(TestCase):
 
         os.remove('working/insight_release_08.kernel_list')
 
-        main(updated_config, plan, faucet, silent=self.silent, log=self.log, diff='all',
-             verbose=True)
+        main(updated_config, plan, faucet, silent=self.silent, log=self.log, 
+             diff='all')
 
     def test_insight_mks_input(self):
         '''
@@ -506,8 +506,8 @@ class TestINSIGHT(TestCase):
 
         os.makedirs('insight')
 
-        main(config, plan=False, faucet=faucet, verbose=False, 
-             silent=self.silent, log=self.log, diff='all')
+        main(config, plan=False, faucet=faucet, silent=self.silent, 
+             log=self.log, diff='all')
         
     def test_insight_no_kernels_with_bundle(self):
         '''
