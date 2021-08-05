@@ -151,8 +151,8 @@ class SpiceKernelsCollection(Collection):
         # message if more meta-kernels are expected).
         #
         if hasattr(self.setup, 'mk_inputs'):
-            if self.setup.mk_inputs[0]['file']:
-                mks = self.setup.mk_inputs[0]['file']
+            if self.setup.mk_inputs['file']:
+                mks = self.setup.mk_inputs['file']
                 if not isinstance(mks, list):
                     mks = [mks]
                 for mk in mks:
