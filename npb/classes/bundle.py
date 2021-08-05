@@ -209,6 +209,24 @@ class Bundle(object):
             logging.warning(line)
         logging.info('')
 
+        #
+        # Cross-check that files with latest timestamp in final correspond
+        # to the files copied from staging:
+        #
+        xdays = 1
+        now = time.time()
+        newer_file = []
+
+        #
+        # List all files newer than 'x' days
+        #
+        for root, dirs, files in os.walk(self.setup.final_directory):
+            for name in files:
+                filename = os.path.join(root, name)
+                if os.stat(filename).st_mtime > now - (xdays * 86400):
+                    newer_file.append(filename)
+
+        logging.info('')
         line = f'-- Found {len(newer_file)} newer file(s), copied ' \
                f'{len(copied_files)} file(s) from staging directory.'
         if len(newer_file) == len(copied_files):
