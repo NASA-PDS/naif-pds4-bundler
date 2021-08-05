@@ -9,7 +9,7 @@
 The INSIGHT SPICE Data Archive
 ========================================================================
 
-   Last update: June 30, 2021
+   Last update: August 4, 2021
 
 <A NAME="Introduction"></A>
 Introduction
@@ -555,7 +555,7 @@ CK Files
 
             These CKs contain the reconstructed INSIGHT spacecraft EDL
             attitude, from the EDL entry point to landing, determined
-            by INSIGHT EDL team,
+            by the INSIGHT EDL team,
 
       -  reconstructed spacecraft landed orientation CKs
 
@@ -855,21 +855,7 @@ MK Files
                          version supersedes all similarly named
                          files with earlier versions.
 
-   Multiple versions of a meta-kernel for the same year may exist if
-   new kernels were added to the archive in a later release and the
-   meta-kernel for that year had to be updated to incorporate them. The
-   reasons for adding new kernels include (but are not limited to)
-   adding new kinds of kernels, adding new versions of existing kernels
-   containing more complete or more accurate data, and adding new
-   versions of existing kernels superseding the existing kernels that
-   had errors. If more than one meta-kernel file for the same year is
-   present, then the file with the latest version number supersedes all
-   earlier versions. The latest yearly meta-kernels can be loaded
-   together sorted by year to provide coverage for more than one year.
-   (Note that on some environments loading too many kernels at once may
-   slow down data access.)
-
-   In addition, all meta-kernels also includes keywords setting the
+   In addition, all meta-kernels also include keywords setting the
    SPICE CHRONOS utility configuration parameters (spacecraft ID,
    planet ID, landing UTC, landing SOL index, and Sun GM).
 
