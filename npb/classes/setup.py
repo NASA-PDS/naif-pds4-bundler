@@ -102,9 +102,6 @@ class Setup(object):
         if hasattr(self, 'mk'):
             if isinstance(self.mk, dict):
                 self.mk = [self.mk]
-        if hasattr(self, 'mk_inputs'):
-            if isinstance(self.mk_inputs, dict):
-                self.mk_inputs = [self.mk_inputs]
                 
         #
         # Meta-kernel configuration; if there is one pattern for 
