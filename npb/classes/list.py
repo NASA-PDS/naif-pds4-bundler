@@ -166,7 +166,7 @@ class KernelList(List):
 
         kernels_in_dir = []
         for dir in self.setup.kernels_directory:
-            kernels_in_dir += glob.glob(f'{dir}/**/*',
+            kernels_in_dir += glob.glob(f'{dir}/**/*.*',
                                    recursive=True)
         #
         # Filter out the meta-kernels from the automatically generated
@@ -199,9 +199,14 @@ class KernelList(List):
         # present, it is the one that will be used.
         #
         if hasattr(self.setup, 'mk_inputs'):
-            for mk in self.setup.mk_inputs:
-                mk_new_name = mk['file'].split(os.sep)[-1]
-                if os.path.isfile(mk['file']):
+            if not isinstance(self.setup.mk_inputs['file'], list):
+                mks = [self.setup.mk_inputs['file']]
+            else:
+                mks = self.setup.mk_inputs['file']
+            for mk in mks:
+                mk_new_name = mk.split(os.sep)[-1]
+                mk_path = os.getcwd() + os.sep + mk
+                if os.path.isfile(mk_path):
                     kernels.append(mk_new_name)
                 else:
                     error_message(f'Meta-kernel provided via configuration '
