@@ -9,7 +9,7 @@ from npb.main import main
 class TestKernelList(TestCase):
     """
     Test family for the kernel list generation.
-    """
+    """ 
     
     @classmethod
     def setUpClass(cls):
@@ -22,7 +22,8 @@ class TestKernelList(TestCase):
         
         os.chdir(os.path.dirname(__file__))
         
-        dirs = ['working', 'staging', 'final', 'kernels', 'insight', 'maven']
+        dirs = ['working', 'staging', 'final', 'kernels', 'insight', 'maven',
+                'mars2020']
         for dir in dirs:
             shutil.rmtree(dir, ignore_errors=True)
             
@@ -45,7 +46,8 @@ class TestKernelList(TestCase):
         '''
         unittest.TestCase.tearDown(self)
         
-        dirs = ['working', 'staging', 'final', 'kernels', 'insight', 'maven']
+        dirs = ['working', 'staging', 'final', 'kernels', 'insight', 
+                'maven', 'mars2020']
         for dir in dirs:
             shutil.rmtree(dir, ignore_errors=True)
             
@@ -157,6 +159,34 @@ class TestKernelList(TestCase):
 
         old_file = ''
         with open('../data/maven_release_24.kernel_list', 'r') as f:
+            for line in f:
+                old_file += line
+
+        self.assertEqual(old_file.split('\n')[7:],new_file.split('\n')[7:])
+        
+    def test_pds4_mars2020_list(self):
+        """
+        Basic test for M2020 kernel plan generation. This is a PDS4 Bundle.
+        Implemented for the generation of the first M2020 release. The 
+        particularity of this test is that it includes two meta-kernels provided
+        as inputs.
+
+        """
+        config = '../config/mars2020.xml'
+        plan   = '../data/mars2020_release_01.plan'
+        faucet = 'list'
+
+        os.mkdir('mars2020')
+
+        main(config, plan, faucet=faucet, silent=True)
+
+        new_file = ''
+        with open('../data/mars2020_release_01.kernel_list', 'r') as f:
+            for line in f:
+                new_file += line
+
+        old_file = ''
+        with open('../data/mars2020_release_01.kernel_list', 'r') as f:
             for line in f:
                 old_file += line
 

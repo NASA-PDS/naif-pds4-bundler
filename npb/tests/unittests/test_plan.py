@@ -27,6 +27,24 @@ class TestPlan(TestCase):
         '''
         unittest.TestCase.setUp(self)
         print(f"    * {self._testMethodName}")
+        
+
+        dirs = ['working', 'staging', 'insight', 'mars2020', 'kernels',
+                'kernels/fk', 'kernels/sclk', 'kernels/ik', 'kernels/lsk',
+                'kernels/ck', 'kernels/spk', 'kernels/pck', 'kernels/mk']
+        for dir in dirs:
+            shutil.rmtree(dir, ignore_errors=True)
+            os.mkdir(dir)
+
+    def tearDown(self):
+        '''
+        This method will be executed after each test function.
+        '''
+        unittest.TestCase.tearDown(self)
+
+        dirs = ['working', 'staging', 'insight', 'm2020', 'kernels']
+        for dir in dirs:
+            shutil.rmtree(dir, ignore_errors=True)
 
     def test_pds4_insight_plan(self):
         """
@@ -37,19 +55,6 @@ class TestPlan(TestCase):
         config = '../config/insight.xml'
         plan   = ''
         faucet = 'list'
-
-        #
-        # Test preparation
-        #
-        dirs = ['working', 'staging', 'insight', 'kernels']
-        for dir in dirs:
-            shutil.rmtree(dir, ignore_errors=True)
-            os.mkdir(dir)
-
-        os.mkdir('kernels/fk')
-        os.mkdir('kernels/sclk')
-        os.mkdir('kernels/ck')
-        os.mkdir('kernels/lsk')
 
         shutil.copy2('../data/kernels/fk/insight_v05.tf', 'kernels/fk')
         shutil.copy2('../data/kernels/lsk/naif0012.tls', 'kernels/lsk')
@@ -75,13 +80,47 @@ class TestPlan(TestCase):
 
         self.assertEqual(old_file.split('\n')[9:],new_file.split('\n')[9:])
 
-        #
-        # Cleanup test facility
-        #
-        dirs = ['working', 'staging', 'insight', 'kernels']
-        for dir in dirs:
-            shutil.rmtree(dir, ignore_errors=True)
+    def test_pds4_mars2020_plan(self):
+        """
+        Basic test for M2020 kernel plan generation. This is a PDS4 Bundle.
+        Implemented for the generation of the first M2020 release. The 
+        particularity of this test is that it includes two meta-kernels provided
+        as inputs. Another partiucularity is that the SCLK is not being added
+        to the list.
 
+        """
+        config = '../config/mars2020.xml'
+        faucet = 'list'
+        last_filename = ''
+        with open('../data/mars2020_release_01.kernel_list', 'r') as f:
+            for line in f:
+                if last_filename and 'MAPPING' in line:
+                    os.remove(last_filename)
+                    filename = os.sep.join(last_filename.split(os.sep)[0:-1])
+                    filename += f'/{line.split("=")[-1].strip()}'
+                    with open(f'{filename}', 'w') as fp:
+                        pass
+                if 'FILE             = spice_kernels' in line:
+                    filename = f"kernels/{line.split('= spice_kernels/')[-1]}"
+                    filename = filename[:-1]
+                    with open(f'{filename}', 'w') as fp:
+                        pass
+                    last_filename = filename
+
+        main(config, faucet=faucet, silent=True)
+
+        new_file = ''
+        with open('working/mars2020_release_01.plan', 'r') as f:
+            for line in f:
+                new_file += line
+
+        old_file = ''
+        with open('../data/mars2020_release_01.plan', 'r') as f:
+            for line in f:
+                if 'm2020_168_sclkscet_00007.tsc' not in line:
+                    old_file += line
+
+        self.assertEqual(old_file.split('\n')[7:],new_file.split('\n')[7:])
 
 if __name__ == '__main__':
     unittest.main()
