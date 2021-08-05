@@ -262,6 +262,10 @@ files if necessary.
         SCLK                      KPL/SCLK
         FRAMES                    KPL/FK
 
+When no list is provided as an input, the mapping of kernel does not occur and
+the kernels present in the kernels directories need to have their final names
+(and therefore they should not be expected to be mapped).
+
 Tests
 =====
 
