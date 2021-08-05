@@ -133,11 +133,12 @@ class PDSLabel(object):
                 ob_name = ob.split(',')[0]
                 for product in context_products:
                     if product['name'][0] == ob_name and \
-                            product['type'][0] == 'Spacecraft':
+                            (product['type'][0] == 'Spacecraft' or
+                             product['type'][0] == 'Rover'):
                         ob_lid = product['lidvid'].split('::')[0]
                 
                 if not ob_lid:
-                    print('Test')
+                    error_message(f'LID has not been obtained for observer {ob}')
 
                 obs_list_for_label += \
                     f'      <Observing_System_Component>{eol}' + \
