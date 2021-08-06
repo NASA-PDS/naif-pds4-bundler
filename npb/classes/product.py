@@ -2309,6 +2309,73 @@ class OrbnumFileProduct(Product):
                 #   -- in the previous increment
                 #   -- provided by the user
                 #
+                # The kernel can be a pattern defining multiple kernels or 
+                # a name. If the kernel provided contains a pattern it will be
+                # useful to determine the coverage of multiple orbnum files
+                # provided in the plan.
+                #
+                cov_patn = coverage_kernel.split(os.sep)[-1]
+                
+                #
+                # Start checking the path provided in the configuration file.
+                #
+                cov_path = os.sep.join(coverage_kernel.split(os.sep)[:-1])
+                
+                try:
+                    cov_kers = [fn for fn in os.listdir(cov_path)
+                                if any(fn.endswith(pat) for pat in cov_patn)]
+                except: 
+                    cov_kers = []
+                
+                #
+                # Check if the SPK kernel is present in the increment.
+                #
+                if not cov_kers:
+                    cov_path = f'{self.setup.staging_directory}' \
+                               f'/spice_kernels/spk'
+
+                    try:
+                        cov_kers = [fn for fn in os.listdir(cov_path)
+                                if any(fn.endswith(pat) for pat in cov_patn)]
+                    except:
+                        cov_kers = []
+
+                    #
+                    # Check if the SPK kernel is present in the bundle 
+                    # directory.
+                    #
+                    if not cov_kers:
+                        cov_path = f'{self.setup.final_directory}' \
+                                   f'/spice_kernels/spk'
+                        try:
+                            cov_kers = [fn for fn in os.listdir(cov_path)
+                                if any(fn.endswith(pat) for pat in cov_patn)]
+                        except:
+                            cov_kers = []
+                
+                if cov_kers:
+                    coverage_found = True
+                
+                #
+                # If there is only one coverage kernel this is the one that
+                # will be used.
+                # 
+                if len(cov_kers) == 1 and coverage_found:
+                    coverage_kernel = cov_path + os.sep + cov_kers[0]
+                    logging.info(f'-- Coverage determined by '
+                                 f'{coverage_kernel}.')
+                #
+                # If there are more, the only possibility is that the orbnum
+                # filename and the SPK filename, both without extensions, match.
+                #
+                elif coverage_found:
+                    for kernel in cov_kers:
+                        kername = kernel.split(os.sep)[-1]
+                        if kername.split('.')[0] == self.name.split('.')[0]:
+                            coverage_kernel = cov_path + os.sep + kernel
+                            logging.info(f'-- Coverage determined by '
+                                         f'{coverage_kernel}.')                                                                                   
+                
                 if os.path.isfile(coverage_kernel):
                     #
                     # Kernel provided by the user and directly available.
@@ -2331,29 +2398,7 @@ class OrbnumFileProduct(Product):
                                       'a parseable value: "True" or "False".')
                     coverage_found = True
                 else:
-                    #
-                    # The kernel is present in the increment or in the final
-                    # area of the archive.
-                    #
-                    paths = [f'{self.setup.staging_directory}'
-                             f'/spice_kernels',
-                             f'{self.setup.final_directory}'
-                             f'/{self.setup.mission_acronym}_spice'
-                             f'/spice_kernels']
-                    pattern = coverage_kernel
-                    coverage_kernel = get_latest_kernel('spk', paths, pattern)
-
-                    kernel = f'{self.setup.staging_directory}' \
-                             f'/spice_kernels/spk/{coverage_kernel}'
-
-                    if not os.path.isfile(kernel):
-                        kernel = f'{self.setup.final_directory}' \
-                             f'/{self.setup.mission_acronym}_spice' \
-                             f'/spice_kernels/spk/{coverage_kernel}'
-
-                    (start_time, stop_time) = spk_coverage(kernel,
-                                                date_format='maklabel')
-                    coverage_found = True
+                    coverage_found = False
             else:
                 coverage_found = False
         elif 'lookup_table' in coverage_source:
@@ -2361,11 +2406,17 @@ class OrbnumFileProduct(Product):
                 if coverage_found:
                     logging.warning('-- Orbnum file lookup table cov. found '
                                     'but cov. already provided by SPK file.')
-                for file in coverage_source['lookup_table'][0].items():
-                    if file[1]['@name'] == self.name:
-                        start_time = file[1]['start']
-                        stop_time = file[1]['finish']
+                    
+                table_files = coverage_source['lookup_table']['file']
+                if not isinstance(table_files, list):
+                    table_files = [table_files]
+                for file in table_files:
+                    if file['@name'] == self.name:
+                        start_time = file['start']
+                        stop_time = file['finish']
                         coverage_found = True
+                        logging.info(f'-- Coverage determined by '
+                                     f'{file["@name"]} from lookup table.')
                         break
             else:
                 coverage_found = False
