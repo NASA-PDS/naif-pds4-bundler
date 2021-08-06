@@ -38,7 +38,7 @@ class TestBundleHistory(TestCase):
         unittest.TestCase.tearDown(self)
         
 
-    def test_bundle_history(self):
+    def test_insight_history(self):
         """
         
         """
@@ -54,6 +54,7 @@ class TestBundleHistory(TestCase):
         test_bundle.collections = None
         
         Bundle.get_history(test_bundle)
+
 
 if __name__ == '__main__':
     unittest.main()
