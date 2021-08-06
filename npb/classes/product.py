@@ -2323,7 +2323,7 @@ class OrbnumFileProduct(Product):
                 
                 try:
                     cov_kers = [x for x in os.listdir(cov_path) 
-                                if re.match(cov_patn, x)]
+                                if re.fullmatch(cov_patn, x)]
 
                    
                 except: 
@@ -2338,7 +2338,7 @@ class OrbnumFileProduct(Product):
 
                     try:
                         cov_kers = [x for x in os.listdir(cov_path)
-                                    if re.match(cov_patn, x)]
+                                    if re.fullmatch(cov_patn, x)]
                     except:
                         cov_kers = []
 
@@ -2351,7 +2351,7 @@ class OrbnumFileProduct(Product):
                                    f'/spice_kernels/spk'
                         try:
                             cov_kers = [x for x in os.listdir(cov_path)
-                                        if re.match(cov_patn, x)]
+                                        if re.fullmatch(cov_patn, x)]
                         except:
                             cov_kers = []
                 
