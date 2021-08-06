@@ -588,7 +588,7 @@ class Setup(object):
                     lsk_pattern = [os.path.join(root, name)
                                     for root, dirs, files in os.walk(dir)
                                     for name in files
-                                    if re.search(pattern, name)]
+                                    if re.fullmatch(pattern, name)]
                     if lsk_pattern:
                         if len(lsk_pattern) > 1: lsk_pattern.sort()
                         spiceypy.furnsh(lsk_pattern[-1])
@@ -611,7 +611,7 @@ class Setup(object):
                     pcks_pattern = [os.path.join(root, name)
                                     for root, dirs, files in os.walk(dir)
                                     for name in files
-                                    if re.search(pattern, name)]
+                                    if re.fullmatch(pattern, name)]
                     if pcks_pattern:
                         if len(pcks_pattern) > 1: pcks_pattern.sort()
                         spiceypy.furnsh(pcks_pattern[-1])
@@ -632,7 +632,7 @@ class Setup(object):
                     fks_pattern = [os.path.join(root, name) 
                                    for root, dirs, files in os.walk(dir)
                                    for name in files
-                                   if re.search(pattern, name)]
+                                   if re.fullmatch(pattern, name)]
                     
                     if fks_pattern:
                         if len(fks_pattern) > 1: fks_pattern.sort()
@@ -654,7 +654,7 @@ class Setup(object):
                     sclks_pattern = [os.path.join(root, name) 
                                      for root, dirs, files in os.walk(dir)
                                      for name in files
-                                     if re.search(pattern, name)]
+                                     if re.fullmatch(pattern, name)]
                     if sclks_pattern:
                         if len(sclks_pattern) > 1: sclks_pattern.sort()
                         spiceypy.furnsh(sclks_pattern[-1])
