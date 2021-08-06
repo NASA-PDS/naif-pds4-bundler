@@ -415,8 +415,8 @@ class Bundle(object):
                                     product = f'miscellaneous/' \
                                     f'{line.split(":")[5].replace("_", "/", 1)}'
                                     history[rel].append(product)
-                                    lbl = lbl.replace('.orb','.xml')
-                                    lbl = lbl.replace('.nrb','.xml')
+                                    lbl = product.replace('.orb','.xml')
+                                    lbl = product.replace('.nrb','.xml')
                                 
                                     history[rel].append(lbl)
                                 
