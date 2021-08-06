@@ -423,7 +423,7 @@
                        based on the event time of the first orbit and the
                        opposite event time of the last orbit.
             -->
-            <!--    <kernel>maven_orb_rec_[0-9]{6}_[0-9]{6}_v[0-9].bsp</kernel> -->
+            <!--    <kernel>maven_orb_rec_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9].bsp</kernel> -->
                 <kernel cutoff="True">../data/kernels/spk/maven_orb_rec_210101_210401_v2.bsp</kernel>
             </coverage>
         </orbnum>
