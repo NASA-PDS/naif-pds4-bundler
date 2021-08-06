@@ -366,9 +366,11 @@ class Bundle(object):
                             history[rel].append(lbl)
                             
                         elif ('P' in line) and (':mk_' in line):
+                            mk_ver = line.split("::")[-1]
+                            mk_ver = int(mk_ver.split('.')[0])
                             product = f'spice_kernels/' \
                                 f'{line.split(":")[5].replace("_", "/", 1)}_' \
-                                f'v{ver:02d}.tm'
+                                f'v{mk_ver:02d}.tm'
                             history[rel].append(product)
                             history[rel].append(product.replace('.tm', '.xml'))
 
