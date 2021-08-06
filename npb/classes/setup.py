@@ -613,7 +613,7 @@ class Setup(object):
                                     for name in files
                                     if re.fullmatch(pattern, name)]
                     if pcks_pattern:
-                        pcks_pattern = sorted(pcks_pattern)
+                        pcks_pattern.sort()
                         spiceypy.furnsh(pcks_pattern[-1])
                         pcks.append(pcks_pattern[-1].split(os.sep)[-1])
                         break
@@ -635,7 +635,7 @@ class Setup(object):
                                    if re.fullmatch(pattern, name)]
                     
                     if fks_pattern:
-                        fks_pattern = sorted(fks_pattern)
+                        fks_pattern.sort()
                         spiceypy.furnsh(fks_pattern[-1])
                         fks.append(fks_pattern[-1].split(os.sep)[-1])
                         break
@@ -656,7 +656,7 @@ class Setup(object):
                                      for name in files
                                      if re.fullmatch(pattern, name)]
                     if sclks_pattern:
-                        sclks_pattern = sorted(sclks_pattern)
+                        sclks_pattern.sort()
                         spiceypy.furnsh(sclks_pattern[-1])
                         sclks.append(sclks_pattern[-1].split(os.sep)[-1])
         if not sclks:
