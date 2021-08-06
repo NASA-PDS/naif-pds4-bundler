@@ -2322,8 +2322,10 @@ class OrbnumFileProduct(Product):
                 cov_path = os.sep.join(coverage_kernel.split(os.sep)[:-1])
                 
                 try:
-                    cov_kers = [fn for fn in os.listdir(cov_path)
-                                if any(fn.endswith(pat) for pat in cov_patn)]
+                    cov_kers = [x for x in os.listdir(cov_path) 
+                                if re.match(cov_patn, x)]
+
+                   
                 except: 
                     cov_kers = []
                 
@@ -2335,8 +2337,8 @@ class OrbnumFileProduct(Product):
                                f'/spice_kernels/spk'
 
                     try:
-                        cov_kers = [fn for fn in os.listdir(cov_path)
-                                if any(fn.endswith(pat) for pat in cov_patn)]
+                        cov_kers = [x for x in os.listdir(cov_path)
+                                    if re.match(cov_patn, x)]
                     except:
                         cov_kers = []
 
@@ -2348,8 +2350,8 @@ class OrbnumFileProduct(Product):
                         cov_path = f'{self.setup.final_directory}' \
                                    f'/spice_kernels/spk'
                         try:
-                            cov_kers = [fn for fn in os.listdir(cov_path)
-                                if any(fn.endswith(pat) for pat in cov_patn)]
+                            cov_kers = [x for x in os.listdir(cov_path)
+                                        if re.match(cov_patn, x)]
                         except:
                             cov_kers = []
                 
