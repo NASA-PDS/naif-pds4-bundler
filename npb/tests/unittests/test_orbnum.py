@@ -95,10 +95,10 @@ class TestOrbnum(TestCase):
         with open(config, 'r') as c:
             with open(updated_config, 'w') as n:
                 for line in c:
-                    if '<kernel>../data/kernels/spk/' \
+                    if '<kernel cutoff="True">../data/kernels/spk/' \
                        'maven_orb_rec_210101_210401_v2.bsp</kernel>' in line:
                         n.write('                '
-                                '<kernel>maven_orb_rec_[0-9]{6}_[0-9]{6}_'
+                                '<kernel cutoff="True">maven_orb_rec_[0-9]{6}_[0-9]{6}_'
                                 'v[0-9].bsp</kernel>\n')
                     else:
                         n.write(line)
@@ -119,10 +119,9 @@ class TestOrbnum(TestCase):
         with open(config, 'r') as c:
             with open(updated_config, 'w') as n:
                 for line in c:
-                    if '<kernel>../data/kernels/spk/' \
+                    if '<kernel cutoff="True">../data/kernels/spk/' \
                        'maven_orb_rec_210101_210401_v2.bsp</kernel>' in line:
-                        n.write('                '
-                                '<kernel>maven_orb_rec_[0-9]{6}_[0-9]{6}_'
+                        n.write('<kernel cutoff="True">maven_orb_rec_[0-9]{6}_[0-9]{6}_'
                                 'v[0-9].bsp</kernel>\n')
                     else:
                         n.write(line)
@@ -146,7 +145,7 @@ class TestOrbnum(TestCase):
         with open(config, 'r') as c:
             with open(updated_config, 'w') as n:
                 for line in c:
-                    if '<kernel>../data/kernels/spk/' \
+                    if '<kernel cutoff="True">../data/kernels/spk/' \
                        'maven_orb_rec_210101_210401_v2.bsp</kernel>' in line:
                         n.write(
                             '<lookup_table>\n'
@@ -155,6 +154,44 @@ class TestOrbnum(TestCase):
                             '     <start>2021-01-01T00:00:00.000Z</start>\n'
                             '     <finish>2021-04-01T01:00:00.000Z</finish>\n'
                             '  </file>\n'
+                            '</lookup_table>\n')
+                    else:
+                        n.write(line) 
+
+        main(updated_config, plan, self.faucet, silent=self.silent)
+
+    def test_pds4_orbnum_coverage_lookup_table_multiple(self):
+        '''
+         Testcase for when the readme file is not present.
+         '''
+        config = '../config/maven.xml'
+        updated_config = 'working/maven.xml'
+        plan = 'maven_orbnum.plan'
+
+        with open(plan, 'w') as p:
+            p.write('\nmaven_orb_rec_210101_210401_v1.orb')
+            p.write('\nmaven_orb_rec_210101_210402_v1.orb')
+
+        shutil.copy('../data/misc/orbnum/maven_orb_rec_210101_210401_v1.orb', 
+                    'misc/orbnum/maven_orb_rec_210101_210402_v1.orb')
+
+        with open(config, 'r') as c:
+            with open(updated_config, 'w') as n:
+                for line in c:
+                    if '<kernel cutoff="True">../data/kernels/spk/' \
+                       'maven_orb_rec_210101_210401_v2.bsp</kernel>' in line:
+                        n.write(
+                            '<lookup_table>\n'
+                            '  <file name='
+                            '"maven_orb_rec_210101_210401_v1.orb">\n'
+                            '     <start>2021-01-01T00:00:00.000Z</start>\n'
+                            '     <finish>2021-04-01T01:00:00.000Z</finish>\n'
+                            '  </file>\n'
+                            '  <file name='
+                            '"maven_orb_rec_210101_210402_v1.orb">\n'
+                            '     <start>2021-01-01T00:00:00.000Z</start>\n'
+                            '     <finish>2021-04-02T01:00:00.000Z</finish>\n'
+                            '  </file>\n'                            
                             '</lookup_table>\n')
                     else:
                         n.write(line) 
@@ -172,7 +209,7 @@ class TestOrbnum(TestCase):
         with open(config, 'r') as c:
             with open(updated_config, 'w') as n:
                 for line in c:
-                    if '<kernel>../data/kernels/spk/' \
+                    if '<kernel cutoff="True">../data/kernels/spk/' \
                        'maven_orb_rec_210101_210401_v2.bsp</kernel>' in line:
                         n.write('')
                     else:
@@ -323,7 +360,7 @@ class TestOrbnum(TestCase):
         with open(config, 'r') as c:
             with open(updated_config, 'w') as n:
                 for line in c:
-                    if '<kernel>../data/kernels/spk/' \
+                    if '<kernel cutoff="True">../data/kernels/spk/' \
                        'maven_orb_rec_210101_210401_v2.bsp</kernel>' in line:
                         n.write('')
                     elif '</orbit_number_file>' in line:
@@ -371,6 +408,56 @@ class TestOrbnum(TestCase):
                     'misc/orbnum/')
 
         main(config, faucet=self.faucet, silent=self.silent)
+
+    def test_pds4_orbnum_multiple_files(self):
+        """
+        Test orbnum file generation with mulitple orbnum files in list.
+        """
+        config = '../config/maven.xml'
+        updated_config = 'working/maven.xml'
+        with open(config, 'r') as c:
+            with open(updated_config, 'w') as n:
+                for line in c:
+                    if '<kernel cutoff="True">../data/kernels/spk/' \
+                       'maven_orb_rec_210101_210401_v2.bsp</kernel>' in line:
+                        n.write('<kernel cutoff="True">kernels/spk/' \
+                       'maven_orb_rec[0-9]{6}_[0-9]{6}_v[0-9].bsp</kernel>')
+                    else:
+                        n.write(line)
+
+        shutil.copy('../data/maven_release_orbnum.plan',
+                    'working/')
+ 
+        plan = 'working/maven_release_orbnum.plan'
+
+        shutil.copy('kernels/spk/maven_orb_rec_210101_210401_v2.bsp', 
+                    'kernels/spk/maven_orb_rec_210101_210401_v1.bsp')
+        shutil.copy('kernels/spk/maven_orb_rec_210101_210401_v2.bsp', 
+                    'kernels/spk/maven_orb_rec_210101_210402_v1.bsp')
+        shutil.copy('../data/misc/orbnum/maven_orb_rec_210101_210401_v1.orb', 
+                    'misc/orbnum/maven_orb_rec_210101_210402_v1.orb')
+
+        main(updated_config, plan=plan, faucet='final', silent=self.silent)
+
+    def test_pds4_orbnum_multiple_files_incorrect_spk(self):
+        """
+        Test orbnum file generation with mulitple orbnum files in list.
+        """
+        config = '../config/maven.xml'
+
+        shutil.copy('../data/maven_release_orbnum.plan',
+                    'working/')
+
+        plan = 'working/maven_release_orbnum.plan'
+
+        shutil.copy('kernels/spk/maven_orb_rec_210101_210401_v2.bsp',
+                    'kernels/spk/maven_orb_rec_210101_210401_v1.bsp')
+        shutil.copy('kernels/spk/maven_orb_rec_210101_210401_v2.bsp',
+                    'kernels/spk/maven_orb_rec_210101_210402_v1.bsp')
+        shutil.copy('../data/misc/orbnum/maven_orb_rec_210101_210401_v1.orb',
+                    'misc/orbnum/maven_orb_rec_210101_210402_v1.orb')
+
+        main(config, plan=plan, faucet='final', silent=self.silent)
 
 
 if __name__ == '__main__':
