@@ -63,7 +63,7 @@ class TestOrbnum(TestCase):
             shutil.rmtree(dir, ignore_errors=True)
         
         try:
-            os.remove('maven_orbnum.plan')
+            os.remove('working/maven_orbnum.plan')
         except:
             pass
 
@@ -72,7 +72,7 @@ class TestOrbnum(TestCase):
         Test for meta-kernel configuration loading error cases.
         """
         config = '../config/maven.xml'
-        plan = 'maven_orbnum.plan'
+        plan = 'working/maven_orbnum.plan'
 
         with open(plan, 'w') as p:
             p.write('maven_orb_rec_210101_210401_v1.orb')
@@ -86,7 +86,7 @@ class TestOrbnum(TestCase):
          '''
         config = '../config/maven.xml'
         updated_config = 'working/maven.xml'
-        plan = 'maven_orbnum.plan'
+        plan = 'working/maven_orbnum.plan'
 
         with open(plan, 'w') as p:
             p.write('maven_orb_rec_210101_210401_v2.bsp')
@@ -111,7 +111,7 @@ class TestOrbnum(TestCase):
          '''
         config = '../config/maven.xml'
         updated_config = 'working/maven.xml'
-        plan = 'maven_orbnum.plan'
+        plan = 'working/maven_orbnum.plan'
 
         with open(plan, 'w') as p:
             p.write('\nmaven_orb_rec_210101_210401_v1.orb')
@@ -137,7 +137,7 @@ class TestOrbnum(TestCase):
          '''
         config = '../config/maven.xml'
         updated_config = 'working/maven.xml'
-        plan = 'maven_orbnum.plan'
+        plan = 'working/maven_orbnum.plan'
 
         with open(plan, 'w') as p:
             p.write('\nmaven_orb_rec_210101_210401_v1.orb')
@@ -166,7 +166,7 @@ class TestOrbnum(TestCase):
          '''
         config = '../config/maven.xml'
         updated_config = 'working/maven.xml'
-        plan = 'maven_orbnum.plan'
+        plan = 'working/maven_orbnum.plan'
 
         with open(plan, 'w') as p:
             p.write('\nmaven_orb_rec_210101_210401_v1.orb')
@@ -204,7 +204,7 @@ class TestOrbnum(TestCase):
         """
         config = '../config/maven.xml'
         updated_config = 'working/maven.xml'
-        plan = 'maven_orbnum.plan'
+        plan = 'working/maven_orbnum.plan'
 
         with open(config, 'r') as c:
             with open(updated_config, 'w') as n:
@@ -225,7 +225,7 @@ class TestOrbnum(TestCase):
         Test for meta-kernel configuration loading error cases.
         """
         config = '../config/maven.xml'
-        plan = 'maven_orbnum.plan'
+        plan = 'working/maven_orbnum.plan'
 
         with open(plan, 'w') as p:
             p.write('maven_orb_rec_210101_210401_v2.orb')
@@ -250,7 +250,7 @@ class TestOrbnum(TestCase):
         configuration as well).
         """
         config = '../config/maven.xml'
-        plan = 'maven_orbnum.plan'
+        plan = 'working/maven_orbnum.plan'
 
         with open(plan, 'w') as p:
             p.write('maven_orb_rec_210101_210401_v1.orb')
@@ -266,7 +266,7 @@ class TestOrbnum(TestCase):
         Test an orbnum file with blank records.
         """
         config = '../config/maven.xml'
-        plan = 'maven_orbnum.plan'
+        plan = 'working/maven_orbnum.plan'
 
         with open(plan, 'w') as p:
             p.write('maven_orb_rec_210101_210401_v3.orb')
@@ -286,7 +286,7 @@ class TestOrbnum(TestCase):
         Test an orbnum file with blank records.
         """
         config = '../config/maven.xml'
-        plan = 'maven_orbnum.plan'
+        plan = 'working/maven_orbnum.plan'
 
         with open(plan, 'w') as p:
             p.write('maven_orb_rec_210101_210401_v3.orb')
@@ -299,7 +299,7 @@ class TestOrbnum(TestCase):
         """
         config = '../config/maven.xml'
         updated_config = 'working/maven.xml'
-        plan = 'maven_orbnum.plan'
+        plan = 'working/maven_orbnum.plan'
 
         with open(config, 'r') as c:
             with open(updated_config, 'w') as n:
@@ -321,7 +321,7 @@ class TestOrbnum(TestCase):
 
         config = '../config/maven.xml'
         updated_config = 'working/maven.xml'
-        plan = 'maven_orbnum.plan'
+        plan = 'working/maven_orbnum.plan'
 
         orbnum_list = ['cas_v40.orb',
                       'clem.orb',
@@ -377,7 +377,7 @@ class TestOrbnum(TestCase):
         """
         config = '../config/maven.xml'
         updated_config = 'working/maven.xml'
-        plan = 'maven_orbnum.plan'
+        plan = 'working/maven_orbnum.plan'
 
         with open(config, 'r') as c:
             with open(updated_config, 'w') as n:
@@ -458,6 +458,44 @@ class TestOrbnum(TestCase):
                     'misc/orbnum/maven_orb_rec_210101_210402_v1.orb')
 
         main(config, plan=plan, faucet='final', silent=self.silent)
+        
+    def test_pds4_orbnum_multiple_files_in_spk_dir(self):
+        """
+        Test orbnum file generation with mulitple orbnum files in list.
+        """
+        config = '../config/maven.xml'
+        
+        updated_config = 'working/maven.xml'
+        with open(config, 'r') as c:
+            with open(updated_config, 'w') as n:
+                for line in c:
+                    if '<orbnum_directory>misc/orbnum' \
+                       '</orbnum_directory>' in line:
+                        n.write('<orbnum_directory>kernels/spk</orbnum_directory>')
+                    elif '<kernel cutoff="True">../data/kernels/spk/' \
+                         'maven_orb_rec_210101_210401_v2.bsp</kernel>' in line:
+                        n.write('<kernel cutoff="True">kernels/spk/' \
+                       'maven_orb_rec_[0-9][0-9][0-9][0-9][0-9][0-9]_'
+                                '[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9].'
+                                'bsp</kernel>')                                
+                    else:
+                        n.write(line)
+
+        shutil.copy('../data/maven_release_orbnum.plan',
+                    'working/')
+
+        plan = 'working/maven_release_orbnum.plan'
+
+        shutil.copy('kernels/spk/maven_orb_rec_210101_210401_v2.bsp',
+                    'kernels/spk/maven_orb_rec_210101_210401_v1.bsp')
+        shutil.copy('kernels/spk/maven_orb_rec_210101_210401_v2.bsp',
+                    'kernels/spk/maven_orb_rec_210101_210402_v1.bsp')
+        shutil.copy('../data/misc/orbnum/maven_orb_rec_210101_210401_v1.orb',
+                    'kernels/spk/maven_orb_rec_210101_210402_v1.orb')
+        shutil.copy('../data/misc/orbnum/maven_orb_rec_210101_210401_v1.orb',
+                    'kernels/spk/maven_orb_rec_210101_210401_v1.orb')
+
+        main(updated_config, plan=plan, faucet='final', silent=self.silent, log=True)
 
 
 if __name__ == '__main__':
