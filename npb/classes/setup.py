@@ -592,7 +592,7 @@ class Setup(object):
                     if lsk_pattern:
                         lsk_pattern = sorted(lsk_pattern)
                         spiceypy.furnsh(lsk_pattern[-1])
-                        lsks.append(lsk_pattern[-1].split(os.sep)[-1])
+                        lsks.append(lsk_pattern[-1])
                         break
         if not lsk:
             logging.error(f'-- LSK not found.')
@@ -615,7 +615,7 @@ class Setup(object):
                     if pcks_pattern:
                         pcks_pattern.sort()
                         spiceypy.furnsh(pcks_pattern[-1])
-                        pcks.append(pcks_pattern[-1].split(os.sep)[-1])
+                        pcks.append(pcks_pattern[-1])
                         break
         if not pcks:
             logging.warning(f'-- PCK not found.')
@@ -637,7 +637,7 @@ class Setup(object):
                     if fks_pattern:
                         fks_pattern.sort()
                         spiceypy.furnsh(fks_pattern[-1])
-                        fks.append(fks_pattern[-1].split(os.sep)[-1])
+                        fks.append(fks_pattern[-1])
                         break
         if not fks:
             logging.warning(f'-- FK not found.')
@@ -658,7 +658,7 @@ class Setup(object):
                     if sclks_pattern:
                         sclks_pattern.sort()
                         spiceypy.furnsh(sclks_pattern[-1])
-                        sclks.append(sclks_pattern[-1].split(os.sep)[-1])
+                        sclks.append(sclks_pattern[-1])
         if not sclks:
             logging.error(f'-- SCLK not found.')
         else:
