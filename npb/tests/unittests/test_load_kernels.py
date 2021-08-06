@@ -68,6 +68,8 @@ class TestLoadKernels(TestCase):
         
         shutil.copy2('kernels/sclk/MVN_SCLKSCET.00088.tsc',
                      'kernels/sclk/MVN_SCLKSCET.00100.tsc.bad')
+        shutil.copy2('kernels/sclk/MVN_SCLKSCET.00088.tsc',
+                     'kernels/sclk/MVN_SCLKSCET.00000.tsc')
 
         main(config, plan, self.faucet, silent=self.silent, log=True)
 
