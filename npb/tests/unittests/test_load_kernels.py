@@ -70,11 +70,16 @@ class TestLoadKernels(TestCase):
                      'kernels/sclk/MVN_SCLKSCET.00100.tsc.bad')
         shutil.copy2('kernels/sclk/MVN_SCLKSCET.00088.tsc',
                      'kernels/sclk/MVN_SCLKSCET.00000.tsc')
+        os.mkdir('kernels/sclk/zzarchive')
+        shutil.copy2('kernels/sclk/MVN_SCLKSCET.00088.tsc',
+                     'kernels/sclk/zzarchive/MVN_SCLKSCET.00000.tsc')
 
         main(config, plan, self.faucet, silent=self.silent, log=True)
 
         log_line = "setup        load_kernels            || INFO    : " \
-                   "-- SCLK(s) loaded: ['MVN_SCLKSCET.00088.tsc']\n"
+                   "-- SCLK(s) loaded: ['/Users/mcosta/workspace/pds/" \
+                   "naif-pds4-bundle/npb/tests/unittests/kernels/sclk/" \
+                   "MVN_SCLKSCET.00088.tsc']\n"
         with open("working/maven_release_01.log", "r") as f:
             found = log_line in f.readlines()
         
