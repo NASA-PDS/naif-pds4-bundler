@@ -9,6 +9,7 @@ from pathlib import Path
 from os.path import dirname
 from xml.etree import cElementTree as ET
 from npb.utils.files import etree_to_dict
+from npb.utils.files import kernel_name
 from npb.classes.log import error_message
 
 
@@ -590,7 +591,7 @@ class Setup(object):
                                     for name in files
                                     if re.fullmatch(pattern, name)]
                     if lsk_pattern:
-                        lsk_pattern = sorted(lsk_pattern)
+                        lsk_pattern.sort(key=kernel_name)
                         spiceypy.furnsh(lsk_pattern[-1])
                         lsks.append(lsk_pattern[-1])
                         break
@@ -613,7 +614,7 @@ class Setup(object):
                                     for name in files
                                     if re.fullmatch(pattern, name)]
                     if pcks_pattern:
-                        pcks_pattern.sort()
+                        pcks_pattern.sort(key=kernel_name)
                         spiceypy.furnsh(pcks_pattern[-1])
                         pcks.append(pcks_pattern[-1])
                         break
@@ -635,7 +636,7 @@ class Setup(object):
                                    if re.fullmatch(pattern, name)]
                     
                     if fks_pattern:
-                        fks_pattern.sort()
+                        fks_pattern.sort(key=kernel_name)
                         spiceypy.furnsh(fks_pattern[-1])
                         fks.append(fks_pattern[-1])
                         break
@@ -656,7 +657,7 @@ class Setup(object):
                                      for name in files
                                      if re.fullmatch(pattern, name)]
                     if sclks_pattern:
-                        sclks_pattern.sort()
+                        sclks_pattern.sort(key=kernel_name)
                         spiceypy.furnsh(sclks_pattern[-1])
                         sclks.append(sclks_pattern[-1])
         if not sclks:
