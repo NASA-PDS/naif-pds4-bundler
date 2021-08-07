@@ -415,10 +415,10 @@ class Bundle(object):
                                     product = f'miscellaneous/' \
                                     f'{line.split(":")[5].replace("_", "/", 1)}'
                                     history[rel].append(product)
-                                    lbl = product.replace('.orb','.xml')
-                                    lbl = product.replace('.nrb','.xml')
-                                
-                                    history[rel].append(lbl)
+                                    orbnum_extension = product.split('.')[-1]
+                                    history[rel].append(
+                                        product.replace(orbnum_extension,
+                                                                        '.xml'))
                                 
                                 elif ('P' in line) and (':checksum_' in line):
                                     product_name = \
