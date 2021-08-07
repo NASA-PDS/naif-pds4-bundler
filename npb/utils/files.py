@@ -655,3 +655,11 @@ def utf8len(s):
     :rtype: int
     '''
     return len(s.encode('utf-8'))
+
+def kernel_name(path):
+    '''
+    List sorting function.
+    :param path: 
+    :return: 
+    '''
+    return path.split(os.sep)[-1]
