@@ -117,6 +117,22 @@ class TestMAVEN(TestCase):
         main(config, plan=plan, faucet=faucet, silent=self.silent,
              verbose=self.verbose, log=self.log, diff='all')
 
+    def test_maven_generate_mk(self):
+        '''
+        Testcase used to fix bug with the year information in the text of
+        the meta-kernel.
+        '''
+        config = '../config/maven.xml'
+        plan = 'working/maven.plan'
+        faucet = 'staging'
+
+        with open('working/maven.plan', 'w') as p:
+            p.write('mvn_sclkscet_00088.tsc')
+            p.write('maven_2021_v01.tm')
+
+        main(config, plan=plan, faucet=faucet, silent=self.silent,
+             verbose=self.verbose, log=self.log, diff='all')
+
 
 if __name__ == '__main__':
 
