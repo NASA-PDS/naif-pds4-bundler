@@ -536,6 +536,7 @@ class MetaKernelProduct(Product):
                     #
                     if 'YEAR' in values:
                         self.year = values['YEAR']
+                        self.YEAR = values['YEAR']
                 except:
                     pass
 
@@ -887,6 +888,13 @@ class MetaKernelProduct(Product):
         kernel_type_list = \
             ['lsk', 'pck', 'fk', 'ik', 'sclk', 'spk', 'ck', 'dsk']
 
+
+        #
+        # Setup the end-of-line character
+        #
+        eol = self.setup.eol 
+        
+
         #
         # All the files of the directory are read into a list
         #
@@ -904,7 +912,8 @@ class MetaKernelProduct(Product):
                         kernel_grammar.split('exclude:')[-1])
 
             logging.info(
-                f'     Matching {kernel_type.upper()}(s) with meta-kernel grammar.')
+                f'     Matching {kernel_type.upper()}(s) with meta-kernel '
+                f'grammar.')
             for kernel_grammar in kernel_grammar_list:
 
                 if 'date:' in kernel_grammar:
@@ -1005,7 +1014,7 @@ class MetaKernelProduct(Product):
 
             if kernel_dir_name:
                 if kernel_dir_name != kernel.split('.')[1]:
-                    kernels += '\n'
+                    kernels += eol
 
             kernel_dir_name = kernel.split('.')[1]
 
@@ -1032,19 +1041,29 @@ class MetaKernelProduct(Product):
             #
             # We want to remove the blanks if the line is empty.
             #
+            first_line = True
             if line.strip() == '':
                 curated_data += ''
             else:
-                curated_data += ' ' * 6 + line.strip() + '\n'
+                if first_line: curated_data += eol 
+                first_line = False
+                curated_data += ' ' * 6 + line.strip() + eol
+
+        metakernel_dictionary = vars(self)
 
         for line in desc.split('\n'):
             #
-            # We want to remove the blanks if the line is empty.
+            # We want to remove the blanks if the line is empty, and replace
+            # any possible keywords.
             #
             if line.strip() == '':
-                curated_desc += '\n'
+                curated_desc += eol
             else:
-                curated_desc += ' ' * 3 + line.strip() + '\n'
+                for key, value in metakernel_dictionary.items():
+                    if isinstance(value, str) and key.isupper() and key in \
+                            line and '$' in line:
+                        line = line.replace('$' + key, value)
+                curated_desc += ' ' * 3 + line.strip() + eol
 
         self.DATA = curated_data
         self.DESCRIPTION = curated_desc
