@@ -294,7 +294,7 @@
             <metadata>
                 <description>
                    This meta-kernel lists the OSIRIS-REx SPICE kernels, including OLA
-                   CKs, providing coverage for 2020. All of the kernels listed below
+                   CKs, providing coverage for $YEAR. All of the kernels listed below
                    are archived in the PDS OSIRIS-REx SPICE kernel archive. This set of
                    files and the order in which they are listed were picked to provide
                    the best available data and the most complete coverage for the
