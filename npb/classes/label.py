@@ -152,6 +152,8 @@ class PDSLabel(object):
                     f'        </Internal_Reference>{eol}' + \
                     f'      </Observing_System_Component>{eol}'
 
+        if not obs_list_for_label:
+            error_message(f'{self.product.name} observers not defined')
         obs_list_for_label = obs_list_for_label.rstrip() + eol
 
         return obs_list_for_label
@@ -193,6 +195,8 @@ class PDSLabel(object):
                     f'      </Internal_Reference>{eol}' + \
                     f'    </Target_Identification>{eol}'
 
+        if not tar_list_for_label:
+            error_message(f'{self.product.name} targets not defined')
         tar_list_for_label = tar_list_for_label.rstrip() + eol
 
         return tar_list_for_label
@@ -448,30 +452,54 @@ class BundlePDS4Label(PDSLabel):
         self.STOP_TIME = setup.increment_finish
         self.FILE_NAME = readme.name        
         self.DOI = self.setup.doi
+        self.BUNDLE_MEMBER_ENTRIES = ''
 
 
+
+        eol = self.setup.pds4_eol
+
+
+        #
+        # There might be more than one miscellaneous collection added in 
+        # an increment (especially if it is the first time that the collection
+        # is generated and there have beeen previous releases.)
         for collection in self.product.bundle.collections:
             if collection.name == 'spice_kernels':
-                self.SPICE_COLL_LIDVID = collection.lid + '::' + \
+                self.COLL_NAME = 'spice_kernel'
+                self.COLL_LIDVID = collection.lid + '::' + \
                                          collection.vid
                 if collection.updated:
-                    self.SPICE_COLL_STATUS = 'Primary'
+                    self.COLL_STATUS = 'Primary'
                 else:
-                    self.SPICE_COLL_STATUS = 'Secondary'
+                    self.COLL_STATUS = 'Secondary'
             if collection.name == 'miscellaneous':
-                self.MISC_COLL_LIDVID = collection.lid + '::' + \
+                self.COLL_NAME = 'member'
+                self.COLL_LIDVID = collection.lid + '::' + \
                                        collection.vid
                 if collection.updated:
-                    self.MISC_COLL_STATUS = 'Primary'
+                    self.COLL_STATUS = 'Primary'
                 else:
-                    self.MISC_COLL_STATUS = 'Secondary'
+                    self.COLL_STATUS = 'Secondary'
             if collection.name == 'document':
-                self.DOC_COLL_LIDVID = collection.lid + '::' + \
+                self.COLL_NAME = 'document'
+                self.COLL_LIDVID = collection.lid + '::' + \
                                        collection.vid
                 if collection.updated:
-                    self.DOC_COLL_STATUS = 'Primary'
+                    self.COLL_STATUS = 'Primary'
                 else:
-                    self.DOC_COLL_STATUS = 'Secondary'
+                    self.COLL_STATUS = 'Secondary'
+
+            self.BUNDLE_MEMBER_ENTRIES += \
+                f'  <Bundle_Member_Entry>{eol}' \
+                f'    <lidvid_reference>' \
+                f'{self.COLL_LIDVID}</lidvid_reference>{eol}' \
+                f'    <member_status>' \
+                f'{self.COLL_STATUS}</member_status>{eol}' \
+                f'    <reference_type>' \
+                f'bundle_has_{self.COLL_NAME}_collection' \
+                f'</reference_type>{eol}' \
+                f'  </Bundle_Member_Entry>{eol}'
+            
         self.write_label()
 
         return
