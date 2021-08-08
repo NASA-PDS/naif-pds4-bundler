@@ -379,11 +379,10 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
             document_collection.add(document_collection_inventory)
 
         #
-        # -- Add Collections to the Bundle
+        # Add spice_kernel Collection to the Bundle. 
+        # Note that the collections are provided in a given order.
         #
         bundle.add(spice_kernels_collection)
-        bundle.add(miscellaneous_collection)
-        bundle.add(document_collection)
 
         #
         # -- Generate the miscellaneous collection. The checksum product
@@ -429,12 +428,24 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
                         release_miscellaneous_collection_inventory)
                     miscellaneous_collection.add(
                         release_miscellaneous_collection_inventory)
+
+                    #
+                    # Add release miscellaneous collection
+                    #
+                    bundle.add(release_miscellaneous_collection)
                     
                     
             #
             # set miscellaneous collection VID.
             #
             miscellaneous_collection.set_collection_vid()
+
+        #
+        # Add miscellaneous collection and document collection
+        #
+        bundle.add(miscellaneous_collection)
+        bundle.add(document_collection)
+
         
         #
         # From here on now, the checksum and the miscellaneous collection 
