@@ -415,7 +415,8 @@ class Bundle(object):
                                     product = f'miscellaneous/' \
                                     f'{line.split(":")[5].replace("_", "/", 1)}'
                                     history[rel].append(product)
-                                    orbnum_extension = product.split('.')[-1]
+                                    orbnum_extension = \
+                                        f'.{product.split(".")[-1]}'
                                     history[rel].append(
                                         product.replace(orbnum_extension,
                                                                         '.xml'))
@@ -454,10 +455,11 @@ class Bundle(object):
                     for line in c:
                         if ('P' in line):
                             product = f'document/' \
-                                      f'{line.split(":")[5].replace("_", "/", 1)}_' \
-                                      f'v{ver:03d}.html'
+                                f'{line.split(":")[5].replace("_", "/", 1)}_' \
+                                f'v{ver:03d}.html'
                             history[rel].append(product)
-                            history[rel].append(product.replace('.html', '.xml'))
+                            history[rel].append(product.replace('.html', 
+                                                                '.xml'))
 
             ker_col_ver = rel_ker_col_ver 
             doc_col_ver = rel_doc_col_ver 
