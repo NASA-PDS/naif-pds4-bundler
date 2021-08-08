@@ -1037,11 +1037,11 @@ class MetaKernelProduct(Product):
         curated_data = ''
         curated_desc = ''
 
+        first_line = True
         for line in data.split('\n'):
             #
             # We want to remove the blanks if the line is empty.
             #
-            first_line = True
             if line.strip() == '':
                 curated_data += ''
             else:
