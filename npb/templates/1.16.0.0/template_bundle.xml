@@ -62,21 +62,7 @@ $TARGETS
       <record_delimiter>$END_OF_LINE</record_delimiter>
     </Stream_Text>
   </File_Area_Text>
-  <Bundle_Member_Entry>
-    <lidvid_reference>$SPICE_COLL_LIDVID</lidvid_reference>
-    <member_status>$SPICE_COLL_STATUS</member_status>
-    <reference_type>bundle_has_spice_kernel_collection</reference_type>
-  </Bundle_Member_Entry>
-  <Bundle_Member_Entry>
-    <lidvid_reference>$MISC_COLL_LIDVID</lidvid_reference>
-    <member_status>$MISC_COLL_STATUS</member_status>
-    <reference_type>bundle_has_miscellaneous_collection</reference_type>
-  </Bundle_Member_Entry>  
-  <Bundle_Member_Entry>
-    <lidvid_reference>$DOC_COLL_LIDVID</lidvid_reference>
-    <member_status>$DOC_COLL_STATUS</member_status>
-    <reference_type>bundle_has_document_collection</reference_type>
-  </Bundle_Member_Entry>
+$BUNDLE_MEMBER_ENTRIES
 </Product_Bundle>
 
 
