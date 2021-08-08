@@ -344,18 +344,18 @@ class TestOrbnum(TestCase):
             for file in orbnum_list:
                 p.write(f'{file}\n')
                 orbnum_config += \
-                  f'<orbnum>\n' \
-                  f'    <pattern>{file}</pattern>\n' \
-                   "    <event_detection_frame>\n" \
-                   "        <spice_name>IAU_MARS</spice_name>\n" \
-                   "        <description>Mars body-fixed frame</description>\n" \
-                   "    </event_detection_frame>\n" \
-                   "    <header_start_line>1</header_start_line >\n" \
-                   "    <pck>\n" \
-                   "        <kernel_name>pck0010.tpc</kernel_name>\n" \
-                   "        <description>IAU 2009 report</description>\n" \
-                   "    </pck>\n" \
-                   "</orbnum>\n"
+                 f'<orbnum>\n' \
+                 f'    <pattern>{file}</pattern>\n' \
+                  "    <event_detection_frame>\n" \
+                  "        <spice_name>IAU_MARS</spice_name>\n" \
+                  "        <description>Mars body-fixed frame</description>\n" \
+                  "    </event_detection_frame>\n" \
+                  "    <header_start_line>1</header_start_line >\n" \
+                  "    <pck>\n" \
+                  "        <kernel_name>pck0010.tpc</kernel_name>\n" \
+                  "        <description>IAU 2009 report</description>\n" \
+                  "    </pck>\n" \
+                  "</orbnum>\n"
 
         with open(config, 'r') as c:
             with open(updated_config, 'w') as n:
@@ -471,7 +471,8 @@ class TestOrbnum(TestCase):
                 for line in c:
                     if '<orbnum_directory>misc/orbnum' \
                        '</orbnum_directory>' in line:
-                        n.write('<orbnum_directory>kernels/spk</orbnum_directory>')
+                        n.write('<orbnum_directory>kernels/spk'
+                                '</orbnum_directory>')
                     elif '<kernel cutoff="True">../data/kernels/spk/' \
                          'maven_orb_rec_210101_210401_v2.bsp</kernel>' in line:
                         n.write('<kernel cutoff="True">kernels/spk/' \
@@ -495,7 +496,8 @@ class TestOrbnum(TestCase):
         shutil.copy('../data/misc/orbnum/maven_orb_rec_210101_210401_v1.orb',
                     'kernels/spk/maven_orb_rec_210101_210401_v1.orb')
 
-        main(updated_config, plan=plan, faucet='final', silent=self.silent, log=True)
+        main(updated_config, plan=plan, faucet='final', silent=self.silent, 
+             log=True)
 
 
 if __name__ == '__main__':
