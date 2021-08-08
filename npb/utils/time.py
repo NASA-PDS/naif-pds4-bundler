@@ -68,7 +68,7 @@ def current_date(date=False):
     else:
         time = datetime.datetime.now()
         
-    date = datetime.datetime.strftime(time, '%m %d, %Y')
+    date = datetime.datetime.strftime(time, '%m %-d, %Y')
     date = calendar.month_name[int(date[0:2])] + date[2:]
 
     return date
