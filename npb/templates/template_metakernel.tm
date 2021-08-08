@@ -22,7 +22,6 @@ $DESCRIPTION
 
 $KERNELS_IN_METAKERNEL
                           )
-
 $DATA
    \begintext
 
