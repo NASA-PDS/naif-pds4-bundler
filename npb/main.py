@@ -181,7 +181,7 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
         #
         # When executing from the command line, debug mode is not available.
         #
-        debug = False
+        args.debug = False
 
     #
     # If NPB is not executed from the command line then an args object is
@@ -197,6 +197,7 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
         args.silent = silent
         args.verbose = verbose
         args.diff = diff
+        args.debug = debug
 
     #
     # Turn lowercase or uppercase arguments that need it.
@@ -236,7 +237,7 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
     #      option is chosen.
     #    * The log file will be written in the working directory
     #
-    log = Log(setup, args, debug)
+    log = Log(setup, args)
 
     #
     #  -- Start the pipeline
