@@ -53,7 +53,6 @@
         <!-- Optional parameter that has been introduced to support regression
              testing, it should not be used to generate the archive -->
         <creation_date_time>2021-06-25T08:00:00</creation_date_time>
-        <creation_date_time>2021-06-25T08:00:00</creation_date_time>
         <!-- Increment start and stop times provided as a UTC calendar string.
              They require to be present. Use the following format:
              YYYY-MM-DDThh:mm:ssZ e.g., 2021-04-09T15:11:12Z. -->

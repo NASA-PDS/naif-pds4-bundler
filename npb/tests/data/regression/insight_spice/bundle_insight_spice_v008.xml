@@ -72,7 +72,7 @@
     <Stream_Text>
       <offset unit="byte">0</offset>
       <parsing_standard_id>7-Bit ASCII Text</parsing_standard_id>
-      <record_delimiter>Line-Feed</record_delimiter>
+      <record_delimiter>Carriage-Return Line-Feed</record_delimiter>
     </Stream_Text>
   </File_Area_Text>
   <Bundle_Member_Entry>

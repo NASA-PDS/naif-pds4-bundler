@@ -66,13 +66,13 @@
     <File>
       <file_name>readme.txt</file_name>
       <creation_date_time>2021-06-25T08:00:00</creation_date_time>
-      <file_size unit="byte">1224</file_size>
-      <md5_checksum>bf8eb61f842c42c616d1d3ad78fc6688</md5_checksum>
+      <file_size unit="byte">1267</file_size>
+      <md5_checksum>dd365fd51a4789e1ecde055b974435d0</md5_checksum>
     </File>
     <Stream_Text>
       <offset unit="byte">0</offset>
       <parsing_standard_id>7-Bit ASCII Text</parsing_standard_id>
-      <record_delimiter>Line-Feed</record_delimiter>
+      <record_delimiter>Carriage-Return Line-Feed</record_delimiter>
     </Stream_Text>
   </File_Area_Text>
   <Bundle_Member_Entry>
