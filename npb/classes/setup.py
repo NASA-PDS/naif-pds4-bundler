@@ -186,8 +186,8 @@ class Setup(object):
             error_message('End of Line provided via configuration is not '
                           'CRLF nor LF')
 
-        self.pds4_eol = '\r\n'
-        self.pds4_eol_len = 1
+        self.eol_pds4 = '\r\n'
+        self.eol_pds4_len = 1
 
         #
         # Fill PDS4 missing fields.

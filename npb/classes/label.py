@@ -125,7 +125,7 @@ class PDSLabel(object):
         except:
             context_products = self.product.bundle.context_products
 
-        eol = self.setup.pds4_eol
+        eol = self.setup.eol_pds4
 
         for ob in obs:
             if ob:
@@ -171,7 +171,7 @@ class PDSLabel(object):
         except:
             context_products = self.product.bundle.context_products
 
-        eol = self.setup.pds4_eol
+        eol = self.setup.eol_pds4
 
         for tar in tars:
             if tar:
@@ -237,7 +237,7 @@ class PDSLabel(object):
                     if isinstance(value, str) and key in line and '$' in line:
                         line = line.replace('$' + key, value)
 
-                line = add_carriage_return(line, self.setup.pds4_eol)
+                line = add_carriage_return(line, self.setup.eol_pds4)
 
                 f.write(line)
 
@@ -456,7 +456,7 @@ class BundlePDS4Label(PDSLabel):
 
 
 
-        eol = self.setup.pds4_eol
+        eol = self.setup.eol_pds4
 
 
         #
@@ -563,7 +563,7 @@ class MetaKernelPDS4Label(PDSLabel):
 
     def get_kernel_internal_references(self):
         
-        eol = self.setup.pds4_eol
+        eol = self.setup.eol_pds4
         
         #
         # From the collection we only use kernels in the MK
@@ -655,16 +655,16 @@ class OrbnumFilePDS4Label(PDSLabel):
 
     def __get_table_character_description(self):
         
-        description = f"{self.setup.pds4_eol}      <description>" \
+        description = f"{self.setup.eol_pds4}      <description>" \
                       f"{self.product.table_char_description}" \
-                      f"</description>{self.setup.pds4_eol}"
+                      f"</description>{self.setup.eol_pds4}"
     
         return description
 
     def __field_template(self, name, number, location, type, length, format,
                          description, unit, blanks):
 
-        eol = self.setup.pds4_eol
+        eol = self.setup.eol_pds4
 
         field = \
             f'{" " * 8}<Field_Character>{eol}' \
@@ -766,7 +766,7 @@ class InventoryPDS3Label(PDSLabel):
                     if isinstance(value, str) and key in line and '$' in line:
                         line = line.replace('$' + key, value)
 
-                line = add_carriage_return(line, self.setup.pds4_eol)
+                line = add_carriage_return(line, self.setup.eol_pds4)
 
                 if 'END_OBJECT' in line and line[:10] != 'END_OBJECT':
                     f.write(line.split('END_OBJECT')[0])
