@@ -14,7 +14,7 @@ class Log(object):
     :param version: NDT version.
     """
     
-    def __init__(self, setup, args, debug):
+    def __init__(self, setup, args):
         """
         Constructor method.
         """
@@ -24,7 +24,7 @@ class Log(object):
         logger = logging.getLogger()
         logger.setLevel(logging.INFO)
 
-        if debug:
+        if args.debug:
             log_format = '%(module)-12s %(funcName)-23s || ' \
                          '%(levelname)-8s: %(message)s'
         else:
