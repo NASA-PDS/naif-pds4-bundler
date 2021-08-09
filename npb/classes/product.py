@@ -23,6 +23,7 @@ from npb.classes.object import Object
 from npb.classes.log import error_message
 from npb.utils.time import creation_time
 from npb.utils.time import creation_date
+from npb.utils.time import current_time
 from npb.utils.time import current_date
 from npb.utils.time import spk_coverage
 from npb.utils.time import ck_coverage
@@ -1018,7 +1019,7 @@ class MetaKernelProduct(Product):
 
             kernel_dir_name = kernel.split('.')[1]
 
-            kernels += f"{' ' * 26}'$KERNELS/{kernel}'{self.setup.eol}"
+            kernels += f"{' ' * 26}'$KERNELS/{kernel}'{eol}"
 
         self.KERNELS_IN_METAKERNEL = kernels
 
@@ -1078,7 +1079,7 @@ class MetaKernelProduct(Product):
                     if isinstance(value, str) and key.isupper() and key in \
                             line and '$' in line:
                         line = line.replace('$' + key, value)
-                f.write(line + self.setup.eol)
+                f.write(line + eol)
 
         self.product = self.path
 
@@ -1098,7 +1099,7 @@ class MetaKernelProduct(Product):
             print(f'        - Edit the file with your favorite edit '
                          f'and press ENTER and continue.')
             print(f'        - Press ENTER to continue.')
-            print(f'     * MK path: {self.path}')
+            print(f'      MK path: {self.path}')
             
             if not self.setup.args.debug:
                 inp = input(">> Type 'vi' and/or press ENTER to continue... ")
@@ -1114,7 +1115,6 @@ class MetaKernelProduct(Product):
         if self.setup.diff:
             self.compare()
         logging.info('')
-
 
         return
 
@@ -2675,7 +2675,7 @@ class InventoryProduct(Product):
                                 # be included as secondary in the new one
                                 #
                                 line = line.replace('P,urn', 'S,urn')
-                            line = add_carriage_return(line, self.setup.pds4_eol)
+                            line = add_carriage_return(line, self.setup.eol_pds4)
                             f.write(line)
 
             for product in self.collection.product:
@@ -2689,7 +2689,7 @@ class InventoryProduct(Product):
                         line = f'P,' \
                                f'{product.lid}::' \
                                f'{product.vid}\r\n'
-                        line = add_carriage_return(line, self.setup.pds4_eol)
+                        line = add_carriage_return(line, self.setup.eol_pds4)
                         f.write(line)
         
         return
@@ -2932,8 +2932,8 @@ class InventoryProduct(Product):
 
             logging.info('-- Adding CRs to index files.')
             logging.info('')
-            add_crs_to_file(dsindex, self.setup.pds4_eol)
-            add_crs_to_file(dsindex_lbl, self.setup.pds4_eol)
+            add_crs_to_file(dsindex, self.setup.eol_pds4)
+            add_crs_to_file(dsindex_lbl, self.setup.eol_pds4)
 
             self.index = ''
             self.index_lbl = ''
@@ -3099,7 +3099,7 @@ class SpicedsProduct(object):
         with open(self.path, "r") as s:
             with open(temporary_file, "w+") as t:
                 for line in s:
-                    line = add_carriage_return(line, self.setup.pds4_eol)
+                    line = add_carriage_return(line, self.setup.eol_pds4)
                     t.write(line)
 
         #
@@ -3221,6 +3221,14 @@ class ReadmeProduct(Product):
             #
             self.bundle.checksum = md5(self.path)
 
+        #
+        # Regardless if the readme product is generated the Bundle label
+        # creation time has to be updated.
+        #
+        if hasattr(self.setup, 'creation_date_time'):
+            self.creation_time = self.setup.creation_date_time
+        else:
+            self.creation_time = current_time(format=self.setup.date_format)
         Product.__init__(self)
 
         logging.info('')
@@ -3245,12 +3253,12 @@ class ReadmeProduct(Product):
                         line = line.replace('$SPICE_NAME',
                                             self.setup.spice_name)
                         line_length = len(line) - 1
-                        line = add_carriage_return(line, self.setup.pds4_eol)
+                        line = add_carriage_return(line, self.setup.eol_pds4)
                         f.write(line)
                     elif '$UNDERLINE' in line:
                         line = line.replace('$UNDERLINE', '=' * line_length)
                         line_length = len(line) - 1
-                        line = add_carriage_return(line, self.setup.pds4_eol)
+                        line = add_carriage_return(line, self.setup.eol_pds4)
                         f.write(line)
                     elif '$OVERVIEW' in line:
                         overview = self.setup.readme['overview']
