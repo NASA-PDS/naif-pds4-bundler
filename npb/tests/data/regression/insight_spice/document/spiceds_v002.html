@@ -9,7 +9,7 @@
 The INSIGHT SPICE Data Archive
 ========================================================================
 
-   Last update: June 30, 2021
+   Last update: August 4, 2021
 
 <A NAME="Introduction"></A>
 Introduction
@@ -555,7 +555,7 @@ CK Files
 
             These CKs contain the reconstructed INSIGHT spacecraft EDL
             attitude, from the EDL entry point to landing, determined
-            by INSIGHT EDL team,
+            by the INSIGHT EDL team,
 
       -  reconstructed spacecraft landed orientation CKs
 
@@ -855,21 +855,7 @@ MK Files
                          version supersedes all similarly named
                          files with earlier versions.
 
-   Multiple versions of a meta-kernel for the same year may exist if
-   new kernels were added to the archive in a later release and the
-   meta-kernel for that year had to be updated to incorporate them. The
-   reasons for adding new kernels include (but are not limited to)
-   adding new kinds of kernels, adding new versions of existing kernels
-   containing more complete or more accurate data, and adding new
-   versions of existing kernels superseding the existing kernels that
-   had errors. If more than one meta-kernel file for the same year is
-   present, then the file with the latest version number supersedes all
-   earlier versions. The latest yearly meta-kernels can be loaded
-   together sorted by year to provide coverage for more than one year.
-   (Note that on some environments loading too many kernels at once may
-   slow down data access.)
-
-   In addition, all meta-kernels also includes keywords setting the
+   In addition, all meta-kernels also include keywords setting the
    SPICE CHRONOS utility configuration parameters (spacecraft ID,
    planet ID, landing UTC, landing SOL index, and Sun GM).
 
@@ -941,22 +927,22 @@ Checksum Files
 File Formats
 ============
 
-   All text documents and other meta information files such as
-   descriptions, detached PDS4 labels, inventory tables, and checksum
-   files are stream format files, with a carriage return (ASCII 13) and 
-   a line feed character (ASCII 10) at the end of the records. This 
-   allows the files to be read by most operating systems.
+   All text documents and other meta information files such as descriptions,
+   detached PDS4 labels, and inventory tables, are stream format files, with 
+   a carriage return (ASCII 13) and a line feed character (ASCII 10) at the 
+   end of the records. This allows the files to be read by most operating 
+   systems.
 
-   The text kernel files in this archive -- LSKs, PCKs, SCLKs, IKs, FKs, 
-   and MKs -- are UNIX text files, with a line feed character (ASCII 10) 
-   at the end of the line, and binary kernels files -- SPKs and CKs --
-   are IEEE LSB binary files. While data files in this archive can be 
-   used 'as is' with SPICE toolkits for the majority of supported
-   environments, converting the files to the binary or text format
-   native to the user's computer may be required for use of the data
-   with FORTRAN toolkits on incompatible environments. Refer to the
-   documentation provided with the SPICE Toolkit to find out whether
-   conversion is needed in each specific case.
+   The text kernel files in this archive -- LSKs, PCKs, SCLKs, IKs, FKs,
+   and MKs -- and the checksum files are UNIX text files, with a line 
+   feed character (ASCII 10) at the end of the line, and binary kernel 
+   files -- SPKs and CKs -- are IEEE LSB binary files. While data files in 
+   this archive can be used 'as is' with SPICE toolkits for the majority of 
+   supported environments, converting the files to the binary or text format 
+   native to the user's computer may be required for use of the data with 
+   FORTRAN toolkits on incompatible environments. Refer to the documentation
+   provided with the SPICE Toolkit to find out whether conversion is needed 
+   in each specific case.
 
    NAIF provides a tool (BINGO) that can convert either binary or text
    kernels from one format to another. This means that text files can

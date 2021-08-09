@@ -165,12 +165,12 @@
     <File>
       <file_name>insight_v08.tm</file_name>
       <creation_date_time>2021-06-25T08:00:00</creation_date_time>
-      <file_size unit="byte">3489</file_size>
-      <md5_checksum>af5714016ba68fc210d8f58ce4b3dacd</md5_checksum>
+      <file_size unit="byte">3514</file_size>
+      <md5_checksum>6e619ff2c14d9ccf8a2a3b9f9d9b6001</md5_checksum>
     </File>
     <SPICE_Kernel>
       <offset unit="byte">0</offset>
-      <object_length unit="byte">3489</object_length>
+      <object_length unit="byte">3514</object_length>
       <parsing_standard_id>SPICE</parsing_standard_id>
       <description>SPICE MK file listing kernels for the whole mission and including CHRONOS setup parameters, created by NAIF, JPL.</description>
       <kernel_type>MK</kernel_type>

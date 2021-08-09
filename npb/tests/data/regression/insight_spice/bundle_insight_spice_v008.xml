@@ -81,6 +81,41 @@
     <reference_type>bundle_has_spice_kernel_collection</reference_type>
   </Bundle_Member_Entry>
   <Bundle_Member_Entry>
+    <lidvid_reference>urn:nasa:pds:insight.spice:miscellaneous::1.0</lidvid_reference>
+    <member_status>Primary</member_status>
+    <reference_type>bundle_has_member_collection</reference_type>
+  </Bundle_Member_Entry>
+  <Bundle_Member_Entry>
+    <lidvid_reference>urn:nasa:pds:insight.spice:miscellaneous::2.0</lidvid_reference>
+    <member_status>Primary</member_status>
+    <reference_type>bundle_has_member_collection</reference_type>
+  </Bundle_Member_Entry>
+  <Bundle_Member_Entry>
+    <lidvid_reference>urn:nasa:pds:insight.spice:miscellaneous::3.0</lidvid_reference>
+    <member_status>Primary</member_status>
+    <reference_type>bundle_has_member_collection</reference_type>
+  </Bundle_Member_Entry>
+  <Bundle_Member_Entry>
+    <lidvid_reference>urn:nasa:pds:insight.spice:miscellaneous::4.0</lidvid_reference>
+    <member_status>Primary</member_status>
+    <reference_type>bundle_has_member_collection</reference_type>
+  </Bundle_Member_Entry>
+  <Bundle_Member_Entry>
+    <lidvid_reference>urn:nasa:pds:insight.spice:miscellaneous::5.0</lidvid_reference>
+    <member_status>Primary</member_status>
+    <reference_type>bundle_has_member_collection</reference_type>
+  </Bundle_Member_Entry>
+  <Bundle_Member_Entry>
+    <lidvid_reference>urn:nasa:pds:insight.spice:miscellaneous::6.0</lidvid_reference>
+    <member_status>Primary</member_status>
+    <reference_type>bundle_has_member_collection</reference_type>
+  </Bundle_Member_Entry>
+  <Bundle_Member_Entry>
+    <lidvid_reference>urn:nasa:pds:insight.spice:miscellaneous::7.0</lidvid_reference>
+    <member_status>Primary</member_status>
+    <reference_type>bundle_has_member_collection</reference_type>
+  </Bundle_Member_Entry>
+  <Bundle_Member_Entry>
     <lidvid_reference>urn:nasa:pds:insight.spice:miscellaneous::8.0</lidvid_reference>
     <member_status>Primary</member_status>
     <reference_type>bundle_has_member_collection</reference_type>

@@ -53,6 +53,7 @@
         <!-- Optional parameter that has been introduced to support regression
              testing, it should not be used to generate the archive -->
         <creation_date_time>2021-06-25T08:00:00</creation_date_time>
+        <creation_date_time>2021-06-25T08:00:00</creation_date_time>
         <!-- Increment start and stop times provided as a UTC calendar string.
              They require to be present. Use the following format:
              YYYY-MM-DDThh:mm:ssZ e.g., 2021-04-09T15:11:12Z. -->
@@ -66,7 +67,7 @@
         <!-- Date format can be maklabel style or infomod2 the parameter
              is not required and the default value is infomod2 -->
         <date_format>maklabel</date_format>
-        <end_of_line>CRLF</end_of_line>
+        <end_of_line>LF</end_of_line>
     </bundle_parameters>
 
     <!-- =========================== -->
@@ -330,6 +331,7 @@
                 <pattern>maven_struct_v[0-9]{2}.bsp</pattern>
                 <pattern>date:maven_orb_rec_[0-9]{6}_[0-9]{6}_v[0-9].bsp</pattern>
                 <!-- CK -->
+                <pattern>date:mvn_iuvs_rem_[0-9]{6}_[0-9]{6}_v[0-9]{2}.bc</pattern>
                 <pattern>date:mvn_app_pred_[0-9]{6}_[0-9]{6}_v[0-9]{2}.bc</pattern>
                 <pattern>date:mvn_app_rel_[0-9]{6}_[0-9]{6}_v[0-9]{2}.bc</pattern>
                 <pattern>mvn_swea_nom_131118_300101_v[0-9]{2}.bc</pattern>
