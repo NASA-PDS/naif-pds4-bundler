@@ -927,14 +927,14 @@ Checksum Files
 File Formats
 ============
 
-   All text documents and other meta information files such as
-   descriptions, detached PDS4 labels, inventory tables, and checksum
-   files are stream format files, with a carriage return (ASCII 13) and 
-   a line feed character (ASCII 10) at the end of the records. This 
-   allows the files to be read by most operating systems.
+   All text documents, checksum files, meta-kernel files -- MKs --, and 
+   other meta information files such as descriptions, detached PDS4 labels, 
+   inventory tables, are stream format files, with a carriage return 
+   (ASCII 13) and a line feed character (ASCII 10) at the end of the 
+   records. This allows the files to be read by most operating systems.
 
-   The text kernel files in this archive -- LSKs, PCKs, SCLKs, IKs, FKs, 
-   and MKs -- are UNIX text files, with a line feed character (ASCII 10) 
+   The text kernel files in this archive -- LSKs, PCKs, SCLKs, IKs, 
+   and FKs -- are UNIX text files, with a line feed character (ASCII 10) 
    at the end of the line, and binary kernels files -- SPKs and CKs --
    are IEEE LSB binary files. While data files in this archive can be 
    used 'as is' with SPICE toolkits for the majority of supported
