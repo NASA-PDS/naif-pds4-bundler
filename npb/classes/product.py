@@ -2563,7 +2563,7 @@ class InventoryProduct(Product):
             #
             if self.setup.increment:
                 inventory_files = glob.glob(self.setup.final_directory + \
-                    f'/{self.setup.mission_acronym}_spice/' + \
+                    f'/{self.setup.mission_acronym}_spice' + \
                     os.sep + collection.name + os.sep + \
                     f'collection_{collection.name}_inventory_v*.csv')
                 inventory_files += glob.glob(self.setup.staging_directory + \
