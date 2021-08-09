@@ -41,6 +41,8 @@ class PDSLabel(object):
         self.PDS4_MISSION_NAME = setup.mission_name
         self.PDS4_OBSERVER_NAME = setup.observer
         
+        
+        self.END_OF_LINE_PDS4 = 'Carriage-Return Line-Feed'
         if setup.end_of_line == 'CRLF':
             self.END_OF_LINE = 'Carriage-Return Line-Feed'
         elif setup.end_of_line == 'LF':

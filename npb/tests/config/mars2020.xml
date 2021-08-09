@@ -48,7 +48,7 @@
             <fk>m2020_v[0-9][0-9].tf</fk>
         </kernels_to_load>
         <date_format>maklabel</date_format>
-        <end_of_line>LF</end_of_line>
+        <end_of_line>CRLF</end_of_line>
     </bundle_parameters>
 
     <!-- =========================== -->

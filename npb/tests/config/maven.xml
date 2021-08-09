@@ -67,7 +67,7 @@
         <!-- Date format can be maklabel style or infomod2 the parameter
              is not required and the default value is infomod2 -->
         <date_format>maklabel</date_format>
-        <end_of_line>LF</end_of_line>
+        <end_of_line>CRLF</end_of_line>
     </bundle_parameters>
 
     <!-- =========================== -->

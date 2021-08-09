@@ -58,7 +58,7 @@ $TARGETS
       <offset unit="byte">0</offset>
       <parsing_standard_id>PDS DSV 1</parsing_standard_id>
       <records>$N_RECORDS</records>
-      <record_delimiter>$END_OF_LINE</record_delimiter>
+      <record_delimiter>$END_OF_LINE_PDS4</record_delimiter>
       <field_delimiter>Comma</field_delimiter>
       <Record_Delimited>
         <fields>2</fields>

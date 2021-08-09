@@ -27,11 +27,11 @@ KPL/MK
 
    \begindata
 
-      PATH_VALUES       = ( '..'      )
+      PATH_VALUES      = ( '..'      )
 
-      PATH_SYMBOLS      = ( 'KERNELS' )
+      PATH_SYMBOLS     = ( 'KERNELS' )
 
-      KERNELS_TO_LOAD   = (
+      KERNELS_TO_LOAD  = (
 
                           '$KERNELS/lsk/naif0012.tls'
 
@@ -64,8 +64,9 @@ KPL/MK
                           '$KERNELS/ck/insight_ida_enc_190929_191120_v1.bc'
                           '$KERNELS/ck/insight_ida_enc_200829_201220_v1.bc'
                           '$KERNELS/ck/insight_lander2cruise_v2.bc'
-                          '$KERNELS/ck/insight_surf_ops_v1.bc'
-                          )
+                          '$KERNELS/ck/insight_surf_ops_v1.bc'
+
+                         )
 
       SPACECRAFT_ID     = -189
       CENTER_ID         = 499

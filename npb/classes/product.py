@@ -893,7 +893,7 @@ class MetaKernelProduct(Product):
         #
         # Setup the end-of-line character
         #
-        eol = self.setup.eol
+        eol = self.setup.eol_mk
         
 
         #
