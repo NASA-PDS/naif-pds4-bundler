@@ -14,14 +14,14 @@ $DESCRIPTION
 
    \begindata
 
-      PATH_VALUES       = ( '$KERNELPATH'      )
+      PATH_VALUES      = ( '$KERNELPATH'      )
 
-      PATH_SYMBOLS      = ( 'KERNELS' )
+      PATH_SYMBOLS     = ( 'KERNELS' )
 
-      KERNELS_TO_LOAD   = (
+      KERNELS_TO_LOAD  = (
 
 $KERNELS_IN_METAKERNEL
-                          )
+                         )
 $DATA
    \begintext
 
