@@ -47,7 +47,7 @@
             <fk>ladee_frames_2021140_v01.tf</fk>
         </kernels_to_load>
         <date_format>maklabel</date_format>
-        <end_of_line>CRLF</end_of_line>
+        <end_of_line>LF</end_of_line>
     </bundle_parameters>
 
     <!-- =========================== -->
