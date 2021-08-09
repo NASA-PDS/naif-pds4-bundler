@@ -56,8 +56,12 @@ class Product(object):
         stat_info = os.stat(self.path)
         self.size = str(stat_info.st_size)
         self.checksum = str(md5(self.path))
-        self.creation_time = creation_time(self.path, 
-                                           format=self.setup.date_format)
+        
+        if hasattr(self.setup, 'creation_date_time'):
+            self.creation_time = self.setup.creation_date_time
+        else:        
+            self.creation_time = creation_time(format=self.setup.date_format)
+            
         self.creation_date = self.creation_time.split('T')[0]
         self.extension = self.path.split(os.sep)[-1].split('.')[-1]
 
@@ -3221,14 +3225,7 @@ class ReadmeProduct(Product):
             #
             self.bundle.checksum = md5(self.path)
 
-        #
-        # Regardless if the readme product is generated the Bundle label
-        # creation time has to be updated.
-        #
-        if hasattr(self.setup, 'creation_date_time'):
-            self.creation_time = self.setup.creation_date_time
-        else:
-            self.creation_time = current_time(format=self.setup.date_format)
+
         Product.__init__(self)
 
         logging.info('')

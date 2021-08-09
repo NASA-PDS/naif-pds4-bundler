@@ -74,10 +74,9 @@ def current_date(date=False):
     return date
 
 
-def creation_time(path, format='infomod2'):
+def creation_time(format='infomod2'):
     """
-    Returns the creation date and time of a given file in either 
-    maklabel or infomod2.
+    Returns the creation date and time in either maklabel or infomod2
     %Y-%m-%dT%H:%M:%S.%f format.
 
     :param path: File path
@@ -85,9 +84,8 @@ def creation_time(path, format='infomod2'):
     :return: Current date
     :rtype: str
     """
-    t = os.path.getmtime(path)
-    timestamp = datetime.datetime.fromtimestamp(t)
-    dt, micro = datetime.datetime.strftime(timestamp,
+    t = datetime.datetime.now()
+    dt, micro = datetime.datetime.strftime(t,
                                            '%Y-%m-%dT%H:%M:%S.%f').split('.')
     creation_time = "%s.%03d" % (dt, int(micro) / 1000) + 'Z'
     
@@ -105,8 +103,7 @@ def creation_date(path):
     :return:
     :rtype:
     """
-    t = os.path.getmtime(path)
-    timestamp = datetime.datetime.fromtimestamp(t)
+    t = datetime.datetime.now()
     date = datetime.datetime.strftime(timestamp, '%m %d, %Y')
 
     creation_date = calendar.month_name[int(date[0:2])] + date[2:]
