@@ -16,6 +16,10 @@
     </Citation_Information>
   </Identification_Area>
   <Context_Area>
+    <Time_Coordinates>
+      <start_date_time>$START_TIME</start_date_time>
+      <stop_date_time>$STOP_TIME</stop_date_time>
+    </Time_Coordinates>
     <Primary_Result_Summary>
       <purpose>Observation Geometry</purpose>
       <processing_level>Derived</processing_level>
