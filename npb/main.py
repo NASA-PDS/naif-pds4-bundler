@@ -468,6 +468,7 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
         miscellaneous_collection.add(checksum)
         miscellaneous_collection.set_collection_vid()
 
+        checksum.set_coverage()
         miscellaneous_collection_inventory = InventoryProduct(setup,
                                                 miscellaneous_collection)
         miscellaneous_collection.add(miscellaneous_collection_inventory)
