@@ -704,8 +704,38 @@ class InventoryPDS4Label(PDSLabel):
 
         self.COLLECTION_LID = self.collection.lid
         self.COLLECTION_VID = self.collection.vid
-        self.START_TIME = setup.increment_start
-        self.STOP_TIME = setup.increment_finish
+        
+        
+        #
+        # The start and stop time of the miscellaneous collection 
+        # differs from the SPICE kernels collection; the document
+        # collection does not have start and stop times.
+        #
+        if collection.name == 'miscellaneous':
+            #
+            # Obtain the latest checksum product and extract the start and stop
+            # times.
+            #
+            start_times = []
+            stop_times = []
+            for product in collection.product:
+                if 'checksum' in product.name:
+                    start_times.append(product.start_time)
+                    stop_times.append(product.stop_time)
+            start_times.sort()
+            stop_times.sort()
+            
+            self.START_TIME = start_times[0] 
+            self.STOP_TIME = stop_times[-1]
+        
+        else:
+            #
+            # The increment start and stop times are still defined by the 
+            # spice_kernels collection.
+            #
+            self.START_TIME = setup.increment_start
+            self.STOP_TIME = setup.increment_finish
+        
         self.FILE_NAME = inventory.name
 
         # Count number of lines in the inventory file
@@ -814,8 +844,8 @@ class ChecksumPDS4Label(PDSLabel):
         self.PRODUCT_LID = self.product.lid
         self.PRODUCT_VID = self.product.vid
         self.FILE_FORMAT = 'Character'
-        self.START_TIME = setup.mission_start
-        self.STOP_TIME = setup.mission_finish
+        self.START_TIME = self.product.start_time
+        self.STOP_TIME = self.product.stop_time
 
         self.name = product.name.split('.')[0] + '.xml'
 
