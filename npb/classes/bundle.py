@@ -495,7 +495,7 @@ class Bundle(object):
             print('-- ' + line.split(' - ')[-1] + '.')
 
         logging.info('')
-        logging.info('-- Display the list of products that belong to each '
+        logging.info('-- Display the list of files that belong to each '
                      'release.')
         logging.info('')
         
