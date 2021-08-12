@@ -9,8 +9,8 @@ import spiceypy
 import datetime
 import fileinput
 import subprocess
-from collections import OrderedDict
 from datetime import date
+from collections import OrderedDict
 from npb.classes.label import SpiceKernelPDS4Label
 from npb.classes.label import MetaKernelPDS4Label
 from npb.classes.label import OrbnumFilePDS4Label
@@ -1111,7 +1111,8 @@ class MetaKernelProduct(Product):
                     try:
                         cmd = os.environ.get('EDITOR', 'vi') + ' ' + self.path
                         subprocess.call(cmd, shell=True)
-                        logging.info('Meta-kernel edited with Vi by the user.')
+                        logging.warning('Meta-kernel edited with Vi by the '
+                                        'user.')
                     except:
                         print('Vi text editor is not available.')
                         input(">> Press Enter to continue... ")
@@ -3311,14 +3312,18 @@ class ChecksumProduct(Product):
         #
         self.md5_dict = {}
 
-
         self.read_current_product()
-
-        self.start_time = self.setup.mission_start
-        self.stop_time = self.setup.mission_finish
 
         self.lid = self.product_lid()
         self.vid = self.product_vid()
+
+    def set_coverage(self):
+
+        #
+        # The coverage is set by generating the checksum file but without 
+        # writing it.
+        #
+        self.write_product(history=False, set_coverage=True)
 
     def generate(self, history=False):
 
@@ -3448,7 +3453,15 @@ class ChecksumProduct(Product):
 
         return '{}.0'.format(int(self.version))
 
-    def write_product(self, history=False):
+    def write_product(self, history=False, set_coverage=False):
+        '''
+        This method can also be used to determine the start and stop time of
+        the checksum file, necessary to determine these times for the 
+        miscellaneous collection before the checksum is actually written.
+        :param history: 
+        :param set_coverage: 
+        :return: 
+        '''
 
         msn_acr = self.setup.mission_acronym
 
@@ -3488,10 +3501,11 @@ class ChecksumProduct(Product):
             #
             # Include the bundle label, that is paired to the readme file.
             #
-            label_checksum = md5(self.collection.bundle.readme.label.name)
-            self.md5_dict[label_checksum] = \
-                self.collection.bundle.readme.label.name.split(
-                    f"/{msn_acr}_spice/")[-1]
+            if not set_coverage:
+                label_checksum = md5(self.collection.bundle.readme.label.name)
+                self.md5_dict[label_checksum] = \
+                    self.collection.bundle.readme.label.name.split(
+                        f"/{msn_acr}_spice/")[-1]
     
         #
         # The missing checksum files are generated from the bundle history.
@@ -3526,18 +3540,79 @@ class ChecksumProduct(Product):
                     logging.info(f'-- Removing {file}')
                     os.remove(path)
 
-        #
-        # Write the checksum file.
-        #
-        with open(self.path, 'w') as c:
-            for entry in md5_list:
-                entry = add_carriage_return(entry, self.setup.eol)
-                c.write(entry)
 
-        if self.setup.diff:
-            logging.info('-- Comparing checksum with previous version...')
-            self.compare()
+        #
+        # Checksum start and stop times are the same as the ones defined
+        # by the spice_kernel collection and the orbnum files in the 
+        # miscellaneous collection. 
+        #
+        coverage_list = []
+        
+        #
+        # Gather all the relevant products that define the coverage of the
+        # checksum file: orbnum labels and spice_kernels collection labels.
+        #
+        for product in md5_list:
+            if ('spice_kernels/collection_spice_kernels_v' in product) or \
+                    (('miscellaneous/orbnum/' in product) and 
+                     (('.xml' in product))):
+                coverage_list.append(product.split()[-1])
 
+        start_times = []
+        stop_times = []
+        for product in coverage_list:
+            #
+            # The files can either be in the staging or the final area.
+            #
+            path = f'{self.setup.final_directory}/' \
+                   f'{self.setup.mission_acronym}_spice/' + product
+            if not os.path.isfile(path):
+                path = f'{self.setup.staging_directory}/' + product
+                if not os.path.isfile(path):
+                    logging.error(f'-- Product required to determine '
+                                  f'{self.name} coverage: {product} not found.')
+                    
+            if os.path.isfile(path):
+                with open(path, 'r') as l:
+                    for line in l:
+                        if '<start_date_time>' in line:
+                            start_time = \
+                                line.split('<start_date_time>')[-1].split('</')[0]
+                            start_times.append(start_time)
+                        if '<stop_date_time>' in line:
+                            stop_time = \
+                                line.split('<stop_date_time>')[-1].split('</')[0]
+                            stop_times.append(stop_time)
+
+        if not start_times:
+            logging.error(f'-- Start time set to '
+                          f'mission start time: {self.setup.mission_start}')
+            start_times.append(self.setup.mission_start)
+            
+        if not stop_times:
+            logging.error(f'-- Stop time set to '
+                          f'mission start time: {self.setup.mission_start}')
+            start_times.append(self.setup.mission_start)
+
+        start_times.sort()
+        stop_times.sort()
+
+        self.start_time = start_times[0]
+        self.stop_time = stop_times[-1]
+
+        if not set_coverage:
+            #
+            # Write the checksum file.
+            #
+            with open(self.path, 'w') as c:
+                for entry in md5_list:
+                    entry = add_carriage_return(entry, self.setup.eol)
+                    c.write(entry)
+    
+            if self.setup.diff:
+                logging.info('-- Comparing checksum with previous version...')
+                self.compare()
+    
         return None
 
     def compare(self):
