@@ -102,7 +102,7 @@ NAIF's Approach to SPICE Data Set Preparation
    statement:
 
        All SPICE data for a given mission are archived as UNIX
-       text and binary files(1) in a single, accumulating data
+       text and binary files(1) in a single, accumulating datax x
        set on a single virtual volume(2) having the same
        directory structure(3), the same set of meta information
        files(4), data file labels with the same structure(5), and
