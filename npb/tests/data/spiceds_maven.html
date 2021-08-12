@@ -9,7 +9,7 @@
 The MAVEN SPICE Data Archive
 ========================================================================
 
-   Last update: June 30, 2021
+   Last update: August 11, 2021
 
 <A NAME="Introduction"></A>
 Introduction
@@ -116,6 +116,20 @@ Errata
       current release these gaps are present on 2014-12-08, 2014-12-26,
       2015-03-03, 2015-06-30, 2021-01-14 and 2021-01-15.
 
+   7. The XML labels of the checksum tables have the reference_type attribute
+      of the Internal_Reference association within the Reference_List class 
+      of the Context_Area class set to "ancillary_to_data". The appropriate 
+      value: "ancillary_to_document", was only added to the PDS4 information 
+      model in version 1.14.0.0.
+    
+   8. The Miscellaneous collection was only added to the bundle in the 
+      release 26 (August 2021) and therefore the ORBNUM tables, checksum 
+      tables, and collection inventories and their labels that correspond 
+      to previous releases were added irregularly in that release. This is 
+      reflected in the bundle label of that particular release that contains 
+      additional Bundle_Member_Entry classes for these miscellaneous 
+      collections.
+    
 <p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
 <A NAME="Archive Contents"></A>
 Archive Contents
@@ -191,7 +205,7 @@ Archive Contents
    | |
    | +-<a href="../miscellaneous/orbnum/">[orbnum]</a>                              Directory containing orbit number files.
    |   |
-   |   |-- *.nrb                         Text orbit number files.
+   |   |-- *.orb                         Text orbit number files.
    |   +-- *.xml                         PDS4 labels for orbit number files.
    |
    +-<a href="../document/">[document]</a>                          Directory containing documents.
