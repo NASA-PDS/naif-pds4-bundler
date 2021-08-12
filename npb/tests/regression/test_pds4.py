@@ -27,7 +27,7 @@ class TestPDS4(TestCase):
             shutil.rmtree(dir, ignore_errors=True)
 
         cls.silent = True
-        cls.log = False
+        cls.log = True
 
     def setUp(self):
         '''
