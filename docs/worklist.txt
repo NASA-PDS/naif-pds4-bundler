@@ -1,6 +1,89 @@
 snaif-pds4-bundle worklist by MCS/NAIF, updated 5 May, 2021
 ============================================================
 
+Work List:
+
+  -- Agreed to try to enhance the MK generation with whitespaces
+     for selected kernels of the same type.
+
+  -- Agreed to generate another pipeline byproduct with the list
+     of files moved to the final area and to add an option in the
+     pipleline to remove these files from the final area.
+     
+     A similar thing should be done with files in the stagging area.
+
+  -- NOT for this release, and maybe never, but should we consider adding
+     a reference from to the LIDVIDs of SPK -- or SPKs -- that were used to
+     generate an ORBNUM to its label?
+
+  -- Agreed to re/test when files are already present in stagging or final
+     area. 
+
+  -- Incorporate a validation at the end of the process that reports on
+     sensible field such as descriptions, start and stop times, and other
+     fields to be considered, this report could be presented as table.
+       
+  -- For PDS3 first implement generation with MKLABL with the ultimate goal
+     to replace it completely with Python code.
+     
+  -- Same approach for Perl scripts, end up replacing them with Python code.        
+  -- Evaluate or assess file permissions, changing could be optional.
+
+  -- Include DOIs in configurations:
+      * OREX:    10.17189/1520435
+      * MAVEN:   10.17189/1520434
+      * INSIGHT: 10.17189/1520436
+      * LADEE:   10.17189/1522402
+        Galileo: 10.17189/1522403
+
+        Cassini SPICE Kernels V1.0: 10.17189/1520114
+        Clementine SPICE Kernels V1.0: 10.17189/1520111
+        Dawn SPICE Kernels V1.0: 10.17189/1520119
+        Deep Impact SPICE Kernels V1.0: 10.17189/1520120
+        Deep Impact - EPOXI SPICE Kernels V1.0: 10.17189/1520118
+        Deep Space 1 SPICE Kernels V1.0: 10.17189/1520102
+        GRAIL SPICE Kernels V1.0: 10.17189/1520110
+        Hayabusa SPICE Kernels V1.0: 10.17189/1520104
+        Juno SPICE Kernels V1.0: 10.17189/1520117
+        Lunar Reconnaissance Orbiter SPICE Kernels V1.0: 10.17189/1520116
+        Mars Exploration Rover 1 SPICE Kernels V1.0: 10.17189/1520107
+        Mars Exploration Rover 2 SPICE Kernels V1.0: 10.17189/1520105
+        MESSENGER SPICE Kernels V1.0: 10.17189/1520108
+        Mars Global Surveyor SPICE Kernels V1.0: 10.17189/1520101
+        Mars Reconnaissance Orbiter SPICE Kernels V1.0: 10.17189/1520100
+      * Mars Science Laboratory SPICE Kernels V1.0: 10.17189/1520113
+        NEAR SPICE Kernels V1.0: 10.17189/1520103
+        New Horizons SPICE Kernels V1.0: 10.17189/1520109
+      * 2001 Mars Odyssey SPICE Kernels V1.0: 10.17189/1520115
+        Stardust SPICE Kernels V1.0: 10.17189/1520106
+        Viking Orbiter 1 and 2 SPICE Kernels V1.0: 10.17189/1520112
+
+    -- Generation of labels only.
+    
+    -- Implement a smart comparison of spiceds files in such way
+       that a warning is provided if something looks fishy (type of file
+       not present for example)
+
+    -- Implement archive time boundaries tests (there is one sketched in
+       configuration).
+
+    -- Summary to be included, as per BVS suggestion
+
+      foreach FF ( logical_identifier version_id title description start_date_time stop_date_time file_name file_size md5_checksum object_length kernel_type encoding_type )
+         echo -------------------------------------------------------------------------- $FF
+         grep $FF `find spice_kernels -name '*.xml' -mtime -1 -print | sort`
+      end
+
+      -- check that there is a XML label for each file under spice_kernels
+
+      foreach FF ( `ls -1 spice_kernels/*/*.* | grep -vi '\.xml$'` )
+         if ( ! -e $FF:r.xml && ! -e $FF:r.XML ) then
+            echo NO XML label for $FF
+         endif
+      end
+
+Changelog:
+
 v0.1.0 - Generation of kernel lists.
 
 v0.2.0 - Generation of a PDS4 Bundle with examples.
@@ -54,112 +137,34 @@ v0.6.0 - Generation of LADEE Bundle.
   -- Beware of meta-kernels with "_v" in name besides from version.
   -- Split meta-kernel by year.
 
+v0.10.2
+
+  -- Implement coverage tests in master test file.
+
+  -- Implement schema validation for config file as in here:
+     https://stackoverflow.com/questions/299588/validating-with-an-xml-schema-in-python
+  
+  -- From MAKLABEL, include kernels architecture check.
+
+     C     3) All files that are to have labels generated must have a NAIF
+     C        file ID word as the first "word" on the first line of the
+     C        file.The SPICE binary kernel files are guaranteed to have
+     C        this ID word, but the ASCII text kernels, IK, LSK, PCK, SCLK,
+     C        are not. for completeness, the appropriate ID words are listed
+     C        here, so that they may be inserted into the ASCII text kernel
+     C        files if necessary.
+     C
+     C           ASCII Text File Type      ID Word
+     C           --------------------      --------
+     C           IK                        KPL/IK
+     C           LSK                       KPL/LSK
+     C           PCK                       KPL/PCK
+     C           SCLK                      KPL/SCLK
+     C           FRAMES                    KPL/FK
+     C
+     C        The ID words must be the first item in the file, and it
+     C        should appear on a line by itself, e.g., suppose we have
+     C        a leapseconds text kernel file that is missing the ID word,
+
+
 v1.0.0 - First 'public' release.
-
-Work List:
-
-  CHECK: Include DOI in Citation Information Description as a workaround
-         for information model 1.5.0.0?
-
-
-  -- Incorporate a validation at the end of the process that reports on
-     sensible field such as descriptions, start and stop times, and other
-     fields to be considered, this report could be presented as table.  
-  -- For PDS3 first implement generation with MKLABL with the ultimate goal
-     to replace it completely with Python code.
-  -- Same approach for Perl scripts, end up replacing them with Python code.        
-  -- Evaluate or assess file permissions, changing could be optional.
-
-  -- Include DOIs in configurations:
-      * OREX:    10.17189/1520435
-      * MAVEN:   10.17189/1520434
-      * INSIGHT: 10.17189/1520436
-      * LADEE:   10.17189/1522402
-        Galileo: 10.17189/1522403
-
-
-        Cassini SPICE Kernels V1.0: 10.17189/1520114
-        Clementine SPICE Kernels V1.0: 10.17189/1520111
-        Dawn SPICE Kernels V1.0: 10.17189/1520119
-        Deep Impact SPICE Kernels V1.0: 10.17189/1520120
-        Deep Impact - EPOXI SPICE Kernels V1.0: 10.17189/1520118
-        Deep Space 1 SPICE Kernels V1.0: 10.17189/1520102
-        GRAIL SPICE Kernels V1.0: 10.17189/1520110
-        Hayabusa SPICE Kernels V1.0: 10.17189/1520104
-        Juno SPICE Kernels V1.0: 10.17189/1520117
-        Lunar Reconnaissance Orbiter SPICE Kernels V1.0: 10.17189/1520116
-        Mars Exploration Rover 1 SPICE Kernels V1.0: 10.17189/1520107
-        Mars Exploration Rover 2 SPICE Kernels V1.0: 10.17189/1520105
-        MESSENGER SPICE Kernels V1.0: 10.17189/1520108
-        Mars Global Surveyor SPICE Kernels V1.0: 10.17189/1520101
-        Mars Reconnaissance Orbiter SPICE Kernels V1.0: 10.17189/1520100
-      * Mars Science Laboratory SPICE Kernels V1.0: 10.17189/1520113
-        NEAR SPICE Kernels V1.0: 10.17189/1520103
-        New Horizons SPICE Kernels V1.0: 10.17189/1520109
-      * 2001 Mars Odyssey SPICE Kernels V1.0: 10.17189/1520115
-        Stardust SPICE Kernels V1.0: 10.17189/1520106
-        Viking Orbiter 1 and 2 SPICE Kernels V1.0: 10.17189/1520112
-
-    -- Generation of labels only.
-    -- Implement a smart comparison of spiceds files in such way
-       that a warning is provided if something looks fishy (type of file
-       not present for example)
-    -- Implement coverage tests in master test file:
-
-        #
-        # Debugging does not work while using coverage.
-        # See: https://github.com/microsoft/vscode-python/issues/693
-        #
-        #cov = coverage.Coverage()
-        #cov.start()
-
-        (... some code ...)
-
-        #cov.stop()
-        #cov.save()
-        #
-        #cov.html_report()
-
-    -- TBD: Implement schema validation for config file as in here:
-       https://stackoverflow.com/questions/299588/validating-with-an-xml-schema-in-python
-
-    -- Implement archvie time boundaries tests (there is one sketched in
-       configuration).
-
-    -- Summary to be included, as per BVS suggestion
-
-      foreach FF ( logical_identifier version_id title description start_date_time stop_date_time file_name file_size md5_checksum object_length kernel_type encoding_type )
-         echo -------------------------------------------------------------------------- $FF
-         grep $FF `find spice_kernels -name '*.xml' -mtime -1 -print | sort`
-      end
-
-      -- check that there is a XML label for each file under spice_kernels
-
-      foreach FF ( `ls -1 spice_kernels/*/*.* | grep -vi '\.xml$'` )
-         if ( ! -e $FF:r.xml && ! -e $FF:r.XML ) then
-            echo NO XML label for $FF
-         endif
-      end
-
-    -- From MAKLABEL
-
-C     3) All files that are to have labels generated must have a NAIF
-C        file ID word as the first "word" on the first line of the
-C        file.The SPICE binary kernel files are guaranteed to have
-C        this ID word, but the ASCII text kernels, IK, LSK, PCK, SCLK,
-C        are not. for completeness, the appropriate ID words are listed
-C        here, so that they may be inserted into the ASCII text kernel
-C        files if necessary.
-C
-C           ASCII Text File Type      ID Word
-C           --------------------      --------
-C           IK                        KPL/IK
-C           LSK                       KPL/LSK
-C           PCK                       KPL/PCK
-C           SCLK                      KPL/SCLK
-C           FRAMES                    KPL/FK
-C
-C        The ID words must be the first item in the file, and it
-C        should appear on a line by itself, e.g., suppose we have
-C        a leapseconds text kernel file that is missing the ID word,
-
