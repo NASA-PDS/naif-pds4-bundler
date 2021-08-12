@@ -669,7 +669,7 @@ class KernelList(List):
                     if '.tm' in ker:
                         logging.info(f'     {ker} not present as expected.')
                     else:
-                        logging.error(f'     {ker} not present. Kernel might '
+                        logging.warning(f'     {ker} not present. Kernel might '
                                       f'be mapped.')
                         all_present = False
             if all_present:
@@ -822,7 +822,7 @@ class KernelList(List):
                 error = 'List does not have the same number of entries'
                 logging.critical(f'{error} for:')
                 logging.critical(f'   FILE             ({num_file})')
-                logging.crtical(f'   MAKLABEL_OPTIONS ({num_opti})')
+                logging.critical(f'   MAKLABEL_OPTIONS ({num_opti})')
                 logging.critical(f'   DESCRIPTION      ({num_desc})')
                 logging.critical('')
 
