@@ -2591,9 +2591,9 @@ class InventoryProduct(Product):
                     self.version = 1
                     self.path_current = ''
 
-                    logging.error(f'-- Previous inventory file not found.')
-                    logging.error(f'-- Default to version {self.version}.')
-                    logging.error(f'-- The version of this file might be '
+                    logging.warning(f'-- Previous inventory file not found.')
+                    logging.warning(f'-- Default to version {self.version}.')
+                    logging.warning(f'-- The version of this file might be '
                                   f'incorrect.')
 
             else:
@@ -3393,9 +3393,9 @@ class ChecksumProduct(Product):
                 self.version = 1
                 self.path_current = ''
 
-                logging.error(f'-- Previous checksum file not found.')
-                logging.error(f'-- Default to version {self.version}.')
-                logging.error(f'-- The version of this file might be '
+                logging.warning(f'-- Previous checksum file not found.')
+                logging.warning(f'-- Default to version {self.version}.')
+                logging.warning(f'-- The version of this file might be '
                               f'incorrect.')
 
         else:
