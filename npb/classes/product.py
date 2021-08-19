@@ -22,8 +22,6 @@ from npb.classes.label import BundlePDS4Label
 from npb.classes.object import Object
 from npb.classes.log import error_message
 from npb.utils.time import creation_time
-from npb.utils.time import creation_date
-from npb.utils.time import current_time
 from npb.utils.time import current_date
 from npb.utils.time import spk_coverage
 from npb.utils.time import ck_coverage
@@ -64,6 +62,11 @@ class Product(object):
             
         self.creation_date = self.creation_time.split('T')[0]
         self.extension = self.path.split(os.sep)[-1].split('.')[-1]
+        
+        if self.new_product:
+            self.setup.add_file(
+                self.path.split(f'{self.setup.mission_acronym}_spice/')[-1])
+            
 
     def get_observer_and_target(self):
         '''
@@ -434,7 +437,7 @@ class SpiceKernelProduct(Product):
 
         if not mapping:
             error_message(f'{self.name} does not have '
-                          f'mapping on {kernel_list_file}')
+                          f'mapping on {kernel_list_file}', setup=self.setup)
 
         return mapping
     
@@ -460,7 +463,7 @@ class SpiceKernelProduct(Product):
             #
             if (arch != 'DAF') and (arch != 'DAS'):
                 error_message(f'Kernel {object.name} architecture {arch} '
-                              f'is invalid')
+                              f'is invalid', setup=object.setup)
             else:
                 pass
         elif object.file_format == 'Character':
@@ -472,11 +475,12 @@ class SpiceKernelProduct(Product):
             #
             if arch != 'KPL':
                 error_message(f'Kernel {object.name} architecture {arch} '
-                              f'is invalid')
+                              f'is invalid', setup=object.setup)
                 
         if type != object.type.upper():
             error_message(f'Kernel {object.name} type {object.type.upper()} '
-                          f'is not the one expected: {type}')
+                          f'is not the one expected: {type}',
+                          setup=object.setup)
             
         return
 
@@ -547,7 +551,7 @@ class MetaKernelProduct(Product):
 
             if not hasattr(self, 'mk_setup'):
                 error_message(f'Meta-kernel {self.name} has not been matched '
-                              f'in configuration')
+                              f'in configuration', setup=self.setup)
 
         if setup.pds_version == '3':
             self.collection_path = setup.staging_directory + os.sep + \
@@ -639,6 +643,8 @@ class MetaKernelProduct(Product):
             shutil.copy2(self.path, f'{product_path}{self.name}')
             self.path = f'{product_path}{self.name}'
 
+        self.new_product = True
+        
         #
         # Following the product generation we read the kernels again to
         # include all the kernels present.
@@ -846,7 +852,8 @@ class MetaKernelProduct(Product):
                                                   'to write description. '
                                                   'Remember a metacharacter '
                                                   'cannot start or finish '
-                                                  'a kernel pattern')
+                                                  'a kernel pattern',
+                                                  setup=self.setup)
                             else:
                                 #
                                 # For non-kernels the value is based on the
@@ -866,7 +873,7 @@ class MetaKernelProduct(Product):
                                 if isinstance(value, list):
                                     error_message('-- Kernel description '
                                                   'could not be updated with '
-                                                  'pattern')
+                                                  'pattern', setup=self.setup)
 
                             description = description.replace('$' + el, value)
 
@@ -876,7 +883,8 @@ class MetaKernelProduct(Product):
 
         if not description:
             error_message(f'{self.name} does not have '
-                          f'a description on configuration file')
+                          f'a description on configuration file',
+                          setup=self.setup)
 
         return description
 
@@ -1212,7 +1220,7 @@ class MetaKernelProduct(Product):
         if (ker_num_fr != ker_num_mk):
             spiceypy.kclear()
             error_message('Number of kernels loaded is not equal to kernels '
-                          'present in meta-kernel')
+                          'present in meta-kernel', setup=self.setup)
 
         spiceypy.kclear()
 
@@ -1286,7 +1294,7 @@ class MetaKernelProduct(Product):
                             else:
                                 error_message('Kernel used to determine '
                                               'coverage is not a SPK or CK '
-                                              'kernel')
+                                              'kernel', setup=self.setup)
 
                             start_times.append(
                                 spiceypy.utc2et(start_time[:-1]))
@@ -1380,7 +1388,7 @@ class OrbnumFileProduct(Product):
 
         if not hasattr(self, '_orbnum_type'):
             error_message("The orbnum file does not match any type "
-                          "described in the configuration")
+                          "described in the configuration", setup=self.setup)
 
         self.lid = self.__product_lid()
         self.vid = self.__product_vid()
@@ -1573,11 +1581,11 @@ class OrbnumFileProduct(Product):
         #
         if (not 'Event' in header[0]) and (not 'Node' in header[0]):
             error_message(f"The header of the orbnum file {self.name} is not "
-                          f"as expected" )
+                          f"as expected", setup=self.setup)
 
         if not '===' in header[1]:
             error_message(f"The header of the orbnum file {self.name} is not "
-                          f"as expected" )
+                          f"as expected", setup=self.setup)
 
         #
         # Set the fixed record length from the header.
@@ -1637,7 +1645,7 @@ class OrbnumFileProduct(Product):
                         break
 
         if not sample_record:
-            error_message("The orbnum file has no records")
+            error_message("The orbnum file has no records", setup=self.setup)
 
         sample_record = self.__utc_blanks_to_dashes(sample_record)
 
@@ -1701,7 +1709,7 @@ class OrbnumFileProduct(Product):
                                             f'is followed by {orbit_number}.')
                         if not line.strip():
                             error_message(f'Orbnum record number {line} '
-                                          f'is blank.')
+                                          f'is blank.', setup=self.setup)
                         elif line.strip() and \
                                 records_length != self.record_fixed_length:
                             logging.warning(f'-- Orbit number {orbit_number} '
@@ -1864,7 +1872,8 @@ class OrbnumFileProduct(Product):
                     self._event_detection_key = 'D-NODE'
 
         if not hasattr(self, '_event_detection_key'):
-            error_message('orbnum event detection key is incorrect')
+            error_message('orbnum event detection key is incorrect',
+                          setup=self.setup)
 
         return None
 
@@ -2616,6 +2625,7 @@ class InventoryProduct(Product):
         # Kernels are already generated products but Inventories are not.
         #
         self.write_product()
+        self.new_product = True
         if setup.pds_version == '4':
             Product.__init__(self)
             self.label = InventoryPDS4Label(setup, collection, self)
@@ -2911,7 +2921,7 @@ class InventoryProduct(Product):
         # The Perl script returns an error message if there is a problem.
         #
         if ('ERROR' in text) or ('command not found' in text):
-            error_message(text)
+            error_message(text, setup=self.setup)
 
         #
         # Move index files to appropriate directory
@@ -3024,7 +3034,7 @@ class SpicedsProduct(object):
                                 'file found.')
                 if not spiceds:
                     error_message('spiceds not provided and not available '
-                                  'from previous releases')
+                                  'from previous releases', setup=self.setup)
                 self.version = 1
                 self.latest_spiceds = ''
         else:
@@ -3032,7 +3042,7 @@ class SpicedsProduct(object):
             self.latest_spiceds = ''
             if not spiceds:
                 error_message('spiceds not provided and not available from '
-                              'previous releases')
+                              'previous releases', setup=self.setup)
 
         self.name = 'spiceds_v{0:0=3d}.html'.format(self.version)
         self.path = setup.staging_directory + os.sep + collection.name \
@@ -3061,6 +3071,7 @@ class SpicedsProduct(object):
         #
         # Kernels are already generated products but Inventories are not.
         #
+        self.new_product = True
         Product.__init__(self)
 
         #
@@ -3216,9 +3227,11 @@ class ReadmeProduct(Product):
         if os.path.exists(path):
             self.path = path
             logging.info('-- Readme file already exists in final area.')
+            self.new_product = False
         else:
             logging.info('-- Generating readme file...')
             self.write_product()
+            self.new_product = True
 
             #
             # If the product is generated we define a checksum attribute for
@@ -3345,6 +3358,7 @@ class ChecksumProduct(Product):
         # Call the constructor of the parent class to fill the common
         # attributes.
         #
+        self.new_product = True
         Product.__init__(self)
 
         #
@@ -3425,13 +3439,14 @@ class ChecksumProduct(Product):
                         (md5, filename) = line.split()
                     except:
                         error_message(f'Checksum file {self.path_current} is '
-                                      f'corrupted.')
+                                      f'corrupted.', setup=self.setup)
 
                     if ( len(md5) == 32 ):
                         self.md5_dict[md5] = filename
                     else:
                         error_message(f'Checksum file {self.path_current} '
-                                      f'corrupted entry: {line}')
+                                      f'corrupted entry: {line}', 
+                                      setup=self.setup)
         
         self.new_product = True
 
@@ -3591,8 +3606,8 @@ class ChecksumProduct(Product):
             
         if not stop_times:
             logging.error(f'-- Stop time set to '
-                          f'mission start time: {self.setup.mission_start}')
-            start_times.append(self.setup.mission_start)
+                          f'mission finish time: {self.setup.mission_finish}')
+            stop_times.append(self.setup.mission_finish)
 
         start_times.sort()
         stop_times.sort()
