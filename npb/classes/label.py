@@ -49,7 +49,7 @@ class PDSLabel(object):
             self.END_OF_LINE =  'Line-Feed'
         else:
             error_message('End of Line provided via configuration is not '
-                          'CRLF nor LF')
+                          'CRLF nor LF', setup=self.setup)
 
         self.BUNDLE_DESCRIPTION_LID = \
             f'{setup.logical_identifier}:document:spiceds'
@@ -140,7 +140,8 @@ class PDSLabel(object):
                         ob_lid = product['lidvid'].split('::')[0]
                 
                 if not ob_lid:
-                    error_message(f'LID has not been obtained for observer {ob}')
+                    error_message(f'LID has not been obtained for observer '
+                                  f'{ob}', setup=self.setup)
 
                 obs_list_for_label += \
                     f'      <Observing_System_Component>{eol}' + \
@@ -155,7 +156,8 @@ class PDSLabel(object):
                     f'      </Observing_System_Component>{eol}'
 
         if not obs_list_for_label:
-            error_message(f'{self.product.name} observers not defined')
+            error_message(f'{self.product.name} observers not defined',
+                          setup=self.setup)
         obs_list_for_label = obs_list_for_label.rstrip() + eol
 
         return obs_list_for_label
@@ -198,7 +200,8 @@ class PDSLabel(object):
                     f'    </Target_Identification>{eol}'
 
         if not tar_list_for_label:
-            error_message(f'{self.product.name} targets not defined')
+            error_message(f'{self.product.name} targets not defined',
+                          setup=self.setup)
         tar_list_for_label = tar_list_for_label.rstrip() + eol
 
         return tar_list_for_label
@@ -250,6 +253,11 @@ class PDSLabel(object):
             f'-- Created {label_name.split(f"{stag_dir}{os.sep}")[-1]}')
         if not self.setup.args.silent and not self.setup.args.verbose:
             print(f'   * Created {label_name.split(f"{stag_dir}{os.sep}")[-1]}.')
+
+        #
+        # Add label to the list of generated files.
+        #
+        self.setup.add_file(label_name.split(f"{stag_dir}{os.sep}")[-1])
 
         if self.setup.diff:
             self.compare()
