@@ -26,7 +26,7 @@ class List(object):
 
 class KernelList(List):
 
-    def __init__(self, setup, plan):
+    def __init__(self, setup):
 
         line = f'Step {setup.step} - Kernel List generation'
         logging.info('')
@@ -54,17 +54,6 @@ class KernelList(List):
 
         self.template = f'{setup.root_dir}/templates/template_kernel_list.txt'
         self.read_config()
-
-        #
-        # If a plan file is provided it is processed otherwise a plan is
-        # generated from the kernels directory.
-        #
-        if plan:
-            self.kernel_list = self.read_plan(plan)
-        else:
-            self.kernel_list = self.write_plan()
-
-        self.write_list()
 
         return
 
@@ -151,7 +140,9 @@ class KernelList(List):
 
         logging.info("")
 
-        return kernels
+        self.kernel_list = kernels
+
+        return
 
     def write_plan(self):
 
@@ -281,7 +272,10 @@ class KernelList(List):
             logging.info("")
             logging.warning(f'-- No kernels will be added to the increment.')
             logging.info("")
-            return kernels
+
+            self.kernel_list = kernels
+        
+            return
 
         logging.info("")
         logging.info(f'-- Reporting the products in Plan:')
@@ -294,7 +288,9 @@ class KernelList(List):
 
         logging.info("")
 
-        return kernels
+        self.kernel_list = kernels
+
+        return
 
     #
     # The list is not an archival product, therefore it is not generated
@@ -463,8 +459,7 @@ class KernelList(List):
                                             options.replace(
                                                 '$' + 'PHASES',
                                                 self.setup.phases
-                                                ['phase']['@name'])
-                                                
+                                                ['phase']['@name'])                        
 
                         #
                         # Reformat the description, given that format of the
