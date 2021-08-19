@@ -49,7 +49,6 @@ from .files import match_patterns
 from .time import current_time
 from .time import current_date
 from .time import creation_time
-from .time import creation_date
 from .time import spk_coverage
 from .time import ck_coverage
 from .time import pck_coverage
