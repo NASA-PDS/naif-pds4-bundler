@@ -95,28 +95,13 @@ def creation_time(format='infomod2'):
     return creation_time
 
 
-def creation_date(path):
-    """
-    Returns the creation date of a given file in %Y-%m-%d format.
-
-    :param path: File path
-    :return:
-    :rtype:
-    """
-    t = datetime.datetime.now()
-    date = datetime.datetime.strftime(timestamp, '%m %d, %Y')
-
-    creation_date = calendar.month_name[int(date[0:2])] + date[2:]
-
-    return creation_date
-
-
-def spk_coverage(path, date_format='infomod2'):
+def spk_coverage(path, main_name='', date_format='infomod2'):
     """
     Returns the coverage of a SPK file. The function assumes that the
     appropriate kernels have already been loaded.
 
     :param path: File path
+    :param main_id: Mission observer ID.
     :param date_format: Date format, the default is the one
                         provided by the PDS4 Information Model 2.0 that
                         rounds the milliseconds and then implements an
@@ -131,17 +116,33 @@ def spk_coverage(path, date_format='infomod2'):
     """
     ids = spiceypy.spkobj(path)
 
-    MAXIV = 1000
-    WINSIZ = 2*MAXIV
-    TIMLEN = 62
+    maxiv = 1000
+    winsiz = 2*maxiv
 
-    coverage = spiceypy.support_types.SPICEDOUBLE_CELL(WINSIZ)
+    coverage = spiceypy.support_types.SPICEDOUBLE_CELL(winsiz)
 
     start_points_list = list()
     end_points_list = list()
+    
+    #
+    # If one of the IDs of the kernel is the ID that corresponds to the SPICE
+    # acronym of the mission name. 
+    #
+    if main_name:
+        #
+        # Determine the "Main" ID of the mission, using the 
+        # spice_name parameter of the bundle_parameters section of the 
+        # configuration.
+        #
+        main_id = spiceypy.bodn2c(main_name)
+        
+        for id in ids:
+            if id == main_id:
+                ids = [main_id]
+                break
 
     for id in ids:
-
+        
         spiceypy.scard, 0, coverage
         spiceypy.spkcov(spk=path, idcode=id, cover=coverage)
 
