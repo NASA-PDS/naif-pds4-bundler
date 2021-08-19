@@ -9,7 +9,7 @@
 The MAVEN SPICE Data Archive
 ========================================================================
 
-   Last update: August 11, 2021
+   Last update: August 18, 2021
 
 <A NAME="Introduction"></A>
 Introduction
@@ -116,11 +116,14 @@ Errata
       current release these gaps are present on 2014-12-08, 2014-12-26,
       2015-03-03, 2015-06-30, 2021-01-14 and 2021-01-15.
 
-   7. The XML labels of the checksum tables have the reference_type attribute
-      of the Internal_Reference association within the Reference_List class 
-      of the Context_Area class set to "ancillary_to_data". The appropriate 
-      value: "ancillary_to_document", was only added to the PDS4 information 
-      model in version 1.14.0.0.
+   7. The XML labels of the ancillary products have the reference_type
+      attribute of the Internal_Reference association within the
+      Reference_List class of the Context_Area class pointing to the latest
+      archive description document set to "ancillary_to_data" which is not
+      correct. The correct value "ancillary_to_document" could not be used
+      in these labels because it is not available in the PDS4 information
+      model (IM) 1.5.0.0 used by this archive. This value was added to IM
+      only in the version 1.14.0.0.    
     
    8. The Miscellaneous collection was only added to the bundle in the 
       release 26 (August 2021) and therefore the ORBNUM tables, checksum 
@@ -133,7 +136,7 @@ Errata
 <p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
 <A NAME="Archive Contents"></A>
 Archive Contents
-===============
+================
 
    Files in this archive are organized into a set of subdirectories
    below the top-level directory. The following diagram shows the
@@ -617,7 +620,6 @@ SCLK Files
                          version supersedes all similarly named
                          files with earlier versions.
 
-
    The most detailed description of the data in a text SCLK file is
    provided in metadata included inside the description area of the
    file. This information can be viewed using any text editor program.
@@ -654,7 +656,6 @@ FK Files
                          might decide decide to use an earlier version
                          if trying to be consistent with some earlier
                          computed results.
-
 
    The most detailed description of the data in a text FK file is
    provided in metadata included inside the description area of the

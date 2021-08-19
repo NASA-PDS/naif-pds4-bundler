@@ -85,6 +85,15 @@ Errata
       since NAIF strives to make bundle description document format and
       style consistent across all archives, this document continues
       to exist in this archive as an HTML document.
+    
+   2. The XML labels of the ancillary products have the reference_type
+      attribute of the Internal_Reference association within the
+      Reference_List class of the Context_Area class pointing to the latest
+      archive description document set to "ancillary_to_data" which is not
+      correct. The correct value "ancillary_to_document" could not be used
+      in these labels because it is not available in the PDS4 information
+      model (IM) 1.5.0.0 used by this archive. This value was added to IM
+      only in the version 1.14.0.0.        
 
 <p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
 <A NAME="Archive Contents"></A>
