@@ -7,7 +7,3 @@ data set.
 
 The pipeline is constructed by the orchestration of a family of
 classes that can also be used independently.
-
-In order to facilitate its usage the pipeline can be run in an
-interactive mode that will allow the operator to check the
-validity and/or correctness of each step of the process.
