@@ -520,7 +520,7 @@ class SpiceKernelsCollection(Collection):
             for product in non_present_products:
                 logging.error(f'   {product}')
                 error_message(f'Some products from the list are not'
-                              f' present.')
+                              f' present.', setup=self.setup)
                 
         else:
             logging.info('   OK')
@@ -550,7 +550,8 @@ class SpiceKernelsCollection(Collection):
                 logging.error(f'   {product}')
                 # TODO: This IF statement goes after implementing PDS3 labeling.
                 if self.setup.pds_version == '4':
-                    error_message(f'Some products have not been labeled')
+                    error_message(f'Some products have not been labeled',
+                                  setup=self.setup)
 
         else:
             logging.info('   OK')
