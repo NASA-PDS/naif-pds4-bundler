@@ -92,7 +92,7 @@ class TestXML(TestCase):
         #
         setup.release = '008'
 
-        KernelList(setup, args.plan)
+        KernelList(setup)
 
     def test_xml_reader_mk(self):
         '''
