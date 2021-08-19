@@ -91,7 +91,7 @@
             <description>SPICE text PCK file containing constants from the $REPORT report, created by NAIF, JPL.
             </description>
             <patterns>
-                <REPORT value="pck0010.tpc">IAU 2009</REPORT>
+                <REPORT value="pck00010.tpc">IAU 2009</REPORT>
             </patterns>
         </kernel>
         <kernel pattern="bennu_v[0-9][0-9].tpc">
@@ -165,10 +165,17 @@
             <mklabel_options></mklabel_options>
             <description>SPICE SPK file containing relative locations of selected ORX structures and science instruments, created by NAIF, JPL.</description>
         </kernel>
-        <kernel pattern="orx_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_od[0-9][0-9][0-9].*_v[0-9].bsp">
+        <kernel pattern="orx_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_od[0-9][0-9][0-9]_v[0-9].bsp">
             <mklabel_options></mklabel_options>
-            <description>SPICE SPK file containing reconstructed trajectory of the ORX spacecraft, created by FDS, KinetX.</description>
-        </kernel>
+            <description>SPICE SPK file containing reconstructed trajectory of the ORX spacecraft, created by FDS, KinetX. The original name of this file was The original name of this file was $FILE.</description>
+            <patterns>
+                <FILE value="orx_200616_200811_200727_od269_v1.bsp">orx_200616_200811_200727_od269_v1.bsp</FILE>
+                <FILE value="orx_200709_200814_200814_od276_v1.bsp">orx_200709_200814_200814_od276_v1.bsp</FILE>
+                <FILE value="orx_200811_200908_200828_od280_v1.bsp">orx_200811_200908_200828_od280_v1.bsp</FILE>
+                <FILE value="orx_201020_201109_201020_od294_v1.bsp">orx_201020_201115_201109_od294-N_postbackaway_v1.bsp</FILE>
+                <FILE value="orx_210101_210330_210310_od302_v1.bsp">orx_210101_210330_210310_od302-N-PTO3-P-PTO4_v1.bsp</FILE>
+            </patterns>
+        </kernel>        
         <kernel pattern="orx_struct_mapcam_v[0-9][0-9].bc">
             <mklabel_options></mklabel_options>
             <description>SPICE CK file containing reconstructed time-variable alignment of the MAPCAM instrument relative to the ORX spacecraft, created by NAIF, JPL.</description>
@@ -184,12 +191,21 @@
         <kernel pattern="orx_ola_[0-9][0-9][0-9][0-9][0-9][0-9]_scil2id[0-9][0-9][0-9][0-9][0-9].bc">
             <mapping>$DATE_ola_scil2id$VERSION.bc</mapping>
             <mklabel_options></mklabel_options>
-            <description>SPICE CK file containing reconstructed orientation of the ORX OLA instrument internal mirror, created by the OLA Team, JHU/APL. The original name of this file was $ORIGNAME."</description>
+            <description>SPICE CK file containing reconstructed orientation of the ORX OLA instrument internal mirror, created by the OLA Team, JHU/APL. The original name of this file was $DATE_ola_scil2id$VERSION.bc.</description>
             <patterns>
                 <VERSION pattern="KERNEL">[0-9][0-9][0-9][0-9][0-9][0-9]_ola_scil2id$VERSION.bc</VERSION>
                 <DATE pattern="KERNEL">$DATE_ola_scil2id[0-9][0-9][0-9][0-9][0-9].bc</DATE>                
             </patterns>
         </kernel>
+        <kernel pattern="orx_ola_[0-9][0-9][0-9][0-9][0-9][0-9]_scil2id[0-9][0-9][0-9][0-9][0-9]_v02.bc">
+            <mapping>$DATE_ola_scil2id$VERSION.bc</mapping>
+            <mklabel_options></mklabel_options>
+            <description>SPICE CK file containing reconstructed orientation of the ORX OLA instrument internal mirror, created by the OLA Team, JHU/APL. The original name of this file was $DATE_ola_scil2id$VERSION.bc.</description>
+            <patterns>
+                <VERSION pattern="KERNEL">[0-9][0-9][0-9][0-9][0-9][0-9]_ola_scil2id$VERSION.bc</VERSION>
+                <DATE pattern="KERNEL">$DATE_ola_scil2id[0-9][0-9][0-9][0-9][0-9].bc</DATE>                
+            </patterns>
+        </kernel>        
         <kernel pattern="orx_p_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_od[0-9][0-9][0-9]_v[0-9][0-9].bc">
             <mklabel_options></mklabel_options>
             <description>SPICE CK file containing predicted orientation of the ORX spacecraft and Solar Arrays (SA), created by NAIF, JPL from predicted data provided by the Spacecraft Team, LMSS.</description>
