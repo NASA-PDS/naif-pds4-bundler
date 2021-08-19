@@ -299,7 +299,8 @@ class SpiceKernelProduct(Product):
     def __coverage(self):
         if self.type.lower() == 'spk':
             (self.start_time, self.stop_time) = \
-                spk_coverage(self.path, date_format=self.setup.date_format)
+                spk_coverage(self.path, main_name=self.setup.spice_name, 
+                             date_format=self.setup.date_format)
         elif self.type.lower() == 'ck':
             (self.start_time, self.stop_time) = \
                 ck_coverage(self.path, date_format=self.setup.date_format)
@@ -1288,7 +1289,8 @@ class MetaKernelProduct(Product):
 
                         try:
                             if extension2type(kernel) == 'spk':
-                                (start_time, stop_time) = spk_coverage(path)
+                                (start_time, stop_time) = spk_coverage(path,
+                                                main_name=self.setup.spice_name)
                             elif extension2type(kernel) == 'ck':
                                 (start_time, stop_time) = ck_coverage(path)
                             else:
@@ -2448,7 +2450,7 @@ class OrbnumFileProduct(Product):
                     # Kernel provided by the user and directly available.
                     #
                     (start_time, stop_time) = spk_coverage(coverage_kernel,
-                        date_format='maklabel')
+                        main_name=self.setup.spice_name, date_format='maklabel')
 
                     #
                     # If the XML tag has a cutoff attribute, apply the cutoff.
