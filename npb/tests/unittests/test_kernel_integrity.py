@@ -60,6 +60,7 @@ class TestKernelIntegrity(TestCase):
         test_kernel.name = 'test.tf'
         test_kernel.type = 'FK'
         test_kernel.file_format = 'Character'
+        test_kernel.setup = False
 
         #
         # Test sub-case 1: Correct text kernel architecture.
@@ -111,6 +112,7 @@ class TestKernelIntegrity(TestCase):
         test_kernel.name = 'insight_ida_enc_200829_201220_v1.bc'
         test_kernel.type = 'CK'
         test_kernel.file_format = 'Binary'
+        test_kernel.setup = False
 
         #
         # Test sub-case 1: Correct text kernel architecture.
