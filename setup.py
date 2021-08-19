@@ -52,12 +52,12 @@ setup(
             #   3 - Alpha
             #   4 - Beta
             #   5 - Production/Stable
-            'Development Status :: 3 - Alpha',
+            'Development Status :: 4 - Beta',
             'Intended Audience :: SPICE kernels producers',
             'Topic :: Geometry Pipeline :: Planetary Science :: Geometry Computations',
-            'License :: OSI Approved :: MIT License',
+            'License :: OSI Approved :: Apache License',
             'Programming Language :: Python :: 3',
-            'Programming Language :: Python :: 3.5',
+            'Programming Language :: Python :: 3.8',
         ],
 
         #
@@ -84,6 +84,9 @@ setup(
         # Scripts
         #
         entry_points={
-            'console_scripts': ['naif-pds4-bundle=npb.main:main']}
+            'console_scripts': ['naif-pds4-bundle=npb.main:main',
+                                'NAIF-PDS4-BUNDLE=npb.main:main'
+                                'npb=npb.main:main',
+                                'NPB=npb.main:main']}
 
       )
