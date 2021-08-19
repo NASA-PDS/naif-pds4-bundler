@@ -290,10 +290,10 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
     # If a plan file is provided it is processed otherwise a plan is
     # generated from the kernels directory.
     #
-    if not plan:
+    if not args.plan:
         list.write_plan()
     else:
-        list.read_plan(plan)
+        list.read_plan(args.plan)
         
     #
     # If the pipeline is running to clean-up a previous run, the action
