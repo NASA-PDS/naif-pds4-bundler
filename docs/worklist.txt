@@ -3,6 +3,25 @@ snaif-pds4-bundle worklist by MCS/NAIF, updated 5 May, 2021
 
 Work List:
 
+  URGENT:
+  
+  -- Bug in coverage determination for SPKs and CKs when multiple bodies 
+     are present: the body used should be the SPICE ID of the appropriate one.
+     (Bug found in M2020).
+     
+     So far it has been fixed for SPKs, but not yet for CKs, it is a bit
+     unknown if applicable and if it is something that should be sorted out
+     via configuration.
+     
+     Implement tests for failed main ID for SPKs.
+     
+  -- Bug in list generation from kernels found with multiple instances of 
+     m2020_v*.tf versions. 
+     
+  -- Issue with the generation of file list for a failed run.
+ 
+  LATER:   
+   
   -- Agreed to try to enhance the MK generation with whitespaces
      for selected kernels of the same type.
 
