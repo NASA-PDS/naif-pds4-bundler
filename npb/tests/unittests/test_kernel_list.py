@@ -1,7 +1,6 @@
 import os
 import shutil
 import unittest
-
 from unittest import TestCase
 from npb.main import main
 
@@ -35,8 +34,9 @@ class TestKernelList(TestCase):
         '''
         unittest.TestCase.setUp(self)
         print(f"    * {self._testMethodName}")
-        
-        dirs = ['working', 'staging', 'final', 'kernels']
+
+        dirs = ['working', 'staging', 'final', 'kernels', 'insight', 'maven',
+                'mars2020']
         for dir in dirs:
             os.mkdir(dir)
 
@@ -45,9 +45,9 @@ class TestKernelList(TestCase):
         This method will be executed after each test function.
         '''
         unittest.TestCase.tearDown(self)
-        
-        dirs = ['working', 'staging', 'final', 'kernels', 'insight', 
-                'maven', 'mars2020']
+
+        dirs = ['working', 'staging', 'final', 'kernels', 'insight', 'maven',
+                'mars2020']
         for dir in dirs:
             shutil.rmtree(dir, ignore_errors=True)
             
@@ -121,8 +121,6 @@ class TestKernelList(TestCase):
         shutil.copy2('../data/insight_release_07.kernel_list', 
                      'working/insight_release_07.kernel_list')
         
-        os.mkdir('insight')
-        
         main(config, plan, faucet, silent=self.silent)
 
         new_file = ''
@@ -147,8 +145,6 @@ class TestKernelList(TestCase):
         config = '../config/maven.xml'
         plan   = '../data/maven_release_24.plan'
         faucet = 'list'
-
-        os.mkdir('maven')
 
         main(config, plan, faucet, silent=self.silent)
 
@@ -176,12 +172,10 @@ class TestKernelList(TestCase):
         plan   = '../data/mars2020_release_01.plan'
         faucet = 'list'
 
-        os.mkdir('mars2020')
-
         main(config, plan, faucet=faucet, silent=True)
 
         new_file = ''
-        with open('../data/mars2020_release_01.kernel_list', 'r') as f:
+        with open('working/mars2020_release_01.kernel_list', 'r') as f:
             for line in f:
                 new_file += line
 
@@ -191,6 +185,7 @@ class TestKernelList(TestCase):
                 old_file += line
 
         self.assertEqual(old_file.split('\n')[7:],new_file.split('\n')[7:])
+        
 
 if __name__ == '__main__':
     unittest.main()
