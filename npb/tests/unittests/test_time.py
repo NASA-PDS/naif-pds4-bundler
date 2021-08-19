@@ -3,6 +3,7 @@ import spiceypy
 import unittest
 from unittest import TestCase
 from npb.utils.time import dsk_coverage
+from npb.utils.time import spk_coverage
 
 class TestTime(TestCase):
 
@@ -46,6 +47,18 @@ class TestTime(TestCase):
                           stop_time_cal), 
                          ('1950-01-01T00:00:00.001Z', 
                           '2049-12-31T23:59:58.999Z'))
+
+    def test_spk_coverage(self):
+
+        spk_file = '../data/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp'
+        spiceypy.furnsh('../data/kernels/fk/m2020_v04.tf')
+        [start_time_cal, stop_time_cal] = \
+            spk_coverage(spk_file, main_name='M2020')
+
+        self.assertEqual((start_time_cal,
+                          stop_time_cal),
+                         ('2021-02-18T21:52:40.482Z', 
+                          '2021-05-21T15:47:07.765Z'))
 
 if __name__ == '__main__':
 
