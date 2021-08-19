@@ -120,7 +120,7 @@ class Log(object):
             print('')
 
         #
-        # Rename the log file according to the version
+        # Rename the log file according to the version.
         #
         if self.log_file:
             shutil.move(
@@ -129,21 +129,32 @@ class Log(object):
                                       f'{int(self.setup.release):02d}'))
 
         #
+        # Generate the file list.
+        #
+        self.setup.write_file_list()
+
+        #
         # Clear the kernel pool
         #
         spiceypy.kclear()
 
         return
 
-
-def error_message(message):
+def error_message(message, setup=False):
     """
 
     :param message:
     """
     error = f'{message}.'
     logging.error(f'-- {message}.')
-
+    
+    #
+    # If files have been generated in the staging are and/or transfered
+    # to the final area, generate the file list for the pipeline execution.
+    #
+    if setup:
+        setup.write_file_list()
+        
     spiceypy.kclear()
 
     raise RuntimeError(error)
