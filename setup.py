@@ -85,7 +85,7 @@ setup(
         #
         entry_points={
             'console_scripts': ['naif-pds4-bundle=npb.main:main',
-                                'NAIF-PDS4-BUNDLE=npb.main:main'
+                                'NAIF-PDS4-BUNDLE=npb.main:main',
                                 'npb=npb.main:main',
                                 'NPB=npb.main:main']}
 
