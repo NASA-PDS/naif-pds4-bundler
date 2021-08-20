@@ -24,10 +24,10 @@
     <!-- =========================== -->
     <bundle_parameters>
         <producer_name>Marc Costa Sitja</producer_name>
-        <author_list>Semenov B. V.; Costa Sitja M.</author_list>
+        <author_list>Costa Sitja M.; Semenov B. V.; Barnes M. J.</author_list>
         <institution>NAIF/JPL</institution>        
         <doi>10.17189/1522854</doi>
-        <spiceds>../data/spiceds_m2020.html</spiceds>
+        <spiceds>../data/spiceds_mars2020.html</spiceds>
         <spice_name>M2020</spice_name>
         <readme>
             <overview>

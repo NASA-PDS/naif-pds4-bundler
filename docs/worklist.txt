@@ -3,6 +3,10 @@ snaif-pds4-bundle worklist by MCS/NAIF, updated 5 May, 2021
 
 Work List:
 
+  DOING:
+  
+  -- Implement test to figure out why second coverage kernel is not being used.
+
   URGENT:
   
   -- Bug in coverage determination for SPKs and CKs when multiple bodies 
@@ -19,6 +23,9 @@ Work List:
      m2020_v*.tf versions. 
      
   -- Issue with the generation of file list for a failed run.
+ 
+  -- Update the meta-kernel modification message and remove it from tests
+     with the debug argument.
  
   LATER:   
    
