@@ -1,5 +1,5 @@
-snaif-pds4-bundle worklist by MCS/NAIF, updated 5 May, 2021
-============================================================
+naif-pds4-bundle worklist by MCS/NAIF, updated 5 May, 2021
+==========================================================
 
 Work List:
 
@@ -20,7 +20,14 @@ Work List:
      Implement tests for failed main ID for SPKs.
      
   -- Bug in list generation from kernels found with multiple instances of 
-     m2020_v*.tf versions. 
+     m2020_v*.tf versions.
+     
+     Tests implemented here: test_pds4_mars2020_no_plan
+     
+  -- Important bug that prevents from using mapping kernels with multiple 
+     fields (for ORX).
+     
+     Tests implemented here: test_pds4_orex_list
  
   -- Update the meta-kernel modification message and remove it from tests
      with the debug argument.

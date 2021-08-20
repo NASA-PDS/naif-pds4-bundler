@@ -127,6 +127,7 @@ class TestPlan(TestCase):
         Basic test for M2020 kernel plan generation. This is a PDS4 Bundle.
         Implemented for the generation of the first M2020 release. List is 
         provided along with the kernels in the kernels directory.
+        #TODO: Fix this tests.
 
         """
         config = '../config/mars2020.xml'
