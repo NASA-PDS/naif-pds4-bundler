@@ -4,9 +4,9 @@ snaif-pds4-bundle worklist by MCS/NAIF, updated 5 May, 2021
 Work List:
 
   DOING:
+     
+  -- Issue with the generation of file list for a failed run.
   
-  -- Implement test to figure out why second coverage kernel is not being used.
-
   URGENT:
   
   -- Bug in coverage determination for SPKs and CKs when multiple bodies 
@@ -21,8 +21,6 @@ Work List:
      
   -- Bug in list generation from kernels found with multiple instances of 
      m2020_v*.tf versions. 
-     
-  -- Issue with the generation of file list for a failed run.
  
   -- Update the meta-kernel modification message and remove it from tests
      with the debug argument.
@@ -191,6 +189,10 @@ v0.10.2
      C        The ID words must be the first item in the file, and it
      C        should appear on a line by itself, e.g., suppose we have
      C        a leapseconds text kernel file that is missing the ID word,
+
+v0.11.0
+
+  -- Implement test to figure out why second coverage kernel is not being used.
 
 
 v1.0.0 - First 'public' release.

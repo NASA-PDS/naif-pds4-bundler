@@ -90,5 +90,48 @@ class TestClear(TestCase):
         main(config, plan, faucet, silent=self.silent, log=self.log, 
              clear='working/insight_release_08.file_list')
 
+    def test_insight_error(self):
+        '''
+        Test generation of product list when there is an error in the 
+        execution. Also test cleaning the failed run and running the pipleine
+        again. In addition, test an incorrect spice_name.
+
+        '''
+        config = f'../config/insight.xml'
+        wrong_config = 'working/insight.xml'
+
+        dirs = ['working', 'staging', 'insight']
+        for dir in dirs:
+            os.makedirs(dir, 0o766, exist_ok=True)
+
+        plan = '../data/insight_release_08.plan'
+
+        shutil.rmtree('insight')
+        shutil.copytree('../data/insight', 'insight')
+
+        try:
+            shutil.copytree('../data/kernels', 'kernels')
+        except:
+            pass
+
+
+        #
+        # Error of checksum validation.
+        #
+        with self.assertRaises(RuntimeError):
+            main(wrong_config, silent=self.silent, log=self.log)
+
+        #
+        # Remove the files from the prior run.
+        #
+        main(config, plan, 'plan', silent=self.silent, log=self.log,
+             clear='working/insight_release_08.file_list')
+
+        #
+        # Run the pipeline again.
+        #
+        main(config, plan, 'final', silent=self.silent, log=self.log)
+
+
 if __name__ == '__main__':
     unittest.main()
