@@ -11,6 +11,12 @@
         <schema_location>http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd
         </schema_location>
         <logical_identifier>urn:nasa:pds:orex.spice</logical_identifier>
+        <context_products>
+            <product name="(101955) Bennu">
+                <type>Asteroid</type>
+                <lidvid>urn:nasa:pds:context:target:asteroid.101955_bennu::1.1</lidvid>
+            </product>
+        </context_products>        
     </pds_parameters>
 
     <!-- =========================== -->
@@ -38,7 +44,7 @@
         <kernels_to_load>
             <lsk>naif[0-9][0-9][0-9][0-9].tls</lsk>
             <sclk>ORX_SCLKSCET.[0-9][0-9][0-9][0-9][0-9].tsc</sclk>
-            <fk>orx_v[0-9][0-9].tff</fk>
+            <fk>orx_v[0-9][0-9].tf</fk>
         </kernels_to_load>
         <date_format>maklabel</date_format>
         <end_of_line>CRLF</end_of_line>
@@ -48,11 +54,11 @@
     <!-- Mission Parameters          -->
     <!-- =========================== -->
     <mission_parameters>
-        <mission_acronym>orx</mission_acronym>
+        <mission_acronym>orex</mission_acronym>
         <mission_name>OSIRIS-REx</mission_name>
         <mission_start>2016-09-08T23:05:00Z</mission_start>
         <mission_finish>2050-01-01T00:00:00Z</mission_finish>
-        <observer>MAVEN</observer>
+        <observer>OSIRIS-REx</observer>
         <target>(101955) Bennu</target>
         <phases>
             <phase name="EXTENDED">
@@ -69,7 +75,7 @@
         <working_directory>working</working_directory>
         <kernels_directory>kernels</kernels_directory>
         <staging_directory>staging</staging_directory>
-        <final_directory>orx</final_directory>
+        <final_directory>orex</final_directory>
         <templates_directory></templates_directory>
     </directories>
 
@@ -157,10 +163,6 @@
                 <VERSION pattern="de430s.bsp">DE430</VERSION>
             </patterns>
         </kernel>
-        <kernel pattern="bennu_.*_v[0-9].bsp">
-            <mklabel_options></mklabel_options>
-            <description>SPICE SPK file containing ephemerides of asteroid (101955) Bennu, created by the OSIRIS-REx science team.</description>
-        </kernel>
         <kernel pattern="orx_struct_v[0-9][0-9].bsp">
             <mklabel_options></mklabel_options>
             <description>SPICE SPK file containing relative locations of selected ORX structures and science instruments, created by NAIF, JPL.</description>
@@ -222,52 +224,48 @@
             <mklabel_options></mklabel_options>
             <description>SPICE CK file containing reconstructed orientation of the ORX spacecraft, created by NAIF, JPL.</description>
         </kernel>
-        <kernel pattern="bennu_g_[0-9][0-9][0-9][0-9][0-9]mm_alt_obj_[0-9][0-9][0-9][0-9][ns][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds">
+        <kernel pattern="bennu_g_[0-9][0-9][0-9][0-9][0-9]mm_alt_obj_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds">
             <mapping>g_$RESOLUTIONmm_alt_obj_$REFERENCE_v$VERSION.bds</mapping>
             <mklabel_options></mklabel_options>
             <description>SPICE DSK file containing shape model data for the surface of asteroid (101955) Bennu, with Global coverage at $RESOLUTION meter resolution, ALT-based, version $VERSION,
-                created by the ORX Altimetry Working Group (AltWG). The original name of this file was $COVERAGE_$RESOLUTIONmm_alt_obj_$REFERENCE_v$VERSION.bds.</description>
+                created by the ORX Altimetry Working Group (AltWG). The original name of this file was g_$RESOLUTIONmm_alt_obj_$REFERENCE_v$VERSION.bds.</description>
             <patterns>
-                <COVERAGE pattern="KERNEL">g_$RESOLUTIONmm_alt_obj_$REFERENCE_v$VERSION.bds</COVERAGE>
-                <RESOLUTION pattern="KERNEL">g_$RESOLUTIONmm_alt_obj_$REFERENCE_v$VERSION.bds</RESOLUTION>
-                <REFERENCE pattern="KERNEL">g_$RESOLUTIONmm_alt_obj_$REFERENCE_v$VERSION.bds</REFERENCE>
-                <VERSION pattern="KERNEL">g_$RESOLUTIONmm_alt_obj_$REFERENCE_v$VERSION.bds</VERSION>
+                <RESOLUTION pattern="KERNEL">g_$RESOLUTIONmm_alt_obj_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds</RESOLUTION>
+                <REFERENCE pattern="KERNEL">g_[0-9][0-9][0-9][0-9][0-9]mm_alt_obj_$REFERENCE_v[0-9][0-9][0-9].bds</REFERENCE>
+                <VERSION pattern="KERNEL">g_[0-9][0-9][0-9][0-9][0-9]mm_alt_obj_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v$VERSION.bds</VERSION>
             </patterns>
         </kernel>
-        <kernel pattern="bennu_g_[0-9][0-9][0-9][0-9][0-9]mm_alt_ptm_[0-9][0-9][0-9][0-9][ns][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds">
+        <kernel pattern="bennu_g_[0-9][0-9][0-9][0-9][0-9]mm_alt_ptm_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds">
             <mapping>g_$RESOLUTIONmm_alt_ptm_$REFERENCE_v$VERSION.bds</mapping>
             <mklabel_options></mklabel_options>
             <description>SPICE DSK file containing shape model data for the surface of asteroid (101955) Bennu, with Global coverage at $RESOLUTION meter resolution, ALT-based using a Poisson method, version $VERSION,
-                created by the ORX Altimetry Working Group (AltWG). The original name of this file was $COVERAGE_$RESOLUTIONmm_alt_obj_$REFERENCE_v$VERSION.bds.</description>
+                created by the ORX Altimetry Working Group (AltWG). The original name of this file was g_$RESOLUTIONmm_alt_obj_$REFERENCE_v$VERSION.bds.</description>
             <patterns>
-                <COVERAGE pattern="KERNEL">g_$RESOLUTIONmm_alt_ptm_$REFERENCE_v$VERSION.bds</COVERAGE>
-                <RESOLUTION pattern="KERNEL">g_$RESOLUTIONmm_alt_ptm_$REFERENCE_v$VERSION.bds</RESOLUTION>
-                <REFERENCE pattern="KERNEL">g_$RESOLUTIONmm_alt_ptm_$REFERENCE_v$VERSION.bds</REFERENCE>
-                <VERSION pattern="KERNEL">g_$RESOLUTIONmm_alt_ptm_$REFERENCE_v$VERSION.bds</VERSION>
+                <RESOLUTION pattern="KERNEL">g_$RESOLUTIONmm_alt_ptm_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds</RESOLUTION>
+                <REFERENCE pattern="KERNEL">g_[0-9][0-9][0-9][0-9][0-9]mm_alt_ptm_$REFERENCE_v[0-9][0-9][0-9].bds</REFERENCE>
+                <VERSION pattern="KERNEL">g_[0-9][0-9][0-9][0-9][0-9]mm_alt_ptm_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v$VERSION.bds</VERSION>
             </patterns>
         </kernel>        
-        <kernel pattern="bennu_l_[0-9][0-9][0-9][0-9][0-9]mm_alt_dtm_[0-9][0-9][0-9][0-9][ns][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds">
+        <kernel pattern="bennu_l_[0-9][0-9][0-9][0-9][0-9]mm_alt_dtm_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds">
             <mapping>l_$RESOLUTIONmm_alt_dtm_$REFERENCE_v$VERSION.bds</mapping>
             <mklabel_options></mklabel_options>
             <description>SPICE DSK file containing shape model data for the surface of asteroid (101955) Bennu, with Local coverage at $RESOLUTION meter resolution, ALT-based, version $VERSION,
-                created by the ORX Altimetry Working Group (AltWG). The original name of this file was $COVERAGE_$RESOLUTIONmm_alt_dtm_$REFERENCE_v$VERSION.bds.</description>
+                created by the ORX Altimetry Working Group (AltWG). The original name of this file was l_$RESOLUTIONmm_alt_dtm_$REFERENCE_v$VERSION.bds.</description>
             <patterns>
-                <COVERAGE pattern="KERNEL">l_$RESOLUTIONmm_alt_dtm_$REFERENCE_v$VERSION.bds</COVERAGE>
-                <RESOLUTION pattern="KERNEL">l_$RESOLUTIONmm_alt_dtm_$REFERENCE_v$VERSION.bds</RESOLUTION>
-                <REFERENCE pattern="KERNEL">l_$RESOLUTIONmm_alt_dtm_$REFERENCE_v$VERSION.bds</REFERENCE>
-                <VERSION pattern="KERNEL">l_$RESOLUTIONmm_alt_dtm_$REFERENCE_v$VERSION.bds</VERSION>
+                <RESOLUTION pattern="KERNEL">l_$RESOLUTIONmm_alt_dtm_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds</RESOLUTION>
+                <REFERENCE pattern="KERNEL">l_[0-9][0-9][0-9][0-9][0-9]mm_alt_dtm_$REFERENCE_v[0-9][0-9][0-9].bds</REFERENCE>
+                <VERSION pattern="KERNEL">l_[0-9][0-9][0-9][0-9][0-9]mm_alt_dtm_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v$VERSION.bds</VERSION>
             </patterns>
         </kernel>
-        <kernel pattern="bennu_l_[0-9][0-9][0-9][0-9][0-9]mm_alt_ptm_[0-9][0-9][0-9][0-9][ns][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds">
+        <kernel pattern="bennu_l_[0-9][0-9][0-9][0-9][0-9]mm_alt_ptm_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds">
             <mapping>l_$RESOLUTIONmm_alt_ptm_$REFERENCE_v$VERSION.bds</mapping>
             <mklabel_options></mklabel_options>
             <description>SPICE DSK file containing shape model data for the surface of asteroid (101955) Bennu, with Local coverage at $RESOLUTION meter resolution, ALT-based using a Poisson method, version $VERSION,
-                created by the ORX Altimetry Working Group (AltWG). The original name of this file was $COVERAGE_$RESOLUTIONmm_alt_ptm_$REFERENCE_v$VERSION.bds.</description>
+                created by the ORX Altimetry Working Group (AltWG). The original name of this file was l_$RESOLUTIONmm_alt_ptm_$REFERENCE_v$VERSION.bds.</description>
             <patterns>
-                <COVERAGE pattern="KERNEL">l_$RESOLUTIONmm_alt_obj_$REFERENCE_v$VERSION.bds</COVERAGE>
-                <RESOLUTION pattern="KERNEL">l_$RESOLUTIONmm_alt_obj_$REFERENCE_v$VERSION.bds</RESOLUTION>
-                <REFERENCE pattern="KERNEL">l_$RESOLUTIONmm_alt_obj_$REFERENCE_v$VERSION.bds</REFERENCE>
-                <VERSION pattern="KERNEL">l_$RESOLUTIONmm_alt_obj_$REFERENCE_v$VERSION.bds</VERSION>
+                <RESOLUTION pattern="KERNEL">l_$RESOLUTIONmm_alt_ptm_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds</RESOLUTION>
+                <REFERENCE pattern="KERNEL">l_[0-9][0-9][0-9][0-9][0-9]mm_alt_ptm_$REFERENCE_v[0-9][0-9][0-9].bds</REFERENCE>
+                <VERSION pattern="KERNEL">l_[0-9][0-9][0-9][0-9][0-9]mm_alt_ptm_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v$VERSION.bds</VERSION>
             </patterns>
         </kernel>        
         <kernel pattern="orx_[0-9][0-9][0-9][0-9]_v[0-9][0-9].tm">
