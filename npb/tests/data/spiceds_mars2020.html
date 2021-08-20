@@ -9,7 +9,7 @@
 The Mars 2020 SPICE Data Archive
 ========================================================================
 
-   Last update: August 19, 2021
+   Last update: August 20, 2021
 
 <A NAME="Introduction"></A>
 Introduction
@@ -66,10 +66,10 @@ Overview
    System.
 
    This archive includes data covering from Mars 2020 launch, 2020-07-30,
-   through the end time of the latest Instrument Deployment Arm (IDA)
-   orientation file supplied in the archive. Until the end of the
-   spacecraft lifespan this archive will be accumulating with new data
-   added according to the project archiving plan.
+   through the end time of the latest rover surface traverse position SPK 
+   file supplied in the archive. Until the end of the spacecraft lifespan 
+   this archive will be accumulating with new data added according to the 
+   project archiving plan.
 
 <p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
 <A NAME="Errata"></A>
@@ -308,7 +308,7 @@ SPK Files
       -  rover at landing site position SPKs
 
             These SPKs contain the position of the Mars 2020 rover
-            fixed at the landing site. Thiese files were used during 
+            fixed at the landing site. These files were used during 
             operations by CHRONOS and other applications that were not 
             sensitive to the local rover movements.
 
@@ -317,7 +317,7 @@ SPK Files
             These SPKs contain fixed locations of of selected rover 
             structures and instruments such as Remote Sensing Mast (RSM), 
             Robotic Arm (RA), and cameras. The data included in the file 
-            are based of dimensions from the spacecraft engineering drawing.
+            are based of dimensions from the spacecraft engineering drawings.
 
       -  localized rover path and site locations SPKs
 
@@ -402,7 +402,7 @@ SPK Files
 
             where
 
-               SSS       is the orbital determination number.
+               SSS       is the orbital determination solution number.
 
                V         is the version; the file with the latest
                          version supersedes all similarly named files
@@ -550,7 +550,8 @@ IK Files
 
                NAME      is the instrument acronym:
 
-                            ant      (for antennae)
+                             struct (for miscellaneous structures, 
+                                     e.g. antennae)
 
                VV        is the version; the file with the latest
                          version supersedes all similarly named
@@ -576,7 +577,7 @@ CK Files
             These CKs contain the reconstructed Mars 2020 spacecraft
             cruise attitude determined on-board and downlinked in
             spacecraft telemetry, determined by the Mars 2020 Attitude
-            Control System (ACS) Team and the Mars 2020 NAV Team, JPL.
+            Control System (ACS) Team, JPL.
     
             The set of CKs provided by the Mars 2020 ACS Team includes a CK 
             with complete cruise orientation based on H-vector direction 
@@ -595,7 +596,7 @@ CK Files
       -  reconstructed rover surface orientation CKs
 
             These CKs contain the orientation of the rover relative to the 
-            local level frame. Created by NAIF, JPL.
+            local level frame, created by NAIF, JPL.
 
             These CKs were created using telemetry data available in the
             PLACES server developed and maintained by the Mars 2020 OPGS Team.
@@ -617,7 +618,7 @@ CK Files
 
             These CKs contain the orientation of the Remote Sensing Mast 
             (RSM), Robotic Arm (RA), and High Gain Antenna (HGA) relative 
-            to the rover frame. Created by NAIF, JPL.
+            to the rover frame, created by NAIF, JPL.
             
             These CKs were created using telemetry data available in the
             PLACES server developed and maintained by the Mars 2020 OPGS Team.
@@ -659,7 +660,7 @@ CK Files
 
                TYPE      specifies the basis of the orientation
     
-                             nospin (for H-vector direction wihtout spin)
+                             nospin (for H-vector direction without spin)
                              rawrt (for real-time quaternions during comms)
                              raweng (for high-rate quaternions during events)
     
@@ -769,29 +770,28 @@ SCLK Files
             time measurements between ephemeris time (ET) and Mars 2020 
             spacecraft clock time (SCLK). They are made from similar
             files -- SCLK/SCET file, or SCLKvSCET file -- produced by
-            another mission entity.
+            mission Time Correlation Subsystem (TCS) team.
  
             The official on-board correlation SCLK files used in operations
             and included in this data set provide correlation that is
-            incorrect in an absolute sense by as much as 3 minutes during
-            some periods (e.g. in the middle of cruise). The error stems
-            from a combination of reasons: the spacecraft generated too
-            few time correlation packets, the specifics of the process used
-            to derive the correlation function, the requirements for
-            backward compatibility between correlation versions imposed by
-            the ground system tools, and the requirement to minimize the
-            deployment of the new correlation in the ground data system.    
+            incorrect in an absolute sense by as much as 3 seconds during
+            surface operations. The main reason for this error is the loose
+            time correlation requirement for surface operations intended
+            to keep backward compatibility between correlation versions
+            and minimize the impact of deployment of the new correlation
+            across the ground data system.
+   
     
-      - improved Mars 2020 on-board clock correlaction SCLKs
+      - improved Mars 2020 on-board clock correlation SCLKs
     
-            These improved SCLKs contain on-board clock correlation
-            included in this data was made to specifically fix correlations
-            where large time correlation errors translated to large attitude 
-            knowledge errors.
+            These improved SCLK files contain on-board clock correlation
+            accurate to a few tens of milliseconds of better, made
+            specifically for archiving to fix large correlation errors 
+            present in the official SCLKs.
     
       - Local Mean Solar Time (LMST) SCLKs    
     
-            These SCLKs files provide a way of converting between the Local
+            These SCLK files provide a way of converting between the Local
             Mean Solar Time (LMST) time system used during surface
             operations and other time systems. LMST was introduced as a
             replacement of the Local True Solar Time (LTST) because a time
@@ -800,7 +800,7 @@ SCLK Files
             essentially a linear approximation of the local true solar time
             with the rate set equal to the mean Mars local second duration
             and the initial reference point set to LMST midnight of the
-            landing SOL. Due to ellipticity of Mars orbit this
+            landing SOL. Due to ellipticity of the Mars orbit this
             approximation is periodic and deviates from the LTST by as much
             as 50 minutes during Martian year.    
     
@@ -817,7 +817,7 @@ SCLK Files
                          version supersedes all similarly named
                          files with earlier versions.
 
-      - improved Mars 2020 on-board clock correlaction SCLKs
+      - improved Mars 2020 on-board clock correlation SCLKs
 
                m2020_168_sclkscet_refit_vVV.tsc
 
@@ -888,8 +888,7 @@ MK Files
    routine FURNSH. Using meta-kernels makes it easy to load with
    one call a comprehensive SPICE data collection for a given period.
 
-   This archive includes MK files containing the following kinds of
-   data:
+   This archive includes the following kinds of MK files:
     
       -  whole mission MK files
     
@@ -898,10 +897,10 @@ MK Files
 
       -  CHRONOS MK files
     
-            These MKs only provide kernels needed for the SPICE CHRONOS 
-            time-conversion program and the CHRONOS configuration parameters 
-            (spacecraft ID, planet ID, landing UTC, landing SOL index, 
-            and Sun GM). 
+            These MKs provide only kernels needed for the SPICE CHRONOS
+            time-conversion program and include the CHRONOS configuration
+            parameters  (spacecraft ID, planet ID, landing UTC, landing SOL
+            index, and Sun GM).
     
             These MKs provide the same sets of kernels as they provided during 
             OPS except for the cruise and EDL SPKs.
