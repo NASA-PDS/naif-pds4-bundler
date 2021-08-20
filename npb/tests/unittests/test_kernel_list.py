@@ -22,7 +22,7 @@ class TestKernelList(TestCase):
         os.chdir(os.path.dirname(__file__))
         
         dirs = ['working', 'staging', 'final', 'kernels', 'insight', 'maven',
-                'mars2020']
+                'mars2020', 'orex']
         for dir in dirs:
             shutil.rmtree(dir, ignore_errors=True)
             
@@ -36,7 +36,7 @@ class TestKernelList(TestCase):
         print(f"    * {self._testMethodName}")
 
         dirs = ['working', 'staging', 'final', 'kernels', 'insight', 'maven',
-                'mars2020']
+                'mars2020', 'orex']
         for dir in dirs:
             os.mkdir(dir)
 
@@ -47,7 +47,7 @@ class TestKernelList(TestCase):
         unittest.TestCase.tearDown(self)
 
         dirs = ['working', 'staging', 'final', 'kernels', 'insight', 'maven',
-                'mars2020']
+                'mars2020', 'orex']
         for dir in dirs:
             shutil.rmtree(dir, ignore_errors=True)
             
@@ -181,6 +181,29 @@ class TestKernelList(TestCase):
 
         old_file = ''
         with open('../data/mars2020_release_01.kernel_list', 'r') as f:
+            for line in f:
+                old_file += line
+
+        self.assertEqual(old_file.split('\n')[7:],new_file.split('\n')[7:])
+
+    def test_pds4_orex_list(self):
+        """
+        Basic test for OREX kernel list generation.
+        #TODO: Test that needs to be updated.
+        """
+        config = '../config/orex.xml'
+        plan   = '../data/orex_release_12.plan'
+        faucet = 'list'
+
+        main(config, plan, faucet=faucet, silent=True)
+
+        new_file = ''
+        with open('working/orex_release_01.kernel_list', 'r') as f:
+            for line in f:
+                new_file += line
+
+        old_file = ''
+        with open('../data/orex_release_12.kernel_list', 'r') as f:
             for line in f:
                 old_file += line
 
