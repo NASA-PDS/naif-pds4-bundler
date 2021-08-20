@@ -902,13 +902,11 @@ class MetaKernelProduct(Product):
         kernel_type_list = \
             ['lsk', 'pck', 'fk', 'ik', 'sclk', 'spk', 'ck', 'dsk']
 
-
         #
         # Setup the end-of-line character
         #
         eol = self.setup.eol_mk
         
-
         #
         # All the files of the directory are read into a list
         #
@@ -1254,11 +1252,53 @@ class MetaKernelProduct(Product):
             patterns = coverage_kernels[0]['pattern']
             if not isinstance(patterns, list):
                 patterns = [patterns]
+
+            #
+            # It is assumed that the coverage kernel is present in the
+            # meta-kernel, if it is not present look into the 
+            # collection or in the final area and throw a warning.
+            #
             for pattern in patterns:
                 for kernel in self.collection_metakernel:
                     if re.match(pattern, kernel):
                         kernels.append(kernel)
-
+            
+            #
+            # If the coverage kernels are not in the meta-kernels look into
+            # the collection.
+            #
+            if len(patterns) != len(kernels):
+                for pattern in patterns:
+                    for product in self.collection.product:
+                        kernel = product.name
+                        if re.match(pattern, kernel):
+                            if kernel not in kernels:
+                                kernels.append(kernel)
+                                logging.warning(f'-- Kernel {kernel}, from the '
+                                                f'current release not present '
+                                                f'in MK but used for '
+                                                f'coverage determination.')
+            
+            #
+            # If the kernels are not in the meta-kernel or the collection 
+            # look into the budle
+            #
+            if len(patterns) != len(kernels):
+                ker_dir = f'{self.setup.final_directory}/' \
+                          f'{self.setup.mission_acronym}_spice/' \
+                          f'spice_kernels/'
+                all_files = list(glob.iglob(ker_dir + '/**/*', recursive=True))
+                for pattern in patterns:
+                    for file in all_files:
+                        kernel = file.split(os.sep)[-1]
+                        if re.match(pattern, kernel):
+                            if kernel not in kernels:
+                                kernels.append(kernel)
+                                logging.warning(
+                                    f'-- Kernel {kernel}, from the final area '
+                                    f'not present in MK but used for '
+                                    f'coverage determination.')
+            
         start_times = []
         finish_times = []
         if kernels:
