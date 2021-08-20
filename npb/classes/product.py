@@ -1298,6 +1298,10 @@ class MetaKernelProduct(Product):
                                     f'-- Kernel {kernel}, from the final area '
                                     f'not present in MK but used for '
                                     f'coverage determination.')
+                                logging.warning('-- BE CAREFUL: if the '
+                                    'coverage kernel was provided with a '
+                                    'pattern you might not get the desired'
+                                    'coverage.')
             
         start_times = []
         finish_times = []
