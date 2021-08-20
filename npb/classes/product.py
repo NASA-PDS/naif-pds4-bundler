@@ -849,11 +849,12 @@ class MetaKernelProduct(Product):
                                         #
                                         patterns[el]['&value'] = value
                                 else:
-                                    error_message('Kernel pattern not adept '
-                                                  'to write description. '
-                                                  'Remember a metacharacter '
-                                                  'cannot start or finish '
-                                                  'a kernel pattern',
+                                    error_message(f'Kernel pattern {patt_ker} '
+                                                  f'not adept to write '
+                                                  f'description. Remember a '
+                                                  f'metacharacter '
+                                                  f'cannot start or finish '
+                                                  f'a kernel pattern',
                                                   setup=self.setup)
                             else:
                                 #
@@ -872,9 +873,10 @@ class MetaKernelProduct(Product):
                                         patterns[el]['&value'] = value
 
                                 if isinstance(value, list):
-                                    error_message('-- Kernel description '
-                                                  'could not be updated with '
-                                                  'pattern', setup=self.setup)
+                                    error_message(f'-- Kernel description '
+                                                  f'could not be updated with '
+                                                  f'pattern: {value}', 
+                                                  setup=self.setup)
 
                             description = description.replace('$' + el, value)
 

@@ -1,4 +1,4 @@
-import fileinput
+import shutil
 import datetime
 import logging
 import glob
@@ -399,6 +399,7 @@ class KernelList(List):
                                         # from the kernel
                                         # name.
                                         #
+                                        # TODO: This indexes work because the mapping kernel and the resulting kernel are in the same place!
                                         if len(indexes) == 2:
                                             value = \
                                                 kernel[
@@ -481,6 +482,10 @@ class KernelList(List):
                         f.write(f'DESCRIPTION      = {description}\n')
 
                         if mapping:
+                            #
+                            # TODO: We loop all the patterns that have been mapped in the mapping kernel as well.
+                            # Currently only one is supported which works for SCLK.
+                            #
                             logging.info(f'-- Mapping {kernel}')
                             f.write(f'MAPPING          = '
                                     f'{mapping.replace("$" + el, value)}\n')
@@ -498,6 +503,42 @@ class KernelList(List):
         self.validate()
 
         return
+
+    def read_list(self, kerlist):
+        '''
+        Note that the format that the kernel list has to follow is very 
+        strict, including no whitespace at the end of each line and Line-feed
+        EOL.
+        :param kerlist: 
+        :return: 
+        '''
+        
+        kernel_list  = f'{self.setup.working_directory}/' \
+                       f'{self.setup.mission_acronym}_release_' \
+                       f'{int(self.setup.release):02d}.kernel_list'
+
+        try:
+            shutil.copy2(kerlist, kernel_list)
+        except shutil.SameFileError: 
+            pass
+        
+        self.list_name = kernel_list.split(os.sep)[-1]
+        
+        #
+        # Generate the kernel list attribute, necessary for the validation.
+        #
+        kernels = []
+        with open(kernel_list, 'r') as l:
+            for line in l:
+                if 'FILE             =' in line:
+                    kernels.append(line.split(os.sep)[-1][:-1])
+        
+        self.kernel_list = kernels
+        
+        self.validate()
+        
+        return
+        
 
     def write_complete_list(self):
 
