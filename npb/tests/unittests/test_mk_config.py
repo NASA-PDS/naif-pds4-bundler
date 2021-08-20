@@ -24,7 +24,7 @@ class TestMetaKernelConfiguration(TestCase):
 
         os.chdir(os.path.dirname(__file__))
 
-        dirs = ['working', 'staging', 'insight', 'kernels', 'orx']
+        dirs = ['working', 'staging', 'insight', 'kernels', 'orex']
         for dir in dirs:
             shutil.rmtree(dir, ignore_errors=True)
 
@@ -38,7 +38,7 @@ class TestMetaKernelConfiguration(TestCase):
         unittest.TestCase.setUp(self)
         print(f"    * {self._testMethodName}")
 
-        dirs = ['working', 'staging', 'orx','insight']
+        dirs = ['working', 'staging', 'orex','insight']
         for directory in dirs:
             os.mkdir(directory)
 
@@ -50,7 +50,7 @@ class TestMetaKernelConfiguration(TestCase):
         '''
         unittest.TestCase.tearDown(self)
 
-        dirs = ['working', 'staging', 'insight', 'kernels', 'orx']
+        dirs = ['working', 'staging', 'insight', 'kernels', 'orex']
         for dir in dirs:
             shutil.rmtree(dir, ignore_errors=True)
         
@@ -114,14 +114,14 @@ class TestMetaKernelConfiguration(TestCase):
 
         main(updated_config, plan, self.faucet, silent=self.silent)
 
-    def test_orx_mk_multiple_mks(self):
+    def test_orex_mk_multiple_mks(self):
         """
         Test for meta-kernel configuration with multiple meta-kernels
         to generate.
 
         """
-        config = '../config/orx.xml'
-        plan   = '../data/orx_release_10.plan'
+        config = '../config/orex.xml'
+        plan   = '../data/orex_release_10.plan'
 
         main(config, plan, self.faucet, silent=self.silent)
         
