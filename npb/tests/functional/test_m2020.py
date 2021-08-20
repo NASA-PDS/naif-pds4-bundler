@@ -39,6 +39,16 @@ class TestMars2020(TestCase):
                 'kernels/fk', 'kernels/lsk', 'kernels/spk',  'kernels/mk']
         for dir in dirs:
             os.mkdir(dir)
+
+        shutil.copy2('../data/kernels/lsk/naif0012.tls', 'kernels/lsk/')
+        shutil.copy2('../data/kernels/fk/m2020_v04.tf', 'kernels/fk/')
+        shutil.copy2('../data/kernels/mk/m2020_v01.tm', 'kernels/mk/')
+        shutil.copy2('../data/kernels/mk/m2020_chronos_v01.tm', 'kernels/mk/')
+        shutil.copy2('../data/kernels/spk/m2020_cruise_od138_v1.bsp', 
+                     'kernels/spk/')
+        shutil.copy2('../data/kernels/spk/'
+                     'm2020_surf_rover_loc_0000_0089_v1.bsp', 
+                     'kernels/spk/')
         
         os.chdir(os.path.dirname(__file__))
 
@@ -52,8 +62,6 @@ class TestMars2020(TestCase):
         for dir in dirs:
             shutil.rmtree(dir, ignore_errors=True)
 
-
-            
     def test_m2020_mks_inputs_coverage(self):
         '''
         Testcase for when one of the meta-kernels does not include the SPK/CK
@@ -62,18 +70,35 @@ class TestMars2020(TestCase):
         '''
         config = '../config/mars2020.xml'
         plan = '../data/mars2020_release_00.plan'
-
-        shutil.copy2('../data/kernels/lsk/naif0012.tls', 'kernels/lsk/')
-        shutil.copy2('../data/kernels/fk/m2020_v04.tf', 'kernels/fk/')
-        shutil.copy2('../data/kernels/mk/m2020_v01.tm', 'kernels/mk/')
-        shutil.copy2('../data/kernels/mk/m2020_chronos_v01.tm', 'kernels/mk/')
-        shutil.copy2('../data/kernels/spk/m2020_cruise_od138_v1.bsp', 
-                     'kernels/spk/')
-        shutil.copy2('../data/kernels/spk/'
-                     'm2020_surf_rover_loc_0000_0089_v1.bsp', 
-                     'kernels/spk/')
         
         main(config, plan=plan, silent=self.silent, log=self.log)
+
+    def test_m2020_kernel_list(self):
+        '''
+        Usage of kernel list instead of release plan.
+        '''
+        config = '../config/mars2020.xml'
+        kerlist = '../data/mars2020_release_00.kernel_list'
+
+        main(config, kerlist=kerlist, silent=self.silent, log=self.log)
+        
+    def test_m2020_kernel_list_dir(self):
+        '''
+        Usage of kernel list instead of release plan. Provided from the
+        working directory with the same resulting name..
+        '''
+        shutil.copy2('../data/mars2020_release_00.kernel_list',
+                     'working/mars2020_release_01.kernel_list', )
+        
+        config = '../config/mars2020.xml'
+        kerlist = 'working/mars2020_release_00.kernel_list'
+
+        with self.assertRaises(FileNotFoundError):
+            main(config, kerlist=kerlist, silent=self.silent, log=self.log)
+
+        kerlist = 'working/mars2020_release_01.kernel_list'
+
+        main(config, kerlist=kerlist, silent=self.silent, log=self.log)
 
             
 if __name__ == '__main__':
