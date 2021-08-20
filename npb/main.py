@@ -76,8 +76,8 @@ from .classes.product import ChecksumProduct
 from .classes.product import Object
 
 
-def main(config=False, plan=False, faucet='', log=False, silent=False,
-         verbose=False, diff='', debug=True, clear=''):
+def main(config=False, plan=False, faucet='', log=False, silent=False, 
+         verbose=False, diff='', debug=True, clear='', kerlist=''):
     """
     Main routine for the NAIF PDS4 Bundle Generator (naif-pds4-bundle).
     This routine gets the command line arguments or the parameter
@@ -89,7 +89,7 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
                  the kernels directory specified in the configuration file
                  in addition to new meta-kernels will be included in the
                  increment
-    :type plan: str
+    :type plan: str 
     :param faucet: Optional indication for end point of the pipeline.
                    Allowed values are: `list', `staging', or `final'
     :type faucet: str
@@ -111,6 +111,9 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
     :param clear: Indicates if the pipeline will run only to clear previous
     run and specifies the file that indicates the files to be cleared.
     :type debug: str    
+    :param kerlist: Release list file listing the kernels to be archived along
+                 with their description.
+    :type kerlist: str       
     """
     #
     # Load the naif-pds4-bundle version as provided by the version file.
@@ -187,6 +190,12 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
                                  "argument does not start the pipeline "
                                  "afterwards. If this argument is provided"
                                  "it overwrites the faucet argument to 'plan'")
+        parser.add_argument('-k', '--kerlist',
+                            action='store', type=str,
+                            help="Release plan file listing the kernels to "
+                                 "be archived along with some parameters "
+                                 "required for the run. If this argument is"
+                                 "provided the release plan is not generated.")
 
         #
         # Store the arguments in the args object.
@@ -208,6 +217,7 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
         args = Object()
         args.config = config
         args.plan = plan
+        args.kerlist = kerlist
         args.faucet = faucet
         args.log = log
         args.silent = silent
@@ -290,10 +300,11 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
     # If a plan file is provided it is processed otherwise a plan is
     # generated from the kernels directory.
     #
-    if not args.plan:
-        list.write_plan()
-    else:
-        list.read_plan(args.plan)
+    if not args.kerlist:
+        if not args.plan:
+            list.write_plan()
+        else:
+            list.read_plan(args.plan)
         
     #
     # If the pipeline is running to clean-up a previous run, the action
@@ -306,7 +317,10 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
         log.stop()
         return
     
-    list.write_list()
+    if not args.kerlist:
+        list.write_list()
+    else:
+        list.read_list(args.kerlist)
     
     #
     #    * Escape if the sole purpose of the execution is to generate
