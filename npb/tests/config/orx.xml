@@ -234,18 +234,42 @@
                 <VERSION pattern="KERNEL">g_$RESOLUTIONmm_alt_obj_$REFERENCE_v$VERSION.bds</VERSION>
             </patterns>
         </kernel>
-        <kernel pattern="bennu_l_[0-9][0-9][0-9][0-9][0-9]mm_alt_obj_[0-9][0-9][0-9][0-9][ns][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds">
-            <mapping>l_$RESOLUTIONmm_alt_obj_$REFERENCE_v$VERSION.bds</mapping>
+        <kernel pattern="bennu_g_[0-9][0-9][0-9][0-9][0-9]mm_alt_ptm_[0-9][0-9][0-9][0-9][ns][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds">
+            <mapping>g_$RESOLUTIONmm_alt_ptm_$REFERENCE_v$VERSION.bds</mapping>
+            <mklabel_options></mklabel_options>
+            <description>SPICE DSK file containing shape model data for the surface of asteroid (101955) Bennu, with Global coverage at $RESOLUTION meter resolution, ALT-based using a Poisson method, version $VERSION,
+                created by the ORX Altimetry Working Group (AltWG). The original name of this file was $COVERAGE_$RESOLUTIONmm_alt_obj_$REFERENCE_v$VERSION.bds.</description>
+            <patterns>
+                <COVERAGE pattern="KERNEL">g_$RESOLUTIONmm_alt_ptm_$REFERENCE_v$VERSION.bds</COVERAGE>
+                <RESOLUTION pattern="KERNEL">g_$RESOLUTIONmm_alt_ptm_$REFERENCE_v$VERSION.bds</RESOLUTION>
+                <REFERENCE pattern="KERNEL">g_$RESOLUTIONmm_alt_ptm_$REFERENCE_v$VERSION.bds</REFERENCE>
+                <VERSION pattern="KERNEL">g_$RESOLUTIONmm_alt_ptm_$REFERENCE_v$VERSION.bds</VERSION>
+            </patterns>
+        </kernel>        
+        <kernel pattern="bennu_l_[0-9][0-9][0-9][0-9][0-9]mm_alt_dtm_[0-9][0-9][0-9][0-9][ns][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds">
+            <mapping>l_$RESOLUTIONmm_alt_dtm_$REFERENCE_v$VERSION.bds</mapping>
             <mklabel_options></mklabel_options>
             <description>SPICE DSK file containing shape model data for the surface of asteroid (101955) Bennu, with Local coverage at $RESOLUTION meter resolution, ALT-based, version $VERSION,
-                created by the ORX Altimetry Working Group (AltWG). The original name of this file was $COVERAGE_$RESOLUTIONmm_alt_obj_$REFERENCE_v$VERSION.bds.</description>
+                created by the ORX Altimetry Working Group (AltWG). The original name of this file was $COVERAGE_$RESOLUTIONmm_alt_dtm_$REFERENCE_v$VERSION.bds.</description>
+            <patterns>
+                <COVERAGE pattern="KERNEL">l_$RESOLUTIONmm_alt_dtm_$REFERENCE_v$VERSION.bds</COVERAGE>
+                <RESOLUTION pattern="KERNEL">l_$RESOLUTIONmm_alt_dtm_$REFERENCE_v$VERSION.bds</RESOLUTION>
+                <REFERENCE pattern="KERNEL">l_$RESOLUTIONmm_alt_dtm_$REFERENCE_v$VERSION.bds</REFERENCE>
+                <VERSION pattern="KERNEL">l_$RESOLUTIONmm_alt_dtm_$REFERENCE_v$VERSION.bds</VERSION>
+            </patterns>
+        </kernel>
+        <kernel pattern="bennu_l_[0-9][0-9][0-9][0-9][0-9]mm_alt_ptm_[0-9][0-9][0-9][0-9][ns][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds">
+            <mapping>l_$RESOLUTIONmm_alt_ptm_$REFERENCE_v$VERSION.bds</mapping>
+            <mklabel_options></mklabel_options>
+            <description>SPICE DSK file containing shape model data for the surface of asteroid (101955) Bennu, with Local coverage at $RESOLUTION meter resolution, ALT-based using a Poisson method, version $VERSION,
+                created by the ORX Altimetry Working Group (AltWG). The original name of this file was $COVERAGE_$RESOLUTIONmm_alt_ptm_$REFERENCE_v$VERSION.bds.</description>
             <patterns>
                 <COVERAGE pattern="KERNEL">l_$RESOLUTIONmm_alt_obj_$REFERENCE_v$VERSION.bds</COVERAGE>
                 <RESOLUTION pattern="KERNEL">l_$RESOLUTIONmm_alt_obj_$REFERENCE_v$VERSION.bds</RESOLUTION>
                 <REFERENCE pattern="KERNEL">l_$RESOLUTIONmm_alt_obj_$REFERENCE_v$VERSION.bds</REFERENCE>
                 <VERSION pattern="KERNEL">l_$RESOLUTIONmm_alt_obj_$REFERENCE_v$VERSION.bds</VERSION>
             </patterns>
-        </kernel>
+        </kernel>        
         <kernel pattern="orx_[0-9][0-9][0-9][0-9]_v[0-9][0-9].tm">
             <mklabel_options></mklabel_options>
             <description>SPICE MK file listing kernels for $YEAR, created by NAIF, JPL.</description>

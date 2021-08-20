@@ -9,7 +9,7 @@
 The OSIRIS-REx SPICE Data Archive
 ========================================================================
 
-   Last update: August 18, 2021
+   Last update: August 20, 2021
 
 <A NAME="Introduction"></A>
 Introduction
@@ -721,7 +721,7 @@ DSK Files
 
       -  asteroid Bennu DSK files
 
-               bennu_C_RRRRRmm_SSS_obj_LLLLDGGGGG_vVVV.bds
+               bennu_C_RRRRRmm_SSS_ORI_LLLLDGGGGG_vVVV.bds
 
             where 
 
@@ -739,6 +739,15 @@ DSK Files
 
                RRRRR     is the average vertex spacing, in mm
  
+               ORI       is the origin of the data
+     
+                            obj    digital terrain model from OLA L2 data
+    
+                            dtm    digital terrain model from OLA L2 data
+    
+                            ptm    digital elevation model created via  
+                                   Poisson method
+    
                SSS       is the shape model source:
 
                             spc    Stereo Photoclinometry
@@ -746,6 +755,8 @@ DSK Files
                             ola    OLA
 
                             tru    Combined, true solution
+    
+                            alt    Altimetry
 
                LLLLD     is the center latitude of the file
 
