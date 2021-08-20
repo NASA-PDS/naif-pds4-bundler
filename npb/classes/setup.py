@@ -510,6 +510,16 @@ class Setup(object):
                                 'kernel list.')
     
                 try:
+                    
+                    #
+                    # If the kernel list is provided as an argument, we 
+                    # cannot deduce the release version from t
+                    #
+                    if self.args.kerlist:
+                        logging.warning('-- Kernel list provided as input. '
+                                        'Release number cannot be obtained.')
+                        raise
+                    
                     releases = glob.glob(self.working_directory +
                                          f'/{self.mission_acronym}'
                                          f'_release_*.kernel_list')
