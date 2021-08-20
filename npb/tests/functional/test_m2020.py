@@ -7,7 +7,7 @@ from unittest import TestCase
 from npb.main import main
 
 
-class TestINSIGHT(TestCase):
+class TestMars2020(TestCase):
     '''
     Test Family for INSIGHT archive generation. 
     '''
