@@ -307,22 +307,50 @@ class SpiceKernelProduct(Product):
         return description
 
     def __coverage(self):
-        if self.type.lower() == 'spk':
-            (self.start_time, self.stop_time) = \
-                spk_coverage(self.path, main_name=self.setup.spice_name, 
-                             date_format=self.setup.date_format)
-        elif self.type.lower() == 'ck':
-            (self.start_time, self.stop_time) = \
-                ck_coverage(self.path, date_format=self.setup.date_format)
-        elif self.extension.lower() == 'bpc':
-            (self.start_time, self.stop_time) = \
-                pck_coverage(self.path, date_format=self.setup.date_format)
-        elif self.type.lower() == 'dsk':
-            (self.start_time, self.stop_time) = \
-                dsk_coverage(self.path, date_format=self.setup.date_format)
-        else:
-            self.start_time = self.setup.mission_start
-            self.stop_time = self.setup.mission_finish
+        
+        #
+        # Before computing the coverage we check if it the label is already
+        # present.
+        #
+        coverage = []
+        product_label = self.path.split('.')[0] + '.xml'
+        if os.path.exists(product_label):
+            with open(product_label, 'r') as l:
+                start = ''
+                stop = ''
+                for line in l:
+                    if '<start_date_time>' in line:
+                        start = line.split('<start_date_time>')[-1]
+                        start = start.split('</start_date_time>')[0]
+                    if '<stop_date_time>' in line:
+                        stop = line.split('<stop_date_time>')[-1]
+                        stop = stop.split('</stop_date_time>')[0]
+                    if start and stop:
+                        coverage = [start, stop]   
+                        logging.warning(f'-- Coverage obtained from existing '
+                                        f'label: '
+                                        f'{product_label.split(os.sep)[-1]}')
+                        break
+        
+        if not coverage:
+            if self.type.lower() == 'spk':
+                coverage += \
+                    spk_coverage(self.path, main_name=self.setup.spice_name, 
+                                 date_format=self.setup.date_format)
+            elif self.type.lower() == 'ck':
+                coverage += \
+                    ck_coverage(self.path, date_format=self.setup.date_format)
+            elif self.extension.lower() == 'bpc':
+                coverage += \
+                    pck_coverage(self.path, date_format=self.setup.date_format)
+            elif self.type.lower() == 'dsk':
+                coverage += \
+                    dsk_coverage(self.path, date_format=self.setup.date_format)
+            else:
+                coverage = [self.setup.mission_start, self.setup.mission_finish]
+
+        self.start_time = coverage[0]
+        self.stop_time = coverage[-1]
 
     #
     # IK kernel processing
@@ -1267,53 +1295,12 @@ class MetaKernelProduct(Product):
 
             #
             # It is assumed that the coverage kernel is present in the
-            # meta-kernel, if it is not present look into the 
-            # collection or in the final area and throw a warning.
+            # meta-kernel,.
             #
             for pattern in patterns:
                 for kernel in self.collection_metakernel:
                     if re.match(pattern, kernel):
                         kernels.append(kernel)
-            
-            #
-            # If the coverage kernels are not in the meta-kernels look into
-            # the collection.
-            #
-            if len(patterns) != len(kernels):
-                for pattern in patterns:
-                    for product in self.collection.product:
-                        kernel = product.name
-                        if re.match(pattern, kernel):
-                            if kernel not in kernels:
-                                kernels.append(kernel)
-                                logging.warning(f'-- Kernel {kernel}, from the '
-                                                f'current release not present '
-                                                f'in MK but used for '
-                                                f'coverage determination.')
-            
-            #
-            # If the kernels are not in the meta-kernel or the collection 
-            # look into the bundle
-            #
-            if len(patterns) != len(kernels):
-                ker_dir = f'{self.setup.final_directory}/' \
-                          f'{self.setup.mission_acronym}_spice/' \
-                          f'spice_kernels/'
-                all_files = list(glob.iglob(ker_dir + '/**/*', recursive=True))
-                for pattern in patterns:
-                    for file in all_files:
-                        kernel = file.split(os.sep)[-1]
-                        if re.match(pattern, kernel):
-                            if kernel not in kernels:
-                                kernels.append(kernel)
-                                logging.warning(
-                                    f'-- Kernel {kernel}, from the final area '
-                                    f'not present in MK but used for '
-                                    f'coverage determination.')
-                                logging.warning('-- BE CAREFUL: if the '
-                                    'coverage kernel was provided with a '
-                                    'pattern you might not get the desired'
-                                    'coverage.')
             
         start_times = []
         finish_times = []

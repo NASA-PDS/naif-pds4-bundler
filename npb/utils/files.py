@@ -679,8 +679,8 @@ def checksum_from_label(path):
                 if '<md5_checksum>' in line:
                     checksum = line.split('<md5_checksum>')[-1]
                     checksum = checksum.split('</md5_check')[0]
-                    logging.info(f'-- Checksum obtained from existing label: '
-                                 f'{product_label.split(os.sep)[-1]}')
+                    logging.warning(f'-- Checksum obtained from existing label:'
+                                 f' {product_label.split(os.sep)[-1]}')
                     break
                     
     return checksum
