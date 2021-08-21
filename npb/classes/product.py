@@ -38,6 +38,7 @@ from npb.utils.files import type2extension
 from npb.utils.files import compare_files
 from npb.utils.files import match_patterns
 from npb.utils.files import utf8len
+from npb.utils.files import checksum_from_label
 
 
 class Product(object):
@@ -53,7 +54,16 @@ class Product(object):
         """
         stat_info = os.stat(self.path)
         self.size = str(stat_info.st_size)
-        self.checksum = str(md5(self.path))
+
+        #
+        # Try to obtain the checksum from the label, if the product is in the
+        # staging area.
+        #
+        checksum = checksum_from_label(self.path)
+        if not checksum:
+            checksum = str(md5(self.path))
+        
+        self.checksum = checksum
         
         if hasattr(self.setup, 'creation_date_time'):
             self.creation_time = self.setup.creation_date_time
@@ -1283,7 +1293,7 @@ class MetaKernelProduct(Product):
             
             #
             # If the kernels are not in the meta-kernel or the collection 
-            # look into the budle
+            # look into the bundle
             #
             if len(patterns) != len(kernels):
                 ker_dir = f'{self.setup.final_directory}/' \
@@ -3539,10 +3549,14 @@ class ChecksumProduct(Product):
             #
             for collection in self.collection.bundle.collections:
                 for product in collection.product:
+                    product_name = product.path.split(f"/{msn_acr}_spice/")[-1]
                     if hasattr(product, 'checksum'):
-                        self.md5_dict[product.checksum] = \
-                            product.path.split(f"/{msn_acr}_spice/")[-1]
+                        self.md5_dict[product.checksum] = product_name
                     else:
+                        #
+                        # For the current checksum product that does not have
+                        # a checksum.
+                        #
                         pass
                     #
                     # Generate the MD5 checksum of the label.
@@ -3552,8 +3566,7 @@ class ChecksumProduct(Product):
                         self.md5_dict[label_checksum] = \
                             product.label.name.split(f"/{msn_acr}_spice/")[-1]
                     else:
-                        pass
-    
+                        logging.error(f'-- {product} does not have a label.')
             #
             # Include the readme file checksum if it has been generated in
             # this run. This is a bundle level product.
@@ -3577,8 +3590,18 @@ class ChecksumProduct(Product):
             for product in history[1]:
                 path = self.setup.final_directory + \
                        f'/{self.setup.mission_acronym}_spice/' +  product
-                product_checksum = md5(path)
-                self.md5_dict[product_checksum] = product
+                #
+                # Computing checksums is resource consuming; let's see if the
+                # product has the checksum in its label already. Otherwise
+                # compute the checksum.
+                #
+                checksum = ''
+                if not '.xml' in product:
+                    checksum = checksum_from_label(path) 
+                if not checksum:
+                    checksum = md5(path)
+                    
+                self.md5_dict[checksum] = product
 
         #
         # The resulting dictionary needs to be transformed into a list
@@ -3602,7 +3625,6 @@ class ChecksumProduct(Product):
                     path = os.path.join(root, file)
                     logging.info(f'-- Removing {file}')
                     os.remove(path)
-
 
         #
         # Checksum start and stop times are the same as the ones defined
@@ -3640,11 +3662,11 @@ class ChecksumProduct(Product):
                     for line in l:
                         if '<start_date_time>' in line:
                             start_time = \
-                                line.split('<start_date_time>')[-1].split('</')[0]
+                              line.split('<start_date_time>')[-1].split('</')[0]
                             start_times.append(start_time)
                         if '<stop_date_time>' in line:
                             stop_time = \
-                                line.split('<stop_date_time>')[-1].split('</')[0]
+                               line.split('<stop_date_time>')[-1].split('</')[0]
                             stop_times.append(stop_time)
 
         if not start_times:

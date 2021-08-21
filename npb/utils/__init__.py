@@ -46,6 +46,7 @@ from .files import get_latest_kernel
 from .files import check_consecutive
 from .files import compare_files
 from .files import match_patterns
+from .files import checksum_from_label
 from .time import current_time
 from .time import current_date
 from .time import creation_time

@@ -217,7 +217,6 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
         args = Object()
         args.config = config
         args.plan = plan
-        args.kerlist = kerlist
         args.faucet = faucet
         args.log = log
         args.silent = silent
@@ -225,6 +224,7 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
         args.diff = diff
         args.debug = debug
         args.clear = clear
+        args.kerlist = kerlist
 
     #
     # Turn lowercase or uppercase arguments that need it.

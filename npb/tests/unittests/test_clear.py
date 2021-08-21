@@ -114,6 +114,13 @@ class TestClear(TestCase):
         except:
             pass
 
+        with open(config, 'r') as c:
+            with open(wrong_config, 'w') as n:
+                for line in c:
+                    if '<spice_name>INSIGHT</spice_name>' in line:
+                        n.write('<spice_name>INSPGHT</spice_name>''\n')
+                    else:
+                        n.write(line)
 
         #
         # Error of checksum validation.

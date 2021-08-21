@@ -346,7 +346,7 @@ def get_context_products(setup):
     
     #
     # Check the secondary s/c and if present add them to the
-    # Congiguration for context products.3
+    # Configuration for context products.3
     #
     if hasattr(setup, 'secondary_observers'):
         for sc in setup.secondary_observers:
@@ -363,7 +363,7 @@ def get_context_products(setup):
     for context_product in context_products:
         for config_product in config_context_products:
             #
-            # For the conditional statement we need to put both names lowecase.
+            # For the conditional statement we need to put both names lower case.
             #
             if context_product['name'][0].lower() == config_product.lower():
                 bundle_context_products.append(context_product)
@@ -651,7 +651,7 @@ def utf8len(s):
 
     :param s: string
     :type s: str
-    :return: lenght of string in bytes
+    :return: lentht of string in bytes
     :rtype: int
     '''
     return len(s.encode('utf-8'))
@@ -663,3 +663,25 @@ def kernel_name(path):
     :return: 
     '''
     return path.split(os.sep)[-1]
+
+def checksum_from_label(path):
+    '''
+    Extract checksum from a label rather tan calculating it.
+    :param path: 
+    :return: 
+    '''
+    
+    checksum = ''
+    product_label = path.split('.')[0] + '.xml'
+    if os.path.exists(product_label):
+        with open(product_label, 'r') as l:
+            for line in l:
+                if '<md5_checksum>' in line:
+                    checksum = line.split('<md5_checksum>')[-1]
+                    checksum = checksum.split('</md5_check')[0]
+                    logging.info(f'-- Checksum obtained from existing label: '
+                                 f'{product_label.split(os.sep)[-1]}')
+                    break
+                    
+    return checksum
+                    

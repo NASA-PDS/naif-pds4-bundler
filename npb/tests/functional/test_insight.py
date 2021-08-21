@@ -194,6 +194,9 @@ class TestINSIGHT(TestCase):
         directory. The log provides error messages but the process is not
         stopped. Process is finished before moving all files to the final
         area.
+        
+        The testcase also tests the obtention of checksums from already existing
+        labels.
         '''
 
         config = '../config/insight.xml'
@@ -221,8 +224,12 @@ class TestINSIGHT(TestCase):
 
         shutil.copy2('../data/kernels/ck/insight_ida_enc_200829_201220_v1.bc',
                      'staging/insight_spice/spice_kernels/ck/')
+        shutil.copy2('../data/kernels/ck/insight_ida_enc_200829_201220_v1.xml',
+                     'staging/insight_spice/spice_kernels/ck/')
         
         shutil.copy2('../data/kernels/ck/insight_ida_pot_200829_201220_v1.bc',
+                     'staging/insight_spice/spice_kernels/ck/')
+        shutil.copy2('../data/kernels/ck/insight_ida_pot_200829_201220_v1.xml',
                      'staging/insight_spice/spice_kernels/ck/')
         
         shutil.copy2('../data/kernels/mk/insight_v08.tm',
@@ -230,7 +237,7 @@ class TestINSIGHT(TestCase):
         
         os.makedirs('insight', mode=0o777)
 
-        main(config, plan, faucet, silent=self.silent, log=self.log, diff='all')
+        main(config, plan, faucet, silent=self.silent, log=self.log)
 
     def test_insight_previous_spiceds(self):
         '''
