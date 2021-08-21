@@ -3,11 +3,40 @@ naif-pds4-bundle worklist by MCS/NAIF, updated 5 May, 2021
 
 Work List:
 
-  DOING:
-     
+  URGENT:
+  
   -- Issue with the generation of file list for a failed run.
   
-  URGENT:
+  -- Update the coverage determination of MK PER kernel and put a parameter
+     to determine whether the MK determines the coverage of the collection 
+     or not. Needs a bit of thought, this is an example:
+     
+    <!-- =========================== -->
+    <!-- Meta-kernel                 -->
+    <!-- =========================== -->
+    <meta-kernel>
+        <mk_inputs>
+            <file>kernels/mk/m2020_v01.tm</file>
+            <file>kernels/mk/m2020_chronos_v01.tm</file>
+        </mk_inputs>
+        <mk name="m2020_v$VERSION.tm">
+            <name>
+                <pattern length="2">VERSION</pattern>
+            </name>
+            <coverage_kernels collection="True">
+                <pattern>m2020_cruise_od138_v[0-9].bsp</pattern>
+                <pattern>m2020_surf_rover_loc_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_v[0-9].bsp</pattern>
+            </coverage_kernels>
+        </mk>
+        <mk name="m2020_chronos_v$VERSION.tm">
+            <name>
+                <pattern length="2">VERSION</pattern>
+            </name>
+            <coverage_kernels collection="False">
+            </coverage_kernels>
+        </mk>        
+    </meta-kernel>     
+  
   
   -- Bug in coverage determination for SPKs and CKs when multiple bodies 
      are present: the body used should be the SPICE ID of the appropriate one.
