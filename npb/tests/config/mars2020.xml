@@ -160,8 +160,7 @@
         </kernel>  
         <kernel pattern="m2020_surf_rover_tlm_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_v[0-9].bc">
             <mklabel_options>ROVER $PHASES NAIF</mklabel_options>
-            <description>SPICE CK file containing the orientation of the rover relative to the local level frame, created 
-                using telemetry view data from OPGS PLACES server, covering SOLs $START to $FINISH. Created by NAIF, JPL.
+            <description>SPICE CK file containing the orientation of the rover relative to the local level frame, created by NAIF, JPL using telemetry view data from OPGS PLACES server, covering SOLs $START to $FINISH, version $VERSION.
             </description>
             <patterns>
                 <START pattern="kernel">m2020_surf_rover_tlm_$START_[0-9][0-9][0-9][0-9]_v[0-9].bc</START>
