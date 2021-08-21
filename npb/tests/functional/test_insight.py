@@ -406,6 +406,7 @@ class TestINSIGHT(TestCase):
 
         main(updated_config, plan, faucet, silent=self.silent, log=self.log, 
              diff='all')
+        
 
     def test_insight_mks_input(self):
         '''
@@ -452,7 +453,8 @@ class TestINSIGHT(TestCase):
         '''
         Testcase for when one of the meta-kernels does not include the SPK/CK
         that determines the coverage of the meta-kernel (implemented after
-        M2020 Chronos meta-kernel generation.)
+        M2020 Chronos meta-kernel generation.).
+        
         '''
         config = '../config/insight.xml'
         updated_config = 'working/insight.xml'
@@ -484,8 +486,46 @@ class TestINSIGHT(TestCase):
                     else:
                         n.write(line)
 
-
         main(updated_config, plan, faucet, silent=self.silent, log=self.log)
+
+    def test_insight_mks_coverage_in_final(self):
+        '''
+        Testcase for when one of the meta-kernels does not include the SPK/CK
+        that determines the coverage of the meta-kernel (implemented after
+        M2020 Chronos meta-kernel generation.).
+
+        '''
+        config = '../config/insight.xml'
+        updated_config = 'working/insight.xml'
+        plan = '../data/insight_release_00.plan'
+        faucet = 'final'
+
+        dirs = ['working', 'staging', 'insight']
+        for dir in dirs:
+            os.makedirs(dir, 0o766, exist_ok=True)
+
+        shutil.copy2('../data/insight_release_basic.kernel_list',
+                     'working/insight_release_07.kernel_list')
+        shutil.rmtree('insight')
+        shutil.copytree('../data/insight', 'insight')
+        shutil.rmtree('kernels', ignore_errors=True)
+        shutil.copytree('../data/kernels', 'kernels')
+        shutil.copy2('../data/insight_v08.tm',
+                     'working/insight_v08.tm')
+
+        with open(config, 'r') as c:
+            with open(updated_config, 'w') as n:
+                for line in c:
+                    if '        <coverage_kernels>' in line:
+                        n.write('        <mk_inputs>\n'
+                                '<file>working/insight_v08.tm</file>\n'
+                                '        </mk_inputs>\n'
+                                '        <coverage_kernels>\n')
+                    else:
+                        n.write(line)
+                        
+        main(updated_config, plan, faucet, silent=self.silent, log=self.log)
+        print('')
 
     def test_insight_no_spiceds(self):
         '''

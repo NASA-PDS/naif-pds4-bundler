@@ -1330,7 +1330,12 @@ class MetaKernelProduct(Product):
                                f'spice_kernels/' \
                                f'{extension2type(kernel)}/{kernel}'
 
-                        try:
+                        if not os.path.exists(path):
+                            logging.error(f'-- File not present in final '
+                                          f'area: {path}.')
+                            logging.error(f'   It will not be used to '
+                                          f'determine the coverage.')
+                        else:
                             if extension2type(kernel) == 'spk':
                                 (start_time, stop_time) = spk_coverage(path,
                                                 main_name=self.setup.spice_name)
@@ -1345,14 +1350,9 @@ class MetaKernelProduct(Product):
                                 spiceypy.utc2et(start_time[:-1]))
                             finish_times.append(
                                 spiceypy.utc2et(stop_time[:-1]))
-
-                        except:
-                            #
-                            # If the kernels are not available it has to be
-                            # signaled.
-                            #
-                            logging.error(f'-- File not present in final '
-                                          f'area: {path}')
+                            
+                            logging.info(f'-- File {kernel} used to determine '
+                                         f'coverage.')
 
         #
         # If it is a yearly meta-kernel; we need to handle it separately.
