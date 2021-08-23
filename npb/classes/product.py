@@ -226,7 +226,11 @@ class SpiceKernelProduct(Product):
             logging.error(f'     {self.name} already present in staging '
                           f'directory.')
 
-            self.new_product = False
+            #
+            # Even though it is not a 'new' product, the file is present in 
+            # the staging area because it was generated in a prior run.
+            #
+            self.new_product = True
 
         #
         # We update the path after having copied the kernel.
@@ -2728,6 +2732,7 @@ class InventoryProduct(Product):
         #
         # If there is an existing version we need to add the items from
         # the previous version as SECONDARY members
+        #
         with open(self.path, "w+") as f:
             if self.path_current:
                     with open(self.path_current, "r") as r:
