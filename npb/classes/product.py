@@ -223,7 +223,7 @@ class SpiceKernelProduct(Product):
                 if self.new_product:
                     break
         else:
-            logging.error(f'     {self.name} already present in staging '
+            logging.warning(f'     {self.name} already present in staging '
                           f'directory.')
 
             #
@@ -1459,7 +1459,7 @@ class OrbnumFileProduct(Product):
                          product_path + os.sep + self.name)
             self.new_product = True
         else:
-            logging.error(f'     {self.name} already present in staging '
+            logging.warning(f'     {self.name} already present in staging '
                           f'directory.')
 
             self.new_product = False
@@ -3561,7 +3561,7 @@ class ChecksumProduct(Product):
                         self.md5_dict[label_checksum] = \
                             product.label.name.split(f"/{msn_acr}_spice/")[-1]
                     else:
-                        logging.error(f'-- {product} does not have a label.')
+                        logging.error(f'-- {product_name} does not have a label.')
             #
             # Include the readme file checksum if it has been generated in
             # this run. This is a bundle level product.
