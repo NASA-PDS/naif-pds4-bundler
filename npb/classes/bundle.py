@@ -192,10 +192,17 @@ class Bundle(object):
 
                 logging.info(f'-- Copied: {dst.split(os.sep)[-1]}')
             else:
-                if not filecmp.cmp(src, dst):
-                    logging.warning(f'-- File already exists but content is '
-                                    f'different: '
-                                    f'{dst.split(os.sep)[-1]}')
+                
+                #
+                # Comparison for Binary files is disabled (following the 
+                # experience of comapring OREX OLA CKs.)
+                #
+                if src.split('.')[-1][0] != 'b':
+                
+                    if not filecmp.cmp(src, dst):
+                       logging.warning(f'-- File already exists but content is '
+                                       f'different: '
+                                       f'{dst.split(os.sep)[-1]}')
 
                 logging.warning(f'-- File already exists and has not been '
                                 f'copied: {dst.split(os.sep)[-1]}')
