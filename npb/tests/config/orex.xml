@@ -272,10 +272,16 @@
         <kernel pattern="orx_[0-9][0-9][0-9][0-9]_v[0-9][0-9].tm">
             <mklabel_options></mklabel_options>
             <description>SPICE MK file listing kernels for $YEAR, created by NAIF, JPL.</description>
+            <patterns>
+                <YEAR pattern="KERNEL">orx_$YEAR_v[0-9][0-9].tm</YEAR>
+            </patterns>            
         </kernel>
         <kernel pattern="orx_noola_[0-9][0-9][0-9][0-9]_v[0-9][0-9].tm">
             <mklabel_options></mklabel_options>
             <description>SPICE MK file listing kernels for $YEAR, not including OLA CKs, created by NAIF, JPL.</description>
+            <patterns>
+                <YEAR pattern="KERNEL">orx_noola_$YEAR_v[0-9][0-9].tm</YEAR>
+            </patterns>                      
         </kernel>
     </kernel_list>
 
