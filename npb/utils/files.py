@@ -633,7 +633,7 @@ def match_patterns(name, name_w_pattern, patterns):
         elif (name_check[i] == '$') and value_bool:
             value += name[i]
         else:
-            error_message(f'Missmatch of values in meta-kernel pattern')
+            raise
 
     #
     # Correlate the values with their position in the file name with
