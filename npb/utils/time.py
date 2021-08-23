@@ -181,15 +181,15 @@ def ck_coverage(path, date_format='infomod2'):
     start_points_list = list()
     end_points_list = list()
 
-    MAXIV = 10000
-    WINSIZ = 2 * MAXIV
-    MAXOBJ = 10000
+    maxiv = 10000
+    winsiz = 2 * maxiv
+    maxobj = 10000
 
-    ids = spiceypy.support_types.SPICEINT_CELL(MAXOBJ)
+    ids = spiceypy.support_types.SPICEINT_CELL(maxobj)
     ids = spiceypy.ckobj(ck=path, out_cell=ids)
 
     for id in ids:
-        coverage = spiceypy.support_types.SPICEDOUBLE_CELL(WINSIZ)
+        coverage = spiceypy.support_types.SPICEDOUBLE_CELL(winsiz)
         spiceypy.scard, 0, coverage
         coverage = spiceypy.ckcov(ck=path, idcode=id, needav=False,
                                   level='SEGMENT', tol=0.0, timsys='TDB',
