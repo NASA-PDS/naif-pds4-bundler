@@ -791,6 +791,9 @@ class MetaKernelProduct(Product):
         except:
             logging.warning(f'-- {self.name} No vid explicit in kernel name: '
                             f'set to 1.0')
+            logging.warning(f'-- Make sure that the MK pattern in the '
+                            f'configuration file is correct e.g. missing '
+                            f'extension?')
             product_vid = '1.0'
 
         return product_vid
