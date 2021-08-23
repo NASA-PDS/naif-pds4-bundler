@@ -180,7 +180,10 @@ class Bundle(object):
                 os.mkdir(os.sep.join(dst.split(os.sep)[:-1]))
                 os.chmod(os.sep.join(dst.split(os.sep)[:-1]), 0o775)
 
-            if not os.path.exists(dst):
+            #
+            # If the file is a label we copy it anyway.
+            #
+            if not os.path.exists(dst) or dst.split('.')[-1] == 'xml':
                 copied_files.append(file)
                 #
                 # We do not use copy2 (copy data and metadata) because
