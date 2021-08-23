@@ -110,7 +110,7 @@ def main(config=False, plan=False, faucet='', log=False, silent=False,
     :type debug: bool
     :param clear: Indicates if the pipeline will run only to clear previous
     run and specifies the file that indicates the files to be cleared.
-    :type debug: str    
+    :type clear: str    
     :param kerlist: Release list file listing the kernels to be archived along
                  with their description.
     :type kerlist: str       
