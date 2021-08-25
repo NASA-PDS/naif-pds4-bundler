@@ -45,9 +45,6 @@ Work List:
      
      Tests implemented here: test_pds4_orex_list
  
-  -- Update the meta-kernel modification message and remove it from tests
-     with the debug argument.
- 
   LATER:   
    
   -- Agreed to try to enhance the MK generation with whitespaces
@@ -227,5 +224,11 @@ v0.11.1
      So far it has been fixed for SPKs, but not yet for CKs, it is a bit
      unknown if applicable and if it is something that should be sorted out
      via configuration.  
+
+v0.11.2
+
+  -- Update the meta-kernel modification message and remove it from tests
+     with the debug argument.
+ 
 
 v1.0.0 - First 'public' release.
