@@ -36,22 +36,9 @@ Work List:
             </coverage_kernels>
         </mk>        
     </meta-kernel>     
-  
-  
-  -- Bug in coverage determination for SPKs and CKs when multiple bodies 
-     are present: the body used should be the SPICE ID of the appropriate one.
-     (Bug found in M2020).
      
-     So far it has been fixed for SPKs, but not yet for CKs, it is a bit
-     unknown if applicable and if it is something that should be sorted out
-     via configuration.
-     
-     Implement tests for failed main ID for SPKs.
-     
-  -- Bug in list generation from kernels found with multiple instances of 
-     m2020_v*.tf versions.
-     
-     Tests implemented here: test_pds4_mars2020_no_plan
+  -- Include option to provide plan with kernel names to be mapped or to 
+     provide kernels from directory with original names.
      
   -- Important bug that prevents from using mapping kernels with multiple 
      fields (for ORX).
@@ -66,18 +53,9 @@ Work List:
   -- Agreed to try to enhance the MK generation with whitespaces
      for selected kernels of the same type.
 
-  -- Agreed to generate another pipeline byproduct with the list
-     of files moved to the final area and to add an option in the
-     pipleline to remove these files from the final area.
-     
-     A similar thing should be done with files in the stagging area.
-
   -- NOT for this release, and maybe never, but should we consider adding
      a reference from to the LIDVIDs of SPK -- or SPKs -- that were used to
      generate an ORBNUM to its label?
-
-  -- Agreed to re/test when files are already present in stagging or final
-     area. 
 
   -- Incorporate a validation at the end of the process that reports on
      sensible field such as descriptions, start and stop times, and other
@@ -86,9 +64,8 @@ Work List:
   -- For PDS3 first implement generation with MKLABL with the ultimate goal
      to replace it completely with Python code.
      
-  -- Same approach for Perl scripts, end up replacing them with Python code.        
-  -- Evaluate or assess file permissions, changing could be optional.
-
+  -- Same approach for Perl scripts, end up replacing them with Python code.   
+      
   -- Include DOIs in configurations:
       * OREX:    10.17189/1520435
       * MAVEN:   10.17189/1520434
@@ -230,5 +207,25 @@ v0.11.0
 
   -- Implement test to figure out why second coverage kernel is not being used.
 
+v0.11.1
+
+  -- Agreed to generate another pipeline byproduct with the list
+     of files moved to the final area and to add an option in the
+     pipleline to remove these files from the final area.
+     
+     A similar thing should be done with files in the stagging area.
+     
+  -- Agreed to re/test when files are already present in stagging or final
+     area.      
+     
+  -- Evaluate or assess file permissions, changing could be optional. 
+  
+  -- Bug in coverage determination for SPKs and CKs when multiple bodies 
+     are present: the body used should be the SPICE ID of the appropriate one.
+     (Bug found in M2020).
+     
+     So far it has been fixed for SPKs, but not yet for CKs, it is a bit
+     unknown if applicable and if it is something that should be sorted out
+     via configuration.  
 
 v1.0.0 - First 'public' release.

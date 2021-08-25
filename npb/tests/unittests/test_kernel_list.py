@@ -1,6 +1,7 @@
 import os
 import shutil
 import unittest
+from pathlib import Path
 from unittest import TestCase
 from npb.main import main
 
@@ -189,7 +190,7 @@ class TestKernelList(TestCase):
     def test_pds4_orex_list(self):
         """
         Basic test for OREX kernel list generation.
-        #TODO: Test that needs to be updated.
+
         """
         config = '../config/orex.xml'
         plan   = '../data/orex_release_12.plan'

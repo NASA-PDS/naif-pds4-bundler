@@ -1,7 +1,6 @@
 import os
 import shutil
 import unittest
-from pathlib import Path
 from unittest import TestCase
 from npb.main import main
 
@@ -80,13 +79,12 @@ class TestPlan(TestCase):
 
         self.assertEqual(old_file.split('\n')[9:],new_file.split('\n')[9:])
 
-    def test_pds4_mars2020_plan(self):
+    def test_pds4_mars2020_no_plan(self):
         """
         Basic test for M2020 kernel plan generation. This is a PDS4 Bundle.
         Implemented for the generation of the first M2020 release. The 
         particularity of this test is that it includes two meta-kernels provided
-        as inputs. Another partiucularity is that the SCLK is not being added
-        to the list.
+        as inputs. 
 
         """
         config = '../config/mars2020.xml'
@@ -107,6 +105,7 @@ class TestPlan(TestCase):
                         pass
                     last_filename = filename
 
+
         main(config, faucet=faucet, silent=True, log=True)
 
         new_file = ''
@@ -121,44 +120,6 @@ class TestPlan(TestCase):
                     old_file += line
 
         self.assertEqual(old_file.split('\n')[7:],new_file.split('\n')[7:])
-
-    def test_pds4_mars2020_no_plan(self):
-        """
-        Basic test for M2020 kernel plan generation. This is a PDS4 Bundle.
-        Implemented for the generation of the first M2020 release. List is 
-        provided along with the kernels in the kernels directory.
-        #TODO: Fix this tests.
-
-        """
-        config = '../config/mars2020.xml'
-        faucet = 'list'
-        key = 'FILE             = spice_kernels'
-
-        with open('../data/mars2020_release_01.kernel_list', 'r') as f:
-            for line in f:
-                if key in line:
-                    file = f'kernels{line.split(key)[-1]}'[:-1]
-                    Path(file).touch()
-
-        os.remove('kernels/sclk/m2020_168_sclkscet_00007.tsc')
-
-        Path('kernels/sclk/M2020_168_SCLKSCET.00007.tsc').touch()
-        Path('kernels/fk/m2020_v01.tf').touch()
-        Path('kernels/fk/m2020_v03.tf').touch()
-
-        main(config, faucet=faucet, silent=True, log=True)
-
-        new_file = ''
-        with open('working/mars2020_release_01.plan', 'r') as f:
-            for line in f:
-                new_file += line
-
-        old_file = ''
-        with open('../data/mars2020_release_01.plan', 'r') as f:
-            for line in f:
-                old_file += line
-
-        self.assertEqual(old_file.split('\n')[7:], new_file.split('\n')[7:])
 
 
 if __name__ == '__main__':

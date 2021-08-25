@@ -16,6 +16,10 @@
     </Citation_Information>
   </Identification_Area>
   <Context_Area>
+    <Time_Coordinates>
+      <start_date_time>2018-05-05T12:30:03Z</start_date_time>
+      <stop_date_time>2020-06-23T07:49:00Z</stop_date_time>
+    </Time_Coordinates>
     <Primary_Result_Summary>
       <purpose>Observation Geometry</purpose>
       <processing_level>Derived</processing_level>

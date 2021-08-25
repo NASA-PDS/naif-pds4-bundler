@@ -255,3 +255,9 @@ or
     python -m unittest
 
 under naif-pds4-bundle/npb/tests
+
+
+Input kernel plan and kernel list
+=================================
+
+If a kernel plan is provided as an input.
