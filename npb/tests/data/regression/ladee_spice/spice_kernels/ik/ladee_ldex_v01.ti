@@ -1,0 +1,124 @@
+KPL/IK
+
+LADEE LDEX Instrument Kernel
+===============================================================================
+
+   This Instrument Kernel (IK) file contains the Field-Of-View (FOV)
+   definition for the Lunar Dust EXperiment (LDEX) instrument.
+
+
+Version and Date
+-------------------------------------------------------------------------------
+
+   Version 0.1 -- May 6, 2021 -- Marc Costa Sitha, NAIF
+
+      Removed comment in Instrument FOV section.
+
+   Version 0.0 -- October 16, 2013 -- Boris Semenov, NAIF
+
+
+References
+-------------------------------------------------------------------------------
+
+   1. Kernel Pool Required Reading
+
+   2. GETFOV, getfoc_c, cspice_getfov headers
+
+   3. LADEE FK file, latest version
+
+   4. STK Sensor files provided by Mark Shirley, 09/25/13. 
+
+
+Contact Information
+-------------------------------------------------------------------------------
+
+   Boris V. Semenov, NAIF/JPL, (818)-354-8136, Boris.Semenov@jpl.nasa.gov
+
+
+Implementation Notes
+-------------------------------------------------------------------------------
+
+   This file is used by the SPICE system as follows: programs that make
+   use of this kernel must ``load'' the kernel, normally during program
+   initialization. The SPICE routine FURNSH loads a kernel file into
+   the pool as shown below.
+
+      CALL FURNSH ( 'frame_kernel_name; )    -- FORTRAN
+      furnsh_c ( "frame_kernel_name" );      -- C
+      cspice_furnsh, frame_kernel_name       -- IDL
+      cspice_furnsh( 'frame_kernel_name' )   -- MATLAB
+
+   Once the file has been loaded, the SPICE routine GETFOV (getfov_c in
+   C, cspice_getfov in IDL and MATLAB) can be used to retrieve FOV
+   parameters for a given instrument or structure.
+ 
+   This file was created and may be updated with a text editor or word
+   processor.
+
+
+Naming Conventions
+----------------------------------------------------------
+
+   All names referencing values in this IK file start with the
+   characters `INS' followed by the NAIF ID number for LDEX:
+
+      LADEE_LDEX         -12200
+
+   This ID is defined in the latest LADEE FK ([3]).
+
+   The remainder of the keyword name is an underscore character
+   followed by the unique name of the data item. For example, the LDEX
+   boresight direction in the LDEX frame is specified by:
+
+      INS-12200_BORESIGHT
+
+   The upper bound on the length of the name of any data item is 32
+   characters.
+ 
+   If the same item is included in more than one file, or if the same
+   item appears more than once within a single file, the latest value
+   supersedes any earlier values.
+
+
+Instrument Description
+---------------------------------------------------------
+
+   The Lunar Dust EXperiment (LDEX) instrument is an impact
+   ionization dust detector. Its overall size is comparable to a
+   bread box and it consists of three main sections: an Electronics
+   Box Assembly, a Front End Detector, and an Aperture Door
+   Assembly.
+
+
+Mounting Alignment
+--------------------------------------------------------
+
+   Refer to the latest version of the LADEE Frames Definition Kernel
+   (FK) [3] for the LADEE LDEX reference frame definitions and mounting
+   alignment information.
+
+
+Instrument FOV
+----------------------------------------------------------
+
+   This section defines FOV for LDEX based on [4]:
+
+          NAME            ID     HALFSIZE   SHAPE    BSIGHT    FRAME
+      ----------------  -------  ---------  -------  ------  ----------
+      LADEE_LDEX        -12200   34.5  deg   cone      Z     LADEE_LDEX
+
+   The FOVs are defined in this data block.
+
+      \begindata
+
+      INS-12200_FOV_CLASS_SPEC       = 'ANGLES'
+      INS-12200_FOV_SHAPE            = 'CIRCLE'
+      INS-12200_FOV_FRAME            = 'LADEE_LDEX'
+      INS-12200_BORESIGHT            = ( 0.0, 0.0, 1.0 )
+      INS-12200_FOV_REF_VECTOR       = ( 1.0, 0.0, 0.0 )
+      INS-12200_FOV_REF_ANGLE        = ( 34.5 )
+      INS-12200_FOV_ANGLE_UNITS      = ( 'DEGREES' )
+
+      \begintext
+
+End of the IK file.

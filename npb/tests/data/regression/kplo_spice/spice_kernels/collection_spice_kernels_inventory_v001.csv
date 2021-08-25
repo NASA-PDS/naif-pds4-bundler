@@ -1,0 +1,8 @@
+P,urn:kari:kpds:kplo.spice:spice_kernels:ck_kplo_sc_230117_230121_v01.bc::1.0
+P,urn:kari:kpds:kplo.spice:spice_kernels:fk_kplo_v00.tf::1.0
+P,urn:kari:kpds:kplo.spice:spice_kernels:ik_kplo_luti_v04.ti::1.0
+P,urn:kari:kpds:kplo.spice:spice_kernels:lsk_naif0012.tls::1.0
+P,urn:kari:kpds:kplo.spice:spice_kernels:pck_pck00010.tpc::1.0
+P,urn:kari:kpds:kplo.spice:spice_kernels:sclk_kplo_200926_000100.tsc::1.0
+P,urn:kari:kpds:kplo.spice:spice_kernels:spk_de432s.bsp::1.0
+P,urn:kari:kpds:kplo.spice:spice_kernels:spk_kplo_pl_230117_230124_v01.bsp::1.0
