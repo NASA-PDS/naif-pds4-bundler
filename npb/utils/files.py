@@ -39,6 +39,7 @@ import logging
 import json
 import platform
 import difflib
+import spiceypy
 from collections import defaultdict
 from npb.classes.log import error_message
 
@@ -684,4 +685,26 @@ def checksum_from_label(path):
                     break
                     
     return checksum
+
+
+def extract_comment(path):
+    '''
+    Extract comment from DAF file.
+    
+    :param path: 
+    :return: 
+    '''
+    handle = spiceypy.dafopr(path)
+    done = False
+    linlen = 1001
+    buffsz = 1001
+    comment = []
+    
+    while not done:
+        (n, buffer, done) = spiceypy.dafec(handle, buffsz, linlen)
+        comment += buffer
+        
+    print(buffer)
+
+    return comment
                     

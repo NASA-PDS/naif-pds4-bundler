@@ -10,7 +10,7 @@
 The DART SPICE Data Archive
 ========================================================================
 
-   Last update: July 14, 2021
+   Last update: September 3, 2021
 
 <A NAME="Introduction"></A>
 Introduction
@@ -19,7 +19,8 @@ Introduction
    This document describes the DART SPICE archive, containing
    observation geometry and other ancillary data in the form of SPICE
    System kernel files for the DART spacecraft and its instruments and
-   targets. It describes the archive directorY structure, kernels 
+   targets, and for the LICIA spacecraft and its instruments and 
+   structures. It describes the archive directory structure, kernels 
    included in the archive, their naming conventions, and provides 
    pointers to the SPICE software and documentation.
 
@@ -55,8 +56,8 @@ Table of Contents
 Overview
 ========
  
-   This archive includes the complete set of DART SPICE data files
-   (kernel files), which can be accessed using SPICE software. The
+   This archive includes the complete set of DART and LICIA SPICE data 
+   files (kernel files), which can be accessed using SPICE software. The
    SPICE data contain geometric and other ancillary information needed
    to recover the full value of science instrument data. In particular
    SPICE kernels provide spacecraft and planetary ephemerides, spacecraft 
@@ -108,8 +109,8 @@ Archive Contents
 
    <a href="../">[top-level-directory]</a>
    |
-   |- bundle_dart_spice_v*.xml          Bundle PDS4 label, one or more versions.
-   |- <a href="../readme.txt">readme.txt</a>                        Bundle top-level readme file.
+   |- bundle_dart_spice_v*.xml           Bundle PDS4 label, one or more versions.
+   |- <a href="../readme.txt">readme.txt</a>                         Bundle top-level readme file.
    |
    |-<a href="../spice_kernels/">[spice_kernels]</a>                     Directory containing SPICE kernels.
    | |
@@ -231,7 +232,9 @@ Kernel Types
    connections between these frames and other frames supported within
    the SPICE system. The science instrument frame definitions provided
    in the FK files include mounting alignment information for the
-   instruments. FK files are located under the <a href="../spice_kernels/fk/">spice_kernels/fk</a> 
+   instruments. FK files also frequently contain NAIF name/ID mappings 
+   for bodies, spacecraft instruments and structures, and for DSK 
+   surfaces. FK files are located under the <a href="../spice_kernels/fk/">spice_kernels/fk</a>
    directory of this archive.
 
    DSK (Digital Shape Kernel) files contain detailed shape models for
@@ -301,12 +304,18 @@ SPK Files
 
       -  Didymos system ephemeris SPKs
 
-               didymos_barycenter_dDDD_VV.bsp
-               didymos_dDDD_sSSS_VV.bsp
-               dimorphos_dDDD_sSSS_VV.bsp
+               BODY_dDDD_vVV.bsp
 
             where 
 
+               BODY      is the system body:
+
+                            didymos_barycenter     Didymos barycenter   
+
+                            didymos                Didymos asteroid
+    
+                            dimorphos              Dimorphos satellite
+    
                DDD       is the DRA version.
 
                SSS       is the satellite solution version.
@@ -314,31 +323,21 @@ SPK Files
                VV        is the file version; the file with the latest
                          version supersedes all similarly named files
                          with earlier versions.
-    
-      -  DART trajectory SPKs
 
-               D210426-L211124-EP-RA26-V01_impact.bsp
+      - reconstructed trajectory SPKs
+
+               SC_YYMMDD_YYMMDD_vVV.bsp
 
             where
     
-               [1]     D for DART
-               [2-7]   File Generation Date YYMMDD
-               [8]     Dash
-               [9]     L for Launch
-               [10-15] Launch Date YYMMDD
-               [16]    Dash
-               [17-18] Chemical (CM) or Electric Propulsion (EP)
-               [19]    Dash
-               [20]    P for Prograde impact, R for retrograde impact
-               [21]    A for Arrival
-               [22-23] Arrival Day DD (26 is Sep 26 2022, 02 is Oct 02 2022)
-               [24]    Dash
-               [25]    V for File Version 
-               [26-27] Zero-leading two digit version number
-               _traj kernels intersect the center of Didymos.  
-               _impact kernels are shifted to impact the center of Dimorphos.
-
-      - LICIA trajectory spice_kernels
+               SC        is the spacecraft name, either "dart" or "licia".
+    
+               YYMMDD    are the file coverage start and stop dates
+ 
+               VV        is the version; the file with the latest
+                         version supersedes all similarly named files
+                         with earlier versions.
+    
 
    The most detailed description of the data in each SPK file is
    provided in metadata included inside the comment area of the file.
@@ -386,7 +385,7 @@ PCK Files
 
       -  Didymos system text PCK files
 
-               didymosSystem_dDDD_sSSS_VV.tpc
+               didymos_system_dDDD_sSSS_vVV.tpc
 
             where 
 
@@ -423,7 +422,7 @@ IK Files
 
             where 
 
-               SC        is either "dart" or "licia".
+               SC        is the spacecraft name, either "dart" or "licia".
                
                NAME      is the instrument acronym:
 
@@ -451,36 +450,47 @@ CK Files
    This archive includes binary CK files containing the following kinds
    of orientation data:
 
-      -  simulated spacecraft orientation CKs
+      -  reconstructed spacecraft orientation CKs
 
-            These CKs contain simulated DART or LICIA spacecraft 
+            These CKs contain reconstructed DART or LICIA spacecraft 
             attitudes.
+    
+      -  reconstructed Solar Array (SA) orientation CKs
+
+            These CKs created by NAIF contain the reconstructed
+            DART SA gimbal angles measured on-board and
+            downlinked in spacecraft telemetry.    
 
    The CK files are provided under the <a href="../spice_kernels/ck/">spice_kernels/ck</a>
    directory and are named according to the following scheme:
 
-      -  DART CKs
+      -  spacecraft, high gain antenna, and solar array CKs
 
-               D210426-L211124-EP-RA26-V01_impact.bc
+               SC_NAME_TYPE_YYMMDD_yymmdd_vVV.bc
 
-            where
+            where 
 
-               [1]     D for DART
-               [2-7]   File Generation Date YYMMDD
-               [8]     Dash
-               [9]     L for Launch
-               [10-15] Launch Date YYMMDD
-               [16]    Dash
-               [17-18] Chemical (CM) or Electric Propulsion (EP)
-               [19]    Dash
-               [20]    P for Prograde impact, R for retrograde impact
-               [21]    A for Arrival
-               [22-23] Arrival Day DD (26 is Sep 26 2022, 02 is Oct 02 2022)
-               [24]    Dash
-               [25]    V for File Version 
-               [26-27] Zero-leading two digit version number
-               _traj, _impact kernels are simulated with the corresponding SPK.
+               SC        is the spacecraft name, either "dart" or "licia".
+    
+               NAME      is the structure acronym
 
+                            sc     for spacecraft
+                            sa     for SA
+                            hga    for HGA
+
+               TYPE      is the data type
+ 
+                            rel    for reconstructed
+                            pre    for predicted
+
+               YYMMDD    is the file coverage start date
+
+               yymmdd    is the file coverage stop date
+
+               VV        is the version; the file with the latest 
+                         version supersedes all similarly named
+                         files with earlier versions.
+    
    The most detailed description of the data in each CK file is
    provided in metadata included inside the comment area of the file.
    This information can be viewed using the utility program COMMNT
@@ -532,13 +542,13 @@ SCLK Files
 
       -  spacecraft clock SCLK files
 
-               NAME_sclk_VVVVV.tsc
+               NAME_sclk_VVVV.tsc
 
             where 
     
                NAME      is either "dart" or "licia".
 
-               VVVVV     is the version; the file with the latest 
+               VVVV      is the version; the file with the latest 
                          version supersedes all similarly named
                          files with earlier versions.
 
@@ -563,6 +573,9 @@ FK Files
    design documentation as well as actual instrument alignment values
    determined pre-launch and as the result of in-flight calibrations.
 
+   It also includes text FK files defining reference frames and surface 
+   name/ID mappings for the Didymos system. 
+    
    The FK files are provided under the <a href="../spice_kernels/fk/">spice_kernels/fk</a>
    directory and are named according to the following scheme:
 
@@ -573,7 +586,7 @@ FK Files
             where 
 
                NAME      is the name of the spacecraft in lower case; either 
-                         "dart" or "licia"".
+                         "dart" or "licia"
 
                VVV       is the version; the file with the latest
                          version supersedes all similarly named files
@@ -581,6 +594,19 @@ FK Files
                          might decide decide to use an earlier version
                          if trying to be consistent with some earlier
                          computed results.
+    
+      -  Didymos system FK files
+
+               didymos_system_VVV.tf
+
+            where 
+    
+               VVV       is the version; the file with the latest
+                         version supersedes all similarly named files
+                         with earlier versions, although a SPICE user
+                         might decide decide to use an earlier version
+                         if trying to be consistent with some earlier
+                         computed results.    
 
    The most detailed description of the data in a text FK file is
    provided in metadata included inside the description area of the
@@ -603,10 +629,16 @@ DSK Files
 
       -  asteroid Didymos/Dimorphos DSK files
 
-               C_RRRRRmm_SSS_obj_BBBB_LLLLDGGGGG_vVVV.bds
+               BBBB_C_RRRRRmm_SSS_ORI_LLLLDGGGGG_vVVV.bds
 
             where 
 
+               BBBB      is the body:
+
+                            dida   Didymos
+
+                            didb   Dimorphos
+    
                C         is the spatial coverage token:
 
                             g      global coverage; if the file
@@ -620,7 +652,14 @@ DSK Files
                                    a small disjoint region
 
                RRRRR     is the average vertex spacing, in mm
- 
+
+               ORI       is the origin of the data
+    
+                            dtm    digital terrain model 
+    
+                            ptm    digital elevation model created via  
+                                   Poisson method
+    
                SSS       is the shape model source:
 
                             spc    Stereo Photoclinometry
@@ -628,12 +667,6 @@ DSK Files
                             rdr    Radar
 
                             tru    Combined, true solution
-
-               BBBB      is the body:
-
-                            dida   Didymos
-
-                            didb   Dimorphos
 
                LLLLD     is the center latitude of the file
 
@@ -657,7 +690,90 @@ DSK Files
    This information can be viewed using the utility program COMMNT
    included in the NAIF Toolkit.
 
+<p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
+<A NAME="MK Files"></A>
+MK Files
 
+   Meta-kernel (MK) files (a.k.a 'furnsh' files) provide lists of the
+   archived kernels included in this archive suitable for loading into
+   a SPICE-based application via the high level SPICE data loader
+   routine FURNSH. Using meta-kernels makes it easy to load, with one
+   call, a comprehensive SPICE data collection for a given period.
+
+   The text MK files are provided under the <a href="../spice_kernels/mk/">spice_kernels/mk</a>
+   directory and are named according to the following scheme:
+
+      -  DART MK files
+
+               dart_vVV.tm
+
+            where
+
+               VV        is the version; the file with the latest 
+                         version supersedes all similarly named
+                         files with earlier versions.
+ 
+   Although the meta-kernels were created such that on a UNIX
+   workstation they can be loaded into a SPICE-based application
+   directly from the directory in which they reside -- because the
+   PATH_VALUES keyword is set to '..' and '/' is used as the path
+   delimiter -- it is recommended that users make local copies of these
+   files and update the PATH_VALUES keyword in each of them to point to
+   the actual location of the archive's 'spice_kernels' directory on
+   their system. Additional changes including replacing '/' and '\' in
+   all path specifications and converting UNIX line terminators to
+   terminators native to the user's system may be required to use these
+   meta-kernels on non-UNIX workstation.
+   
+   The following guidelines were followed to pick and set priority --
+   determined by the order in which the kernel files are listed, with
+   the latest one taking precedence -- for the kernel files included in
+   the orx_YYYY_vVV.tm meta-kernels:
+
+      -  the latest archived versions of LSK, PCK, and each kind of
+         SCLKs, IKs, FKs, SPKs, and CKs were included
+    
+      -  no DSKs were included
+
+   Additional description of the kernels sets listed in a text MK file is
+   provided in metadata included inside the description area of the
+   file. This information can be viewed using any text editor program.
+
+<p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
+<A NAME="Miscellaneous Files"></A>
+Miscellaneous Files
+===================
+    
+   Miscellaneous files provide value added elements that are outside the
+   scope of the PDS archive requirements. Miscellaneous files included in 
+   this archive are currently limited to checksum files.
+
+   The subsection below provides details for these files.
+
+<p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
+<A NAME="Checksum Files"></A>
+Checksum Files
+
+   A checksum file provides a table of MD5 checksums for all files in the 
+   archive as of a particular archive (bundle) version, including
+   checksums for all previous checksums files and their labels but
+   excluding the checksum for the checksum file itself and its label.
+
+   The checksum files are provided under the <a href="../miscellaneous/checksum/">miscellaneous/checksum</a>
+   directory and are named according to the following scheme:
+
+      -  DART checksum files
+
+               checksum_vVVV.tab
+
+            where
+
+               VVV       is the version; the file with the latest
+                         version supersedes all similarly named
+                         files with earlier versions and can be
+                         used to validate the archive in its
+                         entirety.
+    
 <p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
 <A NAME="File Formats"></A>
 File Formats

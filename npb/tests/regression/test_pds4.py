@@ -74,8 +74,7 @@ class TestPDS4(TestCase):
 
                 if fromlines != tolines:
                     print(f'Assertion False for: {product}')
-                    self.assertTrue(False
-                                    ) 
+                    self.assertTrue(False) 
         dirs = ['working', 'staging', 'kernels', mis]
         for dir in dirs:
             shutil.rmtree(dir, ignore_errors=True)

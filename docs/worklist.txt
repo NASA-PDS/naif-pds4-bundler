@@ -44,6 +44,13 @@ Work List:
      fields (for ORX).
      
      Tests implemented here: test_pds4_orex_list
+     
+  -- Implement run log file with checksums and the option to obtain checksums
+     from this file (rather than from the labels in staging from a previous
+     run).
+     
+  -- Possibility to use the pipeline to generate misc collection only? (for JAXA.)
+  
  
   LATER:   
    
@@ -84,7 +91,7 @@ Work List:
         Mars Exploration Rover 2 SPICE Kernels V1.0: 10.17189/1520105
         MESSENGER SPICE Kernels V1.0: 10.17189/1520108
         Mars Global Surveyor SPICE Kernels V1.0: 10.17189/1520101
-        Mars Reconnaissance Orbiter SPICE Kernels V1.0: 10.17189/1520100
+      * Mars Reconnaissance Orbiter SPICE Kernels V1.0: 10.17189/1520100
       * Mars Science Laboratory SPICE Kernels V1.0: 10.17189/1520113
         NEAR SPICE Kernels V1.0: 10.17189/1520103
         New Horizons SPICE Kernels V1.0: 10.17189/1520109

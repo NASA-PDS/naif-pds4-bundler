@@ -1,0 +1,136 @@
+-- main FKs
+
+no main FKs
+
+-- SCLK -- rename MRO_SCLKSET. to mro_sclkscet_
+
+mro_sclkscet_00099_65536.tsc \
+
+
+-- MAR* SPKs
+
+
+-- S/C SPKs -- remember *.norb -> *.nrb
+
+mro_psp59.bsp \
+
+
+-- S/C SSD reconstructed SPKs
+
+mro_psp59_ssd_mro95a.bsp \
+
+
+-- HGA Predicted CKs
+
+mro_hga_psp_210405_210417p.bc \
+mro_hga_psp_210412_210424p.bc \
+mro_hga_psp_210419_210501p.bc \
+mro_hga_psp_210426_210508p.bc \
+mro_hga_psp_210503_210515p.bc \
+mro_hga_psp_210510_210522p.bc \
+mro_hga_psp_210517_210529p.bc \
+mro_hga_psp_210524_210605p.bc \
+mro_hga_psp_210531_210612p.bc \
+mro_hga_psp_210607_210619p.bc \
+mro_hga_psp_210614_210626p.bc \
+mro_hga_psp_210621_210703p.bc \
+mro_hga_psp_210628_210710p.bc \
+
+
+-- SA Predicted CKs
+
+mro_sa_psp_210405_210417p.bc \
+mro_sa_psp_210412_210424p.bc \
+mro_sa_psp_210419_210501p.bc \
+mro_sa_psp_210426_210508p.bc \
+mro_sa_psp_210503_210515p.bc \
+mro_sa_psp_210510_210522p.bc \
+mro_sa_psp_210517_210529p.bc \
+mro_sa_psp_210524_210605p.bc \
+mro_sa_psp_210531_210612p.bc \
+mro_sa_psp_210607_210619p.bc \
+mro_sa_psp_210614_210626p.bc \
+mro_sa_psp_210621_210703p.bc \
+mro_sa_psp_210628_210710p.bc \
+
+
+-- S/C Predicted CKs
+
+mro_sc_psp_210405_210417p.bc \
+mro_sc_psp_210412_210424p.bc \
+mro_sc_psp_210419_210501p.bc \
+mro_sc_psp_210426_210508p.bc \
+mro_sc_psp_210503_210515p.bc \
+mro_sc_psp_210510_210522p.bc \
+mro_sc_psp_210517_210529p.bc \
+mro_sc_psp_210524_210605p.bc \
+mro_sc_psp_210531_210612p.bc \
+mro_sc_psp_210607_210619p.bc \
+mro_sc_psp_210614_210626p.bc \
+mro_sc_psp_210621_210703p.bc \
+mro_sc_psp_210628_210710p.bc \
+
+
+-- HGA raw CKs
+
+mro_hga_psp_210406_210412.bc \
+mro_hga_psp_210413_210419.bc \
+mro_hga_psp_210420_210426.bc \
+mro_hga_psp_210427_210503.bc \
+mro_hga_psp_210504_210510.bc \
+mro_hga_psp_210511_210517.bc \
+mro_hga_psp_210518_210524.bc \
+mro_hga_psp_210525_210531.bc \
+mro_hga_psp_210601_210607.bc \
+mro_hga_psp_210608_210614.bc \
+mro_hga_psp_210615_210621.bc \
+mro_hga_psp_210622_210628.bc \
+mro_hga_psp_210629_210705.bc \
+
+
+-- SA raw CKs
+
+mro_sa_psp_210406_210412.bc \
+mro_sa_psp_210413_210419.bc \
+mro_sa_psp_210420_210426.bc \
+mro_sa_psp_210427_210503.bc \
+mro_sa_psp_210504_210510.bc \
+mro_sa_psp_210511_210517.bc \
+mro_sa_psp_210518_210524.bc \
+mro_sa_psp_210525_210531.bc \
+mro_sa_psp_210601_210607.bc \
+mro_sa_psp_210608_210614.bc \
+mro_sa_psp_210615_210621.bc \
+mro_sa_psp_210622_210628.bc \
+mro_sa_psp_210629_210705.bc \
+
+
+-- S/C raw CKs
+
+mro_sc_psp_210406_210412.bc \
+mro_sc_psp_210413_210419.bc \
+mro_sc_psp_210420_210426.bc \
+mro_sc_psp_210427_210503.bc \
+mro_sc_psp_210504_210510.bc \
+mro_sc_psp_210511_210517.bc \
+mro_sc_psp_210518_210524.bc \
+mro_sc_psp_210525_210531.bc \
+mro_sc_psp_210601_210607.bc \
+mro_sc_psp_210608_210614.bc \
+mro_sc_psp_210615_210621.bc \
+mro_sc_psp_210622_210628.bc \
+mro_sc_psp_210629_210705.bc \
+
+
+-- MCS CKs
+
+mro_mcs_psp_210201_210228.bc \
+mro_mcs_psp_210301_210331.bc \
+mro_mcs_psp_210401_210430.bc \
+
+
+-- CRISM CKs
+
+mro_crm_psp_210401_210430.bc \
+mro_crm_psp_210501_210531.bc \
+mro_crm_psp_210601_210630.bc \

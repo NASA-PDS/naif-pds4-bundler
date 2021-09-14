@@ -42,7 +42,7 @@
         <producer_name>Marc Costa Sitja</producer_name>
         <author_list>Costa Sitja M.; Semenov B. V.</author_list>
         <institution>NAIF/JPL</institution>
-        <doi>10.17189/1522402</doi>
+        <doi></doi>
         <spiceds>../data/spiceds_dart.html</spiceds>
         <spice_name>DART</spice_name>
         <readme>
@@ -65,8 +65,8 @@
         <increment_finish>2050-01-01T00:00:00Z</increment_finish>
         <kernels_to_load>
             <lsk>naif[0-9][0-9][0-9][0-9].tls</lsk>
-            <sclk>dart_sclk_0000.tsc</sclk>
-            <fk>dart_004.tf</fk>
+            <sclk>dart_sclk_[0-9][0-9][0-9][0-9].tsc</sclk>
+            <fk>dart_[0-9][0-9][0-9].tf</fk>
         </kernels_to_load>
         <date_format>maklabel</date_format>
         <end_of_line>CRLF</end_of_line>
@@ -78,8 +78,6 @@
     <mission_parameters>
         <mission_acronym>dart</mission_acronym>
         <mission_name>DART</mission_name>
-        <mission_start>2021-11-09T00:00:00Z</mission_start>
-        <mission_finish>2050-01-01T00:00:00Z</mission_finish>
         <observer>DART</observer>
         <target>Didymos</target>
         <secondary_observers>
@@ -89,6 +87,8 @@
             <target>Dimorphos</target>
             <target>Earth</target>
         </secondary_targets>
+        <mission_start>2021-11-09T00:00:00Z</mission_start>
+        <mission_finish>2050-01-01T00:00:00Z</mission_finish>        
     </mission_parameters>
 
     <!-- =========================== -->
@@ -333,5 +333,9 @@
         <mk_inputs>
             <file>kernels/mk/dart_v01.tm</file>
         </mk_inputs>
+        <coverage_kernels>
+            <pattern>D210426-L211124-EP-RA26-V01_traj.bsp</pattern>
+            <pattern>m2020_surf_rover_loc_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_v[0-9].bsp</pattern>
+        </coverage_kernels>        
     </meta-kernel>
 </naif-pds4-bundle_configuration>

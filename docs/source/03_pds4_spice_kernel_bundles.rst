@@ -6,7 +6,7 @@ Overview
 ========
 
    This section describes the structure and contents of a PDS SPICE
-   bundle following the PDS4 standard produced by NAIF and.
+   bundle following the PDS4 standard produced by NAIF and
 
 
 
@@ -24,7 +24,29 @@ Product Types
 Directory Structure, File naming, Product Types, and LIDs/LIDVIDs
 ==============================================================================
 
-    <sc>_spice (bundle root directory)
+   The SPICE bundles consis of three collections: the spice_kernels collection,
+   the miscellaneous collection, and the document collection. 
+
+   The spice_kernels collection follows a particular directory structure and
+   its products a particular file naming convention. The collection is composed
+   by a series of directories that contain SPICE kernels of each kernel type.
+
+   The miscellaneous collection contains checksum products under the checksum
+   directory. There should be a checksum product for each release (increment)
+   of the archive. This checksum files provide a table of MD5 checksums for all
+   the files in the archive as of a particular archive version including 
+   checksums for all previous checksums files and their labels but excluding 
+   the checksum for the checksum file itself and its label.
+
+   In addition, the miscellaneous collection might contain orbit number files 
+   under an orbnum directory. Other types of files are currently not envisaged
+   for the miscellaneous collection.
+
+   The document collection contains all the versions of the SPICE Data Archive 
+   description file.
+
+     
+   <sc>_spice (bundle root directory)
     |
     | - bundle_<sc>_spice_v001.xml                  --> Product_Bundle
     |                                                   urn:nasa:pds:<sc>.spice::1.0

@@ -485,7 +485,7 @@ class Setup(object):
 
             release = f'{release:03}'
             current_release = f'{current_release:03}'
-            logging.info(f'     Generating release {release} as obtained from'
+            logging.info(f'     Generating release {release} as obtained from '
                          f'file list from previous run: {self.args.clear}')
             increment = True
             

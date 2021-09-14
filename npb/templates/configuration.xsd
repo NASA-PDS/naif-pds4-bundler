@@ -266,6 +266,15 @@
                                 </xs:extension>
                               </xs:simpleContent>
                             </xs:complexType>
+                          </xs:element>
+                          <xs:element minOccurs="0" name="ORIGNAME">
+                            <xs:complexType>
+                              <xs:simpleContent>
+                                <xs:extension base="xs:string">
+                                  <xs:attribute name="pattern" type="xs:string" use="required" />
+                                </xs:extension>
+                              </xs:simpleContent>
+                            </xs:complexType>
                           </xs:element>                          
                         </xs:sequence>
                       </xs:complexType>

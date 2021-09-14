@@ -79,6 +79,35 @@ class TestKernelList(TestCase):
                 old_file += line
 
         self.assertEqual(old_file.split('\n')[7:],new_file.split('\n')[7:])
+        
+#    def test_pds3_mro_list(self):
+#        """
+#        Basic test for MRO kernel list generation. This is a PDS3 data set.
+#        Implemented following the generation of the kernel list for
+#        release 58.
+#
+#        """
+#        config = '../config/mro.xml'
+#        plan   = '../data/mro_release_58.plan'
+#        faucet = 'list'
+#
+#        shutil.copy2('../data/mro_release_57.kernel_list', 
+#                     'working/mro_release_57.kernel_list')
+#
+#        main(config, plan, faucet, silent=self.silent)
+#
+#        new_file = ''
+#        with open('working/mro_release_58.kernel_list', 'r') as f:
+#            for line in f:
+#                new_file += line
+#
+#        old_file = ''
+#        with open('../data/mro_release_58.kernel_list', 'r') as f:
+#            for line in f:
+#                if 'MAPPING' not in line:
+#                    old_file += line
+#
+#        self.assertEqual(old_file.split('\n')[7:],new_file.split('\n')[7:])
 
     def test_pds3_m01_list(self):
         """
