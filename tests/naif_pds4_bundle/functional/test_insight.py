@@ -250,8 +250,6 @@ class TestINSIGHT(TestCase):
         plan = '../data/insight_release_08.plan'
         faucet = 'staging'
 
-        print(os.getcwd())
-
         os.makedirs('staging', mode=0o777, exist_ok=True)
         os.makedirs('working', mode=0o777, exist_ok=True)
         shutil.rmtree('kernels', ignore_errors=True)
@@ -525,7 +523,6 @@ class TestINSIGHT(TestCase):
                         n.write(line)
                         
         main(updated_config, plan, faucet, silent=self.silent, log=self.log)
-        print('')
 
     def test_insight_no_spiceds(self):
         '''

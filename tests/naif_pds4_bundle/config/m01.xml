@@ -54,10 +54,9 @@
     <directories>
         <working_directory>working</working_directory>
         <kernels_directory>kernels</kernels_directory>
-        <kernels_directory>kernels</kernels_directory>
-        <orbnum_directory>kernels/spk</orbnum_directory>
         <staging_directory>staging</staging_directory>
         <final_directory>final</final_directory>
+        <orbnum_directory>kernels/spk</orbnum_directory>
     </directories>
 
     <!-- =========================== -->

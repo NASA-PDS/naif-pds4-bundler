@@ -4,8 +4,8 @@ import os
 import shutil
 import unittest
 from unittest import TestCase
-from naif_pds4_bundle.classes import SpiceKernelProduct
-from naif_pds4_bundle.classes import Object
+from naif_pds4_bundle.classes.product import SpiceKernelProduct
+from naif_pds4_bundle.classes.object import Object
 
 
 class TestKernelIntegrity(TestCase):

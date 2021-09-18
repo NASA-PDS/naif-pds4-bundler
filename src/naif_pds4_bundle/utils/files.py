@@ -701,8 +701,6 @@ def extract_comment(path):
     while not done:
         (n, buffer, done) = spiceypy.dafec(handle, buffsz, linlen)
         comment += buffer
-        
-    print(buffer)
 
     return comment
                     

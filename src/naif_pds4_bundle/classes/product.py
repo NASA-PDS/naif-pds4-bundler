@@ -2922,10 +2922,12 @@ class InventoryProduct(Product):
 
             logging.warning('-- Comparing with InSight test inventory '
                             'product.')
-            fromfiles = glob.glob(f'{self.setup.root_dir}tests/data/regression/'
-                                  f'insight_spice/{self.collection.type}/'
-                                  f'collection_{self.collection.name}'
-                                  f'_inventory_*.csv')
+            fromfiles = glob.glob(
+                f'{self.setup.root_dir.replace("src","tests")}'
+                f'/data/regression/'
+                f'insight_spice/{self.collection.type}/'
+                f'collection_{self.collection.name}'
+                f'_inventory_*.csv')
             fromfiles.sort()
             fromfile = fromfiles[-1]
             tofile = self.path
@@ -3239,7 +3241,8 @@ class SpicedsProduct(object):
                             f'found.')
             logging.warning(f'-- Comparing with default InSight example.')
 
-            val_spd = f'{self.setup.root_dir}tests/data/spiceds_insight.html'
+            val_spd = f'{self.setup.root_dir.replace("src","tests")}' \
+                      f'/data/spiceds_insight.html'
 
         logging.info('')
         fromfile = val_spd

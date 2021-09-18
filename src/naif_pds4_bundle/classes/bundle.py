@@ -542,7 +542,8 @@ class Bundle(object):
             
             if not (products_in_checksum == products_in_history):
                 
-                print(set(products_in_checksum) ^ set(products_in_history))
+                logging.error(
+                    set(products_in_checksum) ^ set(products_in_history))
 
                 error_message(f'Products in {checksum_file} do not correspond '
                               f'to the bundle release history',

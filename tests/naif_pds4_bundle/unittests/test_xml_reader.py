@@ -67,7 +67,7 @@ class TestXML(TestCase):
         #
         config = Path('../config/insight.xml').read_text()
         config = etree_to_dict(ET.XML(config))
-        print(json.dumps(config, indent=4))
+        #print(json.dumps(config, indent=4))
 
         #
         # Dummy initialization values for Setup class

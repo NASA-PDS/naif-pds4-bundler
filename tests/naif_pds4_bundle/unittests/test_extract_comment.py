@@ -31,8 +31,7 @@ class TestExtractComment(TestCase):
 
     def test_ck(self):
         
-        commnt =\
-            extract_comment('../data/kernels/ck/insight_ida_enc_200829_201220_v1.bc')
+        extract_comment('../data/kernels/ck/insight_ida_enc_200829_201220_v1.bc')
         
 
 if __name__ == '__main__':

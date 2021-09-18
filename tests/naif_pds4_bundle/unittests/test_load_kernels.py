@@ -62,6 +62,7 @@ class TestLoadKernels(TestCase):
 
         config = '../config/maven.xml'
         plan = 'working/maven_orbnum.plan'
+        found = False
 
         with open(plan, 'w') as p:
             p.write('maven_orb_rec_210101_210401_v1.orb')
@@ -77,12 +78,12 @@ class TestLoadKernels(TestCase):
 
         main(config, plan, self.faucet, silent=self.silent, log=True)
 
-        log_line = "setup        load_kernels            || INFO    : " \
-                   "-- SCLK(s) loaded: ['/Users/mcosta/workspace/pds/" \
-                   "naif-pds4-bundle/npb/tests/unittests/kernels/sclk/" \
-                   "MVN_SCLKSCET.00088.tsc']\n"
+        log_line = "naif-pds4-bundle/tests/naif_pds4_bundle/unittests/kernels/" \
+                   "sclk/MVN_SCLKSCET.00088.tsc']\n"
         with open("working/maven_release_01.log", "r") as f:
-            found = log_line in f.readlines()
+            for line in f.readlines():
+                if log_line in line:
+                    found = True
         
         self.assertTrue(found) 
             

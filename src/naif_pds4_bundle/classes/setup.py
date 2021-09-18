@@ -407,7 +407,10 @@ class Setup(object):
             for label in labels_check:
                 if label not in labels:
                     error_message(f'Template {label} has not been provided.')
-        
+        else:
+            #TODO Add templates for PDS3
+            self.templates_directory = ''
+                
         logging.info(f'-- Label templates directory: '
                      f'{self.templates_directory}')
 
