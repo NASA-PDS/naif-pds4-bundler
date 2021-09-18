@@ -13,9 +13,8 @@ NAIF PDS4 Bundle Generator documentation
 
    source/01_overview
    source/02_installation_and_setup
-   source/03_pds4_spice_kernel_bundles.rst
-   source/20_main
-   source/30_api_docs
+   source/10_main
+   source/20_api_docs
 
 Indices and tables
 ==================

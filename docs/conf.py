@@ -18,8 +18,10 @@
 # -- Project information -----------------------------------------------------
 
 project = 'NAIF PDS4 Bundle Generator'
-copyright = '2021, Caltech/JPL/NASA'
+copyright = '2021 California Institute of Technology'
 author = 'Marc Costa Sitja'
+version = u'0.4'
+release = u'0.4.0'
 
 
 # -- General configuration ---------------------------------------------------
@@ -29,11 +31,14 @@ author = 'Marc Costa Sitja'
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx.ext.autosummary',
-    'sphinx.ext.autosectionlabel',
+    'sphinx.ext.doctest',
     'sphinx.ext.todo',
+    'sphinx.ext.viewcode',
+    'sphinx.ext.githubpages',
+    'sphinx.ext.autosummary',
     'sphinx.ext.coverage',
-    'numpydoc',
+    'sphinx_rtd_theme',
+    'numpydoc'
 ]
 
 # Silent false-positive warnings from numpydoc related to toctree referencing
@@ -100,6 +105,14 @@ html_static_path = ['_static']
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'NAIFPDS4BundleGeneratordoc'
 
+html_logo = '_static/images/PDS_Planets.png'
+
+html_context = {
+    'css_files': [
+        '_static/theme_overrides.css',  # override wide tables in RTD theme
+        ],
+      }
+
 # -- Options for LaTeX output ---------------------------------------------
 
 latex_elements = {
@@ -124,7 +137,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'npb.tex', u'NAIF PDS4 Bundle Generator Documentation',
+    (master_doc, 'naif_pds4_bundle.tex', u'NAIF PDS4 Bundle Generator Documentation',
      u'M. Costa Sitja', 'manual'),
 ]
 

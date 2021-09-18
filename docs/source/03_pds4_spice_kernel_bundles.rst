@@ -559,3 +559,32 @@ Release 2 add:
    ./spice_kernels/spk/maven_orb1.bsp
 +  ./spice_kernels/spk/maven_orb2.xml                         Product_SPICE_Kernel     urn:nasa:pds:maven.spice:spice_kernels:spk_maven_orb2.bsp::1.0
 +  ./spice_kernels/spk/maven_orb2.bsp
+
+
+Information models
+==================
+
+NAIF recommends the usage IM 1.5.0.0 which is the one used by all the NAIF PDS4 
+Bundles. IM 1.5.0.0 does not support the usage of Line-Feed line endings (LF) 
+for products, therefore if you are using IM 1.5.0.0 make sure that you either
+
+
+Currently NPB includes templates for IM 1.5.0.0 and IM 1.16.0.0. Bundles with 
+schemas versions lower than 1.16.0.0 will use 1.5.0.0 templates. Bundles
+with schemas equal or greater than 1.16.0.0 will use 1.16.0.0 templates. 
+
+Remember that you are able to provide your own templates by indicating the
+directory where they reside via the configuration file. Use your templates
+at your own risk and make sure that they pass all PDS Validate tool checks.
+
+
+DOIs
+====
+
+DOIs are not mandatory for bundles using IM 1.5.0.0 but are desirable. If you 
+are using IM 
+
+If you are producing a NASA SPICE Kernel bundle, please 
+
+NAIF recommends the usage IM 1.5.0.0 which is the one used by all the NAIF PDS4 
+Bundles. 

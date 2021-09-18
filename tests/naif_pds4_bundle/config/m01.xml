@@ -1,0 +1,125 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<naif-pds4-bundle_configuration>
+
+    <!-- =========================== -->
+    <!-- PDS parameters              -->
+    <!-- =========================== -->
+    <pds_parameters>
+        <pds_version>3</pds_version>
+    </pds_parameters>
+
+    <!-- =========================== -->
+    <!-- Bundle parameters           -->
+    <!-- =========================== -->
+    <bundle_parameters>
+        <producer_name>Marc Costa Sitja</producer_name>
+        <producer_email>Marc.Costa.Sitja@jpl.nasa.gov</producer_email>
+        <producer_phone>6264691244</producer_phone>
+        <author_list>Semenov B. V.; Costa Sitja M.</author_list>
+        <institution>NAIF/JPL</institution>        
+        <dataset_id>ODY-M-SPICE-6-V1.0</dataset_id>
+        <volume_id>ODSP_1000</volume_id>
+        <doi>10.17189/1520115</doi>
+        <spice_name>M01</spice_name>
+        <date_format>maklabel</date_format>
+        <end_of_line>CRLF</end_of_line>
+    </bundle_parameters>
+
+    <!-- =========================== -->
+    <!-- Mission Parameters          -->
+    <!-- =========================== -->
+    <mission_parameters>
+        <mission_acronym>m01</mission_acronym>
+        <mission_name>M01</mission_name>
+        <observer>ODY</observer>
+        <target>MARS</target>
+        <kernels_to_load>
+            <lsk>naif[0-9][0-9][0-9][0-9].tls</lsk>
+            <sclk>ORB1_SCLKSCET.[0-9]{5}.tsc</sclk>
+            <fk>m01_v[0-9][0-9].tf</fk>
+        </kernels_to_load>        
+        <phases>
+            <phase name="EXTENDED">
+                <start>2016-03-14T08:13:00Z</start>
+                <finish>2050-01-01T00:00:00Z</finish>
+            </phase>
+        </phases>
+        <mission_start>2016-03-14T08:13:00Z</mission_start>
+        <mission_finish>2050-01-01T00:00:00Z</mission_finish>
+    </mission_parameters>
+
+    <!-- =========================== -->
+    <!-- Directories                 -->
+    <!-- =========================== -->
+    <directories>
+        <working_directory>working</working_directory>
+        <kernels_directory>kernels</kernels_directory>
+        <kernels_directory>kernels</kernels_directory>
+        <orbnum_directory>kernels/spk</orbnum_directory>
+        <staging_directory>staging</staging_directory>
+        <final_directory>final</final_directory>
+    </directories>
+
+    <!-- =========================== -->
+    <!-- Kernel List                 -->
+    <!-- =========================== -->
+    <kernel_list>
+        <kernel pattern="orb1_sclkscet_[0-9][0-9][0-9][0-9][0-9].tsc">
+            <mapping>ORB1_SCLKSCET.$VERSION.tsc</mapping>
+            <mklabel_options>NAIF SC</mklabel_options>
+            <description>This file is a SPICE spacecraft clock (SCLK) kernel containing information required for M01 spacecraft on-board clock to UTC conversion.</description>
+            <patterns>
+                <VERSION pattern="KERNEL">ORB1_SCLKSCET.$VERSION.tsc</VERSION>
+            </patterns>            
+        </kernel>
+        <kernel pattern="m01_hga_ext[0-9][0-9].bc">
+            <mklabel_options>NAIF HGA EXTENDED</mklabel_options>
+            <description>This file contains orientation and angular rate data for the Mars'01 Odyssey (M01) High Gain Antenna (HGA) Inner and Outer gimbal frames for the extended phase of the mission.
+            </description>
+        </kernel>
+        <kernel pattern="m01_sa_ext[0-9][0-9].bc">
+            <mklabel_options>NAIF SA EXTENDED</mklabel_options>
+            <description>This file contains orientation and angular rate data for the Mars'01 Odyssey (M01) High Solar Array (SA) Inner and Outer gimbal frames for the extended phase of the mission.
+            </description>
+        </kernel>
+        <kernel pattern="m01_sc_ext[0-9][0-9].bc">
+            <mklabel_options>NAIF SC EXTENDED</mklabel_options>
+            <description>This file contains orientation and angular velocity data for the Mars-01 Odyssey (M01) spacecraft frame, 'M01_SPACECRAFT', relative to the 'MARSIAU' inertial frame.
+            </description>
+        </kernel>
+        <kernel pattern="m01_sc_ext[0-9][0-9]_rec_nadir.bc">
+            <mklabel_options>NAIF SC EXTENDED PREDICT</mklabel_options>
+            <description>This file contains predicted nominal nadir-pointed orientation for the Mars'01 Odyssey (M01) spacecraft. Refer to the file's internal comments for details regarding intended usage of this CK.
+            </description>
+        </kernel>
+        <kernel pattern="m01_ext[0-9][0-9].bsp">
+            <mklabel_options>ODYNAV EXTENDED</mklabel_options>
+            <description>This file contains final merged ephemeris data for the 2001 Mars Odyssey (M01) spacecraft during the extended mission phase.
+            </description>
+        </kernel>
+        <kernel pattern="m01_ext[0-9][0-9]_ipng_mgs95j.bsp">
+            <mklabel_options>IPNG EXTENDED</mklabel_options>
+            <description>This file contains ephemeris data for the 2001 Mars Odyssey (M01) spacecraft for a portion of the extended mission phase. It was created by the IPNG group, JPL using the Mars Gravity Model MGS95J.
+            </description>
+        </kernel>
+    </kernel_list>
+
+    <!-- =========================== -->
+    <!-- Meta-kernel                 -->
+    <!-- =========================== -->
+    <meta-kernel>
+        <mk_inputs>
+            <file>../data/m01_2020_v03.tm</file>
+        </mk_inputs>
+    </meta-kernel>
+
+    <!-- =========================== -->
+    <!-- Orbit number file           -->
+    <!-- =========================== -->
+    <orbit_number_file>
+        <orbnum>
+            <pattern>m01_ext[0-9]{2}.nrb</pattern>
+        </orbnum>
+    </orbit_number_file>
+    
+</naif-pds4-bundle_configuration>

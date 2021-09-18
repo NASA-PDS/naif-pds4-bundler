@@ -9,22 +9,21 @@
 *.so
 
 # Test
-/npb/tests/*.csv
-/npb/tests/*.xml
-/nbo/tests/desc_pattern_check.txt
+tests/naif_pds4_bundle/*.csv
+tests/naif_pds4_bundle/*.xml
 
 # Docs
+build
 docs/make.bat
 docs/Makefile
-/docs/_build/
-/docs/_static/
-/docs/_templates/
+docs/_build/
+docs/_templates/
 
 # Pycharm specific things
 .idea/
 
 # python things
-*.egg-info*
+src/*.egg-info*
 dist/
 .cache/
 __pycache__/
