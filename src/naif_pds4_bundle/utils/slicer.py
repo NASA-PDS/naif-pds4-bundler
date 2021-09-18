@@ -5,7 +5,7 @@ from subprocess import Popen, PIPE, list2cmdline
 
 
 def slice_kernels(kernels_dir, out_kernels_dir, lsk_file, sclk_file, 
-                  start_time, stop_time, timetype="UTC"):
+                  start_time, stop_time, timetype="UTC", log=False):
     '''
     This script creates a new SPICE kernel data set cropped between two dates.
     The intended usage of this tool is to support the testing of 
@@ -52,13 +52,13 @@ def slice_kernels(kernels_dir, out_kernels_dir, lsk_file, sclk_file,
                     #  If it is a CK kernel, run ckslicer
                     #
                     ckslicer(lsk_file, sclk_file, filename, output_filename, 
-                             start_time, stop_time, timetype)
+                             start_time, stop_time, timetype, log=log)
                 elif extension == ".bsp":
                     #
                     #  Its a SPK kernel, run spkmerge
                     #
                     spkmerge(lsk_file, filename, output_filename, start_time, 
-                             stop_time)
+                             stop_time, log=log)
                 elif not extension == ".lbl":
                     #
                     # Copy kernel to destination
@@ -69,7 +69,7 @@ def slice_kernels(kernels_dir, out_kernels_dir, lsk_file, sclk_file,
 
 
 def ckslicer(lsk_file, sclk_file, input_ck, output_ck, start_time, stop_time, 
-             timetype="UTC", naif_id=None):
+             timetype="UTC", naif_id=None, log=True):
 
     #
     # Check if ck_file exists and remove it
@@ -90,10 +90,11 @@ def ckslicer(lsk_file, sclk_file, input_ck, output_ck, start_time, stop_time,
               '-stop', stop_time]
     if naif_id:
         params.extend(['-id', naif_id])
-
-    print("ckslicer Command ->")
-    print(list2cmdline(params))
-    print(" ")
+    
+    if log:
+        print("ckslicer Command ->")
+        print(list2cmdline(params))
+        print(" ")
 
     #
     # Run CKSLICER 
@@ -101,9 +102,10 @@ def ckslicer(lsk_file, sclk_file, input_ck, output_ck, start_time, stop_time,
     p = Popen(params, stdin=PIPE, stdout=PIPE, stderr=PIPE)
     output, err = p.communicate()
 
-    print("ckslicer Results ->")
-    print(output.decode("utf-8"))
-    print(" ")
+    if log:
+        print("ckslicer Results ->")
+        print(output.decode("utf-8"))
+        print(" ")
 
     #
     # Return process output
@@ -113,7 +115,7 @@ def ckslicer(lsk_file, sclk_file, input_ck, output_ck, start_time, stop_time,
             'stderr': err.decode("utf-8")}
 
 
-def spkmerge(lsk_file, input_spk, output_spk, start_time, stop_time):
+def spkmerge(lsk_file, input_spk, output_spk, start_time, stop_time, log=True):
 
     #
     # Check if ck_file exists and remove it
@@ -139,9 +141,10 @@ def spkmerge(lsk_file, input_spk, output_spk, start_time, stop_time):
     #
     params = ['spkmerge', spk_merge_setup_file]
 
-    print("spkmerge Command ->")
-    print(list2cmdline(params))
-    print(" ")
+    if log:
+        print("spkmerge Command ->")
+        print(list2cmdline(params))
+        print(" ")
 
     #
     # Run SPKMERGE
@@ -149,9 +152,10 @@ def spkmerge(lsk_file, input_spk, output_spk, start_time, stop_time):
     p = Popen(params, stdin=PIPE, stdout=PIPE, stderr=PIPE)
     output, err = p.communicate()
 
-    print("spkmerge Results ->")
-    print(output.decode("utf-8"))
-    print(" ")
+    if log:
+        print("spkmerge Results ->")
+        print(output.decode("utf-8"))
+        print(" ")
 
     #
     # Remove SPK Merge setup file

@@ -31,4 +31,13 @@ def countlines(start, lines=0, header=True, begin_start=None):
     return lines
 
 if __name__ == '__main__':
-    countlines(r'../../../npb')
+    
+    #
+    # Pipeline lines.
+    #
+    countlines(r'../../naif_pds4_bundle')
+    
+    #
+    # Test code lines.
+    #
+    countlines(r'../../../tests/naif_pds4_bundle')
