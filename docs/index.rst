@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-NAIF PDS4 Bundle Generator documentation
+NAIF PDS4 Bundle Generator Documentation
 ========================================
 
 .. toctree::
@@ -13,7 +13,7 @@ NAIF PDS4 Bundle Generator documentation
 
    source/01_overview
    source/02_installation_and_setup
-   source/10_main
+   source/10_npb_operation
    source/20_api_docs
 
 Indices and tables

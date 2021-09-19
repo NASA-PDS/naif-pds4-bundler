@@ -2,7 +2,7 @@
 NAIF PDS4 Bundle Generator Package Overview
 *******************************************
 
-This document is a part of the NAIF PDS4 Bundle Generator package (NPB) 
+This document is a piece of the NAIF PDS4 Bundle Generator package (NPB) 
 that NAIF provides to SPICE archive producers to enable them to
 understand, design, and generate a SPICE archive from end to end.
 
@@ -16,6 +16,57 @@ However, following the standards and indications provided in this document
 is highly encouraged for any entity involved in archiving SPICE ancillary 
 data at some other archive facility.
 
+
+Motivation
+==========
+
+This document should be seen as something more than a user guide since
+it describes the whole process to prepare SPICE archives and it also 
+describes the SPICE PDS4 and PDS3 standards in great detail (These are the 
+standards adopted by the consortium of agencies comprising the International 
+Planetary Data Alliance.) Some of the standards may seem rather ``picky'' or 
+unnecessary, and indeed there are a few items included that are not really 
+used/useful. But adhering to all of these details is critical to the current 
+and future use of archived SPICE data, especially to achieve interoperability
+across national archives, and, to facilitate use of archived SPICE data in 
+data search, retrieval and processing tools that are, or will be, part of 
+archive systems.
+
+It is imperative that archive preparers carefully check and re-check all
+components of an archive -- whether it is a new one or an augmentation
+to an existing one -- before it is submitted for ingestion. NAIF
+through the naif-pds4-bundle package and this document, provides 
+recommendations, a pipeline to generate and to validate the archives. These 
+can help a great deal, but there is much that only the archive preparer can 
+do.
+
+
+NAIF's Approach to SPICE Data Set Preparation
+=============================================
+
+NAIF's approach to creating SPICE data sets can be summarized by this
+statement:
+
+**All SPICE data for a given mission are archived as UNIX text and binary 
+files in a single, accumulating data set on a single virtual volume having 
+the same directory structure, the same set of meta information files, data 
+file labels with the same structure, and archive documents with the same 
+structure as all SPICE archives produced by NAIF.**
+
+Each time that an accumulating data set is released we either refer this to
+a release of the archive or to an archive increment. In this document you 
+will find both terms used interchangeably.
+
+The particular way in which the statement is implemented for the PDS4 and 
+PDS3 standards is described in the [PDS4 archiving guide] and [PDS3 archiving
+guide] sections of this document.
+
+
+How to read this document?
+==========================
+
+We are glad that you got this far but unfortunately you are still a long way
+to go. You might not have to look into
 
 A Very Brief Introduction to SPICE
 ==================================
@@ -95,55 +146,6 @@ described hereunder.
    these kernel sets available to a SPICE-based application by loading
    meta-kernels into the program using the high level SPICE data loader
    routine FURNSH. 
-
-
-Motivation
-==========
-
-This document should be seen as something more than a user guide since
-it describes the whole process to prepare SPICE archives and it also 
-describes the SPICE PDS4 and PDS3 standards in great detail (These are the 
-standards adopted by the consortium of agencies comprising the International 
-Planetary Data Alliance.) Some of the standards may seem rather ``picky'' or 
-unnecessary, and indeed there are a few items included that are not really 
-used/useful. But adhering to all of these details is critical to the current 
-and future use of archived SPICE data, especially to achieve interoperability
-across national archives, and, to facilitate use of archived SPICE data in 
-data search, retrieval and processing tools that are, or will be, part of 
-archive systems.
-
-It is imperative that archive preparers carefully check and re-check all
-components of an archive -- whether it is a new one or an augmentation
-to an existing one -- before it is submitted for ingestion. NAIF
-through the naif-pds4-bundle package and this document, provides 
-recommendations, a pipeline to generate and to validate the archives. These 
-can help a great deal, but there is much that only the archive preparer can 
-do.
-
-
-NAIF's Approach to SPICE Data Set Preparation
-=============================================
-
-NAIF's approach to creating SPICE data sets can be summarized by this
-statement:
-
-**All SPICE data for a given mission are archived as UNIX text and binary 
-files in a single, accumulating data set on a single virtual volume having 
-the same directory structure, the same set of meta information files, data 
-file labels with the same structure, and archive documents with the same 
-structure as all SPICE archives produced by NAIF.**
-
-Each time that an accumulating data set is released we either refer this to
-a release of the archive or to an archive increment. In this document you 
-will find both terms used interchangeably.
-
-The particular way in which the statement is implemented for the PDS4 and 
-PDS3 standards is described in the [PDS4 archiving guide] and [PDS3 archiving
-guide] sections of this document.
-
-
-How to read this document?
-==========================
 
 
 References

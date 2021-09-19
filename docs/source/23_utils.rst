@@ -12,7 +12,7 @@ file and string modification and general utility processing.
 The following table provides an overview of the text and string manipulation
 functions existing in this module:
 
-.. py:currentmodule:: npb.utils
+.. py:currentmodule:: naif_pds4_bundle.utils
 
 .. autosummary::
    :nosignatures:
