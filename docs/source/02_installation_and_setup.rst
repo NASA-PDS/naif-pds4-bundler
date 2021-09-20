@@ -923,7 +923,7 @@ The second nested element is the kernel description. This is a very important
 configuration parameter and its content must describe synthetically and 
 precisely the SPICE kernel. The recommended structure of the description is:
 SPICE <text/binary> <kernel type> kernel <defining/containing/...> ..., 
-created by <NAIF, JPL/whoever, wherever>. E.g.: ::
+created by <NAIF, JPL/whoever, wherever>. E.g.::
 
        <description>SPICE LSK file incorporating leapseconds up to $DATE, created by NAIF, JPL.</description>
 
@@ -936,7 +936,25 @@ examples are: original name of the kernel (see TODO), version of the IAU
 report, kernel coverage, etc. These patterns are determined by the next element:
 patterns.
 
-The third element patterns (this is the tricky one) maps the patterns present
+The third and fourth element patterns are optional and provide the observers and
+targets required by the kernels. By default, the kernel label will set its 
+observer and target elements to the <observer> and <target> provided in the 
+Mission Parameters section of the configuration file. But what happens if the
+kernel provides information about one of the secondary observers/targets or for
+several of them? Well, there is no way to fully automatize the identification
+for all possible cases and therefore this is indicated in this element of the
+kernel list. The following example should be self-explanatory::
+
+            <observers>
+                <observer>DART</observer>
+                <observer>LICIA</observer>
+            </observers>
+            <targets>
+                <target>Didymos</target>
+                <target>Dimorphos</target>
+            </targets>
+
+The last element patterns (this is the tricky one) maps the patterns present
 in the description element with its value. There are different ways in 
 which NPB achieves that. These are described in the following subsections.
 
@@ -1003,9 +1021,8 @@ To do so, nested element from patterns is provided. The name of the element
 coincides with a pattern with the special pattern $ and is indicated by an
 attribute called pattern. Again, this is easier to understand with an example.
 
-Take the following kernel element form the kernel list for MAVEN:
+Take the following kernel element form the kernel list for MAVEN::
 
-::
 
         <kernel pattern="maven_[0-9][0-9][0-9][0-9]_v[0-9][0-9].tm">
             <mklabel_options></mklabel_options>
