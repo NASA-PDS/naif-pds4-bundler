@@ -52,21 +52,15 @@
     <mission_parameters>
         <mission_acronym>mars2020</mission_acronym>
         <mission_name>Mars 2020 Perseverance Rover Mission</mission_name>
+        <mission_start>2020-07-30T12:51:34Z</mission_start>
+        <mission_finish>2050-01-01T00:00:00Z</mission_finish>        
         <observer>Mars 2020 Perseverance Rover</observer>
         <target>MARS</target>
         <kernels_to_load>
             <lsk>naif[0-9][0-9][0-9][0-9].tls</lsk>
             <sclk>m2020_168_sclkscet_refit_v[0-9][0-9].tsc</sclk>
             <fk>m2020_v[0-9][0-9].tf</fk>
-        </kernels_to_load>        
-        <phases>
-            <phase name="EXTENDED">
-                <start>2020-07-30T12:51:34Z</start>
-                <finish>2050-01-01T00:00:00Z</finish>
-            </phase>
-        </phases>
-        <mission_start>2020-07-30T12:51:34Z</mission_start>
-        <mission_finish>2050-01-01T00:00:00Z</mission_finish>
+        </kernels_to_load>
     </mission_parameters>
 
     <!-- =========================== -->

@@ -81,6 +81,8 @@
     <mission_parameters>
         <mission_acronym>maven</mission_acronym>
         <mission_name>MAVEN</mission_name>
+        <mission_start>2013-11-18T19:20:43Z</mission_start>
+        <mission_finish>2050-01-01T00:00:00Z</mission_finish>           
         <observer>MAVEN</observer>
         <target>MARS</target>
         <kernels_to_load>
@@ -88,8 +90,6 @@
             <sclk>MVN_SCLKSCET.[0-9][0-9][0-9][0-9][0-9].tsc</sclk>
             <fk>maven_v[0-9][0-9].tf</fk>
         </kernels_to_load>
-        <mission_start>2013-11-18T19:20:43Z</mission_start>
-        <mission_finish>2050-01-01T00:00:00Z</mission_finish>        
     </mission_parameters>
 
     <!-- =========================== -->

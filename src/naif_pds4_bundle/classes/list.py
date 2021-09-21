@@ -453,14 +453,18 @@ class KernelList(List):
                         if options:
                             for option in options.split():
                                 if ('$' + 'PHASES') in option:
-                                    if list(self.setup.phases.keys())[0]:
-                                        # TODO: Substitute block by mission
-                                        #  phase searching function
-                                        options = \
-                                            options.replace(
-                                                '$' + 'PHASES',
-                                                self.setup.phases
-                                                ['phase']['@name'])                        
+                                    if hasattr(self.setup, 'phases'):
+                                        if list(self.setup.phases.keys())[0]:
+                                            # TODO: Substitute block by mission
+                                            #  phase searching function
+                                            phases = \
+                                             self.setup.phases['phase']['@name']
+                                        else:
+                                            phases = 'N/A'
+                                    else:
+                                        phases = 'N/A'
+                                        
+                                    options = options.replace('$PHASES', phases)
 
                         #
                         # Reformat the description, given that format of the

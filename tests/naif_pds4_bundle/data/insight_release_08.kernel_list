@@ -7,7 +7,7 @@ RELEASE_ID = 0008
 RELEASE_DATE = 2021-04-22
 $EOH
 FILE             = spice_kernels/sclk/nsy_sclkscet_00019.tsc
-MAKLABEL_OPTIONS = DEF_TIMES
+MAKLABEL_OPTIONS = 
 DESCRIPTION      = SPICE SCLK file containing time correlation data for the main INSIGHT on-board clock, created by NAIF, JPL. The original name of this file was NSY_SCLKSCET.00019.tsc.
 MAPPING          = NSY_SCLKSCET.00019.tsc
 FILE             = spice_kernels/ck/insight_ida_enc_200829_201220_v1.bc

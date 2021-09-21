@@ -31,6 +31,8 @@
     <mission_parameters>
         <mission_acronym>mro</mission_acronym>
         <mission_name>MRO</mission_name>
+        <mission_start>2005-08-12T12:40:00Z</mission_start>
+        <mission_finish>2050-01-01T00:00:00Z</mission_finish>        
         <observer>MRO</observer>
         <target>MARS</target>
         <kernels_to_load>
@@ -44,8 +46,6 @@
                 <finish>2050-01-01T00:00:00Z</finish>
             </phase>
         </phases>
-        <mission_start>2005-08-12T12:40:00Z</mission_start>
-        <mission_finish>2050-01-01T00:00:00Z</mission_finish>
     </mission_parameters>
 
     <!-- =========================== -->
