@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning" vc:minVersion="1.1">
   <xs:element name="naif-pds4-bundle_configuration">
     <xs:complexType>
@@ -92,53 +92,51 @@
         <xs:element name="mission_parameters">
           <xs:complexType>
             <xs:sequence>
-              <xs:choice maxOccurs="unbounded">
-                <xs:element name="mission_acronym" type="xs:string" />
-                <xs:element name="mission_name" type="xs:string" />
-                <xs:element name="mission_start" type="xs:dateTime" />
-                <xs:element name="mission_finish" type="xs:dateTime" />
-                <xs:element name="observer" type="xs:string" />
-                <xs:element name="target" type="xs:string" />
-                <xs:element name="kernels_to_load">
-                  <xs:complexType>
-                    <xs:sequence>
-                      <xs:element name="lsk" type="xs:string" />
-                      <xs:element name="sclk" type="xs:string" maxOccurs="unbounded" />
-                      <xs:element name="fk" type="xs:string" maxOccurs="unbounded" />
-                      <xs:element name="pck" type="xs:string" minOccurs="0"/>
-                    </xs:sequence>
-                  </xs:complexType>
-                </xs:element>                
-                <xs:element name="phases" minOccurs="0">
-                  <xs:complexType>
-                    <xs:sequence>
-                      <xs:element name="phase" minOccurs="0">
-                        <xs:complexType>
-                          <xs:sequence>
-                            <xs:element name="start" type="xs:string" />
-                            <xs:element name="finish" type="xs:string" />
-                          </xs:sequence>
-                          <xs:attribute name="name" type="xs:string" use="required" />
-                        </xs:complexType>
-                      </xs:element>
-                    </xs:sequence>
-                  </xs:complexType>
-                </xs:element>
-                <xs:element name="secondary_observers" minOccurs="0">
-                  <xs:complexType>
-                    <xs:sequence>
-                      <xs:element name="observer" type="xs:string" maxOccurs="unbounded" />
-                    </xs:sequence>
-                  </xs:complexType>
-                </xs:element>
-                <xs:element name="secondary_targets" minOccurs="0">
-                  <xs:complexType>
-                    <xs:sequence>
-                      <xs:element name="target" type="xs:string" maxOccurs="unbounded" />
-                    </xs:sequence>
-                  </xs:complexType>
-                </xs:element>
-              </xs:choice>
+              <xs:element name="mission_acronym" type="xs:string" />
+              <xs:element name="mission_name" type="xs:string" />
+              <xs:element name="mission_start" type="xs:dateTime" />
+              <xs:element name="mission_finish" type="xs:dateTime" />
+              <xs:element name="observer" type="xs:string" />
+              <xs:element name="target" type="xs:string" />
+              <xs:element name="kernels_to_load">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="lsk" type="xs:string"/>
+                    <xs:element name="sclk" type="xs:string" maxOccurs="unbounded"/>
+                    <xs:element name="fk" type="xs:string" maxOccurs="unbounded"/>
+                    <xs:element name="pck" type="xs:string" minOccurs="0"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>                
+              <xs:element name="phases" minOccurs="0">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="phase" minOccurs="0">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="start" type="xs:string" />
+                          <xs:element name="finish" type="xs:string" />
+                        </xs:sequence>
+                        <xs:attribute name="name" type="xs:string" use="required"/>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="secondary_observers" minOccurs="0">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="observer" type="xs:string" maxOccurs="unbounded"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="secondary_targets" minOccurs="0">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="target" type="xs:string" maxOccurs="unbounded"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
             </xs:sequence>
           </xs:complexType>
         </xs:element>
@@ -162,6 +160,20 @@
                   <xs:sequence>
                     <xs:element minOccurs="0" name="mapping" type="xs:string" />
                     <xs:element name="mklabel_options" type="xs:string" minOccurs="0"/>
+                    <xs:element name="observers" minOccurs="0">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="observer" type="xs:string" maxOccurs="unbounded"/>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>                    
+                    <xs:element name="targets" minOccurs="0">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="target" type="xs:string" maxOccurs="unbounded"/>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>                    
                     <xs:element name="description" type="xs:string" />
                     <xs:element minOccurs="0" name="patterns">
                       <xs:complexType>
@@ -267,20 +279,6 @@
                               </xs:simpleContent>
                             </xs:complexType>
                           </xs:element>
-                        </xs:sequence>
-                      </xs:complexType>
-                    </xs:element>
-                    <xs:element name="observers" minOccurs="0">
-                      <xs:complexType>
-                        <xs:sequence>
-                          <xs:element name="observer" type="xs:string" maxOccurs="unbounded" />
-                        </xs:sequence>
-                      </xs:complexType>
-                    </xs:element>                    
-                    <xs:element name="targets" minOccurs="0">
-                      <xs:complexType>
-                        <xs:sequence>
-                          <xs:element name="target" type="xs:string" maxOccurs="unbounded" />
                         </xs:sequence>
                       </xs:complexType>
                     </xs:element>
