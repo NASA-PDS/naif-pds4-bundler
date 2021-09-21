@@ -918,25 +918,8 @@ Then the two entries specified hereunder must be provided in the kernel list: ::
 
       <kernel pattern="msl_76_sclkscet_refit_[a-z][0-9].tsc"> (...)
       <kernel pattern="msl_76_sclkscet_refit_[a-z][0-9][0-9].tsc">  (...)   
-   
-The second nested element is the kernel description. This is a very important
-configuration parameter and its content must describe synthetically and 
-precisely the SPICE kernel. The recommended structure of the description is:
-SPICE <text/binary> <kernel type> kernel <defining/containing/...> ..., 
-created by <NAIF, JPL/whoever, wherever>. E.g.::
 
-       <description>SPICE LSK file incorporating leapseconds up to $DATE, created by NAIF, JPL.</description>
-
-The description element might contain patterns based on the special expression
-$ followed by an upper case name, e.g., $DATE in the example above. These 
-patterns are used to accommodate information particular to each individual
-kernel of each kind. In the example above the $DATE expression is meant to 
-specify the year of the latest leapsecond provided by that kernel. Other 
-examples are: original name of the kernel (see TODO), version of the IAU
-report, kernel coverage, etc. These patterns are determined by the next element:
-patterns.
-
-The third and fourth element patterns are optional and provide the observers and
+The second and third element patterns are optional and provide the observers and
 targets required by the kernels. By default, the kernel label will set its 
 observer and target elements to the <observer> and <target> provided in the 
 Mission Parameters section of the configuration file. But what happens if the
@@ -953,6 +936,23 @@ kernel list. The following example should be self-explanatory::
                 <target>Didymos</target>
                 <target>Dimorphos</target>
             </targets>
+   
+The fourth (or second) nested element is the kernel description. This is a very 
+important configuration parameter and its content must describe synthetically 
+and precisely the SPICE kernel. The recommended structure of the description is:
+SPICE <text/binary> <kernel type> kernel <defining/containing/...> ..., 
+created by <NAIF, JPL/whoever, wherever>. E.g.::
+
+       <description>SPICE LSK file incorporating leapseconds up to $DATE, created by NAIF, JPL.</description>
+
+The description element might contain patterns based on the special expression
+$ followed by an upper case name, e.g., $DATE in the example above. These 
+patterns are used to accommodate information particular to each individual
+kernel of each kind. In the example above the $DATE expression is meant to 
+specify the year of the latest leapsecond provided by that kernel. Other 
+examples are: original name of the kernel (see TODO), version of the IAU
+report, kernel coverage, etc. These patterns are determined by the next element:
+patterns.
 
 The last element patterns (this is the tricky one) maps the patterns present
 in the description element with its value. There are different ways in 
