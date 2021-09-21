@@ -122,6 +122,8 @@ class Product(object):
                 #
                 else:
                     observers = [self.setup.observer]
+                    
+                break
             #
             # If the product is not in the kernel list (such as the orbnum 
             # file), then use the mission observers and targets.
