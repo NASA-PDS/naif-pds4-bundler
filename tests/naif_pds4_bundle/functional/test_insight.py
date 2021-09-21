@@ -405,7 +405,6 @@ class TestINSIGHT(TestCase):
         main(updated_config, plan, faucet, silent=self.silent, log=self.log, 
              diff='all')
         
-
     def test_insight_mks_input(self):
         '''
         Testcase for when the readme file is not present.
