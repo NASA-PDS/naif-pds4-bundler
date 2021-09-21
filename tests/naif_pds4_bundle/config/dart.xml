@@ -77,11 +77,6 @@
             <lsk>naif[0-9][0-9][0-9][0-9].tls</lsk>
             <sclk>dart_sclk_[0-9][0-9][0-9][0-9].tsc</sclk>
             <fk>dart_[0-9][0-9][0-9].tf</fk>
-        </kernels_to_load>  
-        <kernels_to_load>
-            <lsk>naif[0-9][0-9][0-9][0-9].tls</lsk>
-            <sclk>dart_sclk_[0-9][0-9][0-9][0-9].tsc</sclk>
-            <fk>dart_[0-9][0-9][0-9].tf</fk>
         </kernels_to_load>
         
         <!-- Optional Parameters -->
@@ -110,14 +105,12 @@
     <kernel_list>
         <!-- The kernel list provides a number of patterns that are used -->
         <kernel pattern="naif[0-9][0-9][0-9][0-9].tls">
-            <mklabel_options>DEF_TIMES</mklabel_options>
             <description>SPICE LSK file incorporating leapseconds up to $DATE, created by NAIF, JPL.</description>
             <patterns>
                 <DATE value="naif0012.tls">2017-JAN-01</DATE>
             </patterns>
         </kernel>
         <kernel pattern="pck[0-9][0-9][0-9][0-9][0-9].tpc">
-            <mklabel_options>DEF_TIMES</mklabel_options>
             <description>SPICE text PCK file containing constants from the $REPORT report, created by NAIF, JPL.
             </description>
             <patterns>
@@ -125,46 +118,40 @@
             </patterns>
         </kernel>
         <kernel pattern="didymos_system_d300_s101_02.tpc">
-            <mklabel_options>DEF_TIMES</mklabel_options>
+            <observers>
+                <observer>DART</observer>
+                <observer>LICIA</observer>
+            </observers>
+            <targets>
+                <target>Didymos</target>
+                <target>Dimorphos</target>
+            </targets>            
             <description>SPICE text PCK file containing constants for the Didymos system, created by the DART
                 science team, JHU/APL.
             </description>
-            <observers>
-                <observer>DART</observer>
-                <observer>LICIA</observer>
-            </observers>
+        </kernel>
+        <kernel pattern="dart_[0-9][0-9][0-9].tf">
             <targets>
                 <target>Didymos</target>
                 <target>Dimorphos</target>
-            </targets>
-        </kernel>
-        <kernel pattern="dart_[0-9][0-9][0-9].tf">
-            <mklabel_options>DEF_TIMES</mklabel_options>
+            </targets>               
             <description>SPICE FK file defining reference frames for the DART spacecraft, its structures, and science
                 instruments, created by the DART science team, JHU/APL.
             </description>
-            <targets>
-                <target>Didymos</target>
-                <target>Dimorphos</target>
-            </targets>              
         </kernel>
         <kernel pattern="licia_[0-9][0-9][0-9].tf">
-            <mklabel_options>DEF_TIMES</mklabel_options>
-            <description>SPICE FK file defining reference frames for the LICIA spacecraft, its structures, and science
-                instruments, created by the DART science team, JHU/APL.
-            </description>
             <observers>
                 <observer>LICIA</observer>
             </observers>
             <targets>
                 <target>Didymos</target>
                 <target>Dimorphos</target>
-            </targets>  
-        </kernel>     
-        <kernel pattern="didymos_[0-9][0-9][0-9].tf">
-            <mklabel_options>DEF_TIMES</mklabel_options>
-            <description>SPICE FK file defining reference frames for the Didymos system, by the DART science team, JHU/APL.
+            </targets>              
+            <description>SPICE FK file defining reference frames for the LICIA spacecraft, its structures, and science
+                instruments, created by the DART science team, JHU/APL.
             </description>
+        </kernel>     
+        <kernel pattern="didymos_system_[0-9][0-9][0-9].tf">
             <observers>
                 <observer>DART</observer>
                 <observer>LICIA</observer>
@@ -172,86 +159,78 @@
             <targets>
                 <target>Didymos</target>
                 <target>Dimorphos</target>
-            </targets>  
+            </targets>              
+            <description>SPICE FK file defining reference frames for the Didymos system, by the DART science team, JHU/APL.
+            </description>
         </kernel>                
         <kernel pattern="dart_draco_[0-9][0-9][0-9].ti">
-            <mklabel_options>DEF_TIMES</mklabel_options>
-            <description>SPICE IK file providing FOV definitions for the DART Didymos
-                Reconnaissance and Asteroid Camera for OpNav (DRACO) instrument, created by by the DART science team, JHU/APL.
-            </description>
             <targets>
                 <target>Didymos</target>
                 <target>Dimorphos</target>
-            </targets>  
+            </targets>              
+            <description>SPICE IK file providing FOV definitions for the DART Didymos
+                Reconnaissance and Asteroid Camera for OpNav (DRACO) instrument, created by by the DART science team, JHU/APL.
+            </description>
         </kernel>
         <kernel pattern="licia_pl_[0-9][0-9][0-9].ti">
-            <mklabel_options>DEF_TIMES</mklabel_options>
-            <description>SPICE IK file providing FOV definitions for the LICIA Luke and Leia instruments, 
-                created by the DART science team, JHU/APL.
-            </description>
             <observers>
                 <observer>LICIA</observer>
             </observers>
             <targets>
                 <target>Didymos</target>
                 <target>Dimorphos</target>
-            </targets>              
+            </targets>             
+            <description>SPICE IK file providing FOV definitions for the LICIA Luke and Leia instruments, 
+                created by the DART science team, JHU/APL.
+            </description>             
         </kernel>
         <kernel pattern="dart_sclk_[0-9][0-9][0-9][0-9].tsc">
-            <mklabel_options>DEF_TIMES</mklabel_options>
             <description>SPICE SCLK file containing actual time correlation data for the DART on-board clock, created
                 by the DART science team, JHU/APL.
             </description>
         </kernel>
         <kernel pattern="licia_sclk_[0-9][0-9][0-9][0-9].tsc">
-            <mklabel_options>DEF_TIMES</mklabel_options>
+            <observers>
+                <observer>LICIA</observer>
+            </observers>
+            <targets>
+                <target>Didymos</target>
+                <target>Dimorphos</target>
+            </targets>             
             <description>SPICE SCLK file containing actual time correlation data for the LICIA on-board clock, created
                 by the DART science team, JHU/APL.
+            </description>             
+        </kernel>
+        <kernel pattern="de430.bsp">
+            <description>SPICE SPK file containing JPL planetary ephemerides version DE430, created by the Solar
+                System Dynamics group (SSD), JPL.
             </description>
+        </kernel>
+        <kernel pattern="didymos_barycenter_d300_v01.bsp">
             <observers>
+                <observer>DART</observer>
                 <observer>LICIA</observer>
             </observers>
             <targets>
                 <target>Didymos</target>
                 <target>Dimorphos</target>
             </targets>              
-        </kernel>
-        <kernel pattern="de430.bsp">
-            <mklabel_options> </mklabel_options>
-            <description>SPICE SPK file containing JPL planetary ephemerides version DE430, created by the Solar
-                System Dynamics group (SSD), JPL.
-            </description>
-        </kernel>
-        <kernel pattern="didymos_barycenter_d300_v01.bsp">
-            <mklabel_options> </mklabel_options>
             <description>SPICE SPK file containing ephemeris of the asteroid system barycenter (20065803) Didymos, created by the DART science team, JHU/APL.
             </description>
-            <observers>
-                <observer>DART</observer>
-                <observer>LICIA</observer>
-            </observers>
-            <targets>
-                <target>Didymos</target>
-                <target>Dimorphos</target>
-            </targets>            
         </kernel>
         <kernel pattern="didymos_d300_s101_v01.bsp">
-            <mklabel_options> </mklabel_options>
+            <observers>
+                <observer>DART</observer>
+                <observer>LICIA</observer>
+            </observers>
+            <targets>
+                <target>Didymos</target>
+                <target>Dimorphos</target>
+            </targets>            
             <description>SPICE SPK file containing ephemeris of asteroid (120065803) Didymos, created by the DART science team, JHU/APL.
             </description>
-            <observers>
-                <observer>DART</observer>
-                <observer>LICIA</observer>
-            </observers>
-            <targets>
-                <target>Didymos</target>
-                <target>Dimorphos</target>
-            </targets>            
         </kernel>
         <kernel pattern="dimorphos_d300_s101_v01.bsp">
-            <mklabel_options> </mklabel_options>
-            <description>SPICE SPK file containing ephemeris of asteroid (120065803) Dimorphos, created by the DART science team, JHU/APL.
-            </description>
             <observers>
                 <observer>DART</observer>
                 <observer>LICIA</observer>
@@ -259,10 +238,11 @@
             <targets>
                 <target>Didymos</target>
                 <target>Dimorphos</target>
-            </targets>            
+            </targets>             
+            <description>SPICE SPK file containing ephemeris of asteroid (120065803) Dimorphos, created by the DART science team, JHU/APL.
+            </description>
         </kernel>
         <kernel pattern="dart_211124_221017_v01.bsp">
-            <mklabel_options> </mklabel_options>
             <description>SPICE SPK file providing reconstructed trajectory od the DART spacecraft, created by the DART science team, JHU/APL. The original name of this
                 file was $ORIGINAL.
             </description>
@@ -271,47 +251,41 @@
             </patterns>  
         </kernel>
         <kernel pattern="dart_sc_pred_211124_221017_v01.bc">
-            <mklabel_options> </mklabel_options>
-            <description>SPICE CK file containing predicted DART spacecraft orientation, created by the DART science team, JHU/APL.
-            </description>
             <targets>
                 <target>Didymos</target>
                 <target>Dimorphos</target>
-            </targets>               
+            </targets>                  
+            <description>SPICE CK file containing predicted DART spacecraft orientation, created by the DART science team, JHU/APL.
+            </description>
         </kernel>
         <kernel pattern="dida_g_50680mm_rdr_0000n00000_v001.bds">
-            <mklabel_options> </mklabel_options>
-            <description>SPICE DSK file containing the shape model for Didymos, created by the DART science team, JHU/APL.
-                The original name of this file was $ORIGINAL.
-            </description>
             <observers>
                 <observer>DART</observer>
                 <observer>LICIA</observer>
-            </observers> 
+            </observers>             
+            <description>SPICE DSK file containing the shape model for Didymos, created by the DART science team, JHU/APL.
+                The original name of this file was $ORIGINAL.
+            </description>
             <patterns>
                 <ORIGINAL value="dida_g_50680mm_rdr_0000n00000_v001.bds">g_50680mm_rdr_obj_dida_0000n00000_v001.bds</ORIGINAL>
             </patterns>  
         </kernel>        
         <kernel pattern="didb_g_06650mm_rdr_0000n00000_v001.bds">
-            <mklabel_options> </mklabel_options>
-            <description>SPICE DSK file containing the shape model for Dimorphos, created by the DART science team, JHU/APL.
-                The original name of this file was $ORIGINAL.
-            </description>
             <observers>
                 <observer>DART</observer>
                 <observer>LICIA</observer>
             </observers>  
             <targets>
                 <target>Dimorphos</target>
-            </targets>    
+            </targets>                
+            <description>SPICE DSK file containing the shape model for Dimorphos, created by the DART science team, JHU/APL.
+                The original name of this file was $ORIGINAL.
+            </description>
             <patterns>
                 <ORIGINAL value="didb_g_06650mm_rdr_0000n00000_v001.bds">g_06650mm_rdr_obj_didb_0000n00000_v001.bds</ORIGINAL>
             </patterns>            
         </kernel>        
         <kernel pattern="dart_v[0-9][0-9].tm">
-            <mklabel_options> </mklabel_options>
-            <description>SPICE MK file listing kernels for the whole mission, created by NAIF, JPL.
-            </description>
             <observers>
                 <observer>DART</observer>
                 <observer>LICIA</observer>
@@ -319,7 +293,9 @@
             <targets>
                 <target>Didymos</target>
                 <target>Dimorphos</target>
-            </targets>   
+            </targets>               
+            <description>SPICE MK file listing kernels for the whole mission, created by NAIF, JPL.
+            </description>
         </kernel>
     </kernel_list>
 
