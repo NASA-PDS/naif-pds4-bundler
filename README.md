@@ -1,9 +1,9 @@
 # NAIF PDS4 Bundler
 
-The NAIF PDS4 Bundler (NPB) is a a pipeline that generates a SPICE archive in 
+The NAIF PDS4 Bundler (NPB) is a a pipeline that generates a SPICE archive in
 the shape of a PDS4 Bundle.
 
-The pipeline is constructed by the orchestration of a family of classes that 
+The pipeline is constructed by the orchestration of a family of classes that
 can also be used independently.
 
 Please visit our website at: https://nasa-pds.github.io/naif-pds4-bundler
@@ -93,7 +93,7 @@ All the source code is in `naif_pds4_bundler` under `src`.
 
 ### Tests
 
-Run tests with: 
+Run tests with:
 
     python -m unittest
 
@@ -104,7 +104,7 @@ under ``tests/naif_pds4_bundler``, or:
 
 ### Documentation
 
-NPB uses [Sphinx](https://www.sphinx-doc.org/en/master/) to build its 
+NPB uses [Sphinx](https://www.sphinx-doc.org/en/master/) to build its
 documentation. You can build the NPB docs with:
 
     python setup.py build_sphinx

@@ -38,7 +38,7 @@ parentheses is briefly explained below:
 
        There is no need to break SPICE data for a given mission into
        multiple bundles based on the mission phases (as was done by
-       NEAR), kernel types (as was done in other PDS3 data sets produced 
+       NEAR), kernel types (as was done in other PDS3 data sets produced
        by other nodes), data producers, or in any other way. Doing so
        leads to duplication of data, extra effort in preparing
        multiple marginally different copies of meta-information files,

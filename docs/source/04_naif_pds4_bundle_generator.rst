@@ -5,18 +5,18 @@ As per the table above, you can see that, except for meta-kernels, files in
 the SPICE kernels collection, are as follows::
 
     <kernel_name>.<kernel_extension>
-    
+
 where
 
-   * <kernel_name> is the kernel filename, 
+   * <kernel_name> is the kernel filename,
 
 
 PDS Information Model
 =====================
 
-Currently NPB includes templates for IM 1.5.0.0 and IM 1.16.0.0. Bundles with 
+Currently NPB includes templates for IM 1.5.0.0 and IM 1.16.0.0. Bundles with
 schemas versions lower than 1.16.0.0 will use 1.5.0.0 templates. Bundles
-with schemas equal or greater than 1.16.0.0 will use 1.16.0.0 templates. 
+with schemas equal or greater than 1.16.0.0 will use 1.16.0.0 templates.
 
 Remember that you are able to provide your own templates by indicating the
 directory where they reside via the configuration file. Use your templates
@@ -41,11 +41,11 @@ Instead of:
 
 
 Multiple spacecrafts and mutliple targets. NPB incorporates the possibility to
-have mutliple spacecrafts and targets in a Bundle. This is provided via 
+have mutliple spacecrafts and targets in a Bundle. This is provided via
 configuration. If so, the default spacecraft will be the primary spacecraft
-which is specified in the configuration file. Otherwise it needs to be 
+which is specified in the configuration file. Otherwise it needs to be
 specified in the Kernel List section of the configuration file. The non-kernels
-bundle products will include all the targets and all the spacecrafts in the 
+bundle products will include all the targets and all the spacecrafts in the
 labels.
 
 All files that are to have labels generated must have a NAIF
