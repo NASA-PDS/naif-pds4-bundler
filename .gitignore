@@ -9,8 +9,8 @@
 *.so
 
 # Test
-tests/naif_pds4_bundle/*.csv
-tests/naif_pds4_bundle/*.xml
+tests/naif_pds4_bundler/*.csv
+tests/naif_pds4_bundler/*.xml
 
 # Docs
 build

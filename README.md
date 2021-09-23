@@ -1,12 +1,12 @@
-# NAIF PDS4 Bundle Generator
+# NAIF PDS4 Bundler
 
-The NAIF PDS4 Bundle Generator (NPB) is a a pipeline that
-generates a SPICE archive in the shape of a PDS4 Bundle or a PDS3 data set.
+The NAIF PDS4 Bundler (NPB) is a a pipeline that generates a SPICE archive in 
+the shape of a PDS4 Bundle.
 
 The pipeline is constructed by the orchestration of a family of classes that 
 can also be used independently.
 
-Please visit our website at: https://nasa-pds.github.io/naif-pds4-bundle
+Please visit our website at: https://nasa-pds.github.io/naif-pds4-bundler
 
 It has useful information for developers and end-users.
 
@@ -44,11 +44,11 @@ Please visit the documentation at: https://nasa-pds.github.io/naif-pds4-bundle/
 
 Install with:
 
-    pip install naif-pds4-bundle
+    pip install naif-pds4-bundler
 
 To execute just to show the help message, run:
 
-    naif-pds4-bundle -h
+    naif-pds4-bundler -h
 
 
 ## Code of Conduct
@@ -65,10 +65,14 @@ For information on how to contribute to NASA-PDS codebases please take a look at
 
 Install in editable mode and with extra developer dependencies into your virtual environment of choice:
 
-    pip install -e .
+    pip install --editable '.[dev]'
+
+Configure the `pre-commit` hooks:
+
+    pre-commit install && pre-commit install -t pre-push
 
 
-## Packaging
+### Packaging
 
 To isolate and be able to re-produce the environment for this package, you should use a [Python Virtual Environment](https://docs.python.org/3/tutorial/venv.html). To do so, run:
 
@@ -76,11 +80,15 @@ To isolate and be able to re-produce the environment for this package, you shoul
 
 Then exclusively use `venv/bin/python`, `venv/bin/pip`, etc. (It is no longer recommended to use `venv/bin/activate`.)
 
-Dependencies are installed into the virtual environment as follows:
+If you have `tox` installed and would like it to create your environment and install dependencies for you run:
+
+    tox --devenv <name you'd like for env> -e dev
+
+Dependencies for development are specified as the `dev` `extras_require` in `setup.cfg`; they are installed into the virtual environment as follows:
 
     pip install --editable '.[dev]'
 
-All the source code is in `naif_pds4_bundle` under `src`.
+All the source code is in `naif_pds4_bundler` under `src`.
 
 
 ### Tests
@@ -89,7 +97,7 @@ Run tests with:
 
     python -m unittest
 
-under ``tests/naif_pds4_bundle``, or:
+under ``tests/naif_pds4_bundler``, or:
 
     coverage run -m nose --cover-package=.
 

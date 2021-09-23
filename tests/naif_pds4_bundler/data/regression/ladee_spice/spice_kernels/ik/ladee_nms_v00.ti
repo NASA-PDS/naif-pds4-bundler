@@ -1,0 +1,131 @@
+KPL/IK
+
+LADEE NMS Instrument Kernel
+===============================================================================
+
+   This Instrument Kernel (IK) file contains the Field-Of-View (FOV)
+   definitions for the Neutral Mass Spectometer (NMS) instrument.
+
+
+Version and Date
+-------------------------------------------------------------------------------
+
+   Version 0.0 -- October 16, 2013 -- Boris Semenov, NAIF
+
+
+References
+-------------------------------------------------------------------------------
+
+   1. Kernel Pool Required Reading
+
+   2. GETFOV, getfoc_c, cspice_getfov headers
+
+   3. LADEE FK file, latest version
+
+   4. STK Sensor files provided by Mark Shirley, 09/25/13.
+
+
+Contact Information
+-------------------------------------------------------------------------------
+
+   Boris V. Semenov, NAIF/JPL, (818)-354-8136, Boris.Semenov@jpl.nasa.gov
+
+
+Implementation Notes
+-------------------------------------------------------------------------------
+
+   This file is used by the SPICE system as follows: programs that make
+   use of this kernel must ``load'' the kernel, normally during program
+   initialization. The SPICE routine FURNSH loads a kernel file into
+   the pool as shown below.
+
+      CALL FURNSH ( 'frame_kernel_name; )    -- FORTRAN
+      furnsh_c ( "frame_kernel_name" );      -- C
+      cspice_furnsh, frame_kernel_name       -- IDL
+      cspice_furnsh( 'frame_kernel_name' )   -- MATLAB
+
+   Once the file has been loaded, the SPICE routine GETFOV (getfov_c in
+   C, cspice_getfov in IDL and MATLAB) can be used to retrieve FOV
+   parameters for a given instrument or structure.
+
+   This file was created and may be updated with a text editor or word
+   processor.
+
+
+Naming Conventions
+----------------------------------------------------------
+
+   All names referencing values in this IK file start with the
+   characters `INS' followed by the NAIF ID number for one of the NMS
+   detectors:
+
+      LADEE_NMS_CLOSED   -12310
+      LADEE_NMS_OPEN     -12320
+
+   These IDs are defined in the latest LADEE FK ([3]).
+
+   The remainder of the keyword name is an underscore character
+   followed by the unique name of the data item. For example, the NMS
+   OPEN boresight direction in the NMS frame is specified by:
+
+      INS-12310_BORESIGHT
+
+   The upper bound on the length of the name of any data item is 32
+   characters.
+
+   If the same item is included in more than one file, or if the same
+   item appears more than once within a single file, the latest value
+   supersedes any earlier values.
+
+
+Instrument Description
+---------------------------------------------------------
+
+   Neutral Mass Spectometer (NMS) is a high sensitivity quadrupole mass
+   spectrometer with a mass range from 2 to 150 Dalton and unit mass
+   resolution. For lunar orbits of 50 km or lower NMS can detect
+   helium, argon and other species either released from the deep lunar
+   interior or from the surface of the moon.
+
+
+Mounting Alignment
+--------------------------------------------------------
+
+   Refer to the latest version of the LADEE Frames Definition Kernel
+   (FK) [3] for the LADEE NMS reference frame definitions and mounting
+   alignment information.
+
+
+Instrument FOVs
+----------------------------------------------------------
+
+   This section defines NMS FOVs based on [4]:
+
+          NAME            ID     HALFSIZE   SHAPE    BSIGHT    FRAME
+      ----------------  -------  ---------  -------  ------  ----------
+      LADEE_NMS_CLOSED  -12310   45.0  deg   cone      Z     LADEE_NMS
+      LADEE_NMS_OPEN    -12320    9.0  deg   cone      Z     LADEE_NMS
+
+   The FOVs are defined in this data block.
+
+      \begindata
+
+      INS-12310_FOV_CLASS_SPEC       = 'ANGLES'
+      INS-12310_FOV_SHAPE            = 'CIRCLE'
+      INS-12310_FOV_FRAME            = 'LADEE_NMS'
+      INS-12310_BORESIGHT            = ( 0.0, 0.0, 1.0 )
+      INS-12310_FOV_REF_VECTOR       = ( 1.0, 0.0, 0.0 )
+      INS-12310_FOV_REF_ANGLE        = ( 45.0 )
+      INS-12310_FOV_ANGLE_UNITS      = ( 'DEGREES' )
+
+      INS-12320_FOV_CLASS_SPEC       = 'ANGLES'
+      INS-12320_FOV_SHAPE            = 'CIRCLE'
+      INS-12320_FOV_FRAME            = 'LADEE_NMS'
+      INS-12320_BORESIGHT            = ( 0.0, 0.0, 1.0 )
+      INS-12320_FOV_REF_VECTOR       = ( 1.0, 0.0, 0.0 )
+      INS-12320_FOV_REF_ANGLE        = ( 9.0 )
+      INS-12320_FOV_ANGLE_UNITS      = ( 'DEGREES' )
+
+      \begintext
+
+End of the IK file.

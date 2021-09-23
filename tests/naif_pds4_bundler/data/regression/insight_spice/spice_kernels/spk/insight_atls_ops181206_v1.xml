@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.sch"
+    schematypens="http://purl.oclc.org/dsdl/schematron"?>
+
+<Product_SPICE_Kernel xmlns="http://pds.nasa.gov/pds4/pds/v1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd">
+  <Identification_Area>
+    <logical_identifier>urn:nasa:pds:insight.spice:spice_kernels:spk_insight_atls_ops181206_v1.bsp</logical_identifier>
+    <version_id>1.0</version_id>
+    <title>insight_atls_ops181206_v1.bsp</title>
+    <information_model_version>1.5.0.0</information_model_version>
+    <product_class>Product_SPICE_Kernel</product_class>
+    <Citation_Information>
+      <publication_year>2019</publication_year>
+      <keyword>Observation Geometry</keyword>
+      <description>SPICE SPK file containing the INSIGHT lander (zero) offset with respect to the landing site, created by NAIF, JPL.</description>
+    </Citation_Information>
+  </Identification_Area>
+  <Context_Area>
+    <Time_Coordinates>
+      <start_date_time>2018-11-26T19:44:52Z</start_date_time>
+      <stop_date_time>2099-12-31T23:58:51Z</stop_date_time>
+    </Time_Coordinates>
+    <Primary_Result_Summary>
+      <purpose>Observation Geometry</purpose>
+      <processing_level>Derived</processing_level>
+    </Primary_Result_Summary>
+    <Investigation_Area>
+      <name>InSight Mars Lander Mission</name>
+      <type>Mission</type>
+      <Internal_Reference>
+        <lid_reference>urn:nasa:pds:context:investigation:mission.insight</lid_reference>
+        <reference_type>data_to_investigation</reference_type>
+      </Internal_Reference>
+    </Investigation_Area>
+    <Observing_System>
+      <Observing_System_Component>
+        <name>InSight Mars Lander Spacecraft</name>
+        <type>Spacecraft</type>
+        <Internal_Reference>
+          <lid_reference>urn:nasa:pds:context:instrument_host:spacecraft.insight</lid_reference>
+          <reference_type>is_instrument_host</reference_type>
+        </Internal_Reference>
+      </Observing_System_Component>
+    </Observing_System>
+    <Target_Identification>
+      <name>MARS</name>
+      <type>Planet</type>
+      <Internal_Reference>
+        <lid_reference>urn:nasa:pds:context:target:planet.mars</lid_reference>
+        <reference_type>data_to_target</reference_type>
+      </Internal_Reference>
+    </Target_Identification>
+  </Context_Area>
+  <Reference_List>
+    <Internal_Reference>
+      <lid_reference>urn:nasa:pds:insight.spice:document:spiceds</lid_reference>
+      <reference_type>data_to_document</reference_type>
+    </Internal_Reference>
+  </Reference_List>
+  <File_Area_SPICE_Kernel>
+    <File>
+      <file_name>insight_atls_ops181206_v1.bsp</file_name>
+      <creation_date_time>2019-05-22T06:51:31</creation_date_time>
+      <file_size unit="byte">7168</file_size>
+      <md5_checksum>cea2b5ca9a85abdfb97f075d4ecf6e0d</md5_checksum>
+    </File>
+    <SPICE_Kernel>
+      <offset unit="byte">0</offset>
+      <object_length unit="byte">7168</object_length>
+      <parsing_standard_id>SPICE</parsing_standard_id>
+      <description>SPICE SPK file containing the INSIGHT lander (zero) offset with respect to the landing site, created by NAIF, JPL.</description>
+      <kernel_type>SPK</kernel_type>
+      <encoding_type>Binary</encoding_type>
+    </SPICE_Kernel>
+  </File_Area_SPICE_Kernel>
+</Product_SPICE_Kernel>

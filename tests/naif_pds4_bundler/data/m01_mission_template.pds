@@ -1,0 +1,157 @@
+MISSION_NAME                = "2001 MARS ODYSSEY"
+SPACECRAFT_NAME             = "2001 MARS ODYSSEY"
+TARGET_NAME                 = "MARS"
+DATA_SET_ID                 = "ODY-M-SPICE-6-V1.0"
+PRODUCT_VERSION_TYPE        = "ACTUAL"
+MISSION_PHASE_NAME          = "N/A"
+SOURCE_PRODUCT_ID           = "N/A"
+NOTE                        = "See comments in the file for details"
+
+--$
+--$
+--$ MAKLABEL (ver. 5.1.0+) Mission Template File for the PDS archiving
+--$ of the 2001 Mars Odyssey.
+--$
+--$ Version 1.3 -- by Boris Semenov, NAIF/JPL -- September 24, 2015
+--$
+--$    Added SSD.
+--$
+--$ Version 1.2 -- by Boris Semenov, NAIF/JPL -- October 1, 2009
+--$
+--$    Added ASU.
+--$
+--$ Version 1.1 -- by Boris Semenov, NAIF/JPL -- March 25, 2005
+--$
+--$    Added tags for extended mission.
+--$
+--$ Version 1.0 -- by Boris Semenov, NAIF/JPL -- May 16, 2002
+--$
+--$    Initial version based on MGS template used for PDS archiving.
+--$
+
+--$
+--$ Label key for mission phases.
+--$
+--$ From ODY MISSION.CAT, ver. "2002-03-26 GEO:Slavney"
+--$
+--$
+--$    PRELAUNCH
+--$      Mission Phase Start Time : 2001-01-04
+--$      Mission Phase Stop Time  : 2001-04-07
+--$
+--$    LAUNCH AND INITIALIZATION
+--$      Mission Phase Start Time : 2001-04-07
+--$      Mission Phase Stop Time  : 2001-04-07
+--$
+--$    CRUISE
+--$      Mission Phase Start Time : 2001-04-07
+--$      Mission Phase Stop Time  : 2001-10-23
+--$
+--$        Subphases             Dates
+--$        ---------             -----
+--$        Near-Earth            2001-04-07 to 2001-04-21
+--$        Earth-Mars            2001-04-21 to 2001-09-04
+--$        Mars Approach         2001-09-04 to 2001-10-17
+--$
+--$    ORBIT INSERTION
+--$      Mission Phase Start Time : 2001-10-23
+--$      Mission Phase Stop Time  : 2001-10-27
+--$
+--$    AEROBRAKING
+--$      Mission Phase Start Time : 2001-10-27
+--$      Mission Phase Stop Time  : 2002-02-19
+--$
+--$    MAPPING
+--$      Mission Phase Start Time : 2002-02-19
+--$      Mission Phase Stop Time  : 2004-08-24
+--$
+--$    EXTENDED
+--$      Mission Phase Start Time : 2004-08-25
+--$      Mission Phase Stop Time  : XXXX-XX-XX
+--$
+
+--PRELAUNCH
+      MISSION_PHASE_NAME        = "PRELAUNCH"
+--LAUNCH
+      MISSION_PHASE_NAME        = "LAUNCH"
+--CRUISE
+      MISSION_PHASE_NAME        = "CRUISE"
+--CRUISE_MOI
+      MISSION_PHASE_NAME        = { "CRUISE", "ORBIT INSERTION" }
+--ORBIT_INSERTION
+      MISSION_PHASE_NAME        = "ORBIT INSERTION"
+--MOI_AEROBRAKING
+      MISSION_PHASE_NAME        = { "ORBIT INSERTION", "AEROBRAKING" }
+--AEROBRAKING
+      MISSION_PHASE_NAME        = "AEROBRAKING"
+--MAPPING
+      MISSION_PHASE_NAME        = "MAPPING"
+--MAPPING_EXTENDED
+      MISSION_PHASE_NAME        = { "MAPPING", "EXTENDED" }
+--EXTENDED
+      MISSION_PHASE_NAME        = "EXTENDED"
+
+--$
+--$ Label keys for producer IDs
+--$
+
+--NAIF
+      PRODUCER_ID               = "NAIF/JPL"
+--ODYNAV
+      PRODUCER_ID               = "ODYNAV/JPL"
+--IPNG
+      PRODUCER_ID               = "IPNG/JPL"
+--SCOPS
+      PRODUCER_ID               = "SCOPS/LMA"
+--DAA
+      PRODUCER_ID               = "DAA/JPL"
+--ASU
+      PRODUCER_ID               = "THEMIS_TEAM/ASU"
+--SSD
+      PRODUCER_ID               = "SSD/JPL"
+
+--$
+--$ Label keys for product version types
+--$
+
+--ACTUAL
+      PRODUCT_VERSION_TYPE      = "ACTUAL"
+--PREDICT
+      PRODUCT_VERSION_TYPE      = "PREDICT"
+
+--$
+--$ Label keys for instrument/mounting platform names.
+--$
+
+--SC
+      INSTRUMENT_NAME           = "ODY SPACECRAFT"
+      PLATFORM_OR_MOUNTING_NAME = "N/A"
+--INSTRUMENT_DECK
+      INSTRUMENT_NAME           = "ODY INSTRUMENT DECK"
+      PLATFORM_OR_MOUNTING_NAME = "ODY SPACECRAFT"
+--SA
+      INSTRUMENT_NAME           = "ODY SOLAR ARRAY"
+      PLATFORM_OR_MOUNTING_NAME = "ODY SPACECRAFT"
+--HGA
+      INSTRUMENT_NAME           = "ODY HIGH GAIN ANTENNA"
+      PLATFORM_OR_MOUNTING_NAME = "ODY SPACECRAFT"
+--THEMIS
+      INSTRUMENT_NAME           = "THERMAL EMISSION IMAGING SYSTEM"
+      PLATFORM_OR_MOUNTING_NAME = "ODY INSTRUMENT DECK"
+--GRS
+      INSTRUMENT_NAME           = "GAMMA RAY SPECTROMETER"
+      PLATFORM_OR_MOUNTING_NAME = "ODY INSTRUMENT DECK"
+--NS
+      INSTRUMENT_NAME           = "NEUTRON SPECTROMETER"
+      PLATFORM_OR_MOUNTING_NAME = "ODY INSTRUMENT DECK"
+--HEND
+      INSTRUMENT_NAME           = "HIGH ENERGY NEUTRON DETECTOR"
+      PLATFORM_OR_MOUNTING_NAME = "ODY INSTRUMENT DECK"
+--MARIE
+      INSTRUMENT_NAME           = "MARS RADIATION ENVIRONMENT EXPERIMENT"
+      PLATFORM_OR_MOUNTING_NAME = "ODY SPACECRAFT"
+
+--$
+--$ End of the definitions flag.
+--$
+--END

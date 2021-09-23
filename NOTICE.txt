@@ -1,4 +1,4 @@
-NAIF PDS4 Bundle Generator
+NAIF PDS4 Bundler
 
 Copyright 2021, California Institute of Technology ("Caltech").
 U.S. Government sponsorship acknowledged.

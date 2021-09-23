@@ -1,3 +1,29 @@
+SPICE kernel names
+==================
+
+As per the table above, you can see that, except for meta-kernels, files in
+the SPICE kernels collection, are as follows::
+
+    <kernel_name>.<kernel_extension>
+    
+where
+
+   * <kernel_name> is the kernel filename, 
+
+
+PDS Information Model
+=====================
+
+Currently NPB includes templates for IM 1.5.0.0 and IM 1.16.0.0. Bundles with 
+schemas versions lower than 1.16.0.0 will use 1.5.0.0 templates. Bundles
+with schemas equal or greater than 1.16.0.0 will use 1.16.0.0 templates. 
+
+Remember that you are able to provide your own templates by indicating the
+directory where they reside via the configuration file. Use your templates
+at your own risk and make sure that they pass all PDS Validate tool checks.
+
+
+
 Bundle label construction
 =========================
 
