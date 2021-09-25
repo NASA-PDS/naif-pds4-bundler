@@ -209,7 +209,7 @@ class KernelList(List):
             # infer the on that needs to be generated.
             #
             kernels_in_dir = glob.glob(
-                f"{self.setup.final_directory}/**/*", recursive=True
+                f"{self.setup.bundle_directory}/**/*", recursive=True
             )
             mks_in_dir = []
             for mk in kernels_in_dir:
@@ -726,11 +726,11 @@ class KernelList(List):
             present = False
             logging.info(
                 f"-- Checking that kernels are present in "
-                f"{self.setup.final_directory}:"
+                f"{self.setup.bundle_directory}:"
             )
             for ker in ker_in_list:
                 if os.path.isfile(
-                    self.setup.final_directory + f"/{self.setup.mission_acronym}_spice/"
+                    self.setup.bundle_directory + f"/{self.setup.mission_acronym}_spice/"
                     f"spice_kernels/" + extension2type(ker) + os.sep + ker
                 ):
                     present = True

@@ -110,51 +110,109 @@ Each subdirectory contains different SPICE kernel types that are used to
 store different kinds of ancillary data. These kernel types are briefly
 described hereunder.
 
-   SPK (Spacecraft Planet Kernel) files contain ephemerides (position
+ * **SPK** (Spacecraft Planet Kernel) files contain ephemerides (position
    and velocity) for spacecraft, planets, satellites, comets and
    asteroids as well as for moving or fixed spacecraft and instrument
    structures.
 
-   PCK (Planetary Constants Kernel) files contain certain physical,
+ * **PCK** (Planetary Constants Kernel) files contain certain physical,
    dynamical and cartographic constants for target bodies, such as size
    and shape specifications, and orientation of the spin axis and prime
    meridian.
 
-   IK (Instrument Kernel) files contain instrument parameters relevant
+ * **IK** (Instrument Kernel) files contain instrument parameters relevant
    for computing an instrument's geometry such as field-of-view
    definitions, CCD and optical distortion characteristics, and internal
    timing parameters.
 
-   CK (C-matrix Kernel) files contain time varying orientations for
+ * **CK** (C-matrix Kernel) files contain time varying orientations for
    spacecraft, spacecraft structures, and articulating science
    instruments.
 
-   LSK (Leapseconds Kernel) files contain the leapseconds and the
+ * **LSK** (Leapseconds Kernel) files contain the leapseconds and the
    values of other constants required to perform a transformation
    between Universal Time Coordinated (UTC) and Ephemeris time (ET),
    which is also known as Barycentric Dynamical Time (TDB).
 
-   SCLK (Spacecraft Clock Kernel) files contain on-board clock
+ * **SCLK** (Spacecraft Clock Kernel) files contain on-board clock
    calibration data required to perform a transformation between
    Ephemeris time (ET) and spacecraft on-board time (SCLK).
 
-   FK (Frame definitions Kernel) files contain information required to
+ * **FK** (Frame definitions Kernel) files contain information required to
    define reference frames, sources of frame orientation data and
    connections between these frames and other frames supported within
    the SPICE system. The science instrument frame definitions provided
    in the FK files include mounting alignment information for the
    instruments.
 
-   DSK (Digital Shape Kernel) files contain detailed shape models for
+ * **DSK** (Digital Shape Kernel) files contain detailed shape models for
    extended objects such as planets, natural satellites, asteroids, and
    comet nuclei.
 
-   MK (Meta-Kernel) files list sets of related SPICE kernels that
+ * **MK** (Meta-Kernel) files list sets of related SPICE kernels that
    should be used together, providing an easy way to make data from
    these kernel sets available to a SPICE-based application by loading
    meta-kernels into the program using the high level SPICE data loader
    routine FURNSH.
 
-
 References
 ==========
+
+Utility Programs
+
+   The executables and User's Guides for the following utility programs
+
+      ARCHTYPE  BINGO     BRIEF     CKBRIEF   CKSLICER  CKSMRG
+      COMMNT    DAFCAT    MAKLABEL  ORBNUM    SPACIT    SPKDIFF
+      SPY       BFF       FRMDIFF   OPTIKS
+
+   mentioned in this document are available from the ``Utilities'' page on
+   the NAIF web site:
+
+      http://naif.jpl.nasa.gov/naif/utilities.html
+
+   Note that for some environments (e.g. Linux, Mac/OSX) these utilities
+   can not be statically linked and require certain shared object libraries
+   in order to run. Usually these libraries can be installed on your
+   computer by installing the compiler used to compile the executables
+   (e.g. gfortran/gcc).
+
+
+Tutorials
+
+   A collection of tutorials covering most aspects of using SPICE kernel
+   files and allied Toolkit software is available from the ``Tutorials''
+   page on the NAIF web site:
+
+      http://naif.jpl.nasa.gov/naif/tutorials.html
+
+
+Archived SPICE Data Sets
+
+   Archived SPICE data sets are available on the NAIF server at this
+   location:
+
+      ftp://naif.jpl.nasa.gov/pub/naif/pds/data
+
+      http://naif.jpl.nasa.gov/pub/naif/pds/data
+
+   They are useful as examples.
+
+
+PDS Standards
+
+   The PDS standards reference and PDS data dictionary are available on the
+   PDS web site:
+
+      http://pds.jpl.nasa.gov/
+
+
+PDSV Volume Validation Tools
+
+   The Label Validation Tool (VTool) is available on the PDS web site:
+
+      http://pds.jpl.nasa.gov/tools/label-validation-tool.shtml
+
+   The Online Volume Validation tool is available at this URL:
+
+      http://pdstools.arc.nasa.gov/pdsWeb/ManageDataSets.action

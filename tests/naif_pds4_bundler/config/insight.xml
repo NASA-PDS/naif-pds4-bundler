@@ -71,7 +71,7 @@
         <working_directory>working</working_directory>
         <kernels_directory>kernels</kernels_directory>
         <staging_directory>staging</staging_directory>
-        <final_directory>insight</final_directory>
+        <bundle_directory>insight</bundle_directory>
     </directories>
 
     <!-- =========================== -->

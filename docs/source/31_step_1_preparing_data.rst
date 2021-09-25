@@ -1,0 +1,743 @@
+Step 1: Preparing Data
+======================
+
+Ideally a SPICE archive for a mission should include a comprehensive
+set of kernels allowing a scientist to compute geometry for any of the
+mission instruments in regards to any of the mission targets at all
+applicable times during the mission.
+
+To achieve this the data set would normally include all types of kernels
+needed to provide ephemerides (SPKs), orientation (PCK) and shape (PCK
+or DSK) of targets, trajectory (SPK) and orientation (CK) of the
+spacecraft, orientation (CK) and geometric parameters (IK) of the
+instruments, definitions of the spacecraft and instrument frames (FK),
+and data for various time conversions (LSK and SCLK). If the project
+produced Event Kernel (EK) files of any kind, they should also be
+included in the archive.
+
+If as a SPICE archive producer you have been provided the data to be archived, 
+maybe because is all present in a given directory structure or in a release
+plan, you might as well jump to Step 2.
+
+
+Identifying Data
+----------------
+
+Usually identifying data that should go into the archive is not very
+difficult, especially when SPICE kernels were produced and used by the
+project during operations. In such cases the following kernels used
+during operations -- independent of whether they were produced by the
+project teams or obtained from NAIF or other sources -- should be
+included in the archive:
+
+  * LSK
+
+       *  latest generic LSK file
+
+  * SPKs
+
+       *  planetary ephemeris SPK file(s), officially accepted by
+          the project
+
+       *  any natural satellite ephemeris SPK file(s), officially
+          accepted by the project
+
+       *  latest SPK file(s) for other types of mission targets
+          (e.g. comets, asteroids)
+
+       *  latest reconstructed spacecraft trajectory SPK file(s)
+
+       *  target and/or spacecraft trajectory SPK files produced
+          by science team(s) (for example Gravity or Radio
+          science); if any
+
+       *  latest ground stations locations SPK file(s); if any
+
+       *  latest structures/instrument locations SPK file(s); if
+          any
+
+       *  predicted SPKs; only if they are needed as gap-fillers
+          for reconstructed data, or must be archived for the
+          record; if any
+
+       *  nominal/special SPKs; only if they are needed to
+          complete the position chains (such as M2020-at-landing
+          site SPKs); if any
+
+  * PCK
+
+       *  latest generic text PCK file officially used by the project
+
+       *  latest generic binary PCK file(s) officially used by the
+          project
+
+       *  latest project-specific PCK file(s) providing the
+          rotational, shape and possibly additional constants for all
+          of the mission targets; if any
+
+  * SCLK
+
+       *  latest spacecraft on-board clock(s) correlation SCLK
+          file(s)
+
+       *  additional latest SCLK files if the project and/or
+          science teams produced special SCLKs for instrument or
+          other hardware clocks or if more than one kind of SCLK
+          kernel was made for the same clock; if any
+
+       *  special SCLK file implementing mean local time or other
+          SCLK-like time systems (see MER for examples); if any
+
+  * CK
+
+       *  the latest reconstructed spacecraft attitude CK files
+
+       *  possibly latest predicted spacecraft attitude CK
+          files if they provide a reasonably good prediction
+          and are needed to fill gaps in the reconstructed CK
+          files and/or for some other reason
+
+       *  latest reconstructed spacecraft appendage (solar arrays,
+          HGA, etc.) attitude CK files; if any
+
+       *  possibly latest predicted spacecraft appendage
+          (solar array, HGA, etc.) attitude CK files if they
+          provide a reasonably good prediction and are needed to
+          fill gaps in the reconstructed CK files and/or for some
+          other reason
+
+       *  latest reconstructed instrument orientation CK files for
+          each of the articulating instruments; if any
+
+       *  possibly latest predicted instrument orientation CK
+          files if they provide a reasonably good prediction
+          and are needed to fill gaps in the reconstructed CK files
+          and/or for some other reason
+
+       *  spacecraft and/or instrument CK files produced by
+          science teams as part of C-smithing or other pointing
+          reconstruction process; if any
+
+       *  nominal/special CK files, only if they are needed to
+          complete the orientation chains (for example, an
+          instrument parking position orientation CK file); if
+          any
+
+  * FK
+
+       *  latest version of the main mission FK file(s)
+
+       *  latest version of special mission FK files (separate
+          lading site FKs, etc); if any
+
+       *  latest versions of separate instrument FK files; if any
+
+       *  latest versions of generic FK files for natural bodies
+          (Moon, Earth, etc); if any
+
+       *  latest versions of dynamic frames FK files; if any
+
+  * IK
+
+       *  latest IK file for each of the instruments
+
+       *  latest IK file for auxiliary s/c subsystems, the data
+          from which might be used for science purposes (antennas,
+          star trackers, horizon sensors, etc); if any
+
+  * EK
+
+       *  PEF2EK-type sequence and command dictionary EK files
+          (see SDU, Deep Impact for examples); if any
+
+       *  database EK files (see CLEM for examples); if any
+
+       *  CASSINI-style sequence, noise, plan, status EK files
+          (see CASSINI for examples); if any
+
+       *  ENB EK files (see MGS, SDU for examples); if any
+
+  * DSK
+
+       *  latest DSK file (or files if multiple kernels with different
+          resolutions and/or for different parts of the surface were
+          produced) for each of the mission targets; if any
+
+       *  latest DSK file (or files if multiple kernels with different
+          resolutions and/or for different parts of the surface were
+          produced) for the mission s/c(s); if any
+
+While no mission produces all kernels from the list above, most missions
+produce kernels of all types (maybe except EKs) and most of these
+kernels are needed to compute observation geometry for the mission
+instruments and, therefore, should be included in the archive.
+
+Once the types of kernels that should go into the archive have been
+identified it is usually fairly easy to decide which actual individual
+kernels belonging to each "category" should be included. Considering
+these points may help to make this selection:
+
+  * For the kernel types that don't cover specific time intervals,
+    cover the whole mission and/or change rarely during the mission
+    -- such as planetary, satellite, structures SPKs, DSK, LSK,
+    PCK, FK, IK, and SCLK -- the latest version of each file at the
+    time of archive preparation should be included.
+
+    For the first archive release all latest kernels of these types
+    should be included, while for subsequent releases only those
+    kernels that had been updated or improved compared to the
+    already archived files should be included.
+
+    For example, if the project initially used the Martian
+    Satellite Ephemerides MAR033 SPK file (which was included in
+    the first archive release) but later switched to using the
+    MAR066 SPK file, the MAR066 SPK file should be added to the
+    archive at the next release opportunity. Another example is
+    when the main project FK file was updated to include improved
+    instrument alignment data; if this happened it should be added
+    to the next archive release.
+
+  * For the kernel types that provide data for specific time
+    intervals that are normally much shorter than the whole
+    duration of the mission -- such as spacecraft SPK, spacecraft,
+    structure, and instrument orientation CKs, and EK -- the set of
+    files providing the complete coverage for the applicable
+    interval should be included.
+
+    If the archive preparation takes place at the end of the
+    mission then all kernels of these types needed to provide data
+    coverage for the whole mission should be included. If the
+    mission is on-going and data is added to the archive at regular
+    increments (releases), each intended to cover a specific time
+    interval, then each release should contain the set of these
+    files providing complete coverage for the interval of interest.
+
+  * In most cases including duplicate data should be avoided. For
+    example, if the project is producing two strings of
+    reconstructed spacecraft orientation CK files from the same
+    telemetry input (daily "quick look" files and weekly
+    "final" files) only the "final" CK files should be
+    included. Another example is if the project used the same
+    generic LSK file under two different names -- its original name
+    and a short-cut default name, -- which is done sometimes to
+    simplify operations infrastructure, then only the file with the
+    original, actual name should be included in the archive.
+
+    There are a few cases in which duplicate data should be
+    included. The most common of these cases is when the data comes
+    from two different producers, for example two sets of
+    reconstructed spacecraft trajectory SPK files, one generated by
+    the project NAV team and the other by the Gravity team. In such
+    cases a determination of which set is "better" usually cannot
+    be made and both sets should be archived.
+
+  * Normally it is also not advisable to include obsolete or
+    superseded data. There are numerous examples of cases when a
+    kernel produced and used for some period in operation becomes
+    obsolete when another version of the same data is released at a
+    later time. The most common of these cases are predicted and
+    quick-look reconstructed spacecraft trajectory SPK files that
+    get superseded by the final reconstructed solution, and earlier
+    versions of SCLK kernels that get superseded by the later
+    versions.
+
+    Exceptions to this suggestion include cases when superseded
+    data is applicable as gap-filler (for example, predicted CKs
+    used to fill gaps in telemetry based reconstructed CKs) or when
+    an obsolete version needs to be archived to provide consistent
+    access to other archived data (for example archiving an earlier
+    version of SCLK that was used to make a predicted CK also
+    included in the archive).
+
+  * No kernel file or meta-kernel file already in the archive
+    should ever be removed or replaced with a new version with the
+    same name. Instead, any kernel or meta-kernel file added to the
+    archive should have a name that is distinct from the names of
+    all files already in the archive. If a kernel file supersedes
+    one or more files already in the archive, this fact should be
+    reflected in the ``spiceds_v???.html`` file (SPICEDS) and another version 
+    of the meta-kernel(s) should be created including this kernel file 
+    instead of the kernel file(s) that it supersedes.
+
+
+Collecting and Preparing Data
+-----------------------------
+
+Once the data files have been identified it makes sense to collect them
+in a single area ("kernel area") because frequently the kernels need to
+be pre-processed before they can go into the archive. Such
+pre-processing may involve merging or sub-setting files, renaming files
+to make their names PDS compliant, and augmenting files with internal
+comments. It should also include validating the final products that will
+go into the archive.
+
+The kernel area must structured as the spice_kernel collection, with 
+a subdirectory for each kernel type. It can virtually reside on more than 
+one location having given that more than one directory can be provided to
+the NAIF PDS4 Bundle (NPB) via configuration, but having it on single directory 
+simplify pre-processing and validation tasks. It does not have to include 
+kernels that don't require pre-processing (merging, renaming or additional 
+comments) and can go into the archive ``as is'' BUT including these kernels 
+might also simplify pre-processing and validation tasks that require multiple
+kernel types.
+
+The kernels that do need to be pre-processed should be copied or
+"binary FTP"-ed or "scp"-ed to the work area. The ways in which the
+files should be modified usually include one or more of the following:
+
+Merging Files
+^^^^^^^^^^^^^
+
+The data from two or more files may need to be merged together
+for a number of reasons: to reduce the number of files included
+in the archive, to eliminate gaps in coverage at the file
+boundaries, to produce a file that segregates data pieces that
+must be used together, or to integrate data from updated
+un-official versions of a file into the official version.
+
+Merging to reduce the number of files is usually desirable for
+the project-generated CKs or SPKs covering short periods of
+time, for example daily or weekly files, when these files are
+not very large in size. Merging such files together into a
+single file covering the whole archive release time span --
+monthly, tri-monthly, etc. -- or a few files covering parts of
+that span will result in substantially reduced number of files,
+which in turn will reduce the amount of processing needed to
+put this data into the archive and make access to the archive
+data more efficient.
+
+Merging files to eliminate gaps at file boundaries is usually
+desirable when the project generates a large number of CK files
+of the same kind with short coverages not overlapping each
+other. If the merged file is created from these individual CKs
+in such a way that data from multiple source segments is
+aggregated together in the new set of segments, the gaps at the
+original file boundary times will not be present in the new
+file.
+
+Merging files to produce a file that aggregates data pieces
+that must be used together in one place may be needed when the
+spacecraft trajectory SPK and the target ephemeris SPK used to
+determine it are delivered by the project in two separate
+files. When this happens it leaves a possibility for the users
+to use the spacecraft data with a different target trajectory
+resulting in the wrong relative geometry being computed. This
+situation happens very rarely but it needs to be checked and
+addressed.
+
+Merging files to integrate data from an updated un-official
+version of a file into the official version is usually needed
+when science teams keep a local copy of the main project FK and
+change it by modifying alignment of a previously defined
+frame(s) and/or introducing a new frame(s) for their
+instruments. It is important to inquire about such "local"
+updated copies and, if they exist, collect them and carefully
+incorporate the data from them into the new version of the
+official project FK file.
+
+When selecting how many files to merge together the size of the
+merged file should be one of the factors to consider. While
+SPICE does not impose a "hard" limit of a number of megabytes
+under which this size should be kept -- except, of course, for
+the 2.1 GB which is the limit for 4-byte integer address space,
+-- is it probably wise to keep the file size under 200-300 MB.
+
+NAIF distributes a few utility programs that can be used to
+merge various types of kernels. SPKMERGE provided in the
+generic Toolkit can be used to merge SPK files. DAFCAT and
+CKSMRG available on the NAIF server 
+(http://naif.jpl.nasa.gov/naif/utilities.html) can be used to
+merge CK files. In some cases NAIF puts together scripts
+wrapped around these merge utilities to facilitate file merge
+tasks that have to be repeated for each archive release. Some
+of these scripts are included as examples in the ``examples/scripts`` directory of the package accompanying this
+document.
+
+
+Sub-setting Files
+^^^^^^^^^^^^^^^^^
+
+Sub-setting source files to produce archival files with reduced
+scope or coverage is needed very rarely. In general it is
+better to include data files with coverage that extends beyond
+the current archive release interval rather than to try
+"chopping" the file's coverage to line up with that boundary.
+But if the project archiving policies or other considerations
+require such "lining up" the SPKMERGE utility (provided in
+the generic Toolkit) can be used to subset SPK files and the
+CKSLICER utility (available on the NAIF server) can be used to
+subset CK files.
+
+
+Augmenting Files with Comments
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+It is absolutely crucial that every kernel included in the
+archive contains comprehensive internal comments describing its
+contents, source(s) of the data, applicability of the data,
+etc. This means that all kernels intended for the archive --
+binary and text ones, those that should be archived ``as is''
+and those that were created by merging or sub-setting other
+files -- should be checked to verify that they contain adequate
+comments and, if not, augmented with such comments.
+
+Kernels included in the archive must contain comprehensive internal comments 
+that describe:
+
+   * contents of the file
+
+   * version and revision history
+
+   * status and purpose of the file
+
+   * source(s) of the data (including names of the original files if
+   * the file was created by merging or sub-setting other files)
+
+   * processing that was done on the data
+
+   * setup parameters and output logs for utility(ies) used to
+   * create the file
+
+   * applicability of the data
+
+   * data coverage
+
+   * data accuracy
+
+   * other kernels needed to use the file
+
+   * references
+
+   * data producer and contact information
+
+The comments for a particular file should address all of the categories
+from this list that are applicable to the kind of data stored in the
+file.
+
+The best approach to writing comments for a SPICE kernel is to start
+with the comments from a kernel of the same type containing the same or
+similar kind of information and modify these comments to describe the
+file in hand. These comments should be used as a reference or even the 
+starting point for comments for the kernels intended for archiving.
+
+In binary kernels internal comments reside in the special area
+of the file called the ``comment area''. The comments provided
+in this area can be accessed -- displayed, added, or deleted --
+using the COMMNT utility program. To add new comments to a
+binary kernel file that does not have any comments, one would
+first write a text file containing these comments and then add
+the contents of this file to the comment area using ``commnt
+-a```. To replace existing comments in a binary kernel file, one
+would first view existing comments using ``commnt -r``` (or save
+them to a text file ``commnt -e``), write a text file
+containing new comments (or edit the text file containing
+existing comments), delete existing comments from the file
+using ``commnt -d``, and finally add new or updated comments to
+the file using ``commnt -a``.
+
+In text kernels comments are located at the top part of the
+file, up to the first ``\begindata`` token on a line by itself,
+and in the file sections delimited by ``\begintext`` and
+``\begindata``tokens, each on a line by itself. Any number of
+comment sections intermixed with the data sections can be
+included in the file. Modifying comments in a text file can be
+done using any text editor. When modification are made to the
+file comments, the file version should be increased and the
+scope of the comment modifications should be mentioned in the
+version section of the comments.
+
+Comments in both binary and text kernels should contain only
+printable ASCII characters (no TABs); it is also strongly
+recommended that comment lines should be no longer than 80
+characters.
+
+While it is not possible to automate writing comments -- as
+with any other documentation this is the task that needs to be
+done by the person who puts the archive together by hand or by
+"recruiting" the people/teams who provided the data -- it is
+certainly possible to automate generating comments for a string
+of files of a certain type using a template and inserting these
+comments into the files. The example merge scripts mentioned
+above each contain steps for creating comments from a template
+and adding these comments to the output file.
+
+
+Renaming Files
+^^^^^^^^^^^^^^
+
+The names of the files to be included in the archive must
+comply with the PDS4 file name rules. Rules for forming file and directory 
+names are given in the PDS4 Standards Reference [2], Section 6C. Here are a 
+few things to keep in mind:
+
+  * The file name must be unique within its parent 
+    directory (it is common to have SPKs and ORBNUMs with the same name but 
+    they are in different directories.)
+
+  * File names must be no longer than 255 characters.
+
+  * File names must be case-insensitive; for example, MyFile.txt and myfile.txt 
+    are not permitted in the same directory.
+
+  * File names must be constructed from the character set:
+
+       * A-Z ASCII 0x41 through 0x5A
+       * a-z ASCII 0x61 through 0x7A 
+       * 0-9 ASCII 0x30 through 0x39 
+       * dash "-" ASCII 0x2D
+       * underscore "_" ASCII 0x5F 
+       * period "." ASCII 0x2E
+
+  * File names must not begin or end with a dash, underscore, or period. 
+
+  * The file name must include at least one period followed by an extension.  
+    A file name may have more than one period, but PDS will consider all 
+    periods other than the final one to be part of the base name. •
+
+The requirement that NAIF imposes in addition to these general PDS requirements 
+is that the extensions of the kernel files must follow the established 
+convention for SPICE kernels:
+
+.. list-table:: SPICE kernels extensions
+   :widths: 25 25 
+   :header-rows: 1
+
+   * - Kernel type
+     - Extension
+   * - Binary SPKs          
+     - .bsp
+   * - Binary PCKs          
+     - .bpc
+   * - Binary DSKs          
+     - .bds
+   * - Binary CKs          
+     - .bc
+   * - Binary Sequence EKs  
+     - .bes
+   * - Binary Database EKs  
+     - .bdb
+   * - Binary Plan EKs      
+     - .bep
+   * - Text PCKs            
+     - .tpc
+   * - Text IKs            
+     - .ti
+   * - Text FKs            
+     - .tf
+   * - Text LSKs            
+     - .tls
+   * - Text SCLKs           
+     - .tsc
+   * - Text Notebook EKs    
+     - .ten
+   * - Text Meta-kernels   
+     - .tm
+
+ORBNUM files must have either a .orb or .nrb extension.
+
+All names that don't comply with these requirements must be changed. 
+
+NAIF recommends to limit the length of the file to a 36.3 form: 
+36.3 form: 1-36 character long name + 1-3 character long extension,
+and to constrain the file name characters to:
+
+       * a-z ASCII 0x61 through 0x7A 
+       * 0-9 ASCII 0x30 through 0x39 
+       * underscore "_" ASCII 0x5F 
+       * period "." ASCII 0x2E
+
+and therefore using only lowercase letters (as is done for all NAIF archives).
+
+NAIF also strongly recommends that the names of all mission
+specific kernels start with the acronym of the spacecraft or
+the mission (if a data file contains data for more than one
+spacecraft associated with the same mission). For example, the
+names of Mars 2020 kernels start with ``m2020_``, the names of ExoMars 2016
+kernels start with ``em16_``, and so on.
+
+
+Validating Data
+^^^^^^^^^^^^^^^
+
+Although the majority of the source kernels (both those that go into the
+archive "as is" and those that have been used to make the merged
+archive files) have been used in operations and have been validated by
+this use, the final complete set of archival files must be validated by
+checking the files' coverages, data scope, correctness of comments, data
+accessibility, integrity, and consistency. The following validation
+approaches complementing each other are suggested:
+
+   * summarizing individual binary kernels (binary SPK, DSK, CK,
+     PCK, EK) and meta-kernels using BRIEF, DSKBRIEF, CKBRIEF, and
+     SPACIT utilities to verify that they are accessible, provide
+     data for the right set of bodies/structures, and have expected
+     coverage
+
+   * summarizing FOV definitions in IKs -- directly or via
+     meta-kernels -- using OPTIKS to verify that the IKs are
+     accessible and provide data for the right set of
+     instruments/detectors
+
+   * checking comments in the kernels -- both text and binary -- for
+     completeness, correctness and consistency with the summaries of
+     the data produced by summary tools
+
+   * comparing files with similar data (for example spacecraft SPKs
+     from different producers) and examining differences to see that
+     they look reasonable; for SPK files this can be done using the
+     SPKDIFF utility, for CK and FK files this can be done using the
+     FRMDIFF utility
+
+   * comparing later versions of kernels that need to be added to
+     the archive with already archived earlier versions; for text
+     kernels this can be done by analyzing differences shown by Unix
+     utilities ``diff``` or ``tkdiff``
+
+   * comparing merged archival products with the source operational
+     files; for SPK files this can be done using the SPKDIFF
+     utility, for CK files this can be done using the FRMDIFF
+     utility
+
+   * checking file data integrity by running utilities like SPY
+     (currently works only on SPK files)
+
+   * checking file data integrity by running a local instance of 
+     WebGeocalc or SPICE-Enhanced Cosmographia
+
+   * writing an application to compute geometry using the archival
+     data and comparing that geometry to known values, for example
+     from the geometry keywords in the science data labels; ideally
+     such computations should be done for each of the instruments,
+     for the quantities that require data from kernels of all types
+     to be accessed, and over the whole span covered by the archive
+     or a particular archive release
+
+   * asking the project SPICE users to re-run some of the geometry
+     computations that they have done with source operational files
+     using the final set of kernels and verify that they obtained
+     the same results
+
+While some of the validation tasks can be scripted (for example checking
+coverage based on file summaries or running SPY to check file data
+integrity), many others have to be done by hand (for example assessing
+comments in new version of text kernels) in many cases making validation
+a time and effort consuming activity. Still, the person preparing the
+archive should try to give his/her best effort to make sure that each
+archive release contains the complete set of files (in terms of scope
+and coverage) that are well documented with internal comments.
+
+
+Preparing Meta-kernels
+^^^^^^^^^^^^^^^^^^^^^^
+
+Meta-kernel files (MKs, a.k.a ``furnsh'' files) provide lists of the
+archived kernels included in the data set suitable for loading
+into a SPICE-based application via the high level SPICE data
+loader routine FURNSH. Using meta-kernels makes it easy to
+load, with one call, a comprehensive SPICE data collection for
+a given period, which, given that SPICE data sets can contain
+large number of files, is extremely helpful for future users.
+
+For missions with a small number of archived kernels NAIF
+recommends creating a single meta-kernel providing data for the
+whole mission. The name of this meta-kernel should follow the
+``mmm_v??.tm``` pattern where ``mmm`` is the mission acronym and
+``??`` is the version number. If/when new kernels are added to
+the data set, a meta-kernel with the next version number,
+including the new kernels and leaving out superseded kernels
+should be created and added to the archive.
+
+For missions with a large number of archived kernels NAIF
+recommends creating a set of meta-kernels each covering one
+year of the mission. The names of these meta-kernels should
+follow the ``mmm_yyyy_v??.tm`` pattern where ``mmm`` is the
+mission acronym, ``yyyy`` is the year covered by this data, and
+``nn`` is the version number. If/when new kernels are added to
+the data set, meta-kernels for all applicable years with the
+next version number, including the new kernels and leaving out
+superseded kernels should be created and added to the archive.
+
+
+A Word on Orbit Number Files
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Orbit Number (ORBNUM) files can be generated for orbiter type missions using
+NAIF's ORBNUM utility program. They provide orbit numbers and orbit start 
+times along with a number of derived parameters at these times. If ORBNUM files 
+are (or can be generated) for a mission, they should be included in the archive.
+
+
+A Word on Other Files
+^^^^^^^^^^^^^^^^^^^^^
+
+If the project produces other value-added files closely related to
+kernels and "insists" on archiving them, these files can also be added
+to the archive's Miscellaneous collection, but will require a deviation from
+the current specification of a NAIF archive. For example, the CASSINI project
+produces comparison plots and pointing correction plots for its
+reconstructed and C-smithed CK files. CASSINI requests these plots be
+included in the archived data set. 
+
+NAIF neither objects to nor recommends practices like this. If this is required
+we recommend you to contact NAIF.
+
+
+Writing the Release Plan
+------------------------
+
+After having gathered all the SPICE kernels and ORBNUM files (if applicable),
+you can (and probably might) write an Archive **release plan**, this release 
+plan is a text file that will list the kernels to be included in the archive. 
+Each kernel must be listed in a separate line using its file name. Additional 
+trailing characters can be present as long as there are backspaces in between 
+them and the kernel name. Lines containing text of any other kind is also
+acceptable.
+
+If the file names need to be modified, you can either use the original or the
+updated file name in the release plan, as long as the file name mapping is 
+properly specified by the NPB configuration file (this is described in TODO)
+
+Here's three different extracts of release plan samples::
+
+   nsy_sclkscet_00019.tsc
+   insight_ida_enc_200829_201220_v1.bc
+   insight_ida_pot_200829_201220_v1.bc
+
+::
+
+   NSY_SCLKSCET.00019.tsc \
+   insight_ida_enc_200829_201220_v1.bc \
+   insight_ida_pot_200829_201220_v1.bc \
+   
+::
+
+   --- SCLK
+   
+   nsy_sclkscet_00019.tsc \
+
+   --- CK
+   
+   insight_ida_enc_200829_201220_v1.bc \
+   insight_ida_pot_200829_201220_v1.bc \
+   
+   No Cruise CKs in this release.
+
+
+We recommend to follow this file name scheme for release plan files::
+
+   <sc>_release_??.plan
+
+where <sc> is the spacecraft acronym and ?? is the archive's release 
+version. The MAVEN release 24 plan is will be::
+
+   maven_release_24.plan
+
+For archive increments after the first or second release, we recommend that
+you use the previous release plan as the starting point or the release plan 
+(copy the previous one and update it.)
+
+Please note you can run NPB without providing a release plan. If you choose to
+do so, NPB will take as inputs all the kernel files that it finds in the
+kernels directory(ies) and will generate a release plan for you. This option is
+useful when the kernel directory(ies) are generated ad-hoc for each release
+or for first releases of small archives.

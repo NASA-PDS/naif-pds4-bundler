@@ -537,7 +537,7 @@ def main(
         #
         if setup.increment:
             checksum_dir = (
-                setup.final_directory
+                setup.bundle_directory
                 + f"/{setup.mission_acronym}_spice/miscellaneous/checksum"
             )
             if not isdir(checksum_dir):

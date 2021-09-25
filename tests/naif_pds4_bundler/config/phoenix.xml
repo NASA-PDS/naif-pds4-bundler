@@ -78,7 +78,7 @@
         <working_directory>working</working_directory>
         <kernels_directory>kernels</kernels_directory>
         <staging_directory>staging</staging_directory>
-        <final_directory>phoenix</final_directory>
+        <bundle_directory>phoenix</bundle_directory>
         <templates_directory></templates_directory>
     </directories>
 

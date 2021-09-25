@@ -1,71 +1,5 @@
-**********************
-Installation and Setup
-**********************
-
-Prerequisites
-=============
-
-In order to run the NAIF PDS4 Bundler (NPB), the following software must be
-present on the users's computer:
-
-   * Python 3.8 (or higher)
-   * A NAIF supported C compiler [(see link)](https://naif.jpl.nasa.gov/naif/toolkit_C.html)
-
-Your computer must be based on a 64-bit Unix operating system: a Linux or a Mac.
-
-A number of Python packages are required as well:
-
-   * SpiceyPy (version 4.0.2 or higher)
-   * beautifulsoup4 (version 4.9.3 or higher)
-   * NumPy (version 1.19.4 or higher)
-   * SetupTools (version 50.3.0 or higher)
-   * Nose
-   * Coverage
-   * xmlschema
-
-will check if you have the SPICE Toolkit in C: CSPICE, installed, if you don't
-it will automatically install it for you (that is why only a NAIF compatible
-C compiler is required.)
-
-The following section will provides indications to install these packages and
-NPB.
-
-
-User Quickstart
-===============
-
-Install with: ::
-
-    pip install naif-pds4-bundler
-
-To execute just to show the help message, run: ::
-
-    naif-pds4-bundler -h
-
-
-Installation
-============
-
-You can install NPB in editable mode and with extra developer dependencies into
-your virtual environment of choice:
-
-    pip install --editable .
-
-
-Running Tests
-=============
-
-Run tests with: ::
-
-    python -m unittest
-
-under ``tests/naif_pds4_bundler``, or ::
-
-    coverage run -m nose --cover-package=.
-
-
-The NPB Configuration File
-==========================
+The Configuration File
+======================
 
 The NAIF PDS4 Bundle Generator needs a configuration file to be executed.
 This configuration file is at least bundle specific and depending on the way
@@ -101,20 +35,20 @@ that this document refers to configuration elements as parameters
 interchangeably.
 
 Please note that NPB includes a Configuration File XML
-Schema ``npb/templates/configuration.xsd`` to which the provided
+Schema ``src/naif_pds4_bundler/templates/configuration.xsd`` to which the provided
 configuration file is validated against. This validation is performed to
 confirm that the file is well-formed and also "valid" in that it follows the
 structure defined in the Schema.
 
 One could be tempted to used the XML Schema a reference to generate a
-configuration file but it is highly discouraged. Instead the user is
-encouraged to use one of the configuration files included in the package
+configuration file but it is highly discouraged. Instead we
+encourage you to use one of the configuration files included in the package
 used for testing. In particular the MAVEN Configuration is recommended
-as a reference: ``npb/tests/config/maven.xml``. If the bundle to be generated
+as a reference: ``tests/naif_pds4_bundler/config/maven.xml``. If the bundle to be generated
 includes secondary observers and/or secondary targets complement the MAVEN
 Configuration with the DART configuration: ``npb/tests/config/dart.xml''. If
 instead of a PDS4 bundle a PDS3 data set will be generated use the MRO
-configuration as an example: ``npb/tests/config/mro.xml``.
+configuration as an example: ``tests/naif_pds4_bundler/config/mro.xml``.
 
 The Configuration File consists of a number of nested parameters that are
 grouped in the following categories:
@@ -128,7 +62,7 @@ grouped in the following categories:
     7. Orbit number file (if required)
 
 In order to facilitate the understanding of the Configuration File, the MAVEN
-example is provided hereunder. The user is encouraged to first take a look
+example is provided hereunder. We encourage you to first take a look
 at the example and then continue to the sections that explain in detail each
 parameter.::
 
@@ -233,7 +167,7 @@ parameter.::
              <working_directory>working</working_directory>
              <kernels_directory>kernels</kernels_directory>
              <staging_directory>staging</staging_directory>
-             <final_directory>maven</final_directory>
+             <bundle_directory>maven</bundle_directory>
 
              <!-- Optional parameters -->
              <orbnum_directory>misc/orbnum</orbnum_directory>
@@ -553,17 +487,39 @@ products. The table below provides a summary of the parameters:
        the registered context products. More information below.
      - False
 
+
+The Information Model
+^^^^^^^^^^^^^^^^^^^^^
+
 The ``information_model`` parameter will determine the PDS4 artifacts templates
-that will be used for the bundle generation. NPB provides different tempaltes
+that will be used for the bundle generation. NPB provides different templates
 depending on the specified IM. See section TODO for an extended discussion on
-IM and template usage.
+IM and template usage. In a nutshell NAIF recommends to use IM 1.5.0.0, but if 
+you need yo include a DOI in the bundle label you can use IM 1.14.0.0 or higher.
+
+The choice of the IM will determine the ``xml_model`` and ``schema_location``
+values. In principle, the only element of the value that will change is the one
+that specifies the IM version. 
+
+Please note that the IM choice impacts other elements of the configuration file
+and of the archive generation such as some contents of the SPICEDS file and 
+the templates used for the generation of PDS artifacts. These impacts are
+described in the appropriate sections.
+
+
+Context Products
+^^^^^^^^^^^^^^^^
 
 The ``context_products`` parameter is required if the primary and/or secondary
-targets of the bundle are not registered. The registered products are available
-in the following file: ``npb/templates/registered_context_products.json``. This
+obsever(s) and/or target(s) of the bundle are not registered. The registered products are available
+in the following file: ``src/naif_pds4_bundler/templates/registered_context_products.json``. This
 list of registered context products is generated based on the registered context
 products obtained with the PDS Validate tool, with minor modifications, and is
 maintained by the NAIF NPB developer.
+
+
+The management of context products requires a bit of attention. 
+
 
 
 Bundle Parameters
@@ -639,7 +595,7 @@ summary of the parameters:
        information is provided in TODO. The default is CRLF.
      - False
 
-In addition to the NPB Configuration File, the spiceds file is the only
+In addition to the NPB Configuration File, the SPICEDS file is the only
 bundle product that requires manual intervention (assuming that meta-kernel
 generation is automatized, that will be discussed later). More details on
 the spiceds are provided in TODO.
@@ -775,7 +731,7 @@ summary of the required and optional directories:
        execution by-products that include but are not limited to (depending on
        the execution arguments): execution log, kernel list, and the file list.
        It is a good idea to use the working directory to store the configuration
-       file(s), valdiation reports, arhive plans, etc. More information of these
+       file(s), validation reports, archive plans, etc. More information of these
        files is provided later in this document.
      - True
    * - kernels_directory
@@ -787,7 +743,7 @@ summary of the required and optional directories:
      - This directory will be used by NPB to store the files generated by its
        execution for the archive (the release or increment.)
      - True
-   * - final_directory
+   * - bundle_directory
      - Indicates the directory where the current version of the SPICE kernel
        bundle is present (before the execution of NPB).
      - True
@@ -1300,8 +1256,8 @@ instead of only: ::
 
 And by the way, from where are these kernels included? Well NPB will combine
 the kernel of the version being generated, kernels present in the directory
-specified in "final_directory" and also kernels present in other meta-kernels,
-in case they are not present in the "final_directory".
+specified in "bundle_directory" and also kernels present in other meta-kernels,
+in case they are not present in the "bundle_directory".
 
 
 Meta-kernel metadata

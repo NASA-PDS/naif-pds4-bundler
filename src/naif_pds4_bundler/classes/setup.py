@@ -295,10 +295,10 @@ class Setup(object):
         elif f"/{mission_dir}" not in self.staging_directory:
             self.staging_directory += f"/{mission_dir}"
 
-        if os.path.isdir(cwd + os.sep + self.final_directory):
-            self.final_directory = cwd + os.sep + self.final_directory
-        if not os.path.isdir(self.final_directory):
-            error_message(f"Directory does not exist: " f"{self.final_directory}")
+        if os.path.isdir(cwd + os.sep + self.bundle_directory):
+            self.bundle_directory = cwd + os.sep + self.bundle_directory
+        if not os.path.isdir(self.bundle_directory):
+            error_message(f"Directory does not exist: " f"{self.bundle_directory}")
 
         #
         # There might be more than one kernels directory
@@ -525,7 +525,7 @@ class Setup(object):
         else:
             try:
                 releases = glob.glob(
-                    self.final_directory
+                    self.bundle_directory
                     + os.sep
                     + self.mission_acronym
                     + "_spice"
@@ -780,7 +780,7 @@ class Setup(object):
             #
             # Remove files from the final area.
             #
-            path = self.final_directory + os.sep + self.mission_acronym + "_spice/"
+            path = self.bundle_directory + os.sep + self.mission_acronym + "_spice/"
             logging.info(f"-- Removing files from final area: {path}.")
             with open(self.args.clear, "r") as c:
                 for line in c:

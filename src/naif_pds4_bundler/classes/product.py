@@ -752,7 +752,7 @@ class MetaKernelProduct(Product):
                 pattern = pattern.replace("$" + key, "?" * len(self.values[key]))
 
         versions = glob.glob(
-            f"{self.setup.final_directory}/"
+            f"{self.setup.bundle_directory}/"
             f"{self.setup.mission_acronym}_spice/"
             f"spice_kernels/mk/{pattern}"
         )
@@ -1033,7 +1033,7 @@ class MetaKernelProduct(Product):
                         #
                         try:
                             mks = glob.glob(
-                                f"{self.setup.final_directory}/"
+                                f"{self.setup.bundle_directory}/"
                                 f"{self.setup.mission_acronym}"
                                 f"_spice/spice_kernels/mk/"
                                 f'{self.name.split("_v")[0]}*.tm'
@@ -1235,7 +1235,7 @@ class MetaKernelProduct(Product):
 
             match_flag = True
             val_mk_path = (
-                f"{self.setup.final_directory}/"
+                f"{self.setup.bundle_directory}/"
                 f"{self.setup.mission_acronym}_spice/" + f"spice_kernels/mk/"
             )
 
@@ -1290,7 +1290,7 @@ class MetaKernelProduct(Product):
 
         rel_path = self.path.split(f"/{self.setup.mission_acronym}_spice/")[-1]
         path = (
-            self.setup.final_directory.split(f"{self.setup.mission_acronym}" f"_spice")[
+            self.setup.bundle_directory.split(f"{self.setup.mission_acronym}" f"_spice")[
                 0
             ]
             + f"/{self.setup.mission_acronym}_spice/"
@@ -1385,7 +1385,7 @@ class MetaKernelProduct(Product):
                     #
                     if not ker_found:
                         path = (
-                            f"{self.setup.final_directory}/"
+                            f"{self.setup.bundle_directory}/"
                             f"{self.setup.mission_acronym}_spice/"
                             f"spice_kernels/"
                             f"{extension2type(kernel)}/{kernel}"
@@ -1618,7 +1618,7 @@ class OrbnumFileProduct(Product):
 
         """
         path = [
-            f"{self.setup.final_directory}/{self.setup.mission_acronym}"
+            f"{self.setup.bundle_directory}/{self.setup.mission_acronym}"
             f"_spice//miscellaneous/"
         ]
         previous_orbnum = get_latest_kernel("orbnum", path, self._pattern, dates=True)
@@ -2556,7 +2556,7 @@ class OrbnumFileProduct(Product):
                     # directory.
                     #
                     if not cov_kers:
-                        cov_path = f"{self.setup.final_directory}" f"/spice_kernels/spk"
+                        cov_path = f"{self.setup.bundle_directory}" f"/spice_kernels/spk"
                         try:
                             cov_kers = [
                                 x
@@ -2713,7 +2713,7 @@ class InventoryProduct(Product):
         self.collection = collection
 
         if setup.pds_version == "3":
-            self.path = setup.final_directory + os.sep + "index" + os.sep + "index.tab"
+            self.path = setup.bundle_directory + os.sep + "index" + os.sep + "index.tab"
 
         elif setup.pds_version == "4":
 
@@ -2722,7 +2722,7 @@ class InventoryProduct(Product):
             #
             if self.setup.increment:
                 inventory_files = glob.glob(
-                    self.setup.final_directory
+                    self.setup.bundle_directory
                     + f"/{self.setup.mission_acronym}_spice"
                     + os.sep
                     + collection.name
@@ -3156,7 +3156,7 @@ class InventoryProduct(Product):
             if index:
                 try:
                     current_index = (
-                        self.setup.final_directory + os.sep + index.split(os.sep)[-1]
+                        self.setup.bundle_directory + os.sep + index.split(os.sep)[-1]
                     )
                     compare_files(
                         index, current_index, self.setup.working_directory, "all"
@@ -3193,7 +3193,7 @@ class SpicedsProduct(object):
         # - Obtain the previous spiceds file if it exists
         #
         path = (
-            setup.final_directory
+            setup.bundle_directory
             + os.sep
             + setup.mission_acronym
             + "_spice"
@@ -3368,7 +3368,7 @@ class SpicedsProduct(object):
         try:
 
             val_spd_path = (
-                f"{self.setup.final_directory}/"
+                f"{self.setup.bundle_directory}/"
                 f"{self.setup.mission_acronym}_spice/" + f"document"
             )
 
@@ -3421,7 +3421,7 @@ class ReadmeProduct(Product):
         self.collection.name = ""
 
         path = (
-            self.setup.final_directory
+            self.setup.bundle_directory
             + f"/{self.setup.mission_acronym}_spice/readme.txt"
         )
 
@@ -3577,7 +3577,7 @@ class ChecksumProduct(Product):
         #
         if self.setup.increment:
             checksum_files = glob.glob(
-                self.setup.final_directory
+                self.setup.bundle_directory
                 + f"/{self.setup.mission_acronym}_spice/"
                 + os.sep
                 + self.collection.name
@@ -3751,7 +3751,7 @@ class ChecksumProduct(Product):
         if history:
             for product in history[1]:
                 path = (
-                    self.setup.final_directory
+                    self.setup.bundle_directory
                     + f"/{self.setup.mission_acronym}_spice/"
                     + product
                 )
@@ -3783,7 +3783,7 @@ class ChecksumProduct(Product):
         #
         # We remove spurious .DS_Store files if we are working with MacOS.
         #
-        for root, dirs, files in os.walk(self.setup.final_directory):
+        for root, dirs, files in os.walk(self.setup.bundle_directory):
             for file in files:
                 if file.endswith(".DS_Store"):
                     path = os.path.join(root, file)
@@ -3814,7 +3814,7 @@ class ChecksumProduct(Product):
             # The files can either be in the staging or the final area.
             #
             path = (
-                f"{self.setup.final_directory}/"
+                f"{self.setup.bundle_directory}/"
                 f"{self.setup.mission_acronym}_spice/" + product
             )
             if not os.path.isfile(path):

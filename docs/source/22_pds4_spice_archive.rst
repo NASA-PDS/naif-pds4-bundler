@@ -1,23 +1,3 @@
-*************************
-PDS4 SPICE Kernel Bundles
-*************************
-
-Overview
-========
-
-This section describes the structure and contents of a PDS SPICE
-bundle following the PDS4 standard using the NAIF approach.
-
-There might be some concepts and/or words used in this chapter that
-you might not know or understand, if so please take a look at the documents
-that describe the PDS4. They are available at the [PDS Data Standards
-Document page](https://pds.nasa.gov/datastandards/documents ).
-
-Don't worry, everything that is specified in this chapter is implemented by the
-NAIF PDS Bundler; the idea of this chapter is to provide you background and the
-rationale of how and why SPICE kernel archives are implemented this way.
-
-
 Product Types
 =============
 
@@ -85,35 +65,6 @@ Document Collection
 
 The document collection contains all the versions of the SPICE Data Archive
 description file. These files are described in TODO.
-
-The following diagram provides the top-level directory structure of a SPICE
-Data Archive::
-
-      <sc>_spice (bundle root directory)
-       |
-       |-- document
-       |
-       |-- miscellaneous
-       | |
-       | |-- checksum
-       | +-- orbnum (as needed)
-       |
-       +-- spice_kernels
-         |
-         |-- ck
-         |-- dbk (as needed)
-         |-- dsk (as needed)
-         |-- ek (as needed)
-         |-- fk
-         |-- ik
-         |-- lsk
-         |-- mk
-         |-- pck
-         |-- sclk
-         +-- spk
-
-
-where <sc> is the short s/c name or acronym (e.g. maven, ladee, etc.)
 
 
 LIDs, LIDVIDs, and File naming
@@ -633,6 +584,19 @@ in other archives of the mission, make sure of the following:
 
     * if these kernels need to be present in the meta-kernel or even if they
       need a specific meta-kernel in the SPICE kernel archive
+
+
+SPICE kernel archive divergences rationale
+===========================================
+
+The fact that the labels are not 100 percent compliant does NOT
+make kernels less usable because the labels are not needed to
+understand or use kernels (unlike labels for PDS images or
+tables or other science data product types). It is the internal
+comments in the kernels and other meta information provided in
+the data set -- data set catalog file, ``*info.txt'' files,
+meta-kernels -- that one needs to understand how to use kernels
+in the proper way.
 
 
 Product set, label, LIDVID and inventory examples for MAVEN release 1 and 2

@@ -41,7 +41,7 @@ class TestBundleHistory(TestCase):
         """ """
 
         test_setup = Object()
-        test_setup.final_directory = "../data/insight"
+        test_setup.bundle_directory = "../data/insight"
         test_setup.mission_acronym = "insight"
 
         test_bundle = Object()

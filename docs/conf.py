@@ -17,9 +17,9 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'NAIF PDS4 Bundle Generator'
+project = 'NAIF PDS4 Bundler'
 copyright = '2021 California Institute of Technology'
-author = 'Marc Costa Sitja'
+author = 'Marc Costa Sitja, Boris V. Semenov'
 version = u'0.4'
 release = u'0.4.0'
 
@@ -58,9 +58,9 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'NAIF PDS4 Bundle Generator'
+project = u'NAIF PDS4 Bundler'
 copyright = u'2021, Caltech/JPL/NASA'
-author = u'M Costa Sitja'
+author = u'M. Costa Sitja, B. V. Semenov'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -103,7 +103,7 @@ html_theme = 'python_docs_theme'
 html_static_path = ['_static']
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'NAIFPDS4BundleGeneratordoc'
+htmlhelp_basename = 'NAIFPDS4BundlerDoc'
 
 html_logo = '_static/images/PDS_Planets.png'
 
@@ -137,8 +137,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'naif_pds4_bundle.tex', u'NAIF PDS4 Bundle Generator Documentation',
-     u'M. Costa Sitja', 'manual'),
+    (master_doc, 'naif_pds4_bundler.tex', u'NAIF PDS4 Bundler Documentation',
+     u'M. Costa Sitja, B. V. Semenov', 'manual'),
 ]
 
 # -- Options for manual page output ---------------------------------------
@@ -146,8 +146,8 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'naifpds4bundlegenerator',
-     u'NAIF PDS4 Bundle Generator Documentation',
+    (master_doc, 'naifpds4bundler',
+     u'NAIF PDS4 Bundler Documentation',
      [author], 1)
 ]
 
@@ -162,8 +162,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'NAIFPDS4BundleGenerator',
-     u'NAIF PDS4 Bundle Generator Documentation',
-     author, 'NAIFPDS4BundleGenerator', 'One line description of project.',
+    (master_doc, 'NAIFPDS4Bundler',
+     u'NAIF PDS4 Bundler Documentation',
+     author, 'NAIFPDS4Bundler', 'Generates a PDS4 SPICE kernel archive.',
      'Miscellaneous'),
 ]

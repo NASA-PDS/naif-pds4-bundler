@@ -76,7 +76,7 @@
         <working_directory>working</working_directory>
         <kernels_directory>kernels</kernels_directory>
         <staging_directory>staging</staging_directory>
-        <final_directory>orex</final_directory>
+        <bundle_directory>orex</bundle_directory>
     </directories>
 
     <!-- =========================== -->

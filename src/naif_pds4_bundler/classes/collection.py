@@ -52,7 +52,7 @@ class Collection(object):
         if self.setup.increment:
             try:
                 versions = glob.glob(
-                    f"{self.setup.final_directory}/"
+                    f"{self.setup.bundle_directory}/"
                     f"{self.setup.mission_acronym}_spice/"
                     f"{self.name}/*{self.name}*"
                 )
@@ -441,7 +441,7 @@ class SpiceKernelsCollection(Collection):
             # that does not extend the coverage.
             #
             bundles = glob.glob(
-                self.setup.final_directory
+                self.setup.bundle_directory
                 + os.sep
                 + self.setup.mission_acronym
                 + "_spice"

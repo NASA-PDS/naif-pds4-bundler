@@ -299,7 +299,7 @@ class PDSLabel(object):
 
             match_flag = True
             val_label_path = (
-                self.setup.final_directory
+                self.setup.bundle_directory
                 + f"/{self.setup.mission_acronym}_spice/"
                 + self.product.collection.name
                 + os.sep
@@ -349,7 +349,7 @@ class PDSLabel(object):
             #
             try:
                 val_label_path = (
-                    self.setup.final_directory
+                    self.setup.bundle_directory
                     + f"/{self.setup.mission_acronym}_spice/"
                     + self.product.collection.name
                     + os.sep

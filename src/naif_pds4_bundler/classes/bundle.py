@@ -168,7 +168,7 @@ class Bundle(object):
             relative_path = f"{os.sep}{self.setup.mission_acronym}_spice{os.sep}"
             relative_path += file.split(relative_path)[-1]
 
-            dst = self.setup.final_directory + relative_path
+            dst = self.setup.bundle_directory + relative_path
 
             if not os.path.exists(os.sep.join(dst.split(os.sep)[:-1])):
                 os.mkdir(os.sep.join(dst.split(os.sep)[:-1]))
@@ -230,7 +230,7 @@ class Bundle(object):
         #
         # List all files newer than 'x' days
         #
-        for root, dirs, files in os.walk(self.setup.final_directory):
+        for root, dirs, files in os.walk(self.setup.bundle_directory):
             for name in files:
                 filename = os.path.join(root, name)
                 if os.stat(filename).st_mtime > now - (xdays * 86400):
@@ -307,7 +307,7 @@ class Bundle(object):
             # an error but do not throw an exception.
             #
             if not os.path.isfile(
-                object.setup.final_directory
+                object.setup.bundle_directory
                 + f"/{object.setup.mission_acronym}_spice/"
                 + bundle_label
             ):
@@ -329,7 +329,7 @@ class Bundle(object):
             # in the bundle.
             #
             with open(
-                object.setup.final_directory
+                object.setup.bundle_directory
                 + f"/{object.setup.mission_acronym}_spice/"
                 + bundle_label,
                 "r",
@@ -376,7 +376,7 @@ class Bundle(object):
                 history[rel].append(ker_collection_lbl)
 
                 with open(
-                    object.setup.final_directory
+                    object.setup.bundle_directory
                     + f"/{object.setup.mission_acronym}_spice/"
                     + ker_collection,
                     "r",
@@ -432,7 +432,7 @@ class Bundle(object):
                     )
 
                     if os.path.exists(
-                        object.setup.final_directory
+                        object.setup.bundle_directory
                         + f"/{object.setup.mission_acronym}_spice/"
                         + mis_collection
                     ):
@@ -445,7 +445,7 @@ class Bundle(object):
                         history[rel].append(mis_collection_lbl)
 
                         with open(
-                            object.setup.final_directory
+                            object.setup.bundle_directory
                             + f"/{object.setup.mission_acronym}_spice/"
                             + mis_collection,
                             "r",
@@ -491,7 +491,7 @@ class Bundle(object):
                 history[rel].append(doc_collection_lbl)
 
                 with open(
-                    object.setup.final_directory
+                    object.setup.bundle_directory
                     + f"/{object.setup.mission_acronym}_spice/"
                     + doc_collection,
                     "r",
@@ -556,7 +556,7 @@ class Bundle(object):
             products_in_history = sorted(products_in_history)
             products_in_checksum = []
             checksum_file = (
-                f"{self.setup.final_directory}"
+                f"{self.setup.bundle_directory}"
                 f"/{self.setup.mission_acronym}_spice"
                 f"/miscellaneous"
                 f"/checksum/checksum_v{rel:03d}.tab"
