@@ -63,7 +63,7 @@ class TestDART(TestCase):
         shutil.rmtree("kernels", ignore_errors=True)
         shutil.copytree("../data/kernels", "kernels")
 
-        main(config, plan=False, faucet="final", silent=self.silent, log=self.log)
+        main(config, plan=False, faucet="bundle", silent=self.silent, log=self.log)
 
 
 if __name__ == "__main__":

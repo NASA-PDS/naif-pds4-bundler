@@ -487,7 +487,7 @@ class TestOrbnum(TestCase):
             "misc/orbnum/maven_orb_rec_210101_210402_v1.orb",
         )
 
-        main(updated_config, plan=plan, faucet="final", silent=self.silent)
+        main(updated_config, plan=plan, faucet="bundle", silent=self.silent)
 
     def test_pds4_orbnum_multiple_files_incorrect_spk(self):
         """
@@ -512,7 +512,7 @@ class TestOrbnum(TestCase):
             "misc/orbnum/maven_orb_rec_210101_210402_v1.orb",
         )
 
-        main(config, plan=plan, faucet="final", silent=self.silent)
+        main(config, plan=plan, faucet="bundle", silent=self.silent)
 
     def test_pds4_orbnum_multiple_files_in_spk_dir(self):
         """
@@ -560,7 +560,7 @@ class TestOrbnum(TestCase):
             "kernels/spk/maven_orb_rec_210101_210401_v1.orb",
         )
 
-        main(updated_config, plan=plan, faucet="final", silent=self.silent, log=True)
+        main(updated_config, plan=plan, faucet="bundle", silent=self.silent, log=True)
 
 
 if __name__ == "__main__":

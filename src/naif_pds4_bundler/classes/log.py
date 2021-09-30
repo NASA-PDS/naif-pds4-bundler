@@ -140,9 +140,10 @@ class Log(object):
             )
 
         #
-        # Generate the file list.
+        # Generate the file list and the checksum regsitry.
         #
         self.setup.write_file_list()
+        self.setup.write_checksum_regsitry()
 
         #
         # Clear the kernel pool
@@ -164,8 +165,11 @@ def error_message(message, setup=False):
     # If files have been generated in the staging are and/or transfered
     # to the final area, generate the file list for the pipeline execution.
     #
+    # In addition, generate the checksum registry file
+    #
     if setup:
         setup.write_file_list()
+        setup.write_checksum_regsitry()
 
     spiceypy.kclear()
 

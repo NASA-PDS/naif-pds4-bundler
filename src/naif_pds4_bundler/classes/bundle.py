@@ -136,7 +136,7 @@ class Bundle(object):
 
         self.new_files = new_files
 
-        logging.info(f"-- The following files are present in the staging " f"area:")
+        logging.info(f"-- The following files are present in the staging area:")
         for file in new_files:
             relative_path = f"{os.sep}{self.setup.mission_acronym}_spice{os.sep}"
             logging.info(f"     {file.split(relative_path)[-1]}")
@@ -144,9 +144,9 @@ class Bundle(object):
 
         return None
 
-    def copy_to_final(self):
+    def copy_to_bundle(self):
 
-        line = f"Step {self.setup.step} - Copy files to final area"
+        line = f"Step {self.setup.step} - Copy files to the bundle area"
         logging.info("")
         logging.info(line)
         logging.info("-" * len(line))
@@ -315,9 +315,9 @@ class Bundle(object):
                     "Files from previous releases not available "
                     "to generate Bundle history"
                 )
-                logging.error(f"-- {line}.")
+                logging.warning(f"-- {line}.")
                 if not object.setup.args.silent and not object.setup.args.verbose:
-                    print("-- " + "ERROR: " + line + ".")
+                    print("-- " + "WARNING: " + line + ".")
                 return {}
 
             history[rel].append(bundle_label)
@@ -483,11 +483,11 @@ class Bundle(object):
             if rel_doc_col_ver != doc_col_ver:
                 ver = rel_doc_col_ver
                 doc_collection = (
-                    f"document/" f"collection_document_inventory_v{ver:03d}.csv"
+                    f"document/collection_document_inventory_v{ver:03d}.csv"
                 )
                 history[rel].append(doc_collection)
 
-                doc_collection_lbl = f"document/" f"collection_document_v{ver:03d}.xml"
+                doc_collection_lbl = f"document/collection_document_v{ver:03d}.xml"
                 history[rel].append(doc_collection_lbl)
 
                 with open(
@@ -519,7 +519,7 @@ class Bundle(object):
         duplicates = check_list_duplicates(all_products)
 
         if duplicates:
-            logging.error("-- Bundle History contains duplicates.")
+            logging.warning("-- Bundle History contains duplicates.")
 
         return history
 
@@ -531,7 +531,7 @@ class Bundle(object):
         """
         logging.info("")
         line = (
-            f"Step {self.setup.step} - Validate bundle history with " f"checksum files"
+            f"Step {self.setup.step} - Validate bundle history with checksum " f"files"
         )
         logging.info("")
         logging.info(line)
@@ -571,23 +571,37 @@ class Bundle(object):
             #
             if rel == list(history)[-1]:
                 products_in_checksum.append(
-                    f"miscellaneous/checksum/" f"checksum_v{rel:03d}.tab"
+                    f"miscellaneous/checksum/checksum_v{rel:03d}.tab"
                 )
                 products_in_checksum.append(
-                    f"miscellaneous/checksum/" f"checksum_v{rel:03d}.xml"
+                    f"miscellaneous/checksum/checksum_v{rel:03d}.xml"
                 )
 
             products_in_checksum = sorted(products_in_checksum)
 
             if not (products_in_checksum == products_in_history):
 
-                logging.error(set(products_in_checksum) ^ set(products_in_history))
-
-                error_message(
-                    f"Products in {checksum_file} do not correspond "
-                    f"to the bundle release history",
-                    setup=self.setup,
+                logging.error("")
+                logging.error(
+                    f"-- Products in {checksum_file} do not "
+                    f"correspond to the bundle release history"
                 )
+                incorrect_products = set(products_in_checksum) ^ set(
+                    products_in_history
+                )
+
+                incorrect_output = ""
+                for product in incorrect_products:
+                    incorrect_output += f"{product}\n"
+                    logging.error(f"      {product}")
+                if not self.setup.args.log:
+                    error_message(
+                        f"Products in {checksum_file} do not correspond "
+                        f"to the bundle release history: \n {incorrect_output}",
+                        setup=self.setup,
+                    )
+                else:
+                    error_message("Check generation of Checksum files", self.setup)
 
         logging.info("")
 

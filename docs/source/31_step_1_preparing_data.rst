@@ -1,12 +1,12 @@
 Step 1: Preparing Data
 ======================
 
-Ideally a SPICE archive for a mission should include a comprehensive
+Ideally a SPICE kernel archive for a mission should include a comprehensive
 set of kernels allowing a scientist to compute geometry for any of the
 mission instruments in regards to any of the mission targets at all
 applicable times during the mission.
 
-To achieve this the data set would normally include all types of kernels
+To achieve this the archive would normally include all types of kernels
 needed to provide ephemerides (SPKs), orientation (PCK) and shape (PCK
 or DSK) of targets, trajectory (SPK) and orientation (CK) of the
 spacecraft, orientation (CK) and geometric parameters (IK) of the
@@ -15,9 +15,10 @@ and data for various time conversions (LSK and SCLK). If the project
 produced Event Kernel (EK) files of any kind, they should also be
 included in the archive.
 
-If as a SPICE archive producer you have been provided the data to be archived, 
-maybe because is all present in a given directory structure or in a release
-plan, you might as well jump to Step 2.
+If as a SPICE kernel archive producer you have been provided the data to be
+archived, maybe because is all present in a given directory structure or in a
+release plan, you might as well jump to
+:ref:`source/32_step_2_npb_setup:Step 2: Preparing the NAIF PDS4 Bundler Setup`.
 
 
 Identifying Data
@@ -26,7 +27,7 @@ Identifying Data
 Usually identifying data that should go into the archive is not very
 difficult, especially when SPICE kernels were produced and used by the
 project during operations. In such cases the following kernels used
-during operations -- independent of whether they were produced by the
+during operations -- independent of whether if they were produced by the
 project teams or obtained from NAIF or other sources -- should be
 included in the archive:
 
@@ -47,7 +48,7 @@ included in the archive:
 
        *  latest reconstructed spacecraft trajectory SPK file(s)
 
-       *  target and/or spacecraft trajectory SPK files produced
+       *  target and/or spacecraft trajectory SPK file(s) produced
           by science team(s) (for example Gravity or Radio
           science); if any
 
@@ -56,13 +57,13 @@ included in the archive:
        *  latest structures/instrument locations SPK file(s); if
           any
 
-       *  predicted SPKs; only if they are needed as gap-fillers
+       *  predicted SPK(s); only if they are needed as gap-fillers
           for reconstructed data, or must be archived for the
           record; if any
 
-       *  nominal/special SPKs; only if they are needed to
+       *  nominal/special SPK(s); only if they are needed to
           complete the position chains (such as M2020-at-landing
-          site SPKs); if any
+          site SPK); if any
 
   * PCK
 
@@ -127,15 +128,15 @@ included in the archive:
 
        *  latest version of the main mission FK file(s)
 
-       *  latest version of special mission FK files (separate
+       *  latest version of special mission FK file(s) (separate
           lading site FKs, etc); if any
 
-       *  latest versions of separate instrument FK files; if any
+       *  latest versions of separate instrument FK file(s); if any
 
-       *  latest versions of generic FK files for natural bodies
+       *  latest versions of generic FK file(s) for natural bodies
           (Moon, Earth, etc); if any
 
-       *  latest versions of dynamic frames FK files; if any
+       *  latest versions of dynamic frames FK file(s); if any
 
   * IK
 
@@ -168,7 +169,7 @@ included in the archive:
           produced) for the mission s/c(s); if any
 
 While no mission produces all kernels from the list above, most missions
-produce kernels of all types (maybe except EKs) and most of these
+produce kernels of all types (maybe except EKs and DSKs) and most of these
 kernels are needed to compute observation geometry for the mission
 instruments and, therefore, should be included in the archive.
 
@@ -208,7 +209,7 @@ these points may help to make this selection:
     mission then all kernels of these types needed to provide data
     coverage for the whole mission should be included. If the
     mission is on-going and data is added to the archive at regular
-    increments (releases), each intended to cover a specific time
+    releases, each intended to cover a specific time
     interval, then each release should contain the set of these
     files providing complete coverage for the interval of interest.
 
@@ -255,35 +256,45 @@ these points may help to make this selection:
     archive should have a name that is distinct from the names of
     all files already in the archive. If a kernel file supersedes
     one or more files already in the archive, this fact should be
-    reflected in the ``spiceds_v???.html`` file (SPICEDS) and another version 
-    of the meta-kernel(s) should be created including this kernel file 
-    instead of the kernel file(s) that it supersedes.
+    reflected in the SPICE Archive Description file (SPICEDS) and another
+    version of the meta-kernel(s) should be created including this kernel
+    file instead of the kernel file(s) that it supersedes.
 
 
 Collecting and Preparing Data
 -----------------------------
 
 Once the data files have been identified it makes sense to collect them
-in a single area ("kernel area") because frequently the kernels need to
-be pre-processed before they can go into the archive. Such
+in a single area (the ``kernels_directory``) because frequently the kernels
+need to be pre-processed before they can go into the archive. Such
 pre-processing may involve merging or sub-setting files, renaming files
 to make their names PDS compliant, and augmenting files with internal
 comments. It should also include validating the final products that will
 go into the archive.
 
-The kernel area must structured as the spice_kernel collection, with 
-a subdirectory for each kernel type. It can virtually reside on more than 
+The kernel area must structured as the ``spice_kernel`` collection, with
+a subdirectory for each kernel type. It can virtually reside on more than
 one location having given that more than one directory can be provided to
-the NAIF PDS4 Bundle (NPB) via configuration, but having it on single directory 
-simplify pre-processing and validation tasks. It does not have to include 
-kernels that don't require pre-processing (merging, renaming or additional 
-comments) and can go into the archive ``as is'' BUT including these kernels 
+the NAIF PDS4 Bundler via configuration, but having it on single directory
+simplify pre-processing and validation tasks. It does not have to include
+kernels that don't require pre-processing (merging, renaming or additional
+comments) and can go into the archive "as is" **but** including these kernels
 might also simplify pre-processing and validation tasks that require multiple
 kernel types.
 
 The kernels that do need to be pre-processed should be copied or
-"binary FTP"-ed or "scp"-ed to the work area. The ways in which the
-files should be modified usually include one or more of the following:
+"binary FTP"-ed or "scp"-ed to the work area.
+
+The ways in which the files should be modified usually include one or more of
+the following:
+
+   * merging files
+   * sub-setting files
+   * augmenting file with comments
+   * renaming files
+
+Some indications for each of these modifications are provided hereunder.
+
 
 Merging Files
 ^^^^^^^^^^^^^
@@ -343,15 +354,13 @@ the 2.1 GB which is the limit for 4-byte integer address space,
 -- is it probably wise to keep the file size under 200-300 MB.
 
 NAIF distributes a few utility programs that can be used to
-merge various types of kernels. SPKMERGE provided in the
-generic Toolkit can be used to merge SPK files. DAFCAT and
-CKSMRG available on the NAIF server 
-(http://naif.jpl.nasa.gov/naif/utilities.html) can be used to
+merge various types of kernels. ``SPKMERGE`` provided in the
+generic Toolkit can be used to merge SPK files. ``DAFCAT`` and
+``CKSMRG`` available on the
+`NAIF server <http://naif.jpl.nasa.gov/naif/utilities.html>`_ can be used to
 merge CK files. In some cases NAIF puts together scripts
 wrapped around these merge utilities to facilitate file merge
-tasks that have to be repeated for each archive release. Some
-of these scripts are included as examples in the ``examples/scripts`` directory of the package accompanying this
-document.
+tasks that have to be repeated for each archive release.
 
 
 Sub-setting Files
@@ -363,9 +372,10 @@ better to include data files with coverage that extends beyond
 the current archive release interval rather than to try
 "chopping" the file's coverage to line up with that boundary.
 But if the project archiving policies or other considerations
-require such "lining up" the SPKMERGE utility (provided in
+require such "lining up" the ``SPKMERGE`` utility (provided in
 the generic Toolkit) can be used to subset SPK files and the
-CKSLICER utility (available on the NAIF server) can be used to
+``CKSLICER`` utility (available on the
+`NAIF server <http://naif.jpl.nasa.gov/naif/utilities.html>`_ ) can be used to
 subset CK files.
 
 
@@ -376,12 +386,12 @@ It is absolutely crucial that every kernel included in the
 archive contains comprehensive internal comments describing its
 contents, source(s) of the data, applicability of the data,
 etc. This means that all kernels intended for the archive --
-binary and text ones, those that should be archived ``as is''
+binary and text ones, those that should be archived "as is"
 and those that were created by merging or sub-setting other
 files -- should be checked to verify that they contain adequate
 comments and, if not, augmented with such comments.
 
-Kernels included in the archive must contain comprehensive internal comments 
+Kernels included in the archive must contain comprehensive internal comments
 that describe:
 
    * contents of the file
@@ -390,13 +400,13 @@ that describe:
 
    * status and purpose of the file
 
-   * source(s) of the data (including names of the original files if
-   * the file was created by merging or sub-setting other files)
+   * source(s) of the data (including names of the original files if the file
+     was created by merging or sub-setting other files)
 
    * processing that was done on the data
 
    * setup parameters and output logs for utility(ies) used to
-   * create the file
+     create the file
 
    * applicability of the data
 
@@ -417,18 +427,18 @@ file.
 The best approach to writing comments for a SPICE kernel is to start
 with the comments from a kernel of the same type containing the same or
 similar kind of information and modify these comments to describe the
-file in hand. These comments should be used as a reference or even the 
+file in hand. These comments should be used as a reference or even the
 starting point for comments for the kernels intended for archiving.
 
 In binary kernels internal comments reside in the special area
-of the file called the ``comment area''. The comments provided
+of the file called the "comment area". The comments provided
 in this area can be accessed -- displayed, added, or deleted --
-using the COMMNT utility program. To add new comments to a
+using the ``COMMNT`` utility program. To add new comments to a
 binary kernel file that does not have any comments, one would
 first write a text file containing these comments and then add
-the contents of this file to the comment area using ``commnt
--a```. To replace existing comments in a binary kernel file, one
-would first view existing comments using ``commnt -r``` (or save
+the contents of this file to the comment area using ``commnt -a``.
+To replace existing comments in a binary kernel file, one
+would first view existing comments using ``commnt -r`` (or save
 them to a text file ``commnt -e``), write a text file
 containing new comments (or edit the text file containing
 existing comments), delete existing comments from the file
@@ -438,7 +448,7 @@ the file using ``commnt -a``.
 In text kernels comments are located at the top part of the
 file, up to the first ``\begindata`` token on a line by itself,
 and in the file sections delimited by ``\begintext`` and
-``\begindata``tokens, each on a line by itself. Any number of
+``\begindata`` tokens, each on a line by itself. Any number of
 comment sections intermixed with the data sections can be
 included in the file. Modifying comments in a text file can be
 done using any text editor. When modification are made to the
@@ -451,99 +461,121 @@ printable ASCII characters (no TABs); it is also strongly
 recommended that comment lines should be no longer than 80
 characters.
 
+All archived kernels have a NAIF file ID architecture/type token as the first
+"word" on the first line of the file. The SPICE binary kernel
+files are guaranteed to have this ID word, but the ASCII text
+kernels: FK, IK, LSK, PCK, SCLK, are not. for completeness,
+the appropriate ID words are listed hereunder, so that they may be
+inserted into the ASCII text kernel files if necessary.
+
+.. list-table:: NAIF File ID Words
+   :widths: 25 25
+   :header-rows: 1
+
+   * - ASCII Text File Type
+     - ID Word
+   * - IK
+     - KPL/IK
+   * - LSK
+     - KPL/LSK
+   * - PCL
+     - KPL/PCL
+   * - SCLK
+     - KPL/SCLK
+   * - FRAMES
+     - KPL/FK
+
+
 While it is not possible to automate writing comments -- as
 with any other documentation this is the task that needs to be
 done by the person who puts the archive together by hand or by
 "recruiting" the people/teams who provided the data -- it is
 certainly possible to automate generating comments for a string
 of files of a certain type using a template and inserting these
-comments into the files. The example merge scripts mentioned
-above each contain steps for creating comments from a template
-and adding these comments to the output file.
+comments into the files.
 
 
 Renaming Files
 ^^^^^^^^^^^^^^
 
-The names of the files to be included in the archive must
-comply with the PDS4 file name rules. Rules for forming file and directory 
-names are given in the PDS4 Standards Reference [2], Section 6C. Here are a 
-few things to keep in mind:
+The names of the files to be included in the archive must comply with the PDS4
+file name rules. Rules for forming file and directory names are given in the
+PDS4 Standards Reference [PDS4STD]_. Here are a few things to keep in mind:
 
-  * The file name must be unique within its parent 
-    directory (it is common to have SPKs and ORBNUMs with the same name but 
+  * The file name must be unique within its parent
+    directory (it is common to have SPKs and ORBNUMs with the same name but
     they are in different directories.)
 
   * File names must be no longer than 255 characters.
 
-  * File names must be case-insensitive; for example, MyFile.txt and myfile.txt 
-    are not permitted in the same directory.
+  * File names must be case-insensitive; for example, ``MyFile.txt`` and
+    ``myfile.txt`` are not permitted in the same directory.
 
   * File names must be constructed from the character set:
 
        * A-Z ASCII 0x41 through 0x5A
-       * a-z ASCII 0x61 through 0x7A 
-       * 0-9 ASCII 0x30 through 0x39 
+       * a-z ASCII 0x61 through 0x7A
+       * 0-9 ASCII 0x30 through 0x39
        * dash "-" ASCII 0x2D
-       * underscore "_" ASCII 0x5F 
+       * underscore "_" ASCII 0x5F
        * period "." ASCII 0x2E
 
-  * File names must not begin or end with a dash, underscore, or period. 
+  * File names must not begin or end with a dash, underscore, or period.
 
-  * The file name must include at least one period followed by an extension.  
-    A file name may have more than one period, but PDS will consider all 
-    periods other than the final one to be part of the base name. •
+  * The file name must include at least one period followed by an extension.
+    A file name may have more than one period, but PDS will consider all
+    periods other than the final one to be part of the base name.
 
-The requirement that NAIF imposes in addition to these general PDS requirements 
-is that the extensions of the kernel files must follow the established 
+The requirement that NAIF imposes in addition to these general PDS requirements
+is that the extensions of the kernel files must follow the established
 convention for SPICE kernels:
 
 .. list-table:: SPICE kernels extensions
-   :widths: 25 25 
+   :widths: 25 25
    :header-rows: 1
 
    * - Kernel type
      - Extension
-   * - Binary SPKs          
+   * - Binary SPKs
      - .bsp
-   * - Binary PCKs          
+   * - Binary PCKs
      - .bpc
-   * - Binary DSKs          
+   * - Binary DSKs
      - .bds
-   * - Binary CKs          
+   * - Binary CKs
      - .bc
-   * - Binary Sequence EKs  
+   * - Binary Sequence EKs
      - .bes
-   * - Binary Database EKs  
+   * - Binary Database EKs
      - .bdb
-   * - Binary Plan EKs      
+   * - Binary Plan EKs
      - .bep
-   * - Text PCKs            
+   * - Text PCKs
      - .tpc
-   * - Text IKs            
+   * - Text IKs
      - .ti
-   * - Text FKs            
+   * - Text FKs
      - .tf
-   * - Text LSKs            
+   * - Text LSKs
      - .tls
-   * - Text SCLKs           
+   * - Text SCLKs
      - .tsc
-   * - Text Notebook EKs    
+   * - Text Notebook EKs
      - .ten
-   * - Text Meta-kernels   
+   * - Text Meta-kernels
      - .tm
 
 ORBNUM files must have either a .orb or .nrb extension.
 
-All names that don't comply with these requirements must be changed. 
+All names that don't comply with these requirements must be changed.
 
-NAIF recommends to limit the length of the file to a 36.3 form: 
-36.3 form: 1-36 character long name + 1-3 character long extension,
-and to constrain the file name characters to:
+NAIF recommends to limit the length of the file to a 36.3 form: 1-36 character
+long name + 1-3 character long extension, and to constrain the file name
+characters to:
 
-       * a-z ASCII 0x61 through 0x7A 
-       * 0-9 ASCII 0x30 through 0x39 
-       * underscore "_" ASCII 0x5F 
+       * a-z ASCII 0x61 through 0x7A
+       * 0-9 ASCII 0x30 through 0x39
+       * underscore "_" ASCII 0x5F
        * period "." ASCII 0x2E
 
 and therefore using only lowercase letters (as is done for all NAIF archives).
@@ -555,9 +587,16 @@ spacecraft associated with the same mission). For example, the
 names of Mars 2020 kernels start with ``m2020_``, the names of ExoMars 2016
 kernels start with ``em16_``, and so on.
 
+Because of the reasons explained above, very frequently the name of kernels
+to archive has to be updated. The update can be done manually simply by
+updating the file name or NPB can be configured to do so for you. For more
+information on how to implement kernel file name mapping with see
+:ref:`source/42_npb_configuration_file:Mapping kernels` from the NPB
+Configuration File description.
+
 
 Validating Data
-^^^^^^^^^^^^^^^
+---------------
 
 Although the majority of the source kernels (both those that go into the
 archive "as is" and those that have been used to make the merged
@@ -568,8 +607,8 @@ accessibility, integrity, and consistency. The following validation
 approaches complementing each other are suggested:
 
    * summarizing individual binary kernels (binary SPK, DSK, CK,
-     PCK, EK) and meta-kernels using BRIEF, DSKBRIEF, CKBRIEF, and
-     SPACIT utilities to verify that they are accessible, provide
+     PCK, EK) and meta-kernels using ``BRIEF``, ``DSKBRIEF``, ``CKBRIEF``, and
+     ``SPACIT`` utilities to verify that they are accessible, provide
      data for the right set of bodies/structures, and have expected
      coverage
 
@@ -585,23 +624,23 @@ approaches complementing each other are suggested:
    * comparing files with similar data (for example spacecraft SPKs
      from different producers) and examining differences to see that
      they look reasonable; for SPK files this can be done using the
-     SPKDIFF utility, for CK and FK files this can be done using the
-     FRMDIFF utility
+     ``SPKDIFF`` utility, for CK and FK files this can be done using the
+     ``FRMDIFF`` utility
 
    * comparing later versions of kernels that need to be added to
      the archive with already archived earlier versions; for text
      kernels this can be done by analyzing differences shown by Unix
-     utilities ``diff``` or ``tkdiff``
+     utilities ``diff`` or ``tkdif``
 
    * comparing merged archival products with the source operational
-     files; for SPK files this can be done using the SPKDIFF
-     utility, for CK files this can be done using the FRMDIFF
+     files; for SPK files this can be done using the ``SPKDIFF``
+     utility, for CK files this can be done using the ``FRMDIFF``
      utility
 
    * checking file data integrity by running utilities like SPY
      (currently works only on SPK files)
 
-   * checking file data integrity by running a local instance of 
+   * checking file data integrity by running a local instance of
      WebGeocalc or SPICE-Enhanced Cosmographia
 
    * writing an application to compute geometry using the archival
@@ -618,7 +657,7 @@ approaches complementing each other are suggested:
      the same results
 
 While some of the validation tasks can be scripted (for example checking
-coverage based on file summaries or running SPY to check file data
+coverage based on file summaries or running ``SPY`` to check file data
 integrity), many others have to be done by hand (for example assessing
 comments in new version of text kernels) in many cases making validation
 a time and effort consuming activity. Still, the person preparing the
@@ -628,47 +667,92 @@ and coverage) that are well documented with internal comments.
 
 
 Preparing Meta-kernels
-^^^^^^^^^^^^^^^^^^^^^^
+----------------------
 
-Meta-kernel files (MKs, a.k.a ``furnsh'' files) provide lists of the
-archived kernels included in the data set suitable for loading
+Meta-kernel files (MKs, a.k.a "furnsh" files) provide a list of the
+kernels included in the archive suitable for loading
 into a SPICE-based application via the high level SPICE data
-loader routine FURNSH. Using meta-kernels makes it easy to
+loader routine ``FURNSH``. Using meta-kernels makes it easy to
 load, with one call, a comprehensive SPICE data collection for
-a given period, which, given that SPICE data sets can contain
-large number of files, is extremely helpful for future users.
+a given period, which, given that SPICE archives can contain
+large number of files, is extremely helpful for users.
 
 For missions with a small number of archived kernels NAIF
 recommends creating a single meta-kernel providing data for the
 whole mission. The name of this meta-kernel should follow the
-``mmm_v??.tm``` pattern where ``mmm`` is the mission acronym and
+``<sc>_v??.tm`` pattern where ``<sc>`` is the mission acronym and
 ``??`` is the version number. If/when new kernels are added to
-the data set, a meta-kernel with the next version number,
+the archive, a meta-kernel with the next version number,
 including the new kernels and leaving out superseded kernels
 should be created and added to the archive.
 
 For missions with a large number of archived kernels NAIF
 recommends creating a set of meta-kernels each covering one
 year of the mission. The names of these meta-kernels should
-follow the ``mmm_yyyy_v??.tm`` pattern where ``mmm`` is the
+follow the ``<sc>_yyyy_v??.tm`` pattern where ``<sc>`` is the
 mission acronym, ``yyyy`` is the year covered by this data, and
-``nn`` is the version number. If/when new kernels are added to
+``??`` is the version number. If/when new kernels are added to
 the data set, meta-kernels for all applicable years with the
 next version number, including the new kernels and leaving out
 superseded kernels should be created and added to the archive.
 
+In general, though there can be more kinds of MKs in an archive and
+therefore in general MKs follow the ``<sc><_type>_v??.tm`` pattern.
+For example, the OSIRIS-REx archive includes a MK that includes a
+particular type of CK and another MK that excludes it; for a given
+release of a given year the added MKs are::
 
-A Word on Orbit Number Files
+   orx_2021_v01.tm
+   orx_noola_2021_v01.tm
+
+MKs can either be manually generated by the archive producer (or by the
+operations team) or can be automatically generated (or assisted) by NPB.
+
+
+Generating MKs Manually
+^^^^^^^^^^^^^^^^^^^^^^^
+
+If you chose to generate MKs manually, we recommend that as a starting point
+you use a MK from a similar archive or if you are incrementing an already
+existing archive to use the latest archived MK.
+
+You will need to specify the location of the new MK in the NPB configuration
+file as indicated in :ref:`source/42_npb_configuration_file:Meta-kernel`.
+
+More information on how to generate adequate MKs is available at [KERNELS]_.
+
+
+Generating MKs Automatically
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+The generation of MKs can be automatized by providing to the NPB configuration
+file the appropriate parameters. This is described in detail in
+:ref:`source/42_npb_configuration_file:Automatic generation of Meta-kernels`.
+
+Please note that depending on the complexity and particulars of the MK(s) you
+need to archive, setting up the automatic generation might not be possible. If
+so please contact the NAIF NPB developer or, if reasonable, try to generate the
+MKs manually.
+
+The main advantage of generating MKs automatically is that you decrease the
+possibilities of a human error. We know by experience that introducing errors
+in manually generated MKs is very common.
+
+Regardless of the method that you chose to generate MKs be especially careful
+when reviewing and validating them.
+
+
+A Word on Orbit Number Files
+----------------------------
+
 Orbit Number (ORBNUM) files can be generated for orbiter type missions using
-NAIF's ORBNUM utility program. They provide orbit numbers and orbit start 
-times along with a number of derived parameters at these times. If ORBNUM files 
+NAIF's ORBNUM utility program. They provide orbit numbers and orbit start
+times along with a number of derived parameters at these times. If ORBNUM files
 are (or can be generated) for a mission, they should be included in the archive.
 
 
 A Word on Other Files
-^^^^^^^^^^^^^^^^^^^^^
+---------------------
 
 If the project produces other value-added files closely related to
 kernels and "insists" on archiving them, these files can also be added
@@ -676,26 +760,62 @@ to the archive's Miscellaneous collection, but will require a deviation from
 the current specification of a NAIF archive. For example, the CASSINI project
 produces comparison plots and pointing correction plots for its
 reconstructed and C-smithed CK files. CASSINI requests these plots be
-included in the archived data set. 
+included in the archived data set.
 
 NAIF neither objects to nor recommends practices like this. If this is required
 we recommend you to contact NAIF.
+
+
+Obtaining a DOI
+---------------
+
+DOIs are not mandatory for SPICE kernel archives but are desirable.
+The DOI is provided in the NPB configuration file.
+
+If the archive uses IM 1.5.0.0, it will not be able to include the DOI tag in
+the bundle label (the IM does not allow it), if IM 1.14.0.0 or higher is used,
+the DOI will be able to be included it in the bundle label.
+
+Obtention of a DOI depends on the archive producer's archiving authority.
+If you are producing a NASA SPICE Kernel bundle see the
+`PDS Citation indications <https://pds.jpl.nasa.gov/datastandards/citing/>`_.
+Note that a DOI will need a landing page, Below are a couple of examples
+of DOIs and landing pages:
+
+.. list-table:: DOI Examples
+   :widths: 25 15 60
+   :header-rows: 1
+
+   * - Archive
+     - DOI
+     - Landing Page
+   * - InSight
+     - 10.17189/1520436
+     - https://pds.nasa.gov/ds-view/pds/viewBundle.jsp?identifier=urn%3Anasa%3Apds%3Ainsight.spice
+   * - ExoMars 2016
+     - 10.5270/esa-pwviqkg
+     - https://www.cosmos.esa.int/web/spice/exomars2016
+
+
+Again coordinate with your archiving authority. To resolve a DOI to its Landing
+Page you can use the following web: `DOI resolution resource <https://dx.doi.org/>`_.
 
 
 Writing the Release Plan
 ------------------------
 
 After having gathered all the SPICE kernels and ORBNUM files (if applicable),
-you can (and probably might) write an Archive **release plan**, this release 
-plan is a text file that will list the kernels to be included in the archive. 
-Each kernel must be listed in a separate line using its file name. Additional 
-trailing characters can be present as long as there are backspaces in between 
-them and the kernel name. Lines containing text of any other kind is also
-acceptable.
+you can (and probably must) write an Archive **Release Plan**, this release
+plan is a text file that will list all the kernels to be included in the archive
+**including Meta-Kernels and ORBNUM files**. Each kernel must be listed in a
+separate line using its file name. Additional trailing characters can be present
+as long as there are blank spaces between them and the kernel name. Lines
+containing text of any other kind is also acceptable.
 
 If the file names need to be modified, you can either use the original or the
-updated file name in the release plan, as long as the file name mapping is 
-properly specified by the NPB configuration file (this is described in TODO)
+updated file name in the release plan, as long as the file name mapping is
+properly specified by the NPB configuration file (this is described in
+:ref:`source/31_step_1_preparing_data:Renaming Files`.)
 
 Here's three different extracts of release plan samples::
 
@@ -708,18 +828,18 @@ Here's three different extracts of release plan samples::
    NSY_SCLKSCET.00019.tsc \
    insight_ida_enc_200829_201220_v1.bc \
    insight_ida_pot_200829_201220_v1.bc \
-   
+
 ::
 
    --- SCLK
-   
+
    nsy_sclkscet_00019.tsc \
 
    --- CK
-   
+
    insight_ida_enc_200829_201220_v1.bc \
    insight_ida_pot_200829_201220_v1.bc \
-   
+
    No Cruise CKs in this release.
 
 
@@ -727,13 +847,13 @@ We recommend to follow this file name scheme for release plan files::
 
    <sc>_release_??.plan
 
-where <sc> is the spacecraft acronym and ?? is the archive's release 
+where ``<sc> ``is the mission acronym and ``??`` is the archive's release
 version. The MAVEN release 24 plan is will be::
 
    maven_release_24.plan
 
 For archive increments after the first or second release, we recommend that
-you use the previous release plan as the starting point or the release plan 
+you use the previous release plan as the starting point or the release plan
 (copy the previous one and update it.)
 
 Please note you can run NPB without providing a release plan. If you choose to

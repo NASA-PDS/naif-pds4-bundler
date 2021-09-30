@@ -1,10 +1,10 @@
 The Configuration File
 ======================
 
-The NAIF PDS4 Bundle Generator needs a configuration file to be executed.
-This configuration file is at least bundle specific and depending on the way
-it is implemented, it can also be release specific. It is a rather lengthy
-file and it can be a bit obscure and setting it up for the first time for
+The NAIF PDS4 Bundler needs a configuration file to be executed.
+This configuration file is at least bundle-specific and depending on the way
+it is implemented, it can also be release-specific. It is a rather lengthy
+file, it can be a bit obscure, and setting it up for the first time for
 a bundle might take some time. The positive point though is that once the
 configuration file is generated for the bundle and is adapted to the user's
 environment the continuous usage of NPB becomes an easy and quick task.
@@ -13,8 +13,10 @@ The following sections are written to facilitate the task to generate the
 configuration file by providing thorough explanations and recommendations.
 
 If you are not familiar with the generation of PDS4 SPICE archives I would
-recommend you to first read TODO in such a way that you get familiar with
-some concepts that are discussed in the following sections.
+recommend you to first read the chapter
+:ref:`source/20_spice_kernel_archive_description:SPICE Kernel Archive Description`
+in such a way that you get familiar with some concepts that are discussed in the
+following sections.
 
 
 Configuration File Format
@@ -40,13 +42,14 @@ configuration file is validated against. This validation is performed to
 confirm that the file is well-formed and also "valid" in that it follows the
 structure defined in the Schema.
 
-One could be tempted to used the XML Schema a reference to generate a
+One could be tempted to use the XML Schema a reference to generate a
 configuration file but it is highly discouraged. Instead we
 encourage you to use one of the configuration files included in the package
 used for testing. In particular the MAVEN Configuration is recommended
 as a reference: ``tests/naif_pds4_bundler/config/maven.xml``. If the bundle to be generated
 includes secondary observers and/or secondary targets complement the MAVEN
-Configuration with the DART configuration: ``npb/tests/config/dart.xml''. If
+Configuration with the DART configuration:
+``tests/naif_pds4_bundler/config/dart.xml''. If
 instead of a PDS4 bundle a PDS3 data set will be generated use the MRO
 configuration as an example: ``tests/naif_pds4_bundler/config/mro.xml``.
 
@@ -445,8 +448,6 @@ parameter.::
          </orbit_number_file>
      </naif-pds4-bundle_configuration>
 
-Please note that for some parameters that refer to SPICE Kernel names,
-patterns are used. These patterns follow a simple syntax.
 
 
 PDS Parameters
@@ -465,27 +466,27 @@ products. The table below provides a summary of the parameters:
      - Required?
    * - pds_version
      - Archive PDS version, it can be 3 or 4. Currently only 4 is fully implemented.
-     - True
+     - Yes
    * - information_model
      - Specifies the PDS4 information model to be used.
-     - PDS4
+     - Yes
    * - xml_model
      - URL location of the XML Schematron associated with an information model.
        The ``information_model`` and ``xml_model`` parameters must refer to the
        same information model.
-     - PDS4
+     - Yes
    * - schema_location
      - URL location of the XML Schema associated with an information model. The
        ``schema_location`` and ``xml_model`` parameters must refer to the same
        information model.
-     - True
+     - Yes
    * - logical_identifier
      - Logical identifier for the bundle.
-     - PDS4
+     - Yes
    * - context_products
      - Provides a list of required context products that are not available in
        the registered context products. More information below.
-     - False
+     - No
 
 
 The Information Model
@@ -493,16 +494,18 @@ The Information Model
 
 The ``information_model`` parameter will determine the PDS4 artifacts templates
 that will be used for the bundle generation. NPB provides different templates
-depending on the specified IM. See section TODO for an extended discussion on
-IM and template usage. In a nutshell NAIF recommends to use IM 1.5.0.0, but if 
-you need yo include a DOI in the bundle label you can use IM 1.14.0.0 or higher.
+depending on the specified IM. See section
+:ref:`source/44_npb_implementation:PDS Information Model` for an extended
+discussion on IM and template usage. In a nutshell NAIF recommends to use
+IM 1.5.0.0, but if you need yo include a DOI in the bundle label you can use
+IM 1.14.0.0 or higher.
 
 The choice of the IM will determine the ``xml_model`` and ``schema_location``
 values. In principle, the only element of the value that will change is the one
-that specifies the IM version. 
+that specifies the IM version.
 
 Please note that the IM choice impacts other elements of the configuration file
-and of the archive generation such as some contents of the SPICEDS file and 
+and of the archive generation such as some contents of the SPICEDS file and
 the templates used for the generation of PDS artifacts. These impacts are
 described in the appropriate sections.
 
@@ -511,15 +514,54 @@ Context Products
 ^^^^^^^^^^^^^^^^
 
 The ``context_products`` parameter is required if the primary and/or secondary
-obsever(s) and/or target(s) of the bundle are not registered. The registered products are available
-in the following file: ``src/naif_pds4_bundler/templates/registered_context_products.json``. This
-list of registered context products is generated based on the registered context
-products obtained with the PDS Validate tool, with minor modifications, and is
-maintained by the NAIF NPB developer.
+observer(s) and/or target(s) of the bundle are not registered. The registered
+products are available in the following file:
+``src/naif_pds4_bundler/templates/registered_context_products.json``.
+This list of registered context products is generated based on the registered
+context products obtained with the PDS Validate tool. with minor modifications,
+and is maintained by the NAIF NPB developer.
 
+The management of context products requires a bit of attention. Although NPB
+will raise a run time error if any of the observers or targets is not
+registered, we recommend that you search these items in the registered context
+products. If you cannot find them, you need to provide them in the configuration
+file. In order to do so, you will need to include the following elements
+per product:
 
-The management of context products requires a bit of attention. 
+   * Product Name e.g.: DART, InSight Mars Lander Spacecraft
+   * Product Type e.g.: Spacecraft, Planet, Asteroid, Satellite
+   * Product LIDIV::
+         urn:nasa:pds:context:instrument_host:spacecraft.dart::1.0
+         urn:nasa:pds:context:instrument_host:spacecraft.insight::2.0
 
+Here's an example for the DART mission::
+
+        <context_products>
+            <product name="DART">
+                <type>Spacecraft</type>
+                <lidvid>urn:nasa:pds:context:instrument_host:spacecraft.dart::1.0</lidvid>
+            </product>
+            <product name="LICIA">
+                <type>Spacecraft</type>
+                <lidvid>urn:nasa:pds:context:instrument_host:spacecraft.licia::1.0</lidvid>
+            </product>
+            <product name="Earth">
+                <type>Planet</type>
+                <lidvid>urn:nasa:pds:context:target:planet.earth::1.0</lidvid>
+            </product>
+            <product name="Didymos">
+                <type>Asteroid</type>
+                <lidvid>urn:nasa:pds:context:target:asteroid.didymos::1.0</lidvid>
+            </product>
+            <product name="Dimorphos">
+                <type>Satellite</type>
+                <lidvid>urn:nasa:pds:context:target:satellite.didymos.dimorphos::1.0</lidvid>
+            </product>
+        </context_products>
+
+In addition, contact your archiving authority contact to ensure that the
+context product information is correct. If your archiving authority is the PDS
+you will need to consult with the leading node of the mission archive.
 
 
 Bundle Parameters
@@ -538,74 +580,148 @@ summary of the parameters:
      - Required?
    * - producer_name
      - Name of the archive producer (or NPB operator).
-     - True
+     - Yes
    * - author_list
      - Name of the SPICE kernel main author(s) and the archive producer
        (or NPB operator).
-     - True
+     - Yes
    * - institution
      - Institution affiliation of the archive produced e.g., NAIF/JPL, PSA/ESA,
        etc.
-     - True
+     - Yes
    * - doi
-     - Digital Object Identifier (DOI) of the bundle. See TODO for more details.
-     - False
+     - Digital Object Identifier (DOI) of the bundle. More information in
+       :ref:`source/22_pds4_spice_archive:Digital Objects Identifiers`_.
+     - No
    * - spice_name
-     - Specifies the SPICE name of the main spacecraft of the SPICE kernels.
-     - True
+     - Specifies the SPICE name of the main spacecraft of the archive.
+     - Yes
    * - spiceds
      - Indicates the location of the SPICE Data Archive Description document
-       for the release.
-     - PDS4
+       (SPICEDS) for the release.
+     - No
    * - readme
      - Provides the parameters required to generate the bundle readme file by
-       using the readme file template. See TODO for more details.
-     - PDS4
+       using the readme file template. Two elements need to be provided:
+       ``overview`` that provides an overview of the archive and
+       ``cognisant_persons`` that indicates the institution responsible for the
+       archive generation. These elements should have the same value for all
+       archive releases.
+     - No
    * - release_date
      - Bundle increment release date. The date is provided with a UTC calendar
-       format string with following syntax: YYYY-MM-DD e.g. 2021-04-09. If not
-       provided the NPB execution date is used (which in principle is the
-       appropriate date to be used.)
-     - False
+       format string with following syntax: ``YYYY-MM-DD`` e.g. ``2021-04-09``.
+       If not provided the NPB execution date is used. NAIF does not recommend to
+       include this parameter.
+     - No
    * - creation_date_time
      - Creation date and time for all the products of the release. Usage
        of this parameter is highly discouraged. The date is provided with
-       a UTC calendar format string with following syntax: YYYY-MM-DDThh:mm:ss
-       e.g. 2021-06-25T08:00:00. If not provided the NPB execution date is used.
-     - False
+       a UTC calendar format string with following syntax: ``YYYY-MM-DDThh:mm:ss``
+       e.g. ``2021-06-25T08:00:00``. If not provided the NPB execution date is used.
+     - No
    * - increment_start
-     - Release start time. Use of this parameter is discouraged. More details
-       are provided in TODO. The date is provided with a UTC calendar format
-       string with following syntax: YYYY-MM-DDThh:mm:ssZ
-       e.g. 2021-06-25T08:00:00Z.
-     - False
+     - Release start time. More details are provided in
+       :ref:`source/44_npb_implementation:Coverage Times Determination`. The
+       date is provided with a UTC calendar format string with following syntax:
+       ``YYYY-MM-DDThh:mm:ssZ`` e.g. ``2021-06-25T08:00:00Z``. NAIF does not
+       recommend to include this parameter.
+     - No
    * - increment_finish
-     - Release stop time. Use of this parameter is discouraged. More details
-       are provided in TODO. The date is provided with a UTC calendar format
-       string with following syntax: YYYY-MM-DDThh:mm:ssZ
-       e.g. 2021-06-25T08:00:00Z.
-     - False
+     - Release stop time. More details are provided in
+       :ref:`source/44_npb_implementation:Coverage Times Determination`. The
+       date is provided with a UTC calendar format string with following syntax:
+       ``YYYY-MM-DDThh:mm:ssZ`` e.g. ``2021-06-25T08:00:00Z``. NAIF does not recommend
+       to include this parameter.
+     - No
    * - date_format
      - Product labels use different date and time formats. The values can
-       be ``infomod2`` or ``maklabel``. More information is provided in TODO.
+       be ``infomod2`` or ``maklabel``. More information is provided below.
        The default parameter is ``maklabel``.
-     - False
+     - No
    * - end_of_line
-     - The end of line character for products can either be CRLF or LF. More
-       information is provided in TODO. The default is CRLF.
-     - False
+     - The end of line character for products can either be ``<CRLF>`` or ``<LF>``.
+       The default is ``<CRLF>`` (for ``<CR><LF>``). NAIF recommends to use
+       ``<CRLF>`` when using PDS IM version prior to 1.14.0.0, The choice of
+       this parameter affects the content of the SPICEDS file (section
+       "File Formats".) More information is provided in
+       :ref:`source/32_step_2_npb_setup:SPICE Data Set Catalog File`
+     - No
 
 In addition to the NPB Configuration File, the SPICEDS file is the only
 bundle product that requires manual intervention (assuming that meta-kernel
-generation is automatized, that will be discussed later). More details on
-the spiceds are provided in TODO.
+generation is automatized). More details on SPICEDS are provided in
+:ref:`source/32_step_2_npb_setup:SPICE Data Set Catalog File`
+
+
+Date Format
+^^^^^^^^^^^
+
+There two possible "strategies" to format date time strings across the archive.
+``maklabel`` and ``infomod2``. The possible name of the values might seem a bit
+obscure (and in fact it is), they are explained hereunder.
+
+``infomod2`` stands for "PDS Information Model 2.0.0.0". This format sets the
+format of all date time instances across the label products to::
+
+    yyyy-mm-ddThh:mm:ss.sssZ
+
+where
+
+  * ``yyyy`` is the 4-digit year
+  * ``mm`` is the 2-digit month
+  * ``dd`` is the 2-digit day
+  * ``hh`` is the 2-digit hour (24h format)
+  * ``mm`` are the 2-digit minutes
+  * ``ss.sss`` are the seconds and milliseconds rounded inwards to milliseconds.
+
+For example: ``2016-01-01T00:00:00.000Z``. The main characteristic is of this
+format is that is constant across labels and that the milliseconds are rounded
+inwards: start times are rounded to the next nearest millisecond and stop times
+are rounded to the previous nearest millisecond, in such a way that the coverage
+specified for SPICE kernels products and for those products whose coverage is
+determined by them, will always be within the time bounds of that SPICE kernel
+(without inwards rounding this would not be guaranteed.) For example,
+``2016-01-01T00:00:00.1257Z`` will be rounded to  ``2016-01-01T00:00:00.126Z``
+if it is a start time, and to ``2016-01-01T00:00:00.125Z`` if it is a stop time.
+
+The ``maklabel`` format replicates the date time formats provided by NAIF's
+``MAKLABEL`` utility [MAKLABEL]_. ``MAKLABEL`` has been used for all NAIF's
+PDS3 data sets and for some PDS4 archives and it sets the format of all date
+time instances across the label products, except for the CK kernel labels to::
+
+    yyyy-mm-ddThh:mm:ssZ
+
+whereas for CK kernel labels it sets it to::
+
+    yyyy-mm-ddThh:mm:ss.sssZ
+
+the fields are the same as for the ``infomod2`` format except that for non
+CK labels it rounds the decimal part of the seconds to the nearest second.
+Because of this, labels with non-integer-second times are outside of the actual
+file coverage.
+
+Note that the date time strings provided via configuration (``mission_start``,
+``mission_finish`` at least) that feed label tags need to be provided with the
+appropriate format to NPB, if not NPB will raise a run time error.
+This does not apply to the times provided in the kernel list section of the
+configuration.
+
+NAIF uses the ``maklabel`` format for PDS IM 1.5.0.0 archives for comparison
+and reproducibility reasons. The idea is that NAIF will use ``infomod2`` only
+after the PDS IM 2 is implemented and that's the reason for the rather "poor"
+choice of the name. This said, NAIF recommends to use the ``infomod2`` format,
+especially for new archives.
+
+More details on the determination of coverage for different files in the archives
+are provided here :ref:`source/44_npb_implementation:Coverage Times Determination`.
 
 
 Mission Parameters
 ------------------
 
 Mission parameters provide mission-specific information such as the mission
-name, accronym, observers, and targets. The table below provides a
+name, acronym, observers, and targets. The table below provides a
 summary of the parameters:
 
 .. list-table:: Mission Parameters
@@ -618,69 +734,69 @@ summary of the parameters:
    * - mission_acronym
      - Specifies the mission acronym that is used to construct the directory
        structure and some of the NPB execution by-products.
-     - True
+     - Yes
    * - mission_name
      - Specifies the mission name that is used in several product labels. This
        name must correspond to the name provided by the registered context
        products (including the ones provided via configuration.)
-     - True
+     - Yes
    * - observer
      - The observer is the main spacecraft of the data and the SPICE kernels,
        this name must correspond to the name provided by the registered context
        products (including the ones provided via configuration.)
-     - True
+     - Yes
    * - target
      - The target is the mission's primary target (natural body of study), this
        name must correspond to the name provided by the registered context
        products including the ones provided via configuration.)
-     - True
+     - Yes
    * - kernels_to_load
-     - Lists the SPICE kernels that are required to run NPB. At least a LSK,
-       a SCLK, and a FK kernel will be required; if there are multiple
-       observers most likely more FKs and SCLKs will be required. PCKs might
-       also be needed. The kernel names can (and should) be proved with a
-       pattern. More information is provided in TODO.
-     - True
+     - Lists the SPICE kernels that are required to run NPB. More information
+       is provided below.
+     - Yes
    * - mission_start
      - Mission start time; typically is the start time of the post-launch SPK.
        The date is provided with a UTC calendar format  string with following
-       syntax: YYYY-MM-DDThh:mm:ssZ e.g. 2021-06-25T08:00:00Z.
-     - True
-   * - mission_start
-     - Mission start time; typically is the start time of the post-launch SPK.
+       syntax: ``YYYY-MM-DDThh:mm:ssZ`` e.g. ``2021-06-25T08:00:00Z``.
+     - Yes
+   * - mission_finish
+     - Mission finish time; typically is the start time of the post-launch SPK.
        The date is provided with a UTC calendar format string with following
-       syntax: YYYY-MM-DDThh:mm:ssZ e.g. 2021-06-25T08:00:00Z.
-     - True
+       syntax: ``YYYY-MM-DDThh:mm:ssZ`` e.g. ``2050-01-01T00:00:00Z``.
+     - Yes
    * - secondary_observers
      - Provides a list of the secondary spacecrafts present in the SPICE
        kernels. Each name entry must use the observer tag. These names must
        correspond to the names provided by the registered context products
        (including the ones provided via configuration.)
-     - False
+     - No
    * - secondary_targets
      - Provides a list of the secondary targets present in the SPICE
        kernels. Each name entry must use the observer tag. These names must
        correspond to the names provided by the registered context products
        (including the ones provided via configuration.)
-     - False
+     - No
 
+
+On Names and Acronyms
+^^^^^^^^^^^^^^^^^^^^^
 
 You might be confused to distinct in between mission_acronym, mission_name,
 observer, and the Bundle parameter spice_name; a good example to distinguish
 in between the parameters is the Mars 2020 SPICE kernel bundle, for which the
 values are as follows:
 
-   * mission_acronym: mars2020
-   * mission_name: Mars 2020 Perseverance Rover Mission
-   * observer: Mars 2020 Perseverance Rover
-   * spice_name: M2020
+   * ``mission_acronym``: mars2020
+   * ``mission_name``: Mars 2020 Perseverance Rover Mission
+   * ``observer``: Mars 2020 Perseverance Rover
+   * ``spice_name``: M2020
 
 For other bundles, such as MAVEN, it can be more confusing:
 
-   * mission_acronym: maven
-   * mission_name: MAVEN
-   * observer: MAVEN
-   * spice_name: MAVEN
+   * ``mission_acronym``: maven
+   * ``mission_name``: MAVEN
+   * ``observer``: MAVEN
+   * ``spice_name``: MAVEN
 
 A note on secondary observers and targets; although secondary s/c and/or targets
 might be present in the SPICE kernels, they do not have to be present in the
@@ -689,7 +805,7 @@ fine to use the primary s/c and target for all kernels. This is the case for
 the INSIGHT SPICE kernel bundle; the secondary s/c MARCO-A and MARCO-B use
 INSIGHT in their labels as observer. If this simplified approach is followed
 then it must be noted in the Errata section of the SPICE archive description
-document (spiceds, described in TODO) as follows:
+document (SPICEDS) as follows:
 
     All MARCO-A and MARCO-B kernels included in the archive
     are labeled as being associate the INSIGHT instrument host.
@@ -698,7 +814,7 @@ This simplified approach is especially convenient for missions that clearly have
 a clear prime s/c or target. For other missions such as BepiColombo where the
 Mercury Planet Orbiter (MPO) and the Mercury Magnetospheric Orbiter (MMO or MIO)
 have a similar relevance the bundle must include a secondary s/c. Here's an
-example of the entries for secondary s/c and targets for DART: ::
+example of the entries for secondary s/c and targets for DART::
 
         <observer>DART</observer>
         <target>Didymos</target>
@@ -710,53 +826,45 @@ example of the entries for secondary s/c and targets for DART: ::
             <target>Dimorphos</target>
             <target>Earth</target>
         </secondary_targets>
-    </mission_parameters>
 
 
-Directories
------------
+kernels_to_load
+^^^^^^^^^^^^^^^
 
-Directories point to the directories used to run NPB. The table below provides a
-summary of the required and optional directories:
+This mission parameter lists the SPICE kernels that are required to run NPB.
+At least a LSK, a SCLK, and a FK kernel will be required; if there are multiple
+observers most likely more FKs and SCLKs will be required. PCKs might also be
+needed.
 
-.. list-table:: Directories
-   :widths: 25 60 15
-   :header-rows: 1
+These kernels are used by NPB to use SPICE (via SpiceyPy [SPICEYPY]_ a wrapper
+to CSPICE for Python) to perform time conversions (a LSK kernel is needed),
+to obtain different bundle coverages (SPKs, CKs, FKs and SCLKs are needed),
+and to support coverage determination of kernels included in the release.
 
-   * - Element
-     - Description
-     - Required?
-   * - working_directory
-     - Specifies the directory that will be used by NPD to generate the
-       execution by-products that include but are not limited to (depending on
-       the execution arguments): execution log, kernel list, and the file list.
-       It is a good idea to use the working directory to store the configuration
-       file(s), validation reports, archive plans, etc. More information of these
-       files is provided later in this document.
-     - True
-   * - kernels_directory
-     - Specifies the directory that will be used by NPD to obtain the kernels
-       to be archived from. This directory must follow the usual SPICE kernel
-       sub-directory structure by kernel type.
-     - True
-   * - staging_directory
-     - This directory will be used by NPB to store the files generated by its
-       execution for the archive (the release or increment.)
-     - True
-   * - bundle_directory
-     - Indicates the directory where the current version of the SPICE kernel
-       bundle is present (before the execution of NPB).
-     - True
-   * - orbnum_directory
-     - Indicates the directory where the orbit number files to be archived are
-       present.
-     - False
-   * - templates_directory
-     - Indicates the directory where the user input templates are present.
-     - False
+Understanding which kernels need to be loaded requires at least basic SPICE
+knowledge and some experience with the SPICE kernels of the mission to be
+archived if you have any questions please contact the NAIF NPB developer.
 
-The working directory is also a good location to keep the history of the files
-used and generated for each archive release.
+You can either specify a kernel name or a kernel name with a pattern
+(recommended). More information on kernel patterns is provided in
+:ref:`Kernel patterns`.
+
+In the Configuration File, each entry must be specified by its kernel type,
+there can be multiple entries with the same kernel type. For INSIGHT for
+example: ::
+
+        <kernels_to_load>
+            <lsk>naif[0-9][0-9][0-9][0-9].tls</lsk>
+            <sclk>NSY_SCLKSCET.[0-9][0-9][0-9][0-9][0-9].tsc</sclk>
+            <sclk>marcoa_fake_v[0-9][0-9].tsc</sclk>
+            <fk>../data/kernels/fk/insight_v05.tf</fk>
+            <fk>marcob_v[0-9][0-9].tf</fk>
+        </kernels_to_load>
+
+NPB will use the "bundle" and "kernels" directories specified in the next
+section of the Configuration File "Directories" to search for the latest version
+of these kernels (if provided by patterns) or to the kernel specified
+(if the kernel name does not contain patterns.)
 
 
 Kernel patterns
@@ -794,35 +902,51 @@ Therefore the following FK kernel pattern: ``maven_v[0-9][0-9].tf``, would
 be matched by any version of the MAVEN FK, for example ``maven_v09.tf``.
 
 
-kernels_to_load
-^^^^^^^^^^^^^^^
+Directories
+-----------
 
-This mission parameter lists the SPICE kernels that are required to run NPB.
-At least a LSK, a SCLK, and a FK kernel will be required; if there are multiple
-observers most likely more FKs and SCLKs will be required. PCKs might also be
-needed.
+Directories point to the directories used to run NPB. The table below provides a
+summary of the required and optional directories:
 
-These kernels are used by NPB to use SPICE (via SpiceyPy) to perform time
-conversions (a LSK kernel is needed), to obtain different bundle coverages
-(SPKs, CKs, FKs and SCLKs are needed), and to support coverage determination
-of kernels included in the release.
+.. list-table:: Directories
+   :widths: 25 60 15
+   :header-rows: 1
 
-In the Configuration File, each entry must be specified by its kernel type,
-there can be multiple entries with the same kernel type. For INSIGHT for
-example: ::
+   * - Element
+     - Description
+     - Required?
+   * - working_directory
+     - Specifies the directory that will be used by NPB to generate the
+       execution by-products that include but are not limited to (depending on
+       the execution arguments): execution log, kernel list, and the file list.
+       It is a good idea to use the working directory to store the configuration
+       file(s), validation reports, archive plans, etc. More information of
+       these files is provided later in TODO.
+     - Yes
+   * - kernels_directory
+     - Specifies the directory that will be used by NPD to obtain the kernels
+       to be archived from. This directory must follow the usual SPICE kernel
+       sub-directory structure by kernel type.
+     - Yes
+   * - staging_directory
+     - This directory will be used by NPB to store the files generated by its
+       execution for the archive (the release or increment.)
+     - Yes
+   * - bundle_directory
+     - Indicates the directory where the current version of the SPICE kernel
+       bundle is present (before the execution of NPB.)
+     - Yes
+   * - orbnum_directory
+     - Indicates the directory where the orbit number files to be archived are
+       present.
+     - No
+   * - templates_directory
+     - Indicates the directory where the user input templates are present.
+     - No
 
-        <kernels_to_load>
-            <lsk>naif[0-9][0-9][0-9][0-9].tls</lsk>
-            <sclk>NSY_SCLKSCET.[0-9][0-9][0-9][0-9][0-9].tsc</sclk>
-            <sclk>marcoa_fake_v[0-9][0-9].tsc</sclk>
-            <fk>../data/kernels/fk/insight_v05.tf</fk>
-            <fk>marcob_v[0-9][0-9].tf</fk>
-        </kernels_to_load>
+More information on the setup of the NPB directories is provided in
+:ref:`source/32_step_2_npb_setup:Workspace Setup`.
 
-NPB will use the different directories specified in the next section of the
-Configuration File "Directories" to search for the latest version of these
-kernels (if provided by patterns) or to the kernel specified (if the kernel
-name does not contain patterns.)
 
 Kernel List
 -----------
@@ -832,7 +956,9 @@ Because of its complexity, the explanation provided hereunder will go a bit
 beyond what is strictly necessary to understand how to write the Configuration
 File itself.
 
-The Kernel List is an NPB execution by-product that is used for two main
+The Kernel List is an NPB execution by-product (more information on NPB
+execution by-products is provided in
+:ref:`source/43_using_npb:Execution by-products`) that is used for two main
 purposes. First, to generate a description for each kernel to be archived; the
 description of the kernel is present in all kernel labels. Second, it is used
 to change the name of the provided kernels to the name required by the archive.
@@ -840,49 +966,46 @@ to change the name of the provided kernels to the name required by the archive.
 NPB will try to match every input kernel (including meta-kernels) with an entry
 of the kernel list and based on that will generate a Kernel List product.
 Because of that this section of the configuration provides a list of all the
-kernels that might be included in the bundle for any release. Because of this,
-the kernel list is prone to grow as new increments are prepared.
+kernels that might be included in the bundle for any release. Consequently,
+the kernel list is prone to grow as new archive releases are prepared.
 
 The Kernel List configuration section includes starts with a kernel element for
 each kernel that has a pattern attribute the value of which is a kernel name
-with (or without) a pattern: ::
+with (or without) a pattern. For example::
 
     <kernel_list>
         <kernel pattern="naif[0-9][0-9][0-9][0-9].tls">
 
 This kernel element is used to identify the leapseconds kernels present in
-the kernels to be archived (means to indicate the kernels to be archived are
-described in TODO). An important remark of the pattern attribute value is that
-it cannot contain any of the special patterns {n} or $, and therefore can only
-include [0-9], [a-z], and [A-Z] patterns.
+the kernels to be archived. An important remark of the pattern attribute value
+is that it cannot contain any of the special patterns {n} or $, and therefore
+can only include [0-9], [a-z], and [A-Z] patterns.
 
-The first nested element of the kernel element is the mklabel_options. This
+The first nested element of the kernel element is ``<mklabel_options>``. This
 element is a leftover of the PDS3 data sets and for all the kernels in PDS4
-bundles should be set to: ::
-
-       <mklabel_options>DEF_TIMES</mklabel_options>
+bundles can be omitted.
 
 If the number of characters for a given pattern of a kernel to load is not known
 in advance then multiple entries in the kernel list should be used in the
 configuration file. For example, if you do not know whether you will have one of
-the following files: ::
+the following files::
 
       msl_76_sclkscet_refit_j5.tsc
       msl_76_sclkscet_refit_k13.tsc
 
-Then the two entries specified hereunder must be provided in the kernel list: ::
+Then the two entries specified hereunder can be provided in the kernel list: ::
 
-      <kernel pattern="msl_76_sclkscet_refit_[a-z][0-9].tsc"> (...)
+      <kernel pattern="msl_76_sclkscet_refit_[a-z][0-9].tsc">       (...)
       <kernel pattern="msl_76_sclkscet_refit_[a-z][0-9][0-9].tsc">  (...)
 
 The second and third element patterns are optional and provide the observers and
 targets required by the kernels. By default, the kernel label will set its
-observer and target elements to the <observer> and <target> provided in the
-Mission Parameters section of the configuration file. But what happens if the
-kernel provides information about one of the secondary observers/targets or for
-several of them? Well, there is no way to fully automatize the identification
-for all possible cases and therefore this is indicated in this element of the
-kernel list. The following example should be self-explanatory::
+observer and target elements to the ``<observer>`` and ``<target>`` provided in
+the Mission Parameters section of the configuration file. But what happens if
+the kernel provides information about one of the secondary observers/targets or
+for several of them? Well, there is no way to fully automatize the
+identification for all possible cases and therefore this is indicated in this
+element of the kernel list. The following example should be self-explanatory::
 
             <observers>
                 <observer>DART</observer>
@@ -895,24 +1018,41 @@ kernel list. The following example should be self-explanatory::
 
 The fourth (or second) nested element is the kernel description. This is a very
 important configuration parameter and its content must describe synthetically
-and precisely the SPICE kernel. The recommended structure of the description is:
-SPICE <text/binary> <kernel type> kernel <defining/containing/...> ...,
-created by <NAIF, JPL/whoever, wherever>. E.g.::
+and precisely the SPICE kernel. The recommended structure of the description
+is::
+
+   SPICE <text/binary> <kernel type> kernel ... created by <producer>, <institution>.
+
+where
+
+   <text/binary> is either text or binary
+   <kernel type> is the kernel type acronym (SPK, FK, etc.)
+   <producer> is the author or the group that genearted the kernel
+   <institution> is the affiliation of the kernel producer.
+
+For example:
 
        <description>SPICE LSK file incorporating leapseconds up to $DATE, created by NAIF, JPL.</description>
 
 The description element might contain patterns based on the special expression
-$ followed by an upper case name, e.g., $DATE in the example above. These
+$ followed by an upper case name, $DATE in the example above. These
 patterns are used to accommodate information particular to each individual
 kernel of each kind. In the example above the $DATE expression is meant to
 specify the year of the latest leapsecond provided by that kernel. Other
-examples are: original name of the kernel (see TODO), version of the IAU
+examples are: original name of the kernel (see
+:ref:`source/31_step_1_preparing_data:Renaming Files`), version of the IAU
 report, kernel coverage, etc. These patterns are determined by the next element:
-patterns.
+**patterns**.
 
-The last element patterns (this is the tricky one) maps the patterns present
+The last element, patterns (this is the tricky one) maps the patterns present
 in the description element with its value. There are different ways in
-which NPB achieves that. These are described in the following subsections.
+which NPB achieves that:
+
+   * match by value
+   * match by pattern
+   * match from comment
+
+These are described in the following subsections.
 
 
 Match by value
@@ -929,7 +1069,6 @@ Going back to the simple leapseconds example, the complete entry in the
 kernel list would be: ::
 
         <kernel pattern="naif[0-9][0-9][0-9][0-9].tls">
-            <mklabel_options>DEF_TIMES</mklabel_options>
             <description>SPICE LSK file incorporating leapseconds up to $DATE, created by NAIF, JPL.</description>
             <patterns>
                 <DATE value="naif0011.tls">2015-JAN-01</DATE>
@@ -952,10 +1091,11 @@ have resulted into a runtime error: ::
 The names of the elements to map the patterns are defined by the configuration
 file schema. They are currently limited to:
 
-   :ORIGINAL: used to specify the original name of the kernel.
-   :REPORT: used to specify the IAU report for PCKs.
-   :DATE: specifies a date.
-   :FILE: used to specify the original name of the kernel (ORIGINAL synonym.)
+   * **ORIGINAL**: used to specify the original name of the kernel.
+   * **REPORT**: used to specify the IAU report for PCKs.
+   * **DATE**: specifies a date.
+   * **FILE**: used to specify the original name of the kernel
+     (ORIGINAL synonym.)
 
 Note that these names are purely aesthetic, to help the archive producers to
 understand the pattern matching because in fact, any name could be used. If you
@@ -981,7 +1121,6 @@ Take the following kernel element form the kernel list for MAVEN::
 
 
         <kernel pattern="maven_[0-9][0-9][0-9][0-9]_v[0-9][0-9].tm">
-            <mklabel_options></mklabel_options>
             <description>SPICE MK file listing kernels for $YEAR, created by NAIF, JPL.</description>
             <patterns>
                 <YEAR pattern="KERNEL">maven_$YEAR_v[0-9][0-9].tm</YEAR>
@@ -1003,14 +1142,14 @@ will be 2021 and therefore the description will be: ::
 The names of the elements to map the patterns are defined by the configuration
 file schema. They are currently limited to:
 
-   :YEAR: used to speficy a year.
-   :START: indicates that we are looking at the coverage start time.
-   :FINISH: indicates that we are looking at the coverage finish time.
-   :COVERAGE: specific name for OSIRIS-REx DSKs.
-   :REFERENCE: specific name for OSIRIS-REx DSKs.
-   :VERSION: Indicates that SPICE kernel version.
-   :DATE: Indicates that we are extracting a date from the name.
-   :ORIGINAL: Indicates that we obtaining the original kernel name.
+   * **YEAR**: used to specify a year.
+   * **START**: indicates that we are looking at the coverage start time.
+   * **FINISH**: indicates that we are looking at the coverage finish time.
+   * **COVERAGE**: specific name for OSIRIS-REx DSKs.
+   * **REFERENCE**: specific name for OSIRIS-REx DSKs.
+   * **VERSION**: Indicates that SPICE kernel version.
+   * **DATE**: Indicates that we are extracting a date from the name.
+   * **ORIGINAL**: Indicates that we obtaining the original kernel name.
 
 Note that these names are purely aesthetic, to help the archive producers to
 understand the pattern matching because in fact, any name could be used. If you
@@ -1020,7 +1159,7 @@ need to add additional elements please contact the NAIF NPB developer.
 Match from Comment
 ^^^^^^^^^^^^^^^^^^
 
-This is rather a special case that I hope you do not encounter in your SPICE
+This is rather a special case that you are unlikely to encounter in your SPICE
 kernel production, but just because this is required for the MRO PDS3 SPICE
 kernel data set, it has been implemented.
 
@@ -1032,12 +1171,12 @@ be extracted. NPB will do this if you indicate it to do so in a similar way that
 the "Match by pattern" method is set up.
 
 The pattern nested element must have an attribute called "file" the value of
-which must be "COMMENT". Currently the only available name for the element is
-"ORIGINAL", to indicate that you are mapping the description with the original
-kernel name. Also, the value of the ORIGINAL element must be the text of the
-line that preceeds the original kernel name in the comment area of the kernel.
+which must be ``COMMENT``. Currently the only available name for the element is
+``ORIGINAL``, to indicate that you are mapping the description with the original
+kernel name. Also, the value of the ``ORIGINAL`` element must be the text of the
+line that proceeds the original kernel name in the comment area of the kernel.
 
-Again, an example might clarify things: ::
+Again, an example might clarify things::
 
         <kernel pattern="mro_sc_psp_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]p.bc">
             <mklabel_options>NAIF HGA PREDICT ESP</mklabel_options>
@@ -1048,9 +1187,9 @@ Again, an example might clarify things: ::
             </patterns>
         </kernel>
 
-The value of the ORIGINAL element, provides will be used to extract the kernel
-name from the CK comment area. If we use the NAIF utility COMMNT we can read the
-comment in an example kernel ``mro_sc_psp_210628_210710p.bc``: ::
+The value of the ``ORIGINAL`` element, provides will be used to extract the kernel
+name from the CK comment area. If we use the NAIF utility ``COMMNT`` we can read the
+comment in an example kernel ``mro_sc_psp_210628_210710p.bc``::
 
         $ commnt -r mro_sc_psp_210628_210710p.bc
 
@@ -1062,13 +1201,12 @@ comment in an example kernel ``mro_sc_psp_210628_210710p.bc``: ::
 
 The line with "The original name of this file was" will be used and therefore
 CK_Pred_21180_21192_sc_20210629155609.bc will be extracted the description will
-then be:
+then be::
 
         MRO SPICE CK file providing predicted orientation of the MRO spacecraft
         bus modeled by the MRO Spacecraft Team, LMA using the AtArPS tool for a
         part of the Extended Science phase of the mission, created by NAIF, JPL.
-        The original name of this file was
-        CK_Pred_21180_21192_sc_20210629155609.bc.
+        The original name of this file was CK_Pred_21180_21192_sc_20210629155609.bc.
 
 
 Mapping kernels
@@ -1076,29 +1214,57 @@ Mapping kernels
 
 Sometimes, and in fact very frequently in NAIF SPICE archives, the name of the
 archived kernel is modified with respect to the original kernel name (usually
-present in the operational area of the NAIF FTP), this usually happens
+present in the kernels operational area), this usually happens
 (and in fact is highly recommended) for kernels that have long names, mixed
 case, fields that are meaningless to users (that maybe were meaningful for
 operation engineers), etc.
 
 The mapping in between the original kernel name and the archived kernel name
-can be achieved in two different ways: updating the name manually and using the
-"Match by value" method by reflecting this on the attribute value of the given
-kernel element or by using a special element nested in the corresponding kernel
-element.
+can be achieved in two different ways.
 
-This special "mapping" element is called mapping and if present, it must be
-the first element of the nested elements of a kernel. If this element is
-present then the patterns present for the "Match by pattern" method must also be
-present. The mapping element contains the original kernel name with the
-patterns provided with the special pattern $; those patterns are then correlated
-with the ones provided in the patterns nested elements. Once again, an example
-will be helpful. ::
+The first and simpler method is bny updating the name manually and using the
+updated name in the release plan. In such cases, if the original name of the
+kernel has to be included in the kernel description, this can be implemented
+with the "Match by value" method by reflecting this on the attribute value of
+the given kernel element.
+
+The second, and appropriate method is by using a special element nested in the
+corresponding kernel element. This special "mapping" element is called mapping
+and if present, it must be the first element of the nested elements of a kernel.
+If this element is present then the patterns present for the "Match by pattern"
+method must also be present. The mapping element contains the original kernel
+name with the patterns provided with the special pattern $; those patterns are
+then correlated with the ones provided in the patterns nested elements.
+
+Once again, an example will be helpful. Say that we need to rename the
+OSIRIS-REx asteroid Bennu DSKs. The original name is::
+
+    l_00050mm_alt_ptm_5595n04217_v021.bds
+
+and we want to rename it to::
+
+    bennu_l_00050mm_alt_ptm_5595n04217_v021.bds
+
+With the first method we would simply rename it, and given that in the
+description we want to include the original file name, the ``<kernel>`` entry
+in the Kernel List section of the configuration file would be::
+
+        <kernel pattern="bennu_l_[0-9][0-9][0-9][0-9][0-9]mm_alt_dtm_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds">
+            <description>SPICE DSK file containing shape model data for the surface of asteroid (101955) Bennu,
+                created by the ORX Altimetry Working Group (AltWG). The original name of this file was $ORIGINAL.</description>
+            <patterns>
+                <ORIGINAL value="bennu_l_00050mm_alt_ptm_5595n04217_v021.bds">l_00050mm_alt_ptm_5595n04217_v021.bds</ORIGINAL>
+                <ORIGINAL value="bennu_l_00050mm_alt_ptm_5595n04217_v020.bds">l_00050mm_alt_ptm_5595n04217_v020.bds</ORIGINAL>
+            </patterns>
+        </kernel>
+
+This method would require a pattern entry per DSK. The second method, more complicated
+to implement, would work for each DSK::
+
 
         <kernel pattern="bennu_l_[0-9][0-9][0-9][0-9][0-9]mm_alt_dtm_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds">
             <mapping>l_$RESOLUTIONmm_alt_dtm_$REFERENCE_v$VERSION.bds</mapping>
-            <mklabel_options></mklabel_options>
-            <description>SPICE DSK file containing shape model data for the surface of asteroid (101955) Bennu, with Local coverage at $RESOLUTION meter resolution, ALT-based, version $VERSION,
+            <description>SPICE DSK file containing shape model data for the surface of asteroid (101955) Bennu,
                 created by the ORX Altimetry Working Group (AltWG). The original name of this file was l_$RESOLUTIONmm_alt_dtm_$REFERENCE_v$VERSION.bds.</description>
             <patterns>
                 <RESOLUTION pattern="KERNEL">l_$RESOLUTIONmm_alt_dtm_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds</RESOLUTION>
@@ -1108,9 +1274,7 @@ will be helpful. ::
         </kernel>
 
 As you can see the three patterns present in the mapping element: $RESOLUTION,
-$REFERENCE, and $VERSION, are present as pattern elements. In this particular
-case the file ``l_00050mm_alt_ptm_5595n04217_v021.bds`` will be mapped to
-``bennu_l_00050mm_alt_ptm_5595n04217_v021.bds``.
+$REFERENCE, and $VERSION, are present as pattern elements.
 
 
 Meta-kernel
@@ -1118,15 +1282,16 @@ Meta-kernel
 
 The next section of the configuration file is the one that defines the
 generation of the meta-kernels. NPB is capable of generating meta-kernels
-automatically, given that you accept the way that meta-kernels are generated by
-NPB.
+automatically, assuming that you agree with the way that meta-kernels are
+generated by NPB.
 
 Automated meta-kernel generation might not be fully achievable, but NPB can
 help you to generate meta-kernels for the archive, because of that, if NPB is
 set to generate kernels automatically, after the meta-kernel is generated and
-if provided via configuration (as shown later on) NPB will pause the execution
-and will provide you the option to review the meta-kernel that it has generated.
-More information is provided in TODO.
+if provided via configuration NPB will pause the execution and will provide
+you with the option to review the meta-kernel that it has generated.
+More information is provided in
+:ref:`source/33_step_3_running_npb:Interactive step for Meta-kernels`.
 
 Alternatively you can provide meta-kernels that you have generated manually or
 by any other means to NPB via configuration as well. Let's take a look at the
@@ -1142,31 +1307,31 @@ elements of the meta-kernel section of the configuration file.
    * - mk_inputs
      - You can specify a list of meta-kernels for the archive release by
        providing their path.
-     - False
+     - No
    * - coverage_kernels
      - You can specify a list of kernels with patterns that need to be included
        in the meta-kernel that will determine the coverage of the meta-kernel.
        The coverage is required by the label and has more implications that
        are described later in this document.
-     - False
+     - No
    * - mk
      - This element provides the configuration elements necessary to
        automatically generate a meta-kernel. The elements present are:
        name, grammar, and metadata (that at the same time consists of the
        description, keyword and data elements). There can be as many mk
        elements as needed. This element is described in detail below.
-     - False
+     - No
 
 
 Automatic generation of Meta-kernels
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The "mk" element of the configuration is used provide the parameters required
-to automatically generate meta-kernels. To begin with, the "mk" element has an
-attribte that provides the name of the meta-kernel with the required pattern.
-The first nested element of "mk" is the "name" element, that provides a mapping
+The ``<mk>`` element of the configuration is used provide the parameters required
+to automatically generate meta-kernels. To begin with, the ``<mk>`` element has an
+attribute that provides the name of the meta-kernel with the required pattern.
+The first nested element of ``<mk>`` is the ``<name>`` element, that provides a mapping
 to the patterns in the name by specifying the length of these patterns;
-therefore these patterns must have a fixed length. Here is an example for a
+therefore these patterns must have a fixed length.
 
 For example a MAVEN meta-kernel that provides yearly coverage and can have
 multiple versions  would be as follows: ::
@@ -1177,13 +1342,13 @@ multiple versions  would be as follows: ::
                 <pattern length="4">YEAR</pattern>
             </name>
 
-Please note that the patterns of the <mk> name attribute cannot be contiguous;
+Please note that the patterns of the ``<mk>`` name attribute cannot be contiguous;
 this does not work: ``insight_$YEAR$VERSION.tm``.
 
-The next element is "interrupt_to_update", this element determines whether if
+The next element is ``<interrupt_to_update>``, this element determines whether if
 after kernel generation and before the kernel label generation NPB must be
 paused to provided the archive generation the option to manually edit the
-generated meta-kernel. It must be set to either True or False.
+generated meta-kernel. It must be set to either ``True`` or ``False``.
 
 
 Meta-kernel grammar
@@ -1329,7 +1494,8 @@ numbering scheme. The orbit number changes at every given orbit event
 (periapsis, apoapsis, etc.) and the information contained for each
 record includes a number of fields. Some of these fields are expressed in a
 given reference frame that makes use of a set of kernels (generally a PCK).
-More information on ORBNUM files is provided in TODO. Here's an example of the
+More information on ORBNUM files is provided in
+:ref:`source/44_npb_implementation:Orbit Number Files`. Here's an example of the
 Orbit number file section of the configuration file for MAVEN: ::
 
     <orbit_number_file>
@@ -1351,7 +1517,7 @@ Orbit number file section of the configuration file for MAVEN: ::
         </orbnum>
     </orbit_number_file>
 
-One "orbnum" configuration element nested from "orbit_number_file" per ORBNUM
+One ``<orbnum>`` configuration element nested from ``<orbit_number_file>`` per ORBNUM
 file type to be archived will be included. Each of these "orbnum" elements
 will have a number of elements to facilitate the generation of the ORBNUM label:
 
@@ -1365,22 +1531,22 @@ will have a number of elements to facilitate the generation of the ORBNUM label:
    * - pattern
      - Provides the ORBNUM file name with patterns to match with the ORBNUM file
        to be archived.
-     - True
+     - Yes
    * - event_detection_frame
      - Provides the SPICE name (e.g., IAU_MARS) and the description (e.g.,
        "Mars body-fixed frame") for the reference frame that has been used to
        detect the orbit event.
    * - header_start_line
      - Specifies the line where the ORBNUM file header starts (typically 1.)
-     - True
+     - Yes
    * - pck
      - Provides the PCK kernel name used with the event detection frame and its
        description (e.g., ``pck0010.tpc`` and "IAU 2009 report".)
-     - True
+     - Yes
    * - coverage
      - Provides the element to determine the coverage of the ORBNUM file.
        This element is described in detail in the next subsection.
-     - True
+     - Yes
 
 
 ORBNUM Coverage determination
@@ -1389,7 +1555,7 @@ ORBNUM Coverage determination
 The coverage of an ORBNUM file can be determined in four different ways:
 
    * If there is a one to one correspondence with an SPK
-     file, the SPK file can be provided with the <kernel>
+     file, the SPK file can be provided with the ``<kernel>``
      element. The element value can be: a path to a specific kernel that
      does not have to be part of the increment, a kernel with patterns
      present in the increment, or a kernel with patterns
@@ -1400,19 +1566,19 @@ The coverage of an ORBNUM file can be determined in four different ways:
    * If there is a quasi one-to-one correspondence with an
      SPK file with a given cutoff time prior to the end
      of the SPK file, the SPK file can be provided with the
-     <kernel> element. The value can be: a path to a specific kernel
+     ``<kernel>`` element. The value can be: a path to a specific kernel
      that does not have to be part of the increment, a pattern
      of a kernel present in the increment, or a pattern of
      a kernel present in the final directory of the archive.
      Currently the only cutoff pattern available is the
      boundary of the previous day of the SPK coverage stop
      time. The cutoff time is provided as an attribute of the
-     <kernel> element and must be set to True or False. E.g., ::
+     ``<kernel>`` element and must be set to True or False. E.g., ::
 
               <kernel cutoff="True">../data/kernels/spk/maven_orb_rec_210101_210401_v2.bsp</kernel>
 
    * A user can provide a look up table with this
-     configuration file, as follows: ::
+     configuration file, as follows::
 
         <lookup_table>
            <file name="maven_orb_rec_210101_210401_v1.orb">
@@ -1422,7 +1588,7 @@ The coverage of an ORBNUM file can be determined in four different ways:
         </lookup_table>
 
      Note that in this particular case the first three and
-     last three lines of the orbnum files would have provided: ::
+     last three lines of the orbnum files would have provided::
 
         Event UTC PERI
         ====================
@@ -1442,7 +1608,7 @@ The coverage of an ORBNUM file can be determined in four different ways:
 Final Remarks
 -------------
 
-I hope that after all these explanations, the complete Configuration File that
+We hope that after all these explanations, the complete Configuration File that
 has been provided an example for MAVEN at the beginning of this chapter makes
 more sense.
 
@@ -1457,11 +1623,13 @@ in addition there might be a single archive release. See the LADEE configuration
 file: ``npb/tests/config/ladee.xml``.
 
 In any which way, and as mentioned before, generating the configuration file
-will be a one time effort, for which the NAIF NPB developer can assist you.
-After the configuration file has been setup for the first release, later updates
-will most probably be limited to:
+should be a one time effort, for which the NAIF NPB developer can assist you.
+After the configuration file has been setup for the first release, it can be
+used with limited changes for all subsequent releases. Changes will probably be
+limited to:
 
    * updated spiceds name and/or location
    * updated directories
    * addition of kernel_list elements
    * meta-kernel updates
+   * new archive producer.

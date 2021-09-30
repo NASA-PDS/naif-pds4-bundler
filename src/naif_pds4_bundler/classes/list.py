@@ -195,7 +195,11 @@ class KernelList(List):
                 mks = self.setup.mk_inputs["file"]
             for mk in mks:
                 mk_new_name = mk.split(os.sep)[-1]
-                mk_path = os.getcwd() + os.sep + mk
+                if os.path.isfile(mk):
+                    mk_path = mk
+                else:
+                    mk_path = os.getcwd() + os.sep + mk
+
                 if os.path.isfile(mk_path):
                     kernels.append(mk_new_name)
                 else:
@@ -484,7 +488,13 @@ class KernelList(List):
                             options = ""
 
                         f.write(f"FILE             = {kerdir}/{kernel}\n")
-                        f.write(f"MAKLABEL_OPTIONS = {options}\n")
+                        #
+                        # Introduced to avoid trailing white space.
+                        #
+                        if not options:
+                            f.write(f"MAKLABEL_OPTIONS =\n")
+                        else:
+                            f.write(f"MAKLABEL_OPTIONS = {options}\n")
                         f.write(f"DESCRIPTION      = {description}\n")
 
                         if mapping:
@@ -654,19 +664,19 @@ class KernelList(List):
 
             if (num_file != num_opti) or (num_opti != num_desc):
                 error = "List does not have the same number of entries"
-                logging.critical(f"{error} for:")
-                logging.critical(f"   FILE             ({num_file})")
-                logging.critical(f"   MAKLABEL_OPTIONS ({num_opti})")
-                logging.critical(f"   DESCRIPTION      ({num_desc})")
-                logging.critical("")
+                logging.error(f"{error} for:")
+                logging.error(f"   FILE             ({num_file})")
+                logging.error(f"   MAKLABEL_OPTIONS ({num_opti})")
+                logging.error(f"   DESCRIPTION      ({num_desc})")
+                logging.error("")
 
-                logging.critical(
+                logging.error(
                     f"-- Display {self.setup.mission_name} kernel list "
                     f"configuration file to double-check."
                 )
                 for line in self.json_formatted_lst:
                     logging.info(line)
-                logging.critical("")
+                logging.error("")
 
                 raise Exception(error)
 
@@ -730,7 +740,8 @@ class KernelList(List):
             )
             for ker in ker_in_list:
                 if os.path.isfile(
-                    self.setup.bundle_directory + f"/{self.setup.mission_acronym}_spice/"
+                    self.setup.bundle_directory
+                    + f"/{self.setup.mission_acronym}_spice/"
                     f"spice_kernels/" + extension2type(ker) + os.sep + ker
                 ):
                     present = True
@@ -865,19 +876,19 @@ class KernelList(List):
 
             if (num_file != num_opti) or (num_opti != num_desc):
                 error = "List does not have the same number of entries"
-                logging.critical(f"{error} for:")
-                logging.critical(f"   FILE             ({num_file})")
-                logging.critical(f"   MAKLABEL_OPTIONS ({num_opti})")
-                logging.critical(f"   DESCRIPTION      ({num_desc})")
-                logging.critical("")
+                logging.error(f"{error} for:")
+                logging.error(f"   FILE             ({num_file})")
+                logging.error(f"   MAKLABEL_OPTIONS ({num_opti})")
+                logging.error(f"   DESCRIPTION      ({num_desc})")
+                logging.error("")
 
-                logging.critical(
+                logging.error(
                     f"-- Display {self.setup.mission_name} kernel list "
                     f"configuration file to double-check."
                 )
                 for line in self.json_formatted_lst:
                     logging.info(line)
-                logging.critical("")
+                logging.error("")
 
                 raise Exception(error)
             else:

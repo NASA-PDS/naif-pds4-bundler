@@ -35,6 +35,7 @@ from .files import add_crs_to_file
 from .files import check_consecutive
 from .files import check_list_duplicates
 from .files import checksum_from_label
+from .files import checksum_from_registry
 from .files import compare_files
 from .files import copy
 from .files import etree_to_dict

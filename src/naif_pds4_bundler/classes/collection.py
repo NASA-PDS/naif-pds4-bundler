@@ -165,7 +165,7 @@ class SpiceKernelsCollection(Collection):
                 for mk in mks:
                     if not os.path.exists(mk):
                         logging.info("")
-                        logging.error(
+                        logging.warning(
                             f"-- Meta-kernel provided via"
                             f"  configuration"
                             f" does not exist: {mk}"
@@ -222,7 +222,7 @@ class SpiceKernelsCollection(Collection):
 
             if not meta_kernels:
                 logging.info("")
-                logging.error(f"-- No Meta-kernel will be generated.")
+                logging.warning(f"-- No Meta-kernel will be generated.")
                 return ("", None)
 
         #
@@ -426,7 +426,7 @@ class SpiceKernelsCollection(Collection):
             #
             increment_start = self.setup.mission_start
             increment_finish = self.setup.mission_finish
-            logging.error(
+            logging.warning(
                 f"-- No kernel(s) found to determine increment "
                 f"stop time. Mission times will be used."
             )

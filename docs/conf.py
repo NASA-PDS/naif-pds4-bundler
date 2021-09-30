@@ -37,9 +37,14 @@ extensions = [
     'sphinx.ext.githubpages',
     'sphinx.ext.autosummary',
     'sphinx.ext.coverage',
+    'sphinx.ext.autosectionlabel',
     'sphinx_rtd_theme',
     'numpydoc'
 ]
+
+
+# Make sure the target is unique
+autosectionlabel_prefix_document = True
 
 # Silent false-positive warnings from numpydoc related to toctree referencing
 # unknown documents when they actually exist.

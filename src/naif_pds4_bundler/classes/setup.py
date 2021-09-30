@@ -51,7 +51,7 @@ class Setup(object):
         # Re-arrange the resulting dictionary into one-level attributes
         # adept to be used (as if we were loading a JSON file).
         #
-        config = entries["naif-pds4-bundle_configuration"]
+        config = entries["naif-pds4-bundler_configuration"]
 
         self.__dict__.update(config["pds_parameters"])
         self.__dict__.update(config["bundle_parameters"])
@@ -144,6 +144,7 @@ class Setup(object):
         self.diff = args.diff.lower()
         self.today = datetime.date.today().strftime("%Y%m%d")
         self.file_list = []
+        self.checksum_registry = []
 
         #
         # If a release date is not specified it is set to today.
@@ -418,7 +419,7 @@ class Setup(object):
             )
         elif self.pds_version == "4":
             if not os.path.isdir(self.templates_directory):
-                error_message("Path provided/derived for templates " "is not available")
+                error_message("Path provided/derived for templates is not available")
             labels_check = [
                 os.path.basename(x[:-1])
                 for x in glob.glob(f"{self.root_dir}templates/1.5.0.0/*")
@@ -760,7 +761,7 @@ class Setup(object):
 
         if debug:
             logging.warning(
-                f"-- Running in DEBUG mode, intermediate files" f" are not cleaned up."
+                f"-- Running in DEBUG mode, intermediate files " f"are not cleaned up."
             )
 
         if os.path.isfile(self.args.clear):
@@ -773,9 +774,10 @@ class Setup(object):
             with open(self.args.clear, "r") as c:
                 for line in c:
                     try:
-                        os.remove(path + os.sep + line.strip())
+                        stag_file = path + os.sep + line.strip()
+                        os.remove(stag_file)
                     except:
-                        logging.error("     File {} not found.")
+                        logging.warning(f"     File {stag_file} not found.")
 
             #
             # Remove files from the final area.
@@ -785,9 +787,9 @@ class Setup(object):
             with open(self.args.clear, "r") as c:
                 for line in c:
                     try:
-                        os.remove(path + os.sep + line.strip())
+                        os.remove(path + line.strip())
                     except:
-                        logging.error("     File {} not found.")
+                        logging.error(f"     File {line.strip()} not found.")
 
             #
             # Try to remove kernel list.
@@ -797,13 +799,25 @@ class Setup(object):
                 f"-- Trying to remove existing release kernel list " f"from: {path}."
             )
             try:
-                os.remove(
-                    path
-                    + os.sep
-                    + self.args.clear.replace(".file_list", ".kernel_list")
-                )
+                kerlist = self.args.clear.replace(".file_list", ".kernel_list")
+                kerlist = kerlist.split(os.sep)[-1]
+                os.remove(path + os.sep + kerlist)
             except:
-                logging.error("     File {} not found.")
+                logging.warning(f"     File {kerlist} not found.")
+
+            #
+            # Remove release plan if it has not been provided.
+            #
+            if not self.args.plan:
+                logging.info(
+                    f"-- Trying to remove existing release plan " f"from: {path}."
+                )
+                try:
+                    kerlist = self.args.clear.replace(".file_list", ".plan")
+                    kerlist = kerlist.split(os.sep)[-1]
+                    os.remove(path + os.sep + kerlist)
+                except:
+                    logging.warning(f"     File {kerlist} not found.")
 
         else:
             error_message(
@@ -825,6 +839,10 @@ class Setup(object):
 
         return
 
+    def add_checksum(self, path, checksum):
+
+        self.checksum_registry.append(f"{path} {checksum}")
+
     def write_file_list(self):
 
         if self.file_list:
@@ -835,6 +853,19 @@ class Setup(object):
             ) as l:
                 for file in self.file_list:
                     l.write(file + "\n")
+
+        return
+
+    def write_checksum_regsitry(self):
+
+        if self.checksum_registry:
+            with open(
+                self.working_directory + os.sep + f"{self.mission_acronym}_release_"
+                f"{int(self.release):02d}.checksum",
+                "w",
+            ) as l:
+                for element in self.checksum_registry:
+                    l.write(element + "\n")
 
         return
 

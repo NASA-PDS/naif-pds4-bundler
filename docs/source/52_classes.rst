@@ -75,49 +75,49 @@ Product class
 
 SpiceKernelProduct
 ^^^^^^^^^^^^^^^^^^
-.. autoclass:: SpiceKernelProduct 
+.. autoclass:: SpiceKernelProduct
    :members:
    :private-members:
    :inherited-members:
 
 MetaKernelProduct
 ^^^^^^^^^^^^^^^^^^
-.. autoclass:: MetaKernelProduct 
+.. autoclass:: MetaKernelProduct
    :members:
    :private-members:
    :inherited-members:
 
 OrbnumFileProduct
 ^^^^^^^^^^^^^^^^^^
-.. autoclass:: OrbnumFileProduct 
+.. autoclass:: OrbnumFileProduct
    :members:
    :private-members:
    :inherited-members:
 
 InventoryProduct
 ^^^^^^^^^^^^^^^^^^
-.. autoclass:: InventoryProduct 
+.. autoclass:: InventoryProduct
    :members:
    :private-members:
    :inherited-members:
 
 SpicedsProduct
 ^^^^^^^^^^^^^^^^^^
-.. autoclass:: SpicedsProduct 
+.. autoclass:: SpicedsProduct
    :members:
    :private-members:
    :inherited-members:
 
 ReadmeProduct
 ^^^^^^^^^^^^^^^^^^
-.. autoclass:: ReadmeProduct 
+.. autoclass:: ReadmeProduct
    :members:
    :private-members:
    :inherited-members:
 
 ChecksumProduct
 ^^^^^^^^^^^^^^^^^^
-.. autoclass:: ChecksumProduct 
+.. autoclass:: ChecksumProduct
    :members:
    :private-members:
    :inherited-members:

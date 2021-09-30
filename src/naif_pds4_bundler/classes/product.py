@@ -24,6 +24,7 @@ from naif_pds4_bundler.classes.object import Object
 from naif_pds4_bundler.utils import add_carriage_return
 from naif_pds4_bundler.utils import add_crs_to_file
 from naif_pds4_bundler.utils import checksum_from_label
+from naif_pds4_bundler.utils import checksum_from_registry
 from naif_pds4_bundler.utils import ck_coverage
 from naif_pds4_bundler.utils import compare_files
 from naif_pds4_bundler.utils import creation_time
@@ -56,14 +57,20 @@ class Product(object):
         self.size = str(stat_info.st_size)
 
         #
-        # Try to obtain the checksum from the label, if the product is in the
-        # staging area.
+        # Try to obtain the checksum from a checksum registry file, if not
+        # present, try to obtain it from the label if the product is in the
+        # staging area. Otherwise compute the checksum.
         #
-        checksum = checksum_from_label(self.path)
+        checksum = checksum_from_registry(self.path,
+                                          self.setup.working_directory)
+
+        if not checksum:
+            checksum = checksum_from_label(self.path)
         if not checksum:
             checksum = str(md5(self.path))
 
         self.checksum = checksum
+        self.setup.add_checksum(self.path, checksum)
 
         if hasattr(self.setup, "creation_date_time"):
             self.creation_time = self.setup.creation_date_time
@@ -152,7 +159,6 @@ class SpiceKernelProduct(Product):
         """
         Constructor method.
         """
-
         self.collection = collection
         self.setup = setup
         self.name = name
@@ -220,7 +226,8 @@ class SpiceKernelProduct(Product):
                             f"with {self.name}"
                         )
                     except:
-                        error_message(f"{self.name} not present in {path}")
+                        error_message(f"{self.name} not present in {path}",
+                                      setup=setup)
 
                 self.check_kernel_integrity(origin_path)
 
@@ -228,7 +235,7 @@ class SpiceKernelProduct(Product):
                     break
         else:
             logging.warning(
-                f"     {self.name} already present in staging " f"directory."
+                f"     {self.name} already present in staging directory."
             )
 
             #
@@ -312,7 +319,8 @@ class SpiceKernelProduct(Product):
 
         if not description:
             error_message(
-                f"{self.name} does not have " f"a description on {kernel_list_file}"
+                f"{self.name} does not have a description on "
+                f"{kernel_list_file}", setup=self.setup
             )
 
         return description
@@ -687,7 +695,7 @@ class MetaKernelProduct(Product):
         #
         if not user_input:
             if os.path.exists(self.path):
-                logging.error(f"-- Meta-kernel already exists: {self.path}")
+                logging.warning(f"-- Meta-kernel already exists: {self.path}")
                 logging.warning(
                     f"-- The meta-kernel will be generated and the one "
                     f"present in the staging are will be overwritten."
@@ -767,7 +775,7 @@ class MetaKernelProduct(Product):
 
         except:
             logging.warning(
-                f"-- Meta-kernel from previous increment is " f"not available."
+                f"-- Meta-kernel from previous increment is not available."
             )
             logging.warning(f"   Version will be set to: {self.version}.")
 
@@ -779,16 +787,16 @@ class MetaKernelProduct(Product):
                 f"increment agree: {version}."
             )
         else:
-            logging.error(
+            logging.warning(
                 f"-- The meta-kernel version is not as expected "
                 f"from previous increment."
             )
-            logging.error(
+            logging.warning(
                 f"   Version set to: {int(self.version)}, whereas "
                 f"it is expected to be: {version}."
             )
-            logging.error(
-                f"   It is recommended to stop the execution and " f"fix the issue."
+            logging.warning(
+                f"   It is recommended to stop the execution and fix the issue."
             )
 
         return
@@ -813,18 +821,31 @@ class MetaKernelProduct(Product):
 
     def product_vid(self):
 
+        #
+        # If the meta-kernel has been automatically generated as indicated in
+        # the configuration file, it has a version attribute, otherwise it does
+        # not and its version number must be equal to the expected VID.
+        #
         try:
             product_vid = str(self.version).lstrip("0") + ".0"
         except:
             logging.warning(
-                f"-- {self.name} No vid explicit in kernel name: " f"set to 1.0"
+                f"-- {self.name} No VID explicit in kernel name: set to 1.0"
             )
             logging.warning(
                 f"-- Make sure that the MK pattern in the "
-                f"configuration file is correct e.g. missing "
-                f"extension?"
+                f"configuration file is correct, if manually provided make sure "
+                f"you provided the appropriate name."
             )
             product_vid = "1.0"
+
+            #
+            # Implement this exceptional check for first releases of an archive.
+            #
+            if '01' not in self.name:
+                error_message(f"{self.name} version does not correspond to VID "
+                              f"1.0. Rename the MK accordingly",
+                                setup=self.setup)
 
         return product_vid
 
@@ -1055,7 +1076,7 @@ class MetaKernelProduct(Product):
                             mks=mks,
                         )
                     except Exception as e:
-                        logging.error(f"-- Exception: {e}")
+                        logging.warning(f"-- Exception: {e}")
                         latest_kernel = []
 
                     if latest_kernel:
@@ -1290,9 +1311,9 @@ class MetaKernelProduct(Product):
 
         rel_path = self.path.split(f"/{self.setup.mission_acronym}_spice/")[-1]
         path = (
-            self.setup.bundle_directory.split(f"{self.setup.mission_acronym}" f"_spice")[
-                0
-            ]
+            self.setup.bundle_directory.split(
+                f"{self.setup.mission_acronym}" f"_spice"
+            )[0]
             + f"/{self.setup.mission_acronym}_spice/"
             + rel_path
         )
@@ -1392,11 +1413,12 @@ class MetaKernelProduct(Product):
                         )
 
                         if not os.path.exists(path):
-                            logging.error(
-                                f"-- File not present in final " f"area: {path}."
+                            logging.warning(
+                                f"-- File not present in final area: {path}."
                             )
-                            logging.error(
-                                f"   It will not be used to " f"determine the coverage."
+                            logging.warning(
+                                f"   It will not be used to "
+                                f"determine the coverage."
                             )
                         else:
                             if extension2type(kernel) == "spk":
@@ -1458,7 +1480,7 @@ class MetaKernelProduct(Product):
             #
             start_time = self.setup.mission_start
             stop_time = self.setup.mission_finish
-            logging.error(
+            logging.warning(
                 f"-- No kernel(s) found to determine meta-kernel "
                 f"coverage. Mission times will be used:"
             )
@@ -1528,7 +1550,8 @@ class OrbnumFileProduct(Product):
         #
         # Add CRs to the orbnum file
         #
-        add_crs_to_file(product_path + os.sep + self.name, self.setup.eol)
+        add_crs_to_file(product_path + os.sep + self.name, self.setup.eol,
+                        self.setup)
 
         #
         # We update the path after having copied the kernel.
@@ -2556,7 +2579,9 @@ class OrbnumFileProduct(Product):
                     # directory.
                     #
                     if not cov_kers:
-                        cov_path = f"{self.setup.bundle_directory}" f"/spice_kernels/spk"
+                        cov_path = (
+                            f"{self.setup.bundle_directory}" f"/spice_kernels/spk"
+                        )
                         try:
                             cov_kers = [
                                 x
@@ -2852,7 +2877,8 @@ class InventoryProduct(Product):
                             # be included as secondary in the new one
                             #
                             line = line.replace("P,urn", "S,urn")
-                        line = add_carriage_return(line, self.setup.eol_pds4)
+                        line = add_carriage_return(line, self.setup.eol_pds4,
+                                                   self.setup)
                         f.write(line)
 
             for product in self.collection.product:
@@ -2864,7 +2890,8 @@ class InventoryProduct(Product):
                 if type(product) != InventoryProduct:
                     if product.new_product:
                         line = f"P," f"{product.lid}::" f"{product.vid}\r\n"
-                        line = add_carriage_return(line, self.setup.eol_pds4)
+                        line = add_carriage_return(line, self.setup.eol_pds4,
+                                                   self.setup)
                         f.write(line)
 
         return
@@ -3127,8 +3154,8 @@ class InventoryProduct(Product):
 
             logging.info("-- Adding CRs to index files.")
             logging.info("")
-            add_crs_to_file(dsindex, self.setup.eol_pds4)
-            add_crs_to_file(dsindex_lbl, self.setup.eol_pds4)
+            add_crs_to_file(dsindex, self.setup.eol_pds4, self.setup)
+            add_crs_to_file(dsindex_lbl, self.setup.eol_pds4, self.setup)
 
             self.index = ""
             self.index_lbl = ""
@@ -3310,7 +3337,8 @@ class SpicedsProduct(object):
         with open(self.path, "r") as s:
             with open(temporary_file, "w+") as t:
                 for line in s:
-                    line = add_carriage_return(line, self.setup.eol_pds4)
+                    line = add_carriage_return(line, self.setup.eol_pds4,
+                                               self.setup)
                     t.write(line)
 
         #
@@ -3464,28 +3492,33 @@ class ReadmeProduct(Product):
                     if "$SPICE_NAME" in line:
                         line = line.replace("$SPICE_NAME", self.setup.spice_name)
                         line_length = len(line) - 1
-                        line = add_carriage_return(line, self.setup.eol_pds4)
+                        line = add_carriage_return(line, self.setup.eol_pds4,
+                                                   self.setup)
                         f.write(line)
                     elif "$UNDERLINE" in line:
                         line = line.replace("$UNDERLINE", "=" * line_length)
                         line_length = len(line) - 1
-                        line = add_carriage_return(line, self.setup.eol_pds4)
+                        line = add_carriage_return(line, self.setup.eol_pds4,
+                                                   self.setup)
                         f.write(line)
                     elif "$OVERVIEW" in line:
                         overview = self.setup.readme["overview"]
                         for line in overview.split("\n"):
                             line = " " * 3 + line.strip() + "\n"
-                            line = add_carriage_return(line, self.setup.eol)
+                            line = add_carriage_return(line, self.setup.eol,
+                                                       self.setup)
                             f.write(line)
                     elif "$COGNISANT_PERSONS" in line:
                         cognisant = self.setup.readme["cognisant_persons"]
                         for line in cognisant.split("\n"):
                             line = " " * 3 + line.strip() + "\n"
-                            line = add_carriage_return(line, self.setup.eol)
+                            line = add_carriage_return(line, self.setup.eol,
+                                                       self.setup)
                             f.write(line)
                     else:
                         line_length = len(line) - 1
-                        line = add_carriage_return(line, self.setup.eol)
+                        line = add_carriage_return(line, self.setup.eol,
+                                                   self.setup)
                         f.write(line)
 
         logging.info("-- Created readme file.")
@@ -3651,7 +3684,7 @@ class ChecksumProduct(Product):
                         (md5, filename) = line.split()
                     except:
                         error_message(
-                            f"Checksum file {self.path_current} is " f"corrupted.",
+                            f"Checksum file {self.path_current} is corrupted.",
                             setup=self.setup,
                         )
 
@@ -3724,7 +3757,7 @@ class ChecksumProduct(Product):
                             f"/{msn_acr}_spice/"
                         )[-1]
                     else:
-                        logging.error(f"-- {product_name} does not have a label.")
+                        logging.warning(f"-- {product_name} does not have a label.")
             #
             # Include the readme file checksum if it has been generated in
             # this run. This is a bundle level product.
@@ -3762,7 +3795,10 @@ class ChecksumProduct(Product):
                 #
                 checksum = ""
                 if not ".xml" in product:
-                    checksum = checksum_from_label(path)
+                    checksum = checksum_from_registry(path,
+                                                      self.setup.working_directory)
+                    if not checksum:
+                        checksum = checksum_from_label(path)
                 if not checksum:
                     checksum = md5(path)
 
@@ -3840,14 +3876,14 @@ class ChecksumProduct(Product):
                             stop_times.append(stop_time)
 
         if not start_times:
-            logging.error(
+            logging.warning(
                 f"-- Start time set to "
                 f"mission start time: {self.setup.mission_start}"
             )
             start_times.append(self.setup.mission_start)
 
         if not stop_times:
-            logging.error(
+            logging.warning(
                 f"-- Stop time set to "
                 f"mission finish time: {self.setup.mission_finish}"
             )
@@ -3865,7 +3901,8 @@ class ChecksumProduct(Product):
             #
             with open(self.path, "w") as c:
                 for entry in md5_list:
-                    entry = add_carriage_return(entry, self.setup.eol)
+                    entry = add_carriage_return(entry, self.setup.eol,
+                                                self.setup)
                     c.write(entry)
 
             if self.setup.diff:

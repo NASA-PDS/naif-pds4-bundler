@@ -5,11 +5,11 @@ SPICE Kernel Archive Preparation Guide
 Process Overview
 ================
 
-The process of preparing a SPICE archive includes the following steps:
+The process of preparing a SPICE kernel archive includes the following steps:
 
     1. collecting and preparing the data
 
-    2. preparing the NAIF PDS4 Bundler setup 
+    2. preparing the NAIF PDS4 Bundler setup
 
     3. running NAIF PDS4 Bundler
 
@@ -26,88 +26,60 @@ Each of these steps is described in a separate section below.
    31_step_1_preparing_data
    32_step_2_npb_setup
    33_step_3_running_npb
-   
+   34_step_4_checking_the_result
+   35_step_5_packaging_to_naif
+
 
 
 Step-by-Step Summary
 ====================
 
-   This section provides a brief step-by-step summary of the process for
-   creating a new archive and for adding another release to an existing
-   archive. Please augment the checklists below with any additional steps
-   needed for your SPICE archive.
+This section provides a brief step-by-step summary of the process for
+creating a new archive and for adding another release to an existing
+archive. Please augment the checklists below with any additional steps
+needed for your SPICE archive.
 
 
 Steps for Creating a New Archive
 --------------------------------
 
-       --   identify kinds of kernels to be archived
+   * identify kinds of kernels to be archived
 
-       --   setup work area and collect kernels under it; write scripts for
-            collecting kernels if more than one archive release is expected
+   * setup work area and collect kernels under it; write scripts for
+     collecting kernels if more than one archive release is expected
 
-       --   merge kernels if needed; write merging scripts if more than one
-            archive release is expected
+   * merge kernels if needed; write merging scripts if more than one
+     archive release is expected
 
-       --   verify internal comments and add comments as needed; write
-            scripts for adding comments to kernels if more than one archive
-            release is expected
+   * verify internal comments and add comments as needed; write
+     scripts for adding comments to kernels if more than one archive
+     release is expected
 
-       --   validate final kernels; write validating scripts if more than
-            one archive release is expected
+   * validate final kernels; write validating scripts if more than
+     one archive release is expected
 
-       --   make or collect extra files -- meta-kernels, ORBNUM files, etc.
+   * add or modify extra files -- Meta-kernels, ORBNUM files, etc.
 
-       --   obtain mission, instrument host, and references catalog files
-            from the responsible project person/team
+   * Obtain a DOI for the archive
 
-       --   write ``spiceds.cat'' and ``data/*/*info.txt'' files to
-            document kernels, using files from an existing SPICE archive as
-            the starting point
+   * if needed, create the release plan for new release
 
-       --   write all other required catalog and text files using files
-            from an existing SPICE archive as the starting point
+   * write SPICEDS file, using files from an existing SPICE archive as
+     the starting point
 
-       --   setup staging area for the new archive
+   * setup workspace for the new archive
 
-       --   setup archiving scripts and utilities used by scripts on the
-            workstation that contains the staging area; change hard-coded
-            locations in the scripts as needed; add directory in which
-            scripts/tools are located to the system path
+   * install NPB
 
-       --   copy kernels, value-added, and meta-information files to the
-            staging area
+   * write the NPB configuration file
 
-       --   create the MAKLABEL template file
+   * run NPB
 
-       --   create the kernel list file
+   * run validate tool to verify the archive
 
-       --   generate labels
+   * move the files from the final area to the public area
 
-       --   generate index files; move ``index.*'' files to ``index''
-            directory
-
-       --   check that all binary kernels are in BIG-IEEE format and all
-            text kernels are in UNIX format (<LF>-terminated lines);
-            convert those that aren't to the right format using BINGO
-
-       --   run ``check_everything.csh''
-
-       --   make a list of files to which <CR>s should be added and add
-            <CR>s to them
-
-       --   copy the data set to the final archive area; move ``dsindex.*''
-            to the directory above the volume root
-
-       --   check all meta-kernels using BRIEF
-
-       --   run ``mkpdssum.pl'' to generate the checksum table and label
-
-       --   run VTool and/or Online Volume Validation tool to verify the
-            archive
-
-       --   remove <CR>s from the staging area meta-information files to
-            which they were added
+   * notify your archiving authority and/or NAIF
 
 
 Steps for Adding Data To an Existing Archive
@@ -123,11 +95,11 @@ Steps for Adding Data To an Existing Archive
 
    * validate final kernels
 
-   * add or modify extra files -- meta-kernels, ORBNUM files, etc.
+   * add or modify extra files -- Meta-kernels, ORBNUM files, etc.
 
-   * if needed, create the kernel plan file for new release
+   * if needed, create the release plan for new release
 
-   * check and, if needed, update ``spiceds_v???.html``
+   * check and, if needed, update the SPICEDS file
 
    * check and, if needed, update the NPB configuration file
 

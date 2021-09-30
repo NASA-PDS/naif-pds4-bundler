@@ -26,8 +26,6 @@ The following Python packages will be installed:
    * beautifulsoup4 (version 4.9.3 or higher)
    * NumPy (version 1.19.4 or higher)
    * SetupTools (version 50.3.0 or higher)
-   * Nose
-   * Coverage
    * xmlschema
 
 Please note that the dependency that might cause issues is SpiceyPy. SpiceyPy

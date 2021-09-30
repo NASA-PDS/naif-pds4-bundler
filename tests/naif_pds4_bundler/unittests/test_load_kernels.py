@@ -83,7 +83,7 @@ class TestLoadKernels(TestCase):
         main(config, plan, self.faucet, silent=self.silent, log=True)
 
         log_line = (
-            "naif-pds4-bundler/tests/naif_pds4_bundle/unittests/kernels/"
+            "naif-pds4-bundler/tests/naif_pds4_bundler/unittests/kernels/"
             "sclk/MVN_SCLKSCET.00088.tsc']\n"
         )
         with open("working/maven_release_01.log", "r") as f:

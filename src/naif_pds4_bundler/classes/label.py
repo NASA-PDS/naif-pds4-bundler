@@ -47,7 +47,7 @@ class PDSLabel(object):
             self.END_OF_LINE = "Line-Feed"
         else:
             error_message(
-                "End of Line provided via configuration is not " "CRLF nor LF",
+                "End of Line provided via configuration is not CRLF nor LF",
                 setup=self.setup,
             )
 
@@ -248,7 +248,7 @@ class PDSLabel(object):
                     if isinstance(value, str) and key in line and "$" in line:
                         line = line.replace("$" + key, value)
 
-                line = add_carriage_return(line, self.setup.eol_pds4)
+                line = add_carriage_return(line, self.setup.eol_pds4, self.setup)
 
                 f.write(line)
 
@@ -821,7 +821,7 @@ class InventoryPDS3Label(PDSLabel):
                     if isinstance(value, str) and key in line and "$" in line:
                         line = line.replace("$" + key, value)
 
-                line = add_carriage_return(line, self.setup.eol_pds4)
+                line = add_carriage_return(line, self.setup.eol_pds4, self.setup)
 
                 if "END_OBJECT" in line and line[:10] != "END_OBJECT":
                     f.write(line.split("END_OBJECT")[0])

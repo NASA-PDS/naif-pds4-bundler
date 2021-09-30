@@ -65,7 +65,9 @@ class TestPDS4(TestCase):
                     fromlines = [
                         item
                         for item in fromlines
-                        if ("checksum" not in item) and ("file_size" not in item)
+                        if ("checksum" not in item)
+                        and ("file_size" not in item)
+                        and ("object_length" not in item)
                     ]
                     fromlines = [item for item in fromlines if "checksum" not in item]
                 with open(test_product) as tf:
@@ -73,7 +75,9 @@ class TestPDS4(TestCase):
                     tolines = [
                         item
                         for item in tolines
-                        if ("checksum" not in item) and ("file_size" not in item)
+                        if ("checksum" not in item)
+                        and ("file_size" not in item)
+                        and ("object_length" not in item)
                     ]
 
                 if fromlines != tolines:

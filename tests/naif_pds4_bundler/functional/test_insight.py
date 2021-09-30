@@ -59,7 +59,7 @@ class TestINSIGHT(TestCase):
         """
         config = "../config/insight.xml"
         plan = "../data/insight_release_26.plan"
-        faucet = "final"
+        faucet = "bundle"
 
         os.makedirs("working", mode=0o777, exist_ok=True)
         os.makedirs("staging", mode=0o777, exist_ok=True)
@@ -491,7 +491,7 @@ class TestINSIGHT(TestCase):
         config = "../config/insight.xml"
         updated_config = "working/insight.xml"
         plan = "../data/insight_release_00.plan"
-        faucet = "final"
+        faucet = "bundle"
 
         dirs = ["working", "staging", "insight"]
         for dir in dirs:
@@ -533,7 +533,7 @@ class TestINSIGHT(TestCase):
         config = "../config/insight.xml"
         updated_config = "working/insight.xml"
         plan = "../data/insight_release_00.plan"
-        faucet = "final"
+        faucet = "bundle"
 
         dirs = ["working", "staging", "insight"]
         for dir in dirs:
@@ -605,7 +605,7 @@ class TestINSIGHT(TestCase):
         """
         config = "../config/insight.xml"
         plan = "../data/insight_release_08.plan"
-        faucet = "final"
+        faucet = "bundle"
 
         os.makedirs("working", mode=0o777)
         os.makedirs("staging", mode=0o777)
@@ -625,7 +625,7 @@ class TestINSIGHT(TestCase):
         updated spiceds file is.
         """
         config = "../config/insight.xml"
-        faucet = "final"
+        faucet = "bundle"
 
         os.makedirs("working", mode=0o777)
         os.makedirs("staging", mode=0o777)
@@ -651,7 +651,7 @@ class TestINSIGHT(TestCase):
         updated spiceds file is.
         """
         config = "../config/insight.xml"
-        faucet = "final"
+        faucet = "bundle"
 
         os.makedirs("working", mode=0o777)
         os.makedirs("staging", mode=0o777)
@@ -678,7 +678,7 @@ class TestINSIGHT(TestCase):
         """
         config = "../config/insight.xml"
         updated_config = "working/maven.xml"
-        faucet = "final"
+        faucet = "bundle"
 
         os.makedirs("working", mode=0o777)
         os.makedirs("staging", mode=0o777)
@@ -713,7 +713,7 @@ class TestINSIGHT(TestCase):
         """
         config = "../config/insight.xml"
         updated_config = "working/insight.xml"
-        faucet = "final"
+        faucet = "bundle"
 
         os.makedirs("working", mode=0o777, exist_ok=True)
         os.makedirs("staging", mode=0o777, exist_ok=True)

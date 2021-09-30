@@ -120,7 +120,7 @@ class TestXML(TestCase):
 
         shutil.copytree("../data/insight", "insight")
 
-        main(config, "", "final", silent=True, log=False, diff="")
+        main(config, "", "bundle", silent=True, log=False, diff="")
 
 
 if __name__ == "__main__":

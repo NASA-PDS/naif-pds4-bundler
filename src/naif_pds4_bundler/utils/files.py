@@ -31,6 +31,7 @@ File and Text Management Functions
 import difflib
 import errno
 import fileinput
+import glob
 import hashlib
 import json
 import logging
@@ -199,7 +200,7 @@ def type2extension(kernel_type):
     return kernel_extension
 
 
-def add_carriage_return(line, eol):
+def add_carriage_return(line, eol, setup):
     """
     Adds Carriage Return (CR) to a line
 
@@ -216,19 +217,19 @@ def add_carriage_return(line, eol):
         if "\r\n" not in line:
             line += "\r\n"
         else:
-            error_message(f"File has incorrect CR at line: {line}")
+            error_message(f"File has incorrect CR at line: {line}", setup=setup)
     if eol == "\n" and "\r\n" in line:
         line = line.replace("\r\n", "\n")
     elif eol == "\n" and not "\n" in line:
         line += "\n"
     else:
         if "\n" not in line:
-            error_message(f"File has incorrect CR at line: {line}")
+            error_message(f"File has incorrect CR at line: {line}", setup=setup)
 
     return line
 
 
-def add_crs_to_file(file, eol):
+def add_crs_to_file(file, eol, setup):
     """
     Adds Carriage Return (CR) to a file
 
@@ -243,12 +244,12 @@ def add_crs_to_file(file, eol):
         with open(file, "r") as r:
             with open(file_crs, "w+") as f:
                 for line in r:
-                    line = add_carriage_return(line, eol)
+                    line = add_carriage_return(line, eol, setup)
                     f.write(line)
         shutil.move(file_crs, file)
 
     except:
-        error_message(f"Carriage return adding error for {file}")
+        error_message(f"Carriage return adding error for {file}", setup)
 
     return None
 
@@ -680,6 +681,34 @@ def kernel_name(path):
     :return:
     """
     return path.split(os.sep)[-1]
+
+
+def checksum_from_registry(path, working_directory):
+    """
+    Extract checksum from the checksum registry. All the checksum registrties
+    will be checked.
+    :param path:
+    :return:
+    """
+
+    checksum = ""
+    checksum_registries = glob.glob(f"{working_directory}/*.checksum")
+    checksum_found = False
+
+    for checksum_registry in checksum_registries:
+        if not checksum_found:
+            with open(checksum_registry, "r") as l:
+                for line in l:
+                    if path in line:
+                        checksum = line.split()[-1]
+                        logging.warning(
+                            f"-- Checksum obtained from Checksum "
+                            f"Registry file: {checksum_registry}"
+                        )
+                        checksum_found = True
+                        break
+
+    return checksum
 
 
 def checksum_from_label(path):

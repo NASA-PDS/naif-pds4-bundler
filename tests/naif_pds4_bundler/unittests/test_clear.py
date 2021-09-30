@@ -57,7 +57,7 @@ class TestClear(TestCase):
         """
         config = "../config/insight.xml"
         plan = "../data/insight_release_08.plan"
-        faucet = "final"
+        faucet = "bundle"
 
         os.makedirs("working", mode=0o777, exist_ok=True)
         os.makedirs("staging", mode=0o777, exist_ok=True)
@@ -158,7 +158,7 @@ class TestClear(TestCase):
         #
         # Run the pipeline again.
         #
-        main(config, plan, "final", silent=self.silent, log=self.log)
+        main(config, plan, "bundle", silent=self.silent, log=self.log)
 
 
 if __name__ == "__main__":
