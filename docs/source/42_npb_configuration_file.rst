@@ -1025,12 +1025,12 @@ is::
 
 where
 
-   <text/binary> is either text or binary
-   <kernel type> is the kernel type acronym (SPK, FK, etc.)
-   <producer> is the author or the group that genearted the kernel
-   <institution> is the affiliation of the kernel producer.
+   * <text/binary> is either text or binary
+   * <kernel type> is the kernel type acronym (SPK, FK, etc.)
+   * <producer> is the author or the group that genearted the kernel
+   * <institution> is the affiliation of the kernel producer.
 
-For example:
+For example::
 
        <description>SPICE LSK file incorporating leapseconds up to $DATE, created by NAIF, JPL.</description>
 

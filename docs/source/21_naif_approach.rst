@@ -16,8 +16,8 @@ Each of the points identified in this statement using a number in
 parentheses is briefly explained below:
 
     1. *All SPICE data are archived as UNIX text and binary kernels,
-       meaning that all text kernels have lines terminated by ``<LF>`` (line feed)
-       only and all binary kernels are in ``BIG-IEEE`` (big-endian) binary
+       meaning that all text kernels have lines terminated by* ``<LF>`` *(line feed)
+       only and all binary kernels are in* ``BIG-IEEE`` *(big-endian) binary
        format.*
 
        Following this requirement ensures consistency across all SPICE
