@@ -1027,7 +1027,7 @@ where
 
    * <text/binary> is either text or binary
    * <kernel type> is the kernel type acronym (SPK, FK, etc.)
-   * <producer> is the author or the group that genearted the kernel
+   * <producer> is the author or the group that generated the kernel
    * <institution> is the affiliation of the kernel producer.
 
 For example::
