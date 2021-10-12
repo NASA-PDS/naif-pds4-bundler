@@ -1,33 +1,4 @@
-#   -------------------------------------------------------------------------
-#   @author: Marc Costa Sitja (JPL)
-#
-#   THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE
-#   CALIFORNIA INSTITUTE OF TECHNOLOGY (CALTECH) UNDER A U.S.
-#   GOVERNMENT CONTRACT WITH THE NATIONAL AERONAUTICS AND SPACE
-#   ADMINISTRATION (NASA). THE SOFTWARE IS TECHNOLOGY AND SOFTWARE
-#   PUBLICLY AVAILABLE UNDER U.S. EXPORT LAWS AND IS PROVIDED "AS-IS"
-#   TO THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY
-#   WARRANTIES OF PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A
-#   PARTICULAR USE OR PURPOSE (AS SET FORTH IN UNITED STATES UCC
-#   SECTIONS 2312-2313) OR FOR ANY PURPOSE WHATSOEVER, FOR THE
-#   SOFTWARE AND RELATED MATERIALS, HOWEVER USED.
-#
-#   IN NO EVENT SHALL CALTECH, ITS JET PROPULSION LABORATORY, OR NASA
-#   BE LIABLE FOR ANY DAMAGES AND/OR COSTS, INCLUDING, BUT NOT
-#   LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF ANY KIND,
-#   INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST PROFITS,
-#   REGARDLESS OF WHETHER CALTECH, JPL, OR NASA BE ADVISED, HAVE
-#   REASON TO KNOW, OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-#
-#   RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF
-#   THE SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY
-#   CALTECH AND NASA FOR ALL THIRD-PARTY CLAIMS RESULTING FROM THE
-#   ACTIONS OF RECIPIENT IN THE USE OF THE SOFTWARE.
-#   -------------------------------------------------------------------------
-"""
-File and Text Management Functions
-------------------------------------
-"""
+"""File and Text Management Functions to support NPB Classes."""
 import difflib
 import errno
 import fileinput
@@ -45,7 +16,8 @@ from naif_pds4_bundler.classes.log import error_message
 
 
 def etree_to_dict(t):
-    """
+    """Convert between XML and JSON.
+
     The following XML-to-Python-dict snippet parses entities as well as
     attributes following this XML-to-JSON "specification". It is the most
     general solution handling all cases of XML.
@@ -77,8 +49,7 @@ def etree_to_dict(t):
 
 
 def md5(fname):
-    """
-    Returns the MD5 sum (checksum) of the provided file.
+    """Returns the MD5 sum (checksum) of the provided file.
 
     :param fname: Filename
     :type fname: str
@@ -94,9 +65,7 @@ def md5(fname):
 
 
 def copy(src, dest):
-    """
-    Creates a directory and raises an error if the directort already
-    exists.
+    """Creates a directory and raises an error if the directorty exists.
 
     :param src: Source directory with path.
     :param dest: Destination directory with path.
@@ -120,24 +89,22 @@ def copy(src, dest):
 
 
 def safe_make_directory(dir):
-    """
-    Creates a directory if it is not present
+    """Creates a directory if it is not present.
 
-    :param i: Directory with path.
+    :param dir: Directory with path.
     """
     try:
         os.mkdir(dir)
         logging.info(f"-- Generated directory: {dir}  ")
         logging.info("")
-    except:
+    except BaseException:
         pass
 
     return None
 
 
 def extension2type(kernel):
-    """
-    Given a SPICE kernel provide the SPICE kernel type.
+    """Given a SPICE kernel provide the SPICE kernel type.
 
     :param kernel: SPICE Kernel name
     :return: SPICE Kernel type of the input SPICE kernel name.
@@ -164,7 +131,7 @@ def extension2type(kernel):
         # Kernel is an object
         #
         kernel_type = kernel_type_map[kernel.extension.upper()].lower()
-    except:
+    except BaseException:
         #
         # Kernel is a string
         #
@@ -174,8 +141,7 @@ def extension2type(kernel):
 
 
 def type2extension(kernel_type):
-    """
-    Given a SPICE kernel type provide the SPICE kernel extension.
+    """Given a SPICE kernel type provide the SPICE kernel extension.
 
     :param kernel_type: SPICE kernel type
     :return: Spice Kernel extension
@@ -201,8 +167,7 @@ def type2extension(kernel_type):
 
 
 def add_carriage_return(line, eol, setup):
-    """
-    Adds Carriage Return (CR) to a line
+    """Adds Carriage Return (``<CR>``) to a line.
 
     :param line: Input line
     :type line: str
@@ -220,7 +185,7 @@ def add_carriage_return(line, eol, setup):
             error_message(f"File has incorrect CR at line: {line}", setup=setup)
     if eol == "\n" and "\r\n" in line:
         line = line.replace("\r\n", "\n")
-    elif eol == "\n" and not "\n" in line:
+    elif eol == "\n" and "\n" not in line:
         line += "\n"
     else:
         if "\n" not in line:
@@ -230,8 +195,7 @@ def add_carriage_return(line, eol, setup):
 
 
 def add_crs_to_file(file, eol, setup):
-    """
-    Adds Carriage Return (CR) to a file
+    """Adds Carriage Return (``<CR>``) to a file.
 
     :param line: Input file
     :type line: str
@@ -248,30 +212,29 @@ def add_crs_to_file(file, eol, setup):
                     f.write(line)
         shutil.move(file_crs, file)
 
-    except:
+    except BaseException:
         error_message(f"Carriage return adding error for {file}", setup)
 
     return None
 
 
-def check_list_duplicates(listOfElems):
-    """
-    Check if given list contains any duplicates.
+def check_list_duplicates(list_of_elements):
+    """Check if given list contains any duplicates.
 
     :param listOfElems: List of SPICE kernel names
     :return: Boolean that indicats if the input list contains
              duplicates or not
     :rtype: bool
     """
-    for elem in listOfElems:
-        if listOfElems.count(elem) > 1:
+    for elem in list_of_elements:
+        if list_of_elements.count(elem) > 1:
             return True
 
     return False
 
 
 def fill_template(object, product_file, product_dictionary):
-    """
+    """Fill a template with uppercase keywords preceeded with ``$``.
 
     :param object:
     :param product_file:
@@ -291,7 +254,8 @@ def fill_template(object, product_file, product_dictionary):
 
 
 def get_context_products(setup):
-    """
+    """Obtain PDS4 Context Products.
+
     Obtain the context products from the PDS4 registered context products
     templte or from the XML configuration file.
 
@@ -379,10 +343,11 @@ def get_context_products(setup):
 
 
 def mk2list(mk):
-    """
-    Generate a list of kernels from a meta-kernel. This function assumes
-    that the meta-kernel will contain a PATH_SYMBOLS definition that will
-    be present in each kernel entry preceeded by a dollar sign ($).
+    """Generate a list of kernels from a Meta-kernel.
+
+    This function assumes that the meta-kernel will contain a PATH_SYMBOLS
+    definition that will be present in each kernel entry preceeded by a dollar
+    sign ``$``.
 
     :param mk: Meta-kernel
     :return: List of kernels present in the meta-kernel
@@ -413,7 +378,8 @@ def mk2list(mk):
 def get_latest_kernel(
     kernel_type, paths, pattern, dates=False, excluded_kernels=False, mks=False
 ):
-    """
+    """Get the latest kernel given a type and a pattern.
+
     Returns the name of the latest SPICE kernel of a given type present
     in the path. This function is exclusively used find the latest version
     of the kernels to be included in a meta-kernel.
@@ -451,7 +417,7 @@ def get_latest_kernel(
             kernels_with_path += [
                 f for f in os.listdir(f"{kernel_path}/") if re.search(pattern, f)
             ]
-        except:
+        except BaseException:
             pass
 
     if mks:
@@ -490,7 +456,7 @@ def get_latest_kernel(
         #
         try:
             return kernels.pop()
-        except:
+        except BaseException:
             logging.warning(
                 "        No kernels found with pattern " "{}".format(pattern)
             )
@@ -515,25 +481,27 @@ def get_latest_kernel(
         return kernels_date
 
 
-def check_consecutive(l):
-    """
+def check_consecutive(lst):
+    """Check if a list has consecutive numbers.
+
     Check if a list of names with enumeration include all the elements
-    in such a way that the enumeartion contains all expected numbers.
+    in such a way that the enumeration contains all expected numbers.
 
     :param l: List of names that include an enumeration
     :return: Check if the list has a complete enumeration
     :rtype: Bool
     """
-    return sorted(l) == list(range(1, max(l) + 1))
+    return sorted(lst) == list(range(1, max(lst) + 1))
 
 
 def compare_files(fromfile, tofile, dir, display):
-    """
+    """Compare two files.
+
     Compares two files and provides the logic to determine whether if the
     comparison should be added to the log or to an individual file with the
-    comparison. The default name of the possible resuling file is:
+    comparison. The default name of the possible resuling file is::
 
-    diff_`fromfile'[extension removed]_`tofile'[extension_removed].html
+       diff_`fromfile'[extension removed]_`tofile'[extension_removed].html
 
     The format for the log output is ASCII and follows a simplified Unix
     diff format.
@@ -583,18 +551,18 @@ def compare_files(fromfile, tofile, dir, display):
 
 
 def match_patterns(name, name_w_pattern, patterns):
-    """
+    """March patterns to filename.
+
     Given a SPICE kernel name, a SPICE Kernel name with patterns, and the
     possible patterns, provide a dictionary with the patterns as keys and
     the patterns values as value after matching it between the SPICE Kernel
     name with patterns and without patterns.
 
     For example, given the following:
-       name: insight_v01.tm
-       name_w_pattern: insight_v$VERSION.tm
+       name: ``insight_v01.tm``
+       name_w_pattern: ``insight_v$VERSION.tm``
 
-    The function will return:
-        {VERSION: '01'}
+    The function will return: ``{VERSION: '01'}``
 
     :param name: Name of the SPICE Kernel
     :param name_w_pattern: Name of the SPICE Kernel with patterns
@@ -663,8 +631,7 @@ def match_patterns(name, name_w_pattern, patterns):
 
 
 def utf8len(s):
-    """
-    Length of a string in bytes
+    """Length of a string in bytes.
 
     :param s: string
     :type s: str
@@ -675,8 +642,8 @@ def utf8len(s):
 
 
 def kernel_name(path):
-    """
-    List sorting function.
+    """List sorting function.
+
     :param path:
     :return:
     """
@@ -684,21 +651,20 @@ def kernel_name(path):
 
 
 def checksum_from_registry(path, working_directory):
-    """
-    Extract checksum from the checksum registry. All the checksum registrties
-    will be checked.
+    """Extract checksum from the checksum registry.
+
+    All the checksum registries will be checked.
     :param path:
     :return:
     """
-
     checksum = ""
     checksum_registries = glob.glob(f"{working_directory}/*.checksum")
     checksum_found = False
 
     for checksum_registry in checksum_registries:
         if not checksum_found:
-            with open(checksum_registry, "r") as l:
-                for line in l:
+            with open(checksum_registry, "r") as lbl:
+                for line in lbl:
                     if path in line:
                         checksum = line.split()[-1]
                         logging.warning(
@@ -712,17 +678,16 @@ def checksum_from_registry(path, working_directory):
 
 
 def checksum_from_label(path):
-    """
-    Extract checksum from a label rather tan calculating it.
+    """Extract checksum from a label rather tan calculating it.
+
     :param path:
     :return:
     """
-
     checksum = ""
     product_label = path.split(".")[0] + ".xml"
     if os.path.exists(product_label):
-        with open(product_label, "r") as l:
-            for line in l:
+        with open(product_label, "r") as lbl:
+            for line in lbl:
                 if "<md5_checksum>" in line:
                     checksum = line.split("<md5_checksum>")[-1]
                     checksum = checksum.split("</md5_check")[0]
@@ -736,8 +701,7 @@ def checksum_from_label(path):
 
 
 def extract_comment(path):
-    """
-    Extract comment from DAF file.
+    """Extract comment from DAF file.
 
     :param path:
     :return:

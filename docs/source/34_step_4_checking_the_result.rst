@@ -76,7 +76,7 @@ The Validate tool package can be obtained from the PDS Engineering node from
 Once installed per instructions provided with the package, Validate Tool can be
 run to generate the full validation report for the final archive as follows::
 
-   validate <path_to_archive> -r <path_to_working_dir>/<sc>_release_??.validate
+   validate <path_to_archive> -R pds4.bundle -r <path_to_working_dir>/<sc>_release_??.validate
 
 where
 
@@ -132,7 +132,7 @@ containing the missing context products as follows::
 
 Then you can run Validate as follows::
 
-   validate em16_spice --add-context-products registered_context_products.json -r working/em16_release_03.validate
+   validate em16_spice --add-context-products registered_context_products.json -R pds4.bundle  -r working/em16_release_03.validate
 
 
 Following the inclusion of this argument, you will still get the following

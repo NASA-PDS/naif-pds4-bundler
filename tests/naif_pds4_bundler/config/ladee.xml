@@ -29,11 +29,11 @@
                 other ancillary data in the form of SPICE System kernel files for
                 the LADEE spacecraft, its instruments, and targets.
             </overview>
-            <cognisant_persons>
+            <cognisant_authority>
                 This archive bundle was produced by the Planetary Data System (PDS)
                 Navigation and Ancillary Information Facility (NAIF) Node, Jet
                 Propulsion Laboratory, Pasadena, California.
-            </cognisant_persons>
+            </cognisant_authority>
         </readme>
         <!-- Optional parameters -->
         <!-- Increment start and stop times provided as a UTC calendar string.

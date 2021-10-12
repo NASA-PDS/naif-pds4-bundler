@@ -50,7 +50,7 @@ class TestChecksumRegistry(TestCase):
         test_bundle.setup = test_setup
         test_bundle.collections = None
 
-        Bundle.get_history(test_bundle)
+        Bundle.get_history(test_bundle, test_bundle)
 
 
 if __name__ == "__main__":

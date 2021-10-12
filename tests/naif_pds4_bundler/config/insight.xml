@@ -35,11 +35,11 @@
                other ancillary data in the form of SPICE System kernel files for
                the INSIGHT lander and its instruments.
             </overview>
-            <cognisant_persons>
+            <cognisant_authority>
                This archive bundle was produced by Boris Semenov, Planetary Data
                System Navigation and Ancillary Information Facility Node, Jet
                Propulsion Laboratory, Pasadena, California.
-            </cognisant_persons>
+            </cognisant_authority>
         </readme>
         <date_format>maklabel</date_format>
         <end_of_line>CRLF</end_of_line>
@@ -273,9 +273,9 @@
             <!-- These kernels determine the coverage of the bundle
                  increment
             -->
-            <pattern>insight_cru_ops_v[0-9].bsp</pattern>
-            <pattern>insight_edl_rec_v[0-9].bsp</pattern>
-            <pattern>insight_ida_enc_[0-9]{6}_[0-9]{6}_v[0-9].bc</pattern>
+            <pattern mk="insight_v[0-9][0-9].tm">insight_cru_ops_v[0-9].bsp</pattern>
+            <pattern mk="insight_v[0-9][0-9].tm">insight_edl_rec_v[0-9].bsp</pattern>
+            <pattern mk="insight_v[0-9][0-9].tm">insight_ida_enc_[0-9]{6}_[0-9]{6}_v[0-9].bc</pattern>
         </coverage_kernels>
         <mk name="insight_v$VERSION.tm">
             <name>

@@ -1,3 +1,4 @@
+"""Functional Test Family for OSIRIS-REx Archive Generation."""
 import os
 import shutil
 import unittest
@@ -7,12 +8,16 @@ from naif_pds4_bundler.__main__ import main
 
 
 class TestOSIRISREx(TestCase):
+    """Functional Test Family Class for OSIRIS-REx Archive Generation."""
+
     @classmethod
     def setUpClass(cls):
-        """
+        """Constructor.
+
         Method that will be executed once for this test case class.
         It will execute before all tests methods.
 
+        Clears up the functional tests directory.
         """
         print(f"NPB - Functional Tests - {cls.__name__}")
 
@@ -27,7 +32,8 @@ class TestOSIRISREx(TestCase):
         cls.log = True
 
     def setUp(self):
-        """
+        """Setup Test.
+
         This method will be executed before each test function.
         """
         unittest.TestCase.setUp(self)
@@ -38,10 +44,10 @@ class TestOSIRISREx(TestCase):
             os.mkdir(dir)
 
         shutil.copytree("../data/kernels", "kernels")
-        # shutil.copytree('../data/maven', 'maven')
 
     def tearDown(self):
-        """
+        """Clean-up Test.
+
         This method will be executed after each test function.
         """
         unittest.TestCase.tearDown(self)
@@ -61,7 +67,7 @@ class TestOSIRISREx(TestCase):
         WARNING : -- orx_2016_v09.tm No vid explicit in kernel name: set to 1.0
         """
         config = "../config/orex.xml"
-        plan = "working/orex.plan"
+        # plan = "working/orex.plan"
         faucet = "staging"
 
         main(

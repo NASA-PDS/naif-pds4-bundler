@@ -83,6 +83,7 @@ class TestXML(TestCase):
         args.diff = ""
         args.silent = False
         args.verbose = True
+        args.debug = False
 
         setup = Setup(args, version)
 

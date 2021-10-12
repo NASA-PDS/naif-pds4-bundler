@@ -174,7 +174,6 @@ Preparing Kernel List File
 NPB Validation methods
 ======================
 
-bla bla bla
 
 Coverage Times Determination
 ============================
@@ -238,8 +237,11 @@ Bla bla bla
 Meta-kernels
 ============
 
-Bla bla bla
+The MK configuration includes indications of how the INSIGHT MK should
+be named, and even if the kernel is provided manually, NPB still checks
+the expected name and raises an error.
 
+See test case ``test_insight_mk_input``.
 
 PDS Information Model
 =====================

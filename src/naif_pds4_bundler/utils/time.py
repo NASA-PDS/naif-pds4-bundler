@@ -1,33 +1,4 @@
-#   -------------------------------------------------------------------------
-#   @author: Marc Costa Sitja (JPL)
-#
-#   THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE
-#   CALIFORNIA INSTITUTE OF TECHNOLOGY (CALTECH) UNDER A U.S.
-#   GOVERNMENT CONTRACT WITH THE NATIONAL AERONAUTICS AND SPACE
-#   ADMINISTRATION (NASA). THE SOFTWARE IS TECHNOLOGY AND SOFTWARE
-#   PUBLICLY AVAILABLE UNDER U.S. EXPORT LAWS AND IS PROVIDED "AS-IS"
-#   TO THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY
-#   WARRANTIES OF PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A
-#   PARTICULAR USE OR PURPOSE (AS SET FORTH IN UNITED STATES UCC
-#   SECTIONS 2312-2313) OR FOR ANY PURPOSE WHATSOEVER, FOR THE
-#   SOFTWARE AND RELATED MATERIALS, HOWEVER USED.
-#
-#   IN NO EVENT SHALL CALTECH, ITS JET PROPULSION LABORATORY, OR NASA
-#   BE LIABLE FOR ANY DAMAGES AND/OR COSTS, INCLUDING, BUT NOT
-#   LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF ANY KIND,
-#   INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST PROFITS,
-#   REGARDLESS OF WHETHER CALTECH, JPL, OR NASA BE ADVISED, HAVE
-#   REASON TO KNOW, OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-#
-#   RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF
-#   THE SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY
-#   CALTECH AND NASA FOR ALL THIRD-PARTY CLAIMS RESULTING FROM THE
-#   ACTIONS OF RECIPIENT IN THE USE OF THE SOFTWARE.
-#   -------------------------------------------------------------------------
-"""
-Time Functions
------------------
-"""
+"""Time Functions to support NPB Classes."""
 import calendar
 import datetime
 
@@ -35,8 +6,7 @@ import spiceypy
 
 
 def current_time(format="infomod2"):
-    """
-    Returns the current date and time in %Y-%m-%dT%H:%M:%S format.
+    """Returns the current date and time in ``%Y-%m-%dT%H:%M:%S`` format.
 
     :param format: Time format from configuration.
     :type format: string
@@ -55,8 +25,7 @@ def current_time(format="infomod2"):
 
 
 def current_date(date=False):
-    """
-    Returns the current date in %Y-%m-%d format.
+    """Returns the current date in ``%Y-%m-%d`` format.
 
     :return:
     :return: Current date
@@ -74,9 +43,10 @@ def current_date(date=False):
 
 
 def creation_time(format="infomod2"):
-    """
-    Returns the creation date and time in either maklabel or infomod2
-    %Y-%m-%dT%H:%M:%S.%f format.
+    """Returns the creation date and time.
+
+    The date is either in ``maklabel`` or ``infomod2``
+    ``%Y-%m-%dT%H:%M:%S.%f`` format.
 
     :param path: File path
 
@@ -94,9 +64,9 @@ def creation_time(format="infomod2"):
 
 
 def spk_coverage(path, main_name="", date_format="infomod2"):
-    """
-    Returns the coverage of a SPK file. The function assumes that the
-    appropriate kernels have already been loaded.
+    """Returns the coverage of a SPK file.
+
+    The function assumes that the appropriate kernels have already been loaded.
 
     :param path: File path
     :param main_id: Mission observer ID.
@@ -159,9 +129,9 @@ def spk_coverage(path, main_name="", date_format="infomod2"):
 
 
 def ck_coverage(path, date_format="infomod2"):
-    """
-    Returns the coverage of a CK file. The function assumes that the
-    appropriate kernels have already been loaded.
+    """Returns the coverage of a CK file.
+
+    The function assumes that the appropriate kernels have already been loaded.
 
     :param path: File path
     :param date_format: Date format, the default is the one
@@ -214,9 +184,9 @@ def ck_coverage(path, date_format="infomod2"):
 
 
 def pck_coverage(path, date_format="infomod2"):
-    """
-    Returns the coverage of a PCK file. The function assumes that the
-    appropriate kernels have already been loaded.
+    """Returns the coverage of a PCK file.
+
+    The function assumes that the appropriate kernels have already been loaded.
 
     :param path: File path
     :param date_format: Date format, the default is the one
@@ -231,15 +201,15 @@ def pck_coverage(path, date_format="infomod2"):
     :return: start and finish coverage
     :rtype: list of str
     """
-    MAXIV = 1000
-    WINSIZ = 2 * MAXIV
-    MAXOBJ = 1000
+    maxiv = 1000
+    winsiz = 2 * maxiv
+    maxobj = 1000
 
-    ids = spiceypy.support_types.SPICEINT_CELL(MAXOBJ)
+    ids = spiceypy.support_types.SPICEINT_CELL(maxobj)
 
     spiceypy.pckfrm(path, ids)
 
-    coverage = spiceypy.support_types.SPICEDOUBLE_CELL(WINSIZ)
+    coverage = spiceypy.support_types.SPICEDOUBLE_CELL(winsiz)
 
     start_points_list = list()
     end_points_list = list()
@@ -264,9 +234,10 @@ def pck_coverage(path, date_format="infomod2"):
 
 
 def dsk_coverage(path, date_format="infomod2"):
-    """
-    Returns the coverage of a DSK file. The function assumes that the
-    appropriate kernels (LSK) have already been loaded.
+    """Returns the coverage of a DSK file.
+
+    The function assumes that the appropriate kernels (LSK) have already been
+    loaded.
 
     This function is based on the DSKLBL ( Generate an MGSO or PDS DSK
     label file ) subroutinr that belongs to the MAKLABEL NAIF utility.
@@ -313,7 +284,7 @@ def dsk_coverage(path, date_format="infomod2"):
         currnt = dladsc
         try:
             (dladsc, found) = spiceypy.dlafns(handle, currnt)
-        except:
+        except BaseException:
             #
             # Close the DSK file
             #
@@ -328,7 +299,7 @@ def dsk_coverage(path, date_format="infomod2"):
 
 
 def et2date(beget, endet, date_format="infomod2", kernel_type="Text"):
-
+    """Convert ET (ephemeris time) to a Date Time string."""
     time_lenght = 62
 
     if date_format == "infomod2":
@@ -353,9 +324,8 @@ def et2date(beget, endet, date_format="infomod2", kernel_type="Text"):
     return [start_time_cal, stop_time_cal]
 
 
-def PDS3_label_gen_date(file):
-    """
-    Returns the creation date of a given PDS3 label.
+def pds3_label_gen_date(file):
+    """Returns the creation date of a given PDS3 label.
 
     :param path: File path
     :return: Creation date
@@ -373,7 +343,8 @@ def PDS3_label_gen_date(file):
 
 
 def get_years(start_time, stop_time):
-    """
+    """Get years contained in a time period.
+
     Returns the list of years contained in between the provided
     start time and the stop time.
 

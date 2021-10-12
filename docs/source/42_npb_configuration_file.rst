@@ -119,11 +119,11 @@ parameter.::
                      other ancillary data in the form of SPICE System kernel files for
                      the MAVEN spacecraft, its instruments, and targets.
                  </overview>
-                 <cognisant_persons>
+                 <cognisant_authority>
                      This archive bundle was produced by Boris Semenov, Planetary Data
                      System Navigation and Ancillary Information Facility Node, Jet
                      Propulsion Laboratory, Pasadena, California.
-                 </cognisant_persons>
+                 </cognisant_authority>
              </readme>
 
              <!-- Optional parameters -->
@@ -637,15 +637,15 @@ summary of the parameters:
    * - date_format
      - Product labels use different date and time formats. The values can
        be ``infomod2`` or ``maklabel``. More information is provided below.
-       The default parameter is ``maklabel``.
+       The default value is ``maklabel``.
      - No
    * - end_of_line
-     - The end of line character for products can either be ``<CRLF>`` or ``<LF>``.
-       The default is ``<CRLF>`` (for ``<CR><LF>``). NAIF recommends to use
+     - The end of line character for products can either be ``CRLF`` or ``LF``.
+       The default is ``CRLF`` (for ``<CR><LF>``). NAIF recommends to use
        ``<CRLF>`` when using PDS IM version prior to 1.14.0.0, The choice of
        this parameter affects the content of the SPICEDS file (section
        "File Formats".) More information is provided in
-       :ref:`source/32_step_2_npb_setup:SPICE Data Set Catalog File`
+       :ref:`source/32_step_2_npb_setup:SPICE Data Set Catalog File`.
      - No
 
 In addition to the NPB Configuration File, the SPICEDS file is the only
@@ -847,7 +847,7 @@ archived if you have any questions please contact the NAIF NPB developer.
 
 You can either specify a kernel name or a kernel name with a pattern
 (recommended). More information on kernel patterns is provided in
-:ref:`Kernel patterns`.
+:ref:`source/42_npb_configuration_file:Kernel patterns`.
 
 In the Configuration File, each entry must be specified by its kernel type,
 there can be multiple entries with the same kernel type. For INSIGHT for
@@ -1311,8 +1311,8 @@ elements of the meta-kernel section of the configuration file.
    * - coverage_kernels
      - You can specify a list of kernels with patterns that need to be included
        in the meta-kernel that will determine the coverage of the meta-kernel.
-       The coverage is required by the label and has more implications that
-       are described later in this document.
+       The meta-kernel that they apply to is specified via the ``mk`` attribute.
+       The coverage is required to generate the label.
      - No
    * - mk
      - This element provides the configuration elements necessary to
@@ -1458,7 +1458,7 @@ meta-kernel. Here's an example for INSIGHT: ::
 Final remarks
 """""""""""""
 
-Automated meta-kernel generation is not an easy; there is an
+Automated meta-kernel generation is not an easy task; there is an
 infinite number of combinations in which a meta-kernel can be organised. This is
 a problem for already existing archives that start using NPB and whose
 meta-kernel style does not match with the one provided by NPB, for such cases
@@ -1479,6 +1479,34 @@ as simple as: ::
     </meta-kernel>
 
 Provided that you generated the ``ladee_v01.tm`` meta-kernel manually.
+
+
+Coverage determination
+^^^^^^^^^^^^^^^^^^^^^^
+
+Whether if you generate the MKs automatically or provide them as inputs, NPB
+needs to know how to determine their coverage. In order to do so, you use the
+``<coverage_kernel>`` element by providing a list of kernel patterns
+and binding each of them to a MK pattern using an attribute for each
+entry. Note that the kernel pattern must match a kernel that is included in
+the MK. The specified kernel(s) will determine the coverage of the MK.
+What follows is a Mars 2020 configuration file extract example::
+
+        <coverage_kernels>
+            <pattern mk="m2020_v[0-9][0-9].tm">m2020_cruise_od138_v[0-9].bsp</pattern>
+            <pattern mk="m2020_v[0-9][0-9].tm">m2020_surf_rover_loc_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_v[0-9].bsp</pattern>
+        </coverage_kernels>
+
+With this configuration, if the release includes the ``m2020_v01.tm``
+MK, the coverage will be defined by the kernels included in the MK defined
+by the pattern such as: ``m2020_cruise_od138_v1.bsp`` and
+``m2020_surf_rover_loc_0001_0083_v1.bsp``.
+
+Please note that unless specified via configuration, the combined coverage
+of MKs for which kernels have been provided to determine the coverage will
+be used to determine the coverage of the SPICE Kernels and Miscellaneous
+Collections and the Bundle coverage. More details are provided in section
+:ref:`source/44_npb_implementation:Coverage Times Determination`.
 
 
 Orbit number file
@@ -1514,6 +1542,7 @@ Orbit number file section of the configuration file for MAVEN: ::
             <coverage>
                 <kernel cutoff="True">../data/kernels/spk/maven_orb_rec_210101_210401_v2.bsp</kernel>
             </coverage>
+            <author>NAIF, JPL</author>
         </orbnum>
     </orbit_number_file>
 
@@ -1536,6 +1565,7 @@ will have a number of elements to facilitate the generation of the ORBNUM label:
      - Provides the SPICE name (e.g., IAU_MARS) and the description (e.g.,
        "Mars body-fixed frame") for the reference frame that has been used to
        detect the orbit event.
+     - Yes
    * - header_start_line
      - Specifies the line where the ORBNUM file header starts (typically 1.)
      - Yes
@@ -1547,7 +1577,10 @@ will have a number of elements to facilitate the generation of the ORBNUM label:
      - Provides the element to determine the coverage of the ORBNUM file.
        This element is described in detail in the next subsection.
      - Yes
-
+   * - author
+     - Indicates the organisation that originally generated the ORBNUM file.
+       (e.g., "NAIF, JPL")
+     - Yes
 
 ORBNUM Coverage determination
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1605,8 +1638,8 @@ The coverage of an ORBNUM file can be determined in four different ways:
      This will generate a warning since most probably is not a correct result.
 
 
-Final Remarks
--------------
+Summary
+-------
 
 We hope that after all these explanations, the complete Configuration File that
 has been provided an example for MAVEN at the beginning of this chapter makes

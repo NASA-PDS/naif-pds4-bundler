@@ -82,10 +82,10 @@ class TestPlan(TestCase):
             "working/insight_release_07.kernel_list",
         )
 
-        main(config, plan, faucet, silent=True)
+        main(config, plan, faucet, silent=True, log=True)
 
         new_file = ""
-        with open("working/insight_release_08.plan", "r") as f:
+        with open("working/insight_release_01.plan", "r") as f:
             for line in f:
                 new_file += line
 

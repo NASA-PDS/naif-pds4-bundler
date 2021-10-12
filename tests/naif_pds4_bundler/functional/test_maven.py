@@ -1,3 +1,4 @@
+"""Functional Test Family for MAVEN Archive Generation."""
 import os
 import shutil
 import unittest
@@ -7,12 +8,16 @@ from naif_pds4_bundler.__main__ import main
 
 
 class TestMAVEN(TestCase):
+    """Functional Test Family Class for MAVEN Archive Generation."""
+
     @classmethod
     def setUpClass(cls):
-        """
+        """Constructor.
+
         Method that will be executed once for this test case class.
         It will execute before all tests methods.
 
+        Clears up the functional tests directory.
         """
         print(f"NPB - Functional Tests - {cls.__name__}")
 
@@ -27,7 +32,8 @@ class TestMAVEN(TestCase):
         cls.log = True
 
     def setUp(self):
-        """
+        """ Setup Test.
+
         This method will be executed before each test function.
         """
         unittest.TestCase.setUp(self)
@@ -41,7 +47,8 @@ class TestMAVEN(TestCase):
         shutil.copytree("../data/maven", "maven")
 
     def tearDown(self):
-        """
+        """Clean-up Test.
+
         This method will be executed after each test function.
         """
         unittest.TestCase.tearDown(self)

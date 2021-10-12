@@ -1,3 +1,7 @@
+"""Sicler Module to crop the coverage of SPICE Kernels.
+
+This Module is useful to generate data for NPB tests.
+"""
 import glob
 import os
 import shutil
@@ -16,15 +20,15 @@ def slice_kernels(
     timetype="UTC",
     log=False,
 ):
-    """
-    This script creates a new SPICE kernel data set cropped between two dates.
+    """Creates a new SPICE kernel data set cropped between two dates.
+
     The intended usage of this tool is to support the testing of
-    naif-pds4-bundle.
+    NPB.
 
-    Note that this tool requires the NAIF utilities CKSLICER and SPKMERGE
-    to be setup in the system and to be included in the PATH.
+    Note that this tool requires the NAIF utilities ``CKSLICER``
+    and ``SPKMERGE`` to be setup in the system and to be included in the PATH.
 
-    The tool is based on the 'SKD SLICER TOOL' by Ricardo Valles (ESS/ESAC)
+    The tool is based on the ``SKD SLICER TOOL``'`` by Ricardo Valles (ESS/ESAC)
 
     :param kernels_dir:
     :param out_kernels_dir:
@@ -50,7 +54,7 @@ def slice_kernels(
     # Check contents file by file
     for filename in skd_files:
 
-        if not "former_versions" in filename:
+        if "former_versions" not in filename:
             output_filename = filename.replace(kernels_dir, out_kernels_dir)
 
             if os.path.isdir(filename):
@@ -103,7 +107,7 @@ def ckslicer(
     naif_id=None,
     log=True,
 ):
-
+    """Slice CK files."""
     #
     # Check if ck_file exists and remove it
     #
@@ -160,7 +164,7 @@ def ckslicer(
 
 
 def spkmerge(lsk_file, input_spk, output_spk, start_time, stop_time, log=True):
-
+    """Slice SPK files."""
     #
     # Check if ck_file exists and remove it
     #

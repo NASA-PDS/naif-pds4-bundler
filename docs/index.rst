@@ -9,13 +9,12 @@ NAIF PDS4 Bundler Documentation
 .. toctree::
    :maxdepth: 4
 
-   :caption: Contents:
-
    source/10_overview
    source/20_spice_kernel_archive_description
    source/30_spice_kernel_archive_preparation_guide
    source/40_naif_pds4_bundler_user_guide
    source/50_api_docs
+   source/60_tests_docs
 
 Indices and tables
 ==================

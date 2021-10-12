@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-"""naif_pds4_bundle """
+"""NAIF PDS4 Bundle Namespace."""
 from ._version import get_versions
 
 __version__ = get_versions()["version"]

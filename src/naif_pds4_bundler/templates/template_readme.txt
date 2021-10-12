@@ -39,7 +39,7 @@ References
 Cognizant Persons
 =================
 
-$COGNISANT_PERSONS
+$COGNISANT_AUTHORITY
 
 
 End of $SPICE_NAME SPICE archive bundle readme.

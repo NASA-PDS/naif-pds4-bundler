@@ -76,8 +76,13 @@ class TestLabeling(TestCase):
 
         main(config, plan=False, faucet="labels", silent=True, log=self.log)
 
-        main(config, plan=False, clear='working/ladee_labels_01.file_list',
-             silent=True, log=self.log)
+        main(
+            config,
+            plan=False,
+            clear="working/ladee_labels_01.file_list",
+            silent=True,
+            log=self.log,
+        )
 
     def test_ladee_labeling_mode_ker_input(self):
         """Test Labeling mode functionality with single kernel as input.
@@ -99,20 +104,45 @@ class TestLabeling(TestCase):
 
         config = "../config/ladee.xml"
 
-        main(config, plan="kernels/ck/ladee_14030_14108_v04.bc", faucet="labels",
-             silent=True, log=self.log)
+        main(
+            config,
+            plan="kernels/ck/ladee_14030_14108_v04.bc",
+            faucet="labels",
+            silent=True,
+            log=self.log,
+        )
 
-        main(config, plan=False, clear='working/ladee_labels_01.file_list',
-             silent=True, log=self.log)
+        main(
+            config,
+            plan=False,
+            clear="working/ladee_labels_01.file_list",
+            silent=True,
+            log=self.log,
+        )
 
-        main(config, plan="ladee_14030_14108_v04.bc", faucet="labels",
-             silent=True, log=self.log)
+        main(
+            config,
+            plan="ladee_14030_14108_v04.bc",
+            faucet="labels",
+            silent=True,
+            log=self.log,
+        )
 
-        main(config, plan=False, clear='working/ladee_labels_01.file_list',
-             silent=True, log=self.log)
+        main(
+            config,
+            plan=False,
+            clear="working/ladee_labels_01.file_list",
+            silent=True,
+            log=self.log,
+        )
 
-        main(config, plan="ladee_14030_14108_v04.bsp", faucet="labels",
-             silent=True, log=self.log)
+        main(
+            config,
+            plan="ladee_14030_14108_v04.bsp",
+            faucet="labels",
+            silent=True,
+            log=self.log,
+        )
 
     def test_ladee_labeling_mode_plan_input(self):
         """Test basic Labeling mode functionality with a list as input.
@@ -135,19 +165,35 @@ class TestLabeling(TestCase):
         config = "../config/ladee.xml"
 
         with open("working/ladee_labels_01.plan", "w") as n:
-            n.write("ladee_14030_14108_v04.bc\n"
-                    "ladee_ldex_v01.ti\n"
-                    "ladee_uvs_v00.ti")
+            n.write(
+                "ladee_14030_14108_v04.bc\n" "ladee_ldex_v01.ti\n" "ladee_uvs_v00.ti"
+            )
 
-        main(config, plan="working/ladee_labels_01.plan", faucet="labels", silent=True, log=self.log)
+        main(
+            config,
+            plan="working/ladee_labels_01.plan",
+            faucet="labels",
+            silent=True,
+            log=self.log,
+        )
 
-        main(config, plan=False, clear='working/ladee_labels_01.file_list',
-             silent=True, log=self.log)
+        main(
+            config,
+            plan=False,
+            clear="working/ladee_labels_01.file_list",
+            silent=True,
+            log=self.log,
+        )
 
-        shutil.move("working/ladee_labels_01.plan",
-                    "working/ladee_labels_01.txt")
+        shutil.move("working/ladee_labels_01.plan", "working/ladee_labels_01.txt")
 
-        main(config, plan="working/ladee_labels_01.txt", faucet="labels", silent=True, log=self.log)
+        main(
+            config,
+            plan="working/ladee_labels_01.txt",
+            faucet="labels",
+            silent=True,
+            log=self.log,
+        )
 
     def test_ladee_labeling_mode_ker_bun_dir(self):
         """Test Labeling mode with same bundle and kernel directories.
@@ -175,23 +221,39 @@ class TestLabeling(TestCase):
             with open(updated_config, "w") as n:
                 for line in c:
                     if "<bundle_directory>ladee</bundle_directory>" in line:
-                        n.write(
-                            "<bundle_directory>kernels</bundle_directory>"
-                        )
+                        n.write("<bundle_directory>kernels</bundle_directory>")
                     else:
                         n.write(line)
 
-        main(updated_config, plan="ladee_14030_14108_v04.bc", faucet="labels", silent=True, log=self.log)
+        main(
+            updated_config,
+            plan="ladee_14030_14108_v04.bc",
+            faucet="labels",
+            silent=True,
+            log=self.log,
+        )
 
-        main(config, plan=False, clear='working/ladee_labels_01.file_list',
-             silent=True, log=self.log)
+        main(
+            config,
+            plan=False,
+            clear="working/ladee_labels_01.file_list",
+            silent=True,
+            log=self.log,
+        )
 
         with open("working/ladee_labels_01.plan", "w") as n:
-            n.write("ladee_14030_14108_v04.bc\n"
-                    "ladee_ldex_v01.ti\n"
-                    "ladee_uvs_v00.ti")
+            n.write(
+                "ladee_14030_14108_v04.bc\n" "ladee_ldex_v01.ti\n" "ladee_uvs_v00.ti"
+            )
 
-        main(updated_config, plan="working/ladee_labels_01.plan", faucet="labels", silent=True, log=self.log)
+        main(
+            updated_config,
+            plan="working/ladee_labels_01.plan",
+            faucet="labels",
+            silent=True,
+            log=self.log,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

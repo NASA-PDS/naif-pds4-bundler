@@ -1,3 +1,4 @@
+"""Bundle Class Implementation."""
 import filecmp
 import logging
 import os
@@ -13,21 +14,19 @@ from naif_pds4_bundler.utils import safe_make_directory
 
 
 class Bundle(object):
-    """
-    Class to generate the PDS4 Bundle structure. The class construction
-    will generate the top level directory structure as follows::
+    """Class to generate the PDS4 Bundle structure.
 
-      maven_spice/
-      |-- spice_kernels
-      |-- document
-      '-- miscellaneous
+    The class construction will generate the top level directory structure as
+    follows::
 
+         maven_spice/
+         |-- spice_kernels
+         |-- document
+         '-- miscellaneous
     """
 
     def __init__(self, setup):
-        """
-        Constructor.
-        """
+        """Constructor."""
         line = (
             f"Step {setup.step} - Bundle/data set structure generation "
             f"at staging area"
@@ -59,7 +58,7 @@ class Bundle(object):
 
         elif setup.pds_version == "4":
 
-            self.name = f"bundle_{setup.mission_acronym}" f"_spice_v{setup.release}.xml"
+            self.name = f"bundle_{setup.mission_acronym}_spice_v{setup.release}.xml"
 
             safe_make_directory(setup.staging_directory)
             safe_make_directory(setup.staging_directory + os.sep + "spice_kernels")
@@ -73,8 +72,8 @@ class Bundle(object):
             #
             # Assign the Bundle LID and VID and the Internal Reference LID
             #
-            self.vid = self.bundle_vid()
-            self.lid = self.bundle_lid()
+            self.set_bundle_vid()
+            self.set_bundle_lid()
 
             self.lid_reference = "{}:context:investigation:mission.{}".format(
                 ":".join(setup.logical_identifier.split(":")[0:-1]),
@@ -89,34 +88,26 @@ class Bundle(object):
             #
             # Generate the bundle history
             #
-            self.history = self.get_history()
+            self.history = self.get_history(self)
 
     def add(self, element):
+        """Add a Collection to the Bundle."""
         self.collections.append(element)
 
     def write_readme(self):
-        #
-        # Write the readme product if it does not exist.
-        #
+        """Write the readme product if it does not exist."""
         self.readme = ReadmeProduct(self.setup, self)
 
-        return None
+    def set_bundle_lid(self):
+        """Set the Bundle LID."""
+        self.lid = self.setup.logical_identifier
 
-    def bundle_vid(self):
-
-        return f"{int(self.setup.release)}.0"
-
-    def bundle_lid(self):
-
-        product_lid = self.setup.logical_identifier
-
-        return product_lid
+    def set_bundle_vid(self):
+        """Set the Bundle VID."""
+        self.vid = f"{int(self.setup.release)}.0"
 
     def files_in_staging(self):
-        """
-        This method lists all the files in the staging area.
-        :return:
-        """
+        """Lists all the files in the staging area."""
         line = f"Step {self.setup.step} - Recap files in staging area"
         logging.info("")
         logging.info(line)
@@ -130,22 +121,20 @@ class Bundle(object):
         # A list of the new files in the staging area is generated first.
         #
         new_files = []
-        for root, dirs, files in os.walk(self.setup.staging_directory, topdown=True):
+        for root, _dirs, files in os.walk(self.setup.staging_directory, topdown=True):
             for name in files:
                 new_files.append(os.path.join(root, name))
 
         self.new_files = new_files
 
-        logging.info(f"-- The following files are present in the staging area:")
+        logging.info("-- The following files are present in the staging area:")
         for file in new_files:
             relative_path = f"{os.sep}{self.setup.mission_acronym}_spice{os.sep}"
             logging.info(f"     {file.split(relative_path)[-1]}")
         logging.info("")
 
-        return None
-
     def copy_to_bundle(self):
-
+        """Copy files from ``staging_directory`` to the ``bundle_directory``."""
         line = f"Step {self.setup.step} - Copy files to the bundle area"
         logging.info("")
         logging.info(line)
@@ -165,8 +154,16 @@ class Bundle(object):
         copied_files = []
         for file in self.new_files:
             src = file
+
             relative_path = f"{os.sep}{self.setup.mission_acronym}_spice{os.sep}"
             relative_path += file.split(relative_path)[-1]
+
+            #
+            # If running in label mode, the bundle directory structure is not
+            # replicated.
+            #
+            if self.setup.faucet == "labels":
+                relative_path = relative_path.split("spice_kernels")[-1]
 
             dst = self.setup.bundle_directory + relative_path
 
@@ -230,7 +227,7 @@ class Bundle(object):
         #
         # List all files newer than 'x' days
         #
-        for root, dirs, files in os.walk(self.setup.bundle_directory):
+        for root, _dirs, files in os.walk(self.setup.bundle_directory):
             for name in files:
                 filename = os.path.join(root, name)
                 if os.stat(filename).st_mtime > now - (xdays * 86400):
@@ -247,14 +244,22 @@ class Bundle(object):
             logging.warning(line)
         logging.info("")
 
-        return None
+    def get_history(self, object):
+        """This method builds the "Archive History".
 
-    def get_history(object):
-        """
-        This method provides the history of the bundle.
-        :return:
-        """
+        The "Archive history" is obtained by extracting the
+        previous releases and the Collections that correspond to each release
+        from the Bundle labels. The other products' information is extracted
+        from the collection inventories.
 
+        The archive history is then provided as a dictionary with releases
+        as keys and each key contains a list of files for that release.
+
+        The method checks whether if there is any duplicated element.
+
+        :return: archive history
+        :rtype: dict
+        """
         #
         # Determine the number of previous releases.
         #
@@ -333,8 +338,8 @@ class Bundle(object):
                 + f"/{object.setup.mission_acronym}_spice/"
                 + bundle_label,
                 "r",
-            ) as l:
-                for line in l:
+            ) as lbl:
+                for line in lbl:
                     if ".spice:spice_kernels::" in line:
                         rel_ker_col_ver = int(
                             line.split(".spice:spice_kernels::")[-1].split(
@@ -371,7 +376,7 @@ class Bundle(object):
                 history[rel].append(ker_collection)
 
                 ker_collection_lbl = (
-                    f"spice_kernels/" f"collection_spice_kernels_v{ver:03d}.xml"
+                    f"spice_kernels/collection_spice_kernels_v{ver:03d}.xml"
                 )
                 history[rel].append(ker_collection_lbl)
 
@@ -383,7 +388,7 @@ class Bundle(object):
                 ) as c:
                     for line in c:
 
-                        if ("P" in line) and (not ":mk_" in line):
+                        if ("P" in line) and (":mk_" not in line):
                             product = (
                                 f"spice_kernels/"
                                 f'{line.split(":")[5].replace("_","/",1)}'
@@ -451,7 +456,7 @@ class Bundle(object):
                             "r",
                         ) as c:
                             for line in c:
-                                if ("P" in line) and (not ":checksum_" in line):
+                                if ("P" in line) and (":checksum_" not in line):
                                     product = (
                                         f"miscellaneous/"
                                         f'{line.split(":")[5].replace("_", "/", 1)}'
@@ -524,14 +529,26 @@ class Bundle(object):
         return history
 
     def validate_history(self):
-        """
-        Validate the bundle updated history with the checksum files.
-        In parallel writes in the log the complete bundle release history.
-        :return:
+        """Validate the bundle updated history with the checksum files.
+
+        This method validates all the archive Checksum files with the "Archive
+        History". The "Archive history" is obtained by extracting the
+        previous releases and the Collections that correspond to each release
+        from the Bundle labels. The other products' information is extracted
+        from the collection inventories.
+
+        The archive history is then provided as a dictionary with releases
+        as keys and each key contains a list of files for that release.
+
+        The validation is performed by comparing each release entry of the4
+        dictionary with the release checksum file ``checksum_v???.tab``.
+
+        In parallel the method writes in the log the complete bundle release
+        4history.
         """
         logging.info("")
         line = (
-            f"Step {self.setup.step} - Validate bundle history with checksum " f"files"
+            f"Step {self.setup.step} - Validate bundle history with checksum files"
         )
         logging.info("")
         logging.info(line)
@@ -544,7 +561,7 @@ class Bundle(object):
         logging.info("-- Display the list of files that belong to each " "release.")
         logging.info("")
 
-        history = self.get_history()
+        history = self.get_history(self)
         history_sting = pprint.pformat(history, indent=2)
         for line in history_sting.split("\n"):
             logging.info(f"    {line}")

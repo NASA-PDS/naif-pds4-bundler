@@ -386,16 +386,17 @@ class TestOrbnum(TestCase):
                 orbnum_config += (
                     f"<orbnum>\n"
                     f"    <pattern>{file}</pattern>\n"
-                    "    <event_detection_frame>\n"
-                    "        <spice_name>IAU_MARS</spice_name>\n"
-                    "        <description>Mars body-fixed frame</description>\n"
-                    "    </event_detection_frame>\n"
-                    "    <header_start_line>1</header_start_line >\n"
-                    "    <pck>\n"
-                    "        <kernel_name>pck0010.tpc</kernel_name>\n"
-                    "        <description>IAU 2009 report</description>\n"
-                    "    </pck>\n"
-                    "</orbnum>\n"
+                     "    <event_detection_frame>\n"
+                     "        <spice_name>IAU_MARS</spice_name>\n"
+                     "        <description>Mars body-fixed frame</description>\n"
+                     "    </event_detection_frame>\n"
+                     "    <header_start_line>1</header_start_line >\n"
+                     "    <pck>\n"
+                     "        <kernel_name>pck0010.tpc</kernel_name>\n"
+                     "        <description>IAU 2009 report</description>\n"
+                     "    </pck>\n"
+                     "    <author>NAIF, JPL</author>\n"
+                     "</orbnum>\n"
                 )
 
         with open(config, "r") as c:

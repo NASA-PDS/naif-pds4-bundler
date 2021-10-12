@@ -1,3 +1,4 @@
+"""Log Class Implementation."""
 import datetime
 import logging
 import os
@@ -9,17 +10,14 @@ import spiceypy
 
 
 class Log(object):
-    """Class that parses and processes the NPB XML configuration file
-    and makes it available to all other classes.
+    """Log class to write and output NPB's log.
 
     :param args: Parameters arguments from NDT's main function.
     :param version: NDT version.
     """
 
     def __init__(self, setup, args):
-        """
-        Constructor method.
-        """
+        """Constructor."""
         self.setup = setup
         self.args = args
 
@@ -49,7 +47,7 @@ class Log(object):
             log_file = (
                 setup.working_directory
                 + os.sep
-                + f"{setup.mission_acronym}_release_temp.log"
+                + f"{setup.mission_acronym}_{setup.run_type}_temp.log"
             )
 
             if os.path.exists(log_file):
@@ -65,12 +63,9 @@ class Log(object):
             self.log_file = ""
 
     def start(self):
-        """
-
-        :return:
-        """
+        """Start the genertion of the log for the execution."""
         start_message = (
-            f"naif-pds4-bundle-{self.setup.version} for " f"{self.setup.mission_name}"
+            f"naif-pds4-bundle-{self.setup.version} for {self.setup.mission_name}"
         )
         exec_message = (
             "-- Executed on "
@@ -114,14 +109,16 @@ class Log(object):
 
         logging.info("")
 
+        if self.args.faucet == "labels":
+            logging.info("-- Running in labeling mode. Only label products are "
+                         "generated.")
+
+        logging.info("")
         return
 
     def stop(self):
-        """
-
-        :return:
-        """
-        stop_message = f"Execution finished at " f"{str(datetime.datetime.now())[:-7]}"
+        """Write log, file list, and checksum registry files when NPB stops."""
+        stop_message = f"Execution finished at {str(datetime.datetime.now())[:-7]}"
         logging.info("")
         logging.info(stop_message)
         logging.info("")
@@ -154,9 +151,9 @@ class Log(object):
 
 
 def error_message(message, setup=False):
-    """
+    """Function to signal a NPB error message.
 
-    :param message:
+    The File List and Checksum Registry files are also written.
     """
     error = f"{message}."
     logging.error(f"-- {message}.")

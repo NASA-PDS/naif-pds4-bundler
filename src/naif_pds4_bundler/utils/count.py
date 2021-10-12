@@ -1,7 +1,9 @@
+"""Count Module, used to count lines of code."""
 import os
 
 
 def countlines(start, lines=0, header=True, begin_start=None):
+    """Counts lines of code for thhe files under the indicated path."""
     if header:
         print("{:>10} |{:>10} | {:<20}".format("ADDED", "TOTAL", "FILE"))
         print("{:->11}|{:->11}|{:->20}".format("", "", ""))
@@ -39,9 +41,9 @@ if __name__ == "__main__":
     #
     # Pipeline lines.
     #
-    countlines(r"../../naif_pds4_bundle")
+    countlines(r"../../naif_pds4_bundler")
 
     #
     # Test code lines.
     #
-    countlines(r"../../../tests/naif_pds4_bundle")
+    countlines(r"../../../tests/naif_pds4_bundler")

@@ -7,8 +7,7 @@ from naif_pds4_bundler.__main__ import main
 
 
 class TestClear(TestCase):
-    """
-    Test Family for INSIGHT archive generation.
+    """Test Family for previous exectucion clear.
     """
 
     @classmethod
@@ -94,7 +93,7 @@ class TestClear(TestCase):
         main(config, plan, faucet, silent=self.silent, log=self.log)
 
         #
-        # Remove the files from the pior run and run the pipeline again.
+        # Remove the files from the prior run and run the pipeline again.
         #
         main(
             config,

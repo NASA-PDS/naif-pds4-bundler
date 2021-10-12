@@ -861,3 +861,11 @@ do so, NPB will take as inputs all the kernel files that it finds in the
 kernels directory(ies) and will generate a release plan for you. This option is
 useful when the kernel directory(ies) are generated ad-hoc for each release
 or for first releases of small archives.
+
+
+Label generation only
+^^^^^^^^^^^^^^^^^^^^^
+
+If the ``-x --xml`` argument is used"
+            "this argument can be the name of a kernel or the path"
+            "to a release plan file (ORBNUM files will be ignored.)"

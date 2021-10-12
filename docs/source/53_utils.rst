@@ -12,7 +12,7 @@ file and string modification and general utility processing.
 The following table provides an overview of the text and string manipulation
 functions existing in this module:
 
-.. py:currentmodule:: naif_pds4_bundle.utils
+.. py:currentmodule:: naif_pds4_bundler.utils.files
 
 .. autosummary::
    :nosignatures:
@@ -38,23 +38,6 @@ functions existing in this module:
        checksum_from_label
        extract_comment
 
-The following table provides an overview of the time manipulation functions
-existing in this module:
-
-.. autosummary::
-   :nosignatures:
-
-       current_time
-       current_date
-       creation_time
-       spk_coverage
-       ck_coverage
-       pck_coverage
-       dsk_coverage
-       et2date
-       PDS3_label_gen_date
-       get_years
-
 
 etree_to_dict
 -------------
@@ -73,7 +56,7 @@ copy
 
 safe_make_director
 ------------------
-.. autofunction:: safe_make_director
+.. autofunction:: safe_make_directory
 
 
 extension2type
@@ -88,7 +71,7 @@ type2extension
 
 add_carriage_return
 -------------------
-.. autofunction:: add_carriage_retur
+.. autofunction:: add_carriage_return
 
 
 add_crs_to_file
@@ -107,6 +90,7 @@ fill_template
 
 
 get_context_products
+--------------------
 .. autofunction:: get_context_products
 
 
@@ -155,6 +139,26 @@ extract_comment
 .. autofunction:: extract_comment
 
 
+The following table provides an overview of the time manipulation functions
+existing in this module:
+
+.. py:currentmodule:: naif_pds4_bundler.utils.time
+
+.. autosummary::
+   :nosignatures:
+
+       current_time
+       current_date
+       creation_time
+       spk_coverage
+       ck_coverage
+       pck_coverage
+       dsk_coverage
+       et2date
+       PDS3_label_gen_date
+       get_years
+
+
 current_time
 ------------
 .. autofunction:: current_time
@@ -168,11 +172,6 @@ current_date
 creation_time
 -------------
 .. autofunction:: creation_time
-
-
-creation_date
--------------
-.. autofunction:: creation_date
 
 
 spk_coverage

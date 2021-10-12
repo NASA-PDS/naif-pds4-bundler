@@ -1,3 +1,4 @@
+"""Functional Test Family for DART Archive Generation."""
 import os
 import shutil
 import unittest
@@ -7,16 +8,16 @@ from naif_pds4_bundler.__main__ import main
 
 
 class TestDART(TestCase):
-    """
-    Test Family for DART archive generation.
-    """
+    """Functional Test Family Class for DART Archive Generation."""
 
     @classmethod
     def setUpClass(cls):
-        """
+        """Constructor.
+
         Method that will be executed once for this test case class.
         It will execute before all tests methods.
 
+        Clears up the functional tests directory.
         """
         print(f"NPB - Functional Tests - {cls.__name__}")
 
@@ -28,7 +29,8 @@ class TestDART(TestCase):
         cls.log = True
 
     def setUp(self):
-        """
+        """Setup Test.
+
         This method will be executed before each test function.
         """
         unittest.TestCase.setUp(self)
@@ -37,7 +39,8 @@ class TestDART(TestCase):
         os.chdir(os.path.dirname(__file__))
 
     def tearDown(self):
-        """
+        """Clean-up Test.
+
         This method will be executed after each test function.
         """
         unittest.TestCase.tearDown(self)
@@ -50,10 +53,13 @@ class TestDART(TestCase):
             os.remove("staging")
 
     def test_dart_multiple_obs_tar(self):
-        """
-        Test complete pipeline with basic Insight data to test the generation
-        of labels with multiple observers and targets.
+        """Test Archive with multiple Observers and Targets.
 
+        This test is designed to test the implementation of multiple observers
+        and targets in a SPICE Kernel Archive. DART has two observers and two
+        targets with kernels using different combinations.
+
+        Test is successful if NPB is executed without errors.
         """
         config = "../config/dart.xml"
 

@@ -5,38 +5,6 @@ Work List:
 
   URGENT:
 
-
-
-  -- Update the coverage determination of MK PER kernel and put a parameter
-     to determine whether the MK determines the coverage of the collection
-     or not. Needs a bit of thought, this is an example:
-
-    <!-- =========================== -->
-    <!-- Meta-kernel                 -->
-    <!-- =========================== -->
-    <meta-kernel>
-        <mk_inputs>
-            <file>kernels/mk/m2020_v01.tm</file>
-            <file>kernels/mk/m2020_chronos_v01.tm</file>
-        </mk_inputs>
-        <mk name="m2020_v$VERSION.tm">
-            <name>
-                <pattern length="2">VERSION</pattern>
-            </name>
-            <coverage_kernels collection="True">
-                <pattern>m2020_cruise_od138_v[0-9].bsp</pattern>
-                <pattern>m2020_surf_rover_loc_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_v[0-9].bsp</pattern>
-            </coverage_kernels>
-        </mk>
-        <mk name="m2020_chronos_v$VERSION.tm">
-            <name>
-                <pattern length="2">VERSION</pattern>
-            </name>
-            <coverage_kernels collection="False">
-            </coverage_kernels>
-        </mk>
-    </meta-kernel>
-
   -- Include option to provide plan with kernel names to be mapped or to
      provide kernels from directory with original names.
 
@@ -45,8 +13,10 @@ Work List:
 
      Tests implemented here: test_pds4_orex_list
 
-
   -- Possibility to use the pipeline to generate misc collection only? (for JAXA.)
+
+  -- Possibility to use the pipeline to only generate kernel labels based on
+     list, or on a kernel.
 
 
   LATER:
@@ -95,8 +65,6 @@ Work List:
       * 2001 Mars Odyssey SPICE Kernels V1.0: 10.17189/1520115
         Stardust SPICE Kernels V1.0: 10.17189/1520106
         Viking Orbiter 1 and 2 SPICE Kernels V1.0: 10.17189/1520112
-
-    -- Generation of labels only.
 
     -- Implement a smart comparison of spiceds files in such way
        that a warning is provided if something looks fishy (type of file
@@ -241,5 +209,12 @@ v0.12.0
   -- Implement run log file with checksums and the option to obtain checksums
      from this file (rather than from the labels in staging from a previous
      run).
+
+v0.13.0
+
+  -- Update the coverage determination of MK PER kernel and put a parameter
+     to determine whether the MK determines the coverage of the collection
+     or not.
+
 
 v1.0.0 - First 'public' release.

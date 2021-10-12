@@ -1,3 +1,4 @@
+"""PDS Label Class and Child Classes Implementation."""
 import fileinput
 import glob
 import logging
@@ -6,21 +7,19 @@ import os
 from naif_pds4_bundler.classes.log import error_message
 from naif_pds4_bundler.utils import add_carriage_return
 from naif_pds4_bundler.utils import compare_files
-from naif_pds4_bundler.utils import current_time
 from naif_pds4_bundler.utils import extension2type
-
-# from npb.utils.files import get_observers
-# from npb.utils.files import get_targets
 
 
 class PDSLabel(object):
-    def __init__(self, setup, product):
+    """Class to generate a PDS Label."""
 
+    def __init__(self, setup, product):
+        """Constructor."""
         try:
             context_products = product.collection.bundle.context_products
             if not context_products:
-                raise Exception("No context products from bundle in " "collection")
-        except:
+                raise Exception("No context products from bundle in collection")
+        except BaseException:
             context_products = product.bundle.context_products
 
         #
@@ -68,7 +67,7 @@ class PDSLabel(object):
 
         try:
             self.PDS4_MISSION_LID = product.collection.bundle.lid_reference
-        except:
+        except BaseException:
             self.PDS4_MISSION_LID = product.bundle.lid_reference
 
         #
@@ -115,7 +114,7 @@ class PDSLabel(object):
         self.TARGETS = self.__get_targets()
 
     def __get_observers(self):
-
+        """Get the label observers from the context products."""
         obs = self.observers
         if not isinstance(obs, list):
             obs = [obs]
@@ -124,7 +123,7 @@ class PDSLabel(object):
 
         try:
             context_products = self.product.collection.bundle.context_products
-        except:
+        except BaseException:
             context_products = self.product.bundle.context_products
 
         eol = self.setup.eol_pds4
@@ -142,7 +141,7 @@ class PDSLabel(object):
 
                 if not ob_lid:
                     error_message(
-                        f"LID has not been obtained for observer " f"{ob}",
+                        f"LID has not been obtained for observer {ob}",
                         setup=self.setup,
                     )
 
@@ -168,7 +167,7 @@ class PDSLabel(object):
         return obs_list_for_label
 
     def __get_targets(self):
-
+        """Get the label targets from the context products."""
         tars = self.targets
         if not isinstance(tars, list):
             tars = [tars]
@@ -177,14 +176,13 @@ class PDSLabel(object):
 
         try:
             context_products = self.product.collection.bundle.context_products
-        except:
+        except BaseException:
             context_products = self.product.bundle.context_products
 
         eol = self.setup.eol_pds4
 
         for tar in tars:
             if tar:
-
                 target_name = tar
                 for product in context_products:
                     if product["name"][0].upper() == target_name.upper():
@@ -198,7 +196,7 @@ class PDSLabel(object):
                     + f"      <Internal_Reference>{eol}"
                     + f"        <lid_reference>{target_lid}"
                     f"</lid_reference>{eol}" + f"        <reference_type>"
-                    f"{self.get_target_reference_type()}"
+                    f"{self.__get_target_reference_type()}"
                     f"</reference_type>{eol}"
                     + f"      </Internal_Reference>{eol}"
                     + f"    </Target_Identification>{eol}"
@@ -210,22 +208,26 @@ class PDSLabel(object):
 
         return tar_list_for_label
 
-    def get_target_reference_type(self):
-
-        if self.product.collection.name == "miscellaneous":
+    def __get_target_reference_type(self):
+        """Get the target reference type."""
+        if self.__class__.__name__ == "ChecksumPDS4Label":
             type = "ancillary_to_target"
+        elif self.__class__.__name__ == "BundlePDS4Label":
+            type = "bundle_to_target"
+        elif self.__class__.__name__ == "InventoryPDS4Label":
+            type = "collection_to_target"
         else:
             type = "data_to_target"
 
         return type
 
     def write_label(self):
-
+        """Write the Label."""
         label_dictionary = vars(self)
 
         label_extension = ".xml"
 
-        if not ".xml" in self.product.path:
+        if ".xml" not in self.product.path:
             label_name = (
                 self.product.path.split(f".{self.product.extension}")[0]
                 + label_extension
@@ -265,26 +267,22 @@ class PDSLabel(object):
         self.setup.add_file(label_name.split(f"{stag_dir}{os.sep}")[-1])
 
         if self.setup.diff:
-            self.compare()
+            self.__compare()
 
         logging.info("")
 
         return
 
-    def write_pds3_labels(self):
+    def __compare(self):
+        """Compare the Label with another label.
 
-        return None
-
-    def compare(self):
-        """
         The label is compared to a similar label from the previous release
         of the archive.
 
         For new archives a 'similar' archive is used.
         :return:
         """
-
-        logging.info(f"-- Comparing label...")
+        logging.info("-- Comparing label...")
 
         #
         # 1-Look for a different version of the same file.
@@ -325,7 +323,7 @@ class PDSLabel(object):
             while match_flag:
                 if i < len(val_label_name) - 1:
                     val_labels = glob.glob(
-                        f"{val_label_path}{val_label_name[0:i]}" f"*.xml"
+                        f"{val_label_path}{val_label_name[0:i]}*.xml"
                     )
                     if val_labels:
                         val_labels = sorted(val_labels)
@@ -338,9 +336,9 @@ class PDSLabel(object):
             if not val_label:
                 raise Exception("No label for comparison found.")
 
-        except:
+        except BaseException:
             logging.warning(
-                f"-- No other version of the product label has " f"been found."
+                "-- No other version of the product label has been found."
             )
 
             #
@@ -369,7 +367,7 @@ class PDSLabel(object):
                     val_label_path += self.name.split(os.sep)[-2] + os.sep
 
                 product_extension = self.product.name.split(".")[-1]
-                val_products = glob.glob(f"{val_label_path}*." f"{product_extension}")
+                val_products = glob.glob(f"{val_label_path}*.{product_extension}")
                 val_products.sort()
 
                 #
@@ -390,9 +388,9 @@ class PDSLabel(object):
                 if not val_label:
                     raise Exception("No label for comparison found.")
 
-            except:
+            except BaseException:
 
-                logging.warning(f"-- No similar label has been found.")
+                logging.warning("-- No similar label has been found.")
                 #
                 # 3-If we cannot find a kernel of the same type; for example
                 #   is a first version of an archive, we compare with
@@ -444,7 +442,7 @@ class PDSLabel(object):
                         raise Exception("No label for comparison found.")
 
                     logging.warning("-- Comparing with InSight test label.")
-                except:
+                except BaseException:
                     logging.warning("-- No label for comparison found.")
 
         #
@@ -464,8 +462,10 @@ class PDSLabel(object):
 
 
 class BundlePDS4Label(PDSLabel):
-    def __init__(self, setup, readme):
+    """PDS Label child class to generate a PDS4 Bunflr Label."""
 
+    def __init__(self, setup, readme):
+        """Constructor."""
         PDSLabel.__init__(self, setup, readme)
 
         self.template = f"{setup.templates_directory}/template_bundle.xml"
@@ -486,6 +486,7 @@ class BundlePDS4Label(PDSLabel):
         # There might be more than one miscellaneous collection added in
         # an increment (especially if it is the first time that the collection
         # is generated and there have beeen previous releases.)
+        #
         for collection in self.product.bundle.collections:
             if collection.name == "spice_kernels":
                 self.COLL_NAME = "spice_kernel"
@@ -526,15 +527,19 @@ class BundlePDS4Label(PDSLabel):
         return
 
     def get_target_reference_type(self):
+        """Get target reference type."""
         return "bundle_to_target"
 
 
 class SpiceKernelPDS4Label(PDSLabel):
+    """PDS Label child class to generate a non-MK PDS4 SPICE Kernel Label."""
+
     def __init__(self, mission, product):
+        """Constructor."""
         PDSLabel.__init__(self, mission, product)
 
         self.template = (
-            f"{self.setup.templates_directory}/" f"template_product_spice_kernel.xml"
+            f"{self.setup.templates_directory}/template_product_spice_kernel.xml"
         )
 
         #
@@ -556,11 +561,14 @@ class SpiceKernelPDS4Label(PDSLabel):
 
 
 class MetaKernelPDS4Label(PDSLabel):
+    """PDS Label child class to generate a PDS4 SPICE Kernel MK Label."""
+
     def __init__(self, setup, product):
+        """Constructor."""
         PDSLabel.__init__(self, setup, product)
 
         self.template = (
-            f"{setup.templates_directory}/" f"template_product_spice_kernel_mk.xml"
+            f"{setup.templates_directory}/template_product_spice_kernel_mk.xml"
         )
 
         #
@@ -582,7 +590,7 @@ class MetaKernelPDS4Label(PDSLabel):
         self.write_label()
 
     def get_kernel_internal_references(self):
-
+        """Get the MK label internal references."""
         eol = self.setup.eol_pds4
 
         #
@@ -611,11 +619,14 @@ class MetaKernelPDS4Label(PDSLabel):
 
 
 class OrbnumFilePDS4Label(PDSLabel):
+    """PDS Label child class to generate a PDS4 Orbit Number File Label."""
+
     def __init__(self, setup, product):
+        """Constructor."""
         PDSLabel.__init__(self, setup, product)
 
         self.template = (
-            f"{setup.templates_directory}/" f"template_product_orbnum_table.xml"
+            f"{setup.templates_directory}/template_product_orbnum_table.xml"
         )
 
         #
@@ -635,7 +646,6 @@ class OrbnumFilePDS4Label(PDSLabel):
         # The orbnum table data starts one byte after the header section.
         #
         self.TABLE_OFFSET = str(product.header_length + 1)
-
         self.TABLE_RECORDS = str(product.records)
 
         #
@@ -655,7 +665,7 @@ class OrbnumFilePDS4Label(PDSLabel):
         self.write_label()
 
     def __get_table_character_fields(self):
-
+        """Get the Table Character fields."""
         fields = ""
         for param in self.product.params.values():
             field = self.__field_template(
@@ -674,7 +684,7 @@ class OrbnumFilePDS4Label(PDSLabel):
         return fields
 
     def __get_table_character_description(self):
-
+        """Get The description of the Table Character."""
         description = (
             f"{self.setup.eol_pds4}      <description>"
             f"{self.product.table_char_description}"
@@ -686,7 +696,19 @@ class OrbnumFilePDS4Label(PDSLabel):
     def __field_template(
         self, name, number, location, type, length, format, description, unit, blanks
     ):
+        """Provide the entire Field for a given parameter.
 
+        :param name:
+        :param number:
+        :param location:
+        :param type:
+        :param length:
+        :param format:
+        :param description:
+        :param unit:
+        :param blanks:
+        :return:
+        """
         eol = self.setup.eol_pds4
 
         field = (
@@ -716,12 +738,15 @@ class OrbnumFilePDS4Label(PDSLabel):
 
 
 class InventoryPDS4Label(PDSLabel):
+    """PDS Label child class to generate a PDS4 Collection Inventory Label."""
+
     def __init__(self, setup, collection, inventory):
+        """Constructor."""
         PDSLabel.__init__(self, setup, inventory)
 
         self.collection = collection
         self.template = (
-            f"{setup.templates_directory}/" f"template_collection_{collection.type}.xml"
+            f"{setup.templates_directory}/template_collection_{collection.type}.xml"
         )
 
         self.COLLECTION_LID = self.collection.lid
@@ -759,89 +784,32 @@ class InventoryPDS4Label(PDSLabel):
 
         self.FILE_NAME = inventory.name
 
+        #
         # Count number of lines in the inventory file
+        #
         f = open(self.product.path)
         self.N_RECORDS = str(len(f.readlines()))
         f.close()
 
         self.name = collection.name.split(".")[0] + ".xml"
-
         self.write_label()
 
     def get_target_reference_type(self):
+        """Get target reference type."""
         return "collection_to_target"
 
 
-class InventoryPDS3Label(PDSLabel):
-    def __init__(self, setup, collection, inventory):
-
-        PDSLabel.__init__(self, setup, inventory)
-
-        self.collection = collection
-        self.template = self.root_dir + "/templates/template_collection_{}.LBL".format(
-            collection.type
-        )
-
-        self.VOLUME = setup.volume
-        self.PRODUCT_CREATION_TIME = current_time(setup.date_format)
-        self.DATASET = setup.dataset
-
-        indexfile = open(setup.bundle_directory + "/INDEX/INDEX.TAB", "r").readlines()
-        self.N_RECORDS = str(len(indexfile))
-        self.R_RECORDS = str(len(indexfile[0]) + 1)
-        indexfields = indexfile[0].replace('"', "").split(",")
-        self.START_BYTE1 = str(2)
-        self.START_BYTE2 = str(2 + len(indexfields[0]) + 3)
-        self.START_BYTE3 = str(2 + len(indexfields[0]) + 3 + len(indexfields[1]) + 2)
-        self.START_BYTE4 = str(
-            2
-            + len(indexfields[0])
-            + 3
-            + len(indexfields[1])
-            + 2
-            + len(indexfields[2])
-            + 2
-        )
-        self.BYTES1 = str(len(indexfields[0]))
-        self.BYTES2 = str(len(indexfields[1]))
-        self.BYTES3 = str(len(indexfields[2]))
-        self.BYTES4 = str(len(indexfields[3].split("\n")[0]))
-
-        self.write_label()
-
-    def write_label(self):
-
-        label_dictionary = vars(self)
-
-        with open(self.setup.bundle_directory + "/INDEX/INDEX.LBL", "w+") as f:
-
-            for line in fileinput.input(self.template):
-                line = line.rstrip()
-                for key, value in label_dictionary.items():
-                    if isinstance(value, str) and key in line and "$" in line:
-                        line = line.replace("$" + key, value)
-
-                line = add_carriage_return(line, self.setup.eol_pds4, self.setup)
-
-                if "END_OBJECT" in line and line[:10] != "END_OBJECT":
-                    f.write(line.split("END_OBJECT")[0])
-                    f.write("END_OBJECT               = COLUMN\n")
-                else:
-                    f.write(line)
-
-        self.name = "INDEX.LBL"
-
-        return
-
-
 class DocumentPDS4Label(PDSLabel):
+    """PDS Label child class to generate a PDS4 Docuemnt Label."""
+
     def __init__(self, setup, collection, inventory):
+        """Constructor."""
         PDSLabel.__init__(self, setup, inventory)
 
         self.setup = setup
         self.collection = collection
         self.template = (
-            f"{setup.templates_directory}/" f"template_product_html_document.xml"
+            f"{setup.templates_directory}/template_product_html_document.xml"
         )
 
         self.PRODUCT_LID = inventory.lid
@@ -856,11 +824,14 @@ class DocumentPDS4Label(PDSLabel):
 
 
 class ChecksumPDS4Label(PDSLabel):
+    """PDS Label child class to generate a PDS4 Checksum Label."""
+
     def __init__(self, setup, product):
+        """Constructor."""
         PDSLabel.__init__(self, setup, product)
 
         self.template = (
-            f"{setup.templates_directory}/" f"template_product_checksum_table.xml"
+            f"{setup.templates_directory}/template_product_checksum_table.xml"
         )
 
         self.FILE_NAME = product.name
@@ -869,7 +840,6 @@ class ChecksumPDS4Label(PDSLabel):
         self.FILE_FORMAT = "Character"
         self.START_TIME = self.product.start_time
         self.STOP_TIME = self.product.stop_time
-
         self.name = product.name.split(".")[0] + ".xml"
 
         self.write_label()

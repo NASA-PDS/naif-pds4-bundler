@@ -51,11 +51,11 @@
                 other ancillary data in the form of SPICE System kernel files for
                 the DART and LICIA spacecrafts, their instruments, and targets.
             </overview>
-            <cognisant_persons>
+            <cognisant_authority>
                 This archive bundle was produced by the Planetary Data System (PDS)
                 Navigation and Ancillary Information Facility (NAIF) Node, Jet
                 Propulsion Laboratory, Pasadena, California.
-            </cognisant_persons>
+            </cognisant_authority>
         </readme>
 
         <!-- Optional Parameters -->
@@ -307,7 +307,7 @@
             <file>kernels/mk/dart_v01.tm</file>
         </mk_inputs>
         <coverage_kernels>
-            <pattern>dart_[0-6]{6}_[0-6]{6}_v[0-6]{2}.bsp</pattern>
+            <pattern mk="dart_v[0-9][0-9].tm">dart_[0-6]{6}_[0-6]{6}_v[0-6]{2}.bsp</pattern>
         </coverage_kernels>
     </meta-kernel>
 </naif-pds4-bundler_configuration>

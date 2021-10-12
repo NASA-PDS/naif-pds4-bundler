@@ -1,3 +1,4 @@
+"""Product Class and Child Classes Implementation."""
 import datetime
 import difflib
 import filecmp
@@ -43,15 +44,13 @@ from naif_pds4_bundler.utils import utf8len
 
 
 class Product(object):
-    """
-    Parent Class that defines a generic archive product.
-    """
+    """Parent Class that defines a generic archive product (or file)."""
 
     def __init__(self):
-        """
-        Constructor method. Assigns values to the common attributes for
-        all Products: file size, creation time and date, and file
-        extension.
+        """Constructor.
+
+        Assigns values to the common attributes for all Products: file size,
+        creation time and date, and file extension.
         """
         stat_info = os.stat(self.path)
         self.size = str(stat_info.st_size)
@@ -86,8 +85,8 @@ class Product(object):
             )
 
     def get_observer_and_target(self):
-        """
-        Read the configuration to extract the observers and the targets.
+        """Read the configuration to extract the observers and the targets.
+
         :return: observers and targets
         :rtype: tuple
         """
@@ -143,8 +142,7 @@ class Product(object):
 
 
 class SpiceKernelProduct(Product):
-    """
-    Product child Class that defines a SPICE Kernel file archive product.
+    """Product child Class that defines a SPICE Kernel file archive product.
 
     :param setup: NPB run Setup Object
     :type setup: Object
@@ -156,9 +154,7 @@ class SpiceKernelProduct(Product):
     """
 
     def __init__(self, setup, name, collection):
-        """
-        Constructor method.
-        """
+        """Constructor."""
         self.collection = collection
         self.setup = setup
         self.name = name
@@ -208,7 +204,7 @@ class SpiceKernelProduct(Product):
 
                     shutil.copy2(origin_path, product_path + os.sep + self.name)
                     self.new_product = True
-                except:
+                except BaseException:
                     try:
                         file = [
                             os.path.join(root, ker)
@@ -225,11 +221,11 @@ class SpiceKernelProduct(Product):
                             f"-- Mapping {self.__product_mapping()} "
                             f"with {self.name}"
                         )
-                    except:
+                    except BaseException:
                         error_message(f"{self.name} not present in {path}",
                                       setup=setup)
 
-                self.check_kernel_integrity(origin_path)
+                self.check_kernel_integrity(self, origin_path)
 
                 if self.new_product:
                     break
@@ -271,8 +267,7 @@ class SpiceKernelProduct(Product):
             self.label = SpiceKernelPDS4Label(setup, self)
 
     def __product_lid(self):
-        """
-        Determine product logical identifier (LID).
+        """Determine product logical identifier (LID).
 
         :return: product LID
         :rtype: str
@@ -289,21 +284,19 @@ class SpiceKernelProduct(Product):
 
         return product_vid
 
-    #
-    # Obtain the kernel product description information
-    #
     def __read_description(self):
-        """
-        Read the kernel list to return the description. The generated
-        kernel list file must be used because it contains the description.
+        """Read the kernel list to return the description.
+
+        The generated kernel list file must be used because it contains the
+        description.
+
         :return:
         :rtype: tuple
         """
-
         kernel_list_file = (
             self.setup.working_directory
             + os.sep
-            + f"{self.setup.mission_acronym}_release_"
+            + f"{self.setup.mission_acronym}_{self.setup.run_type}_"
             f"{int(self.setup.release):02d}.kernel_list"
         )
 
@@ -334,10 +327,10 @@ class SpiceKernelProduct(Product):
         coverage = []
         product_label = self.path.split(".")[0] + ".xml"
         if os.path.exists(product_label):
-            with open(product_label, "r") as l:
+            with open(product_label, "r") as lbl:
                 start = ""
                 stop = ""
-                for line in l:
+                for line in lbl:
                     if "<start_date_time>" in line:
                         start = line.split("<start_date_time>")[-1]
                         start = start.split("</start_date_time>")[0]
@@ -372,11 +365,8 @@ class SpiceKernelProduct(Product):
         self.start_time = coverage[0]
         self.stop_time = coverage[-1]
 
-    #
-    # IK kernel processing
-    #
     def __ik_kernel_ids(self):
-
+        """Extract the IDs from IK."""
         with open(f"{self.path}/{self.name}", "r") as f:
 
             id_list = list()
@@ -390,7 +380,7 @@ class SpiceKernelProduct(Product):
                 if "begintext" in line:
                     parse_bool = False
 
-                if "INS-" in line and parse_bool == True:
+                if "INS-" in line and parse_bool:
                     line = line.lstrip()
                     line = line.split("_")
                     id_list.append(line[0][3:])
@@ -400,13 +390,15 @@ class SpiceKernelProduct(Product):
         return [id_list]
 
     def kernel_setup_phase(self):
-
+        """Extract mission phase for kernel."""
+        #
         # avoid reading the Z at the end of UTC tag
+        #
         start_time = self.start_time[0:-1] if self.start_time != "N/A" else "N/A"
         stop_time = self.stop_time[0:-1] if self.stop_time != "N/A" else "N/A"
 
         setup_phase_map = (
-            f"{self.setup.root_dir}/config/" f"{self.setup.acronym.lower()}.phases"
+            f"{self.setup.root_dir}/config/{self.setup.acronym.lower()}.phases"
         )
 
         with open(setup_phase_map, "r") as f:
@@ -429,7 +421,7 @@ class SpiceKernelProduct(Product):
                     stop_phase_date = line.rstrip().split(" ")[-1]
                     stop_phase_tdb = spiceypy.str2et(stop_phase_date)
 
-                    if next_phases_bool == True:
+                    if next_phases_bool:
                         setup_phases.append(line.split("   ")[0])
 
                     elif start_tdb >= start_phase_tdb:
@@ -452,7 +444,7 @@ class SpiceKernelProduct(Product):
                     stop_phase_tdb += 86400
                     #  One day added to account for gap between phases.
 
-                    if next_phases_bool == True and start_phase_tdb >= stop_tdb:
+                    if next_phases_bool and start_phase_tdb >= stop_tdb:
                         break
                     # if next_phases_bool == True:
                     #     setup_phases.append(line.split('   ')[0])
@@ -474,12 +466,11 @@ class SpiceKernelProduct(Product):
         return
 
     def __product_mapping(self):
-
         """Obtain the kernel mapping."""
         kernel_list_file = (
             self.setup.working_directory
             + os.sep
-            + f"{self.setup.mission_acronym}_release_"
+            + f"{self.setup.mission_acronym}_{self.setup.run_type}_"
             f"{int(self.setup.release):02d}.kernel_list"
         )
 
@@ -495,14 +486,14 @@ class SpiceKernelProduct(Product):
 
         if not mapping:
             error_message(
-                f"{self.name} does not have " f"mapping on {kernel_list_file}",
+                f"{self.name} does not have mapping on {kernel_list_file}",
                 setup=self.setup,
             )
 
         return mapping
 
-    def check_kernel_integrity(object, path):
-
+    def check_kernel_integrity(self, object, path):
+        """Check if the kernels have the adequate architecture."""
         #
         # All files that are to have labels generated must have a NAIF
         # file ID word as the first "word" on the first line of the
@@ -523,7 +514,7 @@ class SpiceKernelProduct(Product):
             #
             if (arch != "DAF") and (arch != "DAS"):
                 error_message(
-                    f"Kernel {object.name} architecture {arch} " f"is invalid",
+                    f"Kernel {object.name} architecture {arch} is invalid",
                     setup=object.setup,
                 )
             else:
@@ -537,7 +528,7 @@ class SpiceKernelProduct(Product):
             #
             if arch != "KPL":
                 error_message(
-                    f"Kernel {object.name} architecture {arch} " f"is invalid",
+                    f"Kernel {object.name} architecture {arch} is invalid",
                     setup=object.setup,
                 )
 
@@ -552,8 +543,10 @@ class SpiceKernelProduct(Product):
 
 
 class MetaKernelProduct(Product):
+    """Product child class Meta-Kernel."""
+
     def __init__(self, setup, kernel, spice_kernels_collection, user_input=False):
-        """
+        """Constructor.
 
         :param mission:
         :param spice_kernels_collection:
@@ -609,7 +602,7 @@ class MetaKernelProduct(Product):
                     if "YEAR" in values:
                         self.year = values["YEAR"]
                         self.YEAR = values["YEAR"]
-                except:
+                except BaseException:
                     pass
 
             if not hasattr(self, "mk_setup"):
@@ -664,7 +657,7 @@ class MetaKernelProduct(Product):
             # If the meta-kernel is provided by the user check the
             # integrity.
             #
-            SpiceKernelProduct.check_kernel_integrity(self, self.path)
+            SpiceKernelProduct.check_kernel_integrity(self, self, self.path)
         else:
             self.path = product_path + self.name
 
@@ -682,8 +675,8 @@ class MetaKernelProduct(Product):
         # Generate the product LIDVID.
         #
         if self.setup.pds_version == "4":
-            self.lid = self.product_lid()
-            self.vid = self.product_vid()
+            self.set_product_lid()
+            self.set_product_vid()
 
             #
             # The meta-kernel must be named before fetching the description.
@@ -697,12 +690,12 @@ class MetaKernelProduct(Product):
             if os.path.exists(self.path):
                 logging.warning(f"-- Meta-kernel already exists: {self.path}")
                 logging.warning(
-                    f"-- The meta-kernel will be generated and the one "
-                    f"present in the staging are will be overwritten."
+                    "-- The meta-kernel will be generated and the one "
+                    "present in the staging are will be overwritten."
                 )
                 logging.warning(
-                    f"-- Note that to provide a meta-kernel as an input, "
-                    f"it must be provided via configuration file."
+                    "-- Note that to provide a meta-kernel as an input, "
+                    "it must be provided via configuration file."
                 )
             self.write_product()
         else:
@@ -742,7 +735,7 @@ class MetaKernelProduct(Product):
         return
 
     def check_version(self):
-
+        """Check if the provided Meta-kernel version is correct."""
         #
         # Distinguish in between the different kernels we can find in the
         # previous increment.
@@ -773,9 +766,9 @@ class MetaKernelProduct(Product):
             version = version[version_index : version_index + len(self.values[key])]
             version = int(version) + 1
 
-        except:
+        except BaseException:
             logging.warning(
-                f"-- Meta-kernel from previous increment is not available."
+                "-- Meta-kernel from previous increment is not available."
             )
             logging.warning(f"   Version will be set to: {self.version}.")
 
@@ -788,26 +781,21 @@ class MetaKernelProduct(Product):
             )
         else:
             logging.warning(
-                f"-- The meta-kernel version is not as expected "
-                f"from previous increment."
+                "-- The meta-kernel version is not as expected "
+                "from previous increment."
             )
             logging.warning(
                 f"   Version set to: {int(self.version)}, whereas "
                 f"it is expected to be: {version}."
             )
             logging.warning(
-                f"   It is recommended to stop the execution and fix the issue."
+                "   It is recommended to stop the execution and fix the issue."
             )
 
         return
 
-    def product_lid(self):
-        """
-        Determine product logical identifier (LID).
-
-        :return: product LID
-        :rtype: str
-        """
+    def set_product_lid(self):
+        """Set the Meta-kernel LID."""
         if self.type == "mk":
             name = self.name.split("_v")[0]
         else:
@@ -817,25 +805,25 @@ class MetaKernelProduct(Product):
             self.setup.logical_identifier, self.type, name
         )
 
-        return product_lid
+        self.lid = product_lid
 
-    def product_vid(self):
+    def set_product_vid(self):
+        """Set the Meta-kernel VID.
 
-        #
-        # If the meta-kernel has been automatically generated as indicated in
-        # the configuration file, it has a version attribute, otherwise it does
-        # not and its version number must be equal to the expected VID.
-        #
+        If the meta-kernel has been automatically generated as indicated in
+        the configuration file, it has a version attribute, otherwise it does
+        not and its version number must be equal to the expected VID.
+        """
         try:
             product_vid = str(self.version).lstrip("0") + ".0"
-        except:
+        except BaseException:
             logging.warning(
                 f"-- {self.name} No VID explicit in kernel name: set to 1.0"
             )
             logging.warning(
-                f"-- Make sure that the MK pattern in the "
-                f"configuration file is correct, if manually provided make sure "
-                f"you provided the appropriate name."
+                "-- Make sure that the MK pattern in the "
+                "configuration file is correct, if manually provided make sure "
+                "you provided the appropriate name."
             )
             product_vid = "1.0"
 
@@ -843,17 +831,15 @@ class MetaKernelProduct(Product):
             # Implement this exceptional check for first releases of an archive.
             #
             if '01' not in self.name:
-                error_message(f"{self.name} version does not correspond to VID "
-                              f"1.0. Rename the MK accordingly",
-                                setup=self.setup)
+                error_message(
+                    f"{self.name} version does not correspond to VID "
+                    f"1.0. Rename the MK accordingly", setup=self.setup
+                )
 
-        return product_vid
+        self.vid = product_vid
 
-    #
-    # Obtain the kernel product description information,
-    #
     def get_description(self):
-
+        """Obtain the kernel product description information."""
         description = ""
         self.json_config = self.setup.kernel_list_config
 
@@ -865,16 +851,16 @@ class MetaKernelProduct(Product):
                 description = self.json_config[pattern.pattern]["description"]
                 try:
                     patterns = self.json_config[pattern.pattern]["patterns"]
-                except:
+                except BaseException:
                     patterns = False
-                try:
-                    options = self.json_config[pattern.pattern]["mklabel_options"]
-                except:
-                    options = ""
-                try:
-                    mapping = self.json_config[pattern.pattern]["mapping"]
-                except:
-                    mapping = ""
+                # try:
+                #     options = self.json_config[pattern.pattern]["mklabel_options"]
+                # except BaseException:
+                #     options = ""
+                # try:
+                #     mapping = self.json_config[pattern.pattern]["mapping"]
+                # except BaseException:
+                #     mapping = ""
 
                 #
                 # ``options'' and ``descriptions'' require to
@@ -981,14 +967,14 @@ class MetaKernelProduct(Product):
 
         if not description:
             error_message(
-                f"{self.name} does not have " f"a description on configuration file",
+                f"{self.name} does not have a description on configuration file",
                 setup=self.setup,
             )
 
         return description
 
     def write_product(self):
-
+        """Write the Meta-kernel."""
         #
         # Obtain meta-kernel grammar from configuration.
         #
@@ -1020,7 +1006,7 @@ class MetaKernelProduct(Product):
                     excluded_kernels.append(kernel_grammar.split("exclude:")[-1])
 
             logging.info(
-                f"     Matching {kernel_type.upper()}(s) with meta-kernel " f"grammar."
+                f"     Matching {kernel_type.upper()}(s) with meta-kernel grammar."
             )
             for kernel_grammar in kernel_grammar_list:
 
@@ -1059,7 +1045,7 @@ class MetaKernelProduct(Product):
                                 f"_spice/spice_kernels/mk/"
                                 f'{self.name.split("_v")[0]}*.tm'
                             )
-                        except:
+                        except BaseException:
                             if self.setup.increment:
                                 logging.warning(
                                     "-- No meta-kernels from "
@@ -1109,7 +1095,7 @@ class MetaKernelProduct(Product):
         # Report kernels present in meta-kernel
         #
         logging.info("")
-        logging.info(f"-- Archived kernels present in meta-kernel")
+        logging.info("-- Archived kernels present in meta-kernel")
         for kernel in collection_metakernel:
             logging.info(f"     {kernel.name}")
         logging.info("")
@@ -1206,10 +1192,10 @@ class MetaKernelProduct(Product):
 
         self.product = self.path
 
-        logging.info(f"-- Meta-kernel generated.")
+        logging.info("-- Meta-kernel generated.")
         if not self.setup.args.silent and not self.setup.args.verbose:
             print(
-                f"   * Created "
+                "   * Created "
                 f"{self.product.split(self.setup.staging_directory)[-1]}."
             )
 
@@ -1218,16 +1204,16 @@ class MetaKernelProduct(Product):
         # etc. pause the pipeline to allow the user to introduce changes.
         #
         if hasattr(self, "mk_setup") and not self.setup.args.debug:
-            print(f"    * The meta-kernel might need to be updated. You can:")
+            print("    * The meta-kernel might need to be updated. You can:")
             print(
-                f'        - Type "vi" and press ENTER to edit the '
-                f"file with the VI text editor."
+                '        - Type "vi" and press ENTER to edit the '
+                "file with the VI text editor."
             )
             print(
-                f"        - Edit the file with your favorite edit "
-                f"and press ENTER and continue."
+                "        - Edit the file with your favorite edit "
+                "and press ENTER and continue."
             )
-            print(f"        - Press ENTER to continue.")
+            print("        - Press ENTER to continue.")
             print(f"      MK path: {self.path}")
 
             inp = input(">> Type 'vi' and/or press ENTER to continue... ")
@@ -1236,7 +1222,7 @@ class MetaKernelProduct(Product):
                     cmd = os.environ.get("EDITOR", "vi") + " " + self.path
                     subprocess.call(cmd, shell=True)
                     logging.warning("Meta-kernel edited with Vi by the " "user.")
-                except:
+                except BaseException:
                     print("Vi text editor is not available.")
                     input(">> Press Enter to continue... ")
 
@@ -1247,17 +1233,18 @@ class MetaKernelProduct(Product):
         return
 
     def compare(self):
+        """Compare the Meta-kernel with the previous version."""
+        val_mk = ""
 
         #
         # Compare meta-kernel with latest. First try with previous increment.
         #
-        val_mk = ""
         try:
 
             match_flag = True
             val_mk_path = (
                 f"{self.setup.bundle_directory}/"
-                f"{self.setup.mission_acronym}_spice/" + f"spice_kernels/mk/"
+                f"{self.setup.mission_acronym}_spice/spice_kernels/mk/"
             )
 
             val_mk_name = self.name.split(os.sep)[-1]
@@ -1277,13 +1264,13 @@ class MetaKernelProduct(Product):
             if not val_mk:
                 raise Exception("No label for comparison found.")
 
-        except:
+        except BaseException:
             #
             # If previous increment does not work, compare with insight
             # example.
             #
-            logging.warning(f"-- No other version of {self.name} has been " f"found.")
-            logging.warning(f"-- Comparing with meta-kernel template.")
+            logging.warning(f"-- No other version of {self.name} has been found.")
+            logging.warning("-- Comparing with meta-kernel template.")
 
             val_mk = f"{self.setup.root_dir}/templates/template_metakernel.tm"
 
@@ -1299,7 +1286,15 @@ class MetaKernelProduct(Product):
         compare_files(fromfile, tofile, dir, self.setup.diff)
 
     def validate(self):
+        """Perform a basic validation of the Meta-kernel.
 
+        The validation consists of:
+
+           * load the kernel with ``FURNSH``
+           * Count the loaded kernels with ``KTOTAL``
+           * Compare the number of kernel sin the pool with the length of the
+             meta-kernel collection list attribute.
+        """
         line = f"Step {self.setup.step} - Meta-kernel {self.name} validation"
         logging.info("")
         logging.info(line)
@@ -1312,7 +1307,7 @@ class MetaKernelProduct(Product):
         rel_path = self.path.split(f"/{self.setup.mission_acronym}_spice/")[-1]
         path = (
             self.setup.bundle_directory.split(
-                f"{self.setup.mission_acronym}" f"_spice"
+                f"{self.setup.mission_acronym}_spice"
             )[0]
             + f"/{self.setup.mission_acronym}_spice/"
             + rel_path
@@ -1350,25 +1345,28 @@ class MetaKernelProduct(Product):
         return
 
     def coverage(self):
-        """
+        """Determine Meta-kernel coverage.
+
         Meta-kernel coverage is determined by:
 
-        -  for whole mission meta-kernels start_date_time and stop_date_time
+        *  for whole mission meta-kernels start_date_time and stop_date_time
            are set to the coverage provided by spacecraft SPK or CKs, at the
            discretion of the archive producer.
 
-        -  for yearly mission meta-kernels start_date_time and stop_date_time
+        *  for yearly mission meta-kernels start_date_time and stop_date_time
            are set to the coverage from Jan 1 00:00 of the year to either the
            end of coverage provided by spacecraft SPK or CKs, or the end of
            the year (whichever is earlier)
 
         :return:
         """
+        kernels = []
 
         #
         # Match the pattern with the kernels in the meta-kernel.
+        # Only the kernel patterns identified with the meta-kernel attribute
+        # will be used.
         #
-        kernels = []
         if hasattr(self.setup, "coverage_kernels"):
             coverage_kernels = self.setup.coverage_kernels
             patterns = coverage_kernels[0]["pattern"]
@@ -1377,12 +1375,18 @@ class MetaKernelProduct(Product):
 
             #
             # It is assumed that the coverage kernel is present in the
-            # meta-kernel,.
+            # meta-kernel.
             #
             for pattern in patterns:
-                for kernel in self.collection_metakernel:
-                    if re.match(pattern, kernel):
-                        kernels.append(kernel)
+                #
+                # Only match coverage kernels that have the MK pattern in the
+                # mk attribute.
+                #
+                if re.match(pattern["@mk"], self.name):
+                    for kernel in self.collection_metakernel:
+                        if re.match(pattern["#text"], kernel):
+                            kernels.append(kernel)
+                            self.mk_sets_coverage = True
 
         start_times = []
         finish_times = []
@@ -1417,8 +1421,8 @@ class MetaKernelProduct(Product):
                                 f"-- File not present in final area: {path}."
                             )
                             logging.warning(
-                                f"   It will not be used to "
-                                f"determine the coverage."
+                                "   It will not be used to "
+                                "determine the coverage."
                             )
                         else:
                             if extension2type(kernel) == "spk":
@@ -1439,7 +1443,7 @@ class MetaKernelProduct(Product):
                             finish_times.append(spiceypy.utc2et(stop_time[:-1]))
 
                             logging.info(
-                                f"-- File {kernel} used to determine " f"coverage."
+                                f"-- File {kernel} used to determine coverage."
                             )
 
         #
@@ -1471,9 +1475,9 @@ class MetaKernelProduct(Product):
 
             start_time = spiceypy.et2utc(min(start_times), "ISOC", 0, 80) + "Z"
             stop_time = spiceypy.et2utc(max(finish_times), "ISOC", 0, 80) + "Z"
-            logging.info(f"-- Meta-kernel coverage: " f"{start_time} - {stop_time}")
+            logging.info(f"-- Meta-kernel coverage: {start_time} - {stop_time}")
 
-        except:
+        except BaseException:
             #
             # The alternative is to set the increment stop time to the
             # end time of the mission.
@@ -1481,10 +1485,10 @@ class MetaKernelProduct(Product):
             start_time = self.setup.mission_start
             stop_time = self.setup.mission_finish
             logging.warning(
-                f"-- No kernel(s) found to determine meta-kernel "
-                f"coverage. Mission times will be used:"
+                "-- No kernel(s) found to determine meta-kernel "
+                "coverage. Mission times will be used:"
             )
-            logging.info(f"   {start_time} - {stop_time}")
+            logging.warning(f"   {start_time} - {stop_time}")
 
         self.start_time = start_time
         self.stop_time = stop_time
@@ -1493,12 +1497,10 @@ class MetaKernelProduct(Product):
 
 
 class OrbnumFileProduct(Product):
-    """
-    Orbit number file class.
-    """
+    """Product child class ORBNUM File."""
 
     def __init__(self, setup, name, collection, kernels_collection):
-
+        """Constructor."""
         self.collection = collection
         self.kernels_collection = kernels_collection
         self.setup = setup
@@ -1523,8 +1525,8 @@ class OrbnumFileProduct(Product):
                 setup=self.setup,
             )
 
-        self.lid = self.__product_lid()
-        self.vid = self.__product_vid()
+        self.__set_product_lid()
+        self.__set_product_vid()
 
         #
         # We generate the kernel directory if not present
@@ -1542,7 +1544,7 @@ class OrbnumFileProduct(Product):
             self.new_product = True
         else:
             logging.warning(
-                f"     {self.name} already present in staging " f"directory."
+                f"     {self.name} already present in staging directory."
             )
 
             self.new_product = False
@@ -1599,27 +1601,19 @@ class OrbnumFileProduct(Product):
 
         return
 
-    def __product_lid(self):
-        """
-        Determine product logical identifier (LID).
-
-        :return: product LID
-        :rtype: str
-        """
-        product_lid = "{}:miscellaneous:orbnum_{}".format(
+    def __set_product_lid(self):
+        """Set the Product LID."""
+        self.lid = "{}:miscellaneous:orbnum_{}".format(
             self.setup.logical_identifier, self.name
         )
 
-        return product_lid
-
-    def __product_vid(self):
-
-        product_vid = "1.0"
-
-        return product_vid
+    def __set_product_vid(self):
+        """Set the Product VID."""
+        self.vid = "1.0"
 
     def __set_previous_orbnum(self):
-        """
+        """Determine the previou version of the ORBNUM file.
+
         For some cases, more than one orbit number file
         may exist for a given SPK, with only one file having the same name
         as the SPK and other files having a version token appended to the
@@ -1628,17 +1622,16 @@ class OrbnumFileProduct(Product):
         final area.
 
         NPB assumes that the version pattern of the orbnum file name follows
-        the REGEX pattern;
+        the REGEX pattern::
 
-           r'_[vV]\[0\-9\]*[\.]'
+           ``_[vV][0-9]*[.]``
 
-        E.g.: (...)_v01.orb   or
-              (...)_V9999.nrb or
-              (...)_v1.orb
+        E.g.: ``(...)_v01.orb``   or
+              ``(...)_V9999.nrb`` or
+              ``(...)_v1.orb``
 
-        This method provides values to the _previous_orbnum and
-        _orbnum_version protected attributes, both are strings.
-
+        This method provides values to the ``_previous_orbnum`` and
+        ``_orbnum_version`` protected attributes, both are strings.
         """
         path = [
             f"{self.setup.bundle_directory}/{self.setup.mission_acronym}"
@@ -1672,7 +1665,7 @@ class OrbnumFileProduct(Product):
                 version_pattern = r"_[vV]\[0\-9\]*[\.]"
                 version_match = re.search(version_pattern, self._pattern)
                 pattern = ".".join(self._pattern.split(version_match.group(0)))
-            except:
+            except BaseException:
                 #
                 # The pattern already does not have an explicit version
                 # number.
@@ -1688,9 +1681,9 @@ class OrbnumFileProduct(Product):
             self._previous_version = "1"
 
     def __read_header(self):
-        """
-        Read and process an orbnum file header. Define the
-        record_fixed_length attribute that provides the lenght of
+        """Read and process an orbnum file header.
+
+        Defines the record_fixed_length attribute that provides the lenght of
         a record.
 
         :return: header line
@@ -1700,7 +1693,7 @@ class OrbnumFileProduct(Product):
         with open(self.path, "r") as o:
 
             if int(self._orbnum_type["header_start_line"]) > 1:
-                for i in range(int(self._orbnum_type["header_start_line"]) - 1):
+                for _i in range(int(self._orbnum_type["header_start_line"]) - 1):
                     o.readline()
 
             header.append(o.readline())
@@ -1711,15 +1704,15 @@ class OrbnumFileProduct(Product):
         # the appropriate header. Include the old ORBNUM utility header format
         # for Descending and Ascending node events (Odyssey).
         #
-        if (not "Event" in header[0]) and (not "Node" in header[0]):
+        if ("Event" not in header[0]) and ("Node" not in header[0]):
             error_message(
-                f"The header of the orbnum file {self.name} is not " f"as expected",
+                f"The header of the orbnum file {self.name} is not as expected",
                 setup=self.setup,
             )
 
-        if not "===" in header[1]:
+        if "===" not in header[1]:
             error_message(
-                f"The header of the orbnum file {self.name} is not " f"as expected",
+                f"The header of the orbnum file {self.name} is not as expected",
                 setup=self.setup,
             )
 
@@ -1731,8 +1724,7 @@ class OrbnumFileProduct(Product):
         return header
 
     def __get_header_length(self):
-        """
-        Read an orbnum file and return the length of the header in bytes.
+        """Read an orbnum file and return the length of the header in bytes.
 
         :return: header line
         :rtype: str
@@ -1751,11 +1743,12 @@ class OrbnumFileProduct(Product):
         return header_length + 1
 
     def __get_sample_record(self):
-        """
-        Read an orbnum file and return one record sample. This sample (one
-        data line) will be used to determine the format of each parameter
-        of the orbnum file. The sample is re-processed in such a way that it
-        contains no spaces for the UTC dates
+        """Read an orbnum file and return one record sample.
+
+        This sample (one data line) will be used to determine the format of
+        each parameter of the orbnum file. The sample is re-processed in such a
+        way that it contains no spaces for the UTC dates.
+
         :return: sample record line
         :rtype: str
         """
@@ -1788,7 +1781,8 @@ class OrbnumFileProduct(Product):
         return sample_record
 
     def __utc_blanks_to_dashes(self, sample_record):
-        """
+        """Reformat UTC strings in the ORBNUM file.
+
         Re-process the UTC string fields of an orbnum sample row
         to remove blankspaces.
 
@@ -1797,9 +1791,8 @@ class OrbnumFileProduct(Product):
         :return: sample row with UTC string with dashes
         :rtype: str
         """
-        #
         utc_pattern = (
-            r"[0-9]{4}[ ][A-Z]{3}[ ][0-9]{2}[ ]" r"[0-9]{2}[:][0-9]{2}[:][0-9]{2}"
+            r"[0-9]{4}[ ][A-Z]{3}[ ][0-9]{2}[ ][0-9]{2}[:][0-9]{2}[:][0-9]{2}"
         )
 
         matches = re.finditer(utc_pattern, sample_record)
@@ -1814,7 +1807,8 @@ class OrbnumFileProduct(Product):
         return sample_record
 
     def __read_records(self):
-        """
+        """Read and interpret the records of an ORBNUM file.
+
         Read an orbnum file and set the number of records attribute,
         the length of the records attribute, determine which lines have blank
         records and, perform simple checks of the records.
@@ -1849,7 +1843,7 @@ class OrbnumFileProduct(Product):
                             )
                         if not line.strip():
                             error_message(
-                                f"Orbnum record number {line} " f"is blank.",
+                                f"Orbnum record number {line} is blank.",
                                 setup=self.setup,
                             )
                         elif (
@@ -1960,35 +1954,34 @@ class OrbnumFileProduct(Product):
         return records
 
     def __set_event_detection_key(self, header):
-        """
-        Obtain the orbnum event detection key. The event detection key is
-        a string identifying which geometric event signifies the start of
-        an orbit. The possible events are:
+        """Obtain the ORBNUM event detection key.
 
-           'APO'           signals a search for apoapsis
+        The event detection key is a string identifying which geometric event
+        signifies the start of an orbit. The possible events are:
 
-           'PERI'          signals a search for periapsis
+           ``APO``      signals a search for apoapsis
 
-           'A-NODE'        signals a search for passage through
-                           the ascending node
+           ``PERI``     signals a search for periapsis
 
-           'D-NODE'        signals a search for passage through
-                           the descending node
+           ``A-NODE``   signals a search for passage through
+                        the ascending node
 
-           'MINLAT'        signals a search for the time of
-                           minimum planetocentric latitude
+           ``D-NODE``   signals a search for passage through
+                        the descending node
 
-           'MAXLAT'        signals a search for the time of
-                           maximum planetocentric latitude
+           ``MINLAT``   signals a search for the time of
+                        minimum planetocentric latitude
 
-           'MINZ'          signals a search for the time of the
-                           minimum value of the Z (Cartesian)
-                           coordinate
+           ``MAXLAT``   signals a search for the time of
+                        maximum planetocentric latitude
 
-           'MAXZ'          signals a search for the time of the
-                           maximum value of the Z (Cartesian)
-                           coordinate
+           ``MINZ``     signals a search for the time of the
+                        minimum value of the Z (Cartesian)
+                        coordinate
 
+           ``MAXZ``     signals a search for the time of the
+                        maximum value of the Z (Cartesian)
+                        coordinate
         """
         events = ["APO", "PERI", "A-NODE", "D-NODE", "MINLAT", "MAXLAT", "MINZ", "MAXZ"]
         for event in events:
@@ -2022,8 +2015,7 @@ class OrbnumFileProduct(Product):
         return None
 
     def __event_mapping(self, event):
-        """
-        Maps the event keyword to the event name/description.
+        """Maps the event keyword to the event name/description.
 
         :return: event description
         :rtype: str
@@ -2042,8 +2034,7 @@ class OrbnumFileProduct(Product):
         return event_dict[event]
 
     def __opposite_event_mapping(self, event):
-        """
-        Maps the event keyword to the opposite event keyword.
+        """Maps the event keyword to the opposite event keyword.
 
         :return: opposite event keyword
         :rtype: str
@@ -2062,50 +2053,48 @@ class OrbnumFileProduct(Product):
         return opp_event_dict[event]
 
     def __get_params(self, header):
-        """
-        Obtain the parameters present in the orbnum file.
-        Currently there are 4 ground set parameters (not for CLEMENTINE
-        orbnum files).
+        """Obtain the parameters present in the ORBNUM file.
+
         Currently There are 11 orbital parameters available:
 
-           'No.'           The orbit number of a descending node event.
+           ``No.``          The orbit number of a descending node event.
 
-           'Event UTC'     The UTC time of that event.
+           ``Event UTC``    The UTC time of that event.
 
-           'Event SCLK'    The SCLK time of the event.
+           `Event SCLK``    The SCLK time of the event.
 
-           'OP-Event UTC'  The UTC time of the opposite event.
+           ``OP-Event UTC`` The UTC time of the opposite event.
 
-           'Sub Sol Lon'   Sub-solar planetodetic longitude at event
-                           time (DEGS).
+           ``Sub Sol Lon``  Sub-solar planetodetic longitude at event
+                            time (DEGS).
 
-           'Sub Sol Lat'   Sub-solar planetodetic latitude at event
-                           time (DEGS).
+           ``Sub Sol Lat``  Sub-solar planetodetic latitude at event
+                            time (DEGS).
 
-           'Sub SC Lon'    Sub-target planetodetic longitude (DEGS).
+           ``Sub SC Lon``   Sub-target planetodetic longitude (DEGS).
 
-           'Sub SC Lat'    Sub-target planetodetic latitude (DEGS).
+           ``Sub SC Lat``   Sub-target planetodetic latitude (DEGS).
 
-           'Alt'           Altitude of the target above the observer
-                           body at event time (KM).
+           ``Alt``          Altitude of the target above the observer
+                            body at event time (KM).
 
-           'Inc'           Inclination of the vehicle orbit plane at
-                           event time (DEGS).
+           ``Inc``          Inclination of the vehicle orbit plane at
+                            event time (DEGS).
 
-           'Ecc'           Eccentricity of the target orbit about
-                           the primary body at event time (DEGS),
+           ``Ecc``          Eccentricity of the target orbit about
+                            the primary body at event time (DEGS),
 
-           'Lon Node'      Longitude of the ascending node of the
-                           orbit plane at event time (DEGS).
+           ``Lon Node``     Longitude of the ascending node of the
+                            orbit plane at event time (DEGS).
 
-           'Arg Per'       Argument of periapsis of the orbit plane at
-                           event time (DEGS).
+           ``Arg Per``      Argument of periapsis of the orbit plane at
+                            event time (DEGS).
 
-           'Sol Dist'      Solar distance from target at event
-                           time (KM).
+           ``Sol Dist``     Solar distance from target at event
+                            time (KM).
 
-           'Semi Axis'     Semi-major axis of the target's orbit at
-                           event time (KM).
+           ``Semi Axis``   Semi-major axis of the target's orbit at
+                            event time (KM).
         """
         parameters = []
         params = [
@@ -2137,9 +2126,11 @@ class OrbnumFileProduct(Product):
         return None
 
     def __set_params(self, header):
+        """Define the parameters template dictionary.
 
-        #
-        # Define the parameters template dictionary.
+        :param header:
+        :return:
+        """
         # The orbit number, UTC date and angular parameters have fixed
         # lengths, which are provided in the parameters template.
         # The length of the rest of the parameters depends on each orbnum
@@ -2363,7 +2354,7 @@ class OrbnumFileProduct(Product):
 
             if "$FRAME" in description:
                 frame_dict = self._orbnum_type["event_detection_frame"]
-                frame = f"{frame_dict['description']} " f"({frame_dict['spice_name']})"
+                frame = f"{frame_dict['description']} ({frame_dict['spice_name']})"
                 description = description.replace("$FRAME", frame)
 
             if "$OPPEVENT" in description:
@@ -2411,7 +2402,8 @@ class OrbnumFileProduct(Product):
         return None
 
     def __get_description(self):
-        """
+        """Write the ORBNUM table character description.
+
         Write the orbnum product description information based on the orbit
         determination event and the PCK kernel used.
         """
@@ -2429,7 +2421,7 @@ class OrbnumFileProduct(Product):
         event = event_mapping[self._event_detection_key]
 
         pck_mapping = self._orbnum_type["pck"]
-        report = f"{pck_mapping['description']} " f"({pck_mapping['kernel_name']})"
+        report = f"{pck_mapping['description']} ({pck_mapping['kernel_name']})"
 
         description = (
             f"SPICE text orbit number file containing orbit "
@@ -2445,12 +2437,13 @@ class OrbnumFileProduct(Product):
                     f"number file: {self._previous_orbnum}."
                 )
 
-        description += f" Created by NAIF, JPL."
+        description += f" Created by {self._orbnum_type['author']}."
 
         return description
 
     def __table_character_description(self):
-        """
+        """Write the ORBNUM table character description.
+
         Write the orbnum table character description information
         determination event and the PCK kernel used.
         """
@@ -2475,18 +2468,19 @@ class OrbnumFileProduct(Product):
         return description
 
     def __coverage(self):
-        """
+        """Determine the coverage of the ORNBUM file.
+
         The coverage of the orbnum file can be determined in three different
         ways:
 
-           -- If there is a one to one correspondence with an SPK
+           *  If there is a one to one correspondence with an SPK
               file, the SPK file can be provided with the <kernel>
               tag. The tag can be a path to a specific kernel that
               does not have to be part of the increment, a pattern
               of a kernel present in the increment or a pattern of
               a kernel present in the final directory of the archive.
 
-           -- If there is a quasi one to one correspondence with an
+           *  If there is a quasi one to one correspondence with an
               SPK file with a given cutoff time prior to the end
               of the SPK file, the SPK file can be provided with the
               <kernel> tag. The tag can be a path to a specific kernel
@@ -2497,7 +2491,7 @@ class OrbnumFileProduct(Product):
               boundary of the previous day of the SPK coverage stop
               time.
 
-           -- A user can provide a look up table with this file, as follows:
+           *  A user can provide a look up table with this file, as follows::
 
                 <lookup_table>
                    <file name="maven_orb_rec_210101_210401_v1.orb">
@@ -2507,7 +2501,7 @@ class OrbnumFileProduct(Product):
                 </lookup_table>
 
               Note that in this particular case the first three and
-              last three lines of the orbnum files would have provided:
+              last three lines of the orbnum files would have provided::
 
                    Event UTC PERI
                    ====================
@@ -2519,7 +2513,7 @@ class OrbnumFileProduct(Product):
                    2021 MAR 31 18:36:29
                    2021 MAR 31 22:12:54
 
-           -- If nothing is provided NPB will provide the coverage based on
+           *  If nothing is provided NPB will provide the coverage based on
               the event time of the first orbit and the opposite event time
               of the last orbit.
         """
@@ -2558,20 +2552,20 @@ class OrbnumFileProduct(Product):
                         x for x in os.listdir(cov_path) if re.fullmatch(cov_patn, x)
                     ]
 
-                except:
+                except BaseException:
                     cov_kers = []
 
                 #
                 # Check if the SPK kernel is present in the increment.
                 #
                 if not cov_kers:
-                    cov_path = f"{self.setup.staging_directory}" f"/spice_kernels/spk"
+                    cov_path = f"{self.setup.staging_directory}/spice_kernels/spk"
 
                     try:
                         cov_kers = [
                             x for x in os.listdir(cov_path) if re.fullmatch(cov_patn, x)
                         ]
-                    except:
+                    except BaseException:
                         cov_kers = []
 
                     #
@@ -2580,7 +2574,7 @@ class OrbnumFileProduct(Product):
                     #
                     if not cov_kers:
                         cov_path = (
-                            f"{self.setup.bundle_directory}" f"/spice_kernels/spk"
+                            f"{self.setup.bundle_directory}/spice_kernels/spk"
                         )
                         try:
                             cov_kers = [
@@ -2588,7 +2582,7 @@ class OrbnumFileProduct(Product):
                                 for x in os.listdir(cov_path)
                                 if re.fullmatch(cov_patn, x)
                             ]
-                        except:
+                        except BaseException:
                             cov_kers = []
 
                 if cov_kers:
@@ -2600,7 +2594,7 @@ class OrbnumFileProduct(Product):
                 #
                 if len(cov_kers) == 1 and coverage_found:
                     coverage_kernel = cov_path + os.sep + cov_kers[0]
-                    logging.info(f"-- Coverage determined by " f"{coverage_kernel}.")
+                    logging.info(f"-- Coverage determined by {coverage_kernel}.")
                 #
                 # If there are more, the only possibility is that the orbnum
                 # filename and the SPK filename, both without extensions, match.
@@ -2611,7 +2605,7 @@ class OrbnumFileProduct(Product):
                         if kername.split(".")[0] == self.name.split(".")[0]:
                             coverage_kernel = cov_path + os.sep + kernel
                             logging.info(
-                                f"-- Coverage determined by " f"{coverage_kernel}."
+                                f"-- Coverage determined by {coverage_kernel}."
                             )
 
                 if os.path.isfile(coverage_kernel):
@@ -2707,7 +2701,7 @@ class OrbnumFileProduct(Product):
                 stop = datetime.datetime.strptime(stop_time, "%Y-%b-%d-%H:%M:%S")
                 stop_time = stop.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-            except:
+            except BaseException:
                 #
                 # Exception to cope with orbnum files without all the ground
                 # set of parameters.
@@ -2723,9 +2717,11 @@ class OrbnumFileProduct(Product):
 
 
 class InventoryProduct(Product):
-    def __init__(self, setup, collection):
+    """Product child Class that defines a Collection Inventory product."""
 
-        line = f"Step {setup.step} - Generation of {collection.name} " f"collection"
+    def __init__(self, setup, collection):
+        """Constructor."""
+        line = f"Step {setup.step} - Generation of {collection.name} collection"
         logging.info("")
         logging.info(line)
         logging.info("-" * len(line))
@@ -2774,17 +2770,17 @@ class InventoryProduct(Product):
                     latest_version = latest_file.split("_v")[-1].split(".")[0]
                     self.version = int(latest_version) + 1
 
-                    logging.info(f"-- Previous inventory file is: " f"{latest_file}")
+                    logging.info(f"-- Previous inventory file is: {latest_file}")
                     logging.info(f"-- Generate version {self.version}.")
 
-                except:
+                except BaseException:
                     self.version = 1
                     self.path_current = ""
 
-                    logging.warning(f"-- Previous inventory file not found.")
+                    logging.warning("-- Previous inventory file not found.")
                     logging.warning(f"-- Default to version {self.version}.")
                     logging.warning(
-                        f"-- The version of this file might be " f"incorrect."
+                        "-- The version of this file might be incorrect."
                     )
 
             else:
@@ -2793,18 +2789,18 @@ class InventoryProduct(Product):
 
                 logging.warning(f"-- Default to version {self.version}.")
                 logging.warning(
-                    f"-- Make sure this is the first release of " f"the archive."
+                    "-- Make sure this is the first release of the archive."
                 )
 
             self.name = (
-                f"collection_{collection.name}_" f"inventory_v{self.version:03}.csv"
+                f"collection_{collection.name}_inventory_v{self.version:03}.csv"
             )
             self.path = (
                 setup.staging_directory + os.sep + collection.name + os.sep + self.name
             )
 
-            self.lid = self.product_lid()
-            self.vid = self.product_vid()
+            self.set_product_lid()
+            self.set_product_vid()
 
         #
         # Kernels are already generated products but Inventories are not.
@@ -2820,26 +2816,16 @@ class InventoryProduct(Product):
 
         return
 
-    def product_lid(self):
-        """
-        Determine product logical identifier (LID).
+    def set_product_lid(self):
+        """Set the Product LID."""
+        self.lid = f"{self.setup.logical_identifier}:document:spiceds"
 
-        :return: product LID
-        :rtype: str
-        """
-        product_lid = f"{self.setup.logical_identifier}:document:spiceds"
-
-        return product_lid
-
-    def product_vid(self):
-
-        return "{}.0".format(int(self.version))
+    def set_product_vid(self):
+        """Set the Product VID."""
+        self.vid = "{}.0".format(int(self.version))
 
     def write_product(self):
-
-        #
-        # PDS4 collection file generation
-        #
+        """Write and valudate the Collection inventory."""
         if self.setup.pds_version == "4":
             self.__write_pds4_collection_product()
         else:
@@ -2847,11 +2833,11 @@ class InventoryProduct(Product):
             self.__write_pds3_index_product()
 
         logging.info(
-            f"-- Generated " f"{self.path.split(self.setup.staging_directory)[-1]}"
+            f"-- Generated {self.path.split(self.setup.staging_directory)[-1]}"
         )
         if not self.setup.args.silent and not self.setup.args.verbose:
             print(
-                f"   * Created " f"{self.path.split(self.setup.staging_directory)[-1]}."
+                f"   * Created {self.path.split(self.setup.staging_directory)[-1]}."
             )
 
         self.validate()
@@ -2889,144 +2875,142 @@ class InventoryProduct(Product):
                 #
                 if type(product) != InventoryProduct:
                     if product.new_product:
-                        line = f"P," f"{product.lid}::" f"{product.vid}\r\n"
+                        line = f"P,{product.lid}::{product.vid}\r\n"
                         line = add_carriage_return(line, self.setup.eol_pds4,
                                                    self.setup)
                         f.write(line)
 
         return
 
-    def __write_pds3_index_product(self):
-
-        #
-        # PDS3 INDEX file generation
-        #
-
-        current_index = list()
-        kernel_list = list()
-        kernel_directory_list = ["IK", "FK", "SCLK", "LSK", "PCK", "CK", "SPK"]
-
-        # In MEX the DSK folder has nothing to export
-        if os.path.exists(self.mission.bundle_directory + "/DATA/DSK"):
-            kernel_directory_list.append("DSK")
-
-        if os.path.exists(self.mission.bundle_directory + "/DATA/EK"):
-            kernel_directory_list.append("EK")
-
-        # Note that PCK was doubled here. This accounted for a spurious extra line
-        # n the INDEX.TAB.
-
-        if self.mission.increment:
-            existing_index = self.mission.increment + "/INDEX/INDEX.TAB"
-
-            with open(existing_index, "r") as f:
-
-                for line in f:
-
-                    if line.strip() == "":
-                        break
-
-                    current_index.append(
-                        [
-                            line.split(",")[0].replace(" ", ""),
-                            line.split(",")[1].replace(" ", ""),
-                            line.split(",")[2],
-                            line.split(",")[3].replace("\n", "\r\n"),
-                        ]
-                    )
-                    line = line.split(",")[1]
-                    line = line[1:-1].rstrip()
-                    kernel_list.append(line)
-
-        new_index = []
-
-        for directory in kernel_directory_list:
-
-            data_files = self.mission.bundle_directory + "/data/" + directory
-
-            for file in os.listdir(data_files):
-
-                if file.split(".")[1] != "LBL" and file not in kernel_list:
-                    new_label_element = (
-                        '"DATA/' + directory + "/" + file.split(".")[0] + '.LBL"'
-                    )
-                    new_kernel_element = '"' + file + '"'
-
-                    generation_date = PDS3_label_gen_date(
-                        data_files + "/" + file.split(".")[0] + ".LBL"
-                    )
-                    if not "T" in generation_date:
-                        generation_date = generation_date
-
-                    new_index.append(
-                        [
-                            new_label_element,
-                            new_kernel_element,
-                            generation_date,
-                            '"' + self.mission.dataset + '"\r\n',
-                        ]
-                    )
-
-        #
-        # Merge both lists
-        #
-        index = current_index + new_index
-
-        #
-        # Sort out which is the kernel that has the most characters
-        # and we add blank spaces to the rest
-        #
-        lab_filenam_list = list()
-        ker_filenam_list = list()
-
-        for element in index:
-            lab_filenam_list.append(element[0])
-            ker_filenam_list.append(element[1])
-
-        longest_lab_name = max(lab_filenam_list, key=len)
-        max_lab_name_len = len(longest_lab_name)
-
-        longest_ker_name = max(ker_filenam_list, key=len)
-        max_ker_name_len = len(longest_ker_name)
-
-        index_list = list()
-        dates = []  # used to sort out according to generation date the index_list
-        for element in index:
-            blanks = max_lab_name_len - (len(element[0]))
-            label = element[0][:-1] + " " * blanks + element[0][-1]
-
-            blanks = max_ker_name_len - (len(element[1]))
-            kernel = element[1][:-1] + " " * blanks + element[1][-1]
-            if "\n" in element[-1]:
-                index_list.append(
-                    label + "," + kernel + "," + element[2] + "," + element[3]
-                )
-            else:
-                index_list.append(
-                    label + "," + kernel + "," + element[2] + "," + element[3] + "\n"
-                )
-            dates.append(element[2])
-        with open(self.mission.bundle_directory + "/index/index.tab", "w+") as f:
-            for element in [x for _, x in sorted(zip(dates, index_list))]:
-                f.write(element)
-
-        return
+#    def __write_pds3_index_product(self):
+#
+#        #
+#        # PDS3 INDEX file generation
+#        #
+#
+#        current_index = list()
+#        kernel_list = list()
+#        kernel_directory_list = ["IK", "FK", "SCLK", "LSK", "PCK", "CK", "SPK"]
+#
+#        # In MEX the DSK folder has nothing to export
+#        if os.path.exists(self.mission.bundle_directory + "/DATA/DSK"):
+#            kernel_directory_list.append("DSK")
+#
+#        if os.path.exists(self.mission.bundle_directory + "/DATA/EK"):
+#            kernel_directory_list.append("EK")
+#
+#        # Note that PCK was doubled here. This accounted for a spurious extra line
+#        # n the INDEX.TAB.
+#
+#        if self.mission.increment:
+#            existing_index = self.mission.increment + "/INDEX/INDEX.TAB"
+#
+#            with open(existing_index, "r") as f:
+#
+#                for line in f:
+#
+#                    if line.strip() == "":
+#                        break
+#
+#                    current_index.append(
+#                        [
+#                            line.split(",")[0].replace(" ", ""),
+#                            line.split(",")[1].replace(" ", ""),
+#                            line.split(",")[2],
+#                            line.split(",")[3].replace("\n", "\r\n"),
+#                        ]
+#                    )
+#                    line = line.split(",")[1]
+#                    line = line[1:-1].rstrip()
+#                    kernel_list.append(line)
+#
+#        new_index = []
+#
+#        for directory in kernel_directory_list:
+#
+#            data_files = self.mission.bundle_directory + "/data/" + directory
+#
+#            for file in os.listdir(data_files):
+#
+#                if file.split(".")[1] != "LBL" and file not in kernel_list:
+#                    new_label_element = (
+#                        '"DATA/' + directory + "/" + file.split(".")[0] + '.LBL"'
+#                    )
+#                    new_kernel_element = '"' + file + '"'
+#
+#                    generation_date = PDS3_label_gen_date(
+#                        data_files + "/" + file.split(".")[0] + ".LBL"
+#                    )
+#                    if "T" not in generation_date:
+#                        generation_date = generation_date
+#
+#                    new_index.append(
+#                        [
+#                            new_label_element,
+#                            new_kernel_element,
+#                            generation_date,
+#                            '"' + self.mission.dataset + '"\r\n',
+#                        ]
+#                    )
+#
+#        #
+#        # Merge both lists
+#        #
+#        index = current_index + new_index
+#
+#        #
+#        # Sort out which is the kernel that has the most characters
+#        # and we add blank spaces to the rest
+#        #
+#        lab_filenam_list = list()
+#        ker_filenam_list = list()
+#
+#        for element in index:
+#            lab_filenam_list.append(element[0])
+#            ker_filenam_list.append(element[1])
+#
+#        longest_lab_name = max(lab_filenam_list, key=len)
+#        max_lab_name_len = len(longest_lab_name)
+#
+#        longest_ker_name = max(ker_filenam_list, key=len)
+#        max_ker_name_len = len(longest_ker_name)
+#
+#        index_list = list()
+#        dates = []  # used to sort out according to generation date the index_list
+#        for element in index:
+#            blanks = max_lab_name_len - (len(element[0]))
+#            label = element[0][:-1] + " " * blanks + element[0][-1]
+#
+#            blanks = max_ker_name_len - (len(element[1]))
+#            kernel = element[1][:-1] + " " * blanks + element[1][-1]
+#            if "\n" in element[-1]:
+#                index_list.append(
+#                    label + "," + kernel + "," + element[2] + "," + element[3]
+#                )
+#            else:
+#                index_list.append(
+#                    label + "," + kernel + "," + element[2] + "," + element[3] + "\n"
+#                )
+#            dates.append(element[2])
+#        with open(self.mission.bundle_directory + "/index/index.tab", "w+") as f:
+#            for element in [x for _, x in sorted(zip(dates, index_list))]:
+#                f.write(element)
+#
+#        return
 
     def validate(self):
-        """
-        The label is validated by checking that all the products are present
+        """Validate the Inventory against previous versions.
+
+        The Inventory is validated by checking that all the products are present
         and by comparing the Inventory Product with the previous version and
         if it does not exist with the sample inventory product.
-
-        :return:
         """
-
         logging.info(f"-- Validating {self.name}...")
 
         #
         # Check that all the products are listed in the collection product.
         #
-        logging.info("      Check that all the products are in the " "collection.")
+        logging.info("      Check that all the products are in the collection.")
 
         for product in self.collection.product:
             if type(product).__name__ != "InventoryProduct":
@@ -3044,10 +3028,9 @@ class InventoryProduct(Product):
         logging.info("      OK")
         logging.info("")
 
-        return
-
     def compare(self):
-        """
+        """Compare the label with the previous version.
+
         The label is compared the Inventory Product with the previous
         version and if it does not exist with the sample inventory product.
 
@@ -3074,7 +3057,7 @@ class InventoryProduct(Product):
 
         else:
 
-            logging.warning("-- Comparing with InSight test inventory " "product.")
+            logging.warning("-- Comparing with InSight test inventory product.")
             fromfiles = glob.glob(
                 f'{self.setup.root_dir.replace("src","tests")}'
                 f"/data/regression/"
@@ -3094,7 +3077,7 @@ class InventoryProduct(Product):
         return
 
     def write_index(self):
-
+        """Write PDS3 index file."""
         line = f"Step {self.setup.step} - Generation of index files"
         logging.info("")
         logging.info(line)
@@ -3108,7 +3091,7 @@ class InventoryProduct(Product):
         os.chdir(self.setup.staging_directory)
 
         list = (
-            f"{self.setup.working_directory}/" f"{self.collection.list.complete_list}"
+            f"{self.setup.working_directory}/{self.collection.list.complete_list}"
         )
         command = f"perl {self.setup.root_dir}exe/xfer_index.pl {list}"
         logging.info(f"-- Executing: {command}")
@@ -3167,7 +3150,8 @@ class InventoryProduct(Product):
         return
 
     def validate_index(self):
-        """
+        """Validate the index file and label.
+
         The index and the index label are validated by comparing with
         the previous versions
 
@@ -3188,21 +3172,26 @@ class InventoryProduct(Product):
                     compare_files(
                         index, current_index, self.setup.working_directory, "all"
                     )
-                except:
+                except BaseException:
                     logging.warning(
-                        f"-- File to compare with does not " f"exist: {index}"
+                        f"-- File to compare with does not exist: {index}"
                     )
 
         return
 
 
 class SpicedsProduct(object):
-    def __init__(self, setup, collection):
+    """Product child class to process the SPICEDS file."""
 
+    def __init__(self, setup, collection):
+        """Constructor."""
         self.setup = setup
         self.collection = collection
         self.new_product = True
-        spiceds = self.setup.spiceds
+        try:
+            spiceds = self.setup.spiceds
+        except BaseException:
+            spiceds = ""
 
         line = f"Step {self.setup.step} - Processing spiceds file"
         logging.info("")
@@ -3217,7 +3206,7 @@ class SpicedsProduct(object):
             logging.info("-- No spiceds file provided.")
 
         #
-        # - Obtain the previous spiceds file if it exists
+        # Obtain the previous spiceds file if it exists
         #
         path = (
             setup.bundle_directory
@@ -3238,13 +3227,13 @@ class SpicedsProduct(object):
                 self.version = int(latest_version) + 1
 
                 if not spiceds:
-                    logging.info(f"-- Previous spiceds found: " f"{latest_spiceds}")
+                    logging.info(f"-- Previous spiceds found: {latest_spiceds}")
                     self.generated = False
                     return
 
-            except:
+            except BaseException:
                 logging.warning(
-                    "-- No previous version of spiceds_v*.html " "file found."
+                    "-- No previous version of spiceds_v*.html file found."
                 )
                 if not spiceds:
                     error_message(
@@ -3259,7 +3248,7 @@ class SpicedsProduct(object):
             self.latest_spiceds = ""
             if not spiceds:
                 error_message(
-                    "spiceds not provided and not available from " "previous releases",
+                    "spiceds not provided and not available from previous releases",
                     setup=self.setup,
                 )
 
@@ -3269,8 +3258,8 @@ class SpicedsProduct(object):
         )
         self.mission = setup
 
-        self.lid = self.product_lid()
-        self.vid = self.product_vid()
+        self.set_product_lid()
+        self.set_product_vid()
 
         logging.info(
             f"-- spiceds file provided as input moved to staging "
@@ -3312,21 +3301,16 @@ class SpicedsProduct(object):
 
         return
 
-    def product_lid(self):
-        """
-        Determine product logical identifier (LID).
+    def set_product_lid(self):
+        """Set the Product LID."""
+        self.lid = f"{self.setup.logical_identifier}:document:spiceds"
 
-        :return: product LID
-        :rtype: str
-        """
-        return f"{self.setup.logical_identifier}:document:spiceds"
-
-    def product_vid(self):
-
-        return "{}.0".format(int(self.version))
+    def set_product_vid(self):
+        """Set the Product VID."""
+        self.vid = "{}.0".format(int(self.version))
 
     def check_cr(self):
-
+        """Determine whether if ``<CR>`` has to be added to the SPICEDS."""
         #
         # We add the date to the temporary file to have a unique name.
         #
@@ -3350,13 +3334,13 @@ class SpicedsProduct(object):
         else:
             shutil.move(temporary_file, self.path)
             logging.info(
-                "-- Carriage Return has been added to lines in " "the spiceds file."
+                "-- Carriage Return has been added to lines in the spiceds file."
             )
 
         return
 
     def check_product(self):
-
+        """Check if the SPICEDS product needs to be generated."""
         #
         # If the previous spiceds document is the same then it does not
         # need to be generated.
@@ -3389,7 +3373,7 @@ class SpicedsProduct(object):
         return generate_spiceds
 
     def compare(self):
-
+        """Compare the SPICEDS file with a prior one or the template."""
         #
         # Compare spiceds with latest. First try with previous increment.
         #
@@ -3397,21 +3381,21 @@ class SpicedsProduct(object):
 
             val_spd_path = (
                 f"{self.setup.bundle_directory}/"
-                f"{self.setup.mission_acronym}_spice/" + f"document"
+                f"{self.setup.mission_acronym}_spice/document"
             )
 
             val_spds = glob.glob(f"{val_spd_path}/spiceds_v*.html")
             val_spds.sort()
             val_spd = val_spds[-1]
 
-        except:
+        except BaseException:
 
             #
             # If previous increment does not work, compare with InSight
             # example.
             #
-            logging.warning(f"-- No other version of {self.name} has been " f"found.")
-            logging.warning(f"-- Comparing with default InSight example.")
+            logging.warning(f"-- No other version of {self.name} has been found.")
+            logging.warning("-- Comparing with default InSight example.")
 
             val_spd = (
                 f'{self.setup.root_dir.replace("src","tests")}'
@@ -3429,8 +3413,10 @@ class SpicedsProduct(object):
 
 
 class ReadmeProduct(Product):
-    def __init__(self, setup, bundle):
+    """Product child class to generate the Readme Product."""
 
+    def __init__(self, setup, bundle):
+        """Constructor."""
         line = f"Step {setup.step} - Generation of bundle products"
         logging.info("")
         logging.info(line)
@@ -3458,6 +3444,13 @@ class ReadmeProduct(Product):
             logging.info("-- Readme file already exists in final area.")
             self.new_product = False
         else:
+            #
+            # Check if the readme file is provided via configuration.
+            #
+            if not hasattr(self.setup, "readme"):
+                error_message("readme file not present in configuration",
+                              setup=setup)
+
             logging.info("-- Generating readme file...")
             self.write_product()
             self.new_product = True
@@ -3481,7 +3474,7 @@ class ReadmeProduct(Product):
         self.label = BundlePDS4Label(setup, self)
 
     def write_product(self):
-
+        """Write the Readme product."""
         line_length = 0
 
         if not os.path.isfile(self.path):
@@ -3508,8 +3501,8 @@ class ReadmeProduct(Product):
                             line = add_carriage_return(line, self.setup.eol,
                                                        self.setup)
                             f.write(line)
-                    elif "$COGNISANT_PERSONS" in line:
-                        cognisant = self.setup.readme["cognisant_persons"]
+                    elif "$COGNISANT_AUTHORITY" in line:
+                        cognisant = self.setup.readme["cognisant_authority"]
                         for line in cognisant.split("\n"):
                             line = " " * 3 + line.strip() + "\n"
                             line = add_carriage_return(line, self.setup.eol,
@@ -3523,14 +3516,16 @@ class ReadmeProduct(Product):
 
         logging.info("-- Created readme file.")
         if not self.setup.args.silent and not self.setup.args.verbose:
-            print(f"   * Created readme file.")
+            print("   * Created readme file.")
 
         return
 
 
 class ChecksumProduct(Product):
-    def __init__(self, setup, collection):
+    """Product child class to generate a Checksum Product."""
 
+    def __init__(self, setup, collection):
+        """Constructor."""
         #
         # The initialisation of the checksum class is lighter than the
         # initialisation of the other products because the purpose is
@@ -3560,11 +3555,11 @@ class ChecksumProduct(Product):
 
         self.read_current_product()
 
-        self.lid = self.product_lid()
-        self.vid = self.product_vid()
+        self.set_product_lid()
+        self.set_product_vid()
 
     def set_coverage(self):
-
+        """Determine the coverage of the Checksum file."""
         #
         # The coverage is set by generating the checksum file but without
         # writing it.
@@ -3572,7 +3567,11 @@ class ChecksumProduct(Product):
         self.write_product(history=False, set_coverage=True)
 
     def generate(self, history=False):
+        """Write and label the Checksum file.
 
+        :param history:
+        :return:
+        """
         line = f"Step {self.setup.step} - Generate checksum file"
         logging.info("")
         logging.info(line)
@@ -3601,9 +3600,10 @@ class ChecksumProduct(Product):
         self.label = ChecksumPDS4Label(self.setup, self)
 
     def read_current_product(self):
-        """
-        Reads the current checksum file and determines the version of the
-        new checksum file.
+        """Reads the current checksum file.
+
+        Reads the current checksum file and determine
+        the version of the new checksum file.
         """
         #
         # Determine the checksum version
@@ -3615,7 +3615,7 @@ class ChecksumProduct(Product):
                 + os.sep
                 + self.collection.name
                 + os.sep
-                + f"checksum_v*.tab"
+                + "checksum_v*.tab"
             )
 
             checksum_files += glob.glob(
@@ -3638,25 +3638,25 @@ class ChecksumProduct(Product):
                 latest_version = latest_file.split("_v")[-1].split(".")[0]
                 self.version = int(latest_version) + 1
 
-                logging.info(f"-- Previous checksum file is: " f"{latest_file}")
+                logging.info(f"-- Previous checksum file is: {latest_file}")
                 logging.info(f"-- Generate version {self.version}.")
                 logging.info("")
 
-            except:
+            except BaseException:
                 self.version = 1
                 self.path_current = ""
 
-                logging.warning(f"-- Previous checksum file not found.")
+                logging.warning("-- Previous checksum file not found.")
                 logging.warning(f"-- Default to version {self.version}.")
-                logging.warning(f"-- The version of this file might be " f"incorrect.")
+                logging.warning("-- The version of this file might be incorrect.")
 
         else:
             self.version = 1
             self.path_current = ""
 
-            logging.warning(f"-- Default to version {self.version}.")
+            logging.warning("-- Default to version {self.version}.")
             logging.warning(
-                f"-- Make sure this is the first release of " f"the archive."
+                "-- Make sure this is the first release of the archive."
             )
             logging.warning("")
 
@@ -3682,7 +3682,7 @@ class ChecksumProduct(Product):
                     #
                     try:
                         (md5, filename) = line.split()
-                    except:
+                    except BaseException:
                         error_message(
                             f"Checksum file {self.path_current} is corrupted.",
                             setup=self.setup,
@@ -3699,33 +3699,25 @@ class ChecksumProduct(Product):
 
         self.new_product = True
 
-        return None
+    def set_product_lid(self):
+        """Set Product LID."""
+        self.lid = f"{self.setup.logical_identifier}:miscellaneous:checksum_checksum"
 
-    def product_lid(self):
-        """
-        Determine product logical identifier (LID).
-
-        :return: product LID
-        :rtype: str
-        """
-        product_lid = f"{self.setup.logical_identifier}:miscellaneous:checksum_checksum"
-
-        return product_lid
-
-    def product_vid(self):
-
-        return "{}.0".format(int(self.version))
+    def set_product_vid(self):
+        """Set Product VID."""
+        self.vid = "{}.0".format(int(self.version))
 
     def write_product(self, history=False, set_coverage=False):
-        """
+        """Write the Checksum file and determine its start and stop time.
+
         This method can also be used to determine the start and stop time of
         the checksum file, necessary to determine these times for the
         miscellaneous collection before the checksum is actually written.
+
         :param history:
         :param set_coverage:
         :return:
         """
-
         msn_acr = self.setup.mission_acronym
 
         #
@@ -3794,7 +3786,7 @@ class ChecksumProduct(Product):
                 # compute the checksum.
                 #
                 checksum = ""
-                if not ".xml" in product:
+                if ".xml" not in product:
                     checksum = checksum_from_registry(path,
                                                       self.setup.working_directory)
                     if not checksum:
@@ -3819,7 +3811,7 @@ class ChecksumProduct(Product):
         #
         # We remove spurious .DS_Store files if we are working with MacOS.
         #
-        for root, dirs, files in os.walk(self.setup.bundle_directory):
+        for root, _dirs, files in os.walk(self.setup.bundle_directory):
             for file in files:
                 if file.endswith(".DS_Store"):
                     path = os.path.join(root, file)
@@ -3862,8 +3854,8 @@ class ChecksumProduct(Product):
                     )
 
             if os.path.isfile(path):
-                with open(path, "r") as l:
-                    for line in l:
+                with open(path, "r") as lbl:
+                    for line in lbl:
                         if "<start_date_time>" in line:
                             start_time = line.split("<start_date_time>")[-1].split(
                                 "</"
@@ -3912,10 +3904,7 @@ class ChecksumProduct(Product):
         return None
 
     def compare(self):
-        """
-        Compare with previous checksum file, if exists. Otherwise it is
-        not compared.
-        """
+        """Compare, with previous checksum file, if exists."""
         try:
             logging.info("")
             compare_files(
@@ -3924,8 +3913,8 @@ class ChecksumProduct(Product):
                 self.setup.working_directory,
                 self.setup.diff,
             )
-        except:
-            logging.warning(f"-- Checksum from previous increment does not " f"exist.")
+        except BaseException:
+            logging.warning("-- Checksum from previous increment does not exist.")
 
         logging.info("")
 

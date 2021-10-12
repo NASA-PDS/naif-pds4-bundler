@@ -1,3 +1,4 @@
+"""List Class and Child Class Implementation."""
 import datetime
 import glob
 import json
@@ -15,18 +16,24 @@ from naif_pds4_bundler.utils import fill_template
 
 
 class List(object):
+    """Class to generate the List."""
+
     def __init__(self, setup):
+        """Constructor."""
         self.files = []
         self.name = type
         self.setup = setup
 
     def add(self, element):
+        """Add file to the list."""
         self.files.append(element)
 
 
 class KernelList(List):
-    def __init__(self, setup):
+    """List child class to generate the Kernel List."""
 
+    def __init__(self, setup):
+        """Constructor."""
         line = f"Step {setup.step} - Kernel List generation"
         logging.info("")
         logging.info(line)
@@ -57,13 +64,13 @@ class KernelList(List):
         return
 
     def add(self, kernel):
-
+        """Add kernel or ORBNUM file to the list."""
         List.add(self, kernel)
 
         return
 
     def read_config(self):
-
+        """Extract the Kernel List information from the configuration file."""
         json_config = self.setup.kernel_list_config
 
         #
@@ -87,7 +94,7 @@ class KernelList(List):
         return
 
     def read_plan(self, plan):
-
+        """Read Release Plan from the main module input."""
         kernels = []
 
         #
@@ -98,6 +105,23 @@ class KernelList(List):
             patterns.append(pattern)
             if "mapping" in self.json_config[pattern]:
                 patterns.append(self.json_config[pattern]["mapping"])
+
+        #
+        # If NPB runs in labeling mode, a single file can be specified
+        # as a release plan. If so, a plan is generated.
+        #
+        if (plan.split('.')[-1] != 'plan') and \
+                (self.setup.args.faucet == "labels"):
+            plan_name = (
+                f"{self.setup.mission_acronym}_{self.setup.run_type}_"
+                f"{int(self.setup.release):02d}.plan"
+            )
+            plan = self.setup.working_directory + os.sep + plan_name
+            with open(plan, 'w') as pl:
+                pl.write(plan.split(os.sep)[-1])
+        elif plan.split('.')[-1] != 'plan':
+            error_message('Release plan requires *.plan extension. Single '
+                          'kernels are only alloed in labeling mode.')
 
         with open(plan, "r") as f:
             for line in f:
@@ -125,14 +149,14 @@ class KernelList(List):
                     #
                     if not ker_matched and line.strip():
                         logging.warning(
-                            "-- The following Plan line has " "not been matched:"
+                            "-- The following Plan line has not been matched:"
                         )
                         logging.warning(f"   {line[0:-1]}")
 
         #
         # Report the kernels that will be included in the Kernel List
         #
-        logging.info(f"-- Reporting the products in Plan:")
+        logging.info("-- Reporting the products in Plan:")
 
         for kernel in kernels:
             logging.info(f"     {kernel}")
@@ -144,27 +168,37 @@ class KernelList(List):
         return
 
     def write_plan(self):
-
+        """Write the Release Plan if not provided."""
         kernels = []
 
-        logging.info(f"-- Generate archiving plan from kernels directories:")
-        for dir in self.setup.kernels_directory:
-            logging.info(f"   {dir}")
-
         plan_name = (
-            f"{self.setup.mission_acronym}_release_"
+            f"{self.setup.mission_acronym}_{self.setup.run_type}_"
             f"{int(self.setup.release):02d}.plan"
         )
 
-        kernels_in_dir = []
-        for dir in self.setup.kernels_directory:
-            kernels_in_dir += glob.glob(f"{dir}/**/*.*", recursive=True)
         #
-        # Filter out the meta-kernels from the automatically generated
-        # list.
+        # The release plan is generated from the kernel directory unless
+        # the parameter 'labels' is provided by the ``-f --faucet`` argument.
+        # In such case only the input file is provided in the release plan.
         #
-        kernels_in_dir = [item for item in kernels_in_dir if ".tm" not in item]
-        kernels_in_dir.sort()
+        if self.setup.args.faucet == "labels" and self.setup.args.plan:
+            logging.info("-- Generate archiving plan from input kernel:")
+            logging.info(f"   {self.setup.args.plan}")
+            kernels_in_dir = [self.setup.args.plan]
+        else:
+            logging.info("-- Generate archiving plan from kernels directories:")
+            for dir in self.setup.kernels_directory:
+                logging.info(f"   {dir}")
+
+            kernels_in_dir = []
+            for dir in self.setup.kernels_directory:
+                kernels_in_dir += glob.glob(f"{dir}/**/*.*", recursive=True)
+            #
+            # Filter out the meta-kernels from the automatically generated
+            # list.
+            #
+            kernels_in_dir = [item for item in kernels_in_dir if ".tm" not in item]
+            kernels_in_dir.sort()
 
         #
         # Filter the kernels with the patterns in the kernel list from the
@@ -183,12 +217,14 @@ class KernelList(List):
                     kernels.append(kernel.split(os.sep)[-1])
 
         #
-        # Sort the meta-kernels that need to be added.
+        # Sort the meta-kernels that need to be added if not running
+        # in lavel geneation mode.
         #
         # First we look into the configuration file. If a meta-kernel is
         # present, it is the one that will be used.
         #
-        if hasattr(self.setup, "mk_inputs"):
+        if hasattr(self.setup, "mk_inputs") and \
+                (self.setup.args.faucet != "labels"):
             if not isinstance(self.setup.mk_inputs["file"], list):
                 mks = [self.setup.mk_inputs["file"]]
             else:
@@ -207,7 +243,7 @@ class KernelList(List):
                         f"Meta-kernel provided via configuration "
                         f"{mk_new_name} does not exist"
                     )
-        else:
+        elif self.setup.args.faucet != "labels":
             #
             # If no meta-kernel was provided via configuration, try to
             # infer the on that needs to be generated.
@@ -224,8 +260,8 @@ class KernelList(List):
 
             if not mks_in_dir:
                 logging.warning(
-                    f"-- No former meta-kernel found to generate "
-                    f"meta-kernel for the list."
+                    "-- No former meta-kernel found to generate "
+                    "meta-kernel for the list."
                 )
             else:
 
@@ -253,14 +289,20 @@ class KernelList(List):
 
                 if not mk_new_name:
                     logging.error(
-                        f"-- No former meta-kernel found to generate "
-                        f"meta-kernel for the list."
+                        "-- No former meta-kernel found to generate "
+                        "meta-kernel for the list."
                     )
+        else:
+            logging.info(
+                "-- Meta-kernels not generated in labeling mode."
+            )
 
         #
-        # Add possible orbnum files.
+        # Add possible orbnum files if not running in label generation
+        # mode.
         #
-        if hasattr(self.setup, "orbnum_directory"):
+        if hasattr(self.setup, "orbnum_directory") and \
+                (self.setup.args.faucet != "labels"):
             orbnums_in_dir = glob.glob(f"{self.setup.orbnum_directory}/*")
             for orbnum_in_dir in orbnums_in_dir:
                 for orbnum in self.setup.orbnum:
@@ -276,16 +318,19 @@ class KernelList(List):
                 p.write(f"{kernel}\n")
 
         if not kernels:
+
+            line = "Inputs for the release not found"
+            logging.warning(f"-- {line}.")
             logging.info("")
-            logging.warning(f"-- No kernels will be added to the increment.")
-            logging.info("")
+            if not self.setup.args.silent and not self.setup.args.verbose:
+                print("-- " + line.split(" - ")[-1] + ".")
 
             self.kernel_list = kernels
 
-            return
+            return False
 
         logging.info("")
-        logging.info(f"-- Reporting the products in Plan:")
+        logging.info("-- Reporting the products in Plan:")
 
         #
         # Report the kernels that will be included in the Kernel List
@@ -297,16 +342,23 @@ class KernelList(List):
 
         self.kernel_list = kernels
 
-        return
+        #
+        # Add plan to the list of generated files.
+        #
+        self.setup.add_file(f"/working_directory/{plan_name}")
 
-    #
-    # The list is not an archival product, therefore it is not generated
-    # by any of the product classes.
-    #
+        return True
+
     def write_list(self):
+        """Write the Kernel List product.
 
+        The list is not an archival product but an NPB by-product, therefore
+        it is not generated by any of the product classes.
+
+        :return:
+        """
         list_name = (
-            f"{self.setup.mission_acronym}_release_"
+            f"{self.setup.mission_acronym}_{self.setup.run_type}_"
             f"{int(self.setup.release):02d}.kernel_list"
         )
 
@@ -335,19 +387,19 @@ class KernelList(List):
                             options = self.json_config[pattern.pattern][
                                 "mklabel_options"
                             ]
-                        except:
+                        except BaseException:
                             options = ""
                         try:
                             patterns = self.json_config[pattern.pattern]["patterns"]
-                        except:
+                        except BaseException:
                             patterns = False
                         try:
                             mapping = self.json_config[pattern.pattern]["mapping"]
-                        except:
+                        except BaseException:
                             mapping = ""
 
                         #
-                        # `options' and `descriptions' require to
+                        # "options" and "descriptions" require to
                         # substitute parameters derived from the filenames
                         # themselves.
                         #
@@ -492,7 +544,7 @@ class KernelList(List):
                         # Introduced to avoid trailing white space.
                         #
                         if not options:
-                            f.write(f"MAKLABEL_OPTIONS =\n")
+                            f.write("MAKLABEL_OPTIONS =\n")
                         else:
                             f.write(f"MAKLABEL_OPTIONS = {options}\n")
                         f.write(f"DESCRIPTION      = {description}\n")
@@ -511,28 +563,34 @@ class KernelList(List):
                         ker_added_to_list = True
 
                 if not ker_added_to_list:
-                    f.write(f"FILE             = miscellaneous/orbnum/" f"{kernel}\n")
-                    f.write(f"MAKLABEL_OPTIONS = VOID\n")
-                    f.write(f"DESCRIPTION      = VOID\n")
+                    f.write(f"FILE             = miscellaneous/orbnum/{kernel}\n")
+                    f.write("MAKLABEL_OPTIONS = VOID\n")
+                    f.write("DESCRIPTION      = VOID\n")
 
         self.list_name = list_name
+
+        #
+        # Add kernel the list of generated files.
+        #
+        self.setup.add_file(f"/working_directory/{list_name}")
 
         self.validate()
 
         return
 
     def read_list(self, kerlist):
-        """
+        """Read the Kernel List.
+
         Note that the format that the kernel list has to follow is very
         strict, including no whitespace at the end of each line and Line-feed
         EOL.
+
         :param kerlist:
         :return:
         """
-
         kernel_list = (
             f"{self.setup.working_directory}/"
-            f"{self.setup.mission_acronym}_release_"
+            f"{self.setup.mission_acronym}_{self.setup.run_type}_"
             f"{int(self.setup.release):02d}.kernel_list"
         )
 
@@ -547,8 +605,8 @@ class KernelList(List):
         # Generate the kernel list attribute, necessary for the validation.
         #
         kernels = []
-        with open(kernel_list, "r") as l:
-            for line in l:
+        with open(kernel_list, "r") as lst:
+            for line in lst:
                 if "FILE             =" in line:
                     kernels.append(line.split(os.sep)[-1][:-1])
 
@@ -559,7 +617,7 @@ class KernelList(List):
         return
 
     def write_complete_list(self):
-
+        """Write the complete Kernel List using the former ones."""
         line = f"Step {self.setup.step} - Generation of complete kernel list"
         logging.info("")
         logging.info(line)
@@ -589,12 +647,12 @@ class KernelList(List):
             for kernel_list in kernel_lists:
                 logging.info(f"-- Adding {kernel_list}")
                 release_list.append(int(kernel_list.replace("_", ".").split(".")[-3]))
-                with open(kernel_list, "r") as l:
-                    for line in l:
+                with open(kernel_list, "r") as lst:
+                    for line in lst:
                         c.write(line)
 
         if not check_consecutive(release_list):
-            logging.warning(f"-- Incomplete Kernel lists available: " f"{release_list}")
+            logging.warning(f"-- Incomplete Kernel lists available: {release_list}")
 
         self.complete_list = complete_list
 
@@ -602,28 +660,22 @@ class KernelList(List):
 
         return
 
-    # ------------------------------------------------------------------------
-    #
-    # Validation of the list is performed such that:
-    #
-    # -- To check that the list has the same number of FILE, MAKLABEL_OPTIONS,
-    #    and DESCRIPTION entries.
-    #
-    # -- To check list against plan
-    #
-    # -- To check that list for duplicate files
-    #
-    # -- To check that all files listed in the list are on the ops directory
-    #
-    # -- To check that the files are not in the archive
-    #
-    # -- To check all the MAKLABL_OPTIONS used
-    #
-    # -- To check that the complete kernel list has no duplicates
-    #
-    # -----------------------------------------------------------------------
     def validate(self):
+        """Validation of the Kernel List.
 
+        The validation of the Kernel List performs these checks:
+
+         * Check that the list has the same number of FILE, MAKLABEL_OPTIONS,
+           and DESCRIPTION entries.
+         * Check list against plan
+         * Check that list for duplicate files
+         * Check that all files listed in the list are on the ``kernels_directory``
+         * Check that the files are not in the ``bundle_direcfory``
+         * To check all the MAKLABL_OPTIONS used
+         * To check that the list has no duplicates
+
+        :return:
+        """
         present = False
 
         num_file = 0
@@ -633,13 +685,13 @@ class KernelList(List):
         ker_in_list = []
         opt_in_list = []
 
-        with open(self.setup.working_directory + os.sep + self.list_name, "r") as l:
+        with open(self.setup.working_directory + os.sep + self.list_name, "r") as lst:
 
             #
             # Check that the list has the same number of FILE,
             # MAKLABEL_OPTIONS, and DESCRIPTION entries
             #
-            for line in l:
+            for line in lst:
 
                 if ("FILE" in line) and (line.split("=")[-1].strip()):
                     num_file += 1
@@ -697,7 +749,7 @@ class KernelList(List):
             # Check that all files listed are available in OPS area;
             # This does not raise an error but only a warning.
             #
-            logging.info(f"-- Checking that kernels are present in: ")
+            logging.info("-- Checking that kernels are present in: ")
 
             for dir in self.setup.kernels_directory:
                 logging.info(f"   {dir}")
@@ -723,7 +775,7 @@ class KernelList(List):
                         logging.info(f"     {ker} not present as expected.")
                     else:
                         logging.warning(
-                            f"     {ker} not present. Kernel might " f"be mapped."
+                            f"     {ker} not present. Kernel might be mapped."
                         )
                         all_present = False
             if all_present:
@@ -755,7 +807,7 @@ class KernelList(List):
             #
             opt_in_list = list(dict.fromkeys(opt_in_list))
             opt_in_list.sort()
-            logging.info(f"-- Display all the MAKLABEL_OPTIONS:")
+            logging.info("-- Display all the MAKLABEL_OPTIONS:")
             for option in opt_in_list:
                 logging.info(f"     {option}")
             logging.info("")
@@ -785,7 +837,7 @@ class KernelList(List):
             #
             # Check complete list for duplicate entries
             #
-            logging.info("-- Checking for duplicates in complete kernel " "list:")
+            logging.info("-- Checking for duplicates in complete kernel list:")
 
             kernel_lists = glob.glob(
                 self.setup.working_directory
@@ -798,7 +850,7 @@ class KernelList(List):
             ker_in_list = []
             for kernel_list in kernel_lists:
 
-                with open(kernel_list, "r") as l:
+                with open(kernel_list, "r") as lst:
 
                     #
                     # Check that the list has the same number of FILE,
@@ -806,14 +858,14 @@ class KernelList(List):
                     #
                     logging.info(f"     Adding {kernel_list} in check.")
 
-                    for line in l:
+                    for line in lst:
                         if ("FILE" in line) and (line.split("=")[-1].strip()):
                             ker_in_list.append(line.split("/")[-1].strip())
 
             if check_list_duplicates(ker_in_list):
                 error_message("List contains duplicates")
             else:
-                logging.info(f"     List contains no duplicates.")
+                logging.info("     List contains no duplicates.")
             logging.info("")
 
         if self.setup.diff and self.setup.increment:
@@ -828,13 +880,24 @@ class KernelList(List):
                 tofile = kernel_lists[-2]
                 dir = self.setup.working_directory
                 compare_files(fromfile, tofile, dir, self.setup.diff)
-            except:
+            except BaseException:
                 logging.error("-- Previous list not available.")
 
         return
 
     def validate_complete(self):
+        """Validation of the complete Kernel List.
 
+        The validation of the complete Kernel List performs these checks:
+
+         * Check that the list has the same number of FILE, MAKLABEL_OPTIONS,
+           and DESCRIPTION entries.
+         * Check that list for duplicate files
+         * To check all the MAKLABL_OPTIONS used
+         * To check that the list has no duplicates
+
+        :return:
+        """
         present = False
 
         num_file = 0
@@ -844,7 +907,7 @@ class KernelList(List):
         ker_in_list = []
         opt_in_list = []
 
-        with open(self.setup.working_directory + os.sep + self.complete_list, "r") as l:
+        with open(self.setup.working_directory + os.sep + self.complete_list, "r") as lst:
 
             #
             # Check that the list has the same number of FILE,
@@ -852,7 +915,7 @@ class KernelList(List):
             #
             logging.info("-- Checking list number of entries coherence:")
 
-            for line in l:
+            for line in lst:
 
                 if ("FILE" in line) and (line.split("=")[-1].strip()):
                     num_file += 1
@@ -902,7 +965,7 @@ class KernelList(List):
             if check_list_duplicates(ker_in_list):
                 error_message("List contains duplicates")
             else:
-                logging.info(f"     List contains no duplicates.")
+                logging.info("     List contains no duplicates.")
             logging.info("")
 
             #
@@ -910,7 +973,7 @@ class KernelList(List):
             #
             opt_in_list = list(dict.fromkeys(opt_in_list))
             opt_in_list.sort()
-            logging.info(f"-- Display all the MAKLABEL_OPTIONS:")
+            logging.info("-- Display all the MAKLABEL_OPTIONS:")
             for option in opt_in_list:
                 logging.info(f"     {option}")
             logging.info("")

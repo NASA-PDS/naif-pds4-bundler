@@ -218,6 +218,10 @@ All the information to generate the Release Plan is provided in section
 Oh, by the way, a release plan will **not** be generated if the ``-k --kerlist``
 argument is provided.
 
+If you run NBP in label mode (that is, only to generate kernel labels), the
+``--plan`` parameter can be the name of a single kernel. More information on
+:ref:`source/43_using_npb:-x, --xml`.
+
 
 ``-f FAUCET, --faucet FAUCET``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -244,6 +248,8 @@ The options are:
    * ``bundle``: stop after moving the products to the bundle directory but
      before performing the last checks.
 
+   * ``labels``:
+
 Using these faucets might be useful in different phases of the archive
 generation, especially when the archive producer is not fully confident with
 the state of the files in the plan or with the state of the configuration file.
@@ -252,6 +258,16 @@ You might also want to use the ``bundle`` option to prevent the checks from
 being performed if you are confident with you reason to do so (e.g. a
 meta-kernel not following NAIF's convention.)
 
+Running in label generation mode
+""""""""""""""""""""""""""""""""
+
+Using this mode will also change the file name of the NPB by-product files.
+The ``_release_`` part of the name will be changed to ``_labels_`` to indicate
+that the run did not generate a release but rather labels for a specific
+targeted release (the release number part of these files will be incremented.)
+
+
+If the ``labels`` parameter
 
 ``-l --log``
 ^^^^^^^^^^^^
@@ -351,8 +367,12 @@ The options for this argument determines the destination of these diff files.
 
 This argument allows you to clear the resulting products of a run from your
 workspace. As you can tell is a very useful argument. Executing NPB with this
-argument will clear the files listed in the input file from the staging and
-bundle directories and the kernel list from the working area.
+argument will clear the files listed in the input file from the staging,
+bundle directories, and the kernel list from the working area. In addition
+it will clear the kernel lists or release plans **generated** by the run
+(they will not be cleared out if you provided them as inputs.) Note that
+other by-product files such as the checksums file, run log, file lists, and
+diff files are not deleted.
 
 After you run NPB (successfully or not) one of the by-products that it generates
 is the File List. The File List has the following naming scheme::
@@ -365,7 +385,8 @@ version. The MAVEN release 26 file list would be::
    maven_release_26.file_list
 
 This file contains a list of all the products that have been generated from
-a run with relative paths.
+a run with relative paths (including the relevant run by-products: release
+plans and kernel lists.)
 
 If this argument is provided it overwrites ``-f FAUCET, --faucet FAUCET`` to
 ``plan``, in such a way that the NPB execution will be stopped after cleaning
@@ -388,6 +409,26 @@ configuration is not possible. Please contact the NAIF NPB developer before
 using this argument.
 
 If this argument is provided no release plan file will be generated.
+
+
+``-x, --xml``
+^^^^^^^^^^^^^
+
+This argument was implemented to meet the needs of some NPB users. Unless
+necessary, NAIF advises against its usage.
+
+When using this argument NPB bypasses some execution steps (including certain
+checks) in such a way that the only output of the execution is the generation
+of the XML labels of the products specified by the ``-p --plan`` argument.
+
+It is recommended to maintain a separate configuration file if NPB is executed
+as both in "default" mode and in "labeling" mode. When using "labeling" mode,
+it is common to set the ``bundle_directory`` equal to the ``kernel_directory``
+where the operational kernels usually reside.
+
+When using this mode, only kernels can be labeled (no ORBNUM products),
+MKs will not be automatically generated, and certain execution by-products
+will not be generated either.
 
 
 Execution by-products

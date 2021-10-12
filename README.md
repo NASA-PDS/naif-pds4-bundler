@@ -42,7 +42,7 @@ Please visit the documentation at: https://nasa-pds.github.io/naif-pds4-bundle/
 
 Install with:
 
-    pip install naif-pds4-bundler
+     
 
 To execute just to show the help message, run:
 

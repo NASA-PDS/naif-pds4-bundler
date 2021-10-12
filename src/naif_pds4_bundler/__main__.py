@@ -1,5 +1,6 @@
-"""
-::
+"""NAIF PDS4 Bundler Main Module.
+
+Execute NPB from the command line as follows::
 
   usage: naif-pds4-bundler [-h] [-p PLAN] [-f FAUCET] [-l] [-s] [-v] [-d DIFF]
                            [-c CLEAR] [-k KERLIST] CONFIG [CONFIG ...]
@@ -78,10 +79,10 @@ def main(
     diff="",
     debug=True,
     clear="",
-    kerlist="",
+    kerlist=""
 ):
-    """
-    Main routine for the NAIF PDS4 Bundler (naif-pds4-bundler).
+    """Main routine for the NAIF PDS4 Bundler.
+
     This routine gets the command line arguments or the parameter
     arbuments and runs the archive generation pipeline.
 
@@ -158,13 +159,15 @@ def main(
             "--plan",
             action="store",
             type=str,
-            help="Release plan file listing the kernels to "
-            "be archived. If this argument is not "
+            help="Release plan file listing the kernels and/or"
+            "ORBNUM files to be archived. If this argument is not "
             "provided, all the kernels found in the "
             "kernels directory specified in the "
             "configuration file in addition to new "
             "meta-kernels will be included in the "
-            "increment.",
+            "increment. If the ``-x --xml`` argument is used"
+            "this argument can be the name of a kernel or the path"
+            "to a release plan file (ORBNUM files will be ignored.)",
         )
         parser.add_argument(
             "-f",
@@ -174,7 +177,7 @@ def main(
             type=str,
             help="Optional indication for end point of the "
             "pipeline. Allowed values are: 'clear', "
-            "'plan', 'list', 'staging', and 'bundle'.",
+            "'plan', 'list', 'staging', 'bundle', and 'labels'.",
         )
         parser.add_argument(
             "-l", "--log", help="Write log in file", action="store_true"
@@ -288,7 +291,8 @@ def main(
     #
     if args.diff not in ["all", "log", "files", ""]:
         raise Exception("-d, --diff argument has incorrect value.")
-    if args.faucet not in ["clear", "plan", "list", "staging", "bundle", ""]:
+    if args.faucet not in ["clear", "plan", "list", "staging", "bundle",
+                           "labels", ""]:
         raise Exception("-f, --faucet argument has incorrect value.")
 
     #
@@ -341,7 +345,7 @@ def main(
 
     #
     #    * The pipeline can be stopped after cleaning up the previous run
-    #      by setting ``-f, --facuet`` to ``clear``.
+    #      by setting ``-f, --faucet`` to ``clear``.
     #
     if setup.faucet == "clear":
         log.stop()
@@ -356,9 +360,13 @@ def main(
     #    * If a plan file is provided it is processed otherwise a plan is
     #      generated from the kernels directory.
     #
+    #    * If NPB is run in label generation mode and no input products are
+    #      found, stop the execution.
+    #
     if not args.kerlist:
-        if not args.plan:
-            list.write_plan()
+        if not args.plan or (".plan" not in args.plan):
+            if not list.write_plan() and (args.faucet == "labels"):
+                return
         else:
             list.read_plan(args.plan)
 
@@ -424,7 +432,7 @@ def main(
                     setup, kernel, miscellaneous_collection, spice_kernels_collection
                 )
             )
-        elif not ".tm" in kernel.lower():
+        elif ".tm" not in kernel.lower():
             spice_kernels_collection.add(
                 SpiceKernelProduct(setup, kernel, spice_kernels_collection)
             )
@@ -439,6 +447,29 @@ def main(
                 setup, mk, spice_kernels_collection, user_input=user_input
             )
             spice_kernels_collection.add(meta_kernel)
+
+    #
+    # * Faucet for labeling mode.
+    #
+    if args.faucet == "labels":
+
+        #
+        # * Add the SPICE Kernels Collection to the Bundle.
+        #
+        bundle.add(spice_kernels_collection)
+
+        #
+        # * List the files present in the staging area.
+        #
+        bundle.files_in_staging()
+
+        #
+        # * Copy files to the bundle area.
+        #
+        bundle.copy_to_bundle()
+
+        log.stop()
+        return
 
     #
     # * Determine the SPICE kernels Collection increment times and VID.

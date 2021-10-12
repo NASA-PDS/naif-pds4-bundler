@@ -36,11 +36,11 @@
                 other ancillary data in the form of SPICE System kernel files for
                 the PHOENIX lander, its instruments, and targets.
             </overview>
-            <cognisant_persons>
+            <cognisant_authority>
                 This archive bundle was produced by the Planetary Data System (PDS)
                 Navigation and Ancillary Information Facility (NAIF) Node, Jet
                 Propulsion Laboratory, Pasadena, California.
-            </cognisant_persons>
+            </cognisant_authority>
         </readme>
         <!-- Optional parameters -->
         <!-- Release date as a UTC calendar string. Use the following format:

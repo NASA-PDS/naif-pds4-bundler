@@ -34,10 +34,11 @@ class Setup(object):
             schema = xmlschema.XMLSchema11(
                 dirname(__file__) + "/../templates/configuration.xsd"
             )
-            schema.validate(args.config)
+            schema.validate(args.config, )
 
         except Exception as inst:
-            print(inst)
+            if not args.debug:
+                print(inst)
             raise
 
         #
@@ -133,6 +134,17 @@ class Setup(object):
                 self.orbnum = [self.orbnum]
 
         #
+        # Set run type for the NPB by-products file name. So far this only
+        # deviates from the default *_release_* for label generation run only
+        # *_labels_*
+        #
+        if args.faucet == "labels" or \
+                (args.faucet == "clear" and "_labels_" in args.clear):
+            self.run_type = "labels"
+        else:
+            self.run_type = "release"
+
+        #
         # Populate the setup object with attributes not present in the
         # configuration file.
         #
@@ -164,7 +176,7 @@ class Setup(object):
         # proposed for the PDS4 Information Model 2.0.
         #
         if not hasattr(self, "date_format"):
-            self.date_format = "infomod2"
+            self.date_format = "maklabel"
 
         #
         # Check End of Line format and set EoL length.
@@ -186,7 +198,7 @@ class Setup(object):
             self.eol_len = 1
         else:
             error_message(
-                "End of Line provided via configuration is not " "CRLF nor LF"
+                "End of Line provided via configuration is not CRLF nor LF"
             )
 
         self.end_of_line_pds4 = "CRLF"
@@ -230,24 +242,24 @@ class Setup(object):
             if not pattern.match(self.mission_start):
                 error_message(
                     f"mission_start parameter does not match the "
-                    f"required format: {format}."
+                    f"required format: {format}"
                 )
         if hasattr(self, "mission_finish") and self.mission_finish:
             if not pattern.match(self.mission_finish):
                 error_message(
-                    f"mission_finish does not match the required " f"format: {format}."
+                    f"mission_finish does not match the required format: {format}"
                 )
         if hasattr(self, "increment_start") and self.increment_start:
             if not pattern.match(self.increment_start):
                 error_message(
                     f"increment_start parameter does not match the "
-                    f"required format: {format}."
+                    f"required format: {format}"
                 )
         if hasattr(self, "increment_finish") and self.increment_finish:
             if not pattern.match(self.increment_finish):
                 error_message(
                     f"increment_finish does not match the required "
-                    f"format: {format}."
+                    f"format: {format}"
                 )
         if hasattr(self, "increment_start") and hasattr(self, "increment_finish"):
             if ((not self.increment_start) and (self.increment_finish)) or (
@@ -278,7 +290,7 @@ class Setup(object):
         if os.path.isdir(cwd + os.sep + self.working_directory):
             self.working_directory = cwd + os.sep + self.working_directory
         if not os.path.isdir(self.working_directory):
-            error_message(f"Directory does not exist: " f"{self.working_directory}")
+            error_message(f"Directory does not exist: {self.working_directory}")
 
         if os.path.isdir(cwd + os.sep + self.staging_directory):
             self.staging_directory = (
@@ -299,7 +311,7 @@ class Setup(object):
         if os.path.isdir(cwd + os.sep + self.bundle_directory):
             self.bundle_directory = cwd + os.sep + self.bundle_directory
         if not os.path.isdir(self.bundle_directory):
-            error_message(f"Directory does not exist: " f"{self.bundle_directory}")
+            error_message(f"Directory does not exist: {self.bundle_directory}")
 
         #
         # There might be more than one kernels directory
@@ -309,7 +321,7 @@ class Setup(object):
                 self.kernels_directory[i] = cwd + os.sep + self.kernels_directory[i]
             if not os.path.isdir(self.kernels_directory[i]):
                 error_message(
-                    f"Directory does not exist: " f"{self.kernels_directory[i]}"
+                    f"Directory does not exist: {self.kernels_directory[i]}"
                 )
 
         os.chdir(cwd)
@@ -411,7 +423,7 @@ class Setup(object):
                     break
                 i += 1
 
-            self.templates_directory = f"{self.root_dir}/templates/{schema}/"
+            self.templates_directory = f"{self.root_dir}templates/{schema}/"
 
             logging.warning(
                 f"-- Label templates will use the ones from "
@@ -435,7 +447,7 @@ class Setup(object):
             # TODO Add templates for PDS3
             self.templates_directory = ""
 
-        logging.info(f"-- Label templates directory: " f"{self.templates_directory}")
+        logging.info(f"-- Label templates directory: {self.templates_directory}")
 
         #
         # Check meta-kernel configuration
@@ -512,7 +524,7 @@ class Setup(object):
         if self.args.clear:
             release = self.args.clear
             release = release.split(".file_list")[0]
-            release = int(release.split("release_")[-1])
+            release = int(release.split(f"_{self.run_type}_")[-1])
             current_release = int(release) - 1
 
             release = f"{release:03}"
@@ -552,7 +564,7 @@ class Setup(object):
 
                     #
                     # If the kernel list is provided as an argument, we
-                    # cannot deduce the release version from t
+                    # cannot deduce the release version from it.
                     #
                     if self.args.kerlist:
                         logging.warning(
@@ -563,12 +575,12 @@ class Setup(object):
 
                     releases = glob.glob(
                         self.working_directory + f"/{self.mission_acronym}"
-                        f"_release_*.kernel_list"
+                        f"_{self.run_type}_*.kernel_list"
                     )
 
                     releases.sort()
                     current_release = int(
-                        releases[-1].split("_release_")[-1].split(".")[0]
+                        releases[-1].split("_{self.run_type}_")[-1].split(".")[0]
                     )
                     current_release = f"{current_release:03}"
                     release = int(current_release) + 1
@@ -667,7 +679,7 @@ class Setup(object):
                         spiceypy.furnsh(lsk_pattern[-1])
                         lsks.append(lsk_pattern[-1])
                         break
-        if not lsk:
+        if not lsks:
             logging.error(f"-- LSK not found.")
         else:
             logging.info(f"-- LSK     loaded: {lsks}")
@@ -761,7 +773,7 @@ class Setup(object):
 
         if debug:
             logging.warning(
-                f"-- Running in DEBUG mode, intermediate files " f"are not cleaned up."
+                f"-- Running in DEBUG mode, by-product files are not cleaned up."
             )
 
         if os.path.isfile(self.args.clear):
@@ -773,58 +785,60 @@ class Setup(object):
             logging.info(f"-- Removing files from staging area: {path}.")
             with open(self.args.clear, "r") as c:
                 for line in c:
-                    try:
-                        stag_file = path + os.sep + line.strip()
-                        os.remove(stag_file)
-                    except:
-                        logging.warning(f"     File {stag_file} not found.")
+                    if ('.plan' not in line) and ('.kernel_list' not in line):
+                        try:
+                            stag_file = path + os.sep + line.strip()
+                            os.remove(stag_file)
+                        except:
+                            logging.warning(f"     File {stag_file} not found.")
 
             #
             # Remove files from the final area.
             #
             path = self.bundle_directory + os.sep + self.mission_acronym + "_spice/"
+
             logging.info(f"-- Removing files from final area: {path}.")
             with open(self.args.clear, "r") as c:
                 for line in c:
-                    try:
-                        os.remove(path + line.strip())
-                    except:
-                        logging.error(f"     File {line.strip()} not found.")
+                    if ('.plan' not in line) and ('.kernel_list' not in line):
+                        try:
+                            #
+                            # When NPB has been executed in label mode the final
+                            # area does not replicate the bundle directory structure
+                            # but kernels operations area.
+                            #
+                            if not os.path.exists(path):
+                                os.remove(self.bundle_directory +
+                                          line.split('spice_kernels')[-1].strip())
+                            #
+                            # Default case.
+                            #
+                            else:
+                                os.remove(path + line.strip())
+                        except:
+                            logging.warning(f"     File {line.strip()} not found.")
 
             #
-            # Try to remove kernel list.
+            # Remove generated by-products from the working_directory.
             #
             path = self.working_directory
-            logging.info(
-                f"-- Trying to remove existing release kernel list " f"from: {path}."
-            )
-            try:
-                kerlist = self.args.clear.replace(".file_list", ".kernel_list")
-                kerlist = kerlist.split(os.sep)[-1]
-                os.remove(path + os.sep + kerlist)
-            except:
-                logging.warning(f"     File {kerlist} not found.")
-
-            #
-            # Remove release plan if it has not been provided.
-            #
-            if not self.args.plan:
-                logging.info(
-                    f"-- Trying to remove existing release plan " f"from: {path}."
-                )
-                try:
-                    kerlist = self.args.clear.replace(".file_list", ".plan")
-                    kerlist = kerlist.split(os.sep)[-1]
-                    os.remove(path + os.sep + kerlist)
-                except:
-                    logging.warning(f"     File {kerlist} not found.")
+            with open(self.args.clear, "r") as c:
+                for line in c:
+                    try:
+                        if ('.plan' in line) or ('.kernel_list' in line):
+                            byproduct = line.split(os.sep)[-1][:-1]
+                            logging.info(f"-- Removing previous run "
+                                         f"by-product: {byproduct}.")
+                            os.remove(path + os.sep + byproduct)
+                    except:
+                        logging.warning(f"     File {byproduct} not found.")
 
         else:
             error_message(
                 f'The file provided with the "clear" argument does '
                 f"not exist or is not readable. Make sure that the "
                 f"file follows the name pattern: "
-                f"{self.mission_acronym}_release_NN.file_list."
+                f"{self.mission_acronym}_{self.run_type}_NN.file_list."
                 f" where NN is the release number"
             )
 
@@ -847,7 +861,7 @@ class Setup(object):
 
         if self.file_list:
             with open(
-                self.working_directory + os.sep + f"{self.mission_acronym}_release_"
+                self.working_directory + os.sep + f"{self.mission_acronym}_{self.run_type}_"
                 f"{int(self.release):02d}.file_list",
                 "w",
             ) as l:
@@ -860,7 +874,7 @@ class Setup(object):
 
         if self.checksum_registry:
             with open(
-                self.working_directory + os.sep + f"{self.mission_acronym}_release_"
+                self.working_directory + os.sep + f"{self.mission_acronym}_{self.run_type}_"
                 f"{int(self.release):02d}.checksum",
                 "w",
             ) as l:

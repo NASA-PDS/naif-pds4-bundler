@@ -65,7 +65,7 @@ class TestKernelIntegrity(TestCase):
         #
         with open(kernel_path, "w") as k:
             k.write("KPL/FK\n")
-        SpiceKernelProduct.check_kernel_integrity(test_kernel, kernel_path)
+        SpiceKernelProduct.check_kernel_integrity(test_kernel, test_kernel, kernel_path)
 
         #
         # Test sub-case 2: Nonexixtent text kernel architecture.
@@ -73,7 +73,7 @@ class TestKernelIntegrity(TestCase):
         with open(kernel_path, "w") as k:
             k.write("KPLO/FK\n")
         with self.assertRaises(RuntimeError):
-            SpiceKernelProduct.check_kernel_integrity(test_kernel, kernel_path)
+            SpiceKernelProduct.check_kernel_integrity(test_kernel, test_kernel, kernel_path)
 
         #
         # Test sub-case 3: Incorrect text kernel architecture.
@@ -81,7 +81,7 @@ class TestKernelIntegrity(TestCase):
         with open(kernel_path, "w") as k:
             k.write("DAF/FK\n")
         with self.assertRaises(RuntimeError):
-            SpiceKernelProduct.check_kernel_integrity(test_kernel, kernel_path)
+            SpiceKernelProduct.check_kernel_integrity(test_kernel, test_kernel, kernel_path)
 
         #
         # Test sub-case 4: Mismatch text kernel type.
@@ -90,7 +90,7 @@ class TestKernelIntegrity(TestCase):
         with open(kernel_path, "w") as k:
             k.write("KPL/FK\n")
         with self.assertRaises(RuntimeError):
-            SpiceKernelProduct.check_kernel_integrity(test_kernel, kernel_path)
+            SpiceKernelProduct.check_kernel_integrity(test_kernel, test_kernel, kernel_path)
 
         #
         # Test sub-case 5: Nonexistent text kernel type.
@@ -98,7 +98,7 @@ class TestKernelIntegrity(TestCase):
         with open(kernel_path, "w") as k:
             k.write("KPL/SLC\n")
         with self.assertRaises(RuntimeError):
-            SpiceKernelProduct.check_kernel_integrity(test_kernel, kernel_path)
+            SpiceKernelProduct.check_kernel_integrity(test_kernel, test_kernel, kernel_path)
 
     def test_binary_kernel_integrity(self):
         """ """
@@ -113,7 +113,7 @@ class TestKernelIntegrity(TestCase):
         #
         # Test sub-case 1: Correct text kernel architecture.
         #
-        SpiceKernelProduct.check_kernel_integrity(test_kernel, kernel_path)
+        SpiceKernelProduct.check_kernel_integrity(test_kernel, test_kernel, kernel_path)
 
         test_kernel.type = "SPK"
 
@@ -121,7 +121,7 @@ class TestKernelIntegrity(TestCase):
         # Test sub-case 2: Incorrect kernel type.
         #
         with self.assertRaises(RuntimeError):
-            SpiceKernelProduct.check_kernel_integrity(test_kernel, kernel_path)
+            SpiceKernelProduct.check_kernel_integrity(test_kernel, test_kernel, kernel_path)
 
         test_kernel.type = "CK"
         kernel_path = "../data/kernels/ck/insight_ida_enc_200829_201220_v1.xc"
@@ -130,7 +130,7 @@ class TestKernelIntegrity(TestCase):
         # Test sub-case 2: Incorrect architecture.
         #
         with self.assertRaises(RuntimeError):
-            SpiceKernelProduct.check_kernel_integrity(test_kernel, kernel_path)
+            SpiceKernelProduct.check_kernel_integrity(test_kernel, test_kernel, kernel_path)
 
 
 if __name__ == "__main__":

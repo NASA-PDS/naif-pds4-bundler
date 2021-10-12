@@ -57,7 +57,7 @@
                 <xs:complexType>
                   <xs:sequence>
                     <xs:element name="overview" type="xs:string" />
-                    <xs:element name="cognisant_persons" type="xs:string" />
+                    <xs:element name="cognisant_authority" type="xs:string" />
                   </xs:sequence>
                 </xs:complexType>
               </xs:element>
@@ -65,15 +65,15 @@
               <xs:element name="creation_date_time" type="xs:string" minOccurs="0"/>
               <xs:element name="increment_start" type="xs:string" minOccurs="0"/>
               <xs:element name="increment_finish" type="xs:string" minOccurs="0"/>
-              <xs:element name="date_format" >
+              <xs:element name="date_format" minOccurs="0">
                 <xs:simpleType>
-                  <xs:restriction base="xs:string">
+                  <xs:restriction base="xs:string" >
                     <xs:enumeration value="infomod2"/>
                     <xs:enumeration value="maklabel"/>
                   </xs:restriction>
                 </xs:simpleType>
               </xs:element>
-              <xs:element name="end_of_line" >
+              <xs:element name="end_of_line" minOccurs="0">
                 <xs:simpleType>
                   <xs:restriction base="xs:string">
                     <xs:enumeration value="CRLF"/>
@@ -302,7 +302,15 @@
               <xs:element name="coverage_kernels" minOccurs="0">
                 <xs:complexType>
                   <xs:sequence>
-                    <xs:element name="pattern" type="xs:string" maxOccurs="unbounded"/>
+                    <xs:element minOccurs="0" maxOccurs="unbounded" name="pattern">
+                      <xs:complexType>
+                        <xs:simpleContent>
+                          <xs:extension base="xs:string">
+                            <xs:attribute name="mk" type="xs:string" use="required"/>
+                          </xs:extension>
+                        </xs:simpleContent>
+                      </xs:complexType>
+                    </xs:element>
                   </xs:sequence>
                 </xs:complexType>
               </xs:element>
@@ -409,6 +417,7 @@
                         </xs:sequence>
                       </xs:complexType>
                     </xs:element>
+                    <xs:element name="author" type="xs:string" minOccurs="0"/>
                   </xs:sequence>
                   <xs:assert test="not(event_detection_frame) or header_start_line" />
                   <xs:assert test="not(event_detection_frame) or pck" />

@@ -11,12 +11,12 @@ pipeline.
 
 The following public classes are available within this module:
 
-.. py:currentmodule:: naif_pds4_bundle.classes
+.. py:currentmodule:: naif_pds4_bundler.classes
 
 
 Setup class
 -----------
-.. py:currentmodule::  naif_pds4_bundle.classes.setup
+.. py:currentmodule::  naif_pds4_bundler.classes.setup
 
 .. autoclass:: Setup
    :members:
@@ -26,7 +26,7 @@ Setup class
 
 Log class
 ---------
-.. py:currentmodule::  naif_pds4_bundle.classes.log
+.. py:currentmodule::  naif_pds4_bundler.classes.log
 
 .. autoclass:: Log
    :members:
@@ -36,7 +36,7 @@ Log class
 
 List class
 ----------
-.. py:currentmodule::  naif_pds4_bundle.classes.list
+.. py:currentmodule::  naif_pds4_bundler.classes.list
 
 .. autoclass:: List
    :members:
@@ -46,7 +46,7 @@ List class
 
 Bundle class
 ------------
-.. py:currentmodule::  naif_pds4_bundle.classes.bundle
+.. py:currentmodule::  naif_pds4_bundler.classes.bundle
 
 .. autoclass:: Bundle
    :members:
@@ -56,9 +56,30 @@ Bundle class
 
 Collection class
 ----------------
-.. py:currentmodule::  naif_pds4_bundle.classes.collection
+.. py:currentmodule::  naif_pds4_bundler.classes.collection
 
 .. autoclass:: Collection
+   :members:
+   :private-members:
+   :inherited-members:
+
+SpiceKernelsCollection
+^^^^^^^^^^^^^^^^^^^^^^
+.. autoclass:: SpiceKernelsCollection
+   :members:
+   :private-members:
+   :inherited-members:
+
+DocumentCollection
+^^^^^^^^^^^^^^^^^^
+.. autoclass:: DocumentCollection
+   :members:
+   :private-members:
+   :inherited-members:
+
+MiscellaneousCollection
+^^^^^^^^^^^^^^^^^^^^^^^
+.. autoclass:: MiscellaneousCollection
    :members:
    :private-members:
    :inherited-members:
@@ -66,7 +87,7 @@ Collection class
 
 Product class
 -------------
-.. py:currentmodule::  naif_pds4_bundle.classes.product
+.. py:currentmodule::  naif_pds4_bundler.classes.product
 
 .. autoclass:: Product
    :members:
@@ -81,42 +102,42 @@ SpiceKernelProduct
    :inherited-members:
 
 MetaKernelProduct
-^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^
 .. autoclass:: MetaKernelProduct
    :members:
    :private-members:
    :inherited-members:
 
 OrbnumFileProduct
-^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^
 .. autoclass:: OrbnumFileProduct
    :members:
    :private-members:
    :inherited-members:
 
 InventoryProduct
-^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^
 .. autoclass:: InventoryProduct
    :members:
    :private-members:
    :inherited-members:
 
 SpicedsProduct
-^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^
 .. autoclass:: SpicedsProduct
    :members:
    :private-members:
    :inherited-members:
 
 ReadmeProduct
-^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^
 .. autoclass:: ReadmeProduct
    :members:
    :private-members:
    :inherited-members:
 
 ChecksumProduct
-^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^
 .. autoclass:: ChecksumProduct
    :members:
    :private-members:
@@ -125,19 +146,69 @@ ChecksumProduct
 
 Label class
 -----------
-.. py:currentmodule::  naif_pds4_bundle.classes.label
+.. py:currentmodule::  naif_pds4_bundler.classes.label
 
-.. autoclass:: Label
+PDSLabel
+^^^^^^^^
+.. autoclass:: PDSLabel
    :members:
    :private-members:
    :inherited-members:
 
+BundlePDS4Label
+^^^^^^^^^^^^^^^
+.. autoclass:: BundlePDS4Label
+   :members:
+   :private-members:
+   :inherited-members:
+
+SpiceKernelPDS4Label
+^^^^^^^^^^^^^^^^^^^^
+.. autoclass:: SpiceKernelPDS4Label
+   :members:
+   :private-members:
+   :inherited-members:
+
+MetaKernelPDS4Label
+^^^^^^^^^^^^^^^^^^^
+.. autoclass:: MetaKernelPDS4Label
+   :members:
+   :private-members:
+   :inherited-members:
+
+OrbnumFilePDS4Label
+^^^^^^^^^^^^^^^^^^^
+.. autoclass:: OrbnumFilePDS4Label
+   :members:
+   :private-members:
+   :inherited-members:
+
+InventoryPDS4Label
+^^^^^^^^^^^^^^^^^^
+.. autoclass:: InventoryPDS4Label
+   :members:
+   :private-members:
+   :inherited-members:
+
+DocumentPDS4Label
+^^^^^^^^^^^^^^^^^
+.. autoclass:: DocumentPDS4Label
+   :members:
+   :private-members:
+   :inherited-members:
+
+ChecksumPDS4Label
+^^^^^^^^^^^^^^^^^
+.. autoclass:: ChecksumPDS4Label
+   :members:
+   :private-members:
+   :inherited-members:
 
 Object class
 ------------
-.. py:currentmodule::  naif_pds4_bundle.classes.label
+.. py:currentmodule::  naif_pds4_bundler.classes.object
 
-.. autoclass:: Label
+.. autoclass:: Object
    :members:
    :private-members:
    :inherited-members:

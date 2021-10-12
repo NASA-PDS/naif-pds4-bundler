@@ -1,10 +1,10 @@
-***********************************
-Functions and Modules Documentation
-***********************************
+***********************
+NPB Tests Documentation
+***********************
+
+.. automodule:: naif_pds4_bundler.__init__
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 3
 
-   51_main
-   52_classes
-   53_utils
+   62_functional
