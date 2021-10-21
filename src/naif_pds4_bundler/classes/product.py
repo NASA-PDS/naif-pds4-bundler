@@ -709,7 +709,9 @@ class MetaKernelProduct(Product):
         # Following the product generation we read the kernels again to
         # include all the kernels present.
         #
-        self.collection_metakernel = mk2list(self.path)
+        self.collection_metakernel = mk2list(self.path, self.setup)
+
+
 
         #
         # Set the meta-kernel times
@@ -3750,6 +3752,7 @@ class ChecksumProduct(Product):
                         )[-1]
                     else:
                         logging.warning(f"-- {product_name} does not have a label.")
+                        logging.info("")
             #
             # Include the readme file checksum if it has been generated in
             # this run. This is a bundle level product.
