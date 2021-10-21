@@ -53,7 +53,7 @@ you have provided a a ``<mk>`` section in the configuration file and that you
 have set the nested element ``<interrupt_to_update>`` to ``True``, NPB will pause
 its execution for each generated MK, before the MK is labelled and will give you
 the opportunity to edit the MK at your will. NPB will either let you use
-a text editor of your chose or it can also try to run `vi` for you. The message
+a text editor of your chose or it can also try to run ``vi`` for you. The message
 that you will see is similar to::
 
    INFO    : -- Meta-kernel generated.

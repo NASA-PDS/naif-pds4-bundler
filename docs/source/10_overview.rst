@@ -5,15 +5,15 @@ Overview
 This document is a piece of the NAIF PDS4 Bundler package (NPB)
 that NAIF enables SPICE archive producers to understand, design,
 and generate a Planetary Data System (PDS) SPICE archive from end
-to end.
+to end, using the applicable PDS4 standards.
 
 
 Applicability
 =============
 
 This document is written for anyone who will be preparing a new or
-augmented SPICE data archive either for submission to the NAIF Node of the PDS.
-However, following the standards and indications provided in this document
+augmented SPICE data archive for submission to the NAIF Node of the PDS.
+However, following the standards and procedures provided in this document
 is highly encouraged for any entity involved in archiving SPICE ancillary
 data at some other archive facility.
 
@@ -21,13 +21,13 @@ data at some other archive facility.
 Motivation
 ==========
 
-This document should be seen as something more than a user software guide since
-it describes the whole process to prepare SPICE archives and it also
-describes the NAIF approach to PDS standards in great detail (These
+This document should be seen as something more than a user's software guide
+since it describes the whole process to prepare SPICE archives and it also
+describes the NAIF approach to using PDS4 standards in great detail (These
 are the standards adopted by the consortium of agencies comprising the
 International Planetary Data Alliance.) Some of the standards may seem rather
 "picky" or unnecessary, and indeed there are a few items included that are not
-really used/useful. But adhering to all of these details is critical to the
+currently used/useful. But adhering to all of these details is critical to the
 current and future use of archived SPICE data, especially to achieve
 interoperability across national archives, and, to facilitate use of archived
 SPICE data in data search, retrieval and processing tools that are, or will be,
@@ -40,14 +40,6 @@ through the NAIF PDS4 Bundler package and this document, provides
 guidance, recommendations, and tools to generate and to validate
 the archives. These can help a great deal, but there is much that only the
 archive preparer can do.
-
-
-Code of Conduct
-===============
-
-All users and developers of the NASA-PDS software are expected to abide by our
-`Code of Conduct <https://github.com/NASA-PDS/.github/blob/main/CODE_OF_CONDUCT.md>`_.
-Please read this to ensure you understand the expectations of our community.
 
 
 NAIF's Approach to SPICE Kernel Archive Preparation
@@ -70,9 +62,9 @@ will find both terms used interchangeably.
 How to Read This Document?
 ==========================
 
-We are glad that you got this far, unfortunately you are still a long way
-to go. You might not have to look into each section of this document. In fact
-if you already know about SPICE you can skip the rest of this chapter. If
+We are glad that you got this far, but you’ve got a ways to go.
+You might not have to look into each section of this document.
+If you already know about SPICE you can skip the rest of this chapter. If
 you are very familiar with PDS SPICE kernel archives you can skip the
 :ref:`source/20_spice_kernel_archive_description:SPICE Kernel Archive Description`
 chapter and jump directly to
@@ -81,16 +73,16 @@ chapter and jump directly to
 Needless to say, the chapter
 :ref:`source/50_api_docs:Functions and Modules Documentation`
 dedicated to the description of functions and
-modules are aimed to potential contributors to the development of the
-software package, if you are not planning to do so, don't bother to take a look
-at the chapter.
+modules is aimed at potential contributors to the further development of this
+NPB software package, if you are not planning to do so, don't bother to take a
+look at that chapter.
 
 
 A Very Brief Introduction to SPICE
 ==================================
 
 The SPICE (Spacecraft Planets Instrument C- Matrix Events) information
-system uses ancillary data to provide Solar System geometry information
+system uses ancillary data to provide solar system geometry information
 to scientists and engineers for planetary missions in order to plan and
 analyze scientific observations from space-born instruments.
 
@@ -100,8 +92,9 @@ software. The SPICE data contain geometric and other ancillary information
 needed to recover the full value of science instrument data. In particular
 SPICE kernels provide spacecraft and planetary ephemerides,
 spacecraft and instrument orientation, instrument mounting
-alignments, and data needed for relevant time conversions. Data in
-the SPICE kernel files must be accessed using the software called
+alignments, data specifiying target body size, shape and orientation,
+and data needed for relevant time conversions. Data in
+SPICE kernel files must be accessed using the software called
 the SPICE Toolkit produced and distributed by the Navigation and
 Ancillary Information Facility (NAIF) Node of the Planetary Data
 System.
@@ -117,9 +110,8 @@ SPICE Kernels Organization
 --------------------------
 
 SPICE kernels in a SPICE archive are grouped into a set of subdirectories.
-Each subdirectory contains different SPICE kernel types that are used to
-store different kinds of ancillary data. These kernel types are briefly
-described hereunder.
+Each subdirectory contains one specific kernel type; those types are briefly
+described here.
 
  * **SPK** (Spacecraft Planet Kernel) files contain ephemerides (position
    and velocity) for spacecraft, planets, satellites, comets and
@@ -159,6 +151,9 @@ described hereunder.
  * **DSK** (Digital Shape Kernel) files contain detailed shape models for
    extended objects such as planets, natural satellites, asteroids, and
    comet nuclei.
+
+A SPICE archive contains one additional subdirectory holding meta-kernels,
+described here.
 
  * **MK** (Meta-Kernel) files list sets of related SPICE kernels that
    should be used together, providing an easy way to make data from
@@ -247,11 +242,11 @@ page on the NAIF web site, `NAIF Tutorials <https://naif.jpl.nasa.gov/naif/tutor
 SPICE Kernel Archives
 ---------------------
 
-Archived SPICE archives are available on the NAIF server either directly,
+SPICE archives are available on the NAIF server either directly,
 from the `FTP-like HTTP page <https://naif.jpl.nasa.gov/pub/naif/pds/pds4/>`_,
 or from the `NAIF Data page <https://naif.jpl.nasa.gov/naif/data_archived.html>`_.
 
-They are useful as examples.
+They may be useful as examples for new archive producers.
 
 
 PDS Standards
@@ -259,7 +254,7 @@ PDS Standards
 
 The PDS standards Documents are available on the PDS documents web site,
 `PDS4 web site Data Standards <https://pds.nasa.gov/datastandards/documents/>`_
-among them the following might be more useful:
+of these the following might be most useful:
 
    * Concepts Document
    * Data Provider's Handbook
@@ -271,4 +266,4 @@ PDS Validate Tool
 -----------------
 
 The PDS Validate tool is available at the
-`validate tool documentation <https://nasa-pds.github.io/validate/>`_.
+`validate tool website <https://nasa-pds.github.io/validate/>`_.

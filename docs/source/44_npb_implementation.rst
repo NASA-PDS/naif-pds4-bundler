@@ -28,7 +28,7 @@ the SPICE kernels collection, are as follows::
 
 where
 
-   * <kernel_name> is the kernel filename,
+   * <kernel_name> is the kernel file name,
 
 
 PDS Information Model

@@ -7,7 +7,7 @@ bundle following the PDS4 standard using the NAIF approach [PDS3GUIDE]_.
 
 There might be some concepts and/or words used in this chapter that
 you might not know or understand, if so please take a look at the documents
-that describe the PDS4. These documents are available at the
+that describe the PDS4 standards. These documents are available at the
 `PDS Data Standards Document page <https://pds.nasa.gov/datastandards/documents>`_.
 
 Don't worry, everything that is specified in this chapter is implemented by the
@@ -24,9 +24,9 @@ rationale of how and why SPICE kernel archives are implemented this way.
 A note on SPICE Kernels dissemination
 =====================================
 
-SPICE kernel archives might be (and are) not the only archives that include
+SPICE kernel archives might not be the only archives that include
 SPICE kernels. Any other archive is free to include SPICE kernels.
-As much as this is normal practise it can also be very dangerous. If you,
+As much as this is normal practice it can also be very dangerous. If you,
 as the archive producer for a mission, have a say on the SPICE kernels included
 in other archives of the mission, make sure of the following:
 
@@ -44,7 +44,7 @@ SPICE Kernel archive divergences rationale
 ==========================================
 
 The fact that the PDS artifacts in the SPICE Kernel archives are not 100%
-aligned with PDS best practises or recommendations, this does **not** make
+aligned with PDS best practices or recommendations does **not** make
 the kernels less usable because these products, such as labels, are not needed
 to understand or use the kernels (unlike labels for PDS images, tables or other
 science data product types). It is the internal comments in the kernels and

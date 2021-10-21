@@ -51,6 +51,6 @@ the NAIF Node of the PDS, the data set producer can do it in two ways:
            access to the data.
 
 Providing the NPB Configuration File, Release Plan, Kernel List, and any other
-NPB execution by-products to NAIF is recommended. You can do so providing them
-along with the ``.tar`` file or as an attachment to the email to communicate to
-NAIF the delviery.
+NPB execution by-products to NAIF is recommended. You can do so by providing
+them along with the ``.tar`` file or as an attachment to the email to
+communicate to NAIF the delivery.

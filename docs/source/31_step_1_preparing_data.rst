@@ -16,7 +16,7 @@ produced Event Kernel (EK) files of any kind, they should also be
 included in the archive.
 
 If as a SPICE kernel archive producer you have been provided the data to be
-archived, maybe because is all present in a given directory structure or in a
+archived, if all data are present in a given directory structure or in a
 release plan, you might as well jump to
 :ref:`source/32_step_2_npb_setup:Step 2: Preparing the NAIF PDS4 Bundler Setup`.
 
@@ -30,10 +30,6 @@ project during operations. In such cases the following kernels used
 during operations -- independent of whether if they were produced by the
 project teams or obtained from NAIF or other sources -- should be
 included in the archive:
-
-  * LSK
-
-       *  latest generic LSK file
 
   * SPKs
 
@@ -76,18 +72,13 @@ included in the archive:
           rotational, shape and possibly additional constants for all
           of the mission targets; if any
 
-  * SCLK
+  * IK
 
-       *  latest spacecraft on-board clock(s) correlation SCLK
-          file(s)
+       *  latest IK file for each of the instruments
 
-       *  additional latest SCLK files if the project and/or
-          science teams produced special SCLKs for instrument or
-          other hardware clocks or if more than one kind of SCLK
-          kernel was made for the same clock; if any
-
-       *  special SCLK file implementing mean local time or other
-          SCLK-like time systems (see MER for examples); if any
+       *  latest IK file for auxiliary s/c subsystems, the data
+          from which might be used for science purposes (antennas,
+          star trackers, horizon sensors, etc); if any
 
   * CK
 
@@ -124,12 +115,29 @@ included in the archive:
           instrument parking position orientation CK file); if
           any
 
+  * LSK
+
+       *  last generic LSK file used by the project.
+
+  * SCLK
+
+       *  latest spacecraft on-board clock(s) correlation SCLK
+          file(s)
+
+       *  additional latest SCLK files if the project and/or
+          science teams produced special SCLKs for instrument or
+          other hardware clocks or if more than one kind of SCLK
+          kernel was made for the same clock; if any
+
+       *  special SCLK file implementing mean local time or other
+          SCLK-like time systems (see MER for examples); if any
+
   * FK
 
        *  latest version of the main mission FK file(s)
 
        *  latest version of special mission FK file(s) (separate
-          lading site FKs, etc); if any
+          landing site FKs, etc); if any
 
        *  latest versions of separate instrument FK file(s); if any
 
@@ -137,26 +145,6 @@ included in the archive:
           (Moon, Earth, etc); if any
 
        *  latest versions of dynamic frames FK file(s); if any
-
-  * IK
-
-       *  latest IK file for each of the instruments
-
-       *  latest IK file for auxiliary s/c subsystems, the data
-          from which might be used for science purposes (antennas,
-          star trackers, horizon sensors, etc); if any
-
-  * EK
-
-       *  PEF2EK-type sequence and command dictionary EK files
-          (see SDU, Deep Impact for examples); if any
-
-       *  database EK files (see CLEM for examples); if any
-
-       *  CASSINI-style sequence, noise, plan, status EK files
-          (see CASSINI for examples); if any
-
-       *  ENB EK files (see MGS, SDU for examples); if any
 
   * DSK
 
@@ -167,6 +155,19 @@ included in the archive:
        *  latest DSK file (or files if multiple kernels with different
           resolutions and/or for different parts of the surface were
           produced) for the mission s/c(s); if any
+
+
+  * EK (Note: the EK subsystem is rarely used on modern missions.)
+
+       *  PEF2EK-type sequence and command dictionary EK files
+          (see SDU, Deep Impact for examples); if any
+
+       *  database EK files (see CLEM for examples); if any
+
+       *  CASSINI-style sequence, noise, plan, status EK files
+          (see CASSINI for examples); if any
+
+       *  ENB EK files (see MGS, SDU for examples); if any
 
 While no mission produces all kernels from the list above, most missions
 produce kernels of all types (maybe except EKs and DSKs) and most of these
@@ -202,8 +203,8 @@ these points may help to make this selection:
     intervals that are normally much shorter than the whole
     duration of the mission -- such as spacecraft SPK, spacecraft,
     structure, and instrument orientation CKs, and EK -- the set of
-    files providing the complete coverage for the applicable
-    interval should be included.
+    files providing complete coverage for the applicable interval
+    should be included.
 
     If the archive preparation takes place at the end of the
     mission then all kernels of these types needed to provide data
@@ -272,11 +273,11 @@ to make their names PDS compliant, and augmenting files with internal
 comments. It should also include validating the final products that will
 go into the archive.
 
-The kernel area must structured as the ``spice_kernel`` collection, with
+The kernel area must be structured as the ``spice_kernel`` collection, with
 a subdirectory for each kernel type. It can virtually reside on more than
-one location having given that more than one directory can be provided to
-the NAIF PDS4 Bundler via configuration, but having it on single directory
-simplify pre-processing and validation tasks. It does not have to include
+one location given that more than one directory can be provided to
+the NAIF PDS4 Bundler via configuration, but having it on a single directory
+simplifies pre-processing and validation tasks. It does not have to include
 kernels that don't require pre-processing (merging, renaming or additional
 comments) and can go into the archive "as is" **but** including these kernels
 might also simplify pre-processing and validation tasks that require multiple
@@ -293,7 +294,7 @@ the following:
    * augmenting file with comments
    * renaming files
 
-Some indications for each of these modifications are provided hereunder.
+Some rationale for each of these modifications are provided hereunder.
 
 
 Merging Files
@@ -432,7 +433,7 @@ starting point for comments for the kernels intended for archiving.
 
 In binary kernels internal comments reside in the special area
 of the file called the "comment area". The comments provided
-in this area can be accessed -- displayed, added, or deleted --
+in this area can be accessed -- displayed, added to, or deleted --
 using the ``COMMNT`` utility program. To add new comments to a
 binary kernel file that does not have any comments, one would
 first write a text file containing these comments and then add
@@ -451,7 +452,7 @@ and in the file sections delimited by ``\begintext`` and
 ``\begindata`` tokens, each on a line by itself. Any number of
 comment sections intermixed with the data sections can be
 included in the file. Modifying comments in a text file can be
-done using any text editor. When modification are made to the
+done using any text editor. When modifications are made to the
 file comments, the file version should be increased and the
 scope of the comment modifications should be mentioned in the
 version section of the comments.
@@ -464,7 +465,7 @@ characters.
 All archived kernels have a NAIF file ID architecture/type token as the first
 "word" on the first line of the file. The SPICE binary kernel
 files are guaranteed to have this ID word, but the ASCII text
-kernels: FK, IK, LSK, PCK, SCLK, are not. for completeness,
+kernels: FK, IK, LSK, PCK, SCLK, are not. For completeness,
 the appropriate ID words are listed hereunder, so that they may be
 inserted into the ASCII text kernel files if necessary.
 
@@ -484,7 +485,8 @@ inserted into the ASCII text kernel files if necessary.
      - KPL/SCLK
    * - FRAMES
      - KPL/FK
-
+   * - MK
+     - KPL/MK
 
 While it is not possible to automate writing comments -- as
 with any other documentation this is the task that needs to be
@@ -506,7 +508,7 @@ PDS4 Standards Reference [PDS4STD]_. Here are a few things to keep in mind:
     directory (it is common to have SPKs and ORBNUMs with the same name but
     they are in different directories.)
 
-  * File names must be no longer than 255 characters.
+  * File names must be no longer than 255 characters, including the extension.
 
   * File names must be case-insensitive; for example, ``MyFile.txt`` and
     ``myfile.txt`` are not permitted in the same directory.
@@ -590,7 +592,7 @@ kernels start with ``em16_``, and so on.
 Because of the reasons explained above, very frequently the name of kernels
 to archive has to be updated. The update can be done manually simply by
 updating the file name or NPB can be configured to do so for you. For more
-information on how to implement kernel file name mapping with see
+information on how to implement kernel file name mapping see
 :ref:`source/42_npb_configuration_file:Mapping kernels` from the NPB
 Configuration File description.
 
@@ -717,7 +719,10 @@ you use a MK from a similar archive or if you are incrementing an already
 existing archive to use the latest archived MK.
 
 You will need to specify the location of the new MK in the NPB configuration
-file as indicated in :ref:`source/42_npb_configuration_file:Meta-kernel`.
+file as indicated in :ref:`source/42_npb_configuration_file:Meta-kernel`,
+alternatively you can place the MK in the MK subdirectory of your input
+kernels directory and then include it in the release plan as indicated in
+:ref:`source/31_step_1_preparing_data:Meta-kernels in the release plan`.
 
 More information on how to generate adequate MKs is available at [KERNELS]_.
 
@@ -727,7 +732,8 @@ Generating MKs Automatically
 
 The generation of MKs can be automatized by providing to the NPB configuration
 file the appropriate parameters. This is described in detail in
-:ref:`source/42_npb_configuration_file:Automatic generation of Meta-kernels`.
+:ref:`source/42_npb_configuration_file:Automatic generation of Meta-kernels` and
+in :ref:`source/31_step_1_preparing_data:Meta-kernels in the release plan`.
 
 Please note that depending on the complexity and particulars of the MK(s) you
 need to archive, setting up the automatic generation might not be possible. If
@@ -763,7 +769,7 @@ reconstructed and C-smithed CK files. CASSINI requests these plots be
 included in the archived data set.
 
 NAIF neither objects to nor recommends practices like this. If this is required
-we recommend you to contact NAIF.
+we recommend you contact NAIF.
 
 
 Obtaining a DOI
@@ -776,7 +782,7 @@ If the archive uses IM 1.5.0.0, it will not be able to include the DOI tag in
 the bundle label (the IM does not allow it), if IM 1.14.0.0 or higher is used,
 the DOI will be able to be included it in the bundle label.
 
-Obtention of a DOI depends on the archive producer's archiving authority.
+Obtaining a DOI depends on the archive producer's archiving authority.
 If you are producing a NASA SPICE Kernel bundle see the
 `PDS Citation indications <https://pds.jpl.nasa.gov/datastandards/citing/>`_.
 Note that a DOI will need a landing page, Below are a couple of examples
@@ -843,12 +849,12 @@ Here's three different extracts of release plan samples::
    No Cruise CKs in this release.
 
 
-We recommend to follow this file name scheme for release plan files::
+We recommend one follows this file name scheme for release plan files::
 
    <sc>_release_??.plan
 
-where ``<sc> ``is the mission acronym and ``??`` is the archive's release
-version. The MAVEN release 24 plan is will be::
+where ``<sc>`` is the mission acronym and ``??`` is the archive's release
+version. The MAVEN release 24 plan will be::
 
    maven_release_24.plan
 
@@ -861,6 +867,14 @@ do so, NPB will take as inputs all the kernel files that it finds in the
 kernels directory(ies) and will generate a release plan for you. This option is
 useful when the kernel directory(ies) are generated ad-hoc for each release
 or for first releases of small archives.
+
+
+Meta-kernels in the release plan
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The inclusion of Meta-kernels in the release plan is optional if you have
+already specified their location via configuration
+(see :ref:`source/42_npb_configuration_file:Meta-kernel`).
 
 
 Label generation only

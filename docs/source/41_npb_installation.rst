@@ -10,7 +10,7 @@ present on the users's computer:
    * Python 3.8 (or higher)
    * A NAIF supported C compiler (`See link to NAIF CSPICE page <https://naif.jpl.nasa.gov/naif/toolkit_C.html>`_)
 
-Your computer must be based on a 64-bit Unix operating system: a Linux or a Mac.
+Your computer must be based on a 64-bit Unix operating system: a Linux or OSX.
 
 A number of Python packages are required as well:
 
@@ -21,12 +21,11 @@ A number of Python packages are required as well:
    * xmlschema
 
 Please note that the dependency that might cause issues is SpiceyPy. SpiceyPy
-will check if you have the SPICE Toolkit in C: CSPICE, installed, if you don't
+will check if you have the SPICE Toolkit in C: CSPICE, installed. If you don't
 it will automatically install it for you (that is why only a NAIF compatible
 C compiler is required.)
 
-The following section will provides indications to install these packages and
-NPB.
+The following section will provides instructions to install NPB.
 
 
 User Quickstart
@@ -50,7 +49,7 @@ Then run::
 
    python setup.py install
 
-In the ``naif-pds4-bundlder`` top level directory. To uninstall run::
+in the ``naif-pds4-bundler`` top level directory. To uninstall run::
 
    pip uninstall spiceypy
 

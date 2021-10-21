@@ -27,12 +27,12 @@ The Readme file provides a summary of the content of the archive whereas Bundle
 labels, provide a handful summary of different aspects of the archive, including
 the archive release, that is equivalent to the Bundle label version.
 
-A SPICE kernel archive bundles consists of three collections: the
+A SPICE kernel archive bundle consists of three collections: the
 *spice_kernels* collection, the *miscellaneous* collection, and the
-*document* collection (careful, is *document*, not *documents*).
+*document* collection.
 
-Note that every collection will have its Inventory File CVS (Comma Separated
-Value) file and the Collection XML label.
+Note that every collection will have a number of Inventory File CVS
+(Comma Separated Value) files and Collection XML labels.
 
 
 SPICE Kernels Collection
@@ -40,29 +40,9 @@ SPICE Kernels Collection
 
 The ``spice_kernels`` collection follows a particular directory structure and
 its products a particular file naming convention. The collection is composed
-by a series of directories that contain SPICE kernels of each kernel type. Each
+of a series of directories that contain SPICE kernels of each kernel type. Each
 SPICE kernel product has its PDS4 label. These labels have the same file name
-of the labeled SPICE kernel except for the extension that will be ``.xml``.
-
-
-Miscellaneous Collection
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-The miscellaneous collection contains checksum products under the checksum
-directory. These checksum files provide a table of MD5 sums for all the
-files in the archive as of a particular archive version including checksums
-for all previous checksums files and their labels but excluding the checksum
-for the checksum file itself and its label.
-
-There should be a checksum product for each release of the archive. As any other
-archive product, the checksum product will have its label. These labels have the
-same file name except for the extension that will be ``.xml``.
-
-In addition, the miscellaneous collection might contain orbit number files
-(ORBNUM) under an orbnum directory with their corresponding ``.xml`` labels.
-
-Other types of files are currently not envisaged for the miscellaneous
-collection.
+of the labeled SPICE kernel except for the extension, which will be ``.xml``.
 
 
 Document Collection
@@ -73,16 +53,36 @@ description file (SPICEDS). These files are described in the section
 :ref:`source/32_step_2_npb_setup:SPICE Data Set Catalog File`.
 
 
+Miscellaneous Collection
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+The miscellaneous collection contains checksum products under the checksum
+directory. These checksum files provide a table of MD5 sums for all the
+files in the archive as of a particular archive version, including checksums
+for all previous checksum files and their labels but excluding the checksum
+for the checksum file itself and its label.
+
+There should be a checksum product for each release of the archive. As for
+any other archive product, the checksum product will have a label. These labels
+have the same file name except for the extension, which will be ``.xml``.
+
+In addition, the miscellaneous collection might contain orbit number files
+(ORBNUM) under an orbnum directory with their corresponding ``.xml`` labels.
+Any ORBNUM files go here because they are not SPICE kernels.
+
+Other types of files are currently not envisaged for the miscellaneous
+collection.
+
 
 LIDs, VIDs, LIDVIDs, and File naming
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-A critical element of PDS4 archives are the products' Logical Identifiers
+Critical elements of PDS4 archives are the products' Logical Identifiers
 (LID) and the products' Version Identifiers (VID).
 
-a LID is a unique logical identifier that is assigned to each product,
+A LID is a unique logical identifier that is assigned to each product,
 collection, and bundle. The nicety is that the LID is not bound to the data
-location and therefore is adept to reference data uniquely. VIDs provides the
+location and therefore is able to reference data uniquely. VIDs provides the
 capability to version the data identified by a LID; LIDVID combines the LID and
 the VID to provide a unique reference to a specific version of the data.
 
@@ -93,8 +93,8 @@ combination of the kernel type sub-directory and the kernel name itself.
 
 SPICE kernel archives take advantage of LIDs and LIDVIDs in a particular way
 given the nature of the SPICE kernels; in general the kernel file name contains
-a version number which identifies the kernel as a unique file; this version is
-considered part of the filename and not a version number per se. Hence in an
+a version number that identifies the kernel as a unique file; this version is
+considered part of the file name and not a version number per se. Hence, in an
 archive it is common to find products with a file name LIDVID pair such as:
 
 .. list-table:: SPICE kernel name - LIDVID examples
@@ -109,11 +109,10 @@ archive it is common to find products with a file name LIDVID pair such as:
      - urn:esa:psa:em16_spice:spice_kernels:fk_em16_tgo_v02.tf::1.0
 
 
-We will learn more about this in the following section. For now lets take a
+We will talk more about this in the following section. For now lets take a
 look at the general directory tree of a SPICE kernel archive. In the following
 diagram you will be able to see the directory structure along with an
-indication on how files are named, their product type, and an indication to
-generate their LIDVID::
+indication on how files are named, their product type, and their LIDVID::
 
       <sc>_spice (bundle root directory)
        |
@@ -268,15 +267,17 @@ Where:
 
    *  ``??`` and ``???`` are two or three digit version numbers
 
-   *  Several types of meta-kernel can be included specifying its ``<_type>``
-      field. E.g., ``maven_2020_v01.tm`` or ``insight_v01.tm``.
+   *  Several types of meta-kernel can be included specifying their type
+      in the ``<_type>`` field. E.g. yearly meta-kernels will have a year
+      in their type (``maven_2020_v01.tm``) as opposed to meta-kernels for the
+      whole mission, that will not have a type field (``insight_v01.tm``.)
 
    *  Any kernel type subdirectories not applicable for the mission in
       question may be omitted.
 
    *  Additional products of file types that are allowed for
       Product_Ancillary may be provided in subdirectories under
-      ``miscellaneous``. To be acceptable for archiving these products
+      ``miscellaneous``. To be acceptable for archiving, these products
       should contain types of ancillary information similar to those
       provided in the ``extras`` directory of the PDS3 SPICE data sets.
       Please contact NAIF if you wish to add any of these.
@@ -318,9 +319,9 @@ The rest of the LIDVID can be constructed in four different ways depending
 on the product:
 
   * path and full file name in LID
-  * path and filename without version in LID
+  * path and file name without version in LID
   * subdirectory name only in LID
-  * no filename in LID
+  * no file name in LID
 
 
 Path and full file name in LID
@@ -365,7 +366,7 @@ to the following products.
 
     * SPICE archive description documents (``spiceds_v???.html``)
 
-This particular set of files, are specific to the archive and therefore they
+This particular set of files are specific to the archive and therefore they
 are guaranteed to be sequential::
 
       spice_kernels/mk/maven_v01.tm              urn:nasa:pds:maven.spice:spice_kernels:mk_maven::1.0
@@ -405,8 +406,8 @@ In general these products are the label and the inventory files::
       spice_kernels/collection_spice_kernels_v002.xml   urn:nasa:pds:maven.spice:spice_kernels::2.0
 
 
-No filename in LID
-^^^^^^^^^^^^^^^^^^
+No file name in LID
+^^^^^^^^^^^^^^^^^^^
 
 LIDs will include only the initial part of the LID and VIDs will always be set
 to the version part from the file name. This applies to the following products:
@@ -422,12 +423,12 @@ which is reduced to the bundle label::
 Bundle Products Construction Rules
 ----------------------------------
 
-Readme files cannot be overwritten (as any other file in the archive)
+Readme files cannot be overwritten (as for any other file in the archive)
 or versioned. This means that when the Readme file is generateed for the first
 release of the archive, it will remain unchanged; make sure not to make
-mistakes when writing that file and write it as generic as possible,
+mistakes when writing that file and write it as generically as possible,
 for example, do not specify the archive producer name, instead provide the
-the archive producer organisation name (usually the archiving authority.)
+the archive producer organization name (usually the archiving authority.)
 
 This is the reason why you will probably not see any reference to the
 Miscellaneous collection in most readme files of NAIF archives: the
@@ -437,12 +438,12 @@ Miscellaneous collection was added after the first release of the archive.
 Product Reference and Collection Inventory Construction Rules
 -------------------------------------------------------------
 
-These set of rules applies to all the archive products:
+This set of rules applies to all the archive products:
 
     * all products' ``Context_Area`` includes only Mission (``*_to_investigation``),
       Spacecraft(s) (``is_instrument_host``), and Target(s) (``*_to_target``) LID
       references. These LIDs should be obtained from your archiving authority
-      (The PDS coordinating node for NASA missions, PSA for ESA missions,
+      (the PDS coordinating node for NASA missions, PSA for ESA missions,
       DARTS for JAXA missions, etc.) or from the PDS Engineering Node.
 
     * All products' ``Reference_List`` includes the latest primary SPICE
@@ -454,14 +455,14 @@ These set of rules applies to all the archive products:
       all kernels (``data_to_associate``) listed in the MK.
 
     * Each collection inventory lists LIDVIDs of **all** non-collection
-      products provided under collection's directory at the time when
+      products provided under collection's directory at the time when the
       collection product was created. In a particular collection
       inventory, *P* is used only for newly added products (that don't
       appear in any of the collections with earlier versions) and *S* is
       used for products that have already been registered in a collection
       with an earlier version.
 
-    * Each Bundle label includes Bundle_Member_Entry'es only for the
+    * Each Bundle label includes Bundle_Member_Entry's only for the
       latest SPICE kernel collection LIDVID
       (``bundle_has_spice_kernel_collection``), the latest document collection
       LIDVID (``bundle_has_document_collection``) and the latest miscellaneous
@@ -474,9 +475,9 @@ These set of rules applies to all the archive products:
 ``start_date_time`` and ``stop_date_time`` Assignment Rules
 -----------------------------------------------------------
 
-Determination of the coverage or the different products, that needs to be
-recorded in the ``Contex_Area/Time Coordinates`` element of the product labels,
-is not straightforward, to comply with the NAIF standard, the following rules
+Determination of the coverage for the different products that needs to be
+recorded in the ``Contex_Area/Time Coordinates`` element of the product labels
+is not straightforward; to comply with the NAIF standard, the following rules
 must be followed:
 
     *  ``start_date_time`` and ``stop_date_time`` appear in
@@ -484,14 +485,15 @@ must be followed:
        Miscellaneous collection, SPICE kernel labels, checksum, and orbit
        number file labels.
 
-    *  for kernels for which time boundaries can determined from the
-       data (SPK, CK, etc) ``start_date_time`` and ``stop_date_time`` are
-       set to those boundaries
+    *  for kernels for which time boundaries can be determined from the
+       data (SPKs, CKs, binary PCKs, and DSKs) ``start_date_time`` and
+       ``stop_date_time`` are set to those boundaries
 
     *  for kernels for which time boundaries cannot be determined from the
-       data (LSK, SCLK, PCK, etc) ``start_date_time`` and ``stop_date_time`` are
-       set to the default mission time range (from launch to an arbitrary date
-       many decades into the future, e.g. 2050-01-01)
+       data (LSKs, SCLKs, text PCKs, FKs and IKs) ``start_date_time`` and
+       ``stop_date_time`` are set to the default mission time range (from
+       launch to an arbitrary date many decades into the future, e.g.
+       ``2050-01-01``)
 
     *  for whole mission meta-kernels ``start_date_time`` and ``stop_date_time``
        are set to the coverage provided by spacecraft SPK or CKs, at the
@@ -543,7 +545,7 @@ According to the PDS4 Concepts Document, the PDS Information model is
 The PDS IM is constantly evolving and new builds are released approximately
 every six months.
 
-For SPICE kernel archives the IM constraints the way in which labels are
+For SPICE kernel archives the IM constrains the way in which labels are
 designed. Note that the constant evolution of the IM is in conflict with NAIF's
 approach to archives: archived files should never be changed.
 
@@ -551,8 +553,8 @@ Because of this NAIF recommends to archive producers to choose an IM and to
 stick with it (as much as possible) throughout all the archive releases. At this
 point NAIF recommends the usage IM 1.5.0.0 which is the one used by all the NAIF
 PDS4 Bundles. IM 1.5.0.0 does not support the usage of Line-Feed line endings
-(LF) for products, neither supports the inclusion of Digital Object Identifiers
-(DOIs) in the bundle label.
+(LF) for products, nor does it support the inclusion of Digital Object
+Identifiers (DOIs) in the bundle label.
 
 
 Digital Objects Identifiers
@@ -563,8 +565,8 @@ registration agency (the International DOI Foundation) to identify content and
 provide a persistent link to its location on the internet. DOIs can be used for
 example to cite the SPICE kernel archive in published articles.
 
-DOIs are not mandatory for SPICE kernel archives but are desirable. A SPICE
-kernel archive should only have one DOI associated to the bundle and if
+DOIs are not mandatory for SPICE kernel archives, but are desirable. A SPICE
+kernel archive should only have one DOI associated with the bundle and if
 applicable recorded in the bundle label under the ``Identification_Area`` as
 follows::
 
@@ -583,7 +585,7 @@ Product set, label, LIDVID and inventory examples for MAVEN releases 1 and 2
 ----------------------------------------------------------------------------
 
 Below is an example of files, product types, and LIDVIDs for the MAVEN 1st and
-2nd releases. Inventory contents shows with ``P`` and ``S`` attributes. ``+``
+2nd releases. Inventory contents are shown with ``P`` and ``S`` attributes. ``+``
 as the first character on the line indicates files added in that release:
 
 Release 1 includes:

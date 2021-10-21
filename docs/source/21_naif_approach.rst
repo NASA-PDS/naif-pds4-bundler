@@ -23,10 +23,10 @@ parentheses is briefly explained below:
        Following this requirement ensures consistency across all SPICE
        archives and usability of the data for both future users and
        the archive distribution and manipulation tools at the NAIF
-       Node of the PDS. To facilitate conversion of text kernels with
+       Node of the PDS. If conversion of text kernels with
        lines terminated by ``<CR><LF>`` (carriage return and line feed)
        and binary kernels in ``LTL-IEEE`` (little-endian) format to the
-       required format NAIF provides a utility program named BINGO,
+       required format is needed, NAIF provides a utility program named BINGO,
        available on the "Utilities"s page on the NAIF web site.
 
     2. *All SPICE data for a given mission get archived in a single
@@ -50,7 +50,7 @@ parentheses is briefly explained below:
 
        All SPICE bundles -- even those for the missions that have
        ended -- are accumulating, which means that if/when additional
-       SPICE data becomes available, these data is added to the same
+       SPICE data become available, these data are added to the same
        archive. For on-going missions the data that is being added is
        usually covering the next period of time; for past missions the
        data that is being added usually provides a better trajectory
@@ -118,20 +118,21 @@ parentheses is briefly explained below:
           document/spiceds_v???.xml                                   SPICE archive description label
           miscellaneous/collection_miscellaneous_v???.xml             miscellaneous collection labels
           miscellaneous/collection_miscellaneous_inventory_v???.tab   miscellaneous inventory tables
-          miscellaneous/*/*.xml                                       XMK labels, 1 per checksum and ORBNUM
+          miscellaneous/*/*.xml                                       XML labels, 1 per checksum and ORBNUM
           spice_kernels/collection_spice_kernels_v???.xml             SPICE kernels collection labels
           spice_kernels/collection_spice_kernels_inventory_v???.tab   SOUCE kernels inventory tables
           spice_kernels/*/*.xml                                       XML labels, 1 per kernel
 
        where the ``<sc>`` part is formed as described above (for example, for
        MAVEN it is ``maven_spice``). Elements with ``???`` have one file
-       per archive release.
+       per archive release with ``???`` replaced with the document version
+       number.
 
-    5. *All SPICE kernels included in all SPICE archive are labeled
+    5. *All SPICE kernels included in all SPICE archives are labeled
        with PDS4 XML labels*.
 
        Templates for different PDS Information Model versions of SPICE kernel
-       labels (and other labels) are provided with NAIF PDS4 Bundler.
+       labels (and other labels) are provided with the NAIF PDS4 Bundler.
 
     6. *All SPICE archives include a SPICE Description document (SPICEDS) that
        provides all the required information to describe in detail the SPICE
