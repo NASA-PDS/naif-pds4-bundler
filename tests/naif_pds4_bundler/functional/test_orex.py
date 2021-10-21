@@ -57,7 +57,8 @@ class TestOSIRISREx(TestCase):
             shutil.rmtree(dir, ignore_errors=True)
 
     def test_orex_mks(self):
-        """
+        """Test development in progress.
+
         Test case to debug:
         INFO    : Step 6 - Generation of meta-kernel(s)
         INFO    : -------------------------------------
@@ -67,7 +68,6 @@ class TestOSIRISREx(TestCase):
         WARNING : -- orx_2016_v09.tm No vid explicit in kernel name: set to 1.0
         """
         config = "../config/orex.xml"
-        # plan = "working/orex.plan"
         faucet = "staging"
 
         main(

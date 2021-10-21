@@ -1,3 +1,4 @@
+"""Test Family to clear previous execution."""
 import os
 import shutil
 import unittest
@@ -7,15 +8,16 @@ from naif_pds4_bundler.__main__ import main
 
 
 class TestClear(TestCase):
-    """Test Family for previous exectucion clear.
-    """
+    """Test Family to clear previous execution."""
 
     @classmethod
     def setUpClass(cls):
-        """
+        """Constructor.
+
+        Chose the appropriate working directory and cleanup directories.
+
         Method that will be executed once for this test case class.
         It will execute before all tests methods.
-
         """
         print(f"NPB - Functional Tests - {cls.__name__}")
 
@@ -27,7 +29,8 @@ class TestClear(TestCase):
         cls.log = True
 
     def setUp(self):
-        """
+        """Setup Test.
+
         This method will be executed before each test function.
         """
         unittest.TestCase.setUp(self)
@@ -36,7 +39,8 @@ class TestClear(TestCase):
         os.chdir(os.path.dirname(__file__))
 
     def tearDown(self):
-        """
+        """Clean-up Test.
+
         This method will be executed after each test function.
         """
         unittest.TestCase.tearDown(self)
@@ -49,10 +53,9 @@ class TestClear(TestCase):
             os.remove("staging")
 
     def test_insight_basic(self):
-        """
-        Test complete pipeline with basic Insight data (no binary kernels,
-        no SCLK).
+        """Test complete clearing basic Insight archive generation.
 
+        This method will be executed after each test function.
         """
         config = "../config/insight.xml"
         plan = "../data/insight_release_08.plan"
@@ -105,13 +108,13 @@ class TestClear(TestCase):
         )
 
     def test_insight_error(self):
-        """
-        Test generation of product list when there is an error in the
-        execution. Also test cleaning the failed run and running the pipleine
-        again. In addition, test an incorrect spice_name.
+        """Test complete clearing basic Insight archive generation with error.
 
+        Test generation of product list when there is an error in the
+        execution. Also test cleaning the failed run and running the pipeline
+        again. In addition, test an incorrect spice_name.
         """
-        config = f"../config/insight.xml"
+        config = "../config/insight.xml"
         wrong_config = "working/insight.xml"
 
         dirs = ["working", "staging", "insight"]
@@ -125,7 +128,7 @@ class TestClear(TestCase):
 
         try:
             shutil.copytree("../data/kernels", "kernels")
-        except:
+        except BaseException:
             pass
 
         with open(config, "r") as c:

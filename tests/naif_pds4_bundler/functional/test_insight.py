@@ -214,7 +214,7 @@ class TestINSIGHT(TestCase):
         stopped. Process is finished before moving all files to the final
         area.
 
-        The tests also tests the obtention of checksums from already existing
+        The tests also tests the obtaining of checksums from already existing
         labels.
 
         Test is successful if NPB is executed without errors.
@@ -404,7 +404,7 @@ class TestINSIGHT(TestCase):
         this run time error::
            RuntimeError: Meta-kernel insight_2021_v08.tm has not been matched in configuration.
 
-        and then NPB executes without errors with `insight_2v08.tm``
+        and then NPB executes without errors with `insight_v08.tm``
         """
         config = "../config/insight.xml"
         updated_config = "working/insight.xml"
@@ -636,6 +636,33 @@ class TestINSIGHT(TestCase):
                         n.write(line)
 
         main(updated_config, plan, faucet, silent=self.silent, log=self.log)
+
+    def test_insight_generate_mk(self):
+        """Test MK generation with no MK input.
+
+        Test is successful if NPB is executed without errors.
+        """
+        dirs = ["working", "staging", "insight"]
+        for dir in dirs:
+            os.makedirs(dir, 0o766, exist_ok=True)
+
+        shutil.rmtree("kernels", ignore_errors=True)
+        shutil.copytree("../data/kernels", "kernels")
+
+        config = "../config/insight.xml"
+        plan = "working/insight.plan"
+        faucet = "staging"
+
+        with open(plan, "w") as p:
+            p.write("nsy_sclkscet_00019.tsc")
+
+        main(
+                config,
+                plan=plan,
+                faucet=faucet,
+                silent=self.silent,
+                log=self.log
+            )
 
     def test_insight_no_spiceds_in_conf(self):
         """Test when no SPICEDS is provided via configuration.

@@ -98,9 +98,12 @@ class TestMars2020(TestCase):
         main(config, kerlist=kerlist, silent=self.silent, log=self.log)
 
     def test_m2020_kernel_list_dir(self):
-        """
-        Usage of kernel list instead of release plan. Provided from the
-        working directory with the same resulting name.
+        """Test usage of kernel list instead of release plan as input.
+
+        The kernel list is provided from the working directory with the same
+        resulting name.
+
+        Test is successful if NPB is executed without errors.
         """
         shutil.copy2(
             "../data/mars2020_release_00.kernel_list",

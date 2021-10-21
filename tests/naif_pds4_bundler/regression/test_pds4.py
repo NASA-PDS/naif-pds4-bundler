@@ -148,7 +148,7 @@ class TestPDS4(TestCase):
             ignore=shutil.ignore_patterns("*.xml", "*.csv"),
         )
 
-        main(self.updated_config, silent=self.silent, log=self.log)
+        main(self.updated_config, verbose=True, log=self.log)
 
     def test_kplo(self):
         """

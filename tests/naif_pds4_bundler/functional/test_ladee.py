@@ -107,8 +107,8 @@ class TestLADEE(TestCase):
 
         main(updated_config, plan=False, silent=self.silent, log=self.log)
 
-    def test_ladee_checksum_regsitry(self):
-        """Tests obtention of MD5 sum per product using the checksum registry.
+    def test_ladee_checksum_registry(self):
+        """Tests obtaining of MD5 sum per product using the checksum registry.
 
         Test is successful if NPB is executed without errors.
         """
