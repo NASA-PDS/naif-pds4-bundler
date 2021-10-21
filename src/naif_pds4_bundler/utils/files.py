@@ -342,12 +342,14 @@ def get_context_products(setup):
     return bundle_context_products
 
 
-def mk2list(mk):
+def mk2list(mk, setup):
     """Generate a list of kernels from a Meta-kernel.
 
     This function assumes that the meta-kernel will contain a PATH_SYMBOLS
     definition that will be present in each kernel entry preceeded by a dollar
     sign ``$``.
+
+    If no kernel is found an error is raised.
 
     :param mk: Meta-kernel
     :return: List of kernels present in the meta-kernel
@@ -371,6 +373,10 @@ def mk2list(mk):
 
             if "PATH_SYMBOLS" in line.upper():
                 path_symbol = "$" + line.split("'")[1]
+
+    if not ker_mk_list:
+        error_message(f"No kernels present in {mk}. "
+                      f"Please review MK generation", setup=setup)
 
     return ker_mk_list
 

@@ -542,9 +542,7 @@ class Bundle(object):
         4history.
         """
         logging.info("")
-        line = (
-            f"Step {self.setup.step} - Validate bundle history with checksum files"
-        )
+        line = f"Step {self.setup.step} - Validate bundle history with checksum files"
         logging.info("")
         logging.info(line)
         logging.info("-" * len(line))
