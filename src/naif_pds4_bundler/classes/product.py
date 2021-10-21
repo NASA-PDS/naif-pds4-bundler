@@ -60,8 +60,7 @@ class Product(object):
         # present, try to obtain it from the label if the product is in the
         # staging area. Otherwise compute the checksum.
         #
-        checksum = checksum_from_registry(self.path,
-                                          self.setup.working_directory)
+        checksum = checksum_from_registry(self.path, self.setup.working_directory)
 
         if not checksum:
             checksum = checksum_from_label(self.path)
@@ -222,17 +221,14 @@ class SpiceKernelProduct(Product):
                             f"with {self.name}"
                         )
                     except BaseException:
-                        error_message(f"{self.name} not present in {path}",
-                                      setup=setup)
+                        error_message(f"{self.name} not present in {path}", setup=setup)
 
                 self.check_kernel_integrity(self, origin_path)
 
                 if self.new_product:
                     break
         else:
-            logging.warning(
-                f"     {self.name} already present in staging directory."
-            )
+            logging.warning(f"     {self.name} already present in staging directory.")
 
             #
             # Even though it is not a 'new' product, the file is present in
@@ -312,8 +308,8 @@ class SpiceKernelProduct(Product):
 
         if not description:
             error_message(
-                f"{self.name} does not have a description on "
-                f"{kernel_list_file}", setup=self.setup
+                f"{self.name} does not have a description on " f"{kernel_list_file}",
+                setup=self.setup,
             )
 
         return description
@@ -711,8 +707,6 @@ class MetaKernelProduct(Product):
         #
         self.collection_metakernel = mk2list(self.path, self.setup)
 
-
-
         #
         # Set the meta-kernel times
         #
@@ -769,9 +763,7 @@ class MetaKernelProduct(Product):
             version = int(version) + 1
 
         except BaseException:
-            logging.warning(
-                "-- Meta-kernel from previous increment is not available."
-            )
+            logging.warning("-- Meta-kernel from previous increment is not available.")
             logging.warning(f"   Version will be set to: {self.version}.")
 
             return
@@ -832,10 +824,11 @@ class MetaKernelProduct(Product):
             #
             # Implement this exceptional check for first releases of an archive.
             #
-            if '01' not in self.name:
+            if "01" not in self.name:
                 error_message(
                     f"{self.name} version does not correspond to VID "
-                    f"1.0. Rename the MK accordingly", setup=self.setup
+                    f"1.0. Rename the MK accordingly",
+                    setup=self.setup,
                 )
 
         self.vid = product_vid
@@ -1308,9 +1301,7 @@ class MetaKernelProduct(Product):
 
         rel_path = self.path.split(f"/{self.setup.mission_acronym}_spice/")[-1]
         path = (
-            self.setup.bundle_directory.split(
-                f"{self.setup.mission_acronym}_spice"
-            )[0]
+            self.setup.bundle_directory.split(f"{self.setup.mission_acronym}_spice")[0]
             + f"/{self.setup.mission_acronym}_spice/"
             + rel_path
         )
@@ -1423,8 +1414,7 @@ class MetaKernelProduct(Product):
                                 f"-- File not present in final area: {path}."
                             )
                             logging.warning(
-                                "   It will not be used to "
-                                "determine the coverage."
+                                "   It will not be used to " "determine the coverage."
                             )
                         else:
                             if extension2type(kernel) == "spk":
@@ -1545,17 +1535,14 @@ class OrbnumFileProduct(Product):
             )
             self.new_product = True
         else:
-            logging.warning(
-                f"     {self.name} already present in staging directory."
-            )
+            logging.warning(f"     {self.name} already present in staging directory.")
 
             self.new_product = False
 
         #
         # Add CRs to the orbnum file
         #
-        add_crs_to_file(product_path + os.sep + self.name, self.setup.eol,
-                        self.setup)
+        add_crs_to_file(product_path + os.sep + self.name, self.setup.eol, self.setup)
 
         #
         # We update the path after having copied the kernel.
@@ -1793,9 +1780,7 @@ class OrbnumFileProduct(Product):
         :return: sample row with UTC string with dashes
         :rtype: str
         """
-        utc_pattern = (
-            r"[0-9]{4}[ ][A-Z]{3}[ ][0-9]{2}[ ][0-9]{2}[:][0-9]{2}[:][0-9]{2}"
-        )
+        utc_pattern = r"[0-9]{4}[ ][A-Z]{3}[ ][0-9]{2}[ ][0-9]{2}[:][0-9]{2}[:][0-9]{2}"
 
         matches = re.finditer(utc_pattern, sample_record)
         for match in matches:
@@ -2575,9 +2560,7 @@ class OrbnumFileProduct(Product):
                     # directory.
                     #
                     if not cov_kers:
-                        cov_path = (
-                            f"{self.setup.bundle_directory}/spice_kernels/spk"
-                        )
+                        cov_path = f"{self.setup.bundle_directory}/spice_kernels/spk"
                         try:
                             cov_kers = [
                                 x
@@ -2781,9 +2764,7 @@ class InventoryProduct(Product):
 
                     logging.warning("-- Previous inventory file not found.")
                     logging.warning(f"-- Default to version {self.version}.")
-                    logging.warning(
-                        "-- The version of this file might be incorrect."
-                    )
+                    logging.warning("-- The version of this file might be incorrect.")
 
             else:
                 self.version = 1
@@ -2794,9 +2775,7 @@ class InventoryProduct(Product):
                     "-- Make sure this is the first release of the archive."
                 )
 
-            self.name = (
-                f"collection_{collection.name}_inventory_v{self.version:03}.csv"
-            )
+            self.name = f"collection_{collection.name}_inventory_v{self.version:03}.csv"
             self.path = (
                 setup.staging_directory + os.sep + collection.name + os.sep + self.name
             )
@@ -2838,9 +2817,7 @@ class InventoryProduct(Product):
             f"-- Generated {self.path.split(self.setup.staging_directory)[-1]}"
         )
         if not self.setup.args.silent and not self.setup.args.verbose:
-            print(
-                f"   * Created {self.path.split(self.setup.staging_directory)[-1]}."
-            )
+            print(f"   * Created {self.path.split(self.setup.staging_directory)[-1]}.")
 
         self.validate()
 
@@ -2865,8 +2842,9 @@ class InventoryProduct(Product):
                             # be included as secondary in the new one
                             #
                             line = line.replace("P,urn", "S,urn")
-                        line = add_carriage_return(line, self.setup.eol_pds4,
-                                                   self.setup)
+                        line = add_carriage_return(
+                            line, self.setup.eol_pds4, self.setup
+                        )
                         f.write(line)
 
             for product in self.collection.product:
@@ -2878,127 +2856,128 @@ class InventoryProduct(Product):
                 if type(product) != InventoryProduct:
                     if product.new_product:
                         line = f"P,{product.lid}::{product.vid}\r\n"
-                        line = add_carriage_return(line, self.setup.eol_pds4,
-                                                   self.setup)
+                        line = add_carriage_return(
+                            line, self.setup.eol_pds4, self.setup
+                        )
                         f.write(line)
 
         return
 
-#    def __write_pds3_index_product(self):
-#
-#        #
-#        # PDS3 INDEX file generation
-#        #
-#
-#        current_index = list()
-#        kernel_list = list()
-#        kernel_directory_list = ["IK", "FK", "SCLK", "LSK", "PCK", "CK", "SPK"]
-#
-#        # In MEX the DSK folder has nothing to export
-#        if os.path.exists(self.mission.bundle_directory + "/DATA/DSK"):
-#            kernel_directory_list.append("DSK")
-#
-#        if os.path.exists(self.mission.bundle_directory + "/DATA/EK"):
-#            kernel_directory_list.append("EK")
-#
-#        # Note that PCK was doubled here. This accounted for a spurious extra line
-#        # n the INDEX.TAB.
-#
-#        if self.mission.increment:
-#            existing_index = self.mission.increment + "/INDEX/INDEX.TAB"
-#
-#            with open(existing_index, "r") as f:
-#
-#                for line in f:
-#
-#                    if line.strip() == "":
-#                        break
-#
-#                    current_index.append(
-#                        [
-#                            line.split(",")[0].replace(" ", ""),
-#                            line.split(",")[1].replace(" ", ""),
-#                            line.split(",")[2],
-#                            line.split(",")[3].replace("\n", "\r\n"),
-#                        ]
-#                    )
-#                    line = line.split(",")[1]
-#                    line = line[1:-1].rstrip()
-#                    kernel_list.append(line)
-#
-#        new_index = []
-#
-#        for directory in kernel_directory_list:
-#
-#            data_files = self.mission.bundle_directory + "/data/" + directory
-#
-#            for file in os.listdir(data_files):
-#
-#                if file.split(".")[1] != "LBL" and file not in kernel_list:
-#                    new_label_element = (
-#                        '"DATA/' + directory + "/" + file.split(".")[0] + '.LBL"'
-#                    )
-#                    new_kernel_element = '"' + file + '"'
-#
-#                    generation_date = PDS3_label_gen_date(
-#                        data_files + "/" + file.split(".")[0] + ".LBL"
-#                    )
-#                    if "T" not in generation_date:
-#                        generation_date = generation_date
-#
-#                    new_index.append(
-#                        [
-#                            new_label_element,
-#                            new_kernel_element,
-#                            generation_date,
-#                            '"' + self.mission.dataset + '"\r\n',
-#                        ]
-#                    )
-#
-#        #
-#        # Merge both lists
-#        #
-#        index = current_index + new_index
-#
-#        #
-#        # Sort out which is the kernel that has the most characters
-#        # and we add blank spaces to the rest
-#        #
-#        lab_filenam_list = list()
-#        ker_filenam_list = list()
-#
-#        for element in index:
-#            lab_filenam_list.append(element[0])
-#            ker_filenam_list.append(element[1])
-#
-#        longest_lab_name = max(lab_filenam_list, key=len)
-#        max_lab_name_len = len(longest_lab_name)
-#
-#        longest_ker_name = max(ker_filenam_list, key=len)
-#        max_ker_name_len = len(longest_ker_name)
-#
-#        index_list = list()
-#        dates = []  # used to sort out according to generation date the index_list
-#        for element in index:
-#            blanks = max_lab_name_len - (len(element[0]))
-#            label = element[0][:-1] + " " * blanks + element[0][-1]
-#
-#            blanks = max_ker_name_len - (len(element[1]))
-#            kernel = element[1][:-1] + " " * blanks + element[1][-1]
-#            if "\n" in element[-1]:
-#                index_list.append(
-#                    label + "," + kernel + "," + element[2] + "," + element[3]
-#                )
-#            else:
-#                index_list.append(
-#                    label + "," + kernel + "," + element[2] + "," + element[3] + "\n"
-#                )
-#            dates.append(element[2])
-#        with open(self.mission.bundle_directory + "/index/index.tab", "w+") as f:
-#            for element in [x for _, x in sorted(zip(dates, index_list))]:
-#                f.write(element)
-#
-#        return
+    #    def __write_pds3_index_product(self):
+    #
+    #        #
+    #        # PDS3 INDEX file generation
+    #        #
+    #
+    #        current_index = list()
+    #        kernel_list = list()
+    #        kernel_directory_list = ["IK", "FK", "SCLK", "LSK", "PCK", "CK", "SPK"]
+    #
+    #        # In MEX the DSK folder has nothing to export
+    #        if os.path.exists(self.mission.bundle_directory + "/DATA/DSK"):
+    #            kernel_directory_list.append("DSK")
+    #
+    #        if os.path.exists(self.mission.bundle_directory + "/DATA/EK"):
+    #            kernel_directory_list.append("EK")
+    #
+    #        # Note that PCK was doubled here. This accounted for a spurious extra line
+    #        # n the INDEX.TAB.
+    #
+    #        if self.mission.increment:
+    #            existing_index = self.mission.increment + "/INDEX/INDEX.TAB"
+    #
+    #            with open(existing_index, "r") as f:
+    #
+    #                for line in f:
+    #
+    #                    if line.strip() == "":
+    #                        break
+    #
+    #                    current_index.append(
+    #                        [
+    #                            line.split(",")[0].replace(" ", ""),
+    #                            line.split(",")[1].replace(" ", ""),
+    #                            line.split(",")[2],
+    #                            line.split(",")[3].replace("\n", "\r\n"),
+    #                        ]
+    #                    )
+    #                    line = line.split(",")[1]
+    #                    line = line[1:-1].rstrip()
+    #                    kernel_list.append(line)
+    #
+    #        new_index = []
+    #
+    #        for directory in kernel_directory_list:
+    #
+    #            data_files = self.mission.bundle_directory + "/data/" + directory
+    #
+    #            for file in os.listdir(data_files):
+    #
+    #                if file.split(".")[1] != "LBL" and file not in kernel_list:
+    #                    new_label_element = (
+    #                        '"DATA/' + directory + "/" + file.split(".")[0] + '.LBL"'
+    #                    )
+    #                    new_kernel_element = '"' + file + '"'
+    #
+    #                    generation_date = PDS3_label_gen_date(
+    #                        data_files + "/" + file.split(".")[0] + ".LBL"
+    #                    )
+    #                    if "T" not in generation_date:
+    #                        generation_date = generation_date
+    #
+    #                    new_index.append(
+    #                        [
+    #                            new_label_element,
+    #                            new_kernel_element,
+    #                            generation_date,
+    #                            '"' + self.mission.dataset + '"\r\n',
+    #                        ]
+    #                    )
+    #
+    #        #
+    #        # Merge both lists
+    #        #
+    #        index = current_index + new_index
+    #
+    #        #
+    #        # Sort out which is the kernel that has the most characters
+    #        # and we add blank spaces to the rest
+    #        #
+    #        lab_filenam_list = list()
+    #        ker_filenam_list = list()
+    #
+    #        for element in index:
+    #            lab_filenam_list.append(element[0])
+    #            ker_filenam_list.append(element[1])
+    #
+    #        longest_lab_name = max(lab_filenam_list, key=len)
+    #        max_lab_name_len = len(longest_lab_name)
+    #
+    #        longest_ker_name = max(ker_filenam_list, key=len)
+    #        max_ker_name_len = len(longest_ker_name)
+    #
+    #        index_list = list()
+    #        dates = []  # used to sort out according to generation date the index_list
+    #        for element in index:
+    #            blanks = max_lab_name_len - (len(element[0]))
+    #            label = element[0][:-1] + " " * blanks + element[0][-1]
+    #
+    #            blanks = max_ker_name_len - (len(element[1]))
+    #            kernel = element[1][:-1] + " " * blanks + element[1][-1]
+    #            if "\n" in element[-1]:
+    #                index_list.append(
+    #                    label + "," + kernel + "," + element[2] + "," + element[3]
+    #                )
+    #            else:
+    #                index_list.append(
+    #                    label + "," + kernel + "," + element[2] + "," + element[3] + "\n"
+    #                )
+    #            dates.append(element[2])
+    #        with open(self.mission.bundle_directory + "/index/index.tab", "w+") as f:
+    #            for element in [x for _, x in sorted(zip(dates, index_list))]:
+    #                f.write(element)
+    #
+    #        return
 
     def validate(self):
         """Validate the Inventory against previous versions.
@@ -3092,9 +3071,7 @@ class InventoryProduct(Product):
         cwd = os.getcwd()
         os.chdir(self.setup.staging_directory)
 
-        list = (
-            f"{self.setup.working_directory}/{self.collection.list.complete_list}"
-        )
+        list = f"{self.setup.working_directory}/{self.collection.list.complete_list}"
         command = f"perl {self.setup.root_dir}exe/xfer_index.pl {list}"
         logging.info(f"-- Executing: {command}")
 
@@ -3175,9 +3152,7 @@ class InventoryProduct(Product):
                         index, current_index, self.setup.working_directory, "all"
                     )
                 except BaseException:
-                    logging.warning(
-                        f"-- File to compare with does not exist: {index}"
-                    )
+                    logging.warning(f"-- File to compare with does not exist: {index}")
 
         return
 
@@ -3234,9 +3209,7 @@ class SpicedsProduct(object):
                     return
 
             except BaseException:
-                logging.warning(
-                    "-- No previous version of spiceds_v*.html file found."
-                )
+                logging.warning("-- No previous version of spiceds_v*.html file found.")
                 if not spiceds:
                     error_message(
                         "spiceds not provided and not available "
@@ -3323,8 +3296,7 @@ class SpicedsProduct(object):
         with open(self.path, "r") as s:
             with open(temporary_file, "w+") as t:
                 for line in s:
-                    line = add_carriage_return(line, self.setup.eol_pds4,
-                                               self.setup)
+                    line = add_carriage_return(line, self.setup.eol_pds4, self.setup)
                     t.write(line)
 
         #
@@ -3450,8 +3422,7 @@ class ReadmeProduct(Product):
             # Check if the readme file is provided via configuration.
             #
             if not hasattr(self.setup, "readme"):
-                error_message("readme file not present in configuration",
-                              setup=setup)
+                error_message("readme file not present in configuration", setup=setup)
 
             logging.info("-- Generating readme file...")
             self.write_product()
@@ -3487,33 +3458,32 @@ class ReadmeProduct(Product):
                     if "$SPICE_NAME" in line:
                         line = line.replace("$SPICE_NAME", self.setup.spice_name)
                         line_length = len(line) - 1
-                        line = add_carriage_return(line, self.setup.eol_pds4,
-                                                   self.setup)
+                        line = add_carriage_return(
+                            line, self.setup.eol_pds4, self.setup
+                        )
                         f.write(line)
                     elif "$UNDERLINE" in line:
                         line = line.replace("$UNDERLINE", "=" * line_length)
                         line_length = len(line) - 1
-                        line = add_carriage_return(line, self.setup.eol_pds4,
-                                                   self.setup)
+                        line = add_carriage_return(
+                            line, self.setup.eol_pds4, self.setup
+                        )
                         f.write(line)
                     elif "$OVERVIEW" in line:
                         overview = self.setup.readme["overview"]
                         for line in overview.split("\n"):
                             line = " " * 3 + line.strip() + "\n"
-                            line = add_carriage_return(line, self.setup.eol,
-                                                       self.setup)
+                            line = add_carriage_return(line, self.setup.eol, self.setup)
                             f.write(line)
                     elif "$COGNISANT_AUTHORITY" in line:
                         cognisant = self.setup.readme["cognisant_authority"]
                         for line in cognisant.split("\n"):
                             line = " " * 3 + line.strip() + "\n"
-                            line = add_carriage_return(line, self.setup.eol,
-                                                       self.setup)
+                            line = add_carriage_return(line, self.setup.eol, self.setup)
                             f.write(line)
                     else:
                         line_length = len(line) - 1
-                        line = add_carriage_return(line, self.setup.eol,
-                                                   self.setup)
+                        line = add_carriage_return(line, self.setup.eol, self.setup)
                         f.write(line)
 
         logging.info("-- Created readme file.")
@@ -3657,9 +3627,7 @@ class ChecksumProduct(Product):
             self.path_current = ""
 
             logging.warning("-- Default to version {self.version}.")
-            logging.warning(
-                "-- Make sure this is the first release of the archive."
-            )
+            logging.warning("-- Make sure this is the first release of the archive.")
             logging.warning("")
 
         self.name = f"checksum_v{self.version:03}.tab"
@@ -3790,8 +3758,9 @@ class ChecksumProduct(Product):
                 #
                 checksum = ""
                 if ".xml" not in product:
-                    checksum = checksum_from_registry(path,
-                                                      self.setup.working_directory)
+                    checksum = checksum_from_registry(
+                        path, self.setup.working_directory
+                    )
                     if not checksum:
                         checksum = checksum_from_label(path)
                 if not checksum:
@@ -3896,8 +3865,7 @@ class ChecksumProduct(Product):
             #
             with open(self.path, "w") as c:
                 for entry in md5_list:
-                    entry = add_carriage_return(entry, self.setup.eol,
-                                                self.setup)
+                    entry = add_carriage_return(entry, self.setup.eol, self.setup)
                     c.write(entry)
 
             if self.setup.diff:

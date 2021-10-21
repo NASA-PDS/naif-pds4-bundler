@@ -13,29 +13,22 @@ Work List:
 
      Tests implemented here: test_pds4_orex_list
 
-  -- Possibility to use the pipeline to generate misc collection only? (for JAXA.)
-
-  -- Possibility to use the pipeline to only generate kernel labels based on
-     list, or on a kernel.
-
-
-  LATER:
-
   -- Agreed to try to enhance the MK generation with whitespaces
      for selected kernels of the same type.
+
+  -- Implement archive time boundaries tests (there is one sketched in
+     configuration).
+
+  Possible:
+
+  -- Possibility to use the pipeline to generate misc collection only? (for JAXA.)
 
   -- NOT for this release, and maybe never, but should we consider adding
      a reference from to the LIDVIDs of SPK -- or SPKs -- that were used to
      generate an ORBNUM to its label?
 
-  -- Incorporate a validation at the end of the process that reports on
-     sensible field such as descriptions, start and stop times, and other
-     fields to be considered, this report could be presented as table.
-
   -- For PDS3 first implement generation with MKLABL with the ultimate goal
      to replace it completely with Python code.
-
-  -- Same approach for Perl scripts, end up replacing them with Python code.
 
   -- Include DOIs in configurations:
       * OREX:    10.17189/1520435
@@ -65,28 +58,6 @@ Work List:
       * 2001 Mars Odyssey SPICE Kernels V1.0: 10.17189/1520115
         Stardust SPICE Kernels V1.0: 10.17189/1520106
         Viking Orbiter 1 and 2 SPICE Kernels V1.0: 10.17189/1520112
-
-    -- Implement a smart comparison of spiceds files in such way
-       that a warning is provided if something looks fishy (type of file
-       not present for example)
-
-    -- Implement archive time boundaries tests (there is one sketched in
-       configuration).
-
-    -- Summary to be included, as per BVS suggestion
-
-      foreach FF ( logical_identifier version_id title description start_date_time stop_date_time file_name file_size md5_checksum object_length kernel_type encoding_type )
-         echo -------------------------------------------------------------------------- $FF
-         grep $FF `find spice_kernels -name '*.xml' -mtime -1 -print | sort`
-      end
-
-      -- check that there is a XML label for each file under spice_kernels
-
-      foreach FF ( `ls -1 spice_kernels/*/*.* | grep -vi '\.xml$'` )
-         if ( ! -e $FF:r.xml && ! -e $FF:r.XML ) then
-            echo NO XML label for $FF
-         endif
-      end
 
 Changelog:
 
@@ -216,5 +187,18 @@ v0.13.0
      to determine whether the MK determines the coverage of the collection
      or not.
 
+  -- Possibility to use the pipeline to only generate kernel labels based on
+     list, or on a kernel.
+
+  -- Summary to be included, as per BVS suggestion
+
+      foreach FF ( logical_identifier version_id title description start_date_time stop_date_time file_name file_size md5_checksum object_length kernel_type encoding_type )
+         echo -------------------------------------------------------------------------- $FF
+         grep $FF `find spice_kernels -name '*.xml' -mtime -1 -print | sort`
+      end
+
+  -- Incorporate a validation at the end of the process that reports on
+     sensible field such as descriptions, start and stop times, and other
+     fields to be considered, this report could be presented as table.
 
 v1.0.0 - First 'public' release.

@@ -3,7 +3,6 @@ import glob
 import logging
 import os
 import re
-from collections import defaultdict
 
 from naif_pds4_bundler.classes.log import error_message
 from naif_pds4_bundler.utils import extension2type
