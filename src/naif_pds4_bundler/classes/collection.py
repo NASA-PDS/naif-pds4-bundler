@@ -3,8 +3,8 @@ import glob
 import logging
 import os
 import re
-
 from collections import defaultdict
+
 from naif_pds4_bundler.classes.log import error_message
 from naif_pds4_bundler.utils import extension2type
 from naif_pds4_bundler.utils import get_years
@@ -95,9 +95,7 @@ class Collection(object):
                 logging.warning(
                     f"-- No {self.type} collection available in previous increment."
                 )
-                logging.warning(
-                    f"-- Collection of {self.type} version set to: {ver}."
-                )
+                logging.warning(f"-- Collection of {self.type} version set to: {ver}.")
                 vid = "{}.0".format(ver)
                 logging.info("")
 
@@ -160,8 +158,7 @@ class SpiceKernelsCollection(Collection):
         # account (there is no hybrid possibility but npb provides a warning
         # message if more meta-kernels are expected).
         #
-        if hasattr(self.setup, "mk_inputs") and \
-                (self.setup.args.faucet != "labels"):
+        if hasattr(self.setup, "mk_inputs") and (self.setup.args.faucet != "labels"):
             if self.setup.mk_inputs["file"]:
                 mks = self.setup.mk_inputs["file"]
                 if not isinstance(mks, list):
@@ -333,9 +330,9 @@ class SpiceKernelsCollection(Collection):
                                         mission_start_year = (
                                             self.setup.mission_start.split("-")[0]
                                         )
-                                        current_year = (
-                                            self.setup.release_date.split("-")[0]
-                                        )
+                                        current_year = self.setup.release_date.split(
+                                            "-"
+                                        )[0]
 
                                         if (year >= mission_start_year) and (
                                             year <= current_year
@@ -348,17 +345,12 @@ class SpiceKernelsCollection(Collection):
                                             for pattern in patterns:
 
                                                 if "VERSION" in pattern["#text"]:
-                                                    version_length = pattern[
-                                                        "@length"
-                                                    ]
+                                                    version_length = pattern["@length"]
                                             version = (
-                                                "0" * (int(version_length) - 1)
-                                                + "1"
+                                                "0" * (int(version_length) - 1) + "1"
                                             )
 
-                                            metaker = mk["@name"].replace(
-                                                "$YEAR", year
-                                            )
+                                            metaker = mk["@name"].replace("$YEAR", year)
                                             metaker = metaker.replace(
                                                 "$VERSION", version
                                             )
@@ -431,8 +423,10 @@ class SpiceKernelsCollection(Collection):
                 if hasattr(prod, "mk_sets_coverage"):
                     increment_starts.append(prod.start_time)
                     increment_finishs.append(prod.stop_time)
-                    logging.info(f"-- Using MK: {prod.name} to deterermine "
-                                 f"increment coverage.")
+                    logging.info(
+                        f"-- Using MK: {prod.name} to deterermine "
+                        f"increment coverage."
+                    )
 
             increment_start = min(increment_starts)
             increment_finish = max(increment_finishs)
@@ -512,9 +506,7 @@ class SpiceKernelsCollection(Collection):
         #  Check that there is a XML label for each file under spice_kernels.
         #  That is, we are validating the spice_kernel_collection.
         #
-        line = (
-            f"Step {self.setup.step} - Validate SPICE kernel collection generation"
-        )
+        line = f"Step {self.setup.step} - Validate SPICE kernel collection generation"
         logging.info("")
         logging.info(line)
         logging.info("-" * len(line))
@@ -606,17 +598,27 @@ class SpiceKernelsCollection(Collection):
         # description, start_date_time, stop_date_time, file_name, file_size,
         # md5_checksum, object_length, kernel_type, and encoding_type.
         #
-        elements = ["logical_identifier", "version_id", "title", "description",
-                    "start_date_time", "stop_date_time", "file_name",
-                    "file_size", "md5_checksum", "object_length", "kernel_type",
-                    "encoding_type"]
+        elements = [
+            "logical_identifier",
+            "version_id",
+            "title",
+            "description",
+            "start_date_time",
+            "stop_date_time",
+            "file_name",
+            "file_size",
+            "md5_checksum",
+            "object_length",
+            "kernel_type",
+            "encoding_type",
+        ]
 
         elements_dict = dict.fromkeys(elements)
 
         for product in self.product:
             label_path = self.setup.staging_directory + ker_dir + product.type
-            label_name = product.name.split('.')[0]+ lbl_ext
-            with open(f"{label_path}/{label_name}", 'r') as p:
+            label_name = product.name.split(".")[0] + lbl_ext
+            with open(f"{label_path}/{label_name}", "r") as p:
                 for line in p:
                     for element in elements:
                         if element in line:
@@ -628,8 +630,7 @@ class SpiceKernelsCollection(Collection):
         elements_dict["description"] = list(set(elements_dict["description"]))
 
         logging.info("")
-        logging.info("-- Providing relevant fields of labels for visual "
-                     "inspection.")
+        logging.info("-- Providing relevant fields of labels for visual " "inspection.")
         logging.info("")
         for key in elements_dict.keys():
             for element in elements_dict[key]:
