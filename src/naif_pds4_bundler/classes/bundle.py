@@ -205,11 +205,6 @@ class Bundle(object):
                     f"copied: {dst.split(os.sep)[-1]}"
                 )
 
-        logging.info("")
-        line = (
-            f"-- Found {len(self.new_files)} new file(s). Copied "
-            f"{len(copied_files)} file(s)."
-        )
         if len(self.new_files) == len(copied_files):
             logging.info(line)
         else:
@@ -235,7 +230,7 @@ class Bundle(object):
 
         logging.info("")
         line = (
-            f"-- Found {len(newer_file)} newer file(s), copied "
+            f"-- Found {len(newer_file)} new file(s), copied "
             f"{len(copied_files)} file(s) from staging directory."
         )
         if len(newer_file) == len(copied_files):
@@ -558,13 +553,14 @@ class Bundle(object):
             print("-- " + line.split(" - ")[-1] + ".")
 
         logging.info("")
-        logging.info("-- Display the list of files that belong to each " "release.")
+        logging.info("-- Display the list of files that belong to each release.")
         logging.info("")
 
         history = self.get_history(self)
-        history_sting = pprint.pformat(history, indent=2)
-        for line in history_sting.split("\n"):
-            logging.info(f"    {line}")
+        if history:
+            history_string = pprint.pformat(history, indent=2)
+            for line in history_string.split("\n"):
+                logging.info(f"    {line}")
 
         products_in_history = []
         for rel in history:

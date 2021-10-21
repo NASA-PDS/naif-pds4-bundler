@@ -4,6 +4,7 @@ import logging
 import os
 import re
 
+from collections import defaultdict
 from naif_pds4_bundler.classes.log import error_message
 from naif_pds4_bundler.utils import extension2type
 from naif_pds4_bundler.utils import get_years
@@ -170,7 +171,7 @@ class SpiceKernelsCollection(Collection):
                         logging.info("")
                         logging.warning(
                             f"-- Meta-kernel provided via"
-                            f"  configuration"
+                            f" configuration"
                             f" does not exist: {mk}"
                         )
                     else:
@@ -184,10 +185,17 @@ class SpiceKernelsCollection(Collection):
         # Note that if kernels are provided as input, the ones present in the
         # kernel list are ignored.
         #
+        # It is assumed that these kernels will be in the kernels_directory,
+        # under the mk sub-directory.
+        #
         if not meta_kernels:
             for kernel in self.list.kernel_list:
                 if ".tm" in kernel:
-                    meta_kernels.append(kernel)
+                    for kernel_dir in self.setup.kernels_directory:
+                        path = f"{kernel_dir}/mk/{kernel}"
+                        meta_kernels.append(path)
+                        if os.path.exists(path):
+                            user_input = True
 
         #
         # If no meta-kernels are provided as inputs or in the kernel list,
@@ -213,7 +221,8 @@ class SpiceKernelsCollection(Collection):
                     self.setup.mk.__len__() == 1
                     and self.setup.mk[0]["name"].__len__() == 1
                     and self.setup.mk[0]["name"][0].__len__() == 1
-                    and self.setup.mk[0]["name"][0]["pattern"].__len__() == 1
+                    and self.setup.mk[0]["name"][0]["pattern"].__len__() == 2
+                    and not isinstance(self.setup.mk[0]["name"][0]["pattern"], list)
                 ):
 
                     if self.setup.mk[0]["name"][0]["pattern"]["#text"] == "VERSION":
@@ -591,6 +600,41 @@ class SpiceKernelsCollection(Collection):
         else:
             logging.info("   OK")
 
+        #
+        # Display the key elements of the labels for the user to do a visual
+        # check. The key elements are: logical_identifier, version_id, title,
+        # description, start_date_time, stop_date_time, file_name, file_size,
+        # md5_checksum, object_length, kernel_type, and encoding_type.
+        #
+        elements = ["logical_identifier", "version_id", "title", "description",
+                    "start_date_time", "stop_date_time", "file_name",
+                    "file_size", "md5_checksum", "object_length", "kernel_type",
+                    "encoding_type"]
+
+        elements_dict = dict.fromkeys(elements)
+
+        for product in self.product:
+            label_path = self.setup.staging_directory + ker_dir + product.type
+            label_name = product.name.split('.')[0]+ lbl_ext
+            with open(f"{label_path}/{label_name}", 'r') as p:
+                for line in p:
+                    for element in elements:
+                        if element in line:
+                            if not elements_dict[element]:
+                                elements_dict[element] = [line.strip()]
+                            else:
+                                elements_dict[element].append(line.strip())
+
+        elements_dict["description"] = list(set(elements_dict["description"]))
+
+        logging.info("")
+        logging.info("-- Providing relevant fields of labels for visual "
+                     "inspection.")
+        logging.info("")
+        for key in elements_dict.keys():
+            for element in elements_dict[key]:
+                logging.info(f"   {element}")
+            logging.info("")
         logging.info("")
 
         return None
