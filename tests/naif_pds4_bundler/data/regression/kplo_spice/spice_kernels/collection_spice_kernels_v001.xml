@@ -17,8 +17,8 @@
   </Identification_Area>
   <Context_Area>
     <Time_Coordinates>
-      <start_date_time>2022-08-01T00:00:00Z</start_date_time>
-      <stop_date_time>2024-01-01T00:00:00Z</stop_date_time>
+      <start_date_time>2023-01-18T00:00:00Z</start_date_time>
+      <stop_date_time>2023-01-18T00:00:00Z</stop_date_time>
     </Time_Coordinates>
     <Primary_Result_Summary>
       <purpose>Observation Geometry</purpose>
@@ -65,13 +65,13 @@
     <File>
       <file_name>collection_spice_kernels_inventory_v001.csv</file_name>
       <creation_date_time>2021-06-25T08:00:00</creation_date_time>
-      <file_size unit="byte">554</file_size>
-      <md5_checksum>75e4bfb88f043ed9c2bf62df300d83bd</md5_checksum>
+      <file_size unit="byte">609</file_size>
+      <md5_checksum>21a9887b5145e1ba996f94936a339127</md5_checksum>
     </File>
     <Inventory>
       <offset unit="byte">0</offset>
       <parsing_standard_id>PDS DSV 1</parsing_standard_id>
-      <records>8</records>
+      <records>9</records>
       <record_delimiter>Carriage-Return Line-Feed</record_delimiter>
       <field_delimiter>Comma</field_delimiter>
       <Record_Delimited>

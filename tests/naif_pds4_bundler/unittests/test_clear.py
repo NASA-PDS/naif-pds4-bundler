@@ -2,6 +2,7 @@
 import os
 import shutil
 import unittest
+import spiceypy
 from unittest import TestCase
 
 from naif_pds4_bundler.__main__ import main
@@ -117,6 +118,7 @@ class TestClear(TestCase):
         config = "../config/insight.xml"
         wrong_config = "working/insight.xml"
 
+        cwd = os.getcwd()
         dirs = ["working", "staging", "insight"]
         for dir in dirs:
             os.makedirs(dir, 0o766, exist_ok=True)
@@ -145,6 +147,7 @@ class TestClear(TestCase):
         with self.assertRaises(RuntimeError):
             main(wrong_config, silent=self.silent, log=self.log)
 
+        os.chdir(cwd)
         #
         # Remove the files from the prior run.
         #

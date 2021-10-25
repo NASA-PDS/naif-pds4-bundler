@@ -18,8 +18,8 @@
   </Identification_Area>
   <Context_Area>
     <Time_Coordinates>
-      <start_date_time>2022-08-01T00:00:00Z</start_date_time>
-      <stop_date_time>2024-01-01T00:00:00Z</stop_date_time>
+      <start_date_time>2023-01-18T00:00:00Z</start_date_time>
+      <stop_date_time>2023-01-18T00:00:00Z</stop_date_time>
     </Time_Coordinates>
     <Primary_Result_Summary>
       <purpose>Observation Geometry</purpose>
@@ -66,8 +66,8 @@
     <File>
       <file_name>readme.txt</file_name>
       <creation_date_time>2021-06-25T08:00:00</creation_date_time>
-      <file_size unit="byte">1267</file_size>
-      <md5_checksum>dd365fd51a4789e1ecde055b974435d0</md5_checksum>
+      <file_size unit="byte">1265</file_size>
+      <md5_checksum>6484f3b874cf2918d34c34d981ad110b</md5_checksum>
     </File>
     <Stream_Text>
       <offset unit="byte">0</offset>

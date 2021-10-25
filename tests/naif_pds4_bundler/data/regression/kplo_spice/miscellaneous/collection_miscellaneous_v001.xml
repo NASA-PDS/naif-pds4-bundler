@@ -17,8 +17,8 @@
   </Identification_Area>
   <Context_Area>
     <Time_Coordinates>
-      <start_date_time>2022-08-01T00:00:00Z</start_date_time>
-      <stop_date_time>2024-01-01T00:00:00Z</stop_date_time>
+      <start_date_time>2023-01-18T00:00:00Z</start_date_time>
+      <stop_date_time>2023-01-18T00:00:00Z</stop_date_time>
     </Time_Coordinates>
     <Primary_Result_Summary>
       <purpose>Observation Geometry</purpose>

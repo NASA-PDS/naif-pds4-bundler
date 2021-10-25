@@ -89,7 +89,7 @@ class TestPDS4(TestCase):
 
             pass
 
-    def post_setUp(self):
+    def post_setup(self):
 
         self.config = f"../config/{self.mission}.xml"
         self.updated_config = f"working/{self.mission}.xml"
@@ -98,6 +98,7 @@ class TestPDS4(TestCase):
         for dir in dirs:
             os.makedirs(dir, 0o766, exist_ok=True)
 
+        print(os.getcwd())
         with open(self.config, "r") as c:
             with open(self.updated_config, "w") as n:
                 for line in c:
@@ -112,12 +113,9 @@ class TestPDS4(TestCase):
                         n.write(line)
 
     def test_insight(self):
-        """
-        Test to generate the DART archive. This test includes multiple
-        targets and spacecrafts.
-        """
+        """Test to generate the INSIGHT archive."""
         self.mission = "insight"
-        self.post_setUp()
+        self.post_setup()
 
         plan = "../data/insight_release_08.plan"
 
@@ -133,14 +131,21 @@ class TestPDS4(TestCase):
         except:
             pass
 
-        main(self.updated_config, plan, silent=self.silent, log=self.log)
+        #
+        # Remove the MK used for other tests. MK will be generated
+        # by NPB.
+        #
+        os.remove("kernels/mk/insight_v08.tm")
+
+        main(self.updated_config, plan, faucet="bundle", silent=self.silent,
+             log=self.log)
 
     def test_ladee(self):
         """
         Test to generate the LADEE archive.
         """
         self.mission = "ladee"
-        self.post_setUp()
+        self.post_setup()
 
         shutil.copytree(
             "../data/regression/ladee_spice/spice_kernels",
@@ -148,14 +153,14 @@ class TestPDS4(TestCase):
             ignore=shutil.ignore_patterns("*.xml", "*.csv"),
         )
 
-        main(self.updated_config, verbose=True, log=self.log)
+        main(self.updated_config, silent=self.silent, log=self.log)
 
     def test_kplo(self):
         """
         Test to generate the KPLO archive (non-PDS archive).
         """
         self.mission = "kplo"
-        self.post_setUp()
+        self.post_setup()
 
         shutil.copytree(
             "../data/regression/kplo_spice/spice_kernels",

@@ -212,7 +212,9 @@ class SpiceKernelsCollection(Collection):
             # This will only work if the bundle only includes one meta-kernel
             # and the only pattern in the filename is the VERSION.
             #
-            if hasattr(self.setup, "mk"):
+            # This will happen only if there are kernels in the collection.
+            #
+            if hasattr(self.setup, "mk") and self.product:
                 if (
                     self.setup.mk.__len__() == 1
                     and self.setup.mk[0]["name"].__len__() == 1
@@ -592,6 +594,12 @@ class SpiceKernelsCollection(Collection):
             logging.info("   OK")
 
         #
+        # Ext the method if no produts are present in collection
+        #
+        if not self.product:
+            return None
+
+        #
         # Display the key elements of the labels for the user to do a visual
         # check. The key elements are: logical_identifier, version_id, title,
         # description, start_date_time, stop_date_time, file_name, file_size,
@@ -629,7 +637,7 @@ class SpiceKernelsCollection(Collection):
         elements_dict["description"] = list(set(elements_dict["description"]))
 
         logging.info("")
-        logging.info("-- Providing relevant fields of labels for visual " "inspection.")
+        logging.info("-- Providing relevant fields of labels for visual inspection.")
         logging.info("")
         for key in elements_dict.keys():
             for element in elements_dict[key]:

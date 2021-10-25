@@ -96,8 +96,8 @@
         </kernel>
         <kernel pattern="insight_v[0-9][0-9].tf">
             <description>SPICE FK file defining reference frames for the INSIGHT lander, its structures, and science
-                instruments, created by NAIF, JPL.
-            </description>
+                 instruments, created by NAIF, JPL.
+           </description>
         </kernel>
         <kernel pattern="marcoa_v[0-9][0-9].tf">
             <description>SPICE FK file defining reference frames for the MARCO-A spacecraft, its structures, and

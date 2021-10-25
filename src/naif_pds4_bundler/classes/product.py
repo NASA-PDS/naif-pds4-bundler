@@ -1311,7 +1311,10 @@ class MetaKernelProduct(Product):
         os.chdir(mkdir)
 
         spiceypy.kclear()
-        spiceypy.furnsh(path)
+        try:
+            spiceypy.furnsh(path)
+        except Exception:
+            error_message('SpiceyPy error', setup=self.setup)
 
         #
         # In KTOTAL, all meta-kernels are counted in the total; therefore
@@ -1409,12 +1412,15 @@ class MetaKernelProduct(Product):
                             f"{extension2type(kernel)}/{kernel}"
                         )
 
-                        if not os.path.exists(path):
+                        #
+                        # Added check of file size for test cases.
+                        #
+                        if not os.path.exists(path) or os.path.getsize(path) == 0:
                             logging.warning(
                                 f"-- File not present in final area: {path}."
                             )
                             logging.warning(
-                                "   It will not be used to " "determine the coverage."
+                                "   It will not be used to determine the coverage."
                             )
                         else:
                             if extension2type(kernel) == "spk":

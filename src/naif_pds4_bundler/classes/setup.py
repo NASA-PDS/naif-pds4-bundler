@@ -34,7 +34,7 @@ class Setup(object):
             schema = xmlschema.XMLSchema11(
                 dirname(__file__) + "/../templates/configuration.xsd"
             )
-            schema.validate(args.config, )
+            schema.validate(args.config)
 
         except Exception as inst:
             if not args.debug:

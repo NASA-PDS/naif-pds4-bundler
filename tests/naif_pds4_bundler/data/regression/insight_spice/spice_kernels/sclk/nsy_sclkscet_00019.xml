@@ -61,12 +61,12 @@
     <File>
       <file_name>nsy_sclkscet_00019.tsc</file_name>
       <creation_date_time>2021-06-25T08:00:00</creation_date_time>
-      <file_size unit="byte">10763</file_size>
-      <md5_checksum>312e767229183b983175cfefec361995</md5_checksum>
+      <file_size unit="byte">10751</file_size>
+      <md5_checksum>e503818cf32074ccc149aa9765b65a16</md5_checksum>
     </File>
     <SPICE_Kernel>
       <offset unit="byte">0</offset>
-      <object_length unit="byte">10763</object_length>
+      <object_length unit="byte">10751</object_length>
       <parsing_standard_id>SPICE</parsing_standard_id>
       <description>SPICE SCLK file containing time correlation data for the main INSIGHT on-board clock, created by NAIF, JPL. The original name of this file was NSY_SCLKSCET.00019.tsc.</description>
       <kernel_type>SCLK</kernel_type>
