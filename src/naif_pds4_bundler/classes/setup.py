@@ -222,22 +222,55 @@ class Setup(object):
         items.
         """
         #
-        # Check Bundle increment start and finish times. For the two accepted
-        # formats
+        # Check IM, Line Feed, and Date Time format NAIF recommendations.
         #
         if self.date_format == "infomod2":
 
+            #
+            # Warn the user if the End of Line character is not the one
+            # corresponding to the one recommended by NAIF for the selected
+            # date format.
+            #
+            if self.end_of_line != "LF":
+                logging.warning(
+                    f"-- NAIF recommends to use `LF' End-of-Line while using"
+                    f" the `{self.date_format}' parameter instead of "
+                    f"`{self.end_of_line}'."
+                )
+
+            #
+            # Set the time format for the Date format selected.
+            #
             pattern = re.compile(
                 "[0-9]{4}-[0-9]{2}-[0-9]{2}T" "[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}Z"
             )
             format = "YYYY-MM-DDThh:mm:ss.sssZ"
         elif self.date_format == "maklabel":
 
+            #
+            # Warn the user if the End of Line character is not the one
+            # corresponding to the one recommended by NAIF for the selected
+            # date format.
+            #
+            if self.end_of_line != "CRLF":
+                logging.warning(
+                    f"-- NAIF recommends to use `CRLF' End-of-Line while using"
+                    f" the `{self.date_format}' parameter instead of "
+                    f"`{self.end_of_line}'."
+                )
+
+            #
+            # Set the time format for the Date format selected.
+            #
             pattern = re.compile(
                 "[0-9]{4}-[0-9]{2}-[0-9]{2}T" "[0-9]{2}:[0-9]{2}:[0-9]{2}Z"
             )
             format = "YYYY-MM-DDThh:mm:ssZ"
 
+        #
+        # Check Bundle increment start and finish times. For the two accepted
+        # formats.
+        #
         if hasattr(self, "mission_start") and self.mission_start:
             if not pattern.match(self.mission_start):
                 error_message(
@@ -327,8 +360,8 @@ class Setup(object):
         os.chdir(cwd)
 
         #
-        # Check IM, XML model and Schema Location coherence (since validate
-        # does not really care).
+        # Check IM, XML model and Schema Location coherence (given taht is not
+        # checke by the PDS Validate tool.
         #
         if hasattr(self, "information_model"):
             if re.match(r"[0-9]+[.][0-9]+[.][0-9]+[.][0-9]+", self.information_model):
