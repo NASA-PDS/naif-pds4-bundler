@@ -205,12 +205,6 @@ class Bundle(object):
                     f"copied: {dst.split(os.sep)[-1]}"
                 )
 
-        if len(self.new_files) == len(copied_files):
-            logging.info(line)
-        else:
-            logging.warning(line)
-        logging.info("")
-
         #
         # Cross-check that files with latest timestamp in final correspond
         # to the files copied from staging:

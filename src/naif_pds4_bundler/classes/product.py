@@ -1235,7 +1235,6 @@ class MetaKernelProduct(Product):
         # Compare meta-kernel with latest. First try with previous increment.
         #
         try:
-
             match_flag = True
             val_mk_path = (
                 f"{self.setup.bundle_directory}/"
@@ -2691,7 +2690,6 @@ class OrbnumFileProduct(Product):
             try:
                 stop = datetime.datetime.strptime(stop_time, "%Y-%b-%d-%H:%M:%S")
                 stop_time = stop.strftime("%Y-%m-%dT%H:%M:%SZ")
-
             except BaseException:
                 #
                 # Exception to cope with orbnum files without all the ground
@@ -2700,6 +2698,10 @@ class OrbnumFileProduct(Product):
                 stop_time = last_line.split()[1]
                 stop = datetime.datetime.strptime(stop_time, "%Y-%b-%d-%H:%M:%S")
                 stop_time = stop.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+            logging.warning(
+                f"-- Coverage determined by ORBNUM file data."
+            )
 
         self.start_time = start_time
         self.stop_time = stop_time

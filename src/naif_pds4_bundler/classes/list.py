@@ -186,7 +186,7 @@ class KernelList(List):
             logging.info(f"   {self.setup.args.plan}")
             kernels_in_dir = [self.setup.args.plan]
         else:
-            logging.info("-- Generate archiving plan from kernels directories:")
+            logging.info("-- Generate archiving plan from kernel directory(ies):")
             for dir in self.setup.kernels_directory:
                 logging.info(f"   {dir}")
 
