@@ -1879,7 +1879,7 @@ class OrbnumFileProduct(Product):
                 path = f"{os.sep}".join(self.path.split(os.sep)[:-1]) + os.sep + name
 
                 logging.warning(
-                    f"-- Orbnum name updated with explicit "
+                    f"-- ORBNUM file name updated with explicit "
                     f"version number to: {name}"
                 )
 

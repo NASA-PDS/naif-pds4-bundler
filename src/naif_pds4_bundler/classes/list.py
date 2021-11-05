@@ -149,9 +149,9 @@ class KernelList(List):
                     #
                     if not ker_matched and line.strip():
                         logging.warning(
-                            "-- The following Plan line has not been matched:"
+                            "-- The following release plan line has not been matched:"
                         )
-                        logging.warning(f"   {line[0:-1]}")
+                        logging.warning(f'   {line.rstrip()}')
 
         #
         # Report the kernels that will be included in the Kernel List

@@ -360,8 +360,8 @@ class Setup(object):
         os.chdir(cwd)
 
         #
-        # Check IM, XML model and Schema Location coherence (given taht is not
-        # checke by the PDS Validate tool.
+        # Check IM, XML model and Schema Location coherence (given that is not
+        # checked by the PDS Validate tool.
         #
         if hasattr(self, "information_model"):
             if re.match(r"[0-9]+[.][0-9]+[.][0-9]+[.][0-9]+", self.information_model):
@@ -519,8 +519,8 @@ class Setup(object):
                 #
                 if "$" in metak_name_check:
                     error_message(
-                        f"The meta-kernel patterns for are not "
-                        f"defined via configuration"
+                        f"The MK patterns {metak['@name']} do not "
+                        f"correspond to the present MKs"
                     )
             else:
                 logging.warning("-- There is no meta-kernel configuration " "to check.")
