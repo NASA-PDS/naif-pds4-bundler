@@ -1313,7 +1313,7 @@ class MetaKernelProduct(Product):
         try:
             spiceypy.furnsh(path)
         except Exception:
-            error_message('SpiceyPy error', setup=self.setup)
+            error_message("SpiceyPy error", setup=self.setup)
 
         #
         # In KTOTAL, all meta-kernels are counted in the total; therefore
@@ -2699,9 +2699,7 @@ class OrbnumFileProduct(Product):
                 stop = datetime.datetime.strptime(stop_time, "%Y-%b-%d-%H:%M:%S")
                 stop_time = stop.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-            logging.warning(
-                f"-- Coverage determined by ORBNUM file data."
-            )
+            logging.warning("-- Coverage determined by ORBNUM file data.")
 
         self.start_time = start_time
         self.stop_time = stop_time

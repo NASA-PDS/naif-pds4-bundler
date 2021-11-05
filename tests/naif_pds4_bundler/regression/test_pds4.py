@@ -136,8 +136,9 @@ class TestPDS4(TestCase):
         #
         os.remove("kernels/mk/insight_v08.tm")
 
-        main(self.updated_config, plan, faucet="bundle", silent=self.silent,
-             log=self.log)
+        main(
+            self.updated_config, plan, faucet="bundle", silent=self.silent, log=self.log
+        )
 
     def test_ladee(self):
         """

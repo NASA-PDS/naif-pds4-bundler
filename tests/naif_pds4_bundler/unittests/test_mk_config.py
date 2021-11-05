@@ -74,8 +74,7 @@ class TestMetaKernelConfiguration(TestCase):
                         n.write(line)
 
         with self.assertRaises(RuntimeError):
-            main(updated_config, plan, faucet='staging', silent=self.silent,
-                 log=True)
+            main(updated_config, plan, faucet="staging", silent=self.silent, log=True)
 
     def test_insight_mk_error_wrong_name(self):
         """Test incorrect MK name in configuration.
@@ -108,8 +107,8 @@ class TestMetaKernelConfiguration(TestCase):
         with open(plan, "r") as c:
             with open(updated_plan, "w") as n:
                 for line in c:
-                    if 'insight_v08.tm' in line:
-                        n.write('insight_2021_v08.tm \\\n')
+                    if "insight_v08.tm" in line:
+                        n.write("insight_2021_v08.tm \\\n")
 
         with open(config, "r") as c:
             with open(updated_config, "w") as n:
@@ -117,7 +116,9 @@ class TestMetaKernelConfiguration(TestCase):
                     if '<mk name="insight_v$VERSION.tm">' in line:
                         n.write('           <mk name="insight_$YEAR_v$VERSION.tm">\n')
                     elif '<kernel pattern="insight_v[0-9][0-9].tm">' in line:
-                        n.write('<kernel pattern="insight_[0-9][0-9][0-9][0-9]_v[0-9][0-9].tm">')
+                        n.write(
+                            '<kernel pattern="insight_[0-9][0-9][0-9][0-9]_v[0-9][0-9].tm">'
+                        )
                     elif '<pattern length="2">VERSION</pattern>' in line:
                         n.write(
                             '                   <pattern length="2">VERSION</pattern>\n'
@@ -128,8 +129,7 @@ class TestMetaKernelConfiguration(TestCase):
                     else:
                         n.write(line)
 
-        main(updated_config, updated_plan, self.faucet, silent=self.silent,
-             log=True)
+        main(updated_config, updated_plan, self.faucet, silent=self.silent, log=True)
 
     def test_insight_mk_double_keyword_in_pattern_no_gen(self):
         """Test double keyword MK pattern in configuration with no generation.
