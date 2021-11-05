@@ -2,7 +2,6 @@
 import os
 import shutil
 import unittest
-import spiceypy
 from unittest import TestCase
 
 from naif_pds4_bundler.__main__ import main

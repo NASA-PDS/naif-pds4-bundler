@@ -1,5 +1,4 @@
-"""Functional tests for the List generator.
-"""
+"""Unit tests for kernel integrity."""
 import os
 import shutil
 import unittest
@@ -10,16 +9,20 @@ from naif_pds4_bundler.classes.product import SpiceKernelProduct
 
 
 class TestKernelIntegrity(TestCase):
-    """
-    Test family for the plan generation.
+    """Unit Test Family Class for kernel integrity.
+
+    Kernel integrity tests verify if the kernel type and architecture
+    is as expected from the kernel header.
     """
 
     @classmethod
     def setUpClass(cls):
-        """
+        """Constructor.
+
         Method that will be executed once for this test case class.
         It will execute before all tests methods.
 
+        Clears up the functional tests directory.
         """
         print(f"NPB - Unit Tests - {cls.__name__}")
 
@@ -30,7 +33,8 @@ class TestKernelIntegrity(TestCase):
             shutil.rmtree(dir, ignore_errors=True)
 
     def setUp(self):
-        """
+        """Setup Test.
+
         This method will be executed before each test function.
         """
         unittest.TestCase.setUp(self)
@@ -41,7 +45,8 @@ class TestKernelIntegrity(TestCase):
             os.mkdir(dir)
 
     def tearDown(self):
-        """
+        """Clean-up Test.
+
         This method will be executed after each test function.
         """
         unittest.TestCase.tearDown(self)
@@ -51,7 +56,15 @@ class TestKernelIntegrity(TestCase):
             shutil.rmtree(dir, ignore_errors=True)
 
     def test_text_kernel_integrity(self):
-        """ """
+        """Test text kernel integrity.
+
+        The following tests are performed:
+           * Correct text kernel architecture
+           * Non-existing kernel architecture
+           * Incorrect text kernel architecture
+           * Mismatch text kernel type
+           * Non-existing text kernel type
+        """
         kernel_path = "working/test.tf"
 
         test_kernel = Object()
@@ -68,7 +81,7 @@ class TestKernelIntegrity(TestCase):
         SpiceKernelProduct.check_kernel_integrity(test_kernel, test_kernel, kernel_path)
 
         #
-        # Test sub-case 2: Nonexixtent text kernel architecture.
+        # Test sub-case 2: Non-existing kernel architecture.
         #
         with open(kernel_path, "w") as k:
             k.write("KPLO/FK\n")
@@ -93,7 +106,7 @@ class TestKernelIntegrity(TestCase):
             SpiceKernelProduct.check_kernel_integrity(test_kernel, test_kernel, kernel_path)
 
         #
-        # Test sub-case 5: Nonexistent text kernel type.
+        # Test sub-case 5: Non-existing text kernel type.
         #
         with open(kernel_path, "w") as k:
             k.write("KPL/SLC\n")
@@ -101,7 +114,13 @@ class TestKernelIntegrity(TestCase):
             SpiceKernelProduct.check_kernel_integrity(test_kernel, test_kernel, kernel_path)
 
     def test_binary_kernel_integrity(self):
-        """ """
+        """Test binary kernel integrity.
+
+        The following tests are performed:
+           * Correct binary kernel architecture
+           * Incorrect kernel type
+           * Incorrect architecture
+        """
         kernel_path = "../data/kernels/ck/insight_ida_enc_200829_201220_v1.bc"
 
         test_kernel = Object()
@@ -111,7 +130,7 @@ class TestKernelIntegrity(TestCase):
         test_kernel.setup = False
 
         #
-        # Test sub-case 1: Correct text kernel architecture.
+        # Test sub-case 1: Correct binary kernel architecture.
         #
         SpiceKernelProduct.check_kernel_integrity(test_kernel, test_kernel, kernel_path)
 
@@ -127,7 +146,7 @@ class TestKernelIntegrity(TestCase):
         kernel_path = "../data/kernels/ck/insight_ida_enc_200829_201220_v1.xc"
 
         #
-        # Test sub-case 2: Incorrect architecture.
+        # Test sub-case 3: Incorrect architecture.
         #
         with self.assertRaises(RuntimeError):
             SpiceKernelProduct.check_kernel_integrity(test_kernel, test_kernel, kernel_path)

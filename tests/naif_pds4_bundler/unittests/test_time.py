@@ -1,3 +1,4 @@
+"""Unit tests for the time utilities."""
 import os
 import unittest
 from unittest import TestCase
@@ -8,19 +9,24 @@ from naif_pds4_bundler.utils import spk_coverage
 
 
 class TestTime(TestCase):
+    """Test family for time utilities."""
+
     @classmethod
     def setUpClass(cls):
-        """
+        """Constructor.
+
+        Chose the appropriate working directory.
+
         Method that will be executed once for this test case class.
         It will execute before all tests methods.
-
         """
         print(f"NPB - Unit Tests - {cls.__name__}")
 
         os.chdir(os.path.dirname(__file__))
 
     def setUp(self):
-        """
+        """Setup Test.
+
         This method will be executed before each test function.
         """
         unittest.TestCase.setUp(self)
@@ -30,7 +36,8 @@ class TestTime(TestCase):
         spiceypy.furnsh(lsk_file)
 
     def tearDown(self):
-        """
+        """Clean-up Test.
+
         This method will be executed after each test function.
         """
         unittest.TestCase.tearDown(self)
@@ -38,7 +45,7 @@ class TestTime(TestCase):
         spiceypy.kclear()
 
     def test_dsk_coverage(self):
-
+        """Test DKS coverage function."""
         dsk_file = "../data/kernels/dsk/DEIMOS_K005_THO_V01.BDS"
 
         [start_time_cal, stop_time_cal] = dsk_coverage(dsk_file)
@@ -49,7 +56,7 @@ class TestTime(TestCase):
         )
 
     def test_spk_coverage(self):
-
+        """Test SPK coverage function."""
         spk_file = "../data/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp"
         spiceypy.furnsh("../data/kernels/fk/m2020_v04.tf")
         [start_time_cal, stop_time_cal] = spk_coverage(spk_file, main_name="M2020")

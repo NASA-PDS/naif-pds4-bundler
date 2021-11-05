@@ -1,5 +1,4 @@
-"""Functional tests for the List generator.
-"""
+"""Unit tests for kernel loading."""
 import os
 import shutil
 import unittest
@@ -9,17 +8,16 @@ from naif_pds4_bundler.__main__ import main
 
 
 class TestLoadKernels(TestCase):
-    """
-    Test family to test loading the kernels required to execute the pipeline.
-    Test implemented after incorrect SCLK was loaded for MAVEN.
-    """
+    """Unit Test Family Class for kernel loading."""
 
     @classmethod
     def setUpClass(cls):
-        """
+        """Constructor.
+
         Method that will be executed once for this test case class.
         It will execute before all tests methods.
 
+        Clears up the functional tests directory.
         """
         print(f"NPB - Unit Tests - {cls.__name__}")
 
@@ -33,7 +31,8 @@ class TestLoadKernels(TestCase):
         cls.silent = True
 
     def setUp(self):
-        """
+        """Setup Test.
+
         This method will be executed before each test function.
         """
         unittest.TestCase.setUp(self)
@@ -47,7 +46,8 @@ class TestLoadKernels(TestCase):
         shutil.copytree("../data/misc", "misc")
 
     def tearDown(self):
-        """
+        """Clean-up Test.
+
         This method will be executed after each test function.
         """
         unittest.TestCase.tearDown(self)
@@ -57,8 +57,13 @@ class TestLoadKernels(TestCase):
             shutil.rmtree(dir, ignore_errors=True)
 
     def test_load_kernels(self):
-        """ """
+        """Basic kernel load test.
 
+        This test was implemented after an incorrect SCLK was loaded for
+        MAVEN and to support the corresponding bug-fix. The test checks
+        that the warning message provided by NPB when loading an incorrect
+        SCLK is as expected.
+        """
         config = "../config/maven.xml"
         plan = "working/maven_orbnum.plan"
         found = False

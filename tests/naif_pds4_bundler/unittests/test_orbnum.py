@@ -1,5 +1,4 @@
-"""Functional tests for the List generator.
-"""
+"""Unit tests for ORBNUM label generation."""
 import os
 import shutil
 import unittest
@@ -9,16 +8,16 @@ from naif_pds4_bundler.__main__ import main
 
 
 class TestOrbnum(TestCase):
-    """
-    Test family for the plan generation.
-    """
+    """Unit Test Family Class for ORBNUM label generation."""
 
     @classmethod
     def setUpClass(cls):
-        """
+        """Constructor.
+
         Method that will be executed once for this test case class.
         It will execute before all tests methods.
 
+        Clears up the functional tests directory.
         """
         print(f"NPB - Unit Tests - {cls.__name__}")
 
@@ -32,7 +31,8 @@ class TestOrbnum(TestCase):
         cls.silent = True
 
     def setUp(self):
-        """
+        """Setup Test.
+
         This method will be executed before each test function.
         """
         unittest.TestCase.setUp(self)
@@ -56,7 +56,8 @@ class TestOrbnum(TestCase):
             os.mkdir(dir)
 
     def tearDown(self):
-        """
+        """Clean-up Test.
+
         This method will be executed after each test function.
         """
         unittest.TestCase.tearDown(self)
@@ -67,12 +68,14 @@ class TestOrbnum(TestCase):
 
         try:
             os.remove("working/maven_orbnum.plan")
-        except:
+        except BaseException:
             pass
 
     def test_pds4_orbnum_coverage_user_spk(self):
-        """
-        Test for meta-kernel configuration loading error cases.
+        """Test ORBNUM coverage from SPK in configuration.
+
+        The coverage is provided by the following configuration element::
+                <kernel cutoff="True">../data/kernels/spk/maven_orb_rec_210101_210401_v2.bsp</kernel>
         """
         config = "../config/maven.xml"
         plan = "working/maven_orbnum.plan"
@@ -84,8 +87,10 @@ class TestOrbnum(TestCase):
         main(config, plan, self.faucet, silent=self.silent)
 
     def test_pds4_orbnum_coverage_increment_spk(self):
-        """
-        Testcase for when the readme file is not present.
+        """Test ORBNUM coverage from SPK with pattern in configuration.
+
+        The coverage is provided by the following configuration element::
+                <kernel cutoff="True">../data/kernels/spk/maven_orb_rec_210101_210401_v2.bsp</kernel>
         """
         config = "../config/maven.xml"
         updated_config = "working/maven.xml"
@@ -113,9 +118,7 @@ class TestOrbnum(TestCase):
         main(updated_config, plan, self.faucet, silent=self.silent)
 
     def test_pds4_orbnum_coverage_archived_spk(self):
-        """
-        Testcase for when the readme file is not present.
-        """
+        """Test ORBNUM coverage from SPK with pattern in configuration."""
         config = "../config/maven.xml"
         updated_config = "working/maven.xml"
         plan = "working/maven_orbnum.plan"
@@ -145,9 +148,7 @@ class TestOrbnum(TestCase):
         main(updated_config, plan, self.faucet, silent=self.silent)
 
     def test_pds4_orbnum_coverage_lookup_table(self):
-        """
-        Testcase for when the readme file is not present.
-        """
+        """Test ORBNUM coverage from look-up table in configuration."""
         config = "../config/maven.xml"
         updated_config = "working/maven.xml"
         plan = "working/maven_orbnum.plan"
@@ -177,9 +178,7 @@ class TestOrbnum(TestCase):
         main(updated_config, plan, self.faucet, silent=self.silent)
 
     def test_pds4_orbnum_coverage_lookup_table_multiple(self):
-        """
-        Testcase for when the readme file is not present.
-        """
+        """Test various ORBNUM coverage from look-up table in configuration."""
         config = "../config/maven.xml"
         updated_config = "working/maven.xml"
         plan = "working/maven_orbnum.plan"
@@ -220,9 +219,7 @@ class TestOrbnum(TestCase):
         main(updated_config, plan, self.faucet, silent=self.silent)
 
     def test_pds4_orbnum_coverage_estimate(self):
-        """
-        Test for meta-kernel configuration loading error cases.
-        """
+        """Test ORBNUMs coverage from ORBNUM file itself."""
         config = "../config/maven.xml"
         updated_config = "working/maven.xml"
         plan = "working/maven_orbnum.plan"
@@ -241,11 +238,13 @@ class TestOrbnum(TestCase):
         with open(plan, "w") as p:
             p.write("maven_orb_rec_210101_210401_v1.orb")
 
-        main(updated_config, plan, self.faucet, silent=self.silent)
+        main(updated_config, plan, self.faucet, log=True, silent=self.silent)
 
     def test_pds4_orbnum_with_former_version(self):
-        """
-        Test for meta-kernel configuration loading error cases.
+        """Test ORBNUM generation when multiple versions are available.
+
+        The test checks if the correct ORBNUM file from the release list is
+        used.
         """
         config = "../config/maven.xml"
         plan = "working/maven_orbnum.plan"
@@ -253,9 +252,6 @@ class TestOrbnum(TestCase):
         with open(plan, "w") as p:
             p.write("maven_orb_rec_210101_210401_v2.orb")
 
-        #
-        # Test preparation
-        #
         with open(
             "maven/maven_spice/miscellaneous/orbnum/"
             "maven_orb_rec_210101_210401_v1.orb",
@@ -269,10 +265,11 @@ class TestOrbnum(TestCase):
         ):
             pass
 
-        main(config, plan, self.faucet, silent=self.silent)
+        main(config, plan, self.faucet, log=True, silent=self.silent)
 
     def test_pds4_orbnum_with_former(self):
-        """
+        """Test ORBNUM generation when multiple files with wrong versions.
+
         Test for orbnum generation when the prior file does not have an
         explicit version. Note that the orbnum file provided by the user
         does have to have a version number (and the pattern provided via
@@ -290,11 +287,21 @@ class TestOrbnum(TestCase):
         ):
             pass
 
-        main(config, plan, self.faucet, silent=self.silent)
+        main(config, plan, self.faucet, silent=self.silent, log=True)
 
     def test_pds4_orbnum_blank_records(self):
-        """
-        Test an orbnum file with blank records.
+        """Test an orbnum file with blank records.
+
+        Test the generation of a label when the ORBNUM file has some incomplete
+        entries (which is a real possibility.)
+
+        In such case the record length is expanded to the adequate fixed length.
+        Afterwards the ORBNUM file version is incremented, because a new file
+        has just been created. The NPB log will display the following warnings::
+            WARNING : -- Orbit number 13071 record has an incorrect length, the record will be expanded to cover the adequate fixed length.
+            WARNING : -- Orbit number 13073 record has an incorrect length, the record will be expanded to cover the adequate fixed length.
+            WARNING : -- Orbit number 13073 record is followed by 13075.
+            WARNING : -- Orbnum name updated to: maven_orb_rec_210101_210401_v4.orb
         """
         config = "../config/maven.xml"
         plan = "working/maven_orbnum.plan"
@@ -315,11 +322,22 @@ class TestOrbnum(TestCase):
         ):
             pass
 
-        main(config, plan, self.faucet, silent=self.silent)
+        main(config, plan, self.faucet, silent=self.silent, log=True)
 
     def test_pds4_orbnum_blank_records_no_former(self):
-        """
-        Test an orbnum file with blank records.
+        """Test an ORBNUM file with blank records with no former versions.
+
+        Test the generation of a label when the ORBNUM file has some incomplete
+        entries (which is a real possibility.)
+
+        In such case the record length is expanded to the adequate fixed length.
+        Afterwards the ORBNUM file version is incremented based on the name
+        provided in the release plan, because a new file has just been created.
+        The NPB log will display the following warnings::
+            WARNING : -- Orbit number 13071 record has an incorrect length, the record will be expanded to cover the adequate fixed length.
+            WARNING : -- Orbit number 13073 record has an incorrect length, the record will be expanded to cover the adequate fixed length.
+            WARNING : -- Orbit number 13073 record is followed by 13075.
+            WARNING : -- Orbnum name updated to: maven_orb_rec_210101_210401_v4.orb
         """
         config = "../config/maven.xml"
         plan = "working/maven_orbnum.plan"
@@ -327,11 +345,22 @@ class TestOrbnum(TestCase):
         with open(plan, "w") as p:
             p.write("maven_orb_rec_210101_210401_v3.orb")
 
-        main(config, plan, self.faucet, silent=self.silent)
+        main(config, plan, self.faucet, silent=self.silent, log=True)
 
     def test_pds4_orbnum_blank_records_no_version(self):
-        """
-        Test an orbnum file with blank records.
+        """Test an orbnum file with blank records.
+
+        Test the generation of a label when the ORBNUM file has some incomplete
+        entries (which is a real possibility.)
+
+        In such case the record length is expanded to the adequate fixed length.
+        Afterwards the ORBNUM file version is incremented based on the name
+        provided in the release plan, because a new file has just been created.
+        The NPB log will display the following warnings::
+            WARNING : -- Orbit number 13071 record has an incorrect length, the record will be expanded to cover the adequate fixed length.
+            WARNING : -- Orbit number 13073 record has an incorrect length, the record will be expanded to cover the adequate fixed length.
+            WARNING : -- Orbit number 13073 record is followed by 13075.
+            WARNING : -- Orbnum name updated to: maven_orb_rec_210101_210401_v2.orb
         """
         config = "../config/maven.xml"
         updated_config = "working/maven.xml"
@@ -341,11 +370,10 @@ class TestOrbnum(TestCase):
             with open(updated_config, "w") as n:
                 for line in c:
                     if (
-                        "<orbnum pattern="
-                        '"maven_orb_rec_[0-9]{6}_[0-9]{6}_v[0-9].orb">' in line
+                        "<pattern>maven_orb_rec_[0-9]{6}_[0-9]{6}_v[0-9].orb" in line
                     ):
                         n.write(
-                            "<orbnum pattern=" '"maven_orb_rec_[0-9]{6}_[0-9]{6}.orb">'
+                            "<pattern>maven_orb_rec_[0-9]{6}_[0-9]{6}.orb</pattern>\n"
                         )
                     else:
                         n.write(line)
@@ -353,10 +381,10 @@ class TestOrbnum(TestCase):
         with open(plan, "w") as p:
             p.write("maven_orb_rec_210101_210401.orb")
 
-        main(updated_config, plan, self.faucet, silent=self.silent)
+        main(updated_config, plan, self.faucet, silent=self.silent, log=True)
 
     def test_pds3_orbnum_files(self):
-
+        """Test all the types of NASA and ESA PDS3 data sets ORBNUM files."""
         config = "../config/maven.xml"
         updated_config = "working/maven.xml"
         plan = "working/maven_orbnum.plan"
@@ -386,17 +414,17 @@ class TestOrbnum(TestCase):
                 orbnum_config += (
                     f"<orbnum>\n"
                     f"    <pattern>{file}</pattern>\n"
-                     "    <event_detection_frame>\n"
-                     "        <spice_name>IAU_MARS</spice_name>\n"
-                     "        <description>Mars body-fixed frame</description>\n"
-                     "    </event_detection_frame>\n"
-                     "    <header_start_line>1</header_start_line >\n"
-                     "    <pck>\n"
-                     "        <kernel_name>pck0010.tpc</kernel_name>\n"
-                     "        <description>IAU 2009 report</description>\n"
-                     "    </pck>\n"
-                     "    <author>NAIF, JPL</author>\n"
-                     "</orbnum>\n"
+                    "    <event_detection_frame>\n"
+                    "        <spice_name>IAU_MARS</spice_name>\n"
+                    "        <description>Mars body-fixed frame</description>\n"
+                    "    </event_detection_frame>\n"
+                    "    <header_start_line>1</header_start_line >\n"
+                    "    <pck>\n"
+                    "        <kernel_name>pck0010.tpc</kernel_name>\n"
+                    "        <description>IAU 2009 report</description>\n"
+                    "    </pck>\n"
+                    "    <author>NAIF, JPL</author>\n"
+                    "</orbnum>\n"
                 )
 
         with open(config, "r") as c:
@@ -413,12 +441,10 @@ class TestOrbnum(TestCase):
                     else:
                         n.write(line)
 
-        main(updated_config, plan, self.faucet, silent=self.silent)
+        main(updated_config, plan, self.faucet, silent=self.silent, log=True)
 
     def test_pds4_orbnum_eol_line_feed(self):
-        """
-        Test for meta-kernel configuration loading error cases.
-        """
+        """Test generation of ORBNUM files with LF End-of-Line."""
         config = "../config/maven.xml"
         updated_config = "working/maven.xml"
         plan = "working/maven_orbnum.plan"
@@ -426,22 +452,26 @@ class TestOrbnum(TestCase):
         with open(config, "r") as c:
             with open(updated_config, "w") as n:
                 for line in c:
-                    if "<information_model>1.5.0.0</information_model>" in line:
-                        n.write("<information_model>1.16.0.0" "</information_model>")
-                    elif "/PDS4_PDS_1500" in line:
-                        n.write(line.replace("/PDS4_PDS_1500", "/PDS4_PDS_1G00"))
+                    if "<end_of_line>CRLF</end_of_line>" in line:
+                        n.write("<end_of_line>LF</end_of_line>\n")
+                    #
+                    # Remove the explicit directory from the configuration file.
+                    #
+                    elif "templates_directory" in line:
+                        pass
                     else:
                         n.write(line)
 
         with open(plan, "w") as p:
             p.write("maven_orb_rec_210101_210401_v1.orb")
 
-        main(updated_config, plan, self.faucet, silent=self.silent)
+        main(updated_config, plan, self.faucet, log=True, silent=self.silent)
 
     def test_pds4_orbnum_generated_list(self):
-        """
-        Test orbnum file generation with automatic plan generation
-        (plan is not provided by the user.)
+        """Test inclusion of ORBNUM in kernel list.
+
+        Test orbnum file generation with automatic plan generation, when the
+        plan is not provided by the user.
         """
         config = "../config/maven.xml"
 
@@ -449,11 +479,13 @@ class TestOrbnum(TestCase):
             "../data/misc/orbnum/maven_orb_rec_210101_210401_v1.orb", "misc/orbnum/"
         )
 
-        main(config, faucet=self.faucet, silent=self.silent)
+        main(config, faucet=self.faucet, silent=self.silent, log=True)
 
     def test_pds4_orbnum_multiple_files(self):
-        """
-        Test orbnum file generation with mulitple orbnum files in list.
+        """Test ORBNUM coverage for multiple files.
+
+        Update the configuration file to use kernel patterns to determine
+        coverage for different ORBNUM files.
         """
         config = "../config/maven.xml"
         updated_config = "working/maven.xml"
@@ -466,7 +498,7 @@ class TestOrbnum(TestCase):
                     ):
                         n.write(
                             '<kernel cutoff="True">kernels/spk/'
-                            "maven_orb_rec[0-9]{6}_[0-9]{6}_v[0-9].bsp</kernel>"
+                            "maven_orb_rec_[0-9]{6}_[0-9]{6}_v[0-9].bsp</kernel>"
                         )
                     else:
                         n.write(line)
@@ -488,11 +520,14 @@ class TestOrbnum(TestCase):
             "misc/orbnum/maven_orb_rec_210101_210402_v1.orb",
         )
 
-        main(updated_config, plan=plan, faucet="bundle", silent=self.silent)
+        main(updated_config, plan=plan, faucet="bundle",  log=True,
+             silent=self.silent)
 
     def test_pds4_orbnum_multiple_files_incorrect_spk(self):
-        """
-        Test orbnum file generation with mulitple orbnum files in list.
+        """Test incorrect ORBNUM coverage.
+
+        This test ensures that the coverage is incorrectly calculated for
+        two ORBNUM files due to the configuration file.
         """
         config = "../config/maven.xml"
 
@@ -513,12 +548,10 @@ class TestOrbnum(TestCase):
             "misc/orbnum/maven_orb_rec_210101_210402_v1.orb",
         )
 
-        main(config, plan=plan, faucet="bundle", silent=self.silent)
+        main(config, plan=plan, faucet="bundle", log=True, silent=self.silent)
 
     def test_pds4_orbnum_multiple_files_in_spk_dir(self):
-        """
-        Test orbnum file generation with mulitple orbnum files in list.
-        """
+        """Test ORBNUM with input files in SPK directory."""
         config = "../config/maven.xml"
 
         updated_config = "working/maven.xml"
@@ -526,7 +559,7 @@ class TestOrbnum(TestCase):
             with open(updated_config, "w") as n:
                 for line in c:
                     if "<orbnum_directory>misc/orbnum" "</orbnum_directory>" in line:
-                        n.write("<orbnum_directory>kernels/spk" "</orbnum_directory>")
+                        n.write("<orbnum_directory>kernels/spk</orbnum_directory>")
                     elif (
                         '<kernel cutoff="True">../data/kernels/spk/'
                         "maven_orb_rec_210101_210401_v2.bsp</kernel>" in line
@@ -561,7 +594,8 @@ class TestOrbnum(TestCase):
             "kernels/spk/maven_orb_rec_210101_210401_v1.orb",
         )
 
-        main(updated_config, plan=plan, faucet="bundle", silent=self.silent, log=True)
+        main(updated_config, plan=plan, faucet="bundle", silent=self.silent,
+             log=True)
 
 
 if __name__ == "__main__":

@@ -98,7 +98,6 @@ class TestPDS4(TestCase):
         for dir in dirs:
             os.makedirs(dir, 0o766, exist_ok=True)
 
-        print(os.getcwd())
         with open(self.config, "r") as c:
             with open(self.updated_config, "w") as n:
                 for line in c:

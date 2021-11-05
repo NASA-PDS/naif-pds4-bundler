@@ -39,8 +39,7 @@ class TestBundleHistory(TestCase):
         unittest.TestCase.tearDown(self)
 
     def test_insight_history(self):
-        """Test the generation of the bundle history.
-        """
+        """Test the generation of the bundle history."""
         test_setup = Object()
         test_setup.bundle_directory = "../data/insight"
         test_setup.mission_acronym = "insight"

@@ -3,9 +3,7 @@ import os
 import shutil
 import unittest
 from unittest import TestCase
-
 from naif_pds4_bundler.__main__ import main
-from xmlschema.validators.exceptions import XMLSchemaValidationError
 
 
 class TestLabeling(TestCase):

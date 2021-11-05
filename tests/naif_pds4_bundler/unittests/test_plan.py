@@ -1,3 +1,4 @@
+"""Unit tests for the Release Plan generation."""
 import os
 import shutil
 import unittest
@@ -7,23 +8,24 @@ from naif_pds4_bundler.__main__ import main
 
 
 class TestPlan(TestCase):
-    """
-    Test Family for the plan generation.
-    """
+    """Test family for the Release Plan generation."""
 
     @classmethod
     def setUpClass(cls):
-        """
+        """Constructor.
+
+        Chose the appropriate working directory.
+
         Method that will be executed once for this test case class.
         It will execute before all tests methods.
-
         """
         print(f"NPB - Unit Tests - {cls.__name__}")
 
         os.chdir(os.path.dirname(__file__))
 
     def setUp(self):
-        """
+        """Setup Test.
+
         This method will be executed before each test function.
         """
         unittest.TestCase.setUp(self)
@@ -49,7 +51,8 @@ class TestPlan(TestCase):
             os.mkdir(dir)
 
     def tearDown(self):
-        """
+        """Clean-up Test.
+
         This method will be executed after each test function.
         """
         unittest.TestCase.tearDown(self)
@@ -59,10 +62,10 @@ class TestPlan(TestCase):
             shutil.rmtree(dir, ignore_errors=True)
 
     def test_pds4_insight_plan(self):
-        """
-        Basic test for InSight kernel list generation. This is a PDS4 Bundle.
-        Implemented following the generation of the kernel list for release 8.
+        """Basic test for InSight kernel list generation.
 
+        Implemented following the generation of the kernel list for InSight
+        release 8.
         """
         config = "../config/insight.xml"
         plan = ""
@@ -97,12 +100,11 @@ class TestPlan(TestCase):
         self.assertEqual(old_file.split("\n")[9:], new_file.split("\n")[9:])
 
     def test_pds4_mars2020_no_plan(self):
-        """
-        Basic test for M2020 kernel plan generation. This is a PDS4 Bundle.
+        """Basic test for M2020 kernel plan generation.
+
         Implemented for the generation of the first M2020 release. The
         particularity of this test is that it includes two meta-kernels provided
         as inputs.
-
         """
         config = "../config/mars2020.xml"
         faucet = "list"
@@ -114,11 +116,13 @@ class TestPlan(TestCase):
                     filename = os.sep.join(last_filename.split(os.sep)[0:-1])
                     filename += f'/{line.split("=")[-1].strip()}'
                     with open(f"{filename}", "w") as fp:
+                        fp.flush()
                         pass
                 if "FILE             = spice_kernels" in line:
                     filename = f"kernels/{line.split('= spice_kernels/')[-1]}"
                     filename = filename[:-1]
                     with open(f"{filename}", "w") as fp:
+                        fp.flush()
                         pass
                     last_filename = filename
 
