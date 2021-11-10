@@ -3424,12 +3424,6 @@ class ReadmeProduct(Product):
             logging.info("-- Readme file already exists in final area.")
             self.new_product = False
         else:
-            #
-            # Check if the readme file is provided via configuration.
-            #
-            if not hasattr(self.setup, "readme"):
-                error_message("readme file not present in configuration", setup=setup)
-
             logging.info("-- Generating readme file...")
             self.write_product()
             self.new_product = True
@@ -3456,7 +3450,16 @@ class ReadmeProduct(Product):
         """Write the Readme product."""
         line_length = 0
 
-        if not os.path.isfile(self.path):
+        #
+        # If the readme file is provided via configuration copy it, otherwise
+        # generate it with the tempalte.
+        #
+        if (not os.path.isfile(self.path)) and ('input' in self.setup.readme):
+            if os.path.exists(self.setup.readme['input']):
+                shutil.copy(self.setup.readme['input'], self.path)
+            else:
+                error_message('Readme file provided via configuration does not exist')
+        elif (not os.path.isfile(self.path)):
             with open(self.path, "w+") as f:
                 for line in fileinput.input(
                     self.setup.root_dir + "/templates/template_readme.txt"
@@ -3632,7 +3635,7 @@ class ChecksumProduct(Product):
             self.version = 1
             self.path_current = ""
 
-            logging.warning("-- Default to version {self.version}.")
+            logging.warning(f"-- Default to version {self.version}.")
             logging.warning("-- Make sure this is the first release of the archive.")
             logging.warning("")
 

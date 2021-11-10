@@ -533,6 +533,26 @@ class Setup(object):
             if not isinstance(self.coverage_kernels, list):
                 self.coverage_kernels = [self.coverage_kernels]
 
+        #
+        # If a readme file is present the readme section of the configuration
+        # is irrelevant.
+        #
+        if not os.path.exists(f'{self.bundle_directory}/{mission_dir}/readme.txt'):
+            #
+            # Check readme file inputs in configuration. Raise an error immediately
+            # if things do not look good.
+            #
+            if hasattr(self, "readme"):
+                if 'input' in self.readme and not os.path.exists(self.readme['input']):
+                    if ('cognisant_authority' in self.readme) and ('overview' in self.readme):
+                        logging.warning("Input readme file not present. "
+                                        "File will be generated from "
+                                        "configuration.")
+                    else:
+                        error_message("Readme elements not present in configuration file")
+            else:
+                error_message("Readme elements not present in configuration file")
+
         return None
 
     def set_release(self):
