@@ -1,4 +1,4 @@
-from naif_pds4_bundler import slice_kernels
+from pds.naif_pds4_bundler import slice_kernels
 
 kernels_dir = "/Users/mcosta/mro_transfer/data"
 out_kernels_dir = "spice_kernels_3"

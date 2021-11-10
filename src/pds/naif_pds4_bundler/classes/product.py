@@ -13,34 +13,35 @@ from collections import OrderedDict
 from datetime import date
 
 import spiceypy
-from naif_pds4_bundler.classes.label import BundlePDS4Label
-from naif_pds4_bundler.classes.label import ChecksumPDS4Label
-from naif_pds4_bundler.classes.label import DocumentPDS4Label
-from naif_pds4_bundler.classes.label import InventoryPDS4Label
-from naif_pds4_bundler.classes.label import MetaKernelPDS4Label
-from naif_pds4_bundler.classes.label import OrbnumFilePDS4Label
-from naif_pds4_bundler.classes.label import SpiceKernelPDS4Label
-from naif_pds4_bundler.classes.log import error_message
-from naif_pds4_bundler.classes.object import Object
-from naif_pds4_bundler.utils import add_carriage_return
-from naif_pds4_bundler.utils import add_crs_to_file
-from naif_pds4_bundler.utils import checksum_from_label
-from naif_pds4_bundler.utils import checksum_from_registry
-from naif_pds4_bundler.utils import ck_coverage
-from naif_pds4_bundler.utils import compare_files
-from naif_pds4_bundler.utils import creation_time
-from naif_pds4_bundler.utils import current_date
-from naif_pds4_bundler.utils import dsk_coverage
-from naif_pds4_bundler.utils import extension2type
-from naif_pds4_bundler.utils import get_latest_kernel
-from naif_pds4_bundler.utils import match_patterns
-from naif_pds4_bundler.utils import md5
-from naif_pds4_bundler.utils import mk2list
-from naif_pds4_bundler.utils import pck_coverage
-from naif_pds4_bundler.utils import safe_make_directory
-from naif_pds4_bundler.utils import spk_coverage
-from naif_pds4_bundler.utils import type2extension
-from naif_pds4_bundler.utils import utf8len
+
+from ..utils import add_carriage_return
+from ..utils import add_crs_to_file
+from ..utils import checksum_from_label
+from ..utils import checksum_from_registry
+from ..utils import ck_coverage
+from ..utils import compare_files
+from ..utils import creation_time
+from ..utils import current_date
+from ..utils import dsk_coverage
+from ..utils import extension2type
+from ..utils import get_latest_kernel
+from ..utils import match_patterns
+from ..utils import md5
+from ..utils import mk2list
+from ..utils import pck_coverage
+from ..utils import safe_make_directory
+from ..utils import spk_coverage
+from ..utils import type2extension
+from ..utils import utf8len
+from .label import BundlePDS4Label
+from .label import ChecksumPDS4Label
+from .label import DocumentPDS4Label
+from .label import InventoryPDS4Label
+from .label import MetaKernelPDS4Label
+from .label import OrbnumFilePDS4Label
+from .label import SpiceKernelPDS4Label
+from .log import error_message
+from .object import Object
 
 
 class Product(object):
@@ -3046,7 +3047,7 @@ class InventoryProduct(Product):
 
             logging.warning("-- Comparing with InSight test inventory product.")
             fromfiles = glob.glob(
-                f'{self.setup.root_dir.replace("src","tests")}'
+                f'{self.setup.root_dir.replace("src/pds","tests")}'
                 f"/data/regression/"
                 f"insight_spice/{self.collection.type}/"
                 f"collection_{self.collection.name}"
@@ -3454,12 +3455,12 @@ class ReadmeProduct(Product):
         # If the readme file is provided via configuration copy it, otherwise
         # generate it with the tempalte.
         #
-        if (not os.path.isfile(self.path)) and ('input' in self.setup.readme):
-            if os.path.exists(self.setup.readme['input']):
-                shutil.copy(self.setup.readme['input'], self.path)
+        if (not os.path.isfile(self.path)) and ("input" in self.setup.readme):
+            if os.path.exists(self.setup.readme["input"]):
+                shutil.copy(self.setup.readme["input"], self.path)
             else:
-                error_message('Readme file provided via configuration does not exist')
-        elif (not os.path.isfile(self.path)):
+                error_message("Readme file provided via configuration does not exist")
+        elif not os.path.isfile(self.path):
             with open(self.path, "w+") as f:
                 for line in fileinput.input(
                     self.setup.root_dir + "/templates/template_readme.txt"

@@ -4,7 +4,7 @@ import shutil
 import unittest
 from unittest import TestCase
 
-from naif_pds4_bundler.__main__ import main
+from pds.naif_pds4_bundler.__main__ import main
 
 
 class TestOrbnum(TestCase):
@@ -369,9 +369,7 @@ class TestOrbnum(TestCase):
         with open(config, "r") as c:
             with open(updated_config, "w") as n:
                 for line in c:
-                    if (
-                        "<pattern>maven_orb_rec_[0-9]{6}_[0-9]{6}_v[0-9].orb" in line
-                    ):
+                    if "<pattern>maven_orb_rec_[0-9]{6}_[0-9]{6}_v[0-9].orb" in line:
                         n.write(
                             "<pattern>maven_orb_rec_[0-9]{6}_[0-9]{6}.orb</pattern>\n"
                         )
@@ -520,8 +518,7 @@ class TestOrbnum(TestCase):
             "misc/orbnum/maven_orb_rec_210101_210402_v1.orb",
         )
 
-        main(updated_config, plan=plan, faucet="bundle",  log=True,
-             silent=self.silent)
+        main(updated_config, plan=plan, faucet="bundle", log=True, silent=self.silent)
 
     def test_pds4_orbnum_multiple_files_incorrect_spk(self):
         """Test incorrect ORBNUM coverage.
@@ -594,8 +591,7 @@ class TestOrbnum(TestCase):
             "kernels/spk/maven_orb_rec_210101_210401_v1.orb",
         )
 
-        main(updated_config, plan=plan, faucet="bundle", silent=self.silent,
-             log=True)
+        main(updated_config, plan=plan, faucet="bundle", silent=self.silent, log=True)
 
 
 if __name__ == "__main__":

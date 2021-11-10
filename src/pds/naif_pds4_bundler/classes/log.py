@@ -110,8 +110,9 @@ class Log(object):
         logging.info("")
 
         if self.args.faucet == "labels":
-            logging.info("-- Running in labeling mode. Only label products are "
-                         "generated.")
+            logging.info(
+                "-- Running in labeling mode. Only label products are " "generated."
+            )
 
         logging.info("")
         return

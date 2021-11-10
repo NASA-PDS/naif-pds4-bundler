@@ -4,9 +4,9 @@ import logging
 import os
 import re
 
-from naif_pds4_bundler.classes.log import error_message
-from naif_pds4_bundler.utils import extension2type
-from naif_pds4_bundler.utils import get_years
+from ..utils import extension2type
+from ..utils import get_years
+from .log import error_message
 
 
 class Collection(object):

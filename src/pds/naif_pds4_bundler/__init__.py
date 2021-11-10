@@ -1,10 +1,9 @@
 """NAIF PDS4 Bundle Namespace."""
-from ._version import get_versions
+import pkg_resources
 
-__version__ = get_versions()["version"]
-__date__ = get_versions()["date"]
-del get_versions
-
+__version__ = VERSION = (
+    pkg_resources.resource_string(__name__, "VERSION.txt").decode("utf-8").strip()
+)
 
 # For future consideration:
 #

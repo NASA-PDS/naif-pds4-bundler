@@ -4,10 +4,10 @@ import glob
 import logging
 import os
 
-from naif_pds4_bundler.classes.log import error_message
-from naif_pds4_bundler.utils import add_carriage_return
-from naif_pds4_bundler.utils import compare_files
-from naif_pds4_bundler.utils import extension2type
+from ..utils import add_carriage_return
+from ..utils import compare_files
+from ..utils import extension2type
+from .log import error_message
 
 
 class PDSLabel(object):
@@ -43,17 +43,17 @@ class PDSLabel(object):
         #
         if hasattr(setup, "secondary_observers"):
             if len(setup.secondary_observers) == 1:
-                observers_text = f'{setup.observer} and {setup.secondary_observers[0]}'
+                observers_text = f"{setup.observer} and {setup.secondary_observers[0]}"
             else:
-                observers_text = f'{setup.observer}, '
+                observers_text = f"{setup.observer}, "
                 for i in range(len(setup.secondary_observers)):
                     if i == len(setup.secondary_observers) - 1:
-                        observers_text += f'and '
-                    observers_text += f'{setup.secondary_observers[i]}, '
+                        observers_text += f"and "
+                    observers_text += f"{setup.secondary_observers[i]}, "
 
-            self.PDS4_OBSERVER_NAME = f'{observers_text}spacecrafts and their'
+            self.PDS4_OBSERVER_NAME = f"{observers_text}spacecrafts and their"
         else:
-            self.PDS4_OBSERVER_NAME = f'{setup.observer}spacecraft and its'
+            self.PDS4_OBSERVER_NAME = f"{setup.observer}spacecraft and its"
 
         self.END_OF_LINE_PDS4 = "Carriage-Return Line-Feed"
         if setup.end_of_line == "CRLF":
@@ -353,9 +353,7 @@ class PDSLabel(object):
                 raise Exception("No label for comparison found.")
 
         except BaseException:
-            logging.warning(
-                "-- No other version of the product label has been found."
-            )
+            logging.warning("-- No other version of the product label has been found.")
 
             #
             # 2-If a prior version of the same file cannot be found look for
@@ -641,9 +639,7 @@ class OrbnumFilePDS4Label(PDSLabel):
         """Constructor."""
         PDSLabel.__init__(self, setup, product)
 
-        self.template = (
-            f"{setup.templates_directory}/template_product_orbnum_table.xml"
-        )
+        self.template = f"{setup.templates_directory}/template_product_orbnum_table.xml"
 
         #
         # Fields from orbnum object.

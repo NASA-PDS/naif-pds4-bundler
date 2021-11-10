@@ -6,10 +6,10 @@ from pathlib import Path
 from unittest import TestCase
 from xml.etree import cElementTree
 
-from naif_pds4_bundler.classes.list import KernelList
-from naif_pds4_bundler.classes.object import Object
-from naif_pds4_bundler.classes.setup import Setup
-from naif_pds4_bundler.utils import etree_to_dict
+from pds.naif_pds4_bundler.classes.list import KernelList
+from pds.naif_pds4_bundler.classes.object import Object
+from pds.naif_pds4_bundler.classes.setup import Setup
+from pds.naif_pds4_bundler.utils import etree_to_dict
 
 
 class TestXML(TestCase):

@@ -7,12 +7,12 @@ import os
 import re
 import shutil
 
-from naif_pds4_bundler.classes.log import error_message
-from naif_pds4_bundler.utils import check_consecutive
-from naif_pds4_bundler.utils import check_list_duplicates
-from naif_pds4_bundler.utils import compare_files
-from naif_pds4_bundler.utils import extension2type
-from naif_pds4_bundler.utils import fill_template
+from ..utils import check_consecutive
+from ..utils import check_list_duplicates
+from ..utils import compare_files
+from ..utils import extension2type
+from ..utils import fill_template
+from .log import error_message
 
 
 class List(object):
@@ -110,18 +110,19 @@ class KernelList(List):
         # If NPB runs in labeling mode, a single file can be specified
         # as a release plan. If so, a plan is generated.
         #
-        if (plan.split('.')[-1] != 'plan') and \
-                (self.setup.args.faucet == "labels"):
+        if (plan.split(".")[-1] != "plan") and (self.setup.args.faucet == "labels"):
             plan_name = (
                 f"{self.setup.mission_acronym}_{self.setup.run_type}_"
                 f"{int(self.setup.release):02d}.plan"
             )
             plan = self.setup.working_directory + os.sep + plan_name
-            with open(plan, 'w') as pl:
+            with open(plan, "w") as pl:
                 pl.write(plan.split(os.sep)[-1])
-        elif plan.split('.')[-1] != 'plan':
-            error_message('Release plan requires *.plan extension. Single '
-                          'kernels are only alloed in labeling mode.')
+        elif plan.split(".")[-1] != "plan":
+            error_message(
+                "Release plan requires *.plan extension. Single "
+                "kernels are only alloed in labeling mode."
+            )
 
         with open(plan, "r") as f:
             for line in f:
@@ -151,7 +152,7 @@ class KernelList(List):
                         logging.warning(
                             "-- The following release plan line has not been matched:"
                         )
-                        logging.warning(f'   {line.rstrip()}')
+                        logging.warning(f"   {line.rstrip()}")
 
         #
         # Report the kernels that will be included in the Kernel List
@@ -223,8 +224,7 @@ class KernelList(List):
         # First we look into the configuration file. If a meta-kernel is
         # present, it is the one that will be used.
         #
-        if hasattr(self.setup, "mk_inputs") and \
-                (self.setup.args.faucet != "labels"):
+        if hasattr(self.setup, "mk_inputs") and (self.setup.args.faucet != "labels"):
             if not isinstance(self.setup.mk_inputs["file"], list):
                 mks = [self.setup.mk_inputs["file"]]
             else:
@@ -293,16 +293,15 @@ class KernelList(List):
                         "meta-kernel for the list."
                     )
         else:
-            logging.info(
-                "-- Meta-kernels not generated in labeling mode."
-            )
+            logging.info("-- Meta-kernels not generated in labeling mode.")
 
         #
         # Add possible orbnum files if not running in label generation
         # mode.
         #
-        if hasattr(self.setup, "orbnum_directory") and \
-                (self.setup.args.faucet != "labels"):
+        if hasattr(self.setup, "orbnum_directory") and (
+            self.setup.args.faucet != "labels"
+        ):
             orbnums_in_dir = glob.glob(f"{self.setup.orbnum_directory}/*")
             for orbnum_in_dir in orbnums_in_dir:
                 for orbnum in self.setup.orbnum:
@@ -907,7 +906,9 @@ class KernelList(List):
         ker_in_list = []
         opt_in_list = []
 
-        with open(self.setup.working_directory + os.sep + self.complete_list, "r") as lst:
+        with open(
+            self.setup.working_directory + os.sep + self.complete_list, "r"
+        ) as lst:
 
             #
             # Check that the list has the same number of FILE,

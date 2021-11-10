@@ -4,8 +4,8 @@ import unittest
 from unittest import TestCase
 
 import spiceypy
-from naif_pds4_bundler.utils import dsk_coverage
-from naif_pds4_bundler.utils import spk_coverage
+from pds.naif_pds4_bundler.utils import dsk_coverage
+from pds.naif_pds4_bundler.utils import spk_coverage
 
 
 class TestTime(TestCase):

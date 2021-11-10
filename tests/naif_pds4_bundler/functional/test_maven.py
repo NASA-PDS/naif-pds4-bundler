@@ -4,7 +4,7 @@ import shutil
 import unittest
 from unittest import TestCase
 
-from naif_pds4_bundler.__main__ import main
+from pds.naif_pds4_bundler.__main__ import main
 
 
 class TestMAVEN(TestCase):
@@ -66,19 +66,23 @@ class TestMAVEN(TestCase):
         """Generate test MKs."""
         shutil.copy2("../data/kernels/lsk/naif0012.tls", "working/")
         with open(f"{directory}/maven_2015_v09.tm", "w") as p:
-            p.write("KPL/MK\n"
-                    "\\begindata\n"
-                    f"PATH_VALUES = ( '{os.getcwd()}' )\n"
-                    "PATH_SYMBOLS = ( 'KERNELS' )\n"
-                    "KERNELS_TO_LOAD = ('$KERNELS/../data/kernels/lsk/naif0012.tls')\n"
-                    "\\begintext")
+            p.write(
+                "KPL/MK\n"
+                "\\begindata\n"
+                f"PATH_VALUES = ( '{os.getcwd()}' )\n"
+                "PATH_SYMBOLS = ( 'KERNELS' )\n"
+                "KERNELS_TO_LOAD = ('$KERNELS/../data/kernels/lsk/naif0012.tls')\n"
+                "\\begintext"
+            )
         with open(f"{directory}/maven_2020_v06.tm", "w") as p:
-            p.write("KPL/MK\n"
-                    "\\begindata\n"
-                    f"PATH_VALUES = ( '{os.getcwd()}' )\n"
-                    "PATH_SYMBOLS = ( 'KERNELS' )\n"
-                    "KERNELS_TO_LOAD = ('$KERNELS/../data/kernels/lsk/naif0012.tls')\n"
-                    "\\begintext")
+            p.write(
+                "KPL/MK\n"
+                "\\begindata\n"
+                f"PATH_VALUES = ( '{os.getcwd()}' )\n"
+                "PATH_SYMBOLS = ( 'KERNELS' )\n"
+                "KERNELS_TO_LOAD = ('$KERNELS/../data/kernels/lsk/naif0012.tls')\n"
+                "\\begintext"
+            )
 
     def test_maven_mks_input(self):
         """Test MKs provided as input.
@@ -124,7 +128,7 @@ class TestMAVEN(TestCase):
                 plan=plan,
                 silent=self.silent,
                 verbose=self.verbose,
-                log=self.log
+                log=self.log,
             )
 
         main(
@@ -132,7 +136,7 @@ class TestMAVEN(TestCase):
             clear="working/maven_release_25.file_list",
             silent=self.silent,
             verbose=self.verbose,
-            log=self.log
+            log=self.log,
         )
 
         self.generate_mks()
@@ -142,7 +146,7 @@ class TestMAVEN(TestCase):
             plan=plan,
             silent=self.silent,
             verbose=self.verbose,
-            log=self.log
+            log=self.log,
         )
 
     def test_maven_mks_list(self):
@@ -165,7 +169,7 @@ class TestMAVEN(TestCase):
             faucet=faucet,
             silent=self.silent,
             verbose=self.verbose,
-            log=self.log
+            log=self.log,
         )
 
     def test_maven_mks_list_in_kernels(self):
@@ -193,7 +197,7 @@ class TestMAVEN(TestCase):
             faucet=faucet,
             silent=self.silent,
             verbose=self.verbose,
-            log=self.log
+            log=self.log,
         )
 
     def test_maven_mks_list_config_in_kernels(self):
@@ -236,7 +240,7 @@ class TestMAVEN(TestCase):
             faucet=faucet,
             silent=self.silent,
             verbose=self.verbose,
-            log=self.log
+            log=self.log,
         )
 
     def test_maven_mks_list_config_in_kernels_and_config(self):
@@ -279,7 +283,7 @@ class TestMAVEN(TestCase):
             faucet=faucet,
             silent=self.silent,
             verbose=self.verbose,
-            log=self.log
+            log=self.log,
         )
 
     def test_maven_no_mk(self):
@@ -303,7 +307,7 @@ class TestMAVEN(TestCase):
             faucet=faucet,
             silent=self.silent,
             verbose=self.verbose,
-            log=self.log
+            log=self.log,
         )
 
     def test_maven_generate_mk(self):
@@ -320,13 +324,13 @@ class TestMAVEN(TestCase):
             p.write("maven_2021_v99.tm")
 
         main(
-                config,
-                plan=plan,
-                faucet=faucet,
-                silent=self.silent,
-                verbose=self.verbose,
-                log=self.log
-            )
+            config,
+            plan=plan,
+            faucet=faucet,
+            silent=self.silent,
+            verbose=self.verbose,
+            log=self.log,
+        )
 
 
 if __name__ == "__main__":

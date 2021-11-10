@@ -1,4 +1,4 @@
-from naif_pds4_bundler import slice_kernels
+from pds.naif_pds4_bundler import slice_kernels
 
 kernels_dir = "/pds4/insight_release_07/insight_spice/spice_kernels"
 out_kernels_dir = "spice_kernels_1"

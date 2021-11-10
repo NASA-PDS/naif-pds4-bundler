@@ -6,11 +6,11 @@ import pprint
 import shutil
 import time
 
-from naif_pds4_bundler.classes.log import error_message
-from naif_pds4_bundler.classes.product import ReadmeProduct
-from naif_pds4_bundler.utils import check_list_duplicates
-from naif_pds4_bundler.utils import get_context_products
-from naif_pds4_bundler.utils import safe_make_directory
+from ..utils import check_list_duplicates
+from ..utils import get_context_products
+from ..utils import safe_make_directory
+from .log import error_message
+from .product import ReadmeProduct
 
 
 class Bundle(object):
@@ -400,16 +400,21 @@ class Bundle(object):
                             # number of digits in the version field.
                             #
                             if hasattr(self.setup, "mk"):
-                                for pattern in self.setup.mk[0]['name']:
-                                    if pattern['pattern']['#text'] == 'VERSION':
-                                        version_lenght = int(pattern['pattern']['@length'])
+                                for pattern in self.setup.mk[0]["name"]:
+                                    if pattern["pattern"]["#text"] == "VERSION":
+                                        version_lenght = int(
+                                            pattern["pattern"]["@length"]
+                                        )
                                         product = (
                                             f"spice_kernels/"
                                             f'{line.split(":")[5].replace("_", "/", 1)}_'
-                                            f"v{mk_ver:02d}.tm")
+                                            f"v{mk_ver:02d}.tm"
+                                        )
 
                                         history[rel].append(product)
-                                        history[rel].append(product.replace(".tm", ".xml"))
+                                        history[rel].append(
+                                            product.replace(".tm", ".xml")
+                                        )
 
                                         break
 
@@ -423,7 +428,7 @@ class Bundle(object):
                                     mk_names = self.setup.mk_inputs
 
                                 for mk in mk_names:
-                                    product = mk['file']
+                                    product = mk["file"]
                                     product = product.split(os.sep)[-1]
                                     product = f"spice_kernels/mk/{product}"
 
@@ -434,10 +439,12 @@ class Bundle(object):
                                 # Default to 2. Might trigger an error.
                                 #
                                 version_length = 2
-                                logging.warning('MK version for history '
-                                                'defaulted to version with '
-                                                '2 digits. Might raise an '
-                                                'exception.')
+                                logging.warning(
+                                    "MK version for history "
+                                    "defaulted to version with "
+                                    "2 digits. Might raise an "
+                                    "exception."
+                                )
 
                                 #
                                 # Only three version formats are implemented.

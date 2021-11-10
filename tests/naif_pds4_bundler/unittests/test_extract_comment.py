@@ -3,7 +3,7 @@ import os
 import unittest
 from unittest import TestCase
 
-from naif_pds4_bundler.utils import extract_comment
+from pds.naif_pds4_bundler.utils import extract_comment
 
 
 class TestExtractComment(TestCase):

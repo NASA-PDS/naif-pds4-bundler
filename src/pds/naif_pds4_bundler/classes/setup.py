@@ -9,9 +9,10 @@ from xml.etree import cElementTree as ET
 
 import spiceypy
 import xmlschema
-from naif_pds4_bundler.classes.log import error_message
-from naif_pds4_bundler.utils import etree_to_dict
-from naif_pds4_bundler.utils import kernel_name
+
+from ..utils import etree_to_dict
+from ..utils import kernel_name
+from .log import error_message
 
 
 class Setup(object):
@@ -138,8 +139,9 @@ class Setup(object):
         # deviates from the default *_release_* for label generation run only
         # *_labels_*
         #
-        if args.faucet == "labels" or \
-                (args.faucet == "clear" and "_labels_" in args.clear):
+        if args.faucet == "labels" or (
+            args.faucet == "clear" and "_labels_" in args.clear
+        ):
             self.run_type = "labels"
         else:
             self.run_type = "release"
@@ -197,9 +199,7 @@ class Setup(object):
             self.eol = "\n"
             self.eol_len = 1
         else:
-            error_message(
-                "End of Line provided via configuration is not CRLF nor LF"
-            )
+            error_message("End of Line provided via configuration is not CRLF nor LF")
 
         self.end_of_line_pds4 = "CRLF"
         self.eol_pds4 = "\r\n"
@@ -291,8 +291,7 @@ class Setup(object):
         if hasattr(self, "increment_finish") and self.increment_finish:
             if not pattern.match(self.increment_finish):
                 error_message(
-                    f"increment_finish does not match the required "
-                    f"format: {format}"
+                    f"increment_finish does not match the required " f"format: {format}"
                 )
         if hasattr(self, "increment_start") and hasattr(self, "increment_finish"):
             if ((not self.increment_start) and (self.increment_finish)) or (
@@ -353,9 +352,7 @@ class Setup(object):
             if os.path.isdir(cwd + os.sep + self.kernels_directory[i]):
                 self.kernels_directory[i] = cwd + os.sep + self.kernels_directory[i]
             if not os.path.isdir(self.kernels_directory[i]):
-                error_message(
-                    f"Directory does not exist: {self.kernels_directory[i]}"
-                )
+                error_message(f"Directory does not exist: {self.kernels_directory[i]}")
 
         os.chdir(cwd)
 
@@ -537,19 +534,25 @@ class Setup(object):
         # If a readme file is present the readme section of the configuration
         # is irrelevant.
         #
-        if not os.path.exists(f'{self.bundle_directory}/{mission_dir}/readme.txt'):
+        if not os.path.exists(f"{self.bundle_directory}/{mission_dir}/readme.txt"):
             #
             # Check readme file inputs in configuration. Raise an error immediately
             # if things do not look good.
             #
             if hasattr(self, "readme"):
-                if 'input' in self.readme and not os.path.exists(self.readme['input']):
-                    if ('cognisant_authority' in self.readme) and ('overview' in self.readme):
-                        logging.warning("Input readme file not present. "
-                                        "File will be generated from "
-                                        "configuration.")
+                if "input" in self.readme and not os.path.exists(self.readme["input"]):
+                    if ("cognisant_authority" in self.readme) and (
+                        "overview" in self.readme
+                    ):
+                        logging.warning(
+                            "Input readme file not present. "
+                            "File will be generated from "
+                            "configuration."
+                        )
                     else:
-                        error_message("Readme elements not present in configuration file")
+                        error_message(
+                            "Readme elements not present in configuration file"
+                        )
             else:
                 error_message("Readme elements not present in configuration file")
 
@@ -838,7 +841,7 @@ class Setup(object):
             logging.info(f"-- Removing files from staging area: {path}.")
             with open(self.args.clear, "r") as c:
                 for line in c:
-                    if ('.plan' not in line) and ('.kernel_list' not in line):
+                    if (".plan" not in line) and (".kernel_list" not in line):
                         try:
                             stag_file = path + os.sep + line.strip()
                             os.remove(stag_file)
@@ -853,7 +856,7 @@ class Setup(object):
             logging.info(f"-- Removing files from final area: {path}.")
             with open(self.args.clear, "r") as c:
                 for line in c:
-                    if ('.plan' not in line) and ('.kernel_list' not in line):
+                    if (".plan" not in line) and (".kernel_list" not in line):
                         try:
                             #
                             # When NPB has been executed in label mode the final
@@ -861,8 +864,10 @@ class Setup(object):
                             # but kernels operations area.
                             #
                             if not os.path.exists(path):
-                                os.remove(self.bundle_directory +
-                                          line.split('spice_kernels')[-1].strip())
+                                os.remove(
+                                    self.bundle_directory
+                                    + line.split("spice_kernels")[-1].strip()
+                                )
                             #
                             # Default case.
                             #
@@ -878,10 +883,11 @@ class Setup(object):
             with open(self.args.clear, "r") as c:
                 for line in c:
                     try:
-                        if ('.plan' in line) or ('.kernel_list' in line):
+                        if (".plan" in line) or (".kernel_list" in line):
                             byproduct = line.split(os.sep)[-1][:-1]
-                            logging.info(f"-- Removing previous run "
-                                         f"by-product: {byproduct}.")
+                            logging.info(
+                                f"-- Removing previous run " f"by-product: {byproduct}."
+                            )
                             os.remove(path + os.sep + byproduct)
                     except:
                         logging.warning(f"     File {byproduct} not found.")
@@ -914,7 +920,9 @@ class Setup(object):
 
         if self.file_list:
             with open(
-                self.working_directory + os.sep + f"{self.mission_acronym}_{self.run_type}_"
+                self.working_directory
+                + os.sep
+                + f"{self.mission_acronym}_{self.run_type}_"
                 f"{int(self.release):02d}.file_list",
                 "w",
             ) as l:
@@ -927,7 +935,9 @@ class Setup(object):
 
         if self.checksum_registry:
             with open(
-                self.working_directory + os.sep + f"{self.mission_acronym}_{self.run_type}_"
+                self.working_directory
+                + os.sep
+                + f"{self.mission_acronym}_{self.run_type}_"
                 f"{int(self.release):02d}.checksum",
                 "w",
             ) as l:

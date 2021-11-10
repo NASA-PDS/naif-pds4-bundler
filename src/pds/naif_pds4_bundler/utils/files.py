@@ -12,7 +12,8 @@ import shutil
 from collections import defaultdict
 
 import spiceypy
-from naif_pds4_bundler.classes.log import error_message
+
+from ..classes.log import error_message
 
 
 def etree_to_dict(t):
@@ -375,8 +376,9 @@ def mk2list(mk, setup):
                 path_symbol = "$" + line.split("'")[1]
 
     if not ker_mk_list:
-        error_message(f"No kernels present in {mk}. "
-                      f"Please review MK generation", setup=setup)
+        error_message(
+            f"No kernels present in {mk}. " f"Please review MK generation", setup=setup
+        )
 
     return ker_mk_list
 

@@ -52,21 +52,21 @@ from argparse import RawDescriptionHelpFormatter
 from os.path import isdir
 from textwrap import dedent
 
-import naif_pds4_bundler
-from naif_pds4_bundler.classes.bundle import Bundle
-from naif_pds4_bundler.classes.collection import DocumentCollection
-from naif_pds4_bundler.classes.collection import MiscellaneousCollection
-from naif_pds4_bundler.classes.collection import SpiceKernelsCollection
-from naif_pds4_bundler.classes.list import KernelList
-from naif_pds4_bundler.classes.log import Log
-from naif_pds4_bundler.classes.object import Object
-from naif_pds4_bundler.classes.product import ChecksumProduct
-from naif_pds4_bundler.classes.product import InventoryProduct
-from naif_pds4_bundler.classes.product import MetaKernelProduct
-from naif_pds4_bundler.classes.product import OrbnumFileProduct
-from naif_pds4_bundler.classes.product import SpicedsProduct
-from naif_pds4_bundler.classes.product import SpiceKernelProduct
-from naif_pds4_bundler.classes.setup import Setup
+from . import __version__
+from .classes.bundle import Bundle
+from .classes.collection import DocumentCollection
+from .classes.collection import MiscellaneousCollection
+from .classes.collection import SpiceKernelsCollection
+from .classes.list import KernelList
+from .classes.log import Log
+from .classes.object import Object
+from .classes.product import ChecksumProduct
+from .classes.product import InventoryProduct
+from .classes.product import MetaKernelProduct
+from .classes.product import OrbnumFileProduct
+from .classes.product import SpicedsProduct
+from .classes.product import SpiceKernelProduct
+from .classes.setup import Setup
 
 
 def main(
@@ -79,7 +79,7 @@ def main(
     diff="",
     debug=True,
     clear="",
-    kerlist=""
+    kerlist="",
 ):
     """Main routine for the NAIF PDS4 Bundler.
 
@@ -122,7 +122,7 @@ def main(
     #
     # Load the naif-pds4-bundler version
     #
-    version = naif_pds4_bundler.__version__
+    version = __version__
 
     #
     # Determine whether if the pipeline is being executed directly from
@@ -291,8 +291,7 @@ def main(
     #
     if args.diff not in ["all", "log", "files", ""]:
         raise Exception("-d, --diff argument has incorrect value.")
-    if args.faucet not in ["clear", "plan", "list", "staging", "bundle",
-                           "labels", ""]:
+    if args.faucet not in ["clear", "plan", "list", "staging", "bundle", "labels", ""]:
         raise Exception("-f, --faucet argument has incorrect value.")
 
     #

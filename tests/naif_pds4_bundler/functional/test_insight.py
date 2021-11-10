@@ -3,10 +3,10 @@ import glob
 import os
 import shutil
 import unittest
-import spiceypy
-
 from unittest import TestCase
-from naif_pds4_bundler.__main__ import main
+
+import spiceypy
+from pds.naif_pds4_bundler.__main__ import main
 from xmlschema.validators.exceptions import XMLSchemaChildrenValidationError
 
 
@@ -199,9 +199,7 @@ class TestINSIGHT(TestCase):
             "../data/insight/insight_spice/spice_kernels/sclk/marcob_fake_v01.xml",
             "insight/insight_spice/spice_kernels/sclk",
         )
-        with open(
-            "insight/insight_spice/spice_kernels/sclk/marcob_fake_v01.tsc", "w"
-        ):
+        with open("insight/insight_spice/spice_kernels/sclk/marcob_fake_v01.tsc", "w"):
             pass
 
         main(config, plan, faucet, silent=self.silent, log=self.log, diff="all")
@@ -656,13 +654,7 @@ class TestINSIGHT(TestCase):
         with open(plan, "w") as p:
             p.write("nsy_sclkscet_00019.tsc")
 
-        main(
-                config,
-                plan=plan,
-                faucet=faucet,
-                silent=self.silent,
-                log=self.log
-            )
+        main(config, plan=plan, faucet=faucet, silent=self.silent, log=self.log)
 
     def test_insight_no_spiceds_in_conf(self):
         """Test when no SPICEDS is provided via configuration.
@@ -700,13 +692,7 @@ class TestINSIGHT(TestCase):
         for file in glob.glob("../data/insight_release_0[0-7].kernel_list"):
             shutil.copy2(file, "working")
 
-        main(
-            updated_config,
-            plan,
-            faucet,
-            silent=self.silent,
-            log=self.log
-        )
+        main(updated_config, plan, faucet, silent=self.silent, log=self.log)
 
         with open(config, "r") as c:
             with open(updated_config, "w") as n:
@@ -759,13 +745,7 @@ class TestINSIGHT(TestCase):
             shutil.copy2(file, "working")
 
         with self.assertRaises(RuntimeError):
-            main(
-                updated_config,
-                plan,
-                faucet,
-                silent=self.silent,
-                log=self.log
-            )
+            main(updated_config, plan, faucet, silent=self.silent, log=self.log)
 
     def test_insight_no_readme(self):
         """Test when the readme file is not present.
@@ -883,13 +863,7 @@ class TestINSIGHT(TestCase):
 
         os.makedirs("insight")
 
-        main(
-            config,
-            plan=False,
-            faucet=faucet,
-            silent=self.silent,
-            log=self.log
-        )
+        main(config, plan=False, faucet=faucet, silent=self.silent, log=self.log)
 
     def test_insight_no_kernels_with_bundle(self):
         """Test without input kernels provided but a SPICEDS is.
@@ -911,13 +885,7 @@ class TestINSIGHT(TestCase):
 
         shutil.copytree("../data/insight", "insight")
 
-        main(
-            config,
-            plan=False,
-            faucet=faucet,
-            silent=self.silent,
-            log=self.log
-        )
+        main(config, plan=False, faucet=faucet, silent=self.silent, log=self.log)
 
     def test_insight_only_cheksums(self):
         """Test without any input (kernels or SPICEDS).
@@ -948,11 +916,7 @@ class TestINSIGHT(TestCase):
                         n.write(line)
 
         main(
-            updated_config,
-            plan=False,
-            faucet=faucet,
-            silent=self.silent,
-            log=self.log
+            updated_config, plan=False, faucet=faucet, silent=self.silent, log=self.log
         )
 
 

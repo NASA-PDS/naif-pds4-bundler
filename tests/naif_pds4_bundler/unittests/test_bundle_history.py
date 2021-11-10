@@ -3,8 +3,8 @@ import os
 import unittest
 from unittest import TestCase
 
-from naif_pds4_bundler.classes.bundle import Bundle
-from naif_pds4_bundler.classes.object import Object
+from pds.naif_pds4_bundler.classes.bundle import Bundle
+from pds.naif_pds4_bundler.classes.object import Object
 
 
 class TestBundleHistory(TestCase):
