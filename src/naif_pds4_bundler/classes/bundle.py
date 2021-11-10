@@ -329,21 +329,21 @@ class Bundle(object):
                 "r",
             ) as lbl:
                 for line in lbl:
-                    if ".spice:spice_kernels::" in line:
+                    if "spice:spice_kernels::" in line:
                         rel_ker_col_ver = int(
-                            line.split(".spice:spice_kernels::")[-1].split(
+                            line.split("spice:spice_kernels::")[-1].split(
                                 ".0</lidvid_reference>"
                             )[0]
                         )
-                    elif ".spice:document::" in line:
+                    elif "spice:document::" in line:
                         rel_doc_col_ver = int(
-                            line.split(".spice:document::")[-1].split(
+                            line.split("spice:document::")[-1].split(
                                 ".0</lidvid_reference>"
                             )[0]
                         )
-                    elif ".spice:miscellaneous::" in line:
+                    elif "spice:miscellaneous::" in line:
                         rel_mis_col_ver = int(
-                            line.split(".spice:miscellaneous::")[-1].split(
+                            line.split("spice:miscellaneous::")[-1].split(
                                 ".0</lidvid_reference>"
                             )[0]
                         )
@@ -392,13 +392,63 @@ class Bundle(object):
                         elif ("P" in line) and (":mk_" in line):
                             mk_ver = line.split("::")[-1]
                             mk_ver = int(mk_ver.split(".")[0])
-                            product = (
-                                f"spice_kernels/"
-                                f'{line.split(":")[5].replace("_", "/", 1)}_'
-                                f"v{mk_ver:02d}.tm"
-                            )
-                            history[rel].append(product)
-                            history[rel].append(product.replace(".tm", ".xml"))
+
+                            #
+                            # The meta-kernel version scheme can consist of 2 or
+                            # 3 digits. It needs to be determined from
+                            # configuration. All meta-kernels must have the same
+                            # number of digits in the version field.
+                            #
+                            if hasattr(self.setup, "mk"):
+                                for pattern in self.setup.mk[0]['name']:
+                                    if pattern['pattern']['#text'] == 'VERSION':
+                                        version_lenght = int(pattern['pattern']['@length'])
+                                        product = (
+                                            f"spice_kernels/"
+                                            f'{line.split(":")[5].replace("_", "/", 1)}_'
+                                            f"v{mk_ver:02d}.tm")
+
+                                        history[rel].append(product)
+                                        history[rel].append(product.replace(".tm", ".xml"))
+
+                                        break
+
+                            elif hasattr(self.setup, "mk_inputs"):
+                                #
+                                # Try to derive the digits from the MK input.
+                                #
+                                if not isinstance(self.setup.mk_inputs, list):
+                                    mk_names = [self.setup.mk_inputs]
+                                else:
+                                    mk_names = self.setup.mk_inputs
+
+                                for mk in mk_names:
+                                    product = mk['file']
+                                    product = product.split(os.sep)[-1]
+                                    product = f"spice_kernels/mk/{product}"
+
+                                    history[rel].append(product)
+                                    history[rel].append(product.replace(".tm", ".xml"))
+                            else:
+                                #
+                                # Default to 2. Might trigger an error.
+                                #
+                                version_length = 2
+                                logging.warning('MK version for history '
+                                                'defaulted to version with '
+                                                '2 digits. Might raise an '
+                                                'exception.')
+
+                                #
+                                # Only three version formats are implemented.
+                                #
+                                product = (
+                                    f"spice_kernels/"
+                                    f'{line.split(":")[5].replace("_", "/", 1)}_'
+                                    f"v{mk_ver:02d}.tm"
+                                )
+                                history[rel].append(product)
+                                history[rel].append(product.replace(".tm", ".xml"))
 
             #
             # The Miscellaneous collection, if present, should have the same
