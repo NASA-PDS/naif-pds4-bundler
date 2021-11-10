@@ -37,7 +37,23 @@ class PDSLabel(object):
         self.SCHEMA_LOCATION = setup.schema_location
         self.INFORMATION_MODEL_VERSION = setup.information_model
         self.PDS4_MISSION_NAME = setup.mission_name
-        self.PDS4_OBSERVER_NAME = setup.observer
+
+        #
+        # Needs to be built for several observers.
+        #
+        if hasattr(setup, "secondary_observers"):
+            if len(setup.secondary_observers) == 1:
+                observers_text = f'{setup.observer} and {setup.secondary_observers[0]}'
+            else:
+                observers_text = f'{setup.observer}, '
+                for i in range(len(setup.secondary_observers)):
+                    if i == len(setup.secondary_observers) - 1:
+                        observers_text += f'and '
+                    observers_text += f'{setup.secondary_observers[i]}, '
+
+            self.PDS4_OBSERVER_NAME = f'{observers_text}spacecrafts and their'
+        else:
+            self.PDS4_OBSERVER_NAME = f'{setup.observer}spacecraft and its'
 
         self.END_OF_LINE_PDS4 = "Carriage-Return Line-Feed"
         if setup.end_of_line == "CRLF":
