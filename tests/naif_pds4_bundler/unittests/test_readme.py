@@ -1,4 +1,4 @@
-"""Unit tests for format differences for PDS4 Information Models."""
+"""Unit tests for readme generation options."""
 import os
 import shutil
 import unittest
@@ -8,12 +8,7 @@ from naif_pds4_bundler.__main__ import main
 
 
 class TestIMFormat(TestCase):
-    """Unit tests class for format differences for PDS4 Information Models.
-
-    The usage of different IM will lead to changes in the format and
-    values of the PDS4 artifacts. This test family checks that these
-    changes are as expected.
-    """
+    """Unit tests class for readme generation oddballs."""
 
     @classmethod
     def setUpClass(cls):

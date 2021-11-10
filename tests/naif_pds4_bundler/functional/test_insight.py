@@ -826,14 +826,6 @@ class TestINSIGHT(TestCase):
         with self.assertRaises(RuntimeError):
             main(updated_config, plan, faucet, silent=self.silent, log=self.log)
 
-        main(config, plan=False, clear='working/insight_release_01.file_list',
-             silent=True, log=self.log)
-
-        shutil.rmtree("insight")
-        shutil.copytree("../data/insight", "insight")
-
-        main(updated_config, plan, faucet, silent=self.silent, log=self.log)
-
     def test_insight_readme_incomplete_in_config(self):
         """Test when the readme file configuration is not complete.
 
@@ -868,7 +860,7 @@ class TestINSIGHT(TestCase):
                     if "</cognisant_authority>" in line:
                         write_config = True
 
-        with self.assertRaises(XMLSchemaChildrenValidationError):
+        with self.assertRaises(KeyError):
             main(updated_config, plan, faucet, silent=self.silent, log=self.log)
 
     def test_insight_no_kernels(self):

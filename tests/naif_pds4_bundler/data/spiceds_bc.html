@@ -164,6 +164,17 @@ Archive Contents
    |   |-- *.bsp                         Binary SPK files.
    |   +-- *.xml                         PDS4 labels for SPK files.
    |
+   |-+-<a href="../miscellaneous/">[miscellaneous]</a>                   Directory miscellaneous files.
+   | |
+   | |- collection_miscellaneous_v*.xml  PDS4 labels for miscellaneous collections.
+   | |- collection_miscellaneous_inventory_v*.tab
+   | |                                   Miscellaneous collections' inventories.
+   | |
+   | +-<a href="../miscellaneous/checksum/">[checksum]</a>                        Directory containing checksum files.
+   |   |
+   |   |-- *.tab                         Text checksum files.
+   |   +-- *.xml                         PDS4 labels for checksum files.
+   |
    +-<a href="../document/">[document]</a>                          Directory containing documents.
      |
      |- collection_document_v*.xml       PDS4 labels for document collections.
@@ -256,7 +267,7 @@ Archived Kernel Details
 
 <a href="#Table of Contents" style="float: right;">Back to Table of Contents</a>
 <a name="SPK Files"></a>
-SPK Files 
+SPK Files
 
      This directory contains the SPICE SP-Kernel files for the BepiColombo
      mission, including mission analysis, nominal and operational spacecraft
@@ -414,25 +425,25 @@ SPK Files
 
 <a href="#Table of Contents" style="float: right;">Back to Table of Contents</a>
 <a name="PCK Files"></a>
-PCK Files 
+PCK Files
 
      This directory contains generic and mission-specific SPICE Planetary
      Constants Kernel files for the BepiColombo mission. The data in these
      kernels correspond to the best knowledge of the orientation, size and
      shape of Mercury, Venus and the Earth.
-   
+
 
 
    Naming Scheme for Generic PCKs
- 
+
      The naming scheme for generic PCKs is:
- 
+
            pckNNNNN.tpc
- 
+
      where
- 
+
            NNNNN    version number (required)(e.g. 00010);
- 
+
                     If multiple versions of a generic PCK Kernel file are
                     provided, always use the latest version (unless an
                     earlier version is needed for some special reasons.)
@@ -451,19 +462,19 @@ PCK Files
                     provided, always use the latest version (unless an
                     earlier version is needed for some special reasons).
 
- 
+
    Naming Scheme for Earth high-precision PCKs
- 
+
      The naming scheme for the Earth high-precision PCKs is:
- 
+
            earth_SDAT_EDAT_PDAT.bpc
-    
+
      where
-     
+
            SDAT     is the file's coverage start time in YYMMDD format;
-           
+
            EDAT     is the file's coverage end time in YYMMDD format;
-           
+
            PDAT     is the date from which the information contained
                     in the file corresponds to predicted data. Any data
                     prior to this date corresponds to actual measurements.
@@ -472,20 +483,20 @@ PCK Files
 
 <a href="#Table of Contents" style="float: right;">Back to Table of Contents</a>
 <a name="IK Files"></a>
-IK Files 
+IK Files
 
-     This directory contains the SPICE Instrument Kernel files for the 
+     This directory contains the SPICE Instrument Kernel files for the
      BepiColombo remote sensing and in-situ measurement/plasma science
      instruments.
-   
+
 
 
      The naming scheme for BepiColombo IKs is:
- 
+
            bc_SC_INST_vNN.ti
- 
+
      where
- 
+
            SC       acronym of the spacecraft:
 
                           mpo: for the Mercury Planetary Orbiter (MPO)
@@ -510,18 +521,18 @@ IK Files
                           sixs       for SIXS
                           str        for STRs
                           mcam       for MCAMs
-                       
+
            NN       version number (required);
- 
+
                     If multiple versions of an IK file are provided for an
                     instrument, always use the latest version (unless
                     earlier version is needed for some special reasons.)
- 
+
 
 
 <a href="#Table of Contents" style="float: right;">Back to Table of Contents</a>
 <a name="CK Files"></a>
-CK Files 
+CK Files
 
      This directory contains the SPICE C-Kernel files for the BepiColombo
      (MPO, MMO, MTM, MCS) spacecrafts, their structures, and science
@@ -610,21 +621,21 @@ CK Files
 
 <a href="#Table of Contents" style="float: right;">Back to Table of Contents</a>
 <a name="LSK Files"></a>
-LSK Files 
+LSK Files
 
      This directory contains the generic SPICE Leapseconds Kernel files for
      the BepiColombo mission.
-   
+
 
 
      The naming scheme for generic LSKs is:
- 
+
            naifNNNN.tls
- 
+
      where
- 
+
            NNNN     version number (required)(e.g. 0011);
- 
+
                     If multiple versions of a generic LSK Kernel file are
                     provided, always use the latest version (unless earlier
                     version is needed for some special reasons.)
@@ -633,22 +644,22 @@ LSK Files
 
 <a href="#Table of Contents" style="float: right;">Back to Table of Contents</a>
 <a name="SCLK Files"></a>
-SCLK Files 
+SCLK Files
 
      This directory contains the SPICE Spacecraft Clock-Kernel files for the
-     BepiColombo spacecraft on-board clock.   
+     BepiColombo spacecraft on-board clock.
 
 
 
      The naming scheme for BepiColombo SCLKs is:
- 
+
           bc_SC_TYPE[_DESC]_YYYYMMDD.tsc
 
-     where 
+     where
 
           SC       acronym of the spacecraft:
-           
-                           mpo: for the Mercury Planetary Orbiter (MPO) 
+
+                           mpo: for the Mercury Planetary Orbiter (MPO)
                                 spacecraft;
                            mmo: for the Mercury Magnetospheric Orbiter (MMO)
                                 spacecraft;
@@ -656,21 +667,21 @@ SCLK Files
           TYPE     SCLK data type contained within the file:
 
                    fict:   ``fictional'' data;
-                  
+
                    stre:   SCLK created using a 'stretch' strategy, i.e. TCPs
                            are considered only the time they start to be
                            applicable, and then the correlation is made by
                            linking these points, i.e. not taking into
                            consideration the gradient and offsets provided
                            within the TCPs;
-                          
+
                    step:   SCLK created using a 'step' strategy, i.e.
                            additional TCPs are created between real ones in
                            order to match the time correlation provided by a
                            TCP packet N at 60 seconds before TCP packet N+1,
                            so that continuity is forced.
 
-          DESC     description of the applicability of the kernel. This 
+          DESC     description of the applicability of the kernel. This
                    field might be used for spacecraft clocks with fictional
                    data which are not used for science planning purposes,
                    i.e. real telemetry data from a test campaign (optional);
@@ -683,27 +694,27 @@ SCLK Files
 
 <a href="#Table of Contents" style="float: right;">Back to Table of Contents</a>
 <a name="FK Files"></a>
-FK Files 
+FK Files
 
      This directory contains the SPICE Frames Definition Kernel files for the
      BepiColombo spacecraft, its structures, and science instruments, as well
      as for the Ground Earth Stations. Moreover, it contains frame definitions
      for science operations and for data analysis and scientific
      investigations.
-   
+
 
 
      The following table provides information on which file contains which
      frames, their file naming conventions and some particular details:
-   
+
          File                         Contents
         ---------------------------  -----------------------------------------
         estrack_vNN.tf               ESA Ground Stations topocentric frames.
-       
+
         bc_SC_sci_vNN.tf             BepiColombo science support frames.
-       
+
         bc_SC_ops_vNN.tf             BepiColombo science operations frames.
-               
+
         bc_SC_vNN.tf                 BepiColombo spacecraft, structures,
                                      instruments and sensors frames.
 
@@ -721,13 +732,13 @@ FK Files
                                      SPICE toolkit.
 
      where
-    
+
          SC             acronym of the spacecraft:
-           
-                          mpo: for the Mercury Planetary Orbiter (MPO) 
+
+                          mpo: for the Mercury Planetary Orbiter (MPO)
                                spacecraft;
                           mmo: for the Mercury Magnetospheric Orbiter (MPO)
-                               spacecraft; 
+                               spacecraft;
                           mtm: for the Mercury Transfer Module (MTM)
                                spacecraft
 
@@ -743,7 +754,7 @@ FK Files
 
 <a href="#Table of Contents" style="float: right;">Back to Table of Contents</a>
 <a name="DSK Files"></a>
-DSK Files 
+DSK Files
 
      This directory contains the SPICE DS-Kernel files for the MPO, MMO and
      MTM spacecrafts, its structures, and science instruments.
@@ -917,7 +928,7 @@ Contact Information
              Boris.Semenov@jpl.nasa.gov
 
              Marc Costa Sitja
-             (626) 469-1244
+             (818) 354-4852
              Marc.Costa.Sitja@jpl.nasa.gov
 
 <a href="#Table of Contents" style="float: right;">Back to Table of Contents</a>

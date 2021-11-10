@@ -1,29 +1,44 @@
 #
 # @author: Marc Costa Sitja (JPL)
 #
-# This script has been used to generate the naif-pds4-bundler
-# insight_kernel_list.json configuration file from the insight
-# useful_loops.csh file originally from BVS.
+# This script has been used to assist the generation of the naif-pds4-bundler
+# BepiColombo configuration file from the labels.
 #
-# WARNING: patterns need to be tuned and entered manually as well.
-#
-with open("orx_kernel_list.xml", "w+") as o:
+import glob
 
-    with open("useful_loops.csh", "r") as f:
-        o.write("{\n")
-        for line in f:
-            if "`echo $FF | grep -c '^" in line:
-                text = line.split("'")[1][1:-1]
+labels = glob.glob('/Users/mcosta/workspace/bepi/20211025/bc_spice/spice_kernels/**/*.xml')
 
-                o.write(f'  <kernel pattern="{text}">\n')
-
-                if (".bsp" in text) or (".bc" in text) or (".tm" in text):
-                    o.write(f"      <mklabel_options></mklabel_options>\n")
-                else:
-                    o.write("      <mklabel_options>DEF_TIMES</mklabel_options>\n")
-
-            if 'echo "DESCRIPTION' in line:
-                text = line.split("=")[-1].strip()[:-1]
-                o.write(
-                    f"      <description>{text}\n      </description>\n  </kernel>\n"
-                )
+record = False
+with open("bc_kernel_list.xml", "w") as o:
+    for label in labels:
+        with open(label, "r") as f:
+            for line in f:
+                if "<File_Area_SPICE_Kernel>" in line:
+                    record = True
+                if "</File_Area_SPICE_Kernel>" in line:
+                    record = False
+                if "<file_name>" in line and record:
+                    text = line.split("<file_name>")[-1]
+                    file_name = text.split("</file_name>")[0]
+                    if '_v' in file_name:
+                        file_name = file_name.split("_v")[0] + "_v[0-9][0-9]." \
+                                    + file_name.split(".")[-1]
+                    o.write(f'        <kernel pattern="{file_name}">\n')
+                    if 'mpo' in file_name:
+                        o.write("            <observers>\n")
+                        o.write("                <observer>MPO</observer>\n")
+                        o.write("            </observers>\n")
+                    elif 'mmo' in file_name:
+                        o.write("            <observers>\n")
+                        o.write("                <observer>MMO</observer>\n")
+                        o.write("            </observers>\n")
+                    elif 'mtm' in file_name:
+                        o.write("            <observers>\n")
+                        o.write("                <observer>MTM</observer>\n")
+                        o.write("            </observers>\n")
+                if "<description>" in line and record:
+                    text = line.split("<description>")[-1]
+                    description = text.split("</description>")[0]
+                    o.write(f'            <description>{description}\n')
+                    o.write(f'            </description>\n')
+                    o.write(f'        </kernel>\n')
