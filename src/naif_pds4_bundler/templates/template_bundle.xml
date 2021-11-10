@@ -1,0 +1,76 @@
+<?xml-model href="$XML_MODEL"
+    schematypens="http://purl.oclc.org/dsdl/schematron"?>
+
+<Product_Bundle xmlns="http://pds.nasa.gov/pds4/pds/v1"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="$SCHEMA_LOCATION">
+
+    <Identification_Area>
+        <logical_identifier>$BUNDLE_LID</logical_identifier>
+        <version_id>$BUNDLE_VID</version_id>
+        <title>$PDS4_MISSION_NAME SPICE Kernel Archive Bundle</title>
+        <information_model_version>$INFORMATION_MODEL_VERSION</information_model_version>
+        <product_class>Product_Bundle</product_class>
+        <Citation_Information>
+            <publication_year>$PRODUCT_CREATION_YEAR</publication_year>
+            <doi>$DOI</doi>
+            <keyword>Observation Geometry</keyword>
+            <description>This bundle contains $PDS4_MISSION_NAME SPICE kernels and related documentation.</description>
+        </Citation_Information>
+    </Identification_Area>
+    <Context_Area>
+        <Time_Coordinates>
+            <start_date_time>$START_TIME</start_date_time>
+            <stop_date_time>$STOP_TIME</stop_date_time>
+        </Time_Coordinates>
+        <Primary_Result_Summary>
+            <purpose>Observation Geometry</purpose>
+            <processing_level>Derived</processing_level>
+        </Primary_Result_Summary>
+        <Investigation_Area>
+            <name>$PDS4_MISSION_NAME</name>
+            <type>Mission</type>
+            <Internal_Reference>
+                <lid_reference>$PDS4_MISSION_LID</lid_reference>
+                <reference_type>bundle_to_investigation</reference_type>
+            </Internal_Reference>
+        </Investigation_Area>
+        <Observing_System>
+$SKD_SPACECRAFTS
+        </Observing_System>
+$SKD_TARGETS
+    </Context_Area>
+    <Reference_List>
+        <Internal_Reference>
+            <lid_reference>$BUNDLE_DESCRIPTION_LID</lid_reference>
+            <reference_type>bundle_to_document</reference_type>
+        </Internal_Reference>
+    </Reference_List>
+    <Bundle>
+        <bundle_type>Archive</bundle_type>
+        <description>This bundle contains $PDS4_MISSION_NAME SPICE kernels and related documentation.</description>
+    </Bundle>
+    <File_Area_Text>
+        <File>
+            <file_name>$FILE_NAME</file_name>
+            <creation_date_time>$PRODUCT_CREATION_TIME</creation_date_time>
+            <file_size unit="byte">$FILE_SIZE</file_size>
+            <md5_checksum>$FILE_CHECKSUM</md5_checksum>
+        </File>
+        <Stream_Text>
+            <offset unit="byte">0</offset>
+            <parsing_standard_id>7-Bit ASCII Text</parsing_standard_id>
+            <record_delimiter>Carriage-Return Line-Feed</record_delimiter>
+        </Stream_Text>
+    </File_Area_Text>
+    <Bundle_Member_Entry>
+        <lidvid_reference>$SPICE_COLL_LIDVID</lidvid_reference>
+        <member_status>$SPICE_COLL_STATUS</member_status>
+        <reference_type>bundle_has_spice_kernel_collection</reference_type>
+    </Bundle_Member_Entry>
+    <Bundle_Member_Entry>
+        <lidvid_reference>$DOC_COLL_LIDVID</lidvid_reference>
+        <member_status>$DOC_COLL_STATUS</member_status>
+        <reference_type>bundle_has_document_collection</reference_type>
+    </Bundle_Member_Entry>
+</Product_Bundle>

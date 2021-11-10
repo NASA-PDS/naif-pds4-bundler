@@ -12,7 +12,7 @@
     <Citation_Information>
       <publication_year>$PRODUCT_CREATION_YEAR</publication_year>
       <keyword>Observation Geometry</keyword>
-      <description>This collection contains documents describing the $PDS4_OBSERVER_NAME SPICE kernel archive.</description>
+      <description>This collection contains documents describing the $PDS4_MISSION_NAME SPICE kernel archive.</description>
     </Citation_Information>
   </Identification_Area>
   <Context_Area>
@@ -41,7 +41,7 @@ $TARGETS
   </Reference_List>
   <Collection>
     <collection_type>Document</collection_type>
-    <description>This collection contains documents describing the $PDS4_OBSERVER_NAME SPICE kernel archive.</description>
+    <description>This collection contains documents describing the $PDS4_MISSION_NAME SPICE kernel archive.</description>
   </Collection>
   <File_Area_Inventory>
     <File>

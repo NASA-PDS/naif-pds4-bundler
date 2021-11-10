@@ -56,8 +56,9 @@
               <xs:element name="readme" minOccurs="0">
                 <xs:complexType>
                   <xs:sequence>
-                    <xs:element name="overview" type="xs:string" />
-                    <xs:element name="cognisant_authority" type="xs:string" />
+                    <xs:element name="overview" type="xs:string" minOccurs="0"/>
+                    <xs:element name="cognisant_authority" type="xs:string" minOccurs="0"/>
+                    <xs:element name="input" type="xs:string" minOccurs="0"/>
                   </xs:sequence>
                 </xs:complexType>
               </xs:element>
