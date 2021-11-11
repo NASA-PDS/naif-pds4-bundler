@@ -28,7 +28,7 @@ repos:
     hooks:
     -   id: tests
         name: Tests
-        entry: pytest
+        entry: python -m unittest
         language: system
         stages: [push]
         pass_filenames: false
