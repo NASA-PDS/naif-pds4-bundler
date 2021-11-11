@@ -55,8 +55,8 @@
     <mission_parameters>
         <mission_acronym>bc</mission_acronym>
         <mission_name>BepiColombo</mission_name>
-        <mission_start>2018-10-20T01:45:28Z</mission_start>
-        <mission_finish>2050-01-01T00:00:00Z</mission_finish>
+        <mission_start>2018-10-20T01:45:28.000Z</mission_start>
+        <mission_finish>2050-01-01T00:00:00.000Z</mission_finish>
         <observer>MPO</observer>
         <target>Mercury</target>
         <kernels_to_load>
@@ -412,7 +412,7 @@
             <observers>
                 <observer>MPO</observer>
             </observers>
-            <description>SPICE CK file that contains measured orientation of the MPO High Gain Antenna Frame during cruise phase, created by the ESA SPICE Service (ESS).
+            <description>SPICE CK file that contains measured orientation of the MPO Medium Gain Antenna Frame during the cruise phase, created by the ESA SPICE Service (ESS).
             </description>
         </kernel>
         <kernel pattern="bc_mtm_sa_scm_[0-9]{8}_[0-9]{8}_s[0-9]{8}_v[0-9][0-9].bc">
