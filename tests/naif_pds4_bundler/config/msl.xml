@@ -21,6 +21,18 @@
         <volume_id>MSLSP_1000</volume_id>
         <doi>10.17189/1520113</doi>
         <spice_name>MSL</spice_name>
+        <readme>
+            <overview>
+                The MSL SPICE archive bundle contains observation geometry and
+                other ancillary data in the form of SPICE System kernel files for
+                the MSL spacecraft, its instruments, and targets.
+            </overview>
+            <cognisant_authority>
+                This archive bundle was produced by Boris Semenov, Planetary Data
+                System Navigation and Ancillary Information Facility Node, Jet
+                Propulsion Laboratory, Pasadena, California.
+            </cognisant_authority>
+        </readme>
         <date_format>maklabel</date_format>
         <end_of_line>CRLF</end_of_line>
     </bundle_parameters>

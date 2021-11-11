@@ -1,9 +1,8 @@
-#
-# @author: Marc Costa Sitja (JPL)
-#
-# This script has been used to assist the generation of the naif-pds4-bundler
-# BepiColombo configuration file from the labels.
-#
+"""Private utility to generate the BepiColombo configuration file.
+
+This script has been used to assist the generation of the naif-pds4-bundler
+BepiColombo configuration file from the labels.
+"""
 import glob
 
 labels = glob.glob(
@@ -45,5 +44,5 @@ with open("bc_kernel_list.xml", "w") as o:
                     text = line.split("<description>")[-1]
                     description = text.split("</description>")[0]
                     o.write(f"            <description>{description}\n")
-                    o.write(f"            </description>\n")
-                    o.write(f"        </kernel>\n")
+                    o.write("            </description>\n")
+                    o.write("        </kernel>\n")

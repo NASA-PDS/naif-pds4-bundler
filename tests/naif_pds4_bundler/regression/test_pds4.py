@@ -1,3 +1,4 @@
+"""Regression Test Family for PDS4 archives."""
 import glob
 import os
 import shutil
@@ -8,16 +9,19 @@ from pds.naif_pds4_bundler.__main__ import main
 
 
 class TestPDS4(TestCase):
-    """
+    """Regression Test Family Class for PDS4 archives.
+
     Note that EOL, label checksum tags and checksum files are not tested.
     """
 
     @classmethod
     def setUpClass(cls):
-        """
+        """Constructor.
+
         Method that will be executed once for this test case class.
         It will execute before all tests methods.
 
+        Clears up the functional tests directory.
         """
         print(f"NPB - Regression Tests - {cls.__name__}")
 
@@ -31,7 +35,8 @@ class TestPDS4(TestCase):
         cls.log = True
 
     def setUp(self):
-        """
+        """Setup Test.
+
         This method will be executed before each test function.
         """
         unittest.TestCase.setUp(self)
@@ -42,7 +47,8 @@ class TestPDS4(TestCase):
             shutil.rmtree(dir, ignore_errors=True)
 
     def tearDown(self):
-        """
+        """Clean-up Test.
+
         This method will be executed after each test function.
         """
         unittest.TestCase.tearDown(self)
@@ -90,7 +96,7 @@ class TestPDS4(TestCase):
             pass
 
     def post_setup(self):
-
+        """Ensures release and creation date time is fixed for the test."""
         self.config = f"../config/{self.mission}.xml"
         self.updated_config = f"working/{self.mission}.xml"
 
@@ -127,7 +133,7 @@ class TestPDS4(TestCase):
 
         try:
             shutil.copytree("../data/kernels", "kernels")
-        except:
+        except BaseException:
             pass
 
         #
@@ -141,9 +147,7 @@ class TestPDS4(TestCase):
         )
 
     def test_ladee(self):
-        """
-        Test to generate the LADEE archive.
-        """
+        """Test to generate the LADEE archive."""
         self.mission = "ladee"
         self.post_setup()
 
@@ -156,9 +160,7 @@ class TestPDS4(TestCase):
         main(self.updated_config, silent=self.silent, log=self.log)
 
     def test_kplo(self):
-        """
-        Test to generate the KPLO archive (non-PDS archive).
-        """
+        """Test to generate the KPLO archive (non-PDS archive)."""
         self.mission = "kplo"
         self.post_setup()
 
@@ -169,7 +171,6 @@ class TestPDS4(TestCase):
         )
 
         main(self.updated_config, silent=self.silent, log=self.log)
-
 
 #    def test_dart(self):
 #        '''
@@ -183,6 +184,7 @@ class TestPDS4(TestCase):
 #
 #        main(config, silent=False, verbose=False, log=True, diff='files')
 #        print('')
+
 
 if __name__ == "__main__":
     unittest.main()

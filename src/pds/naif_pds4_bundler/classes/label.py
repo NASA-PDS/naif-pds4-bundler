@@ -1,5 +1,4 @@
 """PDS Label Class and Child Classes Implementation."""
-import fileinput
 import glob
 import logging
 import os
@@ -48,12 +47,12 @@ class PDSLabel(object):
                 observers_text = f"{setup.observer}, "
                 for i in range(len(setup.secondary_observers)):
                     if i == len(setup.secondary_observers) - 1:
-                        observers_text += f"and "
+                        observers_text += "and "
                     observers_text += f"{setup.secondary_observers[i]}, "
 
             self.PDS4_OBSERVER_NAME = f"{observers_text}spacecrafts and their"
         else:
-            self.PDS4_OBSERVER_NAME = f"{setup.observer}spacecraft and its"
+            self.PDS4_OBSERVER_NAME = f"{setup.observer} spacecraft and its"
 
         self.END_OF_LINE_PDS4 = "Carriage-Return Line-Feed"
         if setup.end_of_line == "CRLF":
@@ -259,16 +258,16 @@ class PDSLabel(object):
             label_name = label_name.replace("inventory_", "")
 
         with open(label_name, "w+") as f:
+            with open(self.template, 'r') as t:
+                for line in t:
+                    line = line.rstrip()
+                    for key, value in label_dictionary.items():
+                        if isinstance(value, str) and key in line and "$" in line:
+                            line = line.replace("$" + key, value)
 
-            for line in fileinput.input(self.template):
-                line = line.rstrip()
-                for key, value in label_dictionary.items():
-                    if isinstance(value, str) and key in line and "$" in line:
-                        line = line.replace("$" + key, value)
+                    line = add_carriage_return(line, self.setup.eol_pds4, self.setup)
 
-                line = add_carriage_return(line, self.setup.eol_pds4, self.setup)
-
-                f.write(line)
+                    f.write(line)
 
         self.name = label_name
 

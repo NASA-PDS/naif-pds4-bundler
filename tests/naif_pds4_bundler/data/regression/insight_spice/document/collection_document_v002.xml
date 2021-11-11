@@ -12,7 +12,7 @@
     <Citation_Information>
       <publication_year>2021</publication_year>
       <keyword>Observation Geometry</keyword>
-      <description>This collection contains documents describing the InSight Mars Lander Spacecraft SPICE kernel archive.</description>
+      <description>This collection contains documents describing the InSight Mars Lander Mission SPICE kernel archive.</description>
     </Citation_Information>
   </Identification_Area>
   <Context_Area>
@@ -55,7 +55,7 @@
   </Reference_List>
   <Collection>
     <collection_type>Document</collection_type>
-    <description>This collection contains documents describing the InSight Mars Lander Spacecraft SPICE kernel archive.</description>
+    <description>This collection contains documents describing the InSight Mars Lander Mission SPICE kernel archive.</description>
   </Collection>
   <File_Area_Inventory>
     <File>

@@ -7,7 +7,6 @@ from unittest import TestCase
 
 import spiceypy
 from pds.naif_pds4_bundler.__main__ import main
-from xmlschema.validators.exceptions import XMLSchemaChildrenValidationError
 
 
 class TestINSIGHT(TestCase):

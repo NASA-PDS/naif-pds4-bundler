@@ -2,7 +2,6 @@
 import datetime
 import difflib
 import filecmp
-import fileinput
 import glob
 import logging
 import os
@@ -300,12 +299,13 @@ class SpiceKernelProduct(Product):
         get_token = False
         description = False
 
-        for line in fileinput.input(kernel_list_file):
-            if self.name in line:
-                get_token = True
-            if get_token and "DESCRIPTION" in line:
-                description = line.split("=")[-1].strip()
-                get_token = False
+        with open(kernel_list_file, 'r') as lst:
+            for line in lst:
+                if self.name in line:
+                    get_token = True
+                if get_token and "DESCRIPTION" in line:
+                    description = line.split("=")[-1].strip()
+                    get_token = False
 
         if not description:
             error_message(
@@ -474,12 +474,13 @@ class SpiceKernelProduct(Product):
         get_map = False
         mapping = False
 
-        for line in fileinput.input(kernel_list_file):
-            if self.name in line:
-                get_map = True
-            if get_map and "MAPPING" in line:
-                mapping = line.split("=")[-1].strip()
-                get_map = False
+        with open(kernel_list_file, 'r') as lst:
+            for line in lst:
+                if self.name in line:
+                    get_map = True
+                if get_map and "MAPPING" in line:
+                    mapping = line.split("=")[-1].strip()
+                    get_map = False
 
         if not mapping:
             error_message(
@@ -1173,18 +1174,18 @@ class MetaKernelProduct(Product):
         metakernel_dictionary = vars(self)
 
         with open(self.path, "w+") as f:
-
-            for line in fileinput.input(self.template):
-                line = line.rstrip()
-                for key, value in metakernel_dictionary.items():
-                    if (
-                        isinstance(value, str)
-                        and key.isupper()
-                        and key in line
-                        and "$" in line
-                    ):
-                        line = line.replace("$" + key, value)
-                f.write(line + eol)
+            with open(self.template, "r") as t:
+                for line in t:
+                    line = line.rstrip()
+                    for key, value in metakernel_dictionary.items():
+                        if (
+                            isinstance(value, str)
+                            and key.isupper()
+                            and key in line
+                            and "$" in line
+                        ):
+                            line = line.replace("$" + key, value)
+                    f.write(line + eol)
 
         self.product = self.path
 
@@ -3379,7 +3380,7 @@ class SpicedsProduct(object):
             logging.warning("-- Comparing with default InSight example.")
 
             val_spd = (
-                f'{self.setup.root_dir.replace("src","tests")}'
+                f'{self.setup.root_dir.replace("src/pds","tests")}'
                 f"/data/spiceds_insight.html"
             )
 
@@ -3462,39 +3463,38 @@ class ReadmeProduct(Product):
                 error_message("Readme file provided via configuration does not exist")
         elif not os.path.isfile(self.path):
             with open(self.path, "w+") as f:
-                for line in fileinput.input(
-                    self.setup.root_dir + "/templates/template_readme.txt"
-                ):
-                    if "$SPICE_NAME" in line:
-                        line = line.replace("$SPICE_NAME", self.setup.spice_name)
-                        line_length = len(line) - 1
-                        line = add_carriage_return(
-                            line, self.setup.eol_pds4, self.setup
-                        )
-                        f.write(line)
-                    elif "$UNDERLINE" in line:
-                        line = line.replace("$UNDERLINE", "=" * line_length)
-                        line_length = len(line) - 1
-                        line = add_carriage_return(
-                            line, self.setup.eol_pds4, self.setup
-                        )
-                        f.write(line)
-                    elif "$OVERVIEW" in line:
-                        overview = self.setup.readme["overview"]
-                        for line in overview.split("\n"):
-                            line = " " * 3 + line.strip() + "\n"
+                with open(self.setup.root_dir + "/templates/template_readme.txt", 'r') as t:
+                    for line in t:
+                        if "$SPICE_NAME" in line:
+                            line = line.replace("$SPICE_NAME", self.setup.spice_name)
+                            line_length = len(line) - 1
+                            line = add_carriage_return(
+                                line, self.setup.eol_pds4, self.setup
+                            )
+                            f.write(line)
+                        elif "$UNDERLINE" in line:
+                            line = line.replace("$UNDERLINE", "=" * line_length)
+                            line_length = len(line) - 1
+                            line = add_carriage_return(
+                                line, self.setup.eol_pds4, self.setup
+                            )
+                            f.write(line)
+                        elif "$OVERVIEW" in line:
+                            overview = self.setup.readme["overview"]
+                            for line in overview.split("\n"):
+                                line = " " * 3 + line.strip() + "\n"
+                                line = add_carriage_return(line, self.setup.eol, self.setup)
+                                f.write(line)
+                        elif "$COGNISANT_AUTHORITY" in line:
+                            cognisant = self.setup.readme["cognisant_authority"]
+                            for line in cognisant.split("\n"):
+                                line = " " * 3 + line.strip() + "\n"
+                                line = add_carriage_return(line, self.setup.eol, self.setup)
+                                f.write(line)
+                        else:
+                            line_length = len(line) - 1
                             line = add_carriage_return(line, self.setup.eol, self.setup)
                             f.write(line)
-                    elif "$COGNISANT_AUTHORITY" in line:
-                        cognisant = self.setup.readme["cognisant_authority"]
-                        for line in cognisant.split("\n"):
-                            line = " " * 3 + line.strip() + "\n"
-                            line = add_carriage_return(line, self.setup.eol, self.setup)
-                            f.write(line)
-                    else:
-                        line_length = len(line) - 1
-                        line = add_carriage_return(line, self.setup.eol, self.setup)
-                        f.write(line)
 
         logging.info("-- Created readme file.")
         if not self.setup.args.silent and not self.setup.args.verbose:

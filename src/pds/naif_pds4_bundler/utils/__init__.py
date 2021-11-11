@@ -23,6 +23,7 @@ from .files import mk2list
 from .files import safe_make_directory
 from .files import type2extension
 from .files import utf8len
+from .slicer import slice_kernels
 from .time import ck_coverage
 from .time import creation_time
 from .time import current_date
@@ -55,4 +56,14 @@ __all__ = [
     safe_make_directory,
     type2extension,
     utf8len,
+    slice_kernels,
+    ck_coverage,
+    creation_time,
+    current_date,
+    current_time,
+    dsk_coverage,
+    get_years,
+    pck_coverage,
+    pds3_label_gen_date,
+    spk_coverage,
 ]

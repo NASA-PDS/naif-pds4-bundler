@@ -402,14 +402,31 @@ class Bundle(object):
                             if hasattr(self.setup, "mk"):
                                 for pattern in self.setup.mk[0]["name"]:
                                     if pattern["pattern"]["#text"] == "VERSION":
-                                        version_lenght = int(
+                                        version_length = int(
                                             pattern["pattern"]["@length"]
                                         )
-                                        product = (
-                                            f"spice_kernels/"
-                                            f'{line.split(":")[5].replace("_", "/", 1)}_'
-                                            f"v{mk_ver:02d}.tm"
-                                        )
+                                        if version_length == 1:
+                                            product = (
+                                                f"spice_kernels/"
+                                                f'{line.split(":")[5].replace("_", "/", 1)}_'
+                                                f"v{mk_ver:01d}.tm"
+                                            )
+                                        elif version_length == 2:
+                                            product = (
+                                                f"spice_kernels/"
+                                                f'{line.split(":")[5].replace("_", "/", 1)}_'
+                                                f"v{mk_ver:02d}.tm"
+                                            )
+                                        elif version_length == 3:
+                                            product = (
+                                                f"spice_kernels/"
+                                                f'{line.split(":")[5].replace("_", "/", 1)}_'
+                                                f"v{mk_ver:03d}.tm"
+                                            )
+                                        else:
+                                            error_message(f"Meta-kernel version "
+                                                          f"length of {version_length}"
+                                                          f"digits is incorrect.")
 
                                         history[rel].append(product)
                                         history[rel].append(
@@ -422,23 +439,24 @@ class Bundle(object):
                                 #
                                 # Try to derive the digits from the MK input.
                                 #
-                                if not isinstance(self.setup.mk_inputs, list):
-                                    mk_names = [self.setup.mk_inputs]
-                                else:
-                                    mk_names = self.setup.mk_inputs
+                                if isinstance(self.setup.mk_inputs, dict):
+                                    mk_names = self.setup.mk_inputs['file']
+                                if not isinstance(mk_names, list):
+                                    mk_names = [mk_names]
 
                                 for mk in mk_names:
-                                    product = mk["file"]
+                                    product = mk
+
                                     product = product.split(os.sep)[-1]
                                     product = f"spice_kernels/mk/{product}"
 
-                                    history[rel].append(product)
-                                    history[rel].append(product.replace(".tm", ".xml"))
+                                    if product not in history[rel]:
+                                        history[rel].append(product)
+                                        history[rel].append(product.replace(".tm", ".xml"))
                             else:
                                 #
                                 # Default to 2. Might trigger an error.
                                 #
-                                version_length = 2
                                 logging.warning(
                                     "MK version for history "
                                     "defaulted to version with "

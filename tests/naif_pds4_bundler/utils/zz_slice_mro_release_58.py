@@ -1,4 +1,5 @@
-from pds.naif_pds4_bundler import slice_kernels
+"""Private utility to slice INSIGHT data for the tests."""
+from pds.naif_pds4_bundler.utils import slice_kernels
 
 kernels_dir = "/Users/mcosta/mro_transfer/data"
 out_kernels_dir = "spice_kernels_3"

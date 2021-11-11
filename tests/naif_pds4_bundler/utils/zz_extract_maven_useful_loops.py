@@ -1,12 +1,11 @@
-#
-# @author: Marc Costa Sitja (JPL)
-#
-# This script has been used to generate the naif-pds4-bundler
-# insight_kernel_list.json configuration file from the insight
-# useful_loops.csh file originally from BVS.
-#
-# WARNING: patterns need to be tuned and entered manually as well.
-#
+"""Private utility to generate the MAVEN configuration file.
+
+This script has been used to generate the naif-pds4-bundler
+insight_kernel_list.json configuration file from the insight
+useful_loops.csh file originally from BVS.
+
+WARNING: patterns need to be tuned and entered manually as well.
+"""
 with open("maven_kernel_list.xml", "w+") as o:
 
     with open("useful_loops.csh", "r") as f:
@@ -18,7 +17,7 @@ with open("maven_kernel_list.xml", "w+") as o:
                 o.write(f'  <kernel pattern="{text}">\n')
 
                 if (".bsp" in text) or (".bc" in text) or (".tm" in text):
-                    o.write(f"      <mklabel_options></mklabel_options>\n")
+                    o.write("      <mklabel_options></mklabel_options>\n")
                 else:
                     o.write("      <mklabel_options>DEF_TIMES</mklabel_options>\n")
 

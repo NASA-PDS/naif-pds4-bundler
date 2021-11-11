@@ -534,7 +534,7 @@ class Setup(object):
         # If a readme file is present the readme section of the configuration
         # is irrelevant.
         #
-        if not os.path.exists(f"{self.bundle_directory}/{mission_dir}/readme.txt"):
+        if not os.path.exists(f"{self.bundle_directory}/{mission_dir}/readme.txt") and self.pds_version == '4':
             #
             # Check readme file inputs in configuration. Raise an error immediately
             # if things do not look good.

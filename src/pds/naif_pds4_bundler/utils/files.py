@@ -1,7 +1,6 @@
 """File and Text Management Functions to support NPB Classes."""
 import difflib
 import errno
-import fileinput
 import glob
 import hashlib
 import json
@@ -242,14 +241,15 @@ def fill_template(object, product_file, product_dictionary):
     :param product_dictionary:
     :return:
     """
-    with open(product_file, "w+") as f:
+    with open(product_file, "w") as f:
 
-        for line in fileinput.input(object.template):
-            line = line.rstrip()
-            for key, value in product_dictionary.items():
-                if isinstance(value, str) and key in line and "$" in line:
-                    line = line.replace("$" + key, value)
-            f.write(f"{line}\n")
+        with open(object.template, 'r') as t:
+            for line in t:
+                line = line.rstrip()
+                for key, value in product_dictionary.items():
+                    if isinstance(value, str) and key in line and "$" in line:
+                        line = line.replace("$" + key, value)
+                f.write(f"{line}\n")
 
     return None
 
@@ -272,7 +272,7 @@ def get_context_products(setup):
     # Load the default context products
     #
     registered_context_products_file = (
-        f"{setup.root_dir}/templates/registered_context_products.json"
+        f"{setup.root_dir}templates/registered_context_products.json"
     )
     with open(registered_context_products_file, "r") as f:
         context_products = json.load(f)["Product_Context"]
