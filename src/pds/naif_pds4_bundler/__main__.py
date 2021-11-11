@@ -159,14 +159,14 @@ def main(
             "--plan",
             action="store",
             type=str,
-            help="Release plan file listing the kernels and/or"
+            help="Release plan file listing the kernels and/or "
             "ORBNUM files to be archived. If this argument is not "
             "provided, all the kernels found in the "
             "kernels directory specified in the "
             "configuration file in addition to new "
             "meta-kernels will be included in the "
-            "increment. If the ``-x --xml`` argument is used"
-            "this argument can be the name of a kernel or the path"
+            "increment. If the ``-x --xml`` argument is used "
+            "this argument can be the name of a kernel or the path "
             "to a release plan file (ORBNUM files will be ignored.)",
         )
         parser.add_argument(
