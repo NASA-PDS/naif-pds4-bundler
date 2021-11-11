@@ -150,7 +150,7 @@ class Setup(object):
         # Populate the setup object with attributes not present in the
         # configuration file.
         #
-        self.root_dir = os.path.dirname(__file__)[:-7]
+        self.root_dir = os.path.dirname(os.path.abspath(__file__))[:-7]
         self.step = 1
         self.version = version
         self.args = args

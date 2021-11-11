@@ -19,7 +19,7 @@
 
 project = 'NAIF PDS4 Bundler'
 copyright = '2021 California Institute of Technology'
-author = 'Marc Costa Sitja, Boris V. Semenov'
+author = 'Marc Costa Sitja'
 version = u'0.1'
 release = u'0.1.0'
 
@@ -38,17 +38,13 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.coverage',
     'sphinx.ext.autosectionlabel',
-    'sphinx_rtd_theme',
-    'numpydoc'
+    'sphinx_rtd_theme'
 ]
 
 
 # Make sure the target is unique
 autosectionlabel_prefix_document = True
 
-# Silent false-positive warnings from numpydoc related to toctree referencing
-# unknown documents when they actually exist.
-numpydoc_show_class_members = False
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -65,7 +61,7 @@ master_doc = 'index'
 # General information about the project.
 project = u'NAIF PDS4 Bundler'
 copyright = u'2021, Caltech/JPL/NASA'
-author = u'M. Costa Sitja, B. V. Semenov'
+author = u'M. Costa Sitja'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -100,7 +96,7 @@ todo_include_todos = True
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'python_docs_theme'
+html_theme = 'sphinx_rtd_theme'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -143,7 +139,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'naif_pds4_bundler.tex', u'NAIF PDS4 Bundler Documentation',
-     u'M. Costa Sitja, B. V. Semenov', 'manual'),
+     u'M. Costa Sitja', 'manual'),
 ]
 
 # -- Options for manual page output ---------------------------------------

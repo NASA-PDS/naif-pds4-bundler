@@ -41,7 +41,10 @@ class TestMAVEN(TestCase):
 
         dirs = ["working", "staging"]
         for dir in dirs:
-            os.mkdir(dir)
+            try:
+                os.mkdir(dir)
+            except BaseException:
+                pass
 
         shutil.copytree("../data/kernels", "kernels")
         shutil.copytree("../data/maven", "maven")
