@@ -683,7 +683,9 @@ For missions with a small number of archived kernels NAIF
 recommends creating a single meta-kernel providing data for the
 whole mission. The name of this meta-kernel should follow the
 ``<sc>_v??.tm`` pattern where ``<sc>`` is the mission acronym and
-``??`` is the version number. If/when new kernels are added to
+``??`` is the version number. The version number can have two or
+three digits, the number of digits must be the same for all the
+different meta-kernels included. If/when new kernels are added to
 the archive, a meta-kernel with the next version number,
 including the new kernels and leaving out superseded kernels
 should be created and added to the archive.

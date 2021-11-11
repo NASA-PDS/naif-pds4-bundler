@@ -612,11 +612,12 @@ summary of the parameters:
      - No
    * - readme
      - Provides the parameters required to generate the bundle readme file by
-       using the readme file template. Two elements need to be provided:
+       using the readme file template or the path to an input readme file. For NPB to
+       generate the readme file two elements need to be provided:
        ``overview`` that provides an overview of the archive and
        ``cognisant_persons`` that indicates the institution responsible for the
-       archive generation. These elements should have the same value for all
-       archive releases.
+       archive generation. If present these elements should have the same value
+       for all archive releases.
      - No
    * - release_date
      - Bundle increment release date. The date is provided with a UTC calendar
@@ -1482,6 +1483,10 @@ as simple as: ::
             <file>../data/ladee_v01.tm</file>
         </mk_inputs>
     </meta-kernel>
+
+Finally remember that regardless of the content of the Meta-Kernel section of
+the configuration file, MKs must have entries in the Kernel List section in
+order to be considered by NPB as an input.
 
 
 Coverage determination
