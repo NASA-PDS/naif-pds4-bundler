@@ -401,39 +401,46 @@ class Bundle(object):
                             #
                             if hasattr(self.setup, "mk"):
                                 for pattern in self.setup.mk[0]["name"]:
-                                    if pattern["pattern"]["#text"] == "VERSION":
-                                        version_length = int(
-                                            pattern["pattern"]["@length"]
-                                        )
-                                        if version_length == 1:
-                                            product = (
-                                                f"spice_kernels/"
-                                                f'{line.split(":")[5].replace("_", "/", 1)}_'
-                                                f"v{mk_ver:01d}.tm"
-                                            )
-                                        elif version_length == 2:
-                                            product = (
-                                                f"spice_kernels/"
-                                                f'{line.split(":")[5].replace("_", "/", 1)}_'
-                                                f"v{mk_ver:02d}.tm"
-                                            )
-                                        elif version_length == 3:
-                                            product = (
-                                                f"spice_kernels/"
-                                                f'{line.split(":")[5].replace("_", "/", 1)}_'
-                                                f"v{mk_ver:03d}.tm"
-                                            )
-                                        else:
-                                            error_message(f"Meta-kernel version "
-                                                          f"length of {version_length}"
-                                                          f"digits is incorrect.")
+                                    if not isinstance(pattern, list):
+                                        pattern = [pattern]
+                                    for pattern_word in pattern:
+                                        pattern_key = pattern_word['pattern']
+                                        if not isinstance(pattern_key, list):
+                                            pattern_key = [pattern_key]
+                                        for key in pattern_key:
+                                            if key["#text"] == "VERSION":
+                                                version_length = int(
+                                                    key["@length"]
+                                                )
+                                                if version_length == 1:
+                                                    product = (
+                                                        f"spice_kernels/"
+                                                        f'{line.split(":")[5].replace("_", "/", 1)}_'
+                                                        f"v{mk_ver:01d}.tm"
+                                                    )
+                                                elif version_length == 2:
+                                                    product = (
+                                                        f"spice_kernels/"
+                                                        f'{line.split(":")[5].replace("_", "/", 1)}_'
+                                                        f"v{mk_ver:02d}.tm"
+                                                    )
+                                                elif version_length == 3:
+                                                    product = (
+                                                        f"spice_kernels/"
+                                                        f'{line.split(":")[5].replace("_", "/", 1)}_'
+                                                        f"v{mk_ver:03d}.tm"
+                                                    )
+                                                else:
+                                                    error_message(f"Meta-kernel version "
+                                                                  f"length of {version_length}"
+                                                                  f"digits is incorrect.")
 
-                                        history[rel].append(product)
-                                        history[rel].append(
-                                            product.replace(".tm", ".xml")
-                                        )
+                                                history[rel].append(product)
+                                                history[rel].append(
+                                                    product.replace(".tm", ".xml")
+                                                )
 
-                                        break
+                                                break
 
                             elif hasattr(self.setup, "mk_inputs"):
                                 #

@@ -19,6 +19,11 @@ Work List:
   -- Implement archive time boundaries tests (there is one sketched in
      configuration).
 
+  -- CLEAR argument not working appropriately.
+
+  -- Exceptions due to Coverage because of input kernels not caught. Maybe
+     implement funcion decorators?
+
   Possible:
 
   -- Possibility to use the pipeline to generate misc collection only? (for JAXA.)

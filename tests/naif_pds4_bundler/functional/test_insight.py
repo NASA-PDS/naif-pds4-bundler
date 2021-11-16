@@ -894,6 +894,64 @@ class TestINSIGHT(TestCase):
             updated_config, plan=False, faucet=faucet, silent=self.silent, log=self.log
         )
 
+    def test_insight_extra_mk_pattern(self):
+        """Test to generate the INSIGHT archive with an extra MK pattern.
+
+        This test was generated to support a bug found in the MAVEN release 27.
+        """
+        config = f"../config/insight.xml"
+        plan = "../data/insight_release_08.plan"
+        updated_config = "working/insight_updated.xml"
+
+        dirs = ["working", "staging", "insight"]
+        for dir in dirs:
+            os.makedirs(dir, 0o766, exist_ok=True)
+
+        shutil.copy2(
+            "../data/insight_release_basic.kernel_list",
+            "working/insight_release_07.kernel_list",
+        )
+        shutil.rmtree("insight")
+        shutil.copytree("../data/insight", "insight")
+
+        with open(config, "r") as c:
+            with open(updated_config, "w") as n:
+                for line in c:
+                    if '<mk name="insight_v$VERSION.tm">' in line:
+                        n.write('<mk name="insight_$DATE_v$VERSION.tm">\n')
+                    elif '<pattern length="2">VERSION</pattern>' in line:
+                        n.write('<pattern length="2">VERSION</pattern>\n')
+                        n.write('<pattern length="4">DATE</pattern>\n')
+                    else:
+                        n.write(line)
+
+        updated_plan = 'working/insight_updated.plan'
+
+        with open(plan, "r") as c:
+            with open(updated_plan, "w") as n:
+                for line in c:
+                    if 'insight_v08.tm' in line:
+                        n.write(
+                            'insight_2021_v08.tm \\\n'
+                        )
+                    else:
+                        n.write(line)
+
+        try:
+            shutil.copytree("../data/kernels", "kernels")
+        except BaseException:
+            pass
+
+        #
+        # Remove the MK used for other tests. MK will be generated
+        # by NPB.
+        #
+        os.remove("kernels/mk/insight_v08.tm")
+
+        main(
+            updated_config, updated_plan, faucet="bundle", silent=self.silent, log=self.log
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
