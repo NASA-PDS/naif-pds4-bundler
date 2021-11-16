@@ -599,6 +599,7 @@ def main(
         #    * The miscellaneous collection is the one to be guaranteed to be
         #      updated.
         #
+        miscellaneous_collection.set_collection_vid()
         checksum = ChecksumProduct(setup, miscellaneous_collection)
 
         #
@@ -610,7 +611,6 @@ def main(
                 product.new_product = False
 
         miscellaneous_collection.add(checksum)
-        miscellaneous_collection.set_collection_vid()
 
         checksum.set_coverage()
         miscellaneous_collection_inventory = InventoryProduct(

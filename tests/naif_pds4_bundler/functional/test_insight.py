@@ -952,6 +952,49 @@ class TestINSIGHT(TestCase):
             updated_config, updated_plan, faucet="bundle", silent=self.silent, log=self.log
         )
 
+    def test_insight_increment_with_misc(self):
+        """Test to generate the INSIGHT archive incrementing the checksums.
+
+        This test was generated to support a bug found in the MAVEN release 27.
+        """
+        config = f"../config/insight.xml"
+        plan = "working/insight_release_08.plan"
+        updated_config = "working/insight_updated.xml"
+
+        dirs = ["working", "staging", "insight"]
+        for dir in dirs:
+            os.makedirs(dir, 0o766, exist_ok=True)
+        shutil.rmtree("insight")
+        os.mkdir("insight")
+        shutil.copytree("../data/regression/insight_spice", "insight/insight_spice")
+
+        with open(config, "r") as c:
+            with open(updated_config, "w") as n:
+                for line in c:
+                    if '<mk name="insight_v$VERSION.tm">' in line:
+                        n.write('<mk name="insight_$DATE_v$VERSION.tm">\n')
+                    elif '<pattern length="2">VERSION</pattern>' in line:
+                        n.write('<pattern length="2">VERSION</pattern>\n')
+                        n.write('<pattern length="4">DATE</pattern>\n')
+                    elif '<kernel pattern="insight_v[0-9][0-9].tm">' in line:
+                        n.write('<kernel pattern="insight_[0-9]{4}_v[0-9][0-9].tm">\n')
+                    else:
+                        n.write(line)
+
+        with open(plan, "w") as n:
+            n.write("insight_2021_v08.tm")
+
+        try:
+            shutil.copytree("../data/kernels", "kernels")
+        except BaseException:
+            pass
+
+        shutil.copy2("../data/kernels/mk/insight_v08.tm",
+                     "kernels/mk/insight_2021_v08.tm")
+
+        main(
+            updated_config, plan, faucet="bundle", silent=self.silent, log=self.log
+        )
 
 if __name__ == "__main__":
     unittest.main()

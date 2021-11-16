@@ -3591,10 +3591,9 @@ class ChecksumProduct(Product):
             checksum_files = glob.glob(
                 self.setup.bundle_directory
                 + f"/{self.setup.mission_acronym}_spice/"
-                + os.sep
                 + self.collection.name
                 + os.sep
-                + "checksum_v*.tab"
+                + "/checksum/checksum_v*.tab"
             )
 
             checksum_files += glob.glob(
