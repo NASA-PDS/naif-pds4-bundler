@@ -577,38 +577,37 @@ class MetaKernelProduct(Product):
         # Add the configuration items for the meta-kernel.
         # This includes sorting out the meta-kernel name.
         #
-        if hasattr(setup, "mk"):
-            for metak in setup.mk:
+        for metak in setup.mk:
 
-                patterns = []
-                for name in metak["name"]:
-                    name_pattern = name["pattern"]
-                    if not isinstance(name_pattern, list):
-                        patterns.append(name_pattern)
-                    else:
-                        patterns += name_pattern
+            patterns = []
+            for name in metak["name"]:
+                name_pattern = name["pattern"]
+                if not isinstance(name_pattern, list):
+                    patterns.append(name_pattern)
+                else:
+                    patterns += name_pattern
 
-                try:
-                    values = match_patterns(self.name, metak["@name"], patterns)
-                    self.mk_setup = metak
-                    self.version = values["VERSION"]
-                    self.values = values
-                    #
-                    # If it is a yearly meta-kernel we need the year to set
-                    # set the coverage of the meta-kernel.
-                    #
-                    if "YEAR" in values:
-                        self.year = values["YEAR"]
-                        self.YEAR = values["YEAR"]
-                except BaseException:
-                    pass
+            try:
+                values = match_patterns(self.name, metak["@name"], patterns)
+                self.mk_setup = metak
+                self.version = values["VERSION"]
+                self.values = values
+                #
+                # If it is a yearly meta-kernel we need the year to set
+                # set the coverage of the meta-kernel.
+                #
+                if "YEAR" in values:
+                    self.year = values["YEAR"]
+                    self.YEAR = values["YEAR"]
+            except BaseException:
+                pass
 
-            if not hasattr(self, "mk_setup"):
-                error_message(
-                    f"Meta-kernel {self.name} has not been matched "
-                    f"in configuration",
-                    setup=self.setup,
-                )
+        if not hasattr(self, "mk_setup"):
+            error_message(
+                f"Meta-kernel {self.name} has not been matched "
+                f"in configuration",
+                setup=self.setup,
+            )
 
         if setup.pds_version == "3":
             self.collection_path = setup.staging_directory + os.sep + "extras" + os.sep
@@ -1218,7 +1217,7 @@ class MetaKernelProduct(Product):
                 try:
                     cmd = os.environ.get("EDITOR", "vi") + " " + self.path
                     subprocess.call(cmd, shell=True)
-                    logging.warning("Meta-kernel edited with Vi by the " "user.")
+                    logging.warning("-- Meta-kernel edited with Vi by the user.")
                 except BaseException:
                     print("Vi text editor is not available.")
                     input(">> Press Enter to continue... ")
@@ -1364,9 +1363,9 @@ class MetaKernelProduct(Product):
         # Only the kernel patterns identified with the meta-kernel attribute
         # will be used.
         #
-        if hasattr(self.setup, "coverage_kernels"):
-            coverage_kernels = self.setup.coverage_kernels
-            patterns = coverage_kernels[0]["pattern"]
+        if "coverage_kernels" in self.mk_setup:
+            coverage_kernels = self.mk_setup["coverage_kernels"]
+            patterns = coverage_kernels["pattern"]
             if not isinstance(patterns, list):
                 patterns = [patterns]
 
@@ -1379,11 +1378,10 @@ class MetaKernelProduct(Product):
                 # Only match coverage kernels that have the MK pattern in the
                 # mk attribute.
                 #
-                if re.match(pattern["@mk"], self.name):
-                    for kernel in self.collection_metakernel:
-                        if re.match(pattern["#text"], kernel):
-                            kernels.append(kernel)
-                            self.mk_sets_coverage = True
+                for kernel in self.collection_metakernel:
+                    if re.match(pattern, kernel):
+                        kernels.append(kernel)
+                        self.mk_sets_coverage = True
 
         start_times = []
         finish_times = []

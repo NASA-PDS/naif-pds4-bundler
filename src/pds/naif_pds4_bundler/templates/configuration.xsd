@@ -300,21 +300,6 @@
                   </xs:sequence>
                 </xs:complexType>
               </xs:element>
-              <xs:element name="coverage_kernels" minOccurs="0">
-                <xs:complexType>
-                  <xs:sequence>
-                    <xs:element minOccurs="0" maxOccurs="unbounded" name="pattern">
-                      <xs:complexType>
-                        <xs:simpleContent>
-                          <xs:extension base="xs:string">
-                            <xs:attribute name="mk" type="xs:string" use="required"/>
-                          </xs:extension>
-                        </xs:simpleContent>
-                      </xs:complexType>
-                    </xs:element>
-                  </xs:sequence>
-                </xs:complexType>
-              </xs:element>
               <xs:element name="mk" minOccurs="0" maxOccurs="unbounded" >
                 <xs:complexType>
                   <xs:sequence>
@@ -333,7 +318,14 @@
                         </xs:sequence>
                       </xs:complexType>
                     </xs:element>
-                    <xs:element name="interrupt_to_update" >
+                    <xs:element name="coverage_kernels" minOccurs="0">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element minOccurs="0" maxOccurs="unbounded" name="pattern" />
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element name="interrupt_to_update" minOccurs="0">
                       <xs:simpleType>
                         <xs:restriction base="xs:string">
                           <xs:enumeration value="True"/>
@@ -341,14 +333,14 @@
                         </xs:restriction>
                       </xs:simpleType>
                     </xs:element>
-                    <xs:element name="grammar">
+                    <xs:element name="grammar" minOccurs="0">
                       <xs:complexType>
                         <xs:sequence>
                           <xs:element maxOccurs="unbounded" name="pattern" type="xs:string" />
                         </xs:sequence>
                       </xs:complexType>
                     </xs:element>
-                    <xs:element name="metadata">
+                    <xs:element name="metadata" minOccurs="0">
                       <xs:complexType>
                         <xs:sequence>
                           <xs:element name="description" type="xs:string" />

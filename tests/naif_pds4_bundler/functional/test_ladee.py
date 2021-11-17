@@ -54,9 +54,9 @@ class TestLADEE(TestCase):
             os.remove("staging")
 
     def test_ladee_update_input_mk_name(self):
-        """Test if inappropriate name for input MK is corrected.
+        """Test  inappropriate name for input MK.
 
-        This tests needs to use the regression test data to be able to perform
+        This test needs to use the regression test data to be able to perform
         final validation and run the entire pipeline.
 
         Test is successful if NPB is executed without errors.
@@ -82,28 +82,6 @@ class TestLADEE(TestCase):
                         n.write("<file>kernels/mk/ladee_v03.tm</file>")
                     else:
                         n.write(line)
-
-        with self.assertRaises(RuntimeError):
-            main(updated_config, plan=False, silent=self.silent, log=self.log)
-
-        #
-        # Run again to clear the previous run.
-        #
-        main(
-            updated_config,
-            clear="working/ladee_release_01.file_list",
-            silent=True,
-            debug=False,
-        )
-
-        with open(config, "r") as c:
-            with open(updated_config, "w") as n:
-                for line in c:
-                    if "<file>../data/ladee_v01.tm</file>" in line:
-                        n.write("<file>kernels/mk/ladee_v01.tm</file>")
-                    else:
-                        n.write(line)
-        shutil.move("kernels/mk/ladee_v03.tm", "kernels/mk/ladee_v01.tm")
 
         main(updated_config, plan=False, silent=self.silent, log=self.log)
 

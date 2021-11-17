@@ -547,8 +547,14 @@
         <mk_inputs>
             <file>kernels/mk/bc_v001.tm</file>
         </mk_inputs>
-        <coverage_kernels>
-            <pattern mk="bc_v[0-9][0-9][0-9].tm">bc_mpo_sc_scm_[0-9]{8}_[0-9]{8}_s[0-9]{8}_v[0-9][0-9].bc</pattern>
-        </coverage_kernels>
+        <mk name="bc_v$VERSION.tm">
+            <name>
+                <pattern length="3">VERSION</pattern>
+            </name>
+            <coverage_kernels>
+            <!-- These kernels determine the coverage of the increment-->
+               <pattern>bc_mpo_sc_scm_[0-9]{8}_[0-9]{8}_s[0-9]{8}_v[0-9][0-9].bc</pattern>
+            </coverage_kernels>
+        </mk>
     </meta-kernel>
 </naif-pds4-bundler_configuration>

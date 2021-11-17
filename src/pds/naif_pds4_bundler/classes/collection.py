@@ -2,10 +2,8 @@
 import glob
 import logging
 import os
-import re
 
 from ..utils import extension2type
-from ..utils import get_years
 from .log import error_message
 
 
@@ -214,7 +212,7 @@ class SpiceKernelsCollection(Collection):
             #
             # This will happen only if there are kernels in the collection.
             #
-            if hasattr(self.setup, "mk") and self.product:
+            if (hasattr(self.setup, "mk")) and (self.product) and (self.setup.args.faucet != "labels"):
                 if (
                     self.setup.mk.__len__() == 1
                     and self.setup.mk[0]["name"].__len__() == 1
@@ -238,129 +236,6 @@ class SpiceKernelsCollection(Collection):
                 logging.info("")
                 logging.warning("-- No Meta-kernel will be generated.")
                 return ("", None)
-
-        #
-        # Although the kernels that will be used are already known, generate
-        # list of expected meta-kernels to generate to be compared to the
-        # input meta-kernels, if the meta-kernels diverge, a warning message
-        # will be displayed.
-        #
-        # Generate automatically the required meta-kernels
-        #
-        # First check if any of the increment are present in
-        # each meta-kernel configuration.
-        #
-        expected_mks = []
-        if hasattr(self.setup, "mk"):
-            for kernel_product in self.product:
-                for mk in self.setup.mk:
-                    #
-                    # Boolean to determine whether if the meta-kernel needs to
-                    # be generated.
-                    #
-                    generate_mk = False
-                    for pattern in mk["grammar"]["pattern"]:
-                        #
-                        # meta-kernel grammars might have prefixes followed by
-                        # a colon, so we need to make sure we only use the
-                        # name and we do not use the ones with 'exclude:'.
-                        #
-                        if ("exclude:" not in pattern) and re.match(
-                            pattern.split(":")[-1], kernel_product.name
-                        ):
-                            generate_mk = True
-
-                    #
-                    # Now we need to determine whether if this is a
-                    # meta-kernel that needs to be generated multiple times.
-                    #
-                    # In addition the patterns of the meta-kernel name need to
-                    # be completed. Currently there are two supported
-                    # patterns:
-                    #    - VERSION
-                    #    - YEAR
-                    #
-                    if generate_mk:
-
-                        #
-                        # Loop the patterns.
-                        #
-                        patterns = mk["name"]
-
-                        #
-                        # First we need to determine which yearly meta-kernels
-                        # Need to be produced.
-                        #
-                        years = []
-                        patterns_dict = patterns[0]
-                        for patterns in patterns_dict.values():
-                            if isinstance(patterns, dict):
-                                patterns = [patterns]
-                            for pattern in patterns:
-                                if pattern["#text"] == "YEAR":
-                                    #
-                                    # We check the coverage of the kernel,
-                                    # except if it is a SCLK.
-                                    #
-                                    for kernel in self.product:
-                                        start_time = kernel.start_time
-                                        stop_time = kernel.stop_time
-                                        kernel_years = get_years(start_time, stop_time)
-
-                                        years += kernel_years
-
-                                    years = list(dict.fromkeys(years))
-
-                                    # if self.setup.increment:
-                                    #     mks_previous_increment = False
-
-                                    # else:
-                                    #
-                                    # If this is the first version of the
-                                    # increment then simply generate the
-                                    # first version of each yearly
-                                    # required meta-kernel.
-                                    #
-                                    for year in years:
-                                        #
-                                        # Check that we do not generate
-                                        # any meta-kernel prior to the
-                                        # start of the mission. Or beyond
-                                        # the increment release year.
-                                        #
-                                        mission_start_year = (
-                                            self.setup.mission_start.split("-")[0]
-                                        )
-                                        current_year = self.setup.release_date.split(
-                                            "-"
-                                        )[0]
-
-                                        if (year >= mission_start_year) and (
-                                            year <= current_year
-                                        ):
-
-                                            #
-                                            # Default version length.
-                                            #
-                                            version_length = 2
-                                            for pattern in patterns:
-
-                                                if "VERSION" in pattern["#text"]:
-                                                    version_length = pattern["@length"]
-                                            version = (
-                                                "0" * (int(version_length) - 1) + "1"
-                                            )
-
-                                            metaker = mk["@name"].replace("$YEAR", year)
-                                            metaker = metaker.replace(
-                                                "$VERSION", version
-                                            )
-                                            expected_mks.append(metaker)
-
-                #
-                # First check if any of the increment are present in
-                # each meta-kernel configuration.
-                #
 
         #
         # Sort the list of meta-kernels alphabetically.

@@ -207,8 +207,6 @@
         <mk_inputs>
             <file>../data/phoenix_v01.tm</file>
         </mk_inputs>
-        <coverage_kernels>
-        </coverage_kernels>
         <mk></mk>
     </meta-kernel>
 </naif-pds4-bundler_configuration>

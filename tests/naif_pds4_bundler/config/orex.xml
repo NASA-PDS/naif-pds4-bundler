@@ -291,20 +291,16 @@
         <mk_inputs>
             <file>kernels/mk/orx_2020_v05.tm</file>
         </mk_inputs>
-        <coverage_kernels>
-            <!-- These kernels determine the coverage of the bundle
-                 increment
-            -->
-            <pattern mk="orx_[0-9]{6}_v[0-9]{2}.tm">orx_[0-9]{6}_[0-9]{6}_od[0-9][0-9][0-9]_v[0-9].bsp</pattern>
-            <pattern mk="orx_[0-9]{6}_v[0-9]{2}.tm">orx_sc_rel_[0-9]{6}_[0-9]{6}_v[0-9]{2}.bc</pattern>
-            <pattern mk="orx_[0-9]{6}_noola_v[0-9]{2}.tm">orx_[0-9]{6}_[0-9]{6}_od[0-9][0-9][0-9]_v[0-9].bsp</pattern>
-            <pattern mk="orx_[0-9]{6}_noola_v[0-9]{2}.tm">orx_sc_rel_[0-9]{6}_[0-9]{6}_v[0-9]{2}.bc</pattern>
-        </coverage_kernels>
         <mk name="orx_$YEAR_v$VERSION.tm">
             <name>
                 <pattern length="2">VERSION</pattern>
                 <pattern length="4">YEAR</pattern>
             </name>
+            <coverage_kernels>
+                <!-- These kernels determine the coverage of the increment -->
+                <pattern>orx_[0-9]{6}_[0-9]{6}_od[0-9][0-9][0-9]_v[0-9].bsp</pattern>
+                <pattern>orx_sc_rel_[0-9]{6}_[0-9]{6}_v[0-9]{2}.bc</pattern>
+            </coverage_kernels>
             <interrupt_to_update>True</interrupt_to_update>
             <grammar>
                 <!-- LSK -->
@@ -375,6 +371,11 @@
                 <pattern length="2">VERSION</pattern>
                 <pattern length="4">YEAR</pattern>
             </name>
+            <coverage_kernels>
+                <!-- These kernels determine the coverage of the increment -->
+                <pattern>orx_[0-9]{6}_[0-9]{6}_od[0-9][0-9][0-9]_v[0-9].bsp</pattern>
+                <pattern>orx_sc_rel_[0-9]{6}_[0-9]{6}_v[0-9]{2}.bc</pattern>
+            </coverage_kernels>
             <interrupt_to_update>False</interrupt_to_update>
             <grammar>
                 <!-- LSK -->

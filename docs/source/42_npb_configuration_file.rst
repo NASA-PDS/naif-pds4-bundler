@@ -1309,19 +1309,14 @@ section of the configuration file are the following:
      - You can specify a list of MKs for the archive release by
        providing their path.
      - No
-   * - coverage_kernels
-     - You can specify a list of kernels with patterns that need to be included
-       in the MK that will determine the coverage of the MK.
-       The MK that they apply to is specified via the ``mk`` attribute.
-       The coverage is required to generate the label.
-     - No
    * - mk
      - This element provides the configuration elements necessary to
        automatically generate a MK. The elements present are:
-       name, grammar, and metadata (that at the same time consists of the
+       name, coverage_kernels, interrupt_to_update, grammar,
+       and metadata (that at the same time consists of the
        description, keyword and data elements). There can be as many mk
        elements as needed. This element is described in detail below.
-     - No
+     - Yes
 
 
 Automatic generation of Meta-kernels
@@ -1334,8 +1329,11 @@ The first nested element of ``<mk>`` is the ``<name>`` element, that provides a
 mapping to the patterns in the name by specifying the length of these patterns;
 therefore these patterns must have a fixed length.
 
+The element ``<name>`` is required even if the MK is provided as an input --and
+therefore is not generated automatically.--
+
 For example a MAVEN MK that provides yearly coverage and can have
-multiple versions  would be as follows: ::
+multiple versions would be as follows: ::
 
         <mk name="maven_$YEAR_v$VERSION.tm">
             <name>
@@ -1502,13 +1500,13 @@ The kernel pattern must match a kernel that is included in the MK.
 What follows is a Mars 2020 configuration file extract example::
 
         <coverage_kernels>
-            <pattern mk="m2020_v[0-9][0-9].tm">m2020_cruise_od138_v[0-9].bsp</pattern>
-            <pattern mk="m2020_v[0-9][0-9].tm">m2020_surf_rover_loc_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_v[0-9].bsp</pattern>
+            <pattern>m2020_cruise_od138_v[0-9].bsp</pattern>
+            <pattern>m2020_surf_rover_loc_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_v[0-9].bsp</pattern>
         </coverage_kernels>
 
-With this configuration, if the release includes the ``m2020_v01.tm``
-MK, the coverage will be determined by the kernels included in the MK defined
-by the pattern. For example::
+With this configuration, specified in the ``<mk>`` element ``m2020_v$VERSION.tm``
+if the release includes the ``m2020_v01.tm``. The MK coverage will be determined
+by the kernels included in the MK defined by the pattern. For example::
 
    m2020_cruise_od138_v1.bsp
    m2020_surf_rover_loc_0001_0083_v1.bsp

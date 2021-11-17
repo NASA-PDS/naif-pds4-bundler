@@ -108,12 +108,12 @@ class TestMAVEN(TestCase):
         with open(config, "r") as c:
             with open(updated_config, "w") as n:
                 for line in c:
-                    if "<coverage_kernels>" in line:
+                    if '<mk name="maven_$YEAR_v$VERSION.tm">' in line:
                         n.write("<mk_inputs>")
                         n.write("   <file>working/maven_2015_v09.tm</file>\n")
                         n.write("   <file>working/maven_2020_v06.tm</file>\n")
                         n.write("</mk_inputs>")
-                        n.write("<coverage_kernels>")
+                        n.write('<mk name="maven_$YEAR_v$VERSION.tm">\n')
                     else:
                         n.write(line)
 
@@ -226,12 +226,12 @@ class TestMAVEN(TestCase):
         with open(config, "r") as c:
             with open(updated_config, "w") as n:
                 for line in c:
-                    if "<coverage_kernels>" in line:
+                    if '<mk name="maven_$YEAR_v$VERSION.tm">' in line:
                         n.write("<mk_inputs>")
                         n.write("   <file>working/maven_2015_v09.tm</file>\n")
                         n.write("   <file>working/maven_2020_v06.tm</file>\n")
                         n.write("</mk_inputs>")
-                        n.write("<coverage_kernels>")
+                        n.write('<mk name="maven_$YEAR_v$VERSION.tm">\n')
                     else:
                         n.write(line)
 
@@ -268,12 +268,12 @@ class TestMAVEN(TestCase):
         with open(config, "r") as c:
             with open(updated_config, "w") as n:
                 for line in c:
-                    if "<coverage_kernels>" in line:
+                    if '<mk name="maven_$YEAR_v$VERSION.tm">' in line:
                         n.write("<mk_inputs>")
                         n.write("   <file>working/maven_2015_v09.tm</file>\n")
                         n.write("   <file>working/maven_2020_v06.tm</file>\n")
                         n.write("</mk_inputs>")
-                        n.write("<coverage_kernels>")
+                        n.write('<mk name="maven_$YEAR_v$VERSION.tm">')
                     else:
                         n.write(line)
 

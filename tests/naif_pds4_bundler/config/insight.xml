@@ -269,18 +269,16 @@
     <!-- Meta-kernel                 -->
     <!-- =========================== -->
     <meta-kernel>
-        <coverage_kernels>
-            <!-- These kernels determine the coverage of the bundle
-                 increment
-            -->
-            <pattern mk="insight_v[0-9][0-9].tm">insight_cru_ops_v[0-9].bsp</pattern>
-            <pattern mk="insight_v[0-9][0-9].tm">insight_edl_rec_v[0-9].bsp</pattern>
-            <pattern mk="insight_v[0-9][0-9].tm">insight_ida_enc_[0-9]{6}_[0-9]{6}_v[0-9].bc</pattern>
-        </coverage_kernels>
         <mk name="insight_v$VERSION.tm">
             <name>
                 <pattern length="2">VERSION</pattern>
             </name>
+            <coverage_kernels>
+            <!-- These kernels determine the coverage of the increment-->
+               <pattern>insight_cru_ops_v[0-9].bsp</pattern>
+               <pattern>insight_edl_rec_v[0-9].bsp</pattern>
+               <pattern>insight_ida_enc_[0-9]{6}_[0-9]{6}_v[0-9].bc</pattern>
+            </coverage_kernels>
             <interrupt_to_update>True</interrupt_to_update>
             <grammar>
                 <!-- LSK -->

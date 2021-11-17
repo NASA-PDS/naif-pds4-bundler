@@ -110,6 +110,12 @@
         <mk_inputs>
             <file>../data/m01_2020_v03.tm</file>
         </mk_inputs>
+         <mk name="m01_$YEAR_v$VERSION.tm">
+            <name>
+                <pattern length="4">YEAR</pattern>
+                <pattern length="2">VERSION</pattern>
+            </name>
+         </mk>
     </meta-kernel>
 
     <!-- =========================== -->

@@ -306,8 +306,13 @@
         <mk_inputs>
             <file>kernels/mk/dart_v01.tm</file>
         </mk_inputs>
-        <coverage_kernels>
-            <pattern mk="dart_v[0-9][0-9].tm">dart_[0-6]{6}_[0-6]{6}_v[0-6]{2}.bsp</pattern>
-        </coverage_kernels>
+        <mk name="dart_v$VERSION.tm">
+            <name>
+                <pattern length="2">VERSION</pattern>
+            </name>
+            <coverage_kernels>
+               <pattern>dart_[0-6]{6}_[0-6]{6}_v[0-6]{2}.bsp</pattern>
+            </coverage_kernels>
+         </mk>
     </meta-kernel>
 </naif-pds4-bundler_configuration>

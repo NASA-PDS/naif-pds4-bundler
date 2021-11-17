@@ -412,13 +412,13 @@ class TestINSIGHT(TestCase):
         with open(config, "r") as c:
             with open(updated_config, "w") as n:
                 for line in c:
-                    if "        <coverage_kernels>" in line:
+                    if '<mk name="insight_v$VERSION.tm">' in line:
                         n.write(
                             "        <mk_inputs>\n"
                             "            <file>working/insight_2021_v08.tm"
                             "</file>\n"
                             "        </mk_inputs>\n"
-                            "        <coverage_kernels>\n"
+                            '        <mk name="insight_v$VERSION.tm">\n'
                         )
                     else:
                         n.write(line)
@@ -483,13 +483,13 @@ class TestINSIGHT(TestCase):
         with open(config, "r") as c:
             with open(updated_config, "w") as n:
                 for line in c:
-                    if "        <coverage_kernels>" in line:
+                    if '<mk name="insight_v$VERSION.tm">' in line:
                         n.write(
                             "        <mk_inputs>\n"
                             "<file>working/insight_v08.tm</file>\n"
                             "<file>working/insight_v09.tm</file>\n"
                             "        </mk_inputs>\n"
-                            "        <coverage_kernels>\n"
+                            '        <mk name="insight_v$VERSION.tm">\n'
                         )
                     else:
                         n.write(line)
@@ -551,12 +551,12 @@ class TestINSIGHT(TestCase):
         with open(config, "r") as c:
             with open(updated_config, "w") as n:
                 for line in c:
-                    if "        <coverage_kernels>" in line:
+                    if '<mk name="insight_v$VERSION.tm">' in line:
                         n.write(
                             "        <mk_inputs>\n"
                             "<file>working/insight_v00.tm</file>\n"
                             "        </mk_inputs>\n"
-                            "        <coverage_kernels>\n"
+                            '        <mk name="insight_v$VERSION.tm">\n'
                         )
                     else:
                         n.write(line)
@@ -616,12 +616,12 @@ class TestINSIGHT(TestCase):
         with open(config, "r") as c:
             with open(updated_config, "w") as n:
                 for line in c:
-                    if "        <coverage_kernels>" in line:
+                    if '<mk name="insight_v$VERSION.tm">' in line:
                         n.write(
                             "        <mk_inputs>\n"
                             "<file>working/insight_v08.tm</file>\n"
                             "        </mk_inputs>\n"
-                            "        <coverage_kernels>\n"
+                            '        <mk name="insight_v$VERSION.tm">\n'
                         )
                     else:
                         n.write(line)

@@ -193,5 +193,10 @@
         <mk_inputs>
             <file>../data/ladee_v01.tm</file>
         </mk_inputs>
+        <mk name="ladee_v$VERSION.tm">
+            <name>
+                <pattern length="2">VERSION</pattern>
+            </name>
+         </mk>
     </meta-kernel>
 </naif-pds4-bundler_configuration>
