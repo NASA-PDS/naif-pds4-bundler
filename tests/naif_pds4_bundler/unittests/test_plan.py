@@ -109,7 +109,7 @@ class TestPlan(TestCase):
         config = "../config/mars2020.xml"
         faucet = "list"
         last_filename = ""
-        with open("../data/mars2020_release_01.kernel_list", "r") as f:
+        with open("../data/mars2020_release_10.kernel_list", "r") as f:
             for line in f:
                 if last_filename and "MAPPING" in line:
                     os.remove(last_filename)
@@ -134,7 +134,7 @@ class TestPlan(TestCase):
                 new_file += line
 
         old_file = ""
-        with open("../data/mars2020_release_01.plan", "r") as f:
+        with open("../data/mars2020_release_10.plan", "r") as f:
             for line in f:
                 if "m2020_168_sclkscet_00007.tsc" not in line:
                     old_file += line

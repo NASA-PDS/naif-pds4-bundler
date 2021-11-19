@@ -27,7 +27,8 @@ class TestPDS4(TestCase):
 
         os.chdir(os.path.dirname(__file__))
 
-        dirs = ["working", "staging", "kernels", "insight", "ladee", "kplo", "dart"]
+        dirs = ["working", "staging", "kernels", "insight", "ladee", "kplo",
+                "dart"," mars2020"]
         for dir in dirs:
             shutil.rmtree(dir, ignore_errors=True)
 
@@ -42,7 +43,8 @@ class TestPDS4(TestCase):
         unittest.TestCase.setUp(self)
         print(f"    * {self._testMethodName}")
 
-        dirs = ["working", "staging", "kernels", "insight", "ladee", "kplo", "dart"]
+        dirs = ["working", "staging", "kernels", "insight", "ladee", "kplo",
+                "dart"," mars2020"]
         for dir in dirs:
             shutil.rmtree(dir, ignore_errors=True)
 
@@ -108,12 +110,17 @@ class TestPDS4(TestCase):
             with open(self.updated_config, "w") as n:
                 for line in c:
                     if "</readme>" in line:
-                        n.write("        </readme>\n")
-                        n.write("        <release_date>2021-06-25" "</release_date>\n")
+                        n.write("</readme>\n")
+                        n.write("<release_date>2021-06-25</release_date>\n")
                         n.write(
-                            "        <creation_date_time>"
+                            "<creation_date_time>"
                             "2021-06-25T08:00:00</creation_date_time>\n"
                         )
+                    #
+                    # Remove line from M2020 configuration file
+                    #
+                    elif "<release_date>2021-08-20</release_date>" in line:
+                        n.write("")
                     else:
                         n.write(line)
 
@@ -143,7 +150,7 @@ class TestPDS4(TestCase):
         os.remove("kernels/mk/insight_v08.tm")
 
         main(
-            self.updated_config, plan, faucet="bundle", silent=self.silent, log=self.log
+            self.updated_config, plan, silent=self.silent, log=self.log
         )
 
     def test_ladee(self):
@@ -171,6 +178,42 @@ class TestPDS4(TestCase):
         )
 
         main(self.updated_config, silent=self.silent, log=self.log)
+
+    def test_m2020(self):
+        """Test to generate two releases of the M2020 archive.
+
+        This test is implemented to test the generation of an archive that
+        already has an existing miscellaneous collection.
+
+        The MKs are provided as inputs with the configuration file.
+        """
+        self.mission = "mars2020"
+        self.post_setup()
+
+        shutil.copytree(
+            "../data/regression/mars2020_spice/spice_kernels",
+            "kernels",
+            ignore=shutil.ignore_patterns("*.xml", "*.csv"),
+        )
+
+        plan = '../data/mars2020_release_01.plan'
+
+        main(self.updated_config, plan=plan, silent=self.silent, log=self.log)
+
+        updated_config = 'working/mars2020_release_02.xml'
+
+        with open(self.updated_config, "r") as c:
+            with open(updated_config, "w") as n:
+                for line in c:
+                    if "<file>kernels/mk/m2020_v01.tm</file>" in line:
+                        n.write("<file>kernels/mk/m2020_v02.tm</file>\n")
+                    elif "<file>kernels/mk/m2020_chronos_v01.tm</file>" in line:
+                        n.write("")
+                    else:
+                        n.write(line)
+
+        plan = '../data/mars2020_release_02.plan'
+        main(updated_config, plan=plan, silent=self.silent, log=self.log)
 
 #    def test_dart(self):
 #        '''

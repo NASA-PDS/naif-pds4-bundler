@@ -3501,7 +3501,7 @@ class ReadmeProduct(Product):
 class ChecksumProduct(Product):
     """Product child class to generate a Checksum Product."""
 
-    def __init__(self, setup, collection):
+    def __init__(self, setup, collection, add_previous_checksum=True):
         """Constructor."""
         #
         # The initialisation of the checksum class is lighter than the
@@ -3530,7 +3530,7 @@ class ChecksumProduct(Product):
         #
         self.md5_dict = {}
 
-        self.read_current_product()
+        self.read_current_product(add_previous_checksum=add_previous_checksum)
 
         self.set_product_lid()
         self.set_product_vid()
@@ -3576,11 +3576,11 @@ class ChecksumProduct(Product):
         logging.info(f"-- Labeling {self.name}...")
         self.label = ChecksumPDS4Label(self.setup, self)
 
-    def read_current_product(self):
+    def read_current_product(self, add_previous_checksum=True):
         """Reads the current checksum file.
 
-        Reads the current checksum file and determine
-        the version of the new checksum file.
+        Reads the current checksum file, determines the version of the
+        new checksum file, and adds the checksum file itself and its label.
         """
         #
         # Determine the checksum version
@@ -3646,7 +3646,8 @@ class ChecksumProduct(Product):
         )
 
         #
-        # Add each element of current checksum into the md5_sum attribute.
+        # Add each element of current checksum into the md5_sum attribute if
+        # the miscellaneous collection was present in the release.
         #
         if self.path_current:
             with open(self.path_current, "r") as c:
@@ -3655,21 +3656,38 @@ class ChecksumProduct(Product):
                     # Check the format of the current checksum file.
                     #
                     try:
-                        (md5, filename) = line.split()
+                        (md5_file, filename) = line.split()
                     except BaseException:
                         error_message(
                             f"Checksum file {self.path_current} is corrupted.",
                             setup=self.setup,
                         )
 
-                    if len(md5) == 32:
-                        self.md5_dict[md5] = filename
+                    if len(md5_file) == 32:
+                        self.md5_dict[md5_file] = filename
                     else:
                         error_message(
                             f"Checksum file {self.path_current} "
                             f"corrupted entry: {line}",
                             setup=self.setup,
                         )
+
+            #
+            # Add the previous checksum file itself and its label, as specified
+            # by the parameter. Checksum is not added if the corresponding
+            # release did not have the miscellaneous collection.
+            #
+            if add_previous_checksum:
+
+                checksum_dir = f"{self.collection.name }/checksum/"
+
+                md5_current = md5(self.path_current)
+                self.md5_dict[md5_current] = checksum_dir + self.path_current.split(os.sep)[-1]
+
+                label_current = self.path_current.replace(".tab", ".xml")
+
+                md5_label = md5(label_current)
+                self.md5_dict[md5_label] = checksum_dir + label_current.split(os.sep)[-1]
 
         self.new_product = True
 

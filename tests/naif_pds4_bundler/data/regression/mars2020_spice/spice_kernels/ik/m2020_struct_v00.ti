@@ -1,0 +1,179 @@
+KPL/IK
+
+M2020 Structures Instrument Kernel
+===============================================================================
+
+   This Instrument Kernel (IK) file contains Field-Of-View (FOV)
+   definitions for M2020 antennas (CMGA, LGAs, UHFs).
+
+
+Version and Date
+-------------------------------------------------------------------------------
+
+   Version 0.0 -- January 7, 2019 -- Boris Semenov, NAIF
+
+      Initial Release.
+
+
+References
+-------------------------------------------------------------------------------
+
+   1. Kernel Pool Required Reading
+
+   2. GETFOV, getfoc_c, cspice_getfov headers
+
+   3. M2020 FK file, latest version
+
+
+Contact Information
+-------------------------------------------------------------------------------
+
+   Boris V. Semenov, NAIF/JPL, (818)-354-8136, Boris.Semenov@jpl.nasa.gov
+
+
+Implementation Notes
+-------------------------------------------------------------------------------
+
+   This file is used by the SPICE system as follows: programs that make
+   use of this kernel must ``load'' the kernel, normally during program
+   initialization. The SPICE routine FURNSH loads a kernel file into
+   the pool as shown below.
+
+      CALL FURNSH ( 'frame_kernel_name; )    -- FORTRAN
+      furnsh_c ( "frame_kernel_name" );      -- C
+      cspice_furnsh, frame_kernel_name       -- IDL
+      cspice_furnsh( 'frame_kernel_name' )   -- MATLAB
+
+   Once the file has been loaded, the SPICE routine GETFOV (getfov_c in
+   C, cspice_getfov in IDL and MATLAB) can be used to retrieve FOV
+   parameters for a given instrument or structure.
+
+   This file was created and may be updated with a text editor or word
+   processor.
+
+
+Naming Conventions
+----------------------------------------------------------
+
+   All names referencing values in this IK file start with the
+   characters `INS' followed by the NAIF M2020 ID number (-168)
+   followed by a NAIF three digit ID code for one of the structures.
+   This is the full list of names and IDs for the structures described
+   by this IK file:
+
+      M2020_PLGA                 -168060
+      M2020_TLGA                 -168061
+      M2020_PUHF                 -168062
+      M2020_CMGA                  -168063
+
+      M2020_DLGA                 -168064
+      M2020_DUHF                 -168065
+
+      M2020_RLGA                 -168110
+      M2020_RUHF                 -168111
+
+   The remainder of the keyword name is an underscore character
+   followed by the unique name of the data item. For example, the CMGA
+   boresight direction in the CMGA frame is specified by:
+
+      INS-168063_BORESIGHT
+
+   The upper bound on the length of the name of any data item is 32
+   characters.
+
+   If the same item is included in more than one file, or if the same
+   item appears more than once within a single file, the latest value
+   supersedes any earlier values.
+
+
+Structure Descriptions
+---------------------------------------------------------
+
+   TBD
+
+
+Mounting Alignment
+--------------------------------------------------------
+
+   Refer to the latest version of the M2020 Frames Definition Kernel
+   (FK) [3] for the M2020 structures reference frame definitions and
+   mounting alignment information.
+
+
+Antenna FOVs
+----------------------------------------------------------
+
+   All antenna FOVs are defined as cones centered on the +Z axis of the
+   corresponding antenna frames. The cone angular sizes are arbitrarily
+   set to 90 degrees for CMGA, 178 degrees for LGAs, and 178 degrees
+   for UHFs.
+
+      \begindata
+
+         INS-168060_FOV_FRAME                 = 'M2020_PLGA'
+         INS-168060_FOV_SHAPE                 = 'CIRCLE'
+         INS-168060_BORESIGHT                 = ( 0.0, 0.0, 1.0 )
+         INS-168060_FOV_CLASS_SPEC            = 'ANGLES'
+         INS-168060_FOV_REF_VECTOR            = ( 0.0, 1.0, 0.0 )
+         INS-168060_FOV_REF_ANGLE             = ( 89.0 )
+         INS-168060_FOV_ANGLE_UNITS           = 'DEGREES'
+
+         INS-168061_FOV_FRAME                 = 'M2020_TLGA'
+         INS-168061_FOV_SHAPE                 = 'CIRCLE'
+         INS-168061_BORESIGHT                 = ( 0.0, 0.0, 1.0 )
+         INS-168061_FOV_CLASS_SPEC            = 'ANGLES'
+         INS-168061_FOV_REF_VECTOR            = ( 0.0, 1.0, 0.0 )
+         INS-168061_FOV_REF_ANGLE             = ( 89.0 )
+         INS-168061_FOV_ANGLE_UNITS           = 'DEGREES'
+
+         INS-168062_FOV_FRAME                 = 'M2020_PUHF'
+         INS-168062_FOV_SHAPE                 = 'CIRCLE'
+         INS-168062_BORESIGHT                 = ( 0.0, 0.0, 1.0 )
+         INS-168062_FOV_CLASS_SPEC            = 'ANGLES'
+         INS-168062_FOV_REF_VECTOR            = ( 0.0, 1.0, 0.0 )
+         INS-168062_FOV_REF_ANGLE             = ( 89.0 )
+         INS-168062_FOV_ANGLE_UNITS           = 'DEGREES'
+
+         INS-168063_FOV_FRAME                 = 'M2020_CMGA'
+         INS-168063_FOV_SHAPE                 = 'CIRCLE'
+         INS-168063_BORESIGHT                 = ( 0.0, 0.0, 1.0 )
+         INS-168063_FOV_CLASS_SPEC            = 'ANGLES'
+         INS-168063_FOV_REF_VECTOR            = ( 0.0, 1.0, 0.0 )
+         INS-168063_FOV_REF_ANGLE             = ( 45.0 )
+         INS-168063_FOV_ANGLE_UNITS           = 'DEGREES'
+
+         INS-168064_FOV_FRAME                 = 'M2020_DLGA'
+         INS-168064_FOV_SHAPE                 = 'CIRCLE'
+         INS-168064_BORESIGHT                 = ( 0.0, 0.0, 1.0 )
+         INS-168064_FOV_CLASS_SPEC            = 'ANGLES'
+         INS-168064_FOV_REF_VECTOR            = ( 0.0, 1.0, 0.0 )
+         INS-168064_FOV_REF_ANGLE             = ( 89.0 )
+         INS-168064_FOV_ANGLE_UNITS           = 'DEGREES'
+
+         INS-168065_FOV_FRAME                 = 'M2020_DUHF'
+         INS-168065_FOV_SHAPE                 = 'CIRCLE'
+         INS-168065_BORESIGHT                 = ( 0.0, 0.0, 1.0 )
+         INS-168065_FOV_CLASS_SPEC            = 'ANGLES'
+         INS-168065_FOV_REF_VECTOR            = ( 0.0, 1.0, 0.0 )
+         INS-168065_FOV_REF_ANGLE             = ( 89.0 )
+         INS-168065_FOV_ANGLE_UNITS           = 'DEGREES'
+
+         INS-168110_FOV_FRAME                 = 'M2020_RLGA'
+         INS-168110_FOV_SHAPE                 = 'CIRCLE'
+         INS-168110_BORESIGHT                 = ( 0.0, 0.0, 1.0 )
+         INS-168110_FOV_CLASS_SPEC            = 'ANGLES'
+         INS-168110_FOV_REF_VECTOR            = ( 0.0, 1.0, 0.0 )
+         INS-168110_FOV_REF_ANGLE             = ( 89.0 )
+         INS-168110_FOV_ANGLE_UNITS           = 'DEGREES'
+
+         INS-168111_FOV_FRAME                 = 'M2020_RUHF'
+         INS-168111_FOV_SHAPE                 = 'CIRCLE'
+         INS-168111_BORESIGHT                 = ( 0.0, 0.0, 1.0 )
+         INS-168111_FOV_CLASS_SPEC            = 'ANGLES'
+         INS-168111_FOV_REF_VECTOR            = ( 0.0, 1.0, 0.0 )
+         INS-168111_FOV_REF_ANGLE             = ( 89.0 )
+         INS-168111_FOV_ANGLE_UNITS           = 'DEGREES'
+
+      \begintext
+
+End of the IK file.

@@ -79,7 +79,6 @@
     <!-- =========================== -->
     <kernel_list>
         <kernel pattern="naif[0-9][0-9][0-9][0-9].tls">
-            <mklabel_options>DEF_TIMES</mklabel_options>
             <description>SPICE LSK file incorporating leapseconds up to $DATE, created by NAIF, JPL.</description>
             <patterns>
                 <DATE value="naif0011.tls">2015-JAN-01</DATE>
@@ -87,7 +86,6 @@
             </patterns>
         </kernel>
         <kernel pattern="pck[0-9][0-9][0-9][0-9][0-9].tpc">
-            <mklabel_options>DEF_TIMES</mklabel_options>
             <description>SPICE text PCK file containing constants from the $REPORT report, created by NAIF, JPL.
             </description>
             <patterns>
@@ -95,65 +93,54 @@
             </patterns>
         </kernel>
         <kernel pattern="m2020_v[0-9][0-9].tf">
-            <mklabel_options>DEF_TIMES</mklabel_options>
             <description>SPICE FK providing the complete set of frame definitions for the M2020 rover, its structures and science instruments, created by NAIF, JPL.
             </description>
         </kernel>
         <kernel pattern="m2020_struct_v[0-9][0-9].ti">
-            <mklabel_options>DEF_TIMES</mklabel_options>
             <description>SPICE IK file providing FOV definitions and other instrument parameters for the M2020 antennas, created by NAIF, JPL.
             </description>
         </kernel>
         <kernel pattern="m2020_168_sclkscet_[0-9][0-9][0-9][0-9][0-9].tsc">
             <mapping>M2020_168_SCLKSCET.$VERSION.tsc</mapping>
-            <mklabel_options>NAIF</mklabel_options>
             <description>SPICE SCLK file providing the official, OPS correlation data for the primary M2020 on-board clock, created by NAIF, JPL. The original name of this file was M2020_168_SCLKSCET.$VERSION.tsc.</description>
             <patterns>
                 <VERSION pattern="KERNEL">M2020_168_SCLKSCET.$VERSION.tsc</VERSION>
             </patterns>
         </kernel>
         <kernel pattern="m2020_168_sclkscet_refit_v[0-9][0-9].tsc">
-            <mklabel_options>NAIF</mklabel_options>
             <description>SPICE SCLK file providing improved correlation data for the primary M2020 on-board clock, created by NAIF, JPL.
             </description>
         </kernel>
         <kernel pattern="m2020_lmst_ops210303_v[0-9].tsc">
-            <mklabel_options>NAIF</mklabel_options>
             <description>SPICE SCLK file implementing M2020 Local Mean Solar Time (LMST), created by NAIF, JPL.
             </description>
         </kernel>
         <kernel pattern="m2020_turret_tools_v[0-9].bc">
-            <mklabel_options>ROVER $PHASES NAIF</mklabel_options>
             <description>SPICE CK file containing fixed orientations of the Robot Arm (RA) turret
                 frame to the turret tool reference frames, created by NAIF, JPL.
             </description>
         </kernel>
         <kernel pattern="m2020_cruise_recon_nospin_v[0-9].bc">
-            <mklabel_options>ROVER $PHASES NAIF</mklabel_options>
             <description>SPICE CK file containing complete cruise orientation based on H-vector direction without modeling spin,
                 created by the Mars 2020 Attitude Control System (ACS) Team, JPL.
             </description>
         </kernel>
         <kernel pattern="m2020_cruise_recon_raweng_v[0-9].bc">
-            <mklabel_options>ROVER $PHASES NAIF</mklabel_options>
             <description>SPICE CK file containing fully reconstructed cruise orientation based on high-rate quaternions covering only short periods
                 around thruster firing events and ACS calibration activities, created by the Mars 2020 Attitude Control System (ACS) Team, JPL.
             </description>
         </kernel>
         <kernel pattern="m2020_cruise_recon_rawrt_v[0-9].bc">
-            <mklabel_options>ROVER $PHASES NAIF</mklabel_options>
             <description>SPICE CK file containing fully reconstructed cruise orientation based on real-time quaternions covering only communication periods, created by
                 the Mars 2020 Attitude Control System (ACS) Team, JPL.
             </description>
         </kernel>
         <kernel pattern="m2020_edl_v[0-9][0-9].bc">
-            <mklabel_options>ROVER $PHASES NAIF</mklabel_options>
             <description>SPICE CK file containing reconstructed M2020 spacecraft Entry Descent Landing (EDL)
                 orientation, created by NAIF, JPL.
             </description>
         </kernel>
         <kernel pattern="m2020_surf_rover_tlm_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_v[0-9].bc">
-            <mklabel_options>ROVER $PHASES NAIF</mklabel_options>
             <description>SPICE CK file containing the orientation of the rover relative to the local level frame, created by NAIF, JPL using telemetry view data from OPGS PLACES server, covering SOLs $START to $FINISH, version $VERSION.
             </description>
             <patterns>
@@ -163,7 +150,6 @@
             </patterns>
         </kernel>
         <kernel pattern="m2020_surf_ra_tlmenc_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_v[0-9].bc">
-            <mklabel_options>RA $PHASES NAIF</mklabel_options>
             <description>SPICE CK file containing the orientation of the Robotic Arm (RA) relative to the rover frame, created by NAIF, JPL using encoder angles from telemetry view data from OPGS PLACES server, covering SOLs $START to $FINISH, version $VERSION.
             </description>
             <patterns>
@@ -173,7 +159,6 @@
             </patterns>
         </kernel>
         <kernel pattern="m2020_surf_ra_tlmres_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_v[0-9].bc">
-            <mklabel_options>RA $PHASES NAIF</mklabel_options>
             <description>SPICE CK file containing the orientation of the Robotic Arm (RA) relative to the rover frame, created by NAIF, JPL using resolver angles from telemetry view data from OPGS PLACES server, covering SOLs $START to $FINISH, version $VERSION.
             </description>
             <patterns>
@@ -183,7 +168,6 @@
             </patterns>
         </kernel>
         <kernel pattern="m2020_surf_rsm_tlmenc_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_v[0-9].bc">
-            <mklabel_options>RSM $PHASES NAIF</mklabel_options>
             <description>SPICE CK file containing the orientation of the Remote Sensing Mast (RSM) relative to the rover frame, created by NAIF, JPL using encoder angles telemetry view data from OPGS PLACES server, covering SOLs $START to $FINISH, version $VERSION.
             </description>
             <patterns>
@@ -193,7 +177,6 @@
             </patterns>
         </kernel>
         <kernel pattern="m2020_surf_rsm_tlmres_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_v[0-9].bc">
-            <mklabel_options>RSM $PHASES NAIF</mklabel_options>
             <description>SPICE CK file containing the orientation of the Remote Sensing Mast (RSM) relative to the rover frame, created by NAIF, JPL using resolver angles telemetry view data from OPGS PLACES server, covering SOLs $START to $FINISH, version $VERSION.
             </description>
             <patterns>
@@ -203,7 +186,6 @@
             </patterns>
         </kernel>
         <kernel pattern="m2020_surf_hga_tlm_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_v[0-9].bc">
-            <mklabel_options>HGA $PHASES NAIF</mklabel_options>
             <description>SPICE CK file containing the orientation of the High Gain Antenna (HGA) relative to the rover frame, created by NAIF, JPL using telemetry view data from OPGS PLACES server,
                 covering SOLs $START to $FINISH, version $VERSION.
             </description>
@@ -214,7 +196,6 @@
             </patterns>
         </kernel>
         <kernel pattern="m2020_surf_rover_tlm_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_v[0-9].bsp">
-            <mklabel_options>$PHASES NAIF</mklabel_options>
             <description>SPICE SPK file containing the telemetry-based location of sites along the path relative to the landing site and
                 the telemetry-based location of the rover relative to these sites, created using the telemetry view data from the OPGS PLACES
                 server, covering SOLs $START to $FINISH, version $VERSION. Created by NAIF, JPL.
@@ -226,7 +207,6 @@
             </patterns>
         </kernel>
         <kernel pattern="m2020_surf_rover_loc_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_v[0-9].bsp">
-            <mklabel_options>$PHASES NAIF</mklabel_options>
             <description>SPICE SPK file containing the localized locations of sites along the path relative to the
                 center of Mars and the localized location of the rover relative to the center of Mars, created using
                 the localized_interp view data from the OPGS PLACES server, covering SOLs $START to $FINISH, version $VERSION. Created by NAIF, JPL.
@@ -238,7 +218,6 @@
             </patterns>
         </kernel>
         <kernel pattern="m2020_edl_v[0-9][0-9].bsp">
-            <mklabel_options>$PHASES NAIF</mklabel_options>
             <description>SPICE SPK file containing the final reconstructed EDL trajectory, created by NAIF, JPL.
             </description>
             <patterns>
@@ -246,7 +225,6 @@
             </patterns>
         </kernel>
         <kernel pattern="m2020_cruise_od138_v[0-9].bsp">
-            <mklabel_options>$PHASES NAIF</mklabel_options>
             <description>SPICE SPK file containing the final reconstructed cruise trajectory, created by the Mars 2020 NAV Team, JPL.
             </description>
             <patterns>
@@ -254,7 +232,6 @@
             </patterns>
         </kernel>
         <kernel pattern="m2020_struct_v[0-9][0-9].bsp">
-            <mklabel_options>$PHASES NAIF</mklabel_options>
             <description>SPICE SPK file providing relative locations of various M2020 structures and science and engineering instruments, created by NAIF, JPL.
             </description>
             <patterns>
@@ -262,7 +239,6 @@
             </patterns>
         </kernel>
         <kernel pattern="m2020_atls_ops210303_v[0-9].bsp">
-            <mklabel_options>$PHASES NAIF</mklabel_options>
             <description>SPICE SPK file containing position of the rover fixed at the landing site, used to support the CHRONOS time-conversion program, created by NAIF, JPL.
             </description>
             <patterns>
@@ -270,7 +246,6 @@
             </patterns>
         </kernel>
         <kernel pattern="m2020_ls_ops210303_iau2000_v[0-9].bsp">
-            <mklabel_options>$PHASES NAIF</mklabel_options>
             <description>SPICE SPK file containing the actual landing site location relative to the center of Mars in the Mars body-fixed frame, created by NAIF, JPL.
             </description>
             <patterns>
@@ -278,22 +253,18 @@
             </patterns>
         </kernel>
         <kernel pattern="mar097.bsp">
-            <mklabel_options>$PHASES NAIF</mklabel_options>
             <description>SPICE SPK file providing JPL Martian satellite ephemerides version MAR097, created by NAIF, JPL.
             </description>
         </kernel>
         <kernel pattern="de438s.bsp">
-            <mklabel_options>$PHASES NAIF</mklabel_options>
             <description>SPICE SPK file providing JPL planetary and lunar ephemerides version DE438, created by NAIF, JPL.
             </description>
         </kernel>
         <kernel pattern="m2020_v[0-9][0-9].tm">
-            <mklabel_options></mklabel_options>
             <description>SPICE MK file listing the complete set of kernels for the whole mission, created by NAIF, JPL.
             </description>
         </kernel>
         <kernel pattern="m2020_chronos_v[0-9][0-9].tm">
-            <mklabel_options></mklabel_options>
             <description>SPICE MK file listing the kernels needed for the CHRONOS time-conversion program, created by NAIF, JPL.
             </description>
         </kernel>

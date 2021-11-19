@@ -544,7 +544,8 @@ def main(
             )
             if not isdir(checksum_dir):
                 for release in bundle.history.items():
-                    release_checksum = ChecksumProduct(setup, miscellaneous_collection)
+                    release_checksum = ChecksumProduct(setup, miscellaneous_collection,
+                                                       add_previous_checksum=False)
                     release_checksum.generate(history=release)
 
                     #
@@ -599,7 +600,6 @@ def main(
         #    * The miscellaneous collection is the one to be guaranteed to be
         #      updated.
         #
-        miscellaneous_collection.set_collection_vid()
         checksum = ChecksumProduct(setup, miscellaneous_collection)
 
         #
@@ -611,6 +611,7 @@ def main(
                 product.new_product = False
 
         miscellaneous_collection.add(checksum)
+        miscellaneous_collection.set_collection_vid()
 
         checksum.set_coverage()
         miscellaneous_collection_inventory = InventoryProduct(

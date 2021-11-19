@@ -198,7 +198,7 @@ class TestKernelList(TestCase):
         provided as inputs.
         """
         config = "../config/mars2020.xml"
-        plan = "../data/mars2020_release_01.plan"
+        plan = "../data/mars2020_release_10.plan"
         faucet = "list"
 
         main(config, plan, faucet=faucet, silent=True)
@@ -209,7 +209,7 @@ class TestKernelList(TestCase):
                 new_file += line
 
         old_file = ""
-        with open("../data/mars2020_release_01.kernel_list", "r") as f:
+        with open("../data/mars2020_release_10.kernel_list", "r") as f:
             for line in f:
                 old_file += line
 

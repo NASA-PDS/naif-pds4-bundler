@@ -499,9 +499,10 @@ class Bundle(object):
                         misc_releases = range(1, number_of_releases + 1)
                     else:
                         misc_releases = [ver]
+                else:
+                    misc_releases = [ver]
 
                 for mver in misc_releases:
-
                     mis_collection = (
                         f"miscellaneous/"
                         f"collection_miscellaneous_inventory_v{mver:03d}.csv"
@@ -654,24 +655,30 @@ class Bundle(object):
 
             #
             # The last checksum and its label has to be added to the products in
-            # the checksum list
+            # the checksum list, unless it is the first time that the
+            # miscellaneous collection is being generated and it is not the
+            # first release.
             #
-            if rel == list(history)[-1]:
-                products_in_checksum.append(
-                    f"miscellaneous/checksum/checksum_v{rel:03d}.tab"
-                )
-                products_in_checksum.append(
-                    f"miscellaneous/checksum/checksum_v{rel:03d}.xml"
-                )
+            # The checksum is added if it is not the last release and the
+            # checksum is present in the archive history.
+            #
+            checksum_product = f"miscellaneous/checksum/checksum_v{rel:03d}.tab"
+            checksum_label = f"miscellaneous/checksum/checksum_v{rel:03d}.xml"
 
-            products_in_checksum = sorted(products_in_checksum)
+            if checksum_product in history[rel]:
 
-            if not (products_in_checksum == products_in_history):
+                products_in_checksum.append(checksum_product)
+                products_in_checksum.append(checksum_label)
+
+            products_in_checksum.sort()
+            products_in_history.sort()
+
+            if not products_in_checksum == products_in_history:
 
                 logging.error("")
                 logging.error(
                     f"-- Products in {checksum_file} do not "
-                    f"correspond to the bundle release history"
+                    f"correspond to the bundle release history."
                 )
                 incorrect_products = set(products_in_checksum) ^ set(
                     products_in_history
