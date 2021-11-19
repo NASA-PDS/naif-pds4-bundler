@@ -498,7 +498,7 @@ class Bundle(object):
                     if ver != 1:
                         misc_releases = range(1, number_of_releases + 1)
                     else:
-                        misc_releases = [ver]
+                        misc_releases = [1]
                 else:
                     misc_releases = [ver]
 

@@ -3725,6 +3725,20 @@ class ChecksumProduct(Product):
                 for product in collection.product:
                     product_name = product.path.split(f"/{msn_acr}_spice/")[-1]
                     if hasattr(product, "checksum"):
+
+                        #
+                        # If a product MD5 sum is duplicated by a prodcut with
+                        # a different name raise an error unless you are
+                        # running NPB in debug mode (for the majority of tests,)
+                        #
+                        if product.checksum in list(self.md5_dict.keys()) and \
+                                self.md5_dict[product.checksum] != product_name:
+                            msg = f"Two products have the same MD5 sum, " \
+                                  f"the product {product_name} might be a duplicate"
+                            if not self.setup.args.debug:
+                                error_message(msg)
+                            else:
+                                logging.debug(msg)
                         self.md5_dict[product.checksum] = product_name
                     else:
                         #

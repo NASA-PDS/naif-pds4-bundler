@@ -61,12 +61,12 @@
     <File>
       <file_name>m2020_struct_v00.ti</file_name>
       <creation_date_time>2021-06-25T08:00:00</creation_date_time>
-      <file_size unit="byte">6918</file_size>
-      <md5_checksum>c56e6227ecd44f024e85474e3c083e37</md5_checksum>
+      <file_size unit="byte">6916</file_size>
+      <md5_checksum>b439bb49f70d82352ae7a589174aa776</md5_checksum>
     </File>
     <SPICE_Kernel>
       <offset unit="byte">0</offset>
-      <object_length unit="byte">6918</object_length>
+      <object_length unit="byte">6916</object_length>
       <parsing_standard_id>SPICE</parsing_standard_id>
       <description>SPICE IK file providing FOV definitions and other instrument parameters for the M2020 antennas, created by NAIF, JPL.</description>
       <kernel_type>IK</kernel_type>

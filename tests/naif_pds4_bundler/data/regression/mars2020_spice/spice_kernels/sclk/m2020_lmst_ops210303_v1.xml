@@ -61,12 +61,12 @@
     <File>
       <file_name>m2020_lmst_ops210303_v1.tsc</file_name>
       <creation_date_time>2021-06-25T08:00:00</creation_date_time>
-      <file_size unit="byte">4913</file_size>
-      <md5_checksum>3c9d71a7c80af8ac4ca5dbe117f18f99</md5_checksum>
+      <file_size unit="byte">4906</file_size>
+      <md5_checksum>dd43fbe1d2e77df1ab4d3b2e9b88d0c0</md5_checksum>
     </File>
     <SPICE_Kernel>
       <offset unit="byte">0</offset>
-      <object_length unit="byte">4913</object_length>
+      <object_length unit="byte">4906</object_length>
       <parsing_standard_id>SPICE</parsing_standard_id>
       <description>SPICE SCLK file implementing M2020 Local Mean Solar Time (LMST), created by NAIF, JPL.</description>
       <kernel_type>SCLK</kernel_type>

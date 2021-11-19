@@ -61,12 +61,12 @@
     <File>
       <file_name>m2020_168_sclkscet_refit_v02.tsc</file_name>
       <creation_date_time>2021-06-25T08:00:00</creation_date_time>
-      <file_size unit="byte">42074</file_size>
-      <md5_checksum>55b06ba1988426b462ff8ea04a515b24</md5_checksum>
+      <file_size unit="byte">42058</file_size>
+      <md5_checksum>e95003d6b0ff5fae6c2813c483108b6e</md5_checksum>
     </File>
     <SPICE_Kernel>
       <offset unit="byte">0</offset>
-      <object_length unit="byte">42074</object_length>
+      <object_length unit="byte">42058</object_length>
       <parsing_standard_id>SPICE</parsing_standard_id>
       <description>SPICE SCLK file providing improved correlation data for the primary M2020 on-board clock, created by NAIF, JPL.</description>
       <kernel_type>SCLK</kernel_type>

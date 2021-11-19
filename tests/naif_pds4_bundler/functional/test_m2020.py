@@ -120,6 +120,66 @@ class TestMars2020(TestCase):
 
         main(config, kerlist=kerlist, silent=self.silent, log=self.log)
 
+    def test_m2020_duplicated_kernel(self):
+        """Test error for a duplicated product.
+
+        A file with a different filename might have the same md5 sum, this
+        check catches that scenario. The bug that lead to this implementation
+        was found when designing the regression test in test_pds4.py: test_m2020
+
+        Test is successful if the following error is raised::
+            RuntimeError: Two products have the same MD5 sum, the product
+            spice_kernels/sclk/m2020_168_sclkscet_refit_v03.tsc might be a
+            duplicate.
+        """
+        shutil.rmtree("kernels")
+        shutil.copytree(
+            "../data/regression/mars2020_spice/spice_kernels",
+            "kernels",
+            ignore=shutil.ignore_patterns("*.xml", "*.csv"),
+        )
+
+        config = "../config/mars2020.xml"
+        plan = '../data/mars2020_release_01.plan'
+
+        main(config, plan=plan, silent=self.silent)
+
+        updated_config = 'working/mars2020_release_02.xml'
+
+        with open(config, "r") as c:
+            with open(updated_config, "w") as n:
+                for line in c:
+                    if "<file>kernels/mk/m2020_v01.tm</file>" in line:
+                        n.write("<file>kernels/mk/m2020_v02.tm</file>\n")
+                    elif "<file>kernels/mk/m2020_chronos_v01.tm</file>" in line:
+                        n.write("")
+                    else:
+                        n.write(line)
+
+        plan = '../data/mars2020_release_02.plan'
+        main(updated_config, plan=plan, silent=self.silent)
+
+        updated_config = 'working/mars2020_release_03.xml'
+        mk_inputs = False
+        with open(config, "r") as c:
+            with open(updated_config, "w") as n:
+                for line in c:
+                    if "mk_inputs" in line and not mk_inputs:
+                        mk_inputs = True
+                    elif "mk_inputs" in line and mk_inputs:
+                        mk_inputs = False
+                    elif not mk_inputs:
+                        n.write(line)
+
+        plan = "../data/mars2020_release_03.plan"
+        shutil.copy2("kernels/sclk/m2020_168_sclkscet_refit_v02.tsc","kernels/sclk/m2020_168_sclkscet_refit_v03.tsc")
+
+        with self.assertRaises(RuntimeError):
+            main(
+                updated_config, plan=plan, silent=self.silent, log=self.log,
+                debug=False
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

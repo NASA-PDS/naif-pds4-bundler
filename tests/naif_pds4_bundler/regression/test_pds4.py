@@ -215,12 +215,29 @@ class TestPDS4(TestCase):
         plan = '../data/mars2020_release_02.plan'
         main(updated_config, plan=plan, silent=self.silent, log=self.log)
 
+        updated_config = 'working/mars2020_release_03.xml'
+        mk_inputs = False
+        with open(self.updated_config, "r") as c:
+            with open(updated_config, "w") as n:
+                for line in c:
+                    if "mk_inputs" in line and not mk_inputs:
+                        mk_inputs = True
+                    elif "mk_inputs" in line and mk_inputs:
+                        mk_inputs = False
+                    elif not mk_inputs:
+                        n.write(line)
+
+        plan = "../data/mars2020_release_03.plan"
+        shutil.copy2("../data/kernels/sclk/m2020_168_sclkscet_refit_v03.tsc",
+                     "kernels/sclk/m2020_168_sclkscet_refit_v03.tsc")
+        main(updated_config, plan=plan, silent=self.silent, log=self.log)
+
 #    def test_dart(self):
 #        '''
 #        Test to generate the DART archive. This test includes multiple
 #        targets and spacecrafts.
 #        '''
-#        config = '../config/dart.xml'
+#        config = '../config/dart.xml'x``
 #
 #        shutil.copytree('/Users/mcosta/workspace/dart/DART/kernels/','kernels',
 #                        ignore=shutil.ignore_patterns('*.xml','*.csv'))

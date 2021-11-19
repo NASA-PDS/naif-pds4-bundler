@@ -61,12 +61,12 @@
     <File>
       <file_name>pck00010.tpc</file_name>
       <creation_date_time>2021-06-25T08:00:00</creation_date_time>
-      <file_size unit="byte">126143</file_size>
-      <md5_checksum>da153641f7346bd5b6a1226778e0d51b</md5_checksum>
+      <file_size unit="byte">123549</file_size>
+      <md5_checksum>9c5716d2c5d89303e75aed963642c1b3</md5_checksum>
     </File>
     <SPICE_Kernel>
       <offset unit="byte">0</offset>
-      <object_length unit="byte">126143</object_length>
+      <object_length unit="byte">123549</object_length>
       <parsing_standard_id>SPICE</parsing_standard_id>
       <description>SPICE text PCK file containing constants from the IAU 2009 report, created by NAIF, JPL.</description>
       <kernel_type>PCK</kernel_type>

@@ -4,15 +4,15 @@
 
 <Product_SPICE_Kernel xmlns="http://pds.nasa.gov/pds4/pds/v1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd">
   <Identification_Area>
-    <logical_identifier>urn:nasa:pds:mars2020.spice:spice_kernels:lsk_naif0012.tls</logical_identifier>
+    <logical_identifier>urn:nasa:pds:mars2020.spice:spice_kernels:sclk_m2020_168_sclkscet_refit_v03.tsc</logical_identifier>
     <version_id>1.0</version_id>
-    <title>naif0012.tls</title>
+    <title>m2020_168_sclkscet_refit_v03.tsc</title>
     <information_model_version>1.5.0.0</information_model_version>
     <product_class>Product_SPICE_Kernel</product_class>
     <Citation_Information>
       <publication_year>2021</publication_year>
       <keyword>Observation Geometry</keyword>
-      <description>SPICE LSK file incorporating leapseconds up to 2017-JAN-01, created by NAIF, JPL.</description>
+      <description>SPICE SCLK file providing improved correlation data for the primary M2020 on-board clock, created by NAIF, JPL.</description>
     </Citation_Information>
   </Identification_Area>
   <Context_Area>
@@ -59,17 +59,17 @@
   </Reference_List>
   <File_Area_SPICE_Kernel>
     <File>
-      <file_name>naif0012.tls</file_name>
+      <file_name>m2020_168_sclkscet_refit_v03.tsc</file_name>
       <creation_date_time>2021-06-25T08:00:00</creation_date_time>
-      <file_size unit="byte">4968</file_size>
-      <md5_checksum>c3f506253c860110602ca892beb1b774</md5_checksum>
+      <file_size unit="byte">41991</file_size>
+      <md5_checksum>f875700b37e6389adf404f75103be3cc</md5_checksum>
     </File>
     <SPICE_Kernel>
       <offset unit="byte">0</offset>
-      <object_length unit="byte">4968</object_length>
+      <object_length unit="byte">41991</object_length>
       <parsing_standard_id>SPICE</parsing_standard_id>
-      <description>SPICE LSK file incorporating leapseconds up to 2017-JAN-01, created by NAIF, JPL.</description>
-      <kernel_type>LSK</kernel_type>
+      <description>SPICE SCLK file providing improved correlation data for the primary M2020 on-board clock, created by NAIF, JPL.</description>
+      <kernel_type>SCLK</kernel_type>
       <encoding_type>Character</encoding_type>
     </SPICE_Kernel>
   </File_Area_SPICE_Kernel>
