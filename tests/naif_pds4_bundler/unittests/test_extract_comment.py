@@ -38,7 +38,7 @@ class TestExtractComment(TestCase):
         unittest.TestCase.tearDown(self)
 
     def test_ck(self):
-        """Test comment extraction."""
+        """Test comment extraction from kernel."""
         comment = extract_comment(
             "../data/kernels/ck/insight_ida_enc_200829_201220_v1.bc"
         )

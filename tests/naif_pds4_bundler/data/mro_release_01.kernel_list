@@ -1,0 +1,11 @@
+DATE = 2021-11-24
+SPACECRAFT = MRO
+NAIFER = Marc Costa Sitja
+DATASETID = MRO-M-SPICE-6-V1.0
+VOLUMEID = mrosp_1000
+RELEASE_ID = 0001
+RELEASE_DATE = 2021-11-24
+$EOH
+FILE             = data/ck/mro_hga_psp_210705_210717p.bc
+MAKLABEL_OPTIONS = NAIF HGA PREDICT ESP
+DESCRIPTION      = MRO SPICE CK file providing predicted orientation of the High Gain Antenna (HGA) modeled by the MRO Spacecraft Team, LMA using the AtArPS tool for a part of the Extended Science phase of the mission, created by NAIF, JPL. The original name of this file was CK_Pred_21187_21199_hga_20210706141103.bc.

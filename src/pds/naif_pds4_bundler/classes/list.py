@@ -11,6 +11,7 @@ from ..utils import check_consecutive
 from ..utils import check_list_duplicates
 from ..utils import compare_files
 from ..utils import extension2type
+from ..utils import extract_comment
 from ..utils import fill_template
 from .log import error_message
 
@@ -400,7 +401,7 @@ class KernelList(List):
                         #
                         # "options" and "descriptions" require to
                         # substitute parameters derived from the filenames
-                        # themselves.
+                        # themselves or from the comments of the kernel.
                         #
                         if patterns:
                             for el in patterns:
@@ -467,6 +468,27 @@ class KernelList(List):
                                                 "metacharacter cannot start "
                                                 "or finish a kernel pattern"
                                             )
+                                    elif (
+                                        "@file" in patterns[el]
+                                        and patterns[el]["@file"].lower() == "comment"
+                                    ):
+                                        #
+                                        # Extracting the value from the comment
+                                        # area of the kernel. This is usually to
+                                        # get the original kernel name.
+                                        #
+                                        # So far this merhod is implemented to accomodate MRO files
+                                        #
+                                        comment = extract_comment(
+                                            self.setup.kernels_directory[0] +
+                                            f"/{ extension2type(kernel.split('.')[-1])}/" + kernel
+                                        )
+
+                                        for line in comment:
+                                            if patterns[el]["#text"] in line:
+                                                value = line.strip()
+                                                break
+
                                     else:
                                         #
                                         # For non-kernels the value is based

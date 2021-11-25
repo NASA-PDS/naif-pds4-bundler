@@ -135,6 +135,43 @@ class TestKernelList(TestCase):
 
         self.assertEqual(old_file.split("\n")[7:], new_file.split("\n")[7:])
 
+    def test_pds3_mro_list(self):
+        """Basic test for MRO kernel list generation.
+
+        MRO is a PDS3 data set. This test was implemented to support
+        the generation of the kernel list for release 59.
+        """
+        config = "../config/mro.xml"
+        plan = "../data/mro_release_59.plan"
+        faucet = "list"
+
+        shutil.copy2(
+            "../data/mro_release_58.kernel_list",
+            "working/mro_release_58.kernel_list"
+        )
+
+        os.mkdir("kernels/ck")
+        shutil.copy2(
+            "../data/kernels/ck/mro_hga_psp_210705_210717p.bc",
+            "kernels/ck/mro_hga_psp_210705_210717p.bc"
+        )
+
+        main(config, plan, faucet, silent=self.silent)
+
+        new_file = ""
+        with open("working/mro_release_01.kernel_list", "r") as f:
+            for line in f:
+                if "DATE =" not in line:
+                    new_file += line
+
+        old_file = ""
+        with open("../data/mro_release_01.kernel_list", "r") as f:
+            for line in f:
+                if "DATE =" not in line:
+                    old_file += line
+
+        self.assertEqual(old_file.split("\n")[7:], new_file.split("\n")[7:])
+
     def test_pds4_insight_list(self):
         """Basic test for InSight kernel list generation.
 
