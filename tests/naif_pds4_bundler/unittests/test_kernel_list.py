@@ -150,10 +150,9 @@ class TestKernelList(TestCase):
             "working/mro_release_58.kernel_list"
         )
 
-        os.mkdir("kernels/ck")
-        shutil.copy2(
-            "../data/kernels/ck/mro_hga_psp_210705_210717p.bc",
-            "kernels/ck/mro_hga_psp_210705_210717p.bc"
+        shutil.copytree(
+            "../data/kernels/ck",
+            "kernels/ck"
         )
 
         main(config, plan, faucet, silent=self.silent)

@@ -462,7 +462,7 @@ class KernelList(List):
                                                 value = value.upper()
                                         else:
                                             error_message(
-                                                "Kernel pattern "
+                                                f"Kernel pattern for {kernel} "
                                                 "not adept to write "
                                                 "description. Remember a "
                                                 "metacharacter cannot start "
@@ -488,6 +488,12 @@ class KernelList(List):
                                             if patterns[el]["#text"] in line:
                                                 value = line.strip()
                                                 break
+
+                                        if not isinstance(value, str):
+                                            error_message(
+                                                "Kernel pattern "
+                                                f"not found in comment area of {kernel}"
+                                            )
 
                                     else:
                                         #
