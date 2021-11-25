@@ -65,7 +65,7 @@
         <kernel pattern="mro_sclkscet_[0-9][0-9][0-9][0-9][0-9]_65536.tsc">
             <mapping>MRO_SCLKSCET.$VERSION.65536.tsc</mapping>
             <mklabel_options>DEF_TIMES</mklabel_options>
-            <description>MRO SPICE SCLK file providing correlation data for the primary MRO on-board clock tags in ``standard'' and ``high precision'' format, created by NAIF, JPL. The original name of this file was MRO_SCLKSCET.$VER.65536.tsc.
+            <description>MRO SPICE SCLK file providing correlation data for the primary MRO on-board clock tags in ``standard'' and ``high precision'' format, created by NAIF, JPL. The original name of this file was MRO_SCLKSCET.$VERSION.65536.tsc.
             </description>
             <patterns>
                 <VERSION pattern="KERNEL">MRO_SCLKSCET.$VERSION.65536.tsc</VERSION>
