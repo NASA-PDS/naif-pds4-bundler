@@ -3,7 +3,7 @@ import os
 
 
 def countlines(start, lines=0, header=True, begin_start=None):
-    """Counts lines of code for thhe files under the indicated path."""
+    """Counts lines of code for the files under the indicated path."""
     if header:
         print("{:>10} |{:>10} | {:<20}".format("ADDED", "TOTAL", "FILE"))
         print("{:->11}|{:->11}|{:->20}".format("", "", ""))

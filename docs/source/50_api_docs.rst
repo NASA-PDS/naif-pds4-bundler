@@ -1,10 +1,13 @@
-***********************************
-Functions and Modules Documentation
-***********************************
+***************************
+API and Tests Documentation
+***************************
+
+.. The API documentation is automatically generated with:
+.. sphinx-apidoc -f -o source ../src/pds
+.. sphinx-apidoc -f -o source ../tests
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 7
 
-   51_main
-   52_classes
-   53_utils
+   pds.rst
+   tests.rst

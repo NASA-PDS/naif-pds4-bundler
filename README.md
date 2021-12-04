@@ -1,10 +1,7 @@
 # NAIF PDS4 Bundler
 
-The NAIF PDS4 Bundler (NPB) is a a pipeline that generates a SPICE archive in
+The NAIF PDS4 Bundler (NPB) is software package that generates a SPICE archive in
 the shape of a PDS4 Bundle.
-
-The pipeline is constructed by the orchestration of a family of classes that
-can also be used independently.
 
 Please visit our website at: https://nasa-pds.github.io/naif-pds4-bundler
 
@@ -35,14 +32,14 @@ C compiler is required.)
 
 ## User Documentation
 
-Please visit the documentation at: https://nasa-pds.github.io/naif-pds4-bundle/
+Please visit the documentation at: https://nasa-pds.github.io/naif-pds4-bundler/
 
 
 ## User Quickstart
 
 Install with:
 
-
+    pip install naif-pds4-bundler
 
 To execute just to show the help message, run:
 
@@ -95,9 +92,7 @@ Run tests with:
 
     python -m unittest
 
-under ``tests/naif_pds4_bundler``, or:
-
-    coverage run -m nose --cover-package=.
+under ``tests/naif_pds4_bundler``
 
 
 ### Documentation

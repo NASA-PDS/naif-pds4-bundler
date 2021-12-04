@@ -1,4 +1,4 @@
-"""Functional Test Family for Labeling execution mode."""
+"""Functional Test Family for Label execution mode."""
 import os
 import shutil
 import unittest
@@ -7,8 +7,8 @@ from unittest import TestCase
 from pds.naif_pds4_bundler.__main__ import main
 
 
-class TestLabeling(TestCase):
-    """Functional Test Family Class for Labeling execution mode."""
+class TestLabel(TestCase):
+    """Functional Test Family Class for Label execution mode."""
 
     @classmethod
     def setUpClass(cls):
@@ -52,8 +52,8 @@ class TestLabeling(TestCase):
         if os.path.exists("staging"):
             os.remove("staging")
 
-    def test_ladee_labeling_mode(self):
-        """Test basic Labeling mode functionality.
+    def test_ladee_label_mode(self):
+        """Test basic Label mode functionality.
 
         Test the label generation only, input kernels are all the kernels
         present in the kernels directory. After that remove the labels with the
@@ -83,8 +83,8 @@ class TestLabeling(TestCase):
             log=self.log,
         )
 
-    def test_ladee_labeling_mode_ker_input(self):
-        """Test Labeling mode functionality with single kernel as input.
+    def test_ladee_label_mode_ker_input(self):
+        """Test Label mode functionality with single kernel as input.
 
         Test the label generation only, input kernel specified as a parameter.
         Also tests for a non-present/wrong kernel input.
@@ -143,11 +143,11 @@ class TestLabeling(TestCase):
             log=self.log,
         )
 
-    def test_ladee_labeling_mode_plan_input(self):
-        """Test basic Labeling mode functionality with a list as input.
+    def test_ladee_label_mode_plan_input(self):
+        """Test basic Label mode functionality with a list as input.
 
         Test the label generation only, input kernels are provided in a
-        release plan. Do another test with incorrect plan list name extension.
+        release plan.
 
         Test is successful if NPB is executed without errors.
         """
@@ -194,8 +194,8 @@ class TestLabeling(TestCase):
             log=self.log,
         )
 
-    def test_ladee_labeling_mode_ker_bun_dir(self):
-        """Test Labeling mode with same bundle and kernel directories.
+    def test_ladee_label_mode_ker_bun_dir(self):
+        """Test Label mode with same bundle and kernel directories.
 
         Test the label generation only, ``kernel_directory`` and
         ``bundle_directory`` are the same. First tests only provides a single

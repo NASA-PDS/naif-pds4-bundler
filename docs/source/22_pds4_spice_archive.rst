@@ -48,7 +48,7 @@ of the labeled SPICE kernel except for the extension, which will be ``.xml``.
 Document Collection
 ^^^^^^^^^^^^^^^^^^^
 
-The document collection contains all the versions of the SPICE Data Archive
+The ``document`` collection contains all the versions of the SPICE Data Archive
 description file (SPICEDS). These files are described in the section
 :ref:`source/32_step_2_npb_setup:SPICE Data Set Catalog File`.
 
@@ -56,18 +56,18 @@ description file (SPICEDS). These files are described in the section
 Miscellaneous Collection
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-The miscellaneous collection contains checksum products under the checksum
-directory. These checksum files provide a table of MD5 sums for all the
-files in the archive as of a particular archive version, including checksums
-for all previous checksum files and their labels but excluding the checksum
-for the checksum file itself and its label.
+The ``miscellaneous`` collection contains checksum products under the
+``checksum`` directory. These checksum files provide a table of MD5 sums for
+all the files in the archive as of a particular archive version, including
+checksums for all previous checksum files and their labels but excluding the
+checksum for the checksum file itself and its label.
 
 There should be a checksum product for each release of the archive. As for
 any other archive product, the checksum product will have a label. These labels
 have the same file name except for the extension, which will be ``.xml``.
 
 In addition, the miscellaneous collection might contain orbit number files
-(ORBNUM) under an orbnum directory with their corresponding ``.xml`` labels.
+(ORBNUM) under an ``orbnum`` directory with their corresponding ``.xml`` labels.
 Any ORBNUM files go here because they are not SPICE kernels.
 
 Other types of files are currently not envisaged for the miscellaneous
@@ -306,8 +306,8 @@ where
    * ``<agency>`` is the mission's space agency (e.g. nasa, esa, etc.)
    * ``<authority>`` is the agency's archiving authority (e.g. pds, psa, etc.)
    * ``<sc>`` is the short s/c name or acronym (e.g. maven, em16, etc.) Note that
-     some ESA PSA SPICE kernel bundles have ``<sc>_spice`` instead of ``<sc>.spice``,
-     NAIF recommends to use ``<sc>.spice``
+     some ESA PSA SPICE kernel bundles have ``<sc>_spice`` instead of
+     ``<sc>.spice``. NAIF recommends to use ``<sc>.spice``
 
 for example::
 
@@ -424,15 +424,15 @@ Bundle Products Construction Rules
 ----------------------------------
 
 Readme files cannot be overwritten (as for any other file in the archive)
-or versioned. This means that when the Readme file is generateed for the first
+or versioned. This means that when the Readme file is generated for the first
 release of the archive, it will remain unchanged; make sure not to make
-mistakes when writing that file and write it as generically as possible,
-for example, do not specify the archive producer name, instead provide the
+mistakes when writing that file and write it as generically as possible.
+For example, do not specify the archive producer name, instead provide the
 the archive producer organization name (usually the archiving authority.)
 
 This is the reason why you will probably not see any reference to the
 Miscellaneous collection in most readme files of NAIF archives: the
-Miscellaneous collection was added after the first release of the archive.
+Miscellaneous collection was added after the several releases of the archive.
 
 
 Product Reference and Collection Inventory Construction Rules
@@ -472,8 +472,8 @@ This set of rules applies to all the archive products:
       statuses.
 
 
-``start_date_time`` and ``stop_date_time`` Assignment Rules
------------------------------------------------------------
+Product Coverage Assignment Rules
+---------------------------------
 
 Determination of the coverage for the different products that needs to be
 recorded in the ``Contex_Area/Time Coordinates`` element of the product labels
@@ -515,6 +515,19 @@ must be followed:
        coverage of the SPICE collection that is its member.
 
 
+Bundle Creation Date Time
+-------------------------
+
+The creation time of the current version of the bundle is provided in the
+bundle label under the ``File_Area_Text`` area. Although this should
+correspond to the creation date of the readme file, its ``creation_date_time``
+element is used because is the only way to embed the creation date within
+the bundle label.
+
+There is no need to mention this in the errata section of the
+SPICE archive description document.
+
+
 Miscellaneous Collection Rules
 ------------------------------
 
@@ -530,6 +543,28 @@ collection (that automatically triggers the Miscellaneous collection increment),
 or that only includes a Miscellaneous collection increment (for example to
 only add an orbit number file product or a correction in any other product that
 is not a SPICE kernel.)
+
+
+Checksum files
+--------------
+
+It is highly recommended, not to say a policy, that archived files are ever
+altered in any way. This was not possible in PDS3 but it is in PDS4. Thanks to
+this, Checksum files provide the ability to revert to an earlier version
+of the archive -- just take all the files listed in particular checksum plus
+the checksum itself and its label.
+
+
+Bundles with multiple observers and/or targets
+----------------------------------------------
+
+Multiple spacecrafts and mutliple targets. NPB incorporates the possibility to
+have mutliple spacecrafts and targets in a Bundle. This is provided via
+configuration. If so, the default spacecraft will be the primary spacecraft
+which is specified in the configuration file. Otherwise it needs to be
+specified in the Kernel List section of the configuration file. The non-kernels
+bundle products will include all the targets and all the spacecrafts in the
+labels.
 
 
 PDS Information Model
@@ -723,3 +758,34 @@ Release 2 adds:
        ./spice_kernels/spk/maven_orb1.bsp
     +  ./spice_kernels/spk/maven_orb2.xml                         Product_SPICE_Kernel     urn:nasa:pds:maven.spice:spice_kernels:spk_maven_orb2.bsp::1.0
     +  ./spice_kernels/spk/maven_orb2.bsp
+
+
+A note on SPICE Kernels dissemination
+=====================================
+
+SPICE kernel archives might not be the only archives that include
+SPICE kernels. Any other archive is free to include SPICE kernels.
+As much as this is normal practice it can also be very dangerous. If you,
+as the archive producer for a mission, have a say on the SPICE kernels included
+in other archives of the mission, make sure of the following:
+
+    * check if the kernels have been peer-reviewed, are valid, useful,
+      and well documented;
+
+    * if it makes sense to **also** or to **only** include the SPICE kernel
+      product in the SPICE kernel archive;
+
+    * if these kernels need to be present in the meta-kernel or even if they
+      need a specific meta-kernel in the SPICE kernel archive.
+
+
+SPICE Kernel archive divergences rationale
+==========================================
+
+The fact that the PDS artifacts in the SPICE Kernel archives are not 100%
+aligned with PDS best practices or recommendations does **not** make
+the kernels less usable because these products, such as labels, are not needed
+to understand or use the kernels (unlike labels for PDS images, tables or other
+science data product types.) It is the internal comments in the kernels and
+other meta-information provided in the SPICE Archive Description Document
+(SPICEDS) that one needs to understand to use kernels in the proper way.

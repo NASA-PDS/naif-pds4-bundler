@@ -29,6 +29,7 @@ from ..utils import md5
 from ..utils import mk2list
 from ..utils import pck_coverage
 from ..utils import safe_make_directory
+from ..utils import spice_exception_handler
 from ..utils import spk_coverage
 from ..utils import type2extension
 from ..utils import utf8len
@@ -221,7 +222,7 @@ class SpiceKernelProduct(Product):
                             f"with {self.name}"
                         )
                     except BaseException:
-                        error_message(f"{self.name} not present in {path}", setup=setup)
+                        error_message(f"{self.name} not present in {path}.", setup=setup)
 
                 self.check_kernel_integrity(self, origin_path)
 
@@ -309,7 +310,7 @@ class SpiceKernelProduct(Product):
 
         if not description:
             error_message(
-                f"{self.name} does not have a description on " f"{kernel_list_file}",
+                f"{self.name} does not have a description on {kernel_list_file}.",
                 setup=self.setup,
             )
 
@@ -386,6 +387,7 @@ class SpiceKernelProduct(Product):
 
         return [id_list]
 
+    @spice_exception_handler
     def kernel_setup_phase(self):
         """Extract mission phase for kernel."""
         #
@@ -484,14 +486,33 @@ class SpiceKernelProduct(Product):
 
         if not mapping:
             error_message(
-                f"{self.name} does not have mapping on {kernel_list_file}",
+                f"{self.name} does not have mapping on {kernel_list_file}.",
                 setup=self.setup,
             )
 
         return mapping
 
+    @spice_exception_handler
     def check_kernel_integrity(self, object, path):
-        """Check if the kernels have the adequate architecture."""
+        """Check if the SPICE Kernel has the adequate architecture.
+
+        All SPICE kernels must have a NAIF file ID word as the first "word" on
+        the first line of the kernel. This "word" describes the architecture
+        of the kernel.
+
+        A binary kernel could have the following architectures:
+
+          DAF - The file is based on the DAF architecture.
+          DAS - The file is based on the DAS architecture.
+          XFR - The file is in a SPICE transfer file format.
+
+        For an archive only DAF is acceptable.
+
+        Text kernels must have KPL (Kernel Pool File) architecture.
+
+        NPB checks if binary kernels have a DAF architecture and text kernels
+        a KPL architecture.
+        """
         #
         # All files that are to have labels generated must have a NAIF
         # file ID word as the first "word" on the first line of the
@@ -512,7 +533,7 @@ class SpiceKernelProduct(Product):
             #
             if (arch != "DAF") and (arch != "DAS"):
                 error_message(
-                    f"Kernel {object.name} architecture {arch} is invalid",
+                    f"Kernel {object.name} architecture {arch} is invalid.",
                     setup=object.setup,
                 )
             else:
@@ -526,14 +547,14 @@ class SpiceKernelProduct(Product):
             #
             if arch != "KPL":
                 error_message(
-                    f"Kernel {object.name} architecture {arch} is invalid",
+                    f"Kernel {object.name} architecture {arch} is invalid.",
                     setup=object.setup,
                 )
 
         if type != object.type.upper():
             error_message(
                 f"Kernel {object.name} type {object.type.upper()} "
-                f"is not the one expected: {type}",
+                f"is not the one expected: {type}.",
                 setup=object.setup,
             )
 
@@ -605,7 +626,7 @@ class MetaKernelProduct(Product):
         if not hasattr(self, "mk_setup"):
             error_message(
                 f"Meta-kernel {self.name} has not been matched "
-                f"in configuration",
+                f"in configuration.",
                 setup=self.setup,
             )
 
@@ -828,7 +849,7 @@ class MetaKernelProduct(Product):
             if "01" not in self.name:
                 error_message(
                     f"{self.name} version does not correspond to VID "
-                    f"1.0. Rename the MK accordingly",
+                    f"1.0. Rename the MK accordingly.",
                     setup=self.setup,
                 )
 
@@ -928,7 +949,7 @@ class MetaKernelProduct(Product):
                                         f"description. Remember a "
                                         f"metacharacter "
                                         f"cannot start or finish "
-                                        f"a kernel pattern",
+                                        f"a kernel pattern.",
                                         setup=self.setup,
                                     )
                             else:
@@ -951,7 +972,7 @@ class MetaKernelProduct(Product):
                                     error_message(
                                         f"-- Kernel description "
                                         f"could not be updated with "
-                                        f"pattern: {value}",
+                                        f"pattern: {value}.",
                                         setup=self.setup,
                                     )
 
@@ -963,7 +984,7 @@ class MetaKernelProduct(Product):
 
         if not description:
             error_message(
-                f"{self.name} does not have a description on configuration file",
+                f"{self.name} does not have a description on configuration file.",
                 setup=self.setup,
             )
 
@@ -1229,7 +1250,11 @@ class MetaKernelProduct(Product):
         return
 
     def compare(self):
-        """Compare the Meta-kernel with the previous version."""
+        """**Compare the Meta-kernel with the previous version**.
+
+        The MK is compared with a previous version of the MK. If no prior
+        MK is found, the new MK is compared to NPB's MK template.
+        """
         val_mk = ""
 
         #
@@ -1261,8 +1286,8 @@ class MetaKernelProduct(Product):
 
         except BaseException:
             #
-            # If previous increment does not work, compare with insight
-            # example.
+            # If previous increment does not work, compare with the MK
+            # template.
             #
             logging.warning(f"-- No other version of {self.name} has been found.")
             logging.warning("-- Comparing with meta-kernel template.")
@@ -1280,15 +1305,16 @@ class MetaKernelProduct(Product):
         )
         compare_files(fromfile, tofile, dir, self.setup.diff)
 
+    @spice_exception_handler
     def validate(self):
         """Perform a basic validation of the Meta-kernel.
 
         The validation consists of:
 
-           * load the kernel with ``FURNSH``
-           * Count the loaded kernels with ``KTOTAL``
-           * Compare the number of kernel sin the pool with the length of the
-             meta-kernel collection list attribute.
+           * load the kernel with the SPICE API ``FURNSH``
+           * count the loaded kernels with SPICE API``KTOTAL``
+           * compare the number of kernels in the kernel pool with the length
+             of the MK collection list attribute.
         """
         line = f"Step {self.setup.step} - Meta-kernel {self.name} validation"
         logging.info("")
@@ -1311,10 +1337,7 @@ class MetaKernelProduct(Product):
         os.chdir(mkdir)
 
         spiceypy.kclear()
-        try:
-            spiceypy.furnsh(path)
-        except Exception:
-            error_message("SpiceyPy error", setup=self.setup)
+        spiceypy.furnsh(path)
 
         #
         # In KTOTAL, all meta-kernels are counted in the total; therefore
@@ -1330,7 +1353,7 @@ class MetaKernelProduct(Product):
             spiceypy.kclear()
             error_message(
                 "Number of kernels loaded is not equal to kernels "
-                "present in meta-kernel",
+                "present in meta-kernel.",
                 setup=self.setup,
             )
 
@@ -1340,6 +1363,7 @@ class MetaKernelProduct(Product):
 
         return
 
+    @spice_exception_handler
     def coverage(self):
         """Determine Meta-kernel coverage.
 
@@ -1432,7 +1456,7 @@ class MetaKernelProduct(Product):
                                 error_message(
                                     "Kernel used to determine "
                                     "coverage is not a SPK or CK "
-                                    "kernel",
+                                    "kernel.",
                                     setup=self.setup,
                                 )
 
@@ -1518,7 +1542,7 @@ class OrbnumFileProduct(Product):
         if not hasattr(self, "_orbnum_type"):
             error_message(
                 "The orbnum file does not match any type "
-                "described in the configuration",
+                "described in the configuration.",
                 setup=self.setup,
             )
 
@@ -1700,13 +1724,13 @@ class OrbnumFileProduct(Product):
         #
         if ("Event" not in header[0]) and ("Node" not in header[0]):
             error_message(
-                f"The header of the orbnum file {self.name} is not as expected",
+                f"The header of the orbnum file {self.name} is not as expected.",
                 setup=self.setup,
             )
 
         if "===" not in header[1]:
             error_message(
-                f"The header of the orbnum file {self.name} is not as expected",
+                f"The header of the orbnum file {self.name} is not as expected.",
                 setup=self.setup,
             )
 
@@ -1768,7 +1792,7 @@ class OrbnumFileProduct(Product):
                         break
 
         if not sample_record:
-            error_message("The orbnum file has no records", setup=self.setup)
+            error_message("The orbnum file has no records.", setup=self.setup)
 
         sample_record = self.__utc_blanks_to_dashes(sample_record)
 
@@ -2002,7 +2026,7 @@ class OrbnumFileProduct(Product):
                     self._event_detection_key = "D-NODE"
 
         if not hasattr(self, "_event_detection_key"):
-            error_message("orbnum event detection key is incorrect", setup=self.setup)
+            error_message("orbnum event detection key is incorrect.", setup=self.setup)
 
         return None
 
@@ -2986,11 +3010,10 @@ class InventoryProduct(Product):
     #        return
 
     def validate(self):
-        """Validate the Inventory against previous versions.
+        """Validate the Inventory Product.
 
-        The Inventory is validated by checking that all the products are present
-        and by comparing the Inventory Product with the previous version and
-        if it does not exist with the sample inventory product.
+        The Inventory is validated by checking that all the products listed
+        are present in the archive.
         """
         logging.info(f"-- Validating {self.name}...")
 
@@ -3016,12 +3039,11 @@ class InventoryProduct(Product):
         logging.info("")
 
     def compare(self):
-        """Compare the label with the previous version.
+        """**Compare the Inventory Product with another Inventory**.
 
-        The label is compared the Inventory Product with the previous
-        version and if it does not exist with the sample inventory product.
-
-        :return:
+        The Inventory Product is compared with the previous
+        version and if it does not exist with the sample INSIGHT inventory
+        product.
         """
         mission_acronym = self.setup.mission_acronym
         logging.info(
@@ -3046,9 +3068,8 @@ class InventoryProduct(Product):
 
             logging.warning("-- Comparing with InSight test inventory product.")
             fromfiles = glob.glob(
-                f"{self.setup.root_dir}data/"
-                f"collection_{self.collection.name}"
-                f"_inventory_*.csv"
+                f"{self.setup.root_dir}data/{self.collection.name}/"
+                f"collection_{self.collection.name}_inventory_*.csv"
             )
             fromfiles.sort()
             fromfile = fromfiles[-1]
@@ -3217,7 +3238,7 @@ class SpicedsProduct(object):
                 if not spiceds:
                     error_message(
                         "spiceds not provided and not available "
-                        "from previous releases",
+                        "from previous releases.",
                         setup=self.setup,
                     )
                 self.version = 1
@@ -3227,7 +3248,7 @@ class SpicedsProduct(object):
             self.latest_spiceds = ""
             if not spiceds:
                 error_message(
-                    "spiceds not provided and not available from previous releases",
+                    "spiceds not provided and not available from previous releases.",
                     setup=self.setup,
                 )
 
@@ -3351,7 +3372,12 @@ class SpicedsProduct(object):
         return generate_spiceds
 
     def compare(self):
-        """Compare the SPICEDS file with a prior one or the template."""
+        """**Compare the SPICEDS Product with another SPICEDS**.
+
+        The SPICEDS Product is compared with the previous
+        version and if it does not exist with the sample INSIGHT SPICEDS
+        product.
+        """
         #
         # Compare spiceds with latest. First try with previous increment.
         #
@@ -3376,7 +3402,7 @@ class SpicedsProduct(object):
             logging.warning("-- Comparing with default InSight example.")
 
             val_spd = (
-                f"{self.setup.root_dir}/data/spiceds_insight.html"
+                f"{self.setup.root_dir}/data/insight_spice/document/spiceds_v002.html"
             )
 
         logging.info("")
@@ -3455,7 +3481,7 @@ class ReadmeProduct(Product):
             if os.path.exists(self.setup.readme["input"]):
                 shutil.copy(self.setup.readme["input"], self.path)
             else:
-                error_message("Readme file provided via configuration does not exist")
+                error_message("Readme file provided via configuration does not exist.")
         elif not os.path.isfile(self.path):
             with open(self.path, "w+") as f:
                 with open(self.setup.root_dir + "/templates/template_readme.txt", 'r') as t:
@@ -3668,7 +3694,7 @@ class ChecksumProduct(Product):
                     else:
                         error_message(
                             f"Checksum file {self.path_current} "
-                            f"corrupted entry: {line}",
+                            f"corrupted entry: {line}.",
                             setup=self.setup,
                         )
 
@@ -3734,7 +3760,7 @@ class ChecksumProduct(Product):
                         if product.checksum in list(self.md5_dict.keys()) and \
                                 self.md5_dict[product.checksum] != product_name:
                             msg = f"Two products have the same MD5 sum, " \
-                                  f"the product {product_name} might be a duplicate"
+                                  f"the product {product_name} might be a duplicate."
                             if not self.setup.args.debug:
                                 error_message(msg)
                             else:
@@ -3911,7 +3937,10 @@ class ChecksumProduct(Product):
         return None
 
     def compare(self):
-        """Compare, with previous checksum file, if exists."""
+        """**Compare the Checksum with the previus Checksum file**.
+
+        The Checksum file is compared with the previous version.
+        """
         try:
             logging.info("")
             compare_files(

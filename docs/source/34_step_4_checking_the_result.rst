@@ -1,9 +1,9 @@
-Step 4: Checking the Result and Finishing up
+Step 4: Checking the Result and Finishing Up
 ============================================
 
-After running NPB, the archive release is nearly done, but a successful NPB
-execution might not be a synonym for a successful archive increment generation.
-Reasons for that could be:
+After running NPB the archive release is nearly done. Nevertheless a successful
+NPB execution is not necessarily a synonym of a successful archive increment
+generation. Reasons for that could be:
 
    * incorrect input data (kernels, ORBNUM files or SPICEDS)
    * incorrect Configuration File
@@ -17,9 +17,9 @@ file, and especially checking the Meta-kernel(s), even if you generated
 them manually.
 
 If you think you have found a bug in NPB or the archiving process please do as
-indicated in :ref:`source/10_overview:Reporting Bugs`.
+indicated in :ref:`source/12_bugs_contact_references:Reporting Bugs`.
 
-The following sections provide you with some hints to check the archive.
+The following sections provide you some hints to perform checks on the archive.
 
 
 Checking PDS artifacts
@@ -30,8 +30,8 @@ most prone to error. It makes sense to visually inspect some or even all of
 them. In some cases doing this allows one to catch typos and incorrect
 information in the description, coverage, observer, target, and LID tags.
 
-One of the ways to look at the labels is simply using Unix ``more`` to see them,
-like this::
+One of the ways to look at the labels is simply using Unix ``more`` to inspect
+them::
 
       foreach ( `grep FILE working/maven_release_26.file_list | sed 's/^FILE *= *//g' )
          echo label for $FF
@@ -43,14 +43,14 @@ them to similar labels. NPB facilitates this task with the
 ``-d DIFF --diff DIFF`` argument. More details are provided in
 :ref:`source/43_using_npb:Optional Arguments Description`. The strategy
 with which NPB chooses similar labels is described in
-:ref:`source/44_npb_implementation:NPB Diff Files`.
+:ref:`source/43_using_npb:Product Comparison`.
 
 You can check other PDS artifacts, such as inventories, in a similar manner.
 
 If any problems are found as the result of this examination, their causes
 should be fixed --probably by correcting the "Kernel List" section of the
 Configuration File--, the NPB execution must be cleared (using the
-``-c CLEAR --clear CLEAR`` argument) and then NPB must be re-run.
+``-c CLEAR --clear CLEAR`` argument) and NPB must be re-run.
 
 
 Verifying the Archive using PDS Validate Tool
@@ -59,11 +59,10 @@ Verifying the Archive using PDS Validate Tool
 Although NPB and the instructions given above provide a lot of safeguard to
 ensure production of a fully PDS-compliant data set, many inputs to the
 configuration file are done "by hand" and for this reason are prone to errors.
-Because of this the archive producer should validate the fully prepared SPICE
-archive using a tool provided by the PDS Engineering Node.
+Because of this the archive producer should validate the SPICE archive using the
+validation tool provided by the PDS Engineering Node.
 
-One tool is currently available for this purpose, the **Validate Tool**.
-Validate Tool performs the validation of the archive for PDS standards
+The **Validate Tool** performs the validation of the archive for PDS standards
 compliance. Validate Tool is a command line application well suited for batch
 mode processing.
 
@@ -142,10 +141,16 @@ This warning can be ignored. There should be no other errors or warnings in the
 report. If any other errors are present they should be investigated and fixed
 before the archive is released.
 
+NAIF recommends to set severity level of the Validation Tool reporting to
+``Info`` (``-v 1 --verbose 1``). This will mainly help to find issues in the
+context products. The resulting recommended way to run Validate is:
+
+   validate -v 1 em16_spice --add-context-products registered_context_products.json -R pds4.bundle  -r working/em16_release_03.validate
+
 Please note that the Validate Tool is in continuous development with new
 releases for each PDS IM, therefore the details provided in this section
 might differ from the version of the Validate Tool you use. The results
-provided here are obtained using Validate Tool::
+provided here are obtained using Validate Tool's::
 
    Version 2.0.6
    Release Date: 2021-05-25 12:08:21
@@ -196,8 +201,9 @@ root directory in the staging area)::
 
 For peace of mind, since at this point all kernels and meta-kernels are
 in the right place in the final archive area, it would make sense to
-verify all meta-kernels included in the archive using a ``BRIEF`` run from the
-volume root directory in the final archive area like this::
+verify all meta-kernels included in the archive running the NAIF utility
+``BRIEF`` from the volume root directory in the final archive area as
+follows::
 
    $ brief spice_kernels/mk/*.tm
 
@@ -241,7 +247,7 @@ Here's an example of the Workspace for LADEE::
        +-- ladee_release_01.xml
 
 
-where ``ladee_archive_generation.md`` is a MarkDown text file that provides  A
+where ``ladee_archive_generation.md`` is a MarkDown text file that provides a
 LADEE-specific archiving guide. You might find writing such a file useful. The
 ``bundle_directory`` and ``kernels_directory`` are located somewhere else in
 the volume.

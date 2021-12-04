@@ -12,6 +12,7 @@ import xmlschema
 
 from ..utils import etree_to_dict
 from ..utils import kernel_name
+from ..utils import spice_exception_handler
 from .log import error_message
 
 
@@ -199,7 +200,7 @@ class Setup(object):
             self.eol = "\n"
             self.eol_len = 1
         else:
-            error_message("End of Line provided via configuration is not CRLF nor LF")
+            error_message("End of Line provided via configuration is not CRLF nor LF.")
 
         self.end_of_line_pds4 = "CRLF"
         self.eol_pds4 = "\r\n"
@@ -275,23 +276,23 @@ class Setup(object):
             if not pattern.match(self.mission_start):
                 error_message(
                     f"mission_start parameter does not match the "
-                    f"required format: {format}"
+                    f"required format: {format}."
                 )
         if hasattr(self, "mission_finish") and self.mission_finish:
             if not pattern.match(self.mission_finish):
                 error_message(
-                    f"mission_finish does not match the required format: {format}"
+                    f"mission_finish does not match the required format: {format}."
                 )
         if hasattr(self, "increment_start") and self.increment_start:
             if not pattern.match(self.increment_start):
                 error_message(
                     f"increment_start parameter does not match the "
-                    f"required format: {format}"
+                    f"required format: {format}."
                 )
         if hasattr(self, "increment_finish") and self.increment_finish:
             if not pattern.match(self.increment_finish):
                 error_message(
-                    f"increment_finish does not match the required " f"format: {format}"
+                    f"increment_finish does not match the required " f"format: {format}."
                 )
         if hasattr(self, "increment_start") and hasattr(self, "increment_finish"):
             if ((not self.increment_start) and (self.increment_finish)) or (
@@ -322,7 +323,7 @@ class Setup(object):
         if os.path.isdir(cwd + os.sep + self.working_directory):
             self.working_directory = cwd + os.sep + self.working_directory
         if not os.path.isdir(self.working_directory):
-            error_message(f"Directory does not exist: {self.working_directory}")
+            error_message(f"Directory does not exist: {self.working_directory}.")
 
         if os.path.isdir(cwd + os.sep + self.staging_directory):
             self.staging_directory = (
@@ -343,7 +344,7 @@ class Setup(object):
         if os.path.isdir(cwd + os.sep + self.bundle_directory):
             self.bundle_directory = cwd + os.sep + self.bundle_directory
         if not os.path.isdir(self.bundle_directory):
-            error_message(f"Directory does not exist: {self.bundle_directory}")
+            error_message(f"Directory does not exist: {self.bundle_directory}.")
 
         #
         # There might be more than one kernels directory
@@ -352,7 +353,7 @@ class Setup(object):
             if os.path.isdir(cwd + os.sep + self.kernels_directory[i]):
                 self.kernels_directory[i] = cwd + os.sep + self.kernels_directory[i]
             if not os.path.isdir(self.kernels_directory[i]):
-                error_message(f"Directory does not exist: {self.kernels_directory[i]}")
+                error_message(f"Directory does not exist: {self.kernels_directory[i]}.")
 
         os.chdir(cwd)
 
@@ -387,7 +388,7 @@ class Setup(object):
                         f"PDS4 Information Model "
                         f"{short_version} "
                         f"is incoherent with the XML Model version: "
-                        f"{self.xml_model}"
+                        f"{self.xml_model}."
                     )
 
                 schema_loc_version = self.schema_location.split("/PDS4_PDS_")[-1]
@@ -398,13 +399,13 @@ class Setup(object):
                         f"PDS4 Information Model "
                         f"{short_version} "
                         f"is incoherent with the Schema location: "
-                        f"{self.schema_location}"
+                        f"{self.schema_location}."
                     )
 
             else:
                 error_message(
                     f"PDS4 Information Model {self.information_model}"
-                    f" format from configuration is incorrect"
+                    f" format from configuration is incorrect."
                 )
 
         #
@@ -461,7 +462,7 @@ class Setup(object):
             )
         elif self.pds_version == "4":
             if not os.path.isdir(self.templates_directory):
-                error_message("Path provided/derived for templates is not available")
+                error_message("Path provided/derived for templates is not available.")
             labels_check = [
                 os.path.basename(x[:-1])
                 for x in glob.glob(f"{self.root_dir}templates/1.5.0.0/*")
@@ -504,7 +505,7 @@ class Setup(object):
                     if not name_pattern in metak_name_check:
                         error_message(
                             f"The meta-kernel pattern "
-                            f"{name_pattern} is not provided"
+                            f"{name_pattern} is not provided."
                         )
 
                     metak_name_check = metak_name_check.replace("$" + name_pattern, "")
@@ -517,7 +518,7 @@ class Setup(object):
                 if "$" in metak_name_check:
                     error_message(
                         f"The MK patterns {metak['@name']} do not "
-                        f"correspond to the present MKs"
+                        f"correspond to the present MKs."
                     )
             else:
                 logging.warning("-- There is no meta-kernel configuration " "to check.")
@@ -551,10 +552,10 @@ class Setup(object):
                         )
                     else:
                         error_message(
-                            "Readme elements not present in configuration file"
+                            "Readme elements not present in configuration file."
                         )
             else:
-                error_message("Readme elements not present in configuration file")
+                error_message("Readme elements not present in configuration file.")
 
         return None
 
@@ -663,6 +664,7 @@ class Setup(object):
 
         return None
 
+    @spice_exception_handler
     def load_kernels(self):
         """
         Loads the kernels required to run NPB. Note that kernels that
@@ -898,7 +900,7 @@ class Setup(object):
                 f"not exist or is not readable. Make sure that the "
                 f"file follows the name pattern: "
                 f"{self.mission_acronym}_{self.run_type}_NN.file_list."
-                f" where NN is the release number"
+                f" where NN is the release number."
             )
 
         return None
@@ -969,7 +971,7 @@ class Setup(object):
             or not (et_msn_strt < et_mis_stop)
         ):
             error_message(
-                "-- Provided dates are note correct. Check the " "archive coverage"
+                "Provided dates are note correct. Check the archive coverage."
             )
 
         return None

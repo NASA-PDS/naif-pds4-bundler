@@ -13,6 +13,7 @@ from ..utils import compare_files
 from ..utils import extension2type
 from ..utils import extract_comment
 from ..utils import fill_template
+from ..utils import spice_exception_handler
 from .log import error_message
 
 
@@ -242,7 +243,7 @@ class KernelList(List):
                 else:
                     error_message(
                         f"Meta-kernel provided via configuration "
-                        f"{mk_new_name} does not exist"
+                        f"{mk_new_name} does not exist."
                     )
         elif self.setup.args.faucet != "labels":
             #
@@ -349,6 +350,7 @@ class KernelList(List):
 
         return True
 
+    @spice_exception_handler
     def write_list(self):
         """Write the Kernel List product.
 
@@ -466,7 +468,7 @@ class KernelList(List):
                                                 "not adept to write "
                                                 "description. Remember a "
                                                 "metacharacter cannot start "
-                                                "or finish a kernel pattern"
+                                                "or finish a kernel pattern."
                                             )
                                     elif (
                                         "@file" in patterns[el]
@@ -492,7 +494,7 @@ class KernelList(List):
                                         if not isinstance(value, str):
                                             error_message(
                                                 "Kernel pattern "
-                                                f"not found in comment area of {kernel}"
+                                                f"not found in comment area of {kernel}."
                                             )
 
                                     else:
@@ -521,7 +523,7 @@ class KernelList(List):
                                                     f"generating kernel"
                                                     f" list with {kernel}. "
                                                     f"Consider reviewing "
-                                                    f"your NPB setup"
+                                                    f"your NPB setup."
                                                 )
 
                                         if isinstance(value, list) or isinstance(
@@ -530,7 +532,7 @@ class KernelList(List):
                                             error_message(
                                                 f"-- Kernel {kernel}"
                                                 " description could not be "
-                                                "updated with pattern"
+                                                "updated with pattern."
                                             )
 
                                     description = description.replace("$" + el, value)
@@ -690,18 +692,18 @@ class KernelList(List):
     def validate(self):
         """Validation of the Kernel List.
 
-        The validation of the Kernel List performs these checks:
+        The validation of the Kernel List performs the following checks:
 
-         * Check that the list has the same number of FILE, MAKLABEL_OPTIONS,
-           and DESCRIPTION entries.
-         * Check list against plan
-         * Check that list for duplicate files
-         * Check that all files listed in the list are on the ``kernels_directory``
-         * Check that the files are not in the ``bundle_direcfory``
-         * To check all the MAKLABL_OPTIONS used
-         * To check that the list has no duplicates
-
-        :return:
+         * check that the list has the same number of ``FILE``, ``MAKLABEL_OPTIONS``,
+           and ``DESCRIPTION`` entries.
+         * check list against plan
+         * check that list for duplicate files
+         * check that all files listed in the list are on the ``kernels_directory``
+         * check that the files are not in the ``bundle_direcfory``
+         * display all the ``MAKLABL_OPTIONS`` used
+         * check that the list has no duplicates
+         * if the ``-d DIFF --diff DIFF`` argument is used, compare the kernel
+           list with the kernel list of the previous release -if avaialble.
         """
         present = False
 
@@ -764,13 +766,13 @@ class KernelList(List):
             #
             for ker in ker_in_list:
                 if ker not in self.kernel_list:
-                    error_message(f"   {ker} not in list")
+                    error_message(f"   {ker} not in list.")
 
             #
             # Check list for duplicate entries
             #
             if check_list_duplicates(ker_in_list):
-                error_message("List contains duplicates")
+                error_message("List contains duplicates.")
 
             #
             # Check that all files listed are available in OPS area;
@@ -890,7 +892,7 @@ class KernelList(List):
                             ker_in_list.append(line.split("/")[-1].strip())
 
             if check_list_duplicates(ker_in_list):
-                error_message("List contains duplicates")
+                error_message("List contains duplicates.")
             else:
                 logging.info("     List contains no duplicates.")
             logging.info("")
@@ -915,15 +917,19 @@ class KernelList(List):
     def validate_complete(self):
         """Validation of the complete Kernel List.
 
-        The validation of the complete Kernel List performs these checks:
+        The complete Kernel List is generated by NPB by merging all the
+        available Kernel List files. These kernel list files must be located
+        in the ``working_directory`` as specified by the NPB configuration.
 
-         * Check that the list has the same number of FILE, MAKLABEL_OPTIONS,
-           and DESCRIPTION entries.
-         * Check that list for duplicate files
-         * To check all the MAKLABL_OPTIONS used
-         * To check that the list has no duplicates
+        In principle all the kernels that have ever been added to the archive
+        should be present.
 
-        :return:
+        The validation of the complete Kernel List performs the following checks:
+
+         * check that the list has the same number of ``FILE``, ``MAKLABEL_OPTIONS``,
+           and ``DESCRIPTION`` entries
+         * check all the ``MAKLABL_OPTIONS`` used
+         * check that the list has no duplicates
         """
         present = False
 
@@ -992,7 +998,7 @@ class KernelList(List):
             #
             logging.info("-- Checking for duplicates in kernel list:")
             if check_list_duplicates(ker_in_list):
-                error_message("List contains duplicates")
+                error_message("List contains duplicates.")
             else:
                 logging.info("     List contains no duplicates.")
             logging.info("")

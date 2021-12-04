@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.sch"
+    schematypens="http://purl.oclc.org/dsdl/schematron"?>
+
+<Product_Document xmlns="http://pds.nasa.gov/pds4/pds/v1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd">
+  <Identification_Area>
+    <logical_identifier>urn:nasa:pds:insight.spice:document:spiceds</logical_identifier>
+    <version_id>2.0</version_id>
+    <title>InSight Mars Lander Mission SPICE Archive Description</title>
+    <information_model_version>1.5.0.0</information_model_version>
+    <product_class>Product_Document</product_class>
+    <Citation_Information>
+      <publication_year>2021</publication_year>
+      <keyword>Observation Geometry</keyword>
+      <description>
+                This document provides a comprehensive description of
+                the InSight Mars Lander Mission SPICE kernel archive
+                containing observation geometry and other ancillary
+                data in the form of SPICE System kernel files for the
+                InSight Mars Lander Spacecraft spacecraft and its
+                instruments and targets. It describes the archive
+                directory structure, kernels included in the archive,
+                their naming conventions, and provides pointers to the
+                SPICE software and documentation.
+            </description>
+    </Citation_Information>
+  </Identification_Area>
+  <Context_Area>
+    <Primary_Result_Summary>
+      <purpose>Observation Geometry</purpose>
+      <processing_level>Derived</processing_level>
+    </Primary_Result_Summary>
+    <Investigation_Area>
+      <name>InSight Mars Lander Mission</name>
+      <type>Mission</type>
+      <Internal_Reference>
+        <lid_reference>urn:nasa:pds:context:investigation:mission.insight</lid_reference>
+        <reference_type>document_to_investigation</reference_type>
+      </Internal_Reference>
+    </Investigation_Area>
+    <Observing_System>
+      <Observing_System_Component>
+        <name>InSight Mars Lander Spacecraft</name>
+        <type>Spacecraft</type>
+        <Internal_Reference>
+          <lid_reference>urn:nasa:pds:context:instrument_host:spacecraft.insight</lid_reference>
+          <reference_type>is_instrument_host</reference_type>
+        </Internal_Reference>
+      </Observing_System_Component>
+    </Observing_System>
+  </Context_Area>
+  <Document>
+    <document_name>InSight Mars Lander Mission SPICE Archive Description</document_name>
+    <publication_date>2021-06-25</publication_date>
+    <document_editions>1</document_editions>
+    <description>
+            This document provides a comprehensive description of
+            the InSight Mars Lander Mission SPICE kernel archive
+            containing observation geometry and other ancillary
+            data in the form of SPICE System kernel files for the
+            InSight Mars Lander Spacecraft spacecraft and its
+            instruments and targets. It describes the archive
+            directory structure, kernels included in the archive,
+            their naming conventions, and provides pointers to the
+            SPICE software and documentation.
+        </description>
+    <Document_Edition>
+      <edition_name>InSight Mars Lander Mission SPICE Archive Description</edition_name>
+      <language>English</language>
+      <files>1</files>
+      <description>
+                This document provides a comprehensive description of
+                the InSight Mars Lander Mission SPICE kernel archive
+                containing observation geometry and other ancillary
+                data in the form of SPICE System kernel files for the
+                InSight Mars Lander Spacecraft spacecraft and its
+                instruments and targets. It describes the archive
+                directory structure, kernels included in the archive,
+                their naming conventions, and provides pointers to the
+                SPICE software and documentation.
+            </description>
+      <Document_File>
+        <file_name>spiceds_v002.html</file_name>
+        <creation_date_time>2021-06-25T08:00:00</creation_date_time>
+        <file_size unit="byte">41614</file_size>
+        <md5_checksum>5bf7f351dcd97c09e2cae13b9f7c72ef</md5_checksum>
+        <document_standard_id>HTML</document_standard_id>
+      </Document_File>
+    </Document_Edition>
+  </Document>
+</Product_Document>

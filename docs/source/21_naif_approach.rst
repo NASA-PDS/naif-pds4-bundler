@@ -66,7 +66,8 @@ parentheses is briefly explained below:
        different versions with the same name. Instead, new files superseding
        already archived files are added to the archive. For kernels, they are
        given distinct names and the fact that they supersede previously archived
-       kernels is reflected in the meta-information files (SPICEDS and meta-kernel files).
+       kernels is reflected in the meta-information files
+       (SPICEDS and meta-kernel files).
 
     3. *All SPICE data sets have the following PDS-compliant directory
        structure*::
@@ -136,7 +137,10 @@ parentheses is briefly explained below:
 
     6. *All SPICE archives include a SPICE Description document (SPICEDS) that
        provides all the required information to describe in detail the SPICE
-       archive.*
+       archive*.
+
+       Examples of different SPICEDS that can be used as references are
+       provided with the NAIF PDS4 Bundler.
 
     7. While experts on PDS standards can (and did during
        peer-reviews) find a number of things about SPICE archives

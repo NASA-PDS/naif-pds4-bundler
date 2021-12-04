@@ -378,9 +378,20 @@ class SpiceKernelsCollection(Collection):
         return
 
     def validate(self):
-        """Validate the SPICE Kernels collection."""
+        """Validate the SPICE Kernels collection.
+
+        The SPICE Kernels collection validation performs the following checks:
+
+           * check that all the kernels from the kernel list are present
+           * check that all the kernels have been labeled
+           * display the key elements of the labels for the user to do a visual
+             inspection. The key elements are: ``logical_identifier``, ``version_id``,
+             ``title``, ``description``, ``start_date_time``, ``stop_date_time``,
+             ``file_name``, ``file_size``, ``md5_checksum``, ``object_length``,
+             ``kernel_type``, and ``encoding_type``.
+        """
+        #
         #  Check that there is a XML label for each file under spice_kernels.
-        #  That is, we are validating the spice_kernel_collection.
         #
         line = f"Step {self.setup.step} - Validate SPICE kernel collection generation"
         logging.info("")
@@ -462,7 +473,7 @@ class SpiceKernelsCollection(Collection):
                 # TODO: This IF statement goes after implementing PDS3 labeling.
                 if self.setup.pds_version == "4":
                     error_message(
-                        "Some products have not been labeled", setup=self.setup
+                        "Some products have not been labeled.", setup=self.setup
                     )
 
         else:

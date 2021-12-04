@@ -2,12 +2,12 @@ Using NPB
 =========
 
 The purpose of NPB is to generate SPICE kernel archives -- new archives or
-archive increments. It achieves this by using as inputs a release plan and a
+archive increments. NPB achieves this by using as inputs a release plan and a
 configuration file, that specifies the location of needed input elements:
 input files directories, the directory with the current archive, the SPICEDS
 file, etc.
 
-Because of the nature of its functionality and the way it operates NPB can be
+Because of the nature of its functionality and the way it operates, NPB can be
 considered a software pipeline. More details on how NPB works are provided in
 the next section.
 
@@ -19,33 +19,37 @@ This section provides a very high-level overview of NPBs functional design
 and operation. If you need more details you might want to go to
 :ref:`source/50_api_docs:Functions and Modules Documentation`, or take a
 look at the source code itself. The following text is extracted directly from
-the inline comments of the ``naif_pds4_bundler.__main__`` module.
+the inline comments of the ``naif-pds4-bundler/src/pds/naif_pds4_bundler/__main__.py`` module.
 
   * Generate the Setup object
-     * This object will be used by all the other objects
-     * Parse JSON configuration file into an object with attributes
-       corresponding to Python dictionary keys.
+
+    * This object will be used by all the other objects
+    * Parse JSON configuration file into an object with attributes
+      corresponding to Python dictionary keys.
 
   * Start the Log object
-     * The log will always be displayed on screen unless the silent
-       option is chosen.
-     * The log file will be written in the working directory
+
+    * The log will always be displayed on screen unless the silent
+      option is chosen.
+    * The log file will be written in the working directory
 
   * Check the existence of a previous archive version.
 
   * If the pipeline is running to clean-up a previous run, remove all the
     files in the bundle and staging area indicated by the file list and
     clean-up the kernel list and log from the previous run.
-     * The pipeline can be stopped after cleaning up the previous run
-       by setting ``-f, --faucet`` to ``clear``.
+
+    * The pipeline can be stopped after cleaning up the previous run
+      by setting ``-f, --faucet`` to ``clear``.
 
   * Generate the Kernel List object.
-     * If a plan file is provided it is processed; otherwise a plan is
-       generated from the kernels directory.
-     * The pipeline can be stopped after generating or reading the release
-       plan by setting ``-f, --faucet`` to ``plan``.
-     * The pipeline can be stopped after generating or reading the kernel
-       list plan by setting ``-f, --faucet`` to ``list``.
+
+    * If a plan file is provided it is processed; otherwise a plan is
+      generated from the kernels directory.
+    * The pipeline can be stopped after generating or reading the release
+      plan by setting ``-f, --faucet`` to ``plan``.
+    * The pipeline can be stopped after generating or reading the kernel
+      list plan by setting ``-f, --faucet`` to ``list``.
 
   * Generate the PDS4 Bundle structure.
 
@@ -59,7 +63,8 @@ the inline comments of the ``naif_pds4_bundler.__main__`` module.
   * Generate the labels for each SPICE kernel or ORBNUM product and
     populate the SPICE kernels collection or the Miscellaneous collection
     accordingly.
-     * Each label is validated after generation.
+
+    * Each label is validated after generation.
 
   * Generate the Meta-kernel(s).
 
@@ -67,18 +72,20 @@ the inline comments of the ``naif_pds4_bundler.__main__`` module.
     Version Identifier (VID).
 
   * Validate the SPICE Kernels collection:
-     * Note the validation of individual products is performed after
-       writing the product itself.
-     * Check that there is a XML label for each file under ``spice_kernels``.
 
-  *  Generate the SPICE Kernels Collection Inventory product (if the
-     collection has been updated.)
+    * Note the validation of individual products is performed after
+      writing the product itself.
+    * Check that there is a XML label for each file under ``spice_kernels``.
+
+  * Generate the SPICE Kernels Collection Inventory product (if the
+    collection has been updated.)
 
   * Generate the Document Collection.
 
   * Generate the SPICEDS document.
-     * If the SPICEDS document is generated, generate the
-       Documents Collection Inventory.
+
+    * If the SPICEDS document is generated, generate the
+      Documents Collection Inventory.
 
   * Add the SPICE Kernels Collection to the Bundle.
     Note that the Collections are provided to the Bundle Object
@@ -98,7 +105,8 @@ the inline comments of the ``naif_pds4_bundler.__main__`` module.
 
   * Generate Miscellaneous Collection and initialize the Checksum
     product for the current release.
-     * The miscellaneous collection is guaranteed to be updated.
+
+    * The miscellaneous collection is guaranteed to be updated.
 
   * Generate the Bundle label and if necessary the readme file.
 
@@ -126,7 +134,7 @@ the inline comments of the ``naif_pds4_bundler.__main__`` module.
 There are a significant number of steps that are not reflected in the
 bullets above, such as some validation steps performed by NPB. These validation
 steps are summarized in section
-:ref:`source/44_npb_implementation:NPB Validation methods`.
+:ref:`source/43_using_npb:Checks performed by NPB`.
 
 
 Running NPB from the command line
@@ -143,7 +151,7 @@ or::
 
 You should expect the following result:
 
-.. automodule:: naif_pds4_bundler.__main__
+.. automodule:: pds.naif_pds4_bundler.__main__
 
 The execution of NPB has one positional argument, ``CONFIG``. This argument
 must provide the path of the Configuration File. More information on the
@@ -164,15 +172,11 @@ package and provide arguments for the parameter list. The
 parameter list mimics the command line parameters. Only the ``config``
 parameter is mandatory. Here's an example::
 
-   from naif_pds4_bundler.__main__ import main
+   from pds.naif_pds4_bundler.__main__ import main
 
    config = "working/dart_release_01.xml"
 
    main(config, plan=False, faucet="bundle", silent=True, log=True)
-
-
-See :ref:`source/51_main:main function` for more information on NPB main
-function.
 
 
 Optional Arguments Description
@@ -181,7 +185,7 @@ Optional Arguments Description
 This section provides a description of the optional arguments that can be
 provided to NPB. The format with which this section is presented assumes that
 you are using NPB from the command line, nevertheless everything also applies
-when calling NPB from another Python script.
+when calling NPB with Python.
 
 
 ``-p PLAN, --plan PLAN``
@@ -197,7 +201,9 @@ without providing a release plan. If you choose to do so, NPB will take as
 inputs all the kernel files that it finds in the kernels directory(ies) and
 will generate a release plan for you. This option is useful when the kernel
 directory(ies) are generated ad-hoc for each release or for first releases of
-small archives. The resulting release plan will follow this naming scheme::
+small archives.
+
+The resulting release plan will follow this naming scheme::
 
    <sc>_release_??.plan
 
@@ -207,10 +213,10 @@ version. The MAVEN release 26 plan would be::
    maven_release_26.plan
 
 Please note that in general this is also the recommended naming scheme for
-release plans. NPB determines the archive release version as described in
-section :ref:`source/43_using_npb:Determination of the Archive Release Version`
+release plans.
 
-The provision of this argument is highly recommended,
+The provision of this argument is highly recommended.
+
 All the information to generate the Release Plan is provided in section
 :ref:`source/31_step_1_preparing_data:Writing the Release Plan`
 
@@ -218,8 +224,8 @@ A release plan will **not** be generated if the ``-k --kerlist``
 argument is provided.
 
 If you run NBP in label mode (that is, only to generate kernel labels), the
-``--plan`` parameter can be the name of a single kernel. More information on
-:ref:`source/43_using_npb:-x, --xml`.
+``--plan`` parameter can be the name of a single kernel instead of the path of
+a file. More information is provided in the section ``-x, --xml``.
 
 
 ``-f FAUCET, --faucet FAUCET``
@@ -245,7 +251,8 @@ execution. The options are:
    * ``bundle``: stop after moving the products to the bundle directory but
      before performing the last checks.
 
-   * ``labels``:
+   * ``labels``: specifies NPB to run in label mode. More information in
+     the section :ref:`source/43_using_npb:Using NPB in label mode`
 
 Using these options might be useful in different phases of the archive
 generation, especially when the archive producer is not fully confident with
@@ -255,17 +262,6 @@ You might also want to use the ``bundle`` option to prevent the checks from
 being performed if you are confident with you reason to do so (e.g. use of a
 meta-kernel not following NAIF's convention.)
 
-
-Running in label generation mode
-""""""""""""""""""""""""""""""""
-
-Using this mode will also change the file name of the NPB by-product files.
-The ``_release_`` part of the name will be changed to ``_labels_`` to indicate
-that the run did not generate a release but rather labels for a specific
-targeted release (the release number part of these files will be incremented.)
-
-
-If the ``labels`` parameter
 
 ``-l --log``
 ^^^^^^^^^^^^
@@ -282,15 +278,15 @@ version. The MAVEN release 26 log would be::
      maven_release_26.log
 
 More information on NPB logging is provided in the section
-:ref:`source/44_npb_implementation:NPB Logging`.
+:ref:`source/43_using_npb:Execution Log`.
 
 
 ``-s, --silent``
 ^^^^^^^^^^^^^^^^
 
-If this option is used, NPB execution will be silent without any prompt. This argument is
-not recommended and was implemented mostly to avoid prompts during NPB
-testing.
+If this option is used, NPB execution will be silent without any prompt. This
+argument is not recommended and was implemented mostly to avoid prompts during
+NPB testing.
 
 
 ``-v, --verbose``
@@ -344,9 +340,9 @@ release of the LADEE archive::
 If this argument is used, NPB generates Diff files for the archive's release
 files. NPB's Diff files are HTML files or plain text snippets that record
 differences in between two files, highlighting differences similar to the output
-of a GUI diff tool such as ``TKDIFF``. These files are useful to check and validate
+of a GUI diff tool such as ``tkdiff``. These files are useful to check and validate
 the archive increment. More information on how these files are generated is
-available at :ref:`source/44_npb_implementation:NPB Diff Files`.
+provided in section :ref:`source/43_using_npb:Validation Diff files`.
 
 The options for this argument determine the destination of these diff files.
 
@@ -363,7 +359,7 @@ The options for this argument determine the destination of these diff files.
 ``-c CLEAR, --clear CLEAR``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This argument allows you to clear the resulting products resulting from a run
+This argument allows you to clear the products resulting from a NPB run
 from your workspace. Executing NPB with this argument will clear the files
 listed in the input file from the staging, bundle directories, and the kernel
 list from the working area. In addition it will clear the kernel lists or
@@ -385,7 +381,7 @@ This file contains a list of all the products that have been generated from
 a run with relative paths (including the relevant run by-products: release
 plans and kernel lists.)
 
-If this argument is provided it overwrites ``-f FAUCET, --faucet FAUCET`` to
+If this argument is provided NPB defaults the argument ``-f FAUCET, --faucet FAUCET`` to
 ``plan``, in such a way that the NPB execution will be stopped after cleaning
 up the workspace. This said, you can still provide a different value to
 ``-f FAUCET, --faucet FAUCET`` in order to instruct NPB to continue with the
@@ -395,31 +391,39 @@ execution after clearing up the workspace.
 ``-k KERLIST, --kerlist KERLIST``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Specifies the path of a user generated Kernel List. The input is a string.
+Specifies the path of a user generated Kernel List.
 If provided, NPB will scan the directories specified by the
 ``kernels_directory`` elements of the Configuration File to obtain the files
 specified by the kernel list and will by-pass the kernel list generation.
 
 The provision of this argument is highly discouraged and should only be used
 in special cases where the automated generation of the kernel list via
-configuration is not possible. Please contact the NAIF NPB developer before
-using this argument.
+configuration is not possible. If you find yourself in this situation
+contact the NAIF NPB developer before using this argument.
 
 If this argument is provided no release plan file will be generated.
 
 
-``-x, --xml``
-^^^^^^^^^^^^^
+Using NPB in label mode
+-----------------------
 
-This argument was implemented to meet the needs of some NPB users. Unless
-necessary, NAIF advises against its usage.
+NPB can also be used to generate SPICE kernels labels rather
+than a complete PDS4 Bundle. When using NPB in label mode the same
+setup required for a "regular" execution apply.
+
+In order to run NPB in label mode you need to set the ``-f FAUCET, --faucet FAUCET``
+argument to ``labels``.
+
+When doing so NPB runs in label mode and therefore does not
+generate a complete PDS4 Bundle. This option was implemented to meet the needs
+of some NPB users. Unless necessary, NAIF advises against its usage.
 
 When using this argument NPB bypasses some execution steps (including certain
 checks) in such a way that the only output of the execution is the generation
 of the XML labels of the products specified by the ``-p --plan`` argument.
 
 It is recommended to maintain a separate configuration file if NPB is executed
-as both in "default" mode and in "labeling" mode. When using "labeling" mode,
+both in "default" mode and in "label" mode. When using "label" mode,
 it is common to set the ``bundle_directory`` equal to the ``kernel_directory``
 where the operational kernels usually reside.
 
@@ -427,118 +431,320 @@ When using this mode, only kernels can be labeled (no ORBNUM products),
 MKs will not be automatically generated, and certain execution by-products
 will not be generated either.
 
+Using this mode will also change the file name of the NPB by-product files.
+The ``_release_`` part of the name will be changed to ``_labels_`` to indicate
+that the run did not generate a release but rather labels for a specific
+targeted release (the release number part of these files will be incremented.)
+
 
 Execution by-products
-=====================
+---------------------
 
-Here we list the products that result from a typical NPB run.
+After NPB is executed, a number of files are generated in the ``working_directory``.
+These files have different purposes and some of them are generated if specified
+via argument parameters. These files are:
 
-   * ``<sc>_release_??.plan``
-   * ``<sc>_release_??.kernel_list``
-   * ``<sc>_release_??.log``
-   * ``<sc>_release_??.file_list``
-   * ``<sc>_release_??.checksum``
-   * ``diff_<new_file>_<old_file>.html``
+   * Release Plan: ``<sc>_release_??.plan``
+   * Kernel List: ``<sc>_release_??.kernel_list``
+   * Execution Log: ``<sc>_release_??.log``
+   * Execution File List: ``<sc>_release_??.file_list``
+   * Checksum registry:``<sc>_release_??.checksum``
+   * Validation Diff files: ``diff_<new_file>_<old_file>.html``
 
+where
 
-Checksum Registry File
-----------------------
+   * ``<sc>`` is the short s/c name or acronym (e.g. maven, em16, etc.)
+   * ``??`` is the release version
+   * ``<new_file>`` is the name of the file generated by NPB - without extension -
+   * ``<old_file>`` is the name of the with which ``<new_file>`` is compared to
+     - without extension -.
 
-bla bla bla
-
-
-Determination of the Archive Release Version
-============================================
-
-
-
-
-Bundle label construction
-=========================
-
-The creation_date_time tag of the readme.txt file is set to the bundle
-increment generation time, rather than the readme.txt file time
-
-And because this is the only way to embed the creation date within the
-bundle .xml file -- from a quick look through IM I don't see any other
-ways -- I would continue doing this and would not even bother to mention
-this in errata.
-
-The creation_date_time tag can be set to the readme.txt product creation
-time by providina a modified label for the bundle using the configuration.
-Instead of:
+These files are described in the following sections.
 
 
-Multiple spacecrafts and mutliple targets. NPB incorporates the possibility to
-have mutliple spacecrafts and targets in a Bundle. This is provided via
-configuration. If so, the default spacecraft will be the primary spacecraft
-which is specified in the configuration file. Otherwise it needs to be
-specified in the Kernel List section of the configuration file. The non-kernels
-bundle products will include all the targets and all the spacecrafts in the
-labels.
+Release Plan
+^^^^^^^^^^^^
+
+The release plan can be provided as an input as described in section
+:ref:`source/31_step_1_preparing_data:Writing the Release Plan`. Alternatively, if not
+provided as an input, NPB will generate it as an execution by-product.
+
+The release plan is an adequate record that summarizes the kernels and orbnum
+files included in each release.
+
+If the release plan is generated by NPB it will follow this naming schema
+``<sc>_release_??.plan``.
 
 
+Kernel List
+^^^^^^^^^^^
 
-When no list is provided as an input, the mapping of kernel does not occur and
-the kernels present in the kernels directories need to have their final names
-(and therefore they should not be expected to be mapped).
+The kernel list can also be provided as an input - although is highly discouraged -
+but in general is an execution by-product that includes a number of important
+elements, used by NPB to generate SPICE kernel and orbnum files labels, such as
+the kernel description.
+
+The kernel list is an adequate record to check that each kernel description has
+been written appropriately.
+
+If the kernel list is generated by NPB it will follow this naming schema
+``<sc>_release_??.kernel_list``.
 
 
-The value of PREC, the number of digits used
-to report fractional seconds, must be
-non-negative.  The value input was #.'
+Kernel Lists in PDS3 data sets
+''''''''''''''''''''''''''''''
 
-Fractional seconds, or for Julian dates, fractional
-                  days, are rounded to the precision level specified
-                  by the input argument PREC.
+NPB can be used to generate kernel lists for PDS3 data set generation.
+
+For PDS3 data sets, the kernel list is used by the NAIF PDS3 data set archiving
+procedure. Because of that the kernel list for a particular release has a
+structure similar to::
+
+      DATE = <date>
+      SPACECRAFT = <s/c>
+      NAIFER = <full name>
+      PHONE = <phone>
+      EMAIL = <e-mail>
+      VOLUMEID = <volume id>
+      RELEASE_ID   = <number>
+      RELEASE_DATE = <YYYY-MM-DD>
+      EOH
+      FILE             = <name of file 1>
+      MAKLABEL_OPTIONS = <MAKLABEL options for file 1>
+      DESCRIPTION      = <description of file 1, on a single line!>
+      FILE             = <name of file 2>
+      MAKLABEL_OPTIONS = <MAKLABEL options for file 2>
+      DESCRIPTION      = <description of file 2, on a single line!>
+      ...
+      FILE             = <name of file N>
+      MAKLABEL_OPTIONS = <MAKLABEL options for file N>
+      DESCRIPTION      = <description of file N, on a single line!>
+
+The first five keywords -- ``DATE``, ``SPACECRAFT``, ``NAIFER``, ``PHONE``,
+``EMAIL`` -- and
+the ``EOH`` end-of-the-header marker are optional and are included to
+provide identification information.
+
+The ``VOLUMEID``, ``RELEASE_ID``, and ``RELEASE_DATE`` keywords are required and
+must be set as follows: ``VOLUMEID`` must be set to the lowercased version
+of the volume ID (for example ``mgsp_1000`` for MGS), RELEASE_ID must be
+set to the release ID number (for example ``0001`` for release 1), and
+RELEASE_DATE must be set to the date on which the data will be released
+to the public (for example ``2007-07-27`` for July 27, 2007.)
+
+The rest of the kernel list file must provide triplets of lines, one for
+each of the files that constitute the release, containing ``FILE``,
+``MAKLABEL_OPTIONS``, and ``DESCRIPTION`` keywords. The ``FILE`` line must always be
+first, followed by the ``MAKLABEL_OPTIONS`` line followed by the ``DESCRIPTION``
+line.
+
+The FILE keyword must provide the file name relative to the volumes's
+root directory (for example ``data/spk/de403.bsp``).
+
+The ``MAKLABEL_OPTIONS`` keyword must provide all ``MAKLABEL`` option tags
+applicable to the file named in the preceding FILE keyword. The option
+tags must be delimited by one or more spaces and will be passed "as
+is" to the ``MAKLABEL`` program. If no options are applicable to a file,
+``MAKLABEL_OPTIONS`` can be set to blank but the line containing it must
+still be present in the list file, following the ``FILE`` keyword line.
+
+The ``DESCRIPTION`` keyword must provide a brief description of the file;
+this description will be inserted in the file label to replace the
+generic description generated by the ``MAKLABEL`` program. The value must be
+on the same line as the keyword and must not "spill" over onto the
+next line(s). The length of the description is not limited. ``DESCRIPTION``
+can be set to blank but the line containing it must still be present in
+the list file, following the ``MAKLABEL_OPTIONS`` keyword line. When
+description is set to blank, ``N/A`` is placed in the label.
+
+The list file may contain blank lines as long as they are not placed
+between the lines in each of the triplets.
 
 
-Coverage times determination
-============================
+Execution Log
+^^^^^^^^^^^^^
 
-bla bla bla
+The NPB execution log provides very useful information to determine whether
+if the execution has been successful or not.
+
+NPB uses the ``logging`` Python package to generate the log file. The log
+will preface each line with the severity level of the message provided. The
+severity levels are: ``INFO``, ``WARNING``, and ``ERROR``.
+
+``INFO`` messages provide general information for the NPB operator to understand
+what NPB is doing. ``WARNING`` messages flag unexpected or unusual actions
+taken by NPB and require a careful examination by the operator since they might
+lead to an undesired result in the archive generation. ``ERROR`` messages are
+only displayed if the NPB execution has failed and will only be present in
+the temporary log resulting from a failed execution.
+
+The NPB log is structured in such a way that it narrates the archive generation
+by providing numbered sections for each "main" action that NPB performs. The
+log also includes a preface that provides information on the platform used to
+run NPB, the execution parameters, and an epilogue that indicates the end of the
+execition. The result of the different checks performed by NPB are also
+provided in the log. More information on the checks done by NPB is provided in
+section :ref:`source/43_using_npb:Checks performed by NPB`.
+A Mars 2020 execution log extract is provided hereunder::
+
+     INFO    :
+     INFO    : naif-pds4-bundle-0.13.1 for Mars 2020 Perseverance Rover Mission
+     INFO    : ================================================================
+     INFO    :
+     INFO    : -- Executed on pepper.rn.jpl.net at 2021-11-19 07:20:24
+     INFO    : -- Platform: Linux-3.10.0-1160.45.1.el7.x86_64-x86_64-with-glibc2.17
+     INFO    : -- Python version: 3.8.7 (Build: May 12 2021 16:53:18)
+     INFO    :
+     INFO    : -- The following arguments have been provided:
+     INFO    :      config:  working/mars2020_release_02.xml
+     INFO    :      plan:    working/mars2020_release_02.plan
+     INFO    :      log:     True
+     INFO    :      verbose: True
+     INFO    :
+     INFO    :
+     WARNING : -- Label templates will use the ones from information model 1.5.0.0.
+     INFO    : -- Label templates directory: /home/mcosta/virtenvs/npb_3.8/naif-pds4-bundler/src/pds/naif_pds4_bundler/templates/1.5.0.0/
+     WARNING : -- There is no meta-kernel configuration to check.
+     INFO    :
+     INFO    :
+     INFO    : Step 1 - Setup the archive generation
+     INFO    : -------------------------------------
+     INFO    :
+     INFO    : -- Checking existence of previous release.
+     INFO    :      Generating release 002.
+     INFO    :
+     INFO    :
+     INFO    : Step 2 - Kernel List generation
+     INFO    : -------------------------------
+     (...)
+     INFO    :
+     INFO    : Execution finished at 2021-11-19 07:20:24
+     INFO    :
+     INFO    : End of log.
+
+
+The execution log is only generated if specified via the argument ``-l --log``,
+if so, the name will follow this naming convention: ``<sc>_release_??.log``.
+
+
+Execution File List
+^^^^^^^^^^^^^^^^^^^
+
+The execution file list is an adequate record that provides a list of **all**
+the files generated by the NPB execution.
+
+This file is used by the ``-c --clear`` argument as the parameter to indicate
+the files to be cleared from a previous successful or unsuccessful NPB
+execution.
+
+This file is also very useful to be used as input to a procedure to move
+the archive increment from one location to the other.
+
+The execution file list follows this naming schema ``<sc>_release_??.file_list``.
+
+
+Checksum Registry
+^^^^^^^^^^^^^^^^^
+
+The checksum execution registry is a file that contains a checksum table with
+the md5 sum of every product of the increment whose md5 sum is used in the
+product's label.
+
+The utility of these files is described in section
+:ref:`source/33_step_3_running_npb:Processing large binary kernels`.
+
+
+Validation Diff Files
+^^^^^^^^^^^^^^^^^^^^^
+
+Validation Diff files are HTML files that provide a side to side comparison of
+a product generated by NPB and another "similar" product in order to facilitate
+checking and validating the new product, highlighting differences similar to
+the output of a GUI diff tool such as ``tkdiff``.
+
+This by-product is generated if indicated by the ``-d DIFF, --diff DIFF``
+argument.
+
 
 Checks performed by NPB
-=======================
+-----------------------
 
-bla bla bla
+NPB performs a series of checks to validate certain parts of its execution and
+provides means for the NPB operator to check the execution results. These
+checks are described hereunder.
 
 
+Kernel List Validation
+^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: pds.naif_pds4_bundler.classes.list.KernelList.validate
 
 
-spiceds
-=======
+Complete Kernel List Validation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
--- why did you remove
+.. automodule:: pds.naif_pds4_bundler.classes.list.KernelList.validate_complete
 
-       with a carriage return (ASCII 13) and
 
-from
+SPICE Kernel Integrity Check
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-    All text documents and other meta information files such as
-    descriptions, detached PDS4 labels, and inventory tables are stream
-    format files, with a carriage return (ASCII 13) and a line feed
-    character (ASCII 10) at the end of the records.  This allows the
-    files to be read by most operating systems.
+.. automodule:: pds.naif_pds4_bundler.classes.product.SpiceKernelProduct.check_kernel_integrity
 
-We are going to continue adding CRs to all text, XML, and other PDS
-meta-files that we have in PDS4 archives as dictated by the standard, right?
 
-And we should add CRs to checksum tables as well.
+Meta-kernel Validation
+^^^^^^^^^^^^^^^^^^^^^^
 
-So please restore this.
+.. automodule:: pds.naif_pds4_bundler.classes.product.MetaKernelProduct.validate
 
-The only files we will not add CRs to are text kernels and ORBNUM files
-in bundles created using 1.G+ IM. So such bundles we should just add
-ORBNUMs to the next paragraph that talks about text kernels, i.e.
 
-    All text kernel files -- LSKs, PCKs, SCLKs, IKs, and FKs, -- and
-    ORBNUM files in this archive are UNIX text files, with a line feed
-    character (ASCII 10) at ...
+SPICE Kernel Collection Validation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-For pre-1.G bundles we should add ORBNUMs to the paragraph above, i.e.
+.. automodule:: pds.naif_pds4_bundler.classes.collection.SpiceKernelsCollection.validate
 
-    All text documents and other meta information files such as
-    descriptions, detached PDS4 labels, and inventory tables as well as
-    ORBNUM files are stream format files, with a carriage return (ASCII
-    13) and a line feed ...
+
+Inventory Product Validation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: pds.naif_pds4_bundler.classes.product.InventoryProduct.validate
+
+
+Checksum Validation
+^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: pds.naif_pds4_bundler.classes.bundle.Bundle.validate_history
+
+
+Product Comparison
+^^^^^^^^^^^^^^^^^^
+
+.. automodule:: pds.naif_pds4_bundler.classes.label.PDSLabel.compare
+.. automodule:: pds.naif_pds4_bundler.classes.product.MetaKernelProduct.compare
+.. automodule:: pds.naif_pds4_bundler.classes.product.InventoryProduct.compare
+.. automodule:: pds.naif_pds4_bundler.classes.product.SpicedsProduct.compare
+.. automodule:: pds.naif_pds4_bundler.classes.product.ChecksumProduct.compare
+
+
+Comparison output
+'''''''''''''''''
+
+Depending on the parameter provided to NPB with the argument
+``-d DIFF --d DIFF`` the comparison will be provided either as a
+separate file, written in the execution log or in both ways.
+
+If the comparison is provided in the log, its format will be similar
+to the one provided by the Unix utility ``diff`` whereas if provided as a
+separate file, it will be similar to the format provided by the Unix
+utility ``tkdiff``: a HTML file that provide a side to side comparison of
+the files following this naming scheme::
+
+   diff_<new_file>_<old_file>.html
+
+where
+
+   * <new_file> is the name of the file generated by NPB - without extension -
+   * <old_file> is the name of the with which <new_file> is compared to - without extension -.
+
+If the ``-d DIFF --d DIFF`` argument is not provided the comparison
+will not happen.

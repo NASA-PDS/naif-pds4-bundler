@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.sch"
+    schematypens="http://purl.oclc.org/dsdl/schematron"?>
+
+<Product_SPICE_Kernel xmlns="http://pds.nasa.gov/pds4/pds/v1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd">
+  <Identification_Area>
+    <logical_identifier>urn:nasa:pds:insight.spice:spice_kernels:ck_insight_ida_enc_190929_191120_v1.bc</logical_identifier>
+    <version_id>1.0</version_id>
+    <title>insight_ida_enc_190929_191120_v1.bc</title>
+    <information_model_version>1.5.0.0</information_model_version>
+    <product_class>Product_SPICE_Kernel</product_class>
+    <Citation_Information>
+      <publication_year>2020</publication_year>
+      <keyword>Observation Geometry</keyword>
+      <description>SPICE CK file containing reconstructed orientation of the INSIGHT Instrument Deployment Arm (IDA), encoder-based, created by NAIF, JPL.</description>
+    </Citation_Information>
+  </Identification_Area>
+  <Context_Area>
+    <Time_Coordinates>
+      <start_date_time>2019-09-29T02:52:40.983Z</start_date_time>
+      <stop_date_time>2019-11-20T11:17:30.394Z</stop_date_time>
+    </Time_Coordinates>
+    <Primary_Result_Summary>
+      <purpose>Observation Geometry</purpose>
+      <processing_level>Derived</processing_level>
+    </Primary_Result_Summary>
+    <Investigation_Area>
+      <name>InSight Mars Lander Mission</name>
+      <type>Mission</type>
+      <Internal_Reference>
+        <lid_reference>urn:nasa:pds:context:investigation:mission.insight</lid_reference>
+        <reference_type>data_to_investigation</reference_type>
+      </Internal_Reference>
+    </Investigation_Area>
+    <Observing_System>
+      <Observing_System_Component>
+        <name>InSight Mars Lander Spacecraft</name>
+        <type>Spacecraft</type>
+        <Internal_Reference>
+          <lid_reference>urn:nasa:pds:context:instrument_host:spacecraft.insight</lid_reference>
+          <reference_type>is_instrument_host</reference_type>
+        </Internal_Reference>
+      </Observing_System_Component>
+    </Observing_System>
+    <Target_Identification>
+      <name>MARS</name>
+      <type>Planet</type>
+      <Internal_Reference>
+        <lid_reference>urn:nasa:pds:context:target:planet.mars</lid_reference>
+        <reference_type>data_to_target</reference_type>
+      </Internal_Reference>
+    </Target_Identification>
+  </Context_Area>
+  <Reference_List>
+    <Internal_Reference>
+      <lid_reference>urn:nasa:pds:insight.spice:document:spiceds</lid_reference>
+      <reference_type>data_to_document</reference_type>
+    </Internal_Reference>
+  </Reference_List>
+  <File_Area_SPICE_Kernel>
+    <File>
+      <file_name>insight_ida_enc_190929_191120_v1.bc</file_name>
+      <creation_date_time>2020-03-31T13:55:37</creation_date_time>
+      <file_size unit="byte">1164288</file_size>
+      <md5_checksum>17b9b72344f3b552280296b6fd7588a4</md5_checksum>
+    </File>
+    <SPICE_Kernel>
+      <offset unit="byte">0</offset>
+      <object_length unit="byte">1164288</object_length>
+      <parsing_standard_id>SPICE</parsing_standard_id>
+      <description>SPICE CK file containing reconstructed orientation of the INSIGHT Instrument Deployment Arm (IDA), encoder-based, created by NAIF, JPL.</description>
+      <kernel_type>CK</kernel_type>
+      <encoding_type>Binary</encoding_type>
+    </SPICE_Kernel>
+  </File_Area_SPICE_Kernel>
+</Product_SPICE_Kernel>

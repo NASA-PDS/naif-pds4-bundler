@@ -10,18 +10,25 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
-
+import os
+import sys
+sys.path.insert(0, os.path.abspath('.'))
 
 # -- Project information -----------------------------------------------------
 
 project = 'NAIF PDS4 Bundler'
 copyright = '2021 California Institute of Technology'
 author = 'Marc Costa Sitja'
-version = u'0.1'
-release = u'0.1.0'
+
+# Obtain version from NPB
+version_file = "../src/pds/naif_pds4_bundler/VERSION.txt"
+with open(version_file, 'r') as v:
+    for line in v:
+        if line:
+            # The full version, including alpha/beta/rc tags.
+            release = line
+
+version = '.'.join(release.split('.')[0:-1])
 
 
 # -- General configuration ---------------------------------------------------
@@ -68,9 +75,7 @@ author = u'M. Costa Sitja'
 # built documents.
 #
 # The short X.Y version.
-version = u'0.1'
-# The full version, including alpha/beta/rc tags.
-release = u'0.1.0'
+
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -106,13 +111,13 @@ html_static_path = ['_static']
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'NAIFPDS4BundlerDoc'
 
-html_logo = '_static/images/PDS_Planets.png'
-
-html_context = {
-    'css_files': [
-        '_static/theme_overrides.css',  # override wide tables in RTD theme
-        ],
-      }
+#html_logo = '_static/images/PDS_Planets.png'
+#
+#html_context = {
+#    'css_files': [
+#        '_static/theme_overrides.css',  # override wide tables in RTD theme
+#        ],
+#      }
 
 # -- Options for LaTeX output ---------------------------------------------
 

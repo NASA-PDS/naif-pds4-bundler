@@ -5,20 +5,8 @@ Work List:
 
   URGENT:
 
-  -- Issues from MAVEN release 27:
-     * WARNING : -- miscellaneous/checksum/checksum_v027.tab does not have a label.
-     * Incorrect release history for last version:
-       ERROR   :
-       ERROR   : -- Products in /stor/pds4/final/maven/maven_spice/miscellaneous/checksum/checksum_v026.tab do not correspond to the bundle release history
-       ERROR   :       miscellaneous/checksum/checksum_v027.tab
-       ERROR   :       miscellaneous/collection_miscellaneous_v027.xml
-       ERROR   :       miscellaneous/orbnum/maven_orb_rec_210701_211001_v1.orb
-       ERROR   :       miscellaneous/checksum/checksum_v026.tab
-       ERROR   :       miscellaneous/orbnum/maven_orb_rec_210701_211001_v1.xml
-       ERROR   :       miscellaneous/checksum/checksum_v027.xml
-       ERROR   :       miscellaneous/checksum/checksum_v026.xml
-       ERROR   :       miscellaneous/collection_miscellaneous_inventory_v027.csv
-       ERROR   : -- Check generation of Checksum files.
+  -- For PDS3 kernel list generation derive version from existing
+     kernel list or input plan name.
 
   -- Include option to provide plan with kernel names to be mapped or to
      provide kernels from directory with original names.
@@ -33,11 +21,6 @@ Work List:
 
   -- Implement archive time boundaries tests (there is one sketched in
      configuration).
-
-  -- CLEAR argument not working appropriately.
-
-  -- Exceptions due to Coverage because of input kernels not caught. Maybe
-     implement funcion decorators?
 
   Possible:
 
@@ -220,5 +203,27 @@ v0.13.0
   -- Incorporate a validation at the end of the process that reports on
      sensible field such as descriptions, start and stop times, and other
      fields to be considered, this report could be presented as table.
+
+v0.14.0
+
+  -- Exceptions due to Coverage because of input kernels not caught. Implement
+     function decorators.
+
+  -- Issues from MAVEN release 27:
+     * WARNING : -- miscellaneous/checksum/checksum_v027.tab does not have a label.
+     * Incorrect release history for last version:
+       ERROR   :
+       ERROR   : -- Products in /stor/pds4/final/maven/maven_spice/miscellaneous/checksum/checksum_v026.tab do not correspond to the bundle release history
+       ERROR   :       miscellaneous/checksum/checksum_v027.tab
+       ERROR   :       miscellaneous/collection_miscellaneous_v027.xml
+       ERROR   :       miscellaneous/orbnum/maven_orb_rec_210701_211001_v1.orb
+       ERROR   :       miscellaneous/checksum/checksum_v026.tab
+       ERROR   :       miscellaneous/orbnum/maven_orb_rec_210701_211001_v1.xml
+       ERROR   :       miscellaneous/checksum/checksum_v027.xml
+       ERROR   :       miscellaneous/checksum/checksum_v026.xml
+       ERROR   :       miscellaneous/collection_miscellaneous_inventory_v027.csv
+       ERROR   : -- Check generation of Checksum files.
+
+  -- CLEAR argument not working appropriately.
 
 v1.0.0 - First 'public' release.

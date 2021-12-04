@@ -54,7 +54,7 @@ def md5(fname):
     :param fname: Filename
     :type fname: str
     :return: Checksum value of the file
-    :rtype str
+    :rtype: str
     """
     hash_md5 = hashlib.md5()
     with open(fname, "rb") as f:
@@ -182,14 +182,14 @@ def add_carriage_return(line, eol, setup):
         if "\r\n" not in line:
             line += "\r\n"
         else:
-            error_message(f"File has incorrect CR at line: {line}", setup=setup)
+            error_message(f"File has incorrect CR at line: {line}.", setup=setup)
     if eol == "\n" and "\r\n" in line:
         line = line.replace("\r\n", "\n")
     elif eol == "\n" and "\n" not in line:
         line += "\n"
     else:
         if "\n" not in line:
-            error_message(f"File has incorrect CR at line: {line}", setup=setup)
+            error_message(f"File has incorrect CR at line: {line}.", setup=setup)
 
     return line
 
@@ -213,7 +213,7 @@ def add_crs_to_file(file, eol, setup):
         shutil.move(file_crs, file)
 
     except BaseException:
-        error_message(f"Carriage return adding error for {file}", setup)
+        error_message(f"Carriage return adding error for {file}.", setup)
 
     return None
 
@@ -377,7 +377,7 @@ def mk2list(mk, setup):
 
     if not ker_mk_list:
         error_message(
-            f"No kernels present in {mk}. " f"Please review MK generation", setup=setup
+            f"No kernels present in {mk}. " f"Please review MK generation.", setup=setup
         )
 
     return ker_mk_list
@@ -393,10 +393,10 @@ def get_latest_kernel(
     of the kernels to be included in a meta-kernel.
 
     :param kernel_type: SPICE Kernel type which also defines
-                        the subdirectory name
+                        the subdirectory name.
     :param paths: List of paths to the roots of the SPICE Kernels directories
-                  where the kernels are store in a subdirectory named `type'.
-    :param pattern: Patterns to search for that defines the kernel `type'
+                  where the kernels are store in a subdirectory named "type".
+    :param pattern: Patterns to search for that defines the kernel "type"
                     file naming scheme. This pattern follows the format of
                     the meta-kernel grammar provided in the XML configuration
                     file
@@ -406,7 +406,7 @@ def get_latest_kernel(
                   only the latest date and latest version is included
     :param excluded_kernels: Indicates that a specific kernel might have
                              to be excluded from the search.
-    :mks: Indicates that the kernels present in the list of provided
+    :param mks: Indicates that the kernels present in the list of provided
           meta-kernels have to be incldued for consideration to obtain
           the latest version of the given kernel
     :return: Name of the latest kernels as specified by the pattern.

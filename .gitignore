@@ -29,6 +29,9 @@ dist/
 __pycache__/
 .eggs/
 build/
+.tox/
+venv/
+
 
 # Log file
 *.log

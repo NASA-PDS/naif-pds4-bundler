@@ -1,4 +1,4 @@
-"""Sicler Module to crop the coverage of SPICE Kernels.
+"""Slicer Module to crop the coverage of SPICE Kernels.
 
 This Module is useful to generate data for NPB tests.
 """

@@ -43,6 +43,7 @@ class TestBundleHistory(TestCase):
         test_setup = Object()
         test_setup.bundle_directory = "../data/insight"
         test_setup.mission_acronym = "insight"
+        test_setup.xml_model = "http://pds.nasa.gov/pds4/pds/v1/test"
 
         test_bundle = Object()
         test_bundle.vid = "8.0"

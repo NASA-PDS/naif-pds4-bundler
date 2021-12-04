@@ -61,7 +61,7 @@ class PDSLabel(object):
             self.END_OF_LINE = "Line-Feed"
         else:
             error_message(
-                "End of Line provided via configuration is not CRLF nor LF",
+                "End of Line provided via configuration is not CRLF nor LF.",
                 setup=self.setup,
             )
 
@@ -156,7 +156,7 @@ class PDSLabel(object):
 
                 if not ob_lid:
                     error_message(
-                        f"LID has not been obtained for observer {ob}",
+                        f"LID has not been obtained for observer {ob}.",
                         setup=self.setup,
                     )
 
@@ -175,7 +175,7 @@ class PDSLabel(object):
 
         if not obs_list_for_label:
             error_message(
-                f"{self.product.name} observers not defined", setup=self.setup
+                f"{self.product.name} observers not defined.", setup=self.setup
             )
         obs_list_for_label = obs_list_for_label.rstrip() + eol
 
@@ -218,7 +218,7 @@ class PDSLabel(object):
                 )
 
         if not tar_list_for_label:
-            error_message(f"{self.product.name} targets not defined", setup=self.setup)
+            error_message(f"{self.product.name} targets not defined.", setup=self.setup)
         tar_list_for_label = tar_list_for_label.rstrip() + eol
 
         return tar_list_for_label
@@ -282,20 +282,24 @@ class PDSLabel(object):
         self.setup.add_file(label_name.split(f"{stag_dir}{os.sep}")[-1])
 
         if self.setup.diff:
-            self.__compare()
+            self.compare()
 
         logging.info("")
 
         return
 
-    def __compare(self):
-        """Compare the Label with another label.
+    def compare(self):
+        """**Compare the Label with another label**.
 
-        The label is compared to a similar label from the previous release
-        of the archive.
+        The product label is compared to a similar label. The label with which
+        the generated label is compared to is determined
+        by the first criterium that is met from the following list:
 
-        For new archives a 'similar' archive is used.
-        :return:
+           * find a different version of the same label
+           * find the label of a product of the same kind (e.g.: same kernel
+             type)
+           * use a label of a product of the same kind from INSIGHT available
+             from the NPB package.
         """
         logging.info("-- Comparing label...")
 
@@ -412,8 +416,7 @@ class PDSLabel(object):
                 try:
                     val_label_path = (
                         f"{self.setup.root_dir}"
-                        f"tests/data/regression/"
-                        f"insight_spice/"
+                        f"/data/insight_spice/"
                         f"{self.product.collection.name}/"
                     )
 

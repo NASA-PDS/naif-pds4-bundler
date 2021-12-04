@@ -77,8 +77,8 @@ def spk_coverage(path, main_name="", date_format="infomod2"):
                         inward substraction for the coverage stop time.
                         The other option is the MAKLABEL style that
                         rounds to the second.
-    :raise: if the date_format parameter argument is not `infomod2' or
-            `maklabel'
+    :raise: if the date_format parameter argument is not ``infomod2`` or
+            ``maklabel``
     :return: start and finish coverage
     :rtype: list of str
     """
@@ -141,8 +141,8 @@ def ck_coverage(path, date_format="infomod2"):
                         inward substraction for the coverage stop time.
                         The other option is the MAKLABEL style that
                         rounds to the millisecond.
-    :raise: if the date_format parameter argument is not `infomod2' or
-            `maklabel'
+    :raise: if the date_format parameter argument is not ``infomod2`` or
+            ``maklabel``
     :return: start and finish coverage
     :rtype: list of str
     """
@@ -196,8 +196,8 @@ def pck_coverage(path, date_format="infomod2"):
                         inward substraction for the coverage stop time.
                         The other option is the MAKLABEL style that
                         rounds to the second.
-    :raise: if the date_format parameter argument is not `infomod2' or
-            `maklabel'
+    :raise: if the date_format parameter argument is not ``infomod2`` or
+            ``maklabel``
     :return: start and finish coverage
     :rtype: list of str
     """
@@ -250,8 +250,8 @@ def dsk_coverage(path, date_format="infomod2"):
                         inward substraction for the coverage stop time.
                         The other option is the MAKLABEL style that
                         rounds to the second
-    :raise: if the date_format parameter argument is not `infomod2' or
-            `maklabel'
+    :raise: if the date_format parameter argument is not ``infomod2`` or
+            ``maklabel``
     :return: start and finish coverage
     :rtype: list of str
     """

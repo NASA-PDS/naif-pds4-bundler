@@ -40,7 +40,7 @@ Each XML element is defined in between angle brackets::
 
 elements enclose contents such as::
 
-     <element>Some content<\element>``
+     <element>Some content<\element>
 
 and elements can have attributes with a value::
 
@@ -54,7 +54,7 @@ NPB includes a Configuration File XML Schema
 configuration files. This validation is performed to confirm that the file is
 well-formed and also "valid" according to the structure defined in the Schema.
 
-Do not use the XML Schema a reference to generate a configuration file, instead
+Do not use the XML Schema as a reference to generate a configuration file, instead
 use one of the configuration files included in the test area of the NPB package.
 The MAVEN Configuration is the recommended reference: ``tests/naif_pds4_bundler/config/maven.xml``.
 If the bundle to be generated includes secondary observers and/or targets
@@ -77,385 +77,385 @@ example is provided hereunder. We encourage you to first take a look
 at the example and then continue to the sections that explain in detail each
 parameter.::
 
-     <?xml version='1.0' encoding='UTF-8'?>
-     <naif-pds4-bundler_configuration>
+    <?xml version='1.0' encoding='UTF-8'?>
+    <naif-pds4-bundler_configuration>
 
-         <!-- =========================== -->
-         <!-- PDS parameters              -->
-         <!-- =========================== -->
-         <pds_parameters>
-             <pds_version>4</pds_version>
-             <information_model>1.5.0.0</information_model>
-             <xml_model>http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.sch</xml_model>
-             <schema_location>http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd
-             </schema_location>
-             <logical_identifier>urn:nasa:pds:maven.spice</logical_identifier>
+        <!-- =========================== -->
+        <!-- PDS parameters              -->
+        <!-- =========================== -->
+        <pds_parameters>
+            <pds_version>4</pds_version>
+            <information_model>1.5.0.0</information_model>
+            <xml_model>http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.sch</xml_model>
+            <schema_location>http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd
+            </schema_location>
+            <logical_identifier>urn:nasa:pds:maven.spice</logical_identifier>
 
-             <!-- Optional parameters -->
-             <!-- Context Products that are not present in the registered context
-                  products JSON file -->
-             <context_products>
-                 <!-- The product name, type, and lidvid needs to be provided -->
-                 <product name="MAVEN">
-                     <type>Spacecraft</type>
-                     <lidvid>urn:nasa:pds:context:instrument_host:spacecraft.maven::1.0</lidvid>
-                 </product>
-                 <product name="Oumuamua">
-                     <type>Hyperbolic Asteroid</type>
-                     <lidvid>urn:nasa:pds:context:target:asteroid.oumauma::2.0</lidvid>
-                 </product>
-             </context_products>
-         </pds_parameters>
+            <!-- Optional Parameters -->
+            <!-- Context Products that are not present in the registered context
+                 products JSON file -->
+            <context_products>
+                <!-- The product name, type, and lidvid needs to be provided -->
+                <product name="MAVEN">
+                    <type>Spacecraft</type>
+                    <lidvid>urn:nasa:pds:context:instrument_host:spacecraft.maven::1.0</lidvid>
+                </product>
+                <product name="Oumuamua">
+                    <type>Hyperbolic Asteroid</type>
+                    <lidvid>urn:nasa:pds:context:target:asteroid.oumauma::2.0</lidvid>
+                </product>
+            </context_products>
+        </pds_parameters>
 
-         <!-- =========================== -->
-         <!-- Bundle parameters           -->
-         <!-- =========================== -->
-         <bundle_parameters>
-             <producer_name>Marc Costa Sitja</producer_name>
-             <author_list>Semenov B. V.; Costa Sitja M.</author_list>
-             <institution>NAIF/JPL</institution>
-             <doi>10.17189/1520434</doi>
-             <!-- Location fo the SPICE archive description HTML file to be
-                  included -->
-             <spiceds>../data/spiceds_maven.html</spiceds>
-             <spice_name>MAVEN</spice_name>
-             <!-- Information to be included in the archive readme file, only used
-                  if the file is not present -->
-             <readme>
-                 <overview>
-                     The MAVEN SPICE archive bundle contains observation geometry and
-                     other ancillary data in the form of SPICE System kernel files for
-                     the MAVEN spacecraft, its instruments, and targets.
-                 </overview>
-                 <cognisant_authority>
-                     This archive bundle was produced by Boris Semenov, Planetary Data
-                     System Navigation and Ancillary Information Facility Node, Jet
-                     Propulsion Laboratory, Pasadena, California.
-                 </cognisant_authority>
-             </readme>
+        <!-- =========================== -->
+        <!-- Bundle parameters           -->
+        <!-- =========================== -->
+        <bundle_parameters>
+            <producer_name>Marc Costa Sitja</producer_name>
+            <author_list>Semenov B. V.; Costa Sitja M.</author_list>
+            <institution>NAIF/JPL</institution>
+            <doi>10.17189/1520434</doi>
+            <!-- Location fo the SPICE archive description HTML file to be
+                 included -->
+            <spiceds>../data/spiceds_maven.html</spiceds>
+            <spice_name>MAVEN</spice_name>
+            <!-- Information to be included in the archive readme file, only used
+                 if the file is not present -->
+            <readme>
+                <overview>
+                    The MAVEN SPICE archive bundle contains observation geometry and
+                    other ancillary data in the form of SPICE System kernel files for
+                    the MAVEN spacecraft, its instruments, and targets.
+                </overview>
+                <cognisant_authority>
+                    This archive bundle was produced by Boris Semenov, Planetary Data
+                    System Navigation and Ancillary Information Facility Node, Jet
+                    Propulsion Laboratory, Pasadena, California.
+                </cognisant_authority>
+            </readme>
 
-             <!-- Optional parameters -->
-             <!-- Release date as a UTC calendar string. Use the following format:
-                  YYYY-MM-DD e.g. 2021-04-09 -->
-             <release_date>2021-06-25</release_date>
-             <!-- Creation date and time for all the new archive products, usage
-                  of this parameter is highly discouraged -->
-             <creation_date_time>2021-06-25T08:00:00</creation_date_time>
-             <!-- Increment start and stop times provided as a UTC calendar string.
-                  Use the following format: YYYY-MM-DDThh:mm:ssZ
-                  e.g. 2021-04-09T15:11:12Z -->
-             <increment_start>2021-05-25T08:00:00Z</increment_start>
-             <increment_finish>2021-06-25T08:00:00Z</increment_finish>
-             <!-- Date format can be 'maklabel' style or 'infomod2' style. Default
-                  value is 'maklabel'-->
-             <date_format>maklabel</date_format>
-             <!-- End of line format can either be 'CRLF' or 'LF', 'CRLF' is the
-                  default value -->
-             <end_of_line>CRLF</end_of_line>
-         </bundle_parameters>
+            <!-- Optional Parameters -->
+            <!-- Release date as a UTC calendar string. Use the following format:
+                 YYYY-MM-DD e.g. 2021-04-09 -->
+            <release_date>2021-06-25</release_date>
+            <!-- Creation date and time for all the new archive products, usage
+                 of this parameter is highly discouraged -->
+            <creation_date_time>2021-06-25T08:00:00</creation_date_time>
+            <!-- Increment start and stop times provided as a UTC calendar string.
+                 Use the following format: YYYY-MM-DDThh:mm:ssZ
+                 e.g. 2021-04-09T15:11:12Z -->
+            <increment_start>2021-05-25T08:00:00Z</increment_start>
+            <increment_finish>2021-06-25T08:00:00Z</increment_finish>
+            <!-- Date format can be 'maklabel' style or 'infomod2' style. Default
+                 value is 'maklabel'-->
+            <date_format>maklabel</date_format>
+            <!-- End of line format can either be 'CRLF' or 'LF', 'CRLF' is the
+                 default value -->
+            <end_of_line>CRLF</end_of_line>
+        </bundle_parameters>
 
-         <!-- =========================== -->
-         <!-- Mission Parameters          -->
-         <!-- =========================== -->
-         <mission_parameters>
-             <mission_acronym>maven</mission_acronym>
-             <mission_name>MAVEN</mission_name>
-             <mission_start>2013-11-18T19:20:43Z</mission_start>
-             <mission_finish>2050-01-01T00:00:00Z</mission_finish>
-             <observer>MAVEN</observer>
-             <target>MARS</target>
-             <kernels_to_load>
-                 <lsk>naif[0-9][0-9][0-9][0-9].tls</lsk>
-                 <sclk>MVN_SCLKSCET.[0-9][0-9][0-9][0-9][0-9].tsc</sclk>
-                 <fk>maven_v[0-9][0-9].tf</fk>
-             </kernels_to_load>
-         </mission_parameters>
+        <!-- =========================== -->
+        <!-- Mission Parameters          -->
+        <!-- =========================== -->
+        <mission_parameters>
+            <mission_acronym>maven</mission_acronym>
+            <mission_name>MAVEN</mission_name>
+            <mission_start>2013-11-18T19:20:43Z</mission_start>
+            <mission_finish>2050-01-01T00:00:00Z</mission_finish>
+            <observer>MAVEN</observer>
+            <target>MARS</target>
+            <kernels_to_load>
+                <lsk>naif[0-9][0-9][0-9][0-9].tls</lsk>
+                <sclk>MVN_SCLKSCET.[0-9][0-9][0-9][0-9][0-9].tsc</sclk>
+                <fk>maven_v[0-9][0-9].tf</fk>
+            </kernels_to_load>
+        </mission_parameters>
 
-         <!-- =========================== -->
-         <!-- Directories                 -->
-         <!-- =========================== -->
-         <directories>
-             <working_directory>working</working_directory>
-             <kernels_directory>kernels</kernels_directory>
-             <staging_directory>staging</staging_directory>
-             <bundle_directory>maven</bundle_directory>
+        <!-- =========================== -->
+        <!-- Directories                 -->
+        <!-- =========================== -->
+        <directories>
+            <working_directory>working</working_directory>
+            <kernels_directory>kernels</kernels_directory>
+            <staging_directory>staging</staging_directory>
+            <bundle_directory>maven</bundle_directory>
 
-             <!-- Optional parameters -->
-             <orbnum_directory>misc/orbnum</orbnum_directory>
-             <templates_directory>../../templates/1.5.0.0</templates_directory>
-         </directories>
+            <!-- Optional Parameters -->
+            <orbnum_directory>misc/orbnum</orbnum_directory>
+            <templates_directory>../../../src/pds/naif_pds4_bundler/templates/1.5.0.0</templates_directory>
+        </directories>
 
-         <!-- =========================== -->
-         <!-- Kernel List                 -->
-         <!-- =========================== -->
-         <kernel_list>
-             <kernel pattern="naif[0-9][0-9][0-9][0-9].tls">
-                 <mklabel_options>DEF_TIMES</mklabel_options>
-                 <description>SPICE LSK file incorporating leapseconds up to $DATE, created by NAIF, JPL.</description>
-                 <patterns>
-                     <DATE value="naif0011.tls">2015-JAN-01</DATE>
-                     <DATE value="naif0012.tls">2017-JAN-01</DATE>
-                 </patterns>
-             </kernel>
-             <kernel pattern="pck[0-9][0-9][0-9][0-9][0-9].tpc">
-                 <mklabel_options>DEF_TIMES</mklabel_options>
-                 <description>SPICE text PCK file containing constants from the $REPORT report, created by NAIF, JPL.
-                 </description>
-                 <patterns>
-                     <REPORT value="pck00010.tpc">IAU 2009</REPORT>
-                 </patterns>
-             </kernel>
-             <kernel pattern="maven_v[0-9][0-9].tf">
-                 <mklabel_options>DEF_TIMES</mklabel_options>
-                 <description>SPICE FK file defining reference frames for the MAVEN spacecraft, its structures, and science
-                     instruments, created by NAIF, JPL.
-                 </description>
-             </kernel>
-             <kernel pattern="maven_ant_v[0-9][0-9].ti">
-                 <mklabel_options>DEF_TIMES</mklabel_options>
-                 <description>SPICE IK file providing FOV definitions for the MAVEN communication antennae, created by NAIF,
-                     JPL.
-                 </description>
-             </kernel>
-             <kernel pattern="maven_euv_v[0-9][0-9].ti">
-                 <mklabel_options>DEF_TIMES</mklabel_options>
-                 <description>SPICE IK file providing FOV definitions and other instrument parameters for the MAVEN Extreme
-                     Ultraviolet (EUV) monitor instrument, created by NAIF, JPL.
-                 </description>
-             </kernel>
-             <kernel pattern="maven_iuvs_v[0-9][0-9].ti">
-                 <mklabel_options>DEF_TIMES</mklabel_options>
-                 <description>SPICE IK file providing FOV definitions and other instrument parameters for the MAVEN Imaging
-                     Ultraviolet Spectrograph (IUVS) instrument, created by IUVS Team, CU/LASP.
-                 </description>
-             </kernel>
-             <kernel pattern="maven_ngims_v[0-9][0-9].ti">
-                 <mklabel_options>DEF_TIMES</mklabel_options>
-                 <description>SPICE IK file providing FOV definitions and other instrument parameters for the MAVEN Neutral
-                     Gas and Ion Mass Spectrometer (NGIMS) instrument, created by NGIMS Team, GSFC.
-                 </description>
-             </kernel>
-             <kernel pattern="maven_sep_v[0-9][0-9].ti">
-                 <mklabel_options>DEF_TIMES</mklabel_options>
-                 <description>SPICE IK file providing FOV definitions and other instrument parameters for the Solar Energetic
-                     Particle (SEP) instrument, created by SEP Team, UC Berkeley.
-                 </description>
-             </kernel>
-             <kernel pattern="maven_static_v[0-9][0-9].ti">
-                 <mklabel_options>DEF_TIMES</mklabel_options>
-                 <description>SPICE IK file providing FOV definitions and other instrument parameters for the SupraThermal
-                     And Thermal Ion Composition (STATIC) instrument, created by STATIC Team, UC Berkeley.
-                 </description>
-             </kernel>
-             <kernel pattern="maven_swea_v[0-9][0-9].ti">
-                 <mklabel_options>DEF_TIMES</mklabel_options>
-                 <description>SPICE IK file providing FOV definitions and other instrument parameters for the MAVEN Solar
-                     Wind Electron Analyzer (SWEA) instrument, created by SWEA Team, UC Berkeley.
-                 </description>
-             </kernel>
-             <kernel pattern="maven_swia_v[0-9][0-9].ti">
-                 <mklabel_options>DEF_TIMES</mklabel_options>
-                 <description>SPICE IK file providing FOV definitions and other instrument parameters for the MAVEN Solar
-                     Wind Ion Analyzer (SWIA) instrument, created by SWIA Team, UC Berkeley.
-                 </description>
-             </kernel>
-             <kernel pattern="mvn_sclkscet_[0-9][0-9][0-9][0-9][0-9].tsc">
-                 <mapping>MVN_SCLKSCET.$VERSION.tsc</mapping>
-                 <mklabel_options>DEF_TIMES</mklabel_options>
-                 <description>SPICE SCLK file containing time correlation data for the main MAVEN on-board clock, created by
-                     NAIF, JPL. The original name of this file was MVN_SCLKSCET.$VERSION.tsc.
-                 </description>
-                 <patterns>
-                     <VERSION pattern="KERNEL">MVN_SCLKSCET.$VERSION.tsc</VERSION>
-                 </patterns>
-             </kernel>
-             <kernel pattern="de[0-9][0-9][0-9]s.bsp">
-                 <mklabel_options>de[0-9][0-9][0-9]s.bsp</mklabel_options>
-                 <description>SPICE SPK file containing JPL planetary ephemerides version $VERSION, created by NAIF, JPL.
-                 </description>
-                 <patterns>
-                     <VERSION pattern="de430s.bsp">DE430</VERSION>
-                 </patterns>
-             </kernel>
-             <kernel pattern="mar[0-9][0-9][0-9]s.bsp">
-                 <mklabel_options></mklabel_options>
-                 <description>SPICE SPK file containing JPL Martian satellite ephemerides version $VERSION, created by NAIF,
-                     JPL.
-                 </description>
-                 <patterns>
-                     <VERSION pattern="mar097s.bsp">MAR097</VERSION>
-                 </patterns>
-             </kernel>
-             <kernel pattern="maven_struct_v[0-9][0-9].bsp">
-                 <mklabel_options></mklabel_options>
-                 <description>SPICE SPK file containing relative locations of selected MAVEN structures and science
-                     instruments, created by NAIF, JPL.
-                 </description>
-             </kernel>
-             <kernel pattern="maven_cru_rec_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9].bsp">
-                 <mklabel_options></mklabel_options>
-                 <description>SPICE SPK file containing reconstructed cruise trajectory of the MAVEN spacecraft, created by
-                     MAVEN NAV Team, JPL. The original name of this file was trj_c_131118-140923_rec_v1.bsp.
-                 </description>
-             </kernel>
-             <kernel pattern="maven_orb_rec_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9].bsp">
-                 <mklabel_options></mklabel_options>
-                 <description>SPICE SPK file containing reconstructed orbital trajectory of the MAVEN spacecraft, created by
-                     NAIF, JPL by merging operational weekly reconstructed SPK files produced by MAVEN NAV Team, JPL.
-                 </description>
-             </kernel>
-             <kernel pattern="mvn_swea_nom_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9].bc">
-                 <mklabel_options></mklabel_options>
-                 <description>SPICE CK file containing nominal orientation of the MAVEN SWEA instrument boom, created by
-                     NAIF, JPL.
-                 </description>
-             </kernel>
-             <kernel pattern="mvn_app_rel_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9].bc">
-                 <mklabel_options></mklabel_options>
-                 <description>SPICE CK file containing reconstructed orientation of the MAVEN Articulated Payload Platform
-                     (APP), created by NAIF, JPL.
-                 </description>
-             </kernel>
-             <kernel pattern="mvn_iuvs_rem_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9].bc">
-                 <mklabel_options></mklabel_options>
-                 <description>SPICE CK file containing reconstructed orientation of the MAVEN IUVS instrument internal
-                     mirror, created by NAIF, JPL by merging data from daily IUVS CKs produced by the IUVS Team, CU/LASP.
-                 </description>
-             </kernel>
-             <kernel pattern="mvn_sc_rel_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9].bc">
-                 <mklabel_options></mklabel_options>
-                 <description>SPICE CK file containing reconstructed orientation of the MAVEN spacecraft, created by NAIF,
-                     JPL.
-                 </description>
-             </kernel>
-             <kernel pattern="mvn_sc_pred_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9].bc">
-                 <mklabel_options></mklabel_options>
-                 <description>SPICE CK file containing predicted orientation of the MAVEN spacecraft, created by NAIF,
-                     JPL. The original name of this file was $ORIGINAL.
-                 </description>
-                 <patterns>
-                     <ORIGINAL value="mvn_sc_pred_210104_210120_v01.bc">mvn_sc_pred_210104_210120_vm321_322_v03.bc</ORIGINAL>
-                     <ORIGINAL value="mvn_sc_pred_141205_141209_v01.bc">mvn_sc_pred_141205_141209_vm002OTM_v02.bc</ORIGINAL>
-                     <ORIGINAL value="mvn_sc_pred_141223_150109_v01.bc">mvn_sc_pred_141223_150109_vm004_v02.bc</ORIGINAL>
-                     <ORIGINAL value="mvn_sc_pred_150302_150315_v01.bc">mvn_sc_pred_150302_150315_vm013ar01_v01.bc</ORIGINAL>
-                     <ORIGINAL value="mvn_sc_pred_150630_150707_v01.bc">mvn_sc_pred_150630_150707_vm027b_v01.bc</ORIGINAL>
-                 </patterns>
-             </kernel>
-             <kernel pattern="mvn_app_pred_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9].bc">
-                 <mklabel_options></mklabel_options>
-                 <description>SPICE CK file containing predicted orientation of the MAVEN Articulated Payload Platform
-                     (APP), created by NAIF, JPL. The original name of this file was $ORIGINAL.
-                 </description>
-                 <patterns>
-                     <ORIGINAL value="mvn_app_pred_210104_210120_v01.bc">mvn_app_pred_210104_210120_vm321_322_v03.bc</ORIGINAL>
-                     <ORIGINAL value="mvn_app_pred_141205_141209_v01.bc">mvn_app_pred_141205_141209_vm002OTM_v02.bc</ORIGINAL>
-                     <ORIGINAL value="mvn_app_pred_141223_150109_v01.bc">mvn_app_pred_141223_150109_vm004_v02.bc</ORIGINAL>
-                     <ORIGINAL value="mvn_app_pred_150302_150315_v01.bc">mvn_app_pred_150302_150315_vm013ar01_v01.bc</ORIGINAL>
-                     <ORIGINAL value="mvn_app_pred_150630_150707_v01.bc">mvn_app_pred_150630_150707_vm027b_v01.bc</ORIGINAL>
-                 </patterns>
-             </kernel>
-             <kernel pattern="maven_[0-9][0-9][0-9][0-9]_v[0-9][0-9].tm">
-                 <mklabel_options></mklabel_options>
-                 <description>SPICE MK file listing kernels for $YEAR, created by NAIF, JPL.</description>
-                 <patterns>
-                     <YEAR pattern="KERNEL">maven_$YEAR_v[0-9][0-9].tm</YEAR>
-                 </patterns>
-             </kernel>
-         </kernel_list>
+        <!-- =========================== -->
+        <!-- Kernel List                 -->
+        <!-- =========================== -->
+        <kernel_list>
+            <kernel pattern="naif[0-9][0-9][0-9][0-9].tls">
+                <mklabel_options>DEF_TIMES</mklabel_options>
+                <description>SPICE LSK file incorporating leapseconds up to $DATE, created by NAIF, JPL.</description>
+                <patterns>
+                    <DATE value="naif0011.tls">2015-JAN-01</DATE>
+                    <DATE value="naif0012.tls">2017-JAN-01</DATE>
+                </patterns>
+            </kernel>
+            <kernel pattern="pck[0-9][0-9][0-9][0-9][0-9].tpc">
+                <mklabel_options>DEF_TIMES</mklabel_options>
+                <description>SPICE text PCK file containing constants from the $REPORT report, created by NAIF, JPL.
+                </description>
+                <patterns>
+                    <REPORT value="pck00010.tpc">IAU 2009</REPORT>
+                </patterns>
+            </kernel>
+            <kernel pattern="maven_v[0-9][0-9].tf">
+                <mklabel_options>DEF_TIMES</mklabel_options>
+                <description>SPICE FK file defining reference frames for the MAVEN spacecraft, its structures, and science
+                    instruments, created by NAIF, JPL.
+                </description>
+            </kernel>
+            <kernel pattern="maven_ant_v[0-9][0-9].ti">
+                <mklabel_options>DEF_TIMES</mklabel_options>
+                <description>SPICE IK file providing FOV definitions for the MAVEN communication antennae, created by NAIF,
+                    JPL.
+                </description>
+            </kernel>
+            <kernel pattern="maven_euv_v[0-9][0-9].ti">
+                <mklabel_options>DEF_TIMES</mklabel_options>
+                <description>SPICE IK file providing FOV definitions and other instrument parameters for the MAVEN Extreme
+                    Ultraviolet (EUV) monitor instrument, created by NAIF, JPL.
+                </description>
+            </kernel>
+            <kernel pattern="maven_iuvs_v[0-9][0-9].ti">
+                <mklabel_options>DEF_TIMES</mklabel_options>
+                <description>SPICE IK file providing FOV definitions and other instrument parameters for the MAVEN Imaging
+                    Ultraviolet Spectrograph (IUVS) instrument, created by IUVS Team, CU/LASP.
+                </description>
+            </kernel>
+            <kernel pattern="maven_ngims_v[0-9][0-9].ti">
+                <mklabel_options>DEF_TIMES</mklabel_options>
+                <description>SPICE IK file providing FOV definitions and other instrument parameters for the MAVEN Neutral
+                    Gas and Ion Mass Spectrometer (NGIMS) instrument, created by NGIMS Team, GSFC.
+                </description>
+            </kernel>
+            <kernel pattern="maven_sep_v[0-9][0-9].ti">
+                <mklabel_options>DEF_TIMES</mklabel_options>
+                <description>SPICE IK file providing FOV definitions and other instrument parameters for the Solar Energetic
+                    Particle (SEP) instrument, created by SEP Team, UC Berkeley.
+                </description>
+            </kernel>
+            <kernel pattern="maven_static_v[0-9][0-9].ti">
+                <mklabel_options>DEF_TIMES</mklabel_options>
+                <description>SPICE IK file providing FOV definitions and other instrument parameters for the SupraThermal
+                    And Thermal Ion Composition (STATIC) instrument, created by STATIC Team, UC Berkeley.
+                </description>
+            </kernel>
+            <kernel pattern="maven_swea_v[0-9][0-9].ti">
+                <mklabel_options>DEF_TIMES</mklabel_options>
+                <description>SPICE IK file providing FOV definitions and other instrument parameters for the MAVEN Solar
+                    Wind Electron Analyzer (SWEA) instrument, created by SWEA Team, UC Berkeley.
+                </description>
+            </kernel>
+            <kernel pattern="maven_swia_v[0-9][0-9].ti">
+                <mklabel_options>DEF_TIMES</mklabel_options>
+                <description>SPICE IK file providing FOV definitions and other instrument parameters for the MAVEN Solar
+                    Wind Ion Analyzer (SWIA) instrument, created by SWIA Team, UC Berkeley.
+                </description>
+            </kernel>
+            <kernel pattern="mvn_sclkscet_[0-9][0-9][0-9][0-9][0-9].tsc">
+                <mapping>MVN_SCLKSCET.$VERSION.tsc</mapping>
+                <mklabel_options>DEF_TIMES</mklabel_options>
+                <description>SPICE SCLK file containing time correlation data for the main MAVEN on-board clock, created by
+                    NAIF, JPL. The original name of this file was MVN_SCLKSCET.$VERSION.tsc.
+                </description>
+                <patterns>
+                    <VERSION pattern="KERNEL">MVN_SCLKSCET.$VERSION.tsc</VERSION>
+                </patterns>
+            </kernel>
+            <kernel pattern="de[0-9][0-9][0-9]s.bsp">
+                <mklabel_options>de[0-9][0-9][0-9]s.bsp</mklabel_options>
+                <description>SPICE SPK file containing JPL planetary ephemerides version $VERSION, created by NAIF, JPL.
+                </description>
+                <patterns>
+                    <VERSION pattern="de430s.bsp">DE430</VERSION>
+                </patterns>
+            </kernel>
+            <kernel pattern="mar[0-9][0-9][0-9]s.bsp">
+                <mklabel_options></mklabel_options>
+                <description>SPICE SPK file containing JPL Martian satellite ephemerides version $VERSION, created by NAIF,
+                    JPL.
+                </description>
+                <patterns>
+                    <VERSION pattern="mar097s.bsp">MAR097</VERSION>
+                </patterns>
+            </kernel>
+            <kernel pattern="maven_struct_v[0-9][0-9].bsp">
+                <mklabel_options></mklabel_options>
+                <description>SPICE SPK file containing relative locations of selected MAVEN structures and science
+                    instruments, created by NAIF, JPL.
+                </description>
+            </kernel>
+            <kernel pattern="maven_cru_rec_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9].bsp">
+                <mklabel_options></mklabel_options>
+                <description>SPICE SPK file containing reconstructed cruise trajectory of the MAVEN spacecraft, created by
+                    MAVEN NAV Team, JPL. The original name of this file was trj_c_131118-140923_rec_v1.bsp.
+                </description>
+            </kernel>
+            <kernel pattern="maven_orb_rec_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9].bsp">
+                <mklabel_options></mklabel_options>
+                <description>SPICE SPK file containing reconstructed orbital trajectory of the MAVEN spacecraft, created by
+                    NAIF, JPL by merging operational weekly reconstructed SPK files produced by MAVEN NAV Team, JPL.
+                </description>
+            </kernel>
+            <kernel pattern="mvn_swea_nom_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9].bc">
+                <mklabel_options></mklabel_options>
+                <description>SPICE CK file containing nominal orientation of the MAVEN SWEA instrument boom, created by
+                    NAIF, JPL.
+                </description>
+            </kernel>
+            <kernel pattern="mvn_app_rel_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9].bc">
+                <mklabel_options></mklabel_options>
+                <description>SPICE CK file containing reconstructed orientation of the MAVEN Articulated Payload Platform
+                    (APP), created by NAIF, JPL.
+                </description>
+            </kernel>
+            <kernel pattern="mvn_iuvs_rem_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9].bc">
+                <mklabel_options></mklabel_options>
+                <description>SPICE CK file containing reconstructed orientation of the MAVEN IUVS instrument internal
+                    mirror, created by NAIF, JPL by merging data from daily IUVS CKs produced by the IUVS Team, CU/LASP.
+                </description>
+            </kernel>
+            <kernel pattern="mvn_sc_rel_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9].bc">
+                <mklabel_options></mklabel_options>
+                <description>SPICE CK file containing reconstructed orientation of the MAVEN spacecraft, created by NAIF,
+                    JPL.
+                </description>
+            </kernel>
+            <kernel pattern="mvn_sc_pred_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9].bc">
+                <mklabel_options></mklabel_options>
+                <description>SPICE CK file containing predicted orientation of the MAVEN spacecraft, created by NAIF,
+                    JPL. The original name of this file was $ORIGINAL.
+                </description>
+                <patterns>
+                    <ORIGINAL value="mvn_sc_pred_210104_210120_v01.bc">mvn_sc_pred_210104_210120_vm321_322_v03.bc</ORIGINAL>
+                    <ORIGINAL value="mvn_sc_pred_141205_141209_v01.bc">mvn_sc_pred_141205_141209_vm002OTM_v02.bc</ORIGINAL>
+                    <ORIGINAL value="mvn_sc_pred_141223_150109_v01.bc">mvn_sc_pred_141223_150109_vm004_v02.bc</ORIGINAL>
+                    <ORIGINAL value="mvn_sc_pred_150302_150315_v01.bc">mvn_sc_pred_150302_150315_vm013ar01_v01.bc</ORIGINAL>
+                    <ORIGINAL value="mvn_sc_pred_150630_150707_v01.bc">mvn_sc_pred_150630_150707_vm027b_v01.bc</ORIGINAL>
+                </patterns>
+            </kernel>
+            <kernel pattern="mvn_app_pred_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9].bc">
+                <mklabel_options></mklabel_options>
+                <description>SPICE CK file containing predicted orientation of the MAVEN Articulated Payload Platform
+                    (APP), created by NAIF, JPL. The original name of this file was $ORIGINAL.
+                </description>
+                <patterns>
+                    <ORIGINAL value="mvn_app_pred_210104_210120_v01.bc">mvn_app_pred_210104_210120_vm321_322_v03.bc</ORIGINAL>
+                    <ORIGINAL value="mvn_app_pred_141205_141209_v01.bc">mvn_app_pred_141205_141209_vm002OTM_v02.bc</ORIGINAL>
+                    <ORIGINAL value="mvn_app_pred_141223_150109_v01.bc">mvn_app_pred_141223_150109_vm004_v02.bc</ORIGINAL>
+                    <ORIGINAL value="mvn_app_pred_150302_150315_v01.bc">mvn_app_pred_150302_150315_vm013ar01_v01.bc</ORIGINAL>
+                    <ORIGINAL value="mvn_app_pred_150630_150707_v01.bc">mvn_app_pred_150630_150707_vm027b_v01.bc</ORIGINAL>
+                </patterns>
+            </kernel>
+            <kernel pattern="maven_[0-9][0-9][0-9][0-9]_v[0-9][0-9].tm">
+                <mklabel_options></mklabel_options>
+                <description>SPICE MK file listing kernels for $YEAR, created by NAIF, JPL.</description>
+                <patterns>
+                    <YEAR pattern="KERNEL">maven_$YEAR_v[0-9][0-9].tm</YEAR>
+                </patterns>
+            </kernel>
+        </kernel_list>
 
-         <!-- =========================== -->
-         <!-- Meta-kernel                 -->
-         <!-- =========================== -->
-         <meta-kernel>
-             <coverage_kernels>
-                 <!-- These kernels determine the coverage of the bundle
-                 increment -->
-                 <pattern>maven_orb_rec_[0-9]{6}_[0-9]{6}_v[0-9].bsp</pattern>
-             </coverage_kernels>
-             <!-- Each meta-kernel present in the bundle can be automatically
-                  generated by NPB, providing the parameters below. -->
-             <mk name="maven_$YEAR_v$VERSION.tm">
-                 <name>
-                     <pattern length="2">VERSION</pattern>
-                     <pattern length="4">YEAR</pattern>
-                 </name>
-                 <grammar>
-                     <!-- LSK -->
-                     <pattern>naif0012.tls</pattern>
-                     <!-- PCK -->
-                     <pattern>pck00010.tpc</pattern>
-                     <!-- FK -->
-                     <pattern>maven_v[0-9]{2}.tf</pattern>
-                     <!-- IK -->
-                     <pattern>maven_ant_v[0-9]{2}.ti</pattern>
-                     <pattern>maven_euv_v[0-9]{2}.ti</pattern>
-                     <pattern>maven_iuvs_v[0-9]{2}.ti</pattern>
-                     <pattern>maven_ngims_v[0-9]{2}.ti</pattern>
-                     <pattern>maven_sep_v[0-9]{2}.ti</pattern>
-                     <pattern>maven_static_v[0-9]{2}.ti</pattern>
-                     <pattern>maven_swea_v[0-9]{2}.ti</pattern>
-                     <pattern>maven_swia_v[0-9]{2}.ti</pattern>
-                     <!-- SCLK -->
-                     <pattern>MVN_SCLKSCET.[0-9]{5}.tsc</pattern>
-                     <pattern>mvn_sclkscet_[0-9]{5}.tsc</pattern>
-                     <!-- SPK -->
-                     <pattern>de430s.bsp</pattern>
-                     <pattern>mar097s.bsp</pattern>
-                     <pattern>maven_struct_v[0-9]{2}.bsp</pattern>
-                     <pattern>date:maven_orb_rec_[0-9]{6}_[0-9]{6}_v[0-9].bsp</pattern>
-                     <!-- CK -->
-                     <pattern>date:mvn_iuvs_rem_[0-9]{6}_[0-9]{6}_v[0-9]{2}.bc</pattern>
-                     <pattern>date:mvn_app_pred_[0-9]{6}_[0-9]{6}_v[0-9]{2}.bc</pattern>
-                     <pattern>date:mvn_app_rel_[0-9]{6}_[0-9]{6}_v[0-9]{2}.bc</pattern>
-                     <pattern>mvn_swea_nom_131118_300101_v[0-9]{2}.bc</pattern>
-                     <pattern>date:mvn_sc_pred_[0-9]{6}_[0-9]{6}_v[0-9]{2}.bc</pattern>
-                     <pattern>date:mvn_sc_rel_[0-9]{6}_[0-9]{6}_v[0-9]{2}.bc</pattern>
-                     <!-- DSK -->
-                 </grammar>
-                 <metadata>
-                     <description>
-                         This meta-kernel lists the MAVEN SPICE kernels providing coverage
-                         for $YEAR. All of the kernels listed below are archived in the PDS
-                         MAVEN SPICE kernel archive. This set of files and the order in which
-                         they are listed were picked to provide the best available data and
-                         the most complete coverage for the specified year based on the
-                         information about the kernels available at the time this meta-kernel
-                         was made. For detailed information about the kernels listed below
-                         refer to the internal comments included in the kernels and the
-                         documentation accompanying the MAVEN SPICE kernel archive.
-                     </description>
-                     <!-- The keyword field is used to speficy parameters such as the
-                          meta-kernel year.
-                     -->
-                     <keyword> </keyword>
-                     <data> </data>
-                 </metadata>
-             </mk>
-         </meta-kernel>
+        <!-- =========================== -->
+        <!-- Meta-kernel                 -->
+        <!-- =========================== -->
+        <meta-kernel>
+            <!-- Each meta-kernel present in the bundle can be automatically
+                 generated by NPB, providing the parameters below. -->
+            <mk name="maven_$YEAR_v$VERSION.tm">
+                <name>
+                    <pattern length="2">VERSION</pattern>
+                    <pattern length="4">YEAR</pattern>
+                </name>
+                <coverage_kernels>
+                    <!-- These kernels determine the coverage of the increment -->
+                    <pattern>maven_orb_rec_[0-9]{6}_[0-9]{6}_v[0-9].bsp</pattern>
+                </coverage_kernels>
+                <interrupt_to_update>False</interrupt_to_update>
+                <grammar>
+                    <!-- LSK -->
+                    <pattern>naif0012.tls</pattern>
+                    <!-- PCK -->
+                    <pattern>pck00010.tpc</pattern>
+                    <!-- FK -->
+                    <pattern>maven_v[0-9]{2}.tf</pattern>
+                    <!-- IK -->
+                    <pattern>maven_ant_v[0-9]{2}.ti</pattern>
+                    <pattern>maven_euv_v[0-9]{2}.ti</pattern>
+                    <pattern>maven_iuvs_v[0-9]{2}.ti</pattern>
+                    <pattern>maven_ngims_v[0-9]{2}.ti</pattern>
+                    <pattern>maven_sep_v[0-9]{2}.ti</pattern>
+                    <pattern>maven_static_v[0-9]{2}.ti</pattern>
+                    <pattern>maven_swea_v[0-9]{2}.ti</pattern>
+                    <pattern>maven_swia_v[0-9]{2}.ti</pattern>
+                    <!-- SCLK -->
+                    <pattern>MVN_SCLKSCET.[0-9]{5}.tsc</pattern>
+                    <pattern>mvn_sclkscet_[0-9]{5}.tsc</pattern>
+                    <!-- SPK -->
+                    <pattern>de430s.bsp</pattern>
+                    <pattern>mar097s.bsp</pattern>
+                    <pattern>maven_struct_v[0-9]{2}.bsp</pattern>
+                    <pattern>date:maven_orb_rec_[0-9]{6}_[0-9]{6}_v[0-9].bsp</pattern>
+                    <!-- CK -->
+                    <pattern>date:mvn_iuvs_rem_[0-9]{6}_[0-9]{6}_v[0-9]{2}.bc</pattern>
+                    <pattern>date:mvn_app_pred_[0-9]{6}_[0-9]{6}_v[0-9]{2}.bc</pattern>
+                    <pattern>date:mvn_app_rel_[0-9]{6}_[0-9]{6}_v[0-9]{2}.bc</pattern>
+                    <pattern>mvn_swea_nom_131118_300101_v[0-9]{2}.bc</pattern>
+                    <pattern>date:mvn_sc_pred_[0-9]{6}_[0-9]{6}_v[0-9]{2}.bc</pattern>
+                    <pattern>date:mvn_sc_rel_[0-9]{6}_[0-9]{6}_v[0-9]{2}.bc</pattern>
+                    <!-- DSK -->
+                </grammar>
+                <metadata>
+                    <description>
+                        This meta-kernel lists the MAVEN SPICE kernels providing coverage
+                        for $YEAR. All of the kernels listed below are archived in the PDS
+                        MAVEN SPICE kernel archive. This set of files and the order in which
+                        they are listed were picked to provide the best available data and
+                        the most complete coverage for the specified year based on the
+                        information about the kernels available at the time this meta-kernel
+                        was made. For detailed information about the kernels listed below
+                        refer to the internal comments included in the kernels and the
+                        documentation accompanying the MAVEN SPICE kernel archive.
+                    </description>
+                    <!-- The keyword field is used to speficy parameters such as the
+                         meta-kernel year.
+                    -->
+                    <keyword> </keyword>
+                    <data> </data>
+                </metadata>
+            </mk>
+        </meta-kernel>
 
-         <!-- =========================== -->
-         <!-- Orbit number file           -->
-         <!-- =========================== -->
-         <orbit_number_file>
-             <orbnum>
-                 <pattern>maven_orb_rec_[0-9]{6}_[0-9]{6}_v[0-9].orb</pattern>
-                 <!-- Parameters from the orbnum generation preference file -->
-                 <event_detection_frame>
-                     <spice_name>IAU_MARS</spice_name>
-                     <description>Mars body-fixed frame</description>
-                 </event_detection_frame>
-                 <header_start_line>1</header_start_line >
-                 <pck>
-                     <kernel_name>pck0010.tpc</kernel_name>
-                     <description>IAU 2009 report</description>
-                 </pck>
-                 <coverage>
-                     <kernel cutoff="True">../data/kernels/spk/maven_orb_rec_210101_210401_v2.bsp</kernel>
-                 </coverage>
-             </orbnum>
-         </orbit_number_file>
-     </naif-pds4-bundle_configuration>
-
+        <!-- =========================== -->
+        <!-- Orbit number file           -->
+        <!-- =========================== -->
+        <orbit_number_file>
+            <orbnum>
+                <pattern>maven_orb_rec_[0-9]{6}_[0-9]{6}_v[0-9].orb</pattern>
+                <!-- Parameters from the orbnum generation preference file -->
+                <event_detection_frame>
+                    <spice_name>IAU_MARS</spice_name>
+                    <description>Mars body-fixed frame</description>
+                </event_detection_frame>
+                <header_start_line>1</header_start_line >
+                <pck>
+                    <kernel_name>pck0010.tpc</kernel_name>
+                    <description>IAU 2009 report</description>
+                </pck>
+                <coverage>
+                    <kernel cutoff="True">../data/kernels/spk/maven_orb_rec_210101_210401_v2.bsp</kernel>
+                </coverage>
+                <author>NAIF, JPL</author>
+            </orbnum>
+        </orbit_number_file>
+    </naif-pds4-bundler_configuration>
 
 
 PDS Parameters
@@ -493,7 +493,7 @@ products. The table below provides a summary of the parameters:
      - Logical identifier for the bundle.
      - Yes
    * - context_products
-     - Provides a list of required context products that are not available in
+     - Provides the location of a file that lists required context products that are not available in
        the registered context products. More information below.
      - No
 
@@ -503,11 +503,9 @@ The Information Model
 
 The ``information_model`` parameter will determine the PDS4 artifacts templates
 that will be used for the bundle generation. NPB provides different templates
-depending on the specified IM. See section
-:ref:`source/44_npb_implementation:PDS Information Model` for an extended
-discussion on IM and template usage.
+depending on the specified IM.
 
-We recommends to use IM 1.5.0.0, but if you need to include a DOI in the bundle
+NAIF recommends to use IM 1.5.0.0, but if you need to include a DOI in the bundle
 label you can use IM 1.14.0.0 or higher.
 
 The choice of the IM will determine the ``xml_model`` and ``schema_location``
@@ -515,7 +513,7 @@ values. The only element value that will change is the one that specifies the IM
 version.
 
 The IM choice impacts other elements of the configuration file
-and of the archive generation such as: some contents of the SPICEDS file and
+and of the archive generation such as some contents of the SPICEDS file and
 the templates used for the generation of PDS artifacts. These impacts are
 described in the appropriate sections.
 
@@ -523,9 +521,11 @@ described in the appropriate sections.
 Context Products
 ^^^^^^^^^^^^^^^^
 
-The ``context_products`` parameter is required if the primary and/or secondary
-observer(s) and/or target(s) of the bundle are not registered. The registered
-products are available in the following file:
+The ``context_products`` parameter provides the location of a JSON file that
+contains additional context un-registered context products. This file is
+required if the primary and/or secondary observer(s) and/or target(s) of the
+bundle are not registered. The registered products are available in the
+following file:
 ``src/naif_pds4_bundler/templates/registered_context_products.json``.
 This list of registered context products is generated based on the registered
 context products obtained with the PDS Validate tool with minor modifications,
@@ -540,9 +540,9 @@ per product:
 
    * Product Name e.g.: DART, InSight Mars Lander Spacecraft
    * Product Type e.g.: Spacecraft, Planet, Asteroid, Satellite
-   * Product LIDIV::
-         urn:nasa:pds:context:instrument_host:spacecraft.dart::1.0
-         urn:nasa:pds:context:instrument_host:spacecraft.insight::2.0
+   * Product LIDIV e.g.:
+     ``urn:nasa:pds:context:instrument_host:spacecraft.dart::1.0``
+     ``urn:nasa:pds:context:instrument_host:spacecraft.insight::2.0``
 
 Here's an example for the DART mission::
 
@@ -589,19 +589,19 @@ summary of the parameters:
      - Description
      - Required?
    * - producer_name
-     - Name of the archive producer (or NPB operator).
+     - Name of the archive producer (or NPB operator.)
      - Yes
    * - author_list
      - Name of the SPICE kernel main author(s) and the archive producer
-       (or NPB operator).
+       (or NPB operator.)
      - Yes
    * - institution
-     - Institution affiliation of the archive produced e.g., NAIF/JPL, PSA/ESA,
-       etc.
+     - Institution affiliation of the archive produced e.g., ``NAIF/JPL``,
+       ``PSA/ESA``, etc.
      - Yes
    * - doi
      - Digital Object Identifier (DOI) of the bundle. More information in
-       :ref:`source/22_pds4_spice_archive:Digital Objects Identifiers`_.
+       :ref:`source/22_pds4_spice_archive:Digital Objects Identifiers`.
      - No
    * - spice_name
      - Specifies the SPICE name of the main spacecraft of the archive.
@@ -612,12 +612,7 @@ summary of the parameters:
      - No
    * - readme
      - Provides the parameters required to generate the bundle readme file by
-       using the readme file template or the path to an input readme file. For NPB to
-       generate the readme file two elements need to be provided:
-       ``overview`` that provides an overview of the archive and
-       ``cognisant_persons`` that indicates the institution responsible for the
-       archive generation. If present these elements should have the same value
-       for all archive releases.
+       using the readme file template or the path to an input readme file.
      - No
    * - release_date
      - Bundle increment release date. The date is provided with a UTC calendar
@@ -633,14 +628,14 @@ summary of the parameters:
      - No
    * - increment_start
      - Release start time. More details are provided in
-       :ref:`source/44_npb_implementation:Coverage Times Determination`. The
+       :ref:`source/22_pds4_spice_archive:Product Coverage Assignment Rules`. The
        date is provided with a UTC calendar format string with following syntax:
        ``YYYY-MM-DDThh:mm:ssZ`` e.g. ``2021-06-25T08:00:00Z``. NAIF does not
        recommend to include this parameter.
      - No
    * - increment_finish
      - Release stop time. More details are provided in
-       :ref:`source/44_npb_implementation:Coverage Times Determination`. The
+       :ref:`source/22_pds4_spice_archive:Product Coverage Assignment Rules`. The
        date is provided with a UTC calendar format string with following syntax:
        ``YYYY-MM-DDThh:mm:ssZ`` e.g. ``2021-06-25T08:00:00Z``. NAIF does not recommend
        to include this parameter.
@@ -659,10 +654,31 @@ summary of the parameters:
        :ref:`source/32_step_2_npb_setup:SPICE Data Set Catalog File`.
      - No
 
-In addition to the NPB Configuration File, if the meta-kernel is generated
-automatically, the SPICEDS file is the only bundle product that requires manual
+
+SPICEDS
+^^^^^^^
+
+In addition to the NPB Configuration File - if the meta-kernel is generated
+automatically - the SPICEDS file is the only bundle product that requires manual
 intervention. More details on SPICEDS are provided in the section
-:ref:`source/32_step_2_npb_setup:SPICE Data Set Catalog File`
+:ref:`source/32_step_2_npb_setup:SPICE Data Set Catalog File`.
+
+
+Readme File
+^^^^^^^^^^^
+
+The readme file configuration provides either the parameters required to
+generate the readme file by NPB or the path to an input readme file.
+
+If the readme file is generated by NPB, the readme file template will be used
+along with the elements included in the configuration:
+
+   * ``overview`` provides an overview of the archive and
+   * ``cognisant_persons`` indicates the institution responsible for the
+     archive generation.
+
+If present these elements should have the same value for all archive releases.
+More information on the readme file is provided in section :ref:`source/22_pds4_spice_archive:Bundle Products Construction Rules`.
 
 
 Date Format
@@ -686,7 +702,7 @@ where
   * ``ss.sss`` are the seconds and milliseconds rounded inwards to milliseconds.
 
 For example: ``2016-01-01T00:00:00.000Z``. The main characteristic is of this
-format is that is used for all labels and that milliseconds are rounded inwards:
+format is that is used for all labels and milliseconds are rounded inwards:
 start times are rounded to the next nearest millisecond and stop times
 are rounded to the previous nearest millisecond. The coverage specified for
 SPICE kernels products and for those products whose coverage is determined by
@@ -718,11 +734,11 @@ configuration.
 
 NAIF uses the ``maklabel`` format for PDS IM 1.5.0.0 archives for comparison
 and reproducibility reasons. The idea is that NAIF will use ``infomod2`` only
-after the PDS IM 2.0.0.0 is released. We recommends using the
+after the PDS IM 2.0.0.0 is released. NAIF recommends using the
 ``infomod2`` format, especially for new archives.
 
 More details on the determination of coverage for different files in the archives
-are provided in section :ref:`source/44_npb_implementation:Coverage Times Determination`.
+are provided in section :ref:`source/22_pds4_spice_archive:Product Coverage Assignment Rules`.
 
 
 Mission Parameters
@@ -764,13 +780,13 @@ summary of the parameters:
      - Yes
    * - mission_start
      - Mission start time; typically is the start time of the post-launch SPK.
-       The date is provided with a UTC calendar format string with the following
-       syntax: ``YYYY-MM-DDThh:mm:ssZ`` e.g. ``2021-06-25T08:00:00Z``.
+       The date is provided with a UTC calendar format string. The syntax of
+       the string is determined by the ``date_format`` used.
      - Yes
    * - mission_finish
      - Mission finish time; typically is the start time of the post-launch SPK.
-       The date is provided with a UTC calendar format string with the following
-       syntax: ``YYYY-MM-DDThh:mm:ssZ`` e.g. ``2050-01-01T00:00:00Z``.
+       The date is provided with a UTC calendar format string. The syntax of
+       the string is determined by the ``date_format`` used.
      - Yes
    * - secondary_observers
      - Provides a list of the secondary spacecrafts present in the SPICE
@@ -789,17 +805,17 @@ summary of the parameters:
 On Names and Acronyms
 ^^^^^^^^^^^^^^^^^^^^^
 
-Distinction in between mission_acronym, mission_name,
-observer, and the Bundle parameter spice_name can be rather confusing. A good
-example to distinguish in between the parameters is the Mars 2020 SPICE kernel
-archive, for which the values are as follows:
+Distinction in between ``mission_acronym``, ``mission_name``,
+observer, and the Bundle parameter ``spice_name`` can be rather confusing. A
+good example to distinguish in between the parameters is the Mars 2020 SPICE
+kernel archive, for which the values are as follows:
 
    * ``mission_acronym``: mars2020
    * ``mission_name``: Mars 2020 Perseverance Rover Mission
    * ``observer``: Mars 2020 Perseverance Rover
    * ``spice_name``: M2020
 
-Contrarily gor other archives, such as MAVEN, is as follows:
+Contrarily for other archives, such as MAVEN, is as follows:
 
    * ``mission_acronym``: maven
    * ``mission_name``: MAVEN
@@ -811,7 +827,7 @@ might be present in the SPICE kernels, **they do not have to be present in the
 Configuration File, nor in the bundle PDS4 labels**. It is perfectly
 fine to use the primary s/c and target for all kernels.
 
-This is the case for the INSIGHT SPICE kernel bundle; the secondary s/c MARCO-A
+This is the case for the INSIGHT SPICE kernel bundle: the secondary s/c MARCO-A
 and MARCO-B use INSIGHT in their labels as observer. If this simplified approach
 is followed then it must be noted in the Errata section of the SPICE archive
 description document (SPICEDS) as follows::
@@ -819,8 +835,8 @@ description document (SPICEDS) as follows::
         All MARCO-A and MARCO-B kernels included in the archive
         are labeled as being associate the INSIGHT instrument host.
 
-This simplified approach is especially convenient for missions that clearly have
-a clear prime s/c or target. For other missions such as BepiColombo where the
+This simplified approach is especially convenient for missions that have
+a main prime s/c or target. For other missions such as BepiColombo where the
 Mercury Planet Orbiter (MPO) and the Mercury Magnetospheric Orbiter (MMO or MIO)
 have a comparable relevance, the bundle must include a secondary s/c. Here's an
 example of the entries for secondary s/c and targets for DART::
@@ -837,13 +853,13 @@ example of the entries for secondary s/c and targets for DART::
         </secondary_targets>
 
 
-kernels_to_load
+Kernels To Load
 ^^^^^^^^^^^^^^^
 
-This mission parameter lists the SPICE kernels that are required to run NPB.
-At least a LSK, a SCLK, and a FK kernel will be required; if there are multiple
-observers most likely more FKs and SCLKs will be required. PCKs might also be
-needed.
+The ``kernels_to_load`` mission parameter lists the SPICE kernels that are
+required to run NPB. At least a LSK, a SCLK, and a FK kernel will be required;
+if there are multiple observers most likely more FKs and SCLKs will be required.
+PCKs might also be needed.
 
 These kernels are used by NPB to use SPICE (via SpiceyPy [SPICEYPY]_ a wrapper
 to CSPICE for Python) to perform time conversions (a LSK kernel is needed),
@@ -870,20 +886,20 @@ example: ::
             <fk>marcob_v[0-9][0-9].tf</fk>
         </kernels_to_load>
 
-NPB will use the "bundle" and "kernels" directories specified in the next
-section of the Configuration File "Directories" to search for the latest version
-of these kernels (if provided by patterns) or to the kernel specified
-(if the kernel name does not contain patterns.)
+NPB will use the ``bundle_directory`` and ``kernels_directory`` directories
+specified in the next section of the Configuration File "Directories" to search
+for the latest version of these kernels (if provided by patterns) or to the
+kernel specified (if the kernel name does not contain patterns.)
 
 
 Kernel patterns
 ^^^^^^^^^^^^^^^
 
-Throughout the configuration you will find multiple occurrences of kernels must
-be specified with a pattern. The usage of patterns allows NPB to know that it
-must scan a directory, or a list, for a specific version of the kernel within
-the possibilities provided by the pattern, such as the latest version of a
-specific kernel.
+Throughout the configuration you will find multiple occurrences of kernels that
+are specified with a pattern. The usage of patterns allows NPB to know that it
+must scan a directory or a list of directories, for a specific version of the
+kernel within the possibilities provided by the pattern, such as the latest
+version of a specific kernel.
 
 The patterns recognised by NPB are quite limited and are a subset of the ones
 used for regular expressions. They are the following:
@@ -895,12 +911,12 @@ used for regular expressions. They are the following:
 In addition there are two special patterns:
 
    * ``{n}``: is placed after another pattern and indicates "n" repetitions of
-           that pattern; ``n`` spans from 1 to a *N* where *N* is a number
-           limited by the SPICE file name length. E.g., ``[0-6]{4}`` are four
-           consecutive digits (used to specify a year for example: 2021.)
+     that pattern; ``n`` spans from 1 to a *N* where *N* is a number
+     limited by the SPICE file name length. E.g., ``[0-6]{4}`` are four
+     consecutive digits (used to specify a year for example: 2021.)
    * ``$``: indicates that the contiguous set of uppercase letters correspond to a
-        literal pattern e.g., ``$YEAR`` indicates that this will be replaced by a
-        year. Use cases are provided later in the document.
+     literal pattern e.g., ``$YEAR`` indicates that this will be replaced by a
+     year. Use cases are provided later in the document.
 
 Therefore the following FK kernel pattern: ``maven_v[0-9][0-9].tf``, would
 be matched by any version of the MAVEN FK, for example ``maven_v09.tf``.
@@ -928,8 +944,8 @@ of the required and optional directories:
        section :ref:`source/32_step_2_npb_setup:Working Directory`.
      - Yes
    * - kernels_directory
-     - Specifies the directory that will be used by NPB to obtain the kernels
-       to be archived from. This directory must follow the usual operational
+     - Specifies the directory(ies) that will be used by NPB to obtain the kernels
+       to be archived from. These directories must follow the usual operational
        SPICE kernel sub-directory structure by kernel type.
      - Yes
    * - staging_directory
@@ -941,8 +957,8 @@ of the required and optional directories:
        bundle is present (before the execution of NPB.)
      - Yes
    * - orbnum_directory
-     - Indicates the directory where the orbit number files to be archived are
-       present.
+     - Indicates the directory(ies) where the orbit number files to be archived
+       are present.
      - No
    * - templates_directory
      - Indicates the directory where the user input templates are present.
@@ -967,8 +983,8 @@ purposes:
 
 NPB will try to match every input kernel, including meta-kernels, with an entry
 of the kernel list and based on that will generate a Kernel List product.
-Because of that this section of the configuration provides a list of all the
-kernels that might be included in the bundle for any release. Consequently,
+This section of the configuration provides a list of all the kernels that
+might be included in the bundle for any release. Consequently,
 the Kernel List section in the configuration file is prone to grow as new
 archive releases are prepared.
 
@@ -981,8 +997,8 @@ with (or without) a pattern. For example::
 
 This kernel element is used to identify the leapseconds kernels present in
 the kernels to be archived. An important remark of the pattern attribute value
-is that it cannot contain any of the special patterns {n} or $, and therefore
-can only include [0-9], [a-z], and [A-Z] patterns.
+is that it cannot contain any of the special patterns ``{n}`` or ``$``, and
+therefore can only include ``[0-9]``, ``[a-z]``, and ``[A-Z]`` patterns.
 
 The first nested element of the kernel element is ``<mklabel_options>``. This
 element is a leftover of the PDS3 data sets and for all the kernels in PDS4
@@ -1005,9 +1021,9 @@ The second and third element patterns are optional and provide the observers and
 targets required by the kernels. By default, the kernel label will set its
 observer and target elements to the ``<observer>`` and ``<target>`` provided in
 the Mission Parameters section of the configuration file. But what happens if
-the kernel provides information about one of the secondary observers/targets or
-for several of them? Well, there is no way to fully automatize the
-identification for all possible cases and therefore this is indicated in this
+the kernel data for one of the secondary observers/targets or
+for several of them? Since there is no way to fully automatize the
+identification of all possible cases this is indicated in this
 element of the kernel list. The following example should be self-explanatory::
 
             <observers>
@@ -1049,9 +1065,9 @@ specify the year of the latest leapsecond provided by that kernel. Other
 examples are: original name of the kernel (see
 :ref:`source/31_step_1_preparing_data:Renaming Files`), version of the IAU
 report, kernel coverage, etc. These patterns are determined by the next element:
-**patterns**.
+``patterns``.
 
-The last element, patterns maps the patterns present in the description element
+The ``patterns`` element maps the patterns present in the description element
 with its value. NPB maps the patterns with one of the following methods:
 
    * match by value
@@ -1114,9 +1130,9 @@ Match by pattern
 """"""""""""""""
 
 This method uses parts of the kernel name pattern to identify patterns required
-by the kernel description, or using the appropriate XML terminology: this method
-uses the pattern attribute value of the kernel element to map one pattern of
-its file name as obtained from the kernel name without patterns.
+by the kernel description. Another way to describe it, using XML terminology:
+this method uses the pattern attribute value of the kernel element to map one
+pattern of its file name as obtained from the kernel name without patterns.
 
 To do so, nested elements from patterns are provided. The name of the element
 coincides with a pattern with the special pattern ``$`` and is indicated by an
@@ -1165,16 +1181,15 @@ Match from Comment
 
 Sometimes the original name of the kernel that must be included in the
 description is only present in the comment area of the binary kernel (SPK, CK,
-DSK, or binary PCK), if so the comment must be extracted from that area. The
+DSK or binary PCK), if so the comment must be extracted from the kernel. The
 kernel file name must be in a single line. NPB will extract the comment if you
-indicate it to do so in a similar way that the "Match by pattern" method is set
-up.
+indicate it to do so similar to the way the "Match by pattern" method is used.
 
-The pattern nested element must have an attribute called "file" the value of
+The pattern nested element must have an attribute called ``file`` the value of
 which must be ``COMMENT``. Currently the only available name for the element is
 ``ORIGINAL``, to indicate that you are mapping the description with the original
 kernel name. Also, the value of the ``ORIGINAL`` element must be the text of the
-line that proceeds the original kernel name in the comment area of the kernel::
+line that precedes the original kernel name in the comment area of the kernel::
 
         <kernel pattern="mro_sc_psp_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]p.bc">
             <mklabel_options>NAIF HGA PREDICT ESP</mklabel_options>
@@ -1185,7 +1200,7 @@ line that proceeds the original kernel name in the comment area of the kernel::
             </patterns>
         </kernel>
 
-The value of the ``ORIGINAL`` element, provides will be used to extract the kernel
+The value of the ``ORIGINAL`` element will be then used to extract the kernel
 name from the CK comment area. If we use the NAIF utility ``COMMNT`` we can read the
 comment in an example kernel ``mro_sc_psp_210628_210710p.bc``::
 
@@ -1208,18 +1223,19 @@ extracted and the description will then be::
 
 
 This method has been implemented for the MRO PDS3 SPICE kernel data set
-generation. We do not recommend the original name of the kernel to be recorded
-in the comment area of a binary kernels.
+generation. NAIF does not recommend to record the original name of the kernel
+in the comment area kernels.
 
 
 Mapping kernels
 ^^^^^^^^^^^^^^^
 
 Sometimes the name of the archived kernel is modified with respect to the
-original kernel, usually present in the kernels operational area, this happens
-for kernels that have long names, mixed case, fields that are meaningless to
-users but are meaningful to operation engineers, etc. In such cases we
-recommend to update the archived kernel name for it to be more user friendly.
+original kernel - sometimes present in the kernels operational area - this
+happens for kernels that have long names, mixed case, fields that are
+meaningless to users but are meaningful to operation engineers, etc. In such
+cases NAIF recommends to update the archived kernel name for it to be more user
+friendly.
 
 The mapping in between the original kernel name and the archived kernel name
 can be achieved in two different ways.
@@ -1230,7 +1246,7 @@ included in the kernel description, this can be implemented with the
 "Match by value" method by reflecting this on the attribute value of the given
 kernel element.
 
-The second and recommended apporach is to use a special element nested in the
+The second and recommended approach is to use a special element nested in the
 corresponding kernel element. This special "mapping" element is called
 ``mapping`` and if present, it must be the first element of the nested elements
 of a kernel. If this element is present then the patterns present for the
@@ -1261,8 +1277,8 @@ in the Kernel List section of the configuration file would be::
             </patterns>
         </kernel>
 
-This approach would require a pattern entry per DSK. The second approach, although
-is more difficult to implement, would work for each DSK::
+This approach would require a pattern entry per DSK. The second approach, albeit
+more difficult to implement, would work for each DSK::
 
 
         <kernel pattern="bennu_l_[0-9][0-9][0-9][0-9][0-9]mm_alt_dtm_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds">
@@ -1280,13 +1296,16 @@ As you can see the three patterns present in the mapping element:
 ``$RESOLUTION``, ``$REFERENCE``, and ``$VERSION`` are present as pattern
 elements.
 
+When no release plan is provided as an input, the mapping of kernels does not
+occur and the kernels present in the kernels directories need to have their
+final names as described in the first approach.
 
 Meta-kernel
 -----------
 
 The next section of the configuration file is the one that defines the
-generation of the meta-kernels (MKs). NPB is capable to assist you in the generation
-of MKs automatically.
+generation of the meta-kernels (MKs). NPB is capable to either generate MKs
+automatically or to assist you in their generation.
 
 If NPB is set to generate kernels automatically, after the MK is
 generated and if indicated via configuration, NPB will pause the execution and
@@ -1295,7 +1314,7 @@ More information is provided in
 :ref:`source/33_step_3_running_npb:Interactive step for Meta-kernels`.
 
 Alternatively you can provide MKs that you have generated manually or
-by any other means to NPB via configuration as well. The elements of the MK
+by any other mean to NPB via configuration as well. The elements of the MK
 section of the configuration file are the following:
 
 .. list-table:: Meta-kernels
@@ -1311,26 +1330,26 @@ section of the configuration file are the following:
      - No
    * - mk
      - This element provides the configuration elements necessary to
-       automatically generate a MK. The elements present are:
-       name, coverage_kernels, interrupt_to_update, grammar,
-       and metadata (that at the same time consists of the
-       description, keyword and data elements). There can be as many mk
-       elements as needed. This element is described in detail below.
+       automatically generate a MK.
      - Yes
+
+The elements present in the ``mk`` element are: ``name``, ``coverage_kernels``,
+``interrupt_to_update``, ``grammar``, and ``metadata`` - that at the same time
+consists of the ``description``, ``keyword`` and ``data`` elements. There can be as many mk
+elements as needed. This element is described in detail below.
 
 
 Automatic generation of Meta-kernels
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The ``<mk>`` element of the configuration is provides the parameters required
-to automatically generate MKs. The ``<mk>`` element has an attribute
-that provides the name of the MK with the required pattern.
-The first nested element of ``<mk>`` is the ``<name>`` element, that provides a
-mapping to the patterns in the name by specifying the length of these patterns;
-therefore these patterns must have a fixed length.
+The ``<mk>`` element of the configuration provides the parameters required
+to automatically generate MKs. The first nested element of ``<mk>`` is the
+``<name>`` element, that provides a mapping to the patterns in the name by
+specifying the length of these patterns; therefore these patterns must have
+a fixed length.
 
 The element ``<name>`` is required even if the MK is provided as an input --and
-therefore is not generated automatically.--
+therefore is not generated automatically.
 
 For example a MAVEN MK that provides yearly coverage and can have
 multiple versions would be as follows: ::
@@ -1342,12 +1361,12 @@ multiple versions would be as follows: ::
             </name>
 
 Please note that the patterns of the ``<mk>`` name attribute cannot be
-contiguous, the following will not work: ``insight_$YEAR$VERSION.tm``.
+contiguous, the following is not permitted: ``insight_$YEAR$VERSION.tm``.
 
 The next element is ``<interrupt_to_update>``, this element determines whether if
 after kernel generation and before the kernel label generation NPB must be
 paused to provide the option to manually edit the generated MK. It must be set
-to ``True`` or ``False``.
+to either ``True`` or ``False``.
 
 
 Meta-kernel grammar
@@ -1456,35 +1475,24 @@ Here's an example for INSIGHT::
             </metadata>
 
 
-Final remarks
-"""""""""""""
+Manual Input
+^^^^^^^^^^^^
 
-Generating MKs is not a trivial task. NPB's automated MK generation is designed
-to support you on the task.
-
-There is an infinite number of combinations in which a MK can be organised.
-This is a problem for already existing archives that start using NPB and the
-MK style of which does not match with the one provided by NPB. For such cases
-NPB can still be helpful since it can be set to pause after the MK generation
-and before the MK is labeled for the operator to update the automatically
-generated MK at will.
-
-When starting a new archive, we recommend that you follow the style provided by
-NPB. This style is further discussed in section :ref:`source/44_npb_implementation:Meta-kernels`.
-
-We would like to emphasize that if you provide a manually generated MK e.g.
-``ladee_v01.tm`` the MK section of the configuration file can be
-as simple as: ::
+If you choose to provide a manually generated MK, you only need to provide
+the location of the MK(s) using the required number of entries of the
+``file`` element in ``mk_inputs``. E.g. for the LADEE archive the MK section
+of the configuration file can be as simple as: ::
 
     <meta-kernel>
         <mk_inputs>
             <file>../data/ladee_v01.tm</file>
         </mk_inputs>
+        <mk name="ladee_v$VERSION.tm">
+            <name>
+                <pattern length="2">VERSION</pattern>
+            </name>
+         </mk>
     </meta-kernel>
-
-Finally remember that regardless of the content of the Meta-Kernel section of
-the configuration file, MKs must have entries in the Kernel List section in
-order to be considered by NPB as an input.
 
 
 Coverage determination
@@ -1515,8 +1523,28 @@ Please note that unless specified via configuration, the combined coverage
 of MKs for which kernels have been provided to determine the coverage will
 be used to determine the coverage of the SPICE Kernels and Miscellaneous
 Collections and the Bundle coverage. More details are provided in the section
-:ref:`source/44_npb_implementation:Coverage Times Determination`.
+:ref:`source/22_pds4_spice_archive:Product Coverage Assignment Rules`.
 
+
+Final remarks
+"""""""""""""
+
+Regardless of the content of the Meta-Kernel section of the configuration file,
+MKs must have entries in the Kernel List section in order to be considered by
+NPB as an input.
+
+Generating MKs is not a trivial task. NPB's automated MK generation is designed
+to support you on the task.
+
+There is an infinite number of combinations in which a MK can be organised.
+This is a problem for already existing archives that start using NPB and the
+MK style of which does not match with the one provided by NPB. For such cases
+NPB can still be helpful since it can be set to pause after the MK generation
+and before the MK is labeled for the operator to update the automatically
+generated MK at will.
+
+When starting a new archive, NAIF recommends that you follow the style provided by
+NPB.
 
 Orbit number file
 -----------------
@@ -1531,9 +1559,9 @@ numbering scheme. The orbit number changes at every given orbit event
 (periapsis, apoapsis, etc.) and the information contained for each
 record includes a number of fields. Some of these fields are expressed in a
 given reference frame that makes use of a set of kernels (generally a PCK).
-More information on ORBNUM files is provided in
-:ref:`source/44_npb_implementation:Orbit Number Files`. Here's an example of the
-Orbit number file section of the configuration file for MAVEN::
+More information on ORBNUM files is provided in the section
+:ref:`source/31_step_1_preparing_data:A Word on Orbit Number Files`. Here's an example of the
+orbit number file section of the configuration file for MAVEN::
 
     <orbit_number_file>
         <orbnum>
@@ -1581,7 +1609,7 @@ of the ORBNUM label:
      - Yes
    * - pck
      - Provides the PCK kernel name used with the event detection frame and its
-       description (e.g., ``pck0010.tpc`` and "IAU 2009 report".)
+       description (e.g., ``pck0010.tpc`` and ``IAU 2009 report``.)
      - Yes
    * - coverage
      - Provides the element to determine the coverage of the ORBNUM file.
@@ -1589,7 +1617,7 @@ of the ORBNUM label:
      - Yes
    * - author
      - Indicates the organisation that originally generated the ORBNUM file.
-       (e.g., "NAIF, JPL")
+       (e.g., ``NAIF, JPL``)
      - Yes
 
 
@@ -1654,16 +1682,16 @@ Summary
 
 After going through the detailed description of every section of the
 Configuration File we hope that the MAVEN example provided at the beginning of
-this chapter makes more sense.
+this chapter is better understood.
 
 Some NPB configuration files can become quite complex especially because of the
 Kernel List, MK, and ORBNUM sections. A good
 example of a complex configuration file is the the OSIRIS-REx sample file:
-``npb/tests/config/orex.xml``.
+``naif-pds4-bundler/tests/naif_pds4_bundler/config/orex.xml``.
 
 Other configuration files can be really simple: descriptions do not require
 complex pattern matching and MKs are manually generated. An example of such
-configuration files is the LADEE sample file: ``npb/tests/config/ladee.xml``.
+configuration files is the LADEE sample file: ```naif-pds4-bundler/tests/naif_pds4_bundler/config/ladee.xml``.
 
 Generating the configuration file should be a one time effort for which the
 NAIF NPB developer can assist you. After the configuration file has been setup
@@ -1672,6 +1700,6 @@ releases. Changes will probably be limited to:
 
    * update spiceds name and/or location
    * update directories
-   * addition of kernel_list elements
+   * addition of Kernel List elements
    * meta-kernel updates
    * new archive producer.

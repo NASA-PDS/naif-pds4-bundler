@@ -156,8 +156,8 @@ def error_message(message, setup=False):
 
     The File List and Checksum Registry files are also written.
     """
-    error = f"{message}."
-    logging.error(f"-- {message}.")
+    error = f"{message}"
+    logging.error(f"-- {message}")
 
     #
     # If files have been generated in the staging are and/or transfered

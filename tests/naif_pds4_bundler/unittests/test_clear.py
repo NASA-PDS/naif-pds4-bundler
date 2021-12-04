@@ -132,19 +132,11 @@ class TestClear(TestCase):
         except BaseException:
             pass
 
-        with open(config, "r") as c:
-            with open(wrong_config, "w") as n:
-                for line in c:
-                    if "<spice_name>INSIGHT</spice_name>" in line:
-                        n.write("<spice_name>INSPGHT</spice_name>" "\n")
-                    else:
-                        n.write(line)
-
         #
-        # Error of checksum validation.
+        # Error validating the meta-kernel
         #
-        with self.assertRaises(RuntimeError):
-            main(wrong_config, silent=self.silent, log=self.log)
+        with self.assertRaises(BaseException):
+            main(config, silent=self.silent, log=self.log)
 
         os.chdir(cwd)
         #

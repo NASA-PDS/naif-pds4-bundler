@@ -2,6 +2,7 @@
 
 The utils module implements general utility capabilities used elsewhere in NPB.
 """
+from .decorators import spice_exception_handler
 from .files import add_carriage_return
 from .files import add_crs_to_file
 from .files import check_consecutive
@@ -23,7 +24,6 @@ from .files import mk2list
 from .files import safe_make_directory
 from .files import type2extension
 from .files import utf8len
-from .slicer import slice_kernels
 from .time import ck_coverage
 from .time import creation_time
 from .time import current_date
@@ -56,7 +56,6 @@ __all__ = [
     safe_make_directory,
     type2extension,
     utf8len,
-    slice_kernels,
     ck_coverage,
     creation_time,
     current_date,
@@ -66,4 +65,5 @@ __all__ = [
     pck_coverage,
     pds3_label_gen_date,
     spk_coverage,
+    spice_exception_handler
 ]

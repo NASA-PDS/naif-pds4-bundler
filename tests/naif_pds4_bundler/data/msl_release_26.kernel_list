@@ -32,5 +32,5 @@ MAKLABEL_OPTIONS = EXTENDED NAIF
 DESCRIPTION      = SPK file containing the telemetry-based location of sites along the path relative to the landing site and the telemetry-based location of the rover relative to these sites, created using the telemetry view data from the OPGS PLACES server, covering SOLs 2837 to 2934, version 1.
 FILE             = data/sclk/msl_76_sclkscet_refit_s3.tsc
 MAKLABEL_OPTIONS = NAIF
-DESCRIPTION      = SCLK file providing the improved correlation data for the primary MSL on-board clock. The original name of this file was MSL_76_SCLKSCET_REFIT.S3.tsc.
-MAPPING          = MSL_76_SCLKSCET_REFIT.S3.tsc
+DESCRIPTION      = SCLK file providing the improved correlation data for the primary MSL on-board clock. The original name of this file was MSL_76_SCLKSCET_REFIT_S3.tsc.
+MAPPING          = MSL_76_SCLKSCET_REFIT_S3.tsc

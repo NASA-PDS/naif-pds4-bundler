@@ -4,7 +4,7 @@ import shutil
 import unittest
 from unittest import TestCase
 
-from pds.naif_pds4_bundler.utils.slicer import slice_kernels
+from ..utils.zz_slicer import slice_kernels
 
 
 class TestSlicer(TestCase):

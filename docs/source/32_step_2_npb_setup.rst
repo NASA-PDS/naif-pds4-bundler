@@ -2,7 +2,7 @@ Step 2: Preparing the NAIF PDS4 Bundler Setup
 =============================================
 
 After having gathered, prepared, and listed the kernels to archive the next
-step is to get ready to run the NAIF PDS4 Bundler (NPB), for you need to
+step is to get ready to run the NAIF PDS4 Bundler (NPB). You need to
 take the following steps:
 
    * prepare your workspace
@@ -15,8 +15,8 @@ Workspace Setup
 ---------------
 
 NPB requires a directory layout but without a rigid or particular structure
-since each directory is specified with the configuration file. Although
-this is discussed later under the configuration file discussion, NPB needs to
+since each directory is specified in the configuration file. Although
+this is discussed later under the configuration file section, NPB needs to
 know the directories where the input kernels are located (**kernels** directories),
 the directory where the ORBNUM files are located (**orbnum** directory,
 if applicable), the NPB run final destination (**bundle** directory), the NPB
@@ -51,7 +51,7 @@ them looking for the kernels specified in the **release plan**. As soon as it
 finds one, it will short-circuit the search in the other directories for the
 given kernel.
 
-This directory must follow the usual SPICE kernel subdirectory structure based
+These directories must follow the usual SPICE kernel subdirectory structure based
 on kernel type. The required subdirectories depend of the input kernel types.
 
 The directory(ies) structure can be created ad-hoc for NPB or can already exist:
@@ -85,8 +85,8 @@ ORBNUM Directory
 ORBNUM files are not stored in the **kernels** directory, therefore
 NPB requires you to specify where the ORBNUM files are located. For some
 missions these files are under the ``kernels/spk`` directory, for others they
-are under ``misc/orbnum``, and for still others they are generated for the
-occasion and could be anywhere.
+are under ``misc/orbnum``, and for others they are generated for the occasion
+and could be anywhere.
 
 
 Staging Directory
@@ -112,6 +112,14 @@ bundle directory, unless indicated otherwise, as you will be able to learn in
 :ref:`source/43_using_npb:Optional Arguments Description`.
 
 
+Determination of the Archive Release Version
+--------------------------------------------
+
+NPB will determine the archive release version by accessing the existing bundle
+label from the bundle directory. If no bundle is present NPB will default the
+version to 01.
+
+
 SPICE Kernel descriptions across the archive
 --------------------------------------------
 
@@ -131,15 +139,15 @@ Descriptions given in each of these locations have different purposes
 and levels of detail. The **comments** in a particular file provide the
 most detailed and comprehensive information about the file that they
 document and are discussed in great detail in the section
-:ref:`source/31_step_1_preparing_data:Augmenting Files with Comments`;
-the **SPICEDS** file provides a high level overview of the archive,
+:ref:`source/31_step_1_preparing_data:Augmenting Files with Comments`.
+The **SPICEDS** file provides a high level overview of the archive,
 covering briefly the types of information provided in, the source data of,
 and the accuracy of each type of kernels included in the data set. It also
 describes the naming scheme and usage priority of the collection of
 files of a particular kernel type in the data subdirectory in which they
-reside. The description tag in XML *labels* provide a brief description of
+reside. The **description tag** in XML *labels* provide a brief description of
 the kernel, including its coverage (if relevant), its data source and/or
-original name, and the data producer.
+original name, and their producer.
 
 Descriptions that are expected to be included in the SPICEDS file and in
 labels are described in greater detail in the next few sub-sections of this
@@ -154,8 +162,8 @@ SPICE, Kernel types, and the archive; covering briefly the type of information
 provided in, the source of, and the accuracy of each kind of kernel included in
 the data set.
 
-Preparing the SPICEDS file is very easily done by starting with an existing
-SPICEDS file from an existing archive and starting by changing just a few words
+Preparing the SPICEDS file is very easily done by taking an existing
+SPICEDS file from an existing archive and changing just a few words
 in it (such as mission name and acronym, publication dates, etc). NPB provides
 a set of SPICEDS examples that can be found on
 ``tests/naif_pds4_bundler/data/spiceds_<sc>.html`` where ``<sc>`` is the mission
@@ -186,7 +194,7 @@ recommendations on how to adapt them to your archive:
     paragraph that gives its approximate time coverage. The coverage is usually
     determined by the launch date and a pointer to the kernel that sets
     the end time of the of the archive. The determination of the archive
-    coverage is discussed later in :ref:`source/44_npb_implementation:Coverage Times Determination`.
+    coverage is discussed in section :ref:`source/22_pds4_spice_archive:Product Coverage Assignment Rules`.
 
   * **Errata** contains an enumerated list of errata items. These items are
     generally related either to incompatibilities or issues with the PDS4
@@ -237,7 +245,7 @@ recommendations on how to adapt them to your archive:
     the information for checksum files and, if applicable, for ORBNUM files.
     The checksum file subsection requires no updates whereas the ORBNUM
     subsection, if present, needs to be adapted. More information on ORBNUM
-    files is provided in :ref:`source/44_npb_implementation:Orbit Number Files`.
+    files is provided in section :ref:`source/31_step_1_preparing_data:A Word on Orbit Number Files`.
 
   * **File Formats** provides information on the text and binary files
     format. Although this section is very similar from archive to archive it
@@ -275,8 +283,6 @@ recommendations on how to adapt them to your archive:
        with a line feed character (ASCII 10) at the end of each line. Binary
        kernel files -- SPKs and CKs -- are IEEE LSB binary files. (...)
 
-    The rest of the text of this section is archive agnostic.
-
   * **SPICE Software and Documentation** provides a very brief description
     of the SPICE Toolkit and provides links to different resources. This
     section is archive agnostic
@@ -292,8 +298,8 @@ recommendations on how to adapt them to your archive:
 
 A well written SPICEDS put together for the first release may not need to be
 modified for future releases unless new kinds of kernels not reflected in it
-get added to the archive, or errata section items need to be added, updated or
-removed.
+get added to the archive, or the errata section items need to be added, updated
+or removed.
 
 NPB does a number of checks on the archive and its data but it does not do
 any kind of check in the SPICEDS file. Because of this and given that so many
@@ -330,7 +336,7 @@ At this point you should be able to run the following command in a terminal::
 
 You should see a result similar to the following one:
 
-.. automodule:: naif_pds4_bundler.__main__
+.. automodule:: pds.naif_pds4_bundler.__main__
 
 
 Write and/or update the NPB Configuration File

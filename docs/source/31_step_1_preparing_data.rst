@@ -615,7 +615,7 @@ approaches complementing each other are suggested:
      coverage
 
    * summarizing FOV definitions in IKs -- directly or via
-     meta-kernels -- using OPTIKS to verify that the IKs are
+     meta-kernels -- using ``OPTIKS`` to verify that the IKs are
      accessible and provide data for the right set of
      instruments/detectors
 
@@ -639,7 +639,7 @@ approaches complementing each other are suggested:
      utility, for CK files this can be done using the ``FRMDIFF``
      utility
 
-   * checking file data integrity by running utilities like SPY
+   * checking file data integrity by running utilities like ``SPY``
      (currently works only on SPK files)
 
    * checking file data integrity by running a local instance of
@@ -663,7 +663,7 @@ coverage based on file summaries or running ``SPY`` to check file data
 integrity), many others have to be done by hand (for example assessing
 comments in new version of text kernels) in many cases making validation
 a time and effort consuming activity. Still, the person preparing the
-archive should try to give his/her best effort to make sure that each
+archive should try to give their best effort to make sure that each
 archive release contains the complete set of files (in terms of scope
 and coverage) that are well documented with internal comments.
 
@@ -734,8 +734,7 @@ Generating MKs Automatically
 
 The generation of MKs can be automatized by providing to the NPB configuration
 file the appropriate parameters. This is described in detail in
-:ref:`source/42_npb_configuration_file:Automatic generation of Meta-kernels` and
-in :ref:`source/31_step_1_preparing_data:Meta-kernels in the release plan`.
+:ref:`source/42_npb_configuration_file:Automatic generation of Meta-kernels`.
 
 Please note that depending on the complexity and particulars of the MK(s) you
 need to archive, setting up the automatic generation might not be possible. If
@@ -753,10 +752,47 @@ when reviewing and validating them.
 A Word on Orbit Number Files
 ----------------------------
 
-Orbit Number (ORBNUM) files can be generated for orbiter type missions using
-NAIF's ORBNUM utility program. They provide orbit numbers and orbit start
-times along with a number of derived parameters at these times. If ORBNUM files
-are (or can be generated) for a mission, they should be included in the archive.
+For some of the orbiter-style missions NAIF has created a derived geometry
+product known as an Orbit Number File (ORBNUM). The primary purpose of such a
+file is to provide SPICE users a means to determine the time boundaries for
+each orbit. Some additional orbit geometry information is also provided.
+
+ORBNUM files are plain ASCII text files consisting of two header lines
+(column labels)
+followed by one line of data per orbit. ORBNUM files can be generated with
+NAIF's ``ORBNUM`` utility program. One of the required inputs to generate
+ORBNUM files are SPKs.
+
+Normally the orbit number files have the same names as the
+corresponding SPK files but with the extension ``.bsp`` replaced by
+``.orb`` or ``.nrb``. In a few cases more than one orbit number file
+may exist for a given SPK, with only one file having the same name
+as the SPK and other files having a version token appended to the
+SPK name.
+
+ORBNUM files with the ``.orb`` extension contain data that
+follow the "periapsis-to-periapsis" orbit numbering scheme -- with
+the orbit number changing at periapsis.
+
+ORBNUM files with the ``.nrb`` extension contain data that
+follow the "node-to-node" orbit numbering scheme -- with the orbit
+number changing at the descending node.
+
+The information contained in ORBNUM files includes the
+orbit number (``No.``), periapsis or descending node UTC time
+(``Event UTC PERI`` or ``Event UTC D-NODE``) and SCLK time (``Event
+SCLK PERI`` or ``Event SCLK D-NODE`` ), apoapsis or ascending UTC
+time (``OP-Event UTC APO`` or ``OP-Event UTC A-NODE``). It also
+includes a few additional items computed at the time of periapsis or
+descending node such as planetocentric subsolar longitude and
+latitude (``SolLon`` and ``SolLat``) in the given central body body-fixed
+frame.
+
+If ORBNUM files are (or can be generated) for a mission, they should be
+included in the archive.
+
+NPB includes several examples of ORBNUM files that can be found at
+``naif-pds4-bundler/tests/naif_pds4_bundler/data/misc/orbnum``
 
 
 A Word on Other Files
@@ -818,7 +854,7 @@ plan is a text file that will list all the kernels to be included in the archive
 **including Meta-Kernels and ORBNUM files**. Each kernel must be listed in a
 separate line using its file name. Additional trailing characters can be present
 as long as there are blank spaces between them and the kernel name. Lines
-containing text of any other kind is also acceptable.
+containing text of any other kind are also acceptable.
 
 If the file names need to be modified, you can either use the original or the
 updated file name in the release plan, as long as the file name mapping is
@@ -877,11 +913,3 @@ Meta-kernels in the release plan
 The inclusion of Meta-kernels in the release plan is optional if you have
 already specified their location via configuration
 (see :ref:`source/42_npb_configuration_file:Meta-kernel`).
-
-
-Label generation only
-^^^^^^^^^^^^^^^^^^^^^
-
-If the ``-x --xml`` argument is used"
-            "this argument can be the name of a kernel or the path"
-            "to a release plan file (ORBNUM files will be ignored.)"

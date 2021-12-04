@@ -1,7 +1,7 @@
 Step 5: Packaging and Delivering the Archive to the NAIF Node
 =============================================================
 
-If the project archive plan calls for delivery of the SPICE data set to
+If the project archive plan calls for delivery of the SPICE archive to
 the NAIF Node of the PDS, the data set producer can do it in two ways:
 
    1. If the volume of the data to be delivered is relatively small
@@ -53,4 +53,4 @@ the NAIF Node of the PDS, the data set producer can do it in two ways:
 Providing the NPB Configuration File, Release Plan, Kernel List, and any other
 NPB execution by-products to NAIF is recommended. You can do so by providing
 them along with the ``.tar`` file or as an attachment to the email to
-communicate to NAIF the delivery.
+communicate the delivery to NAIF.

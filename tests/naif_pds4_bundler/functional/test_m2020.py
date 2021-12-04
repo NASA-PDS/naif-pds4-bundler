@@ -4,6 +4,7 @@ import shutil
 import unittest
 from unittest import TestCase
 
+import spiceypy
 from pds.naif_pds4_bundler.__main__ import main
 
 
@@ -180,6 +181,31 @@ class TestMars2020(TestCase):
                 debug=False
             )
 
+    def test_spk_with_unrelated_id(self):
+        """Test an empty SPK."""
+        config = "../config/mars2020.xml"
+        plan = "../data/mars2020_release_00.plan"
+
+        spk = 'kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp'
+        if os.path.isfile(spk):
+            os.remove(spk)
+
+        handle = spiceypy.spkopn(spk,"test spk file", 5000)
+        spiceypy.spk14b(handle, 1, 999, 0, 'J2000', 0, 100, 2)
+
+        data = [150.0, 50.0,
+                1.0101, 1.0102, 1.0103,
+                1.0201, 1.0202, 1.0203,
+                1.0301, 1.0302, 1.0303,
+                1.0401, 1.0402, 1.0403,
+                1.0501, 1.0502, 1.0503,
+                1.0601, 1.0602, 1.0603]
+
+        spiceypy.spk14a(handle, 1, data, [0.0])
+        spiceypy.spk14e(handle)
+        spiceypy.spkcls(handle)
+
+        main(config, plan=plan, silent=self.silent, log=self.log)
 
 if __name__ == "__main__":
     unittest.main()

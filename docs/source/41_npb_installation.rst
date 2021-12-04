@@ -44,7 +44,7 @@ Manual Installation
 -------------------
 
 If you wish to install NPB from source first download or clone the project
-from the `NPB GitHub repository<https://github.com/NASA-PDS/pds-template-repo-python>`_.
+from the `NPB GitHub repository <https://github.com/NASA-PDS/naif-pds4-bundler>`_.
 Then run::
 
    python setup.py install
@@ -66,11 +66,12 @@ Installation
 ^^^^^^^^^^^^
 
 You can install NPB in editable mode and with extra developer dependencies into
-your virtual environment of choice::
+your virtual environment of choice by running::
 
     pip install --editable '.[dev]'
 
-Configure the ``pre-commit`` hooks::
+in the ``naif-pds4-bundler`` top level directory. You can configure
+the ``pre-commit`` hooks::
 
    pre-commit install && pre-commit install -t pre-push
 
@@ -86,7 +87,7 @@ To do so, run::
     python -m venv venv
 
 Then exclusively use ``venv/bin/python``, ``venv/bin/pip``, etc.
-(It is no longer recommended to use ``venv/bin/activate``.)
+Alternatively  use ``venv/bin/activate``.
 
 If you have ``tox`` installed and would like it to create your environment and
 install dependencies for you run::
@@ -104,9 +105,12 @@ All the source code is in ``naif_pds4_bundler`` under ``src``.
 Running Tests
 ^^^^^^^^^^^^^
 
-Run tests with: ::
+Run tests under the ``tests/naif_pds4_bundler`` directory with::
 
     python -m unittest
+
+The implemented tests are documented in the section
+:ref:`source/tests:tests package`
 
 
 Documentation
@@ -120,4 +124,13 @@ documentation. You can build the NPB docs with::
 You can access the build files in the following directory relative to the
 project root::
 
-    build/sphinx/html/
+    build/sphix/html
+
+or with::
+
+    make html
+
+under ``docs/naif_pds4_bundler``. You can access the build files in the following directory relative to the
+project root::
+
+    docs/_build
