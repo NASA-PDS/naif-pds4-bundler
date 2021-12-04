@@ -3068,7 +3068,7 @@ class InventoryProduct(Product):
 
             logging.warning("-- Comparing with InSight test inventory product.")
             fromfiles = glob.glob(
-                f"{self.setup.root_dir}data/{self.collection.name}/"
+                f"{self.setup.root_dir}data/insight_spice/{self.collection.name}/"
                 f"collection_{self.collection.name}_inventory_*.csv"
             )
             fromfiles.sort()

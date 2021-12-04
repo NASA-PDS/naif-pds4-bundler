@@ -1,5 +1,5 @@
 """Private utility to slice MRO data for the tests."""
-from tests.naif_pds4_bundler.utils.zz_slicer import slice_kernels
+from pds.naif_pds4_bundler.utils.zz_slicer import slice_kernels
 
 def slice_insight_release_07():
     kernels_dir = "/pds4/insight_release_07/insight_spice/spice_kernels"

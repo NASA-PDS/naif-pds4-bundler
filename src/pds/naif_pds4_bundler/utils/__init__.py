@@ -33,6 +33,7 @@ from .time import get_years
 from .time import pck_coverage
 from .time import pds3_label_gen_date
 from .time import spk_coverage
+from .zz_slicer import slice_kernels
 
 __all__ = [
     add_carriage_return,
@@ -65,5 +66,6 @@ __all__ = [
     pck_coverage,
     pds3_label_gen_date,
     spk_coverage,
-    spice_exception_handler
+    spice_exception_handler,
+    slice_kernels
 ]

@@ -1,5 +1,5 @@
 """Private utility to slice INSIGHT data for the tests."""
-from tests.naif_pds4_bundler.utils.zz_slicer import slice_kernels
+from pds.naif_pds4_bundler.utils.zz_slicer import slice_kernels
 
 def slice_m2020_release_02():
     kernels_dir = "/Users/mcosta/workspace/pds/npb_workspace/mars2020_area/" \
