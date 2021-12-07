@@ -158,13 +158,13 @@ class TestKernelList(TestCase):
         main(config, plan, faucet, silent=self.silent)
 
         new_file = ""
-        with open("working/mro_release_01.kernel_list", "r") as f:
+        with open("working/mro_release_59.kernel_list", "r") as f:
             for line in f:
                 if "DATE =" not in line:
                     new_file += line
 
         old_file = ""
-        with open("../data/mro_release_01.kernel_list", "r") as f:
+        with open("../data/mro_release_59.kernel_list", "r") as f:
             for line in f:
                 if "DATE =" not in line:
                     old_file += line

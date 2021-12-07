@@ -614,7 +614,7 @@ class Setup(object):
 
             except:
                 logging.warning(
-                    "-- Bundle label not found. Checking previous " "kernel list."
+                    "-- Bundle label not found. Checking previous kernel list."
                 )
 
                 try:
@@ -637,7 +637,7 @@ class Setup(object):
 
                     releases.sort()
                     current_release = int(
-                        releases[-1].split("_{self.run_type}_")[-1].split(".")[0]
+                        releases[-1].split(f"_{self.run_type}_")[-1].split(".")[0]
                     )
                     current_release = f"{current_release:03}"
                     release = int(current_release) + 1
