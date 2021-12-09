@@ -1,12 +1,9 @@
-naif-pds4-bundle worklist by MCS/NAIF, updated 5 May, 2021
-==========================================================
+naif-pds4-bundle worklist by MCS/NAIF
+=====================================
 
 Work List:
 
   URGENT:
-
-  -- For PDS3 kernel list generation derive version from existing
-     kernel list or input plan name.
 
   -- Include option to provide plan with kernel names to be mapped or to
      provide kernels from directory with original names.
@@ -225,5 +222,8 @@ v0.14.0
        ERROR   : -- Check generation of Checksum files.
 
   -- CLEAR argument not working appropriately.
+
+  -- For PDS3 kernel list generation derive version from existing
+     kernel list or input plan name.
 
 v1.0.0 - First 'public' release.
