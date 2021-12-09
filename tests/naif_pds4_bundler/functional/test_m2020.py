@@ -173,7 +173,8 @@ class TestMars2020(TestCase):
                         n.write(line)
 
         plan = "../data/mars2020_release_03.plan"
-        shutil.copy2("kernels/sclk/m2020_168_sclkscet_refit_v02.tsc","kernels/sclk/m2020_168_sclkscet_refit_v03.tsc")
+        shutil.copy2("kernels/sclk/m2020_168_sclkscet_refit_v02.tsc",
+                     "kernels/sclk/m2020_168_sclkscet_refit_v03.tsc")
 
         with self.assertRaises(RuntimeError):
             main(
@@ -190,8 +191,9 @@ class TestMars2020(TestCase):
         if os.path.isfile(spk):
             os.remove(spk)
 
-        handle = spiceypy.spkopn(spk,"test spk file", 5000)
-        spiceypy.spk14b(handle, 1, 999, 0, 'J2000', 0, 100, 2)
+        handle = spiceypy.spkopn(spk, "test spk file", 5000)
+        spiceypy.spk14b(handle, 1, 999, 0, 'J2000', 666952140.1852001,
+                        666952240.1852001, 2)
 
         data = [150.0, 50.0,
                 1.0101, 1.0102, 1.0103,
@@ -201,11 +203,32 @@ class TestMars2020(TestCase):
                 1.0501, 1.0502, 1.0503,
                 1.0601, 1.0602, 1.0603]
 
-        spiceypy.spk14a(handle, 1, data, [0.0])
+        spiceypy.spk14a(handle, 1, data, [666952140.1852001])
         spiceypy.spk14e(handle)
         spiceypy.spkcls(handle)
 
         main(config, plan=plan, silent=self.silent, log=self.log)
+
+    def test_incorrect_mission_times(self):
+        """Test usage of incorrect mission times."""
+        config = "../config/mars2020.xml"
+        plan = "../data/mars2020_release_00.plan"
+        updated_config = 'working/mars2020.xml'
+
+        with open(config, "r") as c:
+            with open(updated_config, "w") as n:
+                for line in c:
+                    if "<mission_start>" in line:
+                        n.write("<mission_start>2023-07-30T12:51:34Z</mission_start>")
+                    else:
+                        n.write(line)
+
+        with self.assertRaises(RuntimeError):
+            main(
+                updated_config, plan=plan, silent=self.silent, log=self.log,
+                debug=False
+            )
+
 
 if __name__ == "__main__":
     unittest.main()
