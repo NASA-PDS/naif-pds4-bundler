@@ -678,16 +678,18 @@ def main(
         return
 
     #
+    # * Validate the Bundle by checking Checksum files against the updated
+    #   Bundle history and checking the bundle times.
+    #
+    bundle.validate()
+
+    #
     # * Validate Meta-kernel(s).
+    #   This is the last step since it unloads all kernels.
     #
     for kernel in spice_kernels_collection.product:
         if type(kernel) == MetaKernelProduct:
             kernel.validate()
-
-    #
-    # * Validate Checksum files against the updated Bundle history.
-    #
-    bundle.validate_history()
 
     log.stop()
 
