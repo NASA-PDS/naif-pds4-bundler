@@ -8,10 +8,13 @@ import time
 from pathlib import Path
 from xml.etree import cElementTree
 
+import spiceypy
+
 from ..utils import check_list_duplicates
 from ..utils import etree_to_dict
 from ..utils import get_context_products
 from ..utils import safe_make_directory
+from ..utils import spice_exception_handler
 from .log import error_message
 from .product import ReadmeProduct
 
@@ -606,7 +609,35 @@ class Bundle(object):
 
         return history
 
-    def validate_history(self):
+    def validate(self):
+        """Validate the Bundle.
+
+        The two implemented steps are to check Checksum files against the
+        updated Bundle history and checking the bundle times.
+        """
+        self.__check_times()
+        self.__validate_history()
+
+    @spice_exception_handler
+    def __check_times(self):
+        """Check the correctness of the bundle times."""
+        et_msn_strt = spiceypy.str2et(self.setup.mission_start)
+        et_inc_strt = spiceypy.str2et(self.setup.increment_start)
+        et_inc_stop = spiceypy.str2et(self.setup.increment_finish)
+        et_msn_stop = spiceypy.str2et(self.setup.mission_finish)
+
+        if (
+            not (et_msn_strt <= et_inc_strt)
+            or not (et_inc_strt <= et_inc_stop)
+            or not (et_inc_stop <= et_msn_stop)
+            or not (et_msn_strt < et_msn_stop)
+        ):
+            error_message(
+                "The resulting Mission and Increment start and finish dates "
+                "are incoherent."
+            )
+
+    def __validate_history(self):
         """Validate the bundle updated history with the checksum files.
 
         This method validates all the archive Checksum files with the "Archive

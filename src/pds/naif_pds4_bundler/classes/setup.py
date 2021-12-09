@@ -947,31 +947,3 @@ class Setup(object):
                     l.write(element + "\n")
 
         return
-
-    def check_times(self):
-        """
-        Check the correctness of the times provided from the configuration
-        file.q
-        """
-        try:
-            et_msn_strt = spiceypy.utc2et(self.mission_start)
-            et_inc_strt = spiceypy.utc2et(self.increment_start)
-            et_inc_stop = spiceypy.utc2et(self.increment_finish)
-            et_mis_stop = spiceypy.utc2et(self.mission_finish)
-            logging.info("-- Provided dates are loadable with current setup.")
-
-        except Exception as e:
-            logging.error("-- Provided dates are not loadable with current " "setup.")
-            error_message(e)
-
-        if (
-            not (et_msn_strt < et_inc_strt)
-            or not (et_inc_strt <= et_inc_stop)
-            or not (et_inc_stop <= et_mis_stop)
-            or not (et_msn_strt < et_mis_stop)
-        ):
-            error_message(
-                "Provided dates are note correct. Check the archive coverage."
-            )
-
-        return None
