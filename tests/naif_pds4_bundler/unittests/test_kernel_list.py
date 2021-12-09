@@ -96,7 +96,7 @@ class TestKernelList(TestCase):
         main(config, plan, faucet, silent=self.silent)
 
         new_file = ""
-        with open("working/msl_release_01.kernel_list", "r") as f:
+        with open("working/msl_release_26.kernel_list", "r") as f:
             for line in f:
                 new_file += line
 
@@ -189,7 +189,7 @@ class TestKernelList(TestCase):
         main(config, plan, faucet, silent=self.silent)
 
         new_file = ""
-        with open("working/insight_release_01.kernel_list", "r") as f:
+        with open("working/insight_release_08.kernel_list", "r") as f:
             for line in f:
                 new_file += line
 

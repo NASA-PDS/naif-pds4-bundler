@@ -115,7 +115,6 @@ class TestClear(TestCase):
         again. In addition, test an incorrect spice_name.
         """
         config = "../config/insight.xml"
-        wrong_config = "working/insight.xml"
 
         cwd = os.getcwd()
         dirs = ["working", "staging", "insight"]

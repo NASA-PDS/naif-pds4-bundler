@@ -6,7 +6,10 @@ useful_loops.csh file originally from BVS.
 
 WARNING: patterns need to be tuned and entered manually as well.
 """
+
+
 def extract_maven_useful_loops():
+    """Private utility to generate the MAVEN configuration file."""
     with open("maven_kernel_list.xml", "w+") as o:
 
         with open("useful_loops.csh", "r") as f:

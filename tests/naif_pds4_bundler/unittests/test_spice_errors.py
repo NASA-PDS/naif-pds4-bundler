@@ -83,5 +83,6 @@ class TestSpiceErrors(TestCase):
         with self.assertRaises(BaseException):
             main(config, plan=plan, silent=self.silent, log=self.log)
 
+
 if __name__ == "__main__":
     unittest.main()

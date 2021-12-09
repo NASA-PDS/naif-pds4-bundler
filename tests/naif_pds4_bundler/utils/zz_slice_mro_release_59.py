@@ -1,5 +1,8 @@
 """Private utility to slice INSIGHT data for the tests."""
+
+
 def slice_mro_release_59():
+    """Private utility to slice INSIGHT data for the tests."""
     from pds.naif_pds4_bundler.utils.zz_slicer import slice_kernels
 
     kernels_dir = "/Users/mcosta/workspace/pds/naif-pds4-bundler/tests/naif_pds4_bundler/data/kernels/ck"

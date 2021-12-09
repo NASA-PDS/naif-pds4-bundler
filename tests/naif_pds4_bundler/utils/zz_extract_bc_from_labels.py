@@ -5,8 +5,9 @@ BepiColombo configuration file from the labels.
 """
 import glob
 
-def extract_bc_from_labels():
 
+def extract_bc_from_labels():
+    """Private utility to generate the BepiColombo configuration file."""
     labels = glob.glob(
         "/Users/mcosta/workspace/bepi/20211025/bc_spice/spice_kernels/**/*.xml"
     )

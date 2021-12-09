@@ -60,7 +60,7 @@ class TestINSIGHT(TestCase):
         for dir in dirs:
             try:
                 shutil.rmtree(dir)
-            except:
+            except BaseException:
                 pass
 
     def test_insight_basic(self):
@@ -440,6 +440,9 @@ class TestINSIGHT(TestCase):
                 log=self.log,
                 diff="all",
             )
+
+        main(updated_config, clear='working/insight_release_08.file_list',
+             silent=self.silent, log=self.log, diff="all")
 
         with open(config, "r") as c:
             with open(updated_config, "w") as n:
@@ -898,7 +901,7 @@ class TestINSIGHT(TestCase):
 
         This test was generated to support a bug found in the MAVEN release 27.
         """
-        config = f"../config/insight.xml"
+        config = "../config/insight.xml"
         plan = "../data/insight_release_08.plan"
         updated_config = "working/insight_updated.xml"
 
@@ -956,7 +959,7 @@ class TestINSIGHT(TestCase):
 
         This test was generated to support a bug found in the MAVEN release 27.
         """
-        config = f"../config/insight.xml"
+        config = "../config/insight.xml"
         plan = "working/insight_release_08.plan"
         updated_config = "working/insight_updated.xml"
 
@@ -994,6 +997,7 @@ class TestINSIGHT(TestCase):
         main(
             updated_config, plan, faucet="bundle", silent=self.silent, log=self.log
         )
+
 
 if __name__ == "__main__":
     unittest.main()

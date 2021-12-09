@@ -177,13 +177,13 @@ class TestMetaKernelConfiguration(TestCase):
                     if '<pattern length="2">VERSION</pattern>' in line:
                         n.write('<pattern length="3">VERSION</pattern>\n')
                     elif 'v[0-9]{2}.tm' in line:
-                        n.write(line.replace('v[0-9]{2}.tm','v[0-9]{3}.tm'))
+                        n.write(line.replace('v[0-9]{2}.tm', 'v[0-9]{3}.tm'))
                     elif '<mk_inputs>' in line:
                         n.write('<!-- <mk_inputs>\n')
                     elif '</mk_inputs>' in line:
                         n.write('</mk_inputs> -->\n')
                     elif '_v[0-9][0-9].tm' in line:
-                        n.write(line.replace('_v[0-9][0-9].tm','_v[0-9][0-9][0-9].tm'))
+                        n.write(line.replace('_v[0-9][0-9].tm', '_v[0-9][0-9][0-9].tm'))
                     else:
                         n.write(line)
 
@@ -208,13 +208,13 @@ class TestMetaKernelConfiguration(TestCase):
                     if '<pattern length="2">VERSION</pattern>' in line:
                         n.write('<pattern length="1">VERSION</pattern>\n')
                     elif 'v[0-9]{2}.tm' in line:
-                        n.write(line.replace('v[0-9]{2}.tm','v[0-9].tm'))
+                        n.write(line.replace('v[0-9]{2}.tm', 'v[0-9].tm'))
                     elif '<mk_inputs>' in line:
                         n.write('<!-- <mk_inputs>\n')
                     elif '</mk_inputs>' in line:
                         n.write('</mk_inputs> -->\n')
                     elif '_v[0-9][0-9].tm' in line:
-                        n.write(line.replace('_v[0-9][0-9].tm','_v[0-9].tm'))
+                        n.write(line.replace('_v[0-9][0-9].tm', '_v[0-9].tm'))
                     else:
                         n.write(line)
 

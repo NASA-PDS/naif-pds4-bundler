@@ -28,7 +28,7 @@ class TestPDS4(TestCase):
         os.chdir(os.path.dirname(__file__))
 
         dirs = ["working", "staging", "kernels", "insight", "ladee", "kplo",
-                "dart"," mars2020"]
+                "dart", "mars2020"]
         for dir in dirs:
             shutil.rmtree(dir, ignore_errors=True)
 
@@ -44,7 +44,7 @@ class TestPDS4(TestCase):
         print(f"    * {self._testMethodName}")
 
         dirs = ["working", "staging", "kernels", "insight", "ladee", "kplo",
-                "dart"," mars2020"]
+                "dart", "mars2020"]
         for dir in dirs:
             shutil.rmtree(dir, ignore_errors=True)
 

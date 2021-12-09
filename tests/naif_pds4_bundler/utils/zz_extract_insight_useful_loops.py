@@ -6,7 +6,10 @@ useful_loops.csh file originally from BVS.
 
 WARNING: patterns need to be tuned and entered manually as well.
 """
+
+
 def extract_insight_useful_loops():
+    """Private utility to generate the INSIGHT configuration file."""
     with open("insight_kernel_list.json", "w+") as o:
 
         with open("insight_useful_loops.txt", "r") as f:
