@@ -126,9 +126,11 @@ the inline comments of the ``naif-pds4-bundler/src/pds/naif_pds4_bundler/__main_
   * The pipeline can be stopped after generating the moving of the products
     ``bundle_directory`` by setting ``-f, --faucet`` to ``bundle``.
 
-  * Validate Meta-kernel(s).
+  * Validate the Bundle by checking Checksum files against the updated
+    Bundle history and checking the bundle times.
 
-  * Validate Checksum files against the updated Bundle history.
+  * Validate Meta-kernel(s).
+    This is the last step since it unloads all kernels.
 
 
 There are a significant number of steps that are not reflected in the
