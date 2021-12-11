@@ -521,7 +521,7 @@ class Setup(object):
                         f"correspond to the present MKs."
                     )
             else:
-                logging.warning("-- There is no meta-kernel configuration " "to check.")
+                logging.warning("-- There is no meta-kernel configuration to check.")
 
         #
         # Check coverage kernels configuration (needed if there is only one
