@@ -57,15 +57,24 @@ class Product(object):
         self.size = str(stat_info.st_size)
 
         #
-        # Try to obtain the checksum from a checksum registry file, if not
-        # present, try to obtain it from the label if the product is in the
-        # staging area. Otherwise compute the checksum.
+        # If specified via configuraiton, try to obtain the checksum from a
+        # checksum registry file, if not present, try to obtain it from the
+        # label if the product is in the staging area. Otherwise compute the
+        # checksum.
         #
-        checksum = checksum_from_registry(self.path, self.setup.working_directory)
+        # Checksums for checksum files are always re-calculated.
+        #
+        if self.__class__.__name__ != "ChecksumProduct":
+            if self.setup.args.checksum:
+                checksum = checksum_from_registry(self.path, self.setup.working_directory)
+            else:
+                checksum = ''
 
-        if not checksum:
-            checksum = checksum_from_label(self.path)
-        if not checksum:
+            if not checksum:
+                checksum = checksum_from_label(self.path)
+            if not checksum:
+                checksum = str(md5(self.path))
+        else:
             checksum = str(md5(self.path))
 
         self.checksum = checksum
@@ -3252,6 +3261,11 @@ class SpicedsProduct(object):
                     setup=self.setup,
                 )
 
+        #
+        # Compare the previous SPICEDS file and the provided one. A user might
+        # not remove a previously provided SPICEDS file from the configuration
+        # file, if so, the user must be warned.
+        #
         self.name = "spiceds_v{0:0=3d}.html".format(self.version)
         self.path = (
             setup.staging_directory + os.sep + collection.name + os.sep + self.name
@@ -3267,7 +3281,7 @@ class SpicedsProduct(object):
         )
 
         #
-        # The provuided spiceds file is moved to the staging area.
+        # The provided spiceds file is moved to the staging area.
         #
         shutil.copy2(spiceds, self.path)
 
