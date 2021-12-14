@@ -67,11 +67,10 @@ class Product(object):
         if self.__class__.__name__ != "ChecksumProduct":
             if self.setup.args.checksum:
                 checksum = checksum_from_registry(self.path, self.setup.working_directory)
+                if not checksum:
+                    checksum = checksum_from_label(self.path)
             else:
                 checksum = ''
-
-            if not checksum:
-                checksum = checksum_from_label(self.path)
             if not checksum:
                 checksum = str(md5(self.path))
         else:

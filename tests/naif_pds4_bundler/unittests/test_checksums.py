@@ -109,7 +109,8 @@ class TestSpiceErrors(TestCase):
         os.mkdir("working")
         os.mkdir("mars2020")
 
-        main(config, plan=plan, silent=self.silent, log=self.log)
+        main(config, plan=plan, silent=self.silent, log=self.log,
+             checksum=True)
 
         line_check = "Checksum obtained from existing label:"
 
