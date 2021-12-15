@@ -627,7 +627,7 @@ summary of the parameters:
        e.g. ``2021-06-25T08:00:00``. If not provided the NPB execution date is used.
      - No
    * - increment_start
-     - Release start time. More details are provided in
+     - Archive release start time. This time forces the  More details are provided in
        :ref:`source/22_pds4_spice_archive:Product Coverage Assignment Rules`. The
        date is provided with a UTC calendar format string with following syntax:
        ``YYYY-MM-DDThh:mm:ssZ`` e.g. ``2021-06-25T08:00:00Z``. NAIF does not
@@ -678,7 +678,25 @@ along with the elements included in the configuration:
      archive generation.
 
 If present these elements should have the same value for all archive releases.
-More information on the readme file is provided in section :ref:`source/22_pds4_spice_archive:Bundle Products Construction Rules`.
+More information on the readme file is provided in section
+:ref:`source/22_pds4_spice_archive:Bundle Products Construction Rules`.
+
+
+Increment Start and Finish Times
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+These configuration elements, if present, set the archive increment start and
+stop times regardless of the coverage times provided by the MK(s) --if any--.
+
+NPB will set the MK(s) start and finish times to this elements --each
+individually--, and will propagate these times to the SPICE Kernels Collection
+and to the Bundle labels. Note that for yearly MKs --see section
+:ref:`source/31_step_1_preparing_data:Preparing Meta-kernels`--, NPB will only
+update the start or finish times for the MKs that correspond either to the
+start or finish year.
+
+Note that these configuration elements should be used with care and
+understanding their implications on the bundle coverage.
 
 
 Date Format

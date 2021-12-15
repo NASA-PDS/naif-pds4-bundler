@@ -483,7 +483,7 @@ must be followed:
     *  ``start_date_time`` and ``stop_date_time`` appear in
        ``Context_Area/Time_Coordinates`` only in bundle, SPICE kernel collection,
        Miscellaneous collection, SPICE kernel labels, checksum, and orbit
-       number file labels.
+       number file labels
 
     *  for kernels for which time boundaries can be determined from the
        data (SPKs, CKs, binary PCKs, and DSKs) ``start_date_time`` and
@@ -496,8 +496,11 @@ must be followed:
        ``2050-01-01``)
 
     *  for whole mission meta-kernels ``start_date_time`` and ``stop_date_time``
-       are set to the coverage provided by spacecraft SPK or CKs, at the
-       discretion of the archive producer
+       are set to the coverage provided by spacecraft SPK, CKs, or to other
+       dates at the discretion of the archive producer. These other dates might
+       be required for missions whose SPks and CKs do not explicitly cover the
+       dates required by the archive, e.g.: a lander mission with a fixed
+       position provided by an SPK with extended coverage
 
     *  for yearly mission meta-kernels ``start_date_time`` and ``stop_date_time``
        are set to the coverage from Jan 1 00:00 of the year to either the

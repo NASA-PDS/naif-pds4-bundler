@@ -632,7 +632,7 @@ approaches complementing each other are suggested:
    * comparing later versions of kernels that need to be added to
      the archive with already archived earlier versions; for text
      kernels this can be done by analyzing differences shown by Unix
-     utilities ``diff`` or ``tkdif``
+     utilities ``diff`` or ``tkdiff``
 
    * comparing merged archival products with the source operational
      files; for SPK files this can be done using the ``SPKDIFF``
@@ -747,6 +747,35 @@ in manually generated MKs is very common.
 
 Regardless of the method that you chose to generate MKs be especially careful
 when reviewing and validating them.
+
+
+Bundle coverage and MKs
+^^^^^^^^^^^^^^^^^^^^^^^
+
+In general, MKs will determine the archive increment start and finish times as
+described in section :ref:`source/22_pds4_spice_archive:Product Coverage Assignment Rules`.
+
+The coverage will be determined by either a CK or a SPK kernel as specified
+via configuration --more information in section
+:ref:`source/42_npb_configuration_file:Coverage determination`--, but the MK
+coverage can also be defined explicitly via configuration if necessary. This
+could be useful for example when SPks and CKs do not explicitly cover the
+dates required by the archive, e.g.: a lander mission with a fixed
+position provided by an SPK with extended coverage --this is the case for
+InSight--. This configuration parameter is explained in section
+:ref:`source/42_npb_configuration_file:Increment Start and Finish Times`.
+
+
+Releases without MKs
+^^^^^^^^^^^^^^^^^^^^
+
+But what if the release does not have any MK? This is perfectly fine, but
+NPB will lose the ability to compute the increment coverage from the MK and if
+the increment coverage is not provided via configuration as explained in section
+:ref:`source/42_npb_configuration_file:Increment Start and Finish Times`, then
+the increment times will be set to the mission start and finish times specified
+in the configuration file as described in section
+:ref:`source/42_npb_configuration_file:Mission Parameters`.
 
 
 A Word on Orbit Number Files
