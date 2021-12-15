@@ -22,6 +22,7 @@ from .files import match_patterns
 from .files import md5
 from .files import mk2list
 from .files import safe_make_directory
+from .files import string_in_file
 from .files import type2extension
 from .files import utf8len
 from .time import ck_coverage
@@ -67,5 +68,6 @@ __all__ = [
     pds3_label_gen_date,
     spk_coverage,
     spice_exception_handler,
-    slice_kernels
+    slice_kernels,
+    string_in_file
 ]

@@ -725,3 +725,25 @@ def extract_comment(path):
         comment += buffer
 
     return comment
+
+
+def string_in_file(file, str_to_check, repetitions=1):
+    """Check if a string is present in a file.
+
+    You can also provide the number of times that string is repeated.
+
+    :param file: File where the string is searched
+    :param str_to_check: String to search
+    :param repetitions: Number of repetions, default is 1.
+    :return:
+    """
+    lines_with_string = 0
+    with open(file, "r") as r:
+        for line in r:
+            if str_to_check in line:
+                lines_with_string += 1
+
+    if lines_with_string != repetitions:
+        return False
+
+    return True

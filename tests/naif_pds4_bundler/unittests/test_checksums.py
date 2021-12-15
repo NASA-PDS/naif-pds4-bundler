@@ -5,6 +5,7 @@ import unittest
 from unittest import TestCase
 
 from pds.naif_pds4_bundler.__main__ import main
+from pds.naif_pds4_bundler.utils.files import string_in_file
 
 
 class TestSpiceErrors(TestCase):
@@ -87,13 +88,7 @@ class TestSpiceErrors(TestCase):
                      "tests/naif_pds4_bundler/unittests/working/" \
                      "mars2020_release_01.checksum"
 
-        lines_with_checksum = 0
-        with open("working/mars2020_release_01.log", "r") as l:
-            for line in l:
-                if line_check in line:
-                    lines_with_checksum += 1
-
-        if lines_with_checksum != 11:
+        if not string_in_file("working/mars2020_release_01.log", line_check, 11):
             raise BaseException
 
     def test_checksum_from_labels(self):
@@ -114,13 +109,7 @@ class TestSpiceErrors(TestCase):
 
         line_check = "Checksum obtained from existing label:"
 
-        lines_with_checksum = 0
-        with open("working/mars2020_release_01.log", "r") as l:
-            for line in l:
-                if line_check in line:
-                    lines_with_checksum += 1
-
-        if lines_with_checksum != 7:
+        if not string_in_file("working/mars2020_release_01.log", line_check, 7):
             raise BaseException
 
 

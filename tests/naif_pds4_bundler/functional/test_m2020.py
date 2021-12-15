@@ -6,7 +6,7 @@ from unittest import TestCase
 
 import spiceypy
 from pds.naif_pds4_bundler.__main__ import main
-
+from pds.naif_pds4_bundler.utils.files import string_in_file
 
 class TestMars2020(TestCase):
     """Functional Test Family Class for Mars 2020 Archive Generation."""
@@ -182,7 +182,7 @@ class TestMars2020(TestCase):
                 debug=False
             )
 
-    def test_spk_with_unrelated_id(self):
+    def test_m2020_spk_with_unrelated_id(self):
         """Test an empty SPK."""
         config = "../config/mars2020.xml"
         plan = "../data/mars2020_release_00.plan"
@@ -209,7 +209,7 @@ class TestMars2020(TestCase):
 
         main(config, plan=plan, silent=self.silent, log=self.log)
 
-    def test_incorrect_mission_times(self):
+    def test_m2020_incorrect_mission_times(self):
         """Test usage of incorrect mission times."""
         config = "../config/mars2020.xml"
         plan = "../data/mars2020_release_00.plan"
@@ -228,6 +228,82 @@ class TestMars2020(TestCase):
                 updated_config, plan=plan, silent=self.silent, log=self.log,
                 debug=False
             )
+
+    def test_m2020_incorrect_increment_start_time(self):
+        """Test increment start time set via configuration with yearly MKs."""
+        config = "../config/mars2020.xml"
+        plan = "../data/mars2020_release_00.plan"
+        updated_config = 'working/mars2020.xml'
+
+        with open(config, "r") as c:
+            with open(updated_config, "w") as n:
+                for line in c:
+                    if "<release_date>2021-08-20</release_date>" in line:
+                        n.write(line)
+                        n.write("<increment_start>2021-05-25T08:00:00Z</increment_start>\n")
+                    else:
+                        n.write(line)
+
+        with self.assertRaises(RuntimeError):
+            main(
+                updated_config, plan=plan, silent=self.silent, log=self.log
+            )
+
+    def test_m2020_increment_start_time(self):
+        """Test increment start time set via configuration."""
+        config = "../config/mars2020.xml"
+        plan = "../data/mars2020_release_00.plan"
+        updated_config = 'working/mars2020.xml'
+
+        with open(config, "r") as c:
+            with open(updated_config, "w") as n:
+                for line in c:
+                    if "<release_date>2021-08-20</release_date>" in line:
+                        n.write(line)
+                        n.write("<increment_start>2021-01-25T08:00:00Z</increment_start>\n")
+                    else:
+                        n.write(line)
+
+        main(updated_config, plan=plan, silent=self.silent, log=self.log)
+
+        line_check = "Coverage start time corrected with increment start from " \
+                     "configuration file to: 2021-01-25T08:00:00Z"
+
+        if not string_in_file("working/mars2020_release_01.log", line_check):
+            raise BaseException
+
+        line_check = "2021-01-25T08:00:00Z - 2021-05-21T15:47:08Z"
+
+        if not string_in_file("working/mars2020_release_01.log", line_check):
+            raise BaseException
+
+    def test_m2020_increment_finish_time(self):
+        """Test increment finish time set via configuration."""
+        config = "../config/mars2020.xml"
+        plan = "../data/mars2020_release_00.plan"
+        updated_config = 'working/mars2020.xml'
+
+        with open(config, "r") as c:
+            with open(updated_config, "w") as n:
+                for line in c:
+                    if "<release_date>2021-08-20</release_date>" in line:
+                        n.write(line)
+                        n.write("<increment_finish>2021-04-23T08:00:00Z</increment_finish>\n")
+                    else:
+                        n.write(line)
+
+        main(updated_config, plan=plan, silent=self.silent, log=self.log)
+
+        line_check = "Coverage finish time corrected with increment finish " \
+                     "from configuration file to: 2021-04-23T08:00:00Z"
+
+        if not string_in_file("working/mars2020_release_01.log", line_check):
+            raise BaseException
+
+        line_check = "2020-07-30T12:51:34Z - 2021-04-23T08:00:00Z"
+
+        if not string_in_file("working/mars2020_release_01.log", line_check, 2):
+            raise BaseException
 
 
 if __name__ == "__main__":

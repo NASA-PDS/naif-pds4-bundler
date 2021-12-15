@@ -1377,9 +1377,12 @@ class MetaKernelProduct(Product):
 
         Meta-kernel coverage is determined by:
 
-        *  for whole mission meta-kernels start_date_time and stop_date_time
-           are set to the coverage provided by spacecraft SPK or CKs, at the
-           discretion of the archive producer.
+        *  for whole mission meta-kernels ``start_date_time`` and ``stop_date_time``
+           are set to the coverage provided by spacecraft SPK, CKs, or to other
+           dates at the discretion of the archive producer. These other dates might
+           be required for missions whose SPks and CKs do not explicitly cover the
+           dates required by the archive, e.g.: a lander mission with a fixed
+           position provided by an SPK with extended coverage
 
         *  for yearly mission meta-kernels start_date_time and stop_date_time
            are set to the coverage from Jan 1 00:00 of the year to either the
@@ -1389,7 +1392,7 @@ class MetaKernelProduct(Product):
         :return:
         """
         kernels = []
-
+        self.mk_sets_coverage = False
         #
         # Match the pattern with the kernels in the meta-kernel.
         # Only the kernel patterns identified with the meta-kernel attribute
@@ -1500,6 +1503,13 @@ class MetaKernelProduct(Product):
             if max(finish_times) > et_year_stop:
                 finish_times = [et_year_stop]
 
+        if self.mk_sets_coverage:
+            logging.info("-- Meta-kernel will be used to determine SPICE "
+                         "Collection coverage.")
+        else:
+            logging.warning(("-- Meta-kernel will not be used to determine "
+                             "SPICE Collection coverage."))
+
         try:
 
             start_time = spiceypy.et2utc(min(start_times), "ISOC", 0, 80) + "Z"
@@ -1508,16 +1518,101 @@ class MetaKernelProduct(Product):
 
         except BaseException:
             #
-            # The alternative is to set the increment stop time to the
-            # end time of the mission.
+            # The alternative is to set the increment times to the increment
+            # or mission times provided via configuration.
             #
-            start_time = self.setup.mission_start
-            stop_time = self.setup.mission_finish
-            logging.warning(
-                "-- No kernel(s) found to determine meta-kernel "
-                "coverage. Mission times will be used:"
-            )
-            logging.warning(f"   {start_time} - {stop_time}")
+            if hasattr(self, "year"):
+
+                #
+                # In the case of yearly kernels the coverage must be constrained
+                # within the limits of the year.
+                #
+                et_mission_start = spiceypy.utc2et(self.setup.mission_start[:-1])
+                et_mission_finish = spiceypy.utc2et(self.setup.mission_finish[:-1])
+                et_incremn_finish = spiceypy.utc2et(self.setup.increment_finish[:-1])
+                et_year_start = spiceypy.utc2et(f"{self.year}-01-01T00:00:00")
+
+                if et_year_start > et_mission_start and (self.year == self.setup.mission_start[:4]):
+                    start_time = self.setup.mission_start
+                else:
+                    start_time = f"{self.year}-01-01T00:00:00Z"
+
+                et_year_stop = spiceypy.utc2et(f"{int(self.year) + 1}-01-01T00:00:00")
+
+                if et_incremn_finish < et_year_stop and (self.year == self.setup.increment_finish[:4]):
+                    stop_time = self.setup.increment_finish
+                elif et_mission_finish < et_year_stop:
+                    stop_time = self.setup.mission_finish
+                else:
+                    stop_time = f"{int(self.year) + 1}-01-01T00:00:00Z"
+
+                logging.warning(
+                    f"-- No kernel(s) found to determine MK coverage. "
+                    f"Times from configuration in accordance to yearly MK "
+                    f"will be used: {start_time} - {stop_time}"
+                )
+
+                self.start_time = start_time
+                self.stop_time = stop_time
+
+                return
+            else:
+                if hasattr(self.setup, "increment_start"):
+                    start_time = self.setup.increment_start
+                else:
+                    start_time = self.setup.mission_start
+
+                if hasattr(self.setup, "increment_finish"):
+                    stop_time = self.setup.increment_finish
+                else:
+                    stop_time = self.setup.mission_finish
+
+                logging.warning(
+                    f"-- No kernel(s) found to determine MK coverage. "
+                    f"Times from configuration will be used: {start_time} - {stop_time}"
+                )
+
+                self.start_time = start_time
+                self.stop_time = stop_time
+
+                return
+
+        #
+        # The obtained start and stop times for the meta-kernel might need
+        # to be corrected for the increment start and stop times provided
+        # via configuration.
+        #
+        if hasattr(self.setup, "increment_start"):
+            if hasattr(self, "year"):
+                #
+                # Check if the increment start year is the same as the yearly
+                # MK. If so update it.
+                #
+                if self.setup.increment_start[0:4] == start_time[0:4]:
+                    start_time = self.setup.increment_start
+                    logging.warning(f"-- Coverage start time corrected with "
+                                    f"increment start from configuration file to: {start_time}"
+                                    )
+            else:
+                start_time = self.setup.increment_start
+                logging.warning(f"-- Coverage start time corrected with "
+                                f"increment start from configuration file to: {start_time}"
+                                )
+
+        if hasattr(self.setup, "increment_finish"):
+            if hasattr(self, "year"):
+                #
+                # Check if the increment finish year is the same as the yearly
+                # MK. If so update it.
+                #
+                if self.setup.increment_finish[0:4] == stop_time[0:4]:
+                    stop_time = self.setup.increment_finish
+                    logging.warning(f"-- Coverage finish time corrected with "
+                                    f"increment finish from configuration file to: {stop_time}")
+            else:
+                stop_time = self.setup.increment_finish
+                logging.warning(f"-- Coverage finish time corrected with "
+                                f"increment finish from configuration file to: {stop_time}")
 
         self.start_time = start_time
         self.stop_time = stop_time

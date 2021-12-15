@@ -265,30 +265,11 @@ class SpiceKernelsCollection(Collection):
         if not self.setup.args.silent and not self.setup.args.verbose:
             print("-- " + line.split(" - ")[-1] + ".")
 
+        increment_start = ''
+        increment_finish = ''
         #
-        # Check if an increment stop time has been provided as an input
-        # parameter.
-        #
-        if hasattr(self.setup, "increment_start"):
-            logging.info(
-                f"-- Increment stop time set to: "
-                f"{self.setup.increment_start} "
-                f"as provided from configuration file"
-            )
-
-        if hasattr(self.setup, "increment_finish"):
-            logging.info(
-                f"-- Increment finish time set to: "
-                f"{self.setup.increment_finish} "
-                f"as provided from configuration file"
-            )
-
-        if hasattr(self.setup, "increment_finish") and hasattr(
-            self.setup, "increment_finish"
-        ):
-            if self.setup.increment_finish and self.setup.increment_start:
-                return
-
+        # The increment start and finish times are to be set with the
+        # meta-kernel. This is the first step taken.
         #
         # Match the pattern with the kernels in the meta-kernel.
         #
@@ -297,27 +278,62 @@ class SpiceKernelsCollection(Collection):
             increment_finishs = []
             for prod in self.product:
                 if hasattr(prod, "mk_sets_coverage"):
-                    increment_starts.append(prod.start_time)
-                    increment_finishs.append(prod.stop_time)
-                    logging.info(
-                        f"-- Using MK: {prod.name} to deterermine "
-                        f"increment coverage."
-                    )
+                    if prod.mk_sets_coverage:
+                        increment_starts.append(prod.start_time)
+                        increment_finishs.append(prod.stop_time)
+                        logging.info(
+                            f"-- Using MK: {prod.name} to deterermine "
+                            f"increment coverage."
+                        )
 
             increment_start = min(increment_starts)
             increment_finish = max(increment_finishs)
 
         except BaseException:
             #
+            # If no MKs are provided in the increment. First check if an
+            # increment stop time has been provided as an input
+            # parameter.
+            #
+            logging.warning("-- No Meta-kernels found to determine increment "
+                            "times."
+                            )
+
+            if hasattr(self.setup, "increment_start"):
+                logging.info(
+                    f"   Increment stop time set to: "
+                    f"{self.setup.increment_start} "
+                    f"as provided from configuration file"
+                )
+                increment_start = self.setup.increment_start
+
+            if hasattr(self.setup, "increment_finish"):
+                logging.info(
+                    f"   Increment finish time set to: "
+                    f"{self.setup.increment_finish} "
+                    f"as provided from configuration file"
+                )
+                increment_finish = self.setup.increment_finish
+
+            #
             # The alternative is to set the increment stop time to the
             # end time of the mission.
             #
-            increment_start = self.setup.mission_start
-            increment_finish = self.setup.mission_finish
-            logging.warning(
-                "-- No kernel(s) found to determine increment "
-                "stop time. Mission times will be used."
-            )
+            if not increment_start:
+                increment_start = self.setup.mission_start
+                logging.warning(
+                    "-- No increment start time provided via configuration. "
+                    "Mission start time will be used:"
+                )
+                logging.warning(f"   {increment_start}")
+
+            if not increment_finish:
+                increment_finish = self.setup.mission_finish
+                logging.warning(
+                    "-- No increment finish time provided via configuration. "
+                    "Mission stop time will be used:"
+                )
+                logging.warning(f"   {increment_finish}")
 
         #
         # We check the coverage with the previous increment.

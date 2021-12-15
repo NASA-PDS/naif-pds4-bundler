@@ -5,7 +5,7 @@ import unittest
 from unittest import TestCase
 
 from pds.naif_pds4_bundler.__main__ import main
-
+from pds.naif_pds4_bundler.utils.files import string_in_file
 
 class TestMAVEN(TestCase):
     """Functional Test Family Class for MAVEN Archive Generation."""
@@ -334,6 +334,76 @@ class TestMAVEN(TestCase):
             verbose=self.verbose,
             log=self.log,
         )
+
+    def test_maven_increment_times_from_yearly_mks(self):
+        """Test increment start time set via configuration with yearly MKs.
+
+        This test is implemented to check that the functionality is as
+        expected for yearly MKs.
+        """
+        config = "../config/maven.xml"
+        updated_config = "working/maven.xml"
+        plan = "working/maven.plan"
+        faucet = "staging"
+
+        with open("working/maven.plan", "w") as p:
+            p.write("mvn_sclkscet_00088.tsc\n")
+            p.write("maven_2015_v09.tm\n")
+            p.write("maven_2020_v06.tm\n")
+            p.write("maven_2021_v02.tm")
+
+        with open(config, "r") as r:
+            with open(updated_config, "w") as w:
+                pass
+
+        #
+        # This first combination provides times from start to end of the
+        # MK and the times provided via configuration are ignored:
+        #
+        #  <increment_start>2021-05-25T08:00:00Z</increment_start>
+        #  <increment_finish>2021-06-25T08:00:00Z</increment_finish>
+        #
+        # precisely because of the yearly MKs.
+        #
+        main(
+            config,
+            plan=plan,
+            faucet=faucet,
+            silent=self.silent,
+            verbose=self.verbose,
+            log=self.log,
+        )
+
+        line_check = "No kernel(s) found to determine MK coverage. Times from " \
+                     "configuration in accordance to yearly MK will be used: " \
+                     "2020-01-01T00:00:00Z - 2021-01-01T00:00:00Z"
+
+        if not string_in_file("working/maven_release_25.log", line_check):
+            raise BaseException
+
+        line_check = "No kernel(s) found to determine MK coverage. Times from " \
+                     "configuration in accordance to yearly MK will be used: " \
+                     "2015-01-01T00:00:00Z - 2016-01-01T00:00:00Z"
+
+        if not string_in_file("working/maven_release_25.log", line_check):
+            raise BaseException
+
+        line_check = "No kernel(s) found to determine MK coverage. Times from " \
+                     "configuration in accordance to yearly MK will be used: " \
+                     "2021-01-01T00:00:00Z - 2021-06-25T08:00:00Z"
+
+        if not string_in_file("working/maven_release_25.log", line_check):
+            raise BaseException
+
+        line_check = "Increment start corrected from previous bundle"
+
+        if not string_in_file("working/maven_release_25.log", line_check):
+            raise BaseException
+
+        line_check = "2013-11-18T19:20:42Z - 2021-06-25T08:00:00Z"
+
+        if not string_in_file("working/maven_release_25.log", line_check):
+            raise BaseException
 
 
 if __name__ == "__main__":
