@@ -16,14 +16,12 @@ A number of Python packages are required as well:
 
    * SpiceyPy (version 4.0.2 or higher)
    * beautifulsoup4 (version 4.9.3 or higher)
-   * NumPy (version 1.19.4 or higher)
    * SetupTools (version 50.3.0 or higher)
    * xmlschema
 
 Please note that the dependency that might cause issues is SpiceyPy. SpiceyPy
 will check if you have the SPICE Toolkit in C: CSPICE, installed. If you don't
-it will automatically install it for you (that is why only a NAIF compatible
-C compiler is required.)
+it will automatically install it for you.
 
 The following section will provides instructions to install NPB.
 
@@ -51,7 +49,7 @@ Then run::
 
 in the ``naif-pds4-bundler`` top level directory. To uninstall run::
 
-   pip uninstall spiceypy
+   pip uninstall naif-pds4-bundler
 
 
 Development and Contribution

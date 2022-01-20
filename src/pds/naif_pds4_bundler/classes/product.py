@@ -179,8 +179,8 @@ class SpiceKernelProduct(Product):
             self.file_format = "Character"
 
         if self.setup.pds_version == "4":
-            self.lid = self.__product_lid()
-            self.vid = self.__product_vid()
+            self.lid = self.product_lid()
+            self.vid = self.product_vid()
             ker_dir = "spice_kernels"
         else:
             ker_dir = "data"
@@ -218,7 +218,7 @@ class SpiceKernelProduct(Product):
                             os.path.join(root, ker)
                             for root, dirs, files in os.walk(path)
                             for ker in files
-                            if self.__product_mapping() == ker
+                            if self.product_mapping() == ker
                         ]
 
                         origin_path = file[0]
@@ -226,7 +226,7 @@ class SpiceKernelProduct(Product):
                         shutil.copy2(origin_path, product_path + os.sep + self.name)
                         self.new_product = True
                         logging.info(
-                            f"-- Mapping {self.__product_mapping()} "
+                            f"-- Mapping {self.product_mapping()} "
                             f"with {self.name}"
                         )
                     except BaseException:
@@ -250,8 +250,8 @@ class SpiceKernelProduct(Product):
         #
         self.path = product_path + self.name
 
-        self.__coverage()
-        self.description = self.__read_description()
+        self.coverage()
+        self.description = self.read_description()
 
         Product.__init__(self)
 
@@ -271,7 +271,7 @@ class SpiceKernelProduct(Product):
             logging.info(f"-- Labeling {self.name}...")
             self.label = SpiceKernelPDS4Label(setup, self)
 
-    def __product_lid(self):
+    def product_lid(self):
         """Determine product logical identifier (LID).
 
         :return: product LID
@@ -283,13 +283,17 @@ class SpiceKernelProduct(Product):
 
         return product_lid
 
-    def __product_vid(self):
+    def product_vid(self):
+        """Determine product logical identifier (VID).
 
+        :return: product VID
+        :rtype: str
+        """
         product_vid = "1.0"
 
         return product_vid
 
-    def __read_description(self):
+    def read_description(self):
         """Read the kernel list to return the description.
 
         The generated kernel list file must be used because it contains the
@@ -324,10 +328,10 @@ class SpiceKernelProduct(Product):
 
         return description
 
-    def __coverage(self):
-
+    def coverage(self):
+        """Determine the product coverage."""
         #
-        # Before computing the coverage we check if it the label is already
+        # Before computing the coverage we check if the label is already
         # present.
         #
         coverage = []
@@ -371,7 +375,7 @@ class SpiceKernelProduct(Product):
         self.start_time = coverage[0]
         self.stop_time = coverage[-1]
 
-    def __ik_kernel_ids(self):
+    def ik_kernel_ids(self):
         """Extract the IDs from IK."""
         with open(f"{self.path}/{self.name}", "r") as f:
 
@@ -472,7 +476,7 @@ class SpiceKernelProduct(Product):
 
         return
 
-    def __product_mapping(self):
+    def product_mapping(self):
         """Obtain the kernel mapping."""
         kernel_list_file = (
             self.setup.working_directory
@@ -510,9 +514,9 @@ class SpiceKernelProduct(Product):
 
         A binary kernel could have the following architectures:
 
-          DAF - The file is based on the DAF architecture.
-          DAS - The file is based on the DAS architecture.
-          XFR - The file is in a SPICE transfer file format.
+          * DAF: The file is based on the DAF architecture.
+          * DAS: The file is based on the DAS architecture.
+          * XFR: The file is in a SPICE transfer file format.
 
         For an archive only DAF is acceptable.
 
@@ -1320,7 +1324,7 @@ class MetaKernelProduct(Product):
         The validation consists of:
 
            * load the kernel with the SPICE API ``FURNSH``
-           * count the loaded kernels with SPICE API``KTOTAL``
+           * count the loaded kernels with SPICE API ``KTOTAL``
            * compare the number of kernels in the kernel pool with the length
              of the MK collection list attribute.
         """
@@ -1649,8 +1653,8 @@ class OrbnumFileProduct(Product):
                 setup=self.setup,
             )
 
-        self.__set_product_lid()
-        self.__set_product_vid()
+        self.set_product_lid()
+        self.set_product_vid()
 
         #
         # We generate the kernel directory if not present
@@ -1684,24 +1688,24 @@ class OrbnumFileProduct(Product):
         #
         # We obtain the parameters required to fill the label.
         #
-        header = self.__read_header()
-        self.__set_event_detection_key(header)
-        self.header_length = self.__get_header_length()
-        self.__set_previous_orbnum()
-        self.__read_records()
-        self._sample_record = self.__get_sample_record()
-        self.description = self.__get_description()
+        header = self.read_header()
+        self.set_event_detection_key(header)
+        self.header_length = self.get_header_length()
+        self.set_previous_orbnum()
+        self.read_records()
+        self._sample_record = self.get_sample_record()
+        self.description = self.get_description()
 
         #
         # Table character description is only obtained if there are missing
         # records.
         #
-        self.table_char_description = self.__table_character_description()
+        self.table_char_description = self.table_character_description()
 
-        self.__get_params(header)
-        self.__set_params(header)
+        self.get_params(header)
+        self.set_params(header)
 
-        self.__coverage()
+        self.coverage()
 
         #
         # Extract the required information from the kernel list read from
@@ -1722,17 +1726,17 @@ class OrbnumFileProduct(Product):
 
         return
 
-    def __set_product_lid(self):
+    def set_product_lid(self):
         """Set the Product LID."""
         self.lid = "{}:miscellaneous:orbnum_{}".format(
             self.setup.logical_identifier, self.name
         )
 
-    def __set_product_vid(self):
+    def set_product_vid(self):
         """Set the Product VID."""
         self.vid = "1.0"
 
-    def __set_previous_orbnum(self):
+    def set_previous_orbnum(self):
         """Determine the previou version of the ORBNUM file.
 
         For some cases, more than one orbit number file
@@ -1801,7 +1805,7 @@ class OrbnumFileProduct(Product):
 
             self._previous_version = "1"
 
-    def __read_header(self):
+    def read_header(self):
         """Read and process an orbnum file header.
 
         Defines the record_fixed_length attribute that provides the lenght of
@@ -1844,7 +1848,7 @@ class OrbnumFileProduct(Product):
 
         return header
 
-    def __get_header_length(self):
+    def get_header_length(self):
         """Read an orbnum file and return the length of the header in bytes.
 
         :return: header line
@@ -1863,7 +1867,7 @@ class OrbnumFileProduct(Product):
 
         return header_length + 1
 
-    def __get_sample_record(self):
+    def get_sample_record(self):
         """Read an orbnum file and return one record sample.
 
         This sample (one data line) will be used to determine the format of
@@ -1897,11 +1901,11 @@ class OrbnumFileProduct(Product):
         if not sample_record:
             error_message("The orbnum file has no records.", setup=self.setup)
 
-        sample_record = self.__utc_blanks_to_dashes(sample_record)
+        sample_record = self.utc_blanks_to_dashes(sample_record)
 
         return sample_record
 
-    def __utc_blanks_to_dashes(self, sample_record):
+    def utc_blanks_to_dashes(self, sample_record):
         """Reformat UTC strings in the ORBNUM file.
 
         Re-process the UTC string fields of an orbnum sample row
@@ -1925,7 +1929,7 @@ class OrbnumFileProduct(Product):
 
         return sample_record
 
-    def __read_records(self):
+    def read_records(self):
         """Read and interpret the records of an ORBNUM file.
 
         Read an orbnum file and set the number of records attribute,
@@ -2072,35 +2076,33 @@ class OrbnumFileProduct(Product):
 
         return records
 
-    def __set_event_detection_key(self, header):
+    def set_event_detection_key(self, header):
         """Obtain the ORBNUM event detection key.
 
         The event detection key is a string identifying which geometric event
         signifies the start of an orbit. The possible events are:
 
-           ``APO``      signals a search for apoapsis
+           ``APO``    signals a search for apoapsis
 
-           ``PERI``     signals a search for periapsis
+           ``PERI``   signals a search for periapsis
 
-           ``A-NODE``   signals a search for passage through
-                        the ascending node
+           ``A-NODE`` signals a search for passage through
+           the ascending node
 
-           ``D-NODE``   signals a search for passage through
-                        the descending node
+           ``D-NODE`` signals a search for passage through
+           the descending node
 
-           ``MINLAT``   signals a search for the time of
-                        minimum planetocentric latitude
+           ``MINLAT`` signals a search for the time of
+           minimum planetocentric latitude
 
-           ``MAXLAT``   signals a search for the time of
-                        maximum planetocentric latitude
+           ``MAXLAT`` signals a search for the time of
+           maximum planetocentric latitude
 
-           ``MINZ``     signals a search for the time of the
-                        minimum value of the Z (Cartesian)
-                        coordinate
+           ``MINZ``   signals a search for the time of the
+           minimum value of the Z (Cartesian) coordinate
 
-           ``MAXZ``     signals a search for the time of the
-                        maximum value of the Z (Cartesian)
-                        coordinate
+           ``MAXZ``   signals a search for the time of the
+           maximum value of the Z (Cartesian) coordinate
         """
         events = ["APO", "PERI", "A-NODE", "D-NODE", "MINLAT", "MAXLAT", "MINZ", "MAXZ"]
         for event in events:
@@ -2133,7 +2135,7 @@ class OrbnumFileProduct(Product):
 
         return None
 
-    def __event_mapping(self, event):
+    def event_mapping(self, event):
         """Maps the event keyword to the event name/description.
 
         :return: event description
@@ -2152,7 +2154,7 @@ class OrbnumFileProduct(Product):
 
         return event_dict[event]
 
-    def __opposite_event_mapping(self, event):
+    def opposite_event_mapping(self, event):
         """Maps the event keyword to the opposite event keyword.
 
         :return: opposite event keyword
@@ -2171,7 +2173,7 @@ class OrbnumFileProduct(Product):
 
         return opp_event_dict[event]
 
-    def __get_params(self, header):
+    def get_params(self, header):
         """Obtain the parameters present in the ORBNUM file.
 
         Currently There are 11 orbital parameters available:
@@ -2180,40 +2182,40 @@ class OrbnumFileProduct(Product):
 
            ``Event UTC``    The UTC time of that event.
 
-           `Event SCLK``    The SCLK time of the event.
+           ``Event SCLK``    The SCLK time of the event.
 
            ``OP-Event UTC`` The UTC time of the opposite event.
 
            ``Sub Sol Lon``  Sub-solar planetodetic longitude at event
-                            time (DEGS).
+           time (DEGS).
 
            ``Sub Sol Lat``  Sub-solar planetodetic latitude at event
-                            time (DEGS).
+           time (DEGS).
 
            ``Sub SC Lon``   Sub-target planetodetic longitude (DEGS).
 
            ``Sub SC Lat``   Sub-target planetodetic latitude (DEGS).
 
            ``Alt``          Altitude of the target above the observer
-                            body at event time (KM).
+           body at event time (KM).
 
            ``Inc``          Inclination of the vehicle orbit plane at
-                            event time (DEGS).
+           event time (DEGS).
 
            ``Ecc``          Eccentricity of the target orbit about
-                            the primary body at event time (DEGS),
+           the primary body at event time (DEGS),
 
            ``Lon Node``     Longitude of the ascending node of the
-                            orbit plane at event time (DEGS).
+           orbit plane at event time (DEGS).
 
            ``Arg Per``      Argument of periapsis of the orbit plane at
-                            event time (DEGS).
+           event time (DEGS).
 
            ``Sol Dist``     Solar distance from target at event
-                            time (KM).
+          time (KM).
 
            ``Semi Axis``   Semi-major axis of the target's orbit at
-                            event time (KM).
+           event time (KM).
         """
         parameters = []
         params = [
@@ -2244,7 +2246,7 @@ class OrbnumFileProduct(Product):
 
         return None
 
-    def __set_params(self, header):
+    def set_params(self, header):
         """Define the parameters template dictionary.
 
         :param header:
@@ -2464,7 +2466,7 @@ class OrbnumFileProduct(Product):
             description = params_template[param]["description"]
 
             if "$EVENT" in description:
-                event_desc = self.__event_mapping(self._event_detection_key)
+                event_desc = self.event_mapping(self._event_detection_key)
                 description = description.replace("$EVENT", event_desc)
 
             if "$TARGET" in description:
@@ -2481,8 +2483,8 @@ class OrbnumFileProduct(Product):
                 # For the opposite event correct the field description as
                 # well.
                 #
-                oppevent = self.__opposite_event_mapping(self._event_detection_key)
-                oppevent_desc = self.__event_mapping(oppevent)
+                oppevent = self.opposite_event_mapping(self._event_detection_key)
+                oppevent_desc = self.event_mapping(oppevent)
                 description = description.replace("$OPPEVENT", oppevent_desc)
 
             #
@@ -2520,7 +2522,7 @@ class OrbnumFileProduct(Product):
 
         return None
 
-    def __get_description(self):
+    def get_description(self):
         """Write the ORBNUM table character description.
 
         Write the orbnum product description information based on the orbit
@@ -2560,7 +2562,7 @@ class OrbnumFileProduct(Product):
 
         return description
 
-    def __table_character_description(self):
+    def table_character_description(self):
         """Write the ORBNUM table character description.
 
         Write the orbnum table character description information
@@ -2586,7 +2588,7 @@ class OrbnumFileProduct(Product):
 
         return description
 
-    def __coverage(self):
+    def coverage(self):
         """Determine the coverage of the ORNBUM file.
 
         The coverage of the orbnum file can be determined in three different
@@ -2802,7 +2804,7 @@ class OrbnumFileProduct(Product):
                 # Replace the spaces in the UTC strings for dashes in order
                 # to be able to split the file with blank spaces.
                 #
-            last_line = self.__utc_blanks_to_dashes(last_line)
+            last_line = self.utc_blanks_to_dashes(last_line)
             #
             # If the opposite event is outside of the coverage of the SPK file
             # with which the orbnum has been generated, there is no UTC time
@@ -2939,12 +2941,12 @@ class InventoryProduct(Product):
         self.vid = "{}.0".format(int(self.version))
 
     def write_product(self):
-        """Write and valudate the Collection inventory."""
+        """Write and validate the Collection inventory."""
         if self.setup.pds_version == "4":
-            self.__write_pds4_collection_product()
+            self.write_pds4_collection_product()
         else:
             return
-            self.__write_pds3_index_product()
+            self.write_pds3_index_product()
 
         logging.info(
             f"-- Generated {self.path.split(self.setup.staging_directory)[-1]}"
@@ -2959,8 +2961,8 @@ class InventoryProduct(Product):
 
         return
 
-    def __write_pds4_collection_product(self):
-
+    def write_pds4_collection_product(self):
+        """Write the PDS4 Collection product."""
         #
         # If there is an existing version we need to add the items from
         # the previous version as SECONDARY members
@@ -2996,7 +2998,7 @@ class InventoryProduct(Product):
 
         return
 
-    #    def __write_pds3_index_product(self):
+    #    def write_pds3_index_product(self):
     #
     #        #
     #        # PDS3 INDEX file generation

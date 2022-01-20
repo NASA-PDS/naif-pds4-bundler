@@ -7,13 +7,16 @@ from unittest import TestCase
 from pds.naif_pds4_bundler.utils.zz_slicer import slice_kernels
 
 
-class TestSlicer(TestCase):
+class ZzTestSlicer(TestCase):
     """Unit Test Family Class for NPB SPICE kernel slicer.
 
     Slicer is an auxiliary function used to "slice" kernel data sets
     in order to make them adept to be included as data for NPB tests by
     reducing its size. This utility is not mentioned in the NPB documentation
     other than the function header itself.
+
+    Since these tests require the NAIF Utility CKSLICER the tests are not
+    included as part of the NPB test suite.
     """
 
     @classmethod

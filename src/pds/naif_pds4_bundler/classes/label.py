@@ -125,10 +125,10 @@ class PDSLabel(object):
             self.observers = product.observers
             self.targets = product.targets
 
-        self.OBSERVERS = self.__get_observers()
-        self.TARGETS = self.__get_targets()
+        self.OBSERVERS = self.get_observers()
+        self.TARGETS = self.get_targets()
 
-    def __get_observers(self):
+    def get_observers(self):
         """Get the label observers from the context products."""
         obs = self.observers
         if not isinstance(obs, list):
@@ -181,7 +181,7 @@ class PDSLabel(object):
 
         return obs_list_for_label
 
-    def __get_targets(self):
+    def get_targets(self):
         """Get the label targets from the context products."""
         tars = self.targets
         if not isinstance(tars, list):
@@ -211,7 +211,7 @@ class PDSLabel(object):
                     + f"      <Internal_Reference>{eol}"
                     + f"        <lid_reference>{target_lid}"
                     f"</lid_reference>{eol}" + f"        <reference_type>"
-                    f"{self.__get_target_reference_type()}"
+                    f"{self.get_target_reference_type()}"
                     f"</reference_type>{eol}"
                     + f"      </Internal_Reference>{eol}"
                     + f"    </Target_Identification>{eol}"
@@ -223,7 +223,7 @@ class PDSLabel(object):
 
         return tar_list_for_label
 
-    def __get_target_reference_type(self):
+    def get_target_reference_type(self):
         """Get the target reference type."""
         if self.__class__.__name__ == "ChecksumPDS4Label":
             type = "ancillary_to_target"
@@ -669,20 +669,20 @@ class OrbnumFilePDS4Label(PDSLabel):
         #
         self.NUMBER_OF_FIELDS = str(len(product.params.keys()))
         self.FIELDS_LENGTH = str(product.record_fixed_length + 1)
-        self.FIELDS = self.__get_table_character_fields()
+        self.FIELDS = self.get_table_character_fields()
 
         if self.TABLE_CHARACTER_DESCRIPTION:
-            self.TABLE_CHARACTER_DESCRIPTION = self.__get_table_character_description()
+            self.TABLE_CHARACTER_DESCRIPTION = self.get_table_character_description()
 
         self.name = product.name.split(".")[0] + ".xml"
 
         self.write_label()
 
-    def __get_table_character_fields(self):
+    def get_table_character_fields(self):
         """Get the Table Character fields."""
         fields = ""
         for param in self.product.params.values():
-            field = self.__field_template(
+            field = self.field_template(
                 param["name"],
                 param["number"],
                 param["location"],
@@ -697,7 +697,7 @@ class OrbnumFilePDS4Label(PDSLabel):
 
         return fields
 
-    def __get_table_character_description(self):
+    def get_table_character_description(self):
         """Get The description of the Table Character."""
         description = (
             f"{self.setup.eol_pds4}      <description>"
@@ -707,7 +707,7 @@ class OrbnumFilePDS4Label(PDSLabel):
 
         return description
 
-    def __field_template(
+    def field_template(
         self, name, number, location, type, length, format, description, unit, blanks
     ):
         """Provide the entire Field for a given parameter.

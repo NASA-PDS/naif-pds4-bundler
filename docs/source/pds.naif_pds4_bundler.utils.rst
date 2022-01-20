@@ -28,6 +28,14 @@ pds.naif\_pds4\_bundler.utils.time module
    :undoc-members:
    :show-inheritance:
 
+pds.naif\_pds4\_bundler.utils.zz\_slicer module
+-----------------------------------------------
+
+.. automodule:: pds.naif_pds4_bundler.utils.zz_slicer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

@@ -1,5 +1,6 @@
 """Decorator module that contains decorator functions."""
 import traceback
+from functools import wraps
 
 from ..classes.log import error_message
 
@@ -9,7 +10,12 @@ def spice_exception_handler(func):
 
     This function is used as a decorator to propagate SpiceyPy errors.
     """
-
+    #
+    # The wrapper is inserted as a workaround to unmask the docstring of the
+    # wrapped function. See:
+    # https://github.com/sphinx-doc/sphinx/issues/3783
+    #
+    @wraps(func)
     def inner_function(*args, **kwargs):
         try:
             func(*args, **kwargs)

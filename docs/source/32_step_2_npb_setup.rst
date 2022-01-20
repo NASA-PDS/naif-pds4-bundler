@@ -117,7 +117,7 @@ Determination of the Archive Release Version
 
 NPB will determine the archive release version by accessing the existing bundle
 label from the bundle directory. If no bundle is present NPB will default the
-version to 01.
+version to ``01``.
 
 
 SPICE Kernel descriptions across the archive

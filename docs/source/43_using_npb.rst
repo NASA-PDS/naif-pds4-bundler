@@ -349,11 +349,10 @@ provided in section :ref:`source/43_using_npb:Validation Diff files`.
 The options for this argument determine the destination of these diff files.
 
    * ``files``: Diff files are HTML files that are written in the
-                ``working_directory``; each diff'ed file is provided as a
-                separate file.
+     ``working_directory``; each diff'ed file is provided as a separate file.
 
    * ``log``: Diff plan text snippets are provided in the NPB log. This argument
-              will force the ``-l --log``.
+     will force the ``-l --log``.
 
    * ``all``: Combines both ``files`` and ``log`` effects.
 
@@ -432,7 +431,11 @@ Using NPB in label mode
 
 NPB can also be used to generate SPICE kernels labels rather
 than a complete PDS4 Bundle. When using NPB in label mode the same
-setup required for a "regular" execution apply.
+setup required for a "regular" execution applies and almost complete
+configuration file is required. The example configuration file for the
+Hubble Space Telescope provides a differentiated example of a configuration
+file used to generate labels only. The file is available at
+``naif-pds4-bundler/tests/naif_pds4_bundler/config/hst.xml``.
 
 In order to run NPB in label mode you need to set the ``-f FAUCET, --faucet FAUCET``
 argument to ``labels``.

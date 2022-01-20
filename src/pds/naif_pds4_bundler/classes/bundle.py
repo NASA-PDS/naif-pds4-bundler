@@ -615,11 +615,11 @@ class Bundle(object):
         The two implemented steps are to check Checksum files against the
         updated Bundle history and checking the bundle times.
         """
-        self.__check_times()
-        self.__validate_history()
+        self.check_times()
+        self.validate_history()
 
     @spice_exception_handler
-    def __check_times(self):
+    def check_times(self):
         """Check the correctness of the bundle times."""
         str_msn_strt = self.setup.mission_start
         str_inc_strt = self.setup.increment_start
@@ -654,7 +654,7 @@ class Bundle(object):
                 "are incoherent."
             )
 
-    def __validate_history(self):
+    def validate_history(self):
         """Validate the bundle updated history with the checksum files.
 
         This method validates all the archive Checksum files with the "Archive

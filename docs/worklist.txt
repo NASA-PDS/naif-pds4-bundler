@@ -3,7 +3,7 @@ naif-pds4-bundle worklist by MCS/NAIF
 
 Work List:
 
-  URGENT:
+  Next:
 
   -- Include option to provide plan with kernel names to be mapped or to
      provide kernels from directory with original names.
@@ -15,9 +15,6 @@ Work List:
 
   -- Agreed to try to enhance the MK generation with whitespaces
      for selected kernels of the same type.
-
-  -- Implement archive time boundaries tests (there is one sketched in
-     configuration).
 
   Possible:
 
@@ -225,5 +222,8 @@ v0.14.0
 
   -- For PDS3 kernel list generation derive version from existing
      kernel list or input plan name.
+
+  -- Implement archive time boundaries tests (there is one sketched in
+     configuration).
 
 v1.0.0 - First 'public' release.

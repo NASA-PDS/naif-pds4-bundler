@@ -658,7 +658,7 @@ summary of the parameters:
 SPICEDS
 ^^^^^^^
 
-In addition to the NPB Configuration File - if the meta-kernel is generated
+In addition to the NPB Configuration File -if the meta-kernel is generated
 automatically - the SPICEDS file is the only bundle product that requires manual
 intervention. More details on SPICEDS are provided in the section
 :ref:`source/32_step_2_npb_setup:SPICE Data Set Catalog File`.

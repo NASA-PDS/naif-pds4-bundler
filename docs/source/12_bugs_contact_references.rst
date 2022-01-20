@@ -58,7 +58,7 @@ The executables and User's Guides for the following utility programs::
    SPY       BFF       FRMDIFF   OPTIKS
 
 mentioned in this document are available from the "Utilities" page on
-the NAIF web site, `NAIF Utilities <https://naif.jpl.nasa.gov/naif/utilities.html>`_
+the NAIF web site, `NAIF Utilities <https://naif.jpl.nasa.gov/naif/utilities.html>`_.
 
 Note that for some environments (e.g. Linux, Mac/OSX) these utilities
 can not be statically linked and require certain shared object libraries
