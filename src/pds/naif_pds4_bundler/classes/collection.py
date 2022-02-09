@@ -1,9 +1,11 @@
 """Collection Class amd Child Classes Implementation."""
 import glob
 import logging
+import spiceypy
 import os
 
 from ..utils import extension2type
+from ..utils import et2date
 from .log import error_message
 
 
@@ -282,7 +284,7 @@ class SpiceKernelsCollection(Collection):
                         increment_starts.append(prod.start_time)
                         increment_finishs.append(prod.stop_time)
                         logging.info(
-                            f"-- Using MK: {prod.name} to deterermine "
+                            f"-- Using MK: {prod.name} to determine "
                             f"increment coverage."
                         )
 
@@ -383,6 +385,16 @@ class SpiceKernelsCollection(Collection):
 
         except BaseException:
             logging.warning("-- Previous bundle not found.")
+
+        #
+        # Check the format of the previous bundle and correct it. The 'Z' is
+        # removed from the UTC string since it is not supported until the
+        # SPICE Toolkit N0067.
+        #
+        (increment_start, increment_finish) = \
+            et2date(spiceypy.utc2et(increment_start[:-1]),
+                    spiceypy.utc2et(increment_finish[:-1]),
+                    self.setup.date_format)
 
         logging.info("-- Increment interval for collection and bundle set to:")
         logging.info(f"   {increment_start} - {increment_finish}")

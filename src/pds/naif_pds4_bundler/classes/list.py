@@ -60,7 +60,7 @@ class KernelList(List):
         self.RELID = f"{int(setup.release):04d}"
         self.RELDATE = setup.release_date
 
-        self.template = f"{setup.root_dir}/templates/template_kernel_list.txt"
+        self.template = f"{setup.templates_directory}/template_kernel_list.txt"
         self.read_config()
 
         return

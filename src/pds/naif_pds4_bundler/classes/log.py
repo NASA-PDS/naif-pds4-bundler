@@ -111,7 +111,7 @@ class Log(object):
 
         if self.args.faucet == "labels":
             logging.info(
-                "-- Running in labeling mode. Only label products are " "generated."
+                "-- Running in labeling mode. Only label products are generated."
             )
 
         logging.info("")
@@ -138,7 +138,13 @@ class Log(object):
             )
 
         #
-        # Generate the file list and the checksum regsitry.
+        # Remove the templates.
+        #
+        for template in self.setup.template_files:
+            os.remove(template)
+
+        #
+        # Generate the file list and the checksum registry.
         #
         self.setup.write_file_list()
         self.setup.write_checksum_regsitry()
@@ -160,7 +166,7 @@ def error_message(message, setup=False):
     logging.error(f"-- {message}")
 
     #
-    # If files have been generated in the staging are and/or transfered
+    # If files have been generated in the staging are and/or transferred
     # to the final area, generate the file list for the pipeline execution.
     #
     # In addition, generate the checksum registry file
@@ -168,6 +174,8 @@ def error_message(message, setup=False):
     if setup:
         setup.write_file_list()
         setup.write_checksum_regsitry()
+        for template in setup.template_files:
+            os.remove(template)
 
     spiceypy.kclear()
 

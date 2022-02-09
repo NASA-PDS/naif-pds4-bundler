@@ -34,6 +34,7 @@ from .time import get_years
 from .time import pck_coverage
 from .time import pds3_label_gen_date
 from .time import spk_coverage
+from .time import et2date
 from .zz_slicer import slice_kernels
 
 __all__ = [
@@ -69,5 +70,6 @@ __all__ = [
     spk_coverage,
     spice_exception_handler,
     slice_kernels,
-    string_in_file
+    string_in_file,
+    et2date
 ]

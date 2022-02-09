@@ -240,7 +240,7 @@ def dsk_coverage(path, date_format="infomod2"):
     loaded.
 
     This function is based on the DSKLBL ( Generate an MGSO or PDS DSK
-    label file ) subroutinr that belongs to the MAKLABEL NAIF utility.
+    label file ) subroutine that belongs to the MAKLABEL NAIF utility.
 
     :param path: File path
     :param date_format: Date format, the default is the one
@@ -300,7 +300,7 @@ def dsk_coverage(path, date_format="infomod2"):
 
 def et2date(beget, endet, date_format="infomod2", kernel_type="Text"):
     """Convert ET (ephemeris time) to a Date Time string."""
-    time_lenght = 62
+    time_length = 62
 
     if date_format == "infomod2":
         inwards_seconds = 0.001
@@ -315,10 +315,10 @@ def et2date(beget, endet, date_format="infomod2", kernel_type="Text"):
         raise ValueError("date_format argument is incorrect.")
 
     start_time_cal = (
-        spiceypy.timout(beget + inwards_seconds, time_format, time_lenght) + "Z"
+        spiceypy.timout(beget + inwards_seconds, time_format, time_length) + "Z"
     )
     stop_time_cal = (
-        spiceypy.timout(endet - inwards_seconds, time_format, time_lenght) + "Z"
+        spiceypy.timout(endet - inwards_seconds, time_format, time_length) + "Z"
     )
 
     return [start_time_cal, stop_time_cal]

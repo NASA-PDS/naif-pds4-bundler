@@ -272,7 +272,7 @@ def get_context_products(setup):
     # Load the default context products
     #
     registered_context_products_file = (
-        f"{setup.root_dir}templates/registered_context_products.json"
+        f"{setup.root_dir}data/registered_context_products.json"
     )
     with open(registered_context_products_file, "r") as f:
         context_products = json.load(f)["Product_Context"]

@@ -142,6 +142,7 @@ class PDSLabel(object):
             context_products = self.product.bundle.context_products
 
         eol = self.setup.eol_pds4
+        tab = self.setup.xml_tab
 
         for ob in obs:
             if ob:
@@ -161,16 +162,16 @@ class PDSLabel(object):
                     )
 
                 obs_list_for_label += (
-                    f"      <Observing_System_Component>{eol}"
-                    + f"        <name>{ob_name}</name>{eol}"
-                    + f"        <type>Spacecraft</type>{eol}"
-                    + f"        <Internal_Reference>{eol}"
-                    + f"          <lid_reference>{ob_lid}"
+                      f"{' ' * 3*tab}<Observing_System_Component>{eol}"
+                    + f"{' ' * (3+1)*tab}<name>{ob_name}</name>{eol}"
+                    + f"{' ' * (3+1)*tab}<type>Spacecraft</type>{eol}"
+                    + f"{' ' * (3+1)*tab}<Internal_Reference>{eol}"
+                    + f"{' ' * (3 + 2)*tab}<lid_reference>{ob_lid}"
                     f"</lid_reference>{eol}"
-                    + "          <reference_type>is_instrument_host"
+                    + f"{' ' * (3 + 2)*tab}<reference_type>is_instrument_host"
                     f"</reference_type>{eol}"
-                    + f"        </Internal_Reference>{eol}"
-                    + f"      </Observing_System_Component>{eol}"
+                    + f"{' ' * (3+1)*tab}</Internal_Reference>{eol}"
+                    + f"{' ' * 3*tab}</Observing_System_Component>{eol}"
                 )
 
         if not obs_list_for_label:
@@ -195,6 +196,7 @@ class PDSLabel(object):
             context_products = self.product.bundle.context_products
 
         eol = self.setup.eol_pds4
+        tab = self.setup.xml_tab
 
         for tar in tars:
             if tar:
@@ -205,16 +207,16 @@ class PDSLabel(object):
                         target_type = product["type"][0].capitalize()
 
                 tar_list_for_label += (
-                    f"    <Target_Identification>{eol}"
-                    + f"      <name>{target_name}</name>{eol}"
-                    + f"      <type>{target_type}</type>{eol}"
-                    + f"      <Internal_Reference>{eol}"
-                    + f"        <lid_reference>{target_lid}"
-                    f"</lid_reference>{eol}" + f"        <reference_type>"
-                    f"{self.get_target_reference_type()}"
-                    f"</reference_type>{eol}"
-                    + f"      </Internal_Reference>{eol}"
-                    + f"    </Target_Identification>{eol}"
+                      f"{' ' * 2*tab}<Target_Identification>{eol}"
+                    + f"{' ' * 3 * tab}<name>{target_name}</name>{eol}"
+                    + f"{' ' * 3 * tab}<type>{target_type}</type>{eol}"
+                    + f"{' ' * 3 * tab}<Internal_Reference>{eol}"
+                    + f"{' ' * 4  *  tab}<lid_reference>{target_lid}"
+                      f"</lid_reference>{eol}" + f"{' ' * 4  *  tab}<reference_type>"
+                      f"{self.get_target_reference_type()}"
+                      f"</reference_type>{eol}"
+                    + f"{' ' * 3 * tab}</Internal_Reference>{eol}"
+                    + f"{' ' * 2*tab}</Target_Identification>{eol}"
                 )
 
         if not tar_list_for_label:
@@ -293,7 +295,7 @@ class PDSLabel(object):
 
         The product label is compared to a similar label. The label with which
         the generated label is compared to is determined
-        by the first criterium that is met from the following list:
+        by the first criteria that is met from the following list:
 
            * find a different version of the same label
            * find the label of a product of the same kind (e.g.: same kernel
@@ -478,7 +480,7 @@ class PDSLabel(object):
 
 
 class BundlePDS4Label(PDSLabel):
-    """PDS Label child class to generate a PDS4 Bunflr Label."""
+    """PDS Label child class to generate a PDS4 Bundle Label."""
 
     def __init__(self, setup, readme):
         """Constructor."""
@@ -497,11 +499,12 @@ class BundlePDS4Label(PDSLabel):
         self.BUNDLE_MEMBER_ENTRIES = ""
 
         eol = self.setup.eol_pds4
+        tab = self.setup.xml_tab
 
         #
         # There might be more than one miscellaneous collection added in
         # an increment (especially if it is the first time that the collection
-        # is generated and there have beeen previous releases.)
+        # is generated and there have been previous releases.)
         #
         for collection in self.product.bundle.collections:
             if collection.name == "spice_kernels":
@@ -527,15 +530,15 @@ class BundlePDS4Label(PDSLabel):
                     self.COLL_STATUS = "Secondary"
 
             self.BUNDLE_MEMBER_ENTRIES += (
-                f"  <Bundle_Member_Entry>{eol}"
-                f"    <lidvid_reference>"
+                f"{' ' * tab}<Bundle_Member_Entry>{eol}"
+                f"{' ' * 2*tab}<lidvid_reference>"
                 f"{self.COLL_LIDVID}</lidvid_reference>{eol}"
-                f"    <member_status>"
+                f"{' ' * 2*tab}<member_status>"
                 f"{self.COLL_STATUS}</member_status>{eol}"
-                f"    <reference_type>"
+                f"{' ' * 2*tab}<reference_type>"
                 f"bundle_has_{self.COLL_NAME}_collection"
                 f"</reference_type>{eol}"
-                f"  </Bundle_Member_Entry>{eol}"
+                f"{' ' * tab}</Bundle_Member_Entry>{eol}"
             )
 
         self.write_label()
@@ -608,6 +611,7 @@ class MetaKernelPDS4Label(PDSLabel):
     def get_kernel_internal_references(self):
         """Get the MK label internal references."""
         eol = self.setup.eol_pds4
+        tab = self.setup.xml_tab
 
         #
         # From the collection we only use kernels in the MK
@@ -623,11 +627,28 @@ class MetaKernelPDS4Label(PDSLabel):
                 self.setup.logical_identifier, kernel_type, kernel
             )
 
-            kernel_list_for_label += (
-                f"    <Internal_Reference>{eol}" + f"      <lid_reference>{kernel_lid}"
-                f"</lid_reference>{eol}" + f"      <reference_type>data_to_associate"
-                f"</reference_type>{eol}" + f"    </Internal_Reference>{eol}"
-            )
+            #
+            # In fact this is a special case for ExoMars2016 as implemented
+            # by the ESA SPICE Service.
+            #
+            if tab == 4:
+                kernel_list_for_label += (
+                        f"{' ' * 2 * tab}<Internal_Reference>{eol}" +
+                        f"{' ' * 3 * tab}<lid_reference>{kernel_lid}{eol}"
+                        f"{' ' * 3 * tab}</lid_reference>{eol}" +
+                        f"{' ' * 3 * tab}<reference_type>data_to_associate"
+                        f"</reference_type>{eol}" +
+                        f"{' ' * 2 * tab}</Internal_Reference>{eol}"
+                )
+            else:
+                kernel_list_for_label += (
+                    f"{' ' * 2*tab}<Internal_Reference>{eol}" +
+                    f"{' ' * 3*tab}<lid_reference>{kernel_lid}"
+                    f"</lid_reference>{eol}" +
+                    f"{' ' * 3*tab}<reference_type>data_to_associate"
+                    f"</reference_type>{eol}" +
+                    f"{' ' * 2*tab}</Internal_Reference>{eol}"
+                )
 
         kernel_list_for_label = kernel_list_for_label.rstrip() + eol
 
@@ -700,7 +721,7 @@ class OrbnumFilePDS4Label(PDSLabel):
     def get_table_character_description(self):
         """Get The description of the Table Character."""
         description = (
-            f"{self.setup.eol_pds4}      <description>"
+            f"{self.setup.eol_pds4}{' ' * 6*self.setup.xml_tab}<description>"
             f"{self.product.table_char_description}"
             f"</description>{self.setup.eol_pds4}"
         )
@@ -724,29 +745,30 @@ class OrbnumFilePDS4Label(PDSLabel):
         :return:
         """
         eol = self.setup.eol_pds4
+        tab = self.setup.xml_tab
 
         field = (
-            f'{" " * 8}<Field_Character>{eol}'
-            f'{" " * 8}  <name>{name}</name>{eol}'
-            f'{" " * 8}  <field_number>{number}</field_number>{eol}'
-            f'{" " * 8}  <field_location unit="byte">{location}'
+            f'{" " * (4*tab)}<Field_Character>{eol}'
+            f'{" " * (4*tab + 1*tab)}<name>{name}</name>{eol}'
+            f'{" " * (4*tab + 1*tab)}<field_number>{number}</field_number>{eol}'
+            f'{" " * (4*tab + 1*tab)}<field_location unit="byte">{location}'
             f"</field_location>{eol}"
-            f'{" " * 8}  <data_type>{type}</data_type>{eol}'
-            f'{" " * 8}  <field_length unit="byte">{length}'
+            f'{" " * (4*tab + 1*tab)}<data_type>{type}</data_type>{eol}'
+            f'{" " * (4*tab + 1*tab)}<field_length unit="byte">{length}'
             f"</field_length>{eol}"
-            f'{" " * 8}  <field_format>{format}</field_format>{eol}'
+            f'{" " * (4*tab + 1*tab)}<field_format>{format}</field_format>{eol}'
         )
         if unit:
-            field += f'{" " * 8}  <unit>{unit}</unit>{eol}'
-        field += f'{" " * 8}  <description>{description}</description>{eol}'
+            field += f'{" " * (4*tab + 1*tab)}<unit>{unit}</unit>{eol}'
+        field += f'{" " * (4*tab + 1*tab)}<description>{description}</description>{eol}'
         if blanks and name != "No.":
             field += (
-                f'{" " * 8}  <Special_Constants>{eol}'
-                f'{" " * 8}    <missing_constant>blank space'
+                f'{" " * (4*tab + 1*tab)}<Special_Constants>{eol}'
+                f'{" " * (4*tab+ 2 * tab)}<missing_constant>blank space'
                 f"</missing_constant>{eol}"
-                f'{" " * 8}  </Special_Constants>{eol}'
+                f'{" " * (4*tab + 1*tab)}</Special_Constants>{eol}'
             )
-        field += f'{" " * 8}</Field_Character>{eol}'
+        field += f'{" " * (4*tab)}</Field_Character>{eol}'
 
         return field
 

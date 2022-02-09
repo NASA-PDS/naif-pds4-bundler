@@ -709,8 +709,8 @@ class Bundle(object):
                     products_in_checksum.append(line.split()[-1].strip())
 
             #
-            # The last checksum and its label has to be added to the products in
-            # the checksum list, unless it is the first time that the
+            # The last checksum and its label have to be added to the products
+            # in the checksum list, unless it is the first time that the
             # miscellaneous collection is being generated and it is not the
             # first release.
             #

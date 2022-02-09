@@ -3,6 +3,7 @@ import glob
 import logging
 import os
 import re
+import shutil
 from os.path import dirname
 from pathlib import Path
 from xml.etree import cElementTree as ET
@@ -34,7 +35,7 @@ class Setup(object):
         #
         try:
             schema = xmlschema.XMLSchema11(
-                dirname(__file__) + "/../templates/configuration.xsd"
+                dirname(__file__) + "/../data/configuration.xsd"
             )
             schema.validate(args.config)
 
@@ -126,7 +127,7 @@ class Setup(object):
                 self.coverage_kernels = [self.coverage_kernels]
 
         #
-        # Orbnum configuration: if there is one orbnum file orbnum is a
+        # ORBNUM configuration: if there is one orbnum file orbnum is a
         # dictionary, otherwise it is a list of dictionaries. It is
         # processed in such a way that it is always a list of dictionaries
         #
@@ -188,7 +189,7 @@ class Setup(object):
         # present in PDS4 archives as dictated by the standard.
         # CRs are added to checksum tables as well.
         #
-        # If the parameter is not provided via configration is set by default
+        # If the parameter is not provided via configuration is set by default
         # to CRLF.
         #
         if not hasattr(self, "end_of_line"):
@@ -412,10 +413,7 @@ class Setup(object):
         # Check existence of templates according to the information_model
         # or user-defined templates.
         #
-        # If a templates directory is not provided, determine the templates
-        # to be used based on the IM.
-        #
-        if not hasattr(self, "templates_directory") and self.pds_version == "4":
+        if self.pds_version == "4":
 
             config_schema = self.information_model.split(".")
             config_schema = float(
@@ -454,7 +452,20 @@ class Setup(object):
                     break
                 i += 1
 
-            self.templates_directory = f"{self.root_dir}templates/{schema}/"
+            templates_directory = f"{self.root_dir}templates/{schema}/"
+        #
+        # If a templates' directory is not provided, determine the templates
+        # to be used based on the IM.
+        #
+        template_files = []
+        if not hasattr(self, "templates_directory") and self.pds_version == "4":
+
+            self.templates_directory = self.working_directory
+
+            templates = os.listdir(templates_directory)
+            for template in templates:
+                shutil.copy2(os.path.join(templates_directory,template), self.templates_directory)
+                template_files.append(self.working_directory + os.sep + template)
 
             logging.warning(
                 f"-- Label templates will use the ones from "
@@ -464,21 +475,58 @@ class Setup(object):
             if not os.path.isdir(self.templates_directory):
                 error_message("Path provided/derived for templates is not available.")
             labels_check = [
-                os.path.basename(x[:-1])
+                os.path.basename(x)
                 for x in glob.glob(f"{self.root_dir}templates/1.5.0.0/*")
             ]
+
             labels = [
-                os.path.basename(x[:-1])
+                os.path.basename(x)
                 for x in glob.glob(f"{self.templates_directory}/*")
             ]
+
+            #
+            # Copy the templates to the working directory.
+            #
             for label in labels_check:
                 if label not in labels:
-                    error_message(f"Template {label} has not been provided.")
+                    logging.warning(f"-- Template {label} has not been provided. "
+                                    f"Using label from: ")
+                    logging.warning(f"   {templates_directory}")
+                    shutil.copy(templates_directory + os.sep + label, self.working_directory)
+                    template_files.append(self.working_directory + os.sep + label)
+                else:
+                    shutil.copy(self.templates_directory + os.sep + label, self.working_directory)
+                    template_files.append(self.working_directory + os.sep + label)
         else:
             # TODO Add templates for PDS3
             self.templates_directory = ""
 
         logging.info(f"-- Label templates directory: {self.templates_directory}")
+
+        self.templates_directory = self.working_directory
+        self.template_files = template_files
+
+        #
+        # Extract the XML files line tabs and line spaces for the element added
+        # to the templates. The default for the built-in templates is 2.
+        #
+        xml_tab = 0
+        try:
+            xml_tag = '<Identification_Area>'
+            with open(self.templates_directory + os.sep + 'template_bundle.xml', 'r') as t:
+                for line in t:
+                    if xml_tag in line:
+                        line = line.rstrip()
+                        xml_tab = len(line) - len(xml_tag)
+        except:
+            logging.warning("-- XML Template not found to determine XML Tab. It has been set to 2.")
+            xml_tab = 2
+
+        if xml_tab <= 0:
+            logging.warning("-- XML Template not useful to determine XML Tab. It has been set to 2.")
+            xml_tab = 2
+
+        self.xml_tab = xml_tab
 
         #
         # Check meta-kernel configuration

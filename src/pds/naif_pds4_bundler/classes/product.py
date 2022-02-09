@@ -33,6 +33,7 @@ from ..utils import spice_exception_handler
 from ..utils import spk_coverage
 from ..utils import type2extension
 from ..utils import utf8len
+from ..utils import et2date
 from .label import BundlePDS4Label
 from .label import ChecksumPDS4Label
 from .label import DocumentPDS4Label
@@ -589,7 +590,7 @@ class MetaKernelProduct(Product):
             self.path = kernel
         else:
             logging.info(f"-- Generate meta-kernel: {kernel}")
-            self.template = f"{setup.root_dir}templates/template_metakernel.tm"
+            self.template = f"{setup.templates_directory}/template_metakernel.tm"
             self.path = self.template
 
         self.new_product = True
@@ -1304,7 +1305,7 @@ class MetaKernelProduct(Product):
             logging.warning(f"-- No other version of {self.name} has been found.")
             logging.warning("-- Comparing with meta-kernel template.")
 
-            val_mk = f"{self.setup.root_dir}/templates/template_metakernel.tm"
+            val_mk = f"{self.setup.templates_directory}/template_metakernel.tm"
 
         fromfile = self.path
         tofile = val_mk
@@ -1353,7 +1354,7 @@ class MetaKernelProduct(Product):
 
         #
         # In KTOTAL, all meta-kernels are counted in the total; therefore
-        # we need to substract 1 kernel.
+        # we need to subtract 1 kernel.
         #
         ker_num_fr = spiceypy.ktotal("ALL") - 1
         ker_num_mk = self.collection_metakernel.__len__()
@@ -1516,8 +1517,8 @@ class MetaKernelProduct(Product):
 
         try:
 
-            start_time = spiceypy.et2utc(min(start_times), "ISOC", 0, 80) + "Z"
-            stop_time = spiceypy.et2utc(max(finish_times), "ISOC", 0, 80) + "Z"
+            start_time = spiceypy.et2utc(min(start_times), "ISOC", 3, 80) + "Z"
+            stop_time = spiceypy.et2utc(max(finish_times), "ISOC", 3, 80) + "Z"
             logging.info(f"-- Meta-kernel coverage: {start_time} - {stop_time}")
 
         except BaseException:
@@ -1617,6 +1618,14 @@ class MetaKernelProduct(Product):
                 stop_time = self.setup.increment_finish
                 logging.warning(f"-- Coverage finish time corrected with "
                                 f"increment finish from configuration file to: {stop_time}")
+
+        #
+        # Re-format the time accordingly. The 'Z' is removed from the UTC
+        # string since it is not supported until the SPICE Toolkit N0067.
+        #
+        (start_time, stop_time) = et2date(spiceypy.utc2et(start_time[:-1]),
+                                          spiceypy.utc2et(stop_time[:-1]),
+                                          self.setup.date_format)
 
         self.start_time = start_time
         self.stop_time = stop_time
@@ -3594,7 +3603,7 @@ class ReadmeProduct(Product):
                 error_message("Readme file provided via configuration does not exist.")
         elif not os.path.isfile(self.path):
             with open(self.path, "w+") as f:
-                with open(self.setup.root_dir + "/templates/template_readme.txt", 'r') as t:
+                with open(self.setup.templates_directory + "/template_readme.txt", 'r') as t:
                     for line in t:
                         if "$SPICE_NAME" in line:
                             line = line.replace("$SPICE_NAME", self.setup.spice_name)
@@ -3800,7 +3809,7 @@ class ChecksumProduct(Product):
                         )
 
                     if len(md5_file) == 32:
-                        self.md5_dict[md5_file] = filename
+                        self.md5_dict[filename] = md5_file
                     else:
                         error_message(
                             f"Checksum file {self.path_current} "
@@ -3818,12 +3827,12 @@ class ChecksumProduct(Product):
                 checksum_dir = f"{self.collection.name }/checksum/"
 
                 md5_current = md5(self.path_current)
-                self.md5_dict[md5_current] = checksum_dir + self.path_current.split(os.sep)[-1]
+                self.md5_dict[checksum_dir + self.path_current.split(os.sep)[-1]] =  md5_current
 
                 label_current = self.path_current.replace(".tab", ".xml")
 
                 md5_label = md5(label_current)
-                self.md5_dict[md5_label] = checksum_dir + label_current.split(os.sep)[-1]
+                self.md5_dict[checksum_dir + label_current.split(os.sep)[-1]] = md5_label
 
         self.new_product = True
 
@@ -3863,19 +3872,19 @@ class ChecksumProduct(Product):
                     if hasattr(product, "checksum"):
 
                         #
-                        # If a product MD5 sum is duplicated by a prodcut with
+                        # If a product MD5 sum is duplicated by a product with
                         # a different name raise an error unless you are
-                        # running NPB in debug mode (for the majority of tests,)
+                        # running NPB in debug mode.
                         #
-                        if product.checksum in list(self.md5_dict.keys()) and \
-                                self.md5_dict[product.checksum] != product_name:
+                        if product.checksum in list(self.md5_dict.values()) and \
+                                self.md5_dict[product_name] != product.checksum:
                             msg = f"Two products have the same MD5 sum, " \
                                   f"the product {product_name} might be a duplicate."
                             if not self.setup.args.debug:
                                 error_message(msg)
                             else:
                                 logging.debug(msg)
-                        self.md5_dict[product.checksum] = product_name
+                        self.md5_dict[product_name] = product.checksum
                     else:
                         #
                         # For the current checksum product that does not have
@@ -3887,18 +3896,18 @@ class ChecksumProduct(Product):
                     #
                     if hasattr(product, "label"):
                         label_checksum = md5(product.label.name)
-                        self.md5_dict[label_checksum] = product.label.name.split(
-                            f"/{msn_acr}_spice/"
-                        )[-1]
+                        self.md5_dict[product.label.name.split(f"/{msn_acr}_spice/")[-1]] = label_checksum
+
                     else:
                         logging.warning(f"-- {product_name} does not have a label.")
                         logging.info("")
+
             #
             # Include the readme file checksum if it has been generated in
             # this run. This is a bundle level product.
             #
             if hasattr(self.collection.bundle, "checksum"):
-                self.md5_dict[self.collection.bundle.checksum] = "readme.txt"
+                self.md5_dict["readme.txt"] = self.collection.bundle.checksum
 
             #
             # Include the bundle label, that is paired to the readme file.
@@ -3906,12 +3915,8 @@ class ChecksumProduct(Product):
             if not set_coverage:
                 label_checksum = md5(self.collection.bundle.readme.label.name)
                 self.md5_dict[
-                    label_checksum
-                ] = self.collection.bundle.readme.label.name.split(
-                    f"/{msn_acr}_spice/"
-                )[
-                    -1
-                ]
+                    self.collection.bundle.readme.label.name.split(f"/{msn_acr}_spice/")[-1]
+                ] = label_checksum
 
         #
         # The missing checksum files are generated from the bundle history.
@@ -3925,7 +3930,7 @@ class ChecksumProduct(Product):
                 )
                 #
                 # Computing checksums is resource consuming; let's see if the
-                # product has the checksum in its label already. Otherwise
+                # product has the checksum in its label already. Otherwise,
                 # compute the checksum.
                 #
                 checksum = ""
@@ -3938,7 +3943,7 @@ class ChecksumProduct(Product):
                 if not checksum:
                     checksum = md5(path)
 
-                self.md5_dict[checksum] = product
+                self.md5_dict[product] = checksum
 
         #
         # The resulting dictionary needs to be transformed into a list
@@ -3947,10 +3952,32 @@ class ChecksumProduct(Product):
         #
         md5_list = []
 
-        md5_sorted_dict = dict(sorted(self.md5_dict.items(), key=lambda item: item[1]))
+        #
+        # Check if two items of the dictionary have the same value (same
+        # MD5 sum.) This happened for the ExoMars2016 bundle release 004
+        # where 3 products had the same MD5 sum values.
+        #
+        from collections import defaultdict
 
-        for key, value in md5_sorted_dict.items():
-            md5_list.append(f"{key}  {value}")
+        md5_check_dict = defaultdict(set)
+
+        for k, v in self.md5_dict.items():
+            md5_check_dict[v].add(k)
+
+        md5_check_dict = {k: v for k, v in md5_check_dict.items() if len(v) > 1}
+
+        if md5_check_dict:
+            logging.warning(f"-- The following products have the same MD5 sum:")
+            for k, v in md5_check_dict.items():
+                logging.warning(f'   {k}')
+                for file in v:
+                    logging.warning(f'      {file}')
+
+        #
+        # Generate the list to be written.
+        #
+        for key, value in self.md5_dict.items():
+            md5_list.append(f"{value}  {key}")
 
         #
         # We remove spurious .DS_Store files if we are working with MacOS.

@@ -28,7 +28,7 @@ class TestPDS4(TestCase):
         os.chdir(os.path.dirname(__file__))
 
         dirs = ["working", "staging", "kernels", "insight", "ladee", "kplo",
-                "dart", "mars2020"]
+                "dart", "mars2020", "em16"]
         for dir in dirs:
             shutil.rmtree(dir, ignore_errors=True)
 
@@ -44,7 +44,7 @@ class TestPDS4(TestCase):
         print(f"    * {self._testMethodName}")
 
         dirs = ["working", "staging", "kernels", "insight", "ladee", "kplo",
-                "dart", "mars2020"]
+                "dart", "mars2020", "em16"]
         for dir in dirs:
             shutil.rmtree(dir, ignore_errors=True)
 
@@ -231,6 +231,25 @@ class TestPDS4(TestCase):
         shutil.copy2("../data/kernels/sclk/m2020_168_sclkscet_refit_v03.tsc",
                      "kernels/sclk/m2020_168_sclkscet_refit_v03.tsc")
         main(updated_config, plan=plan, silent=self.silent, log=self.log)
+
+
+    def test_em16(self):
+        """Test to generate the ESA SPICE Service ExoMars2016 archive."""
+        self.mission = "em16"
+        self.post_setup()
+
+        shutil.copytree(
+            "../data/regression/em16_spice/spice_kernels",
+            "kernels",
+            ignore=shutil.ignore_patterns("*.xml", "*.csv"),
+        )
+
+        shutil.rmtree("em16")
+        shutil.copytree("../data/em16", "em16")
+
+        plan = '../data/em16_release_04.plan'
+
+        main(self.updated_config, plan=plan, silent=self.silent, log=self.log)
 
 #    def test_dart(self):
 #        '''
