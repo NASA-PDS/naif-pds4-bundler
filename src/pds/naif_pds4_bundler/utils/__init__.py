@@ -30,11 +30,11 @@ from .time import creation_time
 from .time import current_date
 from .time import current_time
 from .time import dsk_coverage
+from .time import et2date
 from .time import get_years
 from .time import pck_coverage
 from .time import pds3_label_gen_date
 from .time import spk_coverage
-from .time import et2date
 from .zz_slicer import slice_kernels
 
 __all__ = [

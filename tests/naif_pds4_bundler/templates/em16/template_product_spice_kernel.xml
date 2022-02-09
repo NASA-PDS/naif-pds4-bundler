@@ -1,0 +1,65 @@
+<?xml-model href="$XML_MODEL"
+    schematypens="http://purl.oclc.org/dsdl/schematron"?>
+
+
+<Product_SPICE_Kernel xmlns="http://pds.nasa.gov/pds4/pds/v1"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="$SCHEMA_LOCATION">
+
+    <Identification_Area>
+        <logical_identifier>$PRODUCT_LID</logical_identifier>
+        <version_id>$PRODUCT_VID</version_id>
+        <title>$FILE_NAME</title>
+        <information_model_version>$INFORMATION_MODEL_VERSION</information_model_version>
+        <product_class>Product_SPICE_Kernel</product_class>
+        <Citation_Information>
+            <publication_year>$PRODUCT_CREATION_YEAR</publication_year>
+            <keyword>Observation Geometry</keyword>
+            <description>$SPICE_KERNEL_DESCRIPTION</description>
+        </Citation_Information>
+    </Identification_Area>
+    <Context_Area>
+        <Time_Coordinates>
+            <start_date_time>$START_TIME</start_date_time>
+            <stop_date_time>$STOP_TIME</stop_date_time>
+        </Time_Coordinates>
+        <Primary_Result_Summary>
+            <purpose>Observation Geometry</purpose>
+            <processing_level>Derived</processing_level>
+        </Primary_Result_Summary>
+        <Investigation_Area>
+            <name>$PDS4_MISSION_NAME</name>
+            <type>Mission</type>
+            <Internal_Reference>
+                <lid_reference>$PDS4_MISSION_LID</lid_reference>
+                <reference_type>data_to_investigation</reference_type>
+            </Internal_Reference>
+        </Investigation_Area>
+        <Observing_System>
+$OBSERVERS
+        </Observing_System>
+$TARGETS
+    </Context_Area>
+    <Reference_List>
+        <Internal_Reference>
+            <lid_reference>$BUNDLE_DESCRIPTION_LID</lid_reference>
+            <reference_type>data_to_document</reference_type>
+        </Internal_Reference>
+    </Reference_List>
+    <File_Area_SPICE_Kernel>
+        <File>
+            <file_name>$FILE_NAME</file_name>
+            <creation_date_time>$PRODUCT_CREATION_TIME</creation_date_time>
+            <file_size unit="byte">$FILE_SIZE</file_size>
+            <md5_checksum>$FILE_CHECKSUM</md5_checksum>
+        </File>
+        <SPICE_Kernel>
+            <offset unit="byte">0</offset>
+            <object_length unit="byte">$FILE_SIZE</object_length>
+            <parsing_standard_id>SPICE</parsing_standard_id>
+            <description>$SPICE_KERNEL_DESCRIPTION</description>
+            <kernel_type>$KERNEL_TYPE_ID</kernel_type>
+            <encoding_type>$FILE_FORMAT</encoding_type>
+        </SPICE_Kernel>
+    </File_Area_SPICE_Kernel>
+</Product_SPICE_Kernel>
