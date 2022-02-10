@@ -1,0 +1,688 @@
+KPL/IK
+
+ACS Instrument Kernel
+===============================================================================
+
+   This instrument kernel (I-kernel) contains the ExoMars 2016 Trace Gas
+   Orbiter (TGO) Atmospheric Chemistry Suite (ACS) spectroscopic instruments
+   and sensors optics, detectors and field-of-view (FOV) parameters.
+
+
+Version and Date
+-------------------------------------------------------------------------------
+
+   Version 0.6-- July 3, 2018 -- Marc Costa Sitja, ESAC/ESA
+                                 Nikolay Ignatiev, IKI
+
+      Corrected FOV parameters for TIRVIM from 2.5 to 2.8 FOV and renamed
+      FoV for fixed Scan positions.
+
+   Version 0.5 -- July 20, 2017 -- Marc Costa Sitja, ESAC/ESA
+
+      Corrected FOV parameters for TIRVIM and created FoV definitions
+      for scanning mirror fixed positions. Updated Reference vector
+      for NIR.
+
+   Version 0.4 -- September 26, 2016 -- Marc Costa Sitja, ESAC/ESA
+
+      Corrected FOV parameters for TIRVIM.
+
+      Preliminary version. Pending review by Anton Ledkov and the ACS
+      instrument team.
+
+   Version 0.3 -- September 8, 2016 -- Marc Costa Sitja, ESAC/ESA
+
+      Corrected minor typos and text description.
+
+   Version 0.2 -- August 2, 2016 -- Marc Costa Sitja, ESAC/ESA
+
+      Corrected FOV parameters for ACS NIR, TIR and TIRVIM Spectometers
+      Corrected minor typos and text description.
+      Added Reference [7].
+
+   Version 0.1 -- May 22, 2016 -- Jorge Diaz del Rio, ODC Space
+
+      Preliminary version.
+
+   Version 0.0 -- September 17, 2014 -- Anton Ledkov, IKI
+
+      Initial Release.
+
+
+References
+-------------------------------------------------------------------------------
+
+   1. ``Frames Required Reading''
+
+   2. ``Kernel Pool Required Reading''
+
+   3. ``C-kernel Required Reading''
+
+   4. ExoMars-2016 Frames Definition Kernel (FK), latest version.
+
+   5. ``Atmospheric Chemistry Suite (ACS): a Set of Infrared Spectrometers
+      for Atmospheric Measurements onboard ExoMars Trace Gas Orbiter'', A.
+      Trokhimovskiy et al.
+
+   6. ``High Resolution Middle Infrared Spectrometer, a Part of Atmospheric
+      Chemistry Suite (ACS) for ExoMars 2016 Trace Gas Orbiter,'' International
+      Conference on Space Optics, Tenerife 7-10 October 2014
+
+   7.  Email from Alexander Trokhimovskiy <a.trokh@gmail.com>
+       ``Re: [EM16-SOC] [TGO] [SGS] [EM16.ACS] [EM16.NOMAD] SPICE review
+       and misalignment update by 25th July'' on 8 August 2016.
+
+   8.  ``Boresight Alignment'', ExoMars 2016 Confluence Page,
+       https://issues.cosmos.esa.int/exomarswiki/display/OE/Boresight+Alignment
+       Bernhard Geiger, accessed on 19th July 2017.
+
+
+Contact Information
+-------------------------------------------------------------------------------
+
+   If you have any questions regarding this file contact SPICE support at ESA:
+
+           Marc Costa Sitja
+           (+34) 91-8131-457
+           mcosta@sciops.esa.int, esa_spice@sciops.esa.int
+
+   or SPICE support at IKI:
+
+           Anton Ledkov
+           +7 (495) 333-12-66
+           aledkov@rssi.ru
+
+   or NAIF at JPL:
+
+           Boris Semenov
+           (818) 354-8136
+           Boris.Semenov@jpl.nasa.gov
+
+
+Implementation Notes
+-------------------------------------------------------------------------------
+
+   Applications that need SPICE I-kernel data must ``load'' the I-kernel file,
+   normally during program initialization. The SPICE routine FURNSH loads a
+   kernel file into the pool as shown below.
+
+      CALL FURNSH ( 'frame_kernel_name' )    -- FORTRAN
+      furnsh_c ( "frame_kernel_name" );      -- C
+      cspice_furnsh, frame_kernel_name       -- IDL
+      cspice_furnsh( 'frame_kernel_name' )   -- MATLAB
+      furnsh( frame_kernel_name )            -- PYTHON*
+
+   Loading the kernel using the SPICELIB routine FURNSH causes the data
+   items and their associated values present in the kernel to become
+   associated with a data structure called the ``kernel pool''.
+
+   Once the file has been loaded, the SPICE routine GETFOV (getfov_c in
+   C, cspice_getfov in IDL and MATLAB and cspice.getfov in PYTHON) can be
+   used to retrieve FOV parameters for a given instrument or structure.
+
+   The application program may obtain the value(s) for any other IK data
+   item using the SPICELIB routines GDPOOL, GIPOOL, GCPOOL (gdpool_c, gipool_c,
+   gcpool_c in C, cspice_gdpool, cspice_gipool, cspice_gcpool in IDL and
+   MATLAB, cspice.gcpool in PYTHON). See [2] for details.
+
+   This file was created with, and can be updated with a text editor or
+   word processor.
+
+   * SPICEPY is a non-official, community developed Python wrapper for the
+     NAIF SPICE toolkit. Its development is managed on Github.
+     It is available at: https://github.com/AndrewAnnex/SpiceyPy
+
+
+Naming Conventions and Conventions for Specifying Data
+-------------------------------------------------------------------------------
+
+   Data items are specified using ``keyword=value'' assignments [2].
+   All keywords referencing values in this I-kernel start with the
+   characters `INS' followed by the NAIF TGO instrument ID code,
+   constructed using the spacecraft ID number (-143) followed by the
+   NAIF three digit ID number for ACS module. These IDs are
+   defined in [4] as follows:
+
+      Name                         NAIF ID
+     ---------------------        ---------
+      TGO_ACS_NIR_NAD              -143111
+      TGO_ACS_NIR_OCC              -143112
+
+      TGO_ACS_MIR                  -143120
+
+      TGO_ACS_TIRVIM               -143130
+      TGO_ACS_TIRVIM_SCAN_SPC      -143131
+      TGO_ACS_TIRVIM_SCAN_NAD      -143132
+      TGO_ACS_TIRVIM_SCAN_OCC      -143133
+
+
+   The remainder of the keyword name is an underscore character
+   followed by the unique name of the data item. For example, the
+   MIR spectrometer boresight direction in the TGO_ACS_MIR frame
+   is specified by:
+
+           INS-143120_BORESIGHT
+
+
+   The upper bound on the length of the name of any data item is 32
+   characters.
+
+   If the same item is included in more than one file, or if the same
+   item appears more than once within a single file, the latest value
+   supersedes any earlier values.
+
+
+Instrument Description
+-------------------------------------------------------------------------------
+
+   ACS includes three separate spectrometers, sharing common mechanical,
+   thermal and electrical interfaces (see [5]). On the TGO spacecraft the
+   instrument occupies the slot at the upper deck.
+
+   ACS has several optical openings allowing observations in nadir (-Y in
+   the spacecraft coordinate system), and in solar occultation, at ~67.07
+   degrees from -Y to -X in the XY plane, and possibly on the limb (using
+   nadir apertures).
+
+   These threes spectrometers are the Near-Infrared Spectrometer (NIR),
+   the High Resolution Middle Infrared Spectrometer (MIR) and the Thermal
+   Infrared V-shape Interferometer Mounting Spectrometer (TIRVIM).
+
+
+   Near-Infrared Spectrometer (NIR):
+   ---------------------------------
+
+   The ACS NIR channel is a combination of an echelle spectrometer and an
+   acousto-optic tunable filter (AOTF) for the selection of diffraction
+   orders.
+
+   ACS NIR is capable to perform nadir and occultation observations in
+   the 0.7-1.6 microns spectral range with R greater than 20,000
+   resolution. A red filter at the entrance right after the periscope
+   mirror cancels out all intense sun wavelengths shorter than 0.7 microns.
+   AOTF-telescope assembling with improved energy transmission and
+   implemented slit form the FOV of approximately 2x0.02 degrees. The
+   echelle spectrometer employs the Littrow auto-collimation scheme, in
+   which an off-axis parabolic mirror plays the role of the collimating
+   and the imaging elements. To enhance the sensitivity the spectrometer
+   uses a higher slit in combination with 2D array detector allowing to
+   capture the flux of the dispersed light along the full dimension of
+   the slit.
+
+   The detector is based on a TE-cooled InGaAs array of 640x512
+   pixels. The spectral range is extended with respect to the standard
+   InGaAs, and consists 0.4-1.7 microns. The detector's lines are averaged
+   onboard into 5 bands of programmable position and height, each of 640
+   pixels long. The instrument can be programmed to register sequentially
+   up to ten diffraction orders (10 different AOTF tunings, i.e. acoustic
+   frequencies). The exposure time can be tuned from 1 ms to 1s depending
+   on a observation regime. An onboard image averaging from 1 to 256 is
+   also employed. For our custom size echelle grating (blaze angle
+   70 degrees, 24.35 grooves/mm, useful area of 46x102 mm2) and following
+   Nyqvist sampling (2 pixels per resolution element), the resolving power
+   of the aberration-free spectrometer could reach almost R = 30,000. The
+   aberrations of the off-axis parabolic collimator reduce the resolving
+   power to R greater than 20,000, optimized at 1.2 microns.
+
+
+   High Resolution Middle Infrared Spectrometer (MIR):
+   ---------------------------------------------------
+
+   The MIR channel is a cross-dispersion spectrometer working in 2.3-4.2
+   microns spectral range, covering simultaneously up to 300 nm per
+   measurement. A cross-dispersion concept on echelle and ordinary
+   diffraction grating allows acquisition of the wide wavelength domain
+   at once. That provides a strategic advantage for maximizing the number
+   of gaseous species detected simultaneously. Moving the second grating
+   allows to switch from one group of the diffraction orders to another
+   prior to a series of measurements, or alternating two desired positions
+   during one measurement sequence.
+
+   Targeting very high spectral resolution the MIR channel operates in
+   solar occultation only. A telescope with relative aperture of 1:3 forms
+   the image of the solar disk on the slit. The FOV is determined by the
+   slit and it consists 0.5x10 arc min (0.1x2.9 mrad). The spectral
+   resolution of the spectrometer is fully slit-limited, and with a
+   30 microns slit the resolving power of lambda/delta-lambda greater than
+   50000 at 3.3 microns is supported. Two secondary cross-dispersion
+   diffraction gratings (plain, 150 and 300 grooves per mm) are mounted
+   back-to-back on a stepper motor to change observed echelle orders. Two
+   secondary gratings are used depending on the long or short wavelength
+   range being measured. Changing the position of the secondary grating
+   in angular steps of 1.8 degrees, from 10 to 30 echelle orders are
+   available for simultaneous record depending on the wavelength. 100
+   steps are evidently used to switch between gratings prior
+   measurements. The full spectral range is covered on 107 diffraction orders,
+   from 142 to 248. For each observation detector area is covered by 10 to 30
+   stripes, each corresponding to single echelle diffraction order. The height
+   of the stripes ranges from 150 to 200 microns depending on the wavelength.
+   It is planned that there will be a possibility to change the position of
+   the stepper motor during the occultation measurements, and to register two
+   adjacent groups of diffraction orders.
+
+   The detector is a space-grade version of the standard Scorpio MW K508
+   Sofradir product, with optimized spectral range. This detector includes a
+   640x512 MWIR retina made of a MCT (Mecury Cadmium Telluride, HgCdTe)
+   hybridized onto a silicon ROIC (read-out integrated circuit) by indium
+   bumps. The pixel pitch is 15x15 microns. Given the complexity of the
+   diffraction orders pattern, full detector frames will be transmitted to
+   the ground, with lossless compression. However, similarly to NIR, the
+   onboard averaging is possible. Single data frame will be accumulated
+   for each 0.5 or 1 second, stacking of a number of shorter exposures.
+
+
+   Thermal Infrared V-shape Interferometer Mounting Spectrometer (TIRVIM):
+   -----------------------------------------------------------------------
+
+   TIRVIM is a 2-inch double pendulum Fourier-transform spectrometer covering
+   in one interferometric channel the spectral range of 1.7-17 microns. The
+   whole spectral range is covered in one channel with KBr beamsplitter. The
+   maximal optical path difference (OPD) is 6 cm, allowing to reach apodized
+   spectral resolution of 0.2 cm-1, and two PV-MCT detectors (one for 1.7-17
+   microns, the other for 1.7-4.5 microns), cooled by one Stirling-machine,
+   thus increasing the sensitivity of the instrument by a factor of 50-80.
+   The third detector, the pyroelectric one, will work at RT in 1.7-25 microns
+   range and serve as a redundant channel. All detectors can operate for both
+   Sun occultations and nadir measurements. For Sun observations with MCT
+   detectors there is a special optical inlet ("periscope"), pointed at Sun.
+   For nadir measurements TIRVIM has a single-axis pointer (scanner).
+
+   The optical scheme of TIRVIM consists of the following main parts: Sun
+   periscope, Scanner, blackbody simulator, interferometer, detector units
+   with focusing optics and proximity electronics. The reference channel is
+   based on 760-nm DFB Laser Diode. Scanner allows to point optical axis to
+   nadir, to the Sun, to the internal blackbody and to the open space to
+   obtain absolute radiometric calibration. On-board FFT and scissor mode
+   for spectra will be implemented.
+
+
+Mounting Alignment
+-------------------------------------------------------------------------------
+
+   Refer to the latest version of the ExoMars 2016 Frames Definition
+   Kernel (FK) [4] for the ACS reference frame definitions and mounting
+   alignment information.
+
+
+ACS NIR Spectrometer Field-of-View Layouts
+---------------------------------------------------------------------------
+
+   This diagram illustrates the ACS NIR apparent FOV layout in the
+   TGO_ACS_NIR_NAD reference frame, providing a reference to the
+   TGO_SPACECRAFT frame.
+
+      +Ysc
+         x-------->
+         |        +Zsc
+         |
+         |
+         v                        ^ +Yacs_nir*
+      +Xsc                        |
+                                  |                             |
+        (0,0                      |                    (639,0)  v
+         .------------------------|------------------------.  -----
+         |                        o--------->              |  0.02 deg
+         '------------------------------ +Xacs_nir* -------'  -----
+        (0,1)                                          (639,1)  ^
+                                                                |
+         |                                                 |
+         |<----------------------------------------------->|
+         |                       2 deg                     |
+
+
+                                            +Zacs_nir* is out of the page;
+                                            +Ysc is into the page.
+
+
+   The apparent FOV layout in the TGO_ACS_NIR_OCC reference frame is
+   exactly the same. For the alignment of the TGO_ACS_NIR_NAD and
+   TGO_ACS_NIR_OCC frames with respect to the TGO_SPACECRAFT frame and
+   with respect to each other, please refer to [4].
+
+   This FOV is associated to instrument IDs -143111 (TGO_ACS_NIR_NAD)
+   and -143112 (TGO_ACS_NIR_OCC).
+
+
+ACS MIR Spectrometer Field-of-View Layout
+---------------------------------------------------------------------------
+
+   This diagram illustrates the ACS MIR apparent FOV layout in the
+   TGO_ACS_MIR reference frame.
+
+
+                                  ^ +Yacs_mir
+                                  |
+                                  |                             |
+                                  |                    (639,0)  v
+         .------------------------|------------------------.  -----
+         |                        o--------->              |  0.02 deg
+         '------------------------------ +Xacs_mir --------'  -----
+        (0,1)                                          (639,1)  ^
+                                                                |
+         |                      0.23 deg                   |
+         |<----------------------------------------------->|
+
+
+                                            +Zacs_mir is out of the page.
+
+
+   Note that the +Zacs_mir (ACS MIR boresight) is pointing at ~67.07
+   degrees from -Y s/c axis towards -X s/c axis in the XY plane. The
+   +Xacs_mir is aligned to the +X spacecraft axis.
+
+   For the alignment of the TGO_ACS_MIR frame with respect to the
+   TGO_SPACECRAFT frame, pelase refer to [4].
+
+   This FOV is associated to instrument ID -143120 (TGO_ACS_MIR)
+
+
+
+ACS TIRVIM Spectrometer Field-of-View Layout
+---------------------------------------------------------------------------
+
+   This diagram illustrates the ACS TIRVIM apparent FOV layout in the
+   TGO_ACS_TIRVIM reference frame, providing a reference to the
+   TGO_SPACECRAFT frame when the TIRVIM scanning mirror is in the
+   "zero position" as defined in [7].
+
+   This FOV is associated to instrument IDs -143130 (TGO_ACS_TIRVIM),
+   -143131 (TGO_ACS_TIRVIM_SCAN_BBY), -143132 (TGO_ACS_TIRVIM_SCAN_SPC),
+   -143133 (TGO_ACS_TIRVIM_SCAN_NAD), -143133 (TGO_ACS_TIRVIM_SCAN_NAD) and
+   -143134 (TGO_ACS_TIRVIM_SUN).
+
+
+    +Ysc
+        x------->
+        |       +Zsc              ^
+        |                         | +Yacs_tirvim
+        |       -------------   . | .
+        v            ^        /   |   \
+         +Xsc    2.8 degrees |    o-------->
+                     v        \       /   +Xacs_tirvim
+                -------------   ` - '
+
+                                                +Zacs_tirvim is out of the
+                                                 page; +Ysc is into the page.
+
+
+   For the alignment of the TGO_ACS_TIRVIM_NAD, TGO_ACS_TIRVIM_OCC and
+   TGO_ACS_TIRVIM_SPC frames with respect to the TGO_SPACECRAFT frame and
+   with respect to each other, please refer to [4].
+
+
+
+ACS Spectrometers Spectral Parameters
+---------------------------------------------------------------------------
+
+   This section contains assignments specifying ACS spectral
+   resolution parameters.
+
+   The following ACS spectral resolution parameters are included in the
+   data section below, taken from [5] (nominal values):
+
+      -----------------------------------------------------------------
+       parameter                    NIR         MIR        TIRVIM
+      -----------------------------------------------------------------
+      Spectral range, microns
+         nominal                 0.73 - 1.6    2.3 - 4.3   1.7 - 17
+
+      -----------------------------------------------------------------
+
+
+   These values are provided in the assignments below, with the same
+   units as in the table.
+
+   \begindata
+
+         INS-143111_SPECTRAL_RANGE     = (  0.73,  1.6 )
+         INS-143112_SPECTRAL_RANGE     = (  0.73,  1.6 )
+
+         INS-143120_SPECTRAL_RANGE     = (  2.3,   4.3 )
+
+         INS-143130_SPECTRAL_RANGE     = (  1.7,   17  )
+
+   \begintext
+
+
+FOV Definition
+---------------------------------------------------------------------------
+
+   This section contains assignments defining the ACS NIR, MIR and TIRVIM
+   FOVs. These definitions are based on the ACS spectrometer parameters
+   provided in the previous sections and are provided in a format
+   consistent with/required by the SPICE TOOLKIT function GETFOV.
+
+
+   ACS Near Infrared Spectrometer (TGO_ACS_NIR*) FoVs:
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   The NIR FOV is defined as a rectangular pyramid with a full angle of
+   20x0.02 arcmin. It is defined with respect to the TGO_ACS_NIR_NAD
+   and TGO_ACS_NIR_OCC frames for nadir and solar occultation observations
+   (see [5] and [6]).
+
+   These vectors are relative to the TGO_SPACECRAFT frame (see [8]).
+
+   Please note that the FoV reference and cross angles are defined with half
+   angle values. The FoV definitions correspond to the NAIF Body Names:
+   TGO_ACS_NIR_NAD and TGO_ACS_NIR_OCC.
+
+   \begindata
+
+         INS-143111_NAME                      = 'TGO_ACS_NIR_NAD'
+         INS-143111_BORESIGHT                 = (
+                        0.000000       0.000000     1.000000
+                                                )
+         INS-143111_FOV_FRAME                 = 'TGO_ACS_NIR_NAD'
+         INS-143111_FOV_SHAPE                 = 'RECTANGLE'
+         INS-143111_FOV_CLASS_SPEC            = 'ANGLES'
+         INS-143111_FOV_REF_VECTOR            = (
+                        1.000000       0.000000     0.000000
+                                                )
+         INS-143111_FOV_REF_ANGLE             = (    1.00 )
+         INS-143111_FOV_CROSS_ANGLE           = (    0.01 )
+         INS-143111_FOV_ANGLE_UNITS           = 'DEGREES'
+
+
+         INS-143112_NAME                      = 'TGO_ACS_NIR_OCC'
+         INS-143112_BORESIGHT                 = (
+                        0.000000       0.000000     1.000000
+                                                )
+         INS-143112_FOV_FRAME                 = 'TGO_ACS_NIR_OCC'
+         INS-143112_FOV_SHAPE                 = 'RECTANGLE'
+         INS-143112_FOV_CLASS_SPEC            = 'ANGLES'
+         INS-143112_FOV_REF_VECTOR            = (
+                        1.000000       0.000000     0.000000
+                                                )
+         INS-143112_FOV_REF_ANGLE             = (    1.00 )
+         INS-143112_FOV_CROSS_ANGLE           = (    0.01 )
+         INS-143112_FOV_ANGLE_UNITS           = 'DEGREES'
+
+
+   \begintext
+
+
+   ACS High Resolution Middle Infrared Spectrometer (TGO_ACS_MIR) FoV:
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   The MIR FOV is defined as a rectangular pyramid with a half angle of
+   0.23x0.02 degrees. It is defined with respect to the TGO_ACS_MIR
+   frame (see [5]). The boresight and the cross-reference vectors are
+   unit along the +Z axis and the +X axis of the frame, respectively.
+
+   Please note that the FOV reference and cross angles are defined with half
+   angle values. The FoV definition corresponds to the NAIF Body Name:
+   TGO_ACS_MIR.
+
+   \begindata
+
+      INS-143120_NAME                      = 'TGO_ACS_MIR'
+      INS-143120_BORESIGHT                 = (
+                     0.000000       0.000000     1.000000
+                                             )
+      INS-143120_FOV_FRAME                 = 'TGO_ACS_MIR'
+      INS-143120_FOV_SHAPE                 = 'RECTANGLE'
+      INS-143120_FOV_CLASS_SPEC            = 'ANGLES'
+      INS-143120_FOV_REF_VECTOR            = (
+                     1.000000       0.000000     0.000000
+                                             )
+      INS-143120_FOV_REF_ANGLE             = (   0.115 )
+      INS-143120_FOV_CROSS_ANGLE           = (   0.010 )
+      INS-143120_FOV_ANGLE_UNITS           = 'DEGREES'
+
+   \begintext
+
+
+   ACS Thermal Infrared V-shape Interferometer Mounting (TGO_ACS_TIRVIM*) FoV:
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   The TIRVIM FOV is defined as a cone with a full angle of 2.8 degrees.
+   It is defined with respect to the TGO_ACS_TIRVIM frame but could also be
+   used with the TGO_ACS_TIRVIM_SCAN_NAD, TGO_ACS_TIRVIM_SCAN_OCC,
+   TGO_ACS_TIRVIM_BBY and TGO_ACS_TIRVIM_SPC frames specified for fixed
+   positions of the scanner for nadir, solar occultation, black body and
+   cold space observations (see [5] and [6]). In addition a FoV definition is
+   provided for using the TIRVIM Field-of-View together with the
+   TGO_ACS_TIRVIM CK-based instrument frame. Finally a FoV is defined for the
+   Sun channel. The boresight and the cross-reference vectors are unit vectors
+   along the +Z axis and the +X axis of the frame(s), respectively.
+
+   Please note that the FOV reference and cross angles are defined with half
+   angle values. The FoV definitions correspond to the NAIF Body Names:
+   TGO_ACS_TIRVIM, TGO_ACS_TIRVIM_SCAN_BBY, TGO_ACS_TIRVIM_SCAN_SPC,
+   TGO_ACS_TIRVIM_SCAN_NAD, TGO_ACS_TIRVIM_SCAN_OCC and TGO_ACS_TIRVIM_SUN.
+
+   \begindata
+
+      INS-143130_NAME                      = 'TGO_ACS_TIRVIM'
+      INS-143130_BORESIGHT                 = (
+                     0.000000       0.000000     1.000000
+                                             )
+      INS-143130_FOV_FRAME                 = 'TGO_ACS_TIRVIM'
+      INS-143130_FOV_SHAPE                 = 'CIRCLE'
+      INS-143130_FOV_CLASS_SPEC            = 'ANGLES'
+      INS-143130_FOV_REF_VECTOR            = (
+                     1.000000       0.000000     0.000000
+                                             )
+      INS-143130_FOV_REF_ANGLE             = (   1.400000   )
+      INS-143130_FOV_ANGLE_UNITS           = 'DEGREES'
+
+
+      INS-143131_NAME                      = 'TGO_ACS_TIRVIM_SCAN_BBY'
+      INS-143131_BORESIGHT                 = (
+                     0.000000       0.000000     1.000000
+                                             )
+      INS-143131_FOV_FRAME                 = 'TGO_ACS_TIRVIM_SCAN_BBY'
+      INS-143131_FOV_SHAPE                 = 'CIRCLE'
+      INS-143131_FOV_CLASS_SPEC            = 'ANGLES'
+      INS-143131_FOV_REF_VECTOR            = (
+                     1.000000       0.000000     0.000000
+                                             )
+      INS-143131_FOV_REF_ANGLE             = (   1.40000   )
+      INS-143131_FOV_ANGLE_UNITS           = 'DEGREES'
+
+
+      INS-143132_NAME                      = 'TGO_ACS_TIRVIM_SCAN_SPC'
+      INS-143132_BORESIGHT                 = (
+                     0.000000       0.000000     1.000000
+                                             )
+      INS-143132_FOV_FRAME                 = 'TGO_ACS_TIRVIM_SCAN_SPC'
+      INS-143132_FOV_SHAPE                 = 'CIRCLE'
+      INS-143132_FOV_CLASS_SPEC            = 'ANGLES'
+      INS-143132_FOV_REF_VECTOR            = (
+                     1.000000       0.000000     0.000000
+                                             )
+      INS-143132_FOV_REF_ANGLE             = (   1.40000   )
+      INS-143132_FOV_ANGLE_UNITS           = 'DEGREES'
+
+
+      INS-143133_NAME                      = 'TGO_ACS_TIRVIM_SCAN_NAD'
+      INS-143133_BORESIGHT                 = (
+                     0.000000       0.000000     1.000000
+                                             )
+      INS-143133_FOV_FRAME                 = 'TGO_ACS_TIRVIM_SCAN_NAD'
+      INS-143133_FOV_SHAPE                 = 'CIRCLE'
+      INS-143133_FOV_CLASS_SPEC            = 'ANGLES'
+      INS-143133_FOV_REF_VECTOR            = (
+                     1.000000       0.000000     0.000000
+                                             )
+      INS-143133_FOV_REF_ANGLE             = (   1.40000   )
+      INS-143133_FOV_ANGLE_UNITS           = 'DEGREES'
+
+
+      INS-143134_NAME                      = 'TGO_ACS_TIRVIM_SCAN_OCC'
+      INS-143134_BORESIGHT                 = (
+                     0.000000       0.000000     1.000000
+                                             )
+      INS-143134_FOV_FRAME                 = 'TGO_ACS_TIRVIM_SCAN_OCC'
+      INS-143134_FOV_SHAPE                 = 'CIRCLE'
+      INS-143134_FOV_CLASS_SPEC            = 'ANGLES'
+      INS-143134_FOV_REF_VECTOR            = (
+                     1.000000       0.000000     0.000000
+                                             )
+      INS-143134_FOV_REF_ANGLE             = (   1.40000   )
+      INS-143134_FOV_ANGLE_UNITS           = 'DEGREES'
+
+
+      INS-143140_NAME                      = 'TGO_ACS_TIRVIM_SUN'
+      INS-143140_BORESIGHT                 = (
+                     0.000000       0.000000     1.000000
+                                             )
+      INS-143140_FOV_FRAME                 = 'TGO_ACS_TIRVIM_SUN'
+      INS-143140_FOV_SHAPE                 = 'CIRCLE'
+      INS-143140_FOV_CLASS_SPEC            = 'ANGLES'
+      INS-143140_FOV_REF_VECTOR            = (
+                     1.000000       0.000000     0.000000
+                                             )
+      INS-143140_FOV_REF_ANGLE             = (   1.40000   )
+      INS-143140_FOV_ANGLE_UNITS           = 'DEGREES'
+
+      INS-143141_NAME                      = 'TGO_ACS_TIRVIM_SUN_BSR'
+      INS-143141_BORESIGHT                 = (
+                     0.000000       0.000000     1.000000
+                                             )
+      INS-143141_FOV_FRAME                 = 'TGO_ACS_TIRVIM_SUN_BSR'
+      INS-143141_FOV_SHAPE                 = 'CIRCLE'
+      INS-143141_FOV_CLASS_SPEC            = 'ANGLES'
+      INS-143141_FOV_REF_VECTOR            = (
+                     1.000000       0.000000     0.000000
+                                             )
+      INS-143141_FOV_REF_ANGLE             = (   1.40000   )
+      INS-143141_FOV_ANGLE_UNITS           = 'DEGREES'
+
+
+   \begintext
+
+
+Optical Distortion
+--------------------------------------------------------
+
+   [TBD]
+
+
+Platform ID
+---------------------------------------------------------------------------
+
+   This number is the NAIF instrument ID of the platform on which the
+   instrument mounted. For all ACS components it is the spacecraft.
+
+   \begindata
+
+      INS-143111_PLATFORM_ID  = ( -143000 )
+      INS-143112_PLATFORM_ID  = ( -143000 )
+
+      INS-143120_PLATFORM_ID  = ( -143000 )
+
+      INS-143130_PLATFORM_ID  = ( -143000 )
+      INS-143131_PLATFORM_ID  = ( -143000 )
+      INS-143132_PLATFORM_ID  = ( -143000 )
+      INS-143133_PLATFORM_ID  = ( -143000 )
+      INS-143134_PLATFORM_ID  = ( -143000 )
+      INS-143140_PLATFORM_ID  = ( -143000 )
+      INS-143141_PLATFORM_ID  = ( -143000 )
+
+
+   \begintext
+
+
+End of IK file.

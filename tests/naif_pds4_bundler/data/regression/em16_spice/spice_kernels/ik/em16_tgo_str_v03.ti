@@ -1,0 +1,291 @@
+KPL/IK
+
+Star Tracker Instrument kernel
+===============================================================================
+
+   This instrument kernel (I-kernel) contains TGO Star Trackers (STR)
+   optics, detector, and field-of-view parameters.
+
+
+Version and Date
+-------------------------------------------------------------------------------
+
+   Version 0.3 -- June 6, 2019 -- Marc Costa Sitja, ESA/ESAC
+
+      Updated FOV shape to rectangle. Updated and added Optical and CCD
+      parameters.
+
+   Version 0.2 -- October 12, 2018 -- Marc Costa Sitja, ESA/ESAC
+
+      Updated the boresight definition (to unitary) for TGO_STR-1 and
+      TGO_STR-2 in order to avoid an error using GFTFOV with SPICE Toolkit
+      versions earlier than N067.
+
+   Version 0.1 -- May 15, 2018 -- Marc Costa Sitja, ESA/ESAC
+
+      Updated STRs IDs.
+
+   Version 0.0 -- March 27, 2018 -- Marc Costa Sitja, ESA/ESAC
+
+      Initial release.
+
+
+References
+-------------------------------------------------------------------------------
+
+   1. TGO Frames Definition Kernel (FK), latest version.
+
+   2. ''Kernel Pool Required Reading''.
+
+   3. ``ExoMars AA-STR User Manual'', EXM-OM-MAN-SG-0001, Revision E,
+      Selex ES, 16 November 2015.
+
+   4. ``ExoMars AA-STR Design Report'', EXM-OM-DRP-SG-0001, Revision E,
+      Selex ES, 17 April 2015.
+
+
+Contact Information
+-------------------------------------------------------------------------------
+
+   If you have any questions regarding this file contact the
+   ESA SPICE Service (ESS) at ESAC:
+
+           Marc Costa Sitja
+           (+34) 91-8131-457
+           esa_spice@sciops.esa.int, marc.costa@esa.int
+
+     or SPICE support at IKI:
+
+             Alexander Abbakumov
+             +7 (495) 333-40-13
+             aabbakumov@romance.iki.rssi.ru
+
+   or NAIF at JPL:
+
+           Boris Semenov
+           +1 (818) 354-8136
+           Boris.Semenov@jpl.nasa.gov
+
+
+Implementation Notes
+-------------------------------------------------------------------------------
+
+   Applications that need SPICE I-kernel data must ``load'' the I-kernel file,
+   normally during program initialisation. The SPICE routine FURNSH loads a
+   kernel file into the pool as shown below.
+
+      CALL FURNSH ( 'frame_kernel_name' )    -- FORTRAN
+      furnsh_c ( "frame_kernel_name" );      -- C
+      cspice_furnsh, frame_kernel_name       -- IDL
+      cspice_furnsh( 'frame_kernel_name' )   -- MATLAB
+
+   Loading the kernel using the SPICELIB routine FURNSH causes the data
+   items and their associated values present in the kernel to become
+   associated with a data structure called the ``kernel pool''.
+
+   Once the file has been loaded, the SPICE routine GETFOV (getfov_c in
+   C, cspice_getfov in IDL and MATLAB) can be used to retrieve FOV
+   parameters for a given instrument or structure.
+
+   The application program may obtain the value(s) for any other IK data
+   item using the SPICELIB routines GDPOOL, GIPOOL, GCPOOL (gdpool_c, gipool_c,
+   gcpool_c in C, cspice_gdpool, cspice_gipool, cspice_gcpool in IDL and
+   MATLAB). See [1] for details.
+
+   This file was created with, and can be updated with a text editor or
+   word processor.
+
+
+Naming Conventions and Conventions for Specifying Data
+-------------------------------------------------------------------------------
+
+   Data items are specified using ``keyword=value'' assignments [1].
+   All keywords referencing values in this I-kernel start with the
+   characters `INS' followed by the NAIF TGO instrument ID code.
+   The Star Tracker instrument IDs are defined in [1] as follows:
+
+               Instrument name          ID
+               --------------------     -------
+               TGO_STR-1                -143041
+               TGO_STR-2                -143042
+
+
+   The remainder of the keyword is an underscore character followed by
+   the unique name of the data item. For example, the boresight of
+   the Star Tracker 1 (STR-1) is specified by
+
+               INS-143041_BORESIGHT
+
+   The upper bound on the length of all keywords is 32 characters.
+
+   If a keyword is included in more than one file, or if the same
+   keyword appears more than once within a single file, the last
+   assignment supersedes any earlier assignments.
+
+
+Overview
+-------------------------------------------------------------------------------
+
+   From a functional point of view, the Autonomous Star Trackers can be seen
+   as a video camera plus an image processing unit that, starting from an image
+   of the sky, extracts the attitude information for the AOCS, measured with
+   respect to the J2000 inertial reference system.
+
+   The STR can track up to 15 stars simultaneously and consists of a Single
+   box that contains the optical head, the main electronics and a baffle which
+   is thermally decoupled from the box.
+
+   The Detector consists is a HAS APS (1024 x 1024 pixels manufactured by
+   Cypress) and has a circular FOV of 20 degrees with a Focal Length of
+   51.7 mm.
+
+
+Apparent FOV Layout
+---------------------------------------------------------------------------
+
+   This section provides a diagram illustrating the STR-1 and STR-2
+   detectors apparent FOVs layout in the corresponding reference frames.
+
+   The STR surface slit creates a rectangular field of view with half cone
+   angle of 10 degrees. The following diagrams illustrate the above field of
+   view in the instrument frame:
+
+                 Y                                 X
+                  ins                               ins
+                ^     /                           ^     /
+                |    /                            |    /
+                |   /                             |   /
+                |  /                              |  /
+           X    | /    o                     Y    | /    o
+            ins |/ 20.0                       ins |/ 20.0
+                x-------->                        o-------->
+                |\         Z                      |\         Z
+                | \         ins                   | \         ins
+                |  \                              |  \
+                |   \                             |   \
+                |    \                            |    \
+                |     \                           |     \
+                              Plane X = 0                       Plane Y = 0
+
+
+   Please note that the FOV reference and cross angles are defined with half
+   angle values.
+
+
+Mounting Alignment
+-------------------------------------------------------------------------------
+
+   Refer to the latest version of the TGO Frames Definition Kernel
+   (FK) [1] for the Star Trackers reference frames definitions and
+   mounting alignment information.
+
+
+Optical Parameters
+---------------------------------------------------------------------------
+
+   The following STR optical parameters are included in
+   the data section below, from [3],[4]:
+
+      -----------------------------------------------------------------
+       Parameter
+      -----------------------------------------------------------------
+       Focal Length, mm                              51.7
+       Effective Focal Length, mm                    51.9
+       Relative Aperture (F Number)                  1.48
+       Field of view (deg)                           20.0
+       Pixel Size (IFOV), arcsec                     71.5
+       Distortion at 10 degrees, %                   0.72
+       Spot Size, pixels                             2-4
+      -----------------------------------------------------------------
+
+   The keywords below provide nominal data for both cameras. Angular size
+   values in the keywords are given in radians.
+
+      \begindata
+
+         INS-143041_FOCAL_LENGTH       = ( 51.9                 )
+         INS-143041_F/RATIO            = ( 1.48                 )
+         INS-143041_FOV_ANGULAR_SIZE   = ( 0.3490658503988659   )
+         INS-143041_IFOV               = ( 0.0003466417819999   )
+
+         INS-143042_FOCAL_LENGTH       = ( 51.9                 )
+         INS-143042_F/RATIO            = ( 1.48                 )
+         INS-143042_FOV_ANGULAR_SIZE   = ( 0.3490658503988659   )
+         INS-143042_IFOV               = ( 0.0003466417819999   )
+
+      \begintext
+
+
+CCD Parameters
+---------------------------------------------------------------------------
+
+   The STR 1 and 2 use the CCD detector of the same type with the
+   following nominal geometry parameters, from [3]:
+
+      -----------------------------------------------------------------
+             parameter                     value      note
+      -----------------------------------------------------------------
+      Pixel size, microns
+          along Xstr                       18
+          along Ystr                       18
+      Detector Array Size
+          along Xstr                       1024
+          along Ystr                       1024
+      -----------------------------------------------------------------
+
+   The values are given in counts for PIXEL_SAMPLES, PIXEL_LINES, and
+   CENTER keywords.
+
+      \begindata
+
+         INS-143041_PIXEL_SIZE         = ( 18, 18 )
+         INS-143041_PIXEL_SAMPLES      = ( 1024 )
+         INS-143041_PIXEL_LINES        = ( 1024 )
+         INS-143041_CCD_CENTER         = ( 511, 511 )
+
+         INS-143041_PIXEL_SIZE         = ( 18, 18 )
+         INS-143042_PIXEL_SAMPLES      = ( 1024 )
+         INS-143042_PIXEL_LINES        = ( 1024 )
+         INS-143042_CCD_CENTER         = ( 511, 511 )
+
+      \begintext
+
+
+FOV Definitions
+-------------------------------------------------------------------------------
+
+   This section contains definitions for the Star Tracker FOVs. These
+   definitions are provided in the format required by the SPICE
+   (CSPICE) function GETFOV (getfov_c).
+
+   Please note that the FOV reference and cross angles are defined with half
+   angle values. The FoV definition corresponds to the NAIF Body Name:
+   TGO_STR-1 and TGO_STR-2.
+
+
+      \begindata
+
+         INS-143041_NAME                       = 'TGO_STR-1'
+         INS-143041_BORESIGHT                  = ( 0.000,  0.000, 1.000 )
+         INS-143041_FOV_FRAME                  = 'TGO_STR-1'
+         INS-143041_FOV_SHAPE                  = 'RECTANGLE'
+         INS-143041_FOV_CLASS_SPEC             = 'ANGLES'
+         INS-143041_FOV_REF_VECTOR             = ( 0.000,  1.000,  0.000 )
+         INS-143041_FOV_REF_ANGLE              = ( 10.0 )
+         INS-143041_FOV_CROSS_ANGLE            = ( 10.0 )
+         INS-143041_FOV_ANGLE_UNITS            = 'DEGREES'
+
+         INS-143042_NAME                       = 'TGO_STR-2'
+         INS-143042_BORESIGHT                  = ( 0.000,  0.000, 1.000 )
+         INS-143042_FOV_FRAME                  = 'TGO_STR-2'
+         INS-143042_FOV_SHAPE                  = 'RECTANGLE'
+         INS-143042_FOV_CLASS_SPEC             = 'ANGLES'
+         INS-143042_FOV_REF_VECTOR             = ( 0.000,  1.000,  0.000 )
+         INS-143042_FOV_REF_ANGLE              = ( 10.0 )
+         INS-143042_FOV_CROSS_ANGLE            = ( 10.0 )
+         INS-143042_FOV_ANGLE_UNITS            = 'DEGREES'
+
+      \begintext
+
+
+End of IK file.

@@ -1,0 +1,589 @@
+KPL/IK
+
+NOMAD Instrument Kernel
+===============================================================================
+ 
+   This instrument kernel (I-kernel) contains the ExoMars-2016 Trace Gas
+   Orbiter (TGO) Nadir and Occultation for MArs Discovery (NOMAD) 
+   instrument optics, detector and field-of-view (FOV) parameters
+   definitions.
+
+
+Version and Date
+-------------------------------------------------------------------------------
+
+   Version 0.4 -- December 15, 2016 -- Marc Costa Sitja, ESAC/ESA
+
+      Corrected definition of NOMAD SO frame directions with A. Cardesin.
+
+   Version 0.3 -- September 23, 2016 -- Marc Costa Sitja, ESAC/ESA
+
+      Renamed the NOMAD LNO nadir and occultation field of view definitions 
+      (TGO_NOMAD_LNO_*) to NOMAD LNO nadir and occultation sience operations 
+      field of view definitions (TGO_NOMAD_LNO_OPS_*). 
+
+   Version 0.2 -- August 2, 2016 -- Marc Costa Sitja, ESAC/ESA
+      
+      Corrected FOV parameters for NOMAD LNO, SO and UVIS Spectometers.
+      Corrected minor typos.
+      
+      Preliminary version. Pending review by the NOMAD instrument team.
+
+   Version 0.1 -- May 24, 2016 -- Jorge Diaz del Rio, ODC Space
+   
+      Removed bad characters from the comments' area.
+
+   Version 0.0 -- May 22, 2016 -- Jorge Diaz del Rio, ODC Space
+   
+      Preliminary version. Pending review by the TGO Science Operations and
+      NOMAD instrument teams.
+
+
+References
+-------------------------------------------------------------------------------
+
+   1. ``Frames Required Reading''
+
+   2. ``Kernel Pool Required Reading''
+   
+   3. ``C-kernel Required Reading''
+
+   4. ExoMars-2016 Frames Definition Kernel (FK), latest version.
+   
+   5. ``NOMAD spectrometer on the ExoMars trace gas orbiter mission: part 1
+      - design, manufacturing and testing of the infrared channels,''
+      Neefs, E. et al., Applied Optics Vol. 54, No. 28, 01-10-2015.
+      
+   6. ``The NOMAD spectrometer on the ExoMars trace gas orbiter mission: part
+      2 - design and testing of the ultraviolet and visible channel,'' Patel,
+      M. et al., Optics Express Vol.23, No. 23, 16-Nov-2015.
+      
+
+Contact Information
+-------------------------------------------------------------------------------
+
+   If you have any questions regarding this file contact SPICE support at
+   ESAC:
+
+           Marc Costa Sitja
+           (+34) 91-8131-457
+           mcosta@sciops.esa.int, esa_spice@sciops.esa.int
+           
+   or SPICE support at IKI:
+   
+           Anton Ledkov
+           +7 (495) 333-12-66
+           aledkov@rssi.ru
+           
+   or NAIF at JPL:
+   
+           Boris Semenov
+           +1 (818) 354-8136
+           Boris.Semenov@jpl.nasa.gov
+      
+     
+Implementation Notes
+-------------------------------------------------------------------------------
+
+   Applications that need SPICE I-kernel data must ``load'' the I-kernel file,
+   normally during program initialization. The SPICE routine FURNSH loads a
+   kernel file into the pool as shown below.
+
+      CALL FURNSH ( 'frame_kernel_name' )    -- FORTRAN
+      furnsh_c ( "frame_kernel_name" );      -- C
+      cspice_furnsh, frame_kernel_name       -- IDL
+      cspice_furnsh( 'frame_kernel_name' )   -- MATLAB
+
+   Loading the kernel using the SPICELIB routine FURNSH causes the data
+   items and their associated values present in the kernel to become
+   associated with a data structure called the ``kernel pool''. 
+   
+   Once the file has been loaded, the SPICE routine GETFOV (getfov_c in
+   C, cspice_getfov in IDL and MATLAB) can be used to retrieve FOV
+   parameters for a given instrument or structure.
+   
+   The application program may obtain the value(s) for any other IK data
+   item using the SPICELIB routines GDPOOL, GIPOOL, GCPOOL (gdpool_c, gipool_c,
+   gcpool_c in C, cspice_gdpool, cspice_gipool, cspice_gcpool in IDL and
+   MATLAB). See [2] for details.
+
+   This file was created with, and can be updated with a text editor or
+   word processor.
+   
+
+Conventions for Specifying Data
+--------------------------------------------------------
+
+   Data items are specified using ``keyword=value'' assignments [2].
+   All keywords referencing values in this I-kernel start with the
+   characters `INS' followed by the NAIF TGO instrument ID code,
+   constructed using the spacecraft ID number (-143) followed by the
+   NAIF three digit ID number for NOMAD module. These IDs are
+   defined in [4] as follows:
+      
+      Name                         NAIF ID
+     ---------------------        ---------
+      TGO_NOMAD_LNO                -143310
+      TGO_NOMAD_LNO_OPS_NAD        -143311
+      TGO_NOMAD_LNO_OPS_OCC        -143312
+      TGO_NOMAD_SO                 -143320
+      TGO_NOMAD_UVIS_NAD           -143331
+      TGO_NOMAD_UVIS_OCC           -143332
+
+     
+   The remainder of the keyword name is an underscore character
+   followed by the unique name of the data item. For example, the
+   SO spectrometer boresight direction in the TGO_NOMAD_SO frame
+   is specified by:
+
+           INS-143320_BORESIGHT
+
+
+   The upper bound on the length of the name of any data item is 32
+   characters.
+
+   If the same item is included in more than one file, or if the same
+   item appears more than once within a single file, the latest value
+   supersedes any earlier values.
+
+   
+Instrument Description
+-------------------------------------------------------------------------------
+
+   NOMAD consists of three separate channels, solar occultation (SO), limb
+   nadir and occultation (LNO), and ultraviolet and visible spectrometer
+   (UVIS), all controlled via a single main electronics interface (see [5]).
+   
+   NOMAD has two nadir lines of sight (one in the LNO and one in the UVIS
+   channel) that are parallel to the spacecraft -Y axis, which nominally
+   is always pointing towards and perpendicular to the surface of Mars.
+   Therefore, NOMAD's nadir viewports are always directed to Mars. The orbital
+   configuration of TGO fixes the angle between its -Y axis and the direction
+   of the Martian limb to 67.07 degrees away from the -Y axis in the -Y/-X
+   plane. NOMAD's three solar lines of sight (one in each of the channels) will
+   be parallel to this limb direction, and hence form an angle of 67.07 degrees
+   with the nadir lines of sight. To perform SO measurements, the spacecraft
+   will need to yaw rotate around its Y axis twice per orbit, once during the
+   day, once during the night, so that, well before sunrise or sunset, the
+   solar lines of sight point to the limb. During SOs the spacecraft will
+   adopt an inertial pointing mode, fixed on the center of the Sun, resulting
+   in an apparent ingress into or egress from the Martian disk.
+   
+   Solar Occultation Channel
+   -------------------------
+   The Solar Occultation (SO) Channel is based on the principle of combining an
+   AOTF as an order sorter and an echelle grating spectrometer. The spectral
+   observation band covers the 2.3 to 4.3 microns range, the instrument line
+   profile (ILP) is 0.22 cm-1 full width at half-maximum (FWHM) or better over
+   the whole spectral range, to be sampled by at least two detector pixels.
+   The instrument is optimized close to 3000 cm-1, resulting in an ILP of
+   0.15 cm-1 FWHM at 3.3 microns.
+   
+   The FOV of the SO channel is driven by the fact that it has to observe
+   solely during SO. This FOV has a spatial dimension of 30 arcmin. It is
+   required that all the detector lines illuminated by the solar disk can
+   be downloaded to Earth. Perpendicular to the spatial direction a FOV
+   of 2 arcmin is maintained resulting in sufficient height resolution
+   while vertically scanning through the Martian atmosphere (vertical
+   sampling less than 1 km). From dimensional constraints it follows that
+   the entrance aperture diameter of the SO channel shall be at maximum
+   20 mm.
+   
+   SO has a SNR greater than 900 over the complete spectral range, measured
+   over a zone of 200 detector columns centered on the column with the
+   maximum signal, for a minimum solar signal (i.e., at maximum Mars-Sun
+   distance) and including all instrument sources of noise. Table #1
+   gives an overview of the characteristics of the SO channel.
+   
+   
+      Table 1: SO and LNO channel parameters
+   
+         -----------------------------------------------------
+          Parameter                 SO            LNO      
+         ---------------------   -------------   ------------
+          Wavelength, microns      2.3 - 4.3       2.3 - 3.8
+    
+          Wavenumber, cm-1        4250 - 2320     4250 - 2630
+       
+          ILP, cm-1                0.22            0.5
+       
+          ILP for CH4, cm-1        0.15
+       
+          Resolving power         20,000          10,000
+       
+          FoV, arcmin.            30.0x2.0        150.0x4.0
+       
+          Spatial sampling,        1                1
+             arcmin.
+          
+          SRN                     >= 900          >= 400
+         -----------------------------------------------------
+   
+   
+   Limb, Nadir and Occultation Channel
+   ------------------------------------
+   The Limb, Nadir and Occultation (LNO) Channel has a SNR of greater than
+   400 over the complete spectral domain, after binning of all detector rows
+   by column, measured over a zone of 200 columns centered on the column with
+   the maximum signal, for a minimum solar signal (i.e., at maximum Mars-Sun
+   distance), and including all instrument sources of noise. In the region
+   that contains the methane absorption line, LNO has an SNR of greater than
+   1000.
+   
+   As a price to pay for the challenging SNR specification, the wavelength
+   range (between 2.3 and 3.8 microns) and ILP (0.5 cm-1, sampled by at
+   least two pixels) are reduced in comparison with SO.
+   
+   While defining an appropriate instantaneous FOV for the LNO channel, a
+   compromise had to be found between the channel performance in SO (vertical
+   sampling) and in nadir mode (SNR, footprint). LNO has a FOV of 150 x 4 arc
+   minutes. Since LNO uses this FOV also for solar occultions, the vertical
+   sampling capacity of LNO is reduced by a factor of 2 compared to the SO
+   channel. The entrance aperture diameter of the LNO channel is nearly 30 mm,
+   which is greater than that of the SO channel, to provide higher signal
+   input. Table #1 gives an overview of the characteristics of the LNO channel.
+
+
+   Ultraviolet and Visible Channel
+   -------------------------------
+   The Ultraviolet and Visible (UVIS) Channel UVIS operates in the wavelength
+   domain between 200 and 650 nm. The spectrometer has two telescopes, one for
+   each viewing channel. The spectrometer is based on the conventional
+   Czerny-Turner configuration. The main components are the entrance slit, the
+   aperture, the collimating mirror, the diffraction grating, the focusing
+   mirror, the 2nd order filter and the detector CCD. The light is delivered
+   by an optical fibre. The spectrometer configuration combines simplicity
+   and high-performances. In particular, the spectral range is very broad
+   (200-650nm) with optimized performance in the UV range. Blaze angle and
+   incidence angle achieve the highest reflectance of the first diffraction
+   order at 220nm. The 2nd order filter solves the issue of the overlap
+   between the 1st diffraction order and the 2nd diffraction order of the
+   grating. Indeed, due to the wide spectral range of the observed signal,
+   first diffraction order rays and second diffraction order rays overlap
+   on the detector. Hence a long-pass filter has been placed in front of the
+   detector to block the second order contribution. The cutoff is chosen at
+   340nm. The filter is a window partially coated. The 2nd order signal goes
+   through a coated area. As such the 2nd order signal is completed blocked
+   as long as the signal at wavelength shorter than the wavelength
+   corresponding to the uncoated-coated transition of the filter. The slit
+   width is 65 microns which corresponds to a resolution better than 1.5nm.
+   This width results from a trade-off between resolution and the SNR. Table
+   #2 summarizes the characteristics of the UVIS channel.
+
+   
+      Table 2: UVIS ``nadir'' and ``solar occultation'' channel parameters
+      
+         -------------------------------------------------------------------
+          Parameter                    Solar Occultation     Nadir
+         --------------------------   -------------------   ----------------
+          Spectral range, nm           200-650                200-650
+          
+          Spectral resolution,nm       1.5                    1.5
+          
+          Numerical aperture fibre     0.22                   0.22
+   
+          F-number                     2.15                   2.18
+          
+          FOV, arcminutes              2                      43
+       
+          Binning, rows                8                      64
+          
+          Observation time, s          0.2                    15
+         -------------------------------------------------------------------
+
+   
+   Each telescope includes a single parabolic mirror for space and weight
+   minimization. Light is focused on a single fibre and a bundle of fibres
+   for the solar occultation channel and the nadir channel respectively. The
+   field of views (2 arcmin for solar occultation and 43 arcmin for nadir) are
+   determined by the focal length of the mirror and the entrance aperture of
+   the fibre(s).
+
+   UVIS has one periscope in front of the solar telescope with a mirror
+   allowing the pointing towards the Sun and a cut out hole in the NOMAD
+   cover for the nadir viewing telescope. UVIS switches between nadir and
+   solar viewing angles by alternating which optic fibre cable is placed
+   at the input of the spectrometer. The selector mechanism is a rotating
+   motor mechanism that moves the fibres in front of the slit. Fibre
+   positioning is accurately defined by two hard stops.
+
+
+Mounting Alignment
+-------------------------------------------------------------------------------
+
+   Refer to the latest version of the ExoMars-2016 Frames Definition
+   Kernel (FK) [4] for the NOMAD reference frame definitions and mounting
+   alignment information.
+
+   
+NOMAD LNO Spectrometer Field-of-View Layouts
+---------------------------------------------------------------------------
+
+   This diagram illustrates the NOMAD LNO apparent FOV layout in the
+   TGO_NOMAD_LNO reference frame, providing a reference to the
+   TGO_SPACECRAFT frame when the LNO flip mirror is in the 
+   "nadir position".
+   
+         ^ +Zsc
+         |
+         |
+         |       
+         x-------->
+      +Ysc        +Xsc
+          
+                                  ^ +Ylno
+                                  |
+                                  |                             |
+                                  |                             v
+         .------------------------|------------------------.  -----
+         |                        o--------->              |  4.00 arcmin
+         '------------------------------ +Xlno ------------'  -----
+                                                                ^
+                                                                |
+         |                                                 |     
+         |<----------------------------------------------->|
+         |                  150.0 arcmin                   |
+                              
+         
+                                            +Zlno is out of the page;
+                                            +Ysc is into the page.
+                                            
+   
+   The apparent FOV layouts in the TGO_NOMAD_LNO_OPS_NAD and 
+   TGO_NOMAD_LNO_OPS_OCC reference frames are exactly the same. 
+   For the alignment of the TGO_NOMAD_LNO_OPS_NAD and TGO_NOMAD_LNO_OPS_OCC 
+   frames with respect to the TGO_SPACECRAFT frame and with respect to 
+   each other, please refer to [4].
+   
+   This FOV is associated to instrument IDs -143310 (TGO_NOMAD_LNO),
+   -143311 (TGO_NOMAD_LNO_OPS_NAD) and -143312 (TGO_NOMAD_LNO_OPS_OCC).   
+
+
+NOMAD SO Spectrometer Field-of-View Layout
+---------------------------------------------------------------------------
+
+   This diagram illustrates the NOMAD SO apparent FOV layout in the
+   TGO_NOMAD_SO reference frame.        
+        
+                                  ^ +Yso
+                                  |
+                                  |                             |
+                                  |                             v
+         .------------------------|------------------------.  -----
+         |                        o--------->              |  2.00 arcmin
+         '------------------------------ +Xso -------------'  -----
+                                                                ^
+                                                                |
+         |                    30.00 arcmin                 |     
+         |<----------------------------------------------->|
+         
+         
+                                            +Zso is out of the page.
+
+
+   Note that the +Zso (NOMAD SO boresight) is pointing at ~67.07
+   degrees from -Y s/c axis towards -X s/c axis in the XY plane. The
+   +Yso is aligned to the +Z spacecraft axis.
+
+   For the alignment of the TGO_NOMAD_SO frame with respect to the
+   TGO_SPACECRAFT frame, pelase refer to [4].
+   
+   This FOV is associated to instrument ID -143320 (TGO_NOMAD_SO)
+
+   
+NOMAD UVIS Spectrometer Field-of-View Layout
+---------------------------------------------------------------------------
+
+   This diagram illustrates the NOMAD UVIS apparent FOV layout in the
+   TGO_NOMAD_UVIS_NAD and TGO_NOMAD_UVIS_OCC reference frames.
+   
+
+                     |
+                     |            ^
+                     V            | +Yuvis*
+                -------------   . | .
+         (NAD)   43.0 arcmin  /   |   \
+                             |    o-------->
+         (OCC)    2.0 arcmin  \       /   +Xuvis*
+                -------------   ` - '
+                     ^
+                     |                          +Zuvis* is out of the
+                     |                           page; * refers to _NAD
+                                                 and _OCC
+
+   For the alignment of the TGO_NOMAD_UVIS_NAD and TGO_NOMAD_UVIS_OCC
+   frames with respect to the TGO_SPACECRAFT frame and with respect to
+   each other, please refer to [4].   
+ 
+   These FOVs are associated to instrument IDs -143331 (TGO_NOMAD_UVIS_NAD)
+   and -143332 (TGO_NOMAD_UVIS_OCC), respectively.
+
+
+FOV Definition
+---------------------------------------------------------------------------
+
+   This section contains assignments defining the NOMAD LNO, SO and UVIS
+   FOVs. These definitions are based on the NOMAD spectrometers parameters
+   provided in the previous sections and are provided in a format
+   consistent with/required by the SPICE TOOLKIT function GETFOV.
+   
+   
+   NOMAD Limb, Nadir and Occultation Channel (TGO_NOMAD_LNO*) FoVs:
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   
+   The LNO FOV is defined as a rectangular pyramid with a full angle of
+   150x4 arc-minutes. It is defined with respect to the TGO_NOMAD_LNO_OPS_NAD
+   and TGO_NOMAD_LNO_OPS_OCC frames for nadir and solar occultation observations
+   (see [5]). In addition a third FoV definition is provided for using the
+   LNO Field-of-View together with the TGO_NOMAD_LNO CK-based instrument
+   frame. The boresight and the cross-reference vectors are unit along the 
+   +Z axis and the +X axis of the frame(s), respectively.
+   
+   Please note that the FOV reference and cross angles are defined with half 
+   angle values. 
+
+  \begindata
+
+         INS-143310_FOV_FRAME                 = 'TGO_NOMAD_LNO'
+         INS-143310_FOV_SHAPE                 = 'RECTANGLE'
+         INS-143310_BORESIGHT                 = (
+                        0.000000       0.000000     1.000000
+                                                )
+         INS-143310_FOV_CLASS_SPEC            = 'ANGLES'
+         INS-143310_FOV_REF_VECTOR            = (
+                        1.000000       0.000000     0.000000
+                                                )
+         INS-143310_FOV_REF_ANGLE             = (  75.000000 )
+         INS-143310_FOV_CROSS_ANGLE           = (   2.000000 )
+         INS-143310_FOV_ANGLE_UNITS           = 'ARCMINUTES'
+         
+
+         INS-143311_FOV_FRAME                 = 'TGO_NOMAD_LNO_OPS_NAD'
+         INS-143311_FOV_SHAPE                 = 'RECTANGLE'
+         INS-143311_BORESIGHT                 = (
+                        0.000000       0.000000     1.000000
+                                                )
+         INS-143311_FOV_CLASS_SPEC            = 'ANGLES'
+         INS-143311_FOV_REF_VECTOR            = (
+                        1.000000       0.000000     0.000000
+                                                )
+         INS-143311_FOV_REF_ANGLE             = (  75.000000 )
+         INS-143311_FOV_CROSS_ANGLE           = (   2.000000 )
+         INS-143311_FOV_ANGLE_UNITS           = 'ARCMINUTES'
+
+
+         INS-143312_FOV_FRAME                 = 'TGO_NOMAD_LNO_OPS_OCC'
+         INS-143312_FOV_SHAPE                 = 'RECTANGLE'
+         INS-143312_BORESIGHT                 = (
+                        0.000000       0.000000     1.000000
+                                                )
+         INS-143312_FOV_CLASS_SPEC            = 'ANGLES'
+         INS-143312_FOV_REF_VECTOR            = (
+                        1.000000       0.000000     0.000000
+                                                )
+         INS-143312_FOV_REF_ANGLE             = (  75.000000 )
+         INS-143312_FOV_CROSS_ANGLE           = (   2.000000 )
+         INS-143312_FOV_ANGLE_UNITS           = 'ARCMINUTES'
+
+
+  \begintext
+
+
+   NOMAD Solar Occultation Channel (TGO_NOMAD_SO) FoV:
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   
+   The SO FOV is defined as a rectangular pyramid with a full angle of
+   30x2 arc-minutes. It is defined with respect to the TGO_NOMAD_SO
+   frame (see [5]). The boresight and the cross-reference vectors are
+   unit along the +Z axis and the +X axis of the frame, respectively.
+   
+   Please note that the FOV reference and cross angles are defined with 
+   half angle values. 
+
+  \begindata
+
+         INS-143320_FOV_FRAME                 = 'TGO_NOMAD_SO'
+         INS-143320_FOV_SHAPE                 = 'RECTANGLE'
+         INS-143320_BORESIGHT                 = (
+                        0.000000       0.000000     1.000000
+                                                )
+         INS-143320_FOV_CLASS_SPEC            = 'ANGLES'
+         INS-143320_FOV_REF_VECTOR            = (
+                        1.000000       0.000000     0.000000
+                                                )
+         INS-143320_FOV_REF_ANGLE             = (  15.000000 )
+         INS-143320_FOV_CROSS_ANGLE           = (   1.000000 )
+         INS-143320_FOV_ANGLE_UNITS           = 'ARCMINUTES'
+
+  \begintext
+  
+  
+   NOMAD Ultraviolet and Visible Channel (TGO_NOMAD_UVIS*) FoV:
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   
+   The UVIS ``Nadir'' FOV is defined as a cone with a full angle of 43.0
+   arc-minutes and the ``occultation'' FOV as a cone with a full angle of
+   2.0 arc-minutes. They are defined with respect to the TGO_NOMAD_UVIS_NAD
+   and TGO_NOMAD_UVIS_OCC frames respectively. The boresight and the
+   cross-reference vectors are unit along the +Z axis and the +X axis of
+   the frame(s), respectively.
+   
+   Please note that the FOV reference and cross angles are defined with 
+   half angle values. 
+   
+  \begindata
+  
+         INS-143331_FOV_FRAME                 = 'TGO_NOMAD_UVIS_NAD'
+         INS-143331_FOV_SHAPE                 = 'CIRCLE'
+         INS-143331_BORESIGHT                 = (
+                        0.000000       0.000000     1.000000
+                                                )
+         INS-143331_FOV_CLASS_SPEC            = 'ANGLES'
+         INS-143331_FOV_REF_VECTOR            = (
+                        1.000000       0.000000     0.000000
+                                                )
+         INS-143331_FOV_REF_ANGLE             = (  21.50000   )
+         INS-143331_FOV_ANGLE_UNITS           = 'ARCMINUTES'
+
+
+         INS-143332_FOV_FRAME                 = 'TGO_NOMAD_UVIS_OCC'
+         INS-143332_FOV_SHAPE                 = 'CIRCLE'
+         INS-143332_BORESIGHT                 = (
+                        0.000000       0.000000     1.000000
+                                                )
+         INS-143332_FOV_CLASS_SPEC            = 'ANGLES'
+         INS-143332_FOV_REF_VECTOR            = (
+                        1.000000       0.000000     0.000000
+                                                )
+         INS-143332_FOV_REF_ANGLE             = (   1.00000   )
+         INS-143332_FOV_ANGLE_UNITS           = 'ARCMINUTES'
+  
+  \begintext
+  
+
+Optical Distortion
+--------------------------------------------------------
+
+   [TBD]
+
+
+Platform ID
+---------------------------------------------------------------------------
+
+   This number is the NAIF instrument ID of the platform on which the
+   instrument mounted. For all NOMAD components it is the spacecraft.
+
+  \begindata
+
+         INS-143310_PLATFORM_ID  = ( -143000 )
+         INS-143311_PLATFORM_ID  = ( -143000 )
+         INS-143312_PLATFORM_ID  = ( -143000 )
+      
+         INS-143320_PLATFORM_ID  = ( -143000 )
+      
+         INS-143331_PLATFORM_ID  = ( -143000 )
+         INS-143332_PLATFORM_ID  = ( -143000 )
+
+  \begintext
+
+End of IK file.

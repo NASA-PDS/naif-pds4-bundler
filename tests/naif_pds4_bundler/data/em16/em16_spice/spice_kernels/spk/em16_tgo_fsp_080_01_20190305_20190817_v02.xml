@@ -1,0 +1,79 @@
+<?xml-model href="http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1B00.sch"
+    schematypens="http://purl.oclc.org/dsdl/schematron"?>
+
+
+<Product_SPICE_Kernel xmlns="http://pds.nasa.gov/pds4/pds/v1"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1B00.xsd">
+
+    <Identification_Area>
+        <logical_identifier>urn:esa:psa:em16_spice:spice_kernels:spk_em16_tgo_fsp_080_01_20190305_20190817_v02.bsp</logical_identifier>
+        <version_id>1.0</version_id>
+        <title>em16_tgo_fsp_080_01_20190305_20190817_v02.bsp</title>
+        <information_model_version>1.11.0.0</information_model_version>
+        <product_class>Product_SPICE_Kernel</product_class>
+        <Citation_Information>
+            <publication_year>2019</publication_year>
+            <keyword>Observation Geometry</keyword>
+            <description>SPICE SPK file that contains TGO spacecraft operational Mars centric ephemeris for the science phase. This file contains both reconstructed and predicted data. The predicted data typically starts around 22:00 and 23:59 CET of the day before the source file was provided by Flight Dynamics (which is the SPK generation date). This file should be considered final for the data period it covers and should be used for data analysis. Created by the ESA SPICE Service (ESS).</description>
+        </Citation_Information>
+    </Identification_Area>
+    <Context_Area>
+        <Time_Coordinates>
+            <start_date_time>2019-03-05T23:19:14.000Z</start_date_time>
+            <stop_date_time>2019-08-17T15:46:16.000Z</stop_date_time>
+        </Time_Coordinates>
+        <Primary_Result_Summary>
+            <purpose>Observation Geometry</purpose>
+            <processing_level>Derived</processing_level>
+        </Primary_Result_Summary>
+        <Investigation_Area>
+            <name>ExoMars 2016</name>
+            <type>Mission</type>
+            <Internal_Reference>
+                <lid_reference>urn:esa:psa:context:investigation:mission.em16</lid_reference>
+                <reference_type>data_to_investigation</reference_type>
+            </Internal_Reference>
+        </Investigation_Area>
+        <Observing_System>
+            <Observing_System_Component>
+                <name>TGO</name>
+                <type>Spacecraft</type>
+                <Internal_Reference>
+                    <lid_reference>urn:esa:psa:context:instrument_host:spacecraft.tgo</lid_reference>
+                    <reference_type>is_instrument_host</reference_type>
+                </Internal_Reference>
+            </Observing_System_Component>
+        </Observing_System>
+        <Target_Identification>
+            <name>Mars</name>
+            <type>Planet</type>
+            <Internal_Reference>
+                <lid_reference>urn:nasa:pds:context:target:planet.mars</lid_reference>
+                <reference_type>data_to_target</reference_type>
+            </Internal_Reference>
+        </Target_Identification>
+    </Context_Area>
+    <Reference_List>
+        <Internal_Reference>
+            <lid_reference>urn:esa:psa:em16_spice:document:spiceds</lid_reference>
+            <reference_type>data_to_document</reference_type>
+        </Internal_Reference>
+    </Reference_List>
+    <File_Area_SPICE_Kernel>
+        <File>
+            <file_name>em16_tgo_fsp_080_01_20190305_20190817_v02.bsp</file_name>
+            <creation_date_time>2019-07-15T15:45:21.907Z</creation_date_time>
+            <file_size unit="byte">60738560</file_size>
+            <md5_checksum>41a227594f964bd10af218b2b0a11d9e</md5_checksum>
+        </File>
+        <SPICE_Kernel>
+            <offset unit="byte">0</offset>
+            <object_length unit="byte">60738560</object_length>
+            <parsing_standard_id>SPICE</parsing_standard_id>
+            <description>SPICE SPK file that contains TGO spacecraft operational Mars centric ephemeris for the science phase. This file contains both reconstructed and predicted data. The predicted data typically starts around 22:00 and 23:59 CET of the day before the source file was provided by Flight Dynamics (which is the SPK generation date). This file should be considered final for the data period it covers and should be used for data analysis. Created by the ESA SPICE Service (ESS).</description>
+            <kernel_type>SPK</kernel_type>
+            <encoding_type>Binary</encoding_type>
+        </SPICE_Kernel>
+    </File_Area_SPICE_Kernel>
+</Product_SPICE_Kernel>

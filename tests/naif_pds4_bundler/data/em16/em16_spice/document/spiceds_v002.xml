@@ -1,0 +1,93 @@
+<?xml-model href="http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1B00.sch"
+    schematypens="http://purl.oclc.org/dsdl/schematron"?>
+
+<Product_Document xmlns="http://pds.nasa.gov/pds4/pds/v1"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1B00.xsd">
+
+    <Identification_Area>
+        <logical_identifier>urn:esa:psa:em16_spice:document:spiceds</logical_identifier>
+        <version_id>2.0</version_id>
+        <title>ExoMars 2016 SPICE Archive Description</title>
+        <information_model_version>1.11.0.0</information_model_version>
+        <product_class>Product_Document</product_class>
+        <Citation_Information>
+            <publication_year>2020</publication_year>
+            <keyword>Observation Geometry</keyword>
+            <description>
+                This document provides a comprehensive description of
+                the ExoMars 2016 SPICE kernel archive
+                containing observation geometry and other ancillary
+                data in the form of SPICE System kernel files for the
+                TGO spacecraft and its
+                instruments and targets. It describes the archive
+                directory structure, kernels included in the archive,
+                their naming conventions, and provides pointers to the
+                SPICE software and documentation.
+            </description>
+        </Citation_Information>
+    </Identification_Area>
+    <Context_Area>
+        <Primary_Result_Summary>
+            <purpose>Observation Geometry</purpose>
+            <processing_level>Derived</processing_level>
+        </Primary_Result_Summary>
+        <Investigation_Area>
+            <name>ExoMars 2016</name>
+            <type>Mission</type>
+            <Internal_Reference>
+                <lid_reference>urn:esa:psa:context:investigation:mission.em16</lid_reference>
+                <reference_type>document_to_investigation</reference_type>
+            </Internal_Reference>
+        </Investigation_Area>
+        <Observing_System>
+            <Observing_System_Component>
+                <name>TGO</name>
+                <type>Spacecraft</type>
+                <Internal_Reference>
+                    <lid_reference>urn:esa:psa:context:instrument_host:spacecraft.tgo</lid_reference>
+                    <reference_type>is_instrument_host</reference_type>
+                </Internal_Reference>
+            </Observing_System_Component>
+        </Observing_System>
+    </Context_Area>
+    <Document>
+        <document_name>ExoMars 2016 SPICE Archive Description</document_name>
+        <publication_date>2020-04-16</publication_date>
+        <document_editions>1</document_editions>
+        <description>
+            This document provides a comprehensive description of
+            the ExoMars 2016 SPICE kernel archive
+            containing observation geometry and other ancillary
+            data in the form of SPICE System kernel files for the
+            TGO spacecraft and its
+            instruments and targets. It describes the archive
+            directory structure, kernels included in the archive,
+            their naming conventions, and provides pointers to the
+            SPICE software and documentation.
+        </description>
+        <Document_Edition>
+            <edition_name>ExoMars 2016 SPICE Archive Description</edition_name>
+            <language>English</language>
+            <files>1</files>
+            <description>
+                This document provides a comprehensive description of
+                the ExoMars 2016 SPICE kernel archive
+                containing observation geometry and other ancillary
+                data in the form of SPICE System kernel files for the
+                TGO spacecraft and its
+                instruments and targets. It describes the archive
+                directory structure, kernels included in the archive,
+                their naming conventions, and provides pointers to the
+                SPICE software and documentation.
+            </description>
+            <Document_File>
+                <file_name>spiceds_v002.html</file_name>
+                <creation_date_time>2020-04-16T18:31:44</creation_date_time>
+                <file_size unit="byte">35449</file_size>
+                <md5_checksum>75210859598a0b1dd9d3f7643f92bab0</md5_checksum>
+                <document_standard_id>HTML</document_standard_id>
+            </Document_File>
+        </Document_Edition>
+    </Document>
+</Product_Document>

@@ -1,0 +1,79 @@
+<?xml-model href="http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1B00.sch"
+    schematypens="http://purl.oclc.org/dsdl/schematron"?>
+
+
+<Product_SPICE_Kernel xmlns="http://pds.nasa.gov/pds4/pds/v1"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1B00.xsd">
+
+    <Identification_Area>
+        <logical_identifier>urn:esa:psa:em16_spice:spice_kernels:ik_em16_tgo_str_v03.ti</logical_identifier>
+        <version_id>1.0</version_id>
+        <title>em16_tgo_str_v03.ti</title>
+        <information_model_version>1.11.0.0</information_model_version>
+        <product_class>Product_SPICE_Kernel</product_class>
+        <Citation_Information>
+            <publication_year>2019</publication_year>
+            <keyword>Observation Geometry</keyword>
+            <description>SPICE IK file providing optics, detector, and field-of-view (FOV) parameters for the TGO Star Trackers (STR). Created by the ESA SPICE Service (ESS).</description>
+        </Citation_Information>
+    </Identification_Area>
+    <Context_Area>
+        <Time_Coordinates>
+            <start_date_time>2016-03-14T08:13:00.000Z</start_date_time>
+            <stop_date_time>2050-01-01T00:00:00.000Z</stop_date_time>
+        </Time_Coordinates>
+        <Primary_Result_Summary>
+            <purpose>Observation Geometry</purpose>
+            <processing_level>Derived</processing_level>
+        </Primary_Result_Summary>
+        <Investigation_Area>
+            <name>ExoMars 2016</name>
+            <type>Mission</type>
+            <Internal_Reference>
+                <lid_reference>urn:esa:psa:context:investigation:mission.em16</lid_reference>
+                <reference_type>data_to_investigation</reference_type>
+            </Internal_Reference>
+        </Investigation_Area>
+        <Observing_System>
+            <Observing_System_Component>
+                <name>TGO</name>
+                <type>Spacecraft</type>
+                <Internal_Reference>
+                    <lid_reference>urn:esa:psa:context:instrument_host:spacecraft.tgo</lid_reference>
+                    <reference_type>is_instrument_host</reference_type>
+                </Internal_Reference>
+            </Observing_System_Component>
+        </Observing_System>
+        <Target_Identification>
+            <name>Mars</name>
+            <type>Planet</type>
+            <Internal_Reference>
+                <lid_reference>urn:nasa:pds:context:target:planet.mars</lid_reference>
+                <reference_type>data_to_target</reference_type>
+            </Internal_Reference>
+        </Target_Identification>
+    </Context_Area>
+    <Reference_List>
+        <Internal_Reference>
+            <lid_reference>urn:esa:psa:em16_spice:document:spiceds</lid_reference>
+            <reference_type>data_to_document</reference_type>
+        </Internal_Reference>
+    </Reference_List>
+    <File_Area_SPICE_Kernel>
+        <File>
+            <file_name>em16_tgo_str_v03.ti</file_name>
+            <creation_date_time>2019-07-15T13:20:09.835Z</creation_date_time>
+            <file_size unit="byte">11114</file_size>
+            <md5_checksum>ad68f12fbcbb83c6316f61096ff45a2d</md5_checksum>
+        </File>
+        <SPICE_Kernel>
+            <offset unit="byte">0</offset>
+            <object_length unit="byte">11114</object_length>
+            <parsing_standard_id>SPICE</parsing_standard_id>
+            <description>SPICE IK file providing optics, detector, and field-of-view (FOV) parameters for the TGO Star Trackers (STR). Created by the ESA SPICE Service (ESS).</description>
+            <kernel_type>IK</kernel_type>
+            <encoding_type>Character</encoding_type>
+        </SPICE_Kernel>
+    </File_Area_SPICE_Kernel>
+</Product_SPICE_Kernel>

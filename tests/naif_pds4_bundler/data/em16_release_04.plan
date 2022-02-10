@@ -1,0 +1,47 @@
+
+EXOMARS 2016 2022/01/31 Release Notes:
+===============================================================================
+
+    Reviewers:
+
+        AEL: Alfredo Escalante Lopez
+
+                AELv01 -> 2022/01/31
+
+    CK:
+
+        em16_tgo_hga_ssm_20210101_20220101_s20220103_v01.bc \
+        em16_tgo_sa_ssm_20210101_20220101_s20220103_v01.bc \
+        em16_tgo_sc_fsp_210_01_20180222_20220115_s20211209_v01.bc \
+        em16_tgo_sc_ssm_20210101_20220101_s20220103_v01.bc \
+
+    DSK:
+
+        No new files
+
+    FK:
+
+        em16_tgo_v24.tf \
+
+    IK:
+
+        No new files
+
+    LSK:
+
+        No new files
+
+    PCK:
+
+        No new files
+
+    SCLK:
+
+        em16_tgo_step_20220103.tsc \
+
+    SPK:
+
+        em16_tgo_cog_210_01_20180220_20220115_v01.bsp \
+        em16_tgo_fsp_210_01_20210830_20220212_v01.bsp \
+        em16_tgo_fsp_201_01_20210628_20211211_v01.bsp \
+        em16_tgo_fsp_184_01_20210301_20211002_v01.bsp \
