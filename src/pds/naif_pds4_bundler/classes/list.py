@@ -826,7 +826,7 @@ class KernelList(List):
                     f"spice_kernels/" + extension2type(ker) + os.sep + ker
                 ):
                     present = True
-                    logging.error(f"     {ker} present.")
+                    logging.warning(f"     {ker} present.")
             if not present:
                 logging.info("     No kernels present in final area.")
             logging.info("")

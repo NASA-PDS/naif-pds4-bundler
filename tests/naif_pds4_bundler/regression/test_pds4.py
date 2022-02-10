@@ -121,6 +121,13 @@ class TestPDS4(TestCase):
                     #
                     elif "<release_date>2021-08-20</release_date>" in line:
                         n.write("")
+                    elif "<spice_name>TGO</spice_name>" in line:
+                        n.write("<spice_name>TGO</spice_name>\n")
+                        n.write("<release_date>2021-06-25</release_date>\n")
+                        n.write(
+                            "<creation_date_time>"
+                            "2021-06-25T08:00:00</creation_date_time>\n"
+                        )
                     else:
                         n.write(line)
 
