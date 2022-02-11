@@ -122,16 +122,23 @@ class TestMars2020(TestCase):
         main(config, kerlist=kerlist, silent=self.silent, log=self.log)
 
     def test_m2020_duplicated_kernel(self):
-        """Test error for a duplicated product.
+        """Test warning in log for a duplicated product.
 
         A file with a different filename might have the same md5 sum, this
         check catches that scenario. The bug that lead to this implementation
         was found when designing the regression test in test_pds4.py: test_m2020
 
-        Test is successful if the following error is raised::
+        Later on, when testing the generation of the ExoMars2016 PDS4 Bundle,
+        and adapting NPB to the ESA SPICE Service/PSA format, kernels with
+        duplicated MD5 sums were found. Consequently, the dubplicate MD5 issue
+        was relaxed from ERROR to WARNING.
+
+        Previously this error was raised::
             RuntimeError: Two products have the same MD5 sum, the product
             spice_kernels/sclk/m2020_168_sclkscet_refit_v03.tsc might be a
             duplicate.
+
+        Test is successful if NPB is executed without errors.
         """
         shutil.rmtree("kernels")
         shutil.copytree(
@@ -176,11 +183,13 @@ class TestMars2020(TestCase):
         shutil.copy2("kernels/sclk/m2020_168_sclkscet_refit_v02.tsc",
                      "kernels/sclk/m2020_168_sclkscet_refit_v03.tsc")
 
-        with self.assertRaises(RuntimeError):
-            main(
-                updated_config, plan=plan, silent=self.silent, log=self.log,
-                debug=False
-            )
+        main(updated_config, plan=plan, silent=self.silent, log=self.log,
+             debug=False)
+
+        line_check = 'e95003d6b0ff5fae6c2813c483108b6e'
+        if not string_in_file("working/mars2020_release_03.log", line_check, 3):
+            raise BaseException
+
 
     def test_m2020_spk_with_unrelated_id(self):
         """Test an empty SPK."""
@@ -300,9 +309,9 @@ class TestMars2020(TestCase):
         if not string_in_file("working/mars2020_release_01.log", line_check):
             raise BaseException
 
-        line_check = "2020-07-30T12:51:34Z - 2021-04-23T08:00:00Z"
+        line_check = "2021-02-18T20:20:00Z - 2021-04-23T08:00:00Z"
 
-        if not string_in_file("working/mars2020_release_01.log", line_check, 2):
+        if not string_in_file("working/mars2020_release_01.log", line_check, 1):
             raise BaseException
 
 

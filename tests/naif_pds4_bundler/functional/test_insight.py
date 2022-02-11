@@ -866,7 +866,7 @@ class TestINSIGHT(TestCase):
 
         main(config, plan=False, faucet=faucet, silent=self.silent, log=self.log)
 
-    def test_insight_only_cheksums(self):
+    def test_insight_only_checksums(self):
         """Test without any input (kernels or SPICEDS).
 
         No inputs are provided at all but checksums are generated.

@@ -3876,7 +3876,7 @@ class ChecksumProduct(Product):
                         # a different name raise an error unless you are
                         # running NPB in debug mode.
                         #
-                        if product.checksum in list(self.md5_dict.values()) and \
+                        if product.checksum in list(self.md5_dict.keys()) and \
                                 self.md5_dict[product_name] != product.checksum:
                             msg = f"Two products have the same MD5 sum, " \
                                   f"the product {product_name} might be a duplicate."

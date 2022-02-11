@@ -94,6 +94,7 @@ class TestXML(TestCase):
         args.debug = False
 
         setup = Setup(args, version)
+        setup.templates_directory = "../templates/1.5.0.0"
 
         #
         # Testing of the initialisation of the List class

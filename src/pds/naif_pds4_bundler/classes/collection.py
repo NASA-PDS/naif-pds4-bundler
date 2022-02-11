@@ -391,10 +391,14 @@ class SpiceKernelsCollection(Collection):
         # removed from the UTC string since it is not supported until the
         # SPICE Toolkit N0067.
         #
-        (increment_start, increment_finish) = \
-            et2date(spiceypy.utc2et(increment_start[:-1]),
-                    spiceypy.utc2et(increment_finish[:-1]),
-                    self.setup.date_format)
+        try:
+            (increment_start, increment_finish) = \
+                et2date(spiceypy.utc2et(increment_start[:-1]),
+                        spiceypy.utc2et(increment_finish[:-1]),
+                        self.setup.date_format)
+        except BaseException:
+            logging.warning("-- A leapseconds kernel (LSK) has not been loaded. "
+                            "Increment start/finish times will not be corrected.")
 
         logging.info("-- Increment interval for collection and bundle set to:")
         logging.info(f"   {increment_start} - {increment_finish}")

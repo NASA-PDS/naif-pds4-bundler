@@ -83,10 +83,7 @@ class TestSpiceErrors(TestCase):
         main(config, plan=plan, silent=self.silent, log=self.log,
              checksum=True)
 
-        line_check = "Checksum obtained from Checksum Registry file: " \
-                     "/Users/mcosta/workspace/pds/naif-pds4-bundler/" \
-                     "tests/naif_pds4_bundler/unittests/working/" \
-                     "mars2020_release_01.checksum"
+        line_check = "Checksum obtained from Checksum Registry file:"
 
         if not string_in_file("working/mars2020_release_01.log", line_check, 11):
             raise BaseException

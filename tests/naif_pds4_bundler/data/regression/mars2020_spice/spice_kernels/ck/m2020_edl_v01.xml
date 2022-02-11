@@ -18,7 +18,7 @@
   <Context_Area>
     <Time_Coordinates>
       <start_date_time>2021-02-18T20:27:50.057Z</start_date_time>
-      <stop_date_time>2021-02-18T21:20:00.000Z</stop_date_time>
+      <stop_date_time>2021-02-18T20:27:55.000Z</stop_date_time>
     </Time_Coordinates>
     <Primary_Result_Summary>
       <purpose>Observation Geometry</purpose>
@@ -61,12 +61,12 @@
     <File>
       <file_name>m2020_edl_v01.bc</file_name>
       <creation_date_time>2021-06-25T08:00:00</creation_date_time>
-      <file_size unit="byte">12312576</file_size>
-      <md5_checksum>f558f0cc13d575e1843f80e168bace5f</md5_checksum>
+      <file_size unit="byte">78848</file_size>
+      <md5_checksum>42d26ff95e7e579fc0def87662383534</md5_checksum>
     </File>
     <SPICE_Kernel>
       <offset unit="byte">0</offset>
-      <object_length unit="byte">12312576</object_length>
+      <object_length unit="byte">78848</object_length>
       <parsing_standard_id>SPICE</parsing_standard_id>
       <description>SPICE CK file containing reconstructed M2020 spacecraft Entry Descent Landing (EDL) orientation, created by NAIF, JPL.</description>
       <kernel_type>CK</kernel_type>

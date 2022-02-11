@@ -498,8 +498,14 @@ class Setup(object):
                     shutil.copy(self.templates_directory + os.sep + label, self.working_directory)
                     template_files.append(self.working_directory + os.sep + label)
         else:
-            # TODO Add templates for PDS3
-            self.templates_directory = ""
+            #
+            # PDS3 templates
+            #
+            self.templates_directory = f"{self.root_dir}templates/1.5.0.0"
+            templates = os.listdir(self.templates_directory)
+            for template in templates:
+                shutil.copy2(os.path.join(self.templates_directory, template), self.working_directory)
+                template_files.append(self.working_directory + os.sep + template)
 
         logging.info(f"-- Label templates directory: {self.templates_directory}")
 

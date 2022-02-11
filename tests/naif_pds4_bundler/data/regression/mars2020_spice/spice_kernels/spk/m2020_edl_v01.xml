@@ -18,7 +18,7 @@
   <Context_Area>
     <Time_Coordinates>
       <start_date_time>2021-02-18T20:27:50Z</start_date_time>
-      <stop_date_time>2021-02-18T21:20:00Z</stop_date_time>
+      <stop_date_time>2021-02-18T20:27:55Z</stop_date_time>
     </Time_Coordinates>
     <Primary_Result_Summary>
       <purpose>Observation Geometry</purpose>
@@ -61,12 +61,12 @@
     <File>
       <file_name>m2020_edl_v01.bsp</file_name>
       <creation_date_time>2021-06-25T08:00:00</creation_date_time>
-      <file_size unit="byte">10769408</file_size>
-      <md5_checksum>472d4ff187a9c1ce97736284eab1fe74</md5_checksum>
+      <file_size unit="byte">60416</file_size>
+      <md5_checksum>23f4f21259605c0d0bc9b51502c38725</md5_checksum>
     </File>
     <SPICE_Kernel>
       <offset unit="byte">0</offset>
-      <object_length unit="byte">10769408</object_length>
+      <object_length unit="byte">60416</object_length>
       <parsing_standard_id>SPICE</parsing_standard_id>
       <description>SPICE SPK file containing the final reconstructed EDL trajectory, created by NAIF, JPL.</description>
       <kernel_type>SPK</kernel_type>

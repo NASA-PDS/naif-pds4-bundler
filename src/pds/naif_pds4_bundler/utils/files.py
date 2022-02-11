@@ -234,7 +234,7 @@ def check_list_duplicates(list_of_elements):
 
 
 def fill_template(object, product_file, product_dictionary):
-    """Fill a template with uppercase keywords preceeded with ``$``.
+    """Fill a template with uppercase keywords preceded with ``$``.
 
     :param object:
     :param product_file:
@@ -734,7 +734,7 @@ def string_in_file(file, str_to_check, repetitions=1):
 
     :param file: File where the string is searched
     :param str_to_check: String to search
-    :param repetitions: Number of repetions, default is 1.
+    :param repetitions: Number of repetitions, default is 1.
     :return:
     """
     lines_with_string = 0
