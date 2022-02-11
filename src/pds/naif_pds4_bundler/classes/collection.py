@@ -1,11 +1,12 @@
 """Collection Class amd Child Classes Implementation."""
 import glob
 import logging
-import spiceypy
 import os
 
-from ..utils import extension2type
+import spiceypy
+
 from ..utils import et2date
+from ..utils import extension2type
 from .log import error_message
 
 

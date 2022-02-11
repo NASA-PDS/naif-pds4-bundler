@@ -22,6 +22,7 @@ from ..utils import compare_files
 from ..utils import creation_time
 from ..utils import current_date
 from ..utils import dsk_coverage
+from ..utils import et2date
 from ..utils import extension2type
 from ..utils import get_latest_kernel
 from ..utils import match_patterns
@@ -33,7 +34,6 @@ from ..utils import spice_exception_handler
 from ..utils import spk_coverage
 from ..utils import type2extension
 from ..utils import utf8len
-from ..utils import et2date
 from .label import BundlePDS4Label
 from .label import ChecksumPDS4Label
 from .label import DocumentPDS4Label
