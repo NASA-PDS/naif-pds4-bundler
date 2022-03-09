@@ -3,9 +3,15 @@ import glob
 import logging
 import os
 
+import spiceypy
+
 from ..utils import add_carriage_return
 from ..utils import compare_files
-from ..utils import extension2type
+from ..utils import extension_to_type
+from ..utils import type_to_PDS3_type
+from ..utils import spice_exception_handler
+from ..utils import format_multiple_values
+from ..utils import extract_comment
 from .log import error_message
 
 
@@ -14,12 +20,13 @@ class PDSLabel(object):
 
     def __init__(self, setup, product):
         """Constructor."""
-        try:
-            context_products = product.collection.bundle.context_products
-            if not context_products:
-                raise Exception("No context products from bundle in collection")
-        except BaseException:
-            context_products = product.bundle.context_products
+        if setup.pds_version == '4':
+            try:
+                context_products = product.collection.bundle.context_products
+                if not context_products:
+                    raise Exception("No context products from bundle in collection")
+            except BaseException:
+                context_products = product.bundle.context_products
 
         #
         # The product to be labeled.
@@ -32,40 +39,47 @@ class PDSLabel(object):
         #
         self.root_dir = setup.root_dir
         self.mission_acronym = setup.mission_acronym
-        self.XML_MODEL = setup.xml_model
-        self.SCHEMA_LOCATION = setup.schema_location
-        self.INFORMATION_MODEL_VERSION = setup.information_model
-        self.PDS4_MISSION_NAME = setup.mission_name
+        self.MISSION_NAME = setup.mission_name
 
-        #
-        # Needs to be built for several observers.
-        #
-        if hasattr(setup, "secondary_observers"):
-            if len(setup.secondary_observers) == 1:
-                observers_text = f"{setup.observer} and {setup.secondary_observers[0]}"
+        if setup.pds_version == '4':
+            self.XML_MODEL = setup.xml_model
+            self.SCHEMA_LOCATION = setup.schema_location
+            self.INFORMATION_MODEL_VERSION = setup.information_model
+
+            #
+            # Needs to be built for several observers.
+            #
+            if hasattr(setup, "secondary_observers"):
+                if len(setup.secondary_observers) == 1:
+                    observers_text = f"{setup.observer} and {setup.secondary_observers[0]}"
+                else:
+                    observers_text = f"{setup.observer}, "
+                    for i in range(len(setup.secondary_observers)):
+                        if i == len(setup.secondary_observers) - 1:
+                            observers_text += "and "
+                        observers_text += f"{setup.secondary_observers[i]}, "
+
+                self.PDS4_OBSERVER_NAME = f"{observers_text}spacecrafts and their"
             else:
-                observers_text = f"{setup.observer}, "
-                for i in range(len(setup.secondary_observers)):
-                    if i == len(setup.secondary_observers) - 1:
-                        observers_text += "and "
-                    observers_text += f"{setup.secondary_observers[i]}, "
+                self.PDS4_OBSERVER_NAME = f"{setup.observer} spacecraft and its"
 
-            self.PDS4_OBSERVER_NAME = f"{observers_text}spacecrafts and their"
-        else:
-            self.PDS4_OBSERVER_NAME = f"{setup.observer} spacecraft and its"
+            self.END_OF_LINE_PDS4 = "Carriage-Return Line-Feed"
+            if setup.end_of_line == "CRLF":
+                self.END_OF_LINE = "Carriage-Return Line-Feed"
+            elif setup.end_of_line == "LF":
+                self.END_OF_LINE = "Line-Feed"
+            else:
+                error_message(
+                    "End of Line provided via configuration is not CRLF nor LF.",
+                    setup=self.setup,
+                )
 
-        self.END_OF_LINE_PDS4 = "Carriage-Return Line-Feed"
-        if setup.end_of_line == "CRLF":
-            self.END_OF_LINE = "Carriage-Return Line-Feed"
-        elif setup.end_of_line == "LF":
-            self.END_OF_LINE = "Line-Feed"
-        else:
-            error_message(
-                "End of Line provided via configuration is not CRLF nor LF.",
-                setup=self.setup,
-            )
+            self.BUNDLE_DESCRIPTION_LID = f"{setup.logical_identifier}:document:spiceds"
 
-        self.BUNDLE_DESCRIPTION_LID = f"{setup.logical_identifier}:document:spiceds"
+            try:
+                self.PDS4_MISSION_LID = product.collection.bundle.lid_reference
+            except BaseException:
+                self.PDS4_MISSION_LID = product.bundle.lid_reference
 
         if hasattr(self.setup, "creation_date_time"):
             creation_dt = self.setup.creation_date_time
@@ -79,11 +93,6 @@ class PDSLabel(object):
 
         self.FILE_SIZE = product.size
         self.FILE_CHECKSUM = product.checksum
-
-        try:
-            self.PDS4_MISSION_LID = product.collection.bundle.lid_reference
-        except BaseException:
-            self.PDS4_MISSION_LID = product.bundle.lid_reference
 
         #
         # For labels that need to include all observers and targets of the
@@ -125,8 +134,9 @@ class PDSLabel(object):
             self.observers = product.observers
             self.targets = product.targets
 
-        self.OBSERVERS = self.get_observers()
-        self.TARGETS = self.get_targets()
+        if setup.pds_version == "4":
+            self.OBSERVERS = self.get_observers()
+            self.TARGETS = self.get_targets()
 
     def get_observers(self):
         """Get the label observers from the context products."""
@@ -242,9 +252,14 @@ class PDSLabel(object):
         """Write the Label."""
         label_dictionary = vars(self)
 
-        label_extension = ".xml"
+        if self.setup.pds_version == "4":
+            label_extension = ".xml"
+            eol = self.setup.eol_pds4
+        else:
+            label_extension = ".lbl"
+            eol = self.setup.eol_pds3
 
-        if ".xml" not in self.product.path:
+        if label_extension not in self.product.path:
             label_name = (
                 self.product.path.split(f".{self.product.extension}")[0]
                 + label_extension
@@ -267,7 +282,14 @@ class PDSLabel(object):
                         if isinstance(value, str) and key in line and "$" in line:
                             line = line.replace("$" + key, value)
 
-                    line = add_carriage_return(line, self.setup.eol_pds4, self.setup)
+                    #
+                    # The checksum label for PDS3 in order to be equivalent to
+                    # the one generated by mkpdssum.pl must have the same
+                    # line length as the checksum file.
+                    #
+                    if label_name.split(os.sep)[-1] == 'checksum.lbl':
+                        line += ' '*(self.product.record_bytes-len(line)-2)
+                    line = add_carriage_return(line, eol, self.setup)
 
                     f.write(line)
 
@@ -283,10 +305,14 @@ class PDSLabel(object):
         #
         self.setup.add_file(label_name.split(f"{stag_dir}{os.sep}")[-1])
 
+        #
+        # Wrap lines for PDS3 labels.
+        #
         if self.setup.diff:
             self.compare()
 
-        logging.info("")
+        if self.__class__.__name__ != "SpiceKernelPDS3Label":
+            logging.info("")
 
         return
 
@@ -573,11 +599,289 @@ class SpiceKernelPDS4Label(PDSLabel):
         self.PRODUCT_VID = self.product.vid
         self.SPICE_KERNEL_DESCRIPTION = product.description
 
-        extension = ".xml"
-        self.name = product.name.split(".")[0] + extension
+        self.write_label()
+
+
+class SpiceKernelPDS3Label(PDSLabel):
+    """PDS Label child class to generate a PDS3 SPICE Kernel Label."""
+
+    def __init__(self, mission, product):
+        """Constructor."""
+        PDSLabel.__init__(self, mission, product)
+
+        self.template = (
+            f"{self.setup.templates_directory}/template_product_spice_kernel.lbl"
+        )
+
+        self.FILE_NAME = f'"{product.name}"'
+        self.INTERCHANGE_FORMAT = product.file_format
+        self.START_TIME = product.start_time.split('Z')[0]
+        self.STOP_TIME = product.stop_time.split('Z')[0]
+        self.KERNEL_TYPE_ID = product.type.upper()
+        self.KERNEL_TYPE = type_to_PDS3_type(product.type.upper())
+        self.RECORD_TYPE = product.record_type
+        self.RECORD_BYTES = product.record_bytes
+        self.SPICE_KERNEL_DESCRIPTION = \
+            self.format_description(product.description)
+
+        self.set_kernel_ids(product)
+        self.set_sclk_times(product)
+
+        #
+        # Values from template defaults first.
+        #
+        for item in self.setup.pds3_mission_template.items():
+            if item[0] != 'maklabel_options':
+                maklabel_key = item[0]
+                maklabel_val = item[1]
+                self.__setattr__(maklabel_key, maklabel_val)
+
+        #
+        # Values extracted from the mission template.
+        #
+        for option in product.maklabel_options:
+            values = self.setup.pds3_mission_template['maklabel_options'][option]
+
+            for item in values.items():
+                maklabel_key = item[0]
+                maklabel_val = item[1]
+
+                maklabel_val = format_multiple_values(maklabel_val)
+
+                self.__setattr__(maklabel_key, maklabel_val)
+
+        #
+        # Remove the quotes from the target name and product version type.
+        #
+        if hasattr(self, 'TARGET_NAME'):
+            if '"' in self.TARGET_NAME:
+                self.TARGET_NAME = \
+                    self.TARGET_NAME.split('"')[1]
+        if hasattr(self, 'PRODUCT_VERSION_TYPE'):
+            if '"' in self.PRODUCT_VERSION_TYPE:
+                self.PRODUCT_VERSION_TYPE = \
+                    self.PRODUCT_VERSION_TYPE.split('"')[1]
+        if hasattr(self, 'PLATFORM_OR_MOUNTING_NAME'):
+            if '"' in self.PLATFORM_OR_MOUNTING_NAME and \
+                    self.PLATFORM_OR_MOUNTING_NAME != '"N/A"':
+                self.PLATFORM_OR_MOUNTING_NAME = \
+                    self.PLATFORM_OR_MOUNTING_NAME.split('"')[1]
 
         self.write_label()
 
+        if self.product.record_type == "STREAM":
+            self.insert_text_label()
+        else:
+            self.insert_binary_label()
+
+        logging.info("")
+
+    @spice_exception_handler
+    def set_sclk_times(self, product):
+        if product.type.upper() == 'CK':
+            spice_id = spiceypy.bodn2c(self.setup.spice_name)
+            et_start = spiceypy.str2et(product.start_time[:-1])
+            et_stop = spiceypy.str2et(product.stop_time[:-1])
+
+            sclk_start = spiceypy.sce2s(spice_id, et_start)
+            sclk_stop = spiceypy.sce2s(spice_id, et_stop)
+        else:
+            sclk_start = 'N/A'
+            sclk_stop = 'N/A'
+
+        self.SPACECRAFT_CLOCK_START_COUNT = f'"{sclk_start}"'
+        self.SPACECRAFT_CLOCK_STOP_COUNT = f'"{sclk_stop}"'
+
+        return
+
+    def set_kernel_ids(self, product):
+        '''Set the SPICE Kernel ID field of the label.'''
+        if product.type.upper() == 'CK':
+            naif_instrument_id = product.ck_kernel_ids()
+        elif product.type.upper() == 'IK':
+            naif_instrument_id = product.ik_kernel_ids()
+        else:
+            naif_instrument_id = '"N/A"'
+
+        self.NAIF_INSTRUMENT_ID = format_multiple_values(naif_instrument_id)
+
+        return
+
+    def format_description(self, description):
+        '''Format the SPICE kernel description appropriately.
+
+        The first line goes from character 33 to 78.
+        Successive lines go from character  1 to 78.
+        Last line has a blank space after the full stop.
+        '''
+        description = description.split()
+
+        desc = ''
+        line_len = 32
+        for word in description:
+            if line_len + len(word + ' ') < 77 :
+                if not desc:
+                    desc += '"' + word
+                else:
+                    desc += ' ' + word
+                line_len += len(' ' + word)
+            else:
+                desc += '\n'
+                desc += word
+                line_len = len(word)
+
+        if line_len < 77:
+            desc += ' "\n'
+
+        return desc
+
+    def insert_text_label(self):
+        '''Insert or update a label in a text kernel.
+
+        The routine inserts the label, after the first line containing the
+        kernel architecture specification and removes extra empty lines at the
+        end of the kernel file.
+        '''
+        with open(self.name, 'r') as label:
+            label_lines = label.readlines()
+
+
+        with open(self.product.path, 'r+') as kernel:
+            kernel_lines = kernel.readlines()
+
+        with open(self.product.path, 'w') as kernel:
+
+            if 'KPL/' in kernel_lines[0]:
+                kernel.write(kernel_lines[0])
+            else:
+                error_message(f'Kernel {self.product.name} does not have '
+                              f'architecture spec as first line.')
+
+            kernel.write('\n\\beginlabel\n')
+
+            for line in label_lines:
+                if line.strip() != 'END':
+                    kernel.write(line)
+
+            kernel.write('\\endlabel')
+
+            write_line = True
+
+            kernel_lines[-1] += '\n'
+
+            #
+            # If the kernel does not have a label add an empty line.
+            #
+            label_in_kernel = False
+            for line in kernel_lines:
+                if '\\beginlabel' in line:
+                    label_in_kernel = True
+            if not label_in_kernel:
+                kernel.write('\n')
+
+            #
+            # Remove empty lines at the end of the kernel, add a new line
+            # character in the last line.
+            #
+            lines_to_remove = 0
+            for line in reversed(kernel_lines):
+                if not line.strip():
+                    lines_to_remove += 1
+                if line.strip():
+                    break
+            lines_to_remove *= -1
+            if lines_to_remove:
+                kernel_lines = kernel_lines[:lines_to_remove]
+
+            #
+            # Add kernel list to kernel.
+            #
+            for line in kernel_lines:
+                if '\\beginlabel' in line:
+                    write_line = False
+                    logging.info('-- Updating label in kernel.')
+
+                if write_line:
+                    if line != kernel_lines[0]:
+                        kernel.write(line.rstrip() + '\n')
+
+                if '\\endlabel' in line:
+                    write_line = True
+
+        logging.info('-- Label inserted to text kernel.')
+
+        return
+
+    @spice_exception_handler
+    def insert_binary_label(self):
+        '''Insert or update a label in a binary kernel.
+
+        The routine inserts the label in the kernel comment.
+        '''
+        label_lines = []
+        with open(self.name, 'r') as label:
+            for line in label:
+                if line.strip() != 'END':
+                    label_lines.append(line.rstrip())
+
+        handle = spiceypy.dafopw(self.product.path)
+
+        #
+        # Extract comment from the kernel.
+        #
+        commnt = extract_comment(self.product.path, handle=handle)
+
+        #
+        # Remove the first N blank lines.
+        #
+        j = 0
+        for line in commnt:
+            if line.strip():
+                break
+            j += 1
+        if j > 0:
+            commnt = commnt[j:]
+
+        #
+        # Add a blank character in each empty line.
+        #
+        for i, line in enumerate(commnt):
+            if not line:
+                commnt[i] = ' '
+
+        #
+        # Add or replace label to comment list.
+        #
+        new_commnt = ['\\beginlabel'] + label_lines + ['\\endlabel'] + 2*[' ']
+
+        if '\\endlabel' in commnt:
+            index = commnt.index('\\endlabel')
+            commnt = commnt[index+1:]
+
+        new_commnt += commnt
+
+        #
+        # Delete comment from the kernel.
+        #
+        spiceypy.dafdc(handle)
+
+        #
+        # Insert updated comment to kernel.
+        #
+        spiceypy.dafac(handle, new_commnt)
+
+        with open(self.product.name, 'w') as o:
+            for line in new_commnt:
+                o.write(line+'\n')
+
+        #
+        # Close file handle.
+        #
+        spiceypy.dafcls(handle)
+
+        logging.info('-- Label inserted to binary kernel.')
+
+        return
 
 class MetaKernelPDS4Label(PDSLabel):
     """PDS Label child class to generate a PDS4 SPICE Kernel MK Label."""
@@ -622,7 +926,7 @@ class MetaKernelPDS4Label(PDSLabel):
             # The kernel lid cannot be obtained from the list; it is
             # merely a list of strings.
             #
-            kernel_type = extension2type(kernel)
+            kernel_type = extension_to_type(kernel)
             kernel_lid = "{}:spice_kernels:{}_{}".format(
                 self.setup.logical_identifier, kernel_type, kernel
             )
@@ -835,6 +1139,43 @@ class InventoryPDS4Label(PDSLabel):
         return "collection_to_target"
 
 
+class InventoryPDS3Label(PDSLabel):
+
+    def __init__(self, mission, collection, inventory):
+
+        PDSLabel.__init__(self, mission, inventory)
+
+        self.collection = collection
+        self.template = self.root_dir + \
+                        '/templates/pds3/template_collection_{}.lbl'.format(
+                            collection.type)
+
+        self.VOLUME_ID = self.setup.volume_id
+        self.ROW_BYTES = str(self.product.row_bytes)
+        self.ROWS = str(self.product.rows)
+
+        for i, bytes in enumerate(self.product.column_bytes):
+
+            setattr(self, f"START_BYTE_{i+1:02d}", str(self.product.column_start_bytes[i]))
+            setattr(self, f"BYTES_{i+1:02d}", str(bytes))
+
+        file_types = self.product.file_types
+        if len(file_types) == 1:
+            indexed_file_name = f"*.{file_types}"
+        else:
+            indexed_file_name = "{" + self.setup.eol_pds3
+            for file_type in file_types:
+                indexed_file_name +=  f'{29*" "}  "*.{file_type}",{self.setup.eol_pds3}'
+
+            indexed_file_name = indexed_file_name[:-3]+ self.setup.eol_pds3 +  29*" " + "}\n"
+
+        self.INDEXED_FILE_NAME = indexed_file_name
+
+        self.write_label()
+
+        return
+
+
 class DocumentPDS4Label(PDSLabel):
     """PDS Label child class to generate a PDS4 Docuemnt Label."""
 
@@ -877,5 +1218,27 @@ class ChecksumPDS4Label(PDSLabel):
         self.START_TIME = self.product.start_time
         self.STOP_TIME = self.product.stop_time
         self.name = product.name.split(".")[0] + ".xml"
+
+        self.write_label()
+
+
+class ChecksumPDS3Label(PDSLabel):
+    """PDS Label child class to generate a PDS3 Checksum Label."""
+
+    def __init__(self, setup, product):
+        """Constructor."""
+        PDSLabel.__init__(self, setup, product)
+
+        self.template = (
+            f"{setup.templates_directory}/template_product_checksum_table.lbl"
+        )
+
+        self.VOLUME_ID= self.setup.volume_id.upper()
+        self.PRODUCT_CREATION_TIME = product.creation_time
+        self.RECORD_BYTES = str(self.product.record_bytes)
+        self.FILE_RECORDS = str(self.product.file_records)
+        self.BYTES = str(self.product.bytes)
+
+        self.name = "checksum.lbl"
 
         self.write_label()

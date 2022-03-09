@@ -475,7 +475,10 @@ def main(
             meta_kernel = MetaKernelProduct(
                 setup, mk, spice_kernels_collection, user_input=user_input
             )
-            spice_kernels_collection.add(meta_kernel)
+            if setup.pds_version == '4':
+                spice_kernels_collection.add(meta_kernel)
+            else:
+                miscellaneous_collection.add(meta_kernel)
 
     #
     # * Faucet for labeling mode.
@@ -503,8 +506,9 @@ def main(
     #
     # * Determine the SPICE kernels Collection increment times and VID.
     #
-    spice_kernels_collection.set_increment_times()
-    spice_kernels_collection.set_collection_vid()
+    if setup.pds_version == "4":
+        spice_kernels_collection.set_increment_times()
+        spice_kernels_collection.set_collection_vid()
 
     #
     # * Validate the SPICE Kernels collection:
@@ -520,24 +524,24 @@ def main(
     #    collection has been updated.)
     #
     if spice_kernels_collection.updated:
-
-        spice_kernels_collection.set_collection_vid()
+        if setup.pds_version == "4":
+            spice_kernels_collection.set_collection_vid()
         spice_kernels_collection_inventory = InventoryProduct(
             setup, spice_kernels_collection
         )
         spice_kernels_collection.add(spice_kernels_collection_inventory)
 
-    #
-    # * Generate the Document Collection.
-    #
-    document_collection = DocumentCollection(setup, bundle)
-    document_collection.set_collection_vid()
 
-    #
-    # * Generate of SPICEDS document.
-    #
     if setup.pds_version == "4":
+        #
+        # * Generate the Document Collection.
+        #
+        document_collection = DocumentCollection(setup, bundle)
+        document_collection.set_collection_vid()
 
+        #
+        # * Generate of SPICEDS document.
+        #
         spiceds = SpicedsProduct(setup, document_collection)
 
         #
@@ -664,7 +668,18 @@ def main(
         miscellaneous_collection.add(checksum)
 
     elif setup.pds_version == "3":
-        pass
+
+        document_collection = DocumentCollection(setup, bundle)
+        document_collection.get_PDS3_documents()
+
+        bundle.add(spice_kernels_collection)
+        bundle.add(document_collection)
+        bundle.add(miscellaneous_collection)
+
+        checksum = ChecksumProduct(setup, miscellaneous_collection,
+                                   add_previous_checksum=False)
+        checksum.generate()
+        miscellaneous_collection.add(checksum)
 
     #
     # * List the files present in the staging area.
@@ -706,7 +721,8 @@ def main(
     # * Validate the Bundle by checking Checksum files against the updated
     #   Bundle history and checking the bundle times.
     #
-    bundle.validate()
+    if setup.pds_version == '4':
+        bundle.validate()
 
     #
     # * Validate Meta-kernel(s).

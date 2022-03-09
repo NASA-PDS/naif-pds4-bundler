@@ -8,6 +8,9 @@ import os
 import re
 import shutil
 import subprocess
+import numpy as np
+
+from collections import defaultdict
 from collections import OrderedDict
 from datetime import date
 
@@ -22,25 +25,30 @@ from ..utils import compare_files
 from ..utils import creation_time
 from ..utils import current_date
 from ..utils import dsk_coverage
-from ..utils import et2date
-from ..utils import extension2type
+from ..utils import et_to_date
+from ..utils import extension_to_type
 from ..utils import get_latest_kernel
 from ..utils import match_patterns
 from ..utils import md5
-from ..utils import mk2list
+from ..utils import mk_to_list
 from ..utils import pck_coverage
 from ..utils import safe_make_directory
 from ..utils import spice_exception_handler
 from ..utils import spk_coverage
-from ..utils import type2extension
+from ..utils import type_to_extension
 from ..utils import utf8len
+from ..utils import replace_string_in_file
+from ..utils import string_in_file
 from .label import BundlePDS4Label
 from .label import ChecksumPDS4Label
+from .label import ChecksumPDS3Label
 from .label import DocumentPDS4Label
 from .label import InventoryPDS4Label
+from .label import InventoryPDS3Label
 from .label import MetaKernelPDS4Label
 from .label import OrbnumFilePDS4Label
 from .label import SpiceKernelPDS4Label
+from .label import SpiceKernelPDS3Label
 from .log import error_message
 from .object import Object
 
@@ -58,9 +66,9 @@ class Product(object):
         self.size = str(stat_info.st_size)
 
         #
-        # If specified via configuraiton, try to obtain the checksum from a
+        # If specified via configuration, try to obtain the checksum from a
         # checksum registry file, if not present, try to obtain it from the
-        # label if the product is in the staging area. Otherwise compute the
+        # label if the product is in the staging area. Otherwise, compute the
         # checksum.
         #
         # Checksums for checksum files are always re-calculated.
@@ -78,7 +86,11 @@ class Product(object):
             checksum = str(md5(self.path))
 
         self.checksum = checksum
-        self.setup.add_checksum(self.path, checksum)
+
+        if self.setup.pds_version == '4':
+            archive_dir = f"{self.setup.mission_acronym}_spice/"
+        else:
+            archive_dir = f"{self.setup.volume_id}/"
 
         if hasattr(self.setup, "creation_date_time"):
             self.creation_time = self.setup.creation_date_time
@@ -89,9 +101,9 @@ class Product(object):
         self.extension = self.path.split(os.sep)[-1].split(".")[-1]
 
         if self.new_product:
-            self.setup.add_file(
-                self.path.split(f"{self.setup.mission_acronym}_spice/")[-1]
-            )
+            self.setup.add_file(self.path.split(archive_dir)[-1])
+            self.setup.add_checksum(self.path, checksum)
+
 
     def get_observer_and_target(self):
         """Read the configuration to extract the observers and the targets.
@@ -169,21 +181,34 @@ class SpiceKernelProduct(Product):
         self.name = name
 
         self.extension = name.split(".")[-1].strip()
-        self.type = extension2type(self)
+        self.type = extension_to_type(self)
 
-        #
-        # Determine if it is a binary or a text kernel.
-        #
-        if self.extension[0].lower() == "b":
-            self.file_format = "Binary"
-        else:
-            self.file_format = "Character"
 
         if self.setup.pds_version == "4":
+            #
+            # Determine if it is a binary or a text kernel.
+            #
+            if self.extension[0].lower() == "b":
+                self.file_format = "Binary"
+            else:
+                self.file_format = "Character"
+
             self.lid = self.product_lid()
             self.vid = self.product_vid()
             ker_dir = "spice_kernels"
         else:
+            #
+            # Determine if it is a binary or a text kernel.
+            #
+            if self.extension[0].lower() == "b":
+                self.file_format = "BINARY"
+                self.record_type = "FIXED_LENGTH"
+                self.record_bytes = "1024"
+            else:
+                self.file_format = "ASCII"
+                self.record_type = "STREAM"
+                self.record_bytes = '"N/A"'
+
             ker_dir = "data"
 
         self.collection_path = setup.staging_directory + os.sep + ker_dir + os.sep
@@ -268,9 +293,12 @@ class SpiceKernelProduct(Product):
         #
         # The kernel is labeled.
         #
+        logging.info(f"-- Labeling {self.name}...")
         if self.setup.pds_version == "4":
-            logging.info(f"-- Labeling {self.name}...")
-            self.label = SpiceKernelPDS4Label(setup, self)
+            self.label =  SpiceKernelPDS4Label(setup, self)
+        else:
+            self.maklabel_options = self.read_maklabel_options()
+            self.label = SpiceKernelPDS3Label(setup, self)
 
     def product_lid(self):
         """Determine product logical identifier (LID).
@@ -323,11 +351,46 @@ class SpiceKernelProduct(Product):
 
         if not description:
             error_message(
-                f"{self.name} does not have a description on {kernel_list_file}.",
+                f"{self.name} does not have a DESCRIPTION on {kernel_list_file}.",
                 setup=self.setup,
             )
 
         return description
+
+    def read_maklabel_options(self):
+        """Read the kernel list to return the MAKLABEL_OPTIONS.
+
+        The generated kernel list file must be used because it contains the
+        MAKLABEL_OPTIONS.
+
+        :return:
+        :rtype: tuple
+        """
+        kernel_list_file = (
+            self.setup.working_directory
+            + os.sep
+            + f"{self.setup.mission_acronym}_{self.setup.run_type}_"
+            f"{int(self.setup.release):02d}.kernel_list"
+        )
+
+        get_token = False
+        maklabel_options = False
+
+        with open(kernel_list_file, 'r') as lst:
+            for line in lst:
+                if self.name in line:
+                    get_token = True
+                if get_token and "MAKLABEL_OPTIONS" in line:
+                    maklabel_options = line.split("=")[-1].strip().split()
+                    get_token = False
+
+        if not maklabel_options:
+            error_message(
+                f"{self.name} does not have a MAKLABEL_OPTIONS on {kernel_list_file}.",
+                setup=self.setup,
+            )
+
+        return maklabel_options
 
     def coverage(self):
         """Determine the product coverage."""
@@ -359,9 +422,19 @@ class SpiceKernelProduct(Product):
 
         if not coverage:
             if self.type.lower() == "spk":
+
+                #
+                # For PDS3, do not consider the main body for coverage but all
+                # bodies, to follow MAKLABEL style.
+                #
+                if self.setup.pds_version == '3':
+                    main_name = False
+                else:
+                    main_name = self.setup.spice_name
+
                 coverage += spk_coverage(
                     self.path,
-                    main_name=self.setup.spice_name,
+                    main_name=main_name,
                     date_format=self.setup.date_format,
                 )
             elif self.type.lower() == "ck":
@@ -371,14 +444,29 @@ class SpiceKernelProduct(Product):
             elif self.type.lower() == "dsk":
                 coverage += dsk_coverage(self.path, date_format=self.setup.date_format)
             else:
-                coverage = [self.setup.mission_start, self.setup.mission_finish]
+                if self.setup.pds_version == "3":
+                    coverage = ['"N/A"', '"N/A"']
+                else:
+                    coverage = [self.setup.mission_start, self.setup.mission_finish]
 
         self.start_time = coverage[0]
         self.stop_time = coverage[-1]
 
+    def ck_kernel_ids(self):
+        """Extract IDs from CK."""
+        ids = spiceypy.ckobj(f"{self.path}")
+
+        id_list = list()
+        for id in ids:
+            id_list.append(str(id))
+
+        id_list = sorted(id_list, reverse=True)
+
+        return ','.join(id_list)
+
     def ik_kernel_ids(self):
-        """Extract the IDs from IK."""
-        with open(f"{self.path}/{self.name}", "r") as f:
+        """Extract IDs from IK."""
+        with open(f"{self.path}", "r") as f:
 
             id_list = list()
             parse_bool = False
@@ -398,84 +486,7 @@ class SpiceKernelProduct(Product):
 
         id_list = list(set(id_list))
 
-        return [id_list]
-
-    @spice_exception_handler
-    def kernel_setup_phase(self):
-        """Extract mission phase for kernel."""
-        #
-        # avoid reading the Z at the end of UTC tag
-        #
-        start_time = self.start_time[0:-1] if self.start_time != "N/A" else "N/A"
-        stop_time = self.stop_time[0:-1] if self.stop_time != "N/A" else "N/A"
-
-        setup_phase_map = (
-            f"{self.setup.root_dir}/config/{self.setup.acronym.lower()}.phases"
-        )
-
-        with open(setup_phase_map, "r") as f:
-            setup_phases = list()
-
-            if start_time == "N/A" and stop_time == "N/A":
-
-                for line in f:
-                    setup_phases.append(line.split("   ")[0])
-
-            if start_time != "N/A" and stop_time == "N/A":
-
-                next_phases_bool = False
-                start_tdb = spiceypy.str2et(start_time)  # + ' TDB')
-
-                for line in f:
-                    start_phase_date = line.rstrip().split(" ")[-2]
-                    start_phase_tdb = spiceypy.str2et(start_phase_date)
-
-                    stop_phase_date = line.rstrip().split(" ")[-1]
-                    stop_phase_tdb = spiceypy.str2et(stop_phase_date)
-
-                    if next_phases_bool:
-                        setup_phases.append(line.split("   ")[0])
-
-                    elif start_tdb >= start_phase_tdb:
-                        setup_phases.append(line.split("   ")[0])
-                        next_phases_bool = True
-
-            if start_time != "N/A" and stop_time != "N/A":
-
-                next_phases_bool = False
-                start_tdb = spiceypy.str2et(start_time)  # + ' TDB')
-                stop_tdb = spiceypy.str2et(stop_time)  # + ' TDB')
-
-                for line in f:
-
-                    start_phase_date = line.rstrip().split(" ")[-2]
-                    start_phase_tdb = spiceypy.str2et(start_phase_date)  # + ' TDB')
-
-                    stop_phase_date = line.rstrip().split(" ")[-1]
-                    stop_phase_tdb = spiceypy.str2et(stop_phase_date)
-                    stop_phase_tdb += 86400
-                    #  One day added to account for gap between phases.
-
-                    if next_phases_bool and start_phase_tdb >= stop_tdb:
-                        break
-                    # if next_phases_bool == True:
-                    #     setup_phases.append(line.split('   ')[0])
-                    # if start_phase_tdb <= start_tdb <= stop_phase_tdb:
-                    #     setup_phases.append(line.split('   ')[0])
-                    #     next_phases_bool = True
-                    if start_tdb <= stop_phase_tdb:
-                        setup_phases.append(line.split("   ")[0])
-                        next_phases_bool = True
-
-        setup_phases_str = ""
-        for phase in setup_phases:
-            setup_phases_str += "                                 " "" + phase + ",\r\n"
-
-        setup_phases_str = setup_phases_str[0:-3]
-
-        self.setup_phases = setup_phases_str
-
-        return
+        return ','.join(id_list)
 
     def product_mapping(self):
         """Obtain the kernel mapping."""
@@ -605,7 +616,7 @@ class MetaKernelProduct(Product):
 
         self.extension = self.path.split(".")[1]
 
-        self.type = extension2type(self.name)
+        self.type = extension_to_type(self.name)
 
         #
         # Add the configuration items for the meta-kernel.
@@ -645,24 +656,20 @@ class MetaKernelProduct(Product):
 
         if setup.pds_version == "3":
             self.collection_path = setup.staging_directory + os.sep + "extras" + os.sep
+            product_path = self.collection_path + self.type + os.sep
+
+            self.KERNELPATH = "./data"
         elif setup.pds_version == "4":
             self.collection_path = (
                 setup.staging_directory + os.sep + "spice_kernels" + os.sep
             )
+            product_path = self.collection_path + self.type + os.sep
 
-        if self.setup.pds_version == "3":
-            product_path = self.collection_path + self.type + os.sep
-            self.KERNELPATH = "./data"
-        else:
-            product_path = self.collection_path + self.type + os.sep
             self.KERNELPATH = ".."
 
-        if self.setup.pds_version == "4":
-            self.AUTHOR = self.setup.producer_name
-        else:
-            self.AUTHOR = self.setup.producer_name
 
-        self.PDS4_MISSION_NAME = self.setup.mission_name
+        self.AUTHOR = self.setup.producer_name
+        self.MISSION_NAME = self.setup.mission_name
 
         if hasattr(self.setup, "creation_date_time"):
             self.MK_CREATION_DATE = current_date(date=self.setup.creation_date_time)
@@ -740,21 +747,22 @@ class MetaKernelProduct(Product):
         # Following the product generation we read the kernels again to
         # include all the kernels present.
         #
-        self.collection_metakernel = mk2list(self.path, self.setup)
+        self.collection_metakernel = mk_to_list(self.path, self.setup)
 
-        #
-        # Set the meta-kernel times
-        #
-        self.coverage()
+        if self.setup.pds_version == "4":
+            #
+            # Set the meta-kernel times
+            #
+            self.coverage()
 
-        #
-        # Extract the required information from the kernel list read from
-        # configuration for the product.
-        #
-        (observers, targets) = self.get_observer_and_target()
+            #
+            # Extract the required information from the kernel list read from
+            # configuration for the product.
+            #
+            (observers, targets) = self.get_observer_and_target()
 
-        self.targets = targets
-        self.observers = observers
+            self.targets = targets
+            self.observers = observers
 
         Product.__init__(self)
 
@@ -1008,6 +1016,8 @@ class MetaKernelProduct(Product):
         #
         # Obtain meta-kernel grammar from configuration.
         #
+        if "grammar" not in  self.mk_setup:
+            error_message(f'Meta-kernel grammar not defined in configuration for {self.name}')
         kernel_grammar_list = self.mk_setup["grammar"]["pattern"]
 
         #
@@ -1053,7 +1063,7 @@ class MetaKernelProduct(Product):
                 #
                 paths = []
                 mks = []
-                if kernel_grammar.split(".")[-1].lower() in type2extension(kernel_type):
+                if kernel_grammar.split(".")[-1].lower() in type_to_extension(kernel_type):
                     try:
                         if self.setup.pds_version == "3":
                             paths.append(self.setup.staging_directory + "/DATA")
@@ -1448,7 +1458,7 @@ class MetaKernelProduct(Product):
                             f"{self.setup.bundle_directory}/"
                             f"{self.setup.mission_acronym}_spice/"
                             f"spice_kernels/"
-                            f"{extension2type(kernel)}/{kernel}"
+                            f"{extension_to_type(kernel)}/{kernel}"
                         )
 
                         #
@@ -1462,11 +1472,11 @@ class MetaKernelProduct(Product):
                                 "   It will not be used to determine the coverage."
                             )
                         else:
-                            if extension2type(kernel) == "spk":
+                            if extension_to_type(kernel) == "spk":
                                 (start_time, stop_time) = spk_coverage(
                                     path, main_name=self.setup.spice_name
                                 )
-                            elif extension2type(kernel) == "ck":
+                            elif extension_to_type(kernel) == "ck":
                                 (start_time, stop_time) = ck_coverage(path)
                             else:
                                 error_message(
@@ -1623,7 +1633,7 @@ class MetaKernelProduct(Product):
         # Re-format the time accordingly. The 'Z' is removed from the UTC
         # string since it is not supported until the SPICE Toolkit N0067.
         #
-        (start_time, stop_time) = et2date(spiceypy.utc2et(start_time[:-1]),
+        (start_time, stop_time) = et_to_date(spiceypy.utc2et(start_time[:-1]),
                                           spiceypy.utc2et(stop_time[:-1]),
                                           self.setup.date_format)
 
@@ -1644,8 +1654,14 @@ class OrbnumFileProduct(Product):
         self.name = name
         self.extension = name.split(".")[-1].strip()
         self.path = setup.orbnum_directory
-        self.collection_path = setup.staging_directory + os.sep + "miscellaneous"
-        product_path = self.collection_path + os.sep + "orbnum" + os.sep
+
+        if setup.pds_version == "3":
+            self.collection_path = setup.staging_directory + os.sep + "extras"
+            product_path = self.collection_path + os.sep + "orbnum" + os.sep
+
+        elif setup.pds_version == "4":
+            self.collection_path = setup.staging_directory + os.sep + "miscellaneous"
+            product_path = self.collection_path + os.sep + "orbnum" + os.sep
 
         #
         # Map the orbnum file with its configuration.
@@ -1662,8 +1678,9 @@ class OrbnumFileProduct(Product):
                 setup=self.setup,
             )
 
-        self.set_product_lid()
-        self.set_product_vid()
+        if self.setup.pds_version == '4':
+            self.set_product_lid()
+            self.set_product_vid()
 
         #
         # We generate the kernel directory if not present
@@ -1697,41 +1714,43 @@ class OrbnumFileProduct(Product):
         #
         # We obtain the parameters required to fill the label.
         #
-        header = self.read_header()
-        self.set_event_detection_key(header)
-        self.header_length = self.get_header_length()
-        self.set_previous_orbnum()
-        self.read_records()
-        self._sample_record = self.get_sample_record()
-        self.description = self.get_description()
+        if self.setup.pds_version == '4':
+            header = self.read_header()
+            self.set_event_detection_key(header)
+            self.header_length = self.get_header_length()
+            self.set_previous_orbnum()
+            self.read_records()
+            self._sample_record = self.get_sample_record()
+            self.description = self.get_description()
 
-        #
-        # Table character description is only obtained if there are missing
-        # records.
-        #
-        self.table_char_description = self.table_character_description()
+            #
+            # Table character description is only obtained if there are missing
+            # records.
+            #
+            self.table_char_description = self.table_character_description()
 
-        self.get_params(header)
-        self.set_params(header)
+            self.get_params(header)
+            self.set_params(header)
 
-        self.coverage()
+            self.coverage()
 
-        #
-        # Extract the required information from the kernel list read from
-        # configuration for the product.
-        #
-        (observers, targets) = self.get_observer_and_target()
+            #
+            # Extract the required information from the kernel list read from
+            # configuration for the product.
+            #
+            (observers, targets) = self.get_observer_and_target()
 
-        self.targets = targets
-        self.observers = observers
+            self.targets = targets
+            self.observers = observers
 
         Product.__init__(self)
 
         #
         # The kernel is labeled.
         #
-        logging.info(f"-- Labeling {self.name}...")
-        self.label = OrbnumFilePDS4Label(setup, self)
+        if self.setup.pds_version == '4':
+            logging.info(f"-- Labeling {self.name}...")
+            self.label = OrbnumFilePDS4Label(setup, self)
 
         return
 
@@ -1817,7 +1836,7 @@ class OrbnumFileProduct(Product):
     def read_header(self):
         """Read and process an orbnum file header.
 
-        Defines the record_fixed_length attribute that provides the lenght of
+        Defines the record_fixed_length attribute that provides the length of
         a record.
 
         :return: header line
@@ -2863,7 +2882,8 @@ class InventoryProduct(Product):
         self.collection = collection
 
         if setup.pds_version == "3":
-            self.path = setup.bundle_directory + os.sep + "index" + os.sep + "index.tab"
+            self.path = f"{setup.staging_directory}/index/index.tab"
+            self.name = "index.tab"
 
         elif setup.pds_version == "4":
 
@@ -2932,14 +2952,24 @@ class InventoryProduct(Product):
         #
         self.write_product()
         self.new_product = True
+
+        Product.__init__(self)
+
         if setup.pds_version == "4":
-            Product.__init__(self)
             self.label = InventoryPDS4Label(setup, collection, self)
+        elif setup.pds_version == '3':
+            self.label = InventoryPDS3Label(setup, collection, self)
 
-        # elif setup.pds_version == '3':
-        #    self.label = InventoryPDS3Label(setup, collection, self)
+            #
+            # Generate dsindex files.
+            #
+            shutil.copy2(self.path, self.setup.staging_directory + '/../dsindex.tab')
+            shutil.copy2(self.path.replace('.tab', '.lbl'),
+                         self.setup.staging_directory + '/../dsindex.lbl')
 
-        return
+            replace_string_in_file(self.setup.staging_directory + '/../dsindex.lbl',
+                                   '"INDEX.TAB"', '"DSINDEX.TAB"', self.setup)
+
 
     def set_product_lid(self):
         """Set the Product LID."""
@@ -2954,7 +2984,6 @@ class InventoryProduct(Product):
         if self.setup.pds_version == "4":
             self.write_pds4_collection_product()
         else:
-            return
             self.write_pds3_index_product()
 
         logging.info(
@@ -2963,7 +2992,11 @@ class InventoryProduct(Product):
         if not self.setup.args.silent and not self.setup.args.verbose:
             print(f"   * Created {self.path.split(self.setup.staging_directory)[-1]}.")
 
-        self.validate()
+        if self.setup.pds_version == "4":
+            self.validatePDS4()
+        else:
+            self.validatePDS3()
+
 
         if self.setup.diff:
             self.compare()
@@ -3007,124 +3040,136 @@ class InventoryProduct(Product):
 
         return
 
-    #    def write_pds3_index_product(self):
-    #
-    #        #
-    #        # PDS3 INDEX file generation
-    #        #
-    #
-    #        current_index = list()
-    #        kernel_list = list()
-    #        kernel_directory_list = ["IK", "FK", "SCLK", "LSK", "PCK", "CK", "SPK"]
-    #
-    #        # In MEX the DSK folder has nothing to export
-    #        if os.path.exists(self.mission.bundle_directory + "/DATA/DSK"):
-    #            kernel_directory_list.append("DSK")
-    #
-    #        if os.path.exists(self.mission.bundle_directory + "/DATA/EK"):
-    #            kernel_directory_list.append("EK")
-    #
-    #        # Note that PCK was doubled here. This accounted for a spurious extra line
-    #        # n the INDEX.TAB.
-    #
-    #        if self.mission.increment:
-    #            existing_index = self.mission.increment + "/INDEX/INDEX.TAB"
-    #
-    #            with open(existing_index, "r") as f:
-    #
-    #                for line in f:
-    #
-    #                    if line.strip() == "":
-    #                        break
-    #
-    #                    current_index.append(
-    #                        [
-    #                            line.split(",")[0].replace(" ", ""),
-    #                            line.split(",")[1].replace(" ", ""),
-    #                            line.split(",")[2],
-    #                            line.split(",")[3].replace("\n", "\r\n"),
-    #                        ]
-    #                    )
-    #                    line = line.split(",")[1]
-    #                    line = line[1:-1].rstrip()
-    #                    kernel_list.append(line)
-    #
-    #        new_index = []
-    #
-    #        for directory in kernel_directory_list:
-    #
-    #            data_files = self.mission.bundle_directory + "/data/" + directory
-    #
-    #            for file in os.listdir(data_files):
-    #
-    #                if file.split(".")[1] != "LBL" and file not in kernel_list:
-    #                    new_label_element = (
-    #                        '"DATA/' + directory + "/" + file.split(".")[0] + '.LBL"'
-    #                    )
-    #                    new_kernel_element = '"' + file + '"'
-    #
-    #                    generation_date = PDS3_label_gen_date(
-    #                        data_files + "/" + file.split(".")[0] + ".LBL"
-    #                    )
-    #                    if "T" not in generation_date:
-    #                        generation_date = generation_date
-    #
-    #                    new_index.append(
-    #                        [
-    #                            new_label_element,
-    #                            new_kernel_element,
-    #                            generation_date,
-    #                            '"' + self.mission.dataset + '"\r\n',
-    #                        ]
-    #                    )
-    #
-    #        #
-    #        # Merge both lists
-    #        #
-    #        index = current_index + new_index
-    #
-    #        #
-    #        # Sort out which is the kernel that has the most characters
-    #        # and we add blank spaces to the rest
-    #        #
-    #        lab_filenam_list = list()
-    #        ker_filenam_list = list()
-    #
-    #        for element in index:
-    #            lab_filenam_list.append(element[0])
-    #            ker_filenam_list.append(element[1])
-    #
-    #        longest_lab_name = max(lab_filenam_list, key=len)
-    #        max_lab_name_len = len(longest_lab_name)
-    #
-    #        longest_ker_name = max(ker_filenam_list, key=len)
-    #        max_ker_name_len = len(longest_ker_name)
-    #
-    #        index_list = list()
-    #        dates = []  # used to sort out according to generation date the index_list
-    #        for element in index:
-    #            blanks = max_lab_name_len - (len(element[0]))
-    #            label = element[0][:-1] + " " * blanks + element[0][-1]
-    #
-    #            blanks = max_ker_name_len - (len(element[1]))
-    #            kernel = element[1][:-1] + " " * blanks + element[1][-1]
-    #            if "\n" in element[-1]:
-    #                index_list.append(
-    #                    label + "," + kernel + "," + element[2] + "," + element[3]
-    #                )
-    #            else:
-    #                index_list.append(
-    #                    label + "," + kernel + "," + element[2] + "," + element[3] + "\n"
-    #                )
-    #            dates.append(element[2])
-    #        with open(self.mission.bundle_directory + "/index/index.tab", "w+") as f:
-    #            for element in [x for _, x in sorted(zip(dates, index_list))]:
-    #                f.write(element)
-    #
-    #        return
+    def write_pds3_index_product(self):
+        '''
+        This method uses the previous index file to generate the new one. There
+        is a NAIF Perl script that will generate an index file from a kernel
+        list file. Please contact the NAIF if you are interested in such
+        script.
+        :return:
+        '''
+        current_index = list()
+        column_length = np.zeros(10)
 
-    def validate(self):
-        """Validate the Inventory Product.
+        if self.setup.increment:
+            existing_index = f"{self.setup.bundle_directory}/{self.setup.volume_id}/index/index.tab"
+
+            with open(existing_index, "r") as f:
+                for line in f:
+                    if line.strip() != "":
+                        index_row = line.split(",")
+                        for i, col in enumerate(index_row):
+                            if '"' in col:
+                                index_row[i] = col.split('"')[1].strip()
+                            else:
+                                index_row[i] = col.strip()
+
+                            #
+                            # Remove EOL characters from last element of the
+                            # column.
+                            #
+                            if "\n\r" in col:
+                                col_len = len(col) - 2
+                            elif "\n" in col:
+                                col_len = len(col) - 1
+                            else:
+                                col_len = len(col)
+
+                            if column_length[i] < col_len:
+                                column_length[i] = col_len
+
+                        current_index.append(index_row)
+
+        new_index = []
+
+        for kernel in self.collection.product:
+            if type(kernel).__name__ != "MetaKernelProduct":
+
+                index_row = [kernel.start_time.split('Z')[0],
+                             kernel.stop_time.split('Z')[0],
+                             'data/' + kernel.path.split('/data/')[-1].split('.')[0] + '.lbl',
+                             self.collection.list.DATA_SET_ID.upper().split('"')[1],
+                             kernel.creation_time,
+                             self.collection.list.RELID,
+                             self.collection.list.RELDATE,
+                             kernel.type.upper(),
+                             kernel.name,
+                             self.collection.list.VOLID.lower()
+                             ]
+
+                new_index.append(index_row)
+
+        #
+        # Merge both lists
+        #
+        index = current_index + new_index
+
+        rows = 0
+        column_bytes = []
+        file_types = []
+
+        line_for_length = ""
+        with open(self.path, "w+") as f:
+            for row in index:
+                rows += 1
+                line = ''
+                for i, col in enumerate(row):
+                    if i < 2 or i == 4 or i == 6:
+                        if col == 'N/A':
+                            col = '"N/A"'
+                        line += f'{col}{" " * (int(column_length[i]) - len(col))}'
+                    else:
+                        line += f'"{col}{" " * (int(column_length[i]) - len(col) - 2)}"'
+                        line_for_length = line
+                    if i != 9:
+                        line += ','
+
+                line = add_carriage_return(line, self.setup.eol_pds3, self.setup)
+                file_types.append(type_to_extension(line.split(',')[7].split('"')[1].strip())[0])
+                f.write(line)
+
+            #
+            # Bytes of each column is necessary to write the index label.
+            #
+            if not line_for_length:
+                error_message("The index file is incomplete since no binary "
+                              "kernel is present in the archive.")
+            columns = line.split(',')
+            column_start_bytes = []
+            start_bytes = 1
+            for column in columns:
+
+                column_length = len(column)
+
+                if '\n\r' in column:
+                    column_length -= 3
+                elif '\n' in column:
+                    column_length -= 2
+                if '"' in column:
+                    column_length -= 2
+                    start_bytes += 1
+
+                column_start_bytes.append(start_bytes)
+
+                if '"' in column:
+                    start_bytes += len(column)
+                else:
+                    start_bytes += len(column) + 1
+
+                column_bytes.append(column_length)
+
+        file_types = list(set(file_types))
+
+        self.file_types = file_types
+        self.column_bytes = column_bytes
+        self.column_start_bytes = column_start_bytes
+        self.row_bytes = len(line)
+        self.rows = rows
+
+        return
+
+    def validatePDS4(self):
+        """Validate the PDS4 Inventory Product.
 
         The Inventory is validated by checking that all the products listed
         are present in the archive.
@@ -3151,6 +3196,17 @@ class InventoryProduct(Product):
 
         logging.info("      OK")
         logging.info("")
+
+    def validatePDS3(self):
+        """Validate the PDS3 Index.
+
+        The Inventory is validated by checking that all the products listed
+        are present in the archive and comparing the index file with the
+        previous one.
+        """
+        logging.info(f"-- Validating {self.name}...")
+
+        return
 
     def compare(self):
         """**Compare the Inventory Product with another Inventory**.
@@ -3193,105 +3249,6 @@ class InventoryProduct(Product):
             compare_files(fromfile, tofile, dir, self.setup.diff)
 
         logging.info("")
-
-        return
-
-    def write_index(self):
-        """Write PDS3 index file."""
-        line = f"Step {self.setup.step} - Generation of index files"
-        logging.info("")
-        logging.info(line)
-        logging.info("-" * len(line))
-        logging.info("")
-        self.setup.step += 1
-        if not self.setup.args.silent and not self.setup.args.verbose:
-            print("-- " + line.split(" - ")[-1] + ".")
-
-        cwd = os.getcwd()
-        os.chdir(self.setup.staging_directory)
-
-        list = f"{self.setup.working_directory}/{self.collection.list.complete_list}"
-        command = f"perl {self.setup.root_dir}exe/xfer_index.pl {list}"
-        logging.info(f"-- Executing: {command}")
-
-        command_process = subprocess.Popen(
-            command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
-        )
-
-        process_output, _ = command_process.communicate()
-        text = process_output.decode("utf-8")
-
-        os.chdir(cwd)
-
-        for line in text.split("\n"):
-            logging.info("   " + line)
-
-        #
-        # The Perl script returns an error message if there is a problem.
-        #
-        if ("ERROR" in text) or ("command not found" in text):
-            error_message(text, setup=self.setup)
-
-        #
-        # Move index files to appropriate directory
-        #
-        index = f"{self.setup.staging_directory}/index.tab"
-        index_lbl = f"{self.setup.staging_directory}/index.lbl"
-        dsindex = f"{self.setup.staging_directory}/dsindex.tab"
-        dsindex_lbl = f"{self.setup.staging_directory}/dsindex.lbl"
-
-        #
-        # Add CRS to the index files.
-        #
-
-        if self.setup.pds_version == "4":
-            os.remove(index)
-            os.remove(index_lbl)
-
-            dsindex = shutil.move(dsindex, self.setup.staging_directory + "/../")
-            dsindex_lbl = shutil.move(
-                dsindex_lbl, self.setup.staging_directory + "/../"
-            )
-
-            logging.info("-- Adding CRs to index files.")
-            logging.info("")
-            add_crs_to_file(dsindex, self.setup.eol_pds4, self.setup)
-            add_crs_to_file(dsindex_lbl, self.setup.eol_pds4, self.setup)
-
-            self.index = ""
-            self.index_lbl = ""
-            self.dsindex = dsindex
-            self.dsindex_lbl = dsindex_lbl
-
-        self.validate_index()
-
-        return
-
-    def validate_index(self):
-        """Validate the index file and label.
-
-        The index and the index label are validated by comparing with
-        the previous versions
-
-        :return:
-        """
-        #
-        # Compare with previous index file, if exists. Otherwise it is
-        # not compared.
-        #
-        indexes = [self.index, self.index_lbl, self.dsindex, self.dsindex_lbl]
-
-        for index in indexes:
-            if index:
-                try:
-                    current_index = (
-                        self.setup.bundle_directory + os.sep + index.split(os.sep)[-1]
-                    )
-                    compare_files(
-                        index, current_index, self.setup.working_directory, "all"
-                    )
-                except BaseException:
-                    logging.warning(f"-- File to compare with does not exist: {index}")
 
         return
 
@@ -3642,7 +3599,6 @@ class ReadmeProduct(Product):
 
         return
 
-
 class ChecksumProduct(Product):
     """Product child class to generate a Checksum Product."""
 
@@ -3665,7 +3621,11 @@ class ChecksumProduct(Product):
         #
         # We generate the kernel directory if not present
         #
-        product_path = self.collection_path + "checksum" + os.sep
+        if setup.pds_version == '4':
+            product_path = self.collection_path + "checksum/"
+        else:
+            product_path = f"{setup.staging_directory}/index/"
+
         safe_make_directory(product_path)
 
         #
@@ -3677,8 +3637,9 @@ class ChecksumProduct(Product):
 
         self.read_current_product(add_previous_checksum=add_previous_checksum)
 
-        self.set_product_lid()
-        self.set_product_vid()
+        if setup.pds_version == '4':
+            self.set_product_lid()
+            self.set_product_vid()
 
     def set_coverage(self):
         """Determine the coverage of the Checksum file."""
@@ -3719,7 +3680,10 @@ class ChecksumProduct(Product):
         # The checksum is labeled.
         #
         logging.info(f"-- Labeling {self.name}...")
-        self.label = ChecksumPDS4Label(self.setup, self)
+        if self.setup.pds_version == '4':
+            self.label = ChecksumPDS4Label(self.setup, self)
+        else:
+            self.label = ChecksumPDS3Label(self.setup, self)
 
     def read_current_product(self, add_previous_checksum=True):
         """Reads the current checksum file.
@@ -3730,65 +3694,79 @@ class ChecksumProduct(Product):
         #
         # Determine the checksum version
         #
-        if self.setup.increment:
-            checksum_files = glob.glob(
-                self.setup.bundle_directory
-                + f"/{self.setup.mission_acronym}_spice/"
-                + self.collection.name
-                + os.sep
-                + "/checksum/checksum_v*.tab"
-            )
+        if self.setup.pds_version == "4":
+            if self.setup.increment:
+                checksum_files = glob.glob(
+                    self.setup.bundle_directory
+                    + f"/{self.setup.mission_acronym}_spice/"
+                    + self.collection.name
+                    + os.sep
+                    + "/checksum/checksum_v*.tab"
+                )
 
-            checksum_files += glob.glob(
-                self.setup.staging_directory
-                + os.sep
-                + self.collection.name
-                + "/checksum/checksum_v*.tab"
-            )
-            checksum_files.sort()
-            try:
-                latest_file = checksum_files[-1]
+                checksum_files += glob.glob(
+                    self.setup.staging_directory
+                    + os.sep
+                    + self.collection.name
+                    + "/checksum/checksum_v*.tab"
+                )
+                checksum_files.sort()
+                try:
+                    latest_file = checksum_files[-1]
 
-                #
-                # Store the previous version to use it to validate the
-                # generated one.
-                #
-                self.path_current = latest_file
-                self.name_current = latest_file.split(os.sep)[-1]
+                    #
+                    # Store the previous version to use it to validate the
+                    # generated one.
+                    #
+                    self.path_current = latest_file
+                    self.name_current = latest_file.split(os.sep)[-1]
 
-                latest_version = latest_file.split("_v")[-1].split(".")[0]
-                self.version = int(latest_version) + 1
+                    latest_version = latest_file.split("_v")[-1].split(".")[0]
+                    self.version = int(latest_version) + 1
 
-                logging.info(f"-- Previous checksum file is: {latest_file}")
-                logging.info(f"-- Generate version {self.version}.")
-                logging.info("")
+                    logging.info(f"-- Previous checksum file is: {latest_file}")
+                    logging.info(f"-- Generate version {self.version}.")
+                    logging.info("")
 
-            except BaseException:
+                except BaseException:
+                    self.version = 1
+                    self.path_current = ""
+
+                    logging.warning("-- Previous checksum file not found.")
+                    logging.warning(f"-- Default to version {self.version}.")
+                    logging.warning("-- The version of this file might be incorrect.")
+
+            else:
                 self.version = 1
                 self.path_current = ""
 
-                logging.warning("-- Previous checksum file not found.")
                 logging.warning(f"-- Default to version {self.version}.")
-                logging.warning("-- The version of this file might be incorrect.")
+                logging.warning("-- Make sure this is the first release of the archive.")
+                logging.warning("")
 
+            self.name = f"checksum_v{self.version:03}.tab"
+            self.path = (
+                    self.setup.staging_directory
+                    + os.sep
+                    + self.collection.name
+                    + os.sep
+                    + "checksum"
+                    + os.sep
+                    + self.name
+            )
         else:
-            self.version = 1
-            self.path_current = ""
 
-            logging.warning(f"-- Default to version {self.version}.")
-            logging.warning("-- Make sure this is the first release of the archive.")
-            logging.warning("")
+            self.name_current = "checksum.tab"
+            self.path_current = self.setup.bundle_directory + os.sep + self.setup.volume_id + "/index/checksum.tab"
 
-        self.name = f"checksum_v{self.version:03}.tab"
-        self.path = (
-            self.setup.staging_directory
-            + os.sep
-            + self.collection.name
-            + os.sep
-            + "checksum"
-            + os.sep
-            + self.name
-        )
+            self.name = "checksum.tab"
+            self.path = (
+                    self.setup.staging_directory
+                    + os.sep
+                    + "index"
+                    + os.sep
+                    + self.name
+            )
 
         #
         # Add each element of current checksum into the md5_sum attribute if
@@ -3824,12 +3802,15 @@ class ChecksumProduct(Product):
             #
             if add_previous_checksum:
 
-                checksum_dir = f"{self.collection.name }/checksum/"
+                if self.setup.pds_version == "4":
+                    checksum_dir = f"{self.collection.name}/checksum/"
+                    label_current = self.path_current.replace(".tab", ".xml")
+                else:
+                    checksum_dir = f"index/"
+                    label_current = self.path_current.replace(".tab", ".lbl")
 
                 md5_current = md5(self.path_current)
                 self.md5_dict[checksum_dir + self.path_current.split(os.sep)[-1]] =  md5_current
-
-                label_current = self.path_current.replace(".tab", ".xml")
 
                 md5_label = md5(label_current)
                 self.md5_dict[checksum_dir + label_current.split(os.sep)[-1]] = md5_label
@@ -3868,7 +3849,12 @@ class ChecksumProduct(Product):
             #
             for collection in self.collection.bundle.collections:
                 for product in collection.product:
-                    product_name = product.path.split(f"/{msn_acr}_spice/")[-1]
+                    if self.setup.pds_version == '4':
+                        archive_dir = f"/{msn_acr}_spice/"
+                    else:
+                        archive_dir = f"/{self.setup.volume_id}/"
+
+                    product_name = product.path.split(archive_dir)[-1]
                     if hasattr(product, "checksum"):
 
                         #
@@ -3896,7 +3882,7 @@ class ChecksumProduct(Product):
                     #
                     if hasattr(product, "label"):
                         label_checksum = md5(product.label.name)
-                        self.md5_dict[product.label.name.split(f"/{msn_acr}_spice/")[-1]] = label_checksum
+                        self.md5_dict[product.label.name.split(archive_dir)[-1]] = label_checksum
 
                     else:
                         logging.warning(f"-- {product_name} does not have a label.")
@@ -3912,16 +3898,17 @@ class ChecksumProduct(Product):
             #
             # Include the bundle label, that is paired to the readme file.
             #
-            if not set_coverage:
+            if self.setup.pds_version == '4' and not set_coverage:
                 label_checksum = md5(self.collection.bundle.readme.label.name)
                 self.md5_dict[
                     self.collection.bundle.readme.label.name.split(f"/{msn_acr}_spice/")[-1]
                 ] = label_checksum
 
         #
-        # The missing checksum files are generated from the bundle history.
+        # The missing checksum files for PDS4 are generated from the bundle
+        # history.
         #
-        if history:
+        if history and self.setup.pds_version == "4":
             for product in history[1]:
                 path = (
                     self.setup.bundle_directory
@@ -3957,8 +3944,6 @@ class ChecksumProduct(Product):
         # MD5 sum.) This happened for the ExoMars2016 bundle release 004
         # where 3 products had the same MD5 sum values.
         #
-        from collections import defaultdict
-
         md5_check_dict = defaultdict(set)
 
         for k, v in self.md5_dict.items():
@@ -3974,10 +3959,61 @@ class ChecksumProduct(Product):
                     logging.warning(f'      {file}')
 
         #
-        # Generate the list to be written.
+        # Generate the list to be written. PDS4 and PDS3 checksums differ.
+        # PDS4 checksums are cumulative and each aggregation is in alphabetical
+        # order, whereas PDS3 checksums are in global alphabetical order.
         #
-        for key, value in self.md5_dict.items():
-            md5_list.append(f"{value}  {key}")
+        if self.setup.pds_version == '4':
+            for key, value in self.md5_dict.items():
+                md5_list.append(f"{value}  {key}")
+        else:
+            #
+            # PDS3 checksums have trailing whitespaces to fill the number of
+            # characters of the longest entry. This value is also used for the
+            # label generation.
+            #
+            max_key_len = len(max(self.md5_dict.keys(), key=len))
+
+            #
+            # Python sorting algorythm sorts the characters using their ASCII
+            # index. The original Checksum generation script mkpdssum.pl did not
+            # use this sorting order; '.' and '_' did not have precedence over
+            # alphabetical characters.
+            #
+            # In order to preserve the order provided by mkpdssum.pl, it is
+            # necessary to "trick" Python sorting or implement a customised
+            # sorting function. The order in ASCII is as follows:
+            #
+            #    index     char
+            #   -------------------
+            #    42        *
+            #    46        .
+            #    47        /
+            #    48-57     0-9
+            #    58        :
+            #    95        _
+            #    96        `
+            #    65-90     A-Z
+            #    97-122    a-z
+            #    124       |
+            #    126       ~
+            #
+            # In order to correct the issue there will be a modified of keys
+            # list -with file names- that will have '.' replaced by '~' and
+            # '_' replaced by '|'. This is safe since filenames do not use
+            # these characters.
+            #
+            md5_dict_keys = list(self.md5_dict.keys())
+            for i, s in enumerate(md5_dict_keys):
+                md5_dict_keys[i] = s.replace('_','~').replace('.','|')
+
+            for key in sorted(md5_dict_keys):
+                key = key.replace('~','_').replace('|','.')
+                md5_list.append(f"{self.md5_dict[key]}  {key}{' '*(max_key_len-len(key))}")
+
+            self.bytes = max_key_len
+            self.record_bytes = 32 + 4 + max_key_len
+            self.file_records = len(md5_dict_keys)
 
         #
         # We remove spurious .DS_Store files if we are working with MacOS.
@@ -3994,69 +4030,70 @@ class ChecksumProduct(Product):
         # by the spice_kernel collection and the orbnum files in the
         # miscellaneous collection.
         #
-        coverage_list = []
+        if self.setup.pds_version == '4':
+            coverage_list = []
 
-        #
-        # Gather all the relevant products that define the coverage of the
-        # checksum file: orbnum labels and spice_kernels collection labels.
-        #
-        for product in md5_list:
-            if ("spice_kernels/collection_spice_kernels_v" in product) or (
-                ("miscellaneous/orbnum/" in product) and ((".xml" in product))
-            ):
-                coverage_list.append(product.split()[-1])
+            #
+            # Gather all the relevant products that define the coverage of the
+            # checksum file: orbnum labels and spice_kernels collection labels.
+            #
+            for product in md5_list:
+                if ("spice_kernels/collection_spice_kernels_v" in product) or (
+                    ("miscellaneous/orbnum/" in product) and ((".xml" in product))
+                ):
+                    coverage_list.append(product.split()[-1])
 
-        start_times = []
-        stop_times = []
-        for product in coverage_list:
-            #
-            # The files can either be in the staging or the final area.
-            #
-            path = (
-                f"{self.setup.bundle_directory}/"
-                f"{self.setup.mission_acronym}_spice/" + product
-            )
-            if not os.path.isfile(path):
-                path = f"{self.setup.staging_directory}/" + product
+            start_times = []
+            stop_times = []
+            for product in coverage_list:
+                #
+                # The files can either be in the staging or the final area.
+                #
+                path = (
+                    f"{self.setup.bundle_directory}/"
+                    f"{self.setup.mission_acronym}_spice/" + product
+                )
                 if not os.path.isfile(path):
-                    logging.error(
-                        f"-- Product required to determine "
-                        f"{self.name} coverage: {product} not found."
-                    )
+                    path = f"{self.setup.staging_directory}/" + product
+                    if not os.path.isfile(path):
+                        logging.error(
+                            f"-- Product required to determine "
+                            f"{self.name} coverage: {product} not found."
+                        )
 
-            if os.path.isfile(path):
-                with open(path, "r") as lbl:
-                    for line in lbl:
-                        if "<start_date_time>" in line:
-                            start_time = line.split("<start_date_time>")[-1].split(
-                                "</"
-                            )[0]
-                            start_times.append(start_time)
-                        if "<stop_date_time>" in line:
-                            stop_time = line.split("<stop_date_time>")[-1].split("</")[
-                                0
-                            ]
-                            stop_times.append(stop_time)
+                if os.path.isfile(path):
+                    with open(path, "r") as lbl:
+                        for line in lbl:
+                            if "<start_date_time>" in line:
+                                start_time = line.split("<start_date_time>")[-1].split(
+                                    "</"
+                                )[0]
+                                start_times.append(start_time)
+                            if "<stop_date_time>" in line:
+                                stop_time = line.split("<stop_date_time>")[-1].split("</")[
+                                    0
+                                ]
+                                stop_times.append(stop_time)
 
-        if not start_times:
-            logging.warning(
-                f"-- Start time set to "
-                f"mission start time: {self.setup.mission_start}"
-            )
-            start_times.append(self.setup.mission_start)
+            if not start_times:
+                logging.warning(
+                    f"-- Start time set to "
+                    f"mission start time: {self.setup.mission_start}"
+                )
+                start_times.append(self.setup.mission_start)
 
-        if not stop_times:
-            logging.warning(
-                f"-- Stop time set to "
-                f"mission finish time: {self.setup.mission_finish}"
-            )
-            stop_times.append(self.setup.mission_finish)
+            if not stop_times:
+                logging.warning(
+                    f"-- Stop time set to "
+                    f"mission finish time: {self.setup.mission_finish}"
+                )
+                stop_times.append(self.setup.mission_finish)
 
-        start_times.sort()
-        stop_times.sort()
+            start_times.sort()
+            stop_times.sort()
 
-        self.start_time = start_times[0]
-        self.stop_time = stop_times[-1]
+            self.start_time = start_times[0]
+            self.stop_time = stop_times[-1]
 
         if not set_coverage:
             #
@@ -4074,7 +4111,7 @@ class ChecksumProduct(Product):
         return None
 
     def compare(self):
-        """**Compare the Checksum with the previus Checksum file**.
+        """**Compare the Checksum with the previous Checksum file**.
 
         The Checksum file is compared with the previous version.
         """
@@ -4092,3 +4129,62 @@ class ChecksumProduct(Product):
         logging.info("")
 
         return None
+
+
+class PDS3DocumentProduct(Product):
+    """Product child class that represents a PDS3 Document Product."""
+
+    def __init__(self, setup, path):
+        """Constructor."""
+        self.path = path
+        self.setup = setup
+        self.name = path.split(os.sep)[-1]
+
+        #
+        # Compare with the already existing file -that has the same name-, if
+        # files are the same do not include as an updated file.
+        #
+        existing_path = self.setup.bundle_directory + os.sep + \
+                        self.setup.volume_id + \
+                        path.split(self.setup.volume_id)[-1]
+
+        same_files = compare_files(existing_path,
+                                   path,
+                                   self.setup.working_directory,
+                                   self.setup.diff
+                     )
+        if not same_files:
+            self.new_product = False
+        else:
+            self.new_product = True
+
+            self.validate()
+
+        Product.__init__(self)
+
+    def validate(self):
+
+        if self.name == 'release.cat':
+            release_strings = [
+                f'RELEASE_ID                      = "0{self.setup.release}"',
+                f'RELEASE_DATE                    = {self.setup.release_date}',
+                f'RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0{self.setup.release}"'
+            ]
+        else:
+            release_strings = [self.setup.release_date]
+
+        for string in release_strings:
+            logging.info('')
+            present = string_in_file(self.path, string)
+            if not present:
+                logging.warning('-- The following string:')
+                logging.warning(f'   {string}')
+                logging.warning(f'   Is not present in: {self.name}')
+            else:
+                logging.info('-- The following string:')
+                logging.info(f'   {string}')
+                logging.info(f'   Is present in: {self.name}')
+
+        logging.info('')
+
+        return

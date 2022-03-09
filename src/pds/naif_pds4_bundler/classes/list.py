@@ -10,7 +10,7 @@ import shutil
 from ..utils import check_consecutive
 from ..utils import check_list_duplicates
 from ..utils import compare_files
-from ..utils import extension2type
+from ..utils import extension_to_type
 from ..utils import extract_comment
 from ..utils import fill_template
 from ..utils import spice_exception_handler
@@ -53,10 +53,14 @@ class KernelList(List):
         self.CURRENTDATE = str(datetime.datetime.now())[:10]
         self.OBS = setup.observer
         self.AUTHOR = setup.producer_name
-        self.PHONE = setup.producer_phone
-        self.EMAIL = setup.producer_email
-        self.DATASETID = setup.dataset_id
-        self.VOLID = setup.volume_id.lower()
+
+        if self.setup.pds_version == "3":
+            self.DATA_SET_ID = setup.pds3_mission_template['DATA_SET_ID'].lower()
+            self.VOLID =  setup.volume_id.lower()
+        else:
+            self.DATA_SET_ID = "N/A"
+            self.VOLID = "N/A"
+
         self.RELID = f"{int(setup.release):04d}"
         self.RELDATE = setup.release_date
 
@@ -123,7 +127,7 @@ class KernelList(List):
         elif plan.split(".")[-1] != "plan":
             error_message(
                 "Release plan requires *.plan extension. Single "
-                "kernels are only alloed in labeling mode."
+                "kernels are only allowed in labeling mode."
             )
 
         with open(plan, "r") as f:
@@ -221,7 +225,7 @@ class KernelList(List):
 
         #
         # Sort the meta-kernels that need to be added if not running
-        # in lavel geneation mode.
+        # in label generation mode.
         #
         # First we look into the configuration file. If a meta-kernel is
         # present, it is the one that will be used.
@@ -346,7 +350,7 @@ class KernelList(List):
         #
         # Add plan to the list of generated files.
         #
-        self.setup.add_file(f"/working_directory/{plan_name}")
+        self.setup.add_file(f"{self.setup.working_directory}/{plan_name}")
 
         return True
 
@@ -479,11 +483,11 @@ class KernelList(List):
                                         # area of the kernel. This is usually to
                                         # get the original kernel name.
                                         #
-                                        # So far this merhod is implemented to accomodate MRO files
+                                        # So far this method is implemented to accomodate MRO files
                                         #
                                         comment = extract_comment(
                                             self.setup.kernels_directory[0] +
-                                            f"/{ extension2type(kernel.split('.')[-1])}/" + kernel
+                                            f"/{ extension_to_type(kernel.split('.')[-1])}/" + kernel
                                         )
 
                                         for line in comment:
@@ -561,9 +565,9 @@ class KernelList(List):
                         description = " ".join(description.split())
 
                         if self.setup.pds_version == "3":
-                            kerdir = "data/" + extension2type(kernel)
+                            kerdir = "data/" + extension_to_type(kernel)
                         else:
-                            kerdir = "spice_kernels/" + extension2type(kernel)
+                            kerdir = "spice_kernels/" + extension_to_type(kernel)
 
                         if not options:
                             options = ""
@@ -593,8 +597,8 @@ class KernelList(List):
 
                 if not ker_added_to_list:
                     f.write(f"FILE             = miscellaneous/orbnum/{kernel}\n")
-                    f.write("MAKLABEL_OPTIONS = VOID\n")
-                    f.write("DESCRIPTION      = VOID\n")
+                    f.write("MAKLABEL_OPTIONS = N/A\n")
+                    f.write("DESCRIPTION      = N/A\n")
 
         self.list_name = list_name
 
@@ -701,6 +705,7 @@ class KernelList(List):
          * check that all files listed in the list are on the ``kernels_directory``
          * check that the files are not in the ``bundle_direcfory``
          * display all the ``MAKLABL_OPTIONS`` used
+         * check that all the ``MAKLBL_OPTIONS`` are in the template for PDS3
          * check that the list has no duplicates
          * if the ``-d DIFF --diff DIFF`` argument is used, compare the kernel
            list with the kernel list of the previous release -if avaialble.
@@ -823,7 +828,7 @@ class KernelList(List):
                 if os.path.isfile(
                     self.setup.bundle_directory
                     + f"/{self.setup.mission_acronym}_spice/"
-                    f"spice_kernels/" + extension2type(ker) + os.sep + ker
+                    f"spice_kernels/" + extension_to_type(ker) + os.sep + ker
                 ):
                     present = True
                     logging.warning(f"     {ker} present.")
@@ -844,24 +849,20 @@ class KernelList(List):
             #
             # The PDS Mission Template file is not required for PDS4
             #
-            # if self.setup.pds_version == '3':
-            #    logging.info('-- Check that all template tags used in the list are present in template:')
-            #    template = self.setup.root_dir + f'/config/{self.setup.mission_acronym }_mission_template.pds'
-            #    with open(template, 'r') as o:
-            #        template_lines = o.readlines()
-            #
-            #
-            #    for option in opt_in_list:
-            #        present = False
-            #        for line in template_lines:
-            #            if '--' + option in line:
-            #                present = True
-            #        if present:
-            #            logging.info(f'     {option} is present.')
-            #        else:
-            #            error_message(f'{option} not in template.')
-            #
-            #    logging.info('')
+            if self.setup.pds_version == '3':
+                logging.info('-- Check that all template tags used in the list are present in template:')
+
+                maklabel_options = \
+                    self.setup.pds3_mission_template['maklabel_options'].keys()
+
+                for option in opt_in_list:
+                    if option in maklabel_options:
+                        logging.info(f'     {option} is present.')
+                    else:
+                        if option != 'N/A':
+                            error_message(f'{option} not in configuration.')
+
+                logging.info('')
 
             #
             # Check complete list for duplicate entries

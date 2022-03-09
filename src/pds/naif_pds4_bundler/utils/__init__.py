@@ -12,7 +12,8 @@ from .files import checksum_from_registry
 from .files import compare_files
 from .files import copy
 from .files import etree_to_dict
-from .files import extension2type
+from .files import extension_to_type
+from .files import type_to_PDS3_type
 from .files import extract_comment
 from .files import fill_template
 from .files import get_context_products
@@ -20,17 +21,19 @@ from .files import get_latest_kernel
 from .files import kernel_name
 from .files import match_patterns
 from .files import md5
-from .files import mk2list
+from .files import mk_to_list
 from .files import safe_make_directory
 from .files import string_in_file
-from .files import type2extension
+from .files import type_to_extension
 from .files import utf8len
+from .files import replace_string_in_file
+from .files import format_multiple_values
 from .time import ck_coverage
 from .time import creation_time
 from .time import current_date
 from .time import current_time
 from .time import dsk_coverage
-from .time import et2date
+from .time import et_to_date
 from .time import get_years
 from .time import pck_coverage
 from .time import pds3_label_gen_date
@@ -47,7 +50,8 @@ __all__ = [
     compare_files,
     copy,
     etree_to_dict,
-    extension2type,
+    extension_to_type,
+    type_to_PDS3_type,
     extract_comment,
     fill_template,
     get_context_products,
@@ -55,9 +59,9 @@ __all__ = [
     kernel_name,
     match_patterns,
     md5,
-    mk2list,
+    mk_to_list,
     safe_make_directory,
-    type2extension,
+    type_to_extension,
     utf8len,
     ck_coverage,
     creation_time,
@@ -71,5 +75,7 @@ __all__ = [
     spice_exception_handler,
     slice_kernels,
     string_in_file,
-    et2date
+    et_to_date,
+    replace_string_in_file,
+    format_multiple_values
 ]

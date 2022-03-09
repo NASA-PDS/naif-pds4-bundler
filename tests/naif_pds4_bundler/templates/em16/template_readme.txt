@@ -5,17 +5,17 @@
 |                                                                             |
 +-----------------------------------------------------------------------------+
 
-Bundle Description for the $PDS4_MISSION_NAME SPICE Archive Bundle
+Bundle Description for the $MISSION_NAME SPICE Archive Bundle
 
 
 Overview
 ========
 
-   The $PDS4_MISSION_NAME SPICE archive bundle contains observation geometry and
+   The $MISSION_NAME SPICE archive bundle contains observation geometry and
    other ancillary data in the form of SPICE System kernel files for
-   the $PDS4_MISSION_NAME spacecraft, its instruments, and targets.
+   the $MISSION_NAME spacecraft, its instruments, and targets.
 
-   The detailed description of the $PDS4_MISSION_NAME SPICE archive is provided
+   The detailed description of the $MISSION_NAME SPICE archive is provided
    in the latest version of spiceds_v*.html included in the
    document collection.
 
@@ -23,7 +23,7 @@ Overview
 Document Collection
 ===================
 
-   The document collection contains documents describing the $PDS4_MISSION_NAME
+   The document collection contains documents describing the $MISSION_NAME
    SPICE archive, PDS4 collection labels, and PDS4 collection
    inventory tables.
 
@@ -31,7 +31,7 @@ Document Collection
 SPICE Kernels Collection
 ========================
 
-   The SPICE Kernels collection contains $PDS4_MISSION_NAME SPICE kernels and
+   The SPICE Kernels collection contains $MISSION_NAME SPICE kernels and
    meta-kernels, PDS4 collection labels, and PDS4 collection inventory tables.
 
 
@@ -58,4 +58,4 @@ Cognizant Persons
    Villanueva de la Canada, Spain.
 
 
-End of $PDS4_MISSION_NAME SPICE archive bundle readme.
+End of $MISSION_NAME SPICE archive bundle readme.

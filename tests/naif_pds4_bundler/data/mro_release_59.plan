@@ -1,4 +1,5 @@
 mro_sclkscet_00100_65536.tsc \
+mro_sclkscet_00101_65536.tsc \
 mro_psp60.bsp \
 mro_hga_psp_210705_210717p.bc \
 mro_sa_psp_210705_210717p.bc \
@@ -6,3 +7,5 @@ mro_sc_psp_210705_210717p.bc \
 mro_hga_psp_210706_210712.bc \
 mro_sa_psp_210706_210712.bc \
 mro_sc_psp_210706_210712.bc \
+mro_psp58.nrb \
+mro_2021_v02.tm \

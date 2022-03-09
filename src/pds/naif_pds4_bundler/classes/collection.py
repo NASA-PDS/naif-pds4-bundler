@@ -5,9 +5,10 @@ import os
 
 import spiceypy
 
-from ..utils import et2date
-from ..utils import extension2type
+from ..utils import et_to_date
+from ..utils import extension_to_type
 from .log import error_message
+from .product import PDS3DocumentProduct
 
 
 class Collection(object):
@@ -25,7 +26,8 @@ class Collection(object):
         #
         self.updated = False
 
-        self.set_collection_lid()
+        if setup.pds_version == '4':
+            self.set_collection_lid()
 
         return
 
@@ -111,7 +113,7 @@ class Collection(object):
 
 
 class SpiceKernelsCollection(Collection):
-    """Collection child class to generate a PDS4 SPICE Kenrels Collection."""
+    """Collection child class to generate a PDS4 SPICE Kernels Collection."""
 
     def __init__(self, setup, bundle, list):
         """Constructor."""
@@ -127,8 +129,10 @@ class SpiceKernelsCollection(Collection):
         self.bundle = bundle
         self.list = list
         self.type = "spice_kernels"
-        self.start_time = setup.mission_start
-        self.stop_time = setup.mission_finish
+
+        if setup.pds_version == "4":
+            self.start_time = setup.mission_start
+            self.stop_time = setup.mission_finish
 
         Collection.__init__(self, self.type, setup, bundle)
 
@@ -155,7 +159,7 @@ class SpiceKernelsCollection(Collection):
         #
         # First check if a meta-kernel has been provided via configuration by
         # the user. If so, only the provided meta-kernels will be taken into
-        # account (there is no hybrid possibility but npb provides a warning
+        # account (there is no hybrid possibility but NPB provides a warning
         # message if more meta-kernels are expected).
         #
         if hasattr(self.setup, "mk_inputs") and (self.setup.args.faucet != "labels"):
@@ -190,9 +194,18 @@ class SpiceKernelsCollection(Collection):
                 if ".tm" in kernel:
                     for kernel_dir in self.setup.kernels_directory:
                         path = f"{kernel_dir}/mk/{kernel}"
-                        meta_kernels.append(path)
                         if os.path.exists(path):
+                            meta_kernels.append(path)
                             user_input = True
+                    if not user_input:
+                        logging.info(
+                        "-- No meta-kernel provided as input in kernels directory."
+                        )
+                        for kernel_dir in self.setup.kernels_directory:
+                            path = f"{kernel_dir}/mk/{kernel}"
+                            meta_kernels.append(path)
+
+
 
         #
         # If no meta-kernels are provided as inputs or in the kernel list,
@@ -394,7 +407,7 @@ class SpiceKernelsCollection(Collection):
         #
         try:
             (increment_start, increment_finish) = \
-                et2date(spiceypy.utc2et(increment_start[:-1]),
+                et_to_date(spiceypy.utc2et(increment_start[:-1]),
                         spiceypy.utc2et(increment_finish[:-1]),
                         self.setup.date_format)
         except BaseException:
@@ -443,10 +456,12 @@ class SpiceKernelsCollection(Collection):
         if self.setup.pds_version == "3":
             ker_dir = "/data/"
             orbnum_dir = "/extras/orbnum/"
+            mk_dir = "/extras/mk/"
             lbl_ext = ".lbl"
         else:
             ker_dir = "/spice_kernels/"
             orbnum_dir = "/miscellaneous/orbnum/"
+            mk_dir = "/spice_kernels/mk/"
             lbl_ext = ".xml"
 
         non_present_products = []
@@ -454,11 +469,13 @@ class SpiceKernelsCollection(Collection):
             if not os.path.exists(
                 self.setup.staging_directory
                 + ker_dir
-                + extension2type(product)
+                + extension_to_type(product)
                 + os.sep
                 + product
             ) and not os.path.exists(
                 self.setup.staging_directory + orbnum_dir + product
+            ) and not os.path.exists(
+                self.setup.staging_directory + mk_dir + product
             ):
                 non_present_products.append(product)
 
@@ -513,7 +530,7 @@ class SpiceKernelsCollection(Collection):
             logging.info("   OK")
 
         #
-        # Ext the method if no produts are present in collection
+        # Exit the method if no products are present in collection
         #
         if not self.product:
             return None
@@ -524,20 +541,29 @@ class SpiceKernelsCollection(Collection):
         # description, start_date_time, stop_date_time, file_name, file_size,
         # md5_checksum, object_length, kernel_type, and encoding_type.
         #
-        elements = [
-            "logical_identifier",
-            "version_id",
-            "title",
-            "description",
-            "start_date_time",
-            "stop_date_time",
-            "file_name",
-            "file_size",
-            "md5_checksum",
-            "object_length",
-            "kernel_type",
-            "encoding_type",
-        ]
+        if self.setup.pds_version == "4":
+            elements = [
+                "logical_identifier",
+                "version_id",
+                "title",
+                "description",
+                "start_date_time",
+                "stop_date_time",
+                "file_name",
+                "file_size",
+                "md5_checksum",
+                "object_length",
+                "kernel_type",
+                "encoding_type",
+            ]
+        else:
+            elements = [
+                "RECORD_TYPE",
+                "RECORD_BYTES",
+                "SPICE_KERNEL",
+                "DESCRIPTION",
+            ]
+
 
         elements_dict = dict.fromkeys(elements)
 
@@ -553,7 +579,9 @@ class SpiceKernelsCollection(Collection):
                             else:
                                 elements_dict[element].append(line.strip())
 
-        elements_dict["description"] = list(set(elements_dict["description"]))
+
+        if self.setup.pds_version == "4":
+            elements_dict["description"] = list(set(elements_dict["description"]))
 
         logging.info("")
         logging.info("-- Providing relevant fields of labels for visual inspection.")
@@ -568,7 +596,7 @@ class SpiceKernelsCollection(Collection):
 
 
 class DocumentCollection(Collection):
-    """Collection child class to generate a PDS4 Document Collection."""
+    """Collection child class to generate a PDS3 or PDS4 Document Collection."""
 
     def __init__(self, setup, bundle):
         """Constructor."""
@@ -578,6 +606,24 @@ class DocumentCollection(Collection):
             self.type = "document"
 
         Collection.__init__(self, self.type, setup, bundle)
+
+    def get_PDS3_documents(self):
+        """Collects the updated PDS3 documents for the increment."""
+        line = f"Step {self.setup.step} - Generation of PDS3 products"
+        logging.info("")
+        logging.info(line)
+        logging.info("-" * len(line))
+        self.setup.step += 1
+        if not self.setup.args.silent and not self.setup.args.verbose:
+            print("-- " + line.split(" - ")[-1] + ".")
+
+        for file in glob.glob(f'{self.setup.staging_directory}/**/*[.]*',
+                              recursive=True):
+            if '.txt' in file or '.cat' in file or 'aareadme.' in file:
+                document = PDS3DocumentProduct(self.setup, file)
+
+                if document.new_product:
+                    self.add(document)
 
 
 class MiscellaneousCollection(Collection):

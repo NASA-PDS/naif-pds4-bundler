@@ -330,7 +330,7 @@
             </observers>
             <description>SPICE SPK file that contains MPO spacecraft center-of-gravity (CoG) as delivered by ESOC Flight Dynamics.
                 It is important to note that the MPO trajectory SPK files provide ephemeris information for MPO (-121) and
-                refer to the CoG. This file provides provides the position of MPO_SPACECRAFT (-121000), created by the ESA SPICE Service (ESS).
+                refer to the CoG. This file provides the position of MPO_SPACECRAFT (-121000), created by the ESA SPICE Service (ESS).
             </description>
         </kernel>
         <kernel pattern="bc_mpo_struct_v[0-9][0-9].bsp">

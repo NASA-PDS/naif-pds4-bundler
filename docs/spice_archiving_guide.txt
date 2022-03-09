@@ -1,0 +1,3144 @@
+ 
+SPICE Archive Preparation Guide (``The NAIF Way'')
+===========================================================================
+ 
+   Last revised on 2010 SEP 01 by B. V. Semenov. The revision history is
+   provided in ``Appendix 2''.
+ 
+ 
+Overview
+--------------------------------------------------------
+ 
+   This document describes the structure and contents of the PDS SPICE data
+   sets produced by NAIF and the process that NAIF follows to put them
+   together. First it talks about the approach that NAIF recommends for
+   creating and augmenting SPICE data sets. Then it summarizes the steps of
+   the archive preparation process and explains in detail each of the steps
+   -- preparing data, writing documentation, labeling data, generating
+   indexes, and checking and finishing up the archive.
+ 
+   Along the way the document refers to numerous examples and describes the
+   tools (programs and scripts) that NAIF uses in this process. These
+   examples and some of the tools are provided in the package accompanying
+   this document to be used as a reference by SPICE archive data set
+   producers.
+ 
+   For your convenience a checklist of actions to be taken is provided at
+   the end of this document; please augment it with any additional steps
+   specific to your SPICE archive, print it, and use it during your archive
+   SPICE archive preparation.
+ 
+ 
+Applicability
+--------------------------------------------------------
+ 
+   This SPICE Archive Guide is written for anyone who will be preparing a
+   new or augmented SPICE data archive for submission to the NAIF Node of
+   the PDS. However, following these standards is highly encouraged for any
+   entity involved in archiving SPICE ancillary data at some other archive
+   facility.
+ 
+ 
+Accompanying Examples and Tools
+--------------------------------------------------------
+ 
+   This document is a part of the package that NAIF provides as a reference
+   for SPICE archive data set producers. The package also contains the
+   following directories and files:
+ 
+       --   scripts used in the data set preparation process (located under
+            ``scripts'' directory). NAIF uses these scripts on a Sun but
+            they should probably work on any Unix workstation. All C-shell
+            scripts provided in the package use C-shell installed as
+            ``/bin/csh''; all Perl scripts provided in the package use Perl
+            installed as ``/usr/bin/perl''.
+ 
+       --   examples of internal comments for various kernel types and
+            missions (located under the ``examples/comments'' directory)
+ 
+       --   examples of scripts used to pre-process kernels produced in
+            operations before including them in the archive (located under
+            the ``examples/scripts'' directory)
+ 
+       --   examples of MAKLABEL template files for various missions
+            (located under the ``examples/templates'' directory)
+ 
+       --   examples of list files used as input to the labeling and index
+            generation scripts for various missions (located under the
+            ``examples/listfiles'' directory)
+ 
+       --   examples of meta-information files presented as complete
+            snapshots of actual data sets without the data (located under
+            the ``examples/datasets'' directory)
+ 
+ 
+Motivation
+--------------------------------------------------------
+ 
+   This SPICE Archive Preparation Guide describes SPICE archive standards
+   in great detail. Some of the standards may seem rather ``picky'' or
+   unnecessary, and indeed there are a few items included that are not
+   really used/useful. Also, a few standards will be changed when the NAIF
+   Node migrates to the PDS4 (PDS 2010) standards. (These are the standards
+   that will also be adopted by the consortium of agencies comprising the
+   International Planetary Data Alliance.) But adhering to all of these
+   details is critical to the current and future use of archived SPICE
+   data, especially to achieve interoperability across national archives,
+   and, to facilitate use of archived SPICE data in data search, retrieval
+   and processing tools that are, or will be, part of archive systems.
+ 
+   It is imperative that archive preparers carefully check and re-check all
+   components of an archive -- whether it is a new one or an augmentation
+   to an existing one -- before it is submitted for ingestion. NAIF
+   provides a checklist, recommendations and a variety of tools to assist
+   one in the validation. These can help a great deal, but there is much
+   that only the archive preparer can do.
+ 
+ 
+NAIF's Approach to SPICE Data Set Preparation
+--------------------------------------------------------
+ 
+   NAIF's approach to creating SPICE data sets can be summarized by this
+   statement:
+ 
+       All SPICE data for a given mission are archived as UNIX
+       text and binary files(1) in a single, accumulating data
+       set on a single virtual volume(2) having the same
+       directory structure(3), the same set of meta information
+       files(4), data file labels with the same structure(5), and
+       data set index files with the same structure(6) as all
+       SPICE data sets produced by NAIF(7).
+ 
+   Each of the points identified in this statement using a number in
+   parentheses is briefly explained below:
+ 
+       1.   All SPICE data are archived as UNIX text and binary kernels,
+            meaning that all text kernels have lines terminated by <LF>
+            only and all binary kernels are in BIG-IEEE (big-endian) binary
+            format.
+ 
+            Following this requirement ensures consistency across all SPICE
+            data sets and usability of the data for both future users and
+            the archive distribution and manipulation tools at the NAIF
+            Node of the PDS. To facilitate conversion of text kernels with
+            lines terminated by <CR><LF> and binary kernels in LTL-IEEE
+            (little-endian) format to the required format NAIF provides a
+            utility program named BINGO, available on the ``Utilities''
+            page on the NAIF web site.
+ 
+       2.   All SPICE data for a given mission get archived in a single
+            accumulating data set on a single virtual volume.
+ 
+            There is no need to break SPICE data for a given mission into
+            multiple data sets based on the mission phases (as was done by
+            NEAR), kernel types (as was done in other data sets produced by
+            other nodes), data producers, or in any other way. Doing so
+            leads to duplication of data, extra effort in preparing
+            multiple marginally different copies of meta-information files,
+            and, most importantly, complicates the lives of future users
+            who, in most cases, prefer to get all SPICE data for a mission
+            from one place.
+ 
+            The DATA_SET_ID for this single data set is usually set to
+            ``sc-t-SPICE-6-V1.0'' where ``sc'' is the spacecraft acronym
+            and ``t'' is the target identification (see PDS Std Ref Chapter
+            6). For example for MGS it is ``MGS-M-SPICE-6-V1.0'', for
+            Cassini -- ``CO-S/J/E/V-SPICE-6-V1.0'', for DS1 --
+            ``DS1-A/C-SPICE-6-V1.0'', and so on.
+ 
+            All SPICE data sets -- even those for the missions that have
+            ended -- are accumulating, which means that if/when additional
+            SPICE data becomes available, this data is added to the same
+            data set. For on-going missions the data that is being added is
+            usually covering the next period of time; for past missions the
+            data that is being added usually provides a better trajectory
+            solution, a better attitude estimate, an instrument parameters
+            update, or fixes liens. New additions are called releases and
+            get documented in the release catalog files (a new release
+            object is added for each release) and in the index file
+            (includes RELEASE_ID column).
+ 
+            Each data set resides on a single volume because splitting it
+            into multiple volumes has the same effect as splitting all
+            SPICE data for the mission into multiple data sets -- it makes
+            using the data harder with no real gains. Moreover, the past
+            need to split data sets into smaller chunks due to limited
+            capacity of physical media is no longer the case (at least for
+            SPICE data sets, which are not very large).
+ 
+            The VOLUME_ID for this single volume is normally set to
+            ``scSP_1000'' where ``sc'' is the spacecraft acronym. For
+            example for MGS it is ``MGSP_1000'', for Cassini --
+            ``COSP_1000'', for DS1 -- ``DS1SP_1000'', and so on.
+ 
+            This single volume is called virtual because it is not
+            restricted to a specific physical media (CD, DVD, Blueray,
+            etc.). Instead it is intended to reside in a specially named
+            directory on a PDS-D server. The name of this directory is
+            derived from the DATA_SET_ID and the VOLUME_ID by lowercasing
+            them and replacing ``/'' with ``_''.
+ 
+            For example, the name of the directory for the MGS data set
+            (MGS-M-SPICE-6-V1.0, MGSP_1000) is
+            ``mgs-m-spice-6-v1.0/mgsp_1000'', for Cassini
+            (CO-S/J/E/V-SPICE-6-V1.0, COSP_1000) --
+            ``co-s_j_e_v-spice-6-v1.0/cosp_1000'', for DS1
+            (DS1-A/C-SPICE-6-V1.0, DS1SP_1000) --
+            ``ds1-a_c-spice-6-v1.0/ds1sp_1000'', and so on.
+ 
+       3.   All SPICE data sets have the following PDS-compliant directory
+            structure:
+ 
+            ds/vol
+            ds/vol/catalog    contains PDS catalog files
+            ds/vol/data       contains kernel sub-directories
+            ds/vol/data/ck    contains CKs
+            ds/vol/data/ek    contains EKs
+            ds/vol/data/fk    contains FKs
+            ds/vol/data/ik    contains IKs
+            ds/vol/data/lsk   contains LSKs
+            ds/vol/data/pck   contains PCKs
+            ds/vol/data/sclk  contains SCLKs
+            ds/vol/data/spk   contains SPKs
+            ds/vol/document   contains documents
+            ds/vol/extras     contains value-added, non data items
+            ds/vol/extras/mk  contains meta-kernels
+            ds/vol/index      contains index files
+            ds/vol/software   contains instructions for getting sw
+ 
+            where the ``ds/vol'' part is formed as described above (for
+            example, for MGS it is ``mgs-m-spice-6-v1.0/mgsp_1000'').
+ 
+            the ``extras'' directory may contain additional sub-directories
+            to store additional value-added, non-kernel files such as
+            ORBNUM files (see MRO, MGS, or Cassini data sets for examples).
+ 
+            the ``document'' directory may (but does not have to) contain
+            additional sub-directories for additional documents or document
+            sets (see Cassini data set for examples).
+ 
+            To create this directory structure for the first release of a
+            data set NAIF developed a script called
+            ``make_pds_directories.csh''.
+ 
+       4.   All SPICE data have the following meta-information files, most
+            of which are required by PDS standards:
+ 
+            ds/dsindex.lbl                 PDS-D index label
+            ds/dsindex.tab                 PDS-D index table
+            ds/vol/aareadme.htm            aareadme in text format
+            ds/vol/aareadme.lbl            aareadme label
+            ds/vol/aareadme.txt            aareadme in HTML format
+            ds/vol/catalog/catinfo.txt     ``catalog'' dir. contents desc
+            ds/vol/catalog/insthost.cat    instrument host catalog file
+            ds/vol/catalog/mission.cat     mission catalog file
+            ds/vol/catalog/person.cat      personnel catalog file
+            ds/vol/catalog/ref.cat         references catalog file
+            ds/vol/catalog/release.cat     release catalog file
+            ds/vol/catalog/spice_hsk.cat   resource catalog file
+            ds/vol/catalog/spice_inst.cat  SPICE instrument catalog file
+            ds/vol/catalog/spiceds.cat     SPICE data set catalog file
+            ds/vol/data/*/*.lbl            detached labels, 1 per kernel
+            ds/vol/data/ck/ckinfo.txt      ``ck'' dir. contents desc
+            ds/vol/data/ek/ekinfo.txt      ``ek'' dir. contents desc
+            ds/vol/data/fk/fkinfo.txt      ``fk'' dir. contents desc
+            ds/vol/data/ik/ikinfo.txt      ``ik'' dir. contents desc
+            ds/vol/data/lsk/lskinfo.txt    ``lsk'' dir. contents desc
+            ds/vol/data/pck/pckinfo.txt    ``pck'' dir. contents desc
+            ds/vol/data/sclk/sclkinfo.txt  ``sclk'' dir. contents desc
+            ds/vol/data/spk/spkinfo.txt    ``spk'' dir. contents desc
+            ds/vol/document/docinfo.txt   ``document'' dir contents desc
+            ds/vol/document/lblinfo.txt    label location/naming desc
+            ds/vol/document/onlabels.txt   label structure desc
+            ds/vol/errata.txt              errata information
+            ds/vol/extras/extrinfo.txt     ``extras'' dir contents desc
+            ds/vol/extras/mk/mkinfo.txt    ``mk'' dir. contents desc
+            ds/vol/index/index.lbl         index label
+            ds/vol/index/index.tab         index table
+            ds/vol/index/checksum.lbl      checksum table label
+            ds/vol/index/checksum.tab      checksum table
+            ds/vol/index/indxinfo.txt      ``index'' dir contents desc
+            ds/vol/software/softinfo.txt   info for getting SPICE sw
+            ds/vol/voldesc.cat             volume catalog file
+ 
+            Additional catalog files may be provided if there is more than
+            one instrument host (see Deep Impact data set) and/or two or
+            more target catalog files need to be included (see DS1 and SDU
+            data sets).
+ 
+            Additional ``*info.txt'' files may be included if additional
+            directories are present under ``document'' and/or ``extras''
+            (see Cassini and MRO data sets).
+ 
+            The ``make_pds_directories.csh'' script, in addition to
+            creating directories, creates a zero size placeholder file for
+            each of the required meta-information files.
+ 
+       5.   All SPICE kernels included in all SPICE data sets are labeled
+            with detached labels generated by the MAKLABEL utility program
+            available from NAIF. These labels include the following
+            keywords:
+ 
+            PDS_VERSION_ID               = PDS3
+            RECORD_TYPE                  =
+            RECORD_BYTES                 =
+            ^SPICE_KERNEL                =
+            MISSION_NAME                 =
+            SPACECRAFT_NAME              =
+            DATA_SET_ID                  =
+            KERNEL_TYPE_ID               =
+            PRODUCT_ID                   =
+            PRODUCT_CREATION_TIME        =
+            PRODUCER_ID                  =
+            MISSION_PHASE_NAME           =
+            PRODUCT_VERSION_TYPE         =
+            PLATFORM_OR_MOUNTING_NAME    =
+            START_TIME                   =
+            STOP_TIME                    =
+            SPACECRAFT_CLOCK_START_COUNT =
+            SPACECRAFT_CLOCK_STOP_COUNT  =
+            TARGET_NAME                  =
+            INSTRUMENT_NAME              =
+            NAIF_INSTRUMENT_ID           =
+            SOURCE_PRODUCT_ID            =
+            NOTE                         =
+            OBJECT                       = SPICE_KERNEL
+              INTERCHANGE_FORMAT         =
+              KERNEL_TYPE                =
+              DESCRIPTION                =
+            END_OBJECT                   = SPICE_KERNEL
+            END
+ 
+            In addition to being provided as a separate file each data
+            file's label is included at the top of the file's comment area
+            (for binary kernels) or at the top of the file's embedded
+            comments (for text kernels).
+ 
+            To run MAKLABEL to generate detached labels and to add these
+            labels to file comments NAIF developed a script called
+            ``label_them_all.pl''.
+ 
+       6.   All SPICE data sets include two index files -- the standard PDS
+            data set index in the ``index'' directory and the so-called
+            PDS-D index provided under the ``<ds>'' directory. The standard
+            index is always called ``index.tab'' and is accompanied by a
+            label file called ``index.lbl''. The PDS-D index is always
+            called ``dsindex.tab'' and is accompanied by a label file
+            called ``dsindex.lbl''. Both index files have the same set of
+            columns:
+ 
+            START_TIME
+            STOP_TIME
+            FILE_SPECIFICATION_NAME
+            DATA_SET_ID
+            PRODUCT_CREATION_TIME
+            RELEASE_ID
+            RELEASE_DATE
+            KERNEL_TYPE_ID
+            PRODUCT_ID
+            VOLUME_ID
+ 
+            To generate both indexes using information from the data file
+            labels NAIF developed a script called ``xfer_index.pl''.
+ 
+            All SPICE data sets also include an MD5 checksum table file.
+            This file is always called ``checksum.tab'' and is accompanied
+            by a label file called ``checksum.lbl''. Both the table file
+            and the label file are located in the ``index'' directory. To
+            generate these files NAIF uses the script called
+            ``mkpdssum.pl'' developed by the Small Bodies Node of the PDS.
+ 
+       7.   While experts on PDS standards can (and did during
+            peer-reviews) find a number of things about SPICE data sets
+            that need improvement or even correcting, NAIF continues to
+            carry on with the archiving approach that it established and
+            polished over 10+ years of creating SPICE data sets. Applying
+            this approach without major deviations results in data sets
+            that truly look and feel the same from mission to mission. This
+            helps both the users of the data who can count on finding
+            archives with the same structure, and the NAIF node staff who
+            in most cases are the people providing expert advice about
+            SPICE data sets.
+ 
+            For the reasons noted above, please carefully follow the
+            instructions provided in this Guide and use the tools supplied
+            with this Guide.
+ 
+   Once in the archive, no kernels or meta-kernels are removed from it or
+   replaced with different versions with the same name. Instead, new files
+   superseding already archived files are added to the archive. These
+   kernels are given distinct names and the fact that they supersede
+   previously archived kernels is reflected in the meta information files
+   (``spiceds.cat'', ``*info.txt'', meta-kernels).
+ 
+ 
+Process Overview
+--------------------------------------------------------
+ 
+   The process of preparing a SPICE data set includes the following steps:
+ 
+       1.   collecting and preparing data
+ 
+       2.   putting together descriptions
+ 
+       3.   labeling data
+ 
+       4.   generating index files
+ 
+       5.   checking and finishing up
+ 
+       6.   if needed, packaging and delivering the data set to NAIF
+ 
+   Each of these steps is described in a separate section below.
+ 
+ 
+Step 1: Preparing Data
+--------------------------------------------------------
+ 
+   Ideally a SPICE data set for a mission should include a comprehensive
+   set of kernels allowing a scientist to compute geometry for any of the
+   mission instruments in regards to any of the mission targets at all
+   applicable times during the mission.
+ 
+   To achieve this the data set would normally include all types of kernels
+   needed to provide ephemerides (SPKs), orientation (PCK) and shape (PCK
+   or DSK) of targets, trajectory (SPK) and orientation (CK) of the
+   spacecraft, orientation (CK) and geometric parameters (IK) of the
+   instruments, definitions of the spacecraft and instrument frames (FK),
+   and data for various time conversions (LSK and SCLK). If the project
+   produced Event Kernel (EK) files of any kind, they should also be
+   included in the archive.
+ 
+ 
+Identifying Data
+ 
+   Usually identifying data that should go into the archive is not very
+   difficult, especially when SPICE kernels were produced and used by the
+   project during operations. In such cases the following kernels used
+   during operations -- independent of whether they were produced by the
+   project teams or obtained from NAIF or other sources -- should be
+   included in the archive:
+ 
+       --   LSK
+ 
+            *  latest generic LSK file
+ 
+       --   SPKs
+ 
+            *  planetary ephemeris SPK file(s), officially accepted by
+               the project
+ 
+            *  any natural satellite ephemeris SPK file(s), officially
+               accepted by the project
+ 
+            *  latest SPK file(s) for other types of mission targets
+               (e.g. comets, asteroids)
+ 
+            *  latest reconstructed spacecraft trajectory SPK file(s)
+ 
+            *  target and/or spacecraft trajectory SPK files produced
+               by science team(s) (for example Gravity or Radio
+               science); if any
+ 
+            *  latest ground stations locations SPK file(s); if any
+ 
+            *  latest structures/instrument locations SPK file(s); if
+               any
+ 
+            *  predicted SPKs; only if they are needed as gap-fillers
+               for reconstructed data, or must be archived for the
+               record; if any
+ 
+            *  nominal/special SPKs; only if they are needed to
+               complete the position chains (such as MER-at-landing
+               site SPKs); if any
+ 
+       --   PCK
+ 
+            *  latest generic text PCK file officially used by the project
+ 
+            *  latest generic binary PCK file(s) officially used by the
+               project
+ 
+            *  latest project-specific PCK file(s) providing the
+               rotational, shape and possibly additional constants for all
+               of the mission targets; if any
+ 
+       --   SCLK
+ 
+            *  latest spacecraft on-board clock(s) correlation SCLK
+               file(s)
+ 
+            *  additional latest SCLK files if the project and/or
+               science teams produced special SCLKs for instrument or
+               other hardware clocks or if more than one kind of SCLK
+               kernel was made for the same clock; if any
+ 
+            *  special SCLK file implementing mean local time or other
+               SCLK-like time systems (see MER for examples); if any
+ 
+       --   CK
+ 
+            *  the latest reconstructed spacecraft attitude CK files
+ 
+            *  possibly latest predicted spacecraft attitude CK
+               files if they provide a reasonably good prediction
+               and are needed to fill gaps in the reconstructed CK
+               files and/or for some other reason
+ 
+            *  latest reconstructed spacecraft appendage (solar arrays,
+               HGA, etc.) attitude CK files; if any
+ 
+            *  possibly latest predicted spacecraft appendage
+               (solar array, HGA, etc.) attitude CK files if they
+               provide a reasonably good prediction and are needed to
+               fill gaps in the reconstructed CK files and/or for some
+               other reason
+ 
+            *  latest reconstructed instrument orientation CK files for
+               each of the articulating instruments; if any
+ 
+            *  possibly latest predicted instrument orientation CK
+               files if they provide a reasonably good prediction
+               and are needed to fill gaps in the reconstructed CK files
+               and/or for some other reason
+ 
+            *  spacecraft and/or instrument CK files produced by
+               science teams as part of C-smithing or other pointing
+               reconstruction process; if any
+ 
+            *  nominal/special CK files, only if they are needed to
+               complete the orientation chains (for example, an
+               instrument parking position orientation CK file); if
+               any
+ 
+       --   FK
+ 
+            *  latest version of the main mission FK file
+ 
+            *  latest version of special mission FK files (separate
+               lading site FKs, etc); if any
+ 
+            *  latest versions of separate instrument FK files; if any
+ 
+            *  latest versions of generic FK files for natural bodies
+               (Moon, Earth, etc); if any
+ 
+            *  latest versions of multi-mission dynamic frames FK files;
+               if any
+ 
+       --   IK
+ 
+            *  latest IK file for each of the instruments
+ 
+            *  latest IK file for auxiliary s/c subsystems, the data
+               from which might be used for science purposes (antennas,
+               star trackers, horizon sensors, etc); if any
+ 
+       --   EK
+ 
+            *  PEF2EK-type sequence and command dictionary EK files
+               (see SDU, Deep Impact for examples); if any
+ 
+            *  database EK files (see CLEM for examples); if any
+ 
+            *  CASSINI-style sequence, noise, plan, status EK files
+               (see CASSINI for examples); if any
+ 
+            *  ENB EK files (see MGS, SDU for examples); if any
+ 
+       --   DSK
+ 
+            *  latest DSK file (or files if multiple kernels with different
+               resolutions and/or for different parts of the surface were
+               produced) for each of the mission targets; if any
+ 
+   While no mission produces all kernels from the list above, most missions
+   produce kernels of all types (maybe except EKs) and most of these
+   kernels are needed to compute observation geometry for the mission
+   instruments and, therefore, should be included in the archive.
+ 
+   Once the types of kernels that should go into the archive have been
+   identified it is usually fairly easy to decide which actual individual
+   kernels belonging to each ``category'' should be included. Considering
+   these points may help to make this selection:
+ 
+       --   For the kernel types that don't cover specific time intervals,
+            cover the whole mission and/or change rarely during the mission
+            -- such as planetary, satellite, structures SPKs, DSK, LSK,
+            PCK, FK, IK, and SCLK -- the latest version of each file at the
+            time of archive preparation should be included.
+ 
+            For the first archive release all latest kernels of these types
+            should be included, while for subsequent releases only those
+            kernels that had been updated or improved compared to the
+            already archived files should be included.
+ 
+            For example, if the project initially used the Martian
+            Satellite Ephemerides MAR033 SPK file (which was included in
+            the first archive release) but later switched to using the
+            MAR066 SPK file, the MAR066 SPK file should be added to the
+            archive at the next release opportunity. Another example is
+            when the main project FK file was updated to include improved
+            instrument alignment data; if this happened it should be added
+            to the next archive release.
+ 
+       --   For the kernel types that provide data for specific time
+            intervals that are normally much shorter than the whole
+            duration of the mission -- such as spacecraft SPK, spacecraft,
+            structure, and instrument orientation CKs, and EK -- the set of
+            files providing the complete coverage for the applicable
+            interval should be included.
+ 
+            If the archive preparation takes place at the end of the
+            mission then all kernels of these types needed to provide data
+            coverage for the whole mission should be included. If the
+            mission is on-going and data is added to the archive at regular
+            increments (releases), each intended to cover a specific time
+            interval, then each release should contain the set of these
+            files providing complete coverage for the interval of interest.
+ 
+       --   In most cases including duplicate data should be avoided. For
+            example, if the project is producing two strings of
+            reconstructed spacecraft orientation CK files from the same
+            telemetry input (daily ``quick look'' files and weekly
+            ``final'' files) only the ``final'' CK files should be
+            included. Another example is if the project used the same
+            generic LSK file under two different names -- its original name
+            and a short-cut default name, -- which is done sometimes to
+            simplify operations infrastructure, then only the file with the
+            original, actual name should be included in the archive.
+ 
+            There are a few cases in which duplicate data should be
+            included. The most common of these cases is when the data comes
+            from two different producers, for example two sets of
+            reconstructed spacecraft trajectory SPK files, one generated by
+            the project NAV team and the other by the Gravity team. In such
+            cases a determination of which set is ``better'' usually cannot
+            be made and both sets should be archived.
+ 
+       --   Normally it is also not advisable to include obsolete or
+            superseded data. There are numerous examples of cases when a
+            kernel produced and used for some period in operation becomes
+            obsolete when another version of the same data is released at a
+            later time. The most common of these cases are predicted and
+            quick-look reconstructed spacecraft trajectory SPK files that
+            get superseded by the final reconstructed solution, and earlier
+            versions of SCLK kernels that get superseded by the later
+            versions.
+ 
+            Exceptions to this suggestion include cases when superseded
+            data is applicable as gap-filler (for example, predicted CKs
+            used to fill gaps in telemetry based reconstructed CKs) or when
+            an obsolete version needs to be archived to provide consistent
+            access to other archived data (for example archiving an earlier
+            version of SCLK that was used to make a predicted CK also
+            included in the archive).
+ 
+       --   No kernel file or meta-kernel file already in the archive
+            should ever be removed or replaced with a new version with the
+            same name. Instead, any kernel or meta-kernel file added to the
+            archive should have a name that is distinct from the names of
+            all files already in the archive. If a kernel file supersedes
+            one or more files already in the archive, this fact should be
+            reflected in the corresponding ``*info.txt'' file and/or
+            ``spiceds.cat'' file and another version of the meta-kernel(s)
+            should be created including this kernel file instead of the
+            kernel file(s) that it supersedes.
+ 
+ 
+Collecting and Preparing Data
+ 
+   Once the data files have been identified it makes sense to collect them
+   in a single area (``work area'') because frequently the kernels need to
+   be pre-processed before they can go into the archive. Such
+   pre-processing may involve merging or sub-setting files, renaming files
+   to make their names PDS compliant, and augmenting files with internal
+   comments. It should also include validating the final products that will
+   go into the archive.
+ 
+   The work area can (BUT does not have to) be structured as the final
+   archive. It can physically reside on more than one workstation BUT
+   having it on single workstation may simplify pre-processing and
+   validation tasks. It does not have to include kernels that don't require
+   pre-processing (merging, renaming or additional comments) and can go
+   into the archive ``as is'' BUT including these kernels might also
+   simplify pre-processing and validation tasks that require multiple
+   kernel types.
+ 
+   The kernels that do need to be pre-processed should be copied or
+   ``binary FTP''-ed or ``scp''-ed to the work area. The ways in which the
+   files should be modified usually include one or more of the following:
+ 
+       --   Merging Files
+ 
+            The data from two or more files may need to be merged together
+            for a number of reasons: to reduce the number of files included
+            in the archive, to eliminate gaps in coverage at the file
+            boundaries, to produce a file that segregates data pieces that
+            must be used together, or to integrate data from updated
+            un-official versions of a file into the official version.
+ 
+            Merging to reduce the number of files is usually desirable for
+            the project-generated CKs or SPKs covering short periods of
+            time, for example daily or weekly files, when these files are
+            not very large in size. Merging such files together into a
+            single file covering the whole archive release time span --
+            monthly, tri-monthly, etc. -- or a few files covering parts of
+            that span will result in substantially reduced number of files,
+            which in turn will reduce the amount of processing needed to
+            put this data into the archive and make access to the archive
+            data more efficient.
+ 
+            Merging files to eliminate gaps at file boundaries is usually
+            desirable when the project generates a large number of CK files
+            of the same kind with short coverages not overlapping each
+            other. If the merged file is created from these individual CKs
+            in such a way that data from multiple source segments is
+            aggregated together in the new set of segments, the gaps at the
+            original file boundary times will not be present in the new
+            file.
+ 
+            Merging files to produce a file that aggregates data pieces
+            that must be used together in one place may be needed when the
+            spacecraft trajectory SPK and the target ephemeris SPK used to
+            determine it are delivered by the project in two separate
+            files. When this happens it leaves a possibility for the users
+            to use the spacecraft data with a different target trajectory
+            resulting in the wrong relative geometry being computed. This
+            situation happens very rarely but it needs to be checked and
+            addressed.
+ 
+            Merging files to integrate data from an updated un-official
+            version of a file into the official version is usually needed
+            when science teams keep a local copy of the main project FK and
+            change it by modifying alignment of a previously defined
+            frame(s) and/or introducing a new frame(s) for their
+            instruments. It is important to inquire about such ``local''
+            updated copies and, if they exist, collect them and carefully
+            incorporate the data from them into the new version of the
+            official project FK file.
+ 
+            When selecting how many files to merge together the size of the
+            merged file should be one of the factors to consider. While
+            SPICE does not impose a ``hard'' limit of a number of megabytes
+            under which this size should be kept -- except, of course, for
+            the 2.1 GB which is the limit for 4-byte integer address space,
+            -- is it probably wise to keep the file size under 200-300 MB.
+ 
+            NAIF distributes a few utility programs that can be used to
+            merge various types of kernels. SPKMERGE provided in the
+            generic Toolkit can be used to merge SPK files. DAFCAT and
+            CKSMRG available on the NAIF server
+            (http://naif.jpl.nasa.gov/naif/utilities.html) can be used to
+            merge CK files. In some cases NAIF puts together scripts
+            wrapped around these merge utilities to facilitate file merge
+            tasks that have to be repeated for each archive release. Some
+            of these scripts are included as examples in the
+            ``examples/scripts'' directory of the package accompanying this
+            document.
+ 
+       --   Sub-setting Files
+ 
+            Sub-setting source files to produce archival files with reduced
+            scope or coverage is needed very rarely. In general it is
+            better to include data files with coverage that extends beyond
+            the current archive release interval rather than to try
+            ``chopping'' the file's coverage to line up with that boundary.
+            But if the project archiving policies or other considerations
+            require such ``lining up'' the SPKMERGE utility (provided in
+            the generic Toolkit) can be used to subset SPK files and the
+            CKSLICER utility (available on the NAIF server) can be used to
+            subset CK files.
+ 
+       --   Augmenting Files with Comments
+ 
+            It is absolutely crucial that every kernel included in the
+            archive contains comprehensive internal comments describing its
+            contents, source(s) of the data, applicability of the data,
+            etc. This means that all kernels intended for the archive --
+            binary and text ones, those that should be archived ``as is''
+            and those that were created by merging or sub-setting other
+            files -- should be checked to verify that they contain adequate
+            comments and, if not, augmented with such comments. The
+            subsection ``Internal Comments'' in the section ``Step 2:
+            Preparing Descriptions'' discusses what should be addressed in
+            the comments for various kernel types and points to numerous
+            comment examples provided in the package accompanying this
+            document.
+ 
+            In binary kernels internal comments reside in the special area
+            of the file called the ``comment area''. The comments provided
+            in this area can be accessed -- displayed, added, or deleted --
+            using the COMMNT utility program. To add new comments to a
+            binary kernel file that does not have any comments, one would
+            first write a text file containing these comments and then add
+            the contents of this file to the comment area using ``commnt
+            -a''. To replace existing comments in a binary kernel file, one
+            would first view existing comments using ``commnt -r'' (or save
+            them to a text file ``commnt -e''), write a text file
+            containing new comments (or edit the text file containing
+            existing comments), delete existing comments from the file
+            using ``commnt -d'', and finally add new or updated comments to
+            the file using ``commnt -a''.
+ 
+            In text kernels comments are located at the top part of the
+            file, up to the first ``\begindata'' token on a line by itself,
+            and in the file sections delimited by ``\begintext'' and
+            ``\begindata'' tokens, each on a line by itself. Any number of
+            comment sections intermixed with the data sections can be
+            included in the file. Modifying comments in a text file can be
+            done using any text editor. When modification are made to the
+            file comments, the file version should be increased and the
+            scope of the comment modifications should be mentioned in the
+            version section of the comments.
+ 
+            Comments in both binary and text kernels should contain only
+            printable ASCII characters (no TABs); it is also strongly
+            recommended that comment lines should be no longer than 80
+            characters.
+ 
+            While it is not possible to automate writing comments -- as
+            with any other documentation this is the task that needs to be
+            done by the person who puts the archive together by hand or by
+            ``recruiting'' the people/teams who provided the data -- it is
+            certainly possible to automate generating comments for a string
+            of files of a certain type using a template and inserting these
+            comments into the files. The example merge scripts mentioned
+            above each contain steps for creating comments from a template
+            and adding these comments to the output file.
+ 
+       --   Renaming Files
+ 
+            The names of the files to be included in the archive must
+            comply with the expanded ISO 9660 Level 2 requirement adopted
+            by PDS. Thy must have 36.3 form -- 1-36 character long name +
+            1-3 character long extension -- and must consist of letters
+            (a-z), digits (0-9) and underscores (_). All names that don't
+            comply with this requirement must be changed. NAIF recommends
+            that the files are named using lowercase letters (as is done
+            for the majority of the PDS-D data sets) rather than using
+            upper case letters that were the requirement during the CD era.
+ 
+            The only requirement that NAIF imposes in addition to this
+            general PDS requirement is that the extensions of the kernel
+            files must follow the established convention for SPICE kernels:
+ 
+            Binary SPKs          .bsp
+            Binary PCKs          .bpc
+            Binary DSKs          .bds
+            Binary CKs           .bc
+            Binary Sequence EKs  .bes
+            Binary Database EKs  .bdb
+            Binary Plan EKs      .bep
+ 
+            Text PCKs            .tpc
+            Text IKs             .ti
+            Text FKs             .tf
+            Text LSKs            .tls
+            Text SCLKs           .tsc
+            Text Notebook EKs    .ten
+            Text Meta Kernels    .tm
+ 
+            NAIF also strongly recommends that the names of all mission
+            specific kernels start with the acronym of the spacecraft or
+            the mission (if a data file contains data for more than one
+            spacecraft associated with the same mission). For example, the
+            names of MGS kernels start with ``mgs_'', the names of MER-1
+            kernels start with ``mer1_'', and so on.
+ 
+ 
+Validating Data
+ 
+   Although the majority of the source kernels (both those that go into the
+   archive ``as is'' and those that have been used to make the merged
+   archive files) have been used in operations and have been validated by
+   this use, the final complete set of archival files must be validated by
+   checking the files' coverages, data scope, correctness of comments, data
+   accessibility, integrity, and consistency. The following validation
+   approaches complementing each other are suggested:
+ 
+       --   summarizing individual binary kernels (binary SPK, DSK, CK,
+            PCK, EK) and meta-kernels using BRIEF, DSKBRIEF, CKBRIEF, and
+            SPACIT utilities to verify that they are accessible, provide
+            data for the right set of bodies/structures, and have expected
+            coverage
+ 
+       --   summarizing FOV definitions in IKs -- directly or via
+            meta-kernels -- using OPTIKS to verify that the IKs are
+            accessible and provide data for the right set of
+            instruments/detectors
+ 
+       --   checking comments in the kernels -- both text and binary -- for
+            completeness, correctness and consistency with the summaries of
+            the data produced by summary tools
+ 
+       --   comparing files with similar data (for example spacecraft SPKs
+            from different producers) and examining differences to see that
+            they look reasonable; for SPK files this can be done using the
+            SPKDIFF utility, for CK and FK files this can be done using the
+            FRMDIFF utility
+ 
+       --   comparing later versions of kernels that need to be added to
+            the archive with already archived earlier versions; for text
+            kernels this can be done by analyzing differences shown by Unix
+            utilities ``diff'' or ``tkdiff''
+ 
+       --   comparing merged archival products with the source operational
+            files; for SPK files this can be done using the SPKDIFF
+            utility, for CK files this can be done using the FRMDIFF
+            utility
+ 
+       --   checking file data integrity by running utilities like SPY
+            (currently works only on SPK files)
+ 
+       --   writing an application to compute geometry using the archival
+            data and comparing that geometry to known values, for example
+            from the geometry keywords in the science data labels; ideally
+            such computations should be done for each of the instruments,
+            for the quantities that require data from kernels of all types
+            to be accessed, and over the whole span covered by the archive
+            or a particular archive release
+ 
+       --   asking the project SPICE users to re-run some of the geometry
+            computations that they have done with source operational files
+            using the final set of kernels and verify that they obtained
+            the same results
+ 
+   While some of the validation tasks can be scripted (for example checking
+   coverage based on file summaries or running SPY to check file data
+   integrity), many others have to be done by hand (for example assessing
+   comments in new version of text kernels) in many cases making validation
+   a time and effort consuming activity. Still, the person preparing the
+   archive should try to give his/her best effort to make sure that each
+   archive release contains the complete set of files (in terms of scope
+   and coverage) that are well documented with internal comments.
+ 
+ 
+Value-Added Elements
+ 
+   The NAIF archiving approach requires meta-kernels and, if available,
+   orbit number (ORBNUM) files to be included in the data sets in addition
+   to SPICE kernels. Since neither meta-kernels nor ORBNUM files are SPICE
+   kernels, they are considered ``value-added'' archive elements and, for
+   this reason, reside in the ``extras' directory of the data set and don't
+   need to be labeled or included into indexes.
+ 
+       --   Meta Kernels
+ 
+            Meta-kernel files (a.k.a ``furnsh'' files) provide lists of the
+            archived kernels included in the data set suitable for loading
+            into a SPICE-based application via the high level SPICE data
+            loader routine FURNSH. Using meta-kernels makes it easy to
+            load, with one call, a comprehensive SPICE data collection for
+            a given period, which, given that SPICE data sets can contain
+            large number of files, is extremely helpful for future users.
+ 
+            For missions with a small number of archived kernels NAIF
+            recommends creating a single meta-kernel providing data for the
+            whole mission. The name of this meta-kernel should follow the
+            ``mmm_vnn.tm'' pattern where ``mmm'' is the mission acronym and
+            ``nn'' is the version number. If/when new kernels are added to
+            the data set, a meta-kernel with the next version number,
+            including the new kernels and leaving out superseded kernels
+            should be created and added to the archive.
+ 
+            For missions with a large number of archived kernels NAIF
+            recommends creating a set of meta-kernels each covering one
+            year of the mission. The names of these meta-kernels should
+            follow the ``mmm_yyyy_vnn.tm'' pattern where ``mmm'' is the
+            mission acronym, ``yyyy'' is the year covered by this data, and
+            ``nn'' is the version number. If/when new kernels are added to
+            the data set, meta-kernels for all applicable years with the
+            next version number, including the new kernels and leaving out
+            superseded kernels should be created and added to the archive.
+ 
+            Examples of meta-kernels are provided in the ``extras/mk''
+            directories under data sets provided in the
+            ``examples/datasets'' directory of the package accompanying
+            this document.
+ 
+       --   ORBNUM Files
+ 
+            ORBNUM files can be generated for orbiter type missions using
+            NAIF's ORBNUM utility program. They provide orbit numbers and
+            orbit start times along with a number of derived parameters at
+            these times. If ORBNUM files are (or can be generated) for a
+            mission, they should be included in the archive.
+ 
+            Examples of ORBNUM files are provided in the ``extras/orbnum''
+            directories under data sets provided in the
+            ``examples/datasets'' directory of the package accompanying
+            this document.
+ 
+   If the project produces other value-added files closely related to
+   kernels and ``insists'' on archiving them, these files can also be added
+   to the archive's ``extras'' directory. For example, the CASSINI project
+   produces comparison plots and pointing correction plots for its
+   reconstructed and C-smithed CK files. CASSINI requests these plots be
+   included in the archived data set. NAIF neither objects to nor
+   recommends practices like this.
+ 
+ 
+Step 2: Preparing Descriptions
+--------------------------------------------------------
+ 
+   As for any other PDS data set each of the SPICE data sets includes a
+   large number of meta-information files describing the data, meta-data,
+   volume contents, volume directory structure, and so on. Preparing many
+   (but not all) of these files is very easily done by starting with a file
+   of the same kind from an exiting data set and changing just a few words
+   in it (such as mission name and acronym, publication dates, etc). The
+   same approach -- starting with or using an existing file as an example
+   -- will also work best for putting together the few files that do
+   require more effort, those describing the actual data included in the
+   data set.
+ 
+   Spending the effort to prepare adequate descriptions of the data is
+   essential to guarantee that the data can be used correctly and
+   efficiently by future users.
+ 
+   NAIF requires that SPICE data sets provide kernel data descriptions in
+   the following three ``places'' in the data set:
+ 
+       --   internal comments included in the kernels
+ 
+       --   ``*info.txt'' files provided in the kernel type subdirectories
+            under ``data'' directory -- ``data/ck/ckinfo.txt'',
+            ``data/ek/ekinfo.txt'', etc.
+ 
+       --   SPICE data set catalog file ``spiceds.cat'' provided in the
+            ``catalog'' directory of the data set
+ 
+   Descriptions given in each of these ``places'' have different purposes
+   and levels of detail. The ``comments'' in a particular file provide the
+   most detailed and comprehensive information about the file that they
+   document; the ``*info.txt'' files describe the naming scheme and usage
+   priority of the collection of files of a particular kernel type in the
+   data sub-directory in which they reside; ``spiceds.cat'' provides a high
+   level overview of the data set, covering briefly the types of
+   information provided in, the source data of, and the accuracy of each
+   kind of kernels included in the data set.
+ 
+   Descriptions that are expected to be included in the ``comments'',
+   ``info.txt'' file and ``spiceds.cat'' are explained in greater detail in
+   the next few sub-sections of this document. The sub-section following
+   them covers other documents that should be included in the data set --
+   aareadme files, other catalog files, ``*info.txt'' files, etc.
+ 
+ 
+General Note About Meta-information File Format
+ 
+   All descriptions and meta-information files provided in SPICE data sets
+   -- internal comments in binary and text kernels, catalog files, and
+   ``*info.txt'' files -- must be prepared as plain ASCII text and must not
+   include any non-printing characters (TABs are not permitted). The lines
+   in the comments and meta-information files must be no longer than 78
+   characters. The only exception from this requirement is the
+   ``aareadme.htm'' file that may have lines containing HTML references
+   extending beyond the 78 character limit.
+ 
+ 
+Internal Comments
+ 
+   It is crucial that every kernel included in the archive contains
+   comprehensive internal comments that describe:
+ 
+       --   contents of the file
+ 
+       --   version and revision history
+ 
+       --   status and purpose of the file
+ 
+       --   source(s) of the data (including names of the original files if
+            the file was created by merging or sub-setting other files)
+ 
+       --   processing that was done on the data
+ 
+       --   setup parameters and output logs for utility(ies) used to
+            create the file
+ 
+       --   applicability of the data
+ 
+       --   data coveragec
+ 
+       --   data accuracy
+ 
+       --   other kernels needed to use the file
+ 
+       --   references
+ 
+       --   data producer and contact information
+ 
+   The comments for a particular file should address all of the categories
+   from this list that are applicable to the kind of data stored in the
+   file.
+ 
+   The best approach to writing comments for a SPICE kernel is to start
+   with the comments from a kernel of the same type containing the same or
+   similar kind of information and modify these comments to describe the
+   file in hand. The package accompanying this document contains an
+   ``examples/comments'' directory with numerous examples of internal
+   comments for each kernel type. These comments should be used as a
+   reference or even the starting point for comments for the kernels
+   intended for archiving.
+ 
+ 
+*info.txt Files in Kernel Directories
+ 
+   Each of the ``*info.txt'' files located in the kernel type
+   subdirectories under the ``data'' directory -- ``data/ck/ckinfo.txt'',
+   ``data/ek/ekinfo.txt'', etc. -- provides brief general information about
+   kernels of that type and describe the naming scheme and use priority for
+   the collection of kernel files contained in the subdirectory where this
+   ``*info.txt'' file resides.
+ 
+   The best approach to writing these files is to start with the versions
+   from one of more recent SPICE data sets (for example, the MRO data set
+   provided under the ``examples/datasets'' directory of this package) and
+   modify these versions to address the kernels that are being archived.
+   Some sections of these files -- ``General Information ...'' and ``Kernel
+   File Details'' -- may not need any modifications at all while the other
+   sections -- those describing the file naming convention, file loading
+   priority (if there is such a section), contact information, and other
+   mission specific information -- will need to be re-written to describe
+   the file sets at hand. The values of the PUBLICATION_DATE and NOTE
+   keyword in the attached label at the top of the file will also need to
+   be updated.
+ 
+   Well written ``*info.txt'' files put together for the first release may
+   not need to be modified for future releases unless new kinds of kernels
+   not reflected in them get added to the data set.
+ 
+ 
+SPICE Data Set Catalog File
+ 
+   ``spiceds.cat'' located under the ``catalog'' directory of the data set
+   provides a high level overview of the data set, covering briefly the
+   type of information provided in, the source of, and the accuracy of each
+   kind of kernel included in the data set.
+ 
+   Starting with the ``spiceds.cat'' from a recently archived SPICE data
+   set (for example for MRO) the following parts of it should be modified
+   to adapt it to a new mission:
+ 
+       --   values of LABEL_REVISION_NOTE, DATA_SET_ID, DATA_SET_NAME,
+            DATA_SET_TERSE_DESC, ABSTRACT_DESC, CITATION_DESC, START_TIME,
+            STOP_TIME, and DATA_SET_RELEASE_DATE. Modifications required to
+            these keywords are rather obvious and come down to changing the
+            mission acronym and setting dates to applicable values. To
+            ensure that the data set can be ingested into the NSSDC deep
+            archive holdings, the START_TIME and STOP_TIME keywords must be
+            set to properly formatted time tags, for example corresponding
+            to the begin and end times of the coverage of the reconstructed
+            SPK or CK files included in the archive. Neither ``N/A'' nor
+            ``UNK'' values are allowed for these two keywords.
+ 
+       --   some paragraphs in the description provided in the
+            DATA_SET_DESC keyword, specifically those in the ``Data Set
+            Overview'' section. Most other paragraphs normally provide
+            generic descriptions and can be left ``as is''; still, it is
+            wise to check them to see if they contain any mission specific
+            bits and change those as needed.
+ 
+       --   description provided in the CONFIDENCE_LEVEL_NOTE keyword. This
+            is where most of the writing work needs to be done. This
+            description should be re-written to address the kinds of data
+            provided by kernels of each type in the data set being
+            prepared. When doing this NAIF suggests one maintain the
+            structure of the original description (section breakdown,
+            paragraph structure, etc.) and keep the closing sentences of
+            each block (``More information about ...'') intact.
+ 
+       --   DATA_SET_MISSION, DATA_SET_TARGET and DATA_SET_HOST objects at
+            the bottom of the file. Modifications required to the keywords
+            in these objects are rather obvious and come down to changing
+            the mission and target names and instrument host acronym. If a
+            mission has more than one target or includes more than one
+            instrument host, additional objects should be added to the file
+            to reflect that (see ``spiceds.cat for Deep Impact for
+            examples).
+ 
+   While any recent ``spiceds.cat'' file would be a good starting point it
+   is recommended to look at the ``spiceds.cat'' files for other missions
+   because, while following the same overall structure, they may contain
+   kernel descriptions (in the CONFIDENCE_LEVEL_NOTE value) that may serve
+   as a better template for the kernels being archived.
+ 
+   A well written ``spiceds.cat'' put together for the first release may
+   not need to be modified for future releases unless new kinds of kernels
+   not reflected in it get added to the data set.
+ 
+ 
+Other Documents in SPICE Data Sets
+ 
+   The ``*info.txt'' files in data subdirectories and ``spiceds.cat'' make
+   up about a half of the description files that should be present in the
+   data set. Recommendations for preparing the other half, specifically
+   these files:
+ 
+            aareadme.htm
+            aareadme.lbl
+            aareadme.txt
+            errata.txt
+            voldesc.cat
+            catalog/catinfo.txt
+            catalog/insthost.cat
+            catalog/mission.cat
+            catalog/person.cat
+            catalog/ref.cat
+            catalog/release.cat
+            catalog/spice_hsk.cat
+            catalog/spice_inst.cat
+            document/docinfo.txt
+            document/lblinfo.txt
+            document/onlabels.txt
+            extras/extrinfo.txt
+            extras/mk/mkinfo.txt
+            index/indxinfo.txt
+            software/softinfo.txt
+ 
+   are outlined file-by-file below. As with the data ``*info.txt'' and
+   ``spiceds.cat'' files, the recommended approach to modifying most of
+   these files is to start with a version from one of the recently archived
+   SPICE data sets (for example, MRO) and change it while keeping the same
+   structure, description layout and keywords to apply to the set of
+   kernels for the new mission. Note that some of the files in this list --
+   mission, instrument host and references catalogs files -- simply need to
+   be obtained from the project's person/group that is responsible for
+   putting them together.
+ 
+       --   aareadme.lbl
+ 
+            Change mission acronym in DOCUMENT_NAME and NOTE; change dates
+            in PUBLICATION_DATEs
+ 
+       --   aareadme.txt
+ 
+            Change mission specific information in the title and
+            ``Introduction'' section; leave ``as is'' descriptions in
+            ``File Formats'' and ``Volume Contents''; if needed, modify
+            directory tree to add and/or remove lines that don't apply to
+            the structure of the data set; change ``Whom to Contact for
+            Information'' and ``Cognizant Persons'' as needed
+ 
+       --   aareadme.htm
+ 
+            Duplicate changes made in aareadme.txt;
+ 
+       --   errata.txt
+ 
+            Change mission acronym in NOTE and date in PUBLICATION_DATE;
+            change the list of values of the INSTRUMENT_NAME keyword to
+            match the values in the labels in the new data set (this change
+            is best done after the labels have been generated and these
+            values are known); additional errata related to missing and/or
+            incomplete data or liens may be added to this file if needed;
+ 
+       --   voldesc.cat
+ 
+            change label revision note; change target name in
+            VOLUME_SERIES_NAME; change mission specific items -- name and
+            acronym -- in VOLUME_SET_NAME, VOLUME_SET_ID, VOLUME_NAME,
+            VOLUME_ID, MRO-M-SPICE-6-V1.0 and DESCRIPTION; change all
+            keywords in the DATA_PRODUCER object as needed; if additional
+            catalog files are present (more than one instrument host and/or
+            target), add pointers to them in the CATALOG object (see the
+            Deep Impact data set for examples); if any of the catalog file
+            names changed, make sure that they are used in the
+            corresponding pointers
+ 
+       --   catalog/insthost.cat
+ 
+            Obtain this catalog file from the responsible person/group;
+            there may be more than one instrument host associated with a
+            mission; if so, more than one instrument host catalog file will
+            need to be present and they will have to have different names
+            (make sure that ``voldesc.cat'' and ``catalog/catinfo.txt''
+            reflect that)
+ 
+       --   catalog/mission.cat
+ 
+            Obtain this catalog file from the responsible person/group;
+ 
+       --   catalog/ref.cat
+ 
+            Obtain this catalog file from the responsible person/group;
+ 
+       --   catalog/person.cat
+ 
+            Change information in this file as needed; add/remove objects
+            if more/fewer data providers/preparers should be included
+ 
+       --   catalog/release.cat
+ 
+            Change LABEL_REVISION_NOTE; for the first release, leave only
+            one object with RELEASE_ID = 0001; set its DATA_SET_ID to the
+            data set's ID; change mission acronym in DISTRIBUTION_TYPE;
+            change DESCRIPTION as needed; for each subsequent release add
+            one release object to the file with the next sequential ID and
+            change RELEASE_ID, RELEASE_PARAMETER_TEXT, and DESCRIPTION as
+            needed while keeping all other keywords the same;
+ 
+       --   catalog/spice_hsk.cat
+ 
+            Change LABEL_REVISION_NOTE; assuming that the data set will be
+            delivered to NAIF, change DATA_SET_ID and RESOURCE_ID in both
+            objects to use correct data set ID, change mission name and
+            data set ID in ``Basic Browser'' RESOURCE_LINK, and change the
+            data set and volume levels in the ``NAIF On line Archives''
+            RESOURCE_LINK;
+ 
+       --   catalog/spice_inst.cat
+ 
+            Change LABEL_REVISION_NOTE; change mission acronym in
+            INSTRUMENT_HOST_ID;
+ 
+       --   catalog/catinfo.txt
+ 
+            Change date in PUBLICATION_DATE; change volume ID (nnnSP_1000)
+            in NOTE and text; change mission and spacecraft acronyms and
+            names in the text; change ``Contact Information''; if
+            additional catalog files were added to the catalog directory,
+            chance text to reflect that (see the Deep Impact data set for
+            an example)
+ 
+       --   document/lblinfo.txt
+ 
+            Change date in PUBLICATION_DATE; replace mission acronym in
+            NOTE, title, and descriptions; change contact information;
+ 
+       --   document/onlabels.txt
+ 
+            It is best to update this file when a label for a SPICE product
+            has been generated; change date in PUBLICATION_DATE; change
+            mission in the NOTE; cut-and-paste actual label into the
+            ``Example label'' section; update mission-specific keyword
+            descriptions in the ``Definition of Keywords/Values for SPICE
+            Kernels'' section using information from the example label (pay
+            special attention to description of DATA_SET_ID,
+            SPACECRAFT_CLOCK_START_COUNT, and SPACECRAFT_CLOCK_START_COUNT)
+ 
+       --   document/docinfo.txt
+ 
+            Change date in PUBLICATION_DATE; replace mission acronym in
+            NOTE, title, and descriptions; change contact information; if
+            more documents or subdirectories were added to the ``document''
+            directory, change description to reflect that (see the CASSINI
+            data set for examples)
+ 
+       --   extras/mk/mkinfo.txt
+ 
+            Change date in PUBLICATION_DATE; change mission name and
+            acronym in the title and descriptions; modify file naming
+            description as needed (see SDU, MRO, and MER data set for
+            different examples of meta-kernel naming); modify the
+            ``guidelines'' paragraph and bulleted list to explain how the
+            list of kernels were picked (see the MGS, MRO, MER, SDU, Deep
+            Impact data sets for examples); change contact information;
+ 
+       --   extras/extrinfo.txt
+ 
+            Change date in PUBLICATION_DATE; change mission name and
+            acronym in the title and descriptions; change contact
+            information; if additional files or subdirectories are present
+            in ``extras'' change the description to reflect that (see MRO
+            and CAS data sets for examples)
+ 
+       --   index/indxinfo.txt
+ 
+            Change date in PUBLICATION_DATE; (that's all)
+ 
+       --   software/softinfo.txt
+ 
+            Change date in PUBLICATION_DATE; (that's all)
+ 
+   When so many small changes need to be made by hand in so many files it
+   is easy to overlook some corrections that have to be done. Checking the
+   files that have been updated after all updates have been made is
+   essential to catch that. The simplest ways to do such checking are using
+   ``tkdiff'' (or a similar difference visualization tool) to compare the
+   new version with the original version, and using ``grep'' to look for
+   various tokens that should and should not appear in the new description
+   such as new and old mission acronyms, new and old data set IDs,
+   publication dates, and so on.
+ 
+ 
+Step 3: Labeling Data
+--------------------------------------------------------
+ 
+   Once the complete set of kernels that should go into the archive is
+   available the next step is to generate PDS labels for each of these
+   files. This step includes collecting files in the ``staging area'',
+   creating the MAKLABEL template, creating the kernel list file for input
+   to the ``label_them_all.pl'' script, and running the script to generate
+   labels.
+ 
+   To be fair it must be mentioned that labels generated by the process
+   described in this section raised a number of concerns by archived SPICE
+   data set peer-reviewers and other members of the PDS community. These
+   concerns are discussed in ``Appendix 1'' of this document.
+ 
+ 
+Staging data
+ 
+   ``Staging area'' should have the same directory structure as the
+   archive. The ``make_pds_directories.csh'' can be used to make the
+   required directory structure during initial staging area setup. Kernels
+   of each type should be collected (by copying, moving, scp'ing , etc) in
+   the corresponding subdirectory under the ``data'' directory. For
+   example, all SPK files should go into ``data/spk'', all CKs into
+   ``data/ck'' and so on. The files must be staged with the names under
+   which they will appear in the archive.
+ 
+ 
+Preparing MAKLABEL Template
+ 
+   The labels for the kernels are generated by the MAKLABEL program
+   available from the utilities page of the NAIF Web server, invoked by the
+   ``label_them_all.pl'' script.
+ 
+   MAKLABEL creates labels with the same set of keywords and structure for
+   all SPICE kernel types:
+ 
+            PDS_VERSION_ID               = PDS3
+            RECORD_TYPE                  =
+            RECORD_BYTES                 =
+            ^SPICE_KERNEL                =
+            MISSION_NAME                 =
+            SPACECRAFT_NAME              =
+            DATA_SET_ID                  =
+            KERNEL_TYPE_ID               =
+            PRODUCT_ID                   =
+            PRODUCT_CREATION_TIME        =
+            PRODUCER_ID                  =
+            MISSION_PHASE_NAME           =
+            PRODUCT_VERSION_TYPE         =
+            PLATFORM_OR_MOUNTING_NAME    =
+            START_TIME                   =
+            STOP_TIME                    =
+            SPACECRAFT_CLOCK_START_COUNT =
+            SPACECRAFT_CLOCK_STOP_COUNT  =
+            TARGET_NAME                  =
+            INSTRUMENT_NAME              =
+            NAIF_INSTRUMENT_ID           =
+            SOURCE_PRODUCT_ID            =
+            NOTE                         =
+            OBJECT                       = SPICE_KERNEL
+              INTERCHANGE_FORMAT         =
+              KERNEL_TYPE                =
+              DESCRIPTION                =
+            END_OBJECT                   = SPICE_KERNEL
+            END
+ 
+   The program automatically generates values for many of these keywords
+   using information that it collects from the files. For example, the
+   program assigns the file name to the ^SPICE_KERNEL and PRODUCT_ID
+   keywords, sets PRODUCT_CREATION_TIME to current CPU time, sets
+   START_TIME and STOP_TIME to coverage begin and end times obtained by
+   examining the data, sets RECORD_TYPE, RECORD_BYTES, KERNEL_TYPE_ID,
+   INTERCHANGE_FORMAT, and KERNEL_TYPE based on the kernel type, and so on.
+ 
+   Not all of the keywords can be populated with values using file data and
+   not all automatically generated values are acceptable. For these
+   keywords
+ 
+            MISSION_NAME                 =
+            SPACECRAFT_NAME              =
+            DATA_SET_ID                  =
+            PRODUCER_ID                  =
+            MISSION_PHASE_NAME           =
+            PRODUCT_VERSION_TYPE         =
+            PLATFORM_OR_MOUNTING_NAME    =
+            TARGET_NAME                  =
+            INSTRUMENT_NAME              =
+            SOURCE_PRODUCT_ID            =
+            NOTE                         =
+ 
+   values have to be set using a special setup file called template.
+ 
+   While the MAKLABEL User's Guide provides complete details on template
+   format and content and should be the ultimate source of this
+   information, one concept from it needs to be repeated here to make
+   information provided later in this section understandable. This is the
+   concept of the ``default'' template section and ``optional'' template
+   sections. The default section of the template contains keyword=value
+   pairs that apply to all labels while the optional sections contain
+   keyword-value pairs that apply to the output label only when the option
+   tag is provided on MAKLABEL's command line. The default section appears
+   at the top of the template file before the first option tag line, which
+   is a line that starts with ``--'' followed by a tag consisting of
+   uppercase letters, numbers and ``_''. An optional section appears
+   between one option tag line and the next option tag line and all
+   keywords specified in it are placed in the output label if the option
+   tag from the leading line is specified on the MAKLABEL command line. For
+   example, this small template
+ 
+      MISSION_NAME         = "GALACTIC"
+      PRODUCER_ID          = "UNK"
+ 
+      --NAIF
+        PRODUCER_ID        = "NAIF"
+ 
+   tells MAKLABEL to set MISSION_NAME to "GALACTIC" in all labels (because
+   it appears in the default section), and to set PRODUCER_ID to "UNK" when
+   no option tags are specified in the command line (because it appears in
+   the default section) and to set it to "NAIF" when the NAIF option tag is
+   specified on the command line (because it also appears in the optional
+   section with tag NAIF).
+ 
+   Brief guidelines on how to set up a template for the keywords that
+   cannot (or should not) be set using the file data are provided below.
+   While reading these guidelines, it may be helpful to look at the
+   examples of MAKLABEL templates for various missions that are included in
+   the ``examples/templates'' directory of this package.
+ 
+       --   MISSION_NAME
+ 
+            MISSION_NAME must be set in the default section to the value of
+            MISSION_NAME specified in ``mission.cat''. (See MRO template
+            for examples.)
+ 
+       --   DATA_SET_ID
+ 
+            DATA_SET_ID must be set in the default section to the value of
+            DATA_SET_ID specified in ``spiceds.cat''. (See MRO template for
+            examples.)
+ 
+       --   TARGET_NAME
+ 
+            TARGET_NAME must be set in the default section to the name or
+            the list of names of the mission's primary target(s) as
+            specified in the target catalog files. (See MRO, DS1 and SDU
+            templates for examples.)
+ 
+            If the mission does not have a primary target or it has too
+            many targets, TARGET_NAME can be set in the default section to
+            "N/A". (See the CASSINI template for an example.)
+ 
+       --   SOURCE_PRODUCT_ID
+ 
+            SOURCE_PRODUCT_ID can be set in the default section to "N/A".
+ 
+       --   NOTE
+ 
+            NOTE can be set in the default section to "See comments in the
+            file for details".
+ 
+       --   PRODUCT_VERSION_TYPE
+ 
+            Since the majority of archived kernels usually contain
+            reconstructed data, PRODUCT_VERSION_TYPE should be set in the
+            default section to "ACTUAL". An optional section with tag
+            PREDICT setting PRODUCT_VERSION_TYPE to "PREDICT" can be
+            included to allow putting this value into the labels for files
+            with predicted data. (See MRO template for examples.)
+ 
+       --   SPACECRAFT_NAME
+ 
+            If a single spacecraft is associated with the mission,
+            SPACECRAFT_NAME must be set in the default section to the value
+            of INSTRUMENT_HOST_NAME specified in ``insthost.cat''. (See MRO
+            template for examples.)
+ 
+            If more than one spacecraft is associated with the mission,
+            SPACECRAFT_NAME must be set in the default section to a list of
+            values of INSTRUMENT_HOST_NAME specified in all instrument host
+            catalog files. Then a set of optional sections, in each of
+            which SPACECRAFT_NAME is set to an individual
+            INSTRUMENT_HOST_NAME, should be added; the spacecraft acronyms
+            can be used as tags for these sections. One of these tags
+            should be used when MAKLABEL is run to make labels for kernels
+            that apply for only one spacecraft. For the kernels that apply
+            to all spacecraft, these tags will be omitted resulting in the
+            list of all spacecraft names specified in the default section
+            being put into the label. (See the Deep Impact template for
+            examples.)
+ 
+       --   PRODUCER_ID
+ 
+            A set of optional sections, in each of which PRODUCER_ID is set
+            to a particular producer ID, must be set up; the producer
+            acronyms can be used as tags for these sections. One of these
+            tags should be used when MAKLABEL is run to make labels for
+            kernels created by a particular producer. (See the MRO template
+            for examples.)
+ 
+       --   INSTRUMENT_NAME and PLATFORM_OR_MOUNTING_NAME
+ 
+            A set of optional sections, one for each instrument, setting
+            INSTRUMENT_NAME to the value of INSTRUMENT_NAME from that
+            instrument's catalog file and setting PLATFORM_OR_MOUNTING_NAME
+            to the name of the platform on which the instrument is mounted,
+            must be set up; the instrument acronyms can be used as tags for
+            these sections. One of these tags should be used when MAKLABEL
+            is run to make labels for kernels that apply to a particular
+            instrument (normally only for IKs). (See the Cassini template
+            for examples.)
+ 
+       --   MISSION_PHASE_NAME
+ 
+            MISSION_PHASE_NAME should be set in the default section to
+            "N/A" to be used for any kernels that cover the whole mission
+            or for which the notion of coverage is not applicable. (See the
+            MRO template for examples.)
+ 
+            Then a set of optional sections, one for each of the mission
+            phases defined in the DESCRIPTION section of ``mission.cat'',
+            setting MISSION_PHASE_NAME to a particular mission phase name,
+            must be set up; an abbreviated mission phase name can be used
+            as tags for these sections. One of these tags should be used
+            when MAKLABEL is run to make labels for kernels the coverage of
+            which falls completely within that mission phase. (See the MRO
+            template for examples.)
+ 
+            Additional optional sections setting MISSION_PHASE_NAME to
+            lists containing names for two or more adjacent mission phases
+            may need to be created if some kernels have coverage that spans
+            mission phase boundaries. (See MRO template for examples.)
+ 
+   Usually the MAKLABEL template prepared and used to label files in the
+   first release can be used without changes for all subsequent releases.
+   In some cases though, for example when data from a new data producer
+   need to be added to the archive or when an additional mission phase was
+   added to the mission time line, the template may need to be augmented
+   with additional optional sections.
+ 
+ 
+Preparing Kernel List File
+ 
+   After the MAKLABEL template has been prepared, the next step is to put
+   together a kernel list file that, as the name suggests, lists all
+   kernels that will be added to the archive in the release that is being
+   prepared. The list file is the main input to the ``label_them_all.pl''
+   script and, in addition to listing kernels, provides a set of MAKLABEL
+   options (tags from the template) and a description for each of the files
+   as well as some general information such as the data set ID, release ID,
+   etc. (Note that a concatenation of all kernels lists for an archive is
+   used as the primary input to the script that generates index files,
+   ``xfer_index.pl'', discussed later in this document.)
+ 
+   The kernel list file for a particular release must have the following
+   content and structure:
+ 
+      DATE = <date>
+      SPACECRAFT = <s/c>
+      NAIFER = <full name>
+      PHONE = <phone>
+      EMAIL = <e-mail>
+      VOLUMEID = <volume id>
+      RELEASE_ID   = <number>
+      RELEASE_DATE = <YYYY-MM-DD>
+      EOH
+      FILE             = <name of file 1>
+      MAKLABEL_OPTIONS = <MAKLABEL options for file 1>
+      DESCRIPTION      = <description of file 1, on a single line!>
+      FILE             = <name of file 2>
+      MAKLABEL_OPTIONS = <MAKLABEL options for file 2>
+      DESCRIPTION      = <description of file 2, on a single line!>
+      ...
+      FILE             = <name of file N>
+      MAKLABEL_OPTIONS = <MAKLABEL options for file N>
+      DESCRIPTION      = <description of file N, on a single line!>
+ 
+   The first five keywords -- DATE, SPACECRAFT, NAIFER, PHONE, EMAIL -- and
+   the ``EOH'' end-of-the-header marker are optional and are included to
+   provide identification information. These keywords are not used by the
+   ``label_them_all.pl'' or ``xfer_index.pl'' scripts. They are a ``carry
+   over'' required by an earlier incarnation of NAIF's archive scripts.
+ 
+   The VOLUMEID, RELEASE_ID, and RELEASE_DATE keywords are required and
+   must be set as follows: VOLUMEID must be set to the lowercased version
+   of the volume ID (for example ``mgsp_1000'' for MGS), RELEASE_ID must be
+   set to the release ID number (for example ``0001'' for release 1), and
+   RELEASE_DATE must be set to the date on which the data will be released
+   to the public (for example ``2007-07-27'' for July 27, 2007.)
+ 
+   The rest of the kernel list file must provide triplets of lines, one for
+   each of the files that constitute the release, containing FILE,
+   MAKLABEL_OPTIONS, and DESCRIPTION keywords. The FILE line must always be
+   first, followed by the MAKLABEL_OPTIONS line followed by the DESCRIPTION
+   line.
+ 
+   The FILE keyword must provide the file name relative to the volumes's
+   root directory (for example ``data/spk/de403.bsp'').
+ 
+   The MAKLABEL_OPTIONS keyword must provide all MAKLABEL option tags
+   applicable to the file named in the preceding FILE keyword. The option
+   tags must be delimited by one or more spaces and will be passed ``as
+   is'' to the MAKLABEL program. If no options are applicable to a file,
+   MAKLABEL_OPTIONS can be set to blank but the line containing it must
+   still be present in the list file, following the FILE keyword line.
+ 
+   The DESCRIPTION keyword must provide a brief description of the file;
+   this description will be inserted in the file label to replace the
+   generic description generated by the MAKLABEL program. The value must be
+   on the same line as the keyword and must not ``spill'' over onto the
+   next line(s). The length of the description is not limited. DESCRIPTION
+   can be set to blank but the line containing it must still be present in
+   the list file, following the MAKLABEL_OPTIONS keyword line. When
+   description is set to blank, "N/A" is placed in the label.
+ 
+   The list file may contain blank lines as long as they are not placed
+   between the lines in each of the triplets.
+ 
+   Normally the kernel list files are kept in the data set root directory
+   of the staging area.
+ 
+   The package accompanying this document contains the
+   ``examples/listfiles'' directory with numerous examples of kernel list
+   files for various missions. These list files can be used as references
+   or even as the starting point for preparing kernel list files for a new
+   archive.
+ 
+ 
+Running the Labeling Script
+ 
+   Once a kernel list file has been prepared the ``label_them_all.pl''
+   script can be run to generate labels for staged kernels.
+ 
+   Before doing that it should be verified that each of the staged text
+   kernels has an architecture/type token -- ``KPL/LSK'', ``KPL/SCLK'',
+   ``KPL/PCK'', and so on -- on the first line of the file. It is required
+   for the MAKLABEL and ARCHTYPE programs, as described in the programs'
+   User's Guides. If the architecture/type token is missing in the file, it
+   must be added using a text editor.
+ 
+   It should also be verified that all binary files have format -- BIG-IEEE
+   or LTL-IEEE -- native to the machine on which the script will be run.
+   The BFF utility program available on the ``Utilities'' page on the NAIF
+   web site can be used to display the binary format of one or more binary
+   kernels, like this:
+ 
+      > bff <file>
+ 
+   Any kernels that have a binary format different from the native binary
+   format of the workstation (the VERSION program provided with the toolkit
+   displays the native format when run with the ``-a'' option) must be
+   converted to native format prior to being labeled. The BINGO utility
+   program available on the ``Utilities'' page on the NAIF web site can be
+   used to do such conversions.
+ 
+   The script must be started from the volume's root directory as follows:
+ 
+      > label_them_all.pl <template> <lsk> <sclk> <kernel_list_file>
+ 
+   where ``template'' is the name of the MAKLABEL template file, ``lsk'' is
+   the name of a LSK file, ``sclk'' is the name of an SCLK file, and
+   ``kernel_list_file'' is the name of the kernel list file. The LSK and
+   SCLK files are needed by the MAKLABEL program and should be the files
+   that are included in the archive (normally they will be available in the
+   ``data/lsk'' and ``data/sclk'' directories of the staging area).
+ 
+   Note that in some cases multiple SCLK kernels may be needed to populate
+   values of the SPACECRAFT_CLOCK_START_COUNT and
+   SPACECRAFT_CLOCK_STOP_COUNT in the labels for CK files. Since the script
+   and MAKLABEL program allow only one SCLK kernel as input, these multiple
+   SCLK kernels will need to be ``concatenated'' together into a single
+   file and this file will need to be provided to the script. Possibly even
+   the mission FK may need to be concatenated in this file in addition to
+   SCLKs as it may identify an SCLK that must be used for CK-based frame
+   lookups.
+ 
+   Once started the script will go sequentially through the list file for
+   each listed kernel and:
+ 
+       --   will generate a label using MAKLABEL; the label file will have
+            the same name except with an extension ``.lbl'' and will be in
+            the same directory as the file
+ 
+       --   will replace the default DESCRIPTION in the label with the
+            value given in the list file
+ 
+       --   for text files, will add the label to the beginning of the
+            file, immediately following the architecture/type token line
+            (``KPL/LSK'', ``SPK/SCLK'', etc.); for binary files, will add
+            the label to the top of internal comments. For both text and
+            binary kernels a temporary comment file with the same name and
+            extension ``.cmt'' is created. This comment file is removed if
+            adding comments is successful.
+ 
+   The script will print to the terminal lines indicating the start and
+   completion of each of the steps for each of the files.
+ 
+   The following conditions will make the script skip or stop processing a
+   file and proceed to the next file:
+ 
+       --   if the kernel file name does not comply with PDS requirements;
+            files with non-compliant names should be renamed and the list
+            file should be updated to use the new names
+ 
+       --   if the kernel file name extension is not one of the standard
+            kernel extensions; files with non-compliant extensions should
+            be renamed and the list file should be updated to use the new
+            names
+ 
+       --   if the label file or temporary comment file for this kernel
+            already exists; all label and comment files for the kernels to
+            be labeled must be removed before running the script
+ 
+       --   if the MAKLABEL program failed to generate a label for any
+            reason; the MAKLABEL diagnostics output by the script should be
+            examined and necessary fixes must be made to the template file,
+            kernel file, and/or other inputs to the program
+ 
+       --   if the ARCHTYPE program failed to determine the kernel
+            architecture and type (in this case the script will have
+            generated the label but will not have added it to the file
+            comments); an architecture/type token must be added to the text
+            file
+ 
+   The following conditions will make the script stop processing of a file
+   and not proceed to the next file:
+ 
+       --   if the MAKLABEL_OPTIONS line does not follow the FILE line in
+            any triplet; the kernel list file must be fixed
+ 
+       --   if the DESCRIPTION line does not follow the MAKLABEL_OPTIONS
+            line in any triplet; the kernel list file must be fixed
+ 
+       --   if the COMMNT program failed adding comments to a binary
+            kernel; the file is probably a non-native binary format and
+            must be converted to the native format using BINGO
+ 
+       --   if the script could not open, close, or read from any list,
+            label, comment, or text kernels files; this may happen when an
+            earlier step failed to generate the file in question and/or
+            when there is a problem with the file system on which the files
+            reside (it is full, mount is not active, etc.)
+ 
+   The following conditions will make the script stop before processing any
+   files listed in the kernel list file:
+ 
+       --   if any of the files specified in the command line does not
+            exist; check if the file names on the command line are correct
+ 
+       --   if the utility programs MAKLABEL, ARCHTYPE, and COMMNT, the
+            locations of which are hard-coded in the script, do not exist
+            on the workstation where the script is run. The MAKLABEL,
+            ARCHTYPE, and CLCOMMNT variable assignments immediately
+            following the script header set these locations.
+ 
+       --   if environment variables needed for the MAKLABEL program cannot
+            be set by the script; this should never happen
+ 
+   If the script did not generate labels for some of the files, the
+   problems that caused the error(s) need to be fixed and the script needs
+   to be re-run to make these labels. Depending on how many files are
+   listed in the list file it may be practical to re-generate labels for
+   all kernels, including those for which the labels were generated
+   successfully. To take this route, the labels that were made need to be
+   deleted and the script needs to be re-run with the same list file as
+   input. Sometimes re-labeling all files is not practical because for
+   large files it can take quite a bit of time. In these cases a copy of
+   the list can be made and edited down to include only the files for which
+   the labels were not made. Then the script can be re-run with this
+   reduced list to generate labels just for these files. If this was
+   successful, the reduced list should be deleted to avoid using it instead
+   of the original list in future steps.
+ 
+   When labels for all files in the list have been generated it makes sense
+   to visually inspect some (or even all) of them. In some cases doing this
+   allows one to catch typos and incorrect information in the keyword
+   values set via the MAKLABEL template, incorrect information in
+   descriptions, and incorrect assignments of MAKLABEL option tags provided
+   in the list file. One of the ways to look at the labels is simply using
+   Unix ``more'' to see them, like this:
+ 
+      foreach ( `grep FILE listfile | sed 's/^FILE *= *//g' )
+      echo label for $FF
+      more $FF:r.lbl
+      end
+ 
+   If any problems are found as the result of this examination, their
+   causes should be fixed and just the labels affected -- or all labels if
+   it is easier -- should be re-generated by re-running the script.
+ 
+ 
+Step 4: Generating Index Files
+--------------------------------------------------------
+ 
+   After labels for all kernels have been generated the ``xfer_index.lbl''
+   script can be used to generate index files for the data set. This script
+   uses information from the labels and the list files to generate two
+   index table files: the data set index table ``index.tab'' located in the
+   ``index'' directory of the data set and the PDS-D index table
+   ``dsindex.tab'' located one level above the data set's root directory.
+   The script also generates the label files for these index tables --
+   ``index.lbl'' and ``dsindex.lbl''. The standard and PDS-D index table
+   files produced by the script are identical (except for the name) while
+   the label files produced by it differ only in one keyword -- the
+   ``^INDEX_TABLE'' object pointer in the standard index is set to
+   ``INDEX.TAB'' while in the PDS-D index it is set to ``DSINDEX.TAB''.
+ 
+   Since the script always produces the index files for the whole archive
+   (rather than for individual releases) two important prerequisites in
+   regards to maintaining the needed set of files in the staging area must
+   be met in order for the script to generate index files:
+ 
+       1.   labels for all kernels already included in the archive must be
+            kept in the staging area so that the script can collect
+            information from them as as well as from the labels for the
+            files that will be added to the archive in the release being
+            prepared
+ 
+       2.   the kernel list files for all previous releases must be kept in
+            the staging area to be used to generate the ``complete'' kernel
+            list file listing all files already included in the archive in
+            addition to those being added in the new release
+ 
+ 
+Preparing the Complete Kernel List File
+ 
+   The complete kernel list file must be made by concatenating all of the
+   kernel list files for individual releases -- those already in the
+   archive plus the new one. It should have the following structure:
+ 
+      DATE = <date>
+      SPACECRAFT = <s/c>
+      NAIFER = <full name>
+      PHONE = <phone>
+      EMAIL = <e-mail>
+      VOLUMEID = <volume id>
+      RELEASE_ID   = 0001
+      RELEASE_DATE = <YYYY-MM-DD>
+      EOH
+      FILE             = <name of file 1>
+      MAKLABEL_OPTIONS = <MAKLABEL options for file 1>
+      DESCRIPTION      = <description of file 1, on a single line!>
+      ...
+      FILE             = <name of file N>
+      MAKLABEL_OPTIONS = <MAKLABEL options for file N>
+      DESCRIPTION      = <description of file N, on a single line!>
+      DATE = <date>
+      SPACECRAFT = <s/c>
+      NAIFER = <full name>
+      PHONE = <phone>
+      EMAIL = <e-mail>
+      VOLUMEID = <volume id>
+      RELEASE_ID   = 0002
+      RELEASE_DATE = <YYYY-MM-DD>
+      EOH
+      FILE             = <name of file 1>
+      MAKLABEL_OPTIONS = <MAKLABEL options for file 1>
+      DESCRIPTION      = <description of file 1, on a single line!>
+      ...
+      FILE             = <name of file M>
+      MAKLABEL_OPTIONS = <MAKLABEL options for file M>
+      DESCRIPTION      = <description of file M, on a single line!>
+      ...
+ 
+   If the kernel list files for individual releases were named in a
+   consistent fashion -- for example ``sc_release_NN.kernel_list'' where NN
+   is the release ID number -- the easiest way to make the complete kernel
+   list file would be using the Unix ``cat'' command:
+ 
+      > cat sc_release_??.kernel_list >! sc_complete.kernel_list
+ 
+   It is important to make sure the complete kernel list file does not
+   contain double entries for the same kernel file. This happen sometimes
+   when, by mistake, a kernel already in the archive is included again in
+   the new release. The script ``check_list_for_dups.csh'' can be used to
+   verify that the complete kernel list file contain no duplicates:
+ 
+      > check_list_for_dups.csh <complete_kernel_list_file>
+ 
+   If the script finds duplicate entries for a file(s) it prints the file
+   name(s) to the terminal window. If it happens, the latest individual
+   kernel list file must them be edited to remove the entry(ies) for the
+   file(s) that are already in the archive.
+ 
+   Note that it makes more sense to check for duplicates as soon as the
+   kernel list for the new release has been put together to avoid
+   re-staging files and re-generating labels that are already in the
+   archive. Therefore it is best to make the complete kernel list file and
+   check it for duplicates as soon as the kernel list for the new release
+   is available.
+ 
+ 
+Running Index Generation Script
+ 
+   Once the complete kernel list file has been prepared and checked the
+   ``xfer_index.pl'' script can be run to generate the index table for the
+   data set. The script must be started from the volume's root directory
+   and must be provided with the name of the complete kernel list file as
+   the sole argument, as follows:
+ 
+      > xfer_index.pl <complete_kernel_list_file_name>
+ 
+   While running the script will print some progress information to the
+   screen.
+ 
+   The following conditions will make the script stop before generating
+   output index files:
+ 
+       --   if the complete kernel list file specified in the command line
+            does not exist; check if the file name on the command line is
+            correct
+ 
+       --   if the any of the four output files already exists; remove the
+            old version of the index tables and labels from the current
+            directory
+ 
+       --   if the complete kernel list does not list any kernels;
+            re-create the list file
+ 
+       --   if a label is missing for any of the kernels listed in the
+            complete kernel list file; generate missing labels
+ 
+   If successful the script will create four files -- ``dsindex.tab'',
+   ``dsindex.lbl, ``index.tab'', and ``index.lbl'' -- in the current
+   directory (the data set root directory).
+ 
+   At this point it makes sense to check the new index file against the
+   previous version. Since the previous version of the standard index table
+   file and its label (``index.tab'' and ``index.lbl'') are likely to still
+   be available in the ``index'' directory, a simple visual inspection of
+   the output from the Unix ``diff'' (or ``tkdiff'') utility run to compare
+   the previous and the new tables and labels should do the job:
+ 
+      > diff index.tab index/index.tab
+      ...
+      > diff index.lbl index/index.lbl
+      ...
+ 
+   The new index table should contain additional lines for each of the
+   files from the new release (unless some columns changed widths causing
+   the difference to be the whole table). The new label should have a
+   different (greater) count of files and possibly a greater width of some
+   columns if any of the files in the new release have a name that is
+   longer than the longest name of the already archived files.
+ 
+   After checking the new standard index table ``index.tab'' and label
+   ``index.lbl'' they can be moved to the ``index'' directory to replace
+   the previous version. It is best to keep the PDS-D index files --
+   ``dsindex.tab'' and ``dsindex.lbl'' -- in the data set's directory at
+   this point (the normal location of these files is one level above the
+   root directory).
+ 
+ 
+Step 5: Checking and Finishing up
+--------------------------------------------------------
+ 
+   With the labels and index files in hand the archive release is nearly
+   done. The only things left to do are finishing staging new and updated
+   meta-information files, performing a set of final checks on the staged
+   files, adding <CR>s to all meta-information files that require them,
+   copying all new data files and new and updated meta-information files to
+   the final archive area, and generating the MD5 checksum table and
+   accompanying label for the final archive area.
+ 
+ 
+Finishing Staging
+ 
+   The following usually needs to be done to finish staging files for the
+   archive:
+ 
+       --   All meta-information files -- catalog files (``*.cat''), text
+            file (``*.txt''), and HTML files (``*.htm'') -- created or
+            updated for the release must be copied from the work area to
+            the staging area.
+ 
+       --   All value-added files -- meta-kernels (``*.tm''), ORBNUM files
+            (``*.orb'' and ``*.nrb''), or any other files that should be
+            added to the ``extras'' subdirectory -- must be copied from the
+            work area to the staging area.
+ 
+       --   All binary kernels that are not in BIG-IEEE binary format must
+            be converted to BIG-IEEE binary format using NAIF's BINGO
+            program. The BFF utility program available on the ``Utilities''
+            page on the NAIF web site can be used display the binary format
+            of one or more binary kernels:
+ 
+              > bff <file>
+ 
+       --   All text kernels that are not Unix text files, i.e. don't have
+            lines terminated by <LF> only, must be converted to Unix text
+            format using NAIF's BINGO program or another utility (e.g.
+            ``dos2unix''). Whether a text kernel has any lines containing
+            <CR>s can be verified by piping output of this simple Perl
+            filter through Unix's ``wc'' command:
+ 
+              > perl -ne 'print if /\r/' <file> | wc
+ 
+       --   All new meta-kernels should be verified to make sure that they
+            list kernel files actually included in the archive. If all
+            kernels from previous releases were kept in the staging area,
+            such verification can be done by providing the name of each new
+            meta-kernel to the BRIEF utility program run from the volume
+            root directory, like this:
+ 
+              > brief extras/mk/<meta_kernel_name>
+ 
+            If a meta-kernel is correct, BRIEF will display a summary for
+            all SPKs listed it. If a meta-kernel lists a kernel that
+            doesn't exist in the archive, BRIEF will display an error
+            message containing the name of the non-existing kernel. Such
+            the meta-kernel should be corrected and verified again.
+ 
+ 
+Doing Final Checks
+ 
+   Once all kernel and meta-information files have been staged the final
+   set of checks should be performed to verify that all required files and
+   directories are present and comply with basic PDS requirements and that
+   the staged kernels files have proper binary and text format. The
+   ``check_everything.csh'' script provided in the package performs a
+   series of such checks.
+ 
+   The script must be started from the volume's root directory without any
+   arguments, as follows:
+ 
+      > check_everything.csh
+ 
+   The script verifies that the volume has the required directory
+   structure, checks for presence of all required meta-information files,
+   checks each meta-information file for long lines and non-printing
+   characters, checks that text kernels are in Unix format and do not
+   contain non-printing characters, and checks that binary kernels have
+   BIG-IEEE binary format. For each checked directory or file it prints
+   confirmation and, in case of an error, diagnostic information to the
+   screen.
+ 
+   The script only works on volumes that have lowercase directory and file
+   names.
+ 
+   To check the binary file format the script uses the BFF utility program
+   mentioned above.
+ 
+   To check for non-printing characters the script uses a program called
+   BADCHAR, the C source code for which -- ``badchar.c'' -- is provided in
+   the ``scripts'' directory of the package. BADCHAR, which is a very
+   simple ANSI C program without any external dependencies, can be compiled
+   on any UNIX environment that has a C compiler as follows:
+ 
+      > cc -o badchar badchar.c
+ 
+ 
+Adding <CR>s
+ 
+   After all staged files have been verified, the catalog, label, text, and
+   index table files that will go in the archive must be converted to PC
+   text format with lines terminated by <CR><LF>s as required by PDS
+   standards. The script ``add_crs_to_files.csh'' can be used to do this
+   conversion. (Note that this does NOT apply to SPICE text kernels,
+   meta-kernels, and orbit number files -- those must be archived in UNIX
+   text format.)
+ 
+   This script requires that files to be converted are listed one per line
+   in a text file that is provided to the script as the only command line
+   argument. A list file like this can be made in two steps, first by
+   making a ``full'' list file of all data and meta-information files that
+   will go in the archive and them making a ``subset'' list file containing
+   only the names of the files requiring <CR>s.
+ 
+   One convenient way to make a full list file is to capture in a file the
+   output of Unix's ``find'' command, searching from the volume's root
+   directory for all files recently created:
+ 
+      > find . -type f -mtime -1 -print | sort >! files_to_copy.list
+ 
+   Note that the ``-mtime -1'' argument of ``find'' results in a listing of
+   all files with modification date within the last 24 hours. If the work
+   in the staging area was performed over a longer period of time, ``-1''
+   should be changed to make sure that all files that were updated during
+   this period are found and included in the list. For example, if the
+   files in the staging area were updated over the last week, ``-1'' should
+   be changed to ``-7''.
+ 
+   The captured output from ``find'' may need to be edited because it is
+   likely to include the recently created auxiliary files that should not
+   be copied to the final archive area (for example the list files used by
+   the label and index generation scripts).
+ 
+   When the full list file is ready a subset list file containing only
+   those files to which <CR>s must be added can be made by this simple
+   ``grep'' command:
+ 
+      > egrep '\.lbl$|\.txt$|\.asc$|\.cat$|\.htm$|\.tab$' \
+        files_to_copy.list >! files_to_add_crs.list
+ 
+   Then the ``add_crs_to_files.csh'' can be run with the subset file name
+   provided on the command line to add <CR>s to all files listed in it:
+ 
+      > add_crs_to_files.csh files_to_add_crs.list
+ 
+ 
+Deploying to Final Archive Area
+ 
+   After the checksum files have been generated, the new and updated
+   archive-ready kernels and meta-information files should be copied from
+   the staging area to the final archive area, from which the archive will
+   be served to customers or delivered to the responsible PDS node. The way
+   of copying the files should be the one that best fits the data
+   preparer's hardware infrastructure -- ``scp'', ``rsync'', ``wget'',
+   ``tar'', or simply ``cp''.
+ 
+   NAIF has the staging and final archive area file systems mounted to the
+   workstation on which archive preparation is done and uses ``tar'' to
+   perform the copy. For example if the root directory of the staged MGS
+   archive is located at
+ 
+      /home/naif/staging/mgs-m-spice-6-v1.0/mgsp_1000
+ 
+   and has under it the file
+ 
+      files_to_copy.list
+ 
+   listing the data and meta-information files that should be copied to the
+   final archive directory located at
+ 
+      /ftp/pub/naif/pds/data/mgs-m-spice-6-v1.0/mgsp_1000
+ 
+   then this ``tar'' command can be used to perform the copy (the ``cd''
+   and ``more'' commands are included to show that ``tar'' should be run
+   from, and the file names in the list should be relative to, the volume's
+   root directory in the staging area):
+ 
+      > cd /home/naif/staging/mgs-m-spice-6-v1.0/mgsp_1000
+ 
+      > more files_to_copy.list
+      ./aareadme.htm
+      ./aareadme.lbl
+      ./aareadme.txt
+      ./catalog/catinfo.txt
+      ...
+      ./dsindex.lbl
+      ./dsindex.tab
+      ...
+      ./software/softinfo.txt
+      ./voldesc.cat
+ 
+      > tar cBf - `cat files_to_copy.list` | \
+        (cd /ftp/pub/naif/pds/data/mgs-m-spice-6-v1.0/mgsp_1000; \
+        tar xBf -)
+ 
+   The only files that were not staged in the right place and, for this
+   reason, were not copied to the right location in the final archive area
+   are the PDS-D index table and its label -- ``dsindex.tab'' and
+   ``dsindex.lbl''. It was suggested at the end of the ``Generating Index
+   Files'' section above that these two files should be temporarily kept in
+   the root directory of the volume. Doing so simplifies generating the
+   ``files to copy'' and ``files to add <CRs>'' list files and the copy
+   operation. As the final touch these two files must be moved to the
+   directory that is one level above the volume root directory:
+ 
+      > mv /ftp/pub/naif/pds/data/mgs-m-spice-6-v1.0/mgsp_1000/dsindex.*\
+           /ftp/pub/naif/pds/data/mgs-m-spice-6-v1.0/
+ 
+   For peace of mind, since at this point all kernels and meta-kernels are
+   in the right place in the final archive area, it would make sense to
+   verify all meta-kernels included in the archive using BRIEF run from the
+   volume root directory in the final archive area like this:
+ 
+      > brief extras/mk/*.tm
+ 
+   BRIEF will display a summary for all SPK files in the archive and should
+   generate no ``file could not be located'' errors.
+ 
+ 
+Generating Checksum Table and Label
+ 
+   After the final archive area has been updated, the MD5 checksum table
+   and accompanying label should be generated using the ``mkpdssum.pl''
+   script executed as follows from the final archive volume's root
+   directory:
+ 
+      > mkpdssum.pl -l -v VOLUME_ID -x checksum
+ 
+   where ``VOLUME_ID'' is the volume ID (e.g. ``MROSP_1000'' for MRO). The
+   script will create the ``checksum.tab'' and ``checksum.lbl'' files under
+   the ``index'' directory. If these files were present under ``index'',
+   the script will overwrite them.
+ 
+   For the MGS archive example above the checksum table and label could be
+   generated as follows:
+ 
+      > cd /ftp/pub/naif/pds/data/mgs-m-spice-6-v1.0/mgsp_1000/
+      > mkpdssum.pl -l -v MGSP_1000 -x checksum
+ 
+ 
+Verifying the Final Archive using PDS Volume Validation Tools
+ 
+   Although the Guide's instructions and scripts provide a lot of
+   safeguards to ensure production of a fully PDS-compliant data set, many
+   documents included in the archive have to be done ``by hand'' and for
+   this reason are prone to errors. Because the ``check_everything.csh''
+   script attempts to check only for a few selected kinds of errors that
+   may result from manual editing (non-printing characters, long lines) the
+   archive producer should validate the fully prepared SPICE archive using
+   one of the tools provided by the PDS Engineering Node. The two tools
+   currently available for this purpose are the Label Validation Tool
+   (VTool) and the Online Volume Validation tool. While both tools perform
+   the same basic task -- validate a PDS volume for PDS standards
+   compliance -- they have very different interfaces: VTool is a command
+   line application well suited for batch mode processing and customized
+   report generation while the Online Volume Validation tool is a GUI
+   application running in a Web browser; it is best for those who prefer
+   visual interfaces.
+ 
+   The VTool package can be obtained from the PDS web site:
+ 
+      http://pds.jpl.nasa.gov/tools/label-validation-tool.shtml
+ 
+   Once installed per instructions provided with the package, VTool can be
+   run to generate the full validation report for the final archive as
+   follows:
+ 
+      > VTool -d <PDSDD> \
+              -t <FULL_PATH_TO_DS> \
+              -I <FULL_PATH_TO_DS/catalog> \
+              -X <EXCLUDE_EXTENSIONS> \
+              -s full
+              -r <REPORTFILE> \
+ 
+   where ``PDSDD'' is the location of the latest PDS data dictionary file
+   (which can be obtained by following a link in the lower-left corner area
+   of the ``Data Dictionary Lookup'' page on the PDS Web site),
+   ``FULL_PATH_TO_DS'' is the full path to the final archive volume's root
+   directory, ``FULL_PATH_TO_DS>/catalog'' is the full path to the final
+   archive volume's catalog directory, ``EXCLUDE_EXTENSIONS'' is the list
+   of file name extensions for files that should be excluded from
+   validation, and ``REPORTFILE'' is the name of the output report file.
+ 
+   The the list of extensions to be excluded from validation should include
+   all SPICE kernel, meta-kernel, and orbit number file extensions,
+   specifically:
+ 
+      "*.bc","*.bdb","*.bep","*.bes","*.bpc","*.bsp","*.ten","*.tf",
+      "*.ti","*.tls","*.tpc","*.tsc","*.nrb","*.orb","*.tm"
+ 
+   Assuming that the full name of the latest PDS data dictionary file is
+   ``/home/user/pds/datadictionary_1r75/pdsdd.full'', for the MGS archive
+   example above the full VTool validation report could be generated as
+   follows:
+ 
+      > VTool \
+        -d /home/user/pds/datadictionary_1r78/pdsdd.full \
+        -t /ftp/pub/naif/pds/data/mro-m-spice-6-v1.0/mrosp_1000 \
+        -I /ftp/pub/naif/pds/data/mro-m-spice-6-v1.0/mrosp_1000/catalog \
+        -X "*.bc","*.bdb","*.bep","*.bes","*.bpc","*.bsp","*.ten","*.tf", \
+           "*.ti","*.tls","*.tpc","*.tsc","*.nrb","*.orb","*.tm" \
+        -s full
+        -r /home/user/pds/mrosp_1000_full_vtool_report \
+ 
+   The report file should be examined visually and/or ``grep''ed for errors
+   and warnings, like this:
+ 
+      > grep ERROR /home/user/pds/mrosp_1000_full_vtool_report
+            ERROR  line 38: "CATALOG" contains the object "DATA...
+            ERROR  line 38: "CATALOG" contains the object "DATA...
+            ERROR  line 38: "CATALOG" contains the object "DATA...
+      ...
+ 
+      > grep WARNING /home/user/pds/mrosp_1000_full_vtool_report
+        Severity Level                 WARNING
+            WARNING  "aareadme.txt" is not a label. Could not f...
+            WARNING  line 32: "NAIF" is not in the list of vali...
+            WARNING  line 10: "MARS RECONNAISSANCE ORBITER SPIC...
+            WARNING  The label fragment, "atalog/spice_hsk.cat"...
+            WARNING  The label fragment, "atalog/person.cat", s...
+      ...
+ 
+   Normally VTool will generate one error ``"CATALOG" contains the object
+   "DATA_SET_HOUSEKEEPING" which is neither required nor optional.'' and a
+   few errors ``"CATALOG" contains the object "DATA_SET_RELEASE" which is
+   neither required nor optional.'' These errors can be disregarded because
+   the DATA_SET_HOUSEKEEPING and DATA_SET_RELEASE objects defined in the
+   ``spice_hsk.cat'' and ``release.cat'' files and used in the PDS Central
+   Node catalog were never officially folded into the PDS standards.
+ 
+   There should be no other errors in the report. If any other errors are
+   present they should be investigated and fixed before the archive is
+   released. (The only exceptions from this requirement are any new, valid
+   values for static keywords, such as MISSION_NAME, that have not yet been
+   incorporated into the PDS data dictionary.)
+ 
+   The report is also likely to contain many warnings. Most of these
+   warnings can be disregarded because they have to do with the tool
+   attempting to validate files without attached labels, finding new
+   dynamic keyword values not present in the lists of suggested values, or
+   detecting lines longer than 78 characters in the ``spice_hsk.cat'' file.
+   Still the warnings should be examined to make sure that any problems not
+   belonging to the categories above don't get overlooked.
+ 
+   The Online Volume Validation tool is available at this URL:
+ 
+      http://pdstools.arc.nasa.gov/pdsWeb/ManageDataSets.action
+ 
+   After the tool is opened into a Java-enabled browser the final archive
+   volume located on a local file system can be validated by picking the
+   volume's root directory using the ``Validate Local Volume'' button. Once
+   the tool has finished validation it will display its report in the same
+   browser window. As with a VTool report the Online Volume Validation tool
+   report must be examined for errors and warnings.
+ 
+   Note that much like VTool, the Online Volume Validation tool will flag
+   as errors certain things that are OK for a SPICE archive, specifically
+   the absence of a detached label in the ``aareadme.txt'' file, long lines
+   in the ``spice_hsk.cat'' file, presence of pointers to the
+   ``DATA_SET_RELEASE'' and ``DATA_SET_HOUSEKEEPING'' objects in the
+   ``voldesc.cat'' file. It will also display warnings about labeled text
+   files and files in the ``extras'' directory not listed in the index, and
+   new, unrecognized values for dynamic keywords. While these errors and
+   warnings can be disregarded, all other errors should be investigated and
+   fixed prior to releasing the data set.
+ 
+ 
+Cleaning up the Staging Area
+ 
+   After the archive is done it makes sense to do some cleanup in the
+   staging area. The only thing that must be done there is removing <CR>s
+   from all files to which they had been added. This can be done by running
+   the ``remove_crs_from_files.csh'' script with the same list file that
+   was used to add <CR>s:
+ 
+      > remove_crs_from_files.csh files_to_add_crs.list
+ 
+   It is important to remove <CR>s as soon as preparation of a data set
+   release ends rather than doing it later, before the preparation of the
+   next data set begins. Doing so keeps modification dates of the files
+   from which <CR>s were removed on the same day when the data set release
+   was finished, simplifying time based searches and listings when
+   additional work is done in the staging area in the future.
+ 
+   It is wise to not delete the data files and the value-added files from
+   ``extras'' from the staging area. Keeping them serves as a backup copy
+   and allows easier validation of the meta-kernels that will be added in
+   future releases. All of the meta-information and auxiliary files should
+   not be deleted, especially the individual data labels (``data/*/*.lbl'')
+   and individual kernel list files, both of which will be required when
+   index files for the next archive release will be generated.
+ 
+ 
+Step 6: Packaging and Delivering the Data Set to the NAIF Node
+--------------------------------------------------------
+ 
+   If the project archive plan calls for delivery of the SPICE data set to
+   the NAIF Node of the PDS, the data set producer can do it in two ways:
+ 
+       1.   If the volume of the data to be delivered is relatively small
+            (under 2 GB), either the whole data set or only the files that
+            were updated or added in the last release can be packaged into
+            a ``.tar'' file, which is then made available to NAIF staff.
+            The tar file should contain the whole data set directory tree
+            starting at the ``ds/'' level.
+ 
+            For example, to make a ``.tar'' file containing the whole MGS
+            data set, the following commands can be used (to first change
+            to the final archive area and then to ``tar'' the whole archive
+            directory tree):
+ 
+              > cd /ftp/pub/naif/pds/data/
+              > tar -cvf mgsp_1000.tar mgs-m-spice-6-v1.0
+ 
+            To make a ``.tar'' file containing only additions and changes
+            to the MGS data set from the latest release ``NNNN'' prepared
+            in the last 7 days, the following commands can be used (to
+            first change to the final archive area and then to ``tar'' all
+            files that changed in the past 7 days under the archive
+            directory tree):
+ 
+              > cd /ftp/pub/naif/pds/data/
+              > tar -cvf mgsp_1000_relNNNN.tar \
+                `find mgs-m-spice-6-v1.0 -mtime -7 -print`
+ 
+       2.   If the volume of the data to be delivered is large (greater
+            than 2 GB), NAIF staff should be given access to the final
+            archive area (or a copy of it), which NAIF staff will mirror
+            using either ``wget'' or ``scp'' tools (depending on the kind
+            of access that was provided).
+ 
+   The kind of access to be given to NAIF staff is up to the data provider.
+   Any of the following ways is acceptable:
+ 
+       --   putting ``.tar'' file(s) or a copy of the final data set tree
+            on an anonymous public FTP server or a public Web server
+ 
+       --   putting ``.tar'' file(s) or a copy of the final data set tree
+            on a password-protected FTP server or a Web server. In this
+            case NAIF staff should be provided with an account and
+            password.
+ 
+       --   putting ``.tar'' file(s) or a copy of the final data set tree
+            on a UNIX workstation, providing NAIF staff with an account on
+            this workstation, and setting file permissions allowing read
+            access to the data.
+ 
+ 
+Step-by-Step Summary
+--------------------------------------------------------
+ 
+   This section provides a brief step-by-step summary of the process for
+   creating a new archive and for adding another release to an existing
+   archive. Please augment the checklists below with any additional steps
+   needed for your SPICE archive, print them, and use them each time a new
+   or updated archive is being prepared.
+ 
+ 
+Steps for Creating a New Archive
+ 
+       --   identify kinds of kernels to be archived
+ 
+       --   setup work area and collect kernels under it; write scripts for
+            collecting kernels if more than one archive release is expected
+ 
+       --   merge kernels if needed; write merging scripts if more than one
+            archive release is expected
+ 
+       --   verify internal comments and add comments as needed; write
+            scripts for adding comments to kernels if more than one archive
+            release is expected
+ 
+       --   validate final kernels; write validating scripts if more than
+            one archive release is expected
+ 
+       --   make or collect extra files -- meta-kernels, ORBNUM files, etc.
+ 
+       --   obtain mission, instrument host, and references catalog files
+            from the responsible project person/team
+ 
+       --   write ``spiceds.cat'' and ``data/*/*info.txt'' files to
+            document kernels, using files from an existing SPICE archive as
+            the starting point
+ 
+       --   write all other required catalog and text files using files
+            from an existing SPICE archive as the starting point
+ 
+       --   setup staging area for the new archive
+ 
+       --   setup archiving scripts and utilities used by scripts on the
+            workstation that contains the staging area; change hard-coded
+            locations in the scripts as needed; add directory in which
+            scripts/tools are located to the system path
+ 
+       --   copy kernels, value-added, and meta-information files to the
+            staging area
+ 
+       --   create the MAKLABEL template file
+ 
+       --   create the kernel list file
+ 
+       --   generate labels
+ 
+       --   generate index files; move ``index.*'' files to ``index''
+            directory
+ 
+       --   check that all binary kernels are in BIG-IEEE format and all
+            text kernels are in UNIX format (<LF>-terminated lines);
+            convert those that aren't to the right format using BINGO
+ 
+       --   run ``check_everything.csh''
+ 
+       --   make a list of files to which <CR>s should be added and add
+            <CR>s to them
+ 
+       --   copy the data set to the final archive area; move ``dsindex.*''
+            to the directory above the volume root
+ 
+       --   check all meta-kernels using BRIEF
+ 
+       --   run ``mkpdssum.pl'' to generate the checksum table and label
+ 
+       --   run VTool and/or Online Volume Validation tool to verify the
+            archive
+ 
+       --   remove <CR>s from the staging area meta-information files to
+            which they were added
+ 
+ 
+Steps for Adding Data To an Existing Archive
+ 
+       --   identify new kernels to be added to the archive
+ 
+       --   collect kernels under work area(s)
+ 
+       --   merge/subset kernels if needed
+ 
+       --   verify internal comments and add comments as needed
+ 
+       --   validate final kernels
+ 
+       --   add or modify extra files -- meta-kernels, ORBNUM files, etc.
+ 
+       --   check with the responsible project person/team whether mission,
+            instrument host, and references catalog files were updated; if
+            so, get updated versions
+ 
+       --   check and, if needed, update ``spiceds.cat'' and
+            ``data/*/*info.txt'' files
+ 
+       --   add new release object to the ``release.cat''
+ 
+       --   check and, if needed, update all other required catalog and
+            text files
+ 
+       --   stage new kernels, value-added, and meta-information file in
+            the staging area
+ 
+       --   check and, if needed, update MAKLABEL template file
+ 
+       --   create the kernel list file for new release
+ 
+       --   generate labels for kernels included in the new release
+ 
+       --   make the complete kernel list file
+ 
+       --   generate index files for the whole data set; move ``index.*''
+            to index directoryl
+ 
+       --   check that all binary kernels are in BIG-IEEE format and all
+            text kernels are in UNIX format (<LF>-terminated lines);
+            convert those that aren't to the right format using BINGO
+ 
+       --   run ``check_everything.csh''
+ 
+       --   make a list of new and updated files to which <CR>s should be
+            added and add <CR>s to them
+ 
+       --   run ``chkpdssum.pl'' to verify the kernels located in the final
+            archive area against the previous version of the checksum file
+            (> chkpdssum.pl -i -x checksum <final_volume_root_dir>)
+ 
+       --   copy new and updated data and meta-information files to the
+            final archive area; move ``dsindex.*'' to the directory above
+            the volume root
+ 
+       --   check all meta-kernels using BRIEF
+ 
+       --   run ``mkpdssum.pl'' to generate the checksum table and label
+ 
+       --   run VTool and/or Online Volume Validation tool to verify the
+            archive
+ 
+       --   remove <CR>s from the staging area meta-information files to
+            which they were added
+ 
+ 
+References
+--------------------------------------------------------
+ 
+ 
+Utility Programs
+ 
+   The executables and User's Guides for the following utility programs
+ 
+      ARCHTYPE  BINGO     BRIEF     CKBRIEF   CKSLICER  CKSMRG
+      COMMNT    DAFCAT    MAKLABEL  ORBNUM    SPACIT    SPKDIFF
+      SPY       BFF       FRMDIFF   OPTIKS
+ 
+   mentioned in this document are available from the ``Utilities'' page on
+   the NAIF web site:
+ 
+      http://naif.jpl.nasa.gov/naif/utilities.html
+ 
+   Note that for some environments (e.g. Linux, Mac/OSX) these utilities
+   can not be statically linked and require certain shared object libraries
+   in order to run. Usually these libraries can be installed on your
+   computer by installing the compiler used to compile the executables
+   (e.g. gfortran/gcc).
+ 
+ 
+Tutorials
+ 
+   A collection of tutorials covering most aspects of using SPICE kernel
+   files and allied Toolkit software is available from the ``Tutorials''
+   page on the NAIF web site:
+ 
+      http://naif.jpl.nasa.gov/naif/tutorials.html
+ 
+ 
+Archived SPICE Data Sets
+ 
+   Archived SPICE data sets are available on the NAIF server at this
+   location:
+ 
+      ftp://naif.jpl.nasa.gov/pub/naif/pds/data
+ 
+      http://naif.jpl.nasa.gov/pub/naif/pds/data
+ 
+   They are useful as examples.
+ 
+ 
+PDS Standards
+ 
+   The PDS standards reference and PDS data dictionary are available on the
+   PDS web site:
+ 
+      http://pds.jpl.nasa.gov/
+ 
+ 
+PDSV Volume Validation Tools
+ 
+   The Label Validation Tool (VTool) is available on the PDS web site:
+ 
+      http://pds.jpl.nasa.gov/tools/label-validation-tool.shtml
+ 
+   The Online Volume Validation tool is available at this URL:
+ 
+      http://pdstools.arc.nasa.gov/pdsWeb/ManageDataSets.action
+ 
+ 
+Appendix 1: Discussion of Concerns Regarding SPICE Label Keywords
+--------------------------------------------------------
+ 
+   This appendix discusses a number of concerns brought up by data set
+   peer-reviewers and other members of the PDS community regarding the set
+   of keywords picked by NAIF and NAIF's approach to setting some of these
+   keywords. This approach makes labels not fully compliant with the PDS
+   standards and prevents successful ingestion and use of the information
+   from the labels by (some of) the search engines serving SPICE kernels.
+ 
+   First, a few general words about why, despite these concerns, NAIF still
+   ``sticks'' to its way. We started making these labels more than 10 years
+   ago (for MAGELLAN) and have SPICE sets for more than a dozen missions
+   done this way. We still continue producing labels the same way even for
+   the newest data sets because:
+ 
+       --   We would like labels in all SPICE data sets that we have in
+            hand to have the same structure and to have keywords set using
+            the same approach (a) for consistency and (b) to allow for a
+            uniform modification of all data sets when we will need to
+            transition to PDS4 or IPDA or some other future standard.
+ 
+       --   We have a number of data sets that were first released years
+            ago and are still accumulating -- CASSINI, ODY, in the near
+            past MGS, SDU -- and NAIF doesn't have time, resources, and
+            most importantly a strong enough need to change the archiving
+            procedures and do re-processing that would be required for such
+            a change.
+ 
+       --   The fact that the labels are not 100 percent compliant does NOT
+            make kernels less usable because the labels are not needed to
+            understand or use kernels (unlike labels for PDS images or
+            tables or other science data product types). It is the internal
+            comments in the kernels and other meta information provided in
+            the data set -- data set catalog file, ``*info.txt'' files,
+            meta-kernels -- that one needs to understand how to use kernels
+            in the proper way.
+ 
+       --   Non-compliant labels with values that are not set as some
+            databases would expect do affect ingestability and
+            searchability but we believe that SPICE data sets are very
+            different from other data sets in terms of how they are used.
+            What this means is that one could really search for and pick
+            only a few images of a particular area on Mars, but to get the
+            SPICE data needed to (re-)compute additional geometry for these
+            images one would need to get the whole SPICE data set; to get
+            the whole data set, having just the DATA_SET_ID to ``tie'' all
+            kernels together is enough. In fact we would go as far as to
+            say that any one who wants to use a SPICE data set should
+            mirror it completely from the NAIF server using ``wget'' or a
+            similar utility.
+ 
+   The next few subsections discuss individual keywords and concerns that
+   they raised.
+ 
+ 
+NAIF_INSTRUMENT_ID
+ 
+   In the archived SPICE data sets that NAIF produces NAIF_INSTRUMENT_ID is
+   set to ``N/A'' for all kernel types except CKs and IKs. For CKs it is
+   set automatically by MAKLABEL to the list of IDs, the data for which is
+   present in the CK. The MAKLABEL program obtains this list of IDs by
+   examining all segment summaries in a given CK file. For IKs it is set by
+   MAKLABEL to the list of IDs, the keywords for which are present in the
+   IK. The MAKLABEL program examines all ``INS<ID>_*'' data keywords in a
+   given IK file, extracts IDs from them, and includes these IDs in the
+   label.
+ 
+   Although at this point NAIF believes that having this keyword isn't very
+   useful it is still kept in the label to avoid changing existing
+   procedures (the MAKLABEL program, descriptions in various
+   meta-information files, etc.) and to make labels in new data sets
+   consistent with the labels from existing data sets.
+ 
+ 
+INSTRUMENT_NAME
+ 
+   A long time ago (early nineties) NAIF decided to set the INSTRUMENT_NAME
+   keyword to ``N/A'' for all kernels except IKs, for which it was decided
+   to set it to the actual instrument name defined by the instrument
+   catalog files for that instrument included in the science data sets.
+   While this decision seemed reasonable when it was made, with time it
+   became obvious that it was flawed. First, the IKs were not the only
+   kernels that were needed to compute geometry for an instrument -- all
+   other kernel types were needed as well. Second, once the actual
+   instrument name was put into the label, PDS standards required an
+   instrument catalog file describing this instrument to be included in the
+   ``catalog'' directory of the volume. Unfortunately these problems were
+   not picked up right away and a few data sets were archived using this
+   approach before these problems were uncovered.
+ 
+   Things got even more confusing when an on-line search and distribution
+   system called ``PDS-D'' was developed and deployed by the PDS
+   Engineering Node. To make SPICE data more visible through that
+   interface, the ``SPICE KERNELS'' instrument was ``invented'' just so
+   that it would appear in and be selectable through the ``Instruments:''
+   menu of the PDS-D system. This invention required a catalog file
+   describing this new ``instrument'', which made NAIF add
+   ``spice_inst.cat'' to all new and earlier data sets that were intended
+   to be searchable using the PDS-D interface.
+ 
+   When we finally realized the problems these decisions created, we
+   decided ... to do almost nothing about it. A note describing the
+   situation was added to the "errata.txt" file in all data sets while the
+   actual instrument name for IKs and "N/A" for other kernel types was
+   still being assigned in INSTRUMENT_NAME, and an instrument catalog file
+   for the ``SPICE KERNELS'' instrument was still being included in all
+   data sets.
+ 
+   It is clear now that inventing the "SPICE KERNELS" instrument was not
+   the right idea. Instead, SPICE data should have been connected to all
+   instruments for a given mission using pointers in the data set catalog
+   file, all instrument catalog files for a mission should have been
+   included in the SPICE data set, and, possibly, all instrument names
+   should have been included in the label for each kernel (maybe labels for
+   IKs and some CKs, providing attitude for just one instrument, should
+   have included only the name of that instrument). This way a SPICE data
+   set for a mission and every SPICE kernel in that data set would have
+   been connected to every instrument on a mission, and any search for
+   instrument data would have resulted in all needed SPICE kernels being
+   found in addition to the instrument data. But this change seems too big
+   to take on now or in the near future.
+ 
+   NAIF considered and decided not to follow up on the suggestion to put
+   ``SPICE KERNELS'' in the INSTRUMENT_NAME for all kernels to achieve
+   ``internal integrity'' for the data sets and data bases that ingest data
+   labels or index files derived from them. While implementing this would
+   have helped to make SPICE archives look cleaner, it would also have kept
+   promoting the ``SPICE KERNELS'' instrument that doesn't really exist,
+   the concept that NAIF is seriously considering to try to get rid of at
+   some point.
+ 
+ 
+TARGET_NAME
+ 
+   SPICE kernels are not like images of some body for which one can set
+   TARGET_NAME to the name of that body. On the other hand some kernel
+   types -- for example SPK and PCKs -- do indeed contain data for a
+   particular body(ies) that are targets and can be listed in the
+   TARGET_NAME. When the MAKLABEL program was developed we were thinking
+   along these lines and put enough flexibility into MAKLABEL to examine
+   the contents of SPKs and PCKs (at least, maybe other kernels too) to
+   find names of all bodies and put them in the label. In practice this
+   feature quickly proved to be a bad way to go because for planetary and
+   satellite ephemeris SPKs, for example, it produced a long list of
+   targets that were not really applicable to the mission. In addition to
+   that, some names built into SPICE did not match those in PDS catalog
+   files letter-to-letter, causing problems and a MAKLABEL setup
+   maintenance nightmare.
+ 
+   This situation left NAIF with three choices:
+ 
+       1.   take TARGET_NAME off the label,
+ 
+       2.   always set it to "N/A", or
+ 
+       3.   set it to a reasonable value in all kernel labels.
+ 
+   Option ``3.'' was picked and from that point on TARGET_NAME was set to
+   one or more targets specified in the TARGET_NAME keyword in the
+   ``mission.cat'' file included in the data set. For some missions like
+   CASSINI, identifying a single or a couple of targets was not possible
+   (CASSINI has 38 TARGET_NAMEs in its ``mission.cat'') so for CASSINI the
+   TARGET_NAME keyword was set to "N/A".
+ 
+ 
+SPACECRAFT_NAME
+ 
+   The label still uses the obsolete SPACECRAFT_NAME keyword instead of the
+   INSTRUMENT_HOST_ID keyword because the label was designed and the
+   MAKLABEL program was developed when SPACECRAFT_NAME was a legitimate
+   choice. A number of SPICE data sets containing labels with
+   SPACECRAFT_NAME were created before this keyword was deprecated. NAIF
+   continues to use this keyword to make SPICE archives for more recent
+   missions consistent with SPICE archives for older missions. The
+   ``errata.txt'' included in the data sets reflects this standards
+   violation.
+ 
+ 
+FILE_RECORDS
+ 
+   One of the recent archived SPICE data set peer-reviews pointed out that
+   the labels for binary kernels do not contain the FILE_RECORDS keyword,
+   which is required because these labels have the RECORD_TYPE keyword set
+   to FIXED_LENGTH. While not including it violates the PDS standards, it
+   does not affect usability of the SPICE data in any way because the SPICE
+   Toolkit does not use any information from the PDS labels to access the
+   data. For consistency with the previous data sets NAIF chose not to
+   change existing labels and the MAKLABEL program; instead we reflect this
+   error in the ``errata.txt'' file provided in the data sets.
+ 
+ 
+START_TIME, STOP_TIME, SPACECRAFT_CLOCK_START_COUNT,
+SPACECRAFT_CLOCK_STOP_COUNT
+ 
+   The time coverage keywords -- START_TIME, STOP_TIME,
+   SPACECRAFT_CLOCK_START_COUNT, and SPACECRAFT_CLOCK_STOP_COUNT -- are set
+   to "N/A" in the labels of the kernels for which the concept of a finite
+   coverage interval is not applicable -- LSK, text PCK, SCLK, IK, FK, DSK.
+   This causes problems for some databases storing information derived off
+   the labels (or index files generated using values from the labels)
+   because these databases either expect coverage boundaries be provided
+   for all files or they allow "N/A" values but do not include files
+   labeled with such coverage boundaries into outputs of time-based
+   searches.
+ 
+   NAIF considered modifying the MAKLABEL program and/or the label
+   generation script to substitute a default value for the start and stop
+   time keywords in the labels in which these keywords are set to "N/A". It
+   was decided not to implement this change because this would make new
+   labels inconsistent with the previous ones, add significant amount of
+   setup and maintenance to the archiving procedures (mission stop is a
+   ``moving target'' because it is often unknown until the mission is
+   over), and not be possible in some cases when a SCLK time cannot be
+   computed for the mission start UTC time. Moreover, the ``get the whole
+   data set and use meta-kernels provided in it'' approach is the
+   recommended use as it is far superior compared to the process of
+   searching for individual kernels and trying to get them and sort through
+   them that is provided via a database search.
+ 
+ 
+MISSION_PHASE_NAME
+ 
+   MISSION_PHASE_NAME is set to "N/A" for some kernels for which the
+   concept of a finite coverage interval is not applicable. As with the
+   start and stop time keywords set to "N/A" this causes problems for some
+   databases requiring this keyword to be set to a specific value. While
+   the current version of MAKLABEL provides a mechanism of fixing this by
+   introducing and using a template option setting MISSION_PHASE to the
+   list of all mission phases, following this route might lead to more
+   maintenance and potentially incorrect labels. For example, setting
+   MISSION_PHASE_NAME to the list of all mission phase names would be a
+   problem when a mission changes its plan and introduces a new phase (this
+   would make the previous complete list of mission phases obsolete) or
+   using it for SCLK kernels (SCLKs are expected to be superseded by newer
+   versions and labeling them applicable to all phases is not correct).
+ 
+   It is also important to mention that NAIF recognized that the current
+   way in which MISSION_PHASE_NAME is set in the labels -- using a set of
+   MAKLABEL template options and requiring the data set preparer to
+   manually match these option tags to the kernels in the list files -- can
+   be very inefficient and time consuming. NAIF plans to modify the
+   MAKLABEL program to use a look up table specifying mission phase names
+   and boundaries as soon as priorities and resources permit.
+ 
+ 
+Appendix 2: Revision History
+--------------------------------------------------------
+ 
+ 
+2010 SEP 01
+ 
+       --   Added the``Applicability'' and ``Motivation'' sections
+ 
+       --   Updated the ``Verifying the Final Archive using PDS Volume
+            Validation Tools'' section to match diagnostics generated by
+            the latest version of the PDS label validation tools
+ 
+       --   Updated the ``Collecting and Preparing Data'' section to
+            indicate that file names must follow 36.3 convention
+ 
+       --   Updated the ``Adding <CR>s'' section to list '.asc' files in
+            the egrep command
+ 
+       --   Added mentions of DSK in all relevant places
+ 
+       --   Fixed miscellaneous grammatical mistakes
+ 
+       --   Replaced all example MAKLABEL template files under in the
+            ``examples/templates'' directory with the latest versions
+ 
+       --   Added a few new list files to the ``examples/listfiles''
+            directory
+ 
+ 
+2009 NOV 10
+ 
+       --   Added the subsection ``Verifying the Final Archive using PDS
+            Volume Validation Tools'' discussing volume validation tools to
+            the section ``Step 5: Checking and Finishing up.''
+ 
+       --   Added steps for running volume validation tools to the check
+            lists in the ``Step-by-Step Summary'' section.
+ 
+       --   Added notes about dynamically-linked utility executables and
+            PDS label and volume validation tools to the ``References''
+            section.
+ 
+       --   Replaced some example files in the ``examples/datasets''
+            directory with the most current versions from the NAIF archived
+            data repository (replaced files can be identified by their
+            creation date of November 10, 2009). While many of these
+            example files were simply updated with additional
+            mission-specific information/records compared to the versions
+            provided in earlier revisions of the Guide, some files have
+            been corrected to comply with PDS standards. For such corrected
+            files the following important revisions require special
+            attention from the users of this Guide: in all updated
+            ``catalog/person.cat'' files quotes were added around values of
+            the TELEPHONE_NUMBER, ALTERNATE_TELEPHONE_NUMBER, and
+            FAX_NUMBER keywords; in all updated ``catalog/release.cat''
+            files quotes were added around values of the RELEASE_ID
+            keywords; a few updated ``catalog/*.cat'' files have been
+            corrected for miscellaneous errors detected by the Label
+            Validation Tool (VTool) distributed by the PDS Engineering
+            Node, including adding the required RECORD_TYPE keyword,
+            eliminating double quotes in description fields, etc.
+ 
+ 
+2009 FEB 26
+ 
+       --   Fixed the bug in the ``scripts/label_them_all.pl'' script
+            concerning checking file names for compliance with the ISO 9660
+            Level 2 requirements.
+ 
+       --   Fixed the bugs in the ``scripts/add_crs_to_files.csh'' and
+            ``scripts/remove_crs_from_files.csh'' scripts causing them to
+            overwrite the files that they process with zero size files if
+            the ``scripts/add_crs.pl'' and ``scripts/remove_crs.pl''
+            scripts were not found, were not executable, or relied on a
+            non-existing Perl.
+ 
+       --   Changed all ``scripts/*.csh'' scripts to invoke ``/bin/csh''
+            and all ``scripts/*.csh'' to invoke ``/usr/bin/perl'' on the
+            script's first line directive and updated the Archiving Guide
+            text to indicate this.
+ 
+ 
+2009 JAN 13
+ 
+       --   Changed the ``NAIF's Approach to SPICE Data Set Preparation''
+            section to emphasize that SPICE data must be archived as UNIX
+            text and binary kernels
+ 
+       --   Added the ``Step 6: Packaging and Delivering the Data Set to
+            the NAIF Node'' section discussing the suggested approach for
+            delivering the SPICE data sets to the NAIF node.
+ 
+       --   Changed the ``Step 5: Checking and Finishing up'' and
+            ``Step-by-Step Summary'' sections to recommend generating the
+            checksum table and label generated for the final archive area
+            rather than the staging area. This way the checksum table is
+            guaranteed to contain records for only the files that should be
+            in the archive and not contain records for any intermediate and
+            auxiliary files used in the course of archive preparation.
+ 
+       --   Added a note to the ``Deploying to Final Archive Area'' section
+            suggesting to re-verify all meta-kernels after the final
+            archive area has been updated.
+ 
+       --   Added steps for verifying/converting binary kernels to BIG-IEEE
+            format and text kernels to UNIX text format to the checklists
+            in the ``Step-by-Step Summary'' section
+ 
+       --   Added a note to the ``Cleaning up Staging Area'' subsection
+            about the importance of removing <CR>s as soon as preparation
+            of a data set release ends to keep modification dates of the
+            files on the day when the data set release was completed. Also
+            added a note recommending to keep kernels in the staging area
+            to simplify verification of meta-kernels that will be added in
+            future releases.
+ 
+       --   Replaced all example files in the ``examples/datasets''
+            directory with the most current versions from the NAIF archived
+            data repository. While many of the example files were simply
+            updated with additional mission-specific information/records
+            compared to the versions provided in the earlier revision of
+            the Guide, some files have been corrected to comply with PDS
+            standards. For such corrected files the following important
+            revisions require special attention from the users of this
+            Guide: all updated ``voldesc.cat'' files have corrected value
+            of the MEDIUM_TYPE keyword (set to ELECTRONIC); all updated
+            ``catalog/spice_hsk.cat'' files have corrected value of the
+            RESOURCE_CLASS keyword (uppercased); all updated
+            ``catalog/spiceds.cat'' files have the STOP_TIME keyword set to
+            an actual date (normally the coverage end date for the latest
+            reconstructed spacecraft SPK or CK file); some updated
+            ``catalog/spiceds.cat'' files have corrected value of the
+            INSTRUMENT_ID keyword (set to SPICE); the DATA_PROVIDER_NAME
+            keyword was added to all objects in the ``catalog/release.cat''
+            files that were missing this keyword;
+ 
+       --   Updated the ``check_everything.csh'' script to use the ``bff''
+            tool to determine binary kernel architecture, to invoke ``awk''
+            without the ``-e'' option, and to exempt ``spice_hsk.cat'' from
+            long line check
+ 
+       --   Updated the ``xfer_index.pl'' script to handle labels padded
+            with spaces and terminated with CR-LF
+ 
+ 
+2008 MAY 21
+ 
+       --   Replaced ``scripts/badchar.c'' with a newer version that
+            detects upper-half non-ASCII characters (128-255).
+ 
+ 
+2008 MAY 13
+ 
+       --   Updated to indicate that the BFF utility program, available on
+            the ``Utilities'' page on the NAIF web site, can be used to
+            display the binary format of a binary kernel.
+ 
+       --   Added a note stating that the START_TIME and STOP_TIME keywords
+            in the data set catalog file ``spiceds.cat'' must be set to
+            properly formatted time tags (not ``N/A'' or ``UNK'') to ensure
+            that the data set can be ingested into the NSSDC deep archive
+            holdings.
+ 
+       --   Replaced ``catalog/spiceds.cat'' in CASSINI, MER-1, MER-2, MGS,
+            ODY, and MRO data set directories under ``examples/datasets''
+            with the versions that have STOP_TIME set to a properly
+            formatted time string.
+ 
+ 
+2008 JAN 28
+ 
+       --   The bug in the ``scripts/label_them_all.pl'' script concerning
+            the use of the ``clcommnt'' utility instead of the ``commnt''
+            utility specified in the CLCOMNT variable was fixed.
+ 
+ 
+2007 NOV 26
+ 
+       --   Added a note stating that archived files should never be
+            removed or replaced to the ``NAIF's Approach to SPICE Data Set
+            Preparation'' and ``Step 1: Preparing Data'' sections
+ 
+       --   Updated the archiving guide text to cover the checksum table
+            and label
+ 
+       --   Added the checksum generation and verification scripts
+            (``mkpdssum.pl'' and ``chkpdssum.pl'') and user's guides
+            (``mkpdssum.txt'' and ``chkpdssum.txt'') to the ``scripts''
+            directory of the package
+ 
+       --   Added example checksum tables (``index/checksum.tab'') and
+            labels (``index/checksum.lbl'') to all example data set
+            directories under ``examples/datasets''
+ 
+       --   Replaced the following files in all example data set
+            directories under ``examples/datasets'' with the versions that
+            reflect addition of the checksum files and/or include
+            miscellaneous clarity and grammar corrections:
+ 
+              aareadme.txt
+              aareadme.htm
+              aareadme.lbl
+              index/indxinfo.txt
+              software/softinfo.txt
+ 
+       --   Replaced ``catalog/release.cat'' in CLEMENTINE, MGS, and MRO
+            data set directories under ``examples/datasets'' with the
+            versions that have corrected RELEASE_PARAMETER_TEXT value
+ 
+       --   Replaced ``data/pck/pckinfo.txt'' with corrected version in DI
+            data set under ``examples/datasets''
+ 
+ 
+2007 JUL 31
+ 
+       --   Initial release
+ 

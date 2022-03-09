@@ -125,7 +125,7 @@ def spk_coverage(path, main_name="", date_format="infomod2"):
     start_time = min(start_points_list)
     stop_time = max(end_points_list)
 
-    return et2date(start_time, stop_time, date_format=date_format)
+    return et_to_date(start_time, stop_time, date_format=date_format)
 
 
 def ck_coverage(path, date_format="infomod2"):
@@ -180,7 +180,7 @@ def ck_coverage(path, date_format="infomod2"):
     start_time = min(start_points_list)
     stop_time = max(end_points_list)
 
-    return et2date(start_time, stop_time, date_format=date_format, kernel_type="ck")
+    return et_to_date(start_time, stop_time, date_format=date_format, kernel_type="ck")
 
 
 def pck_coverage(path, date_format="infomod2"):
@@ -230,7 +230,7 @@ def pck_coverage(path, date_format="infomod2"):
     start_time = min(start_points_list)
     stop_time = max(end_points_list)
 
-    return et2date(start_time, stop_time, date_format=date_format)
+    return et_to_date(start_time, stop_time, date_format=date_format)
 
 
 def dsk_coverage(path, date_format="infomod2"):
@@ -295,10 +295,10 @@ def dsk_coverage(path, date_format="infomod2"):
     start_time = min(beget)
     stop_time = max(endet)
 
-    return et2date(start_time, stop_time, date_format=date_format)
+    return et_to_date(start_time, stop_time, date_format=date_format)
 
 
-def et2date(beget, endet, date_format="infomod2", kernel_type="Text"):
+def et_to_date(beget, endet, date_format="infomod2", kernel_type="Text"):
     """Convert ET (ephemeris time) to a Date Time string."""
     time_length = 62
 

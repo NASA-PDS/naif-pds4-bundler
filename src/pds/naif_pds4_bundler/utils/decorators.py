@@ -24,4 +24,5 @@ def spice_exception_handler(func):
                 error_message(traceback.format_exc(), setup=args[0].setup)
             else:
                 error_message(traceback.format_exc())
+
     return inner_function

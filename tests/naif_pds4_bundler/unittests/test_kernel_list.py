@@ -26,8 +26,9 @@ class TestKernelList(TestCase):
         dirs = [
             "working",
             "staging",
-            "final",
+            "msl-m-spice-6-v1.0",
             "kernels",
+            "bundle",
             "insight",
             "maven",
             "mars2020",
@@ -49,8 +50,9 @@ class TestKernelList(TestCase):
         dirs = [
             "working",
             "staging",
-            "final",
+            "msl-m-spice-6-v1.0",
             "kernels",
+            "bundle",
             "insight",
             "maven",
             "mars2020",
@@ -69,8 +71,9 @@ class TestKernelList(TestCase):
         dirs = [
             "working",
             "staging",
-            "final",
+            "msl-m-spice-6-v1.0",
             "kernels",
+            "bundle",
             "insight",
             "maven",
             "mars2020",
@@ -86,22 +89,22 @@ class TestKernelList(TestCase):
         the generation of the kernel list for release 26.
         """
         config = "../config/msl.xml"
-        plan = "../data/msl_release_26.plan"
+        plan = "../data/msl_release_29.plan"
         faucet = "list"
 
         shutil.copy2(
-            "../data/msl_release_25.kernel_list", "working/msl_release_25.kernel_list"
+            "../data/msl_release_28.kernel_list", "working/msl_release_28.kernel_list"
         )
 
         main(config, plan, faucet, silent=self.silent)
 
         new_file = ""
-        with open("working/msl_release_26.kernel_list", "r") as f:
+        with open("working/msl_release_29.kernel_list", "r") as f:
             for line in f:
                 new_file += line
 
         old_file = ""
-        with open("../data/msl_release_26.kernel_list", "r") as f:
+        with open("../data/msl_release_29.kernel_list", "r") as f:
             for line in f:
                 old_file += line
 

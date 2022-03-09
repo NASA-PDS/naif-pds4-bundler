@@ -25,7 +25,7 @@
       <processing_level>Derived</processing_level>
     </Primary_Result_Summary>
     <Investigation_Area>
-      <name>$PDS4_MISSION_NAME</name>
+      <name>$MISSION_NAME</name>
       <type>Mission</type>
       <Internal_Reference>
         <lid_reference>$PDS4_MISSION_LID</lid_reference>

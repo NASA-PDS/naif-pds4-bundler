@@ -16,6 +16,29 @@ Work List:
   -- Agreed to try to enhance the MK generation with whitespaces
      for selected kernels of the same type.
 
+  -- For PDS3 first implement generation with MKLABL with the ultimate goal
+     to replace it completely with Python code. Log could look something like:
+
+        Processing 'data/ck/mro_mcs_psp_210901_210930.bc':
+           label file name: 'data/ck/mro_mcs_psp_210901_210930.lbl'
+           comments file name: 'data/ck/mro_mcs_psp_210901_210930.cmt'
+           running maklabel ...
+           maklabel finished OK.
+           running archtype ...
+           archtype finished OK. File architecture/type is 'DAF/CK'.
+           extracting existing comments from the file ...
+           done.
+           Found old label(s), cleaning it(them) up ...
+           done
+           inserting new label into the comments ...
+           done.
+           writing updated comments and inserting them into the file ...
+           done.
+           re-writing label file ...
+           done.
+        processing completed.
+
+
   Possible:
 
   -- Possibility to use the pipeline to generate misc collection only? (for JAXA.)
@@ -23,9 +46,6 @@ Work List:
   -- NOT for this release, and maybe never, but should we consider adding
      a reference from to the LIDVIDs of SPK -- or SPKs -- that were used to
      generate an ORBNUM to its label?
-
-  -- For PDS3 first implement generation with MKLABL with the ultimate goal
-     to replace it completely with Python code.
 
   -- Include DOIs in configurations:
       * OREX:    10.17189/1520435

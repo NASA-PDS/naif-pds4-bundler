@@ -613,7 +613,7 @@ follows::
       <publication_year>$PRODUCT_CREATION_YEAR</publication_year>
       <doi>$DOI</doi>
       <keyword>Observation Geometry</keyword>
-      <description>This bundle contains $PDS4_MISSION_NAME SPICE kernels and related documentation.</description>
+      <description>This bundle contains $MISSION_NAME SPICE kernels and related documentation.</description>
     </Citation_Information>
 
 where uppercase keywords preceded by a ``$`` are archive specific values.

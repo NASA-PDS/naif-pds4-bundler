@@ -13,28 +13,9 @@
     <!-- =========================== -->
     <bundle_parameters>
         <producer_name>Marc Costa Sitja</producer_name>
-        <producer_email>Marc.Costa.Sitja@jpl.nasa.gov</producer_email>
-        <producer_phone>6264691244</producer_phone>
-        <author_list>Semenov B. V.; Costa Sitja M.</author_list>
         <institution>NAIF/JPL</institution>
-        <dataset_id>MSL-M-SPICE-6-V1.0</dataset_id>
-        <volume_id>MSLSP_1000</volume_id>
-        <doi>10.17189/1520113</doi>
+        <volume_id>mslsp_1000</volume_id>
         <spice_name>MSL</spice_name>
-        <readme>
-            <overview>
-                The MSL SPICE archive bundle contains observation geometry and
-                other ancillary data in the form of SPICE System kernel files for
-                the MSL spacecraft, its instruments, and targets.
-            </overview>
-            <cognisant_authority>
-                This archive bundle was produced by Boris Semenov, Planetary Data
-                System Navigation and Ancillary Information Facility Node, Jet
-                Propulsion Laboratory, Pasadena, California.
-            </cognisant_authority>
-        </readme>
-        <date_format>maklabel</date_format>
-        <end_of_line>CRLF</end_of_line>
     </bundle_parameters>
 
     <!-- =========================== -->
@@ -43,21 +24,115 @@
     <mission_parameters>
         <mission_acronym>msl</mission_acronym>
         <mission_name>MSL</mission_name>
-        <mission_start>2016-03-14T08:13:00Z</mission_start>
-        <mission_finish>2050-01-01T00:00:00Z</mission_finish>
         <observer>MSL</observer>
-        <target>MARS</target>
+        <target>Mars</target>
+        <pds3_mission_template>
+            <!-- Extracted from msl_mission_template_pds.1                   -->
+            <!--                                                             -->
+            <!-- Version 1.0 ~~ by Boris Semenov, NAIF/JPL, February 20, 2013-->
+            <!--                                                             -->
+            <MISSION_NAME>"MARS SCIENCE LABORATORY"</MISSION_NAME>
+            <SPACECRAFT_NAME>"MARS SCIENCE LABORATORY"</SPACECRAFT_NAME>
+            <TARGET_NAME>"MARS"</TARGET_NAME>
+            <DATA_SET_ID>"MSL-M-SPICE-6-V1.0"</DATA_SET_ID>
+            <PRODUCT_VERSION_TYPE>"ACTUAL"</PRODUCT_VERSION_TYPE>
+            <MISSION_PHASE_NAME>"DEVELOPMENT", "LAUNCH", "CRUISE AND APPROACH",
+                "ENTRY, DESCENT, AND LANDING", "PRIMARY SURFACE MISSION",
+                "EXTENDED SURFACE MISSION"
+            </MISSION_PHASE_NAME>
+            <SOURCE_PRODUCT_ID>"N/A"</SOURCE_PRODUCT_ID>
+            <INSTRUMENT_NAME>"N/A"</INSTRUMENT_NAME>
+            <PLATFORM_OR_MOUNTING_NAME>"N/A"</PLATFORM_OR_MOUNTING_NAME>
+            <NOTE>"See comments in the file for details"</NOTE>
+            <maklabel_options>
+                <!--                                                         -->
+                <!-- Label key for mission phases.                           -->
+                <!-- From msl_mission-012913.cat                             -->
+                <!-- (2013-01-28 MSL:crisp)                                  -->
+                <!--                                                         -->
+                <!--    DEVELOPMENT                                          -->
+                <!--    ~~~~~~~~~~~                                          -->
+                <!--      Mission Phase Start Time : 2003-10-01              -->
+                <!--      Mission Phase Stop Time  : 2011-11-26              -->
+                <!--                                                         -->
+                <!--    LAUNCH                                               -->
+                <!--    ~~~~~~                                               -->
+                <!--      Mission Phase Start Time : 2011-11-26              -->
+                <!--      Mission Phase Stop Time  : 2011-11-26              -->
+                <!--                                                         -->
+                <!--    CRUISE AND APPROACH                                  -->
+                <!--    ~~~~~~~~~~~~~~~~~~~                                  -->
+                <!--      Mission Phase Start Time : 2011-11-26              -->
+                <!--      Mission Phase Stop Time  : 2012-08-06              -->
+                <!--                                                         -->
+                <!--    ENTRY, DESCENT, AND LANDING                          -->
+                <!--    ~~~~~~~~~~~~~~~~~~~~~~~~~~~                          -->
+                <!--      Mission Phase Start Time : 2012-08-06              -->
+                <!--      Mission Phase Stop Time  : 2012-08-06              -->
+                <!--                                                         -->
+                <!--    PRIMARY SURFACE MISSION                              -->
+                <!--    ~~~~~~~~~~~~~~~~~~~~~~~                              -->
+                <!--      Mission Phase Start Time : 2012-08-06              -->
+                <!--      Mission Phase Stop Time  : 2014-06-26              -->
+                <!--                                                         -->
+                <!--    EXTENDED SURFACE MISSION                             -->
+                <!--    ~~~~~~~~~~~~~~~~~~~~~~~~                             -->
+                <!--      Mission Phase Start Time : 2014-06-26              -->
+                <!--      Mission Phase Stop Time  : UNK                     -->
+                <!--                                                         -->
+                <DEVELOPMENT>
+                    <MISSION_PHASE_NAME>"DEVELOPMENT"</MISSION_PHASE_NAME>
+                </DEVELOPMENT>
+                <LAUNCH>
+                    <MISSION_PHASE_NAME>"LAUNCH"</MISSION_PHASE_NAME>
+                </LAUNCH>
+                <EXTENDED>
+                    <MISSION_PHASE_NAME>"EXTENDED SURFACE MISSION"</MISSION_PHASE_NAME>
+                </EXTENDED>
+                <!--                                                         -->
+                <!--   Label keys for producer IDs                           -->
+                <!--                                                         -->
+                <NAIF>
+                    <PRODUCER_ID>"NAIF/JPL"</PRODUCER_ID>
+                </NAIF>
+                <!--                                                         -->
+                <!-- Label keys for product version types                    -->
+                <!--                                                         -->
+                <ACTUAL>
+                    <PRODUCT_VERSION_TYPE>"ACTUAL"</PRODUCT_VERSION_TYPE>
+                </ACTUAL>
+                <PREDICT>
+                    <PRODUCT_VERSION_TYPE>"PREDICT"</PRODUCT_VERSION_TYPE>
+                </PREDICT>
+                <!--                                                         -->
+                <!-- Label keys for instrument/mounting platform names.      -->
+                <!--                                                         -->
+                <!--                                                         -->
+                <!-- Label keys for instrument/mounting platform names.      -->
+                <!--                                                         -->
+                <ROVER>
+                    <INSTRUMENT_NAME>"ROVER"</INSTRUMENT_NAME>
+                    <PLATFORM_OR_MOUNTING_NAME>"N/A"</PLATFORM_OR_MOUNTING_NAME>
+                </ROVER>
+                <RA>
+                    <INSTRUMENT_NAME>"ROBOTIC ARM"</INSTRUMENT_NAME>
+                    <PLATFORM_OR_MOUNTING_NAME>"ROVER"</PLATFORM_OR_MOUNTING_NAME>
+                </RA>
+                <RSM>
+                    <INSTRUMENT_NAME>"REMOTE SENSING MAST"</INSTRUMENT_NAME>
+                    <PLATFORM_OR_MOUNTING_NAME>"ROVER"</PLATFORM_OR_MOUNTING_NAME>
+                </RSM>
+                <HGA>
+                    <INSTRUMENT_NAME>"HIGH GAIN ANTENNA"</INSTRUMENT_NAME>
+                    <PLATFORM_OR_MOUNTING_NAME>"ROVER"</PLATFORM_OR_MOUNTING_NAME>
+                </HGA>
+            </maklabel_options>
+        </pds3_mission_template>
         <kernels_to_load>
             <lsk>naif[0-9][0-9][0-9][0-9].tls</lsk>
             <sclk>msl_76_sclkscet_refit_s[0-9].tsc</sclk>
             <fk>msl_v[0-9][0-9].tf</fk>
         </kernels_to_load>
-        <phases>
-            <phase name="EXTENDED">
-                <start>2016-03-14T08:13:00Z</start>
-                <finish>2050-01-01T00:00:00Z</finish>
-            </phase>
-        </phases>
     </mission_parameters>
 
     <!-- =========================== -->
@@ -65,9 +140,10 @@
     <!-- =========================== -->
     <directories>
         <working_directory>working</working_directory>
-        <kernels_directory>kernels</kernels_directory>
+        <kernels_directory>/Users/mcosta/ftp/pub/naif/MSL/kernels</kernels_directory>
+        <kernels_directory>../data/kernels</kernels_directory>
         <staging_directory>staging</staging_directory>
-        <bundle_directory>final</bundle_directory>
+        <bundle_directory>msl-m-spice-6-v1.0</bundle_directory>
     </directories>
 
     <!-- =========================== -->
@@ -92,7 +168,7 @@
             </patterns>
         </kernel>
         <kernel pattern="msl_surf_ra_tlmenc_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_v[0-9].bc">
-            <mklabel_options>RA $PHASES NAIF</mklabel_options>
+            <mklabel_options>RA EXTENDED NAIF</mklabel_options>
             <description>CK file containing the orientation of the Robotic Arm (RA) relative to the rover frame, created using encoder angles from telemetry view data from OPGS PLACES server, covering SOLs $START to $FINISH, version $VERSION.
             </description>
             <patterns>
@@ -102,7 +178,7 @@
             </patterns>
         </kernel>
         <kernel pattern="msl_surf_ra_tlmres_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_v[0-9].bc">
-            <mklabel_options>RA $PHASES NAIF</mklabel_options>
+            <mklabel_options>RA EXTENDED NAIF</mklabel_options>
             <description>CK file containing the orientation of the Robotic Arm (RA) relative to the rover frame, created using resolver angles from telemetry view data from OPGS PLACES server, covering SOLs $START to $FINISH, version $VERSION.
             </description>
             <patterns>
@@ -112,7 +188,7 @@
             </patterns>
         </kernel>
         <kernel pattern="msl_surf_rover_tlm_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_v[0-9].bc">
-            <mklabel_options>ROVER $PHASES NAIF</mklabel_options>
+            <mklabel_options>ROVER EXTENDED NAIF</mklabel_options>
             <description>CK file containing the orientation of the rover relative to the local level frame, created using telemetry view data from OPGS PLACES server, covering SOLs $START to $FINISH, version $VERSION.
             </description>
             <patterns>
@@ -122,7 +198,7 @@
             </patterns>
         </kernel>
         <kernel pattern="msl_surf_rsm_tlmenc_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_v[0-9].bc">
-            <mklabel_options>RSM $PHASES NAIF</mklabel_options>
+            <mklabel_options>RSM EXTENDED NAIF</mklabel_options>
             <description>CK file containing the orientation of the Remote Sensing Mast (RSM) relative to the rover frame, created using encoder angles telemetry view data from OPGS PLACES server, covering SOLs $START to $FINISH, version $VERSION.
             </description>
             <patterns>
@@ -132,7 +208,7 @@
             </patterns>
         </kernel>
         <kernel pattern="msl_surf_rsm_tlmres_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_v[0-9].bc">
-            <mklabel_options>RSM $PHASES NAIF</mklabel_options>
+            <mklabel_options>RSM EXTENDED NAIF</mklabel_options>
             <description>CK file containing the orientation of the Remote Sensing Mast (RSM) relative to the rover frame, created using resolver angles telemetry view data from OPGS PLACES server, covering SOLs $START to $FINISH, version $VERSION.
             </description>
             <patterns>
@@ -142,7 +218,7 @@
             </patterns>
         </kernel>
         <kernel pattern="msl_surf_rover_tlm_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_v[0-9].bsp">
-            <mklabel_options>$PHASES NAIF</mklabel_options>
+            <mklabel_options>EXTENDED NAIF</mklabel_options>
             <description>SPK file containing the telemetry-based location of sites along the path relative to the landing site and the telemetry-based location of the rover relative to these sites, created using the telemetry view data from the OPGS PLACES server, covering SOLs $START to $FINISH, version $VERSION.
             </description>
             <patterns>
@@ -152,7 +228,7 @@
             </patterns>
         </kernel>
         <kernel pattern="msl_surf_rover_loc_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_v[0-9].bsp">
-            <mklabel_options>$PHASES NAIF</mklabel_options>
+            <mklabel_options>EXTENDED NAIF</mklabel_options>
             <description>SPK file containing the localized locations of sites along the path relative to the center of Mars and the localized location of the rover relative to the center of Mars, created using the localized_interp view data from the OPGS PLACES server, covering SOLs $START to $FINISH, version $VERSION.
             </description>
             <patterns>
@@ -162,7 +238,7 @@
             </patterns>
         </kernel>
         <kernel pattern="msl_surf_hga_tlm_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_v[0-9].bc">
-            <mklabel_options>HGA $PHASES NAIF</mklabel_options>
+            <mklabel_options>HGA EXTENDED NAIF</mklabel_options>
             <description>CK file containing the orientation of the High Gain Antenna (HGA) relative to the rover frame, created using telemetry view data from OPGS PLACES server, covering SOLs $START to $FINISH, version $VERSION.
             </description>
             <patterns>
@@ -171,15 +247,22 @@
                 <VERSION pattern="kernel">msl_surf_hga_tlm_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_v$VERSION.bc</VERSION>
             </patterns>
         </kernel>
+        <kernel pattern="msl_v[0-9][0-9].tm">
+            <mklabel_options>N/A</mklabel_options>
+            <description>N/A
+            </description>
+        </kernel>
     </kernel_list>
 
     <!-- =========================== -->
     <!-- Meta-kernel                 -->
     <!-- =========================== -->
     <meta-kernel>
-        <mk_inputs>
-            <file> </file>
-        </mk_inputs>
+        <mk name="msl_v$VERSION.tm">
+            <name>
+                <pattern length="2">VERSION</pattern>
+            </name>
+        </mk>
     </meta-kernel>
 
 </naif-pds4-bundler_configuration>

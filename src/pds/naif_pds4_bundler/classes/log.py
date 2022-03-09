@@ -63,9 +63,9 @@ class Log(object):
             self.log_file = ""
 
     def start(self):
-        """Start the genertion of the log for the execution."""
+        """Start the generation of the log for the execution."""
         start_message = (
-            f"naif-pds4-bundle-{self.setup.version} for {self.setup.mission_name}"
+            f"naif-pds4-bundler-{self.setup.version} for {self.setup.mission_name}"
         )
         exec_message = (
             "-- Executed on "
@@ -147,7 +147,7 @@ class Log(object):
         # Generate the file list and the checksum registry.
         #
         self.setup.write_file_list()
-        self.setup.write_checksum_regsitry()
+        self.setup.write_checksum_registry()
 
         #
         # Clear the kernel pool
@@ -173,7 +173,7 @@ def error_message(message, setup=False):
     #
     if setup:
         setup.write_file_list()
-        setup.write_checksum_regsitry()
+        setup.write_checksum_registry()
         for template in setup.template_files:
             os.remove(template)
 

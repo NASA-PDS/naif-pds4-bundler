@@ -13,16 +13,9 @@
     <!-- =========================== -->
     <bundle_parameters>
         <producer_name>Marc Costa Sitja</producer_name>
-        <producer_email>Marc.Costa.Sitja@jpl.nasa.gov</producer_email>
-        <producer_phone>6264691244</producer_phone>
-        <author_list>Semenov B. V.; Costa Sitja M.</author_list>
         <institution>NAIF/JPL</institution>
-        <dataset_id>MRO-M-SPICE-6-V1.0</dataset_id>
-        <volume_id>MROSP_1000</volume_id>
-        <doi>10.17189/1520100</doi>
+        <volume_id>mrosp_1000</volume_id>
         <spice_name>MRO</spice_name>
-        <date_format>maklabel</date_format>
-        <end_of_line>CRLF</end_of_line>
     </bundle_parameters>
 
     <!-- =========================== -->
@@ -30,22 +23,123 @@
     <!-- =========================== -->
     <mission_parameters>
         <mission_acronym>mro</mission_acronym>
-        <mission_name>MRO</mission_name>
-        <mission_start>2005-08-12T12:40:00Z</mission_start>
-        <mission_finish>2050-01-01T00:00:00Z</mission_finish>
-        <observer>MRO</observer>
-        <target>MARS</target>
+        <mission_name>MARS RECONNAISSANCE ORBITER</mission_name>
+        <observer>MARS RECONNAISSANCE ORBITER</observer>
+        <target>Mars</target>
+        <pds3_mission_template>
+            <!-- Extracted from mro_mission_template_pds.1.2                 -->
+            <!--                                                             -->
+            <!-- Version 1.2 ~~ by Boris Semenov, NAIF/JPL, Feb 27, 2009     -->
+            <!--                                                             -->
+            <!--   Updated for "EXTENDED SCIENCE PHASE".                     -->
+            <!--                                                             -->
+            <!-- Version 1.1 ~~ by Boris Semenov, NAIF/JPL, Nov 29, 2007     -->
+            <!--                                                             -->
+            <!--   Added SSD tag.                                            -->
+            <!--                                                             -->
+            <!-- Version 1.0 ~~ by Boris Semenov, NAIF/JPL, May 24, 2007     -->
+            <!--                                                             -->
+            <MISSION_NAME>"MARS RECONNAISSANCE ORBITER"</MISSION_NAME>
+            <SPACECRAFT_NAME>"MARS RECONNAISSANCE ORBITER"</SPACECRAFT_NAME>
+            <TARGET_NAME>"MARS"</TARGET_NAME>
+            <DATA_SET_ID>"MRO-M-SPICE-6-V1.0"</DATA_SET_ID>
+            <PRODUCT_VERSION_TYPE>"ACTUAL"</PRODUCT_VERSION_TYPE>
+            <MISSION_PHASE_NAME>"N/A"</MISSION_PHASE_NAME>
+            <SOURCE_PRODUCT_ID>"N/A"</SOURCE_PRODUCT_ID>
+            <INSTRUMENT_NAME>"N/A"</INSTRUMENT_NAME>
+            <PLATFORM_OR_MOUNTING_NAME>"N/A"</PLATFORM_OR_MOUNTING_NAME>
+            <NOTE>"See comments in the file for details"</NOTE>
+            <maklabel_options>
+                <!--                                                         -->
+                <!-- Label key for mission phases.                           -->
+                <!-- From mro_mission.cat ver. 05/24/07.                     -->
+                <!--                                                         -->
+                <!--    LAUNCH                                               -->
+                <!--    ~~~~~~                                               -->
+                <!--      Mission Phase Start Time : 2005-08-12              -->
+                <!--      Mission Phase Stop Time  : 2005-08-12              -->
+                <!--                                                         -->
+                <!--    CRUISE                                               -->
+                <!--    ~~~~~~                                               -->
+                <!--      Mission Phase Start Time : 2005-08-12              -->
+                <!--      Mission Phase Stop Time  : 2006-01-10              -->
+                <!--                                                         -->
+                <!--    APPROACH AND ORBIT INSERTION                         -->
+                <!--    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~                         -->
+                <!--      Mission Phase Start Time : 2006-01-10              -->
+                <!--      Mission Phase Stop Time  : 2006-03-10              -->
+                <!--                                                         -->
+                <!--    AEROBRAKING                                          -->
+                <!--    ~~~~~~~~~~~                                          -->
+                <!--      Mission Phase Start Time : 2006-03-17              -->
+                <!--      Mission Phase Stop Time  : 2006-08-30              -->
+                <!--                                                         -->
+                <!--    PRIMARY SCIENCE                                      -->
+                <!--    ~~~~~~~~~~~~~~~                                      -->
+                <!--      Mission Phase Start Time : 2006-11-08              -->
+                <!--      Mission Phase Stop Time  : 2008-12-19              -->
+                <!--                                                         -->
+                <!--    EXTENDED SCIENCE PHASE                               -->
+                <!--    ~~~~~~~~~~~~~~~~~~~~~~                               -->
+                <!--      Mission Phase Start Time : 2008-12-20              -->
+                <!--      Mission Phase Stop Time  : 2010-12-31              -->
+                <!--                                                         -->
+                <!--    RELAY                                                -->
+                <!--    ~~~~~                                                -->
+                <!--      Mission Phase Start Time : 2011-01-01              -->
+                <!--      Mission Phase Stop Time  : UNK                     -->
+                <LAUNCH>
+                    <MISSION_PHASE_NAME>"LAUNCH"</MISSION_PHASE_NAME>
+                </LAUNCH>
+                <LAUNCH_CRUISE>
+                    <MISSION_PHASE_NAME>"LAUNCH", "CRUISE"</MISSION_PHASE_NAME>
+                </LAUNCH_CRUISE>
+                <CRUISE>
+                    <MISSION_PHASE_NAME>"CRUISE"</MISSION_PHASE_NAME>
+                </CRUISE>
+                <ESP>
+                    <MISSION_PHASE_NAME>"EXTENDED SCIENCE PHASE"</MISSION_PHASE_NAME>
+                </ESP>
+                <!--                                                         -->
+                <!-- Label keys for producer ids                             -->
+                <!--                                                         -->
+                <NAIF>
+                    <PRODUCER_ID>"NAIF/JPL"</PRODUCER_ID>
+                </NAIF>
+                <MRONAV>
+                    <PRODUCER_ID>"MRONAV/JPL"</PRODUCER_ID>
+                </MRONAV>
+                <!--                                                         -->
+                <!-- Label keys for product version types                    -->
+                <!--                                                         -->
+                <ACTUAL>
+                    <PRODUCT_VERSION_TYPE>"ACTUAL"</PRODUCT_VERSION_TYPE>
+                </ACTUAL>
+                <PREDICT>
+                    <PRODUCT_VERSION_TYPE>"PREDICT"</PRODUCT_VERSION_TYPE>
+                </PREDICT>
+                <!--                                                         -->
+                <!-- Label keys for instrument/mounting platform names.      -->
+                <!--                                                         -->
+                <SC>
+                    <INSTRUMENT_NAME>"MRO SPACECRAFT"</INSTRUMENT_NAME>
+                    <PLATFORM_OR_MOUNTING_NAME>"N/A"</PLATFORM_OR_MOUNTING_NAME>
+                </SC>
+                <SA>
+                    <INSTRUMENT_NAME>"MRO SOLAR ARRAYS"</INSTRUMENT_NAME>
+                    <PLATFORM_OR_MOUNTING_NAME>"MRO SPACECRAFT"</PLATFORM_OR_MOUNTING_NAME>
+                </SA>
+                <HGA>
+                    <INSTRUMENT_NAME>"MRO HIGH GAIN ANTENNA"</INSTRUMENT_NAME>
+                    <PLATFORM_OR_MOUNTING_NAME>"MRO SPACECRAFT"</PLATFORM_OR_MOUNTING_NAME>
+                </HGA>
+            </maklabel_options>
+        </pds3_mission_template>
         <kernels_to_load>
             <lsk>naif[0-9][0-9][0-9][0-9].tls</lsk>
-            <sclk>mro_sclkscet_[0-9][0-9][0-9][0-9][0-9]_65536.tsc</sclk>
+            <sclk>MRO_SCLKSCET.[0-9][0-9][0-9][0-9][0-9].65536.tsc</sclk>
             <fk>mro_v[0-9][0-9].tf</fk>
         </kernels_to_load>
-        <phases>
-            <phase name="ESP">
-                <start>2005-08-12T12:40:00</start>
-                <finish>2050-01-01T00:00:00Z</finish>
-            </phase>
-        </phases>
     </mission_parameters>
 
     <!-- =========================== -->
@@ -55,8 +149,10 @@
         <working_directory>working</working_directory>
         <kernels_directory>kernels</kernels_directory>
         <staging_directory>staging</staging_directory>
-        <bundle_directory>final</bundle_directory>
+        <bundle_directory>bundle</bundle_directory>
+        <orbnum_directory>misc/orbnum</orbnum_directory>
     </directories>
+
 
     <!-- =========================== -->
     <!-- Kernel List                 -->
@@ -140,15 +236,32 @@
             <description>MRO SPICE CK file providing actual telemetry-based orientation of the Compact Reconnaissance Imaging Spectrometer for Mars (CRISM) instrument for a part of the Extended Science phase of the mission, created by NAIF, JPL from daily files provided by the CRISM Team, APL.
             </description>
         </kernel>
+        <kernel pattern="mro_[0-9][0-9][0-9][0-9]_v[0-9][0-9].tm">
+            <mklabel_options>N/A</mklabel_options>
+            <description>N/A
+            </description>
+        </kernel>
     </kernel_list>
 
     <!-- =========================== -->
     <!-- Meta-kernel                 -->
     <!-- =========================== -->
     <meta-kernel>
-        <mk_inputs>
-            <file> </file>
-        </mk_inputs>
+        <mk name="mro_$YEAR_v$VERSION.tm">
+            <name>
+                <pattern length="2">VERSION</pattern>
+                <pattern length="4">YEAR</pattern>
+            </name>
+        </mk>
     </meta-kernel>
+
+    <!-- =========================== -->
+    <!-- Orbit number file           -->
+    <!-- =========================== -->
+    <orbit_number_file>
+        <orbnum>
+            <pattern>mro_psp[0-9][0-9].nrb</pattern>
+        </orbnum>
+    </orbit_number_file>
 
 </naif-pds4-bundler_configuration>

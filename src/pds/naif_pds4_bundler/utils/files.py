@@ -13,6 +13,7 @@ from collections import defaultdict
 import spiceypy
 
 from ..classes.log import error_message
+from ..utils import spice_exception_handler
 
 
 def etree_to_dict(t):
@@ -65,7 +66,7 @@ def md5(fname):
 
 
 def copy(src, dest):
-    """Creates a directory and raises an error if the directorty exists.
+    """Creates a directory and raises an error if the directory exists.
 
     :param src: Source directory with path.
     :param dest: Destination directory with path.
@@ -103,7 +104,7 @@ def safe_make_directory(dir):
     return None
 
 
-def extension2type(kernel):
+def extension_to_type(kernel):
     """Given a SPICE kernel provide the SPICE kernel type.
 
     :param kernel: SPICE Kernel name
@@ -140,7 +141,39 @@ def extension2type(kernel):
     return kernel_type
 
 
-def type2extension(kernel_type):
+def type_to_PDS3_type(kernel):
+    """Given a SPICE kernel provide the PDS3 SPICE kernel type.
+
+    :param kernel: SPICE Kernel name
+    :return: SPICE Kernel type of the input SPICE kernel name.
+    :rtype: str
+    """
+    kernel_type_map = {
+        "IK": "INSTRUMENT",
+        "FK": "FRAMES",
+        "SCLK": "CLOCK_COEFFICIENTS",
+        "LSK": "LEAPSECONDS",
+        "PCK": "TARGET_CONSTANTS",
+        "CK": "POINTING",
+        "SPK": "EPHEMERIS",
+        "DSK": "SHAPE",
+    }
+
+    try:
+        #
+        # Kernel is an object
+        #
+        kernel_type = kernel_type_map[kernel.extension.upper()]
+    except BaseException:
+        #
+        # Kernel is a string
+        #
+        kernel_type = kernel_type_map[kernel.split(".")[-1].upper()]
+
+    return kernel_type
+
+
+def type_to_extension(kernel_type):
     """Given a SPICE kernel type provide the SPICE kernel extension.
 
     :param kernel_type: SPICE kernel type
@@ -343,7 +376,7 @@ def get_context_products(setup):
     return bundle_context_products
 
 
-def mk2list(mk, setup):
+def mk_to_list(mk, setup):
     """Generate a list of kernels from a Meta-kernel.
 
     This function assumes that the meta-kernel will contain a PATH_SYMBOLS
@@ -519,18 +552,28 @@ def compare_files(fromfile, tofile, dir, display):
 
     :param fromfile: Path of first file to be compared
     :type fromfile: str
-    :param tofile: Path of second file to be comapred
+    :param tofile: Path of second file to be compared
     :type tofile: str
-    :param dir: Resulting diff diles destination directory
+    :param dir: Resulting diff files destination directory
     :type dir: str
     :param display: Indication if the fie will only be written in log or
                     if a specific diff file will be generated
     :type display: str
+    :return: True if the files are different, False if they are the same.
+    :rtype: Bool
     """
     with open(fromfile) as ff:
         fromlines = ff.readlines()
     with open(tofile) as tf:
         tolines = tf.readlines()
+
+    if fromlines == tolines:
+        logging.info(f"-- The following files have the same content:")
+        logging.info(f'   {fromfile}')
+        logging.info(f'   {tofile}')
+        if md5(fromfile) == md5(tofile):
+            logging.info(f"   And have the same MD5Sum.")
+            return False
 
     if display in ["all", "log"]:
 
@@ -555,7 +598,7 @@ def compare_files(fromfile, tofile, dir, display):
         diff_html.writelines(diff)
         diff_html.close()
 
-    return None
+    return True
 
 
 def match_patterns(name, name_w_pattern, patterns):
@@ -708,23 +751,43 @@ def checksum_from_label(path):
     return checksum
 
 
-def extract_comment(path):
-    """Extract comment from DAF file.
+def extract_comment(path, handle=False):
+    """Extract comment from DAF fie.
 
     :param path:
     :return:
     """
-    handle = spiceypy.dafopr(path)
-    done = False
+    if not handle:
+        close_file = True
+        handle = spiceypy.dafopr(path)
+    else:
+        close_file = False
+
     linlen = 1001
-    buffsz = 1001
-    comment = []
+    buffsz = 100000
 
-    while not done:
-        (n, buffer, done) = spiceypy.dafec(handle, buffsz, linlen)
-        comment += buffer
+    (lincmt, commnt, done) = spiceypy.dafec(handle, buffsz, linlen)
+    if lincmt > buffsz:
+        spiceypy.dafcls(handle)
+        error_message(f'Comment from {path} is longer than buffer size.')
 
-    return comment
+    #
+    # Remove empty lines at the end of the comment.
+    #
+    lines_to_remove = 0
+    for line in reversed(commnt):
+        if not line.strip():
+            lines_to_remove += 1
+        if line.strip():
+            break
+    if lines_to_remove > 0:
+        lines_to_remove *= -1
+        commnt = commnt[:lines_to_remove + 1]
+
+    if close_file:
+        spiceypy.dafcls(handle)
+
+    return commnt
 
 
 def string_in_file(file, str_to_check, repetitions=1):
@@ -747,3 +810,37 @@ def string_in_file(file, str_to_check, repetitions=1):
         return False
 
     return True
+
+
+def replace_string_in_file(file, old_string, new_string, setup):
+    """Replace string in a file."""
+    reading_file = open(file, "r")
+
+    new_file_content = ""
+    for line in reading_file:
+      new_line = line.replace(old_string, new_string)
+      new_file_content += add_carriage_return(new_line, setup.eol_pds3, setup)
+    reading_file.close()
+
+    writing_file = open('temp.file', "w")
+    writing_file.write(new_file_content)
+    writing_file.close()
+
+    shutil.move('temp.file', file)
+
+    return True
+
+
+def format_multiple_values(value):
+    #
+    # If the MAKLABEL key value has multiple entries, it needs to
+    # be reformatted.
+    #
+    if ',' in value:
+        values = value.split(',')
+        value = "{\n"
+        for val in values:
+            value += f"{' ' * 31}{val},\n"
+        value = value[:-2] + '\n' + ' ' * 31 + "}\n"
+
+    return value

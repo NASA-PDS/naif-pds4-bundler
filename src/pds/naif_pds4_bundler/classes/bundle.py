@@ -126,15 +126,37 @@ class Bundle(object):
         #
         # A list of the new files in the staging area is generated first.
         #
-        new_files = []
+        staging_files = []
         for root, _dirs, files in os.walk(self.setup.staging_directory, topdown=True):
             for name in files:
-                new_files.append(os.path.join(root, name))
+                if not "DS_Store" in name:
+                    staging_files.append(os.path.join(root, name))
+
+        #
+        # A list of the new files as extracted form the products in the
+        # collections is generated next.
+        #
+        new_files = []
+        for collection in self.collections:
+            for product in collection.product:
+                new_files.append(product.path)
+                if hasattr(product, 'label'):
+                    new_files.append(product.label.name)
+                else:
+                    logging.info(f'-- Product {product.name} has no label in staging area.')
 
         self.new_files = new_files
 
+        #
+        # dsindex files are added to the new_files list. These are the only
+        # files that are explicitly added.
+        #
+        if self.setup.pds_version == "3":
+            self.new_files.append(self.setup.staging_directory + "/../dsindex.tab")
+            self.new_files.append(self.setup.staging_directory + "/../dsindex.lbl")
+
         logging.info("-- The following files are present in the staging area:")
-        for file in new_files:
+        for file in staging_files:
             relative_path = f"{os.sep}{self.setup.mission_acronym}_spice{os.sep}"
             logging.info(f"     {file.split(relative_path)[-1]}")
         logging.info("")
@@ -150,18 +172,19 @@ class Bundle(object):
         if not self.setup.args.silent and not self.setup.args.verbose:
             print("-- " + line.split(" - ")[-1] + ".")
 
-        #
-        # Index files are added to the new_files list.
-        #
-        if self.setup.pds_version == "3":
-            self.new_files.append(self.setup.staging_directory + "/../dsindex.tab")
-            self.new_files.append(self.setup.staging_directory + "/../dsindex.lbl")
-
         copied_files = []
         for file in self.new_files:
             src = file
 
-            relative_path = f"{os.sep}{self.setup.mission_acronym}_spice{os.sep}"
+            if self.setup.pds_version == "4":
+                spice_kernels_dir =  "spice_kernels"
+                label_extension = "xml"
+                relative_path = f"{os.sep}{self.setup.mission_acronym}_spice{os.sep}"
+            else:
+                spice_kernels_dir = "data"
+                label_extension = "lbl"
+                relative_path = f"{os.sep}{self.setup.volume_id}{os.sep}"
+
             relative_path += file.split(relative_path)[-1]
 
             #
@@ -169,18 +192,19 @@ class Bundle(object):
             # replicated.
             #
             if self.setup.faucet == "labels":
-                relative_path = relative_path.split("spice_kernels")[-1]
+                relative_path = relative_path.split(spice_kernels_dir)[-1]
 
             dst = self.setup.bundle_directory + relative_path
 
-            if not os.path.exists(os.sep.join(dst.split(os.sep)[:-1])):
-                os.mkdir(os.sep.join(dst.split(os.sep)[:-1]))
-                os.chmod(os.sep.join(dst.split(os.sep)[:-1]), 0o775)
+            dst_dir = os.sep.join(dst.split(os.sep)[:-1])
+            if not os.path.exists(dst_dir):
+                Path(dst_dir).mkdir(parents=True, exist_ok=True)
+                os.chmod(dst_dir, 0o775)
 
             #
             # If the file is a label we copy it anyway.
             #
-            if not os.path.exists(dst) or dst.split(".")[-1] == "xml":
+            if (self.setup.pds_version == '3') or (not os.path.exists(dst)) or (dst.split(".")[-1] == label_extension):
                 copied_files.append(file)
                 #
                 # We do not use copy2 (copy data and metadata) because
@@ -195,7 +219,7 @@ class Bundle(object):
 
                 #
                 # Comparison for Binary files is disabled (following the
-                # experience of comapring OREX OLA CKs.)
+                # experience of comparing OREX OLA CKs.)
                 #
                 if src.split(".")[-1][0] != "b":
 
@@ -212,7 +236,7 @@ class Bundle(object):
                 )
 
         #
-        # Cross-check that files with latest timestamp in final correspond
+        # Cross-check that files with the latest timestamp in final correspond
         # to the files copied from staging:
         #
         xdays = 1

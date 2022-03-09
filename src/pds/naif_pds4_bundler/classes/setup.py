@@ -208,15 +208,17 @@ class Setup(object):
         self.eol_pds4_len = 1
         self.eol_mk = "\n"
         self.eol_mk_len = 1
+        self.eol_pds3 = "\r\n"
 
         #
-        # Fill PDS4 missing fields.
+        # Fill missing fields.
         #
         if self.pds_version == "4":
             self.producer_phone = ""
             self.producer_email = ""
             self.dataset_id = ""
             self.volume_id = ""
+
 
     def check_configuration(self):
         """
@@ -427,6 +429,7 @@ class Setup(object):
                 os.path.basename(x[:-1])
                 for x in glob.glob(f"{self.root_dir}templates/*/")
             ]
+            schemas.remove('pds3')
 
             schemas_eval = []
             for schema in schemas:
@@ -457,6 +460,10 @@ class Setup(object):
         # If a templates' directory is not provided, determine the templates
         # to be used based on the IM.
         #
+        else:
+            templates_directory = f"{self.root_dir}templates/pds3/"
+
+
         template_files = []
         if not hasattr(self, "templates_directory") and self.pds_version == "4":
 
@@ -501,7 +508,7 @@ class Setup(object):
             #
             # PDS3 templates
             #
-            self.templates_directory = f"{self.root_dir}templates/1.5.0.0"
+            self.templates_directory = f"{self.root_dir}templates/pds3"
             templates = os.listdir(self.templates_directory)
             for template in templates:
                 shutil.copy2(os.path.join(self.templates_directory, template), self.working_directory)
@@ -517,20 +524,21 @@ class Setup(object):
         # to the templates. The default for the built-in templates is 2.
         #
         xml_tab = 0
-        try:
-            xml_tag = '<Identification_Area>'
-            with open(self.templates_directory + os.sep + 'template_bundle.xml', 'r') as t:
-                for line in t:
-                    if xml_tag in line:
-                        line = line.rstrip()
-                        xml_tab = len(line) - len(xml_tag)
-        except:
-            logging.warning("-- XML Template not found to determine XML Tab. It has been set to 2.")
-            xml_tab = 2
+        if self.pds_version == '4':
+            try:
+                xml_tag = '<Identification_Area>'
+                with open(self.templates_directory + os.sep + 'template_bundle.xml', 'r') as t:
+                    for line in t:
+                        if xml_tag in line:
+                            line = line.rstrip()
+                            xml_tab = len(line) - len(xml_tag)
+            except:
+                logging.warning("-- XML Template not found to determine XML Tab. It has been set to 2.")
+                xml_tab = 2
 
-        if xml_tab <= 0:
-            logging.warning("-- XML Template not useful to determine XML Tab. It has been set to 2.")
-            xml_tab = 2
+            if xml_tab <= 0:
+                logging.warning("-- XML Template not useful to determine XML Tab. It has been set to 2.")
+                xml_tab = 2
 
         self.xml_tab = xml_tab
 
@@ -641,7 +649,7 @@ class Setup(object):
             release = f"{release:03}"
             current_release = f"{current_release:03}"
             logging.info(
-                f"     Generating release {release} as obtained from "
+                f"-- Generating release {release} as obtained from "
                 f"file list from previous run: {self.args.clear}"
             )
             increment = True
@@ -662,14 +670,15 @@ class Setup(object):
                 release = int(current_release) + 1
                 release = f"{release:03}"
 
-                logging.info(f"     Generating release {release}.")
+                logging.info(f"-- Generating release {release}.")
 
                 increment = True
 
             except:
-                logging.warning(
-                    "-- Bundle label not found. Checking previous kernel list."
-                )
+                if self.pds_version == '4':
+                    logging.warning(
+                        "-- Bundle label not found. Checking previous kernel list."
+                    )
 
                 try:
 
@@ -697,12 +706,12 @@ class Setup(object):
                     release = int(current_release) + 1
                     release = f"{release:03}"
 
-                    logging.info(f"     Generating release {release}")
+                    logging.info(f"-- Generating release {release}")
 
                     increment = True
                 except:
 
-                    logging.warning("     This is the first release.")
+                    logging.warning("-- This is the first release.")
 
                     release = "001"
                     current_release = ""
@@ -987,7 +996,7 @@ class Setup(object):
 
         return
 
-    def write_checksum_regsitry(self):
+    def write_checksum_registry(self):
 
         if self.checksum_registry:
             with open(
