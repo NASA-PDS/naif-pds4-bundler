@@ -1,0 +1,169 @@
+MISSION_NAME                = "MARS RECONNAISSANCE ORBITER"
+SPACECRAFT_NAME             = "MARS RECONNAISSANCE ORBITER"
+TARGET_NAME                 = "MARS"
+DATA_SET_ID                 = "MRO-M-SPICE-6-V1.0"
+PRODUCT_VERSION_TYPE        = "ACTUAL"
+MISSION_PHASE_NAME          = "N/A"
+SOURCE_PRODUCT_ID           = "N/A"
+NOTE                        = "See comments in the file for details"
+
+--$ 
+--$ Version 1.2 -- by Boris Semenov, NAIF/JPL, Feb 27, 2009
+--$
+--$   Updated for "EXTENDED SCIENCE PHASE".
+--$
+--$ Version 1.1 -- by Boris Semenov, NAIF/JPL, Nov 29, 2007
+--$
+--$   Added SSD tag.
+--$
+--$ Version 1.0 -- by Boris Semenov, NAIF/JPL, May 24, 2007
+--$
+
+--$ 
+--$ Label key for mission phases. From mro_mission.cat ver. 05/24/07.
+--$
+--$    LAUNCH
+--$    ------
+--$      Mission Phase Start Time : 2005-08-12
+--$      Mission Phase Stop Time  : 2005-08-12
+--$
+--$    CRUISE
+--$    ------
+--$      Mission Phase Start Time : 2005-08-12
+--$      Mission Phase Stop Time  : 2006-01-10
+--$
+--$    APPROACH AND ORBIT INSERTION
+--$    ----------------------------
+--$      Mission Phase Start Time : 2006-01-10
+--$      Mission Phase Stop Time  : 2006-03-10
+--$
+--$    AEROBRAKING
+--$    -----------
+--$      Mission Phase Start Time : 2006-03-17
+--$      Mission Phase Stop Time  : 2006-08-30
+--$
+--$    PRIMARY SCIENCE
+--$    ---------------
+--$      Mission Phase Start Time : 2006-11-08
+--$      Mission Phase Stop Time  : 2008-12-19
+--$
+--$    EXTENDED SCIENCE PHASE
+--$    ----------------------
+--$      Mission Phase Start Time : 2008-12-20
+--$      Mission Phase Stop Time  : 2010-12-31
+--$
+--$    RELAY
+--$    -----
+--$      Mission Phase Start Time : 2011-01-01
+--$      Mission Phase Stop Time  : UNK
+--$
+
+--LAUNCH
+      MISSION_PHASE_NAME        = "LAUNCH"
+--LAUNCH_CRUISE
+      MISSION_PHASE_NAME        = { "LAUNCH", "CRUISE" }
+--CRUISE
+      MISSION_PHASE_NAME        = "CRUISE"
+--CRUISE_APPROACH
+      MISSION_PHASE_NAME        = { "CRUISE", "APPROACH AND ORBIT INSERTION" }
+--LAUNCH_CRUISE_APPROACH
+      MISSION_PHASE_NAME        = { "LAUNCH", "CRUISE", "APPROACH AND ORBIT INSERTION" }
+--APPROACH
+      MISSION_PHASE_NAME        = "APPROACH AND ORBIT INSERTION"
+--APPROACH_AEROBRAKING
+      MISSION_PHASE_NAME        = { "APPROACH AND ORBIT INSERTION", "AEROBRAKING" }
+--AEROBRAKING
+      MISSION_PHASE_NAME        = "AEROBRAKING"
+--AEROBRAKING_PSP
+      MISSION_PHASE_NAME        = { "AEROBRAKING", "PRIMARY SCIENCE" }
+--PSP
+      MISSION_PHASE_NAME        = "PRIMARY SCIENCE"
+--PSP_ESP
+      MISSION_PHASE_NAME        = { "PRIMARY SCIENCE", "EXTENDED SCIENCE PHASE" }
+--ESP
+      MISSION_PHASE_NAME        = { "EXTENDED SCIENCE PHASE" }
+--ESP_RELAY
+      MISSION_PHASE_NAME        = { "EXTENDED SCIENCE PHASE", "RELAY" }
+--RELAY
+      MISSION_PHASE_NAME        = "RELAY"
+
+--$ 
+--$ Label keys for producer IDs
+--$ 
+
+--NAIF
+      PRODUCER_ID               = "NAIF/JPL"
+--MRONAV
+      PRODUCER_ID               = "MRONAV/JPL"
+--SSD
+      PRODUCER_ID               = "SSD/JPL"
+--CRISM_TEAM
+      PRODUCER_ID               = "CRISM TEAM/APL"
+--MCS_TEAM
+      PRODUCER_ID               = "MCS TEAM/JPL"
+--HIRISE_TEAM
+      PRODUCER_ID               = "HIRISE TEAM/UofA"
+--SCOPS
+      PRODUCER_ID               = "SCOPS/LMA"
+--DAA
+      PRODUCER_ID               = "DAA/JPL"
+
+--$ 
+--$ Label keys for product version types
+--$ 
+
+--ACTUAL
+      PRODUCT_VERSION_TYPE      = "ACTUAL"
+--PREDICT
+      PRODUCT_VERSION_TYPE      = "PREDICT"
+
+--$ 
+--$ Label keys for instrument/mounting platform names.
+--$ 
+
+--SC
+      INSTRUMENT_NAME           = "MRO SPACECRAFT"
+      PLATFORM_OR_MOUNTING_NAME = "N/A"
+--SA
+      INSTRUMENT_NAME           = "MRO SOLAR ARRAYS"
+      PLATFORM_OR_MOUNTING_NAME = "MRO SPACECRAFT"
+--HGA
+      INSTRUMENT_NAME           = "MRO HIGH GAIN ANTENNA"
+      PLATFORM_OR_MOUNTING_NAME = "MRO SPACECRAFT"
+--RSS
+      INSTRUMENT_NAME           = "RADIO SCIENCE SUBSYSTEM"
+      PLATFORM_OR_MOUNTING_NAME = "MRO SPACECRAFT"
+--ACCELEROMETER
+      INSTRUMENT_NAME           = "ACCELEROMETER"
+      PLATFORM_OR_MOUNTING_NAME = "MRO SPACECRAFT"
+--HIRISE
+      INSTRUMENT_NAME           = "HIGH RESOLUTION IMAGING SCIENCE EXPERIMENT (HIRISE)"
+      PLATFORM_OR_MOUNTING_NAME = "MRO SPACECRAFT"
+--MCS
+      INSTRUMENT_NAME           = "MARS CLIMATE SOUNDER"
+      PLATFORM_OR_MOUNTING_NAME = "MRO SPACECRAFT"
+--SHARAD
+      INSTRUMENT_NAME           = "SHALLOW RADAR"
+      PLATFORM_OR_MOUNTING_NAME = "MRO SPACECRAFT"
+--CRISM
+      INSTRUMENT_NAME           = "COMPACT RECONNAISSANCE IMAGING SPECTROMETER FOR MARS"
+      PLATFORM_OR_MOUNTING_NAME = "MRO SPACECRAFT"
+--CTX
+      INSTRUMENT_NAME           = "CONTEXT CAMERA"
+      PLATFORM_OR_MOUNTING_NAME = "MRO SPACECRAFT"
+--MARCI
+      INSTRUMENT_NAME           = "MARS COLOR IMAGER"
+      PLATFORM_OR_MOUNTING_NAME = "MRO SPACECRAFT"
+--ONC
+      INSTRUMENT_NAME           = "OPTICAL NAVIGATION (CAMERA) EXPERIMENT"
+      PLATFORM_OR_MOUNTING_NAME = "MRO SPACECRAFT"
+--ELECTRA
+      INSTRUMENT_NAME           = "ELECTRA UHF COMMUNICATIONS AND NAVIGATION PACKAGE"
+      PLATFORM_OR_MOUNTING_NAME = "MRO SPACECRAFT"
+
+--$
+--$ End of the definitions flag.
+--$
+--END
+
+

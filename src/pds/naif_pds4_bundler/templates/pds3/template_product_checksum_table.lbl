@@ -1,0 +1,44 @@
+PDS_VERSION_ID        = PDS3
+
+RECORD_TYPE           = "FIXED_LENGTH"
+FILE_RECORDS          = $FILE_RECORDS
+RECORD_BYTES          = $RECORD_BYTES
+
+^TABLE                = "checksum.tab"
+
+VOLUME_ID             = "$VOLUME_ID"
+PRODUCT_NAME          = "MD5 CHECKSUM TABLE FOR VOLUME $VOLUME_ID"
+PRODUCT_CREATION_TIME = $PRODUCT_CREATION_TIME
+START_TIME            = "N/A"
+STOP_TIME             = "N/A"
+
+OBJECT     = TABLE
+  INTERCHANGE_FORMAT = "ASCII"
+  ROWS               = $FILE_RECORDS
+  ROW_BYTES          = $RECORD_BYTES
+  COLUMNS            = 2
+
+  OBJECT     = COLUMN
+    COLUMN_NUMBER = 1
+    NAME          = "MD5_CHECKSUM"
+    START_BYTE    = 1
+    BYTES         = 32
+    DATA_TYPE     = "CHARACTER"
+    FORMAT        = "A32"
+    DESCRIPTION   = "MD5 checksum presented as a 32-character string of
+      hexadecimal digits (0-9,a-f)"
+  END_OBJECT = COLUMN
+
+  OBJECT     = COLUMN
+    COLUMN_NUMBER = 2
+    NAME          = "FILE_SPECIFICATION_NAME"
+    START_BYTE    = 35
+    BYTES         = $BYTES
+    DATA_TYPE     = "CHARACTER"
+    FORMAT        = "A$BYTES"
+    DESCRIPTION   = "File name and path from the volume root"
+  END_OBJECT = COLUMN
+
+END_OBJECT = TABLE
+
+END

@@ -1,0 +1,11 @@
+msl_surf_hga_tlm_3192_3289_v1.bc    \
+msl_surf_ra_tlmenc_3192_3289_v1.bc  \
+msl_surf_ra_tlmres_3192_3289_v1.bc  \
+msl_surf_rover_tlm_3192_3289_v1.bc  \
+msl_surf_rsm_tlmenc_3192_3289_v1.bc \
+msl_surf_rsm_tlmres_3192_3289_v1.bc \
+
+msl_surf_rover_loc_3192_3289_v1.bsp \
+msl_surf_rover_tlm_3192_3289_v1.bsp \
+
+msl_v29.tm \

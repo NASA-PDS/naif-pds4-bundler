@@ -1,0 +1,108 @@
+PDS_VERSION_ID             = PDS3
+VOLUME_ID                  = $VOLUME_ID
+RECORD_TYPE                = FIXED_LENGTH
+RECORD_BYTES               = $ROW_BYTES
+FILE_RECORDS               = $ROWS
+^INDEX_TABLE               = "INDEX.TAB"
+
+OBJECT                     = INDEX_TABLE
+
+  INTERCHANGE_FORMAT       = ASCII
+  ROW_BYTES                = $ROW_BYTES
+  ROWS                     = $ROWS
+  COLUMNS                  = 10
+  INDEX_TYPE               = SINGLE
+  INDEXED_FILE_NAME        = $INDEXED_FILE_NAME
+
+  OBJECT                   = COLUMN
+    NAME                   = START_TIME
+    DATA_TYPE              = "TIME"
+    START_BYTE             = $START_BYTE_01
+    BYTES                  = $BYTES_01
+    FORMAT                 = "A$BYTES_01"
+    DESCRIPTION            = "Start time of the product."
+  END_OBJECT               = COLUMN
+
+  OBJECT                   = COLUMN
+    NAME                   = STOP_TIME
+    DATA_TYPE              = "TIME"
+    START_BYTE             = $START_BYTE_02
+    BYTES                  = $BYTES_02
+    FORMAT                 = "A$BYTES_02"
+    DESCRIPTION            = "Stop time of the product."
+  END_OBJECT               = COLUMN
+
+  OBJECT                   = COLUMN
+    NAME                   = FILE_SPECIFICATION_NAME
+    DATA_TYPE              = "CHARACTER"
+    START_BYTE             = $START_BYTE_03
+    BYTES                  = $BYTES_03
+    FORMAT                 = "A$BYTES_03"
+    DESCRIPTION            = "Unix style path and label file name."
+  END_OBJECT               = COLUMN
+
+  OBJECT                   = COLUMN
+    NAME                   = DATA_SET_ID
+    DATA_TYPE              = "CHARACTER"
+    START_BYTE             = $START_BYTE_04
+    BYTES                  = $BYTES_04
+    FORMAT                 = "A$BYTES_04"
+    DESCRIPTION            = "Data set ID."
+  END_OBJECT               = COLUMN
+
+  OBJECT                   = COLUMN
+    NAME                   = PRODUCT_CREATION_TIME
+    DATA_TYPE              = "TIME"
+    START_BYTE             = $START_BYTE_05
+    BYTES                  = $BYTES_05
+    FORMAT                 = "A$BYTES_05"
+    DESCRIPTION            = "Product creation time."
+  END_OBJECT               = COLUMN
+
+  OBJECT                   = COLUMN
+    NAME                   = RELEASE_ID
+    DATA_TYPE              = "CHARACTER"
+    START_BYTE             = $START_BYTE_06
+    BYTES                  = $BYTES_06
+    FORMAT                 = "A$BYTES_06"
+    DESCRIPTION            = "Identifier for product release."
+  END_OBJECT               = COLUMN
+
+  OBJECT                   = COLUMN
+    NAME                   = RELEASE_DATE
+    DATA_TYPE              = "DATE"
+    START_BYTE             = $START_BYTE_07
+    BYTES                  = $BYTES_07
+    FORMAT                 = "A$BYTES_07"
+    DESCRIPTION            = "Date on which the product was released."
+  END_OBJECT               = COLUMN
+
+  OBJECT                   = COLUMN
+    NAME                   = KERNEL_TYPE_ID
+    DATA_TYPE              = "CHARACTER"
+    START_BYTE             = $START_BYTE_08
+    BYTES                  = $BYTES_08
+    FORMAT                 = "A$BYTES_08"
+    DESCRIPTION            = "Kernel type."
+  END_OBJECT               = COLUMN
+
+  OBJECT                   = COLUMN
+    NAME                   = PRODUCT_ID
+    DATA_TYPE              = "CHARACTER"
+    START_BYTE             = $START_BYTE_09
+    BYTES                  = $BYTES_09
+    FORMAT                 = "A$BYTES_09"
+    DESCRIPTION            = "Kernel file name."
+  END_OBJECT               = COLUMN
+
+  OBJECT                   = COLUMN
+    NAME                   = VOLUME_ID
+    DATA_TYPE              = "CHARACTER"
+    START_BYTE             = $START_BYTE_10
+    BYTES                  = $BYTES_10
+    FORMAT                 = "A$BYTES_10"
+    DESCRIPTION            = "The volume containing this data file."
+  END_OBJECT               = COLUMN
+
+END_OBJECT                 = INDEX_TABLE
+END

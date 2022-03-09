@@ -1,0 +1,275 @@
+MISSION_NAME                = "JUNO"
+SPACECRAFT_NAME             = "JUNO"
+TARGET_NAME                 = "JUPITER"
+DATA_SET_ID                 = "JNO-J/E/SS-SPICE-6-V1.0"
+PRODUCT_VERSION_TYPE        = "ACTUAL"
+MISSION_PHASE_NAME          = "N/A"
+SOURCE_PRODUCT_ID           = "N/A"
+NOTE                        = "See comments in the file for details"
+
+--$ jno-j/e/ss-spice-6-v1.0
+--$ 
+--$ MAKLABEL (ver. 5.1.0+) Mission Template File for JUNO 
+--$
+--$ Version 1.0 -- by Boris Semenov, NAIF/JPL -- May 24, 2017
+--$ 
+--$    Initial version
+--$ 
+--$ Version 1.1 -- by Boris Semenov, NAIF/JPL -- December 11, 2017
+--$ 
+--$    Added TEAM_FGM.
+--$ 
+
+--$ 
+--$ Label keys for mission phases.
+--$
+--$ From JUNO MISSION.CAT ver. "2017-04-20 JUNO: Kurth Revision 4;"
+--$
+--$  Mission Phases
+--$  ==============
+--$
+--$  LAUNCH
+--$  ------
+--$    Mission Phase Start Time :  2011-08-05 (2011-217)
+--$    Mission Phase Stop Time  :  2011-08-08 (2011-220)
+--$
+--$  INNER CRUISE 1
+--$  --------------
+--$    Mission Phase Start Time :  2011-08-08 (2011-220)
+--$    Mission Phase Stop Time  :  2011-10-10 (2011-283)
+--$
+--$  INNER CRUISE 2
+--$  --------------
+--$    Mission Phase Start Time :  2011-10-10 (2011-283)
+--$    Mission Phase Stop Time  :  2013-05-29 (2013-149)
+--$
+--$  INNER CRUISE 3
+--$  --------------
+--$    Mission Phase Start Time :  2013-05-29 (2013-149)
+--$    Mission Phase Stop Time  :  2013-11-05 (2013-309)
+--$
+--$  OUTER CRUISE
+--$  ------------
+--$    Mission Phase Start Time :  2013-11-05 (2013-309)
+--$    Mission Phase Stop Time  :  2016-01-05 (2016-005)
+--$
+--$  JUPITER APPROACH
+--$  ----------------
+--$    Mission Phase Start Time :  2016-01-05 (2016-005)
+--$    Mission Phase Stop Time  :  2016-07-01 (2016-183)
+--$
+--$  JUPITER ORBIT INSERTION
+--$  -----------------------
+--$    Mission Phase Start Time :  2016-07-01 (2016-183)
+--$    Mission Phase Stop Time  :  2016-07-05 (2016-187)
+--$
+--$  SCIENCE ORBITS
+--$  --------------
+--$    Mission Phase Start Time :  2016-07-05 (2016-187)
+--$    Mission Phase Stop Time  :  2021-07-03 (2021-184)
+--$
+--$  DEORBIT
+--$  -------
+--$    Mission Phase Start Time :  2021-07-03 (2021-184)
+--$    Mission Phase Stop Time  :  2021-07-31 (2021-212)
+--$
+
+--PHASE_LAU
+      MISSION_PHASE_NAME        =   "LAUNCH"
+
+--PHASE_LAU_CRU1
+      MISSION_PHASE_NAME        = { 
+                                    "LAUNCH",
+                                    "INNER CRUISE 1"
+                                  }
+--PHASE_CRU1
+      MISSION_PHASE_NAME        =   "INNER CRUISE 1"
+
+--PHASE_CRU1_CRU2
+      MISSION_PHASE_NAME        = { 
+                                    "INNER CRUISE 1",
+                                    "INNER CRUISE 2"
+                                  }
+--PHASE_CRU2
+      MISSION_PHASE_NAME        =   "INNER CRUISE 2"
+
+--PHASE_CRU2_CRU3
+      MISSION_PHASE_NAME        = { 
+                                    "INNER CRUISE 2",
+                                    "INNER CRUISE 3"
+                                  }
+--PHASE_CRU3
+      MISSION_PHASE_NAME        =   "INNER CRUISE 3"
+
+--PHASE_CRU3_CRUO
+      MISSION_PHASE_NAME        = { 
+                                    "INNER CRUISE 3",
+                                    "OUTER CRUISE"
+                                  }
+--PHASE_CRUO
+      MISSION_PHASE_NAME        =   "OUTER CRUISE"
+
+--PHASE_CRUO_APPR
+      MISSION_PHASE_NAME        = { 
+                                    "OUTER CRUISE",
+                                    "JUPITER APPROACH"
+                                  }
+--PHASE_APPR
+      MISSION_PHASE_NAME        =   "JUPITER APPROACH"
+
+--PHASE_APPR_JOI
+      MISSION_PHASE_NAME        = { 
+                                    "JUPITER APPROACH",
+                                    "JUPITER ORBIT INSERTION"
+                                  }
+--PHASE_JOI
+      MISSION_PHASE_NAME        =   "JUPITER ORBIT INSERTION"
+
+--PHASE_JOI_ORB
+      MISSION_PHASE_NAME        = { 
+                                    "JUPITER ORBIT INSERTION",
+                                    "SCIENCE ORBITS"
+                                  }
+--PHASE_ORB
+      MISSION_PHASE_NAME        =   "SCIENCE ORBITS"
+
+--PHASE_ORB_DEORB
+      MISSION_PHASE_NAME        = { 
+                                    "SCIENCE ORBITS",
+                                    "DEORBIT"
+                                  }
+--PHASE_DEORB
+      MISSION_PHASE_NAME        =   "DEORBIT"
+
+
+
+
+--PHASE_LAU_CRU2
+      MISSION_PHASE_NAME        = { 
+                                    "LAUNCH",
+                                    "INNER CRUISE 1",
+                                    "INNER CRUISE 2"
+                                  }
+
+--PHASE_APPR_ORB
+      MISSION_PHASE_NAME        = { 
+                                    "JUPITER APPROACH",
+                                    "JUPITER ORBIT INSERTION",
+                                    "SCIENCE ORBITS"
+                                  }
+
+--PHASE_CRU1_ORB
+      MISSION_PHASE_NAME        = { 
+                                    "INNER CRUISE 1",
+                                    "INNER CRUISE 2",
+                                    "INNER CRUISE 3",
+                                    "OUTER CRUISE",
+                                    "JUPITER APPROACH",
+                                    "JUPITER ORBIT INSERTION",
+                                    "SCIENCE ORBITS"
+                                  }
+
+--PHASE_CRU2_ORB
+      MISSION_PHASE_NAME        = { 
+                                    "INNER CRUISE 2",
+                                    "INNER CRUISE 3",
+                                    "OUTER CRUISE",
+                                    "JUPITER APPROACH",
+                                    "JUPITER ORBIT INSERTION",
+                                    "SCIENCE ORBITS"
+                                  }
+
+--PHASE_ALL
+      MISSION_PHASE_NAME        = { 
+                                    "LAUNCH",
+                                    "INNER CRUISE 1",
+                                    "INNER CRUISE 2",
+                                    "INNER CRUISE 3",
+                                    "OUTER CRUISE",
+                                    "JUPITER APPROACH",
+                                    "JUPITER ORBIT INSERTION",
+                                    "SCIENCE ORBITS",
+                                    "DEORBIT"
+                                  }
+
+--$ 
+--$ Label keys for producer IDs
+--$ 
+
+--TEAM_NAIF
+      PRODUCER_ID               = "NAIF/JPL"
+--TEAM_NAV
+      PRODUCER_ID               = "JUNO NAV/JPL"
+--TEAM_UVS
+      PRODUCER_ID               = "UVS TEAM/SWRI"
+--TEAM_JEDI
+      PRODUCER_ID               = "JEDI TEAM/APL"
+--TEAM_SSD
+      PRODUCER_ID               = "SSD/JPL"
+--TEAM_FGM
+      PRODUCER_ID               = "FGM TEAM/GSFC"
+
+--$ 
+--$ Label keys for product version types
+--$ 
+
+--TYPE_ACTUAL
+      PRODUCT_VERSION_TYPE      = "ACTUAL"
+--TYPE_PREDICT
+      PRODUCT_VERSION_TYPE      = "PREDICT"
+
+--$ 
+--$ Label keys for instrument/mounting platform names.
+--$ 
+
+--INST_SC
+      INSTRUMENT_NAME           = "JUNO SPACECRAFT"
+      PLATFORM_OR_MOUNTING_NAME = "N/A"
+
+--INST_JADE
+      INSTRUMENT_NAME           = "JOVIAN AURORAL PLASMA DISTRIBUTIONS EXPERIMENT"
+      PLATFORM_OR_MOUNTING_NAME = "JUNO SPACECRAFT"
+
+--INST_JEDI
+      INSTRUMENT_NAME           = "JUPITER ENERGETIC PARTICLE DETECTOR INSTRUMENT"
+      PLATFORM_OR_MOUNTING_NAME = "JUNO SPACECRAFT"
+
+--INST_JIRAM
+      INSTRUMENT_NAME           = "JOVIAN INFRARED AURORAL MAPPER"
+      PLATFORM_OR_MOUNTING_NAME = "JUNO SPACECRAFT"
+
+--INST_JUNOCAM
+      INSTRUMENT_NAME           = "JUNO EPO CAMERA"
+      PLATFORM_OR_MOUNTING_NAME = "JUNO SPACECRAFT"
+
+--INST_MAG
+      INSTRUMENT_NAME           = "MAGNETOMETER"
+      PLATFORM_OR_MOUNTING_NAME = "JUNO SPACECRAFT"
+
+--INST_MWR
+      INSTRUMENT_NAME           = "MICROWAVE RADIOMETER"
+      PLATFORM_OR_MOUNTING_NAME = "JUNO SPACECRAFT"
+
+--INST_RSS
+      INSTRUMENT_NAME           = "GRAVITY SCIENCE INSTRUMENT"
+      PLATFORM_OR_MOUNTING_NAME = "JUNO SPACECRAFT"
+
+--INST_STRUCT
+      INSTRUMENT_NAME           = "N/A"
+      PLATFORM_OR_MOUNTING_NAME = "JUNO SPACECRAFT"
+
+--INST_UVS
+      INSTRUMENT_NAME           = "ULTRAVIOLET SPECTROGRAPH"
+      PLATFORM_OR_MOUNTING_NAME = "JUNO SPACECRAFT"
+
+--INST_WAVES
+      INSTRUMENT_NAME           = "WAVES"
+      PLATFORM_OR_MOUNTING_NAME = "JUNO SPACECRAFT"
+
+
+--$
+--$ End of the definitions flag.
+--$
+--END
+
+
