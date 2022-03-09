@@ -1,0 +1,507 @@
+PDS_VERSION_ID                       = PDS3
+RECORD_TYPE                          = STREAM
+LABEL_REVISION_NOTE                  = "
+  2007-05-24 NAIF:Semenov initial version;
+  2007-06-07 NAIF:Semenov completed CONFIDENCE_LEVEL_NOTE;
+  2007-12-01 NAIF:Semenov updated for SSD SPKs and MARCI IK;
+  2008-05-13 NAIF:Semenov set STOP_TIME;
+  2008-06-05 NAIF:Semenov updated STOP_TIME;
+  2008-09-05 NAIF:Semenov updated STOP_TIME;
+  2008-12-02 NAIF:Semenov updated STOP_TIME;
+  2009-02-27 NAIF:Semenov updated STOP_TIME;
+  2009-06-05 NAIF:Semenov updated STOP_TIME;
+  2009-09-03 NAIF:Semenov updated STOP_TIME;
+  2009-12-03 NAIF:Semenov updated STOP_TIME;
+  2010-02-25 NAIF:Semenov updated STOP_TIME;
+  2010-06-01 NAIF:Semenov updated STOP_TIME;
+  2010-09-01 NAIF:Semenov updated STOP_TIME;
+  2010-11-29 NAIF:Semenov updated STOP_TIME;
+  2011-02-22 NAIF:Semenov updated STOP_TIME;
+  2011-05-23 NAIF:Semenov updated STOP_TIME;
+  2011-08-30 NAIF:Semenov updated STOP_TIME;
+  2011-11-21 NAIF:Semenov updated STOP_TIME;
+  2012-02-22 NAIF:Semenov updated STOP_TIME;
+  2012-05-30 NAIF:Semenov updated STOP_TIME;
+  2012-08-23 NAIF:Semenov updated STOP_TIME;
+  2012-11-27 NAIF:Semenov updated STOP_TIME;
+  2013-02-23 NAIF:Semenov updated STOP_TIME;
+  2013-05-30 NAIF:Semenov updated STOP_TIME;
+  2013-08-26 NAIF:Semenov updated STOP_TIME;
+  2013-11-28 NAIF:Semenov updated STOP_TIME;
+  2014-02-27 NAIF:Semenov updated STOP_TIME;
+  2014-05-27 NAIF:Semenov updated STOP_TIME;
+  2014-09-29 NAIF:Semenov updated STOP_TIME;
+  2014-11-25 NAIF:Semenov updated STOP_TIME;
+  2015-02-26 NAIF:Semenov updated STOP_TIME;
+  2015-06-03 NAIF:Semenov updated STOP_TIME;
+  2015-08-27 NAIF:Semenov updated STOP_TIME;
+  2015-11-30 NAIF:Semenov updated STOP_TIME;
+  2016-02-25 NAIF:Semenov updated STOP_TIME;
+  2016-05-23 NAIF:Semenov updated STOP_TIME;
+  2016-08-29 NAIF:Semenov updated STOP_TIME;
+  2016-11-28 NAIF:Semenov updated STOP_TIME;
+  2017-02-27 NAIF:Semenov updated STOP_TIME;
+  2017-05-31 NAIF:Semenov updated STOP_TIME;
+  2017-08-28 NAIF:Semenov updated STOP_TIME;
+  2017-11-27 NAIF:Semenov updated STOP_TIME;
+  2018-02-27 NAIF:Semenov updated STOP_TIME;
+  2018-05-24 NAIF:Semenov updated STOP_TIME;
+  2018-08-27 NAIF:Semenov updated STOP_TIME;
+  2018-11-28 NAIF:Semenov updated STOP_TIME;
+  2019-02-27 NAIF:Semenov updated STOP_TIME;
+  2019-05-30 NAIF:Semenov updated STOP_TIME;
+  2019-08-28 NAIF:Semenov updated STOP_TIME;
+  2019-11-26 NAIF:Semenov updated STOP_TIME;
+  2020-02-26 NAIF:Semenov updated STOP_TIME;
+  2020-05-28 NAIF:Semenov updated STOP_TIME;
+  2020-08-28 NAIF:Semenov updated STOP_TIME;
+  2020-11-24 NAIF:Semenov updated STOP_TIME;
+  2021-02-24 NAIF:Costa updated STOP_TIME;
+  2021-04-12 NAIF:Costa updated CITATION_DESC with DOI
+                        and author list;
+  2021-05-19 NAIF:Costa updated STOP_TIME;
+  2021-08-30 NAIF:Costa updated STOP_TIME;
+  "
+
+OBJECT                               = DATA_SET
+  DATA_SET_ID                        = "MRO-M-SPICE-6-V1.0"
+
+  OBJECT                             = DATA_SET_INFORMATION
+    DATA_SET_NAME                    = "MRO MARS SPICE KERNELS V1.0"
+    DATA_SET_TERSE_DESC              = "
+      Navigation and ancillary data in the form of SPICE System kernel
+      files for the Mars Reconnaissance Orbiter.
+      "
+    ABSTRACT_DESC                    = "
+      This data set includes the complete set of Mars Reconnaissance
+      Orbiter SPICE data files (``kernel files''), which can be
+      accessed using SPICE software. The SPICE data contains geometric
+      and other ancillary information needed to recover the full value
+      of science instrument data. In particular SPICE kernels provide
+      spacecraft and planetary ephemerides, instrument mounting
+      alignments, spacecraft orientation, and data needed for relevant
+      time conversions.
+      "
+    CITATION_DESC                    = "
+      Semenov, B.V., C.H. Acton, and M. Costa Sitja,
+      MARS RECONNAISSANCE ORBITER SPICE KERNELS V1.0,
+      MRO-M-SPICE-6-V1.0, NASA Planetary Data System, 2007.
+      https://doi.org/10.17189/1520100
+      "
+    DATA_SET_COLLECTION_MEMBER_FLG   = "N"
+    START_TIME                       = 2005-08-12T12:40:00
+    STOP_TIME                        = 2022-01-01T00:00:00
+    DATA_SET_RELEASE_DATE            = 2007-06-08
+    PRODUCER_FULL_NAME               = "MARC COSTA SITJA"
+    DATA_OBJECT_TYPE                 = "SPICE KERNEL"
+    DETAILED_CATALOG_FLAG            = "Y"
+    DATA_SET_DESC                    = "
+
+      Data Set Overview
+      =================
+
+      This data set includes the complete set of Mars Reconnaissance
+      Orbiter SPICE data files (``kernel files''), which can be
+      accessed using SPICE software. The SPICE data contains geometric
+      and other ancillary information needed to recover the full value
+      of science instrument data. In particular SPICE kernels provide
+      spacecraft and planetary ephemerides, instrument mounting
+      alignments, spacecraft orientation, and data needed for relevant
+      time conversions.
+
+      This data set is contained on a single virtual volume,
+      MROSP_1000, including data from all mission phases and covering
+      from launch, 2005-08-12T12:40:00, through the end time of the
+      latest spacecraft trajectory file supplied in the data set. Until
+      the end of the spacecraft lifespan this data set is accumulating
+      with new data added approximately every three to six months.
+
+
+      Data Types (SPICE kernel types)
+      ===============================
+
+      SPK kernels contain ephemerides for spacecraft, planets,
+      satellites, comets and asteroids as well as for moving or fixed
+      spacecraft and instrument structures. They provide position and
+      velocity, given in a Cartesian reference frame. SPK files are
+      located under the ``data/spk'' directory of this data set.
+
+      PCK kernels contain certain physical, dynamical and cartographic
+      constants for target bodies, such as size and shape
+      specifications, and orientation of the spin axis and prime
+      meridian. PCK files are located under the ``data/pck'' directory
+      of this data set.
+
+      IK kernels (Instrument description kernels) give descriptive and
+      operational data peculiar to a particular scientific instrument,
+      such as internal timing relative to the spacecraft clock and
+      field-of-view model parameters. IK files are located under the
+      ``data/ik'' directory of this data set.
+
+      CK kernels describe pointing, containing a transformation
+      traditionally called the C-matrix which is used to determine
+      time-tagged pointing (orientation) angles for a spacecraft
+      structure upon which science instruments are mounted. CK files
+      are located under the ``data/ck'' directory of this data set.
+
+      EK (Events) kernels are derived from the integrated sequence of
+      events used to produce actual spacecraft commands. EK files are
+      located under the ``data/ek'' directory of this data set.
+
+      LSK (Leapseconds) kernels contain the leapseconds and the values
+      of other constants required to perform a transformation between
+      Universal Time Coordinated (UTC) and Ephemeris time (ET). LSK
+      files are located under the ``data/lsk'' directory of this data
+      set.
+
+      SCLK (Spacecraft Clock) kernels contain on-board clock
+      calibration data required to perform a mapping between Ephemeris
+      time (ET) and spacecraft on-board time (SCLK.) SCLK files are
+      located under the ``data/sclk'' directory of this data set.
+
+      FK (Frame Definitions) kernels contain information required to
+      define reference frames, sources of frame orientation data and
+      connections between these frames and other frames supported
+      within the SPICE system. This includes mounting alignment
+      information for each instrument. FK files are located under the
+      ``data/fk'' directory of this data set.
+
+
+      Kernel File Details
+      ===================
+
+      A brief overview of the different types of MRO kernels included
+      in this data set is provided in the CONFIDENCE_LEVEL_NOTE section
+      of this file while details specific to individual files are found
+      in the ``*info.txt'' files in the corresponding data directory.
+      The most detailed description of the data in each file is
+      provided in metadata included inside the file -- in the
+      description area of text kernels or in the comment area of binary
+      kernels.
+
+
+      Software
+      ========
+
+      The SPICE Toolkit contains software modules needed to read SPICE
+      kernel files. SPICE software is highly documented via internal
+      headers. Additional documentation is available in separate ASCII
+      text files called Required Reading files. For example, the S- and
+      P- Kernel (SPK) Required Reading File, named SPK.REQ, describes
+      use of the SPK kernel file readers and contains sample programs.
+
+      The latest SPICE Toolkit for a variety of computer platforms such
+      as PC, Mac, SUN, etc. is available at the NAIF Node of PDS
+      electronically (via anonymous FTP and WWW servers). Refer to
+      information in ``software/softinfo.txt'' for details regarding
+      obtaining this software. Each version of the Toolkit is also
+      archived at the NASA National Space Science Data Center.
+
+
+      Loading Kernel Files into a SPICE-based Application
+      ===================================================
+
+      The easiest way to make data from a collection of SPICE kernels
+      available to a SPICE-based application is to list these kernels
+      in a meta-kernel and load it into the program using the high
+      level SPICE data loader routine FURNSH. This data set provides
+      such meta-kernel(s) under the ``extras/mk'' directory. For more
+      information about the MRO meta-kernel(s), see the file
+      ``extras/mk/mkinfo.txt''.
+
+      "
+
+    CONFIDENCE_LEVEL_NOTE            = "
+
+      This data set contains SPICE kernel files created during mission
+      operations and after mission data reconstruction and analysis.
+      Some general information about this collection follows here, but
+      the prospective user is also referred to extensive descriptions
+      about each file that are stored inside each kernel file. These
+      metadata provide detailed information regarding the information
+      source from which the data were derived, the type of processing
+      applied to the source data, applicability of the data, etc.
+      Metadata are located in the ``comment area'' for binary kernel
+      types (SPK, CK, ESQ), accessible using either the COMMNT or
+      SPACIT utility program found in the NAIF Toolkit. Metadata are
+      located after ``\begintext'' markers within the text kernel types
+      (PCK, IK, FK, LSK, SCLK, MK), accessible by using any available
+      text file display tool such as a word processor, text editor, or
+      the unix ``more'' or ``cat'' commands.
+
+      Where there are questions about data accuracy or ``confidence''
+      not addressed herein the reader is invited to contact the NAIF
+      node of the Planetary Data System for possible further
+      information.
+
+
+      SPK Files
+      =========
+
+      Three kinds of SPK files are provided in this archive: SPK files
+      for the spacecraft orbit, SPK files for the Solar System planets
+      and Martian system satellites, and SPK files for the relative
+      locations of selected spacecraft structures. Each of these kinds
+      is briefly described below; more information is available in the
+      file ``data/spk/spkinfo.txt''.
+
+      Two sets of the MRO spacecraft orbit SPK files are included in
+      this data set.
+
+      The first set of the spacecraft orbit SPK files contains the
+      reconstructed spacecraft trajectory determined by the MRO
+      Navigation (NAV) Team, JPL. Each of these SPK files covering the
+      whole or a part of a particular mission phase was made by merging
+      together numerous shorter duration individual files officially
+      delivered by the NAV team to the project. The component files
+      used to make a merged product can be discerned by reading the
+      descriptive information (metadata) found in the comment area of
+      each file. The accuracy of the spacecraft trajectory provided by
+      these files for the orbital phases of the mission was informally
+      reported by the NAV team to be better than than a few meters.
+
+      The second set of the spacecraft orbit SPK files contains the
+      reconstructed spacecraft trajectory determined by the Solar
+      System Dynamics (SSD) Group, JPL. These SPK files are available
+      only for the post-aerobraking phases of the mission (PSP, Relay).
+      They were generated in the process of the MRO gravity experiment
+      data reduction using the 95th degree and order MRO95A gravity
+      solution, which included entire MGS mission tracking data set and
+      Mars Odyssey and MRO tracking data up to the orbit solution date.
+      The data arcs for the orbits in these files are slightly longer
+      than 4 days in length. They were extended so that Doppler data
+      was contained at the beginning and end of the orbit solutions.
+      The orbit overlap errors using a 2-hr overlap were on average 0.5
+      meters for along the velocity vector and normal to the orbit
+      plane, and 5 cm for the radial component. The normal error
+      increased to about 50 meters during the edge-on geometry phase at
+      the end of June 2007.
+
+      This data set also includes the orbit number files generated
+      during the mission using the NAIF's ORBNUM utility program for
+      each of the NAV spacecraft trajectory SPK files for the orbital
+      phases of the mission. These files are not SPICE kernels; for
+      this reason they are provided in the ``extras/orbnum'' directory.
+      For more information about the MRO orbit number files, see the
+      file ``extras/orbnum/orbinfo.txt''.
+
+      The DE410 planetary ephemeris SPK file included in this data set
+      contains ephemeris data for the Solar System planet barycenters,
+      Sun, Mercury, Venus, Earth, Moon, and Mars. This version of
+      ephemerides was officially used by the project during mission
+      operations. The internal comments included this SPK file provide
+      detailed accuracy information.
+
+      The MAR063 Martian satellite ephemeris SPK file provided in this
+      data set contains ephemeris data for Phobos, Deimos, Earth and
+      the Sun. Formal one-sigma accuracy information for Phobos and
+      Deimos are reported as follows:
+
+         Body         Downtrack      Crosstrack      Radial
+                     Uncertainty     Uncertainty   Uncertainty
+         ------      -----------     -----------   -----------
+         Phobos          5 km           2 km          2 km
+         Deimos         10 km           3 km          3 km
+
+      The MRO structures SPK file included in this archive provides
+      relative locations of the High Gain Antenna (HGA) and Solar Array
+      (SA) components. The data included in the file are based of the
+      dimensions from the spacecraft engineering drawings.
+
+
+      CK Files
+      ========
+
+      Five kinds of C-kernel files are provided in this archive: the
+      spacecraft bus (SC) orientation CKs (reconstructed and
+      predicted), the solar arrays (SA) orientation CKs (reconstructed
+      and predicted), the high gain antenna (HGA) orientation CKs
+      (reconstructed and predicted), the CRISM instrument orientation
+      CKs (reconstructed only), and the MCS instrument orientation CKs
+      (reconstructed only).
+
+      The SC, SA, and HGA reconstructed CK files were produced from
+      engineering telemetry downlinked from the spacecraft while the
+      SC, SA, and HGA predicted CK files were produced from spacecraft
+      orientation and articulation data modeled by the AtArPS program
+      ran by the MRO Spacecraft Team, LMA. While the coverage provided
+      by the reconstructed CK is fairly complete, they have occasional
+      small gaps. The predicted CKs included in this data set are
+      intended to be used to fill these gaps with nominal orientation
+      by loading these predicted files simultaneously with (but with
+      lower priority than) the reconstructed files. All of these CKs
+      contain data tagged with encoded SCLKs computed using the clock
+      with ID -74.
+
+      The CRISM CK files providing orientation for the CRISM instrument
+      were produced by the CRISM team using the gimbal angle data from
+      the instrument housekeeping telemetry. These files were used by
+      the CRISM team to process CRISM science data. The CRISM CKs
+      contain data tagged with encoded SCLKs computed using the clock
+      with ID -74999.
+
+      The MCS CK files providing orientation for the MCS instrument
+      were produced by the MCS team using the gimbal angle data from
+      the instrument housekeeping telemetry. These files were used by
+      the MCS team to process MCS science data. These CKs contain data
+      tagged with encoded SCLKs computed using the clock with ID -74.
+
+      Currently no formal accuracy estimates are available for any of
+      these CKs.
+
+      More information about MRO CK files is available in the file
+      ``data/ck/ckinfo.txt''.
+
+
+      PCK Files
+      =========
+
+      PCK files provide size, shape and orientation data for ``target''
+      bodies such as Mars, Phobos and Deimos. A description of these
+      data items and reference to their source is provided inside the
+      PCK file, which is a simple text file that can be viewed using
+      any word processor, text editor or text display utility.
+
+      The only PCK file included in this data set is based on the
+      IAU/IAG/COSPAR values accepted in 2000. This PCK has been used by
+      the MRO project during operations.
+
+      More information about the PCK files included in this data set is
+      available in the file ``data/pck/pckinfo.txt''.
+
+
+      FK Files
+      ========
+
+      Frames kernel files provide specifications for how one reference
+      frame is defined relative to another frame. The MRO FK provided
+      in this data set contains the complete set of frame definitions
+      for the spacecraft, its structures such as solar array and
+      antennas, and all of its science instruments. Meta information
+      provided in the comments included in this file consists of the
+      frame definitions, description of the frame relationships, source
+      of and accuracy of the mounting alignment information, etc.
+
+      More information about the MRO FK files is available in the file
+      ``data/fk/fkinfo.txt''.
+
+
+      IK Files
+      ========
+
+      Instrument kernel files provide specifications for geometric
+      parameters and--where applicable--field-of-view size, shape and
+      orientation for the named instruments. Metadata describing these
+      estimates are provided in each IK file included in this archive.
+      Parameter values were determined from pre-launch measurements,
+      instrument parameters specification documents, and in some cases
+      from analysis of in-flight calibration data. The accuracy
+      estimates for these data vary from instrument to instrument and,
+      where available, are included in the IK internal comments.
+
+      This data set includes IK files for six MRO instruments -- CRISM,
+      CTX, HIRISE, MCS, MARCI, and ONC. Because the sets of geometric
+      parameters included in the IKs vary from instrument to instrument
+      users are encouraged to carefully examine the IKs before using
+      them.
+
+      The IK for SHARAD will be added to the data set in a later
+      release.
+
+      More information about MRO IK files is available in the file
+      ``data/ik/ikinfo.txt''.
+
+
+      SCLK Files
+      ==========
+
+      Spacecraft Clock kernel files provide a tabulation of data needed
+      for converting time measurements between ephemeris time (ET) and
+      spacecraft clock time (SCLK). The MRO SPICE SCLK files were made
+      from similar files--SCLK/SCET files, or SCLKvSCET file--produced
+      by another mission entity. Each newly made SCLK file fully
+      replaces the previous SCLK file.
+
+      For MRO the time correlation accuracy provided in SCLK/SCET files
+      is informally reported by the Lockheed Martin spacecraft team to
+      be better than 10 milliseconds. (NAIF has not attempted to obtain
+      or produce an independent corroboration of these LMA estimates.)
+      The SPICE SCLK file has essentially the same accuracy as the
+      SCLK/SCET file.
+
+      Each of the MRO SCLK files incorporates two time correlation data
+      sets -- one for the MRO on-board clock tags presented in the
+      ``standard'' format and the other for the tags in the ``high
+      precision'' format.
+
+      ``Standard'' MRO on-board clock tags are derived from 5-byte tags
+      present in majority of the spacecraft and instrument telemetry
+      and utilizing only the last of five bytes for fractional seconds.
+      This results in one SCLK tick being equal to 1/256 of a second.
+      The ID of this clock is -74, the same as of the MRO spacecraft.
+
+      ``High precision'' MRO on-board clock tags are derived from
+      6-byte tags present in some of the spacecraft and instrument
+      telemetry and utilizing the last two of six bytes for fractional
+      seconds. This results in one SCLK tick being equal to 1/65536 of
+      a seconds. The ID of this clock is -74999.
+
+      SPICE software does not prohibit an SCLK file from being used for
+      time conversions occurring for ``future times'' (or more
+      accurately, for epochs that occur later than the epoch of the
+      last telemetry data used in producing the last correlation
+      coefficients found in the SCLK file). Such ``predict'' time
+      conversions are likely to be inaccurate (changed somewhat) once
+      the epoch of interest has been passed.
+
+      More information about the MRO SCLK files is available in the
+      file ``data/sclk/sclkinfo.txt''.
+
+
+      LSK Files
+      =========
+
+      Leapseconds kernel files provide a tabulation of ``leapseconds''
+      and some other terms used in converting time measurements between
+      ephemeris time (ET) and Universal Time (UTC). ``Spacecraft Event
+      Time'' (SCET) is the commonly used name for UTC events measured
+      at the spacecraft.
+
+      Metadata describing how the LSK data are obtained or computed is
+      contained inside the LSK text file. The time conversion provided
+      by SPICE LSK files is accurate to approximately 0.000030 seconds.
+
+      More information about the LSK files is available in the file
+      ``data/lsk/lskinfo.txt''.
+
+
+      EK Files
+      ========
+
+      The MRO project did not produce any EK files; therefore, no EKs
+      are included in this data set.
+
+      "
+
+  END_OBJECT                         = DATA_SET_INFORMATION
+
+  OBJECT                             = DATA_SET_MISSION
+    MISSION_NAME                     = "MARS RECONNAISSANCE ORBITER"
+  END_OBJECT                         = DATA_SET_MISSION
+
+  OBJECT                             = DATA_SET_TARGET
+    TARGET_NAME                      = MARS
+  END_OBJECT                         = DATA_SET_TARGET
+
+  OBJECT                             = DATA_SET_HOST
+    INSTRUMENT_HOST_ID               = MRO
+    INSTRUMENT_ID                    = SPICE
+  END_OBJECT                         = DATA_SET_HOST
+
+  OBJECT                             = DATA_SET_REFERENCE_INFORMATION
+    REFERENCE_KEY_ID                 = "UNK"
+  END_OBJECT                         = DATA_SET_REFERENCE_INFORMATION
+
+END_OBJECT = DATA_SET
+
+END

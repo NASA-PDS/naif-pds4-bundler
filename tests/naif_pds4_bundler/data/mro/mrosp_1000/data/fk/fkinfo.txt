@@ -1,0 +1,82 @@
+PDS_VERSION_ID          = PDS3
+RECORD_TYPE             = STREAM
+
+OBJECT                  = TEXT
+   INTERCHANGE_FORMAT   = ASCII
+   PUBLICATION_DATE     = 2009-02-27 
+   NOTE                 = "MRO FRAMES Kernel Information"
+END_OBJECT              = TEXT
+                                                                     
+END 
+
+
+General Information About SPICE Frames Kernels
+==============================================
+
+   In the SPICE system, FRAMES kernel contains a set of information
+   required to define various frames used in a particular mission,
+   sources of orientation and origin location information for these
+   frames and inter-connections between these frames and other frames
+   supported within the SPICE system.
+
+   The frame definitions information contained in the file can be
+   utilized in conjunction with other data using the SPICE Toolkit
+   APIs, calls to which can be integrated into user application
+   programs. The information regarding how to obtain the SPICE system
+   toolkit for a number of languages and computer platforms is located
+   in the ``/software'' subdirectory of the main directory of this data
+   set.
+ 
+   Refer to the ``frames.req'' document provided with the toolkit to get
+   more information about definition and usage of the frames within the
+   SPICE system.
+
+
+MRO Frames Kernels Contained in This Data Set
+=============================================
+
+   The following Frames Kernel files are included in this data set (only
+   name portion of the file name is shown; the extension of all FK file
+   names is ``.tf''):
+
+      mro_vVV     main MRO Frames kernel providing the complete set of
+                  frame definitions for the MRO spacecraft, its
+                  structures, and science instruments.
+
+   If multiple MRO FK files of the same kind are present, the one with
+   the latest version (VV) supersedes all previous versions.
+
+   For HIRISE a particular IK version must be used with a particular FK
+   version to ensure consistency between the optical distortion data
+   provided in the IK and camera frame alignment data provided in the
+   FK. The IKs version 1.0 or earlier must be used with the MRO FK
+   version 1.3 or earlier while the IKs version 1.1 or later must be
+   used with the MRO FK version 1.4 or later.
+
+
+Kernel File Details
+===================
+
+   The most detailed description of the data in an FK file is provided
+   in metadata included inside the description area of the file. This
+   information can be viewed using any text editor program.
+   
+
+Contact Information
+===================
+
+   Regarding MRO project specific information provided in this data set
+   and for general information about SPICE system:
+   
+      Boris Semenov 
+      (818)-354-8136 
+      Boris.Semenov@jpl.nasa.gov
+      
+   address:
+   
+      Navigation and Ancillary Information Facility (NAIF)
+      Jet Propulsion Laboratory
+      MS 301-125L
+      4800 Oak Grove Drive
+      Pasadena CA 91109 USA 
+
