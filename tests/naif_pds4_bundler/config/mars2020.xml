@@ -314,6 +314,7 @@
                 <pattern>m2020_edl_v[0-9]{2}.bc</pattern>
                 <pattern>date:m2020_surf_ra_tlmenc_[0-9]{4}_[0-9]{4}_v[0-9].bc</pattern>
                 <pattern>date:m2020_surf_ra_tlmres_[0-9]{4}_[0-9]{4}_v[0-9].bc</pattern>
+                <pattern>date:m2020_surf_rsm_tlmenc_[0-9]{4}_[0-9]{4}_v[0-9].bc</pattern>
                 <pattern>date:m2020_surf_rsm_tlmres_[0-9]{4}_[0-9]{4}_v[0-9].bc</pattern>
                 <pattern>date:m2020_surf_rover_tlm_[0-9]{4}_[0-9]{4}_v[0-9].bc</pattern>
                 <!-- DSK -->

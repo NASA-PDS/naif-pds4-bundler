@@ -145,6 +145,14 @@ class Bundle(object):
                 else:
                     logging.info(f'-- Product {product.name} has no label in staging area.')
 
+        #
+        # Include the bundle products if not running in label mode.
+        #
+        if self.setup.pds_version == "4" and not self.setup.faucet == "labels":
+            new_files.append(self.setup.staging_directory + os.sep + self.name)
+            if hasattr(self, 'readme') and self.readme.new_product:
+                new_files.append(self.setup.staging_directory + os.sep + self.readme.name)
+
         self.new_files = new_files
 
         #
