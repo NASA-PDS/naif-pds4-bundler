@@ -71,7 +71,6 @@
         <kernels_directory>kernels</kernels_directory>
         <staging_directory>staging</staging_directory>
         <bundle_directory>mars2020</bundle_directory>
-
     </directories>
 
     <!-- =========================== -->
@@ -287,11 +286,101 @@
                <pattern>m2020_cruise_od138_v[0-9].bsp</pattern>
                <pattern>m2020_surf_rover_loc_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_v[0-9].bsp</pattern>
             </coverage_kernels>
+            <interrupt_to_update>True</interrupt_to_update>
+            <grammar>
+                <!-- LSK -->
+                <pattern>naif0012.tls</pattern>
+                <!-- PCK -->
+                <pattern>pck00010.tpc</pattern>
+                <!-- FK -->
+                <pattern>m2020_v[0-9]{2}.tf</pattern>
+                <!-- IK -->
+                <pattern>m2020_struct_v[0-9]{2}.ti</pattern>
+                <!-- SCLK -->
+                <pattern>m2020_lmst_ops[0-9]{6}_v[0-9].tsc</pattern>
+                <pattern>m2020_168_sclkscet_refit_v[0-9]{2}.tsc</pattern>
+                <!-- SPK -->
+                <pattern>de438s.bsp</pattern>
+                <pattern>mar097.bsp</pattern>
+                <pattern>m2020_struct_v[0-9]{2}.bsp</pattern>
+                <pattern>m2020_cruise_od[0-9]{3}_v[0-9].bsp</pattern>
+                <pattern>m2020_edl_v[0-9]{2}.bsp</pattern>
+                <pattern>m2020_ls_ops210303_iau2000_v[0-9].bsp</pattern>
+                <pattern>date:m2020_surf_rover_loc_[0-9]{4}_[0-9]{4}_v[0-9].bsp</pattern>
+                <!-- CK -->
+                <pattern>m2020_turret_tools_v[0-9].bc</pattern>
+                <pattern>m2020_cruise_recon_rawrt_v[0-9].bc</pattern>
+                <pattern>m2020_cruise_recon_raweng_v[0-9].bc</pattern>
+                <pattern>m2020_edl_v[0-9]{2}.bc</pattern>
+                <pattern>date:m2020_surf_ra_tlmenc_[0-9]{4}_[0-9]{4}_v[0-9].bc</pattern>
+                <pattern>date:m2020_surf_ra_tlmres_[0-9]{4}_[0-9]{4}_v[0-9].bc</pattern>
+                <pattern>date:m2020_surf_rsm_tlmres_[0-9]{4}_[0-9]{4}_v[0-9].bc</pattern>
+                <pattern>date:m2020_surf_rover_tlm_[0-9]{4}_[0-9]{4}_v[0-9].bc</pattern>
+                <!-- DSK -->
+            </grammar>
+            <metadata>
+                <description>
+                   This meta-kernel lists the M2020 SPICE kernels providing coverage
+                   for the whole mission. All the kernels listed below are archived
+                   in the PDS M2020 SPICE kernel archive. This set of files and the
+                   order in which they are listed were picked to provide the best
+                   available data and the most complete coverage based on the information
+                   about the kernels available at the time this meta-kernel was made.
+                   For detailed information about the kernels listed below refer to the
+                   internal comments included in the kernels and the documentation
+                   accompanying the M2020 SPICE kernel archive.
+                </description>
+            </metadata>
          </mk>
          <mk name="m2020_chronos_v$VERSION.tm">
             <name>
                 <pattern length="2">VERSION</pattern>
             </name>
+            <interrupt_to_update>True</interrupt_to_update>
+            <grammar>
+                <!-- LSK -->
+                <pattern>naif0012.tls</pattern>
+                <!-- SCLK -->
+                <pattern>m2020_168_sclkscet_[0-9]{5}.tsc</pattern>
+                <pattern>m2020_lmst_ops[0-9]{6}_v[0-9].tsc</pattern>
+                <!-- PCK -->
+                <pattern>pck00010.tpc</pattern>
+                <!-- FK -->
+                <pattern>m2020_v[0-9]{2}.tf</pattern>
+                <!-- SPK -->
+                <pattern>de438s.bsp</pattern>
+                <pattern>mar097.bsp</pattern>
+                <pattern>m2020_cruise_od[0-9]{3}_v[0-9].bsp</pattern>
+                <pattern>m2020_edl_v[0-9]{2}.bsp</pattern>
+                <pattern>m2020_ls_ops210303_iau2000_v[0-9].bsp</pattern>
+                <pattern>m2020_atls_ops[0-9]{6}_v[0-9].bsp</pattern>
+                <!-- CK -->
+                <!-- DSK -->
+            </grammar>
+            <metadata>
+                <description>
+                   This meta-kernel lists the M2020 SPICE kernels needed for the CHRONOS
+                   time conversion application. All the kernels listed below are
+                   archived in the PDS M2020 SPICE kernel archive. This set of files
+                   and the order in which they are listed were picked to provide the
+                   best available data and the most complete coverage based on the
+                   information about the kernels available at the time this meta-kernel
+                   was made. For detailed information about the kernels listed below refer
+                   to the internal comments included in the kernels and the documentation
+                   accompanying the M2020 SPICE kernel archive.
+
+                   This meta-kernel also includes keywords setting the SPICE CHRONOS
+                   utility configuration parameters (spacecraft ID, planet ID, landing UTC,
+                   landing SOL index, and Sun GM).
+                </description>
+                <data>
+                    SPACECRAFT_ID     = -168
+                    CENTER_ID         = 499
+                    LANDING_TIME      = '2021-02-18T20:43:48.8175'
+                    LANDING_SOL_INDEX = 0
+                    BODY10_GM         = 132712440041.9394
+                </data>
+            </metadata>
          </mk>
     </meta-kernel>
 

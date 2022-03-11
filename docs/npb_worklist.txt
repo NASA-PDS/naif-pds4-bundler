@@ -16,6 +16,26 @@ Work List:
   -- Agreed to try to enhance the MK generation with whitespaces
      for selected kernels of the same type.
 
+  -- New product for PDS3 archives: MKs in data/mk. To be a copy of the
+     extras/mk products with _pds4_ added to the filename with a PATH value
+     equal to PDS4 Bundle MKs and with a label containing a list of the kernels
+     in the MK provided by SOURCE_PRODUCT_ID, e.g.:
+     SOURCE_PRODUCT_ID = {"NAF0000C.BSP","NAF0000C.TLS","NAF0000C.TSC"}
+
+     To be implemented when PDS-EN registry copes with PDS3 data sets.
+
+  Possible:
+
+  -- Possibility to use the pipeline to generate misc collection only? (for JAXA.)
+
+  -- NOT for this release, and maybe never, but should we consider adding
+     a reference from to the LIDVIDs of SPK -- or SPKs -- that were used to
+     generate an ORBNUM to its label?
+
+Changelog:
+
+v0.16.0
+
   -- For PDS3 first implement generation with MKLABL with the ultimate goal
      to replace it completely with Python code. Log could look something like:
 
@@ -38,98 +58,96 @@ Work List:
            done.
         processing completed.
 
+v0.15.0
 
-  Possible:
+  -- Implement generation of bundles for the ESA SPICE Service with user input
+     templates.
 
-  -- Possibility to use the pipeline to generate misc collection only? (for JAXA.)
+v0.14.0
 
-  -- NOT for this release, and maybe never, but should we consider adding
-     a reference from to the LIDVIDs of SPK -- or SPKs -- that were used to
-     generate an ORBNUM to its label?
+  -- Exceptions due to Coverage because of input kernels not caught. Implement
+     function decorators.
 
-  -- Include DOIs in configurations:
-      * OREX:    10.17189/1520435
-      * MAVEN:   10.17189/1520434
-      * INSIGHT: 10.17189/1520436
-      * LADEE:   10.17189/1522402
-        Galileo: 10.17189/1522403
+  -- Issues from MAVEN release 27:
+     * WARNING : -- miscellaneous/checksum/checksum_v027.tab does not have a label.
+     * Incorrect release history for last version:
+       ERROR   :
+       ERROR   : -- Products in /stor/pds4/final/maven/maven_spice/miscellaneous/checksum/checksum_v026.tab do not correspond to the bundle release history
+       ERROR   :       miscellaneous/checksum/checksum_v027.tab
+       ERROR   :       miscellaneous/collection_miscellaneous_v027.xml
+       ERROR   :       miscellaneous/orbnum/maven_orb_rec_210701_211001_v1.orb
+       ERROR   :       miscellaneous/checksum/checksum_v026.tab
+       ERROR   :       miscellaneous/orbnum/maven_orb_rec_210701_211001_v1.xml
+       ERROR   :       miscellaneous/checksum/checksum_v027.xml
+       ERROR   :       miscellaneous/checksum/checksum_v026.xml
+       ERROR   :       miscellaneous/collection_miscellaneous_inventory_v027.csv
+       ERROR   : -- Check generation of Checksum files.
 
-        Cassini SPICE Kernels V1.0: 10.17189/1520114
-        Clementine SPICE Kernels V1.0: 10.17189/1520111
-        Dawn SPICE Kernels V1.0: 10.17189/1520119
-        Deep Impact SPICE Kernels V1.0: 10.17189/1520120
-        Deep Impact - EPOXI SPICE Kernels V1.0: 10.17189/1520118
-        Deep Space 1 SPICE Kernels V1.0: 10.17189/1520102
-        GRAIL SPICE Kernels V1.0: 10.17189/1520110
-        Hayabusa SPICE Kernels V1.0: 10.17189/1520104
-        Juno SPICE Kernels V1.0: 10.17189/1520117
-        Lunar Reconnaissance Orbiter SPICE Kernels V1.0: 10.17189/1520116
-        Mars Exploration Rover 1 SPICE Kernels V1.0: 10.17189/1520107
-        Mars Exploration Rover 2 SPICE Kernels V1.0: 10.17189/1520105
-        MESSENGER SPICE Kernels V1.0: 10.17189/1520108
-        Mars Global Surveyor SPICE Kernels V1.0: 10.17189/1520101
-      * Mars Reconnaissance Orbiter SPICE Kernels V1.0: 10.17189/1520100
-      * Mars Science Laboratory SPICE Kernels V1.0: 10.17189/1520113
-        NEAR SPICE Kernels V1.0: 10.17189/1520103
-        New Horizons SPICE Kernels V1.0: 10.17189/1520109
-      * 2001 Mars Odyssey SPICE Kernels V1.0: 10.17189/1520115
-        Stardust SPICE Kernels V1.0: 10.17189/1520106
-        Viking Orbiter 1 and 2 SPICE Kernels V1.0: 10.17189/1520112
+  -- CLEAR argument not working appropriately.
 
-Changelog:
+  -- For PDS3 kernel list generation derive version from existing
+     kernel list or input plan name.
 
-v0.1.0 - Generation of kernel lists.
+  -- Implement archive time boundaries tests (there is one sketched in
+     configuration).
 
-v0.2.0 - Generation of a PDS4 Bundle with examples.
+v0.13.0
 
-v0.3.0 - Generation of InSight Bundle from existing archive.
+  -- Update the coverage determination of MK PER kernel and put a parameter
+     to determine whether the MK determines the coverage of the collection
+     or not.
 
-v0.4.0 - BVS/NAIF feedback incorporation, first round.
+  -- Possibility to use the pipeline to only generate kernel labels based on
+     list, or on a kernel.
 
-  -- The faucet item of the configuration file to be a parameter instead
-  --  Format of the Plan file can be reviewed and made more convenient for
-     users.
-  -- Kernel List, meta-kernel grammar, meta-kernel template to be part
-     of the configuration file.
-  -- spiceds template to be versioned, after all it will change continuously.
-  -- Step 3 - Bundle/dataset structure generation to include staging area
-     reference to make it clear to users.
+  -- Summary to be included, as per BVS suggestion
 
-  -- PCK file needs to be loaded as well. Maybe after all it is just better
-     to generate and load a meta-kernel.
-  -- Label and product comparison log visualization to be an option. Default
-     to be set to false.
-  -- Incorporate a comparison of selected files as well (as with the previous
-     point, for those subject to user errors from configuration etc.)
-  --  URN or LID to be fully configurable (for example KPLO will need that).
-  -- Automated documentation to be generated from function and class
-     headers with Spynx. This will be useful for developers and for the
-     community.
-  -- Documentation of the process not to use faketex or any NAIF style instead
-     use MD for example.
-  -- dsindex files not required for PDS4 archives (update in generation
-     index Perl script not really required).
+      foreach FF ( logical_identifier version_id title description start_date_time stop_date_time file_name file_size md5_checksum object_length kernel_type encoding_type )
+         echo -------------------------------------------------------------------------- $FF
+         grep $FF `find spice_kernels -name '*.xml' -mtime -1 -print | sort`
+      end
 
-v0.5.0 - Generation of MAVEN Bundle with user input meta-kernels.
+  -- Incorporate a validation at the end of the process that reports on
+     sensible field such as descriptions, start and stop times, and other
+     fields to be considered, this report could be presented as table.
 
-  -- Add test case for using similar labels from previous increment
-     (that is case 2; not the appropriate one).
-  -- Files that need a change in the filename to be a configuration item
-     (kernel list will then be generated easier).
-  -- Label templates for specific information models. Include:
-        * 1.5.0.0
-        * 1.11.0.0
-        * latest model available at the time of implementation
-  -- Label templates to be provided by users. Check if exiting use these
-     if present.
-  -- Convert configuration file to a format similar to NDT or an XML file
-     that can be validated against a schematron. JSON can still be used as an
-     intermediate format if need be.
+v0.12.0
 
-v0.6.0 - Generation of LADEE Bundle.
+  -- Issue with the generation of file list for a failed run.
 
-  -- Beware of meta-kernels with "_v" in name besides from version.
-  -- Split meta-kernel by year.
+  -- Implement run log file with checksums and the option to obtain checksums
+     from this file (rather than from the labels in staging from a previous
+     run).
+
+v0.11.2
+
+  -- Update the meta-kernel modification message and remove it from tests
+     with the debug argument.
+
+v0.11.1
+
+  -- Agreed to generate another pipeline byproduct with the list
+     of files moved to the final area and to add an option in the
+     pipleline to remove these files from the final area.
+
+     A similar thing should be done with files in the stagging area.
+
+  -- Agreed to re/test when files are already present in stagging or final
+     area.
+
+  -- Evaluate or assess file permissions, changing could be optional.
+
+  -- Bug in coverage determination for SPKs and CKs when multiple bodies
+     are present: the body used should be the SPICE ID of the appropriate one.
+     (Bug found in M2020).
+
+     So far it has been fixed for SPKs, but not yet for CKs, it is a bit
+     unknown if applicable and if it is something that should be sorted out
+     via configuration.
+
+v0.11.0
+
+  -- Implement test to figure out why second coverage kernel is not being used.
 
 v0.10.2
 
@@ -160,90 +178,55 @@ v0.10.2
      C        should appear on a line by itself, e.g., suppose we have
      C        a leapseconds text kernel file that is missing the ID word,
 
-v0.11.0
+v0.6.0 - Generation of LADEE Bundle.
 
-  -- Implement test to figure out why second coverage kernel is not being used.
+  -- Beware of meta-kernels with "_v" in name besides from version.
+  -- Split meta-kernel by year.
 
-v0.11.1
+v0.5.0 - Generation of MAVEN Bundle with user input meta-kernels.
 
-  -- Agreed to generate another pipeline byproduct with the list
-     of files moved to the final area and to add an option in the
-     pipleline to remove these files from the final area.
+  -- Add test case for using similar labels from previous increment
+     (that is case 2; not the appropriate one).
+  -- Files that need a change in the filename to be a configuration item
+     (kernel list will then be generated easier).
+  -- Label templates for specific information models. Include:
+        * 1.5.0.0
+        * 1.11.0.0
+        * latest model available at the time of implementation
+  -- Label templates to be provided by users. Check if exiting use these
+     if present.
+  -- Convert configuration file to a format similar to NDT or an XML file
+     that can be validated against a schematron. JSON can still be used as an
+     intermediate format if need be.
 
-     A similar thing should be done with files in the stagging area.
+v0.4.0 - BVS/NAIF feedback incorporation, first round.
 
-  -- Agreed to re/test when files are already present in stagging or final
-     area.
+  -- The faucet item of the configuration file to be a parameter instead
+  --  Format of the Plan file can be reviewed and made more convenient for
+     users.
+  -- Kernel List, meta-kernel grammar, meta-kernel template to be part
+     of the configuration file.
+  -- spiceds template to be versioned, after all it will change continuously.
+  -- Step 3 - Bundle/dataset structure generation to include staging area
+     reference to make it clear to users.
 
-  -- Evaluate or assess file permissions, changing could be optional.
+  -- PCK file needs to be loaded as well. Maybe after all it is just better
+     to generate and load a meta-kernel.
+  -- Label and product comparison log visualization to be an option. Default
+     to be set to false.
+  -- Incorporate a comparison of selected files as well (as with the previous
+     point, for those subject to user errors from configuration etc.)
+  --  URN or LID to be fully configurable (for example KPLO will need that).
+  -- Automated documentation to be generated from function and class
+     headers with Spynx. This will be useful for developers and for the
+     community.
+  -- Documentation of the process not to use faketex or any NAIF style instead
+     use MD for example.
+  -- dsindex files not required for PDS4 archives (update in generation
+     index Perl script not really required).
 
-  -- Bug in coverage determination for SPKs and CKs when multiple bodies
-     are present: the body used should be the SPICE ID of the appropriate one.
-     (Bug found in M2020).
+v0.3.0 - Generation of InSight Bundle from existing archive.
 
-     So far it has been fixed for SPKs, but not yet for CKs, it is a bit
-     unknown if applicable and if it is something that should be sorted out
-     via configuration.
+v0.2.0 - Generation of a PDS4 Bundle with examples.
 
-v0.11.2
-
-  -- Update the meta-kernel modification message and remove it from tests
-     with the debug argument.
-
-v0.12.0
-
-  -- Issue with the generation of file list for a failed run.
-
-  -- Implement run log file with checksums and the option to obtain checksums
-     from this file (rather than from the labels in staging from a previous
-     run).
-
-v0.13.0
-
-  -- Update the coverage determination of MK PER kernel and put a parameter
-     to determine whether the MK determines the coverage of the collection
-     or not.
-
-  -- Possibility to use the pipeline to only generate kernel labels based on
-     list, or on a kernel.
-
-  -- Summary to be included, as per BVS suggestion
-
-      foreach FF ( logical_identifier version_id title description start_date_time stop_date_time file_name file_size md5_checksum object_length kernel_type encoding_type )
-         echo -------------------------------------------------------------------------- $FF
-         grep $FF `find spice_kernels -name '*.xml' -mtime -1 -print | sort`
-      end
-
-  -- Incorporate a validation at the end of the process that reports on
-     sensible field such as descriptions, start and stop times, and other
-     fields to be considered, this report could be presented as table.
-
-v0.14.0
-
-  -- Exceptions due to Coverage because of input kernels not caught. Implement
-     function decorators.
-
-  -- Issues from MAVEN release 27:
-     * WARNING : -- miscellaneous/checksum/checksum_v027.tab does not have a label.
-     * Incorrect release history for last version:
-       ERROR   :
-       ERROR   : -- Products in /stor/pds4/final/maven/maven_spice/miscellaneous/checksum/checksum_v026.tab do not correspond to the bundle release history
-       ERROR   :       miscellaneous/checksum/checksum_v027.tab
-       ERROR   :       miscellaneous/collection_miscellaneous_v027.xml
-       ERROR   :       miscellaneous/orbnum/maven_orb_rec_210701_211001_v1.orb
-       ERROR   :       miscellaneous/checksum/checksum_v026.tab
-       ERROR   :       miscellaneous/orbnum/maven_orb_rec_210701_211001_v1.xml
-       ERROR   :       miscellaneous/checksum/checksum_v027.xml
-       ERROR   :       miscellaneous/checksum/checksum_v026.xml
-       ERROR   :       miscellaneous/collection_miscellaneous_inventory_v027.csv
-       ERROR   : -- Check generation of Checksum files.
-
-  -- CLEAR argument not working appropriately.
-
-  -- For PDS3 kernel list generation derive version from existing
-     kernel list or input plan name.
-
-  -- Implement archive time boundaries tests (there is one sketched in
-     configuration).
-
-v1.0.0 - First 'public' release.
+v0.1.0 - Generation of kernel lists.

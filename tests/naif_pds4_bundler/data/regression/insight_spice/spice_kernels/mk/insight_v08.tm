@@ -1,7 +1,7 @@
 KPL/MK
 
    This meta-kernel lists the INSIGHT SPICE kernels providing coverage
-   for the whole mission. All of the kernels listed below are archived
+   for the whole mission. All the kernels listed below are archived
    in the PDS INSIGHT SPICE kernel archive. This set of files and the
    order in which they are listed were picked to provide the best
    available data and the most complete coverage based on the information

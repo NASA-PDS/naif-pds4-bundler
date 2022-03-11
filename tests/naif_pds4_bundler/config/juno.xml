@@ -1,0 +1,321 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<naif-pds4-bundler_configuration>
+
+    <!-- =========================== -->
+    <!-- PDS parameters              -->
+    <!-- =========================== -->
+    <pds_parameters>
+        <pds_version>3</pds_version>
+    </pds_parameters>
+
+    <!-- =========================== -->
+    <!-- Bundle parameters           -->
+    <!-- =========================== -->
+    <bundle_parameters>
+        <producer_name>Marc Costa Sitja</producer_name>
+        <institution>NAIF/JPL</institution>
+        <volume_id>jnosp_1000</volume_id>
+        <spice_name>JUNO</spice_name>
+    </bundle_parameters>
+
+    <!-- =========================== -->
+    <!-- Mission Parameters          -->
+    <!-- =========================== -->
+    <mission_parameters>
+        <mission_acronym>juno</mission_acronym>
+        <mission_name>JUNO</mission_name>
+        <observer>JUNO</observer>
+        <target>Jupiter</target>
+        <pds3_mission_template>
+            <!-- Extracted from juno_mission_template_pds.v1.1               -->
+            <!--                                                             -->
+            <!-- MAKLABEL (ver. 5.1.0+) Mission Template File for JUNO       -->
+            <!-- Version 1.0 ~~ by Boris Semenov, NAIF/JPL ~~ May 24, 2017   -->
+            <!--                                                             -->
+            <!--    Initial version                                          -->
+            <!--                                                             -->
+            <!-- Version 1.1 ~~ by Boris Semenov, NAIF/JPL ~~ Dec.11, 2017   -->
+            <!--                                                             -->
+            <!--    Added TEAM_FGM.                                          -->
+            <!--                                                             -->
+            <!-- Version 1.2 ~~ by Marc Costa Sitja NAIF/JPL ~~ Mar. 9, 2022 -->
+            <!--                                                             -->
+            <!--    Updated Mission Phases.                                  -->
+            <!--                                                             -->
+            <MISSION_NAME>"JUNO"</MISSION_NAME>
+            <SPACECRAFT_NAME>"JUNO"</SPACECRAFT_NAME>
+            <TARGET_NAME>"JUPITER"</TARGET_NAME>
+            <DATA_SET_ID>"JNO-J/E/SS-SPICE-6-V1.0"</DATA_SET_ID>
+            <PRODUCT_VERSION_TYPE>"ACTUAL"</PRODUCT_VERSION_TYPE>
+            <MISSION_PHASE_NAME>"N/A"</MISSION_PHASE_NAME>
+            <SOURCE_PRODUCT_ID>"N/A"</SOURCE_PRODUCT_ID>
+            <INSTRUMENT_NAME>"N/A"</INSTRUMENT_NAME>
+            <PLATFORM_OR_MOUNTING_NAME>"N/A"</PLATFORM_OR_MOUNTING_NAME>
+            <NOTE>"See comments in the file for details"</NOTE>
+            <maklabel_options>
+                    <!--                                                     -->
+                    <!-- Label keys for mission phases.                      -->
+                    <!--                                                     -->
+                    <!-- From JUNO MISSION.CAT ver. 2022-01-21               -->
+                    <!-- JUNO: Kurth, Bolton Revision - XM"                  -->
+                    <!--                                                     -->
+                    <!--  Mission Phases                                     -->
+                    <!--  ==============                                     -->
+                    <!--                                                     -->
+                    <!--  LAUNCH                                             -->
+                    <!--  ~~~~~~                                             -->
+                    <!--    Mission Phase Start Time :  2011-08-05 (2011-217)-->
+                    <!--    Mission Phase Stop Time  :  2011-08-08 (2011-220)-->
+                    <!--                                                     -->
+                    <!--  INNER CRUISE 1                                     -->
+                    <!--  ~~~~~~~~~~~~~~                                     -->
+                    <!--    Mission Phase Start Time :  2011-08-08 (2011-220)-->
+                    <!--    Mission Phase Stop Time  :  2011-10-10 (2011-283)-->
+                    <!--                                                     -->
+                    <!--  INNER CRUISE 2                                     -->
+                    <!--  ~~~~~~~~~~~~~~                                     -->
+                    <!--    Mission Phase Start Time :  2011-10-10 (2011-283)-->
+                    <!--    Mission Phase Stop Time  :  2013-05-29 (2013-149)-->
+                    <!--                                                     -->
+                    <!--  INNER CRUISE 3                                     -->
+                    <!--  ~~~~~~~~~~~~~~                                     -->
+                    <!--    Mission Phase Start Time :  2013-05-29 (2013-149)-->
+                    <!--    Mission Phase Stop Time  :  2013-11-05 (2013-309)-->
+                    <!--                                                     -->
+                    <!--  OUTER CRUISE                                       -->
+                    <!--  ~~~~~~~~~~~~~~                                     -->
+                    <!--    Mission Phase Start Time :  2013-11-05 (2013-309)-->
+                    <!--    Mission Phase Stop Time  :  2016-01-05 (2016-005)-->
+                    <!--                                                     -->
+                    <!--  JUPITER APPROACH                                   -->
+                    <!--  ~~~~~~~~~~~~~~                                     -->
+                    <!--    Mission Phase Start Time :  2016-01-05 (2016-005)-->
+                    <!--    Mission Phase Stop Time  :  2016-07-01 (2016-183)-->
+                    <!--                                                     -->
+                    <!--  JUPITER ORBIT INSERTION                            -->
+                    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~                       -->
+                    <!--    Mission Phase Start Time :  2016-07-01 (2016-183)-->
+                    <!--    Mission Phase Stop Time  :  2016-07-05 (2016-187)-->
+                    <!--                                                     -->
+                    <!--  SCIENCE ORBITS                                     -->
+                    <!--  ~~~~~~~~~~~~~~                                     -->
+                    <!--    Mission Phase Start Time :  2016-07-05 (2016-187)-->
+                    <!--    Mission Phase Stop Time  :  2021-07-03 (2021-184)-->
+                    <!--                                                     -->
+                    <!--  EXTENDED MISSION                                   -->
+                    <!--  ~~~~~~~~~~~~~~~~                                   -->
+                    <!--    Mission Phase Start Time :  2021-07-03 (2021-184)-->
+                    <!--    Mission Phase Stop Time  :  2025-09-17 (2021-260)-->
+                    <!--                                                     -->
+                    <!--  DEORBIT                                            -->
+                    <!--  ~~~~~~~                                            -->
+                    <!--    Mission Phase Start Time :  2025-09-17 (2021-260)-->
+                    <!--    Mission Phase Stop Time  :  ????-??-?? (????-???)-->
+                    <!--                                                     -->
+                    <PHASE_ORB>
+                        <MISSION_PHASE_NAME>"SCIENCE ORBITS"</MISSION_PHASE_NAME>
+                    </PHASE_ORB>
+                    <PHASE_ORB_EXT>
+                        <MISSION_PHASE_NAME> "SCIENCE ORBITS",
+                                             "EXTENDED MISSION"</MISSION_PHASE_NAME>
+                    </PHASE_ORB_EXT>
+                    <ALL>
+                        <MISSION_PHASE_NAME> "LAUNCH",
+                                             "INNER CRUISE 1",
+                                             "INNER CRUISE 2",
+                                             "INNER CRUISE 3",
+                                             "OUTER CRUISE",
+                                             "JUPITER APPROACH",
+                                             "JUPITER ORBIT INSERTION",
+                                             "SCIENCE ORBITS",
+                                             "EXTENDED MISSION",
+                                             "DEORBIT"
+                        </MISSION_PHASE_NAME>
+                    </ALL>
+                <!--                                                         -->
+                <!-- Label keys for producer ids                             -->
+                <!--                                                         -->
+                <NAIF>
+                    <PRODUCER_ID>"NAIF/JPL"</PRODUCER_ID>
+                </NAIF>
+                <TEAM_NAV>
+                    <PRODUCER_ID>"JUNO NAV/JPL"</PRODUCER_ID>
+                </TEAM_NAV>
+                <!--                                                         -->
+                <!-- Label keys for product version types                    -->
+                <!--                                                         -->
+                <ACTUAL>
+                    <PRODUCT_VERSION_TYPE>"ACTUAL"</PRODUCT_VERSION_TYPE>
+                </ACTUAL>
+                <PREDICT>
+                    <PRODUCT_VERSION_TYPE>"PREDICT"</PRODUCT_VERSION_TYPE>
+                </PREDICT>
+                <!--                                                         -->
+                <!-- Label keys for instrument/mounting platform names.      -->
+                <!--                                                         -->
+                <INST_SC>
+                    <INSTRUMENT_NAME>"JUNO SPACECRAFT"</INSTRUMENT_NAME>
+                    <PLATFORM_OR_MOUNTING_NAME>"N/A"</PLATFORM_OR_MOUNTING_NAME>
+                </INST_SC>
+                <INST_MAG>
+                    <INSTRUMENT_NAME>"MAGNETOMETER"</INSTRUMENT_NAME>
+                    <PLATFORM_OR_MOUNTING_NAME>"JUNO SPACECRAFT"</PLATFORM_OR_MOUNTING_NAME>
+                </INST_MAG>
+            </maklabel_options>
+        </pds3_mission_template>
+        <kernels_to_load>
+            <lsk>naif[0-9][0-9][0-9][0-9].tls</lsk>
+            <sclk>JNO_SCLKSCET.[0-9][0-9][0-9][0-9][0-9].tsc</sclk>
+            <fk>juno_v[0-9][0-9].tf</fk>
+        </kernels_to_load>
+    </mission_parameters>
+
+    <!-- =========================== -->
+    <!-- Directories                 -->
+    <!-- =========================== -->
+    <directories>
+        <working_directory>working</working_directory>
+        <kernels_directory>kernels</kernels_directory>
+        <staging_directory>staging</staging_directory>
+        <bundle_directory>bundle</bundle_directory>
+        <orbnum_directory>misc/orbnum</orbnum_directory>
+    </directories>
+
+
+    <!-- =========================== -->
+    <!-- Kernel List                 -->
+    <!-- =========================== -->
+    <kernel_list>
+        <kernel pattern="jno_sclkscet_[0-9][0-9][0-9][0-9][0-9].tsc">
+            <mapping>JNO_SCLKSCET.$VERSION.tsc</mapping>
+            <mklabel_options>TEAM_NAIF</mklabel_options>
+            <description>SPICE SCLK file containing time correlation data for the main JUNO on-board clock, created by NAIF, JPL. The original name of this file was JNO_SCLKSCET.00123.tsc.
+            </description>
+            <patterns>
+                <VERSION pattern="KERNEL">JNO_SCLKSCET.$VERSION.tsc</VERSION>
+            </patterns>
+        </kernel>
+        <kernel pattern="jup[0-9][0-9][0-9]s.bsp">
+            <mklabel_options>PHASE_ALL TEAM_NAIF</mklabel_options>
+            <description>SPICE SPK file containing JPL Jovian satellite ephemerides version $VER, created by NAIF, JPL.
+            </description>
+            <patterns>
+                <YEAR pattern="KERNEL">jup$VERs.bsp</YEAR>
+            </patterns>
+        </kernel>
+        <!-- Special case: Two SPKs of the same nature need different        -->
+        <!-- Phases and therefore we need an entry for each file.            -->
+        <kernel pattern="juno_rec_210630_210813_210825.bsp">
+            <mklabel_options>TEAM_NAV PHASE_ORB_EXT</mklabel_options>
+            <description>SPICE SPK file containing reconstructed trajectory of the JUNO spacecraft, created by JUNO NAV Team, JPL. The original name of this file was spk_rec_210630_210813_210825.bsp.
+            </description>
+        </kernel>
+        <kernel pattern="juno_rec_210813_210925_211005.bsp">
+            <mklabel_options>TEAM_NAV PHASE_ORB_EXT</mklabel_options>
+            <description>SPICE SPK file containing reconstructed trajectory of the JUNO spacecraft, created by JUNO NAV Team, JPL. The original name of this file was spk_rec_210813_210925_211005.bsp.
+            </description>
+        </kernel>
+
+        <!-- Special case: a number of CKs of the same nature need different -->
+        <!-- Phases and therefore we need an entry for each "month".         -->
+        <kernel pattern="juno_sc_rec_2106[0-9]{2}_2106[0-9]{2}_v[0-9]{2}.bc">
+            <mklabel_options>PHASE_ORB INST_SC TEAM_NAIF</mklabel_options>
+            <description>SPICE CK file containing reconstructed orientation of the JUNO spacecraft, created by NAIF, JPL using data from an ATT_RECON file produced by SCT, LMCO.
+            </description>
+        </kernel>
+        <kernel pattern="juno_sc_rec_2106[0-9]{2}_2107[0-9]{2}_v[0-9]{2}.bc">
+            <mklabel_options>PHASE_ORB_EXT INST_SC TEAM_NAIF</mklabel_options>
+            <description>SPICE CK file containing reconstructed orientation of the JUNO spacecraft, created by NAIF, JPL using data from an ATT_RECON file produced by SCT, LMCO.
+            </description>
+        </kernel>
+        <kernel pattern="juno_sc_rec_2107[0-9]{2}_[0-9]{6}_v[0-9]{2}.bc">
+            <mklabel_options>PHASE_EXT INST_SC TEAM_NAIF</mklabel_options>
+            <description>SPICE CK file containing reconstructed orientation of the JUNO spacecraft, created by NAIF, JPL using data from an ATT_RECON file produced by SCT, LMCO.
+            </description>
+        </kernel>
+        <kernel pattern="juno_sc_rec_2108[0-9]{2}_[0-9]{6}_v[0-9]{2}.bc">
+            <mklabel_options>PHASE_EXT INST_SC TEAM_NAIF</mklabel_options>
+            <description>SPICE CK file containing reconstructed orientation of the JUNO spacecraft, created by NAIF, JPL using data from an ATT_RECON file produced by SCT, LMCO.
+            </description>
+        </kernel>
+
+        <kernel pattern="juno_sc_rec_2108[0-9]{2}_[0-9]{6}_v[0-9]{2}.bc">
+            <mklabel_options>PHASE_EXT INST_SC TEAM_NAIF</mklabel_options>
+            <description>SPICE CK file containing reconstructed orientation of the JUNO spacecraft, created by NAIF, JPL using data from an ATT_RECON file produced by SCT, LMCO.
+            </description>
+        </kernel>
+
+
+
+
+
+        <kernel pattern="mro_sa_psp_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]p.bc">
+            <mklabel_options>NAIF SA PREDICT ESP</mklabel_options>
+            <description>MRO SPICE CK file providing predicted orientation of the Solar Arrays (SA) modeled by the MRO Spacecraft Team, LMA using the AtArPS tool for a part of the Extended Science phase of the mission, created by NAIF, JPL. $ORIGINAL
+            </description>
+            <patterns>
+                <ORIGINAL file="COMMENT">The original name of this file was</ORIGINAL>
+            </patterns>
+        </kernel>
+        <kernel pattern="mro_sc_psp_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]p.bc">
+            <mklabel_options>NAIF SC PREDICT ESP</mklabel_options>
+            <description>MRO SPICE CK file providing predicted orientation of the MRO spacecraft bus modeled by the MRO Spacecraft Team, LMA using the AtArPS tool for a part of the Extended Science phase of the mission, created by NAIF, JPL. $ORIGINAL
+            </description>
+            <patterns>
+                <ORIGINAL file="COMMENT">The original name of this file was</ORIGINAL>
+            </patterns>
+        </kernel>
+        <kernel pattern="mro_hga_psp_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9].bc">
+            <mklabel_options>NAIF HGA ESP</mklabel_options>
+            <description>MRO SPICE CK file providing actual telemetry-based orientation of the High Gain Antenna (HGA) for a part of the Extended Science phase of the mission, created by NAIF, JPL.
+            </description>
+        </kernel>
+        <kernel pattern="mro_sa_psp_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9].bc">
+            <mklabel_options>NAIF SA ESP</mklabel_options>
+            <description>MRO SPICE CK file providing actual telemetry-based orientation of the Solar Arrays (SA) for a part of the Extended Science phase of the mission, created by NAIF, JPL.
+            </description>
+        </kernel>
+        <kernel pattern="mro_sc_psp_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9].bc">
+            <mklabel_options>NAIF SC ESP</mklabel_options>
+            <description>MRO SPICE CK file providing actual telemetry-based orientation of the MRO spacecraft bus for a part of the Extended Science phase of the mission, created by NAIF, JPL.
+            </description>
+        </kernel>
+        <kernel pattern="mro_mcs_psp_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9].bc">
+            <mklabel_options>NAIF MCS ESP</mklabel_options>
+            <description>MRO SPICE CK file providing actual telemetry-based orientation of the Mars Climate Sounder (MCS) instrument for a part of the Extended Science phase of the mission, created by NAIF, JPL from daily files provided by the MCS Team, JPL.
+            </description>
+        </kernel>
+        <kernel pattern="mro_crm_psp_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9].bc">
+            <mklabel_options>NAIF CRISM ESP</mklabel_options>
+            <description>MRO SPICE CK file providing actual telemetry-based orientation of the Compact Reconnaissance Imaging Spectrometer for Mars (CRISM) instrument for a part of the Extended Science phase of the mission, created by NAIF, JPL from daily files provided by the CRISM Team, APL.
+            </description>
+        </kernel>
+        <kernel pattern="mro_[0-9][0-9][0-9][0-9]_v[0-9][0-9].tm">
+            <mklabel_options>N/A</mklabel_options>
+            <description>N/A
+            </description>
+        </kernel>
+    </kernel_list>
+
+    <!-- =========================== -->
+    <!-- Meta-kernel                 -->
+    <!-- =========================== -->
+    <meta-kernel>
+        <mk name="mro_$YEAR_v$VERSION.tm">
+            <name>
+                <pattern length="2">VERSION</pattern>
+                <pattern length="4">YEAR</pattern>
+            </name>
+        </mk>
+    </meta-kernel>
+
+    <!-- =========================== -->
+    <!-- Orbit number file           -->
+    <!-- =========================== -->
+    <orbit_number_file>
+        <orbnum>
+            <pattern>mro_psp[0-9][0-9].nrb</pattern>
+        </orbnum>
+    </orbit_number_file>
+
+</naif-pds4-bundler_configuration>

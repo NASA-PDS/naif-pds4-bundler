@@ -3959,13 +3959,14 @@ class ChecksumProduct(Product):
                     logging.warning(f'      {file}')
 
         #
-        # Generate the list to be written. PDS4 and PDS3 checksums differ.
-        # PDS4 checksums are cumulative and each aggregation is in alphabetical
-        # order, whereas PDS3 checksums are in global alphabetical order.
+        # The resulting dictionary needs to be transformed into a list
+        # sorted by filename alphabetical order (second column of the
+        # resulting table)
         #
         if self.setup.pds_version == '4':
-            for key, value in self.md5_dict.items():
-                md5_list.append(f"{value}  {key}")
+            md5_dict_keys = list(self.md5_dict.keys())
+            for key in sorted(md5_dict_keys):
+                md5_list.append(f"{self.md5_dict[key]}  {key}")
         else:
             #
             # PDS3 checksums have trailing whitespaces to fill the number of

@@ -324,7 +324,7 @@
             <metadata>
                 <description>
                     This meta-kernel lists the INSIGHT SPICE kernels providing coverage
-                    for the whole mission. All of the kernels listed below are archived
+                    for the whole mission. All the kernels listed below are archived
                     in the PDS INSIGHT SPICE kernel archive. This set of files and the
                     order in which they are listed were picked to provide the best
                     available data and the most complete coverage based on the information
@@ -337,7 +337,7 @@
                     utility configuration parameters (spacecraft ID, planet ID, landing UTC,
                     landing SOL index, and Sun GM).
                 </description>
-                <!-- The keyword field is used to speficy parameters such as the
+                <!-- The keyword field is used to specify parameters such as the
                      meta-kernel year.
                 -->
                 <keyword>
