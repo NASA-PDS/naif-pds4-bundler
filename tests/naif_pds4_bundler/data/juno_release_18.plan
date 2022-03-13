@@ -1,0 +1,155 @@
+SPICE JUNO Release 18
+-------------------------------------------------------------------
+Release         18
+due:            2022-03-24
+coverage begin: 2020-06-09T00:00:00
+coverage end:   2021-09-02T23:59:59
+PJs:            35,36
+Last PJ date:   2021-09-02
+
+
+-- LSKs
+
+no new LSKs for this release.
+
+
+-- PCKs
+
+no new PCKs for this release.
+
+
+-- main FKs
+
+no new FKs for this release.
+
+
+-- IKs
+
+no new IKs for this release.
+
+
+-- SCLKs -- rename JNO_SCLKSCET. to jno_sclkscet_
+
+jno_sclkscet_00128.tsc \
+
+
+-- DE/SE SPKs
+
+jup380s.bsp \
+
+
+-- structures SPK
+
+no new structures SPKs for this release.
+
+
+-- S/C rec SPKs -- rename spk_ to juno_
+
+juno_rec_210630_210813_210825.bsp \
+juno_rec_210813_210925_211005.bsp \
+
+
+-- S/C rec CKs -- weekly CKs only
+
+juno_sc_rec_210613_210619_v01.bc \
+juno_sc_rec_210620_210626_v01.bc \
+juno_sc_rec_210627_210703_v01.bc \
+juno_sc_rec_210704_210710_v01.bc \
+juno_sc_rec_210711_210717_v01.bc \
+juno_sc_rec_210718_210724_v01.bc \
+juno_sc_rec_210725_210731_v01.bc \
+juno_sc_rec_210801_210807_v01.bc \
+juno_sc_rec_210808_210814_v01.bc \
+juno_sc_rec_210815_210821_v01.bc \
+juno_sc_rec_210822_210828_v01.bc \
+juno_sc_rec_210829_210904_v01.bc \
+
+
+-- S/C raw CKs -- weekly CKs only
+
+no raw CKs in this release
+
+
+-- ASC rec CKs -- weekly CKs only
+
+juno_chub_rec_210614_210620_v01.bc \
+juno_chub_rec_210621_210627_v01.bc \
+juno_chub_rec_210628_210704_v01.bc \
+juno_chub_rec_210705_210711_v01.bc \
+juno_chub_rec_210712_210718_v01.bc \
+juno_chub_rec_210719_210725_v01.bc \
+
+juno_chuc_rec_210614_210620_v01.bc \
+juno_chuc_rec_210621_210627_v01.bc \
+juno_chuc_rec_210628_210704_v01.bc \
+juno_chuc_rec_210705_210711_v01.bc \
+juno_chuc_rec_210712_210718_v01.bc \
+juno_chuc_rec_210719_210725_v01.bc \
+juno_chuc_rec_210726_210801_v01.bc \
+juno_chuc_rec_210802_210808_v01.bc \
+juno_chuc_rec_210809_210815_v01.bc \
+juno_chuc_rec_210816_210822_v01.bc \
+juno_chuc_rec_210823_210829_v01.bc \
+juno_chuc_rec_210830_210905_v01.bc \
+
+juno_chud_rec_210614_210620_v01.bc \
+juno_chud_rec_210621_210627_v01.bc \
+juno_chud_rec_210628_210704_v01.bc \
+juno_chud_rec_210705_210711_v01.bc \
+juno_chud_rec_210712_210718_v01.bc \
+juno_chud_rec_210719_210725_v01.bc \
+juno_chud_rec_210809_210815_v01.bc \
+
+juno_mobib_rec_210614_210620_v01.bc \
+juno_mobib_rec_210621_210627_v01.bc \
+juno_mobib_rec_210628_210704_v01.bc \
+juno_mobib_rec_210705_210711_v01.bc \
+juno_mobib_rec_210712_210718_v01.bc \
+juno_mobib_rec_210719_210725_v01.bc \
+
+
+-- ASC averaged alignment CKs
+
+juno_mobib_ali_210609_210902_avg_v01.bc \
+juno_chud_ali_210609_210902_avg_v01.bc \
+juno_chuc_ali_210609_210902_avg_v01.bc \
+juno_chub_ali_210609_210902_avg_v01.bc \
+
+
+-- ASC temperature-based alignment CKs
+
+juno_mobib_ali_210902_210903_thm_v01.bc \
+juno_mobob_ali_210720_210721_thm_v01.bc \
+juno_mobib_ali_210720_210721_thm_v01.bc \
+juno_mobob_ali_210902_210903_thm_v01.bc \
+
+
+-- MOB frame connection CKs
+
+no MOB CKs for this release.
+
+
+-- UVS rec CKs -- merge of individual files
+
+juno_uvs_rec_210614_210903_v02.bc \
+
+-- MKS
+
+juno_2011_v06.tm \
+juno_2012_v06.tm \
+juno_2013_v06.tm \
+juno_2014_v06.tm \
+juno_2015_v06.tm \
+juno_2016_v08.tm \
+juno_2017_v11.tm \
+juno_2018_v09.tm \
+juno_2019_v07.tm \
+juno_2020_v05.tm \
+juno_2021_v03.tm \
+
+-- ORBNUM files
+
+no ORBNUM files for this release.
+
+
+End.

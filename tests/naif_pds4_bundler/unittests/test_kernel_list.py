@@ -279,5 +279,37 @@ class TestKernelList(TestCase):
         self.assertEqual(old_file.split("\n")[7:], new_file.split("\n")[7:])
 
 
+    def test_pds3_juno_list(self):
+        """Basic test for JUNO kernel list generation.
+
+        This test was implemented to setup JUNO PDS3 data set generation for
+        release 18.
+        """
+        config = "../config/juno.xml"
+        plan = "../data/juno_release_18.plan"
+        faucet = "list"
+
+        shutil.copy2(
+            "../data/juno_release_17.kernel_list",
+            "working/juno_release_17.kernel_list"
+        )
+
+        main(config, plan, faucet, silent=self.silent)
+
+        new_file = ""
+        with open("working/juno_release_18.kernel_list", "r") as f:
+            for line in f:
+                if "DATE =" not in line:
+                    new_file += line
+
+        old_file = ""
+        with open("../data/juno_release_18.kernel_list", "r") as f:
+            for line in f:
+                if "DATE =" not in line:
+                    old_file += line
+
+        self.assertEqual(old_file.split("\n")[7:], new_file.split("\n")[7:])
+
+
 if __name__ == "__main__":
     unittest.main()

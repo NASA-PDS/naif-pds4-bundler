@@ -519,7 +519,7 @@ class KernelList(List):
                                             patterns_el = [patterns_el]
                                         for val in patterns_el:
                                             try:
-                                                if kernel == val["@value"]:
+                                                if val["@value"] in kernel:
                                                     value = val["#text"]
                                             except KeyError:
                                                 error_message(

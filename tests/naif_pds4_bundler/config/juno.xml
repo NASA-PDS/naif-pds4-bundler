@@ -116,28 +116,31 @@
                         <MISSION_PHASE_NAME>"SCIENCE ORBITS"</MISSION_PHASE_NAME>
                     </PHASE_ORB>
                     <PHASE_ORB_EXT>
-                        <MISSION_PHASE_NAME> "SCIENCE ORBITS",
-                                             "EXTENDED MISSION"</MISSION_PHASE_NAME>
+                        <MISSION_PHASE_NAME>"SCIENCE ORBITS",
+                                            "EXTENDED MISSION"</MISSION_PHASE_NAME>
                     </PHASE_ORB_EXT>
-                    <ALL>
-                        <MISSION_PHASE_NAME> "LAUNCH",
-                                             "INNER CRUISE 1",
-                                             "INNER CRUISE 2",
-                                             "INNER CRUISE 3",
-                                             "OUTER CRUISE",
-                                             "JUPITER APPROACH",
-                                             "JUPITER ORBIT INSERTION",
-                                             "SCIENCE ORBITS",
-                                             "EXTENDED MISSION",
-                                             "DEORBIT"
+                    <PHASE_EXT>
+                        <MISSION_PHASE_NAME>"EXTENDED MISSION"</MISSION_PHASE_NAME>
+                    </PHASE_EXT>
+                    <PHASE_ALL>
+                        <MISSION_PHASE_NAME>"LAUNCH",
+                                            "INNER CRUISE 1",
+                                            "INNER CRUISE 2",
+                                            "INNER CRUISE 3",
+                                            "OUTER CRUISE",
+                                            "JUPITER APPROACH",
+                                            "JUPITER ORBIT INSERTION",
+                                            "SCIENCE ORBITS",
+                                            "EXTENDED MISSION",
+                                            "DEORBIT"
                         </MISSION_PHASE_NAME>
-                    </ALL>
+                    </PHASE_ALL>
                 <!--                                                         -->
                 <!-- Label keys for producer ids                             -->
                 <!--                                                         -->
-                <NAIF>
+                <TEAM_NAIF>
                     <PRODUCER_ID>"NAIF/JPL"</PRODUCER_ID>
-                </NAIF>
+                </TEAM_NAIF>
                 <TEAM_NAV>
                     <PRODUCER_ID>"JUNO NAV/JPL"</PRODUCER_ID>
                 </TEAM_NAV>
@@ -161,6 +164,10 @@
                     <INSTRUMENT_NAME>"MAGNETOMETER"</INSTRUMENT_NAME>
                     <PLATFORM_OR_MOUNTING_NAME>"JUNO SPACECRAFT"</PLATFORM_OR_MOUNTING_NAME>
                 </INST_MAG>
+                <INST_UVS>
+                    <INSTRUMENT_NAME>"ULTRAVIOLET SPECTROGRAPH"</INSTRUMENT_NAME>
+                    <PLATFORM_OR_MOUNTING_NAME>"JUNO SPACECRAFT"</PLATFORM_OR_MOUNTING_NAME>
+                </INST_UVS>
             </maklabel_options>
         </pds3_mission_template>
         <kernels_to_load>
@@ -189,7 +196,7 @@
         <kernel pattern="jno_sclkscet_[0-9][0-9][0-9][0-9][0-9].tsc">
             <mapping>JNO_SCLKSCET.$VERSION.tsc</mapping>
             <mklabel_options>TEAM_NAIF</mklabel_options>
-            <description>SPICE SCLK file containing time correlation data for the main JUNO on-board clock, created by NAIF, JPL. The original name of this file was JNO_SCLKSCET.00123.tsc.
+            <description>SPICE SCLK file containing time correlation data for the main JUNO on-board clock, created by NAIF, JPL. The original name of this file was JNO_SCLKSCET.$VERSION.tsc.
             </description>
             <patterns>
                 <VERSION pattern="KERNEL">JNO_SCLKSCET.$VERSION.tsc</VERSION>
@@ -197,24 +204,36 @@
         </kernel>
         <kernel pattern="jup[0-9][0-9][0-9]s.bsp">
             <mklabel_options>PHASE_ALL TEAM_NAIF</mklabel_options>
-            <description>SPICE SPK file containing JPL Jovian satellite ephemerides version $VER, created by NAIF, JPL.
+            <description>SPICE SPK file containing JPL Jovian satellite ephemerides version JUP$VERSION, created by NAIF, JPL.
             </description>
             <patterns>
-                <YEAR pattern="KERNEL">jup$VERs.bsp</YEAR>
+                <VERSION pattern="KERNEL">jup$VERSIONs.bsp</VERSION>
             </patterns>
         </kernel>
+
         <!-- Special case: Two SPKs of the same nature need different        -->
         <!-- Phases and therefore we need an entry for each file.            -->
-        <kernel pattern="juno_rec_210630_210813_210825.bsp">
+        <kernel pattern="juno_rec_2106[0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9].bsp">
             <mklabel_options>TEAM_NAV PHASE_ORB_EXT</mklabel_options>
-            <description>SPICE SPK file containing reconstructed trajectory of the JUNO spacecraft, created by JUNO NAV Team, JPL. The original name of this file was spk_rec_210630_210813_210825.bsp.
+            <description>SPICE SPK file containing reconstructed trajectory of the JUNO spacecraft, created by JUNO NAV Team, JPL. The original name of this file was spk_rec_2106$START_$STOP_$CREATION.bsp.
             </description>
+            <patterns>
+                <START pattern="KERNEL">juno_rec_2106$START_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9].bsp</START>
+                <STOP pattern="KERNEL">juno_rec_2106[0-9][0-9]_$STOP_[0-9][0-9][0-9][0-9][0-9][0-9].bsp</STOP>
+                <CREATION pattern="KERNEL">juno_rec_2106[0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_$CREATION.bsp</CREATION>
+            </patterns>
         </kernel>
-        <kernel pattern="juno_rec_210813_210925_211005.bsp">
-            <mklabel_options>TEAM_NAV PHASE_ORB_EXT</mklabel_options>
-            <description>SPICE SPK file containing reconstructed trajectory of the JUNO spacecraft, created by JUNO NAV Team, JPL. The original name of this file was spk_rec_210813_210925_211005.bsp.
+        <kernel pattern="juno_rec_2108[0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9].bsp">
+            <mklabel_options>TEAM_NAV PHASE_EXT</mklabel_options>
+            <description>SPICE SPK file containing reconstructed trajectory of the JUNO spacecraft, created by JUNO NAV Team, JPL. The original name of this file was spk_rec_2108$START_$STOP_$CREATION.bsp.
             </description>
+            <patterns>
+                <START pattern="KERNEL">juno_rec_2108$START_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9].bsp</START>
+                <STOP pattern="KERNEL">juno_rec_2108[0-9][0-9]_$STOP_[0-9][0-9][0-9][0-9][0-9][0-9].bsp</STOP>
+                <CREATION pattern="KERNEL">juno_rec_2108[0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_$CREATION.bsp</CREATION>
+            </patterns>
         </kernel>
+
 
         <!-- Special case: a number of CKs of the same nature need different -->
         <!-- Phases and therefore we need an entry for each "month".         -->
@@ -239,69 +258,147 @@
             </description>
         </kernel>
 
-        <kernel pattern="juno_sc_rec_2108[0-9]{2}_[0-9]{6}_v[0-9]{2}.bc">
+        <kernel pattern="juno_chub_rec_2106[0-9]{2}_2106[0-9]{2}_v[0-9]{2}.bc">
+            <mklabel_options>PHASE_ORB INST_SC TEAM_NAIF</mklabel_options>
+            <description>SPICE CK file containing reconstructed orientation of the MAG ASC CHU-B, created by NAIF, JPL using CHU-B channelized telemetry quaternions.
+            </description>
+        </kernel>
+        <kernel pattern="juno_chuc_rec_2106[0-9]{2}_2106[0-9]{2}_v[0-9]{2}.bc">
+            <mklabel_options>PHASE_ORB INST_SC TEAM_NAIF</mklabel_options>
+            <description>SPICE CK file containing reconstructed orientation of the MAG ASC CHU-C, created by NAIF, JPL using CHU-C channelized telemetry quaternions.
+            </description>
+        </kernel>
+        <kernel pattern="juno_chud_rec_2106[0-9]{2}_2106[0-9]{2}_v[0-9]{2}.bc">
+            <mklabel_options>PHASE_ORB INST_SC TEAM_NAIF</mklabel_options>
+            <description>SPICE CK file containing reconstructed orientation of the MAG ASC CHU-D, created by NAIF, JPL using CHU-D channelized telemetry quaternions.
+            </description>
+        </kernel>
+        <kernel pattern="juno_chub_rec_2106[0-9]{2}_2107[0-9]{2}_v[0-9]{2}.bc">
+            <mklabel_options>PHASE_ORB_EXT INST_SC TEAM_NAIF</mklabel_options>
+            <description>SPICE CK file containing reconstructed orientation of the MAG ASC CHU-B, created by NAIF, JPL using CHU-B channelized telemetry quaternions.
+            </description>
+        </kernel>
+        <kernel pattern="juno_chuc_rec_2106[0-9]{2}_2107[0-9]{2}_v[0-9]{2}.bc">
+            <mklabel_options>PHASE_ORB_EXT INST_SC TEAM_NAIF</mklabel_options>
+            <description>SPICE CK file containing reconstructed orientation of the MAG ASC CHU-C, created by NAIF, JPL using CHU-C channelized telemetry quaternions.
+            </description>
+        </kernel>
+        <kernel pattern="juno_chud_rec_2106[0-9]{2}_2107[0-9]{2}_v[0-9]{2}.bc">
+            <mklabel_options>PHASE_ORB_EXT INST_SC TEAM_NAIF</mklabel_options>
+            <description>SPICE CK file containing reconstructed orientation of the MAG ASC CHU-D, created by NAIF, JPL using CHU-D channelized telemetry quaternions.
+            </description>
+        </kernel>
+        <kernel pattern="juno_chub_rec_2107[0-9]{2}_[0-9]{6}_v[0-9]{2}.bc">
             <mklabel_options>PHASE_EXT INST_SC TEAM_NAIF</mklabel_options>
-            <description>SPICE CK file containing reconstructed orientation of the JUNO spacecraft, created by NAIF, JPL using data from an ATT_RECON file produced by SCT, LMCO.
+            <description>SPICE CK file containing reconstructed orientation of the MAG ASC CHU-B, created by NAIF, JPL using CHU-B channelized telemetry quaternions.
+            </description>
+        </kernel>
+        <kernel pattern="juno_chuc_rec_2107[0-9]{2}_[0-9]{6}_v[0-9]{2}.bc">
+            <mklabel_options>PHASE_EXT INST_SC TEAM_NAIF</mklabel_options>
+            <description>SPICE CK file containing reconstructed orientation of the MAG ASC CHU-C, created by NAIF, JPL using CHU-C channelized telemetry quaternions.
+            </description>
+        </kernel>
+        <kernel pattern="juno_chud_rec_2107[0-9]{2}_[0-9]{6}_v[0-9]{2}.bc">
+            <mklabel_options>PHASE_EXT INST_SC TEAM_NAIF</mklabel_options>
+            <description>SPICE CK file containing reconstructed orientation of the MAG ASC CHU-D, created by NAIF, JPL using CHU-D channelized telemetry quaternions.
+            </description>
+        </kernel>
+        <kernel pattern="juno_chub_rec_2108[0-9]{2}_[0-9]{6}_v[0-9]{2}.bc">
+            <mklabel_options>PHASE_EXT INST_SC TEAM_NAIF</mklabel_options>
+            <description>SPICE CK file containing reconstructed orientation of the MAG ASC CHU-B, created by NAIF, JPL using CHU-B channelized telemetry quaternions.
+            </description>
+        </kernel>
+        <kernel pattern="juno_chuc_rec_2108[0-9]{2}_[0-9]{6}_v[0-9]{2}.bc">
+            <mklabel_options>PHASE_EXT INST_SC TEAM_NAIF</mklabel_options>
+            <description>SPICE CK file containing reconstructed orientation of the MAG ASC CHU-C, created by NAIF, JPL using CHU-C channelized telemetry quaternions.
+            </description>
+        </kernel>
+        <kernel pattern="juno_chud_rec_2108[0-9]{2}_[0-9]{6}_v[0-9]{2}.bc">
+            <mklabel_options>PHASE_EXT INST_SC TEAM_NAIF</mklabel_options>
+            <description>SPICE CK file containing reconstructed orientation of the MAG ASC CHU-D, created by NAIF, JPL using CHU-D channelized telemetry quaternions.
+            </description>
+        </kernel>
+        <kernel pattern="juno_mobib_rec_2106[0-9]{2}_2106[0-9]{2}_v[0-9]{2}.bc">
+            <mklabel_options>PHASE_ORB INST_MAG TEAM_NAIF</mklabel_options>
+            <description>SPICE CK file containing reconstructed orientation of the MAG IN-BOARD MOB, created by NAIF, JPL using channelized telemetry quaternions from two CHUs mounted on it.
+            </description>
+        </kernel>
+        <kernel pattern="juno_mobib_rec_2106[0-9]{2}_2107[0-9]{2}_v[0-9]{2}.bc">
+            <mklabel_options>PHASE_ORB_EXT INST_MAG TEAM_NAIF</mklabel_options>
+            <description>SPICE CK file containing reconstructed orientation of the MAG IN-BOARD MOB, created by NAIF, JPL using channelized telemetry quaternions from two CHUs mounted on it.
+            </description>
+        </kernel>
+        <kernel pattern="juno_mobib_rec_2107[0-9]{2}_[0-9]{6}_v[0-9]{2}.bc">
+            <mklabel_options>PHASE_EXT INST_MAG TEAM_NAIF</mklabel_options>
+            <description>SPICE CK file containing reconstructed orientation of the MAG IN-BOARD MOB, created by NAIF, JPL using channelized telemetry quaternions from two CHUs mounted on it.
+            </description>
+        </kernel>
+        <kernel pattern="juno_mobib_rec_2108[0-9]{2}_[0-9]{6}_v[0-9]{2}.bc">
+            <mklabel_options>PHASE_EXT INST_MAG TEAM_NAIF</mklabel_options>
+            <description>SPICE CK file containing reconstructed orientation of the MAG IN-BOARD MOB, created by NAIF, JPL using channelized telemetry quaternions from two CHUs mounted on it.
             </description>
         </kernel>
 
+        <kernel pattern="juno_uvs_rec_[0-9]{6}_[0-9]{6}_v[0-9]{2}.bc">
+            <mklabel_options>PHASE_ORB_EXT INST_UVS TEAM_NAIF</mklabel_options>
+            <description>SPICE CK file containing reconstructed orientation of the JUNO UVS instrument internal mirror, created by NAIF, JPL by merging data from individual UVS CKs produced by the UVS Team, SWRI.
+            </description>
+        </kernel>
+        <kernel pattern="juno_mobib_ali_[0-9]{6}_[0-9]{6}_avg_v[0-9]{2}.bc">
+            <mklabel_options>PHASE_ORB_EXT INST_MAG TEAM_NAIF</mklabel_options>
+            <description>SPICE CK file containing averaged time-varying alignment of the MAG $MOB MOB with respect to the spacecraft frame, created by NAIF.
+            </description>
+        </kernel>
 
-
-
-
-        <kernel pattern="mro_sa_psp_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]p.bc">
-            <mklabel_options>NAIF SA PREDICT ESP</mklabel_options>
-            <description>MRO SPICE CK file providing predicted orientation of the Solar Arrays (SA) modeled by the MRO Spacecraft Team, LMA using the AtArPS tool for a part of the Extended Science phase of the mission, created by NAIF, JPL. $ORIGINAL
+        <!-- Testing patterns with wildcards in values -->
+        <kernel pattern="^juno_mob[a-z]b_ali_[0-9]{6}_[0-9]{6}_thm_v[0-9]{2}.bc">
+            <mklabel_options>PHASE_ORB_EXT INST_SC TEAM_NAIF</mklabel_options>
+            <description>SPICE CK file containing time-varying alignment of the MAG $MOB MOB with respect to the spacecraft frame, based on solar array and SRU bracket temperature-induced flexing model by DTU, created by FGM Team, GSFC.
             </description>
             <patterns>
-                <ORIGINAL file="COMMENT">The original name of this file was</ORIGINAL>
+                <MOB value="juno_mobib_ali">IN-BOARD</MOB>
+                <MOB value="juno_mobob_ali">OUT-BOARD</MOB>
             </patterns>
         </kernel>
-        <kernel pattern="mro_sc_psp_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]p.bc">
-            <mklabel_options>NAIF SC PREDICT ESP</mklabel_options>
-            <description>MRO SPICE CK file providing predicted orientation of the MRO spacecraft bus modeled by the MRO Spacecraft Team, LMA using the AtArPS tool for a part of the Extended Science phase of the mission, created by NAIF, JPL. $ORIGINAL
+        <kernel pattern="juno_chu[a-z]{1}_ali_[0-9]{6}_[0-9]{6}_avg_v[0-9]{2}.bc">
+            <mklabel_options>PHASE_ORB_EXT INST_MAG TEAM_NAIF</mklabel_options>
+            <description> SPICE CK file containing averaged time-varying alignment of the MAG ASC CHU-$CHU with respect to the spacecraft frame, created by NAIF.
             </description>
             <patterns>
-                <ORIGINAL file="COMMENT">The original name of this file was</ORIGINAL>
+                <CHU value="juno_chub_ali">B</CHU>
+                <CHU value="juno_chuc_ali">C</CHU>
+                <CHU value="juno_chud_ali">D</CHU>
             </patterns>
         </kernel>
-        <kernel pattern="mro_hga_psp_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9].bc">
-            <mklabel_options>NAIF HGA ESP</mklabel_options>
-            <description>MRO SPICE CK file providing actual telemetry-based orientation of the High Gain Antenna (HGA) for a part of the Extended Science phase of the mission, created by NAIF, JPL.
+        <kernel pattern="juno_chu[a-z]{1}_ali_[0-9]{6}_[0-9]{6}_avg_v[0-9]{2}.bc">
+            <mklabel_options>PHASE_ORB_EXT INST_MAG TEAM_NAIF</mklabel_options>
+            <description> SPICE CK file containing averaged time-varying alignment of the MAG ASC CHU-$CHU with respect to the spacecraft frame, created by NAIF.
             </description>
+            <patterns>
+                <CHU value="juno_chub_ali">B</CHU>
+                <CHU value="juno_chuc_ali">C</CHU>
+                <CHU value="juno_chud_ali">D</CHU>
+            </patterns>
         </kernel>
-        <kernel pattern="mro_sa_psp_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9].bc">
-            <mklabel_options>NAIF SA ESP</mklabel_options>
-            <description>MRO SPICE CK file providing actual telemetry-based orientation of the Solar Arrays (SA) for a part of the Extended Science phase of the mission, created by NAIF, JPL.
-            </description>
-        </kernel>
-        <kernel pattern="mro_sc_psp_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9].bc">
-            <mklabel_options>NAIF SC ESP</mklabel_options>
-            <description>MRO SPICE CK file providing actual telemetry-based orientation of the MRO spacecraft bus for a part of the Extended Science phase of the mission, created by NAIF, JPL.
-            </description>
-        </kernel>
-        <kernel pattern="mro_mcs_psp_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9].bc">
-            <mklabel_options>NAIF MCS ESP</mklabel_options>
-            <description>MRO SPICE CK file providing actual telemetry-based orientation of the Mars Climate Sounder (MCS) instrument for a part of the Extended Science phase of the mission, created by NAIF, JPL from daily files provided by the MCS Team, JPL.
-            </description>
-        </kernel>
-        <kernel pattern="mro_crm_psp_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9].bc">
-            <mklabel_options>NAIF CRISM ESP</mklabel_options>
-            <description>MRO SPICE CK file providing actual telemetry-based orientation of the Compact Reconnaissance Imaging Spectrometer for Mars (CRISM) instrument for a part of the Extended Science phase of the mission, created by NAIF, JPL from daily files provided by the CRISM Team, APL.
-            </description>
-        </kernel>
-        <kernel pattern="mro_[0-9][0-9][0-9][0-9]_v[0-9][0-9].tm">
+
+        <kernel pattern="juno_[0-9][0-9][0-9][0-9]_v[0-9][0-9].tm">
             <mklabel_options>N/A</mklabel_options>
             <description>N/A
             </description>
         </kernel>
+        <kernel pattern="juno_rec_orbit_v[0-9][0-9].orb">
+            <mklabel_options>N/A</mklabel_options>
+            <description>N/A
+            </description>
+        </kernel>
+
     </kernel_list>
 
     <!-- =========================== -->
     <!-- Meta-kernel                 -->
     <!-- =========================== -->
     <meta-kernel>
-        <mk name="mro_$YEAR_v$VERSION.tm">
+        <mk name="juno_$YEAR_v$VERSION.tm">
             <name>
                 <pattern length="2">VERSION</pattern>
                 <pattern length="4">YEAR</pattern>
@@ -314,7 +411,7 @@
     <!-- =========================== -->
     <orbit_number_file>
         <orbnum>
-            <pattern>mro_psp[0-9][0-9].nrb</pattern>
+            <pattern>juno_rec_orbit_v[0-9][0-9].orb</pattern>
         </orbnum>
     </orbit_number_file>
 

@@ -1102,7 +1102,9 @@ The first method to identify patterns in the kernel pattern attribute value is
 by value. In order to do so, the kernel pattern attribute value is set to
 ``value`` and its value corresponds to the actual name of the kernel, without
 patterns, in such a way that the value of the element is substituted by the
-pattern in the resulting description.
+pattern in the resulting description. It is also possible to use a subset of
+the kernel name but this option should be used carefully and only if the subset
+identifies a unique kernel "type".
 
 Going back to the leapseconds example, the complete entry in the kernel list
 would be: ::
@@ -1127,21 +1129,19 @@ have resulted into a runtime error::
 
     RuntimeError: -- Kernel naif0010.tls description could not be updated with pattern.
 
-The names of the elements to map the patterns are defined by the configuration
-file schema. They are currently limited to:
+The names of the elements to map the patterns are defined by the user. Some
+examples are provided hereunder:
 
    * ``ORIGINAL``: specify the original name of the kernel.
    * ``REPORT``: specify the IAU report for PCKs.
    * ``DATE``: specifies a date.
-   * ``FILE``: used to specify the original name of the kernel
-     (``ORIGINAL`` synonym.)
+   * ``FILE``: specify the original name of the kernel
 
 These names are meant to help the archive producers to understand the pattern
-matching. Any of these names can be used regardless of the pattern. If you
-need to add additional elements please contact the NAIF NPB developer.
+matching.
 
-The limitation of this method is that each individual kernel requires an element
-entry in the configuration file.
+The limitation of this method is that each individual kernel type requires an
+element entry in the configuration file.
 
 
 Match by pattern
@@ -1518,9 +1518,9 @@ Coverage determination
 
 Whether if you generate the MKs automatically or provide them as inputs, NPB
 needs to know how to determine their coverage. The ``<coverage_kernel>``
-element indicates the kernels that will determine the coverage of the MKs by
-providing a list of kernel patterns and binding each of them to a MK pattern
-using an attribute for each entry.
+element is optional and indicates the kernels that will determine the coverage
+of the MKs by providing a list of kernel patterns and binding each of them to a
+MK pattern using an attribute for each entry.
 
 The kernel pattern must match a kernel that is included in the MK.
 What follows is a Mars 2020 configuration file extract example::
@@ -1537,8 +1537,12 @@ by the kernels included in the MK defined by the pattern. For example::
    m2020_cruise_od138_v1.bsp
    m2020_surf_rover_loc_0001_0083_v1.bsp
 
+If the ``<coverage_kernel>`` element is not specified the MK coverage will be
+set to the mission start and mission stop times specified in
+:ref:`source/42_npb_configration_file:Mission Parameters`.
+
 Please note that unless specified via configuration, the combined coverage
-of MKs for which kernels have been provided to determine the coverage will
+of MKs for which kernels have been provided to determine their coverage will
 be used to determine the coverage of the SPICE Kernels and Miscellaneous
 Collections and the Bundle coverage. More details are provided in the section
 :ref:`source/22_pds4_spice_archive:Product Coverage Assignment Rules`.
