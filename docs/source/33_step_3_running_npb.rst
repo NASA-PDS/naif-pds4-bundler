@@ -90,7 +90,6 @@ Here's an example of a ``WARNING`` message in the log::
    INFO    : -------------------------------------------
    INFO    :
    INFO    : -- LSK     loaded: ['/kernels/lsk/naif0012.tls']
-   WARNING : -- PCK not found.
    WARNING : -- FK not found.
    INFO    : -- SCLK(s) loaded: ['/kernels/sclk/NSY_SCLKSCET.00019.tsc']
 
@@ -105,7 +104,7 @@ After you run NPB (successfully or not) one of the by-products that NPB
 generates is the **File List**. This File List is the value that is provided to
 this argument. For example::
 
-   $ naif-pds4-bundler maven_release_26.xml -c working/maven_release_26.file_list -v
+   $ naif-pds4-bundler maven_release_26.xml -p working/maven_release_26.plan -c working/maven_release_26.file_list -v
 
 By default, using this argument will stop the execution when the workspace
 has been cleared.

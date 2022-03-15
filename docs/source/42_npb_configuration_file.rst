@@ -503,10 +503,16 @@ The Information Model
 
 The ``information_model`` parameter will determine the PDS4 artifacts templates
 that will be used for the bundle generation. NPB provides different templates
-depending on the specified IM.
+depending on the specified IM. The available templates are located under
+``naif-pds4-bundler/src/pds/naif_pds4_bundler/templates``.
 
-NAIF recommends to use IM 1.5.0.0, but if you need to include a DOI in the bundle
-label you can use IM 1.14.0.0 or higher.
+NAIF currently uses IM 1.5.0.0 for all its archives, but it is recommended to
+use IM 1.16.0.0 or higher especially if you need to include a DOI in the bundle
+label and have Line Feed (LF) as line endings for all the products. NPB will
+choose the templates that apply to the version you specify: if the IM is equal
+or higher than one of the available version templates, these templates will be
+used. You can also specify a directory with your own templates, see
+section :ref:`source/42_npb_configuration_file:Templates Directory`.
 
 The choice of the IM will determine the ``xml_model`` and ``schema_location``
 values. The only element value that will change is the one that specifies the IM
@@ -516,7 +522,6 @@ The IM choice impacts other elements of the configuration file
 and of the archive generation such as some contents of the SPICEDS file and
 the templates used for the generation of PDS artifacts. These impacts are
 described in the appropriate sections.
-
 
 Context Products
 ^^^^^^^^^^^^^^^^
@@ -984,6 +989,22 @@ of the required and optional directories:
 
 More information on the setup of the NPB directories is provided in
 :ref:`source/32_step_2_npb_setup:Workspace Setup`.
+
+
+Templates Directory
+^^^^^^^^^^^^^^^^^^^
+
+This entry is optional and specifies the directory where your own templates
+reside. These templates need to follow the specifications of the
+templates provided with NPB. An example of user provided templates is available
+for the ExoMars2016 bundle under
+``naif-pds4-bundler/tests/naif_pds4_bundler/templates/em16``.
+
+The templates need to include all the keywords present in the default NPB
+templates. These keywords start with ``$`` and are uppercase. You will also need
+to make sure that the resulting PDS4 products are correct by running the PDS
+validate tool against them. It is also recommended to provide them to NAIF for
+review.
 
 
 Kernel List
@@ -1539,7 +1560,7 @@ by the kernels included in the MK defined by the pattern. For example::
 
 If the ``<coverage_kernel>`` element is not specified the MK coverage will be
 set to the mission start and mission stop times specified in
-:ref:`source/42_npb_configration_file:Mission Parameters`.
+:ref:`source/42_npb_configuration_file:Mission Parameters`.
 
 Please note that unless specified via configuration, the combined coverage
 of MKs for which kernels have been provided to determine their coverage will

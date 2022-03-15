@@ -589,10 +589,12 @@ approach to archives: archived files should never be changed.
 
 Because of this NAIF recommends to archive producers to choose an IM and to
 stick with it (as much as possible) throughout all the archive releases. At this
-point NAIF recommends the usage IM 1.5.0.0 which is the one used by all the NAIF
-PDS4 Bundles. IM 1.5.0.0 does not support the usage of Line-Feed line endings
-(LF) for products, nor does it support the inclusion of Digital Object
-Identifiers (DOIs) in the bundle label.
+point NAIF uses IM 1.5.0.0 for all the NAIF PDS4 Bundles. IM 1.5.0.0 does not
+support the usage of Line-Feed line endings (LF) for products, nor does it
+support the inclusion of Digital Object Identifiers (DOIs) in the bundle label.
+DOIs where included in IM 1.11.0.0, -the ExoMars2016 PDS4 Bundle uses IM 1.11.0.0
+to be able to incorporate DOIs- and LF for products was incorporated in IM
+1.16.0.0; because of that NAIF recommends to use IM 1.16.0.0 for new archives.
 
 
 Digital Objects Identifiers
