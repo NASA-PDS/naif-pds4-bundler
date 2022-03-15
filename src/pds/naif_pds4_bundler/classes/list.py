@@ -602,11 +602,6 @@ class KernelList(List):
 
         self.list_name = list_name
 
-        #
-        # Add kernel the list of generated files.
-        #
-        self.setup.add_file(f"/working_directory/{list_name}")
-
         self.validate()
 
         return

@@ -441,7 +441,7 @@ class TestINSIGHT(TestCase):
                 diff="all",
             )
 
-        main(updated_config, clear='working/insight_release_08.file_list',
+        main(updated_config, plan, clear='working/insight_release_08.file_list',
              silent=self.silent, log=self.log, diff="all")
 
         with open(config, "r") as c:

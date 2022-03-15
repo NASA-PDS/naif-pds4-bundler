@@ -77,7 +77,7 @@ class TestSpiceErrors(TestCase):
 
         main(config, plan=plan, silent=self.silent, log=self.log)
 
-        main(config, clear='working/mars2020_release_01.file_list',
+        main(config, plan=plan, clear='working/mars2020_release_01.file_list',
              silent=self.silent, log=self.log)
 
         main(config, plan=plan, silent=self.silent, log=self.log,

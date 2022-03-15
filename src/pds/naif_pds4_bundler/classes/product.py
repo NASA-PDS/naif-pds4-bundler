@@ -2869,14 +2869,16 @@ class InventoryProduct(Product):
 
     def __init__(self, setup, collection):
         """Constructor."""
-        line = f"Step {setup.step} - Generation of {collection.name} collection"
-        logging.info("")
-        logging.info(line)
-        logging.info("-" * len(line))
-        logging.info("")
-        setup.step += 1
-        if not setup.args.silent and not setup.args.verbose:
-            print("-- " + line.split(" - ")[-1] + ".")
+
+        if collection.name != 'miscellaneous':
+            line = f"Step {setup.step} - Generation of {collection.name} collection"
+            logging.info("")
+            logging.info(line)
+            logging.info("-" * len(line))
+            logging.info("")
+            setup.step += 1
+            if not setup.args.silent and not setup.args.verbose:
+                print("-- " + line.split(" - ")[-1] + ".")
 
         self.setup = setup
         self.collection = collection
@@ -3618,6 +3620,15 @@ class ChecksumProduct(Product):
             self.setup.staging_directory + os.sep + "miscellaneous" + os.sep
         )
 
+        line = f"Step {self.setup.step} - Generate checksum file"
+        logging.info("")
+        logging.info(line)
+        logging.info("-" * len(line))
+        logging.info("")
+        self.setup.step += 1
+        if not self.setup.args.silent and not self.setup.args.verbose:
+            print("-- " + line.split(" - ")[-1] + ".")
+
         #
         # We generate the kernel directory if not present
         #
@@ -3655,15 +3666,6 @@ class ChecksumProduct(Product):
         :param history:
         :return:
         """
-        line = f"Step {self.setup.step} - Generate checksum file"
-        logging.info("")
-        logging.info(line)
-        logging.info("-" * len(line))
-        logging.info("")
-        self.setup.step += 1
-        if not self.setup.args.silent and not self.setup.args.verbose:
-            print("-- " + line.split(" - ")[-1] + ".")
-
         #
         # This acts as the second part of the Checksum product initialization.
         #

@@ -391,11 +391,11 @@ class SpiceKernelsCollection(Collection):
             #
             if prev_increment_start < increment_start:
                 increment_start = prev_increment_start
-                logging.warning("-- Increment start corrected from previous bundle")
+                logging.warning("-- Increment start corrected from previous bundle.")
 
             if prev_increment_finish > increment_finish:
                 increment_finish = prev_increment_finish
-                logging.warning("-- Increment finish corrected form previous bundle")
+                logging.warning("-- Increment finish corrected form previous bundle.")
 
         except BaseException:
             logging.warning("-- Previous bundle not found.")
@@ -635,6 +635,15 @@ class MiscellaneousCollection(Collection):
             self.type = "miscellaneous"
         else:
             self.type = "extras"
+
+        line = f"Step {setup.step} - Generation of {self.type} collection"
+        logging.info("")
+        logging.info(line)
+        logging.info("-" * len(line))
+        logging.info("")
+        setup.step += 1
+        if not setup.args.silent and not setup.args.verbose:
+            print("-- " + line.split(" - ")[-1] + ".")
 
         #
         # Included for ORBNUM files observers and targets.

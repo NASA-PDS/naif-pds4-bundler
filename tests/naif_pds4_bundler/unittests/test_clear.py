@@ -45,7 +45,7 @@ class TestClear(TestCase):
         """
         unittest.TestCase.tearDown(self)
 
-        dirs = ["working", "staging", "insight", "kernels"]
+        dirs = ["working", "staging", "insight", "kernels", "ladee"]
         for dir in dirs:
             shutil.rmtree(dir, ignore_errors=True)
 
@@ -154,6 +154,36 @@ class TestClear(TestCase):
         # Run the pipeline again.
         #
         main(config, plan, "bundle", silent=self.silent, log=self.log)
+
+    def test_clear_label_mode(self):
+        """Test clear option in label mode.
+
+        The test is implemented to check the deletion of the kernel list for
+        label mode.
+
+        Test is successful if NPB is executed without errors.
+        """
+        os.makedirs("working", mode=0o777, exist_ok=True)
+        os.makedirs("staging", mode=0o777, exist_ok=True)
+        os.makedirs("ladee", mode=0o777, exist_ok=True)
+        shutil.rmtree("kernels", ignore_errors=True)
+        shutil.copytree(
+            "../data/regression/ladee_spice/spice_kernels",
+            "kernels",
+            ignore=shutil.ignore_patterns("*.xml", "*.csv"),
+        )
+
+        config = "../config/ladee.xml"
+
+        main(config, plan=False, faucet="labels", silent=True, log=self.log)
+
+        main(
+            config,
+            plan="working/ladee_labels_01.plan",
+            clear="working/ladee_labels_01.file_list",
+            silent=True,
+            log=self.log,
+        )
 
 
 if __name__ == "__main__":
