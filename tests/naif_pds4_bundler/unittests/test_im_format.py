@@ -198,6 +198,44 @@ class TestIMFormat(TestCase):
         with self.assertRaises(RuntimeError):
             main(self.updated_config, faucet=self.faucet, silent=True)
 
+    def test_im_templates(self):
+        """Test appropriate selection of templates for the IM."""
+        with open(self.config, "r") as c:
+            with open(self.updated_config, "w") as n:
+                for line in c:
+                    if "<information_model>1.5.0.0</information_model>" in line:
+                        n.write("<information_model>1.19.0.0</information_model>\n")
+                    elif (
+                        "<xml_model>http://pds.nasa.gov/pds4/pds/v1/"
+                        "PDS4_PDS_1500.sch</xml_model>\n" in line
+                    ):
+                        n.write(
+                            "<xml_model>http://pds.nasa.gov/pds4/pds/v1/"
+                            "PDS4_PDS_1J00.sch</xml_model>\n"
+                        )
+                    elif (
+                        "<schema_location>http://pds.nasa.gov/pds4/pds/v1 "
+                        "http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd" in line
+                    ):
+                        n.write(
+                            "<schema_location>http://pds.nasa.gov/pds4/pds/"
+                            "v1 http://pds.nasa.gov/pds4/pds/v1/"
+                            "PDS4_PDS_1J00.xsd\n"
+                        )
+                    else:
+                        n.write(line)
+
+        main(self.updated_config, faucet=self.faucet, silent=True, log=True)
+
+        line_in_log = False
+        with open('working/insight_release_01.log', 'r') as log:
+            for line in log:
+                if 'Label templates will use the ones from information model 1.16.0.0.' in line:
+                    line_in_log = True
+
+        self.assertTrue(line_in_log)
+
+
 
 if __name__ == "__main__":
     unittest.main()
