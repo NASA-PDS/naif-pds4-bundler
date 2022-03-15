@@ -14,6 +14,7 @@ NAIF PDS4 Bundler Documentation
    source/30_spice_kernel_archive_preparation_guide
    source/40_naif_pds4_bundler_user_guide
    source/50_api_docs
+   source/60_annex_npb_for_pds3
 
 Indices and tables
 ==================
