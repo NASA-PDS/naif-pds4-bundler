@@ -330,11 +330,6 @@ class TestKernelList(TestCase):
                 if "DATE =" not in line:
                     new_file += line
 
-        shutil.copy2(
-            "../data/vco_release_01.kernel_list",
-            "working/vco_release_01.kernel_list"
-        )
-
         old_file = ""
         with open("../data/vco_release_01.kernel_list", "r") as f:
             for line in f:
