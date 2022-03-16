@@ -33,6 +33,7 @@ class TestKernelList(TestCase):
             "maven",
             "mars2020",
             "orex",
+            "vco",
         ]
         for dir in dirs:
             shutil.rmtree(dir, ignore_errors=True)
@@ -57,6 +58,7 @@ class TestKernelList(TestCase):
             "maven",
             "mars2020",
             "orex",
+            "vco",
         ]
         for dir in dirs:
             os.mkdir(dir)
@@ -78,6 +80,7 @@ class TestKernelList(TestCase):
             "maven",
             "mars2020",
             "orex",
+            "vco",
         ]
         for dir in dirs:
             shutil.rmtree(dir, ignore_errors=True)
@@ -278,7 +281,6 @@ class TestKernelList(TestCase):
 
         self.assertEqual(old_file.split("\n")[7:], new_file.split("\n")[7:])
 
-
     def test_pds3_juno_list(self):
         """Basic test for JUNO kernel list generation.
 
@@ -304,6 +306,37 @@ class TestKernelList(TestCase):
 
         old_file = ""
         with open("../data/juno_release_18.kernel_list", "r") as f:
+            for line in f:
+                if "DATE =" not in line:
+                    old_file += line
+
+        self.assertEqual(old_file.split("\n")[7:], new_file.split("\n")[7:])
+
+    def test_pds4_vco_list(self):
+        """Basic test for Venus Climate Orbiter Akatsuki kernel list generation.
+
+        This test was implemented to setup VCO PDS4 bundle generation migrated
+        from PDS3 for DARTS/JAXA.
+        """
+        config = "../config/vco.xml"
+        plan = "../data/vco_release_01.plan"
+        faucet = "list"
+
+        main(config, plan, faucet, silent=self.silent)
+
+        new_file = ""
+        with open("working/vco_release_01.kernel_list", "r") as f:
+            for line in f:
+                if "DATE =" not in line:
+                    new_file += line
+
+        shutil.copy2(
+            "../data/vco_release_01.kernel_list",
+            "working/vco_release_01.kernel_list"
+        )
+
+        old_file = ""
+        with open("../data/vco_release_01.kernel_list", "r") as f:
             for line in f:
                 if "DATE =" not in line:
                     old_file += line

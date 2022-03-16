@@ -683,6 +683,16 @@ along with the elements included in the configuration:
      archive generation.
 
 If present these elements should have the same value for all archive releases.
+
+Otherwise if a path for the readme file is specified the following element
+needs to be included in the configuration:
+
+   * ``input`` provides the relative or absolute path to the input readme file.
+
+This element of the configuration file must be present, when a readme file
+already exists in a bundle its generation will be ignored.
+
+
 More information on the readme file is provided in section
 :ref:`source/22_pds4_spice_archive:Bundle Products Construction Rules`.
 

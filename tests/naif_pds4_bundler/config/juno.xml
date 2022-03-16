@@ -144,6 +144,9 @@
                 <TEAM_NAV>
                     <PRODUCER_ID>"JUNO NAV/JPL"</PRODUCER_ID>
                 </TEAM_NAV>
+                <TEAM_FGM>
+                    <PRODUCER_ID>"FGM TEAM/GSFC"</PRODUCER_ID>
+                </TEAM_FGM>
                 <!--                                                         -->
                 <!-- Label keys for product version types                    -->
                 <!--                                                         -->
@@ -259,62 +262,62 @@
         </kernel>
 
         <kernel pattern="juno_chub_rec_2106[0-9]{2}_2106[0-9]{2}_v[0-9]{2}.bc">
-            <mklabel_options>PHASE_ORB INST_SC TEAM_NAIF</mklabel_options>
+            <mklabel_options>PHASE_ORB INST_MAG TEAM_NAIF</mklabel_options>
             <description>SPICE CK file containing reconstructed orientation of the MAG ASC CHU-B, created by NAIF, JPL using CHU-B channelized telemetry quaternions.
             </description>
         </kernel>
         <kernel pattern="juno_chuc_rec_2106[0-9]{2}_2106[0-9]{2}_v[0-9]{2}.bc">
-            <mklabel_options>PHASE_ORB INST_SC TEAM_NAIF</mklabel_options>
+            <mklabel_options>PHASE_ORB INST_MAG TEAM_NAIF</mklabel_options>
             <description>SPICE CK file containing reconstructed orientation of the MAG ASC CHU-C, created by NAIF, JPL using CHU-C channelized telemetry quaternions.
             </description>
         </kernel>
         <kernel pattern="juno_chud_rec_2106[0-9]{2}_2106[0-9]{2}_v[0-9]{2}.bc">
-            <mklabel_options>PHASE_ORB INST_SC TEAM_NAIF</mklabel_options>
+            <mklabel_options>PHASE_ORB INST_MAG TEAM_NAIF</mklabel_options>
             <description>SPICE CK file containing reconstructed orientation of the MAG ASC CHU-D, created by NAIF, JPL using CHU-D channelized telemetry quaternions.
             </description>
         </kernel>
         <kernel pattern="juno_chub_rec_2106[0-9]{2}_2107[0-9]{2}_v[0-9]{2}.bc">
-            <mklabel_options>PHASE_ORB_EXT INST_SC TEAM_NAIF</mklabel_options>
+            <mklabel_options>PHASE_ORB_EXT INST_MAG TEAM_NAIF</mklabel_options>
             <description>SPICE CK file containing reconstructed orientation of the MAG ASC CHU-B, created by NAIF, JPL using CHU-B channelized telemetry quaternions.
             </description>
         </kernel>
         <kernel pattern="juno_chuc_rec_2106[0-9]{2}_2107[0-9]{2}_v[0-9]{2}.bc">
-            <mklabel_options>PHASE_ORB_EXT INST_SC TEAM_NAIF</mklabel_options>
+            <mklabel_options>PHASE_ORB_EXT INST_MAG TEAM_NAIF</mklabel_options>
             <description>SPICE CK file containing reconstructed orientation of the MAG ASC CHU-C, created by NAIF, JPL using CHU-C channelized telemetry quaternions.
             </description>
         </kernel>
         <kernel pattern="juno_chud_rec_2106[0-9]{2}_2107[0-9]{2}_v[0-9]{2}.bc">
-            <mklabel_options>PHASE_ORB_EXT INST_SC TEAM_NAIF</mklabel_options>
+            <mklabel_options>PHASE_ORB_EXT INST_MAG TEAM_NAIF</mklabel_options>
             <description>SPICE CK file containing reconstructed orientation of the MAG ASC CHU-D, created by NAIF, JPL using CHU-D channelized telemetry quaternions.
             </description>
         </kernel>
         <kernel pattern="juno_chub_rec_2107[0-9]{2}_[0-9]{6}_v[0-9]{2}.bc">
-            <mklabel_options>PHASE_EXT INST_SC TEAM_NAIF</mklabel_options>
+            <mklabel_options>PHASE_EXT INST_MAG TEAM_NAIF</mklabel_options>
             <description>SPICE CK file containing reconstructed orientation of the MAG ASC CHU-B, created by NAIF, JPL using CHU-B channelized telemetry quaternions.
             </description>
         </kernel>
         <kernel pattern="juno_chuc_rec_2107[0-9]{2}_[0-9]{6}_v[0-9]{2}.bc">
-            <mklabel_options>PHASE_EXT INST_SC TEAM_NAIF</mklabel_options>
+            <mklabel_options>PHASE_EXT INST_MAG TEAM_NAIF</mklabel_options>
             <description>SPICE CK file containing reconstructed orientation of the MAG ASC CHU-C, created by NAIF, JPL using CHU-C channelized telemetry quaternions.
             </description>
         </kernel>
         <kernel pattern="juno_chud_rec_2107[0-9]{2}_[0-9]{6}_v[0-9]{2}.bc">
-            <mklabel_options>PHASE_EXT INST_SC TEAM_NAIF</mklabel_options>
+            <mklabel_options>PHASE_EXT INST_MAG TEAM_NAIF</mklabel_options>
             <description>SPICE CK file containing reconstructed orientation of the MAG ASC CHU-D, created by NAIF, JPL using CHU-D channelized telemetry quaternions.
             </description>
         </kernel>
         <kernel pattern="juno_chub_rec_2108[0-9]{2}_[0-9]{6}_v[0-9]{2}.bc">
-            <mklabel_options>PHASE_EXT INST_SC TEAM_NAIF</mklabel_options>
+            <mklabel_options>PHASE_EXT INST_MAG TEAM_NAIF</mklabel_options>
             <description>SPICE CK file containing reconstructed orientation of the MAG ASC CHU-B, created by NAIF, JPL using CHU-B channelized telemetry quaternions.
             </description>
         </kernel>
         <kernel pattern="juno_chuc_rec_2108[0-9]{2}_[0-9]{6}_v[0-9]{2}.bc">
-            <mklabel_options>PHASE_EXT INST_SC TEAM_NAIF</mklabel_options>
+            <mklabel_options>PHASE_EXT INST_MAG TEAM_NAIF</mklabel_options>
             <description>SPICE CK file containing reconstructed orientation of the MAG ASC CHU-C, created by NAIF, JPL using CHU-C channelized telemetry quaternions.
             </description>
         </kernel>
         <kernel pattern="juno_chud_rec_2108[0-9]{2}_[0-9]{6}_v[0-9]{2}.bc">
-            <mklabel_options>PHASE_EXT INST_SC TEAM_NAIF</mklabel_options>
+            <mklabel_options>PHASE_EXT INST_MAG TEAM_NAIF</mklabel_options>
             <description>SPICE CK file containing reconstructed orientation of the MAG ASC CHU-D, created by NAIF, JPL using CHU-D channelized telemetry quaternions.
             </description>
         </kernel>
@@ -348,11 +351,15 @@
             <mklabel_options>PHASE_ORB_EXT INST_MAG TEAM_NAIF</mklabel_options>
             <description>SPICE CK file containing averaged time-varying alignment of the MAG $MOB MOB with respect to the spacecraft frame, created by NAIF.
             </description>
+            <patterns>
+                <MOB value="juno_mobib_ali">IN-BOARD</MOB>
+                <MOB value="juno_mobob_ali">OUT-BOARD</MOB>
+            </patterns>
         </kernel>
 
         <!-- Testing patterns with wildcards in values -->
         <kernel pattern="^juno_mob[a-z]b_ali_[0-9]{6}_[0-9]{6}_thm_v[0-9]{2}.bc">
-            <mklabel_options>PHASE_EXT INST_SC TEAM_NAIF</mklabel_options>
+            <mklabel_options>PHASE_EXT INST_MAG TEAM_FGM</mklabel_options>
             <description>SPICE CK file containing time-varying alignment of the MAG $MOB MOB with respect to the spacecraft frame, based on solar array and SRU bracket temperature-induced flexing model by DTU, created by FGM Team, GSFC.
             </description>
             <patterns>
