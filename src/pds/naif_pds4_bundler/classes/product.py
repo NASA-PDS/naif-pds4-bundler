@@ -1328,7 +1328,6 @@ class MetaKernelProduct(Product):
         )
         compare_files(fromfile, tofile, dir, self.setup.diff)
 
-    @spice_exception_handler
     def validate(self):
         """Perform a basic validation of the Meta-kernel.
 
@@ -1360,28 +1359,30 @@ class MetaKernelProduct(Product):
         os.chdir(mkdir)
 
         spiceypy.kclear()
-        spiceypy.furnsh(path)
+        try:
+            spiceypy.furnsh(path)
 
-        #
-        # In KTOTAL, all meta-kernels are counted in the total; therefore
-        # we need to subtract 1 kernel.
-        #
-        ker_num_fr = spiceypy.ktotal("ALL") - 1
-        ker_num_mk = self.collection_metakernel.__len__()
+            #
+            # In KTOTAL, all meta-kernels are counted in the total; therefore
+            # we need to subtract 1 kernel.
+            #
+            ker_num_fr = spiceypy.ktotal("ALL") - 1
+            ker_num_mk = self.collection_metakernel.__len__()
 
-        logging.info(f"-- Kernels loaded with FURNSH: {ker_num_fr}")
-        logging.info(f"-- Kernels present in {self.name}: {ker_num_mk}")
+            logging.info(f"-- Kernels loaded with FURNSH: {ker_num_fr}")
+            logging.info(f"-- Kernels present in {self.name}: {ker_num_mk}")
 
-        if ker_num_fr != ker_num_mk:
-            spiceypy.kclear()
-            error_message(
-                "Number of kernels loaded is not equal to kernels "
-                "present in meta-kernel.",
-                setup=self.setup,
-            )
+            if ker_num_fr != ker_num_mk:
+                spiceypy.kclear()
+                logging.error(
+                    "-- Number of kernels loaded is not equal to kernels "
+                    "present in meta-kernel.",
+                )
+
+        except BaseException:
+            logging.error(f"-- The MK could not be loaded with the SPICE API FURNSH.")
 
         spiceypy.kclear()
-
         os.chdir(cwd)
 
         return
