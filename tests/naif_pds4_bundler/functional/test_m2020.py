@@ -314,6 +314,31 @@ class TestMars2020(TestCase):
         if not string_in_file("working/mars2020_release_01.log", line_check, 1):
             raise BaseException
 
+    def test_m2020_mks_incorrect_path(self):
+        """Test when a MK has an incorrect path.
+
+        Test when a MK has an incorrect path, the NPB execution should not be
+        stopped because this can be intentional (VCO's MKs.)
+
+        Test is successful if NPB is executed without errors.
+        """
+        config = "../config/mars2020.xml"
+        plan = "../data/mars2020_release_00.plan"
+
+        shutil.move('kernels/mk/m2020_v01.tm', 'kernels/mk/m2020.tm')
+        with open('kernels/mk/m2020.tm', "r") as c:
+            with open('kernels/mk/m2020_v01.tm', "w") as n:
+                for line in c:
+                    if "PATH_VALUES       = ( '..'      )" in line:
+                        n.write("PATH_VALUES       = ( './'      )\n")
+                    else:
+                        n.write(line)
+
+        main(config, plan=plan, silent=self.silent, log=self.log)
+
+        line_check = "The MK could not be loaded with the SPICE API FURNSH."
+        if not string_in_file("working/mars2020_release_01.log", line_check, 1):
+            raise BaseException
 
 if __name__ == "__main__":
     unittest.main()
