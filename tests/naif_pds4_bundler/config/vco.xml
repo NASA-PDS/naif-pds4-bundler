@@ -125,7 +125,7 @@
                  instrument, created by ISAS/JAXA.
             </description>
         </kernel>
-        <kernel pattern="vco_v[0-9].tsc">
+        <kernel pattern="vco_v[0-9][0-9].tsc">
             <description>VCO SPICE Spacecraft Clock Kernel (SCLK) file containing information required for the Venus Climate Orbiter (VCO,
                  also known as PLANET-C and AKATSUKI) spacecraft on-board clock to UTC conversion.
             </description>

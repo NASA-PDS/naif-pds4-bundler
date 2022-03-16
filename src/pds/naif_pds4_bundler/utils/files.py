@@ -380,7 +380,7 @@ def mk_to_list(mk, setup):
     """Generate a list of kernels from a Meta-kernel.
 
     This function assumes that the meta-kernel will contain a PATH_SYMBOLS
-    definition that will be present in each kernel entry preceeded by a dollar
+    definition that will be present in each kernel entry preceded by a dollar
     sign ``$``.
 
     If no kernel is found an error is raised.
@@ -390,10 +390,10 @@ def mk_to_list(mk, setup):
     :rtype: list
     """
     path_symbol = ""
+    get_symbol = False
     ker_mk_list = []
     with open(mk, "r") as f:
         for line in f:
-
             if path_symbol:
                 if path_symbol in line:
                     kernel = line.split("'")[1]
@@ -402,11 +402,28 @@ def mk_to_list(mk, setup):
                     kernel = kernel.split("\n")[0]
                     kernel = kernel.split("\r")[0]
                     kernel = kernel.split("/")[-1]
-
-                    ker_mk_list.append(kernel)
+                    if kernel:
+                        ker_mk_list.append(kernel)
 
             if "PATH_SYMBOLS" in line.upper():
-                path_symbol = "$" + line.split("'")[1]
+                get_symbol = True
+            if get_symbol:
+                try:
+                    #
+                    # General case, the value is in the same line. e.g.:
+                    #
+                    # PATH_SYMBOLS = ( 'KERNELS' )
+                    #
+                    # but also get the VCO particular case:
+                    #
+                    # PATH_SYMBOLS = (
+                    # 'KERNELS'
+                    # )
+                    #
+                    path_symbol = "$" + line.split("'")[1]
+                    get_symbol = False
+                except BaseException:
+                    pass
 
     if not ker_mk_list:
         error_message(
