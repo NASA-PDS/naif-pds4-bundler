@@ -569,8 +569,8 @@ class SpiceKernelsCollection(Collection):
 
         for product in self.product:
             label_path = self.setup.staging_directory + ker_dir + product.type
-            label_name = product.name.split(".")[0] + lbl_ext
-            with open(f"{label_path}/{label_name}", "r") as p:
+            label_name = product.label.name
+            with open(label_name, "r") as p:
                 for line in p:
                     for element in elements:
                         if element in line:
