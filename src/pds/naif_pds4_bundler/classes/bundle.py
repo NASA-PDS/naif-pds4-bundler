@@ -738,7 +738,11 @@ class Bundle(object):
             )
             with open(checksum_file) as c:
                 for line in c:
-                    products_in_checksum.append(line.split()[-1].strip())
+                    #
+                    # Need to convert the file names to lower case because this
+                    # is the way that the bundle history is generated.
+                    #
+                    products_in_checksum.append(line.split()[-1].strip().lower())
 
             #
             # The last checksum and its label have to be added to the products
