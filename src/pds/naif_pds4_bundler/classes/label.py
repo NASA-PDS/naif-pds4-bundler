@@ -162,6 +162,8 @@ class PDSLabel(object):
                     if product["name"][0] == ob_name and (
                         product["type"][0] == "Spacecraft"
                         or product["type"][0] == "Rover"
+                        or product["type"][0] == "Lander"
+                        or product["type"][0] == "Host"
                     ):
                         ob_lid = product["lidvid"].split("::")[0]
 
