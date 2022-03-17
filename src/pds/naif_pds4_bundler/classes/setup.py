@@ -625,6 +625,22 @@ class Setup(object):
             else:
                 error_message("Readme elements not present in configuration file.")
 
+        #
+        # Check if there is any uppercase letter in the kernel list
+        # configuration section.
+        #
+        kernel_pattern_is_upper = False
+        kernel_pattern_upper = []
+        for kernel_pattern in self.kernel_list_config.keys():
+            if any(ele.isupper() for ele in kernel_pattern):
+                kernel_pattern_is_upper = True
+                kernel_pattern_upper.append(kernel_pattern)
+        if kernel_pattern_is_upper:
+            logging.warning('-- Kernel list configuration has entries with uppercase letters:')
+            for kernel_pattern in kernel_pattern_upper:
+                logging.warning(f'      {kernel_pattern}')
+            logging.warning('   Uppercase letters in kernel names are discouraged. ')
+
         return None
 
     def set_release(self):
