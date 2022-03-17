@@ -34,6 +34,7 @@ class TestKernelList(TestCase):
             "mars2020",
             "orex",
             "vco",
+            "hyb2",
         ]
         for dir in dirs:
             shutil.rmtree(dir, ignore_errors=True)
@@ -59,6 +60,7 @@ class TestKernelList(TestCase):
             "mars2020",
             "orex",
             "vco",
+            "hyb2",
         ]
         for dir in dirs:
             os.mkdir(dir)
@@ -81,6 +83,7 @@ class TestKernelList(TestCase):
             "mars2020",
             "orex",
             "vco",
+            "hyb2",
         ]
         for dir in dirs:
             shutil.rmtree(dir, ignore_errors=True)
@@ -338,6 +341,32 @@ class TestKernelList(TestCase):
 
         self.assertEqual(old_file.split("\n")[7:], new_file.split("\n")[7:])
 
+    def test_pds4_hyb2_list(self):
+        """Basic test for Hayabusa2 kernel list generation.
+
+        This test was implemented to setup Hayabusa2 PDS4 bundle generation.
+        It also tests warning messages for uppercase and mixed case kernel
+        names.
+        """
+        config = "../config/hyb2.xml"
+        plan = "../data/hyb2_release_01.plan"
+        faucet = "list"
+
+        main(config, plan, faucet, silent=self.silent, log=True)
+
+        new_file = ""
+        with open("working/hyb2_release_01.kernel_list", "r") as f:
+            for line in f:
+                if "DATE =" not in line:
+                    new_file += line
+
+        old_file = ""
+        with open("../data/hyb2_release_01.kernel_list", "r") as f:
+            for line in f:
+                if "DATE =" not in line:
+                    old_file += line
+
+        self.assertEqual(old_file.split("\n")[7:], new_file.split("\n")[7:])
 
 if __name__ == "__main__":
     unittest.main()
