@@ -308,7 +308,7 @@ class SpiceKernelProduct(Product):
         """
         product_lid = "{}:spice_kernels:{}_{}".format(
             self.setup.logical_identifier, self.type, self.name
-        )
+        ).lower()
 
         return product_lid
 
@@ -840,7 +840,7 @@ class MetaKernelProduct(Product):
 
         product_lid = "{}:spice_kernels:{}_{}".format(
             self.setup.logical_identifier, self.type, name
-        )
+        ).lower()
 
         self.lid = product_lid
 
@@ -1759,7 +1759,7 @@ class OrbnumFileProduct(Product):
         """Set the Product LID."""
         self.lid = "{}:miscellaneous:orbnum_{}".format(
             self.setup.logical_identifier, self.name
-        )
+        ).lower()
 
     def set_product_vid(self):
         """Set the Product VID."""
@@ -3382,7 +3382,7 @@ class SpicedsProduct(object):
 
     def set_product_lid(self):
         """Set the Product LID."""
-        self.lid = f"{self.setup.logical_identifier}:document:spiceds"
+        self.lid = f"{self.setup.logical_identifier}:document:spiceds".lower()
 
     def set_product_vid(self):
         """Set the Product VID."""
@@ -3822,7 +3822,7 @@ class ChecksumProduct(Product):
 
     def set_product_lid(self):
         """Set Product LID."""
-        self.lid = f"{self.setup.logical_identifier}:miscellaneous:checksum_checksum"
+        self.lid = f"{self.setup.logical_identifier}:miscellaneous:checksum_checksum".lower()
 
     def set_product_vid(self):
         """Set Product VID."""
