@@ -165,7 +165,7 @@
                 (VCO, also known as PLANET-C and AKATSUKI) spacecraft created by the PLANET-C Project Team, ISAS/JAXA.
             </description>
         </kernel>
-        <kernel pattern="vco_v[0-9][0-9].tm">
+        <kernel pattern="vco_pds4_v[0-9][0-9].tm">
             <mklabel_options></mklabel_options>
             <description>SPICE MK file listing kernels, created by ISAS, JAXA.</description>
         </kernel>
@@ -175,7 +175,7 @@
     <!-- Meta-kernel                 -->
     <!-- =========================== -->
     <meta-kernel>
-        <mk name="vco_v$VERSION.tm">
+        <mk name="vco_pds4_v$VERSION.tm">
             <name>
                 <pattern length="2">VERSION</pattern>
             </name>

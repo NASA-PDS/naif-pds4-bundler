@@ -1,16 +1,16 @@
-<html lang="en">
-<head>
-  <title>The Hayabusa2 SPICE Data Archive</title>
-</head>
-<body>
+<html>
+  <head>
+    <title>The Hayabusa2 SPICE Data Archive</title>
+  </head>
+  <body>
 
-<pre>
-The HAYABUSA2 SPICE Data Archive
+    <pre>
+The Hayabusa2 SPICE Data Archive
 =======================================================================
 
-  Last update: Jan 16, 2017
+  Last update: March 16, 2022
 
-<a name="Introduction" />
+<a name="Introduction"></a>
 Introduction
 ============
 
@@ -21,7 +21,8 @@ Introduction
    included in the archive, their naming conventions, and provides
    pointers to the SPICE software and documentation.
 
-<a name="Table of Contents" />
+
+<a name="Table of Contents"></a>
 Table of Contents
 =================
 
@@ -39,36 +40,62 @@ Table of Contents
       <a href="#LSK Files">LSK Files</a>
       <a href="#SCLK Files">SCLK Files</a>
       <a href="#FK Files">FK Files</a>
+      <a href="#DSK Files">DSK Files</a>
       <a href="#MK Files">MK Files</a>
    <a href="#File Formats">File Formats</a>
    <a href="#Reference">Reference</a>
    <a href="#Contact">Contact</a>
 
-<a name="Overview" />
+<a name="Overview"></a>
 Overview
 ========
 
-   This archive includes a part of Hayabusa2 SPICE data files
+   This archive includes the complete set of Hayabusa2 SPICE data files
    (kernel files), which can be accessed using SPICE software. The
    SPICE data contain geometric and other ancillary information needed
    to recover the full value of science instrument data. In particular
    SPICE kernels provide spacecraft and planetary ephemerides,
    spacecraft and instrument orientation, instrument mounting
-   alighments, and data needed for relevant time conversions. Data in
+   alignments, and data needed for relevant time conversions. Data in
    the SPICE kernel files must be accessed using the software called
    the SPICE Toolkit produced and distributed by the Navigation and
    Ancillary Information Facility (NAIF) Node of the Planetary Data
    System.
 
+   This archive includes data covering from Hayabusa2 launch, 2014-12-03,
+   through the end time of the latest spacecraft orientation file
+   supplied in the archive. Until the end of the spacecraft lifespan
+   this archive will be accumulating with new data added according to
+   the project archiving plan.
+
+
 <p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
-<a name="Errata" />
+<a name="Errata"></a>
 Errata
 ======
 
-   None.
+   1. This document is a simple HTML document. Providing documents in a
+      simple mark-up format was allowed by earlier versions of the PDS4
+      Standards but became prohibited in later versions starting summer
+      2015. Since using HTML documents was compliant at the time when a
+      similar document was first provided in the MAVEN PDS4 archive and
+      since NAIF strives to make bundle description document format and
+      style consistent across all archives, this document continues
+      to exist in this archive as an HTML document.
+
+   2. No Medium-Gain Antenna (MGA) CK is included. MGA CK may be added in
+      a future release.
+
+   3. No Ion Engine System (IES) CK is included. IES CK may be added in a
+      future release.
+
+   4. No Hayabusa2 spacecraft orientation kernels and trajectory kernels
+      containing data during the six degrees of freedom control mode are
+      included.
+
 
 <p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
-<a name="Archive Contents" />
+<a name="Archive Contents"></a>
 Archive Contents
 ================
 
@@ -87,6 +114,11 @@ Archive Contents
    | | |
    | | |-- *.bc                          Binary CK files.
    | | |-- *.xml                         PDS4 labels for CK files.
+   | |
+   | |-<a href="../spice_kernels/dsk/">[dsk]</a>                             Directory containing DSK files.
+   | | |
+   | | |-- *.bds                         Binary DSK files.
+   | | |-- *.xml                         PDS4 labels for DSK files.
    | |
    | |-<a href="../spice_kernels/fk/">[fk]</a>                              Directory containing FK files.
    | | |
@@ -123,13 +155,25 @@ Archive Contents
    |   |-- *.bsp                         Binary SPK files.
    |   |-- *.xml                         PDS4 labels for SPK files.
    |
+   |-+-<a href="../miscellaneous/">[miscellaneous]</a>                   Directory miscellaneous files.
+   | |
+   | |- collection_miscellaneous_v*.xml  PDS4 labels for miscellaneous collections.
+   | |- collection_miscellaneous_inventory_v*.tab
+   | |                                   Miscellaneous collections' inventories.
+   | |
+   | +-<a href="../miscellaneous/checksum/">[checksum]</a>                        Directory containing checksum files.
+   |   |
+   |   |-- *.tab                         Text checksum files.
+   |   +-- *.xml                         PDS4 labels for checksum files.
+   |
    +-<a href="../">[document]</a>                          Directory containing document collection.
      |
      |- spiceds_v*.html                  This file and its earlier versions
      |- spiceds_v*.xml                   PDS4 labels for this file and its earlier versions.
 
+
 <p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
-<a name="Kernel Types" />
+<a name="Kernel Types"></a>
 Kernel Types
 ============
 
@@ -180,12 +224,18 @@ Kernel Types
    instruments. FK files are located under the <a href="../spice_kernels/fk/">spice_kernels/fk</a>
    directory of this archive.
 
+   DSK (Digital Shape Kernel) files contain detailed shape models for
+   extended objects such as planets, natural satellites, asteroids, and
+   comet nuclei. DSK files are located under the <a href="../spice_kernels/dsk/">spice_kernels/dsk</a>
+   directory of this archive.
+
    MK (Meta-Kernel) files list sets of related SPICE kernels that
    should be used together, providing an easy way to make data from
    these kernel sets available to a SPICE-based application by loading
    meta-kernels into the program using the high-level SPICE data loader
    routine FURNSH. MK files are located the <a href="../spice_kernels/mk/">spice_kernels/mk</a>
    directory of this archive.
+
 
 <p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
 <a name="Archived Kernel Details" />
@@ -195,6 +245,7 @@ Archived Kernel Details
    The subsections below provide details, such as file naming
    conventions and specific details, for each of the kernel types
    included in this archive.
+
 
 <p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
 <a name="SPK Files"/>
@@ -213,31 +264,97 @@ SPK Files
             These SPKs contain ephemeris data for the Solar System
             planet barycenters, and Sun, Mercury, Venus, Earth, and Moon.
             They are produced by the JPL Solar System Dynamics group
-            and are named DEXXX, e.g. DE430.
+            and are originally named DEXXX, JUPXXX, or MARXXX,
+            e.g. DE430, JUP329, or MAR097. The original file coverages
+            were shortened to reduce the file size and the original file
+            names were renamed.
 
-      - final ephemeris of the Hayabusa2 spacecraft
+      - asteroid (162173) Ryugu ephemeris SPKs
 
-            These SPKs contain final ephemeris data for the Hayabuas2
+            These SPKs contain ephemeris data for the asteroid (162173) Ryugu.
+            Two files are produced by JPL and were retrieved from JPL Horizons
+            On-Line Ephemeris System. The others are produced by ISAS/JAXA.
+
+      - Hayabusa2 ephemeris during the Transfer phase and the Return phase
+
+            These SPKs contain final ephemeris data for the Hayabusa2
             spacecraft based on the precise after-the-fact OD solutions.
+
+      - Hayabusa2 ephemeris during the Approach phase
+
+            These SPKs contain ephemeris data for the Hayabusa2 spacecraft
+            based on the precise after-the-fact OD solutions.
+
+      - Hayabusa2 ephemeris to keep home position during the Asteroid
+        Proximity phase
+
+            These SPKs contain the predicted ephemeris for Hayabusa2
+            spacecraft during proximity phase. This is the output of
+            estimation tool: HPNAV to perform home position keeping
+            operations.
+
+      - Hayabusa2 ephemeris generated by JATOPS
+
+            This SPK includes the predicted Hayabusa2 ephemeris generated
+            by a system named JATOPS, JAXA Approach Trajectory OPtimizer
+            with Statistic constraints. These data is valid until target
+            marker release time: 2019-09-16T16:14:20Z.
+
+      - Hayabusa2 ephemeris generated by OP-NAV
+
+            These SPKs include the reconstructed ephemeris for Hayabusa2
+            determined by the JAXA/ISAS orbit group using OP-NAV during
+            the TM-ORB operation period and the MNV-ORB operation period.
+
+      - Hayabusa2 ephemeris determined by LIDAR team
+
+            These SPKs contain ephemeris data for the Hayabusa2 spacecraft
+            determined by the Hayabusa2 LIDAR team.
+
+      - Hayabusa2 ephemeris determined as by-product of shape model
+
+            These SPKs contain ephemeris data for the Hayabusa2 spacecraft
+            determined as by-product of shape model by the Hayabusa2 Shape
+            model team.
+
+      - Hayabusa2 MASCOT instrument positions
+
+            This SPK includes the instrument positions of the Hayabusa2
+            MASCOT lander relative to the center of mass of the MASCOT
+            lander.
+
 
    This archive includes binary SPK files under the <a href="../spice_kernels/spk/">spice_kernels/spk</a>
    directory and are named according to the following scheme:
 
       - planetary ephemeris SPKs
 
-                  deVVVs.bsp
+               hyb2_NAMEVVV.bsp
 
             where
 
+               NAME      is type of file, de for JPL Development Ephemeris,
+                         jup for jupyter system, and mar for mars system
+
                VVV       is the ephemeris version
 
-               s         (optional) indicates that the original file
-                         coverage was shortened to reduce the file
-                         size.
+      - asteroid (162173) Ryugu ephemeris SPKs by JPL
 
-      - Hayabusa2 final ephemeris
+               2162173_Ryugu.bsp
+               2162173_Ryugu_vVV.bsp
 
-                  hyb2_YYYYMMDD-yyyymmdd_000II_final_verV.oem.bsp
+            where
+
+               VV        is the version; the file with the latest
+                         version supersedes all similarly named
+                         files with earlier versions.
+                         No version string in the file name is
+                         same as version 01 (v01).
+
+
+      - asteroid (162173) Ryugu ephemeris SPKs by ISAS/JAXA
+
+               2162173_ryugu_YYYYMMDD-yyyymmdd_NNNN_VVVVVVVV.bsp
 
             where
 
@@ -245,17 +362,163 @@ SPK Files
 
                yyyymmdd  is the file coverage stop date
 
-               II        is the time interfal
-
-                            1m ... 1-minute interval
-                            1h ... 1-hour interval
+               NNNN      is the ...(NNNN=0060)
 
                V         is the version; the file with the latest
                          version supersedes all similarly named
                          files with earlier versions.
 
+
+      - asteroid (162173) Ryugu ephemeris SPKs for the Approach
+        phase by ISAS/JAXA
+
+               2162173_ryugu_approach_od_vVV.bsp
+
+            where
+
+               VV        is the version; the file with the latest
+                         version supersedes all similarly named
+                         files with earlier versions.
+
+
+      - asteroid (162173) Ryugu ephemeris SPKs for the Asteroid
+        Proximity phase by ISAS/JAXA
+
+               2162173_ryugu_hpk_proximity_vVV.bsp
+
+            where
+
+               VV        is the version; the file with the latest
+                         version supersedes all similarly named
+                         files with earlier versions.
+
+
+      - reconstructed spacecraft trajectory SPKs
+
+                  hyb2_YYYYMMDD-yyyymmdd_IIIII_final_verV.oem.bsp
+
+            where
+
+               YYYYMMDD  is the file coverage start date
+
+               yyyymmdd  is the file coverage stop date
+
+               IIIII     is the time interval
+
+                            0001m ... 1-minute interval
+                            0001h ... 1-hour interval
+
+               V         is the version; the file with the latest
+                         version supersedes all similarly named
+                         files with earlier versions.
+
+
+      - Hayabusa2 ephemeris for the Approach phase
+
+               hyb2_approach_od_vyyyymmddhhmmss.bsp
+
+            where
+
+               yyyymmddhhmmss is the creation datetime.
+
+
+      - Hayabusa2 ephemeris for the Transfer phase or the Return phase
+
+               hyb2_asteroid_to_earth_YYYYMMDD_vVV.bsp
+               hyb2_earth_to_asteroid_YYYYMMDD.oem.bsp
+
+            where
+
+               YYYYMMDD  is the creation datetime.
+
+               VV        is the version; the file with the latest
+                         version supersedes all similarly named
+                         files with earlier versions.
+
+
+      - Hayabusa2 ephemeris to keep home position during the Asteroid
+        Proximity phase
+
+               hyb2_hpk_YYYYMMDD_yyyymmdd_vVV.bsp
+
+            where
+
+               YYYYMMDD  is the file coverage start date
+
+               yyyymmdd  is the file coverage stop date
+
+               VV        is the version; the file with the latest
+                         version supersedes all similarly named
+                         files with earlier versions.
+
+      - Hayabusa2 ephemeris generated by JATOPS
+
+               hyb2_jatops_YYYYMMDD_yyyymmdd_vVV.bsp
+
+            where
+
+               YYYYMMDD  is the file coverage start date
+
+               yyyymmdd  is the file coverage stop date
+
+               VV        is the version; the file with the latest
+                         version supersedes all similarly named
+                         files with earlier versions.
+
+
+      - Hayabusa2 ephemeris generated by OP-NAV
+
+               hyb2_opnav_YYYYMMDD_yyyymmdd_vVV.bsp
+
+            where
+
+               YYYYMMDD  is the file coverage start date
+
+               yyyymmdd  is the file coverage stop date
+
+               VV        is the version; the file with the latest
+                         version supersedes all similarly named
+                         files with earlier versions.
+
+
+      - Hayabusa2 ephemeris determined by LIDAR team
+
+
+               lidar_derived_trj_XXXXXXXX_no6dofc_vVV.bsp
+
+            where
+
+               XXXXXXXX        is the file creation date
+
+
+      - Hayabusa2 ephemeris determined as by-product of shape model
+
+               hyb2_TTT_pos_YYYYMMDD_yyyymmdd_vVVVVVVVV.bsp
+
+            where
+
+               TTT       is the name of the method; spc or sfm
+
+               YYYYMMDD  is the file coverage start date
+
+               yyyymmdd  is the file coverage stop date
+
+               VVVVVVVV  is the version of the shape model
+
+
+      - Hayabusa2 MASCOT instrument positions
+
+               hyb2_mascot_instruments_vVV.bsp
+
+            where
+
+               VV        is the version; the file with the latest
+                         version supersedes all similarly named
+                         files with earlier versions.
+
+
 <p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
-<a name="PCK Files"/>
+<a name="PCK Files"></a>
 
    PCK (Planetary Constants Kernel) files contain certain physical,
    dynamical, and cartographic constants for target bodies, such as
@@ -278,17 +541,28 @@ SPK Files
 
                VVVVV     is the version; the file with the largest
                          number is the latest, but the user of PCK
-                         data must decide if the latest version,
-                         or an earlier version, is appropriate
-                         for his/her analysis task.
+                         data must decide if the latest version, or an
+                         earlier version, is appropriate for their
+                         analysis task.
+
+      -  asteroid Ryugu text PCK files
+
+               ryugu_vVV.tpc
+
+            where
+
+               VV        is the version; the file with the largest
+                         number is the latest, but the user of PCK
+                         data must decide if the latest version, or an
+                         earlier version, is appropriate for their
+                         analysis task.
 
    The most detailed description of the data in a text PCK file is
    provided in metadata included inside the description area of the
    file. This information can be viewed using any text editor program.
 
-
 <p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
-<a name="IK Files"/>
+<a name="IK Files"></a>
 
    IK (Instrument Kernel) files contain instrument parameters relevant
    for computing an instrument's observation geometry such field-of-view
@@ -307,18 +581,20 @@ SPK Files
 
             where
 
-               NAME      is the instrument acronym
+               NAME      is the instrument abbreviation
 
                             lidar
                             nirs3
                             onc
                             tir
+                            mascot_cam
+                            mascot_mara
 
                VV        is the version; the file with the latest
                          version supersedes all similarly named files
                          with earlier versions, but the SPICE user must
                          decide if the latest version, or an earlier
-                         version, is appropriate for his/her analysis
+                         version, is appropriate for their analysis
                          task.
 
    The most detailed description of the data in a text IK file is
@@ -333,23 +609,83 @@ CK Files
    spacecraft, articulating spacecraft structures, and articulating
    science instruments.
 
+   This archive includes binary CK files containing the following kinds
+   of orientation data:
+
+      - Hayabusa2 spacecraft yearly CKs based on House Keeping telemetry
+
+         These CKs created by ISAS/JAXA contain the Hayabusa2
+         spacecraft attitude determined on-board and downlinked in
+         spacecraft house keeping telemetry.
+
+      - Hayabusa2 spacecraft yearly CKs based on House Keeping telemetry
+        and attitude report packet
+
+         These CKs created by ISAS/JAXA contain the Hayabusa2
+         spacecraft attitude determined on-board and downlinked in
+         spacecraft house keeping telemetry and attitude report packet.
+
+         The attitude report packet is used when the downlink rate is not
+         enough to send house keeping packets. The attitude precision is
+         the same as that in house keeping telemetry.
+
+      - Hayabusa2 spacecraft yearly CKs based on AOCSC telemetry
+
+         These CKs created by ISAS/JAXA contain the Hayabusa2
+         spacecraft attitude determined on-board and downlinked in
+         spacecraft AOCSC telemetry.
+
+         The AOCSC telemetry contains larger number of digits than HK
+         telemetry for the spacecraft orientation, while the time
+         coverage of the AOCSC is limited due to the bandwidth.
+
+      - Hayabusa2 spacecraft CKs determined as by-product of shape model
+
+         These CKs contain orientation data for the Hayabusa2 spacecraft
+         determined as by-product of shape model by the Hayabusa2 Shape
+         model team.
+
+      - Hayabusa2 spacecraft yearly predicted CKs
+
+         These CKs created by ISAS/JAXA contain the Hayabusa2
+         spacecraft attitude created from the command history to fill gaps
+         of the time coverage in the other CKs.
+
+      - Hayabusa2 spacecraft nominal orientation CK
+
+         This CK created by ISAS/JAXA contain the nominal attitude of
+         the Hayabusa2 spacecraft during the asteroid proximity phase.
+
    This archive includes binary CK files under th <a href="../spice_kernels/ck/">spice_kernels/ck</a>
    directory and are named according to the following scheme:
 
-      - Hayabusa2 yearly CK files based on House Keeping telemetry
+      - Hayabusa2 spacecraft yearly CKs based on House Keeping telemetry
 
-                  hyb2_hk_YYYY_vVV.bc
+               hyb2_hk_YYYY_vVV.bc
 
             where
 
-                  YYYY    is the year covered by the CK kernel
+               YYYY    is the year covered by the CK kernel
 
-                  VV      is the version; the file with the latest
-                          version supersedes all similarly named files
-                          with earlier versions.
+               VV      is the version; the file with the latest
+                       version supersedes all similarly named files
+                       with earlier versions.
 
 
-      - Hayabusa2 yearly CK files based on AOCSC telemetry
+      - Hayabusa2 spacecraft yearly CKs based on House Keeping telemetry
+        and attitude report packet
+
+               hyb2_hkattrpt_YYYY_vVV.bc
+
+            where
+
+               YYYY    is the year covered by the CK kernel
+
+               VV      is the version; the file with the latest
+                       version supersedes all similarly named files
+                       with earlier versions.
+
+      - Hayabusa2 spacecraft yearly CKs based on AOCSC telemetry
 
                   hyb2_aocsc_YYYY_vVV.bc
 
@@ -361,9 +697,43 @@ CK Files
                           version supersedes all similarly named files
                           with earlier versions.
 
-   The AOCSC telemetry contains larger number of digits than HK
-   telemetry for the spacecraft orientation, while the time coverage of
-   the AOCSC is limited due to the bandwidth.
+
+      - Hayabusa2 spacecraft yearly predicted CKs
+
+                  hyb2_YYYY_pred_vVV.bc
+
+            where
+
+                  YYYY    is the year covered by the CK kernel
+
+                  VV      is the version; the file with the latest
+                          version supersedes all similarly named files
+                          with earlier versions.
+
+      - Hayabusa2 spacecraft CKs determined as by-product of shape model
+
+               hyb2_TTT_YYYYMMDD_yyyymmdd_vVVVVVVVV.bsp
+
+            where
+
+               TTT       is the name of the method; spc or sfm
+
+               YYYYMMDD  is the file coverage start date
+
+               yyyymmdd  is the file coverage stop date
+
+               VVVVVVVV  is the version of the shape model
+
+      - Hayabusa2 spacecraft nominal orientation CK
+
+                  hyb2_nominal_vVV.bc
+
+            where
+
+                  VV      is the version; the file with the latest
+                          version supersedes all similarly named files
+                          with earlier versions.
+
 
 <p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
 <a name="LSK Files"/>
@@ -406,8 +776,8 @@ SCLK Files
 
    This archive includes text SCLK files containing correlation data
    for the main Hayabusa2 on-board clock, created by the Hayabusa2
-   SPICE team from the time calibration table generated by C-SODA,
-   ISAS.
+   Data Archive team from the time calibration table generated by C-SODA,
+   ISAS/JAXA.
 
    The SCLK files are provided under the <a href="../spice_kernels/sclk">spice_kernels/sclk</a>
    directory and are named according to the following scheme:
@@ -444,7 +814,7 @@ FK Files
 
    This archive includes text FK files defining reference frames for the
    Hayabusa2 spacecraft, its structures, and science instruments. These
-   FKs were produced by the Hayabusa2 SPICE team using the spacecraft
+   FKs were produced by the Hayabusa2 Data Archive team using the spacecraft
    and instrument design documentation as well as actual instrument
    alignment values determined pre-launch and as the result of in-flight
    calibrations.
@@ -461,7 +831,61 @@ FK Files
                VV        is the version; the file with the latest
                          version supersedes all similarly named files
                          with earlier versions, although a SPICE user
-                         might decide decide to use an earlier version
+                         might decide to use an earlier version
+                         if trying to be consistent with some earlier
+                         computed results.
+
+      -  Hayabusa2 additional mission FK files
+
+               hyb2_hp_vVV.tf
+
+            where
+
+               VV        is the version; the file with the latest
+                         version supersedes all similarly named files
+                         with earlier versions, although a SPICE user
+                         might decide to use an earlier version
+                         if trying to be consistent with some earlier
+                         computed results.
+
+      -  Ryugu FK files
+
+               hyb2_ryugu_vVV.tf
+
+            where
+
+               VV        is the version; the file with the latest
+                         version supersedes all similarly named files
+                         with earlier versions, although a SPICE user
+                         might decide to use an earlier version
+                         if trying to be consistent with some earlier
+                         computed results.
+
+
+     -  Hayabusa2 DSK surface name/ID mapping FK files
+
+               hyb2_shape_vVV.tf
+
+            where
+
+               VV        is the version; the file with the latest
+                         version supersedes all similarly named files
+                         with earlier versions, although a SPICE user
+                         might decide to use an earlier version
+                         if trying to be consistent with some earlier
+                         computed results.
+
+
+      -  Hayabusa2 MASCOT FK files
+
+               hyb2_vVV.tf
+
+            where
+
+               VV        is the version; the file with the latest
+                         version supersedes all similarly named files
+                         with earlier versions, although a SPICE user
+                         might decide to use an earlier version
                          if trying to be consistent with some earlier
                          computed results.
 
@@ -471,10 +895,46 @@ FK Files
    file. This information can be viewed using any text editor program.
 
 <p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
+<A NAME="DSK Files"></A>
+DSK Files
+
+   DSK (Digital Shape Kernel) files contain detailed shape models for
+   extended objects such as planets, natural satellites, asteroids, and
+   comet nuclei.
+
+   This archive includes binary DSK files containing digital shape data
+   for the Hayabusa2 mission target asteroid (162173) Ryugu. These DSKs were
+   produced by the Hayabusa2 Shape Model team.
+
+   The DSK files are provided under the <a href="../spice_kernels/dsk/">spice_kernels/dsk</a>
+   directory and are named according to the following scheme:
+
+      -  asteroid (162173) Ryugu DSK files
+
+               SHAPE_SSS_RRRR_vVVVVVVVV.bds
+
+            where
+
+               SSS       is the shape model source:
+
+                            spc    Stereo-photoclinometry
+
+                            sfm    Structure-from-Motion
+
+               RRRR      is the number of plates; 49k, 50k, 200k, 800k, or 3M
+
+               VVVVVVVV  is the version number
+
+   The most detailed description of the data in each DSK file is
+   provided in metadata included inside the comment area of the file.
+   This information can be viewed using the utility program COMMNT
+   included in the NAIF Toolkit.
+
+<p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
 <a name="MK Files" />
 MK Files
 
-   Meta-kernel (MK) files (a.k.a 'furnsh' files) provide lists of the
+   Meta-kernel (MK) files (a.k.a. 'furnsh' files) provide lists of the
    archived kernels included in this archive suitable for loading into
    a SPICE-based application via the high level SPICE data loader
    routine FURNSH. Using meta-kernels makes it easy to load with
@@ -483,11 +943,33 @@ MK Files
    The text MK files are provided under the <a href="../spice_kernels/mk">spice_kernels/mk</a>
    directory and are named according to the following scheme:
 
-      -  Hayabusa2 MK files
+      -  Hayabusa2 yearly MK files
 
                hyb2_vVV.tm
 
             when
+
+               VV        is the version; the file with the latest
+                         version supersedes all similarly named
+                         files with earlier versions.
+
+      -  Hayabusa2 NIRS3 MK files
+
+               hyb2_nirs3_vVV.tm
+
+            when
+
+               VV        is the version; the file with the latest
+                         version supersedes all similarly named
+                         files with earlier versions.
+
+      -  Hayabusa2 ONC MK files
+
+               hyb2_onc_TTT_vVV.tm
+
+            when
+
+               TTT       is the kind of kernel set; lidar or spc.
 
                VV        is the version; the file with the latest
                          version supersedes all similarly named
@@ -526,6 +1008,8 @@ MK Files
       -  the latest archived versions of LSK, PCK, SCLK, IK, FK, generic
          SPKs, fixed offset SPKs, and fixed orientation CKs were included
 
+      -  the latest Ryugu SPKs were included
+
       -  the latest reconstructed Hayabusa2 NAV SPKs were included
 
       -  the latest reconstructed CKs were included
@@ -535,10 +1019,44 @@ MK Files
    file. This information can be viewed using any text editor program.
 
 <p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
+<A name="Miscellaneous Files"></A>
+Miscellaneous Files
+===================
+
+   Miscellaneous files provide value added elements that are outside the
+   scope of the PDS archive requirements. Miscellaneous files included in
+   this archive are currently limited to checksum and orbit number files.
+
+   The subsection below provides details for these files.
+
+<p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
+<A NAME="Checksum Files"></A>
+Checksum Files
+
+   A checksum file provides a table of MD5 checksums for all files in the
+   archive as of a particular archive (bundle) version, including
+   checksums for all previous checksums files and their labels but
+   excluding the checksum for the checksum file itself and its label.
+
+   The checksum files are provided under the <a href="../miscellaneous/checksum/">miscellaneous/checksum</a>
+   directory and are named according to the following scheme:
+
+      -  Hayabusa2 checksum files
+
+               checksum_vVVV.tab
+
+            where
+
+               VVV       is the version; the file with the latest
+                         version supersedes all similarly named
+                         files with earlier versions and can be
+                         used to validate the archive in its
+                         entirety.
+
+<p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
 <a name="File Formats" />
 File Formats
 ============
-
 
    All text documents and other meta information files such as
    descriptions, detached PDS4 labels, and inventory tables are stream
@@ -546,14 +1064,14 @@ File Formats
    character (ASCII 10) at the end of the records.  This allows the
    files to be read by most operating systems.
 
-   The text kernel files in this archive -- LSKs, PCKs, SCLKs, IKs, and
-   FKs -- are UNIX text files, with a line feed character (ASCII 10) at
-   the end of the line, and binary kernels files -- SPKs and CKs -- are
-   IEEE LSB binary files. While data files in this archive can be used
-   'as is' with SPICE toolkits for the majority of supported
-   environments, converting the files to the binary or text format
-   native to the user's computer may be required for use of the data
-   with FORTRAN toolkits on incompatible environments. Refer to the
+   The text kernel files in this archive -- LSKs, PCKs, SCLKs, IKs, FKs,
+   and MKs -- and the checksum files are UNIX text files, with a line
+   feed character (ASCII 10) at the end of each line. Binary kernels
+   files -- SPKs, CKs, and DSKs -- are IEEE LSB binary files. While data
+   files in this archive can be used 'as is' with SPICE toolkits for the
+   majority of supported environments, converting the files to the binary
+   or text format native to the user's computer may be required for use of
+   the data with FORTRAN toolkits on incompatible environments. Refer to the
    documentation provided with the SPICE Toolkit to find out whether
    conversion is needed in each specific case.
 
@@ -563,7 +1081,8 @@ File Formats
    to the native format of the platform of interest. BINGO is available
    from the utilities page at the NAIF Node of the PDS:
 
-      <a href="http://naif.jpl.nasa.gov/naif/utilities.html">http://naif.jpl.nasa.gov/naif/utilities.html</a>
+      <a href="https://naif.jpl.nasa.gov/naif/utilities.html">https://naif.jpl.nasa.gov/naif/utilities.html</a>
+
 
 <p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
 <a name="Reference" />
@@ -573,20 +1092,21 @@ Reference
    For more information about the SPICE system, see documentation and
    tutorials available at the NAIF Node of the PDS:
 
-      <a href="http://naif.jpl.nasa.gov">http://naif.jpl.nasa.gov</a>
+      <a href="https://naif.jpl.nasa.gov">https://naif.jpl.nasa.gov</a>
+
 
 <p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
 <a name="Contact" />
 Contact
 =======
 
-  Hayabusa2 SPICE Team
+  Hayabusa2 Data Archive Team
   Japan Aerospace Exploration Agency
   Institute of Space and Astronautical Science
   3-1-1 Yoshinodai, Chuo, Sagamihara, Kanagawa, 252-5210 JAPAN
   email: darts-admin@ML.isas.jaxa.jp
   <p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
 
-</pre>
-</body>
+    </pre>
+  </body>
 </html>
