@@ -425,6 +425,12 @@ class Setup(object):
                 f"{int(config_schema[3]):03d}"
             )
 
+            #
+            # Store the float value of the schema to evaluate element values
+            # that depend of the IM.
+            #
+            self.information_model_float = config_schema
+
             schemas = [
                 os.path.basename(x[:-1])
                 for x in glob.glob(f"{self.root_dir}templates/*/")

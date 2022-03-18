@@ -245,6 +245,11 @@ class PDSLabel(object):
             type = "bundle_to_target"
         elif self.__class__.__name__ == "InventoryPDS4Label":
             type = "collection_to_target"
+        elif self.__class__.__name__ == "OrbnumFilePDS4Label":
+            if self.setup.information_model_float >= 1014000000.0:
+                type = "ancillary_to_target"
+            else:
+                type = "data_to_target"
         else:
             type = "data_to_target"
 
@@ -995,11 +1000,16 @@ class OrbnumFilePDS4Label(PDSLabel):
         # parameters.
         #
         self.NUMBER_OF_FIELDS = str(len(product.params.keys()))
-        self.FIELDS_LENGTH = str(product.record_fixed_length + 1)
+        if self.END_OF_LINE == "Carriage-Return Line-Feed":
+            eol_length = 1
+        else:
+            eol_length = 0
+        self.FIELDS_LENGTH = str(product.record_fixed_length + eol_length)
         self.FIELDS = self.get_table_character_fields()
 
         if self.TABLE_CHARACTER_DESCRIPTION:
             self.TABLE_CHARACTER_DESCRIPTION = self.get_table_character_description()
+
 
         self.name = product.name.split(".")[0] + ".xml"
 
