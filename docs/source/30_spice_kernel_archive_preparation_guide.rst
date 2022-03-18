@@ -12,7 +12,7 @@ The process of preparing a SPICE kernel archive includes the following steps:
 
     4. checking the result and finishing up
 
-    5. if needed, packaging and delivering the data set to NAIF
+    5. if needed, packaging and delivering the archive to NAIF
 
 Each of these steps is described in a separate section below.
 

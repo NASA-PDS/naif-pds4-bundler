@@ -142,7 +142,7 @@ document and are discussed in great detail in the section
 :ref:`source/31_step_1_preparing_data:Augmenting Files with Comments`.
 The **SPICEDS** file provides a high level overview of the archive,
 covering briefly the types of information provided in, the source data of,
-and the accuracy of each type of kernels included in the data set. It also
+and the accuracy of each type of kernels included in the archive. It also
 describes the naming scheme and usage priority of the collection of
 files of a particular kernel type in the data subdirectory in which they
 reside. The **description tag** in XML *labels* provide a brief description of
@@ -160,7 +160,7 @@ SPICE Data Set Catalog File
 The SPICE Archive Description file (SPICEDS) provides a high level overview of
 SPICE, Kernel types, and the archive; covering briefly the type of information
 provided in, the source of, and the accuracy of each kind of kernel included in
-the data set.
+the archive.
 
 Preparing the SPICEDS file is very easily done by taking an existing
 SPICEDS file from an existing archive and changing just a few words

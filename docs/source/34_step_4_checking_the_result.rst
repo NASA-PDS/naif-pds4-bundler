@@ -57,7 +57,7 @@ Verifying the Archive using PDS Validate Tool
 ---------------------------------------------
 
 Although NPB and the instructions given above provide a lot of safeguard to
-ensure production of a fully PDS-compliant data set, many inputs to the
+ensure production of a fully PDS-compliant archive, many inputs to the
 configuration file are done "by hand" and for this reason are prone to errors.
 Because of this the archive producer should validate the SPICE archive using the
 validation tool provided by the PDS Engineering Node.

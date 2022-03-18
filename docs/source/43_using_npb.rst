@@ -304,7 +304,7 @@ release of the LADEE archive::
    -- Executed on MT-308302 at 2021-09-28 12:57:41
    -- Setup the archive generation.
    -- Kernel List generation.
-   -- Bundle/data set structure generation at staging area.
+   -- Bundle structure generation at staging area.
    -- Load LSK, PCK, FK and SCLK kernels.
    -- SPICE kernel collection/data processing.
       * Created spice_kernels/ck/ladee_13250_13330_v04.xml.

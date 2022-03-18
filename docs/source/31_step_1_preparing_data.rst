@@ -696,7 +696,7 @@ year of the mission. The names of these meta-kernels should
 follow the ``<sc>_yyyy_v??.tm`` pattern where ``<sc>`` is the
 mission acronym, ``yyyy`` is the year covered by this data, and
 ``??`` is the version number. If/when new kernels are added to
-the data set, meta-kernels for all applicable years with the
+the archive, meta-kernels for all applicable years with the
 next version number, including the new kernels and leaving out
 superseded kernels should be created and added to the archive.
 
@@ -833,7 +833,7 @@ to the archive's Miscellaneous collection, but will require a deviation from
 the current specification of a NAIF archive. For example, the CASSINI project
 produces comparison plots and pointing correction plots for its
 reconstructed and C-smithed CK files. CASSINI requests these plots be
-included in the archived data set.
+included in the archive.
 
 NAIF neither objects to nor recommends practices like this. If this is required
 we recommend you contact NAIF.

@@ -69,7 +69,7 @@ parentheses is briefly explained below:
        kernels is reflected in the meta-information files
        (SPICEDS and meta-kernel files).
 
-    3. *All SPICE data sets have the following PDS-compliant directory
+    3. *All SPICE archives have the following PDS-compliant directory
        structure*::
 
           <sc>_spice           bundle root directory

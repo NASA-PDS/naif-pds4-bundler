@@ -587,14 +587,19 @@ For SPICE kernel archives the IM constrains the way in which labels are
 designed. Note that the constant evolution of the IM is in conflict with NAIF's
 approach to archives: archived files should never be changed.
 
-Because of this NAIF recommends to archive producers to choose an IM and to
-stick with it (as much as possible) throughout all the archive releases. At this
-point NAIF uses IM 1.5.0.0 for all the NAIF PDS4 Bundles. IM 1.5.0.0 does not
+NAIF recommends to archive producers to choose an IM and to stick with it
+(as much as possible) throughout all the archive releases. At this point NAIF
+uses IM 1.5.0.0 for all the NAIF PDS4 Bundles. IM 1.5.0.0 does not
 support the usage of Line-Feed line endings (LF) for products, nor does it
 support the inclusion of Digital Object Identifiers (DOIs) in the bundle label.
-DOIs where included in IM 1.11.0.0, -the ExoMars2016 PDS4 Bundle uses IM 1.11.0.0
-to be able to incorporate DOIs- and LF for products was incorporated in IM
-1.16.0.0; because of that NAIF recommends to use IM 1.16.0.0 for new archives.
+DOIs where included in IM 1.11.0.0, --the ExoMars2016 PDS4 Bundle uses IM 1.11.0.0
+to be able to incorporate DOIs-- and LF for products was incorporated in IM
+1.16.0.0. LF are only relevant to Checksum and ORBNUM products, given that they
+are Table Character products, and LF is only required if the archive you are
+generating or incrementing needs to include ORBNUM files also included in PDS3
+archives or in other holdings where these objects had LF.
+
+Because of these reasons NAIF recommends to use IM 1.16.0.0 for new archives.
 
 
 Digital Objects Identifiers

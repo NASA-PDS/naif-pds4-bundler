@@ -2,13 +2,13 @@ Step 5: Packaging and Delivering the Archive to the NAIF Node
 =============================================================
 
 If the project archive plan calls for delivery of the SPICE archive to
-the NAIF Node of the PDS, the data set producer can do it in two ways:
+the NAIF Node of the PDS, the archive producer can do it in two ways:
 
    1. If the volume of the data to be delivered is relatively small
-      (under 2 GB), either the whole data set or only the files that
+      (under 2 GB), either the whole archive or only the files that
       were updated or added in the last release can be packaged into
       a ``.tar`` file, which is then made available to NAIF staff.
-      The tar file should contain the whole data set directory tree
+      The tar file should contain the whole archive directory tree
       starting at the ``<sc>_spice`` level (where ``<sc>`` is the
       mission acronym.)
 
@@ -37,15 +37,15 @@ the NAIF Node of the PDS, the data set producer can do it in two ways:
       The kind of access to be given to NAIF staff is up to the data provider.
       Any of the following ways is acceptable:
 
-         * putting ``.tar`` file(s) or a copy of the final data set tree
+         * putting ``.tar`` file(s) or a copy of the final archive tree
            on an anonymous public FTP server or a public Web server
 
-         * putting ``.tar`` file(s) or a copy of the final data set tree
+         * putting ``.tar`` file(s) or a copy of the final archive tree
            on a password-protected FTP server or a Web server. In this
            case NAIF staff should be provided with an account and
            password.
 
-         * putting ``.tar`` file(s) or a copy of the final data set tree
+         * putting ``.tar`` file(s) or a copy of the final archive tree
            on a UNIX workstation, providing NAIF staff with an account on
            this workstation, and setting file permissions allowing read
            access to the data.
