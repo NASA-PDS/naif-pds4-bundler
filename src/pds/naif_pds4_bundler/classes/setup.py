@@ -442,6 +442,13 @@ class Setup(object):
                 )
                 schemas_eval.append(schema)
 
+            #
+            # Reorder the schema list according to their value.
+            #
+            schemas_index = sorted(range(len(schemas_eval)),key=schemas_eval.__getitem__,reverse=True)
+            schemas_eval.sort(reverse=True)
+            schemas = [schemas[i] for i in schemas_index]
+
             i = 0
             while i < len(schemas_eval):
                 if config_schema < schemas_eval[i]:
@@ -449,7 +456,6 @@ class Setup(object):
                         schema = schemas[i - 1]
                     except:
                         schema = schemas[0]
-                    break
                 if config_schema >= schemas_eval[i]:
                     schema = schemas[i]
                     break
