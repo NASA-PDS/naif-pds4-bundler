@@ -314,12 +314,22 @@ def et_to_date(beget, endet, date_format="infomod2", kernel_type="Text"):
     else:
         raise ValueError("date_format argument is incorrect.")
 
-    start_time_cal = (
-        spiceypy.timout(beget + inwards_seconds, time_format, time_length) + "Z"
-    )
-    stop_time_cal = (
-        spiceypy.timout(endet - inwards_seconds, time_format, time_length) + "Z"
-    )
+
+    start_time_cal = (spiceypy.timout(beget, time_format, time_length) + "Z")
+    stop_time_cal = (spiceypy.timout(endet, time_format, time_length) + "Z")
+
+    #
+    # Inward seconds are only taken into account if the miliseconds are not
+    # 000.
+    #
+    if (date_format == "infomod2") and ('000Z' not in start_time_cal.split('.')[-1]):
+        start_time_cal = (
+                spiceypy.timout(beget + inwards_seconds, time_format, time_length) + "Z"
+        )
+    if (date_format == "infomod2") and ('000Z' not in stop_time_cal.split('.')[-1]):
+        stop_time_cal = (
+                spiceypy.timout(endet - inwards_seconds, time_format, time_length) + "Z"
+        )
 
     return [start_time_cal, stop_time_cal]
 
