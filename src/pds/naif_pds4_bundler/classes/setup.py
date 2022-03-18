@@ -645,7 +645,7 @@ class Setup(object):
             logging.warning('-- Kernel list configuration has entries with uppercase letters:')
             for kernel_pattern in kernel_pattern_upper:
                 logging.warning(f'      {kernel_pattern}')
-            logging.warning('   Uppercase letters in kernel names are discouraged. ')
+            logging.warning('   Uppercase letters in kernel names are HIGHLY discouraged. ')
 
         return None
 

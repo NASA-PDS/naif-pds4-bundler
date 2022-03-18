@@ -504,7 +504,7 @@ The names of the files to be included in the archive must comply with the PDS4
 file name rules. Rules for forming file and directory names are given in the
 PDS4 Standards Reference [PDS4STD]_. Here are a few things to keep in mind:
 
-  * The file name must be unique within its parent
+  * The file name -excluding the extension- must be unique within its parent
     directory (it is common to have SPKs and ORBNUMs with the same name but
     they are in different directories.)
 
@@ -515,12 +515,12 @@ PDS4 Standards Reference [PDS4STD]_. Here are a few things to keep in mind:
 
   * File names must be constructed from the character set:
 
-       * A-Z ASCII 0x41 through 0x5A
-       * a-z ASCII 0x61 through 0x7A
-       * 0-9 ASCII 0x30 through 0x39
-       * dash "-" ASCII 0x2D
-       * underscore "_" ASCII 0x5F
-       * period "." ASCII 0x2E
+       * ``A-Z`` ASCII ``0x41`` through ``0x5A``
+       * ``a-z`` ASCII ``0x61`` through ``0x7A``
+       * ``0-9`` ASCII ``0x30`` through ``0x39``
+       * dash ``-`` ASCII ``0x2D``
+       * underscore ``_`` ASCII ``0x5F``
+       * period ``.`` ASCII ``0x2E``
 
   * File names must not begin or end with a dash, underscore, or period.
 
@@ -539,55 +539,57 @@ convention for SPICE kernels:
    * - Kernel type
      - Extension
    * - Binary SPKs
-     - .bsp
+     - ``.bsp``
    * - Binary PCKs
-     - .bpc
+     - ``.bpc``
    * - Binary DSKs
-     - .bds
+     - ``.bds``
    * - Binary CKs
-     - .bc
+     - ``.bc``
    * - Binary Sequence EKs
-     - .bes
+     - ``.bes``
    * - Binary Database EKs
-     - .bdb
+     - ``.bdb``
    * - Binary Plan EKs
-     - .bep
+     - ``.bep``
    * - Text PCKs
-     - .tpc
+     - ``.tpc``
    * - Text IKs
-     - .ti
+     - ``.ti``
    * - Text FKs
-     - .tf
+     - ``.tf``
    * - Text LSKs
-     - .tls
+     - ``.tls``
    * - Text SCLKs
-     - .tsc
+     - ``.tsc``
    * - Text Notebook EKs
-     - .ten
+     - ``.ten``
    * - Text Meta-kernels
-     - .tm
+     - ``.tm``
 
-ORBNUM files must have either a .orb or .nrb extension.
+ORBNUM files must have either a ``.orb`` or ``.nrb`` extension.
 
 All names that don't comply with these requirements must be changed.
 
-NAIF recommends to limit the length of the file to a 36.3 form: 1-36 character
-long name + 1-3 character long extension, and to constrain the file name
-characters to:
+On top of the PDS4 Standard rules, NAIF highly recommends to:
 
-       * a-z ASCII 0x61 through 0x7A
-       * 0-9 ASCII 0x30 through 0x39
-       * underscore "_" ASCII 0x5F
-       * period "." ASCII 0x2E
+       * ``a-z`` ASCII ``0x61`` through ``0x7A`` (only lowercase)
+       * ``0-9`` ASCII ``0x30`` through ``0x39``
+       * underscore ``_`` ASCII ``0x5F``
+       * only one period ``.`` ASCII ``0x2E`` to separate the extension
+       * limit the length of the file to a 36.3 form: 1-36 character long name + 1-3 character long extension
 
-and therefore using only lowercase letters (as is done for all NAIF archives).
+It is especially important to have lowercase SPICE Kernels names given that
+LIDs -and therefore Kernel Internal References in meta-kernel labels- must be
+lowercase.
 
 NAIF also strongly recommends that the names of all mission
 specific kernels start with the acronym of the spacecraft or
 the mission (if a data file contains data for more than one
 spacecraft associated with the same mission). For example, the
-names of Mars 2020 kernels start with ``m2020_``, the names of ExoMars 2016
-kernels start with ``em16_``, and so on.
+names of Mars 2020 kernels start with ``m2020_``, the names of ExoMars2016
+kernels start with ``em16_``, and so on. It is also recommended to exclude
+redundant information from the filename such as the kernel type.
 
 Because of the reasons explained above, very frequently the name of kernels
 to archive has to be updated. The update can be done manually simply by
@@ -596,6 +598,18 @@ information on how to implement kernel file name mapping see
 :ref:`source/42_npb_configuration_file:Mapping kernels` from the NPB
 Configuration File description.
 
+In order to preserve traceability with the original SPICE kernel name
+-especially if that kernel is stored in a publicly accessible storage-, you can
+provide the original file name in the PDS4 label description field or in the
+kernel internal comments (See section :ref:`source/42_npb_configuration_file:Kernel Descriptions`.)
+
+For example the following kernel for the MAVEN mission::
+
+     spk_MAVEN_20210101-20220101_v01.oem.bsp
+
+could be renamed to::
+
+     maven_202210101_20220101_v01.bsp
 
 Validating Data
 ---------------
