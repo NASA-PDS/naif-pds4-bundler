@@ -930,7 +930,7 @@ class MetaKernelPDS4Label(PDSLabel):
             #
             kernel_type = extension_to_type(kernel)
             kernel_lid = "{}:spice_kernels:{}_{}".format(
-                self.setup.logical_identifier, kernel_type, kernel
+                self.setup.logical_identifier, kernel_type, kernel.lower()
             )
 
             #
