@@ -1,6 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <?xml-model href="http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1B00.sch"
     schematypens="http://purl.oclc.org/dsdl/schematron"?>
-
 
 <Product_Collection xmlns="http://pds.nasa.gov/pds4/pds/v1"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -20,7 +20,7 @@
     </Identification_Area>
     <Context_Area>
         <Time_Coordinates>
-            <start_date_time>2016-03-14T08:13:00.001Z</start_date_time>
+            <start_date_time>2016-03-14T08:13:00.000Z</start_date_time>
             <stop_date_time>2021-05-29T16:26:36.217Z</stop_date_time>
         </Time_Coordinates>
         <Primary_Result_Summary>

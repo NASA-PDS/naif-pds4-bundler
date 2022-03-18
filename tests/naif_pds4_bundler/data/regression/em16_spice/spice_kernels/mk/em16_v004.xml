@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?xml-model href="http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1B00.sch"
     schematypens="http://purl.oclc.org/dsdl/schematron"?>
 
-<Product_SPICE_Kernel xmlns="http://pds.nasa.gov/pds4/pds/v1"
+§§<Product_SPICE_Kernel xmlns="http://pds.nasa.gov/pds4/pds/v1"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
  xsi:schemaLocation="http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1B00.xsd">
 
@@ -21,8 +20,8 @@
     </Identification_Area>
     <Context_Area>
         <Time_Coordinates>
-            <start_date_time>2018-12-08T20:10:00.002Z</start_date_time>
-            <stop_date_time>2021-05-08T21:19:59.998Z</stop_date_time>
+            <start_date_time>2018-12-08T20:10:00.000Z</start_date_time>
+            <stop_date_time>2021-05-08T21:20:00.000Z</stop_date_time>
         </Time_Coordinates>
         <Primary_Result_Summary>
             <purpose>Observation Geometry</purpose>
