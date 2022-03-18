@@ -12,7 +12,7 @@
     <Citation_Information>
       <publication_year>$PRODUCT_CREATION_YEAR</publication_year>
       <keyword>Observation Geometry</keyword>
-      <description>Table of MD5 checksums for all files in this archive (excluding itself and this label file) at the time this file was published.</description>
+      <description>$DESCRIPTION</description>
     </Citation_Information>
   </Identification_Area>
   <Context_Area>
@@ -40,20 +40,33 @@ $TARGETS
   <Reference_List>
     <Internal_Reference>
       <lid_reference>$BUNDLE_DESCRIPTION_LID</lid_reference>
-      <reference_type>ancillary_to_data</reference_type>
+      <reference_type>ancillary_to_document</reference_type>
     </Internal_Reference>
   </Reference_List>
   <File_Area_Ancillary>
     <File>
-      <file_name>$FILE_NAME</file_name>
-      <creation_date_time>$PRODUCT_CREATION_TIME</creation_date_time>
-      <file_size unit="byte">$FILE_SIZE</file_size>
-      <md5_checksum>$FILE_CHECKSUM</md5_checksum>
+        <file_name>$FILE_NAME</file_name>
+        <creation_date_time>$PRODUCT_CREATION_TIME</creation_date_time>
+        <file_size unit="byte">$FILE_SIZE</file_size>
+        <md5_checksum>$FILE_CHECKSUM</md5_checksum>
     </File>
-    <Checksum_Manifest>
+    <Header>
+      <name>Orbit number header</name>
       <offset unit="byte">0</offset>
-      <parsing_standard_id>MD5Deep 4.n</parsing_standard_id>
+      <object_length unit="byte">$HEADER_LENGTH</object_length>
+      <parsing_standard_id>7-Bit ASCII Text</parsing_standard_id>
+    </Header>
+    <Table_Character>
+      <name>Orbit number table</name>
+      <offset unit="byte">$TABLE_OFFSET</offset>
+      <records>$TABLE_RECORDS</records>$TABLE_CHARACTER_DESCRIPTION
       <record_delimiter>Carriage-Return Line-Feed</record_delimiter>
-    </Checksum_Manifest>
+      <Record_Character>
+        <fields>$NUMBER_OF_FIELDS</fields>
+        <groups>0</groups>
+        <record_length unit="byte">$FIELDS_LENGTH</record_length>
+$FIELDS
+      </Record_Character>
+    </Table_Character>
   </File_Area_Ancillary>
 </Product_Ancillary>

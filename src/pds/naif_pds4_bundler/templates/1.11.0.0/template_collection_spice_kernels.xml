@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="$XML_MODEL"
+    schematypens="http://purl.oclc.org/dsdl/schematron"?>
+
+<Product_Collection xmlns="http://pds.nasa.gov/pds4/pds/v1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="$SCHEMA_LOCATION">
+  <Identification_Area>
+    <logical_identifier>$COLLECTION_LID</logical_identifier>
+    <version_id>$COLLECTION_VID</version_id>
+    <title>$MISSION_NAME SPICE Kernel Collection</title>
+    <information_model_version>$INFORMATION_MODEL_VERSION</information_model_version>
+    <product_class>Product_Collection</product_class>
+    <Citation_Information>
+      <publication_year>$PRODUCT_CREATION_YEAR</publication_year>
+      <keyword>Observation Geometry</keyword>
+      <description>This collection contains SPICE kernels for the $PDS4_OBSERVER_NAME instruments.</description>
+    </Citation_Information>
+  </Identification_Area>
+  <Context_Area>
+    <Time_Coordinates>
+      <start_date_time>$START_TIME</start_date_time>
+      <stop_date_time>$STOP_TIME</stop_date_time>
+    </Time_Coordinates>
+    <Primary_Result_Summary>
+      <purpose>Observation Geometry</purpose>
+      <processing_level>Derived</processing_level>
+    </Primary_Result_Summary>
+    <Investigation_Area>
+      <name>$MISSION_NAME</name>
+      <type>Mission</type>
+      <Internal_Reference>
+        <lid_reference>$PDS4_MISSION_LID</lid_reference>
+        <reference_type>collection_to_investigation</reference_type>
+      </Internal_Reference>
+    </Investigation_Area>
+    <Observing_System>
+$OBSERVERS
+    </Observing_System>
+$TARGETS
+  </Context_Area>
+  <Reference_List>
+    <Internal_Reference>
+      <lid_reference>$BUNDLE_DESCRIPTION_LID</lid_reference>
+      <reference_type>collection_to_document</reference_type>
+    </Internal_Reference>
+  </Reference_List>
+  <Collection>
+    <collection_type>SPICE Kernel</collection_type>
+    <description>This collection contains SPICE kernels for the $PDS4_OBSERVER_NAME instruments.</description>
+  </Collection>
+  <File_Area_Inventory>
+    <File>
+      <file_name>$FILE_NAME</file_name>
+      <creation_date_time>$PRODUCT_CREATION_TIME</creation_date_time>
+      <file_size unit="byte">$FILE_SIZE</file_size>
+      <md5_checksum>$FILE_CHECKSUM</md5_checksum>
+    </File>
+    <Inventory>
+      <offset unit="byte">0</offset>
+      <parsing_standard_id>PDS DSV 1</parsing_standard_id>
+      <records>$N_RECORDS</records>
+      <record_delimiter>$END_OF_LINE_PDS4</record_delimiter>
+      <field_delimiter>Comma</field_delimiter>
+      <Record_Delimited>
+        <fields>2</fields>
+        <groups>0</groups>
+        <Field_Delimited>
+          <name>Member Status</name>
+          <field_number>1</field_number>
+          <data_type>ASCII_String</data_type>
+          <maximum_field_length unit="byte">1</maximum_field_length>
+        </Field_Delimited>
+        <Field_Delimited>
+          <name>LIDVID_LID</name>
+          <field_number>2</field_number>
+          <data_type>ASCII_LIDVID_LID</data_type>
+          <maximum_field_length unit="byte">255</maximum_field_length>
+        </Field_Delimited>
+      </Record_Delimited>
+      <reference_type>inventory_has_member_product</reference_type>
+    </Inventory>
+  </File_Area_Inventory>
+</Product_Collection>

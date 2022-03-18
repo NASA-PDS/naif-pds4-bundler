@@ -40,7 +40,7 @@ $TARGETS
   <Reference_List>
     <Internal_Reference>
       <lid_reference>$BUNDLE_DESCRIPTION_LID</lid_reference>
-      <reference_type>ancillary_to_data</reference_type>
+      <reference_type>ancillary_to_document</reference_type>
     </Internal_Reference>
   </Reference_List>
   <File_Area_Ancillary>
