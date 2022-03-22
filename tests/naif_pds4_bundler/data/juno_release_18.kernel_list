@@ -1,10 +1,10 @@
-DATE = 2022-03-11
+DATE = 2022-03-22
 SPACECRAFT = JUNO
 NAIFER = Marc Costa Sitja
 DATASETID = "jno-j/e/ss-spice-6-v1.0"
 VOLUMEID = jnosp_1000
 RELEASE_ID = 0018
-RELEASE_DATE = 2022-03-11
+RELEASE_DATE = 2022-03-22
 $EOH
 FILE             = data/sclk/jno_sclkscet_00128.tsc
 MAKLABEL_OPTIONS = TEAM_NAIF
@@ -16,9 +16,11 @@ DESCRIPTION      = SPICE SPK file containing JPL Jovian satellite ephemerides ve
 FILE             = data/spk/juno_rec_210630_210813_210825.bsp
 MAKLABEL_OPTIONS = TEAM_NAV PHASE_ORB_EXT
 DESCRIPTION      = SPICE SPK file containing reconstructed trajectory of the JUNO spacecraft, created by JUNO NAV Team, JPL. The original name of this file was spk_rec_210630_210813_210825.bsp.
+MAPPING          = spk_rec_210630_210813_210825.bsp
 FILE             = data/spk/juno_rec_210813_210925_211005.bsp
 MAKLABEL_OPTIONS = TEAM_NAV PHASE_EXT
 DESCRIPTION      = SPICE SPK file containing reconstructed trajectory of the JUNO spacecraft, created by JUNO NAV Team, JPL. The original name of this file was spk_rec_210813_210925_211005.bsp.
+MAPPING          = spk_rec_210813_210925_211005.bsp
 FILE             = data/ck/juno_sc_rec_210613_210619_v01.bc
 MAKLABEL_OPTIONS = PHASE_ORB INST_SC TEAM_NAIF
 DESCRIPTION      = SPICE CK file containing reconstructed orientation of the JUNO spacecraft, created by NAIF, JPL using data from an ATT_RECON file produced by SCT, LMCO.
