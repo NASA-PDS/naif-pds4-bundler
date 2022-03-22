@@ -391,6 +391,7 @@ class SpiceKernelProduct(Product):
 
     def coverage(self):
         """Determine the product coverage."""
+        system = "UTC"
         #
         # Before computing the coverage we check if the label is already
         # present.
@@ -433,13 +434,20 @@ class SpiceKernelProduct(Product):
                     self.path,
                     main_name=main_name,
                     date_format=self.setup.date_format,
+                    system=system
                 )
             elif self.type.lower() == "ck":
-                coverage += ck_coverage(self.path, date_format=self.setup.date_format)
+                coverage += ck_coverage(self.path,
+                                        date_format=self.setup.date_format,
+                                        system=system)
             elif self.extension.lower() == "bpc":
-                coverage += pck_coverage(self.path, date_format=self.setup.date_format)
+                coverage += pck_coverage(self.path,
+                                         date_format=self.setup.date_format,
+                                         system=system)
             elif self.type.lower() == "dsk":
-                coverage += dsk_coverage(self.path, date_format=self.setup.date_format)
+                coverage += dsk_coverage(self.path,
+                                         date_format=self.setup.date_format,
+                                         system=system)
             else:
                 if self.setup.pds_version == "3":
                     coverage = ['"N/A"', '"N/A"']
@@ -1630,9 +1638,14 @@ class MetaKernelProduct(Product):
         # Re-format the time accordingly. The 'Z' is removed from the UTC
         # string since it is not supported until the SPICE Toolkit N0067.
         #
+        if self.setup.pds_version == "3":
+            system = "TDB"
+        else:
+            system = "UTC"
         (start_time, stop_time) = et_to_date(spiceypy.utc2et(start_time[:-1]),
                                              spiceypy.utc2et(stop_time[:-1]),
-                                             self.setup.date_format)
+                                             self.setup.date_format,
+                                             system=system)
 
         self.start_time = start_time
         self.stop_time = stop_time

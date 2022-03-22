@@ -63,7 +63,7 @@ def creation_time(format="infomod2"):
     return creation_time
 
 
-def spk_coverage(path, main_name="", date_format="infomod2"):
+def spk_coverage(path, main_name="", date_format="infomod2", system="UTC"):
     """Returns the coverage of a SPK file.
 
     The function assumes that the appropriate kernels have already been loaded.
@@ -125,10 +125,10 @@ def spk_coverage(path, main_name="", date_format="infomod2"):
     start_time = min(start_points_list)
     stop_time = max(end_points_list)
 
-    return et_to_date(start_time, stop_time, date_format=date_format)
+    return et_to_date(start_time, stop_time, date_format=date_format, system=system)
 
 
-def ck_coverage(path, date_format="infomod2"):
+def ck_coverage(path, timsys="TDB", date_format="infomod2", system="UTC"):
     """Returns the coverage of a CK file.
 
     The function assumes that the appropriate kernels have already been loaded.
@@ -165,7 +165,7 @@ def ck_coverage(path, date_format="infomod2"):
             needav=False,
             level="SEGMENT",
             tol=0.0,
-            timsys="TDB",
+            timsys=timsys,
             cover=coverage,
         )
 
@@ -180,10 +180,13 @@ def ck_coverage(path, date_format="infomod2"):
     start_time = min(start_points_list)
     stop_time = max(end_points_list)
 
-    return et_to_date(start_time, stop_time, date_format=date_format, kernel_type="ck")
+    if timsys == "SCLK":
+        return (start_time, stop_time)
+    else:
+        return et_to_date(start_time, stop_time, date_format=date_format, kernel_type="ck", system=system, )
 
 
-def pck_coverage(path, date_format="infomod2"):
+def pck_coverage(path, date_format="infomod2", system="UTC"):
     """Returns the coverage of a PCK file.
 
     The function assumes that the appropriate kernels have already been loaded.
@@ -230,10 +233,10 @@ def pck_coverage(path, date_format="infomod2"):
     start_time = min(start_points_list)
     stop_time = max(end_points_list)
 
-    return et_to_date(start_time, stop_time, date_format=date_format)
+    return et_to_date(start_time, stop_time, date_format=date_format, system=system)
 
 
-def dsk_coverage(path, date_format="infomod2"):
+def dsk_coverage(path, date_format="infomod2", system="UTC"):
     """Returns the coverage of a DSK file.
 
     The function assumes that the appropriate kernels (LSK) have already been
@@ -295,22 +298,23 @@ def dsk_coverage(path, date_format="infomod2"):
     start_time = min(beget)
     stop_time = max(endet)
 
-    return et_to_date(start_time, stop_time, date_format=date_format)
+    return et_to_date(start_time, stop_time, date_format=date_format, system=system)
 
 
-def et_to_date(beget, endet, date_format="infomod2", kernel_type="Text"):
+def et_to_date(beget, endet, date_format="infomod2", kernel_type="Text",
+               system="UTC"):
     """Convert ET (ephemeris time) to a Date Time string."""
     time_length = 62
 
     if date_format == "infomod2":
         inwards_seconds = 0.001
-        time_format = "YYYY-MM-DDTHR:MN:SC.###::UTC::RND"
+        time_format = f"YYYY-MM-DDTHR:MN:SC.###::{system}::RND"
     elif date_format == "maklabel":
         inwards_seconds = 0.0
         if kernel_type.upper() == "CK":
-            time_format = "YYYY-MM-DDTHR:MN:SC.###::UTC::RND"
+            time_format = f"YYYY-MM-DDTHR:MN:SC.###::{system}::RND"
         else:
-            time_format = "YYYY-MM-DDTHR:MN:SC::UTC::RND"
+            time_format = f"YYYY-MM-DDTHR:MN:SC::{system}::RND"
     else:
         raise ValueError("date_format argument is incorrect.")
 

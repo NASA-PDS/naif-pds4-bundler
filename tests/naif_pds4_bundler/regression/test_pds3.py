@@ -1,7 +1,7 @@
 """Regression Test Family for PDS3 archives."""
-import sys
 import os
 import shutil
+import sys
 import unittest
 from unittest import TestCase
 
@@ -163,6 +163,7 @@ class TestPDS3(TestCase):
         main(
             self.config, plan, silent=self.silent, log=self.log,
         )
+
 
 
 if __name__ == "__main__":

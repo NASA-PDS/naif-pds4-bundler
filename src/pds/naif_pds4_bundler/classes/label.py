@@ -6,6 +6,7 @@ import os
 import spiceypy
 
 from ..utils import add_carriage_return
+from ..utils import ck_coverage
 from ..utils import compare_files
 from ..utils import extension_to_type
 from ..utils import extract_comment
@@ -684,15 +685,17 @@ class SpiceKernelPDS3Label(PDSLabel):
         logging.info("")
 
     @spice_exception_handler
-    def set_sclk_times(self, product):
+    def set_sclk_times(self, product, system="UTC"):
         """Calculates the SCLK times for PDS3 labels."""
         if product.type.upper() == "CK":
-            spice_id = spiceypy.bodnc(self.setup.spice_name)
-            et_start = spiceypy.str2et(product.start_time[:-1])
-            et_stop = spiceypy.str2et(product.stop_time[:-1])
+            spice_id = spiceypy.bodn2c(self.setup.spice_name)
 
-            sclk_start = spiceypy.sce2s(spice_id, et_start)
-            sclk_stop = spiceypy.sce2s(spice_id, et_stop)
+            (start_ticks, stop_ticks) = ck_coverage(product.path,
+                                                    timsys="SCLK",
+                                                    system=system)
+
+            sclk_start = spiceypy.scdecd(spice_id, start_ticks)
+            sclk_stop = spiceypy.scdecd(spice_id, stop_ticks)
         else:
             sclk_start = "N/A"
             sclk_stop = "N/A"
