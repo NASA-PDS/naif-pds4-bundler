@@ -164,7 +164,7 @@
             <description>MRO SPICE SCLK file providing correlation data for the primary MRO on-board clock tags in ``standard'' and ``high precision'' format, created by NAIF, JPL. The original name of this file was MRO_SCLKSCET.$VERSION.65536.tsc.
             </description>
             <patterns>
-                <VERSION pattern="KERNEL">MRO_SCLKSCET.$VERSION.65536.tsc</VERSION>
+                <VERSION pattern="KERNEL">mro_sclkscet_$VERSION_65536.tsc</VERSION>
             </patterns>
         </kernel>
         <kernel pattern="de[0-9][0-9][0-9]s*.bsp">

@@ -103,7 +103,7 @@
             <mapping>M2020_168_SCLKSCET.$VERSION.tsc</mapping>
             <description>SPICE SCLK file providing the official, OPS correlation data for the primary M2020 on-board clock, created by NAIF, JPL. The original name of this file was M2020_168_SCLKSCET.$VERSION.tsc.</description>
             <patterns>
-                <VERSION pattern="KERNEL">M2020_168_SCLKSCET.$VERSION.tsc</VERSION>
+                <VERSION pattern="KERNEL">m2020_168_sclkscet_$VERSION.tsc</VERSION>
             </patterns>
         </kernel>
         <kernel pattern="m2020_168_sclkscet_refit_v[0-9][0-9].tsc">

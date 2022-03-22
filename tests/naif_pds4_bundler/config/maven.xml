@@ -187,7 +187,7 @@
                 NAIF, JPL. The original name of this file was MVN_SCLKSCET.$VERSION.tsc.
             </description>
             <patterns>
-                <VERSION pattern="KERNEL">MVN_SCLKSCET.$VERSION.tsc</VERSION>
+                <VERSION pattern="KERNEL">mvn_sclkscet_$VERSION.tsc</VERSION>
             </patterns>
         </kernel>
         <kernel pattern="de[0-9][0-9][0-9]s.bsp">

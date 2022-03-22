@@ -155,7 +155,7 @@
             <mklabel_options>NAIF</mklabel_options>
             <description>SCLK file providing the official, OPS correlation data for the primary MSL on-board clock. The original name of this file was MSL_76_SCLKSCET.$VERSION.tsc.</description>
             <patterns>
-                <VERSION pattern="KERNEL">MSL_76_SCLKSCET.$VERSION.tsc</VERSION>
+                <VERSION pattern="KERNEL">msl_76_sclkscet_$VERSION.tsc</VERSION>
             </patterns>
         </kernel>
         <kernel pattern="msl_76_sclkscet_refit_[a-z][0-9].tsc">
@@ -164,7 +164,7 @@
             <description>SCLK file providing the improved correlation data for the primary MSL on-board clock. The original name of this file was MSL_76_SCLKSCET_REFIT_$VERSION.tsc.
             </description>
             <patterns>
-                <VERSION pattern="KERNEL">MSL_76_SCLKSCET_REFIT_$VERSION.tsc</VERSION>
+                <VERSION pattern="KERNEL">msl_76_sclkscet_refit_$VERSION.tsc</VERSION>
             </patterns>
         </kernel>
         <kernel pattern="msl_surf_ra_tlmenc_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_v[0-9].bc">

@@ -202,7 +202,7 @@
             <description>SPICE SCLK file containing time correlation data for the main JUNO on-board clock, created by NAIF, JPL. The original name of this file was JNO_SCLKSCET.$VERSION.tsc.
             </description>
             <patterns>
-                <VERSION pattern="KERNEL">JNO_SCLKSCET.$VERSION.tsc</VERSION>
+                <VERSION pattern="KERNEL">jno_sclkscet_$VERSION.tsc</VERSION>
             </patterns>
         </kernel>
         <kernel pattern="jup[0-9][0-9][0-9]s.bsp">
@@ -217,6 +217,7 @@
         <!-- Special case: Two SPKs of the same nature need different        -->
         <!-- Phases and therefore we need an entry for each file.            -->
         <kernel pattern="juno_rec_2106[0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9].bsp">
+            <mapping>spk_rec_2106$START_$STOP_$CREATION.bsp</mapping>
             <mklabel_options>TEAM_NAV PHASE_ORB_EXT</mklabel_options>
             <description>SPICE SPK file containing reconstructed trajectory of the JUNO spacecraft, created by JUNO NAV Team, JPL. The original name of this file was spk_rec_2106$START_$STOP_$CREATION.bsp.
             </description>
@@ -227,6 +228,7 @@
             </patterns>
         </kernel>
         <kernel pattern="juno_rec_2108[0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9].bsp">
+            <mapping>spk_rec_2108$START_$STOP_$CREATION.bsp</mapping>
             <mklabel_options>TEAM_NAV PHASE_EXT</mklabel_options>
             <description>SPICE SPK file containing reconstructed trajectory of the JUNO spacecraft, created by JUNO NAV Team, JPL. The original name of this file was spk_rec_2108$START_$STOP_$CREATION.bsp.
             </description>

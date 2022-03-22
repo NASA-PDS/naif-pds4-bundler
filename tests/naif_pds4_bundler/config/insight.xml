@@ -135,7 +135,7 @@
                 by NAIF, JPL. The original name of this file was NSY_SCLKSCET.$VERSION.tsc.
             </description>
             <patterns>
-                <VERSION pattern="KERNEL">NSY_SCLKSCET.$VERSION.tsc</VERSION>
+                <VERSION pattern="KERNEL">nsy_sclkscet_$VERSION.tsc</VERSION>
             </patterns>
         </kernel>
         <kernel pattern="insight_lmst_ops[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9].tsc">

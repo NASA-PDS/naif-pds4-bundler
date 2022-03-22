@@ -79,7 +79,6 @@
     <kernel_list>
         <!-- The kernel list provides a number of patterns that are used -->
         <kernel pattern="naif[0-9][0-9][0-9][0-9].tls">
-            <mklabel_options>DEF_TIMES</mklabel_options>
             <description>SPICE LSK file incorporating leapseconds up to $DATE, created by NAIF, JPL.</description>
             <patterns>
                 <DATE value="naif0011.tls">2015-JAN-01</DATE>
@@ -87,7 +86,6 @@
             </patterns>
         </kernel>
         <kernel pattern="pck[0-9][0-9][0-9][0-9][0-9].tpc">
-            <mklabel_options>DEF_TIMES</mklabel_options>
             <description>SPICE text PCK file containing constants from the $REPORT report, created by NAIF, JPL.
             </description>
             <patterns>
@@ -95,74 +93,58 @@
             </patterns>
         </kernel>
         <kernel pattern="bennu_v[0-9][0-9].tpc">
-            <mklabel_options>DEF_TIMES</mklabel_options>
             <description>SPICE text PCK file containing constants for asteroid (101955) Bennu, created by NAIF, JPL.</description>
         </kernel>
         <kernel pattern="orx_v[0-9][0-9].tf">
-            <mklabel_options>DEF_TIMES</mklabel_options>
             <description>SPICE FK file defining reference frames for the ORX spacecraft, its structures, and science instruments, created by NAIF, JPL.</description>
         </kernel>
         <kernel pattern="orx_shape_v[0-9][0-9].tf">
-            <mklabel_options>DEF_TIMES</mklabel_options>
             <description>SPICE FK file defining the surface NAIF name/ID mappings for the surfaces provided in Bennu DSK files, created by the ORX Altimetry Working Group (AltWG).</description>
         </kernel>
         <kernel pattern="orx_lidar_v[0-9][0-9].ti">
-            <mklabel_options>DEF_TIMES</mklabel_options>
             <description>SPICE IK file providing FOV definitions for the ORX Light Detection And Ranging (LIDAR) instrument, created by NAIF, JPL.</description>
         </kernel>
         <kernel pattern="orx_navcam_v[0-9][0-9].ti">
-            <mklabel_options>DEF_TIMES</mklabel_options>
             <description>SPICE IK file providing FOV definitions and other instrument parameters for the ORX Navigation Camera (NAVCAM) instruments, created by NAIF, JPL.</description>
         </kernel>
         <kernel pattern="orx_ocams_v[0-9][0-9].ti">
-            <mklabel_options>DEF_TIMES</mklabel_options>
             <description>SPICE IK file providing FOV definitions and other instrument parameters for the ORX Camera Suite (OCAMS) instruments, created by NAIF, JPL.</description>
         </kernel>
         <kernel pattern="orx_ola_v[0-9][0-9].ti">
-            <mklabel_options>DEF_TIMES</mklabel_options>
             <description>SPICE IK file providing FOV definitions and other instrument parameters for the ORX Laser Altimeter (OLA) instrument, created by NAIF, JPL.</description>
         </kernel>
         <kernel pattern="orx_otes_v[0-9][0-9].ti">
-            <mklabel_options>DEF_TIMES</mklabel_options>
             <description>SPICE IK file providing FOV definitions and other instrument parameters for the ORX Thermal Emission Spectrometer (OTES) instrument, created by NAIF, JPL.</description>
         </kernel>
         <kernel pattern="orx_ovirs_v[0-9][0-9].ti">
-            <mklabel_options>DEF_TIMES</mklabel_options>
             <description>SPICE IK file providing FOV definitions and other instrument parameters for the ORX Visible and Infrared Spectrometer (OVIRS) instrument, created by NAIF, JPL.</description>
         </kernel>
         <kernel pattern="orx_rexis_v[0-9][0-9].ti">
-            <mklabel_options>DEF_TIMES</mklabel_options>
             <description>SPICE IK file providing FOV definitions and other instrument parameters for the ORX Regolith X-ray Imaging Spectrometer (REXIS) instrument, created by NAIF, JPL.</description>
         </kernel>
         <kernel pattern="orx_stowcam_v[0-9][0-9].ti">
-            <mklabel_options>DEF_TIMES</mklabel_options>
             <description>SPICE IK file providing FOV definitions and other instrument parameters for the ORX StowCam instrument, created by NAIF, JPL.</description>
         </kernel>
         <kernel pattern="orx_struct_v[0-9][0-9].ti">
-            <mklabel_options>DEF_TIMES</mklabel_options>
             <description>SPICE IK file providing FOV definitions and other instrument parameters for miscellaneous ORX instruments and structures (antennas, star trackers, etc.), created by NAIF, JPL.</description>
         </kernel>
         <kernel pattern="orx_sclkscet_[0-9][0-9][0-9][0-9][0-9].tsc">
             <mapping>ORX_SCLKSCET.$VERSION.tsc</mapping>
-            <mklabel_options>DEF_TIMES</mklabel_options>
             <description>SPICE SCLK file containing time correlation data for the main ORX on-board clock, created by NAIF, JPL. The original name of this file was ORX_SCLKSCET.$VERSION.tsc.</description>
             <patterns>
-                <VERSION pattern="KERNEL">ORX_SCLKSCET.$VERSION.tsc</VERSION>
+                <VERSION pattern="KERNEL">orx_sclkscet_$VERSION.tsc</VERSION>
             </patterns>
         </kernel>
         <kernel pattern="de[0-9][0-9][0-9]s.bsp">
-            <mklabel_options></mklabel_options>
             <description>SPICE SPK file containing JPL planetary ephemerides version $VERSION, created by NAIF, JPL.</description>
             <patterns>
                 <VERSION pattern="de430s.bsp">DE430</VERSION>
             </patterns>
         </kernel>
         <kernel pattern="orx_struct_v[0-9][0-9].bsp">
-            <mklabel_options></mklabel_options>
             <description>SPICE SPK file containing relative locations of selected ORX structures and science instruments, created by NAIF, JPL.</description>
         </kernel>
         <kernel pattern="orx_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_od[0-9][0-9][0-9]_v[0-9].bsp">
-            <mklabel_options></mklabel_options>
             <description>SPICE SPK file containing reconstructed trajectory of the ORX spacecraft, created by FDS, KinetX. The original name of this file was The original name of this file was $FILE.</description>
             <patterns>
                 <FILE value="orx_200616_200811_200727_od269_v1.bsp">orx_200616_200811_200727_od269_v1.bsp</FILE>
@@ -173,104 +155,89 @@
             </patterns>
         </kernel>
         <kernel pattern="orx_struct_mapcam_v[0-9][0-9].bc">
-            <mklabel_options></mklabel_options>
             <description>SPICE CK file containing reconstructed time-variable alignment of the MAPCAM instrument relative to the ORX spacecraft, created by NAIF, JPL.</description>
         </kernel>
         <kernel pattern="orx_struct_polycam_v[0-9][0-9].bc">
-            <mklabel_options></mklabel_options>
             <description>SPICE CK file containing reconstructed time-variable alignment of the POLYCAM instrument relative to the ORX spacecraft, created by NAIF, JPL.</description>
         </kernel>
         <kernel pattern="orx_tag_rec_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9].bc">
-            <mklabel_options></mklabel_options>
             <description>SPICE CK file containing reconstructed orientation of the ORX Touch-And-Go-Sample Acquisition Mechanism (TAGSAM), created by NAIF, JPL.</description>
         </kernel>
         <kernel pattern="orx_ola_[0-9][0-9][0-9][0-9][0-9][0-9]_scil2id[0-9][0-9][0-9][0-9][0-9].bc">
             <mapping>$DATE_ola_scil2id$VERSION.bc</mapping>
-            <mklabel_options></mklabel_options>
             <description>SPICE CK file containing reconstructed orientation of the ORX OLA instrument internal mirror, created by the OLA Team, JHU/APL. The original name of this file was $DATE_ola_scil2id$VERSION.bc.</description>
             <patterns>
-                <VERSION pattern="KERNEL">[0-9][0-9][0-9][0-9][0-9][0-9]_ola_scil2id$VERSION.bc</VERSION>
-                <DATE pattern="KERNEL">$DATE_ola_scil2id[0-9][0-9][0-9][0-9][0-9].bc</DATE>
+                <VERSION pattern="KERNEL">orx_ola_[0-9][0-9][0-9][0-9][0-9][0-9]_scil2id$VERSION.bc</VERSION>
+                <DATE pattern="KERNEL">orx_ola_$DATE_scil2id[0-9][0-9][0-9][0-9][0-9].bc</DATE>
             </patterns>
         </kernel>
         <kernel pattern="orx_ola_[0-9][0-9][0-9][0-9][0-9][0-9]_scil2id[0-9][0-9][0-9][0-9][0-9]_v02.bc">
             <mapping>$DATE_ola_scil2id$VERSION.bc</mapping>
-            <mklabel_options></mklabel_options>
             <description>SPICE CK file containing reconstructed orientation of the ORX OLA instrument internal mirror, created by the OLA Team, JHU/APL. The original name of this file was $DATE_ola_scil2id$VERSION.bc.</description>
             <patterns>
-                <VERSION pattern="KERNEL">[0-9][0-9][0-9][0-9][0-9][0-9]_ola_scil2id$VERSION.bc</VERSION>
-                <DATE pattern="KERNEL">$DATE_ola_scil2id[0-9][0-9][0-9][0-9][0-9].bc</DATE>
+                <VERSION pattern="KERNEL">orx_ola_[0-9][0-9][0-9][0-9][0-9][0-9]_scil2id$VERSION.bc</VERSION>
+                <DATE pattern="KERNEL">orx_ola_$DATE_ola_scil2id[0-9][0-9][0-9][0-9][0-9].bc</DATE>
             </patterns>
         </kernel>
         <kernel pattern="orx_p_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_od[0-9][0-9][0-9]_v[0-9][0-9].bc">
-            <mklabel_options></mklabel_options>
             <description>SPICE CK file containing predicted orientation of the ORX spacecraft and Solar Arrays (SA), created by NAIF, JPL from predicted data provided by the Spacecraft Team, LMSS.</description>
         </kernel>
         <kernel pattern="orx_r_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9].bc">
-            <mklabel_options></mklabel_options>
             <description>SPICE CK file containing reconstructed orientation of the ORX spacecraft and Solar Arrays (SA), created by NAIF, JPL from  quick-look reconstructed data provided by the Spacecraft Team, LMSS.</description>
         </kernel>
         <kernel pattern="orx_sa_rel_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9].bc">
-            <mklabel_options></mklabel_options>
             <description>SPICE CK file containing reconstructed orientation of the ORX Solar Arrays (SA), created by NAIF, JPL.</description>
         </kernel>
         <kernel pattern="orx_sc_rel_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9].bc">
-            <mklabel_options></mklabel_options>
             <description>SPICE CK file containing reconstructed orientation of the ORX spacecraft, created by NAIF, JPL.</description>
         </kernel>
         <kernel pattern="bennu_g_[0-9][0-9][0-9][0-9][0-9]mm_alt_obj_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds">
             <mapping>g_$RESOLUTIONmm_alt_obj_$REFERENCE_v$VERSION.bds</mapping>
-            <mklabel_options></mklabel_options>
             <description>SPICE DSK file containing shape model data for the surface of asteroid (101955) Bennu, with Global coverage at $RESOLUTION meter resolution, ALT-based, version $VERSION,
                 created by the ORX Altimetry Working Group (AltWG). The original name of this file was g_$RESOLUTIONmm_alt_obj_$REFERENCE_v$VERSION.bds.</description>
             <patterns>
-                <RESOLUTION pattern="KERNEL">g_$RESOLUTIONmm_alt_obj_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds</RESOLUTION>
-                <REFERENCE pattern="KERNEL">g_[0-9][0-9][0-9][0-9][0-9]mm_alt_obj_$REFERENCE_v[0-9][0-9][0-9].bds</REFERENCE>
-                <VERSION pattern="KERNEL">g_[0-9][0-9][0-9][0-9][0-9]mm_alt_obj_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v$VERSION.bds</VERSION>
+                <RESOLUTION pattern="KERNEL">bennu_g_$RESOLUTIONmm_alt_obj_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds</RESOLUTION>
+                <REFERENCE pattern="KERNEL">bennu_g_[0-9][0-9][0-9][0-9][0-9]mm_alt_obj_$REFERENCE_v[0-9][0-9][0-9].bds</REFERENCE>
+                <VERSION pattern="KERNEL">bennu_g_[0-9][0-9][0-9][0-9][0-9]mm_alt_obj_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v$VERSION.bds</VERSION>
             </patterns>
         </kernel>
         <kernel pattern="bennu_g_[0-9][0-9][0-9][0-9][0-9]mm_alt_ptm_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds">
             <mapping>g_$RESOLUTIONmm_alt_ptm_$REFERENCE_v$VERSION.bds</mapping>
-            <mklabel_options></mklabel_options>
             <description>SPICE DSK file containing shape model data for the surface of asteroid (101955) Bennu, with Global coverage at $RESOLUTION meter resolution, ALT-based using a Poisson method, version $VERSION,
                 created by the ORX Altimetry Working Group (AltWG). The original name of this file was g_$RESOLUTIONmm_alt_obj_$REFERENCE_v$VERSION.bds.</description>
             <patterns>
-                <RESOLUTION pattern="KERNEL">g_$RESOLUTIONmm_alt_ptm_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds</RESOLUTION>
-                <REFERENCE pattern="KERNEL">g_[0-9][0-9][0-9][0-9][0-9]mm_alt_ptm_$REFERENCE_v[0-9][0-9][0-9].bds</REFERENCE>
-                <VERSION pattern="KERNEL">g_[0-9][0-9][0-9][0-9][0-9]mm_alt_ptm_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v$VERSION.bds</VERSION>
+                <RESOLUTION pattern="KERNEL">bennu_g_$RESOLUTIONmm_alt_ptm_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds</RESOLUTION>
+                <REFERENCE pattern="KERNEL">bennu_g_[0-9][0-9][0-9][0-9][0-9]mm_alt_ptm_$REFERENCE_v[0-9][0-9][0-9].bds</REFERENCE>
+                <VERSION pattern="KERNEL">bennu_g_[0-9][0-9][0-9][0-9][0-9]mm_alt_ptm_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v$VERSION.bds</VERSION>
             </patterns>
         </kernel>
         <kernel pattern="bennu_l_[0-9][0-9][0-9][0-9][0-9]mm_alt_dtm_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds">
             <mapping>l_$RESOLUTIONmm_alt_dtm_$REFERENCE_v$VERSION.bds</mapping>
-            <mklabel_options></mklabel_options>
             <description>SPICE DSK file containing shape model data for the surface of asteroid (101955) Bennu, with Local coverage at $RESOLUTION meter resolution, ALT-based, version $VERSION,
                 created by the ORX Altimetry Working Group (AltWG). The original name of this file was l_$RESOLUTIONmm_alt_dtm_$REFERENCE_v$VERSION.bds.</description>
             <patterns>
-                <RESOLUTION pattern="KERNEL">l_$RESOLUTIONmm_alt_dtm_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds</RESOLUTION>
-                <REFERENCE pattern="KERNEL">l_[0-9][0-9][0-9][0-9][0-9]mm_alt_dtm_$REFERENCE_v[0-9][0-9][0-9].bds</REFERENCE>
-                <VERSION pattern="KERNEL">l_[0-9][0-9][0-9][0-9][0-9]mm_alt_dtm_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v$VERSION.bds</VERSION>
+                <RESOLUTION pattern="KERNEL">bennu_l_$RESOLUTIONmm_alt_dtm_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds</RESOLUTION>
+                <REFERENCE pattern="KERNEL">bennu_l_[0-9][0-9][0-9][0-9][0-9]mm_alt_dtm_$REFERENCE_v[0-9][0-9][0-9].bds</REFERENCE>
+                <VERSION pattern="KERNEL">bennu_l_[0-9][0-9][0-9][0-9][0-9]mm_alt_dtm_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v$VERSION.bds</VERSION>
             </patterns>
         </kernel>
         <kernel pattern="bennu_l_[0-9][0-9][0-9][0-9][0-9]mm_alt_ptm_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds">
             <mapping>l_$RESOLUTIONmm_alt_ptm_$REFERENCE_v$VERSION.bds</mapping>
-            <mklabel_options></mklabel_options>
             <description>SPICE DSK file containing shape model data for the surface of asteroid (101955) Bennu, with Local coverage at $RESOLUTION meter resolution, ALT-based using a Poisson method, version $VERSION,
                 created by the ORX Altimetry Working Group (AltWG). The original name of this file was l_$RESOLUTIONmm_alt_ptm_$REFERENCE_v$VERSION.bds.</description>
             <patterns>
-                <RESOLUTION pattern="KERNEL">l_$RESOLUTIONmm_alt_ptm_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds</RESOLUTION>
-                <REFERENCE pattern="KERNEL">l_[0-9][0-9][0-9][0-9][0-9]mm_alt_ptm_$REFERENCE_v[0-9][0-9][0-9].bds</REFERENCE>
-                <VERSION pattern="KERNEL">l_[0-9][0-9][0-9][0-9][0-9]mm_alt_ptm_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v$VERSION.bds</VERSION>
+                <RESOLUTION pattern="KERNEL">bennu_l_$RESOLUTIONmm_alt_ptm_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds</RESOLUTION>
+                <REFERENCE pattern="KERNEL">bennu_l_[0-9][0-9][0-9][0-9][0-9]mm_alt_ptm_$REFERENCE_v[0-9][0-9][0-9].bds</REFERENCE>
+                <VERSION pattern="KERNEL">bennu_l_[0-9][0-9][0-9][0-9][0-9]mm_alt_ptm_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v$VERSION.bds</VERSION>
             </patterns>
         </kernel>
         <kernel pattern="orx_[0-9][0-9][0-9][0-9]_v[0-9][0-9].tm">
-            <mklabel_options></mklabel_options>
             <description>SPICE MK file listing kernels for $YEAR, created by NAIF, JPL.</description>
             <patterns>
                 <YEAR pattern="KERNEL">orx_$YEAR_v[0-9][0-9].tm</YEAR>
             </patterns>
         </kernel>
         <kernel pattern="orx_noola_[0-9][0-9][0-9][0-9]_v[0-9][0-9].tm">
-            <mklabel_options></mklabel_options>
             <description>SPICE MK file listing kernels for $YEAR, not including OLA CKs, created by NAIF, JPL.</description>
             <patterns>
                 <YEAR pattern="KERNEL">orx_noola_$YEAR_v[0-9][0-9].tm</YEAR>
