@@ -198,27 +198,19 @@ class SpiceKernelsCollection(Collection):
                             meta_kernels.append(path)
                             user_input = True
                     if not user_input:
-                        logging.info(
-                        "-- No meta-kernel provided as input in kernels directory."
-                        )
+                        logging.info("-- No meta-kernel provided as input in kernels directory.")
                         for kernel_dir in self.setup.kernels_directory:
                             path = f"{kernel_dir}/mk/{kernel}"
                             meta_kernels.append(path)
-
-
 
         #
         # If no meta-kernels are provided as inputs or in the kernel list,
         #
         if not meta_kernels:
             if self.setup.args.faucet == "labels":
-                logging.info(
-                    "-- No meta-kernel provided as input in the plan in labeling mode."
-                )
+                logging.info("-- No meta-kernel provided as input in the plan in labeling mode.")
             else:
-                logging.info(
-                    "-- No meta-kernel provided in the kernel list or via configuration."
-                )
+                logging.info("-- No meta-kernel provided in the kernel list or via configuration.")
 
             #
             # NPB will try to determine if a meta-kernel can be generated
@@ -406,10 +398,10 @@ class SpiceKernelsCollection(Collection):
         # SPICE Toolkit N0067.
         #
         try:
-            (increment_start, increment_finish) = \
-                et_to_date(spiceypy.utc2et(increment_start[:-1]),
-                        spiceypy.utc2et(increment_finish[:-1]),
-                        self.setup.date_format)
+            (increment_start, increment_finish) = et_to_date(
+                spiceypy.utc2et(increment_start[:-1]),
+                spiceypy.utc2et(increment_finish[:-1]),
+                self.setup.date_format)
         except BaseException:
             logging.warning("-- A leapseconds kernel (LSK) has not been loaded. "
                             "Increment start/finish times will not be corrected.")
@@ -564,11 +556,9 @@ class SpiceKernelsCollection(Collection):
                 "DESCRIPTION",
             ]
 
-
         elements_dict = dict.fromkeys(elements)
 
         for product in self.product:
-            label_path = self.setup.staging_directory + ker_dir + product.type
             label_name = product.label.name
             with open(label_name, "r") as p:
                 for line in p:
@@ -578,7 +568,6 @@ class SpiceKernelsCollection(Collection):
                                 elements_dict[element] = [line.strip()]
                             else:
                                 elements_dict[element].append(line.strip())
-
 
         if self.setup.pds_version == "4":
             elements_dict["description"] = list(set(elements_dict["description"]))
@@ -607,7 +596,7 @@ class DocumentCollection(Collection):
 
         Collection.__init__(self, self.type, setup, bundle)
 
-    def get_PDS3_documents(self):
+    def get_pds3_documents(self):
         """Collects the updated PDS3 documents for the increment."""
         line = f"Step {self.setup.step} - Generation of PDS3 products"
         logging.info("")
@@ -617,8 +606,7 @@ class DocumentCollection(Collection):
         if not self.setup.args.silent and not self.setup.args.verbose:
             print("-- " + line.split(" - ")[-1] + ".")
 
-        for file in glob.glob(f'{self.setup.staging_directory}/**/*[.]*',
-                              recursive=True):
+        for file in glob.glob(f'{self.setup.staging_directory}/**/*[.]*', recursive=True):
             if '.txt' in file or '.cat' in file or 'aareadme.' in file:
                 document = PDS3DocumentProduct(self.setup, file)
 

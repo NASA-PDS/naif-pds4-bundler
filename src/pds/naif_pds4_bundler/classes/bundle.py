@@ -129,7 +129,7 @@ class Bundle(object):
         staging_files = []
         for root, _dirs, files in os.walk(self.setup.staging_directory, topdown=True):
             for name in files:
-                if not "DS_Store" in name:
+                if "DS_Store" not in name:
                     staging_files.append(os.path.join(root, name))
 
         #
@@ -185,7 +185,7 @@ class Bundle(object):
             src = file
 
             if self.setup.pds_version == "4":
-                spice_kernels_dir =  "spice_kernels"
+                spice_kernels_dir = "spice_kernels"
                 label_extension = "xml"
                 relative_path = f"{os.sep}{self.setup.mission_acronym}_spice{os.sep}"
             else:

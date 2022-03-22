@@ -8,12 +8,11 @@ import os
 import re
 import shutil
 import subprocess
-import numpy as np
-
 from collections import defaultdict
 from collections import OrderedDict
 from datetime import date
 
+import numpy as np
 import spiceypy
 
 from ..utils import add_carriage_return
@@ -32,23 +31,23 @@ from ..utils import match_patterns
 from ..utils import md5
 from ..utils import mk_to_list
 from ..utils import pck_coverage
+from ..utils import replace_string_in_file
 from ..utils import safe_make_directory
 from ..utils import spice_exception_handler
 from ..utils import spk_coverage
+from ..utils import string_in_file
 from ..utils import type_to_extension
 from ..utils import utf8len
-from ..utils import replace_string_in_file
-from ..utils import string_in_file
 from .label import BundlePDS4Label
-from .label import ChecksumPDS4Label
 from .label import ChecksumPDS3Label
+from .label import ChecksumPDS4Label
 from .label import DocumentPDS4Label
-from .label import InventoryPDS4Label
 from .label import InventoryPDS3Label
+from .label import InventoryPDS4Label
 from .label import MetaKernelPDS4Label
 from .label import OrbnumFilePDS4Label
-from .label import SpiceKernelPDS4Label
 from .label import SpiceKernelPDS3Label
+from .label import SpiceKernelPDS4Label
 from .log import error_message
 from .object import Object
 
@@ -103,7 +102,6 @@ class Product(object):
         if self.new_product:
             self.setup.add_file(self.path.split(archive_dir)[-1])
             self.setup.add_checksum(self.path, checksum)
-
 
     def get_observer_and_target(self):
         """Read the configuration to extract the observers and the targets.
@@ -182,7 +180,6 @@ class SpiceKernelProduct(Product):
 
         self.extension = name.split(".")[-1].strip()
         self.type = extension_to_type(self)
-
 
         if self.setup.pds_version == "4":
             #
@@ -295,7 +292,7 @@ class SpiceKernelProduct(Product):
         #
         logging.info(f"-- Labeling {self.name}...")
         if self.setup.pds_version == "4":
-            self.label =  SpiceKernelPDS4Label(setup, self)
+            self.label = SpiceKernelPDS4Label(setup, self)
         else:
             self.maklabel_options = self.read_maklabel_options()
             self.label = SpiceKernelPDS3Label(setup, self)
@@ -667,7 +664,6 @@ class MetaKernelProduct(Product):
 
             self.KERNELPATH = ".."
 
-
         self.AUTHOR = self.setup.producer_name
         self.MISSION_NAME = self.setup.mission_name
 
@@ -1016,7 +1012,7 @@ class MetaKernelProduct(Product):
         #
         # Obtain meta-kernel grammar from configuration.
         #
-        if "grammar" not in  self.mk_setup:
+        if "grammar" not in self.mk_setup:
             error_message(f'Meta-kernel grammar not defined in configuration for {self.name}')
         kernel_grammar_list = self.mk_setup["grammar"]["pattern"]
 
@@ -1380,7 +1376,7 @@ class MetaKernelProduct(Product):
                 )
 
         except BaseException:
-            logging.error(f"-- The MK could not be loaded with the SPICE API FURNSH.")
+            logging.error("-- The MK could not be loaded with the SPICE API FURNSH.")
 
         spiceypy.kclear()
         os.chdir(cwd)
@@ -1635,8 +1631,8 @@ class MetaKernelProduct(Product):
         # string since it is not supported until the SPICE Toolkit N0067.
         #
         (start_time, stop_time) = et_to_date(spiceypy.utc2et(start_time[:-1]),
-                                          spiceypy.utc2et(stop_time[:-1]),
-                                          self.setup.date_format)
+                                             spiceypy.utc2et(stop_time[:-1]),
+                                             self.setup.date_format)
 
         self.start_time = start_time
         self.stop_time = stop_time
@@ -2870,7 +2866,6 @@ class InventoryProduct(Product):
 
     def __init__(self, setup, collection):
         """Constructor."""
-
         if collection.name != 'miscellaneous':
             line = f"Step {setup.step} - Generation of {collection.name} collection"
             logging.info("")
@@ -2973,7 +2968,6 @@ class InventoryProduct(Product):
             replace_string_in_file(self.setup.staging_directory + '/../dsindex.lbl',
                                    '"INDEX.TAB"', '"DSINDEX.TAB"', self.setup)
 
-
     def set_product_lid(self):
         """Set the Product LID."""
         self.lid = f"{self.setup.logical_identifier}:document:spiceds"
@@ -2996,10 +2990,9 @@ class InventoryProduct(Product):
             print(f"   * Created {self.path.split(self.setup.staging_directory)[-1]}.")
 
         if self.setup.pds_version == "4":
-            self.validatePDS4()
+            self.validate_pds4()
         else:
-            self.validatePDS3()
-
+            self.validate_pds3()
 
         if self.setup.diff:
             self.compare()
@@ -3044,13 +3037,13 @@ class InventoryProduct(Product):
         return
 
     def write_pds3_index_product(self):
-        '''
-        This method uses the previous index file to generate the new one. There
-        is a NAIF Perl script that will generate an index file from a kernel
-        list file. Please contact the NAIF if you are interested in such
+        """This method uses the previous index file to generate the new one.
+
+        There is a NAIF Perl script that will generate an index file from a
+        kernel list file. Please contact the NAIF if you are interested in such
         script.
         :return:
-        '''
+        """
         current_index = list()
         column_length = np.zeros(10)
 
@@ -3171,7 +3164,7 @@ class InventoryProduct(Product):
 
         return
 
-    def validatePDS4(self):
+    def validate_pds4(self):
         """Validate the PDS4 Inventory Product.
 
         The Inventory is validated by checking that all the products listed
@@ -3200,7 +3193,7 @@ class InventoryProduct(Product):
         logging.info("      OK")
         logging.info("")
 
-    def validatePDS3(self):
+    def validate_pds3(self):
         """Validate the PDS3 Index.
 
         The Inventory is validated by checking that all the products listed
@@ -3602,6 +3595,7 @@ class ReadmeProduct(Product):
 
         return
 
+
 class ChecksumProduct(Product):
     """Product child class to generate a Checksum Product."""
 
@@ -3809,11 +3803,11 @@ class ChecksumProduct(Product):
                     checksum_dir = f"{self.collection.name}/checksum/"
                     label_current = self.path_current.replace(".tab", ".xml")
                 else:
-                    checksum_dir = f"index/"
+                    checksum_dir = "index/"
                     label_current = self.path_current.replace(".tab", ".lbl")
 
                 md5_current = md5(self.path_current)
-                self.md5_dict[checksum_dir + self.path_current.split(os.sep)[-1]] =  md5_current
+                self.md5_dict[checksum_dir + self.path_current.split(os.sep)[-1]] = md5_current
 
                 md5_label = md5(label_current)
                 self.md5_dict[checksum_dir + label_current.split(os.sep)[-1]] = md5_label
@@ -3955,7 +3949,7 @@ class ChecksumProduct(Product):
         md5_check_dict = {k: v for k, v in md5_check_dict.items() if len(v) > 1}
 
         if md5_check_dict:
-            logging.warning(f"-- The following products have the same MD5 sum:")
+            logging.warning("-- The following products have the same MD5 sum:")
             for k, v in md5_check_dict.items():
                 logging.warning(f'   {k}')
                 for file in v:
@@ -3966,7 +3960,7 @@ class ChecksumProduct(Product):
         # sorted by filename alphabetical order (second column of the
         # resulting table)
         #
-        if self.setup.pds_version == '4':
+        if self.setup.pds_version == "4":
             md5_dict_keys = list(self.md5_dict.keys())
             for key in sorted(md5_dict_keys):
                 md5_list.append(f"{self.md5_dict[key]}  {key}")
@@ -4009,10 +4003,10 @@ class ChecksumProduct(Product):
             #
             md5_dict_keys = list(self.md5_dict.keys())
             for i, s in enumerate(md5_dict_keys):
-                md5_dict_keys[i] = s.replace('_','~').replace('.','|')
+                md5_dict_keys[i] = s.replace("_", "~").replace(".", "|")
 
             for key in sorted(md5_dict_keys):
-                key = key.replace('~','_').replace('|','.')
+                key = key.replace("~", "_").replace("|", ".")
                 md5_list.append(f"{self.md5_dict[key]}  {key}{' '*(max_key_len-len(key))}")
 
             self.bytes = max_key_len
@@ -4148,15 +4142,13 @@ class PDS3DocumentProduct(Product):
         # Compare with the already existing file -that has the same name-, if
         # files are the same do not include as an updated file.
         #
-        existing_path = self.setup.bundle_directory + os.sep + \
-                        self.setup.volume_id + \
-                        path.split(self.setup.volume_id)[-1]
+        existing_path = self.setup.bundle_directory + os.sep + self.setup.volume_id + path.split(self.setup.volume_id)[-1]
 
         same_files = compare_files(existing_path,
                                    path,
                                    self.setup.working_directory,
                                    self.setup.diff
-                     )
+                                   )
         if not same_files:
             self.new_product = False
         else:
@@ -4167,7 +4159,10 @@ class PDS3DocumentProduct(Product):
         Product.__init__(self)
 
     def validate(self):
+        """Try to validate the PDS3 document.
 
+        The outcome of the validation is an INFO or a WARNING log message.
+        """
         if self.name == 'release.cat':
             release_strings = [
                 f'RELEASE_ID                      = "0{self.setup.release}"',

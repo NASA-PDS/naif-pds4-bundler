@@ -56,7 +56,7 @@ class KernelList(List):
 
         if self.setup.pds_version == "3":
             self.DATA_SET_ID = setup.pds3_mission_template['DATA_SET_ID'].lower()
-            self.VOLID =  setup.volume_id.lower()
+            self.VOLID = setup.volume_id.lower()
         else:
             self.DATA_SET_ID = "N/A"
             self.VOLID = "N/A"

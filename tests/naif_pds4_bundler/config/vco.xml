@@ -166,7 +166,6 @@
             </description>
         </kernel>
         <kernel pattern="vco_pds4_v[0-9][0-9].tm">
-            <mklabel_options></mklabel_options>
             <description>SPICE MK file listing kernels, created by ISAS, JAXA.</description>
         </kernel>
     </kernel_list>

@@ -13,7 +13,6 @@ from collections import defaultdict
 import spiceypy
 
 from ..classes.log import error_message
-from ..utils import spice_exception_handler
 
 
 def etree_to_dict(t):
@@ -141,7 +140,7 @@ def extension_to_type(kernel):
     return kernel_type
 
 
-def type_to_PDS3_type(kernel):
+def type_to_pds3_type(kernel):
     """Given a SPICE kernel provide the PDS3 SPICE kernel type.
 
     :param kernel: SPICE Kernel name
@@ -585,11 +584,11 @@ def compare_files(fromfile, tofile, dir, display):
         tolines = tf.readlines()
 
     if fromlines == tolines:
-        logging.info(f"-- The following files have the same content:")
-        logging.info(f'   {fromfile}')
-        logging.info(f'   {tofile}')
+        logging.info("-- The following files have the same content:")
+        logging.info(f"   {fromfile}")
+        logging.info(f"   {tofile}")
         if md5(fromfile) == md5(tofile):
-            logging.info(f"   And have the same MD5Sum.")
+            logging.info("   And have the same MD5Sum.")
             return False
 
     if display in ["all", "log"]:
@@ -835,8 +834,8 @@ def replace_string_in_file(file, old_string, new_string, setup):
 
     new_file_content = ""
     for line in reading_file:
-      new_line = line.replace(old_string, new_string)
-      new_file_content += add_carriage_return(new_line, setup.eol_pds3, setup)
+        new_line = line.replace(old_string, new_string)
+        new_file_content += add_carriage_return(new_line, setup.eol_pds3, setup)
     reading_file.close()
 
     writing_file = open('temp.file', "w")
@@ -849,10 +848,11 @@ def replace_string_in_file(file, old_string, new_string, setup):
 
 
 def format_multiple_values(value):
-    #
-    # If the MAKLABEL key value has multiple entries, it needs to
-    # be reformatted.
-    #
+    """Reformat multi-line key value.
+
+    E.g.: if the MAKLABEL key value has multiple entries, it needs to
+    be reformatted.
+    """
     if ',' in value:
         values = value.split(',')
         value = "{\n"

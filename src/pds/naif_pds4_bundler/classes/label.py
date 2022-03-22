@@ -8,10 +8,10 @@ import spiceypy
 from ..utils import add_carriage_return
 from ..utils import compare_files
 from ..utils import extension_to_type
-from ..utils import type_to_PDS3_type
-from ..utils import spice_exception_handler
-from ..utils import format_multiple_values
 from ..utils import extract_comment
+from ..utils import format_multiple_values
+from ..utils import spice_exception_handler
+from ..utils import type_to_pds3_type
 from .log import error_message
 
 
@@ -175,15 +175,15 @@ class PDSLabel(object):
 
                 obs_list_for_label += (
                       f"{' ' * 3*tab}<Observing_System_Component>{eol}"
-                    + f"{' ' * (3+1)*tab}<name>{ob_name}</name>{eol}"
-                    + f"{' ' * (3+1)*tab}<type>Spacecraft</type>{eol}"
-                    + f"{' ' * (3+1)*tab}<Internal_Reference>{eol}"
-                    + f"{' ' * (3 + 2)*tab}<lid_reference>{ob_lid}"
-                    f"</lid_reference>{eol}"
-                    + f"{' ' * (3 + 2)*tab}<reference_type>is_instrument_host"
-                    f"</reference_type>{eol}"
-                    + f"{' ' * (3+1)*tab}</Internal_Reference>{eol}"
-                    + f"{' ' * 3*tab}</Observing_System_Component>{eol}"
+                      + f"{' ' * (3+1)*tab}<name>{ob_name}</name>{eol}"
+                      + f"{' ' * (3+1)*tab}<type>Spacecraft</type>{eol}"
+                      + f"{' ' * (3+1)*tab}<Internal_Reference>{eol}"
+                      + f"{' ' * (3 + 2)*tab}<lid_reference>{ob_lid}"
+                      f"</lid_reference>{eol}"
+                      + f"{' ' * (3 + 2)*tab}<reference_type>is_instrument_host"
+                      f"</reference_type>{eol}"
+                      + f"{' ' * (3+1)*tab}</Internal_Reference>{eol}"
+                      + f"{' ' * 3*tab}</Observing_System_Component>{eol}"
                 )
 
         if not obs_list_for_label:
@@ -219,16 +219,16 @@ class PDSLabel(object):
                         target_type = product["type"][0].capitalize()
 
                 tar_list_for_label += (
-                      f"{' ' * 2*tab}<Target_Identification>{eol}"
-                    + f"{' ' * 3 * tab}<name>{target_name}</name>{eol}"
-                    + f"{' ' * 3 * tab}<type>{target_type}</type>{eol}"
-                    + f"{' ' * 3 * tab}<Internal_Reference>{eol}"
-                    + f"{' ' * 4  *  tab}<lid_reference>{target_lid}"
-                      f"</lid_reference>{eol}" + f"{' ' * 4  *  tab}<reference_type>"
-                      f"{self.get_target_reference_type()}"
-                      f"</reference_type>{eol}"
-                    + f"{' ' * 3 * tab}</Internal_Reference>{eol}"
-                    + f"{' ' * 2*tab}</Target_Identification>{eol}"
+                        f"{' ' * 2*tab}<Target_Identification>{eol}"
+                        + f"{' ' * 3 * tab}<name>{target_name}</name>{eol}"
+                        + f"{' ' * 3 * tab}<type>{target_type}</type>{eol}"
+                        + f"{' ' * 3 * tab}<Internal_Reference>{eol}"
+                        + f"{' ' * 4  *  tab}<lid_reference>{target_lid}"
+                        f"</lid_reference>{eol}" + f"{' ' * 4  *  tab}<reference_type>"
+                        f"{self.get_target_reference_type()}"
+                        f"</reference_type>{eol}"
+                        + f"{' ' * 3 * tab}</Internal_Reference>{eol}"
+                        + f"{' ' * 2*tab}</Target_Identification>{eol}"
                 )
 
         if not tar_list_for_label:
@@ -625,7 +625,7 @@ class SpiceKernelPDS3Label(PDSLabel):
         self.START_TIME = product.start_time.split('Z')[0]
         self.STOP_TIME = product.stop_time.split('Z')[0]
         self.KERNEL_TYPE_ID = product.type.upper()
-        self.KERNEL_TYPE = type_to_PDS3_type(product.type.upper())
+        self.KERNEL_TYPE = type_to_pds3_type(product.type.upper())
         self.RECORD_TYPE = product.record_type
         self.RECORD_BYTES = product.record_bytes
         self.SPICE_KERNEL_DESCRIPTION = \
@@ -685,16 +685,17 @@ class SpiceKernelPDS3Label(PDSLabel):
 
     @spice_exception_handler
     def set_sclk_times(self, product):
-        if product.type.upper() == 'CK':
-            spice_id = spiceypy.bodn2c(self.setup.spice_name)
+        """Calculates the SCLK times for PDS3 labels."""
+        if product.type.upper() == "CK":
+            spice_id = spiceypy.bodnc(self.setup.spice_name)
             et_start = spiceypy.str2et(product.start_time[:-1])
             et_stop = spiceypy.str2et(product.stop_time[:-1])
 
             sclk_start = spiceypy.sce2s(spice_id, et_start)
             sclk_stop = spiceypy.sce2s(spice_id, et_stop)
         else:
-            sclk_start = 'N/A'
-            sclk_stop = 'N/A'
+            sclk_start = "N/A"
+            sclk_stop = "N/A"
 
         self.SPACECRAFT_CLOCK_START_COUNT = f'"{sclk_start}"'
         self.SPACECRAFT_CLOCK_STOP_COUNT = f'"{sclk_stop}"'
@@ -702,10 +703,10 @@ class SpiceKernelPDS3Label(PDSLabel):
         return
 
     def set_kernel_ids(self, product):
-        '''Set the SPICE Kernel ID field of the label.'''
-        if product.type.upper() == 'CK':
+        """Set the SPICE Kernel ID field of the label."""
+        if product.type.upper() == "CK":
             naif_instrument_id = product.ck_kernel_ids()
-        elif product.type.upper() == 'IK':
+        elif product.type.upper() == "IK":
             naif_instrument_id = product.ik_kernel_ids()
         else:
             naif_instrument_id = '"N/A"'
@@ -715,12 +716,12 @@ class SpiceKernelPDS3Label(PDSLabel):
         return
 
     def format_description(self, description):
-        '''Format the SPICE kernel description appropriately.
+        """Format the SPICE kernel description appropriately.
 
         The first line goes from character 33 to 78.
         Successive lines go from character  1 to 78.
         Last line has a blank space after the full stop.
-        '''
+        """
         description = description.split()
 
         desc = ''
@@ -743,15 +744,14 @@ class SpiceKernelPDS3Label(PDSLabel):
         return desc
 
     def insert_text_label(self):
-        '''Insert or update a label in a text kernel.
+        """Insert or update a label in a text kernel.
 
         The routine inserts the label, after the first line containing the
         kernel architecture specification and removes extra empty lines at the
         end of the kernel file.
-        '''
+        """
         with open(self.name, 'r') as label:
             label_lines = label.readlines()
-
 
         with open(self.product.path, 'r+') as kernel:
             kernel_lines = kernel.readlines()
@@ -821,10 +821,10 @@ class SpiceKernelPDS3Label(PDSLabel):
 
     @spice_exception_handler
     def insert_binary_label(self):
-        '''Insert or update a label in a binary kernel.
+        """Insert or update a label in a binary kernel.
 
         The routine inserts the label in the kernel comment.
-        '''
+        """
         label_lines = []
         with open(self.name, 'r') as label:
             for line in label:
@@ -889,6 +889,7 @@ class SpiceKernelPDS3Label(PDSLabel):
         logging.info('-- Label inserted to binary kernel.')
 
         return
+
 
 class MetaKernelPDS4Label(PDSLabel):
     """PDS Label child class to generate a PDS4 SPICE Kernel MK Label."""
@@ -1009,7 +1010,6 @@ class OrbnumFilePDS4Label(PDSLabel):
 
         if self.TABLE_CHARACTER_DESCRIPTION:
             self.TABLE_CHARACTER_DESCRIPTION = self.get_table_character_description()
-
 
         self.name = product.name.split(".")[0] + ".xml"
 
@@ -1152,15 +1152,14 @@ class InventoryPDS4Label(PDSLabel):
 
 
 class InventoryPDS3Label(PDSLabel):
+    """PDS Label child class to generate a PDS3 Index Label."""
 
     def __init__(self, mission, collection, inventory):
-
+        """Constructor."""
         PDSLabel.__init__(self, mission, inventory)
 
         self.collection = collection
-        self.template = self.root_dir + \
-                        '/templates/pds3/template_collection_{}.lbl'.format(
-                            collection.type)
+        self.template = self.root_dir + "/templates/pds3/template_collection_{}.lbl".format(collection.type)
 
         self.VOLUME_ID = self.setup.volume_id
         self.ROW_BYTES = str(self.product.row_bytes)
@@ -1177,9 +1176,9 @@ class InventoryPDS3Label(PDSLabel):
         else:
             indexed_file_name = "{" + self.setup.eol_pds3
             for file_type in file_types:
-                indexed_file_name +=  f'{29*" "}  "*.{file_type}",{self.setup.eol_pds3}'
+                indexed_file_name += f'{29*" "}  "*.{file_type}",{self.setup.eol_pds3}'
 
-            indexed_file_name = indexed_file_name[:-3]+ self.setup.eol_pds3 +  29*" " + "}\n"
+            indexed_file_name = indexed_file_name[:-3] + self.setup.eol_pds3 + 29 * " " + "}\n"
 
         self.INDEXED_FILE_NAME = indexed_file_name
 
@@ -1189,7 +1188,7 @@ class InventoryPDS3Label(PDSLabel):
 
 
 class DocumentPDS4Label(PDSLabel):
-    """PDS Label child class to generate a PDS4 Docuemnt Label."""
+    """PDS Label child class to generate a PDS4 Document Label."""
 
     def __init__(self, setup, collection, inventory):
         """Constructor."""
@@ -1245,7 +1244,7 @@ class ChecksumPDS3Label(PDSLabel):
             f"{setup.templates_directory}/template_product_checksum_table.lbl"
         )
 
-        self.VOLUME_ID= self.setup.volume_id.upper()
+        self.VOLUME_ID = self.setup.volume_id.upper()
         self.PRODUCT_CREATION_TIME = product.creation_time
         self.RECORD_BYTES = str(self.product.record_bytes)
         self.FILE_RECORDS = str(self.product.file_records)

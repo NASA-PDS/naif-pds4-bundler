@@ -8,7 +8,7 @@
 The Venus Climate Orbiter Akatsuki SPICE Data Archive
 =======================================================================
 
-  Last update: March 15, 2022
+  Last update: March 17, 2022
 
 <A NAME="Introduction"></A>
 Introduction
@@ -91,9 +91,10 @@ Errata
       version was released, it will continue to exist in the archive
       as an HTML document.
 
-   2. The kernels present in the first release of this bundle have embedded
-      PDS3 labels. This is intentional in order to preserve the original
-      kernels from the PDS3 data set that this PDS4 bundle supersedes.
+   2. Some of The SPICE kernels present in the first release of this bundle
+      have embedded PDS3 labels. This is intentional in order to preserve
+      the original kernels from the PDS3 data set that this PDS4 bundle
+      supersedes.
 
 <p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
 <a name="Archive Contents" />
@@ -559,9 +560,11 @@ MK Files
    The text MK files are provided under the <a href="../spice_kernels/mk">spice_kernels/mk</a>
    directory follow this pattern:
 
-      vco_vVV.tm
+      vco_pds4_vVV.tm
 
-   where ``VV'' is the file version.
+   where ``VV'' is the file version and ``pds4'' indicates that the text
+   and PATH_VALUE key in meta-kernel versions 01 to 05 differ from the
+   meta-kernels present in the superseded PDS3 data set.
 
    Multiple versions of a meta-kernel may exist if new kernels were
    added to the archive in a later release and the meta-kernel for
