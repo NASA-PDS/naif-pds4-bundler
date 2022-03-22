@@ -2,10 +2,10 @@ KPL/MK
 
    This meta-kernel lists the Venus Climate Orbiter (VCO, also known as
    PLANET-C and AKATSUKI) SPICE kernels providing coverage from launch
-   until the end time of the last Venus Climate Orbiter orbit SPK kernel. 
-   All of the kernels listed below are archived in the Venus Climate 
-   Orbiter SPICE data set (DATA_SET_ID = "VCO-V-SPICE-6-V1.0"). This set 
-   of files and the order in which they are listed were picked to provide 
+   until the end time of the last Venus Climate Orbiter orbit SPK kernel.
+   All of the kernels listed below are archived in the Venus Climate
+   Orbiter SPICE data set (DATA_SET_ID = "VCO-V-SPICE-6-V1.0"). This set
+   of files and the order in which they are listed were picked to provide
    the best available data and the most complete coverage based on the
    information about the kernels available at the time this meta-kernel
    was made. For detailed information about the kernels listed below
@@ -27,15 +27,15 @@ KPL/MK
 
 \begindata
 
-PATH_VALUES = ( 
+PATH_VALUES = (
   './data'
 )
 
-PATH_SYMBOLS = ( 
+PATH_SYMBOLS = (
   'KERNELS'
 )
 
-KERNELS_TO_LOAD = ( 
+KERNELS_TO_LOAD = (
   '$KERNELS/lsk/naif0012.tls',
   '$KERNELS/pck/pck00010.tpc',
   '$KERNELS/pck/vco_gm_de431_v01.tpc',
