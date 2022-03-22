@@ -266,7 +266,7 @@ parameter.::
                     NAIF, JPL. The original name of this file was MVN_SCLKSCET.$VERSION.tsc.
                 </description>
                 <patterns>
-                    <VERSION pattern="KERNEL">MVN_SCLKSCET.$VERSION.tsc</VERSION>
+                    <VERSION pattern="KERNEL">mvn_sclkscet_$VERSION.tsc</VERSION>
                 </patterns>
             </kernel>
             <kernel pattern="de[0-9][0-9][0-9]s.bsp">
@@ -1295,11 +1295,12 @@ included in the kernel description, this can be implemented with the
 "Match by value" method by reflecting this on the attribute value of the given
 kernel element.
 
-The second and recommended approach is to use a special element nested in the
-corresponding kernel element. This special "mapping" element is called
-``mapping`` and if present, it must be the first element of the nested elements
-of a kernel. If this element is present then the patterns present for the
-"Match by pattern" method must also be present. The mapping element contains
+The second and recommended approach also requires the name in the release plan to
+be the updated one but adds a special element nested in the corresponding kernel
+element of the kernel list configuration section. This special "mapping" element
+is called ``mapping`` and if present, it must be the first element of the nested
+elements of a kernel. If this element is present then the patterns present for
+the "Match by pattern" method must also be present. The mapping element contains
 the original kernel name with the patterns provided with the special pattern
 ``$``; those patterns are then correlated with the ones provided in the
 patterns nested elements.
@@ -1335,9 +1336,9 @@ more difficult to implement, would work for each DSK::
             <description>SPICE DSK file containing shape model data for the surface of asteroid (101955) Bennu,
                 created by the ORX Altimetry Working Group (AltWG). The original name of this file was l_$RESOLUTIONmm_alt_dtm_$REFERENCE_v$VERSION.bds.</description>
             <patterns>
-                <RESOLUTION pattern="KERNEL">l_$RESOLUTIONmm_alt_dtm_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds</RESOLUTION>
-                <REFERENCE pattern="KERNEL">l_[0-9][0-9][0-9][0-9][0-9]mm_alt_dtm_$REFERENCE_v[0-9][0-9][0-9].bds</REFERENCE>
-                <VERSION pattern="KERNEL">l_[0-9][0-9][0-9][0-9][0-9]mm_alt_dtm_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v$VERSION.bds</VERSION>
+                <RESOLUTION pattern="KERNEL">bennu_l_$RESOLUTIONmm_alt_dtm_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds</RESOLUTION>
+                <REFERENCE pattern="KERNEL">bennu_l_[0-9][0-9][0-9][0-9][0-9]mm_alt_dtm_$REFERENCE_v[0-9][0-9][0-9].bds</REFERENCE>
+                <VERSION pattern="KERNEL">bennu_l_[0-9][0-9][0-9][0-9][0-9]mm_alt_dtm_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v$VERSION.bds</VERSION>
             </patterns>
         </kernel>
 

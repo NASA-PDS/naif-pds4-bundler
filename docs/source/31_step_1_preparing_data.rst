@@ -899,10 +899,9 @@ separate line using its file name. Additional trailing characters can be present
 as long as there are blank spaces between them and the kernel name. Lines
 containing text of any other kind are also acceptable.
 
-If the file names need to be modified, you can either use the original or the
-updated file name in the release plan, as long as the file name mapping is
-properly specified by the NPB configuration file (this is described in
-:ref:`source/31_step_1_preparing_data:Renaming Files`.)
+If the file names need to be modified, you must use the updated file name in
+the release plan and have the file name mapping properly specified by the NPB
+configuration file (this is described in :ref:`source/42_npb_configuration_file:Mapping kernels`.)
 
 Here's three different extracts of release plan samples::
 
