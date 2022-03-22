@@ -8,11 +8,6 @@ Work List:
   -- Include option to provide plan with kernel names to be mapped or to
      provide kernels from directory with original names.
 
-  -- Important bug that prevents from using mapping kernels with multiple
-     fields (for ORX).
-
-     Tests implemented here: test_pds4_orex_list
-
   -- Agreed to try to enhance the MK generation with whitespaces
      for selected kernels of the same type.
 
@@ -26,13 +21,19 @@ Work List:
 
   Possible:
 
-  -- Possibility to use the pipeline to generate misc collection only? (for JAXA.)
-
   -- NOT for this release, and maybe never, but should we consider adding
      a reference from to the LIDVIDs of SPK -- or SPKs -- that were used to
      generate an ORBNUM to its label?
 
 Changelog:
+
+
+v0.19.0
+
+  -- Important bug that prevents from using mapping kernels with multiple
+     fields (for ORX).
+
+     Tests implemented here: test_pds4_orex_list
 
 v0.16.0
 

@@ -405,8 +405,7 @@ class KernelList(List):
                             mapping = ""
 
                         #
-                        # "options" and "descriptions" require to
-                        # substitute parameters derived from the filenames
+                        # "options" and "descriptions" require to substitute parameters derived from the filenames
                         # themselves or from the comments of the kernel.
                         #
                         if patterns:
@@ -419,20 +418,14 @@ class KernelList(List):
                                     #    * extracted form the filename
                                     #    * defined in the configuration file.
                                     #
-                                    if (
-                                        "@pattern" in patterns[el]
-                                        and patterns[el]["@pattern"].lower() == "kernel"
-                                    ):
+                                    if ("@pattern" in patterns[el] and patterns[el]["@pattern"].lower() == "kernel"):
                                         #
-                                        # When extracted from the filename,
-                                        # the keyword  is matched in between
-                                        # patterns.
+                                        # When extracted from the filename, the keyword  is matched in between patterns.
                                         #
 
                                         #
-                                        # First Turn the regex set into a
-                                        # single character to be able to know
-                                        # were int he filename is.
+                                        # First Turn the regex set into a single character to be able to know were in
+                                        # the filename is.
                                         #
                                         patt_ker = value["#text"].replace("[0-9]", "$")
                                         patt_ker = patt_ker.replace("[a-z]", "$")
@@ -440,44 +433,36 @@ class KernelList(List):
                                         patt_ker = patt_ker.replace("[a-zA-Z]", "$")
 
                                         #
-                                        # Split the resulting pattern to build
-                                        # up the indexes to extract the value
+                                        # Split the resulting pattern to build up the indexes to extract the value
                                         # from the kernel name.
                                         #
                                         patt_split = patt_ker.split(f"${el}")
 
                                         #
-                                        # Create a list with the length of
-                                        # each part.
+                                        # Create a list with the length of each part.
                                         #
                                         indexes = []
                                         for element in patt_split:
                                             indexes.append(len(element))
 
                                         #
-                                        # Extract the value with the index
-                                        # from the kernel
-                                        # name.
+                                        # Extract the value with the index from the kernel name.
                                         #
                                         # TODO: This indexes work because the mapping kernel and the resulting kernel are in the same place!
                                         if len(indexes) == 2:
-                                            value = kernel[
-                                                indexes[0] : len(kernel) - indexes[1]
-                                            ]
+                                            value = kernel[indexes[0] : len(kernel) - indexes[1]]
                                             if patterns[el]["@pattern"].isupper():
                                                 value = value.upper()
                                         else:
                                             error_message(
-                                                f"Kernel pattern for {kernel} "
-                                                "not adept to write "
-                                                "description. Remember a "
-                                                "metacharacter cannot start "
-                                                "or finish a kernel pattern."
+                                                f"Kernel pattern for {kernel} not adept to write description. Remember a "
+                                                "metacharacter cannot start or finish a kernel pattern."
                                             )
-                                    elif (
-                                        "@file" in patterns[el]
-                                        and patterns[el]["@file"].lower() == "comment"
-                                    ):
+
+                                        if mapping:
+                                            mapping = mapping.replace("$" + el, value)
+
+                                    elif ("@file" in patterns[el] and patterns[el]["@file"].lower() == "comment"):
                                         #
                                         # Extracting the value from the comment
                                         # area of the kernel. This is usually to
@@ -485,10 +470,9 @@ class KernelList(List):
                                         #
                                         # So far this method is implemented to accomodate MRO files
                                         #
-                                        comment = extract_comment(
-                                            self.setup.kernels_directory[0] +
-                                            f"/{ extension_to_type(kernel.split('.')[-1])}/" + kernel
-                                        )
+                                        comment = extract_comment(self.setup.kernels_directory[0] +
+                                                                  f"/{ extension_to_type(kernel.split('.')[-1])}/" +
+                                                                  kernel)
 
                                         for line in comment:
                                             if patterns[el]["#text"] in line:
@@ -496,10 +480,7 @@ class KernelList(List):
                                                 break
 
                                         if not isinstance(value, str):
-                                            error_message(
-                                                "Kernel pattern "
-                                                f"not found in comment area of {kernel}."
-                                            )
+                                            error_message(f"Kernel pattern not found in comment area of {kernel}.")
 
                                     else:
                                         #
@@ -522,22 +503,14 @@ class KernelList(List):
                                                 if val["@value"] in kernel:
                                                     value = val["#text"]
                                             except KeyError:
-                                                error_message(
-                                                    f"Error "
-                                                    f"generating kernel"
-                                                    f" list with {kernel}. "
-                                                    f"Consider reviewing "
-                                                    f"your NPB setup."
-                                                )
+                                                error_message(f"Error generating kernel list with {kernel}. "
+                                                              f"Consider reviewing your NPB setup.")
 
                                         if isinstance(value, list) or isinstance(
                                             value, dict
                                         ):
-                                            error_message(
-                                                f"-- Kernel {kernel}"
-                                                " description could not be "
-                                                "updated with pattern."
-                                            )
+                                            error_message(f"-- Kernel {kernel} description could not be updated with "
+                                                          f"pattern.")
 
                                     description = description.replace("$" + el, value)
 
@@ -546,8 +519,6 @@ class KernelList(List):
                                 if ("$" + "PHASES") in option:
                                     if hasattr(self.setup, "phases"):
                                         if list(self.setup.phases.keys())[0]:
-                                            # TODO: Substitute block by mission
-                                            #  phase searching function
                                             phases = self.setup.phases["phase"]["@name"]
                                         else:
                                             phases = "N/A"
@@ -557,9 +528,8 @@ class KernelList(List):
                                     options = options.replace("$PHASES", phases)
 
                         #
-                        # Reformat the description, given that format of the
-                        # XML file is not restrictive (spaces or newlines
-                        # might be present).
+                        # Reformat the description, given that format of the XML file is not restrictive (spaces or
+                        # newlines might be present).
                         #
                         description = description.replace("\n", " ")
                         description = " ".join(description.split())
@@ -583,15 +553,9 @@ class KernelList(List):
                         f.write(f"DESCRIPTION      = {description}\n")
 
                         if mapping:
-                            #
-                            # TODO: We loop all the patterns that have been mapped in the mapping kernel as well.
-                            # Currently only one is supported which works for SCLK.
-                            #
-                            logging.info(f"-- Mapping {kernel}")
-                            f.write(
-                                f"MAPPING          = "
-                                f'{mapping.replace("$" + el, value)}\n'
-                            )
+
+                            logging.info(f"-- Mapping {kernel} with {mapping}")
+                            f.write(f"MAPPING          = {mapping}\n")
 
                         ker_added_to_list = True
 
