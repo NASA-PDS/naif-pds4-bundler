@@ -140,7 +140,6 @@
     <!-- =========================== -->
     <directories>
         <working_directory>working</working_directory>
-        <kernels_directory>/Users/mcosta/ftp/pub/naif/MSL/kernels</kernels_directory>
         <kernels_directory>../data/kernels</kernels_directory>
         <staging_directory>staging</staging_directory>
         <bundle_directory>msl-m-spice-6-v1.0</bundle_directory>
