@@ -1,0 +1,31 @@
+PDS_VERSION_ID               = PDS3
+RECORD_TYPE                  = FIXED_LENGTH
+RECORD_BYTES                 = 1024
+^SPICE_KERNEL                = "msl_surf_rover_tlm_3192_3289_v1.bc"
+MISSION_NAME                 = "MARS SCIENCE LABORATORY"
+SPACECRAFT_NAME              = "MARS SCIENCE LABORATORY"
+DATA_SET_ID                  = "MSL-M-SPICE-6-V1.0"
+KERNEL_TYPE_ID               = CK
+PRODUCT_ID                   = "msl_surf_rover_tlm_3192_3289_v1.bc"
+PRODUCT_CREATION_TIME        = 2022-03-22T17:19:23
+PRODUCER_ID                  = "NAIF/JPL"
+MISSION_PHASE_NAME           = "EXTENDED SURFACE MISSION"
+PRODUCT_VERSION_TYPE         = ACTUAL
+PLATFORM_OR_MOUNTING_NAME    = "N/A"
+START_TIME                   = 2021-10-11T06:17:20.816
+STOP_TIME                    = 2021-10-11T07:17:20.816
+SPACECRAFT_CLOCK_START_COUNT = "1/0687202175-48710"
+SPACECRAFT_CLOCK_STOP_COUNT  = "1/0687205775-46462"
+TARGET_NAME                  = MARS
+INSTRUMENT_NAME              = "ROVER"
+NAIF_INSTRUMENT_ID           = -76000
+SOURCE_PRODUCT_ID            = "N/A"
+NOTE                         = "See comments in the file for details"
+OBJECT                       = SPICE_KERNEL
+  INTERCHANGE_FORMAT         = BINARY
+  KERNEL_TYPE                = POINTING
+  DESCRIPTION                = "CK file containing the orientation of the
+rover relative to the local level frame, created using telemetry view data
+from OPGS PLACES server, covering SOLs 3192 to 3289, version 1. "
+END_OBJECT                   = SPICE_KERNEL
+END

@@ -1,0 +1,215 @@
+PDS_VERSION_ID          = PDS3
+RECORD_TYPE             = STREAM
+
+OBJECT                  = TEXT
+   INTERCHANGE_FORMAT   = ASCII
+   PUBLICATION_DATE     = 2013-02-27
+   NOTE                 = "MSL C-Kernel Information"
+END_OBJECT              = TEXT
+
+END
+
+
+General Information About SPICE C-Kernels
+=========================================
+
+   In the SPICE system, pointing data for an instrument platform, or
+   for a specific instrument, are stored C-kernels. The pointing of a
+   platform or an instrument is often expressed in terms of a
+   transformation matrix from some standard inertial reference frame to
+   a instrument-fixed frame. In the past, the instrument was often a
+   camera, and the transformation was thus dubbed the ``C-matrix'';
+   hence the choice of C as the name for the pointing kernel.
+
+   The data contained in C-kernel files can be accessed and manipulated
+   using the SPICE Toolkit APIs, calls to which can be integrated into
+   user application programs. The information regarding how to obtain
+   the SPICE system toolkit for a number of languages and computer
+   platforms is located in the ``/software'' subdirectory of the main
+   directory of this data set.
+
+   To use C-kernels, a Spacecraft Clock Kernel (SCLK) is required.
+   Also, for C-Kernels containing orientation of a project-defined
+   frames, a Frame Definitions File is required.
+
+   Refer to the ``ck.req'' document provided with the toolkit or
+   available from the NAIF Node of PDS if SPICE toolkit is not included
+   with this data set to get more information on how to access C-kernel
+   data.
+
+
+MSL C-kernels Provided in This Data Set
+=======================================
+
+   The following MSL C-kernels are provided in this data set (only name
+   portion of the file name is shown; the extension of all file names
+   is ``.bc''):
+
+   MSL Cruise Orientation CK Files:
+
+      msl_cruise_recon_nospin           CK file containing complete
+                                        cruise orientation based on
+                                        H-vector direction without
+                                        modeling spin, provided by the
+                                        MSL ACS Team.
+
+      msl_cruise_recon_rawrt_vV         CK files containing fully
+                                        reconstructed orientation based
+                                        on real-time quaternions
+                                        covering only communication
+                                        periods, provided by the MSL
+                                        ACS Team.
+
+      msl_cruise_recon_raweng_vV        CK files containing fully
+                                        reconstructed orientation based
+                                        on high-rate quaternions
+                                        covering only short periods
+                                        around thruster firing events
+                                        and ACS calibration activities,
+                                        provided by the MSL ACS Team.
+
+      msl_cruise_recon_nav_vV           CK file containing fully
+                                        reconstructed orientation based
+                                        on H-vector direction and NAV
+                                        de-spinned tracking data,
+                                        covering only communication
+                                        periods, provided by the MSL
+                                        NAV Team.
+
+   MSL EDL Orientation CK Files:
+
+      msl_edl_vV                        CK files containing the
+                                        reconstructed EDL orientation
+                                        determined by the MSL EDL Team,
+                                        JPL. The file with the latest
+                                        version number V supersedes all
+                                        previous versions.
+
+
+   MSL Rover Orientation CK Files:
+
+      msl_surf_rover_tlm_BBBB_EEEE_vV   CK files containing the
+                                        orientation of the rover
+                                        relative to the local level
+                                        frame, created using telemetry
+                                        view data from OPGS PLACES
+                                        server, covering SOLs "BBBB" to
+                                        "EEEE", version V.
+
+   MSL Articulating Structures Orientation CK Files:
+
+      msl_surf_hga_tlm_BBBB_EEEE_vV     CK files containing the
+                                        orientation of the High Gain
+                                        Antenna (HGA) relative to the
+                                        rover frame, created using
+                                        telemetry view data from OPGS
+                                        PLACES server, covering SOLs
+                                        "BBBB" to "EEEE", version V.
+
+      msl_surf_ra_tlmenc_BBBB_EEEE_vV   CK files containing the
+                                        orientation of the Robotic Arm
+                                        (RA) relative to the rover
+                                        frame, created using encoder
+                                        angles from telemetry view data
+                                        from OPGS PLACES server,
+                                        covering SOLs "BBBB" to "EEEE",
+                                        version V.
+
+      msl_surf_ra_tlmres_BBBB_EEEE_vV   CK files containing the
+                                        orientation of the Robotic Arm
+                                        (RA) relative to the rover
+                                        frame, created using resolver
+                                        angles from telemetry view data
+                                        from OPGS PLACES server,
+                                        covering SOLs "BBBB" to "EEEE",
+                                        version V. These CKs are more
+                                        accurate compared to the
+                                        encoder based RA CK but
+                                        generally provide less
+                                        coverage.
+
+      msl_surf_rsm_tlmenc_BBBB_EEEE_vV  CK files containing the
+                                        orientation of the Remote
+                                        Sensing Mast (RSM) relative to
+                                        the rover frame, created using
+                                        encoder angles telemetry view
+                                        data from OPGS PLACES server,
+                                        covering SOLs "BBBB" to "EEEE",
+                                        version V.
+
+      msl_surf_rsm_tlmres_BBBB_EEEE_vV  CK files containing the
+                                        orientation of the Remote
+                                        Sensing Mast (RSM) relative to
+                                        the rover frame, created using
+                                        resolver angles from telemetry
+                                        view data from OPGS PLACES
+                                        server, covering SOLs "BBBB" to
+                                        "EEEE", version V. These CKs
+                                        are more accurate compared to
+                                        the encoder based RSM CKs but
+                                        generally provide less
+                                        coverage.
+
+   MSL RA Tool REF-to-Instrument Offsets CK Files:
+
+      msl_ra_toolsref_vV                CK files containing fixed
+                                        orientations of the RA instrument
+                                        frames relative to their
+                                        corresponding REF frames.
+                                        This is an auxiliary CK needed
+                                        to complete the frame chain from
+                                        the rover to the instruments
+                                        mounted on RA.
+
+   For all CK files whose names include version (V) the files with the
+   latest version number supersede all files of the same kind with
+   earlier versions.
+
+   For all CK files whose names include SOL coverage boundaries (BBBB
+   and EEEE) and version (V) the files with the later coverage range
+   and the latest version number supersede competing data from files
+   with earlier coverage and versions.
+
+
+Kernel File Details
+===================
+
+   The most detailed description of the data in a binary CK file is
+   provided in metadata included inside the comment area of the file.
+   This information can be viewed using utility programs COMMNT and
+   SPACIT included into the NAIF Toolkit.
+
+
+Gaps in CK Coverage
+===================
+
+   Both cruise CKs and surface rover and articulating structures CKs
+   have gaps in coverage. While in the cruise CKs cannot be ``closed'',
+   surface CKs can be modified using the CKSPANIT utility program to
+   provide continuous coverage obtained by linear interpolation over
+   gaps, resulting in orientation during gaps that is less accurate but
+   still possibly acceptable for some applications (e.g.
+   visualization). To modify a rover or an articulating structure
+   orientation CK to ``close'' coverage gaps, CKSPANIT can be run as
+   follows:
+
+      % ckspanit -in [input_ck] -out [output_ck] -tol 2E+12 -frm [fk]
+
+
+Contact Information
+===================
+
+   Regarding MSL project specific information provided in this data set
+   and for general information about SPICE system:
+
+      Boris Semenov
+      (818)-354-8136
+      Boris.Semenov@jpl.nasa.gov
+
+   address:
+
+      Navigation and Ancillary Information Facility (NAIF)
+      Jet Propulsion Laboratory
+      MS 301-125L
+      4800 Oak Grove Drive
+      Pasadena CA 91109 USA

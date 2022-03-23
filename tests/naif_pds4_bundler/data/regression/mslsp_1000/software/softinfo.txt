@@ -1,0 +1,62 @@
+PDS_VERSION_ID          = PDS3
+RECORD_TYPE             = STREAM
+
+OBJECT                  = TEXT
+   INTERCHANGE_FORMAT   = ASCII
+   PUBLICATION_DATE     = 2013-02-27
+   NOTE                 = "SPICE Toolkit Software"
+END_OBJECT              = TEXT
+
+END
+
+
+SPICE System Toolkit
+====================
+
+   The latest SPICE Toolkit for a variety of computer platforms is
+   available at the NAIF Node of the PDS electronically via anonymous
+   FTP:
+
+      ftp://naif.jpl.nasa.gov/pub/naif/toolkit
+
+   A few additional utility programs for making and modifying SPICE
+   kernels, including a tool (BINGO) that can converts either binary or
+   text kernels from one format to another, are available at the NAIF
+   Node of the PDS electronically via anonymous FTP:
+
+      ftp://naif.jpl.nasa.gov/pub/naif/utilities
+
+   The latest complete set of SPICE System tutorials is available at
+   the NAIF Node of PDS electronically via anonymous FTP:
+
+      ftp://naif.jpl.nasa.gov/pub/naif/toolkit_docs/Tutorials
+
+   The latest complete set of ``hands-on'' lessons to assist new users
+   in learning fundamentals of programming with SPICE modules is
+   available at the NAIF Node of PDS electronically via anonymous FTP:
+
+      ftp://naif.jpl.nasa.gov/pub/naif/toolkit_docs/Lessons
+
+
+Contact Information
+===================
+
+   To get additional information about the SPICE Toolkit contact:
+
+      Charles H. Acton, Jr,
+      (818)-354-3869,
+      Charles.Acton@jpl.nasa.gov,
+
+   or
+
+      Boris Semenov
+      (818)-354-8136
+      Boris.Semenov@jpl.nasa.gov
+
+   address:
+
+      Navigation and Ancillary Information Facility (NAIF)
+      Jet Propulsion Laboratory
+      MS 301-121
+      4800 Oak Grove Drive
+      Pasadena CA 91109 USA

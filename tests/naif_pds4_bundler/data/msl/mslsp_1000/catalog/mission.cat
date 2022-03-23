@@ -1,0 +1,308 @@
+PDS_VERSION_ID                    = PDS3
+RECORD_TYPE                       = STREAM
+LABEL_REVISION_NOTE               = "2011-03-27 MER:crisp Original;
+   2011-11-14 MSL:crisp Updated mission phases, fixed typos, specified
+Gale Crater as the chosen landing site;
+   2012-05-14 GEO:slavney Changed all LANDER references to ROVER;
+   2013-01-22 GEO:slavney Added mission alias Curiosity, fixed long lines;
+   2013-01-28 MSL:crisp updated for actual launch date and past tense
+for things that have completed;
+   2013-08-23 GEO:slavney Corrected number of mission phases;
+   2014-10-12 MSL:crisp updated for updated start date for Extended
+Surface Mission, updated the primary surface mission description and
+mission objectives overview;"
+
+OBJECT                            = MISSION
+  MISSION_NAME                    = "MARS SCIENCE LABORATORY"
+
+  OBJECT                          = MISSION_INFORMATION
+    MISSION_START_DATE            = 2003-10-01
+    MISSION_STOP_DATE             = UNK
+    MISSION_ALIAS_NAME            = "CURIOSITY"
+    MISSION_DESC                  = "
+
+
+  Mission Overview
+  ================
+    Development of the Mars Science Laboratory project began in 2003.  On
+    November 26 2011, the Mars Science Laboratory mission launched a
+    spacecraft on a trajectory to Mars, and on August 6, 2012 (UTC), it
+    landed a mobile science vehicle named Curiosity at a landing site in
+    Gale Crater.  During the trip to Mars, instrument health checks were
+    performed and the Radiation Assessment Detector (RAD) instrument
+    collected science data.  For the primary mission on the surface of
+    Mars (ending September 28, 2014), the rover explored the landing site
+    and gathered imaging, spectroscopy, composition data, and other
+    measurements for selected Martian soils, rocks, and the atmosphere.
+    These data will allow the science team to quantitatively assess the
+    habitability and environmental history.  The prime mission's science
+    objectives were to assess the biological potential of the landing site,
+    characterize the geology of the landing region, investigate planetary
+    processes that influence habitability, and characterize the broad
+    spectrum of surface radiation.  The first extended mission retains all
+    of the prime mission's objectives and will also strive to: identify and
+    quantitatively assess the subset of habitable environments that are
+    also capable of preserving organic compounds, and explore and
+    characterize major environmental transitions recorded in the geology of
+    the foothills of Mt. Sharp and adjacent plains.
+
+    The science instruments, with an acronym or abbreviation and Principal
+    Investigator (PI) are listed below:
+
+    Science Instrument                                 PI
+    -------------------------------------------------  --------------------
+    Alpha Particle X-ray Spectrometer (APXS)           Ralf Gellert
+    Chemical Camera (ChemCam)                          Roger Wiens
+    Chemistry & Mineralogy (CheMin)                    David Blake
+    Dynamic Albedo of Neutrons (DAN)                   Igor Mitrofanov
+    Mast Camera (Mastcam)                              Michael Malin
+    Mars Hand Lens Imager (MAHLI)                      Kenneth Edgett
+    Mars Descent Imager (MARDI)                        Michael Malin
+    Radiation Assessment Detector (RAD)                Don Hassler
+    Rover Environmental Monitoring Station (REMS)      Javier Gomez-Elvira
+    Sample Analysis at Mars (SAM)                      Paul Mahaffy
+
+
+  Mission Phases
+  ==============
+    The Mars Science Laboratory Mission is divided in time into six phases:
+    (1) Development; (2) Launch; (3) Cruise and Approach; (4) Entry,
+    Descent, and Landing (EDL); (5) Primary Surface Mission; and (6)
+    Extended Surface Mission.
+
+
+    DEVELOPMENT
+    -----------
+      Development of the Mars Science Laboratory mission began in October
+      2003 with concept and technology development, followed by preliminary
+      design and technology development completion from March 2006 through
+      September 2006, final design and fabrication from September 2006
+      through January 2008, and system assembly, integration, and test from
+      late January 2008 until launch on November 26, 2011.
+
+      Spacecraft Id : MSL
+      Target Name : MARS
+      Mission Phase Start Time : 2003-10-01
+      Mission Phase Stop Time : 2011-11-26
+      Spacecraft Operations Type : ROVER
+
+
+    LAUNCH
+    ------
+      The launch phase began when the spacecraft switched to internal power
+      prior to launch and ended when the spacecraft reached a thermally
+      stable commandable configuration after separation from the launch
+      vehicle upper stage.  MSL was launched on an ATLAS V 541 launch vehicle
+      on November 26 2011 at 15:02 UTC (10:02 EST) from Cape Canaveral Air
+      Force Station, Florida.
+
+      Spacecraft Id : MSL
+      Target Name : MARS
+      Mission Phase Start Time : 2011-11-26
+      Mission Phase Stop Time : 2011-11-26
+      Spacecraft Operations Type : ROVER
+
+
+    CRUISE AND APPROACH
+    -------------------
+      The cruise and approach phase began when the launch phase ended, and
+      ended 30 minutes prior to entry into the Mars atmosphere.  The MSL
+      spacecraft used a ballistic Type 1 interplanetary transfer during
+      cruise from Earth to Mars. The major activities during cruise included:
+      checkout and maintenance of the spacecraft in its flight configuration;
+      monitoring, characterization, and calibration of the spacecraft and
+      payload systems; software parameter updates; attitude correction turns;
+      navigation activities for determining and correcting the vehicle's
+      flight path; and preparation for EDL and surface operations. Three
+      Trajectory Correction Maneuvers (TCMs) were conducted during cruise.
+      The only science investigation during cruise was radiation monitoring
+      by the RAD instrument.
+
+      Approach began 45 days before entry into the Martian atmosphere and
+      ended 30 minutes before entry. During approach, the focus of
+      operations was primarily on navigation activities (including a fourth
+      and final TCM eight days before landing), and preparation for entry,
+      descent, and landing.
+
+      Spacecraft Id : MSL
+      Target Name : MARS
+      Mission Phase Start Time : 2011-11-26
+      Mission Phase Stop Time : 2012-08-06
+      Spacecraft Operations Type : ROVER
+
+
+    ENTRY, DESCENT, AND LANDING
+    ---------------------------
+      The entry, descent, and landing (EDL) phase began when the Cruise and
+      Approach Phase was over (30 minutes before atmospheric entry), and
+      ended when the rover reached a thermally stable, positive energy
+      balance, commandable configuration on the surface of Mars. During this
+      phase, a series of events was self-triggered on the spacecraft. Before
+      entry, the thermal loop was vented and the cruise stage was
+      jettisoned. The entry vehicle, consisting of the backshell, heat
+      shield, descent stage, and rover, performed a series of guided
+      maneuvers. Cruise balance masses separated to adjust the center of
+      mass of the entry vehicle. At 3522.2 km from the center of Mars, the
+      vehicle entered the atmosphere. This was followed by peak heating,
+      peak deceleration, supersonic parachute deploy, and heat shield
+      separation. At the appropriate time, the descent stage engines
+      started, the backshell and parachute separated, and the MARs Descent
+      Imager (MARDI) started recording video. As the descent stage
+      approached the surface using powered descent, at an altitude of about
+      18.6 m, the rover was lowered on a descent rate limiter and bridle
+      umbilical device to 7.5 m below the descent stage, and its wheels were
+      deployed into the touchdown configuration. The descent stage continued
+      descending until the rover touched down on the surface of Mars. The
+      rover landed in Gale Crater at the latitude of 4.5895 degrees South,
+      and longitude of 137.4417 degrees East, in late southern winter (Solar
+      Longitude L=150.7), at 15:03 Local Mean Solar Time on Mars (August 6,
+      2012, 05:18 UTC Spacecraft Event Time).  Upon successful touchdown,
+      the descent rate limiter and bridle umbilical device were cut. The
+      descent stage flew away and impacted the surface 650 meters away from
+      the rover.
+
+      Spacecraft Id : MSL
+      Target Name : MARS
+      Mission Phase Start Time : 2012-08-06
+      Mission Phase Stop Time : 2012-08-06
+      Spacecraft Operations Type : ROVER
+
+
+    PRIMARY SURFACE MISSION
+    -----------------------
+      The surface phase began when the EDL phase ended and will end when the
+      mission is declared complete.  The flight mission was designed to
+      provide for a surface mission phase duration of at least one Mars year
+      (687 days, or 669 sols).
+
+      Following touchdown, a combination of automated rover sequences and
+      planned checkouts was executed in order to bring the rover up to a
+      basic level of functionality and to verify that the rover systems and
+      payload were all operating as expected.  A surface initial checkout
+      period was defined as starting at successful rover touchdown on Mars
+      with descent stage separation/fly-away, and concluded with a
+      transition to normal tactical operations.
+
+      Originally, the prime mission was expected to last through Sol 670 but
+      the project was given an extension of about 3 months, in order to sync
+      up the beginning of its 1st Extended Mission with the NASA fiscal year.
+
+      Spacecraft Id : MSL
+      Target Name : MARS
+      Mission Phase Start Time : 2012-08-06
+      Mission Phase Stop Time : 2014-09-28
+      Spacecraft Operations Type : ROVER
+
+
+    EXTENDED SURFACE MISSION
+    ------------------------
+      The extended surface phase began on Sol 764.
+
+      Spacecraft Id : MSL
+      Target Name : MARS
+      Mission Phase Start Time : 2014-09-29
+      Mission Phase Stop Time : UNK
+      Spacecraft Operations Type : ROVER
+    "
+
+    MISSION_OBJECTIVES_SUMMARY    = "
+
+
+  Mission Objectives Overview
+  ===========================
+
+    The Mars Science Laboratory began surface operations soon after the
+    Curiosity rover landed. The overall scientific goal of the mission has
+    been to quantitatively assess past and present habitable environments at
+    Gale crater.  The MSL rover carries ten scientific instruments and a
+    sample acquisition, processing, and distribution system.  The various
+    science payload elements are used as an integrated suite to characterize
+    the local geology, study potential sampling targets with remote and in
+    situ measurements; to acquire samples of rock, soil, and atmosphere and
+    analyze them in onboard analytical instruments; and to observe the
+    environment around the rover. An overview of the science mission is
+    provided in [GROTZINGERETAL2012].
+
+    The MSL rover was sent to investigate Gale crater, which shows clear
+    evidence for ancient aqueous processes based on orbital data and to
+    undertake the search for past and present habitable environments.
+    Assessment of present habitability requires an evaluation of the
+    characteristics of the environment and the processes that influence it
+    from microscopic to regional scales and a comparison of those
+    characteristics with what is known about the capacity of life, as we know
+    it, to exist in such environments.  Determination of past habitability has
+    the added requirement of inferring environments and processes in the past
+    from observation in the present.  Such assessments require the integration
+    of a wide variety of chemical, physical, and geological observations.
+
+    MSL is not a life detection mission and is not designed to detect extant
+    vital processes that would betray present-day microbial metabolism.  Nor
+    does it have the ability to image microorganisms or their fossil
+    equivalents.  MSL does have, however, the capability to detect complex
+    organic molecules in rocks and soils.  If present, these might be of
+    biological origin, but could also reflect the influx of carbonaceous
+    meteorites.  More indirectly, MSL has the analytical capability to probe
+    other less unique biosignatures, specifically, the isotopic composition of
+    inorganic and organic carbon in rocks and soils, particular elemental and
+    mineralogical concentrations and abundances, and the attributes of unusual
+    rock textures.  The main challenge in establishment of a biosignature is
+    finding patterns, either chemical or textural, that are not easily
+    explained by physical processes.  MSL is also be able to evaluate the
+    concentration and isotopic composition of potentially biogenic atmospheric
+    gases such as methane, which has been detected in the modern atmosphere.
+    But compared to the current and past missions that have all been targeted
+    to find evidence for past or present water, the task of searching for
+    habitable environments is significantly more challenging (e.g.,
+    [GROTZINGER2009]).  Primarily, this is because the degree to which organic
+    carbon would be preserved on the Martian surface - even if it were
+    produced in abundance - is unknown.
+
+    The MSL prime mission had eight science objectives in order to address the
+    overall habitability assessment goal: (1) Characterize geological
+    features, contributing to deciphering geological history and the processes
+    that have modified rocks and regolith, including the role of water; (2)
+    Determine the mineralogy and chemical composition of surface and near-
+    surface materials (including an inventory of elements such as C, H, N, O,
+    P, S, etc., known to be the building blocks for life); (3) Determine
+    energy sources that could be used to sustain biological processes; (4)
+    Characterize organic compounds and potential biomarkers in representative
+    regolith, rocks, and ices; (5) Determine stable isotopic and noble gas
+    composition of the present-day atmosphere and of ancient H2O and CO2
+    preserved in hydrated minerals (italicized wording is new; added for
+    clarification); (6) Identify potential biosignatures (chemical, textural,
+    isotopic) in rocks and regolith; (7) Characterize the broad spectrum of
+    surface radiation, including galactic cosmic radiation, solar particle
+    events, and secondary neutrons; and (8) Characterize the local
+    environment, including basic meteorology, the state and cycling of water
+    and CO2, and the near-surface distribution of hydrogen.
+
+    For the first extended mission, the original eight prime mission
+    objectives were retained and two new ones were added: (9) Identify and
+    quantitatively assess 'taphonomic windows' for organic carbon (subset of
+    habitable environments also capable of preserving organic compounds,
+    through exposure age dating and refined models for primary facies
+    distributions and diagenesis) and (10) Explore and characterize major
+    environmental transitions recorded in the geology of the foothills of Mt.
+    Sharp and adjacent plains."
+
+
+  END_OBJECT                      = MISSION_INFORMATION
+
+  OBJECT                          = MISSION_HOST
+    INSTRUMENT_HOST_ID            = "MSL"
+
+    OBJECT                        = MISSION_TARGET
+      TARGET_NAME                 = "MARS"
+    END_OBJECT                    = MISSION_TARGET
+  END_OBJECT                      = MISSION_HOST
+
+  OBJECT                          = MISSION_REFERENCE_INFORMATION
+    REFERENCE_KEY_ID              = "GROTZINGER2009"
+  END_OBJECT                      = MISSION_REFERENCE_INFORMATION
+
+  OBJECT                          = MISSION_REFERENCE_INFORMATION
+    REFERENCE_KEY_ID              = "GROTZINGERETAL2012"
+  END_OBJECT                      = MISSION_REFERENCE_INFORMATION
+
+END_OBJECT                        = MISSION
+END

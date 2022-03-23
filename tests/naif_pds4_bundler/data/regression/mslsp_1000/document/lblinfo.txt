@@ -1,0 +1,39 @@
+PDS_VERSION_ID          = PDS3
+RECORD_TYPE             = STREAM
+
+OBJECT                  = TEXT
+   INTERCHANGE_FORMAT   = ASCII
+   PUBLICATION_DATE     = 2013-02-27
+   NOTE                 = "PDS Labels for MSL SPICE Kernels"
+END_OBJECT              = TEXT
+
+END
+
+
+MSL SPICE Data PDS Labels
+=========================
+
+   PDS labels for MSL SPICE kernel files contained in this data set are
+   stored as detached files in the same directories where the actual
+   data files are. The naming convention for the label files in this
+   data set is the following: for a particular data file the label file
+   has exactly the same name with extension ``.lbl''.
+
+
+Contact Information
+===================
+
+   Regarding MSL specific information provided in this data set and for
+   general information about SPICE system:
+
+      Boris Semenov
+      (818)-354-8136
+      Boris.Semenov@jpl.nasa.gov
+
+   address:
+
+      Navigation and Ancillary Information Facility (NAIF)
+      Jet Propulsion Laboratory
+      MS 301-125L
+      4800 Oak Grove Drive
+      Pasadena CA 91109 USA

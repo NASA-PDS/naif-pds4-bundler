@@ -1,0 +1,59 @@
+PDS_VERSION_ID          = PDS3
+RECORD_TYPE             = STREAM
+
+OBJECT                  = TEXT
+   INTERCHANGE_FORMAT   = ASCII
+   PUBLICATION_DATE     = 2013-02-27
+   NOTE                 = "MSL E-Kernel Information"
+END_OBJECT              = TEXT
+
+END
+
+General Information About SPICE E-Kernels
+=========================================
+
+   The purpose of the Events (E) -kernel is to store different kinds of
+   the spacecraft and science instrument events related information
+   such as spacecraft and instrument commands, status parameters,
+   records of spacecraft activities, ground events, and so on, and to
+   systematize and provide access to this data in relational data base
+   -like fashion.
+
+   The means of an access to the EK data are provided via SPICE Toolkit
+   APIs, calls to which can be integrated into user application
+   programs. The information regarding how to obtain the SPICE system
+   toolkit for a number of languages and computer platforms is located
+   in the ``/software'' subdirectory of the main directory of this data
+   set.
+
+   To use E-kernels with INSPEKT program, a Leapseconds (LSK) is
+   required.
+
+   Refer to the ``ek.req'' and ``inspekt.ug'' documents provided with the
+   toolkit to get more information on how to access E-kernel data.
+
+
+MSL E-kernels Provided in This Data Set
+=======================================
+
+   As the MSL project did not produce any EK files, no EKs are included
+   in this data set.
+
+
+Contact Information
+===================
+
+   Regarding MSL project specific information provided in this data set
+   and for general information about SPICE system:
+
+      Boris Semenov
+      (818)-354-8136
+      Boris.Semenov@jpl.nasa.gov
+
+   address:
+
+      Navigation and Ancillary Information Facility (NAIF)
+      Jet Propulsion Laboratory
+      MS 301-125L
+      4800 Oak Grove Drive
+      Pasadena CA 91109 USA

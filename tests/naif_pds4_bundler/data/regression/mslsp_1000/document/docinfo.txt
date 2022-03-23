@@ -1,0 +1,51 @@
+PDS_VERSION_ID          = PDS3
+RECORD_TYPE             = STREAM
+
+OBJECT                  = TEXT
+   INTERCHANGE_FORMAT   = ASCII
+   PUBLICATION_DATE     = 2013-02-27
+   NOTE                 = "Generic and MSL specific SPICE Documents"
+END_OBJECT              = TEXT
+
+END
+
+
+Generic and MSL Specific SPICE Documentation
+============================================
+
+   The complete set of generic SPICE documentation describing SPICE
+   Kernel file formats and the ways data in the kernels can be accessed
+   using the SPICE System Toolkit is distributed with the toolkit. Refer to
+   the ``softinfo.txt'' document in the ``/software'' directory of this
+   volume for more information regarding obtaining the SPICE Toolkit.
+
+   The MSL data specific documentation is included within actual
+   data files -- in the description area of the SPICE text kernel files
+   (LSK, SCLK, text PCK, FK) or in the comments area of the SPICE binary
+   kernel files (SPK, CK, binary PCK, EK) -- and can be viewed using
+   any text editor (for text files) or COMMNT/SPACIT utility programs
+   distributed with SPICE System toolkit (for binary files.)
+
+   The only documents provided in this directory are ``lblinfo.txt''
+   and ``onlabels.txt''. They describe the location and naming of the PDS
+   labels in this data set (``lblinfo.txt'') and the keywords and
+   values found in these labels (``onlabels.txt'').
+
+
+Contact Information
+===================
+
+   Regarding MSL project specific information provided in this data set
+   and for general information about SPICE system:
+
+      Boris Semenov
+      (818)-354-8136
+      Boris.Semenov@jpl.nasa.gov
+
+   address:
+
+      Navigation and Ancillary Information Facility (NAIF)
+      Jet Propulsion Laboratory
+      MS 301-125L
+      4800 Oak Grove Drive
+      Pasadena CA 91109 USA

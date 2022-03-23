@@ -1,0 +1,64 @@
+PDS_VERSION_ID       = PDS3
+RECORD_TYPE          = STREAM
+
+OBJECT               = TEXT
+  PUBLICATION_DATE   = 2013-02-27
+  NOTE               = "PDS Catalog Objects Supporting MSLSP_1000"
+END_OBJECT           = TEXT
+
+END
+
+PDS Catalog Objects Supporting MSLSP_1000
+=========================================
+
+   The ``catalog'' subdirectory contains data object files that provide
+   high-level descriptions of the MSL mission, rover and science
+   team, as well as of the SPICE data set. The descriptions are
+   organized into the following catalog object files:
+
+      SPICE DATA SET (spiceds.cat)
+      INSTRUMENT HOST (insthost.cat)
+      INSTRUMENT (spice_inst.cat)
+      HOUSEKEEPING (spice_hsk.cat)
+      MISSION (mission.cat)
+      REFERENCE (ref.cat)
+      PERSONNEL (person.cat)
+      RELEASE (release.cat)
+
+   The SPICE DATA SET object describes the SPICE data included in this
+   data set. It provides a data set overview and descriptions of SPICE
+   kernels and the software used to manipulate kernel data.
+
+   The INSTRUMENT HOST object describes the MSL rover.
+
+   The INSTRUMENT object describes SPICE kernels.
+
+   The HOUSEKEEPING object describes browser and URL information.
+
+   The MISSION object describes the MSL mission.
+
+   The PERSONNEL object lists the MSL SPICE data producers.
+
+   The RELEASE object lists the MSL SPICE data set release dates and IDs.
+
+   The REFERENCE object contains bibliographic citations for reference
+   works cited in other catalog objects.
+
+
+Contact Information
+===================
+
+   Regarding MSL specific information provided in this data set and for
+   general information about SPICE system:
+
+      Boris Semenov
+      (818)-354-8136
+      Boris.Semenov@jpl.nasa.gov
+
+   address:
+
+      Navigation and Ancillary Information Facility (NAIF)
+      Jet Propulsion Laboratory
+      MS 301-125L
+      4800 Oak Grove Drive
+      Pasadena CA 91109 USA

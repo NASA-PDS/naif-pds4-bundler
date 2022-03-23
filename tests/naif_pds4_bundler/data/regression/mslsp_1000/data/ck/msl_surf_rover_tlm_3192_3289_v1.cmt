@@ -1,0 +1,69 @@
+\beginlabel
+PDS_VERSION_ID               = PDS3
+RECORD_TYPE                  = FIXED_LENGTH
+RECORD_BYTES                 = 1024
+^SPICE_KERNEL                = "msl_surf_rover_tlm_3192_3289_v1.bc"
+MISSION_NAME                 = "MARS SCIENCE LABORATORY"
+SPACECRAFT_NAME              = "MARS SCIENCE LABORATORY"
+DATA_SET_ID                  = "MSL-M-SPICE-6-V1.0"
+KERNEL_TYPE_ID               = CK
+PRODUCT_ID                   = "msl_surf_rover_tlm_3192_3289_v1.bc"
+PRODUCT_CREATION_TIME        = 2022-03-22T17:19:23
+PRODUCER_ID                  = "NAIF/JPL"
+MISSION_PHASE_NAME           = "EXTENDED SURFACE MISSION"
+PRODUCT_VERSION_TYPE         = ACTUAL
+PLATFORM_OR_MOUNTING_NAME    = "N/A"
+START_TIME                   = 2021-10-11T06:17:20.816
+STOP_TIME                    = 2021-10-11T07:17:20.816
+SPACECRAFT_CLOCK_START_COUNT = "1/0687202175-48710"
+SPACECRAFT_CLOCK_STOP_COUNT  = "1/0687205775-46462"
+TARGET_NAME                  = MARS
+INSTRUMENT_NAME              = "ROVER"
+NAIF_INSTRUMENT_ID           = -76000
+SOURCE_PRODUCT_ID            = "N/A"
+NOTE                         = "See comments in the file for details"
+OBJECT                       = SPICE_KERNEL
+  INTERCHANGE_FORMAT         = BINARY
+  KERNEL_TYPE                = POINTING
+  DESCRIPTION                = "CK file containing the orientation of the
+rover relative to the local level frame, created using telemetry view data
+from OPGS PLACES server, covering SOLs 3192 to 3289, version 1. "
+END_OBJECT                   = SPICE_KERNEL
+\endlabel
+
+
+********************************************************************************
+
+ This CK file was created using CKSLICER Utility Ver. 1.3.0, October 28, 2011
+ linked against SPICE Toolkit Ver. N0066.
+
+ This file contains a subset of the pointing data between:
+       UTC 2021-07-29T07:52:55.848
+ and
+       UTC 2021-11-07T00:32:29.760
+ for segments for the instrument -76000from the source CK file:
+       220225165701_pds_rel29/msl_surf_rover_tlm.bc
+
+ LSK file:
+       /ods/cedl/strategic/naif/kernels/lsk/msl.tls
+ and SCLK file(s):
+       /ods/cedl/strategic/naif/kernels/sclk/msl.tsc
+ were used by CKSLICER to support required time conversions.
+
+ This file was created on 2022-02-25 22:07:08.
+
+ Text below is the contents of the comment area of the source CK file.
+
+********************************************************************************
+
+
+
+
+********************************************************************************
+
+
+MSL Rover Reconstructed Orientation CK
+===============================================================================
+
+   This CK file contains reconstructed rover orientation for MSL rover
+   frame, NAIF ID -76000, with respect the MSL_LOCAL_LEVEL frame.

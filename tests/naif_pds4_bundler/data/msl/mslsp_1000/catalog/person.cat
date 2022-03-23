@@ -1,0 +1,95 @@
+PDS_VERSION_ID                  = PDS3
+LABEL_REVISION_NOTE             = "
+    2013-02-27 NAIF:Semenov initial version;
+    2021-02-24 NAIF:Costa added person MCOSTA;
+    "
+RECORD_TYPE                     = STREAM
+
+OBJECT                          = PERSONNEL
+  PDS_USER_ID                   = CACTON
+
+  OBJECT                        = PERSONNEL_INFORMATION
+    FULL_NAME                   = "CHARLES H. ACTON, JR."
+    LAST_NAME                   = ACTON
+    TELEPHONE_NUMBER            = "8183543869"
+    ALTERNATE_TELEPHONE_NUMBER  = "8183543935"
+    FAX_NUMBER                  = "8183936388"
+    INSTITUTION_NAME            = "JET PROPULSION LABORATORY"
+    NODE_ID                     = "NAIF"
+    PDS_AFFILIATION             = "PDSNAIF"
+    PDS_ADDRESS_BOOK_FLAG       = "N"
+    REGISTRATION_DATE           = "N/A"
+    ADDRESS_TEXT                = "JET PROPULSION LABORATORY \n
+                                   MAILSTOP 301-121 \n
+                                   4800 OAK GROVE DRIVE \n
+                                   PASADENA, CA 91109 \n
+                                   USA"
+  END_OBJECT                    = PERSONNEL_INFORMATION
+
+  OBJECT                        = PERSONNEL_ELECTRONIC_MAIL
+    ELECTRONIC_MAIL_ID          = "CHARLES.ACTON@JPL.NASA.GOV"
+    ELECTRONIC_MAIL_TYPE        = "INTERNET"
+    PREFERENCE_ID               = 1
+  END_OBJECT                    = PERSONNEL_ELECTRONIC_MAIL
+
+END_OBJECT                      = PERSONNEL
+
+OBJECT                          = PERSONNEL
+  PDS_USER_ID                   = BSEMENOV
+
+  OBJECT                        = PERSONNEL_INFORMATION
+    FULL_NAME                   = "BORIS V. SEMENOV"
+    LAST_NAME                   = SEMENOV
+    TELEPHONE_NUMBER            = "8183548136"
+    ALTERNATE_TELEPHONE_NUMBER  = "8183543935"
+    FAX_NUMBER                  = "8183936388"
+    INSTITUTION_NAME            = "JET PROPULSION LABORATORY"
+    NODE_ID                     = "NAIF"
+    PDS_AFFILIATION             = "PDSNAIF"
+    PDS_ADDRESS_BOOK_FLAG       = "N"
+    REGISTRATION_DATE           = "N/A"
+    ADDRESS_TEXT                = "JET PROPULSION LABORATORY \n
+                                   MAILSTOP 301-121 \n
+                                   4800 OAK GROVE DRIVE \n
+                                   PASADENA, CA 91109 \n
+                                   USA"
+  END_OBJECT                    = PERSONNEL_INFORMATION
+
+  OBJECT                        = PERSONNEL_ELECTRONIC_MAIL
+    ELECTRONIC_MAIL_ID          = "BORIS.SEMENOV@JPL.NASA.GOV"
+    ELECTRONIC_MAIL_TYPE        = "INTERNET"
+    PREFERENCE_ID               = 1
+  END_OBJECT                    = PERSONNEL_ELECTRONIC_MAIL
+
+END_OBJECT                      = PERSONNEL
+
+OBJECT                          = PERSONNEL
+  PDS_USER_ID                   = MCOSTA
+
+  OBJECT                        = PERSONNEL_INFORMATION
+    FULL_NAME                   = "MARC COSTA SITJA"
+    LAST_NAME                   = COSTA
+    TELEPHONE_NUMBER            = "6264691244"
+    ALTERNATE_TELEPHONE_NUMBER  = "N/A"
+    FAX_NUMBER                  = "N/A"
+    INSTITUTION_NAME            = "JET PROPULSION LABORATORY"
+    NODE_ID                     = "NAIF"
+    PDS_AFFILIATION             = "PDSNAIF"
+    PDS_ADDRESS_BOOK_FLAG       = "N"
+    REGISTRATION_DATE           = "N/A"
+    ADDRESS_TEXT                = "JET PROPULSION LABORATORY \n
+                                   MAILSTOP T1721 \n
+                                   4800 OAK GROVE DRIVE \n
+                                   PASADENA, CA 91109 \n
+                                   USA"
+  END_OBJECT                    = PERSONNEL_INFORMATION
+
+  OBJECT                        = PERSONNEL_ELECTRONIC_MAIL
+    ELECTRONIC_MAIL_ID          = "MARC.COSTA.SITJA@JPL.NASA.GOV"
+    ELECTRONIC_MAIL_TYPE        = "INTERNET"
+    PREFERENCE_ID               = 1
+  END_OBJECT                    = PERSONNEL_ELECTRONIC_MAIL
+
+END_OBJECT                      = PERSONNEL
+
+END

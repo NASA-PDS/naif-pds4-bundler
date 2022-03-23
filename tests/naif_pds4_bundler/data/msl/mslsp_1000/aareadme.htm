@@ -1,0 +1,214 @@
+<html>
+
+<head>
+<title>The MSL SPICE Data Archive</title>
+</head>
+
+<body>
+
+<pre>
+
+The MSL SPICE Data Archive
+========================================================================
+
+
+Introduction
+============
+
+   This document provides an overview of the MSL SPICE data set,
+   including a description of the directory structure. Additional
+   documents included on this data set provide more details, especially
+   the ``spiceds.cat'' dataset description and the various
+   kernel-specific ``/data/*/*info.txt'' files.
+
+   This data set contains navigation and related observation geometry
+   and other ancillary data in the form of SPICE System kernel files
+   for the MSL rover. See the file ``mission.cat'' in the ``/catalog''
+   directory for a description of the mission and the file
+   ``insthost.cat'' in the same directory for a description of the
+   rover.
+
+   The SPICE kernel files contain geometric and other ancillary
+   information needed to recover the full value of science instrument
+   data. Data in the SPICE kernel files must be accessed using the NAIF
+   (Navigation and Ancillary Information Facility) software called the
+   SPICE Toolkit. See the file ``softinfo.txt'' in the ``/software''
+   directory for instructions on how to obtain this software.
+
+   This data set is contained on a single virtual volume, MSLSP_1000,
+   including data from all mission phases and covering from 2011-11-26
+   through the end time of the latest rover path SPK file supplied in
+   the data set. Until the end of the rover lifespan this data set will
+   be accumulating with new data added according to the project
+   archiving plan.
+
+
+File Formats
+============
+
+   All text documents and other meta information files such as
+   descriptions, PDS object definitions and detached PDS labels are
+   stream format files, with a carriage return (ASCII 13) and a line
+   feed character (ASCII 10) at the end of the record.  This allows the
+   files to be read by MS-DOS/Windows, Unix and MacOS operating
+   systems.
+
+   The data files in this data set were prepared to be used under a
+   UNIX environment. Therefore all SPICE text kernel files are UNIX
+   text files, with a line feed character (ASCII 10) at the end of the
+   line, and all SPICE binary kernels files are UNIX binary files in
+   which bit pattern structures for double precision and integer
+   numbers follow the IEEE standard. While some of the data files on
+   this volume can be used 'as is', converting the files to binary or
+   text format native to the user's computer may be required. Refer to
+   the documentation provided with the SPICE Toolkit to find out
+   whether conversion is needed in each specific case.
+
+   NAIF provides a tool (BINGO) that can convert either binary or text
+   kernels from one format to another. This means that text files can
+   have their line terminator changed and binary files can be converted
+   to the native format of the platform of interest. For access to this
+   tool, see the reference to the NAIF utilities website in the file
+   ``/software/softinfo.txt''.
+
+
+Volume Contents
+===============
+
+   Files on this volume are organized into a set of subdirectories
+   below the top-level directory. The following table shows the
+   structure and content of these directories. In this table, directory
+   names are enclosed in square brackets ([]). See the ``*info.txt''
+   files in each directory for specific information on the files in the
+   directory, including naming schemes.
+
+
+   [top-level-directory]
+   |
+   |-- <a href="aareadme.txt">aareadme.txt</a>        Text version of the aareadme file.
+   |-- <a href="aareadme.htm">aareadme.htm</a>        HTML version of the aareadme file.
+   |-- <a href="aareadme.lbl">aareadme.lbl</a>        PDS label for both aareadme files.
+   |-- <a href="errata.txt">errata.txt</a>          Comments and errata on this volume.
+   |-- <a href="voldesc.cat">voldesc.cat</a>         Description of the contents of this volume.
+   |
+   |--<a href="catalog/">[catalog]</a>            Directory containing PDS catalog objects.
+   |  |
+   |  |-- <a href="catalog/catinfo.txt">catinfo.txt</a>      Description of files in the catalog directory.
+   |  |-- <a href="catalog/insthost.cat">insthost.cat</a>     Description of the rover.
+   |  |-- <a href="catalog/mission.cat">mission.cat</a>      Description of the mission.
+   |  |-- <a href="catalog/person.cat">person.cat</a>       References for personnel who created this volume.
+   |  |-- <a href="catalog/ref.cat">ref.cat</a>          List of publications mentioned in *.cat files.
+   |  |-- <a href="catalog/release.cat">release.cat</a>      Description of the data set releases.
+   |  |-- <a href="catalog/spiceds.cat">spiceds.cat</a>      Description of the SPICE data set.
+   |  |-- <a href="catalog/spice_hsk.cat">spice_hsk.cat</a>    Description of housekeeping (browser) information.
+   |  +-- <a href="catalog/spice_inst.cat">spice_inst.cat</a>   Description of SPICE kernels.
+   |
+   |--<a href="data/">[data]</a>               Directory containing SPICE data files (kernels.)
+   |  |
+   |  |--<a href="data/ck/">[ck]</a>              Directory containing CK files.
+   |  |  |
+   |  |  |-- <a href="data/ck/ckinfo.txt">ckinfo.txt</a>    Description of files in the data/ck directory.
+   |  |  |-- *.bc          CK files.
+   |  |  +-- *.lbl         PDS labels for CK files.
+   |  |
+   |  |--<a href="data/ek/">[ek]</a>              Directory containing EK files.
+   |  |  |
+   |  |  +-- <a href="data/ek/ekinfo.txt">ekinfo.txt</a>    Description of files in the data/ek directory.
+   |  |
+   |  |--<a href="data/fk/">[fk]</a>              Directory containing FK file(s).
+   |  |  |
+   |  |  |-- <a href="data/fk/fkinfo.txt">fkinfo.txt</a>    Description of files in the data/fk directory.
+   |  |  |-- *.tf          FK file(s).
+   |  |  +-- *.lbl         PDS labels for FK files.
+   |  |
+   |  |--<a href="data/ik/">[ik]</a>              Directory containing IK files.
+   |  |  |
+   |  |  |-- <a href="data/ik/ikinfo.txt">ikinfo.txt</a>    Description of files in the data/ik directory.
+   |  |  |-- *.ti          IK files.
+   |  |  +-- *.lbl         PDS labels for IK files.
+   |  |
+   |  |--<a href="data/lsk/">[lsk]</a>             Directory containing LSK files.
+   |  |  |
+   |  |  |-- <a href="data/lsk/lskinfo.txt">lskinfo.txt</a>   Description of files in the data/lsk directory.
+   |  |  |-- *.tls         LSK file(s).
+   |  |  +-- *.lbl         PDS labels for LSK files.
+   |  |
+   |  |--<a href="data/pck/">[pck]</a>             Directory containing PCK file(s).
+   |  |  |
+   |  |  |-- <a href="data/pck/pckinfo.txt">pckinfo.txt</a>   Description of files in the data/pck directory.
+   |  |  |-- *.tpc         Text PCK file(s).
+   |  |  +-- *.lbl         PDS labels for PCK files.
+   |  |
+   |  |--<a href="data/sclk/">[sclk]</a>            Directory containing SCLK file(s).
+   |  |  |
+   |  |  |-- <a href="data/sclk/sclkinfo.txt">sclkinfo.txt</a>  Description of files in the data/sclk directory.
+   |  |  |-- *.tsc         SCLK file(s).
+   |  |  +-- *.lbl         PDS labels for SCLK files.
+   |  |
+   |  +--<a href="data/spk/">[spk]</a>             Directory containing SPK files.
+   |     |
+   |     |-- <a href="data/spk/spkinfo.txt">spkinfo.txt</a>   Description of files in the data/spk directory.
+   |     |-- *.bsp         SPK files.
+   |     +-- *.lbl         PDS labels for SPK files.
+   |
+   |--<a href="document/">[document]</a>           Directory containing volume related documents.
+   |  |
+   |  |-- <a href="document/docinfo.txt">docinfo.txt</a>      Description of files in the document directory.
+   |  |-- <a href="document/onlabels.txt">onlabels.txt</a>     Description of PDS labels for SPICE kernels.
+   |  +-- <a href="document/lblinfo.txt">lblinfo.txt</a>      Description of PDS label location in this volume.
+   |
+   |--<a href="extras/">[extras]</a>             Directory containing extra data elements.
+   |  |
+   |  |-- <a href="extras/extrinfo.txt">extrinfo.txt</a>     Description of files and directories in extras.
+   |  |
+   |  +--<a href="extras/mk">[mk]</a>              Directory containing meta-kernels.
+   |     |
+   |     |-- <a href="extras/mk/mkinfo.txt">mkinfo.txt</a>    Description of meta-kernel files.
+   |     +-- *.tm          Meta-kernel files.
+   |
+   |--<a href="index/">[index]</a>              Directory containing index files.
+   |  |
+   |  |-- <a href="index/indxinfo.txt">indxinfo.txt</a>     Description of files in the index directory.
+   |  |-- <a href="index/checksum.tab">checksum.tab</a>     Table of MD5 checksums for files in this data set.
+   |  |-- <a href="index/checksum.lbl">checksum.lbl</a>     PDS label for checksum.tab file.
+   |  |-- <a href="index/index.tab">index.tab</a>        Index table of SPICE kernels on this volume.
+   |  +-- <a href="index/index.lbl">index.lbl</a>        PDS label for index.tab file.
+   |
+   +--<a href="software/">[software]</a>
+      |
+      +-- <a href="software/softinfo.txt">softinfo.txt</a>     instructions on how to obtain SPICE software.
+
+
+Whom to Contact for Information
+===============================
+
+   PDS Navigation and Ancillary Information Facility (NAIF),
+   MAIL STOP 301-121
+   Jet Propulsion Laboratory
+   California Institute of Technology
+   4800 Oak Grove Drive
+   Pasadena, CA, 91109-8099
+   818-354-3869
+   WWW Site:  http://naif.jpl.nasa.gov
+   Electronic mail address:  pds_operator@naif.jpl.nasa.gov
+
+
+Cognizant Persons
+=================
+
+   This volume was produced by Boris Semenov and Marc Costa Sitja,
+   Planetary Data System Navigation and Ancillary Information
+   Facility Node, Jet Propulsion Laboratory, Pasadena, California.
+
+   The kernel files and source data for making kernels in this data set
+   were provided by Steven Collins, MSL ACS Team; Tomas Martin-Mur and
+   Eric Gustafson, MSL NAV Team; Fred Serricchio, MSL EDL Team; Bob
+   Deen, Stirling Algermissen, Helen Mortensen, and Michael Gangl, MSL
+   OPGS Team; and Justin Maki, MSL Camera Team.
+
+
+</pre>
+
+</body>
+
+</html>

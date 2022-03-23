@@ -1,0 +1,37 @@
+PDS_VERSION_ID                     = PDS3
+LABEL_REVISION_NOTE                = "
+  2013-02-27 NAIF:Semenov initial version;
+  "
+
+RECORD_TYPE                        = STREAM
+
+OBJECT                             = INSTRUMENT
+  INSTRUMENT_HOST_ID               = "MSL"
+  INSTRUMENT_ID                    = SPICE
+
+  OBJECT                           = INSTRUMENT_INFORMATION
+    INSTRUMENT_NAME                = "SPICE KERNELS"
+    INSTRUMENT_TYPE                = "N/A"
+    INSTRUMENT_DESC                = "
+
+      Instrument Overview
+      ===================
+      SPICE data contain geometric and other ancillary information
+      needed to recover the full value of science instrument data.
+      In particular SPICE kernels provide spacecraft and planetary
+      ephemerides, instrument mounting alignments, spacecraft
+      orientation and spacecraft sequences of events. Data needed
+      for relevant time conversions are also included.
+
+      There is no instrument directly associated with SPICE data.
+      However, this template ensures that referential integrity is
+      maintained in the PDS catalog."
+
+  END_OBJECT                      = INSTRUMENT_INFORMATION
+
+  OBJECT                          = INSTRUMENT_REFERENCE_INFO
+    REFERENCE_KEY_ID              = "ACTON1996"
+  END_OBJECT                      = INSTRUMENT_REFERENCE_INFO
+
+END_OBJECT                        = INSTRUMENT
+END

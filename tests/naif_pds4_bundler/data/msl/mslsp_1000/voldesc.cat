@@ -1,0 +1,47 @@
+PDS_VERSION_ID                = PDS3
+RECORD_TYPE                   = STREAM
+LABEL_REVISION_NOTE           = "
+  2013-02-27 NAIF:Semenov initial version;
+  "
+OBJECT                        = VOLUME
+  VOLUME_SERIES_NAME          = "MISSION TO MARS"
+  VOLUME_SET_NAME             = "MSL SPICE FILES"
+  VOLUME_SET_ID               = USA_NASA_JPL_MSLSP_1000
+  VOLUMES                     = 1
+  VOLUME_NAME                 = "MSL SPICE FILES"
+  VOLUME_ID                   = MSLSP_1000
+  VOLUME_VERSION_ID           = "VERSION 1"
+  PUBLICATION_DATE            = 2013-02-27
+  DATA_SET_ID                 = "MSL-M-SPICE-6-V1.0"
+  MEDIUM_TYPE                 = "ELECTRONIC"
+  VOLUME_FORMAT               = "UNK"
+  DESCRIPTION                 = "
+
+    This volume contains navigation and ancillary data in the form of
+    SPICE System kernel files for the MSL rover and instruments. The
+    data on this volume are released at intervals and may not be
+    complete. Consult the ``catalog/release.cat'' file for information
+    concerning release dates.
+
+    "
+  OBJECT                      = DATA_PRODUCER
+    INSTITUTION_NAME          = "JET PROPULSION LABORATORY"
+    FACILITY_NAME             = "NAIF"
+    FULL_NAME                 = "BORIS V. SEMENOV"
+    ADDRESS_TEXT              = "4800 OAK GROVE DRIVE\n
+                                 PASADENA, CA, 91109-8099"
+  END_OBJECT                  = DATA_PRODUCER
+
+  OBJECT                      = CATALOG
+    ^MISSION_CATALOG          = "mission.cat"
+    ^INSTRUMENT_HOST_CATALOG  = "insthost.cat"
+    ^INSTRUMENT_CATALOG       = "spice_inst.cat"
+    ^HOUSEKEEPING_CATALOG     = "spice_hsk.cat"
+    ^PERSONNEL_CATALOG        = "person.cat"
+    ^REFERENCE_CATALOG        = "ref.cat"
+    ^DATA_SET_CATALOG         = "spiceds.cat"
+    ^RELEASE_CATALOG          = "release.cat"
+  END_OBJECT                  = CATALOG
+
+END_OBJECT                    = VOLUME
+END

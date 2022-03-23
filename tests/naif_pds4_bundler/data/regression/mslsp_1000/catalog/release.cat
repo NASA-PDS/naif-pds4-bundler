@@ -1,0 +1,474 @@
+PDS_VERSION_ID                  = PDS3
+LABEL_REVISION_NOTE             = "
+  2013-02-27 NAIF:Semenov initial version;
+  2013-06-10 NAIF:Semenov added release 0002, changed ARCHIVE_STATUS
+             to LOCALLY ARCHIVED;
+  2013-08-26 NAIF:Semenov updated for release 0003;
+  2013-12-13 NAIF:Semenov updated for release 0004;
+  2014-03-17 NAIF:Semenov updated for release 0005;
+  2014-07-31 NAIF:Semenov updated for release 0006;
+  2014-12-05 NAIF:Semenov updated for release 0007;
+  2015-03-16 NAIF:Semenov updated for release 0008;
+  2015-07-29 NAIF:Semenov updated for release 0009;
+  2015-12-04 NAIF:Semenov updated for release 0010;
+  2016-03-03 NAIF:Semenov updated for release 0011;
+  2016-07-28 NAIF:Semenov updated for release 0012;
+  2016-12-05 NAIF:Semenov updated for release 0013;
+  2017-03-15 NAIF:Semenov updated for release 0014;
+  2017-07-28 NAIF:Semenov updated for release 0015;
+  2017-12-04 NAIF:Semenov updated for release 0016;
+  2018-03-14 NAIF:Semenov updated for release 0017;
+  2018-07-31 NAIF:Semenov updated for release 0018;
+  2018-12-04 NAIF:Semenov updated for release 0019;
+  2019-03-08 NAIF:Semenov updated for release 0020;
+  2019-07-28 NAIF:Semenov updated for release 0021;
+  2019-12-02 NAIF:Semenov updated for release 0022;
+  2020-03-12 NAIF:Semenov updated for release 0023;
+  2020-07-28 NAIF:Semenov updated for release 0024;
+  2020-12-03 NAIF:Semenov updated for release 0025;
+  2021-03-05 NAIF:Costa updated for release 0026;
+  2021-07-29 NAIF:Costa updated for release 0027;
+  2021-11-30 NAIF:Costa updated for release 0028;
+  2022-02-28 NAIF:Costa updated for release 0029;
+  "
+RECORD_TYPE                     = STREAM
+
+OBJECT                          = DATA_SET_RELEASE
+  DATA_SET_ID                     = "MSL-M-SPICE-6-V1.0"
+  RELEASE_ID                      = "0001"
+  RELEASE_DATE                    = 2013-02-27
+  RELEASE_MEDIUM                  = "ONLINE DISK STORAGE"
+  PRODUCT_TYPE                    = "SPICE_KERNELS"
+  ARCHIVE_STATUS                  = "LOCALLY ARCHIVED"
+  DISTRIBUTION_TYPE               = "MSL-SPICE"
+  DATA_PROVIDER_NAME              = "JPL-NAIF"
+  RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0001"
+  DESCRIPTION                     = "
+    This release contains MSL SPICE Kernels for Launch, Cruise,
+    Approach, EDL, and Sols 0 to 89 of the Primary Surface Mission."
+END_OBJECT                      = DATA_SET_RELEASE
+
+OBJECT                          = DATA_SET_RELEASE
+  DATA_SET_ID                     = "MSL-M-SPICE-6-V1.0"
+  RELEASE_ID                      = "0002"
+  RELEASE_DATE                    = 2013-06-10
+  RELEASE_MEDIUM                  = "ONLINE DISK STORAGE"
+  PRODUCT_TYPE                    = "SPICE_KERNELS"
+  ARCHIVE_STATUS                  = "LOCALLY ARCHIVED"
+  DISTRIBUTION_TYPE               = "MSL-SPICE"
+  DATA_PROVIDER_NAME              = "JPL-NAIF"
+  RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0002"
+  DESCRIPTION                     = "
+    This release contains MSL SPICE Kernels for EDL and Sols
+    90 to 179 of the Primary Surface Mission."
+END_OBJECT                      = DATA_SET_RELEASE
+
+OBJECT                          = DATA_SET_RELEASE
+  DATA_SET_ID                     = "MSL-M-SPICE-6-V1.0"
+  RELEASE_ID                      = "0003"
+  RELEASE_DATE                    = 2013-08-30
+  RELEASE_MEDIUM                  = "ONLINE DISK STORAGE"
+  PRODUCT_TYPE                    = "SPICE_KERNELS"
+  ARCHIVE_STATUS                  = "LOCALLY ARCHIVED"
+  DISTRIBUTION_TYPE               = "MSL-SPICE"
+  DATA_PROVIDER_NAME              = "JPL-NAIF"
+  RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0003"
+  DESCRIPTION                     = "
+    This release contains MSL SPICE Kernels for Sols
+    179 to 269 of the Primary Surface Mission."
+END_OBJECT                      = DATA_SET_RELEASE
+
+OBJECT                          = DATA_SET_RELEASE
+  DATA_SET_ID                     = "MSL-M-SPICE-6-V1.0"
+  RELEASE_ID                      = "0004"
+  RELEASE_DATE                    = 2013-12-13
+  RELEASE_MEDIUM                  = "ONLINE DISK STORAGE"
+  PRODUCT_TYPE                    = "SPICE_KERNELS"
+  ARCHIVE_STATUS                  = "LOCALLY ARCHIVED"
+  DISTRIBUTION_TYPE               = "MSL-SPICE"
+  DATA_PROVIDER_NAME              = "JPL-NAIF"
+  RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0004"
+  DESCRIPTION                     = "
+    This release contains MSL SPICE Kernels for Sols
+    269 to 359 of the Primary Surface Mission."
+END_OBJECT                      = DATA_SET_RELEASE
+
+OBJECT                          = DATA_SET_RELEASE
+  DATA_SET_ID                     = "MSL-M-SPICE-6-V1.0"
+  RELEASE_ID                      = "0005"
+  RELEASE_DATE                    = 2014-03-17
+  RELEASE_MEDIUM                  = "ONLINE DISK STORAGE"
+  PRODUCT_TYPE                    = "SPICE_KERNELS"
+  ARCHIVE_STATUS                  = "LOCALLY ARCHIVED"
+  DISTRIBUTION_TYPE               = "MSL-SPICE"
+  DATA_PROVIDER_NAME              = "JPL-NAIF"
+  RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0005"
+  DESCRIPTION                     = "
+    This release contains MSL SPICE Kernels for Sols
+    359 to 449 of the Primary Surface Mission."
+END_OBJECT                      = DATA_SET_RELEASE
+
+OBJECT                          = DATA_SET_RELEASE
+  DATA_SET_ID                     = "MSL-M-SPICE-6-V1.0"
+  RELEASE_ID                      = "0006"
+  RELEASE_DATE                    = 2014-08-01
+  RELEASE_MEDIUM                  = "ONLINE DISK STORAGE"
+  PRODUCT_TYPE                    = "SPICE_KERNELS"
+  ARCHIVE_STATUS                  = "LOCALLY ARCHIVED"
+  DISTRIBUTION_TYPE               = "MSL-SPICE"
+  DATA_PROVIDER_NAME              = "JPL-NAIF"
+  RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0006"
+  DESCRIPTION                     = "
+    This release contains MSL SPICE Kernels for Sols
+    449 to 583 of the Primary Surface Mission."
+END_OBJECT                      = DATA_SET_RELEASE
+
+OBJECT                          = DATA_SET_RELEASE
+  DATA_SET_ID                     = "MSL-M-SPICE-6-V1.0"
+  RELEASE_ID                      = "0007"
+  RELEASE_DATE                    = 2014-12-05
+  RELEASE_MEDIUM                  = "ONLINE DISK STORAGE"
+  PRODUCT_TYPE                    = "SPICE_KERNELS"
+  ARCHIVE_STATUS                  = "LOCALLY ARCHIVED"
+  DISTRIBUTION_TYPE               = "MSL-SPICE"
+  DATA_PROVIDER_NAME              = "JPL-NAIF"
+  RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0007"
+  DESCRIPTION                     = "
+    This release contains MSL SPICE Kernels for Sols
+    583 to 707 of the Primary Surface Mission."
+END_OBJECT                      = DATA_SET_RELEASE
+
+OBJECT                          = DATA_SET_RELEASE
+  DATA_SET_ID                     = "MSL-M-SPICE-6-V1.0"
+  RELEASE_ID                      = "0008"
+  RELEASE_DATE                    = 2015-03-16
+  RELEASE_MEDIUM                  = "ONLINE DISK STORAGE"
+  PRODUCT_TYPE                    = "SPICE_KERNELS"
+  ARCHIVE_STATUS                  = "LOCALLY ARCHIVED"
+  DISTRIBUTION_TYPE               = "MSL-SPICE"
+  DATA_PROVIDER_NAME              = "JPL-NAIF"
+  RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0008"
+  DESCRIPTION                     = "
+    This release contains MSL SPICE Kernels for Sols
+    707 to 804 of the Primary/Extended Surface Missions."
+END_OBJECT                      = DATA_SET_RELEASE
+
+OBJECT                          = DATA_SET_RELEASE
+  DATA_SET_ID                     = "MSL-M-SPICE-6-V1.0"
+  RELEASE_ID                      = "0009"
+  RELEASE_DATE                    = 2015-07-31
+  RELEASE_MEDIUM                  = "ONLINE DISK STORAGE"
+  PRODUCT_TYPE                    = "SPICE_KERNELS"
+  ARCHIVE_STATUS                  = "LOCALLY ARCHIVED"
+  DISTRIBUTION_TYPE               = "MSL-SPICE"
+  DATA_PROVIDER_NAME              = "JPL-NAIF"
+  RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0009"
+  DESCRIPTION                     = "
+    This release contains MSL SPICE Kernels for Sols
+    804 to 938 of the Extended Surface Mission."
+END_OBJECT                      = DATA_SET_RELEASE
+
+OBJECT                          = DATA_SET_RELEASE
+  DATA_SET_ID                     = "MSL-M-SPICE-6-V1.0"
+  RELEASE_ID                      = "0010"
+  RELEASE_DATE                    = 2015-12-04
+  RELEASE_MEDIUM                  = "ONLINE DISK STORAGE"
+  PRODUCT_TYPE                    = "SPICE_KERNELS"
+  ARCHIVE_STATUS                  = "LOCALLY ARCHIVED"
+  DISTRIBUTION_TYPE               = "MSL-SPICE"
+  DATA_PROVIDER_NAME              = "JPL-NAIF"
+  RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0010"
+  DESCRIPTION                     = "
+    This release contains MSL SPICE Kernels for Sols
+    938 to 1062 of the Extended Surface Mission."
+END_OBJECT                      = DATA_SET_RELEASE
+
+OBJECT                          = DATA_SET_RELEASE
+  DATA_SET_ID                     = "MSL-M-SPICE-6-V1.0"
+  RELEASE_ID                      = "0011"
+  RELEASE_DATE                    = 2016-03-16
+  RELEASE_MEDIUM                  = "ONLINE DISK STORAGE"
+  PRODUCT_TYPE                    = "SPICE_KERNELS"
+  ARCHIVE_STATUS                  = "LOCALLY ARCHIVED"
+  DISTRIBUTION_TYPE               = "MSL-SPICE"
+  DATA_PROVIDER_NAME              = "JPL-NAIF"
+  RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0011"
+  DESCRIPTION                     = "
+    This release contains MSL SPICE Kernels for Sols
+    1062 to 1159 of the Extended Surface Mission."
+END_OBJECT                      = DATA_SET_RELEASE
+
+OBJECT                          = DATA_SET_RELEASE
+  DATA_SET_ID                     = "MSL-M-SPICE-6-V1.0"
+  RELEASE_ID                      = "0012"
+  RELEASE_DATE                    = 2016-08-01
+  RELEASE_MEDIUM                  = "ONLINE DISK STORAGE"
+  PRODUCT_TYPE                    = "SPICE_KERNELS"
+  ARCHIVE_STATUS                  = "LOCALLY ARCHIVED"
+  DISTRIBUTION_TYPE               = "MSL-SPICE"
+  DATA_PROVIDER_NAME              = "JPL-NAIF"
+  RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0012"
+  DESCRIPTION                     = "
+    This release contains MSL SPICE Kernels for Sols
+    1160 to 1293 of the Extended Surface Mission."
+END_OBJECT                      = DATA_SET_RELEASE
+
+OBJECT                          = DATA_SET_RELEASE
+  DATA_SET_ID                     = "MSL-M-SPICE-6-V1.0"
+  RELEASE_ID                      = "0013"
+  RELEASE_DATE                    = 2016-12-05
+  RELEASE_MEDIUM                  = "ONLINE DISK STORAGE"
+  PRODUCT_TYPE                    = "SPICE_KERNELS"
+  ARCHIVE_STATUS                  = "LOCALLY ARCHIVED"
+  DISTRIBUTION_TYPE               = "MSL-SPICE"
+  DATA_PROVIDER_NAME              = "JPL-NAIF"
+  RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0013"
+  DESCRIPTION                     = "
+    This release contains MSL SPICE Kernels for Sols
+    1294 to 1417 of the Extended Surface Mission."
+END_OBJECT                      = DATA_SET_RELEASE
+
+OBJECT                          = DATA_SET_RELEASE
+  DATA_SET_ID                     = "MSL-M-SPICE-6-V1.0"
+  RELEASE_ID                      = "0014"
+  RELEASE_DATE                    = 2017-03-16
+  RELEASE_MEDIUM                  = "ONLINE DISK STORAGE"
+  PRODUCT_TYPE                    = "SPICE_KERNELS"
+  ARCHIVE_STATUS                  = "LOCALLY ARCHIVED"
+  DISTRIBUTION_TYPE               = "MSL-SPICE"
+  DATA_PROVIDER_NAME              = "JPL-NAIF"
+  RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0014"
+  DESCRIPTION                     = "
+    This release contains MSL SPICE Kernels for Sols
+    1417 to 1514 of the Extended Surface Mission."
+END_OBJECT                      = DATA_SET_RELEASE
+
+OBJECT                          = DATA_SET_RELEASE
+  DATA_SET_ID                     = "MSL-M-SPICE-6-V1.0"
+  RELEASE_ID                      = "0015"
+  RELEASE_DATE                    = 2017-08-01
+  RELEASE_MEDIUM                  = "ONLINE DISK STORAGE"
+  PRODUCT_TYPE                    = "SPICE_KERNELS"
+  ARCHIVE_STATUS                  = "LOCALLY ARCHIVED"
+  DISTRIBUTION_TYPE               = "MSL-SPICE"
+  DATA_PROVIDER_NAME              = "JPL-NAIF"
+  RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0015"
+  DESCRIPTION                     = "
+    This release contains MSL SPICE Kernels for Sols
+    1514 to 1648 of the Extended Surface Mission."
+END_OBJECT                      = DATA_SET_RELEASE
+
+OBJECT                          = DATA_SET_RELEASE
+  DATA_SET_ID                     = "MSL-M-SPICE-6-V1.0"
+  RELEASE_ID                      = "0016"
+  RELEASE_DATE                    = 2017-12-05
+  RELEASE_MEDIUM                  = "ONLINE DISK STORAGE"
+  PRODUCT_TYPE                    = "SPICE_KERNELS"
+  ARCHIVE_STATUS                  = "LOCALLY ARCHIVED"
+  DISTRIBUTION_TYPE               = "MSL-SPICE"
+  DATA_PROVIDER_NAME              = "JPL-NAIF"
+  RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0016"
+  DESCRIPTION                     = "
+    This release contains MSL SPICE Kernels for Sols
+    1649 to 1772 of the Extended Surface Mission."
+END_OBJECT                      = DATA_SET_RELEASE
+
+OBJECT                          = DATA_SET_RELEASE
+  DATA_SET_ID                     = "MSL-M-SPICE-6-V1.0"
+  RELEASE_ID                      = "0017"
+  RELEASE_DATE                    = 2018-03-14
+  RELEASE_MEDIUM                  = "ONLINE DISK STORAGE"
+  PRODUCT_TYPE                    = "SPICE_KERNELS"
+  ARCHIVE_STATUS                  = "LOCALLY ARCHIVED"
+  DISTRIBUTION_TYPE               = "MSL-SPICE"
+  DATA_PROVIDER_NAME              = "JPL-NAIF"
+  RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0017"
+  DESCRIPTION                     = "
+    This release contains MSL SPICE Kernels for Sols
+    1773 to 1869 of the Extended Surface Mission."
+END_OBJECT                      = DATA_SET_RELEASE
+
+OBJECT                          = DATA_SET_RELEASE
+  DATA_SET_ID                     = "MSL-M-SPICE-6-V1.0"
+  RELEASE_ID                      = "0018"
+  RELEASE_DATE                    = 2018-08-01
+  RELEASE_MEDIUM                  = "ONLINE DISK STORAGE"
+  PRODUCT_TYPE                    = "SPICE_KERNELS"
+  ARCHIVE_STATUS                  = "LOCALLY ARCHIVED"
+  DISTRIBUTION_TYPE               = "MSL-SPICE"
+  DATA_PROVIDER_NAME              = "JPL-NAIF"
+  RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0018"
+  DESCRIPTION                     = "
+    This release contains MSL SPICE Kernels for Sols
+    1870 to 2003 of the Extended Surface Mission. This
+    release is the first release in which a localized
+    rover path SPK was added to the archive. This SPK
+    covers Sols 0000 to 2003."
+END_OBJECT                      = DATA_SET_RELEASE
+
+OBJECT                          = DATA_SET_RELEASE
+  DATA_SET_ID                     = "MSL-M-SPICE-6-V1.0"
+  RELEASE_ID                      = "0019"
+  RELEASE_DATE                    = 2018-12-05
+  RELEASE_MEDIUM                  = "ONLINE DISK STORAGE"
+  PRODUCT_TYPE                    = "SPICE_KERNELS"
+  ARCHIVE_STATUS                  = "LOCALLY ARCHIVED"
+  DISTRIBUTION_TYPE               = "MSL-SPICE"
+  DATA_PROVIDER_NAME              = "JPL-NAIF"
+  RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0019"
+  DESCRIPTION                     = "
+    This release contains MSL SPICE Kernels for Sols
+    2004 to 2127 of the Extended Surface Mission."
+END_OBJECT                      = DATA_SET_RELEASE
+
+OBJECT                          = DATA_SET_RELEASE
+  DATA_SET_ID                     = "MSL-M-SPICE-6-V1.0"
+  RELEASE_ID                      = "0020"
+  RELEASE_DATE                    = 2019-03-15
+  RELEASE_MEDIUM                  = "ONLINE DISK STORAGE"
+  PRODUCT_TYPE                    = "SPICE_KERNELS"
+  ARCHIVE_STATUS                  = "LOCALLY ARCHIVED"
+  DISTRIBUTION_TYPE               = "MSL-SPICE"
+  DATA_PROVIDER_NAME              = "JPL-NAIF"
+  RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0020"
+  DESCRIPTION                     = "
+    This release contains MSL SPICE Kernels for Sols
+    2128 to 2224 of the Extended Surface Mission."
+END_OBJECT                      = DATA_SET_RELEASE
+
+OBJECT                          = DATA_SET_RELEASE
+  DATA_SET_ID                     = "MSL-M-SPICE-6-V1.0"
+  RELEASE_ID                      = "0021"
+  RELEASE_DATE                    = 2019-08-01
+  RELEASE_MEDIUM                  = "ONLINE DISK STORAGE"
+  PRODUCT_TYPE                    = "SPICE_KERNELS"
+  ARCHIVE_STATUS                  = "LOCALLY ARCHIVED"
+  DISTRIBUTION_TYPE               = "MSL-SPICE"
+  DATA_PROVIDER_NAME              = "JPL-NAIF"
+  RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0021"
+  DESCRIPTION                     = "
+    This release contains MSL SPICE Kernels for Sols
+    2225 to 2358 of the Extended Surface Mission."
+END_OBJECT                      = DATA_SET_RELEASE
+
+OBJECT                          = DATA_SET_RELEASE
+  DATA_SET_ID                     = "MSL-M-SPICE-6-V1.0"
+  RELEASE_ID                      = "0022"
+  RELEASE_DATE                    = 2019-12-05
+  RELEASE_MEDIUM                  = "ONLINE DISK STORAGE"
+  PRODUCT_TYPE                    = "SPICE_KERNELS"
+  ARCHIVE_STATUS                  = "LOCALLY ARCHIVED"
+  DISTRIBUTION_TYPE               = "MSL-SPICE"
+  DATA_PROVIDER_NAME              = "JPL-NAIF"
+  RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0022"
+  DESCRIPTION                     = "
+    This release contains MSL SPICE Kernels for Sols
+    2359 to 2482 of the Extended Surface Mission."
+END_OBJECT                      = DATA_SET_RELEASE
+
+OBJECT                          = DATA_SET_RELEASE
+  DATA_SET_ID                     = "MSL-M-SPICE-6-V1.0"
+  RELEASE_ID                      = "0023"
+  RELEASE_DATE                    = 2020-03-16
+  RELEASE_MEDIUM                  = "ONLINE DISK STORAGE"
+  PRODUCT_TYPE                    = "SPICE_KERNELS"
+  ARCHIVE_STATUS                  = "LOCALLY ARCHIVED"
+  DISTRIBUTION_TYPE               = "MSL-SPICE"
+  DATA_PROVIDER_NAME              = "JPL-NAIF"
+  RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0023"
+  DESCRIPTION                     = "
+    This release contains MSL SPICE Kernels for Sols
+    2483 to 2579 of the Extended Surface Mission."
+END_OBJECT                      = DATA_SET_RELEASE
+
+OBJECT                          = DATA_SET_RELEASE
+  DATA_SET_ID                     = "MSL-M-SPICE-6-V1.0"
+  RELEASE_ID                      = "0024"
+  RELEASE_DATE                    = 2020-07-31
+  RELEASE_MEDIUM                  = "ONLINE DISK STORAGE"
+  PRODUCT_TYPE                    = "SPICE_KERNELS"
+  ARCHIVE_STATUS                  = "LOCALLY ARCHIVED"
+  DISTRIBUTION_TYPE               = "MSL-SPICE"
+  DATA_PROVIDER_NAME              = "JPL-NAIF"
+  RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0024"
+  DESCRIPTION                     = "
+    This release contains MSL SPICE Kernels for Sols
+    2580 to 2713 of the Extended Surface Mission."
+END_OBJECT                      = DATA_SET_RELEASE
+
+OBJECT                          = DATA_SET_RELEASE
+  DATA_SET_ID                     = "MSL-M-SPICE-6-V1.0"
+  RELEASE_ID                      = "0025"
+  RELEASE_DATE                    = 2020-12-04
+  RELEASE_MEDIUM                  = "ONLINE DISK STORAGE"
+  PRODUCT_TYPE                    = "SPICE_KERNELS"
+  ARCHIVE_STATUS                  = "LOCALLY ARCHIVED"
+  DISTRIBUTION_TYPE               = "MSL-SPICE"
+  DATA_PROVIDER_NAME              = "JPL-NAIF"
+  RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0025"
+  DESCRIPTION                     = "
+    This release contains MSL SPICE Kernels for Sols
+    2714 to 2837 of the Extended Surface Mission."
+END_OBJECT                      = DATA_SET_RELEASE
+
+OBJECT                          = DATA_SET_RELEASE
+  DATA_SET_ID                     = "MSL-M-SPICE-6-V1.0"
+  RELEASE_ID                      = "0026"
+  RELEASE_DATE                    = 2021-03-08
+  RELEASE_MEDIUM                  = "ONLINE DISK STORAGE"
+  PRODUCT_TYPE                    = "SPICE_KERNELS"
+  ARCHIVE_STATUS                  = "LOCALLY ARCHIVED"
+  DISTRIBUTION_TYPE               = "MSL-SPICE"
+  DATA_PROVIDER_NAME              = "JPL-NAIF"
+  RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0026"
+  DESCRIPTION                     = "
+    This release contains MSL SPICE Kernels for Sols
+    2838 to 2934 of the Extended Surface Mission."
+END_OBJECT                      = DATA_SET_RELEASE
+
+OBJECT                          = DATA_SET_RELEASE
+  DATA_SET_ID                     = "MSL-M-SPICE-6-V1.0"
+  RELEASE_ID                      = "0027"
+  RELEASE_DATE                    = 2021-07-29
+  RELEASE_MEDIUM                  = "ONLINE DISK STORAGE"
+  PRODUCT_TYPE                    = "SPICE_KERNELS"
+  ARCHIVE_STATUS                  = "LOCALLY ARCHIVED"
+  DISTRIBUTION_TYPE               = "MSL-SPICE"
+  DATA_PROVIDER_NAME              = "JPL-NAIF"
+  RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0027"
+  DESCRIPTION                     = "
+    This release contains MSL SPICE Kernels for Sols
+    2935 to 3068 of the Extended Surface Mission."
+END_OBJECT                      = DATA_SET_RELEASE
+
+OBJECT                          = DATA_SET_RELEASE
+  DATA_SET_ID                     = "MSL-M-SPICE-6-V1.0"
+  RELEASE_ID                      = "0028"
+  RELEASE_DATE                    = 2021-11-30
+  RELEASE_MEDIUM                  = "ONLINE DISK STORAGE"
+  PRODUCT_TYPE                    = "SPICE_KERNELS"
+  ARCHIVE_STATUS                  = "LOCALLY ARCHIVED"
+  DISTRIBUTION_TYPE               = "MSL-SPICE"
+  DATA_PROVIDER_NAME              = "JPL-NAIF"
+  RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0028"
+  DESCRIPTION                     = "
+    This release contains MSL SPICE Kernels for Sols
+    3069 to 3192 of the Extended Surface Mission."
+END_OBJECT                      = DATA_SET_RELEASE
+
+OBJECT                          = DATA_SET_RELEASE
+  DATA_SET_ID                     = "MSL-M-SPICE-6-V1.0"
+  RELEASE_ID                      = "0029"
+  RELEASE_DATE                    = 2022-02-28
+  RELEASE_MEDIUM                  = "ONLINE DISK STORAGE"
+  PRODUCT_TYPE                    = "SPICE_KERNELS"
+  ARCHIVE_STATUS                  = "LOCALLY ARCHIVED"
+  DISTRIBUTION_TYPE               = "MSL-SPICE"
+  DATA_PROVIDER_NAME              = "JPL-NAIF"
+  RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0029"
+  DESCRIPTION                     = "
+    This release contains MSL SPICE Kernels for Sols
+    3192 to 3289 of the Extended Surface Mission."
+END_OBJECT                      = DATA_SET_RELEASE
+
+END

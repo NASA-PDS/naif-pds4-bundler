@@ -1,0 +1,144 @@
+PDS_VERSION_ID                = PDS3
+RECORD_TYPE                   = STREAM
+OBJECT                        = TEXT
+  NOTE                        = "Comments on the MSL SPICE Archive"
+  PUBLICATION_DATE            = 2018-07-31
+END_OBJECT                    = TEXT
+END
+
+
+COMMENTS ON THE MSL SPICE DATA ARCHIVE
+======================================
+
+   This document contains comments and errata concerning the MSL SPICE
+   Data Archive.
+
+
+1. Text Kernel File Format
+--------------------------
+
+   All SPICE text kernel files (LSK, PCK, SCLK, IK, FK) provided in
+   this data set have lines terminated by only <LF> (UNIX convention.)
+   This is dictated by NAIF's archiving approach to include a
+   consistent set of UNIX binary (IEEE architecture) and text (<LF>
+   only for end of line marker) kernels in the archived data sets.
+
+   However, the format of the text kernels is specified in their
+   associated labels as ASCII (INTERCHANGE_FORMAT = ASCII.) This is a
+   violation of the PDS standard stating that lines in ASCII files must
+   be delimited by the combination of <CR><LF>. This line termination
+   treatment is standard practice for SPICE data sets in the PDS.
+
+
+2. Use of SPACECRAFT_NAME in the Labels
+---------------------------------------
+
+   PDS labels for SPICE kernels provided in this data set contain the
+   deprecated keyword SPACECRAFT_NAME instead of the keyword
+   INSTRUMENT_HOST_NAME. This is standard practice for SPICE data sets in
+   the PDS and is dictated by NAIF's archiving approach to make SPICE
+   archives for more recent missions consistent with SPICE archives for
+   older missions, for which use of SPACECRAFT_NAME was legitimate.
+
+
+3. Values of INSTRUMENT_NAME in the Labels
+------------------------------------------
+
+   PDS labels for SPICE kernels provided in this data do not set the
+   keyword INSTRUMENT_NAME to "SPICE KERNELS", that is the name of the
+   instrument described by the instrument catalog file SPICE_INST.CAT
+   provided in the data set. Instead this keyword is set to either
+   "N/A" or the name(s) of the instrument(s) or structure(s), the
+   geometric parameters of which a particular kernel file provides.
+   While this error does prevent the individual data products from
+   being associated with the "SPICE KERNELS" instrument, it does not
+   affect usability of the SPICE data provided in this data set in any
+   way because the SPICE Toolkit does not use any information from the
+   PDS label to access the data.
+
+   The other side of this error is that the data set does not include
+   instrument catalog files for the following instruments named in
+   the INSTRUMENT_NAME keyword in the PDS labels:
+
+     "ALPHA PARTICLE X-RAY SPECTROMETER"
+     "CHEMISTRY AND MINERALOGY"
+     "CHEMISTRY CAMERA LASER INDUCED BREAKDOWN SPECTROMETER"
+     "CHEMISTRY CAMERA REMOTE MICRO-IMAGER"
+     "COLLECTION AND HANDLING FOR IN-SITU MARTIAN ROCK ANALYSIS"
+     "CRUISE MEDIUM GAIN ANTENNA"
+     "CRUISE STAGE"
+     "DESCENT STAGE LOW GAIN ANTENNA"
+     "DESCENT STAGE UHF ANTENNA"
+     "DUST REMOVAL TOOL"
+     "DYNAMIC ALBEDO OF NEUTRONS"
+     "HAZARD AVOIDANCE CAMERA"
+     "HIGH GAIN ANTENNA"
+     "MARS DESCENT IMAGER"
+     "MARS HAND LENS IMAGER"
+     "MAST CAMERA"
+     "NAVIGATION CAMERA"
+     "PARACHUTE CONE LOW GAIN ANTENNA"
+     "PARACHUTE CONE UHF ANTENNA"
+     "POWDER ACQUISITION DRILL SYSTEM"
+     "RADIATION ASSESSMENT DETECTOR"
+     "REMOTE SENSING MAST"
+     "ROBOTIC ARM"
+     "ROVER ENVIRONMENTAL MONITORING STATION"
+     "ROVER LOW GAIN ANTENNA"
+     "ROVER UHF ANTENNA"
+     "ROVER"
+     "SAMPLE ANALYSIS AT MARS"
+     "TILTED LOW GAIN ANTENNA"
+
+
+4. Missing FILE_RECORDS Keyword in the Binary Kernel Labels
+-----------------------------------------------------------
+
+   All labels for binary SPICE kernels provided in this data set are
+   missing the FILE_RECORDS keyword, which is required because these
+   labels have the RECORD_TYPE keyword set to FIXED_LENGTH. While this
+   error violates the PDS standards, it does not affect usability of
+   the SPICE data provided in this data set in any way because the
+   SPICE toolkit does not use any information from the PDS labels to
+   access the data.
+
+
+5. START_TIME and STOP_TIME in Rover Path SPK Labels
+----------------------------------------------------
+
+   The START_TIME and STOP_TIME keywords in the rover path SPK files
+   normally covering a range of SOLs are not set to the bounds of the
+   rover location coverage but to the much wider coverage for the site
+   locations along the rover path, e.g.
+
+      START_TIME                   = 2000-12-31T23:58:56
+      STOP_TIME                    = 2099-12-31T23:58:53
+
+   The coverage SOL range is specified in the file name, the label
+   DESCRIPTION keyword and in the file comments.
+
+
+6. Data Not Provided in Release 0001
+------------------------------------
+
+   The following kernels were not available at the release 0001 time:
+
+      -  reconstructed cruise attitude CK modeling spin during the
+         whole cruise, by the MSL ACS Team
+
+      -  reconstructed cruise attitude CK by the MSL NAV Team
+
+      -  separate IKs for non-camera instruments
+
+   They will be added to the archive in one the future releases.
+
+
+7. Incorrect SOL Range in DESCRIPTION
+-------------------------------------
+
+   The DESCRIPTION field in the labels of kernels covering the SOL
+   range 1772 to 1869 (data/*/*1772_1869*.lbl) incorrectly states that
+   the range is SOLs 1648 to 1772.
+
+
+End of errata.

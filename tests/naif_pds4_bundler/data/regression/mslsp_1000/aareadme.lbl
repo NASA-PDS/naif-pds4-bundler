@@ -1,0 +1,16 @@
+PDS_VERSION_ID                = PDS3
+RECORD_TYPE                   = STREAM
+^HTML_DOCUMENT                = "aareadme.htm"
+^TEXT                         = "aareadme.txt"
+OBJECT                        = HTML_DOCUMENT
+  DOCUMENT_NAME               = "The MSL SPICE Data Archive (AAREADME.HTM)"
+  DOCUMENT_TOPIC_TYPE         = "VOLUME CONTENTS"
+  INTERCHANGE_FORMAT          = ASCII
+  DOCUMENT_FORMAT             = HTML
+  PUBLICATION_DATE            = 2021-07-29
+END_OBJECT                    = HTML_DOCUMENT
+OBJECT                        = TEXT
+  PUBLICATION_DATE            = 2021-07-29
+  NOTE                        = "The MSL SPICE Data Archive (AAREADME.TXT)"
+END_OBJECT                    = TEXT
+END

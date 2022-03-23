@@ -1,0 +1,163 @@
+PDS_VERSION_ID          = PDS3
+RECORD_TYPE             = STREAM
+
+OBJECT                  = TEXT
+   INTERCHANGE_FORMAT   = ASCII
+   PUBLICATION_DATE     = 2013-02-27
+   NOTE                 = "Explanation of labels for MSL SPICE data files"
+END_OBJECT              = TEXT
+
+END
+
+Example label
+=============
+
+   PDS_VERSION_ID               = PDS3
+   RECORD_TYPE                  = FIXED_LENGTH
+   RECORD_BYTES                 = 1024
+   ^SPICE_KERNEL                = "msl_surf_ra_tlmenc_0000_0089_v1.bc"
+   MISSION_NAME                 = "MARS SCIENCE LABORATORY"
+   SPACECRAFT_NAME              = "MARS SCIENCE LABORATORY"
+   DATA_SET_ID                  = "MSL-M-SPICE-6-V1.0"
+   KERNEL_TYPE_ID               = CK
+   PRODUCT_ID                   = "msl_surf_ra_tlmenc_0000_0089_v1.bc"
+   PRODUCT_CREATION_TIME        = 2013-02-27T19:20:51
+   PRODUCER_ID                  = "NAIF/JPL"
+   MISSION_PHASE_NAME           = "PRIMARY SURFACE MISSION"
+   PRODUCT_VERSION_TYPE         = ACTUAL
+   PLATFORM_OR_MOUNTING_NAME    = ROVER
+   START_TIME                   = 2012-08-06T05:18:39.649
+   STOP_TIME                    = 2012-11-06T13:03:34.669
+   SPACECRAFT_CLOCK_START_COUNT = "1/0397502188-57147"
+   SPACECRAFT_CLOCK_STOP_COUNT  = "1/0405478809-58999"
+   TARGET_NAME                  = MARS
+   INSTRUMENT_NAME              = "ROBOTIC ARM"
+   NAIF_INSTRUMENT_ID           = {
+                                  -76305,
+                                  -76304,
+                                  -76303,
+                                  -76302,
+                                  -76301
+                                  }
+   SOURCE_PRODUCT_ID            = "N/A"
+   NOTE                         = "See comments in the file for details"
+   OBJECT                       = SPICE_KERNEL
+     INTERCHANGE_FORMAT         = BINARY
+     KERNEL_TYPE                = POINTING
+     DESCRIPTION                = "CK file containing the orientation of the
+   Robotic Arm (RA) relative to the rover frame, created using encoder angles
+   from telemetry view data from OPGS PLACES server, covering SOLs 0000 to
+   0089, version 1. "
+   END_OBJECT                   = SPICE_KERNEL
+   END
+
+
+General notes regarding label
+=============================
+
+   * Strings appear in quotes.
+   * Integers and PDS Times do not take quotes.
+   * Lists are enclosed within {} type brackets.
+   * If a field is unknown, "UNK" may be entered.
+   * If this field is not applicable to this file, "N/A" can be used.
+   * Fields can spill freely, with or without white space, onto
+     following lines.
+
+
+Definition of Keywords/Values for SPICE Kernels:
+================================================
+
+   PDS_VERSION_ID                The version of the present PDS standards
+                                 document PDS3
+
+   RECORD_TYPE                   Record format of the file: for files with
+                                 fixed-length records, FIXED_LENGTH; for text
+                                 files, STREAM
+
+   RECORD_BYTES                  Record length in the case of fixed-length
+                                 records, an integer (no quotation marks)
+                                 If records have variable length, "N/A"
+
+   ^SPICE_KERNEL                 Actual file name to which this label
+                                 applies, "msl_surf_ra_tlmenc_0000_0089_v1.bc"
+
+   MISSION_NAME                  "MSL" for the MSL project
+
+   SPACECRAFT_NAME               "MSL" for the MSL rover
+
+   DATA_SET_ID                   "MSL-M-SPICE-6-V1.0", where 'MSL' is
+                                 for data for MSL rover; 'M' for Mars,
+                                 the mission target; 'SPICE' is the
+                                 SPICE data identifier; '6' is the
+                                 CODMAC processing level; V1.0 is the
+                                 data set version number.
+
+   KERNEL_TYPE_ID                Type of SPICE kernel, one of CK, EK,
+                                 FK, IK, LSK, PCK, SCLK, or SPK
+
+   PRODUCT_ID                    Actual file name. Example:
+                                 "msl_surf_ra_tlmenc_0000_0089_v1.bc"
+
+   PRODUCT_CREATION_TIME         Time file was created. This follows
+                                 PDS time structure: yyyy-mm-ddThh:mm:ss
+                                 No quotes are needed.
+
+   PRODUCER_ID                   Team and/or individual who made the file.
+
+   MISSION_PHASE_NAME            The name of the mission phase.
+
+   PRODUCT_VERSION_TYPE          Description of file version: PREDICT or
+                                 ACTUAL.
+
+   PLATFORM_OR_MOUNTING_NAME     Name of platform an instrument is
+                                 mounted on. "N/A" for some kernels.
+
+   START_TIME                    Data start time. This follows the PDS
+                                 Time format is yyyy-mm-ddThh:mm:ss.ttt.
+                                 No quotes are needed. For files not
+                                 covering a specific time interval, "N/A".
+
+   STOP_TIME                     Data stop time. This follows the PDS
+                                 Time format is yyyy-mm-ddThh:mm:ss.ttt.
+
+   SPACECRAFT_CLOCK_START_COUNT  Spacecraft clock data start time.
+                                 This is treated as a string, and
+                                 should be contained in quotes. Format
+                                 is "n/ssssssssss-#####", where "n" is the
+                                 partition. For files not covering a
+                                 specific time , "N/A".
+
+   SPACECRAFT_CLOCK_START_COUNT  Spacecraft clock data stop time.
+                                 This is treated as a string, and
+                                 should be contained in quotes. Format
+                                 is "n/ssssssssss-#####", where "n" is the
+                                 partition. For files not covering a
+                                 specific time , "N/A".
+
+   TARGET_NAME                   "MARS".
+
+   INSTRUMENT_NAME               an instrument name (when applicable)
+                                 otherwise "N/A"
+
+   NAIF_INSTRUMENT_ID            instrument NAIF ID code (when
+                                 applicable), otherwise "N/A"
+
+   SOURCE_PRODUCT_ID             Brief description of the input data that
+                                 were used to create the file, as a quoted
+                                 string. This field may also be UNK or "N/A"
+
+   NOTE                          Discretionary extra information, a
+                                 string contained in quotes.
+
+   OBJECT                        SPICE_KERNEL for SPICE kernels.
+
+   INTERCHANGE_FORMAT            Format of the file, either ASCII
+                                 or BINARY
+
+   KERNEL_TYPE                   SPICE information type. Examples of
+                                 possible values: EPHEMERIS, EVENTS,
+                                 INSTRUMENT, LEAPSECONDS. etc.
+
+   DESCRIPTION                   Brief description of the data in the file.
+
+   END_OBJECT                    SPICE_KERNEL for SPICE kernels.

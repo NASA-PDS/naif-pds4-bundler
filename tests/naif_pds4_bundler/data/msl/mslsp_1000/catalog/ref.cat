@@ -1,0 +1,61 @@
+PDS_VERSION_ID       = PDS3
+LABEL_REVISION_NOTE  = "2011-05-05 GEO:SLAVNEY First draft;
+                        2012-03-05 GEO:SLAVNEY Added Grotzinger2009;
+                        2013-01-29 MSL:CRISP Added Grotzinger2012;
+                        2013-02-27 NAIF:Semenov Added ACTON1996;
+                       "
+RECORD_TYPE          = STREAM
+
+OBJECT = REFERENCE
+  REFERENCE_KEY_ID = "GROTZINGER2009"
+  REFERENCE_DESC = "Grotzinger, J., Beyond water on Mars, Nature Geoscience
+    2, 231-233, doi:10.1038/ngeo480, 2009."
+END_OBJECT = REFERENCE
+
+OBJECT = REFERENCE
+  REFERENCE_KEY_ID = "GROTZINGERETAL2012"
+  REFERENCE_DESC = "Grotzinger, J.P., J. Crisp, A.R. Vasavada, R.C.
+    Anderson, C.J. Baker, R. Barry, D.F. Blake, P. Conrad, K.S. Edgett, B.
+    Ferdowsi, R. Gellert, J.B. Gilbert, M. Golombek, J.Gomez-Elvira, D.M.
+    Hassler, L. Jandura, M. Litvak, P. Mahaffy, J. Maki, M. Meyer, M.C.
+    Malin, I. Mitrofanov, J.J. Simmonds, D. Vaniman, R.V. Welch, and R.C.
+    Wiens, Mars Science Laboratory mission and science investigation, Space
+    Science Reviews, 170, 5-56, doi: 10.1007/s11214-012-9892-2, 2012. "
+END_OBJECT = REFERENCE
+
+OBJECT = REFERENCE
+  REFERENCE_KEY_ID = "MAKIETAL2003"
+  REFERENCE_DESC = "Maki, J.N., et al., Mars Exploration Rover Engineering
+    Cameras, J. Geophys. Res., 108(E12), 8071,
+    doi:10.1029/2003JE002077, 2003."
+END_OBJECT = REFERENCE
+
+OBJECT = REFERENCE
+  REFERENCE_KEY_ID = "ASMAR&RENZETTI1993"
+  REFERENCE_DESC = "Asmar, S.W., and N.A. Renzetti, The Deep Space Network as
+    an Instrument for Radio Science Research, Jet Propulsion
+    Laboratory Publication 80-93, Rev. 1, 15 April 1993."
+END_OBJECT = REFERENCE
+
+OBJECT = REFERENCE
+  REFERENCE_KEY_ID = "JPLD-19379"
+  REFERENCE_DESC = "Chang, C., DSN Telecommunications Link Design Handbook,
+    Jet Propulsion Laboratory Document JPL D-19379, DSN No. 810-005, April
+    29, 2011."
+END_OBJECT = REFERENCE
+
+OBJECT = REFERENCE
+  REFERENCE_KEY_ID = "JPLD-16303"
+  REFERENCE_DESC = "Mars Surveyor 2001, Mission Plan, Revision B (MSP
+    722-201), JPL Document D-16303, Jet Propulsion Laboratory,
+    Pasadena, CA, 2000."
+END_OBJECT = REFERENCE
+
+OBJECT = REFERENCE
+  REFERENCE_KEY_ID = "ACTON1996"
+  REFERENCE_DESC = "Acton, Jr. C.H., Ancillary Data Services of NASA's
+    Navigation and Ancillary Information Facility, Planetary and Space
+    Sciences, 44, Number 1, pp. 65-70, 1996."
+END_OBJECT = REFERENCE
+
+END

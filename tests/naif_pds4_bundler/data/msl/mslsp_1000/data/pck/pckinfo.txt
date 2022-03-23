@@ -1,0 +1,74 @@
+PDS_VERSION_ID          = PDS3
+RECORD_TYPE             = STREAM
+
+OBJECT                  = TEXT
+   INTERCHANGE_FORMAT   = ASCII
+   PUBLICATION_DATE     = 2013-02-27
+   NOTE                 = "MSL PC-Kernel Information"
+END_OBJECT              = TEXT
+
+END
+
+General Information About SPICE PC-kernels
+==========================================
+
+   In the SPICE system, the PC-kernels contain planetary attitude and
+   body shape information. The PCK kernel includes orientation and
+   shape information pertaining to extended solar system bodies such as
+   the Sun, the planets, the natural satellites of the planets, comets,
+   and asteroids.
+
+   The purpose of the PCK kernels and associated software is to provide
+   SPICE users with a convenient mechanism for supplying planetary
+   physical constants to application programs. SPICE's PCK software is
+   able to read files conforming to the PCK format and return to a
+   calling application program both the data contained in such files
+   and a small number of commonly used numeric quantities derived from
+   the kernel data. The information regarding how to obtain the SPICE
+   system toolkit for a number of languages and computer platforms is
+   located in the ``/software'' subdirectory of the main directory of
+   this data set.
+
+   Refer to the ``pck.req'' document provided with the toolkit to get
+   more information on how to access PC-kernel data.
+
+
+MSL PC-kernel Provided in This Data Set
+========================================
+
+   The following PC-kernel files are included in this data set (only
+   the name portion of the file name is shown on the right; the
+   extension of all file names is ".tpc".
+
+       pck00008             generic PCK file containing information for
+                            the Sun, all Solar planets and satellites,
+                            and selected comets and asteroids, based on
+                            the constants from the IAU 2000 report.
+
+
+Kernel File Details
+===================
+
+   The most detailed description of the data in a text PCK file is
+   provided in metadata included inside the descriptive text areas
+   within the file. This information can be viewed using any text
+   editor.
+
+
+Contact Information
+===================
+
+   Regarding MSL project specific information provided in this
+   data set and for general information about SPICE system:
+
+      Boris Semenov
+      (818)-354-8136
+      Boris.Semenov@jpl.nasa.gov
+
+   address:
+
+      Navigation and Ancillary Information Facility (NAIF)
+      Jet Propulsion Laboratory
+      MS 301-125L
+      4800 Oak Grove Drive
+      Pasadena CA 91109 USA

@@ -1,0 +1,166 @@
+PDS_VERSION_ID          = PDS3
+RECORD_TYPE             = STREAM
+
+OBJECT                  = TEXT
+   INTERCHANGE_FORMAT   = ASCII
+   PUBLICATION_DATE     = 2018-07-31
+   NOTE                 = "MSL SP-Kernel Information"
+END_OBJECT              = TEXT
+
+END
+
+General Information About SPICE SP-Kernels
+==========================================
+
+   The purpose of the SP-kernel -- which stands for S(pacecraft) and
+   P(lanet) Kernel -- is to allow ephemerides for any collection of
+   solar system bodies, spacecraft or any other objects in 3D space to
+   be combined under a common file format, and accessed by a common set
+   of subroutines.
+
+   The SPK files can be accessed and manipulated using the SPICE
+   Toolkit APIs, calls to which can be integrated into user application
+   programs. The information regarding how to obtain the SPICE system
+   toolkit for a number of languages and computer platforms is located
+   in the ``/software'' subdirectory of the main directory of this data
+   set.
+
+   To use SP-kernels, a Leapseconds (LSK) is required. Also, to use
+   SP-Kernels containing positions given relative to the non-inertial
+   and project-defined frames, a Frame Definitions (FK) and Planetary
+   Constants (PCK) files are required.
+
+   Refer to the ``spk.req'' document provided with the toolkit to get
+   more information on how to access SP-kernel data.
+
+
+MSL SP-kernels Provided in This Data Set
+=========================================
+
+   The following MSL SP-kernels are provided in this data set (only
+   the name portion of the file name is shown; the extension of all
+   file names is ``.bsp''):
+
+   Cruise Trajectory SPK files:
+
+      msl_cruise_vV                    SPK files containing the
+                                       reconstructed cruise trajectory
+                                       determined by the MSL NAV Team,
+                                       JPL. The file with the latest
+                                       version number V supersedes all
+                                       previous versions.
+
+   EDL Trajectory SPK files:
+
+      msl_edl_vV                       SPK files containing the
+                                       reconstructed EDL trajectory
+                                       determined by the MSL EDL Team,
+                                       JPL. The file with the latest
+                                       version number V supersedes all
+                                       previous versions.
+
+
+   Landing site location SPK file:
+
+      msl_ls_ops120808_iau2000_v1      SPK file containing the landing
+                                       site location relative to the
+                                       center of Mars in the Mars
+                                       body-fixed frame (IAU_MARS,
+                                       based on IAU 2000 Mars rotation
+                                       constants), determined by the
+                                       MSL Localization Group, JPL.
+
+      msl_atls_ops120808_v1            SPK file containing position of
+                                       the rover fixed at the landing
+                                       site. This file was used during
+                                       operations by CHRONOS and other
+                                       applications that were not
+                                       sensitive to the local rover
+                                       movements.
+
+
+   Rover path and site locations SPK files:
+
+      msl_surf_rover_loc_BBBB_EEEE_vV  SPK files containing the
+                                       localized locations of the sites
+                                       along the path relative to the
+                                       center of Mars and the localized
+                                       location of the rover relative
+                                       to the center of Mars, created
+                                       using the localized_interp view
+                                       data from the OPGS PLACES
+                                       server, covering SOLs "BBBB" to
+                                       "EEEE", version V. These SPKs
+                                       provide significantly more
+                                       accurate information compared to
+                                       the telemetry-based SPKs. The
+                                       files with the later coverage
+                                       range and the latest version
+                                       number V supersede competing
+                                       data from files with earlier
+                                       coverage and versions.
+
+      msl_surf_rover_tlm_BBBB_EEEE_vV  SPK files containing the
+                                       telemetry-based locations of the
+                                       sites along the path relative to
+                                       the landing site and the
+                                       telemetry-based location of the
+                                       rover relative to these sites,
+                                       created using telemetry view
+                                       data from OPGS PLACES server,
+                                       covering SOLs "BBBB" to "EEEE",
+                                       version V. The files with the
+                                       later coverage range and the
+                                       latest version number V
+                                       supersede competing data from
+                                       files with earlier coverage and
+                                       versions.
+
+
+   Solar System planets and satellites ephemeris SPK files:
+
+      de425s                           SPK file containing JPL's
+                                       Planetary Ephemerides DE425.
+
+      mar085s                          SPK file containing JPL's
+                                       Martian Satellite Ephemerides
+                                       MAR085.
+
+
+   Rover structures and instruments locations SPK files:
+
+      msl_struct_vV                    SPK files providing relative
+                                       locations of various MSL
+                                       structures and science and
+                                       engineering instruments. The
+                                       file with the latest version
+                                       number V supersedes all previous
+                                       versions.
+
+
+Kernel File Details
+===================
+
+   The most detailed description of the data in each SPK file is
+   provided in metadata included inside the comment area of the file.
+   This information can be viewed using utility programs COMMNT and
+   SPACIT included into the NAIF Toolkit.
+
+
+Contact Information
+===================
+
+   Regarding MSL project specific information provided in this data set
+   and for general information about SPICE system:
+
+      Boris Semenov
+      (818)-354-8136
+      Boris.Semenov@jpl.nasa.gov
+
+   address:
+
+      Navigation and Ancillary Information Facility (NAIF)
+      Jet Propulsion Laboratory
+      MS 301-125L
+      4800 Oak Grove Drive
+      Pasadena CA 91109 USA

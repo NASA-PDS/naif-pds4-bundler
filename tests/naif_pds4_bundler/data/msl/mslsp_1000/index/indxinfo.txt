@@ -1,0 +1,27 @@
+PDS_VERSION_ID          = PDS3
+RECORD_TYPE             = STREAM
+
+OBJECT                  = TEXT
+   INTERCHANGE_FORMAT   = ASCII
+   PUBLICATION_DATE     = 2013-02-27
+   NOTE                 = "This file describes the files in the
+                           ``index'' directory of this data set."
+END_OBJECT              = TEXT
+
+END
+
+There are five files in this directory:
+
+   indxinfo.txt   this file.
+
+   index.tab      an index of the data product files in all
+                  subdirectories under ``data'' directory of this data
+                  set.
+
+   index.lbl      the PDS label for the index.tab file describing the
+                  structure (columns) of the index table.
+
+   checksum.tab   a table of MD5 checksums for all files in this data set.
+
+   checksum.lbl   the PDS label for the checksum.tab file describing
+                  the structure (columns) of the checksum table.

@@ -1,0 +1,57 @@
+\beginlabel
+PDS_VERSION_ID               = PDS3
+RECORD_TYPE                  = FIXED_LENGTH
+RECORD_BYTES                 = 1024
+^SPICE_KERNEL                = "msl_surf_rover_tlm_3192_3289_v1.bsp"
+MISSION_NAME                 = "MARS SCIENCE LABORATORY"
+SPACECRAFT_NAME              = "MARS SCIENCE LABORATORY"
+DATA_SET_ID                  = "MSL-M-SPICE-6-V1.0"
+KERNEL_TYPE_ID               = SPK
+PRODUCT_ID                   = "msl_surf_rover_tlm_3192_3289_v1.bsp"
+PRODUCT_CREATION_TIME        = 2022-03-22T17:19:24
+PRODUCER_ID                  = "NAIF/JPL"
+MISSION_PHASE_NAME           = "EXTENDED SURFACE MISSION"
+PRODUCT_VERSION_TYPE         = ACTUAL
+PLATFORM_OR_MOUNTING_NAME    = "N/A"
+START_TIME                   = 2021-11-01T04:00:00
+STOP_TIME                    = 2021-11-01T04:10:00
+SPACECRAFT_CLOCK_START_COUNT = "N/A"
+SPACECRAFT_CLOCK_STOP_COUNT  = "N/A"
+TARGET_NAME                  = MARS
+INSTRUMENT_NAME              = "N/A"
+NAIF_INSTRUMENT_ID           = "N/A"
+SOURCE_PRODUCT_ID            = "N/A"
+NOTE                         = "See comments in the file for details"
+OBJECT                       = SPICE_KERNEL
+  INTERCHANGE_FORMAT         = BINARY
+  KERNEL_TYPE                = EPHEMERIS
+  DESCRIPTION                = "SPK file containing the telemetry-based
+location of sites along the path relative to the landing site and the
+telemetry-based location of the rover relative to these sites, created using
+the telemetry view data from the OPGS PLACES server, covering SOLs 3192 to
+3289, version 1. "
+END_OBJECT                   = SPICE_KERNEL
+\endlabel
+
+
+; msl_spk/msl_surf_rover_tlm_3192_3289_v1.bsp LOG FILE
+
+; Created 2022-03-22/14:44:56.00.
+;
+; BEGIN SPKMERGE COMMANDS
+
+LEAPSECONDS_KERNEL   = /Users/mcosta/ftp/pub/naif/MSL/kernels/lsk/naif0012.tls
+
+SPK_KERNEL           = msl_spk/msl_surf_rover_tlm_3192_3289_v1.bsp
+SOURCE_SPK_KERNEL = /Users/mcosta/ftp/pub/naif/pds/data/msl-m-spice-6-v1.0/mslsp_1000/data/spk/msl_surf_rover_tlm_3192_3289_v1.bsp
+    INCLUDE_COMMENTS = NO
+    BODIES           = -76593, -76592, -76591, -76590, -76589, -76588, -76587,
+                       -76586, -76585, -76584, -76583, -76582, -76581, -76580,
+                       -76579, -76578, -76577, -76576, -76575, -76574, -76573,
+                       -76572, -76571, -76570, -76569, -76568, -76567, -76566,
+                       -76565, -76564, -76563, -76562, -76561, -76560, -76559,
+                       -76558, -76557, -7
+    BEGIN_TIME       = 2021 NOV 01 04:00:00.000
+    END_TIME         = 2021 NOV 01 04:10:00.000
+
+; END SPKMERGE COMMANDS

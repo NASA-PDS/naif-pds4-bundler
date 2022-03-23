@@ -41,3 +41,12 @@ You can use NPB for PDS3 archives exactly in the same way that you would for a
 PDS4 archive. The only differences being present in the content of NPB's
 logging. Please refer to section
 :ref:`source/43_using_npb:Using NPB`, for more information.
+
+
+Known differences from archives generated with NAIF's PDS3 archiving approach
+=============================================================================
+
+When generating a PDS3 data set increment with NPB compared to following the
+*NAIF's PDS3 archiving approach* -which implies using the NAIF utility
+``MAKLABEL`` and several Perl scripts such as ``label_them_all.pl``,
+``xfer_index.pl``, and ``mkpdssum.pl``-. The following differences

@@ -1,0 +1,94 @@
+PDS_VERSION_ID          = PDS3
+RECORD_TYPE             = STREAM
+
+OBJECT                  = TEXT
+   INTERCHANGE_FORMAT   = ASCII
+   PUBLICATION_DATE     = 2017-03-15
+   NOTE                 = "MSL SCL-Kernel Information"
+END_OBJECT              = TEXT
+
+END
+
+
+General Information About SPICE SCL-Kernels
+===========================================
+
+   In the SPICE system, Spacecraft Clock (or SCL) -kernel contains a
+   set of information required to perform a mapping between Ephemeris
+   time (ET) and spacecraft on-board time (SCLK). For surface missions
+   like MSL SCLK kernel files are also used to provide data for
+   conversions between ET and Local Mean Solar Time (LMST).
+
+   The spacecraft clock coefficient information contained in the SCLK
+   files can be manipulated using the SPICE Toolkit APIs, calls to
+   which can be integrated into user application programs. The
+   information regarding how to obtain the SPICE system toolkit for a
+   number of languages and computer platforms is located in the
+   ``/software'' subdirectory of the main directory of this data set.
+
+   Refer to the ``sclk.req'' document provided with the toolkit to get
+   more information about conversion between ET and spacecraft clock
+   times.
+
+
+MSL SCL-kernels Provided in This Data Set
+=========================================
+
+   This data set contains the following MSL SCLK files (only the
+   leading portion of the file name is shown; the extension of all file
+   names is ".tsc"):
+
+      msl_76_sclkscet_[vvvvv]      operational MSL Spacecraft clock
+                                   coefficients kernel (SCLK) files
+                                   providing correlation data for the
+                                   primary MSL on-board clock tags,
+                                   where [vvvvv] is the file version
+                                   (example: ``00005'' for Version 5).
+                                   These SCLK files contain the MSL
+                                   on-board clock to ET correlation
+                                   used during operations.
+
+      msl_76_sclkscet_refit_[V]    improved MSL Spacecraft clock
+                                   coefficients kernel (SCLK) files
+                                   providing correlation data for the
+                                   primary MSL on-board clock tags,
+                                   where [V] is a 1-3 letter version
+                                   designator (e.g. "h2"). These SCLK
+                                   files contain improved MSL on-board
+                                   clock to ET mapping correlation
+                                   determined for inclusion into the
+                                   archive.
+
+     msl_lmst_ops120808_v1         SCLK kernel implementing MSL LMST.
+
+
+   If multiple versions of an SCLK file are provided, always use the
+   latest version unless an earlier version is needed for consistency
+   purposes.
+
+
+Kernel File Details
+===================
+
+   The most detailed description of the data in an SCLK file is provided
+   in metadata included inside the descriptive text areas within the
+   file. This information can be viewed using any text editor.
+
+
+Contact Information
+===================
+
+   Regarding MSL project specific information provided in this data set
+   and for general information about SPICE system:
+
+      Boris Semenov
+      (818)-354-8136
+      Boris.Semenov@jpl.nasa.gov
+
+   address:
+
+      Navigation and Ancillary Information Facility (NAIF)
+      Jet Propulsion Laboratory
+      MS 301-125L
+      4800 Oak Grove Drive
+      Pasadena CA 91109 USA

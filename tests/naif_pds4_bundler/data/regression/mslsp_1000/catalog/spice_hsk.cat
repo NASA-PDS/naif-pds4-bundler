@@ -1,0 +1,46 @@
+PDS_VERSION_ID                 = PDS3
+LABEL_REVISION_NOTE            = "
+  2013-02-27 NAIF:Semenov initial version;
+  2016-02-22 NAIF:Semenov removed Basic Browser; added Subsetter and WGC;
+  2019-12-18 NAIF:Semenov updated WGC URL;
+  "
+RECORD_TYPE                    = STREAM
+
+OBJECT                         = DATA_SET_HOUSEKEEPING
+  DATA_SET_ID                  = "MSL-M-SPICE-6-V1.0"
+  CURATING_NODE_ID             = "NAIF"
+
+  OBJECT                       = RESOURCE_INFORMATION
+    RESOURCE_ID                = "BROWSERP_MSL-M-SPICE-6-V1.0"
+    RESOURCE_NAME              = "NAIF Online Archives"
+    RESOURCE_CLASS             = "APPLICATION.DATASETBROWSERP"
+    RESOURCE_STATUS            = "UP"
+    RESOURCE_LINK              = "http://naif.jpl.nasa.gov/pub/naif/pds/data/msl-m-spice-6-v1.0/mslsp_1000"
+    DESCRIPTION                = "Link to the data set root directory
+                                  on the NAIF Server."
+  END_OBJECT                   = RESOURCE_INFORMATION
+
+  OBJECT                       = RESOURCE_INFORMATION
+    RESOURCE_ID                = "BROWSER_MSL-M-SPICE-6-V1.0"
+    RESOURCE_NAME              = "NAIF Data Set Subsetter"
+    RESOURCE_CLASS             = "APPLICATION.DATASETBROWSER"
+    RESOURCE_STATUS            = "UP"
+    RESOURCE_LINK              = "http://naif.jpl.nasa.gov/cgi-bin/subsetds.pl?dataset=msl-m-spice-6-v1.0/mslsp_1000"
+    DESCRIPTION                = "NAIF's Web interface for generating a
+                                  time-based subset of the data set."
+  END_OBJECT                   = RESOURCE_INFORMATION
+
+  OBJECT                       = RESOURCE_INFORMATION
+    RESOURCE_ID                = "BROWSER_WGC_MSL-M-SPICE-6-V1.0"
+    RESOURCE_NAME              = "NAIF WebGeocalc"
+    RESOURCE_CLASS             = "APPLICATION.DATASETBROWSER"
+    RESOURCE_STATUS            = "UP"
+    RESOURCE_LINK              = "https://wgc.jpl.nasa.gov:8443/webgeocalc/#NewCalculation"
+    DESCRIPTION                = "NAIF's geometry engine Web interface
+                                  for calculating observation geometry
+                                  using the data set."
+  END_OBJECT                   = RESOURCE_INFORMATION
+
+END_OBJECT                     = DATA_SET_HOUSEKEEPING
+
+END

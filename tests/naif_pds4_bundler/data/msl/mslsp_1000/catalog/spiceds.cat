@@ -1,0 +1,892 @@
+PDS_VERSION_ID                       = PDS3
+RECORD_TYPE                          = STREAM
+LABEL_REVISION_NOTE                  = "
+  2013-02-27 NAIF:Semenov initial version;
+  2013-06-10 NAIF:Semenov changed STOP_TIME;
+  2013-08-26 NAIF:Semenov changed STOP_TIME;
+  2013-12-13 NAIF:Semenov changed STOP_TIME;
+  2014-03-17 NAIF:Semenov changed STOP_TIME;
+  2014-07-31 NAIF:Semenov changed STOP_TIME;
+  2014-12-04 NAIF:Semenov changed STOP_TIME;
+  2015-03-16 NAIF:Semenov changed STOP_TIME;
+  2015-07-29 NAIF:Semenov changed STOP_TIME;
+  2015-12-04 NAIF:Semenov changed STOP_TIME;
+  2016-03-03 NAIF:Semenov changed STOP_TIME; updated LTST-LMST table;
+  2016-07-28 NAIF:Semenov changed STOP_TIME;
+  2016-12-05 NAIF:Semenov changed STOP_TIME;
+  2017-03-15 NAIF:Semenov changed STOP_TIME;
+  2017-07-28 NAIF:Semenov changed STOP_TIME;
+  2017-12-04 NAIF:Semenov changed STOP_TIME;
+  2018-03-14 NAIF:Semenov changed STOP_TIME;
+  2018-07-31 NAIF:Semenov changed STOP_TIME; updated for localized SPKs;
+  2018-12-04 NAIF:Semenov changed STOP_TIME;
+  2019-03-08 NAIF:Semenov changed STOP_TIME;
+  2019-07-28 NAIF:Semenov changed STOP_TIME;
+  2019-12-02 NAIF:Semenov changed STOP_TIME;
+  2020-03-12 NAIF:Semenov changed STOP_TIME;
+  2020-07-28 NAIF:Semenov changed STOP_TIME;
+  2020-12-03 NAIF:Semenov changed STOP_TIME;
+  2021-03-05 NAIF:Costa changed STOP_TIME and CITATION_DESC;
+  2021-04-12 NAIF:Costa updated CITATION_DESC with DOI;
+  2021-07-29 NAIF:Costa changed STOP_TIME;
+  2021-11-30 NAIF:Costa changed STOP_TIME;
+  "
+OBJECT                               = DATA_SET
+  DATA_SET_ID                        = "MSL-M-SPICE-6-V1.0"
+  OBJECT                             = DATA_SET_INFORMATION
+    DATA_SET_NAME                    = "MSL SPICE KERNELS V1.0"
+    DATA_SET_TERSE_DESC              = "
+      Navigation and ancillary data in the form of SPICE System kernel
+      files for the MSL rover.
+      "
+    ABSTRACT_DESC                    = "
+      This data set includes the MSL SPICE data files (``kernel
+      files''), which can be accessed using SPICE software. The SPICE
+      data contain geometric and other ancillary information needed to
+      recover the full value of science instrument data. In particular
+      SPICE kernels provide rover and planetary ephemerides, instrument
+      mounting alignments, rover orientation, and data needed for
+      relevant time conversions.
+      "
+    CITATION_DESC                    = "
+      Semenov, B.V., C.H. Acton, and M. Costa Sitja,
+      MSL SPICE KERNELS V1.0, MSL-M-SPICE-6-V1.0,
+      NASA Planetary Data System, 2013.
+      https://doi.org/10.17189/1520113
+      "
+    DATA_SET_COLLECTION_MEMBER_FLG   = "N"
+    START_TIME                       = 2011-11-26T15:51:07
+    STOP_TIME                        = 2021-07-30T08:32:31
+    DATA_SET_RELEASE_DATE            = 2013-02-27
+    PRODUCER_FULL_NAME               = "MARC COSTA SITJA"
+    DATA_OBJECT_TYPE                 = "SPICE KERNEL"
+    DETAILED_CATALOG_FLAG            = "Y"
+    DATA_SET_DESC                    = "
+
+      Data Set Overview
+      =================
+
+      This data set includes the complete set of MSL SPICE data files
+      (``kernel files''), which can be accessed using SPICE software.
+      The SPICE data contain geometric and other ancillary information
+      needed to recover the full value of science instrument data. In
+      particular SPICE kernels provide rover and planetary ephemerides,
+      instrument mounting alignments, rover orientation, and data
+      needed for relevant time conversions.
+
+      This data set is contained on a single virtual volume,
+      MSLSP_1000, including data from all mission phases and covering
+      2011-11-26T15:51:07 through the end time of the latest rover
+      surface path SPK file supplied in the data set. Until the end of
+      the rover lifespan this data set will be accumulating with new
+      data added approximately every three to six months.
+
+
+      Data Types (SPICE kernel types)
+      ===============================
+
+      SPK kernels contain ephemerides for spacecraft, planets,
+      satellites, comets and asteroids as well as for moving or fixed
+      spacecraft and instrument structures. They provide position and
+      velocity, given in a Cartesian reference frame. SPK files are
+      located under the ``data/spk'' directory of this data set.
+
+      PCK kernels contain certain physical, dynamical and cartographic
+      constants for target bodies, such as size and shape
+      specifications, and orientation of the spin axis and prime
+      meridian. PCK files are located under the ``data/pck'' directory
+      of this data set.
+
+      IK kernels (Instrument description kernels) give descriptive and
+      operational data peculiar to a particular scientific instrument,
+      such as internal timing relative to the spacecraft clock and
+      field-of-view model parameters. IK files are located under the
+      ``data/ik'' directory of this data set.
+
+      CK kernels describe pointing, containing a transformation
+      traditionally called the C-matrix which is used to determine
+      time-tagged pointing (orientation) angles for a spacecraft
+      structure upon which science instruments are mounted. CK files
+      are located under the ``data/ck'' directory of this data set.
+
+      EK (Events) kernels are derived from the integrated sequence of
+      events used to produce actual spacecraft commands. EK files are
+      located under the ``data/ek'' directory of this data set.
+
+      LSK (Leapseconds) kernels contain the leapseconds and the values
+      of other constants required to perform a transformation between
+      Universal Time Coordinated (UTC) and Ephemeris time (ET). LSK
+      files are located under the ``data/lsk'' directory of this data
+      set.
+
+      SCLK (Spacecraft Clock) kernels contain on-board clock
+      calibration data required to perform a mapping between Ephemeris
+      time (ET) and spacecraft on-board time (SCLK). SCLK files are
+      located under the ``data/sclk'' directory of this data set.
+
+      FK (Frame Definitions) kernels contain information required to
+      define reference frames, sources of frame orientation data and
+      connections between these frames and other frames supported
+      within the SPICE system. This includes mounting alignment
+      information for each instrument. FK files are located under the
+      ``data/fk'' directory of this data set.
+
+
+      Kernel File Details
+      ===================
+
+      A brief overview of the different types of MSL kernels included
+      in this data set is provided in the CONFIDENCE_LEVEL_NOTE section
+      of this file while details specific to individual files are found
+      in the ``*info.txt'' files in the corresponding data directory.
+      The most detailed description of the data in each file is
+      provided in metadata included inside the file -- in the
+      description area of text kernels or in the comment area of binary
+      kernels.
+
+
+      Software
+      ========
+
+      The SPICE Toolkit contains software modules needed to read SPICE
+      kernel files. SPICE software is highly documented via internal
+      headers. Additional documentation is available in separate ASCII
+      text files called Required Reading files. For example, the S- and
+      P- Kernel (SPK) Required Reading File, named SPK.REQ, describes
+      use of the SPK kernel file readers and contains sample programs.
+
+      The latest SPICE Toolkit for a variety of computer platforms such
+      as PC, Mac, SUN, etc. is available at the NAIF Node of PDS
+      electronically (via anonymous FTP and WWW servers). Refer to
+      information in ``software/softinfo.txt'' for details regarding
+      obtaining this software. Each version of the Toolkit is also
+      archived at the NASA National Space Science Data Center.
+
+
+      Loading Kernel Files into a SPICE-based Application
+      ===================================================
+
+      The easiest way to make data from a collection of SPICE kernels
+      available to a SPICE-based application is to list these kernels
+      in a meta-kernel and load it into the program using the high
+      level SPICE data loader routine FURNSH. This data set provides
+      such meta-kernel(s) under the ``extras/mk'' directory. For more
+      information about the MSL meta-kernel(s), see the file
+      ``extras/mk/mkinfo.txt''.
+
+      "
+
+    CONFIDENCE_LEVEL_NOTE            = "
+
+      This data set contains SPICE kernel files created during mission
+      operations and after mission data reconstruction and analysis.
+      Some general information about this collection follows here, but
+      the prospective user is also referred to extensive descriptions
+      about each file that are stored inside each kernel file. These
+      metadata provide detailed information regarding the information
+      source from which the data were derived, the type of processing
+      applied to the source data, applicability of the data, etc.
+      Metadata are located in the ``comment area'' for binary kernel
+      types (SPK, CK, ESQ), accessible using either the COMMNT or
+      SPACIT utility program found in the NAIF Toolkit. Metadata are
+      located after ``\begintext'' markers within the text kernel types
+      (PCK, IK, FK, LSK, SCLK, MK), accessible by using any available
+      text file display tool such as a word processor, text editor, or
+      the unix ``more'' or ``cat'' commands.
+
+      Where there are questions about data accuracy or ``confidence''
+      not addressed herein the reader is invited to contact the NAIF
+      node of the Planetary Data System for possible further
+      information.
+
+      SPK Files
+      =========
+
+      Six kinds of SPK files are provided in this archive:
+
+        -- cruise trajectory SPK
+
+        -- EDL trajectory SPK
+
+        -- landing site location SPK
+
+        -- localized rover path and site locations SPKs
+
+        -- telemetry-based rover path and site locations SPKs
+
+        -- Solar System planets and satellites ephemeris SPKs
+
+        -- rover structures and instruments locations SPK
+
+      Each kind of file is briefly described below; more information is
+      available in the file ``data/spk/spkinfo.txt''.
+
+      Cruise trajectory SPK
+      ---------------------
+        The cruise trajectory SPK file contains the reconstructed
+        cruise trajectory determined by the MSL Navigation (NAV) Team,
+        JPL. The informal 1-sigma uncertainty for the MSL cruise
+        trajectory reconstruction is TBD.
+
+      EDL trajectory SPK
+      ------------------
+        The EDL trajectory SPK file contains the reconstructed EDL
+        trajectory determined by the MSL EDL Team, JPL. The informal
+        1-sigma uncertainty for the MSL EDL trajectory reconstruction
+        is TBD.
+
+      Landing site location SPK
+      -------------------------
+        The landing site location SPK file contains the landing site
+        location relative to the center of Mars in the Mars body-fixed
+        frame (IAU_MARS, based on IAU 2000 Mars rotation constants),
+        determined by the MSL Localization Group, JPL. The informal
+        accuracy estimate for the landing site location is TBD.
+
+      Localized Rover path and site locations SPKs
+      --------------------------------------------
+        The localized rover path and site location SPK files contain the
+        locations of the sites along the path relative to the center
+        Mars and the location of the rover relative to the center of
+        Mars.
+
+        These SPKs were created using localized data available in the
+        PLACES server developed and maintained by the MSL Operations
+        Product Generation Subsystem (OPGS) Team. The set of localized
+        data in the PLACES server included rover and site location data
+        for a limited set of localization points determined by tracing
+        the rover traverse on high resolution maps, combined a subset
+        of telemetry products to create a more complete set of location
+        points. Because the telemetry products used in this process
+        included only image headers and mobility summaries, containing
+        rover location during non-motion periods, and did not include
+        data from the high-rate mobility history products containing
+        rover location during motion periods, these SPKs do not provide
+        real data during motion but instead provide interpolated
+        values.
+
+        In global context the data provided in these SPKs is
+        significantly more accurate than telemetered rover position
+        estimated on-board. Because of this these SPKs should be
+        preferred to the telemetry-based rover path SPKs.
+
+      Telemetry-Based Rover path and site locations SPKs
+      --------------------------------------------------
+        The telemetry-based rover path and site location SPK files
+        contain the locations of the sites along the path relative to
+        the landing site and location of the rover relative to these
+        sites.
+
+        These SPKs were created using telemetry data available in the
+        PLACES server developed and maintained by the MSL Operations
+        Product Generation Subsystem (OPGS) Team. The set of telemetry
+        data in the PLACES server included rover and site location data
+        from only a subset of telemetry products containing such
+        information. Specifically, it included data from the product
+        and image headers and mobility summaries, containing rover
+        location during non-motion periods, and did not include data
+        from the high-rate mobility history products containing rover
+        location during motion periods. For this reason, these SPKs do
+        not provide real data during motion but instead provide
+        interpolated values.
+
+        Because data provided in these SPKs is based on telemetered
+        rover position estimated on-board, these SPKs are only as
+        accurate as that estimate, which, depending on the traverse
+        distances, slippage and sliding, can off by meters.
+
+      Solar System planets and satellites ephemeris SPKs
+      --------------------------------------------------
+        The DE425 planetary ephemeris and MAR085 Martian satellite
+        ephemeris SPK files included in this data set contain
+        ephemeris data for the Solar System planet barycenters, Sun,
+        Mercury, Venus, Earth, Moon, Mars, and Martian moons. These
+        versions of ephemerides were officially used by the project
+        during mission operations. The internal comments included within
+        these SPK files provide detailed accuracy information.
+
+      Rover structures and instruments locations SPK
+      ----------------------------------------------
+        The MSL structures SPK file included in this archive provides
+        relative locations of selected rover structures and instruments
+        such as Remote Sensing Mast (RSM), Robotic Arm (RA), and
+        cameras. The data included in the file are based of dimensions
+        from the spacecraft engineering drawings and CAHVORE camera
+        model files.
+
+
+      CK Files
+      ========
+
+      Four kinds of C-kernel files are provided in this archive:
+
+        -- cruise orientation CKs
+
+        -- EDL orientation CK
+
+        -- rover orientation CKs
+
+        -- RSM, RA, and HGA orientation CKs
+
+      Each kind of file is briefly described below; more information is
+      available in the file ``data/ck/ckinfo.txt''.
+
+      Cruise orientation CKs
+      ----------------------
+        The cruise orientation CK files contain the reconstructed
+        cruise orientation determined by the MSL ACS Team and the MSL
+        NAV Team, JPL.
+
+        The set of CKs provided by the MSL ACS Team includes a CK with
+        complete cruise orientation based on H-vector direction without
+        modeling spin, a CK with fully reconstructed orientation based
+        on real-time quaternions covering only communication periods, a
+        CK with high-rate high-accuracy orientation covering only a few
+        very short periods during attitude maneuvers, and a CK with
+        modeled orientation covering only non-communication periods.
+
+        The CK provided by the MSL NAV team contains fully reconstructed
+        orientation based on H-vector direction and NAV de-spinned
+        tracking data, covering only communication periods.
+
+      EDL orientation CK
+      ------------------
+        The EDL orientation CK file contains the reconstructed EDL
+        orientation determined by the MSL EDL Team, JPL. The informal
+        accuracy for the MSL EDL orientation reconstruction is TBD.
+
+      Rover orientation CKs
+      ---------------------
+        The rover orientation CK files contain the orientation of the
+        rover relative to the local level frame.
+
+        These CKs were created using telemetry data available in the
+        PLACES server developed and maintained by the MSL OPGS Team.
+        The set of telemetry data in the PLACES server included rover
+        orientation data only from a subset of telemetry products
+        containing such information. Specifically, it included data
+        from the product and image headers and mobility summaries,
+        containing rover orientation during non-motion periods, and did
+        not include data from the high-rate mobility history products,
+        containing rover orientation during motion periods. For this
+        reason, these CKs do not provide real data during motion but
+        instead provide interpolated values.
+
+        Due to incomplete source data these CKs have gaps in coverage,
+        which can be closed, if needed, using the CKSPANIT utility
+        program.
+
+      RSM, RA, and HGA orientation CKs
+      --------------------------------
+        The rover structure orientation CK files contain the
+        orientation of the RSM, RA, and High Gain Antenna (HGA)
+        relative to the rover frame.
+
+        These CKs were created using telemetry data available in the
+        PLACES server developed and maintained by the MSL OPGS Team.
+        The set of telemetry data in the PLACES server included
+        structure articulation angle data from only a subset of
+        telemetry products containing such information. Specifically,
+        it included data from the product and image headers and
+        articulation summaries, containing structure articulation
+        angles during non-articulation periods, and did not include
+        data from the high-rate articulation history products,
+        containing structure articulation angles during articulation
+        periods. For this reason, these CKs do not provide real data
+        during articulation but instead provide interpolated values.
+
+        The sets of CKs for RSM and RA include CKs based on encoder
+        angles (less accurate but more complete) and CKs based on
+        resolver angles (more accurate but less complete).
+
+        While RSM and HGA CKs based on resolver angles provide accurate
+        orientation matching that computed in the flight software, the
+        RA CKs do not because the simple forward kinematics approach
+        implemented using these CKs and corresponding frame chains does
+        not model flexing of the RA which can lead to end point
+        orientation errors of a degree or more for some RA
+        configurations.
+
+        Due to incomplete source data these CKs have gaps in coverage,
+        which can be closed, if needed, using the CKSPANIT utility
+        program.
+
+
+      PCK Files
+      =========
+
+      PCK files provide size, shape and orientation data for ``target''
+      bodies such as Mars. A description of these data items and
+      reference to their source is provided inside the PCK file, which
+      is a simple text file that can be viewed using any word
+      processor, text editor or text display utility.
+
+      This data set includes the generic PCK file based on the
+      IAU/IAG/COSPAR values published in 2000.
+
+      More information about the PCK files included in this data set is
+      available in the file ``data/pck/pckinfo.txt''.
+
+
+      FK Files
+      ========
+
+      Frames kernel files provide specifications for how one reference
+      frame is defined relative to another frame. A description of
+      these specifications and references to their source is provided
+      inside the FK file, which is a simple text file that can be
+      viewed using any word processor, text editor or text display
+      utility.
+
+      The MSL FK provided in this data set contains the complete set of
+      frame definitions for the rover, its structures such as mast,
+      arm, and antennas, and all of its science instruments. Meta
+      information provided in the comments included in this file
+      consists of the frame definitions, description of the frame
+      relationships, source of and accuracy of the mounting alignment
+      information, etc.
+
+      More information about the MSL FK files is available in the file
+      ``data/fk/fkinfo.txt''.
+
+
+      IK Files
+      ========
+
+      Instrument kernel files provide specifications for geometric
+      parameters and--where applicable--field-of-view size, shape and
+      orientation for the named instruments. Metadata describing these
+      estimates are provided in each IK file included in this archive.
+      Parameter values were determined from pre-launch measurements,
+      instrument parameters specification documents, and in some cases
+      from analysis of in-flight calibration data. The accuracy
+      estimates for these data vary from instrument to instrument and,
+      where available, are included in the IK internal comments.
+
+      This data set includes IK files for all rover cameras, a few
+      other rover-mounted instruments, and all cruise stage, descent
+      stage and rover mounted antennas.
+
+      Because the sets of geometric parameters included in the IKs vary
+      from instrument to instrument users are encouraged to carefully
+      examine the IKs before using them.
+
+      More information about MSL IK files is available in the file
+      ``data/ik/ikinfo.txt''.
+
+
+      SCLK Files
+      ==========
+
+      Spacecraft Clock kernel files provide a tabulation of data needed
+      for converting time measurements between ephemeris time (ET) and
+      spacecraft clock time (SCLK). For surface missions like MSL SCLK
+      kernel files are also used to provide data for conversions between
+      ET and Local Mean Solar Time (LMST).
+
+      The ``data/sclk/sclkinfo.txt'' file provides names of and/or
+      explains naming convention for each of the SCLK types provided in
+      this data set.
+
+      On-board Clock Correlation SCLKs
+      --------------------------------
+        These SCLK files provide a tabulation of data needed for
+        converting time measurements between ephemeris time (ET) and
+        MSL spacecraft clock time (SCLK). They are made from similar
+        files -- SCLK/SCET file, or SCLKvSCET file -- produced by
+        another mission entity.
+
+        The official on-board correlation SCLK files used in operations
+        and included in this data set provide correlation that is
+        incorrect in an absolute sense by as much as 3 minutes during
+        some periods (e.g. in the middle of cruise). The error stems
+        from a combination of reasons: the spacecraft generated too
+        few time correlation packets, the specifics of the process used
+        to derive the correlation function, the requirements for
+        backward compatibility between correlation versions imposed by
+        the ground system tools, and the requirement to minimize the
+        deployment of the new correlation in the ground data system.
+
+        An improved SCLK file for the on-board clock correlation
+        included in this data was made to specifically fix correlation
+        during cruise where large time correlation errors translated to
+        large attitude knowledge errors due to the spacecraft spin.
+        This SCLK kernel is accurate to a 10-30 milliseconds before
+        February 2012, to better than 5 milliseconds from February
+        through July 2012, and to about a millisecond for August 2012.
+
+        SPICE software does not prohibit an SCLK file from being used
+        for time conversions occurring for ``future times'' (or more
+        accurately, for epochs that occur later than the epoch of the
+        last telemetry data used in producing the last correlation
+        coefficients found in the SCLK file). Such ``predict'' time
+        conversions are likely to be inaccurate (changed somewhat) once
+        the epoch of interest has been passed.
+
+      Local Mean Solar Time (LMST) SCLK files
+      ---------------------------------------
+        These SCLK files provide a way of converting between the Local
+        Mean Solar Time (LMST) time system used during surface
+        operations and other time systems. LMST was introduced as a
+        replacement of the Local True Solar Time (LTST) because a time
+        system with a constant duration of a second was needed for use
+        in the planning and sequencing processes. The LMST is
+        essentially a linear approximation of the local true solar time
+        with the rate set equal to the mean Mars local second duration
+        and the initial reference point set to LMST midnight of the
+        landing SOL. Due to ellipticity of Mars orbit this
+        approximation is periodic and deviates from the LTST by as much
+        as 50 minutes during  Martian year. The difference between LTST
+        and LMST is illustrated by this table:
+
+                 LTST                       LMST
+          ----------------------   ----------------------
+          LTST-SOL-0001-12:00:00   LMST-SOL-0001-11:26:43
+          LTST-SOL-0010-12:00:00   LMST-SOL-0010-11:25:20
+          LTST-SOL-0020-12:00:00   LMST-SOL-0020-11:23:52
+          LTST-SOL-0030-12:00:00   LMST-SOL-0030-11:22:34
+          LTST-SOL-0040-12:00:00   LMST-SOL-0040-11:21:27
+          LTST-SOL-0050-12:00:00   LMST-SOL-0050-11:20:36
+          LTST-SOL-0060-12:00:00   LMST-SOL-0060-11:20:05
+          LTST-SOL-0070-12:00:00   LMST-SOL-0070-11:20:00
+          LTST-SOL-0080-12:00:00   LMST-SOL-0080-11:20:24
+          LTST-SOL-0090-12:00:00   LMST-SOL-0090-11:21:23
+          LTST-SOL-0100-12:00:00   LMST-SOL-0100-11:22:59
+          LTST-SOL-0110-12:00:00   LMST-SOL-0110-11:25:18
+          LTST-SOL-0120-12:00:00   LMST-SOL-0120-11:28:23
+          LTST-SOL-0130-12:00:00   LMST-SOL-0130-11:32:14
+          LTST-SOL-0140-12:00:00   LMST-SOL-0140-11:36:51
+          LTST-SOL-0150-12:00:00   LMST-SOL-0150-11:42:13
+          LTST-SOL-0160-12:00:00   LMST-SOL-0160-11:48:14
+          LTST-SOL-0170-12:00:00   LMST-SOL-0170-11:54:47
+          LTST-SOL-0180-12:00:00   LMST-SOL-0180-12:01:42
+          LTST-SOL-0190-12:00:00   LMST-SOL-0190-12:08:47
+          LTST-SOL-0200-12:00:00   LMST-SOL-0200-12:15:49
+          LTST-SOL-0210-12:00:00   LMST-SOL-0210-12:22:35
+          LTST-SOL-0220-12:00:00   LMST-SOL-0220-12:28:53
+          LTST-SOL-0230-12:00:00   LMST-SOL-0230-12:34:32
+          LTST-SOL-0240-12:00:00   LMST-SOL-0240-12:39:26
+          LTST-SOL-0250-12:00:00   LMST-SOL-0250-12:43:29
+          LTST-SOL-0260-12:00:00   LMST-SOL-0260-12:46:39
+          LTST-SOL-0270-12:00:00   LMST-SOL-0270-12:48:56
+          LTST-SOL-0280-12:00:00   LMST-SOL-0280-12:50:20
+          LTST-SOL-0290-12:00:00   LMST-SOL-0290-12:50:56
+          LTST-SOL-0300-12:00:00   LMST-SOL-0300-12:50:46
+          LTST-SOL-0310-12:00:00   LMST-SOL-0310-12:49:54
+          LTST-SOL-0320-12:00:00   LMST-SOL-0320-12:48:27
+          LTST-SOL-0330-12:00:00   LMST-SOL-0330-12:46:28
+          LTST-SOL-0340-12:00:00   LMST-SOL-0340-12:44:02
+          LTST-SOL-0350-12:00:00   LMST-SOL-0350-12:41:13
+          LTST-SOL-0360-12:00:00   LMST-SOL-0360-12:38:07
+          LTST-SOL-0370-12:00:00   LMST-SOL-0370-12:34:46
+          LTST-SOL-0380-12:00:00   LMST-SOL-0380-12:31:15
+          LTST-SOL-0390-12:00:00   LMST-SOL-0390-12:27:38
+          LTST-SOL-0400-12:00:00   LMST-SOL-0400-12:23:57
+          LTST-SOL-0410-12:00:00   LMST-SOL-0410-12:20:15
+          LTST-SOL-0420-12:00:00   LMST-SOL-0420-12:16:37
+          LTST-SOL-0430-12:00:00   LMST-SOL-0430-12:13:04
+          LTST-SOL-0440-12:00:00   LMST-SOL-0440-12:09:38
+          LTST-SOL-0450-12:00:00   LMST-SOL-0450-12:06:21
+          LTST-SOL-0460-12:00:00   LMST-SOL-0460-12:03:14
+          LTST-SOL-0470-12:00:00   LMST-SOL-0470-12:00:19
+          LTST-SOL-0480-12:00:00   LMST-SOL-0480-11:57:37
+          LTST-SOL-0490-12:00:00   LMST-SOL-0490-11:55:06
+          LTST-SOL-0500-12:00:00   LMST-SOL-0500-11:52:49
+          LTST-SOL-0510-12:00:00   LMST-SOL-0510-11:50:44
+          LTST-SOL-0520-12:00:00   LMST-SOL-0520-11:48:49
+          LTST-SOL-0530-12:00:00   LMST-SOL-0530-11:47:05
+          LTST-SOL-0540-12:00:00   LMST-SOL-0540-11:45:30
+          LTST-SOL-0550-12:00:00   LMST-SOL-0550-11:44:01
+          LTST-SOL-0560-12:00:00   LMST-SOL-0560-11:42:37
+          LTST-SOL-0570-12:00:00   LMST-SOL-0570-11:41:17
+          LTST-SOL-0580-12:00:00   LMST-SOL-0580-11:39:57
+          LTST-SOL-0590-12:00:00   LMST-SOL-0590-11:38:38
+          LTST-SOL-0600-12:00:00   LMST-SOL-0600-11:37:17
+          LTST-SOL-0610-12:00:00   LMST-SOL-0610-11:35:53
+          LTST-SOL-0620-12:00:00   LMST-SOL-0620-11:34:27
+          LTST-SOL-0630-12:00:00   LMST-SOL-0630-11:32:57
+          LTST-SOL-0640-12:00:00   LMST-SOL-0640-11:31:23
+          LTST-SOL-0650-12:00:00   LMST-SOL-0650-11:29:48
+          LTST-SOL-0660-12:00:00   LMST-SOL-0660-11:28:11
+          LTST-SOL-0670-12:00:00   LMST-SOL-0670-11:26:36
+          LTST-SOL-0680-12:00:00   LMST-SOL-0680-11:25:03
+          LTST-SOL-0690-12:00:00   LMST-SOL-0690-11:23:36
+          LTST-SOL-0700-12:00:00   LMST-SOL-0700-11:22:19
+          LTST-SOL-0710-12:00:00   LMST-SOL-0710-11:21:14
+          LTST-SOL-0720-12:00:00   LMST-SOL-0720-11:20:26
+          LTST-SOL-0730-12:00:00   LMST-SOL-0730-11:20:00
+          LTST-SOL-0740-12:00:00   LMST-SOL-0740-11:19:58
+          LTST-SOL-0750-12:00:00   LMST-SOL-0750-11:20:27
+          LTST-SOL-0760-12:00:00   LMST-SOL-0760-11:21:30
+          LTST-SOL-0770-12:00:00   LMST-SOL-0770-11:23:13
+          LTST-SOL-0780-12:00:00   LMST-SOL-0780-11:25:38
+          LTST-SOL-0790-12:00:00   LMST-SOL-0790-11:28:49
+          LTST-SOL-0800-12:00:00   LMST-SOL-0800-11:32:47
+          LTST-SOL-0810-12:00:00   LMST-SOL-0810-11:37:32
+          LTST-SOL-0820-12:00:00   LMST-SOL-0820-11:43:00
+          LTST-SOL-0830-12:00:00   LMST-SOL-0830-11:49:07
+          LTST-SOL-0840-12:00:00   LMST-SOL-0840-11:55:45
+          LTST-SOL-0850-12:00:00   LMST-SOL-0850-12:02:43
+          LTST-SOL-0860-12:00:00   LMST-SOL-0860-12:09:49
+          LTST-SOL-0870-12:00:00   LMST-SOL-0870-12:16:50
+          LTST-SOL-0880-12:00:00   LMST-SOL-0880-12:23:33
+          LTST-SOL-0890-12:00:00   LMST-SOL-0890-12:29:47
+          LTST-SOL-0900-12:00:00   LMST-SOL-0900-12:35:21
+          LTST-SOL-0910-12:00:00   LMST-SOL-0910-12:40:08
+          LTST-SOL-0920-12:00:00   LMST-SOL-0920-12:44:04
+          LTST-SOL-0930-12:00:00   LMST-SOL-0930-12:47:06
+          LTST-SOL-0940-12:00:00   LMST-SOL-0940-12:49:15
+          LTST-SOL-0950-12:00:00   LMST-SOL-0950-12:50:32
+          LTST-SOL-0960-12:00:00   LMST-SOL-0960-12:51:01
+          LTST-SOL-0970-12:00:00   LMST-SOL-0970-12:50:45
+          LTST-SOL-0980-12:00:00   LMST-SOL-0980-12:49:48
+          LTST-SOL-0990-12:00:00   LMST-SOL-0990-12:48:16
+          LTST-SOL-1000-12:00:00   LMST-SOL-1000-12:46:12
+          LTST-SOL-1010-12:00:00   LMST-SOL-1010-12:43:43
+          LTST-SOL-1020-12:00:00   LMST-SOL-1020-12:40:51
+          LTST-SOL-1030-12:00:00   LMST-SOL-1030-12:37:42
+          LTST-SOL-1040-12:00:00   LMST-SOL-1040-12:34:20
+          LTST-SOL-1050-12:00:00   LMST-SOL-1050-12:30:48
+          LTST-SOL-1060-12:00:00   LMST-SOL-1060-12:27:09
+          LTST-SOL-1070-12:00:00   LMST-SOL-1070-12:23:28
+          LTST-SOL-1080-12:00:00   LMST-SOL-1080-12:19:48
+          LTST-SOL-1090-12:00:00   LMST-SOL-1090-12:16:10
+          LTST-SOL-1100-12:00:00   LMST-SOL-1100-12:12:37
+          LTST-SOL-1110-12:00:00   LMST-SOL-1110-12:09:11
+          LTST-SOL-1120-12:00:00   LMST-SOL-1120-12:05:56
+          LTST-SOL-1130-12:00:00   LMST-SOL-1130-12:02:51
+          LTST-SOL-1140-12:00:00   LMST-SOL-1140-11:59:57
+          LTST-SOL-1150-12:00:00   LMST-SOL-1150-11:57:17
+          LTST-SOL-1160-12:00:00   LMST-SOL-1160-11:54:48
+          LTST-SOL-1170-12:00:00   LMST-SOL-1170-11:52:33
+          LTST-SOL-1180-12:00:00   LMST-SOL-1180-11:50:29
+          LTST-SOL-1190-12:00:00   LMST-SOL-1190-11:48:36
+          LTST-SOL-1200-12:00:00   LMST-SOL-1200-11:46:54
+          LTST-SOL-1210-12:00:00   LMST-SOL-1210-11:45:19
+          LTST-SOL-1220-12:00:00   LMST-SOL-1220-11:43:52
+          LTST-SOL-1230-12:00:00   LMST-SOL-1230-11:42:29
+          LTST-SOL-1240-12:00:00   LMST-SOL-1240-11:41:09
+          LTST-SOL-1250-12:00:00   LMST-SOL-1250-11:39:50
+          LTST-SOL-1260-12:00:00   LMST-SOL-1260-11:38:30
+          LTST-SOL-1270-12:00:00   LMST-SOL-1270-11:37:09
+          LTST-SOL-1280-12:00:00   LMST-SOL-1280-11:35:44
+          LTST-SOL-1290-12:00:00   LMST-SOL-1290-11:34:16
+          LTST-SOL-1300-12:00:00   LMST-SOL-1300-11:32:46
+          LTST-SOL-1310-12:00:00   LMST-SOL-1310-11:31:12
+          LTST-SOL-1320-12:00:00   LMST-SOL-1320-11:29:36
+          LTST-SOL-1330-12:00:00   LMST-SOL-1330-11:27:59
+          LTST-SOL-1340-12:00:00   LMST-SOL-1340-11:26:23
+          LTST-SOL-1350-12:00:00   LMST-SOL-1350-11:24:51
+          LTST-SOL-1360-12:00:00   LMST-SOL-1360-11:23:25
+          LTST-SOL-1370-12:00:00   LMST-SOL-1370-11:22:09
+          LTST-SOL-1380-12:00:00   LMST-SOL-1380-11:21:06
+          LTST-SOL-1390-12:00:00   LMST-SOL-1390-11:20:20
+          LTST-SOL-1400-12:00:00   LMST-SOL-1400-11:19:56
+          LTST-SOL-1410-12:00:00   LMST-SOL-1410-11:19:58
+          LTST-SOL-1420-12:00:00   LMST-SOL-1420-11:20:31
+          LTST-SOL-1430-12:00:00   LMST-SOL-1430-11:21:40
+          LTST-SOL-1440-12:00:00   LMST-SOL-1440-11:23:28
+          LTST-SOL-1450-12:00:00   LMST-SOL-1450-11:25:58
+          LTST-SOL-1460-12:00:00   LMST-SOL-1460-11:29:15
+          LTST-SOL-1470-12:00:00   LMST-SOL-1470-11:33:20
+          LTST-SOL-1480-12:00:00   LMST-SOL-1480-11:38:10
+          LTST-SOL-1490-12:00:00   LMST-SOL-1490-11:43:44
+          LTST-SOL-1500-12:00:00   LMST-SOL-1500-11:49:56
+          LTST-SOL-1510-12:00:00   LMST-SOL-1510-11:56:37
+          LTST-SOL-1520-12:00:00   LMST-SOL-1520-12:03:36
+          LTST-SOL-1530-12:00:00   LMST-SOL-1530-12:10:43
+          LTST-SOL-1540-12:00:00   LMST-SOL-1540-12:17:42
+          LTST-SOL-1550-12:00:00   LMST-SOL-1550-12:24:22
+          LTST-SOL-1560-12:00:00   LMST-SOL-1560-12:30:31
+          LTST-SOL-1570-12:00:00   LMST-SOL-1570-12:36:00
+          LTST-SOL-1580-12:00:00   LMST-SOL-1580-12:40:41
+          LTST-SOL-1590-12:00:00   LMST-SOL-1590-12:44:30
+          LTST-SOL-1600-12:00:00   LMST-SOL-1600-12:47:25
+          LTST-SOL-1610-12:00:00   LMST-SOL-1610-12:49:27
+          LTST-SOL-1620-12:00:00   LMST-SOL-1620-12:50:38
+          LTST-SOL-1630-12:00:00   LMST-SOL-1630-12:51:00
+          LTST-SOL-1640-12:00:00   LMST-SOL-1640-12:50:38
+          LTST-SOL-1650-12:00:00   LMST-SOL-1650-12:49:37
+          LTST-SOL-1660-12:00:00   LMST-SOL-1660-12:48:00
+          LTST-SOL-1670-12:00:00   LMST-SOL-1670-12:45:53
+          LTST-SOL-1680-12:00:00   LMST-SOL-1680-12:43:20
+          LTST-SOL-1690-12:00:00   LMST-SOL-1690-12:40:26
+          LTST-SOL-1700-12:00:00   LMST-SOL-1700-12:37:15
+          LTST-SOL-1710-12:00:00   LMST-SOL-1710-12:33:51
+          LTST-SOL-1720-12:00:00   LMST-SOL-1720-12:30:18
+          LTST-SOL-1730-12:00:00   LMST-SOL-1730-12:26:40
+          LTST-SOL-1740-12:00:00   LMST-SOL-1740-12:22:59
+          LTST-SOL-1750-12:00:00   LMST-SOL-1750-12:19:18
+          LTST-SOL-1760-12:00:00   LMST-SOL-1760-12:15:41
+          LTST-SOL-1770-12:00:00   LMST-SOL-1770-12:12:10
+          LTST-SOL-1780-12:00:00   LMST-SOL-1780-12:08:46
+          LTST-SOL-1790-12:00:00   LMST-SOL-1790-12:05:32
+          LTST-SOL-1800-12:00:00   LMST-SOL-1800-12:02:27
+          LTST-SOL-1810-12:00:00   LMST-SOL-1810-11:59:36
+          LTST-SOL-1820-12:00:00   LMST-SOL-1820-11:56:57
+          LTST-SOL-1830-12:00:00   LMST-SOL-1830-11:54:30
+          LTST-SOL-1840-12:00:00   LMST-SOL-1840-11:52:16
+          LTST-SOL-1850-12:00:00   LMST-SOL-1850-11:50:14
+          LTST-SOL-1860-12:00:00   LMST-SOL-1860-11:48:23
+          LTST-SOL-1870-12:00:00   LMST-SOL-1870-11:46:41
+          LTST-SOL-1880-12:00:00   LMST-SOL-1880-11:45:08
+          LTST-SOL-1890-12:00:00   LMST-SOL-1890-11:43:41
+          LTST-SOL-1900-12:00:00   LMST-SOL-1900-11:42:18
+          LTST-SOL-1910-12:00:00   LMST-SOL-1910-11:40:58
+          LTST-SOL-1920-12:00:00   LMST-SOL-1920-11:39:39
+          LTST-SOL-1930-12:00:00   LMST-SOL-1930-11:38:20
+          LTST-SOL-1940-12:00:00   LMST-SOL-1940-11:36:58
+          LTST-SOL-1950-12:00:00   LMST-SOL-1950-11:35:34
+          LTST-SOL-1960-12:00:00   LMST-SOL-1960-11:34:06
+          LTST-SOL-1970-12:00:00   LMST-SOL-1970-11:32:35
+          LTST-SOL-1980-12:00:00   LMST-SOL-1980-11:31:00
+          LTST-SOL-1990-12:00:00   LMST-SOL-1990-11:29:24
+          LTST-SOL-2000-12:00:00   LMST-SOL-2000-11:27:47
+          LTST-SOL-2010-12:00:00   LMST-SOL-2010-11:26:12
+          LTST-SOL-2020-12:00:00   LMST-SOL-2020-11:24:41
+          LTST-SOL-2030-12:00:00   LMST-SOL-2030-11:23:16
+          LTST-SOL-2040-12:00:00   LMST-SOL-2040-11:22:01
+          LTST-SOL-2050-12:00:00   LMST-SOL-2050-11:21:01
+          LTST-SOL-2060-12:00:00   LMST-SOL-2060-11:20:18
+          LTST-SOL-2070-12:00:00   LMST-SOL-2070-11:19:57
+          LTST-SOL-2080-12:00:00   LMST-SOL-2080-11:20:03
+          LTST-SOL-2090-12:00:00   LMST-SOL-2090-11:20:41
+          LTST-SOL-2100-12:00:00   LMST-SOL-2100-11:21:55
+          LTST-SOL-2110-12:00:00   LMST-SOL-2110-11:23:48
+          LTST-SOL-2120-12:00:00   LMST-SOL-2120-11:26:26
+          LTST-SOL-2130-12:00:00   LMST-SOL-2130-11:29:49
+          LTST-SOL-2140-12:00:00   LMST-SOL-2140-11:34:00
+          LTST-SOL-2150-12:00:00   LMST-SOL-2150-11:38:55
+          LTST-SOL-2160-12:00:00   LMST-SOL-2160-11:44:34
+          LTST-SOL-2170-12:00:00   LMST-SOL-2170-11:50:50
+          LTST-SOL-2180-12:00:00   LMST-SOL-2180-11:57:34
+          LTST-SOL-2190-12:00:00   LMST-SOL-2190-12:04:35
+          LTST-SOL-2200-12:00:00   LMST-SOL-2200-12:11:40
+          LTST-SOL-2210-12:00:00   LMST-SOL-2210-12:18:38
+          LTST-SOL-2220-12:00:00   LMST-SOL-2220-12:25:14
+          LTST-SOL-2230-12:00:00   LMST-SOL-2230-12:31:17
+          LTST-SOL-2240-12:00:00   LMST-SOL-2240-12:36:39
+          LTST-SOL-2250-12:00:00   LMST-SOL-2250-12:41:13
+          LTST-SOL-2260-12:00:00   LMST-SOL-2260-12:44:54
+          LTST-SOL-2270-12:00:00   LMST-SOL-2270-12:47:42
+          LTST-SOL-2280-12:00:00   LMST-SOL-2280-12:49:37
+          LTST-SOL-2290-12:00:00   LMST-SOL-2290-12:50:41
+          LTST-SOL-2300-12:00:00   LMST-SOL-2300-12:50:57
+          LTST-SOL-2310-12:00:00   LMST-SOL-2310-12:50:30
+          LTST-SOL-2320-12:00:00   LMST-SOL-2320-12:49:23
+          LTST-SOL-2330-12:00:00   LMST-SOL-2330-12:47:41
+          LTST-SOL-2340-12:00:00   LMST-SOL-2340-12:45:30
+          LTST-SOL-2350-12:00:00   LMST-SOL-2350-12:42:55
+          LTST-SOL-2360-12:00:00   LMST-SOL-2360-12:39:58
+          LTST-SOL-2370-12:00:00   LMST-SOL-2370-12:36:45
+          LTST-SOL-2380-12:00:00   LMST-SOL-2380-12:33:20
+          LTST-SOL-2390-12:00:00   LMST-SOL-2390-12:29:46
+          LTST-SOL-2400-12:00:00   LMST-SOL-2400-12:26:07
+          LTST-SOL-2410-12:00:00   LMST-SOL-2410-12:22:27
+          LTST-SOL-2420-12:00:00   LMST-SOL-2420-12:18:47
+          LTST-SOL-2430-12:00:00   LMST-SOL-2430-12:15:10
+          LTST-SOL-2440-12:00:00   LMST-SOL-2440-12:11:40
+          LTST-SOL-2450-12:00:00   LMST-SOL-2450-12:08:18
+          LTST-SOL-2460-12:00:00   LMST-SOL-2460-12:05:05
+          LTST-SOL-2470-12:00:00   LMST-SOL-2470-12:02:03
+          LTST-SOL-2480-12:00:00   LMST-SOL-2480-11:59:14
+          LTST-SOL-2490-12:00:00   LMST-SOL-2490-11:56:36
+          LTST-SOL-2500-12:00:00   LMST-SOL-2500-11:54:11
+          LTST-SOL-2510-12:00:00   LMST-SOL-2510-11:51:59
+          LTST-SOL-2520-12:00:00   LMST-SOL-2520-11:49:58
+          LTST-SOL-2530-12:00:00   LMST-SOL-2530-11:48:08
+          LTST-SOL-2540-12:00:00   LMST-SOL-2540-11:46:28
+          LTST-SOL-2550-12:00:00   LMST-SOL-2550-11:44:55
+          LTST-SOL-2560-12:00:00   LMST-SOL-2560-11:43:29
+          LTST-SOL-2570-12:00:00   LMST-SOL-2570-11:42:07
+          LTST-SOL-2580-12:00:00   LMST-SOL-2580-11:40:47
+          LTST-SOL-2590-12:00:00   LMST-SOL-2590-11:39:28
+          LTST-SOL-2600-12:00:00   LMST-SOL-2600-11:38:08
+          LTST-SOL-2610-12:00:00   LMST-SOL-2610-11:36:46
+          LTST-SOL-2620-12:00:00   LMST-SOL-2620-11:35:21
+          LTST-SOL-2630-12:00:00   LMST-SOL-2630-11:33:53
+          LTST-SOL-2640-12:00:00   LMST-SOL-2640-11:32:21
+          LTST-SOL-2650-12:00:00   LMST-SOL-2650-11:30:46
+          LTST-SOL-2660-12:00:00   LMST-SOL-2660-11:29:10
+          LTST-SOL-2670-12:00:00   LMST-SOL-2670-11:27:33
+          LTST-SOL-2680-12:00:00   LMST-SOL-2680-11:25:57
+          LTST-SOL-2690-12:00:00   LMST-SOL-2690-11:24:26
+          LTST-SOL-2700-12:00:00   LMST-SOL-2700-11:23:03
+          LTST-SOL-2710-12:00:00   LMST-SOL-2710-11:21:50
+          LTST-SOL-2720-12:00:00   LMST-SOL-2720-11:20:51
+          LTST-SOL-2730-12:00:00   LMST-SOL-2730-11:20:12
+          LTST-SOL-2740-12:00:00   LMST-SOL-2740-11:19:55
+          LTST-SOL-2750-12:00:00   LMST-SOL-2750-11:20:05
+          LTST-SOL-2760-12:00:00   LMST-SOL-2760-11:20:48
+          LTST-SOL-2770-12:00:00   LMST-SOL-2770-11:22:07
+          LTST-SOL-2780-12:00:00   LMST-SOL-2780-11:24:07
+          LTST-SOL-2790-12:00:00   LMST-SOL-2790-11:26:51
+          LTST-SOL-2800-12:00:00   LMST-SOL-2800-11:30:22
+          LTST-SOL-2810-12:00:00   LMST-SOL-2810-11:34:39
+          LTST-SOL-2820-12:00:00   LMST-SOL-2820-11:39:42
+          LTST-SOL-2830-12:00:00   LMST-SOL-2830-11:45:27
+          LTST-SOL-2840-12:00:00   LMST-SOL-2840-11:51:47
+          LTST-SOL-2850-12:00:00   LMST-SOL-2850-11:58:34
+          LTST-SOL-2860-12:00:00   LMST-SOL-2860-12:05:36
+          LTST-SOL-2870-12:00:00   LMST-SOL-2870-12:12:41
+          LTST-SOL-2880-12:00:00   LMST-SOL-2880-12:19:36
+          LTST-SOL-2890-12:00:00   LMST-SOL-2890-12:26:08
+          LTST-SOL-2900-12:00:00   LMST-SOL-2900-12:32:06
+          LTST-SOL-2910-12:00:00   LMST-SOL-2910-12:37:21
+          LTST-SOL-2920-12:00:00   LMST-SOL-2920-12:41:48
+          LTST-SOL-2930-12:00:00   LMST-SOL-2930-12:45:22
+          LTST-SOL-2940-12:00:00   LMST-SOL-2940-12:48:02
+          LTST-SOL-2950-12:00:00   LMST-SOL-2950-12:49:49
+          LTST-SOL-2960-12:00:00   LMST-SOL-2960-12:50:46
+          LTST-SOL-2970-12:00:00   LMST-SOL-2970-12:50:55
+          LTST-SOL-2980-12:00:00   LMST-SOL-2980-12:50:22
+          LTST-SOL-2990-12:00:00   LMST-SOL-2990-12:49:10
+          LTST-SOL-3000-12:00:00   LMST-SOL-3000-12:47:24
+
+
+      LSK Files
+      =========
+
+      Leapseconds kernel files provide a tabulation of ``leapseconds''
+      and some other terms used in converting time measurements between
+      ephemeris time (ET) and Universal Time (UTC). ``Spacecraft Event
+      Time'' (SCET) is the commonly used name for UTC events measured
+      at the spacecraft.
+
+      Metadata describing how the LSK data are obtained or computed is
+      contained inside the LSK text file. The time conversion provided
+      by SPICE LSK files is accurate to approximately 0.000030 seconds.
+
+      More information about the LSK files is available in the file
+      ``data/lsk/lskinfo.txt''.
+
+
+      EK Files
+      ========
+
+      The MSL project did not produce any EK files; therefore, no EKs
+      are included in this data set.
+
+      "
+  END_OBJECT                         = DATA_SET_INFORMATION
+
+  OBJECT                             = DATA_SET_MISSION
+    MISSION_NAME                     = "MARS SCIENCE LABORATORY"
+  END_OBJECT                         = DATA_SET_MISSION
+
+  OBJECT                             = DATA_SET_TARGET
+    TARGET_NAME                      = MARS
+  END_OBJECT                         = DATA_SET_TARGET
+
+  OBJECT                             = DATA_SET_HOST
+    INSTRUMENT_HOST_ID               = MSL
+    INSTRUMENT_ID                    = SPICE
+  END_OBJECT                         = DATA_SET_HOST
+
+  OBJECT                             = DATA_SET_REFERENCE_INFORMATION
+    REFERENCE_KEY_ID                 = "ACTON1996"
+  END_OBJECT                         = DATA_SET_REFERENCE_INFORMATION
+
+END_OBJECT = DATA_SET
+
+END

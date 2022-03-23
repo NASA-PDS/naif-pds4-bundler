@@ -1,0 +1,45 @@
+PDS_VERSION_ID          = PDS3
+RECORD_TYPE             = STREAM
+
+OBJECT                  = TEXT
+   INTERCHANGE_FORMAT   = ASCII
+   PUBLICATION_DATE     = 2013-02-27
+   NOTE                 = "This file describes the files in the
+                           extras directory of this volume."
+END_OBJECT              = TEXT
+
+END
+
+
+Extra Data Related to the MSL Mission
+=====================================
+
+   This directory contains value added elements that are outside the
+   scope of the PDS archive requirements. Items included in this
+   directory are currently limited to the meta-kernels.
+
+   The meta-kernels provided in the ``mk'' subdirectory contain
+   complete lists of the SPICE kernels, in the format required by the main
+   SPICE data loader routine FURNSH, that need to be loaded into a
+   SPICE-based application to compute geometry for a particular time
+   period. For more information about the meta-kernels provided on this
+   volume, see file ``mk/mkinfo.txt''.
+
+
+Contact Information
+===================
+
+   Regarding MSL project specific information provided in this data
+   set and for general information about SPICE system, contact:
+
+      Boris Semenov
+      (818)-354-8136
+      Boris.Semenov@jpl.nasa.gov
+
+   address:
+
+      Navigation and Ancillary Information Facility (NAIF)
+      Jet Propulsion Laboratory
+      MS 301-125L
+      4800 Oak Grove Drive
+      Pasadena CA 91109 USA

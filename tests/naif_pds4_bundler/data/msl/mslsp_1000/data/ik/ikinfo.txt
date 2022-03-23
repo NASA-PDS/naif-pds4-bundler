@@ -1,0 +1,117 @@
+PDS_VERSION_ID          = PDS3
+RECORD_TYPE             = STREAM
+
+OBJECT                  = TEXT
+   INTERCHANGE_FORMAT   = ASCII
+   PUBLICATION_DATE     = 2013-06-10
+   NOTE                 = "MSL I-Kernel Information"
+END_OBJECT              = TEXT
+
+END
+
+
+General Information About SPICE I-kernels
+=========================================
+
+   In the SPICE system, I-kernels contain field-of-view specifications,
+   internal timing parameters, detector geometry specifications and
+   other geometric parameters for the instrument. These parameters
+   along with knowledge of the spacecraft pointing (C kernel) and
+   instrument mounting alignment (Frames Kernel) allow the user to use
+   SPICE APIs to calculate the view directions of the individual
+   instrument pixels or detectors.
+
+   The data contained in I-kernel files can be accessed and manipulated
+   in conjunction with other data using the SPICE Toolkit APIs, calls to
+   which can be integrated into user application programs. The
+   information regarding how to obtain the SPICE system toolkit for a
+   number of languages and computer platforms is located in the
+   ``/software'' subdirectory of the main directory of this data set.
+
+   Refer to the ``kernel.req'' document provided with the Toolkit to get
+   more information on how to access I-kernel data.
+
+
+MSL I-kernels Provided in This Data Set
+=======================================
+
+   All files are in IEEE text format and must be copied using ftp ASCII
+   transfer to any non-UNIX workstation.
+
+   The MSL IK file naming schema is as follows (Only the leading
+   portions of the file names are shown; the file name extensions of
+   the I-kernel are always ".ti"):
+
+         msl_[IIIII]_v[VER]
+
+      or
+
+         msl_[IIIII]_[YYYYMMDD]_c[CC]
+
+      where:
+
+         [IIIII]     Instrument or subsystem acronym:
+
+                        chrmi  -- CHEMCAM RMI
+                        hbla   -- HAZCAM, BACK, LEFT, A
+                        hblb   -- HAZCAM, BACK, LEFT, B
+                        hbra   -- HAZCAM, BACK, RIGHT, A
+                        hbrb   -- HAZCAM, BACK, RIGHT, B
+                        hfla   -- HAZCAM, FRONT, LEFT, A
+                        hflb   -- HAZCAM, FRONT, LEFT, B
+                        hfra   -- HAZCAM, FRONT, RIGHT, A
+                        hfrb   -- HAZCAM, FRONT, RIGHT, B
+                        mahli  -- MAHLI
+                        mardi  -- MADRI
+                        ml     -- MASTCAM, LEFT
+                        mr     -- MASTCAM, RIGHT
+                        nla    -- NAVCAM, LEFT, A
+                        nlb    -- NAVCAM, LEFT, B
+                        nra    -- NAVCAM, RIGHT, A
+                        nrb    -- NAVCAM, RIGHT, B
+
+                        aux    -- temporary IK for FOVs for MSL
+                                  instruments that don't yet have
+                                  their own IKs (CHEMCAM LIBS, RAD,
+                                  REMS, DAN, APXS, PADS, DRT, CHIMRA)
+
+                        struct -- antennas
+
+         [VER]       File version
+
+         [YYYYMMDD]  File creation date
+
+         [CC]        Camera calibration ID (for IKs derived from
+                     CAHVORE models).
+
+   If multiple versions of an IK file are provided for an instrument,
+   always use the file with the latest version or the latest creation
+   date/camera calibration ID (unless an earlier file is needed for
+   some special reason.)
+
+
+Kernel File Details
+===================
+
+   The most detailed description of the data in an IK file is provided
+   in metadata included inside the descriptive text areas within the
+   file. This information can be viewed using any text editor.
+
+
+Contact Information
+===================
+
+   Regarding MSL project specific information provided in this
+   data set and for general information about SPICE system:
+
+      Boris Semenov
+      (818)-354-8136
+      Boris.Semenov@jpl.nasa.gov
+
+   address:
+
+      Navigation and Ancillary Information Facility (NAIF)
+      Jet Propulsion Laboratory
+      MS 301-125L
+      4800 Oak Grove Drive
+      Pasadena CA 91109 USA

@@ -1,0 +1,74 @@
+PDS_VERSION_ID          = PDS3
+RECORD_TYPE             = STREAM
+
+OBJECT                  = TEXT
+   INTERCHANGE_FORMAT   = ASCII
+   PUBLICATION_DATE     = 2013-02-27
+   NOTE                 = "MSL FRAMES Kernel Information"
+END_OBJECT              = TEXT
+
+END
+
+
+General Information About SPICE FRAMES Kernels
+==============================================
+
+   In the SPICE system, FRAMES kernel contains a set of information
+   required to define various frames used in a particular mission,
+   sources of orientation and origin location information for these
+   frames and inter-connections between these frames and other frames
+   supported within the SPICE system.
+
+   The frame definitions information contained in the file can be
+   utilized in conjunction with other data using the SPICE Toolkit
+   APIs, calls to which can be integrated into user application
+   programs. The information regarding how to obtain the SPICE system
+   toolkit for a number of languages and computer platforms is located
+   in the ``/software'' subdirectory of the main directory of this data
+   set.
+
+   Refer to the ``frames.req'' document provided with the toolkit to get
+   more information about definition and usage of the frames within the
+   SPICE system.
+
+
+MSL FRAMES Kernels Provided in This Data Set
+============================================
+
+   The following Frames Kernel files are included in this data set (only
+   the name portion of the file name is shown on the right; the
+   extension of all file names is ".tf"):
+
+      msl_v[VER]           MSL Frames kernel file containing
+                           definitions for the MSL rover, instruments,
+                           and structures.
+
+   If this data set contains multiple FK files, the one with the latest
+   version ([VER]) supersedes all previous versions.
+
+
+Kernel File Details
+===================
+
+   The most detailed description of the data in an FK file is provided in
+   metadata included inside the descriptive text area of the file. This
+   information can be viewed using any text editor.
+
+
+Contact information
+===================
+
+   Regarding MSL project specific information provided in this
+   data set and for general information about SPICE system:
+
+      Boris Semenov
+      (818)-354-8136
+      Boris.Semenov@jpl.nasa.gov
+
+   address:
+
+      Navigation and Ancillary Information Facility (NAIF)
+      Jet Propulsion Laboratory
+      MS 301-125L
+      4800 Oak Grove Drive
+      Pasadena CA 91109 USA
