@@ -1177,6 +1177,7 @@ class InventoryPDS3Label(PDSLabel):
         if len(file_types) == 1:
             indexed_file_name = f"*.{file_types}"
         else:
+            file_types.sort()
             indexed_file_name = "{" + self.setup.eol_pds3
             for file_type in file_types:
                 indexed_file_name += f'{29*" "}  "*.{file_type}",{self.setup.eol_pds3}'
