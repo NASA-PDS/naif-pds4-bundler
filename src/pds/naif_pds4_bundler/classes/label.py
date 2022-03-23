@@ -880,10 +880,6 @@ class SpiceKernelPDS3Label(PDSLabel):
         #
         spiceypy.dafac(handle, new_commnt)
 
-        with open(self.product.name, 'w') as o:
-            for line in new_commnt:
-                o.write(line+'\n')
-
         #
         # Close file handle.
         #
