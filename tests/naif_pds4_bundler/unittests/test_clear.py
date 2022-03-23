@@ -21,7 +21,7 @@ class TestClear(TestCase):
         """
         print(f"NPB - Functional Tests - {cls.__name__}")
 
-        dirs = ["working", "staging", "insight", "kernels"]
+        dirs = ["working", "staging", "insight", "kernels", "ladee"]
         for dir in dirs:
             shutil.rmtree(dir, ignore_errors=True)
 
@@ -37,6 +37,13 @@ class TestClear(TestCase):
         print(f"    * {self._testMethodName}")
 
         os.chdir(os.path.dirname(__file__))
+
+        dirs = ["working", "staging", "kernels", "ladee"]
+        for dir in dirs:
+            try:
+                os.makedirs(dir, exist_ok=True)
+            except BaseException:
+                pass
 
     def tearDown(self):
         """Clean-up Test.
@@ -61,8 +68,6 @@ class TestClear(TestCase):
         plan = "../data/insight_release_08.plan"
         faucet = "bundle"
 
-        os.makedirs("working", mode=0o777, exist_ok=True)
-        os.makedirs("staging", mode=0o777, exist_ok=True)
         shutil.copy2(
             "../data/insight_release_basic.kernel_list",
             "working/insight_release_07.kernel_list",
@@ -117,19 +122,12 @@ class TestClear(TestCase):
         config = "../config/insight.xml"
 
         cwd = os.getcwd()
-        dirs = ["working", "staging", "insight"]
-        for dir in dirs:
-            os.makedirs(dir, 0o766, exist_ok=True)
 
         plan = "../data/insight_release_08.plan"
 
-        shutil.rmtree("insight")
         shutil.copytree("../data/insight", "insight")
-
-        try:
-            shutil.copytree("../data/kernels", "kernels")
-        except BaseException:
-            pass
+        shutil.rmtree("kernels")
+        shutil.copytree("../data/kernels", "kernels")
 
         #
         # Error validating the meta-kernel
@@ -163,10 +161,7 @@ class TestClear(TestCase):
 
         Test is successful if NPB is executed without errors.
         """
-        os.makedirs("working", mode=0o777, exist_ok=True)
-        os.makedirs("staging", mode=0o777, exist_ok=True)
-        os.makedirs("ladee", mode=0o777, exist_ok=True)
-        shutil.rmtree("kernels", ignore_errors=True)
+        shutil.rmtree("kernels")
         shutil.copytree(
             "../data/regression/ladee_spice/spice_kernels",
             "kernels",

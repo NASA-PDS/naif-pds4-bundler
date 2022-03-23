@@ -43,10 +43,12 @@ class TestPDS4(TestCase):
         unittest.TestCase.setUp(self)
         print(f"    * {self._testMethodName}")
 
-        dirs = ["working", "staging", "kernels", "insight", "ladee", "kplo",
-                "dart", "mars2020", "em16"]
+        dirs = ["working", "staging"]
         for dir in dirs:
-            shutil.rmtree(dir, ignore_errors=True)
+            try:
+                os.makedirs(dir, exist_ok=True)
+            except BaseException:
+                pass
 
     def tearDown(self):
         """Clean-up Test.
@@ -102,10 +104,6 @@ class TestPDS4(TestCase):
         self.config = f"../config/{self.mission}.xml"
         self.updated_config = f"working/{self.mission}.xml"
 
-        dirs = ["working", "staging", self.mission]
-        for dir in dirs:
-            os.makedirs(dir, 0o766, exist_ok=True)
-
         with open(self.config, "r") as c:
             with open(self.updated_config, "w") as n:
                 for line in c:
@@ -142,13 +140,8 @@ class TestPDS4(TestCase):
             "../data/insight_release_basic.kernel_list",
             "working/insight_release_07.kernel_list",
         )
-        shutil.rmtree("insight")
         shutil.copytree("../data/insight", "insight")
-
-        try:
-            shutil.copytree("../data/kernels", "kernels")
-        except BaseException:
-            pass
+        shutil.copytree("../data/kernels", "kernels")
 
         #
         # Remove the MK used for other tests. MK will be generated
@@ -165,6 +158,7 @@ class TestPDS4(TestCase):
         self.mission = "ladee"
         self.post_setup()
 
+        os.makedirs("ladee")
         shutil.copytree(
             "../data/regression/ladee_spice/spice_kernels",
             "kernels",
@@ -178,6 +172,7 @@ class TestPDS4(TestCase):
         self.mission = "kplo"
         self.post_setup()
 
+        os.makedirs("kplo")
         shutil.copytree(
             "../data/regression/kplo_spice/spice_kernels",
             "kernels",
@@ -197,6 +192,7 @@ class TestPDS4(TestCase):
         self.mission = "mars2020"
         self.post_setup()
 
+        os.makedirs("mars2020")
         shutil.copytree(
             "../data/regression/mars2020_spice/spice_kernels",
             "kernels",
@@ -250,26 +246,11 @@ class TestPDS4(TestCase):
             "kernels",
             ignore=shutil.ignore_patterns("*.xml", "*.csv"),
         )
-
-        shutil.rmtree("em16")
         shutil.copytree("../data/em16", "em16")
 
         plan = '../data/em16_release_04.plan'
 
         main(self.updated_config, plan=plan, silent=self.silent, log=self.log)
-
-#    def test_dart(self):
-#        '''
-#        Test to generate the DART archive. This test includes multiple
-#        targets and spacecrafts.
-#        '''
-#        config = '../config/dart.xml'x``
-#
-#        shutil.copytree('/Users/mcosta/workspace/dart/DART/kernels/','kernels',
-#                        ignore=shutil.ignore_patterns('*.xml','*.csv'))
-#
-#        main(config, silent=False, verbose=False, log=True, diff='files')
-#        print('')
 
 
 if __name__ == "__main__":

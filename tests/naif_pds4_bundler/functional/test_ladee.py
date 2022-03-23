@@ -39,6 +39,13 @@ class TestLADEE(TestCase):
 
         os.chdir(os.path.dirname(__file__))
 
+        dirs = ["working", "staging", "ladee"]
+        for dir in dirs:
+            try:
+                os.makedirs(dir, exist_ok=True)
+            except BaseException:
+                pass
+
     def tearDown(self):
         """Clean-up Test.
 
@@ -61,10 +68,6 @@ class TestLADEE(TestCase):
 
         Test is successful if NPB is executed without errors.
         """
-        os.makedirs("working", mode=0o777, exist_ok=True)
-        os.makedirs("staging", mode=0o777, exist_ok=True)
-        os.makedirs("ladee", mode=0o777, exist_ok=True)
-        shutil.rmtree("kernels", ignore_errors=True)
         shutil.copytree(
             "../data/regression/ladee_spice/spice_kernels",
             "kernels",
@@ -92,10 +95,6 @@ class TestLADEE(TestCase):
         """
         config = "../config/ladee.xml"
 
-        os.makedirs("working", mode=0o777, exist_ok=True)
-        os.makedirs("staging", mode=0o777, exist_ok=True)
-        os.makedirs("ladee", mode=0o777, exist_ok=True)
-        shutil.rmtree("kernels", ignore_errors=True)
         shutil.copytree(
             "../data/regression/ladee_spice/spice_kernels",
             "kernels",
@@ -120,10 +119,6 @@ class TestLADEE(TestCase):
         config = "../config/ladee.xml"
         updated_config = "working/ladee.xml"
 
-        os.makedirs("working", mode=0o777, exist_ok=True)
-        os.makedirs("staging", mode=0o777, exist_ok=True)
-        os.makedirs("ladee", mode=0o777, exist_ok=True)
-        shutil.rmtree("kernels", ignore_errors=True)
         shutil.copytree(
             "../data/regression/ladee_spice/spice_kernels",
             "kernels",
@@ -140,9 +135,6 @@ class TestLADEE(TestCase):
 
         with self.assertRaises(XMLSchemaValidationError):
             main(updated_config, plan=False, silent=self.silent, log=self.log)
-
-        shutil.rmtree("ladee", ignore_errors=True)
-        os.makedirs("ladee", mode=0o777, exist_ok=True)
 
         with open(config, "r") as c:
             with open(updated_config, "w") as n:

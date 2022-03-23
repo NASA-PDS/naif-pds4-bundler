@@ -37,17 +37,14 @@ class TestINSIGHT(TestCase):
         unittest.TestCase.setUp(self)
         print(f"    * {self._testMethodName}")
 
-        try:
-            os.makedirs("working", mode=0o777, exist_ok=True)
-        except BaseException:
-            pass
-
-        try:
-            os.makedirs("staging", mode=0o777, exist_ok=True)
-        except BaseException:
-            pass
-
         os.chdir(os.path.dirname(__file__))
+
+        dirs = ["working", "staging"]
+        for dir in dirs:
+            try:
+                os.makedirs(dir, exist_ok=True)
+            except BaseException:
+                pass
 
     def tearDown(self):
         """Clean-up Test.
@@ -78,7 +75,6 @@ class TestINSIGHT(TestCase):
             "../data/insight_release_basic.kernel_list",
             "working/insight_release_07.kernel_list",
         )
-        shutil.rmtree("insight", ignore_errors=True)
         shutil.copytree("../data/insight", "insight")
         shutil.rmtree("kernels", ignore_errors=True)
         shutil.copytree("../data/kernels", "kernels")
@@ -104,8 +100,6 @@ class TestINSIGHT(TestCase):
         plan = "../data/insight_release_08.plan"
         faucet = "staging"
 
-        os.makedirs("staging", mode=0o777, exist_ok=True)
-        os.makedirs("working", mode=0o777, exist_ok=True)
         shutil.copytree("../data/kernels", "kernels")
         for file in glob.glob("data/insight_release_0[0-7].kernel_list"):
             shutil.copy2(file, "working")
@@ -167,11 +161,10 @@ class TestINSIGHT(TestCase):
         plan = "../data/insight_release_08.plan"
         faucet = "staging"
 
-        os.makedirs("staging", mode=0o777, exist_ok=True)
-        os.makedirs("working", mode=0o777, exist_ok=True)
         shutil.copytree("../data/kernels", "kernels")
         for file in glob.glob("../data/insight_release_0[0-7].kernel_list"):
             shutil.copy2(file, "working")
+
         shutil.copytree("../data/insight", "insight")
 
         main(config, plan, faucet, silent=self.silent, log=self.log, diff="log")
@@ -190,11 +183,12 @@ class TestINSIGHT(TestCase):
         plan = "../data/insight_release_08.plan"
         faucet = "staging"
 
+        os.makedirs("insight", exist_ok=True)
         shutil.copytree("../data/kernels", "kernels")
         for file in glob.glob("../data/insight_release_0[0-7].kernel_list"):
             shutil.copy2(file, "working")
 
-        os.makedirs("insight/insight_spice/spice_kernels/sclk", mode=0o777, exist_ok=True)
+        os.makedirs("insight/insight_spice/spice_kernels/sclk", exist_ok=True)
         shutil.copy2(
             "../data/insight/insight_spice/spice_kernels/sclk/marcob_fake_v01.xml",
             "insight/insight_spice/spice_kernels/sclk",
@@ -221,13 +215,14 @@ class TestINSIGHT(TestCase):
         plan = "../data/insight_release_08.plan"
         faucet = "staging"
 
-        os.makedirs("working", mode=0o777, exist_ok=True)
         shutil.copytree("../data/kernels", "kernels")
         for file in glob.glob("../data/insight_release_0[0-7].kernel_list"):
             shutil.copy2(file, "working")
 
         shutil.rmtree("staging")
         shutil.copytree("../data/insight", "staging")
+        os.makedirs("insight", exist_ok=True)
+
 
         #
         # The files that are added on top of the staging area need to have
@@ -267,8 +262,6 @@ class TestINSIGHT(TestCase):
             "staging/insight_spice/spice_kernels/mk/",
         )
 
-        os.makedirs("insight", mode=0o777, exist_ok=True)
-
         main(config, plan, faucet, silent=self.silent, log=self.log)
 
     def test_insight_previous_spiceds(self):
@@ -284,12 +277,7 @@ class TestINSIGHT(TestCase):
         plan = "../data/insight_release_08.plan"
         faucet = "staging"
 
-        shutil.rmtree("kernels", ignore_errors=True)
-        shutil.copytree(
-            "../data/kernels",
-            "kernels",
-        )
-        shutil.rmtree("insight", ignore_errors=True)
+        shutil.copytree("../data/kernels", "kernels")
         shutil.copytree("../data/insight", "insight")
 
         with open(config, "r") as c:
@@ -406,7 +394,8 @@ class TestINSIGHT(TestCase):
         faucet = "staging"
 
         shutil.copytree("../data/kernels", "kernels")
-        os.makedirs("insight", mode=0o777, exist_ok=True)
+        os.makedirs("insight", exist_ok=True)
+
 
         with open(config, "r") as c:
             with open(updated_config, "w") as n:
@@ -479,8 +468,8 @@ class TestINSIGHT(TestCase):
         plan = "working/insight.plan"
         faucet = "staging"
 
+        os.makedirs("insight", exist_ok=True)
         shutil.copytree("../data/kernels", "kernels")
-        os.makedirs("insight", mode=0o777, exist_ok=True)
 
         with open(config, "r") as c:
             with open(updated_config, "w") as n:
@@ -535,17 +524,11 @@ class TestINSIGHT(TestCase):
         plan = "../data/insight_release_00.plan"
         faucet = "bundle"
 
-        dirs = ["working", "staging", "insight"]
-        for dir in dirs:
-            os.makedirs(dir, 0o766, exist_ok=True)
-
         shutil.copy2(
             "../data/insight_release_basic.kernel_list",
             "working/insight_release_07.kernel_list",
         )
-        shutil.rmtree("insight")
         shutil.copytree("../data/insight", "insight")
-        shutil.rmtree("kernels", ignore_errors=True)
         shutil.copytree("../data/kernels", "kernels")
         os.remove("kernels/mk/insight_v08.tm")
         shutil.copy2("../data/insight_v00.tm", "working/insight_v00.tm")
@@ -601,17 +584,11 @@ class TestINSIGHT(TestCase):
         plan = "../data/insight_release_00.plan"
         faucet = "bundle"
 
-        dirs = ["working", "staging", "insight"]
-        for dir in dirs:
-            os.makedirs(dir, 0o766, exist_ok=True)
-
         shutil.copy2(
             "../data/insight_release_basic.kernel_list",
             "working/insight_release_07.kernel_list",
         )
-        shutil.rmtree("insight")
         shutil.copytree("../data/insight", "insight")
-        shutil.rmtree("kernels", ignore_errors=True)
         shutil.copytree("../data/kernels", "kernels")
         shutil.copy2("../data/insight_v08.tm", "working/insight_v08.tm")
 
@@ -635,12 +612,8 @@ class TestINSIGHT(TestCase):
 
         Test is successful if NPB is executed without errors.
         """
-        dirs = ["working", "staging", "insight"]
-        for dir in dirs:
-            os.makedirs(dir, 0o766, exist_ok=True)
-
-        shutil.rmtree("kernels", ignore_errors=True)
         shutil.copytree("../data/kernels", "kernels")
+        os.makedirs("insight", exist_ok=True)
 
         config = "../config/insight.xml"
         plan = "working/insight.plan"
@@ -721,9 +694,8 @@ class TestINSIGHT(TestCase):
         plan = "../data/insight_release_08.plan"
         faucet = "staging"
 
+        os.makedirs("insight", exist_ok=True)
         shutil.copytree("../data/kernels", "kernels")
-
-        os.makedirs("insight", mode=0o777, exist_ok=True)
 
         with open(config, "r") as c:
             with open(updated_config, "w") as n:
@@ -748,12 +720,11 @@ class TestINSIGHT(TestCase):
         plan = "../data/insight_release_08.plan"
         faucet = "bundle"
 
+        os.makedirs("insight", exist_ok=True)
         shutil.copytree("../data/kernels", "kernels")
 
         for file in glob.glob("../data/insight_release_0[0-7].kernel_list"):
             shutil.copy2(file, "working")
-
-        os.makedirs("insight")
 
         main(config, plan, faucet, silent=self.silent, log=self.log)
 
@@ -774,9 +745,8 @@ class TestINSIGHT(TestCase):
         plan = "../data/insight_release_08.plan"
         faucet = "bundle"
 
+        os.makedirs("insight", exist_ok=True)
         shutil.copytree("../data/kernels", "kernels")
-
-        os.makedirs("insight")
 
         write_config = True
         with open(config, "r") as c:
@@ -805,12 +775,11 @@ class TestINSIGHT(TestCase):
         plan = "../data/insight_release_08.plan"
         faucet = "bundle"
 
+        os.makedirs("insight", exist_ok=True)
         shutil.copytree("../data/kernels", "kernels")
 
         for file in glob.glob("../data/insight_release_0[0-7].kernel_list"):
             shutil.copy2(file, "working")
-
-        os.makedirs("insight")
 
         write_config = True
         with open(config, "r") as c:
@@ -837,12 +806,11 @@ class TestINSIGHT(TestCase):
         config = "../config/insight.xml"
         faucet = "bundle"
 
-        os.makedirs("kernels", mode=0o777, exist_ok=True)
+        os.makedirs("insight", exist_ok=True)
+        os.makedirs("kernels", exist_ok=True)
 
         for file in glob.glob("../data/insight_release_0[0-7].kernel_list"):
             shutil.copy2(file, "working")
-
-        os.makedirs("insight")
 
         main(config, plan=False, faucet=faucet, silent=self.silent, log=self.log)
 
@@ -857,11 +825,10 @@ class TestINSIGHT(TestCase):
         config = "../config/insight.xml"
         faucet = "bundle"
 
-        os.makedirs("kernels", mode=0o777, exist_ok=True)
-
         for file in glob.glob("../data/insight_release_0[0-7].kernel_list"):
             shutil.copy2(file, "working")
 
+        os.makedirs("kernels", exist_ok=True)
         shutil.copytree("../data/insight", "insight")
 
         main(config, plan=False, faucet=faucet, silent=self.silent, log=self.log)
@@ -877,12 +844,12 @@ class TestINSIGHT(TestCase):
         updated_config = "working/insight.xml"
         faucet = "bundle"
 
-        os.makedirs("kernels", mode=0o777, exist_ok=True)
-
         for file in glob.glob("../data/insight_release_0[0-7].kernel_list"):
             shutil.copy2(file, "working")
 
         shutil.copytree("../data/insight", "insight")
+        os.makedirs("kernels", exist_ok=True)
+
 
         with open(config, "r") as c:
             with open(updated_config, "w") as n:
@@ -892,9 +859,7 @@ class TestINSIGHT(TestCase):
                     else:
                         n.write(line)
 
-        main(
-            updated_config, plan=False, faucet=faucet, silent=self.silent, log=self.log
-        )
+        main(updated_config, plan=False, faucet=faucet, silent=self.silent, log=self.log)
 
     def test_insight_extra_mk_pattern(self):
         """Test to generate the INSIGHT archive with an extra MK pattern.
@@ -905,15 +870,10 @@ class TestINSIGHT(TestCase):
         plan = "../data/insight_release_08.plan"
         updated_config = "working/insight_updated.xml"
 
-        dirs = ["working", "staging", "insight"]
-        for dir in dirs:
-            os.makedirs(dir, 0o766, exist_ok=True)
-
         shutil.copy2(
             "../data/insight_release_basic.kernel_list",
             "working/insight_release_07.kernel_list",
         )
-        shutil.rmtree("insight")
         shutil.copytree("../data/insight", "insight")
 
         with open(config, "r") as c:
@@ -963,12 +923,9 @@ class TestINSIGHT(TestCase):
         plan = "working/insight_release_08.plan"
         updated_config = "working/insight_updated.xml"
 
-        dirs = ["working", "staging", "insight"]
-        for dir in dirs:
-            os.makedirs(dir, 0o766, exist_ok=True)
-        shutil.rmtree("insight")
         os.mkdir("insight")
         shutil.copytree("../data/regression/insight_spice", "insight/insight_spice")
+        shutil.copytree("../data/kernels", "kernels")
 
         with open(config, "r") as c:
             with open(updated_config, "w") as n:
@@ -986,17 +943,10 @@ class TestINSIGHT(TestCase):
         with open(plan, "w") as n:
             n.write("insight_2021_v08.tm")
 
-        try:
-            shutil.copytree("../data/kernels", "kernels")
-        except BaseException:
-            pass
-
         shutil.copy2("../data/kernels/mk/insight_v08.tm",
                      "kernels/mk/insight_2021_v08.tm")
 
-        main(
-            updated_config, plan, faucet="bundle", silent=self.silent, log=self.log
-        )
+        main(updated_config, plan, faucet="bundle", silent=self.silent, log=self.log)
 
 
 if __name__ == "__main__":

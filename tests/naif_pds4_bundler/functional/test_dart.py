@@ -38,6 +38,14 @@ class TestDART(TestCase):
 
         os.chdir(os.path.dirname(__file__))
 
+        dirs = ["working", "staging", "dart"]
+        for dir in dirs:
+            try:
+                os.makedirs(dir, exist_ok=True)
+            except BaseException:
+                pass
+
+
     def tearDown(self):
         """Clean-up Test.
 
@@ -62,11 +70,6 @@ class TestDART(TestCase):
         Test is successful if NPB is executed without errors.
         """
         config = "../config/dart.xml"
-
-        os.makedirs("working", mode=0o777, exist_ok=True)
-        os.makedirs("staging", mode=0o777, exist_ok=True)
-        os.makedirs("dart", mode=0o777, exist_ok=True)
-        shutil.rmtree("kernels", ignore_errors=True)
         shutil.copytree("../data/kernels", "kernels")
 
         main(config, plan=False, faucet="bundle", silent=self.silent, log=self.log)

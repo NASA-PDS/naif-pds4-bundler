@@ -43,9 +43,21 @@ class TestPDS3(TestCase):
         unittest.TestCase.setUp(self)
         print(f"    * {self._testMethodName}")
 
-        dirs = ["working", "staging", "kernels"]
+        os.chdir(os.path.dirname(__file__))
+
+        dirs = ["working", "staging", "kernels", "staging/mslsp_1000/", "staging/mslsp_1000/catalog",
+                "msl-m-spice-6-v1.0"]
         for dir in dirs:
-            shutil.rmtree(dir, ignore_errors=True)
+            try:
+                os.makedirs(dir, exist_ok=True)
+            except BaseException:
+                pass
+
+        #
+        # Use the appropriate endianness for the system.
+        #
+        #if sys.byteorder == 'little':
+        #    print('LTL-IEEE')
 
     def tearDown(self):
         """Clean-up Test.
@@ -102,27 +114,13 @@ class TestPDS3(TestCase):
             shutil.rmtree(dir, ignore_errors=True)
             pass
 
-    def post_setup(self):
-        """Ensures release and creation date time is fixed for the test."""
-        self.config = f"../config/{self.mission}.xml"
-
-        dirs = ["working", "staging", "staging/mslsp_1000",
-                "staging/mslsp_1000/catalog", self.pds3_dir]
-        for dir in dirs:
-            os.makedirs(dir, 0o766, exist_ok=True)
-        #
-        # Use the appropriate endianness for the system.
-        #
-        #if sys.byteorder == 'little':
-        #    print('LTL-IEEE')
-
     def test_msl(self):
         """Test to generate a MSL data set increment."""
         self.mission = "msl"
+        self.config = f"../config/msl.xml"
         self.pds3_dir = "msl-m-spice-6-v1.0"
         self.volid = "mslsp_1000"
         self.release = "29"
-        self.post_setup()
 
         plan = "working/msl_release_29.plan"
 

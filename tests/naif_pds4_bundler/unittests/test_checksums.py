@@ -9,7 +9,7 @@ from pds.naif_pds4_bundler.utils.files import string_in_file
 
 
 class TestSpiceErrors(TestCase):
-    """Unit Test Family Class for for Product Checksum Generation."""
+    """Unit Test Family Class for Product Checksum Generation."""
 
     @classmethod
     def setUpClass(cls):
@@ -98,8 +98,11 @@ class TestSpiceErrors(TestCase):
         dirs = ["working", "mars2020"]
         for dir in dirs:
             shutil.rmtree(dir, ignore_errors=True)
-        os.mkdir("working")
-        os.mkdir("mars2020")
+        try:
+            os.mkdir("working")
+            os.mkdir("mars2020")
+        except BaseException:
+            pass
 
         main(config, plan=plan, silent=self.silent, log=self.log,
              checksum=True)

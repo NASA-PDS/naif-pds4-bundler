@@ -37,6 +37,8 @@ class TestMars2020(TestCase):
         unittest.TestCase.setUp(self)
         print(f"    * {self._testMethodName}")
 
+        os.chdir(os.path.dirname(__file__))
+
         dirs = [
             "working",
             "staging",
@@ -58,8 +60,6 @@ class TestMars2020(TestCase):
         shutil.copy2(
             "../data/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp", "kernels/spk/"
         )
-
-        os.chdir(os.path.dirname(__file__))
 
     def tearDown(self):
         """Clean-up Test.
