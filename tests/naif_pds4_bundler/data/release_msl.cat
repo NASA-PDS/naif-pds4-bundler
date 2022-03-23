@@ -59,7 +59,7 @@ OBJECT                          = DATA_SET_RELEASE
   DATA_PROVIDER_NAME              = "JPL-NAIF"
   RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0002"
   DESCRIPTION                     = "
-    This release contains MSL SPICE Kernels for EDL and Sols 
+    This release contains MSL SPICE Kernels for EDL and Sols
     90 to 179 of the Primary Surface Mission."
 END_OBJECT                      = DATA_SET_RELEASE
 
@@ -74,7 +74,7 @@ OBJECT                          = DATA_SET_RELEASE
   DATA_PROVIDER_NAME              = "JPL-NAIF"
   RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0003"
   DESCRIPTION                     = "
-    This release contains MSL SPICE Kernels for Sols 
+    This release contains MSL SPICE Kernels for Sols
     179 to 269 of the Primary Surface Mission."
 END_OBJECT                      = DATA_SET_RELEASE
 
@@ -89,7 +89,7 @@ OBJECT                          = DATA_SET_RELEASE
   DATA_PROVIDER_NAME              = "JPL-NAIF"
   RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0004"
   DESCRIPTION                     = "
-    This release contains MSL SPICE Kernels for Sols 
+    This release contains MSL SPICE Kernels for Sols
     269 to 359 of the Primary Surface Mission."
 END_OBJECT                      = DATA_SET_RELEASE
 
@@ -104,7 +104,7 @@ OBJECT                          = DATA_SET_RELEASE
   DATA_PROVIDER_NAME              = "JPL-NAIF"
   RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0005"
   DESCRIPTION                     = "
-    This release contains MSL SPICE Kernels for Sols 
+    This release contains MSL SPICE Kernels for Sols
     359 to 449 of the Primary Surface Mission."
 END_OBJECT                      = DATA_SET_RELEASE
 
@@ -119,7 +119,7 @@ OBJECT                          = DATA_SET_RELEASE
   DATA_PROVIDER_NAME              = "JPL-NAIF"
   RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0006"
   DESCRIPTION                     = "
-    This release contains MSL SPICE Kernels for Sols 
+    This release contains MSL SPICE Kernels for Sols
     449 to 583 of the Primary Surface Mission."
 END_OBJECT                      = DATA_SET_RELEASE
 
@@ -134,7 +134,7 @@ OBJECT                          = DATA_SET_RELEASE
   DATA_PROVIDER_NAME              = "JPL-NAIF"
   RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0007"
   DESCRIPTION                     = "
-    This release contains MSL SPICE Kernels for Sols 
+    This release contains MSL SPICE Kernels for Sols
     583 to 707 of the Primary Surface Mission."
 END_OBJECT                      = DATA_SET_RELEASE
 
@@ -149,7 +149,7 @@ OBJECT                          = DATA_SET_RELEASE
   DATA_PROVIDER_NAME              = "JPL-NAIF"
   RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0008"
   DESCRIPTION                     = "
-    This release contains MSL SPICE Kernels for Sols 
+    This release contains MSL SPICE Kernels for Sols
     707 to 804 of the Primary/Extended Surface Missions."
 END_OBJECT                      = DATA_SET_RELEASE
 
@@ -164,7 +164,7 @@ OBJECT                          = DATA_SET_RELEASE
   DATA_PROVIDER_NAME              = "JPL-NAIF"
   RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0009"
   DESCRIPTION                     = "
-    This release contains MSL SPICE Kernels for Sols 
+    This release contains MSL SPICE Kernels for Sols
     804 to 938 of the Extended Surface Mission."
 END_OBJECT                      = DATA_SET_RELEASE
 
@@ -179,7 +179,7 @@ OBJECT                          = DATA_SET_RELEASE
   DATA_PROVIDER_NAME              = "JPL-NAIF"
   RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0010"
   DESCRIPTION                     = "
-    This release contains MSL SPICE Kernels for Sols 
+    This release contains MSL SPICE Kernels for Sols
     938 to 1062 of the Extended Surface Mission."
 END_OBJECT                      = DATA_SET_RELEASE
 
@@ -194,7 +194,7 @@ OBJECT                          = DATA_SET_RELEASE
   DATA_PROVIDER_NAME              = "JPL-NAIF"
   RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0011"
   DESCRIPTION                     = "
-    This release contains MSL SPICE Kernels for Sols 
+    This release contains MSL SPICE Kernels for Sols
     1062 to 1159 of the Extended Surface Mission."
 END_OBJECT                      = DATA_SET_RELEASE
 
@@ -209,7 +209,7 @@ OBJECT                          = DATA_SET_RELEASE
   DATA_PROVIDER_NAME              = "JPL-NAIF"
   RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0012"
   DESCRIPTION                     = "
-    This release contains MSL SPICE Kernels for Sols 
+    This release contains MSL SPICE Kernels for Sols
     1160 to 1293 of the Extended Surface Mission."
 END_OBJECT                      = DATA_SET_RELEASE
 
@@ -300,9 +300,9 @@ OBJECT                          = DATA_SET_RELEASE
   RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0018"
   DESCRIPTION                     = "
     This release contains MSL SPICE Kernels for Sols
-    1870 to 2003 of the Extended Surface Mission. This 
-    release is the first release in which a localized 
-    rover path SPK was added to the archive. This SPK 
+    1870 to 2003 of the Extended Surface Mission. This
+    release is the first release in which a localized
+    rover path SPK was added to the archive. This SPK
     covers Sols 0000 to 2003."
 END_OBJECT                      = DATA_SET_RELEASE
 

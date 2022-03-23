@@ -84,19 +84,16 @@ class TestPDS3(TestCase):
 
                 with open(product) as ff:
                     fromlines = ff.read().splitlines()
-                    fromlines = [
-                        item
-                        for item in fromlines
-                        if ("PRODUCT_CREATION_TIME" not in item)
-                    ]
+                    fromlines = [item for item in fromlines if ("PRODUCT_CREATION_TIME" not in item)]
+                    fromlines = list(map(str.rstrip, fromlines))
+                    while ("" in fromlines):
+                        fromlines.remove("")
                 with open(test_product) as tf:
                     tolines = tf.read().splitlines()
-                    tolines = [
-                        item
-                        for item in tolines
-                        if ("PRODUCT_CREATION_TIME" not in item)
-                    ]
-
+                    tolines = [item for item in tolines if ("PRODUCT_CREATION_TIME" not in item)]
+                    tolines = list(map(str.rstrip, tolines))
+                    while ("" in tolines):
+                        tolines.remove("")
                 if fromlines != tolines:
                     print(f"Assertion False for: {product}")
                     self.assertTrue(False)

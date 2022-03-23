@@ -29,7 +29,7 @@ LABEL_REVISION_NOTE                  = "
   2021-03-05 NAIF:Costa changed STOP_TIME and CITATION_DESC;
   2021-04-12 NAIF:Costa updated CITATION_DESC with DOI;
   2021-07-29 NAIF:Costa changed STOP_TIME;
-  2021-11-30 NAIF:Costa changed STOP_TIME;  
+  2021-11-30 NAIF:Costa changed STOP_TIME;
   2022-02-28 NAIF:Costa changed STOP_TIME;
   "
 OBJECT                               = DATA_SET
@@ -50,8 +50,8 @@ OBJECT                               = DATA_SET
       relevant time conversions.
       "
     CITATION_DESC                    = "
-      Semenov, B.V., C.H. Acton, and M. Costa Sitja, 
-      MSL SPICE KERNELS V1.0, MSL-M-SPICE-6-V1.0, 
+      Semenov, B.V., C.H. Acton, and M. Costa Sitja,
+      MSL SPICE KERNELS V1.0, MSL-M-SPICE-6-V1.0,
       NASA Planetary Data System, 2013.
       https://doi.org/10.17189/1520113
       "
@@ -60,7 +60,7 @@ OBJECT                               = DATA_SET
     STOP_TIME                        = 2021-11-07T00:32:29
     DATA_SET_RELEASE_DATE            = 2013-02-27
     PRODUCER_FULL_NAME               = "MARC COSTA SITJA"
-    DATA_OBJECT_TYPE                 = "SPICE KERNEL" 
+    DATA_OBJECT_TYPE                 = "SPICE KERNEL"
     DETAILED_CATALOG_FLAG            = "Y"
     DATA_SET_DESC                    = "
 
@@ -85,13 +85,13 @@ OBJECT                               = DATA_SET
 
       Data Types (SPICE kernel types)
       ===============================
-   
+
       SPK kernels contain ephemerides for spacecraft, planets,
       satellites, comets and asteroids as well as for moving or fixed
       spacecraft and instrument structures. They provide position and
       velocity, given in a Cartesian reference frame. SPK files are
       located under the ``data/spk'' directory of this data set.
-      
+
       PCK kernels contain certain physical, dynamical and cartographic
       constants for target bodies, such as size and shape
       specifications, and orientation of the spin axis and prime
@@ -131,11 +131,11 @@ OBJECT                               = DATA_SET
       within the SPICE system. This includes mounting alignment
       information for each instrument. FK files are located under the
       ``data/fk'' directory of this data set.
-      
+
 
       Kernel File Details
       ===================
-      
+
       A brief overview of the different types of MSL kernels included
       in this data set is provided in the CONFIDENCE_LEVEL_NOTE section
       of this file while details specific to individual files are found
@@ -145,17 +145,17 @@ OBJECT                               = DATA_SET
       description area of text kernels or in the comment area of binary
       kernels.
 
-   
+
       Software
       ========
-   
+
       The SPICE Toolkit contains software modules needed to read SPICE
       kernel files. SPICE software is highly documented via internal
       headers. Additional documentation is available in separate ASCII
       text files called Required Reading files. For example, the S- and
       P- Kernel (SPK) Required Reading File, named SPK.REQ, describes
       use of the SPK kernel file readers and contains sample programs.
- 
+
       The latest SPICE Toolkit for a variety of computer platforms such
       as PC, Mac, SUN, etc. is available at the NAIF Node of PDS
       electronically (via anonymous FTP and WWW servers). Refer to
@@ -166,7 +166,7 @@ OBJECT                               = DATA_SET
 
       Loading Kernel Files into a SPICE-based Application
       ===================================================
- 
+
       The easiest way to make data from a collection of SPICE kernels
       available to a SPICE-based application is to list these kernels
       in a meta-kernel and load it into the program using the high
@@ -176,7 +176,7 @@ OBJECT                               = DATA_SET
       ``extras/mk/mkinfo.txt''.
 
       "
-      
+
     CONFIDENCE_LEVEL_NOTE            = "
 
       This data set contains SPICE kernel files created during mission
@@ -194,23 +194,23 @@ OBJECT                               = DATA_SET
       (PCK, IK, FK, LSK, SCLK, MK), accessible by using any available
       text file display tool such as a word processor, text editor, or
       the unix ``more'' or ``cat'' commands.
- 
+
       Where there are questions about data accuracy or ``confidence''
       not addressed herein the reader is invited to contact the NAIF
       node of the Planetary Data System for possible further
       information.
-      
+
       SPK Files
       =========
 
-      Six kinds of SPK files are provided in this archive: 
+      Six kinds of SPK files are provided in this archive:
 
         -- cruise trajectory SPK
- 
+
         -- EDL trajectory SPK
-  
+
         -- landing site location SPK
- 
+
         -- localized rover path and site locations SPKs
 
         -- telemetry-based rover path and site locations SPKs
@@ -243,13 +243,13 @@ OBJECT                               = DATA_SET
         frame (IAU_MARS, based on IAU 2000 Mars rotation constants),
         determined by the MSL Localization Group, JPL. The informal
         accuracy estimate for the landing site location is TBD.
- 
+
       Localized Rover path and site locations SPKs
       --------------------------------------------
         The localized rover path and site location SPK files contain the
         locations of the sites along the path relative to the center
         Mars and the location of the rover relative to the center of
-        Mars. 
+        Mars.
 
         These SPKs were created using localized data available in the
         PLACES server developed and maintained by the MSL Operations
@@ -303,7 +303,7 @@ OBJECT                               = DATA_SET
         ephemeris data for the Solar System planet barycenters, Sun,
         Mercury, Venus, Earth, Moon, Mars, and Martian moons. These
         versions of ephemerides were officially used by the project
-        during mission operations. The internal comments included within 
+        during mission operations. The internal comments included within
         these SPK files provide detailed accuracy information.
 
       Rover structures and instruments locations SPK
@@ -315,10 +315,10 @@ OBJECT                               = DATA_SET
         from the spacecraft engineering drawings and CAHVORE camera
         model files.
 
-      
+
       CK Files
       ========
-      
+
       Four kinds of C-kernel files are provided in this archive:
 
         -- cruise orientation CKs
@@ -326,7 +326,7 @@ OBJECT                               = DATA_SET
         -- EDL orientation CK
 
         -- rover orientation CKs
- 
+
         -- RSM, RA, and HGA orientation CKs
 
       Each kind of file is briefly described below; more information is
@@ -359,7 +359,7 @@ OBJECT                               = DATA_SET
       Rover orientation CKs
       ---------------------
         The rover orientation CK files contain the orientation of the
-        rover relative to the local level frame. 
+        rover relative to the local level frame.
 
         These CKs were created using telemetry data available in the
         PLACES server developed and maintained by the MSL OPGS Team.
@@ -372,7 +372,7 @@ OBJECT                               = DATA_SET
         containing rover orientation during motion periods. For this
         reason, these CKs do not provide real data during motion but
         instead provide interpolated values.
- 
+
         Due to incomplete source data these CKs have gaps in coverage,
         which can be closed, if needed, using the CKSPANIT utility
         program.
@@ -382,7 +382,7 @@ OBJECT                               = DATA_SET
         The rover structure orientation CK files contain the
         orientation of the RSM, RA, and High Gain Antenna (HGA)
         relative to the rover frame.
-  
+
         These CKs were created using telemetry data available in the
         PLACES server developed and maintained by the MSL OPGS Team.
         The set of telemetry data in the PLACES server included
@@ -415,15 +415,15 @@ OBJECT                               = DATA_SET
 
       PCK Files
       =========
-      
+
       PCK files provide size, shape and orientation data for ``target''
       bodies such as Mars. A description of these data items and
       reference to their source is provided inside the PCK file, which
       is a simple text file that can be viewed using any word
       processor, text editor or text display utility.
-  
+
       This data set includes the generic PCK file based on the
-      IAU/IAG/COSPAR values published in 2000. 
+      IAU/IAG/COSPAR values published in 2000.
 
       More information about the PCK files included in this data set is
       available in the file ``data/pck/pckinfo.txt''.
@@ -431,7 +431,7 @@ OBJECT                               = DATA_SET
 
       FK Files
       ========
-      
+
       Frames kernel files provide specifications for how one reference
       frame is defined relative to another frame. A description of
       these specifications and references to their source is provided
@@ -446,14 +446,14 @@ OBJECT                               = DATA_SET
       consists of the frame definitions, description of the frame
       relationships, source of and accuracy of the mounting alignment
       information, etc.
- 
+
       More information about the MSL FK files is available in the file
       ``data/fk/fkinfo.txt''.
 
 
       IK Files
       ========
-      
+
       Instrument kernel files provide specifications for geometric
       parameters and--where applicable--field-of-view size, shape and
       orientation for the named instruments. Metadata describing these
@@ -463,28 +463,28 @@ OBJECT                               = DATA_SET
       from analysis of in-flight calibration data. The accuracy
       estimates for these data vary from instrument to instrument and,
       where available, are included in the IK internal comments.
- 
+
       This data set includes IK files for all rover cameras, a few
       other rover-mounted instruments, and all cruise stage, descent
       stage and rover mounted antennas.
- 
+
       Because the sets of geometric parameters included in the IKs vary
       from instrument to instrument users are encouraged to carefully
       examine the IKs before using them.
- 
+
       More information about MSL IK files is available in the file
       ``data/ik/ikinfo.txt''.
 
-            
+
       SCLK Files
       ==========
-      
+
       Spacecraft Clock kernel files provide a tabulation of data needed
       for converting time measurements between ephemeris time (ET) and
       spacecraft clock time (SCLK). For surface missions like MSL SCLK
       kernel files are also used to provide data for conversions between
       ET and Local Mean Solar Time (LMST).
- 
+
       The ``data/sclk/sclkinfo.txt'' file provides names of and/or
       explains naming convention for each of the SCLK types provided in
       this data set.
@@ -496,7 +496,7 @@ OBJECT                               = DATA_SET
         MSL spacecraft clock time (SCLK). They are made from similar
         files -- SCLK/SCET file, or SCLKvSCET file -- produced by
         another mission entity.
- 
+
         The official on-board correlation SCLK files used in operations
         and included in this data set provide correlation that is
         incorrect in an absolute sense by as much as 3 minutes during
@@ -843,31 +843,31 @@ OBJECT                               = DATA_SET
           LTST-SOL-2980-12:00:00   LMST-SOL-2980-12:50:22
           LTST-SOL-2990-12:00:00   LMST-SOL-2990-12:49:10
           LTST-SOL-3000-12:00:00   LMST-SOL-3000-12:47:24
-          
-      
+
+
       LSK Files
       =========
-      
+
       Leapseconds kernel files provide a tabulation of ``leapseconds''
       and some other terms used in converting time measurements between
       ephemeris time (ET) and Universal Time (UTC). ``Spacecraft Event
       Time'' (SCET) is the commonly used name for UTC events measured
       at the spacecraft.
- 
+
       Metadata describing how the LSK data are obtained or computed is
       contained inside the LSK text file. The time conversion provided
       by SPICE LSK files is accurate to approximately 0.000030 seconds.
- 
+
       More information about the LSK files is available in the file
       ``data/lsk/lskinfo.txt''.
 
 
       EK Files
       ========
-      
+
       The MSL project did not produce any EK files; therefore, no EKs
       are included in this data set.
-   
+
       "
   END_OBJECT                         = DATA_SET_INFORMATION
 
@@ -878,7 +878,7 @@ OBJECT                               = DATA_SET
   OBJECT                             = DATA_SET_TARGET
     TARGET_NAME                      = MARS
   END_OBJECT                         = DATA_SET_TARGET
-   
+
   OBJECT                             = DATA_SET_HOST
     INSTRUMENT_HOST_ID               = MSL
     INSTRUMENT_ID                    = SPICE
@@ -887,7 +887,7 @@ OBJECT                               = DATA_SET
   OBJECT                             = DATA_SET_REFERENCE_INFORMATION
     REFERENCE_KEY_ID                 = "ACTON1996"
   END_OBJECT                         = DATA_SET_REFERENCE_INFORMATION
-   
-END_OBJECT = DATA_SET   
+
+END_OBJECT = DATA_SET
 
 END
