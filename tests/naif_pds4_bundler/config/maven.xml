@@ -103,7 +103,7 @@
 
         <!-- Optional Parameters -->
         <orbnum_directory>misc/orbnum</orbnum_directory>
-        <templates_directory>../../../src/pds/naif_pds4_bundler/templates/1.5.0.0</templates_directory>
+        <templates_directory>../templates/1.5.0.0</templates_directory>
     </directories>
 
     <!-- =========================== -->

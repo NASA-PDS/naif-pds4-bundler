@@ -271,7 +271,7 @@ class Bundle(object):
             logging.warning(line)
         logging.info("")
 
-    def get_history(self, object):
+    def get_history(self, object, debug=False):
         """This method builds the "Archive History".
 
         The "Archive history" is obtained by extracting the
@@ -298,7 +298,7 @@ class Bundle(object):
 
         #
         # If the pipeline has not yet been executed, the current
-        # version is substracted.
+        # version is subtracted.
         #
         if not object.collections:
             number_of_releases -= 1
@@ -309,7 +309,7 @@ class Bundle(object):
 
         #
         # The version extracted from the labels is initialised because the
-        # collections might not be present or might be present mutliple times.
+        # collections might not be present or might be present multiple times.
         #
         rel_ker_col_ver = []
         rel_doc_col_ver = []
@@ -363,8 +363,8 @@ class Bundle(object):
 
             #
             # The resulting dictionary element names are prefixed with:
-            # 'http://pds.nasa.gov/pds4/pds/v1http://pds.nasa.gov/pds4/pds/v1', which is the URL of the XML
-            # model.
+            # 'http://pds.nasa.gov/pds4/pds/v1http://pds.nasa.gov/pds4/pds/v1',
+            # which is the URL of the XML model.
             #
             prefix = '{' + '/'.join(self.setup.xml_model.split('/')[0:-1]) + '}'
 
