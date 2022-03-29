@@ -28,7 +28,7 @@ repos:
     hooks:
     -   id: tests
         name: Tests
-        entry: python -m unittest
+        entry: python -m unittest discover -s tests/naif_pds4_bundler
         language: system
         stages: [push]
         pass_filenames: false
