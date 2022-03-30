@@ -18,6 +18,16 @@ docs/make.bat
 docs/Makefile
 docs/_build/
 docs/_templates/
+docs/source/pds.rst
+docs/source/pds.naif_pds4_bundler.rst.
+docs/source/pds.naif_pds4_bundler.classes.rst
+docs/source/pds.naif_pds4_bundler.utils.rst
+docs/source/tests.rst.
+docs/source/tests.naif_pds4_bundler.rst.
+docs/source/tests.naif_pds4_bundler.functional.rst.
+docs/source/tests.naif_pds4_bundler.regression.rst.
+docs/source/tests.naif_pds4_bundler.unittests.rst.
+docs/source/modules.rst.
 
 # Pycharm specific things
 .idea/
