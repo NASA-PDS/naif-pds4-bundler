@@ -22,16 +22,14 @@ from .product import ReadmeProduct
 class Bundle(object):
     """Class to generate the PDS4 Bundle structure.
 
-    The class construction will generate the top level directory structure as
-    follows::
+    The class construction will generate the top level directory structure for
+    a PDS4 bundle or a PDS3 data set.
 
-         maven_spice/
-         |-- spice_kernels
-         |-- document
-         '-- miscellaneous
+    :param setup: NPB execution Setup object
+    :type setup: object
     """
 
-    def __init__(self, setup):
+    def __init__(self, setup: object) -> object:
         """Constructor."""
         line = (
             f"Step {setup.step} - Bundle/data set structure generation "
@@ -74,7 +72,6 @@ class Bundle(object):
         self.setup = setup
 
         if setup.pds_version == "4":
-
             #
             # Assign the Bundle LID and VID and the Internal Reference LID
             #
@@ -83,7 +80,7 @@ class Bundle(object):
 
             self.lid_reference = "{}:context:investigation:mission.{}".format(
                 ":".join(setup.logical_identifier.split(":")[0:-1]),
-                self.setup.mission_acronym,
+                setup.mission_acronym,
             )
 
             #
@@ -252,7 +249,7 @@ class Bundle(object):
         newer_file = []
 
         #
-        # List all files newer than 'x' days
+        # List all files newer than 'x' days.
         #
         for root, _dirs, files in os.walk(self.setup.bundle_directory):
             for name in files:
@@ -271,7 +268,7 @@ class Bundle(object):
             logging.warning(line)
         logging.info("")
 
-    def get_history(self, object, debug=False):
+    def get_history(self, object):
         """This method builds the "Archive History".
 
         The "Archive history" is obtained by extracting the
@@ -284,7 +281,9 @@ class Bundle(object):
 
         The method checks whether if there is any duplicated element.
 
-        :return: archive history
+        :param object: optional Bundle object for tests
+        :type object: object
+        :return: Archive history dictionary
         :rtype: dict
         """
         #
@@ -292,7 +291,7 @@ class Bundle(object):
         #
         # The number of previous releases is obtained from the number/version
         # of Bundle labels. That information is already known as it is
-        # specified by the bundle vid
+        # specified by the bundle vid.
         #
         number_of_releases = int(object.vid.split(".")[0])
 
@@ -380,15 +379,15 @@ class Bundle(object):
                     if "spice:spice_kernels::" in lidvid:
                         rel_ker_col_ver.append(int(
                             lidvid.split("spice:spice_kernels::")[-1].split(".0")[0])
-                            )
+                        )
                     elif "spice:document::" in lidvid:
                         rel_doc_col_ver.append(int(
                             lidvid.split("spice:document::")[-1].split(".0")[0])
-                            )
+                        )
                     elif "spice:miscellaneous::" in lidvid:
                         rel_mis_col_ver.append(int(
                             lidvid.split("spice:miscellaneous::")[-1].split(".0")[0])
-                            )
+                        )
 
             #
             # The SPICE Kernels collection inventory should have the same number
@@ -414,17 +413,17 @@ class Bundle(object):
                         history[rel].append(ker_collection_lbl)
 
                         with open(
-                            object.setup.bundle_directory
-                            + f"/{object.setup.mission_acronym}_spice/"
-                            + ker_collection,
-                            "r",
+                                object.setup.bundle_directory
+                                + f"/{object.setup.mission_acronym}_spice/"
+                                + ker_collection,
+                                "r",
                         ) as c:
                             for line in c:
 
                                 if ("P" in line) and (":mk_" not in line):
                                     product = (
                                         f"spice_kernels/"
-                                        f'{line.split(":")[5].replace("_","/",1)}'
+                                        f'{line.split(":")[5].replace("_", "/", 1)}'
                                     )
                                     history[rel].append(product)
 
@@ -509,9 +508,7 @@ class Bundle(object):
                                         # Default to 2. Might trigger an error.
                                         #
                                         logging.warning(
-                                            "MK version for history "
-                                            "defaulted to version with "
-                                            "2 digits. Might raise an "
+                                            "MK version for history defaulted to version with 2 digits. Might raise an "
                                             "exception."
                                         )
 
@@ -543,9 +540,9 @@ class Bundle(object):
                         )
 
                         if os.path.exists(
-                            object.setup.bundle_directory
-                            + f"/{object.setup.mission_acronym}_spice/"
-                            + mis_collection
+                                object.setup.bundle_directory
+                                + f"/{object.setup.mission_acronym}_spice/"
+                                + mis_collection
                         ):
                             history[rel].append(mis_collection)
 
@@ -556,10 +553,10 @@ class Bundle(object):
                             history[rel].append(mis_collection_lbl)
 
                             with open(
-                                object.setup.bundle_directory
-                                + f"/{object.setup.mission_acronym}_spice/"
-                                + mis_collection,
-                                "r",
+                                    object.setup.bundle_directory
+                                    + f"/{object.setup.mission_acronym}_spice/"
+                                    + mis_collection,
+                                    "r",
                             ) as c:
                                 for line in c:
                                     if ("P" in line) and (":checksum_" not in line):
@@ -604,10 +601,10 @@ class Bundle(object):
                         history[rel].append(doc_collection_lbl)
 
                         with open(
-                            object.setup.bundle_directory
-                            + f"/{object.setup.mission_acronym}_spice/"
-                            + doc_collection,
-                            "r",
+                                object.setup.bundle_directory
+                                + f"/{object.setup.mission_acronym}_spice/"
+                                + doc_collection,
+                                "r",
                         ) as c:
                             for line in c:
                                 if "P" in line:
@@ -644,8 +641,8 @@ class Bundle(object):
     def validate(self):
         """Validate the Bundle.
 
-        The two implemented steps are to check Checksum files against the
-        updated Bundle history and checking the bundle times.
+        The two implemented steps are to check checksum files against the
+        updated bundle history and checking the bundle times.
         """
         self.check_times()
         self.validate_history()
@@ -676,10 +673,10 @@ class Bundle(object):
         et_msn_stop = spiceypy.str2et(str_msn_stop)
 
         if (
-            not (et_msn_strt <= et_inc_strt)
-            or not (et_inc_strt <= et_inc_stop)
-            or not (et_inc_stop <= et_msn_stop)
-            or not (et_msn_strt < et_msn_stop)
+                not (et_msn_strt <= et_inc_strt)
+                or not (et_inc_strt <= et_inc_stop)
+                or not (et_inc_stop <= et_msn_stop)
+                or not (et_msn_strt < et_msn_stop)
         ):
             error_message(
                 "The resulting Mission and Increment start and finish dates "
@@ -757,7 +754,6 @@ class Bundle(object):
             checksum_label = f"miscellaneous/checksum/checksum_v{rel:03d}.xml"
 
             if checksum_product in history[rel]:
-
                 products_in_checksum.append(checksum_product)
                 products_in_checksum.append(checksum_label)
 
