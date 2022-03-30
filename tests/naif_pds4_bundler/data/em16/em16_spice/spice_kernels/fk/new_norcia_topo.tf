@@ -1,17 +1,17 @@
 
 Topocentric Frame kernel for New Norcia
 =======================================
- 
+
 Updated:                    2004 March 19 05:20:00 PDT (NJB)
 
-   Comments regarding provisional ID code and name for 
+   Comments regarding provisional ID code and name for
    the New Norcia site were removed.
 
 Creation date:              2003 June 24 04:22:00 PDT
 Created by:                 Nat Bachman (JPL/NAIF)
 
-This is a frame kernel defining a topocentric reference 
-frame for the ESA 35m tracking antenna at New Norcia. 
+This is a frame kernel defining a topocentric reference
+frame for the ESA 35m tracking antenna at New Norcia.
 Location data used to define this frame are taken from
 a draft JPL IOM by W. M. Folkner, dated January 6, 2003.
 
@@ -82,9 +82,8 @@ Data for the New Norcia topocentric frame follow.
    TKFRAME_NEW_NORCIA_TOPO_SPEC     = 'ANGLES'
    TKFRAME_NEW_NORCIA_TOPO_UNITS    = 'DEGREES'
    TKFRAME_NEW_NORCIA_TOPO_AXES     = ( 3, 2, 3 )
-   TKFRAME_NEW_NORCIA_TOPO_ANGLES   = ( -116.19149821615236, 
+   TKFRAME_NEW_NORCIA_TOPO_ANGLES   = ( -116.19149821615236,
                                         -121.04822822665279,
                                          180.0              )
 
 \begintext
-

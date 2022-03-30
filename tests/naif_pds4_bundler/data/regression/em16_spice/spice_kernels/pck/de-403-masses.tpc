@@ -1,4 +1,4 @@
-This file was produced by Bill Taber on October 3, 1997.  
+This file was produced by Bill Taber on October 3, 1997.
 
 The values in this file are taken from the JPL Interoffice Memorandum
 (IOM 314.10-127 May 22, 1995) "JPL Planetary and Lunar Ephemerides,
@@ -21,7 +21,7 @@ as ratios to of Solar GM to barycenter GM.  These values are given here.
     BODY9_GMSUN/GM  = 135200000.0
 
 These values are used by other products that use DE-403 to provide
-gravitational force models for integration of trajectories.  
+gravitational force models for integration of trajectories.
 
 Given the mass ratios and the mass of the sun, you can compute the mass
 of any barycenter.  These values are supplied in the text data given
@@ -32,7 +32,7 @@ places.
 
 \begindata
 
-AU         =      149597870.691 
+AU         =      149597870.691
 
 BODY1_GM   =          22032.080
 BODY2_GM   =         324858.599
@@ -53,7 +53,7 @@ and moon are taken from the referenced IOM.
 
 \begindata
 
-BODY199_GM   =          22032.080 
+BODY199_GM   =          22032.080
 BODY299_GM   =         324858.599
 BODY301_GM   =           4902.799
 BODY399_GM   =         398600.436

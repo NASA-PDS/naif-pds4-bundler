@@ -4,8 +4,8 @@ Topocentric Frame kernel for the ESA ground stations
 Creation date:              2011 March 8th
 Created by:                 J. Vazquez (ESA/ESAC)
 
-This is a frame kernel defining a topocentric reference 
-frame for the ESA ESA ground stations. 
+This is a frame kernel defining a topocentric reference
+frame for the ESA ESA ground stations.
 Location data used to define this frame are taken from
 the ESA web pages.
 
@@ -322,4 +322,3 @@ Data for the ground stations topocentric frames follow.
 
 
 \begintext
-

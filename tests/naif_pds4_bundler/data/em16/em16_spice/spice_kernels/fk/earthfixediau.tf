@@ -14,9 +14,9 @@ reference frame alias.  Loading this kernel together
 with a kernel whose data are relative to the EARTH_FIXED frame
 (for example, an SPK or topocentric frame kernel for tracking stations)
 allows the SPICE system to treat that kernel's data as though
-they were relative to the IAU_EARTH frame.  
+they were relative to the IAU_EARTH frame.
 
-This kernel normally should be loaded together with a text PCK file 
+This kernel normally should be loaded together with a text PCK file
 providing earth rotation data.
 
 For high-accuracy work, the ITRF93 frame should be used
@@ -31,7 +31,5 @@ TKFRAME_EARTH_FIXED_SPEC     = 'MATRIX'
 TKFRAME_EARTH_FIXED_MATRIX   = ( 1   0   0
                                  0   1   0
                                  0   0   1 )
-                                          
+
 \begintext
-
-
