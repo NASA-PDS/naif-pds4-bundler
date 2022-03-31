@@ -6,7 +6,7 @@ archives from end-to-end using the applicable PDS4 standards.
 
 ## 🛠️️ Prerequisites
 
-   * A computer based on 64-bit Unix operating system: a Linux or a Mac.
+   * A computer based on 64-bit Unix operating system: a Linux or a Mac
    * Python 3.8 (or higher)
    * A NAIF supported C compiler [(see link)](https://naif.jpl.nasa.gov/naif/toolkit_C.html)
 
