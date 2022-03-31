@@ -24,10 +24,12 @@ def current_time(format="infomod2"):
     return time
 
 
-def current_date(date=False):
+def current_date(date=''):
     """Returns the current date in ``%Y-%m-%d`` format.
 
-    :return:
+    :param date: If present, forces a current date otherwise is obtained from
+                 the system
+    :type date: str
     :return: Current date
     :rtype: str
     """
@@ -48,9 +50,9 @@ def creation_time(format="infomod2"):
     The date is either in ``maklabel`` or ``infomod2``
     ``%Y-%m-%dT%H:%M:%S.%f`` format.
 
-    :param path: File path
-
-    :return: Current date
+    :param format: Time format
+    :type format: str
+    :return: Current time
     :rtype: str
     """
     t = datetime.datetime.now()
@@ -69,14 +71,17 @@ def spk_coverage(path, main_name="", date_format="infomod2", system="UTC"):
     The function assumes that the appropriate kernels have already been loaded.
 
     :param path: File path
-    :param main_id: Mission observer ID.
+    :type path: str
+    :param main_name: Mission observer name.
+    :type main_name: str
     :param date_format: Date format, the default is the one
                         provided by the PDS4 Information Model 2.0 that
                         rounds the milliseconds and then implements an
                         inward addition for the coverage start time and
-                        inward substraction for the coverage stop time.
-                        The other option is the MAKLABEL style that
+                        inward subtraction for the coverage stop time.
+                        The other option is the ``MAKLABEL`` style that
                         rounds to the second.
+    :type date_format: str
     :raise: if the date_format parameter argument is not ``infomod2`` or
             ``maklabel``
     :return: start and finish coverage
@@ -134,15 +139,21 @@ def ck_coverage(path, timsys="TDB", date_format="infomod2", system="UTC"):
     The function assumes that the appropriate kernels have already been loaded.
 
     :param path: File path
+    :type path: str
+    :param timsys: Determines whether if the time system is SCLK or not
+    :type timsys: str
     :param date_format: Date format, the default is the one
                         provided by the PDS4 Information Model 2.0 that
                         rounds the milliseconds and then implements an
                         inward addition for the coverage start time and
-                        inward substraction for the coverage stop time.
-                        The other option is the MAKLABEL style that
+                        inward subtraction for the coverage stop time.
+                        The other option is the ``MAKLABEL`` style that
                         rounds to the millisecond.
+    :type date_format: str
     :raise: if the date_format parameter argument is not ``infomod2`` or
             ``maklabel``
+    :param system: If the time system is not SCLK, then it can be UTC or TDB
+    :type system: str
     :return: start and finish coverage
     :rtype: list of str
     """
@@ -192,13 +203,17 @@ def pck_coverage(path, date_format="infomod2", system="UTC"):
     The function assumes that the appropriate kernels have already been loaded.
 
     :param path: File path
+    :type path: str
     :param date_format: Date format, the default is the one
                         provided by the PDS4 Information Model 2.0 that
                         rounds the milliseconds and then implements an
                         inward addition for the coverage start time and
-                        inward substraction for the coverage stop time.
+                        inward subtraction for the coverage stop time.
                         The other option is the MAKLABEL style that
                         rounds to the second.
+    :type date_format: str
+    :param system: Determine the output ime system: UTC or TDB
+    :type system: str
     :raise: if the date_format parameter argument is not ``infomod2`` or
             ``maklabel``
     :return: start and finish coverage
@@ -246,13 +261,17 @@ def dsk_coverage(path, date_format="infomod2", system="UTC"):
     label file ) subroutine that belongs to the MAKLABEL NAIF utility.
 
     :param path: File path
+    :type path: str
     :param date_format: Date format, the default is the one
                         provided by the PDS4 Information Model 2.0 that
                         rounds the milliseconds and then implements an
                         inward addition for the coverage start time and
-                        inward substraction for the coverage stop time.
+                        inward subtraction for the coverage stop time.
                         The other option is the MAKLABEL style that
                         rounds to the second
+    :type date_format: str
+    :param system: Determine the output ime system: UTC or TDB
+    :type system: str
     :raise: if the date_format parameter argument is not ``infomod2`` or
             ``maklabel``
     :return: start and finish coverage
@@ -303,7 +322,27 @@ def dsk_coverage(path, date_format="infomod2", system="UTC"):
 
 def et_to_date(beget, endet, date_format="infomod2", kernel_type="Text",
                system="UTC"):
-    """Convert ET (ephemeris time) to a Date Time string."""
+    """Convert ET (ephemeris time) to a Date Time string.
+
+    :param beget: Start ephemeris time (ET)
+    :type beget: float
+    :param endet: End ephemeris time (ET)
+    :type endet: float
+    :param date_format: Date format, the default is the one
+                        provided by the PDS4 Information Model 2.0 that
+                        rounds the milliseconds and then implements an
+                        inward addition for the coverage start time and
+                        inward subtraction for the coverage stop time.
+                        The other option is the MAKLABEL style that
+                        rounds to the second
+    :type date_format: str
+    :param kernel_type: Indicates whether if it is a text or binary kernel
+    :type kernel_type: str
+    :param system: Determine the output ime system: UTC or TDB
+    :type system: str
+    :return: Start and Stop dates
+    :rtype: list of str
+    """
     time_length = 62
 
     if date_format == "infomod2":
@@ -322,7 +361,7 @@ def et_to_date(beget, endet, date_format="infomod2", kernel_type="Text",
     stop_time_cal = (spiceypy.timout(endet, time_format, time_length) + "Z")
 
     #
-    # Inward seconds are only taken into account if the miliseconds are not
+    # Inward seconds are only taken into account if the milliseconds are not
     # 000.
     #
     if (date_format == "infomod2") and ('000Z' not in start_time_cal.split('.')[-1]):
@@ -341,6 +380,7 @@ def pds3_label_gen_date(file):
     """Returns the creation date of a given PDS3 label.
 
     :param path: File path
+    :type path: str
     :return: Creation date
     :rtype: str
     """
@@ -362,7 +402,9 @@ def get_years(start_time, stop_time):
     start time and the stop time.
 
     :param start_time: Start time to determine list of years
+    :type start_time: str
     :param stop_time: Stop time to determine list of years
+    :type stop_time: str
     :return: Creation date
     :rtype: list of str
     """

@@ -73,7 +73,8 @@ def test_ladee_date_format(self):
     """Tests absence and incorrect date_format element in configuration.
 
     First section of the test is passed if the following error is raised::
-       Reason: value must be one of ['infomod2', 'maklabel']
+
+         Reason: value must be one of ['infomod2', 'maklabel']
 
     The second section, does not provide the configuration element runs
     successfully.

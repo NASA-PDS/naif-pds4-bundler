@@ -1,6 +1,12 @@
+ARG username
+ARG password
+
 FROM registry.access.redhat.com/rhel7/rhel
 
-RUN subscription-manager register --username marcsit --password SchumacherHakkinenVettel! --auto-attach
+ENV USERN ${username}
+ENV PASSW ${password}
+
+RUN subscription-manager register --username ${USERN} --password ${PASSW} --auto-attach
 RUN yum -y update
 RUN yum install -y gcc
 RUN yum install -y libgfortran

@@ -26,6 +26,7 @@ def test_pds4_orbnum_coverage_user_spk(self):
     """Test ORBNUM coverage from SPK in configuration.
 
     The coverage is provided by the following configuration element::
+
             <kernel cutoff="True">../data/kernels/spk/maven_orb_rec_210101_210401_v2.bsp</kernel>
     """
     post_setup(self)
@@ -43,6 +44,7 @@ def test_pds4_orbnum_coverage_increment_spk(self):
     """Test ORBNUM coverage from SPK with pattern in configuration.
 
     The coverage is provided by the following configuration element::
+
             <kernel cutoff="True">../data/kernels/spk/maven_orb_rec_210101_210401_v2.bsp</kernel>
     """
     post_setup(self)
@@ -265,6 +267,7 @@ def test_pds4_orbnum_blank_records(self):
     In such case the record length is expanded to the adequate fixed length.
     Afterwards the ORBNUM file version is incremented, because a new file
     has just been created. The NPB log will display the following warnings::
+
         WARNING : -- Orbit number 13071 record has an incorrect length, the record will be expanded to cover the adequate fixed length.
         WARNING : -- Orbit number 13073 record has an incorrect length, the record will be expanded to cover the adequate fixed length.
         WARNING : -- Orbit number 13073 record is followed by 13075.
@@ -303,6 +306,7 @@ def test_pds4_orbnum_blank_records_no_former(self):
     Afterwards the ORBNUM file version is incremented based on the name
     provided in the release plan, because a new file has just been created.
     The NPB log will display the following warnings::
+
         WARNING : -- Orbit number 13071 record has an incorrect length, the record will be expanded to cover the adequate fixed length.
         WARNING : -- Orbit number 13073 record has an incorrect length, the record will be expanded to cover the adequate fixed length.
         WARNING : -- Orbit number 13073 record is followed by 13075.
@@ -328,6 +332,7 @@ def test_pds4_orbnum_blank_records_no_version(self):
     Afterwards the ORBNUM file version is incremented based on the name
     provided in the release plan, because a new file has just been created.
     The NPB log will display the following warnings::
+
         WARNING : -- Orbit number 13071 record has an incorrect length, the record will be expanded to cover the adequate fixed length.
         WARNING : -- Orbit number 13073 record has an incorrect length, the record will be expanded to cover the adequate fixed length.
         WARNING : -- Orbit number 13073 record is followed by 13075.
@@ -445,7 +450,7 @@ def test_pds4_orbnum_eol_line_feed(self):
 def test_pds4_orbnum_generated_list(self):
     """Test inclusion of ORBNUM in kernel list.
 
-    Test orbnum file generation with automatic plan generation, when the
+    Test ORBNUM file generation with automatic plan generation, when the
     plan is not provided by the user.
     """
     post_setup(self)

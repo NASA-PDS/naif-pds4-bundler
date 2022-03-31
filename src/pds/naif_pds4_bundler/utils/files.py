@@ -15,7 +15,7 @@ import spiceypy
 from ..classes.log import error_message
 
 
-def etree_to_dict(t):
+def etree_to_dict(etree):
     """Convert between XML and JSON.
 
     The following XML-to-Python-dict snippet parses entities as well as
@@ -24,28 +24,30 @@ def etree_to_dict(t):
 
     https://www.xml.com/pub/a/2006/05/31/converting-between-xml-and-json.html
 
-    :param t: Element Tree read from XML file
+    :param etree: Element Tree read from XML file
+    :type etree: dict
     :return: XML File converted into a JSON file
+    :rtype: dict
     """
-    d = {t.tag: {} if t.attrib else None}
-    children = list(t)
+    jtree = {etree.tag: {} if etree.attrib else None}
+    children = list(etree)
     if children:
         dd = defaultdict(list)
         for dc in map(etree_to_dict, children):
             for k, v in dc.items():
                 dd[k].append(v)
-        d = {t.tag: {k: v[0] if len(v) == 1 else v for k, v in dd.items()}}
-    if t.attrib:
-        d[t.tag].update(("@" + k, v) for k, v in t.attrib.items())
-    if t.text:
-        text = t.text.strip()
-        if children or t.attrib:
+        jtree = {etree.tag: {k: v[0] if len(v) == 1 else v for k, v in dd.items()}}
+    if etree.attrib:
+        jtree[etree.tag].update(("@" + k, v) for k, v in etree.attrib.items())
+    if etree.text:
+        text = etree.text.strip()
+        if children or etree.attrib:
             if text:
-                d[t.tag]["#text"] = text
+                jtree[etree.tag]["#text"] = text
         else:
-            d[t.tag] = text
+            jtree[etree.tag] = text
 
-    return d
+    return jtree
 
 
 def md5(fname):
@@ -68,7 +70,9 @@ def copy(src, dest):
     """Creates a directory and raises an error if the directory exists.
 
     :param src: Source directory with path.
+    :type src: str
     :param dest: Destination directory with path.
+    :type dest: str
     """
     try:
         shutil.copytree(src, dest)
@@ -85,13 +89,12 @@ def copy(src, dest):
                 "directory exists.\n Error: %s" % e
             )
 
-    return None
-
 
 def safe_make_directory(dir):
-    """Creates a directory if it is not present.
+    """Creates a directory if not present.
 
-    :param dir: Directory with path.
+    :param dir: Directory path.
+    :type dir: str
     """
     try:
         os.mkdir(dir)
@@ -100,14 +103,13 @@ def safe_make_directory(dir):
     except BaseException:
         pass
 
-    return None
-
 
 def extension_to_type(kernel):
     """Given a SPICE kernel provide the SPICE kernel type.
 
     :param kernel: SPICE Kernel name
-    :return: SPICE Kernel type of the input SPICE kernel name.
+    :type kernel: str
+    :return: SPICE Kernel type of the input SPICE kernel name
     :rtype: str
     """
     kernel_type_map = {
@@ -144,7 +146,8 @@ def type_to_pds3_type(kernel):
     """Given a SPICE kernel provide the PDS3 SPICE kernel type.
 
     :param kernel: SPICE Kernel name
-    :return: SPICE Kernel type of the input SPICE kernel name.
+    :type kernel: str
+    :return: PDS3 SPICE Kernel type of the input SPICE kernel name
     :rtype: str
     """
     kernel_type_map = {
@@ -176,7 +179,8 @@ def type_to_extension(kernel_type):
     """Given a SPICE kernel type provide the SPICE kernel extension.
 
     :param kernel_type: SPICE kernel type
-    :return: Spice Kernel extension
+    :type kernel_type: str
+    :return: SPICE Kernel extension
     :rtype: str
     """
     kernel_type = kernel_type.upper()
@@ -203,7 +207,7 @@ def add_carriage_return(line, eol, setup):
 
     :param line: Input line
     :type line: str
-    :param eol: EOL defined by setup.
+    :param eol: EOL defined by the configuration file
     :type eol: str
     :return: Input line with CR
     :rtype: str
@@ -231,7 +235,7 @@ def add_crs_to_file(file, eol, setup):
 
     :param line: Input file
     :type line: str
-    :param eol: End of Line character as indicated by setup
+    :param eol: End of Line character as indicated by the configuration file
     :type eol: str
     :raise: If CR cannot be added to the file
     """
@@ -247,15 +251,14 @@ def add_crs_to_file(file, eol, setup):
     except BaseException:
         error_message(f"Carriage return adding error for {file}.", setup)
 
-    return None
-
 
 def check_list_duplicates(list_of_elements):
     """Check if given list contains any duplicates.
 
-    :param listOfElems: List of SPICE kernel names
-    :return: Boolean that indicats if the input list contains
-             duplicates or not
+    :param list_of_elements: List of SPICE kernel names
+    :type list_of_elements: list
+    :return: True if the input list contains
+             duplicates, False otherwise
     :rtype: bool
     """
     for elem in list_of_elements:
@@ -268,10 +271,12 @@ def check_list_duplicates(list_of_elements):
 def fill_template(object, product_file, product_dictionary):
     """Fill a template with uppercase keywords preceded with ``$``.
 
-    :param object:
-    :param product_file:
-    :param product_dictionary:
-    :return:
+    :param object: List object
+    :type object: object
+    :param product_file: Resulting file
+    :type product_file: str
+    :param product_dictionary: Dictionary of keys to replace
+    :type product_dictionary: dict
     """
     with open(product_file, "w") as f:
 
@@ -283,14 +288,12 @@ def fill_template(object, product_file, product_dictionary):
                         line = line.replace("$" + key, value)
                 f.write(f"{line}\n")
 
-    return None
-
 
 def get_context_products(setup):
     """Obtain PDS4 Context Products.
 
     Obtain the context products from the PDS4 registered context products
-    templte or from the XML configuration file.
+    template or from the XML configuration file.
 
     :param setup: Setup object already constructed
     :return: dictionary with the JSON structure of the bundle context products
@@ -384,7 +387,10 @@ def mk_to_list(mk, setup):
 
     If no kernel is found an error is raised.
 
-    :param mk: Meta-kernel
+    :param mk: Meta-kernel path from which the list of kernels is generated
+    :type mk: str
+    :param setup: NPB run Setup Object
+    :type setup: object
     :return: List of kernels present in the meta-kernel
     :rtype: list
     """
@@ -443,21 +449,27 @@ def get_latest_kernel(
 
     :param kernel_type: SPICE Kernel type which also defines
                         the subdirectory name.
+    :type kernel_type: str
     :param paths: List of paths to the roots of the SPICE Kernels directories
                   where the kernels are store in a subdirectory named "type".
+    :type paths: str
     :param pattern: Patterns to search for that defines the kernel "type"
                     file naming scheme. This pattern follows the format of
                     the meta-kernel grammar provided in the XML configuration
                     file
+    :type pattern: str
     :param dates: Indicates that the pattern of the kernel includes dates
                   and that the last version of each kernel with a date has
                   to be included. If this parameter is set to False then
                   only the latest date and latest version is included
+    :type dates: bool
     :param excluded_kernels: Indicates that a specific kernel might have
                              to be excluded from the search.
+    :type excluded_kernels: list
     :param mks: Indicates that the kernels present in the list of provided
-          meta-kernels have to be incldued for consideration to obtain
+          meta-kernels have to be included for consideration to obtain
           the latest version of the given kernel
+    :type mks: list
     :return: Name of the latest kernels as specified by the pattern.
     :rtype: list
     """
@@ -544,9 +556,10 @@ def check_consecutive(lst):
     Check if a list of names with enumeration include all the elements
     in such a way that the enumeration contains all expected numbers.
 
-    :param l: List of names that include an enumeration
+    :param lst: List of names that include an enumeration
+    :type lst: list
     :return: Check if the list has a complete enumeration
-    :rtype: Bool
+    :rtype: bool
     """
     return sorted(lst) == list(range(1, max(lst) + 1))
 
@@ -576,7 +589,7 @@ def compare_files(fromfile, tofile, dir, display):
                     if a specific diff file will be generated
     :type display: str
     :return: True if the files are different, False if they are the same.
-    :rtype: Bool
+    :rtype: bool
     """
     with open(fromfile) as ff:
         fromlines = ff.readlines()
@@ -625,16 +638,20 @@ def match_patterns(name, name_w_pattern, patterns):
     the patterns values as value after matching it between the SPICE Kernel
     name with patterns and without patterns.
 
-    For example, given the following:
-       name: ``insight_v01.tm``
-       name_w_pattern: ``insight_v$VERSION.tm``
+    For example, given the following arguments:
+
+         * name: ``insight_v01.tm``
+         * name_w_pattern: ``insight_v$VERSION.tm``
 
     The function will return: ``{VERSION: '01'}``
 
     :param name: Name of the SPICE Kernel
+    :type name: str
     :param name_w_pattern: Name of the SPICE Kernel with patterns
+    :type name_w_pattern: str
     :param patterns: List of the possible patterns present in the
                      SPICE Kernel name with patterns
+    :type patterns: list
     :return: Dictionary providing the patterns and their value as defined
              by the SPICE kernel
     :rtype: dict
@@ -697,22 +714,24 @@ def match_patterns(name, name_w_pattern, patterns):
     return values
 
 
-def utf8len(s):
+def utf8len(strn):
     """Length of a string in bytes.
 
-    :param s: string
-    :type s: str
-    :return: lentht of string in bytes
+    :param strn: string
+    :type strn: str
+    :return: length of string in bytes
     :rtype: int
     """
-    return len(s.encode("utf-8"))
+    return len(strn.encode("utf-8"))
 
 
 def kernel_name(path):
     """List sorting function.
 
-    :param path:
-    :return:
+    :param path: path to be sorted
+    :type path: str
+    :return: sorting result
+    :rtype: str
     """
     return path.split(os.sep)[-1]
 
@@ -721,8 +740,13 @@ def checksum_from_registry(path, working_directory):
     """Extract checksum from the checksum registry.
 
     All the checksum registries will be checked.
-    :param path:
-    :return:
+
+    :param path: Product path
+    :type path: str
+    :param working_directory: checksum registry path
+    :type working_directory: str
+    :return: MD5 Sum for the file indicated by path
+    :rtype: str
     """
     checksum = ""
     checksum_registries = glob.glob(f"{working_directory}/*.checksum")
@@ -745,10 +769,12 @@ def checksum_from_registry(path, working_directory):
 
 
 def checksum_from_label(path):
-    """Extract checksum from a label rather tan calculating it.
+    """Extract checksum from a label rather than calculating it.
 
-    :param path:
-    :return:
+    :param path: Product path
+    :type path: str
+    :return: MD5 Sum for the file indicated by path
+    :rtype: str
     """
     checksum = ""
     product_label = path.split(".")[0] + ".xml"
@@ -768,10 +794,12 @@ def checksum_from_label(path):
 
 
 def extract_comment(path, handle=False):
-    """Extract comment from DAF fie.
+    """Extract comment from SPICE DAF file.
 
-    :param path:
-    :return:
+    :param path: Path of SPICE kernel
+    :type path: str
+    :return: SPICE kernel comment
+    :rtype: list
     """
     if not handle:
         close_file = True
@@ -812,9 +840,13 @@ def string_in_file(file, str_to_check, repetitions=1):
     You can also provide the number of times that string is repeated.
 
     :param file: File where the string is searched
+    :type file: str
     :param str_to_check: String to search
-    :param repetitions: Number of repetitions, default is 1.
-    :return:
+    :type str_to_check: str
+    :param repetitions: Number of repetitions, default is 1
+    :type repetitions: int
+    :return: True if the string is present in the file, False otherwise
+    :rtype: bool
     """
     lines_with_string = 0
     with open(file, "r") as r:
@@ -829,7 +861,17 @@ def string_in_file(file, str_to_check, repetitions=1):
 
 
 def replace_string_in_file(file, old_string, new_string, setup):
-    """Replace string in a file."""
+    """Replace string in a file.
+
+    :param file: File to replace the string from
+    :type file: str
+    :param old_string: String present in file to be substituted
+    :type old_string: str
+    :param new_string: String to be replaced
+    :type new_string: str
+    :param setup: NPB run Setup Object
+    :type setup: object
+    """
     reading_file = open(file, "r")
 
     new_file_content = ""
@@ -844,14 +886,17 @@ def replace_string_in_file(file, old_string, new_string, setup):
 
     shutil.move('temp.file', file)
 
-    return True
-
 
 def format_multiple_values(value):
-    """Reformat multi-line key value.
+    """Reformat multi-line key value for PDS3 labels.
 
-    E.g.: if the MAKLABEL key value has multiple entries, it needs to
+    For example if the ``MAKLABEL`` key value has multiple entries, it needs to
     be reformatted.
+
+    :param value: PDS3 key value
+    :type value: str
+    :return: PDS3 key value reformatted
+    :rtype: str
     """
     if ',' in value:
         values = value.split(',')

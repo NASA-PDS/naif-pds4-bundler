@@ -8,6 +8,7 @@ def test_insight_mk_error_extra_pattern(self):
     """Test for meta-kernel configuration loading error cases.
 
     Test is successful if it signals this run time error::
+
         The MK patterns insight_$YEAR_v$VERSION.tm do not correspond to the present MKs.
     """
     config = "../config/insight.xml"
@@ -30,6 +31,7 @@ def test_insight_mk_error_wrong_name(self):
     """Test incorrect MK name in configuration.
 
     Test is successful if it signals this run time error::
+
         RuntimeError: The meta-kernel pattern VERSION is not provided.
     """
     config = "../config/insight.xml"

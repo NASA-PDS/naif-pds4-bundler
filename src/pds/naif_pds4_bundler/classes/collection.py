@@ -12,9 +12,17 @@ from .product import PDS3DocumentProduct
 
 
 class Collection(object):
-    """Class to generate a PDS4 Collection."""
+    """Class to generate a PDS4 Collection.
 
-    def __init__(self, type, setup, bundle):
+    :param type: Collection type: kernels, documents or miscellaneous
+    :type type: str
+    :param setup: Setup Object
+    :type setup: object
+    :param bundle: Bundle Object to which the Collection belongs to
+    :type bundle: object
+    """
+
+    def __init__(self, type: str, setup: object, bundle: object) -> object:
         """Constructor."""
         self.product = []
         self.name = type
@@ -29,32 +37,37 @@ class Collection(object):
         if setup.pds_version == '4':
             self.set_collection_lid()
 
-        return
-
     def add(self, element):
-        """Add a Product to the Collection."""
+        """Add a Product to the Collection.
+
+        :param element: Product to add to Collection
+        :type element: object
+        """
         self.product.append(element)
 
         #
-        # If an element has been added to the collection then it is updated.
+        # If an element has been added to the collection then, the collection
+        # must be updated.
         #
         self.updated = True
 
     def set_collection_lid(self):
         """Set the Bundle LID."""
-        if self.setup.pds_version == "3":
-            return
-
-        self.lid = f"{self.setup.logical_identifier}:{self.type}"
+        if self.setup.pds_version != "3":
+            self.lid = f"{self.setup.logical_identifier}:{self.type}"
 
     def set_collection_vid(self):
-        """Set the Bundle VID."""
-        #
-        # Collection versions are not equal to the release number.
-        # If the collection has been updated we obtain the increased
-        # version, but if it has not been updated we use the previous
-        # version.
-        #
+        """Set the Bundle VID.
+
+        In general Collection versions are not equal to the release number.
+        If the collection has been updated we obtain the increased
+        version, but if it has not been updated we use the previous
+        version.
+
+        Given the case thatt he version cannot be determined: if it is the
+        SPICE kernels collection assume is the same version as the bundle,
+        otherwise we set it to 1.
+        """
         if self.setup.increment:
             try:
                 versions = glob.glob(
@@ -82,16 +95,9 @@ class Collection(object):
                 logging.info("")
 
             except BaseException:
-                #
-                # If it is the spice kernels collection assume is the same
-                # version as the bundle.
-                #
                 if self.name == "spice_kernel":
                     ver = int(self.setup.release)
                 else:
-                    #
-                    # Otherwise set it to 1.
-                    #
                     ver = 1
 
                 logging.warning(
@@ -113,9 +119,17 @@ class Collection(object):
 
 
 class SpiceKernelsCollection(Collection):
-    """Collection child class to generate a PDS4 SPICE Kernels Collection."""
+    """Collection child class to generate a PDS4 SPICE Kernels Collection.
 
-    def __init__(self, setup, bundle, list):
+    :param setup: NPB execution setup object
+    :type setup: object
+    :param bundle: Bundle object
+    :type bundle: object
+    :param list: Kernel List object
+    :type list: object
+    """
+
+    def __init__(self, setup: object, bundle: object, list: object) -> object:
         """Constructor."""
         line = f"Step {setup.step} - SPICE kernel collection/data processing"
         logging.info("")
@@ -129,6 +143,7 @@ class SpiceKernelsCollection(Collection):
         self.bundle = bundle
         self.list = list
         self.type = "spice_kernels"
+        """Collection type (`str`)."""
 
         if setup.pds_version == "4":
             self.start_time = setup.mission_start
@@ -136,12 +151,12 @@ class SpiceKernelsCollection(Collection):
 
         Collection.__init__(self, self.type, setup, bundle)
 
-        return
-
     def determine_meta_kernels(self):
         """Determine the name of the Meta-kernel(s) to be generated.
 
-        :return:
+        :return: Alphabetically sorted list of meta-kernels to be generated,
+                 List of meta-kernels provided by the user
+        :rtype: (list, list)
         """
         line = f"Step {self.setup.step} - Generation of meta-kernel(s)"
         logging.info("")
@@ -154,7 +169,6 @@ class SpiceKernelsCollection(Collection):
 
         meta_kernels = []
         user_input = False
-        mks = []
 
         #
         # First check if a meta-kernel has been provided via configuration by
@@ -187,7 +201,7 @@ class SpiceKernelsCollection(Collection):
         # kernel list are ignored.
         #
         # It is assumed that these kernels will be in the kernels_directory,
-        # under the mk sub-directory.
+        # under the mk subdirectory.
         #
         if not meta_kernels:
             for kernel in self.list.kernel_list:
@@ -258,8 +272,6 @@ class SpiceKernelsCollection(Collection):
         This is done based on the identification of the coverage of a given
         SPK or CK kernel. Alternatively it can be provided as a parameter of the
         execution.
-
-        :return:
         """
         line = (
             f"Step {self.setup.step} - Determine archive increment "
@@ -276,8 +288,8 @@ class SpiceKernelsCollection(Collection):
         increment_start = ''
         increment_finish = ''
         #
-        # The increment start and finish times are to be set with the
-        # meta-kernel. This is the first step taken.
+        # The increment start and finish times are to be set with the MK.
+        # This is the first step taken.
         #
         # Match the pattern with the kernels in the meta-kernel.
         #
@@ -413,8 +425,6 @@ class SpiceKernelsCollection(Collection):
         self.setup.increment_finish = increment_finish
         self.setup.increment_start = increment_start
 
-        return
-
     def validate(self):
         """Validate the SPICE Kernels collection.
 
@@ -428,9 +438,6 @@ class SpiceKernelsCollection(Collection):
              ``file_name``, ``file_size``, ``md5_checksum``, ``object_length``,
              ``kernel_type``, and ``encoding_type``.
         """
-        #
-        #  Check that there is a XML label for each file under spice_kernels.
-        #
         line = f"Step {self.setup.step} - Validate SPICE kernel collection generation"
         logging.info("")
         logging.info(line)
@@ -585,9 +592,15 @@ class SpiceKernelsCollection(Collection):
 
 
 class DocumentCollection(Collection):
-    """Collection child class to generate a PDS3 or PDS4 Document Collection."""
+    """Collection child class to generate a PDS3 or PDS4 Document Collection.
 
-    def __init__(self, setup, bundle):
+    :param setup: NPB execution setup object
+    :type setup: object
+    :param bundle: Bundle object
+    :type bundle: object
+    """
+
+    def __init__(self, setup: object, bundle: object) -> object:
         """Constructor."""
         if setup.pds_version == "3":
             self.type = "DOCUMENT"
@@ -615,9 +628,17 @@ class DocumentCollection(Collection):
 
 
 class MiscellaneousCollection(Collection):
-    """Collection child class to generate a PDS4 Document Collection."""
+    """Collection child class to generate a PDS4 Document Collection.
 
-    def __init__(self, setup, bundle, list):
+    :param setup: NPB execution setup object
+    :type setup: object
+    :param bundle: Bundle object
+    :type bundle: object
+    :param list: Kernel List object
+    :type list: object
+    """
+
+    def __init__(self, setup: object, bundle: object, list: object) -> object:
         """Constructor."""
         if setup.pds_version == "4":
             self.type = "miscellaneous"

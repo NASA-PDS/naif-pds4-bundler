@@ -17,9 +17,15 @@ from .log import error_message
 
 
 class PDSLabel(object):
-    """Class to generate a PDS Label."""
+    """Class to generate a PDS Label.
 
-    def __init__(self, setup, product):
+    :param setup: NPB execution Setup object
+    :type setup: object
+    :param product: Product to be labeled
+    :type product: object
+    """
+
+    def __init__(self, setup: object, product: object) -> object:
         """Constructor."""
         if setup.pds_version == '4':
             try:
@@ -29,9 +35,6 @@ class PDSLabel(object):
             except BaseException:
                 context_products = product.bundle.context_products
 
-        #
-        # The product to be labeled.
-        #
         self.product = product
         self.setup = setup
 
@@ -140,7 +143,11 @@ class PDSLabel(object):
             self.TARGETS = self.get_targets()
 
     def get_observers(self):
-        """Get the label observers from the context products."""
+        """Get the label observers from the context products.
+
+        :return: List of Observers to be included in the label
+        :rtype: list
+        """
         obs = self.observers
         if not isinstance(obs, list):
             obs = [obs]
@@ -196,7 +203,11 @@ class PDSLabel(object):
         return obs_list_for_label
 
     def get_targets(self):
-        """Get the label targets from the context products."""
+        """Get the label targets from the context products.
+
+        :return: List of Targets to be included in the label
+        :rtype: list
+        """
         tars = self.targets
         if not isinstance(tars, list):
             tars = [tars]
@@ -239,7 +250,11 @@ class PDSLabel(object):
         return tar_list_for_label
 
     def get_target_reference_type(self):
-        """Get the target reference type."""
+        """Get the target reference type.
+
+        :return: Target_Reference_Type value for PDS4 label
+        :rtype: str
+        """
         if self.__class__.__name__ == "ChecksumPDS4Label":
             type = "ancillary_to_target"
         elif self.__class__.__name__ == "BundlePDS4Label":
@@ -321,8 +336,6 @@ class PDSLabel(object):
 
         if self.__class__.__name__ != "SpiceKernelPDS3Label":
             logging.info("")
-
-        return
 
     def compare(self):
         """**Compare the Label with another label**.
@@ -510,13 +523,17 @@ class PDSLabel(object):
 
             compare_files(fromfile, tofile, dir, self.setup.diff)
 
-        return
-
 
 class BundlePDS4Label(PDSLabel):
-    """PDS Label child class to generate a PDS4 Bundle Label."""
+    """PDS Label child class to generate a PDS4 Bundle Label.
 
-    def __init__(self, setup, readme):
+    :param setup: NPB execution Setup object
+    :type setup: object
+    :param readme: Readme product
+    :rype readme: object
+    """
+
+    def __init__(self, setup: object, readme: object) -> object:
         """Constructor."""
         PDSLabel.__init__(self, setup, readme)
 
@@ -577,19 +594,27 @@ class BundlePDS4Label(PDSLabel):
 
         self.write_label()
 
-        return
-
     def get_target_reference_type(self):
-        """Get target reference type."""
+        """Get target reference type.
+
+        :return: Literally ``bundle_to_target``
+        :rtype: str
+        """
         return "bundle_to_target"
 
 
 class SpiceKernelPDS4Label(PDSLabel):
-    """PDS Label child class to generate a non-MK PDS4 SPICE Kernel Label."""
+    """PDS Label child class to generate a non-MK PDS4 SPICE Kernel Label.
 
-    def __init__(self, mission, product):
+    :param setup: NPB execution Setup object
+    :type setup: object
+    :param product: SPICE Kernel product to be labeled
+    :type product: object
+    """
+
+    def __init__(self, setup: object, product: object) -> object:
         """Constructor."""
-        PDSLabel.__init__(self, mission, product)
+        PDSLabel.__init__(self, setup, product)
 
         self.template = (
             f"{self.setup.templates_directory}/template_product_spice_kernel.xml"
@@ -703,8 +728,6 @@ class SpiceKernelPDS3Label(PDSLabel):
         self.SPACECRAFT_CLOCK_START_COUNT = f'"{sclk_start}"'
         self.SPACECRAFT_CLOCK_STOP_COUNT = f'"{sclk_stop}"'
 
-        return
-
     def set_kernel_ids(self, product):
         """Set the SPICE Kernel ID field of the label."""
         if product.type.upper() == "CK":
@@ -716,14 +739,15 @@ class SpiceKernelPDS3Label(PDSLabel):
 
         self.NAIF_INSTRUMENT_ID = format_multiple_values(naif_instrument_id)
 
-        return
-
     def format_description(self, description):
         """Format the SPICE kernel description appropriately.
 
         The first line goes from character 33 to 78.
         Successive lines go from character  1 to 78.
         Last line has a blank space after the full stop.
+
+        :return: Formatted label description
+        :rtype: str
         """
         description = description.split()
 
@@ -820,8 +844,6 @@ class SpiceKernelPDS3Label(PDSLabel):
 
         logging.info('-- Label inserted to text kernel.')
 
-        return
-
     @spice_exception_handler
     def insert_binary_label(self):
         """Insert or update a label in a binary kernel.
@@ -887,13 +909,17 @@ class SpiceKernelPDS3Label(PDSLabel):
 
         logging.info('-- Label inserted to binary kernel.')
 
-        return
-
 
 class MetaKernelPDS4Label(PDSLabel):
-    """PDS Label child class to generate a PDS4 SPICE Kernel MK Label."""
+    """PDS Label child class to generate a PDS4 SPICE Kernel MK Label.
 
-    def __init__(self, setup, product):
+    :param setup: NPB execution Setup object
+    :type setup: object
+    :param product: MK product to label
+    :type product: object
+    """
+
+    def __init__(self, setup: object, product: object) -> object:
         """Constructor."""
         PDSLabel.__init__(self, setup, product)
 
@@ -920,7 +946,12 @@ class MetaKernelPDS4Label(PDSLabel):
         self.write_label()
 
     def get_kernel_internal_references(self):
-        """Get the MK label internal references."""
+        """Get the MK label internal references.
+
+        :return: PDS4 formatted Kernel list used by the label for internal
+                 references.
+        :rtype: str
+        """
         eol = self.setup.eol_pds4
         tab = self.setup.xml_tab
 
@@ -967,9 +998,15 @@ class MetaKernelPDS4Label(PDSLabel):
 
 
 class OrbnumFilePDS4Label(PDSLabel):
-    """PDS Label child class to generate a PDS4 Orbit Number File Label."""
+    """PDS Label child class to generate a PDS4 Orbit Number File Label.
 
-    def __init__(self, setup, product):
+    :param setup: NPB execution Setup object
+    :type setup: object
+    :param product: ORBNUM product to label
+    :type product: object
+    """
+
+    def __init__(self, setup: object, product: object) -> object:
         """Constructor."""
         PDSLabel.__init__(self, setup, product)
 
@@ -1015,7 +1052,11 @@ class OrbnumFilePDS4Label(PDSLabel):
         self.write_label()
 
     def get_table_character_fields(self):
-        """Get the Table Character fields."""
+        """Get the Table Character fields.
+
+        :return: Table Character fields
+        :rytpe: str
+        """
         fields = ""
         for param in self.product.params.values():
             field = self.field_template(
@@ -1034,7 +1075,11 @@ class OrbnumFilePDS4Label(PDSLabel):
         return fields
 
     def get_table_character_description(self):
-        """Get The description of the Table Character."""
+        """Get The description of the Table Character.
+
+        :return: Table Character description
+        :rytpe: str
+        """
         description = (
             f"{self.setup.eol_pds4}{' ' * 6*self.setup.xml_tab}<description>"
             f"{self.product.table_char_description}"
@@ -1046,18 +1091,28 @@ class OrbnumFilePDS4Label(PDSLabel):
     def field_template(
         self, name, number, location, type, length, format, description, unit, blanks
     ):
-        """Provide the entire Field for a given parameter.
+        """For a label provide all the parameters required for an ORBNUM field character.
 
-        :param name:
-        :param number:
-        :param location:
-        :param type:
-        :param length:
-        :param format:
-        :param description:
-        :param unit:
-        :param blanks:
-        :return:
+        :param name: Name field
+        :type name: str
+        :param number: Number field
+        :type number: str
+        :param location: Location field
+        :type location: str
+        :param type: Type field
+        :type type: str
+        :param length: Length field
+        :type length: str
+        :param format: Format field
+        :type format: str
+        :param description: Description field
+        :type description: str
+        :param unit: Unit field
+        :type unit: str
+        :param blanks: Blank space missing contant indication
+        :type blanks: str
+        :return: Field Character for ORBNUM PDS4 label
+        :rtype: str
         """
         eol = self.setup.eol_pds4
         tab = self.setup.xml_tab
@@ -1089,9 +1144,16 @@ class OrbnumFilePDS4Label(PDSLabel):
 
 
 class InventoryPDS4Label(PDSLabel):
-    """PDS Label child class to generate a PDS4 Collection Inventory Label."""
+    """PDS Label child class to generate a PDS4 Collection Inventory Label.
 
-    def __init__(self, setup, collection, inventory):
+    :param setup: NPB execution Setup object
+    :type setup: object
+    :param collection: Collection to label
+    :type product: object
+    :param inventory: Inventory Product of the Collection
+    :type inventory: object
+    """
+    def __init__(self, setup: object, collection: object, inventory: object) -> object:
         """Constructor."""
         PDSLabel.__init__(self, setup, inventory)
 
@@ -1146,14 +1208,26 @@ class InventoryPDS4Label(PDSLabel):
         self.write_label()
 
     def get_target_reference_type(self):
-        """Get target reference type."""
+        """Get target reference type.
+
+        :return: Literally ``collection_to_target``
+        :rtype: str
+        """
         return "collection_to_target"
 
 
 class InventoryPDS3Label(PDSLabel):
-    """PDS Label child class to generate a PDS3 Index Label."""
+    """PDS Label child class to generate a PDS3 Index Label.
 
-    def __init__(self, mission, collection, inventory):
+    :param setup: NPB execution Setup object
+    :type setup: object
+    :param collection: Index Collection
+    :type product: object
+    :param inventory: Index Product
+    :type inventory: object
+    """
+
+    def __init__(self, mission: object, collection: object, inventory: object) -> object:
         """Constructor."""
         PDSLabel.__init__(self, mission, inventory)
 
@@ -1184,13 +1258,19 @@ class InventoryPDS3Label(PDSLabel):
 
         self.write_label()
 
-        return
-
 
 class DocumentPDS4Label(PDSLabel):
-    """PDS Label child class to generate a PDS4 Document Label."""
+    """PDS Label child class to generate a PDS4 Document Label.
 
-    def __init__(self, setup, collection, inventory):
+    :param setup: NPB execution Setup object
+    :type setup: object
+    :param collection: Collection to label
+    :type collection: object
+    :param inventory: Inventory Product of the Collection
+    :type inventory: object
+    """
+
+    def __init__(self, setup: object, collection: object, inventory: object) -> object:
         """Constructor."""
         PDSLabel.__init__(self, setup, inventory)
 
@@ -1212,9 +1292,15 @@ class DocumentPDS4Label(PDSLabel):
 
 
 class ChecksumPDS4Label(PDSLabel):
-    """PDS Label child class to generate a PDS4 Checksum Label."""
+    """PDS Label child class to generate a PDS4 Checksum Label.
 
-    def __init__(self, setup, product):
+    :param setup: NPB execution Setup object
+    :type setup: object
+    :param product: Checksum product to label
+    :type product: object
+    """
+
+    def __init__(self, setup: object, product: object) -> object:
         """Constructor."""
         PDSLabel.__init__(self, setup, product)
 
@@ -1234,7 +1320,13 @@ class ChecksumPDS4Label(PDSLabel):
 
 
 class ChecksumPDS3Label(PDSLabel):
-    """PDS Label child class to generate a PDS3 Checksum Label."""
+    """PDS Label child class to generate a PDS3 Checksum Label.
+
+    :param setup: NPB  execution Setup object
+    :type setup: object
+    :param product: Checksum product to label
+    :type product: object
+    """
 
     def __init__(self, setup, product):
         """Constructor."""

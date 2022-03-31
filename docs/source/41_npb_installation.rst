@@ -18,6 +18,9 @@ A number of Python packages are required as well:
    * beautifulsoup4 (version 4.9.3 or higher)
    * SetupTools (version 50.3.0 or higher)
    * xmlschema
+   * nose
+   * coverage
+   * xmlschema
 
 Please note that the dependency that might cause issues is SpiceyPy. SpiceyPy
 will check if you have the SPICE Toolkit in C: CSPICE, installed. If you don't
@@ -107,8 +110,14 @@ Run tests under the ``tests/naif_pds4_bundler`` directory with::
 
     python -m unittest
 
-The implemented tests are documented in the section
-:ref:`source/tests:tests package`
+You can also run the tests using a DOCKER container. Assuming that you have
+DOCKER installed, you can use the DOCKER file from
+``naif-pds4-bundler/tests/naif_pds4_bundler/docker/dockerfile``
+
+Further indications on how to use DOCKER are available in the provided Shell
+script ``naif-pds4-bundler/tests/naif_pds4_bundler/docker/build_docker.sh``.
+
+The implemented tests are documented in section :ref:`source/tests:tests package`
 
 
 Documentation

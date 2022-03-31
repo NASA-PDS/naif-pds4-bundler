@@ -339,7 +339,8 @@ def test_insight_mk_input(self):
 
     Test is successful if first run with ``insight_2021_v08.tm`` signals
     this run time error::
-       RuntimeError: Meta-kernel insight_2021_v08.tm has not been matched in configuration.
+
+         RuntimeError: Meta-kernel insight_2021_v08.tm has not been matched in configuration.
 
     and then NPB executes without errors with `insight_v08.tm``
     """
@@ -403,21 +404,23 @@ def test_insight_mks_input(self):
     """Test MKs with incorrect file architecture.
 
     A MKs has the appropriate architecture if its first line is::
-       KPL/MK
+
+         KPL/MK
 
     The test is successful if the following error is raised::
-       spiceypy.utils.exceptions.SpiceFILEREADFAILED:
-       ================================================================================
 
-       Toolkit version: CSPICE66
+         spiceypy.utils.exceptions.SpiceFILEREADFAILED:
+         ================================================================================
 
-       SPICE(FILEREADFAILED) --
-       An Attempt to Read a File Failed
-       Attempt to read from file 'working/insight_v08.tm' failed. IOSTAT = -1.
+         Toolkit version: CSPICE66
 
-       getfat_c --> GETFAT
+         SPICE(FILEREADFAILED) --
+         An Attempt to Read a File Failed
+         Attempt to read from file 'working/insight_v08.tm' failed. IOSTAT = -1.
 
-       ================================================================================
+         getfat_c --> GETFAT
+
+         ================================================================================
     """
     config = "../config/insight.xml"
     updated_config = "working/insight.xml"
@@ -468,11 +471,12 @@ def test_insight_mks_inputs_coverage(self):
 
     Testcase for when one of the meta-kernels does not include the SPK/CK
     that determines the coverage of the meta-kernel (implemented after
-    M2020 Chronos meta-kernel generation.).
+    M2020 Chronos meta-kernel generation.)
 
     NPB log provides the following message::
-       WARNING : -- No kernel(s) found to determine meta-kernel coverage. Mission times will be used:
-       WARNING :    2018-05-05T11:05:00Z - 2050-01-01T00:00:00Z
+
+         WARNING : -- No kernel(s) found to determine meta-kernel coverage. Mission times will be used:
+         WARNING :    2018-05-05T11:05:00Z - 2050-01-01T00:00:00Z
 
     Test is successful if NPB is executed without errors.
     """
@@ -591,8 +595,8 @@ def test_insight_no_spiceds_in_conf(self):
     via configuration but the previous version is available.
     The WARNING message provided by the NPB log is as follows::
 
-       INFO    : -- No spiceds file provided.
-       INFO    : -- Previous spiceds found: /insight/insight_spice/document/spiceds_v001.html
+         INFO    : -- No spiceds file provided.
+         INFO    : -- Previous spiceds found: /insight/insight_spice/document/spiceds_v001.html
 
     The first call to NPB is done with a configuration file with the
     ``<spiceds>`` element whereas the second one does not.
@@ -648,6 +652,7 @@ def test_insight_no_spiceds(self):
     via configuration and the previous version is not available.
 
     The test is successful if the following error is raised::
+
        RuntimeError: spiceds not provided and not available from previous releases.
     """
     config = "../config/insight.xml"
@@ -695,7 +700,8 @@ def test_insight_no_readme_in_config(self):
     """Test when the readme file is not provided via configuration.
 
     The first run raises an the following error::
-       RuntimeError: readme file not present in configuration.
+
+        RuntimeError: readme file not present in configuration.
 
     because the readme file is not present in the ``bundle_directory``.
     The second run includes the readme file in the bundle directory and
@@ -731,7 +737,8 @@ def test_insight_readme_incomplete_in_config(self):
 
     The error is detected by the XML validation against the schema.
 
-     The test is successful if the following error is raised::
+    The test is successful if the following error is raised::
+
         Reason: The content of element 'readme' is not complete. Tag 'cognisant_authority' expected.
     """
     config = "../config/insight.xml"
@@ -764,7 +771,8 @@ def test_insight_no_kernels(self):
     """Test without bundle and no input kernels provided but a SPICEDS is.
 
     NPB log will include the following WARNING message::
-       WARNING : -- No kernels will be added to the increment.
+
+         WARNING : -- No kernels will be added to the increment.
 
     Test is successful if NPB is executed without errors.
     """
@@ -784,6 +792,7 @@ def test_insight_no_kernels_with_bundle(self):
     """Test without input kernels provided but a SPICEDS is.
 
     NPB log will include the following WARNING message::
+
        WARNING : -- No kernels will be added to the increment.
 
     Test is successful if NPB is executed without errors.

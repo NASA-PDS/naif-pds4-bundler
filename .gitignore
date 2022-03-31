@@ -11,6 +11,7 @@
 # Test
 tests/naif_pds4_bundler/*.csv
 tests/naif_pds4_bundler/*.xml
+tests/naif_pds4_bundler/docker/naif-pds4-bundler
 
 # Docs
 build
@@ -18,6 +19,17 @@ docs/make.bat
 docs/Makefile
 docs/_build/
 docs/_templates/
+pds.rst
+pds.naif_pds4_bundler.rst
+pds.naif_pds4_bundler.classes.rst
+pds.naif_pds4_bundler.utils.rst
+tests.rst
+tests.naif_pds4_bundler.rst
+tests.naif_pds4_bundler.functional.rst
+tests.naif_pds4_bundler.regression.rst
+tests.naif_pds4_bundler.unittests.rst
+modules.rst
+paper.jats
 
 # Pycharm specific things
 .idea/
@@ -31,6 +43,7 @@ __pycache__/
 build/
 .tox/
 venv/
+.coverage
 
 
 # Log file

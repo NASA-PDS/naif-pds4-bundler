@@ -860,8 +860,8 @@ might be present in the SPICE kernels, **they do not have to be present in the
 Configuration File, nor in the bundle PDS4 labels**. It is perfectly
 fine to use the primary s/c and target for all kernels.
 
-This is the case for the INSIGHT SPICE kernel bundle: the secondary s/c MARCO-A
-and MARCO-B use INSIGHT in their labels as observer. If this simplified approach
+This is the case for the InSight SPICE kernel bundle: the secondary s/c MARCO-A
+and MARCO-B use InSight in their labels as observer. If this simplified approach
 is followed then it must be noted in the Errata section of the SPICE archive
 description document (SPICEDS) as follows::
 
@@ -908,7 +908,7 @@ You can either specify a kernel name or a kernel name with a pattern
 :ref:`source/42_npb_configuration_file:Kernel patterns`.
 
 In the Configuration File, each entry must be specified by its kernel type,
-there can be multiple entries with the same kernel type. For INSIGHT for
+there can be multiple entries with the same kernel type. For InSight for
 example: ::
 
         <kernels_to_load>
@@ -1496,8 +1496,9 @@ Meta-kernel metadata
 """"""""""""""""""""
 
 The MK metadata are all the other elements of the MK that
-are not kernels to be included in the NPB MK template, available
-at ``npb/templates/template_metakernel.tm``.
+are not kernels to be included in the NPB MK template, several templates
+are available in the different IM template directories e.g.:
+``naif-pds4-bundler/src/pds/naif_pds4_bundler/templates/1.5.0.0/template_metakernel.tm``.
 
 The metadata includes:
 
@@ -1505,7 +1506,7 @@ The metadata includes:
    * a keyword element that provides the values of the description patterns;
    * a data element that provides additional data to be included in the MK.
 
-Here's an example for INSIGHT::
+Here's an example for InSight::
 
             <metadata>
                 <description>

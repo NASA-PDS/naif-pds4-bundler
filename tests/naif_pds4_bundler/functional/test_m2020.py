@@ -100,6 +100,7 @@ def test_m2020_duplicated_kernel(self):
     was relaxed from ERROR to WARNING.
 
     Previously this error was raised::
+
         RuntimeError: Two products have the same MD5 sum, the product
         spice_kernels/sclk/m2020_168_sclkscet_refit_v03.tsc might be a
         duplicate.
@@ -209,7 +210,7 @@ def test_m2020_incorrect_mission_times(self):
         )
 
 
-def test_m2020_incorrect_increment_start_time(self):
+def test_m2020_incorrect_start_time(self):
     """Test increment start time set via configuration with yearly MKs."""
     post_setup(self)
     config = "../config/mars2020.xml"
