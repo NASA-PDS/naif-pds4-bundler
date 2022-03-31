@@ -117,7 +117,7 @@ DOCKER installed, you can use the DOCKER file from
 Further indications on how to use DOCKER are available in the provided Shell
 script ``naif-pds4-bundler/tests/naif_pds4_bundler/docker/build_docker.sh``.
 
-The implemented tests are documented in section :ref:`source/tests:tests package`
+The implemented tests are documented in section :ref:`tests:tests package`
 
 
 Documentation

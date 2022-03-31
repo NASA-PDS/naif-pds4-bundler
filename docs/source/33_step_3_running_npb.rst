@@ -30,7 +30,7 @@ generate a log file with the following file name: ``<sc>_release_??.log``
 (``-l``) and will run with verbosity (``-v``). This is the recommended
 way to run NPB, but is not the only one. Explanations for all the options to run
 NPB are provided in Section
-:ref:`source/43_using_npb:Running NPB from the command line`.
+:ref:`43_using_npb:Running NPB from the command line`.
 
 We recommend you to always generate a log of your run (``-l``) and in general,
 and especially for the first times that you use NPB, we recommend you to prompt
@@ -65,8 +65,8 @@ message that you will see is similar to::
    >> Type 'vi' and/or press ENTER to continue...
 
 
-More information is provided in :ref:`source/31_step_1_preparing_data:Preparing Meta-kernels`
-and :ref:`source/42_npb_configuration_file:Meta-kernel`.
+More information is provided in :ref:`31_step_1_preparing_data:Preparing Meta-kernels`
+and :ref:`42_npb_configuration_file:Meta-kernel`.
 
 
 Understanding NPB prompting and logging
@@ -149,4 +149,4 @@ A good idea is to stop NPB's execution before the generated files are copied
 from the staging directory to the bundle directory. You can do so by setting
 the argument: ``-f FAUCET --faucet FAUCET`` to ``staging``. More information
 about this argument is provided in the section
-:ref:`source/43_using_npb:Optional Arguments Description`.
+:ref:`43_using_npb:Optional Arguments Description`.

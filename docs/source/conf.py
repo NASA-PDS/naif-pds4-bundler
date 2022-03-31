@@ -21,7 +21,7 @@ copyright = '2021 California Institute of Technology'
 author = 'Marc Costa Sitja'
 
 # Obtain version from NPB
-version_file = "../src/pds/naif_pds4_bundler/VERSION.txt"
+version_file = "../../src/pds/naif_pds4_bundler/VERSION.txt"
 with open(version_file, 'r') as v:
     for line in v:
         if line:

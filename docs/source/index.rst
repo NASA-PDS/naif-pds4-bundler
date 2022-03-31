@@ -14,12 +14,12 @@ to end using the applicable PDS4 standards.
 .. toctree::
    :maxdepth: 7
 
-   source/10_overview
-   source/20_spice_kernel_archive_description
-   source/30_spice_kernel_archive_preparation_guide
-   source/40_naif_pds4_bundler_user_guide
-   source/50_api_docs
-   source/60_annex_npb_for_pds3
+   10_overview
+   20_spice_kernel_archive_description
+   30_spice_kernel_archive_preparation_guide
+   40_naif_pds4_bundler_user_guide
+   50_api_docs
+   60_annex_npb_for_pds3
 
 Indices and tables
 ==================

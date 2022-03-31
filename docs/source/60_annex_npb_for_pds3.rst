@@ -20,7 +20,7 @@ Configuration File Particulars
 ==============================
 
 PDS3 archives require several modifications to the NPB configuration file
-that are not documented in section :ref:`source/42_npb_configuration_file:The Configuration File`.
+that are not documented in section :ref:`42_npb_configuration_file:The Configuration File`.
 
 Use the MSL, the MRO or the JUNO configuration file examples as references. They
 are provided under: ``/Users/mcosta/pds/naif-pds4-bundler/tests/naif_pds4_bundler/config``
@@ -40,7 +40,7 @@ Using NPB for PDS3 Archives
 You can use NPB for PDS3 archives exactly in the same way that you would for a
 PDS4 archive. The only differences being present in the content of NPB's
 logging. Please refer to section
-:ref:`source/43_using_npb:Using NPB`, for more information.
+:ref:`43_using_npb:Using NPB`, for more information.
 
 
 Known differences from archives generated with NAIF's PDS3 archiving approach

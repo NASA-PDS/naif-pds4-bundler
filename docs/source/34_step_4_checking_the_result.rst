@@ -10,14 +10,14 @@ generation. Reasons for that could be:
    * a bug in NPB
 
 Although NPB already performs a number of checks, as described in the section
-:ref:`source/43_using_npb:Checks performed by NPB`, it is recommended to spend
+:ref:`43_using_npb:Checks performed by NPB`, it is recommended to spend
 some time and effort to check the result of the execution. Look at the
 ``WARNING`` messages provided in the NPB run log file, checking the SPICEDS
 file, and especially checking the Meta-kernel(s), even if you generated
 them manually.
 
 If you think you have found a bug in NPB or the archiving process please do as
-indicated in :ref:`source/12_bugs_contact_references:Reporting Bugs`.
+indicated in :ref:`12_bugs_contact_references:Reporting Bugs`.
 
 The following sections provide you some hints to perform checks on the archive.
 
@@ -41,9 +41,9 @@ them::
 What might be more interesting than examining individual labels is to compare
 them to similar labels. NPB facilitates this task with the
 ``-d DIFF --diff DIFF`` argument. More details are provided in
-:ref:`source/43_using_npb:Optional Arguments Description`. The strategy
+:ref:`43_using_npb:Optional Arguments Description`. The strategy
 with which NPB chooses similar labels is described in
-:ref:`source/43_using_npb:Product Comparison`.
+:ref:`43_using_npb:Product Comparison`.
 
 You can check other PDS artifacts, such as inventories, in a similar manner.
 

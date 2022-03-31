@@ -50,7 +50,7 @@ Document Collection
 
 The ``document`` collection contains all the versions of the SPICE Data Archive
 description file (SPICEDS). These files are described in the section
-:ref:`source/32_step_2_npb_setup:SPICE Data Set Catalog File`.
+:ref:`32_step_2_npb_setup:SPICE Data Set Catalog File`.
 
 
 Miscellaneous Collection

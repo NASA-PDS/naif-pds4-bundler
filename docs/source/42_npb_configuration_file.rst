@@ -14,7 +14,7 @@ to facilitate the task of writing the NPB configuration file.
 
 If you are not familiar with the generation of PDS4 SPICE archives we recommend
 you to first read the chapter
-:ref:`source/20_spice_kernel_archive_description:SPICE Kernel Archive Description`
+:ref:`20_spice_kernel_archive_description:SPICE Kernel Archive Description`
 in such a way that you get familiar with some concepts that are discussed in the
 following sections.
 
@@ -512,7 +512,7 @@ label and have Line Feed (LF) as line endings for all the products. NPB will
 choose the templates that apply to the version you specify: if the IM is equal
 or higher than one of the available version templates, these templates will be
 used. You can also specify a directory with your own templates, see
-section :ref:`source/42_npb_configuration_file:Templates Directory`.
+section :ref:`42_npb_configuration_file:Templates Directory`.
 
 The choice of the IM will determine the ``xml_model`` and ``schema_location``
 values. The only element value that will change is the one that specifies the IM
@@ -606,7 +606,7 @@ summary of the parameters:
      - Yes
    * - doi
      - Digital Object Identifier (DOI) of the bundle. More information in
-       :ref:`source/22_pds4_spice_archive:Digital Objects Identifiers`.
+       :ref:`22_pds4_spice_archive:Digital Objects Identifiers`.
      - No
    * - spice_name
      - Specifies the SPICE name of the main spacecraft of the archive.
@@ -633,14 +633,14 @@ summary of the parameters:
      - No
    * - increment_start
      - Archive release start time. This time forces the  More details are provided in
-       :ref:`source/22_pds4_spice_archive:Product Coverage Assignment Rules`. The
+       :ref:`22_pds4_spice_archive:Product Coverage Assignment Rules`. The
        date is provided with a UTC calendar format string with following syntax:
        ``YYYY-MM-DDThh:mm:ssZ`` e.g. ``2021-06-25T08:00:00Z``. NAIF does not
        recommend to include this parameter.
      - No
    * - increment_finish
      - Release stop time. More details are provided in
-       :ref:`source/22_pds4_spice_archive:Product Coverage Assignment Rules`. The
+       :ref:`22_pds4_spice_archive:Product Coverage Assignment Rules`. The
        date is provided with a UTC calendar format string with following syntax:
        ``YYYY-MM-DDThh:mm:ssZ`` e.g. ``2021-06-25T08:00:00Z``. NAIF does not recommend
        to include this parameter.
@@ -656,7 +656,7 @@ summary of the parameters:
        ``<CRLF>`` when using PDS IM version prior to 1.14.0.0, The choice of
        this parameter affects the content of the SPICEDS file (section
        "File Formats".) More information is provided in
-       :ref:`source/32_step_2_npb_setup:SPICE Data Set Catalog File`.
+       :ref:`32_step_2_npb_setup:SPICE Data Set Catalog File`.
      - No
 
 
@@ -666,7 +666,7 @@ SPICEDS
 In addition to the NPB Configuration File -if the meta-kernel is generated
 automatically - the SPICEDS file is the only bundle product that requires manual
 intervention. More details on SPICEDS are provided in the section
-:ref:`source/32_step_2_npb_setup:SPICE Data Set Catalog File`.
+:ref:`32_step_2_npb_setup:SPICE Data Set Catalog File`.
 
 
 Readme File
@@ -694,7 +694,7 @@ already exists in a bundle its generation will be ignored.
 
 
 More information on the readme file is provided in section
-:ref:`source/22_pds4_spice_archive:Bundle Products Construction Rules`.
+:ref:`22_pds4_spice_archive:Bundle Products Construction Rules`.
 
 
 Increment Start and Finish Times
@@ -706,7 +706,7 @@ stop times regardless of the coverage times provided by the MK(s) --if any--.
 NPB will set the MK(s) start and finish times to this elements --each
 individually--, and will propagate these times to the SPICE Kernels Collection
 and to the Bundle labels. Note that for yearly MKs --see section
-:ref:`source/31_step_1_preparing_data:Preparing Meta-kernels`--, NPB will only
+:ref:`31_step_1_preparing_data:Preparing Meta-kernels`--, NPB will only
 update the start or finish times for the MKs that correspond either to the
 start or finish year.
 
@@ -771,7 +771,7 @@ after the PDS IM 2.0.0.0 is released. NAIF recommends using the
 ``infomod2`` format, especially for new archives.
 
 More details on the determination of coverage for different files in the archives
-are provided in section :ref:`source/22_pds4_spice_archive:Product Coverage Assignment Rules`.
+are provided in section :ref:`22_pds4_spice_archive:Product Coverage Assignment Rules`.
 
 
 Mission Parameters
@@ -905,7 +905,7 @@ If you have any questions please contact the NAIF NPB developer.
 
 You can either specify a kernel name or a kernel name with a pattern
 (recommended). More information on kernel patterns is provided in
-:ref:`source/42_npb_configuration_file:Kernel patterns`.
+:ref:`42_npb_configuration_file:Kernel patterns`.
 
 In the Configuration File, each entry must be specified by its kernel type,
 there can be multiple entries with the same kernel type. For InSight for
@@ -974,7 +974,7 @@ of the required and optional directories:
        kernel list, and the file list. It is a good idea to use the working
        directory to store the configuration file(s), validation reports,
        archive plans, etc. More information of this directory is provided in
-       section :ref:`source/32_step_2_npb_setup:Working Directory`.
+       section :ref:`32_step_2_npb_setup:Working Directory`.
      - Yes
    * - kernels_directory
      - Specifies the directory(ies) that will be used by NPB to obtain the kernels
@@ -998,7 +998,7 @@ of the required and optional directories:
      - No
 
 More information on the setup of the NPB directories is provided in
-:ref:`source/32_step_2_npb_setup:Workspace Setup`.
+:ref:`32_step_2_npb_setup:Workspace Setup`.
 
 
 Templates Directory
@@ -1022,7 +1022,7 @@ Kernel List
 
 The Kernel List is an NPB execution by-product (more information on NPB
 execution by-products is provided in
-:ref:`source/43_using_npb:Execution by-products`) that is used for two main
+:ref:`43_using_npb:Execution by-products`) that is used for two main
 purposes:
 
    * to generate a description for each kernel to be archived; the
@@ -1112,7 +1112,7 @@ patterns are used to accommodate information particular to each individual
 kernel of each kind. In the example above the ``$DATE`` expression is meant to
 specify the year of the latest leapsecond provided by that kernel. Other
 examples are: original name of the kernel (see
-:ref:`source/31_step_1_preparing_data:Renaming Files`), version of the IAU
+:ref:`31_step_1_preparing_data:Renaming Files`), version of the IAU
 report, kernel coverage, etc. These patterns are determined by the next element:
 ``patterns``.
 
@@ -1361,7 +1361,7 @@ If NPB is set to generate kernels automatically, after the MK is
 generated and if indicated via configuration, NPB will pause the execution and
 will provide you with the option to review the MK that it has generated.
 More information is provided in
-:ref:`source/33_step_3_running_npb:Interactive step for Meta-kernels`.
+:ref:`33_step_3_running_npb:Interactive step for Meta-kernels`.
 
 Alternatively you can provide MKs that you have generated manually or
 by any other mean to NPB via configuration as well. The elements of the MK
@@ -1572,13 +1572,13 @@ by the kernels included in the MK defined by the pattern. For example::
 
 If the ``<coverage_kernel>`` element is not specified the MK coverage will be
 set to the mission start and mission stop times specified in
-:ref:`source/42_npb_configuration_file:Mission Parameters`.
+:ref:`42_npb_configuration_file:Mission Parameters`.
 
 Please note that unless specified via configuration, the combined coverage
 of MKs for which kernels have been provided to determine their coverage will
 be used to determine the coverage of the SPICE Kernels and Miscellaneous
 Collections and the Bundle coverage. More details are provided in the section
-:ref:`source/22_pds4_spice_archive:Product Coverage Assignment Rules`.
+:ref:`22_pds4_spice_archive:Product Coverage Assignment Rules`.
 
 
 Final remarks
@@ -1615,7 +1615,7 @@ numbering scheme. The orbit number changes at every given orbit event
 record includes a number of fields. Some of these fields are expressed in a
 given reference frame that makes use of a set of kernels (generally a PCK).
 More information on ORBNUM files is provided in the section
-:ref:`source/31_step_1_preparing_data:A Word on Orbit Number Files`. Here's an example of the
+:ref:`31_step_1_preparing_data:A Word on Orbit Number Files`. Here's an example of the
 orbit number file section of the configuration file for MAVEN::
 
     <orbit_number_file>

@@ -34,7 +34,7 @@ Working Directory
 NPB requires a directory to generate the execution by-products that include but
 are not limited to (depending on the execution arguments): an execution log,
 a  kernel list, diff report files, and the file list. These files are described
-in detail in the section :ref:`source/43_using_npb:Execution by-products`.
+in detail in the section :ref:`43_using_npb:Execution by-products`.
 
 It is always a good idea to use the working directory as a
 permanent directory to store the files used and generated for each archive
@@ -74,7 +74,7 @@ Of course it could also be something like this:
 https://naif.jpl.nasa.gov/pub/naif/INSIGHT/kernels/
 
 Please note that if you chose to generate MKs automatically (as explained
-in section :ref:`source/31_step_1_preparing_data:Generating MKs Automatically`),
+in section :ref:`31_step_1_preparing_data:Generating MKs Automatically`),
 you might not need to include a ``mk`` subdirectory in the kernels directory
 structure.
 
@@ -109,7 +109,7 @@ the complete archive.
 
 NPB will copy the resulting files of the run (in the staging area) to this
 bundle directory, unless indicated otherwise, as you will be able to learn in
-:ref:`source/43_using_npb:Optional Arguments Description`.
+:ref:`43_using_npb:Optional Arguments Description`.
 
 
 Determination of the Archive Release Version
@@ -139,7 +139,7 @@ Descriptions given in each of these locations have different purposes
 and levels of detail. The **comments** in a particular file provide the
 most detailed and comprehensive information about the file that they
 document and are discussed in great detail in the section
-:ref:`source/31_step_1_preparing_data:Augmenting Files with Comments`.
+:ref:`31_step_1_preparing_data:Augmenting Files with Comments`.
 The **SPICEDS** file provides a high level overview of the archive,
 covering briefly the types of information provided in, the source data of,
 and the accuracy of each type of kernels included in the archive. It also
@@ -194,7 +194,7 @@ recommendations on how to adapt them to your archive:
     paragraph that gives its approximate time coverage. The coverage is usually
     determined by the launch date and a pointer to the kernel that sets
     the end time of the of the archive. The determination of the archive
-    coverage is discussed in section :ref:`source/22_pds4_spice_archive:Product Coverage Assignment Rules`.
+    coverage is discussed in section :ref:`22_pds4_spice_archive:Product Coverage Assignment Rules`.
 
   * **Errata** contains an enumerated list of errata items. These items are
     generally related either to incompatibilities or issues with the PDS4
@@ -237,7 +237,7 @@ recommendations on how to adapt them to your archive:
     use priority for the collection of kernel files contained in each kernel
     subdirectory. This section is the one requiring the most work and it needs
     to be aligned with the descriptions that are discussed in
-    :ref:`source/42_npb_configuration_file:Kernel Descriptions`. Each
+    :ref:`42_npb_configuration_file:Kernel Descriptions`. Each
     kernel type has a common introductory paragraph but the rest of the items
     are mission specific.
 
@@ -245,7 +245,7 @@ recommendations on how to adapt them to your archive:
     the information for checksum files and, if applicable, for ORBNUM files.
     The checksum file subsection requires no updates whereas the ORBNUM
     subsection, if present, needs to be adapted. More information on ORBNUM
-    files is provided in section :ref:`source/31_step_1_preparing_data:A Word on Orbit Number Files`.
+    files is provided in section :ref:`31_step_1_preparing_data:A Word on Orbit Number Files`.
 
   * **File Formats** provides information on the text and binary files
     format. Although this section is very similar from archive to archive it
@@ -269,7 +269,7 @@ recommendations on how to adapt them to your archive:
     Archives that use a PDS IM equal or newer than 1.14.0.0 might decide to use
     a line feed character (ASCII 10) at the end of each record for checksum
     and ORBNUM files. This is specified via configuration as described in
-    :ref:`source/42_npb_configuration_file:The Information Model`. If so the
+    :ref:`42_npb_configuration_file:The Information Model`. If so the
     text for this section should be something like this::
 
        All text documents and other meta information files such as descriptions,
@@ -327,7 +327,7 @@ come into play.
 
 The first thing you need to do is to install and/or update NPB. To do so
 please follow the instructions provided in
-:ref:`source/41_npb_installation:NPB Installation`. Once you are done, come back
+:ref:`41_npb_installation:NPB Installation`. Once you are done, come back
 here.
 
 At this point you should be able to run the following command in a terminal::
@@ -352,7 +352,7 @@ or the NPB run doesn't go right, you will be able to get back to this "starting"
 point with no effort.
 
 Follow the instructions provided in
-:ref:`source/42_npb_configuration_file:The Configuration File`
+:ref:`42_npb_configuration_file:The Configuration File`
 to write or update the Configuration File. This process might require a
 **considerable** effort. Once you've got the configuration
 file in place, we recommend you name it as follows::

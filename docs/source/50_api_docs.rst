@@ -9,5 +9,5 @@ Modules, Classes, and Functions Documentation
 .. toctree::
    :maxdepth: 7
 
-   pds.rst
-   tests.rst
+   pds
+   tests

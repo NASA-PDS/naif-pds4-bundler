@@ -56,12 +56,12 @@ We are glad that you got this far, but you’ve got a ways to go.
 You might not have to look into each section of this document.
 If you already know about SPICE you can skip the rest of this chapter. If
 you are very familiar with PDS SPICE kernel archives you can skip the
-:ref:`source/20_spice_kernel_archive_description:SPICE Kernel Archive Description`
+:ref:`20_spice_kernel_archive_description:SPICE Kernel Archive Description`
 chapter and jump directly to
-:ref:`source/30_spice_kernel_archive_preparation_guide:SPICE Kernel Archive Preparation Guide`.
+:ref:`30_spice_kernel_archive_preparation_guide:SPICE Kernel Archive Preparation Guide`.
 
 Needless to say, the chapter
-:ref:`source/50_api_docs:Functions and Modules Documentation`
+:ref:`50_api_docs:Modules, Classes, and Functions Documentation`
 dedicated to the description of functions and
 modules is aimed at potential contributors to the further development of this
 NPB software package, if you are not planning to do so, don't bother to take a

@@ -18,7 +18,7 @@ included in the archive.
 If as a SPICE kernel archive producer you have been provided the data to be
 archived, if all data are present in a given directory structure or in a
 release plan, you might as well jump to
-:ref:`source/32_step_2_npb_setup:Step 2: Preparing the NAIF PDS4 Bundler Setup`.
+:ref:`32_step_2_npb_setup:Step 2: Preparing the NAIF PDS4 Bundler Setup`.
 
 
 Identifying Data
@@ -595,13 +595,13 @@ Because of the reasons explained above, very frequently the name of kernels
 to archive has to be updated. The update can be done manually simply by
 updating the file name or NPB can be configured to do so for you. For more
 information on how to implement kernel file name mapping see
-:ref:`source/42_npb_configuration_file:Mapping kernels` from the NPB
+:ref:`42_npb_configuration_file:Mapping kernels` from the NPB
 Configuration File description.
 
 In order to preserve traceability with the original SPICE kernel name
 -especially if that kernel is stored in a publicly accessible storage-, you can
 provide the original file name in the PDS4 label description field or in the
-kernel internal comments (See section :ref:`source/42_npb_configuration_file:Kernel Descriptions`.)
+kernel internal comments (See section :ref:`42_npb_configuration_file:Kernel Descriptions`.)
 
 For example the following kernel for the MAVEN mission::
 
@@ -735,10 +735,10 @@ you use a MK from a similar archive or if you are incrementing an already
 existing archive to use the latest archived MK.
 
 You will need to specify the location of the new MK in the NPB configuration
-file as indicated in :ref:`source/42_npb_configuration_file:Meta-kernel`,
+file as indicated in :ref:`42_npb_configuration_file:Meta-kernel`,
 alternatively you can place the MK in the MK subdirectory of your input
 kernels directory and then include it in the release plan as indicated in
-:ref:`source/31_step_1_preparing_data:Meta-kernels in the release plan`.
+:ref:`31_step_1_preparing_data:Meta-kernels in the release plan`.
 
 More information on how to generate adequate MKs is available at [KERNELS]_.
 
@@ -748,7 +748,7 @@ Generating MKs Automatically
 
 The generation of MKs can be automatized by providing to the NPB configuration
 file the appropriate parameters. This is described in detail in
-:ref:`source/42_npb_configuration_file:Automatic generation of Meta-kernels`.
+:ref:`42_npb_configuration_file:Automatic generation of Meta-kernels`.
 
 Please note that depending on the complexity and particulars of the MK(s) you
 need to archive, setting up the automatic generation might not be possible. If
@@ -767,17 +767,17 @@ Bundle coverage and MKs
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 In general, MKs will determine the archive increment start and finish times as
-described in section :ref:`source/22_pds4_spice_archive:Product Coverage Assignment Rules`.
+described in section :ref:`22_pds4_spice_archive:Product Coverage Assignment Rules`.
 
 The coverage will be determined by either a CK or a SPK kernel as specified
 via configuration --more information in section
-:ref:`source/42_npb_configuration_file:Coverage determination`--, but the MK
+:ref:`42_npb_configuration_file:Coverage determination`--, but the MK
 coverage can also be defined explicitly via configuration if necessary. This
 could be useful for example when SPks and CKs do not explicitly cover the
 dates required by the archive, e.g.: a lander mission with a fixed
 position provided by an SPK with extended coverage --this is the case for
 InSight--. This configuration parameter is explained in section
-:ref:`source/42_npb_configuration_file:Increment Start and Finish Times`.
+:ref:`42_npb_configuration_file:Increment Start and Finish Times`.
 
 
 Releases without MKs
@@ -786,10 +786,10 @@ Releases without MKs
 But what if the release does not have any MK? This is perfectly fine, but
 NPB will lose the ability to compute the increment coverage from the MK and if
 the increment coverage is not provided via configuration as explained in section
-:ref:`source/42_npb_configuration_file:Increment Start and Finish Times`, then
+:ref:`42_npb_configuration_file:Increment Start and Finish Times`, then
 the increment times will be set to the mission start and finish times specified
 in the configuration file as described in section
-:ref:`source/42_npb_configuration_file:Mission Parameters`.
+:ref:`42_npb_configuration_file:Mission Parameters`.
 
 
 A Word on Orbit Number Files
@@ -901,7 +901,7 @@ containing text of any other kind are also acceptable.
 
 If the file names need to be modified, you must use the updated file name in
 the release plan and have the file name mapping properly specified by the NPB
-configuration file (this is described in :ref:`source/42_npb_configuration_file:Mapping kernels`.)
+configuration file (this is described in :ref:`42_npb_configuration_file:Mapping kernels`.)
 
 Here's three different extracts of release plan samples::
 
@@ -954,4 +954,4 @@ Meta-kernels in the release plan
 
 The inclusion of Meta-kernels in the release plan is optional if you have
 already specified their location via configuration
-(see :ref:`source/42_npb_configuration_file:Meta-kernel`).
+(see :ref:`42_npb_configuration_file:Meta-kernel`).
