@@ -94,20 +94,20 @@ COMMENTS ON THE MRO SPICE DATA ARCHIVE
    these keywords provided in the detached PDS labels are correct.
 
 
-6. MRO Reconstructed CK Files for Sep 2014 - Dec 2014 
+6. MRO Reconstructed CK Files for Sep 2014 - Dec 2014
 --------------------------------------------------------
 
-   During the period from July 2014 till April 2015 reconstructed MRO 
-   CK production pipeline run by NAIF used an out of date SCLK kernel 
-   (v00055). SCLK v00056 delivered Sep 5, 2014 introduced a new partition 
-   with a jump of ~75 milliseconds on Sep 1, 2014. All reconstructed CKs 
-   generated since that time (September 2014 to March 2015) had internal 
+   During the period from July 2014 till April 2015 reconstructed MRO
+   CK production pipeline run by NAIF used an out of date SCLK kernel
+   (v00055). SCLK v00056 delivered Sep 5, 2014 introduced a new partition
+   with a jump of ~75 milliseconds on Sep 1, 2014. All reconstructed CKs
+   generated since that time (September 2014 to March 2015) had internal
    encoded SCLK time tags in error by 75 milliseconds. Due to this timing
-   error, using the reconstructed CKs with the latest SCLK resulted in 
-   attitude error of ~0.07 mrad in pitch, up to 0.15 mrad in roll (<0.015 
-   mrad baseline), and 0.05 mrad in yaw (<0.015 mrad baseline). All weekly 
+   error, using the reconstructed CKs with the latest SCLK resulted in
+   attitude error of ~0.07 mrad in pitch, up to 0.15 mrad in roll (<0.015
+   mrad baseline), and 0.05 mrad in yaw (<0.015 mrad baseline). All weekly
    reconstructed CKs covering September 2014 - March 2015 were re-generated
    at the end of March 2015 with the latest SCLK and included in the archive
-   as v2 files in release 33. For the period September-December 2014 these 
-   v2 CKs fully supersede the CKs added to the archive in releases 31 
+   as v2 files in release 33. For the period September-December 2014 these
+   v2 CKs fully supersede the CKs added to the archive in releases 31
    and 32.

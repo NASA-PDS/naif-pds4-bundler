@@ -26,7 +26,7 @@ parentheses is briefly explained below:
        Node of the PDS. If conversion of text kernels with
        lines terminated by ``<CR><LF>`` (carriage return and line feed)
        and binary kernels in ``LTL-IEEE`` (little-endian) format to the
-       required format is needed, NAIF provides a utility program named BINGO,
+       required format is needed, NAIF provides a utility program called ``BINGO``,
        available on the "Utilities"s page on the NAIF web site.
 
     2. *All SPICE data for a given mission get archived in a single

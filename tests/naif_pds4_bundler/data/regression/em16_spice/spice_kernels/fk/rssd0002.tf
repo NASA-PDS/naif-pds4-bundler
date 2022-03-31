@@ -76,7 +76,7 @@ Implementation Notes
 
 ESA/RSSD Generic Frame Names and NAIF ID Codes
 ========================================================================
- 
+
    The following names and NAIF ID codes are assigned to the generic
    frames defined in this kernel file:
 
@@ -126,7 +126,7 @@ General Notes About This File
    --------------------
 
    Most of the dynamic frames defined in this file require at least one
-   of the following kernels to be loaded prior to their evaluation, 
+   of the following kernels to be loaded prior to their evaluation,
    normally during program initialization:
 
      - Planetary ephemeris data (SPK), i.e. DE403, DE405, etc.
@@ -139,7 +139,7 @@ General Notes About This File
    About 'of Date' Frames:
    -----------------------
 
-   This file contains two or more implementations for the 'of Date' 
+   This file contains two or more implementations for the 'of Date'
    frame, i.e. Mars Mean Equator of date (MME).
 
    Usually, one of these implementations is a PCK-based frame, which
@@ -156,12 +156,12 @@ General Notes About This File
    loaded PCK data.
 
    In many cases, an instance of an 'of Date' frame frozen at J2000
-   epoch is desired. For this reason, an to improve computing 
-   efficiency, another implementation of this frame is provided. For 
+   epoch is desired. For this reason, an to improve computing
+   efficiency, another implementation of this frame is provided. For
    such frozen 'of Date' frame, its name is made up by appending the
    character string '2000' to the PCK-based frame name, i.e. MME2000.
 
-       
+
 Generic Dynamic Frames
 ========================================================================
 
@@ -229,7 +229,7 @@ Heliocentric Earth Ecliptic frame (HEE)
   \begindata
 
       FRAME_HEE                     =  1500010
-      FRAME_1500010_NAME            = 'HEE' 
+      FRAME_1500010_NAME            = 'HEE'
       FRAME_1500010_CLASS           =  5
       FRAME_1500010_CLASS_ID        =  1500010
       FRAME_1500010_CENTER          =  10
@@ -259,7 +259,7 @@ Heliocentric Earth Equatorial frame (HEEQ)
    The Heliocentric Earth Equatorial frame is defined as follows (from [3]
    and [4]):
 
-      -  X-Y plane is the solar equator of date, therefore, the +Z axis 
+      -  X-Y plane is the solar equator of date, therefore, the +Z axis
          is the primary vector and it is aligned to the Sun's north pole
          of date;
 
@@ -341,7 +341,7 @@ Heliocentric Earth Equatorial frame (HEEQ)
 
 Venus-centric Solar Orbital frame (VSO)
 ----------------------------------------
-   
+
    Definition:
    -----------
    The Venus-centric Solar Orbital frame is defined as follows:
@@ -376,15 +376,15 @@ Venus-centric Solar Orbital frame (VSO)
 
    Remarks:
    --------
-   This frame is defined based on SPK data: different planetary 
+   This frame is defined based on SPK data: different planetary
    ephemerides (DE families) for Venus, the Sun and the Solar System
-   Barycenter will lead to different frames. 
+   Barycenter will lead to different frames.
 
 
   \begindata
 
       FRAME_VSO                     =  1500299
-      FRAME_1500299_NAME            = 'VSO' 
+      FRAME_1500299_NAME            = 'VSO'
       FRAME_1500299_CLASS           =  5
       FRAME_1500299_CLASS_ID        =  1500299
       FRAME_1500299_CENTER          =  299
@@ -410,7 +410,7 @@ Venus Mean Equator of Date frame (VME)
 --------------------------------------
 
    Definition:
-   -----------   
+   -----------
    The Venus Mean Equatorial of Date frame (also known as Venus Mean
    Equator and IAU vector of Date frame) is defined as follows (from [5]):
 
@@ -458,7 +458,7 @@ Venus Mean Equator of Date frame (VME)
   \begindata
 
       FRAME_VME                     =  1501299
-      FRAME_1501299_NAME            = 'VME' 
+      FRAME_1501299_NAME            = 'VME'
       FRAME_1501299_CLASS           =  5
       FRAME_1501299_CLASS_ID        =  1501299
       FRAME_1501299_CENTER          =  299
@@ -467,11 +467,11 @@ Venus Mean Equator of Date frame (VME)
       FRAME_1501299_FAMILY          = 'TWO-VECTOR'
       FRAME_1501299_PRI_AXIS        = 'Z'
       FRAME_1501299_PRI_VECTOR_DEF  = 'CONSTANT'
-      FRAME_1501299_PRI_FRAME       = 'IAU_VENUS' 
+      FRAME_1501299_PRI_FRAME       = 'IAU_VENUS'
       FRAME_1501299_PRI_SPEC        = 'RECTANGULAR'
       FRAME_1501299_PRI_VECTOR      = ( 0, 0, 1 )
       FRAME_1501299_SEC_AXIS        = 'Y'
-      FRAME_1501299_SEC_VECTOR_DEF  = 'CONSTANT'                
+      FRAME_1501299_SEC_VECTOR_DEF  = 'CONSTANT'
       FRAME_1501299_SEC_FRAME       = 'J2000'
       FRAME_1501299_SEC_SPEC        = 'RECTANGULAR'
       FRAME_1501299_SEC_VECTOR      = ( 0, 0, 1 )
@@ -483,12 +483,12 @@ Moon-centric Solar Ecliptic frame (LSE)
 ---------------------------------------
 
    Definition:
-   -----------     
+   -----------
    The Moon-centric Solar Ecliptic frame is defined as follows:
 
       -  The position of the Sun relative to Moon is the primary vector:
          +X axis points from Moon to the Sun;
- 
+
       -  The inertially referenced velocity of the Sun relative to Moon
          is the secondary vector: +Y axis is the component of this
          velocity vector orthogonal to the +X axis;
@@ -516,9 +516,9 @@ Moon-centric Solar Ecliptic frame (LSE)
 
    Remarks:
    --------
-   This frame is defined based on SPK data: different planetary 
+   This frame is defined based on SPK data: different planetary
    ephemerides (DE families) for the Moon, the Sun, the Solar System
-   Barycenter and the Earth-Moon Barycenter will lead to different frames. 
+   Barycenter and the Earth-Moon Barycenter will lead to different frames.
 
 
   \begindata
@@ -533,12 +533,12 @@ Moon-centric Solar Ecliptic frame (LSE)
       FRAME_1500301_FAMILY          = 'TWO-VECTOR'
       FRAME_1500301_PRI_AXIS        = 'X'
       FRAME_1500301_PRI_VECTOR_DEF  = 'OBSERVER_TARGET_POSITION'
-      FRAME_1500301_PRI_OBSERVER    = 'MOON' 
+      FRAME_1500301_PRI_OBSERVER    = 'MOON'
       FRAME_1500301_PRI_TARGET      = 'SUN'
       FRAME_1500301_PRI_ABCORR      = 'NONE'
       FRAME_1500301_SEC_AXIS        = 'Y'
       FRAME_1500301_SEC_VECTOR_DEF  = 'OBSERVER_TARGET_VELOCITY'
-      FRAME_1500301_SEC_OBSERVER    = 'MOON' 
+      FRAME_1500301_SEC_OBSERVER    = 'MOON'
       FRAME_1500301_SEC_TARGET      = 'SUN'
       FRAME_1500301_SEC_ABCORR      = 'NONE'
       FRAME_1500301_SEC_FRAME       = 'J2000'
@@ -550,7 +550,7 @@ Moon Mean Equator of Date frame (LME)
 -------------------------------------
 
    Definition:
-   -----------   
+   -----------
    The Moon Mean Equator of Date frame (also known as Moon Mean Equator
    and IAU vector of Date frame) is defined as follows (from [5]):
 
@@ -594,7 +594,7 @@ Moon Mean Equator of Date frame (LME)
   \begindata
 
       FRAME_LME                     =  1501301
-      FRAME_1501301_NAME            = 'LME' 
+      FRAME_1501301_NAME            = 'LME'
       FRAME_1501301_CLASS           =  5
       FRAME_1501301_CLASS_ID        =  1501301
       FRAME_1501301_CENTER          =  301
@@ -603,11 +603,11 @@ Moon Mean Equator of Date frame (LME)
       FRAME_1501301_FAMILY          = 'TWO-VECTOR'
       FRAME_1501301_PRI_AXIS        = 'Z'
       FRAME_1501301_PRI_VECTOR_DEF  = 'CONSTANT'
-      FRAME_1501301_PRI_FRAME       = 'IAU_MOON'  
+      FRAME_1501301_PRI_FRAME       = 'IAU_MOON'
       FRAME_1501301_PRI_SPEC        = 'RECTANGULAR'
       FRAME_1501301_PRI_VECTOR      = ( 0, 0, 1 )
       FRAME_1501301_SEC_AXIS        = 'Y'
-      FRAME_1501301_SEC_VECTOR_DEF  = 'CONSTANT'                
+      FRAME_1501301_SEC_VECTOR_DEF  = 'CONSTANT'
       FRAME_1501301_SEC_FRAME       = 'J2000'
       FRAME_1501301_SEC_SPEC        = 'RECTANGULAR'
       FRAME_1501301_SEC_VECTOR      = ( 0, 0, 1 )
@@ -674,7 +674,7 @@ Geocentric Solar Ecliptic frame (GSE)
   \begindata
 
       FRAME_GSE                     =  1500399
-      FRAME_1500399_NAME            = 'GSE' 
+      FRAME_1500399_NAME            = 'GSE'
       FRAME_1500399_CLASS           =  5
       FRAME_1500399_CLASS_ID        =  1500399
       FRAME_1500399_CENTER          =  399
@@ -689,7 +689,7 @@ Geocentric Solar Ecliptic frame (GSE)
       FRAME_1500399_SEC_AXIS        = 'X'
       FRAME_1500399_SEC_VECTOR_DEF  = 'OBSERVER_TARGET_POSITION'
       FRAME_1500399_SEC_OBSERVER    = 'EARTH'
-      FRAME_1500399_SEC_TARGET      = 'SUN'  
+      FRAME_1500399_SEC_TARGET      = 'SUN'
       FRAME_1500399_SEC_ABCORR      = 'NONE'
 
   \begintext
@@ -737,7 +737,7 @@ Earth Mean Equator and Equinox of Date frame (EME)
   \begindata
 
       FRAME_EME                     =  1501399
-      FRAME_1501399_NAME            =  'EME'        
+      FRAME_1501399_NAME            =  'EME'
       FRAME_1501399_CLASS           =  5
       FRAME_1501399_CLASS_ID        =  1501399
       FRAME_1501399_CENTER          =  399
@@ -745,8 +745,8 @@ Earth Mean Equator and Equinox of Date frame (EME)
       FRAME_1501399_DEF_STYLE       = 'PARAMETERIZED'
       FRAME_1501399_FAMILY          = 'MEAN_EQUATOR_AND_EQUINOX_OF_DATE'
       FRAME_1501399_PREC_MODEL      = 'EARTH_IAU_1976'
-      FRAME_1501399_ROTATION_STATE  = 'ROTATING'        
- 
+      FRAME_1501399_ROTATION_STATE  = 'ROTATING'
+
   \begintext
 
 
@@ -867,7 +867,7 @@ Earth Mean Ecliptic and Equinox of Date frame (ECLIPDATE)
 
   \begindata
 
-      FRAME_ECLIPDATE                =  1503399   
+      FRAME_ECLIPDATE                =  1503399
       FRAME_1503399_NAME             = 'ECLIPDATE'
       FRAME_1503399_CLASS            =  5
       FRAME_1503399_CLASS_ID         =  1503399
@@ -878,7 +878,7 @@ Earth Mean Ecliptic and Equinox of Date frame (ECLIPDATE)
       FRAME_1503399_PREC_MODEL       = 'EARTH_IAU_1976'
       FRAME_1503399_OBLIQ_MODEL      = 'EARTH_IAU_1980'
       FRAME_1503399_ROTATION_STATE   = 'ROTATING'
- 
+
   \begintext
 
 
@@ -887,7 +887,7 @@ Mars Mean Equator of Date frame (MME)
 -------------------------------------
 
    Definition:
-   -----------   
+   -----------
    The Mars Mean Equator of Date frame (also known as Mars Mean Equator
    and IAU vector of Date frame) is defined as follows (from [5]):
 
@@ -937,7 +937,7 @@ Mars Mean Equator of Date frame (MME)
   \begindata
 
       FRAME_MME                     =  1500499
-      FRAME_1500499_NAME            = 'MME' 
+      FRAME_1500499_NAME            = 'MME'
       FRAME_1500499_CLASS           =  5
       FRAME_1500499_CLASS_ID        =  1500499
       FRAME_1500499_CENTER          =  499
@@ -946,11 +946,11 @@ Mars Mean Equator of Date frame (MME)
       FRAME_1500499_FAMILY          = 'TWO-VECTOR'
       FRAME_1500499_PRI_AXIS        = 'Z'
       FRAME_1500499_PRI_VECTOR_DEF  = 'CONSTANT'
-      FRAME_1500499_PRI_FRAME       = 'IAU_MARS' 
+      FRAME_1500499_PRI_FRAME       = 'IAU_MARS'
       FRAME_1500499_PRI_SPEC        = 'RECTANGULAR'
       FRAME_1500499_PRI_VECTOR      = ( 0, 0, 1 )
       FRAME_1500499_SEC_AXIS        = 'Y'
-      FRAME_1500499_SEC_VECTOR_DEF  = 'CONSTANT'                
+      FRAME_1500499_SEC_VECTOR_DEF  = 'CONSTANT'
       FRAME_1500499_SEC_FRAME       = 'J2000'
       FRAME_1500499_SEC_SPEC        = 'RECTANGULAR'
       FRAME_1500499_SEC_VECTOR      = ( 0, 0, 1 )
@@ -962,7 +962,7 @@ Mars Mean Equator of Date frame based on IAU 2000 Mars Constants (MME_IAU2000)
 ------------------------------------------------------------------------------
 
    Definition:
-   -----------   
+   -----------
    The MME_IAU2000 frame is based on Mean Mars Equator and IAU
    vector of date evaluated using IAU 2000 Mars rotation constants.
 
@@ -1031,7 +1031,7 @@ Mars Mean Equator of Date frame based on IAU 2000 Mars Constants (MME_IAU2000)
   \begindata
 
       FRAME_MME_IAU2000             =  1501499
-      FRAME_1501499_NAME            = 'MME_IAU2000'    
+      FRAME_1501499_NAME            = 'MME_IAU2000'
       FRAME_1501499_CLASS           =  5
       FRAME_1501499_CLASS_ID        =  1501499
       FRAME_1501499_CENTER          =  499
@@ -1054,7 +1054,7 @@ Mars-centric Solar Orbital frame (MSO)
 --------------------------------------------------------
 
    Definition:
-   -----------      
+   -----------
    The Mars-centric Solar Orbital frame is defined as follows:
 
       -  The position of the Sun relative to Mars is the primary vector:
@@ -1087,13 +1087,13 @@ Mars-centric Solar Orbital frame (MSO)
 
    Remarks:
    --------
-   This frame is defined based on SPK data: different planetary 
+   This frame is defined based on SPK data: different planetary
    ephemerides (DE families) for Mars, the Sun and the Solar System
    Barycenter will lead to different implementations of the frame. As an
    example, the difference between using DE405 and DE403 ephemerides is,
    on average, approximately 11.1 micro-radians, with a maximum of 13.4
    micro-radians.
-   
+
 
   \begindata
 
@@ -1107,12 +1107,12 @@ Mars-centric Solar Orbital frame (MSO)
       FRAME_1502499_FAMILY          = 'TWO-VECTOR'
       FRAME_1502499_PRI_AXIS        = 'X'
       FRAME_1502499_PRI_VECTOR_DEF  = 'OBSERVER_TARGET_POSITION'
-      FRAME_1502499_PRI_OBSERVER    = 'MARS' 
+      FRAME_1502499_PRI_OBSERVER    = 'MARS'
       FRAME_1502499_PRI_TARGET      = 'SUN'
       FRAME_1502499_PRI_ABCORR      = 'NONE'
       FRAME_1502499_SEC_AXIS        = 'Y'
       FRAME_1502499_SEC_VECTOR_DEF  = 'OBSERVER_TARGET_VELOCITY'
-      FRAME_1502499_SEC_OBSERVER    = 'MARS' 
+      FRAME_1502499_SEC_OBSERVER    = 'MARS'
       FRAME_1502499_SEC_TARGET      = 'SUN'
       FRAME_1502499_SEC_ABCORR      = 'NONE'
       FRAME_1502499_SEC_FRAME       = 'J2000'
@@ -1153,7 +1153,7 @@ Heliocentric Inertial frame (HCI)
    J2000 epoch, using the following set of keywords:
 
       FRAME_HCI                     =  1502010
-      FRAME_1502010_NAME            = 'HCI' 
+      FRAME_1502010_NAME            = 'HCI'
       FRAME_1502010_CLASS           =  5
       FRAME_1502010_CLASS_ID        =  1502010
       FRAME_1502010_CENTER          =  10
@@ -1198,10 +1198,10 @@ Heliocentric Inertial frame (HCI)
   \begindata
 
       FRAME_HCI                     = 1502010
-      FRAME_1502010_NAME            = 'HCI'         
+      FRAME_1502010_NAME            = 'HCI'
       FRAME_1502010_CLASS           = 4
       FRAME_1502010_CLASS_ID        = 1502010
-      FRAME_1502010_CENTER          = 10 
+      FRAME_1502010_CENTER          = 10
       TKFRAME_1502010_SPEC          = 'MATRIX'
       TKFRAME_1502010_RELATIVE      = 'J2000'
       TKFRAME_1502010_MATRIX        = (
@@ -1214,7 +1214,7 @@ Heliocentric Inertial frame (HCI)
 
   \begintext
 
-   
+
 Venus Mean Equator of Date J2000 frame (VME2000)
 ------------------------------------------------
 
@@ -1242,7 +1242,7 @@ Venus Mean Equator of Date J2000 frame (VME2000)
 
       PCK00008.TPC
 
-   which implements the following IAU constants for Venus (from [5]): 
+   which implements the following IAU constants for Venus (from [5]):
 
       BODY299_POLE_RA          = (  272.76       0.          0. )
       BODY299_POLE_DEC         = (   67.16       0.          0. )
@@ -1255,7 +1255,7 @@ Venus Mean Equator of Date J2000 frame (VME2000)
   \begindata
 
       FRAME_VME2000                 = 1503299
-      FRAME_1503299_NAME            = 'VME2000'     
+      FRAME_1503299_NAME            = 'VME2000'
       FRAME_1503299_CLASS           = 4
       FRAME_1503299_CLASS_ID        = 1503299
       FRAME_1503299_CENTER          = 299
@@ -1266,7 +1266,7 @@ Venus Mean Equator of Date J2000 frame (VME2000)
          0.9988399975085458       0.0481524597204341       0.0000000000000000
         -0.0443769404401835       0.9205233405740161       0.3881590738545506
          0.0186908141689023      -0.3877088083617988       0.9215923900425704
- 
+
                                      )
 
   \begintext
@@ -1300,9 +1300,9 @@ Moon Mean Equator of Date J2000 frame (LME2000)
         PCK00008.TPC
 
   which implements the following IAU constants for the Moon (from [5]):
-   
+
     - Moon's J2000 right ascension and declination (RA and DEC) of the
-      north pole. 
+      north pole.
 
         BODY301_POLE_RA      = (  269.9949        0.0031        0.      )
         BODY301_POLE_DEC     = (   66.5392        0.0130        0.      )
@@ -1315,33 +1315,33 @@ Moon Mean Equator of Date J2000 frame (LME2000)
                                     0.0       0.0072   0.0       0.0
                                     0.0      -0.0052   0.0       0.0
                                     0.0043                              )
-        
+
         BODY301_NUT_PREC_DEC = (   1.5419     0.0239  -0.0278    0.0068
                                    0.0       -0.0029   0.0009    0.0
-                                   0.0        0.0008   0.0       0.0     
+                                   0.0        0.0008   0.0       0.0
                                   -0.0009                               )
-        
+
      The effective RA/DEC of the Moon's North pole is computed, for a given
      time as:
 
         alpha   =  269.9949 +  0.0031 T  -  3.8787 sin(E1)  - 0.1204 sin(E2)
              0
-                                         +  0.0700 sin(E3)  - 0.0172 sin(E4) 
-                                        
+                                         +  0.0700 sin(E3)  - 0.0172 sin(E4)
+
                                          +  0.0072 sin(E6)  - 0.0052 sin(E10)
- 
-                                         +  0.0043 sin(E13)           
- 
- 
+
+                                         +  0.0043 sin(E13)
+
+
         delta   =  66.5392  +  0.013 T   +  1.5419 cos(E1)  + 0.0239 cos(E2)
              0
                                          -  0.0278 cos(E3)  + 0.0068 cos(E4)
-                                      
+
                                          -  0.0029 cos(E6)  + 0.0009 cos(E7)
-   
+
                                          +  0.0008 cos(E10) - 0.0009 cos(E13)
 
-      where T represents centuries past J2000 ( TDB ), and the nutation 
+      where T represents centuries past J2000 ( TDB ), and the nutation
       precession angles for the Earth-Moon system are:
 
                           E1  =   125.045 -  0.0529921 d
@@ -1357,14 +1357,14 @@ Moon Mean Equator of Date J2000 frame (LME2000)
                           E11 =   119.743 +  0.0036096 d
                           E12 =   239.961 +  0.1643573 d
                           E13 =    25.053 + 12.9590088 d
-       
-      where d represents days past J2000 ( TDB )           
+
+      where d represents days past J2000 ( TDB )
 
 
   \begindata
 
       FRAME_LME2000                 = 1502301
-      FRAME_1502301_NAME            = 'LME2000'     
+      FRAME_1502301_NAME            = 'LME2000'
       FRAME_1502301_CLASS           = 4
       FRAME_1502301_CLASS_ID        = 1502301
       FRAME_1502301_CENTER          = 301
@@ -1375,7 +1375,7 @@ Moon Mean Equator of Date J2000 frame (LME2000)
          0.9984965052050879      -0.0548154092680678       0.0000000000000000
          0.0499357293985326       0.9096101252380440       0.4124510189026893
         -0.0226086714041825      -0.4118309009426129       0.9109797785934293
- 
+
                                      )
 
   \begintext
@@ -1406,7 +1406,7 @@ Mars Mean Equator of Date J2000 frame (MME2000)
   \begindata
 
       FRAME_MME2000                 = 1503499
-      FRAME_1503499_NAME            = 'MME2000'     
+      FRAME_1503499_NAME            = 'MME2000'
       FRAME_1503499_CLASS           = 4
       FRAME_1503499_CLASS_ID        = 1503499
       FRAME_1503499_CENTER          = 499
@@ -1421,4 +1421,3 @@ Mars Mean Equator of Date J2000 frame (MME2000)
                                      )
 
   \begintext
-

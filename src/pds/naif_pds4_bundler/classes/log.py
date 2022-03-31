@@ -12,11 +12,13 @@ import spiceypy
 class Log(object):
     """Log class to write and output NPB's log.
 
-    :param args: Parameters arguments from NDT's main function.
-    :param version: NDT version.
+    :param args: Parameter arguments from NPB's main function.
+    :type args: object
+    :param version: NPB version.
+    :type version: str
     """
 
-    def __init__(self, setup, args):
+    def __init__(self, setup: object, args: object) -> object:
         """Constructor."""
         self.setup = setup
         self.args = args
@@ -115,7 +117,6 @@ class Log(object):
             )
 
         logging.info("")
-        return
 
     def stop(self):
         """Write log, file list, and checksum registry files when NPB stops."""
@@ -154,13 +155,16 @@ class Log(object):
         #
         spiceypy.kclear()
 
-        return
-
 
 def error_message(message, setup=False):
     """Function to signal a NPB error message.
 
     The File List and Checksum Registry files are also written.
+
+    :param message: Error message
+    :type message: str
+    :param setup: Setup object, if provided a file will be written
+    :type setup: object
     """
     error = f"{message}"
     logging.error(f"-- {message}")

@@ -1,41 +1,16 @@
-# NAIF PDS4 Bundler
+# 🪐 NAIF PDS4 Bundler
 
-The NAIF PDS4 Bundler (NPB) is software package that generates a SPICE archive in
-the shape of a PDS4 Bundle.
+Software package by [NASA's Navigation and Ancillary Information Facility] (https://naif.jpl.nasa.gov/naif/) that enables SPICE kernels archive producers to get familiar with,
+design, and generate [Planetary Data System](https://pds.nasa.gov/) SPICE
+archives from end-to-end using the applicable PDS4 standards.
 
-Please visit our website at: https://nasa-pds.github.io/naif-pds4-bundler
+## 🛠️️ Prerequisites
 
-It has useful information for developers and end-users.
-
-
-## Prerequisites
-
+   * A computer based on 64-bit Unix operating system: a Linux or a Mac.
    * Python 3.8 (or higher)
    * A NAIF supported C compiler [(see link)](https://naif.jpl.nasa.gov/naif/toolkit_C.html)
 
-Your computer must be based on a 64-bit Unix operating system: a Linux or a Mac.
-
-### Dependencies
-
-The following Python packages will be installed:
-
-   * SpiceyPy (version 4.0.2 or higher)
-   * beautifulsoup4 (version 4.9.3 or higher)
-   * NumPy (version 1.19.4 or higher)
-   * SetupTools (version 50.3.0 or higher)
-   * xmlschema
-
-Please note that the dependency that might cause issues is SpiceyPy. SpiceyPy
-will check if you have the SPICE Toolkit in C: CSPICE, installed, if you don't
-it will automatically install it for you (that is why only a NAIF compatible
-C compiler is required.)
-
-## User Documentation
-
-Please visit the documentation at: https://nasa-pds.github.io/naif-pds4-bundler/
-
-
-## User Quickstart
+## ⎆ Installation
 
 Install with:
 
@@ -43,65 +18,49 @@ Install with:
 
 To execute just to show the help message, run:
 
-    naif-pds4-bundler -h
+    naif-pds4-bundler --help
 
-
-## Code of Conduct
-
-All users and developers of the NASA-PDS software are expected to abide by our [Code of Conduct](https://github.com/NASA-PDS/.github/blob/main/CODE_OF_CONDUCT.md). Please read this to ensure you understand the expectations of our community.
-
-
-## Contributing
-
-For information on how to contribute to NASA-PDS codebases please take a look at our [Contributing guidelines](https://github.com/NASA-PDS/.github/blob/main/CONTRIBUTING.md).
-
-
-## Installation
-
-Install in editable mode and with extra developer dependencies into your virtual environment of choice:
-
-    pip install --editable '.[dev]'
-
-Configure the `pre-commit` hooks:
-
-    pre-commit install && pre-commit install -t pre-push
-
-
-### Packaging
-
-To isolate and be able to re-produce the environment for this package, you should use a [Python Virtual Environment](https://docs.python.org/3/tutorial/venv.html). To do so, run:
-
-    python -m venv venv
-
-Then exclusively use `venv/bin/python`, `venv/bin/pip`, etc. (It is no longer recommended to use `venv/bin/activate`.)
-
-If you have `tox` installed and would like it to create your environment and install dependencies for you run:
-
-    tox --devenv <name you'd like for env> -e dev
-
-Dependencies for development are specified as the `dev` `extras_require` in `setup.cfg`; they are installed into the virtual environment as follows:
-
-    pip install --editable '.[dev]'
-
-All the source code is in `naif_pds4_bundler` under `src`.
-
-
-### Tests
-
-Run tests with:
+Run tests under `tests/naif_pds4_bundler`` with:
 
     python -m unittest
 
-under ``tests/naif_pds4_bundler``
+See the online documentation for [Installation](https://nasa-pds.github.io/naif-pds4-bundler/source/41_npb_installation.html) instructions.
 
+👉 _Note:_ The above commands demonstrate typical usage with a command-line prompt, such as that provided by the popular `bash` shell; your own prompt may appear differently and may vary depending on operating system, shell choice, and so forth.
 
-### Documentation
+## 📄 Documentation
 
-NPB uses [Sphinx](https://www.sphinx-doc.org/en/master/) to build its
-documentation. You can build the NPB docs with:
+Installation and Usage information can be found in the documentation online
+at https://nasa-pds.github.io/naif-pds4-bundler/ or the latest version is
+maintained under the `docs` directory.
 
-    python setup.py build_sphinx
+The documentation describes the process to prepare SPICE archives and describes the NAIF
+approach to using PDS4 standards in great detail.
 
-You can access the build files in the following directory relative to the project root:
+### 🐈 To build the Sphinx HTML documentation:
 
-    build/sphinx/html/
+```console
+$ python3 -m venv venv
+$ venv/bin/python setup.py develop
+$ venv/bin/python setup.py build_sphinx
+running build_sphinx
+…
+The HTML pages are in build/sphinx/html.
+```
+
+## 👏 Contribute
+
+All users and developers of the NASA-PDS software are expected to abide by our [Code of Conduct](https://github.com/NASA-PDS/.github/blob/main/CODE_OF_CONDUCT.md). Please read this to ensure you understand the expectations of our community. For information on how to contribute to NASA-PDS codebases please take a look at our [Contributing guidelines](https://github.com/NASA-PDS/.github/blob/main/CONTRIBUTING.md).
+
+- Issue Tracker: https://github.com/NASA-PDS/naif-pds4-bundler/issues
+- Source Code: https://github.com/NASA-PDS/naif-pds4-bundler
+
+## 💁‍♀️ Support
+
+If you are having issues file a bug report in Github: https://github.com/NASA-PDS/naif-pds4-bundler/issues
+
+Or you can reach us at https://pds.nasa.gov/?feedback=true
+
+## 💳 License
+
+The project is licensed under the Apache License, version 2. See the `LICENSE.txt` file for details.

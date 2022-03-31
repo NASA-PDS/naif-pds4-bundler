@@ -15,7 +15,7 @@ class ZzTestSlicer(TestCase):
     reducing its size. This utility is not mentioned in the NPB documentation
     other than the function header itself.
 
-    Since these tests require the NAIF Utility CKSLICER the tests are not
+    Since these tests require the NAIF Utility ``CKSLICER`` the tests are not
     included as part of the NPB test suite.
     """
 

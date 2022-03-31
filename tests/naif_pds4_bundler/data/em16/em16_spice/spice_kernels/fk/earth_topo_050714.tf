@@ -21,7 +21,7 @@ KPL/FK
    frame relative to another frame.  In this file, the other frame,
    which we'll refer to as the "base frame," is the terrestrial
    reference frame ITRF93.
- 
+
    The orientation of a topocentric frame relative to the base frame
    relies on a reference spheroid (see "Data Sources" below).  The
    z-axis of the topocentric frame contains the station location and is
@@ -44,12 +44,12 @@ KPL/FK
    matrix that maps vectors from the base frame to a specified
    topocentric frame.  Then
 
-                
+
       M   =  [ Pi  ]  [ Pi/2 - LAT ]  [ LON ]
                     3               2        3
 
    where LON, LAT are the associated station's geodetic latitude and
-   longitude.  Note that the frame definitions below actually 
+   longitude.  Note that the frame definitions below actually
    provide Euler angles for the inverse of M and use units of
    degrees, so the angle sequences are
 
@@ -67,7 +67,7 @@ KPL/FK
    Revision description
    --------------------
 
-   This kernel supersedes  
+   This kernel supersedes
 
       earth_topo_040916.tf
 
@@ -77,7 +77,7 @@ KPL/FK
 
    Some users of station location data are adopting the name
 
-      DSS-64 
+      DSS-64
 
    to represent the new location; others are continuing to use
    the old name
@@ -93,8 +93,8 @@ KPL/FK
    This kernel does not define a topocentric frame centered at the
    old location of DSS-65:  the previous version of this kernel
    may be used to provide that definition.
- 
- 
+
+
    Planned updates
    ---------------
 
@@ -120,7 +120,7 @@ KPL/FK
 
    This kernel uses the frame alias 'EARTH_FIXED' to designate the
    base frame.  Below, this alias is mapped to the frame name 'ITRF93'.
-   In some situations, for example when low accuracy, long term 
+   In some situations, for example when low accuracy, long term
    predictions are desired, it may be convenient to map EARTH_FIXED
    to 'IAU_EARTH'.
 
@@ -131,7 +131,7 @@ KPL/FK
    --------------------
 
    For high-accuracy work, this kernel should be used together with a
-   high-precision, binary earth PCK file.  
+   high-precision, binary earth PCK file.
 
       NAIF produces these kernels on a regular basis; they can be
       obtained via anonymous ftp from the NAIF server
@@ -165,7 +165,7 @@ KPL/FK
    --------------------
 
    This file is compatible with the SPK files
- 
+
        earthstns_fx_050714.bsp       [reference frame: EARTH_FIXED]
        earthstns_itrf93_050714.bsp   [reference frame: ITRF93     ]
 
@@ -179,37 +179,37 @@ KPL/FK
    DSS-64 and DSS-65
    -----------------
 
-   See "Revision description" above for a description of the data 
+   See "Revision description" above for a description of the data
    coverage provided by this file for DSS-64 and DSS-65.
 
    To enable use of the name DSS-64, user applications may load
    a text kernel containing the assignments
- 
- 
+
+
           NAIF_BODY_NAME  +=  'DSS-64'
           NAIF_BODY_CODE  +=   399064
- 
- 
+
+
    This frame kernel includes the necessary definitions.
- 
+
    See the NAIF_IDs Required Reading for details.
- 
- 
+
+
    PARKES
    ------
- 
+
    The station location data source produced by JPL's section 335
    now refers to the Parkes station as "DSS-49."  The SPICE Toolkit
    currently supports the NAIF ID code/name mappings
- 
+
       399005  <-->  DSS-05  (secondary)
               <-->  PARKES  (primary)
- 
+
    Identical ephemeris data are provided in this file for both ID codes
    399005 and 399049.
- 
+
    See the NAIF_IDs Required Reading for details.
- 
+
    In this file, all of the frame names
 
       DSS-05_TOPO
@@ -219,7 +219,7 @@ KPL/FK
    are associated with the topocentric frame for Parkes, so any of
    these names will be recognized by the SPICE Toolkit when this kernel
    is loaded.  All three names refer to mathematically equivalent
-   frames. 
+   frames.
 
 
 
@@ -234,8 +234,8 @@ KPL/FK
 
    Additional source:
 
-      Location data for DSS-64 are from an e-mail communication 
-      from W. M. Folkner to N. J. Bachman, dated June 23, 2005. 
+      Location data for DSS-64 are from an e-mail communication
+      from W. M. Folkner to N. J. Bachman, dated June 23, 2005.
 
 
    Reference Spheroid
@@ -244,9 +244,9 @@ KPL/FK
    The reference bi-axial spheroid is defined by an equatorial and a
    polar radius.  Calling these Re and Rp respectively, the flattening
    factor f is defined as
-  
+
       f = ( Re - Rp ) / Re
-   
+
    For the reference spheroid used by this file, the equatorial radius
    Re and inverse flattening factor 1/f are
 
@@ -310,7 +310,7 @@ KPL/FK
 
    The movement of the stations due to tectonic plate motion is taken
    into account in creation of the frame definitions used in this file:
-   the center locations and orientations of the reference frames are 
+   the center locations and orientations of the reference frames are
    associated with station locations extrapolated to the date
 
       2005 July 15 00:00:00 TDB
@@ -329,7 +329,7 @@ KPL/FK
 
    The frame definitions given here correspond to station locations
    at a fixed epoch.  Because station locations are time-varying,
-   this kernel will gradually become inconsistent with the 
+   this kernel will gradually become inconsistent with the
    corresponding station location data.
 
    The following discussion concerning station location accuracy is
@@ -352,28 +352,28 @@ KPL/FK
 
    The site lists the following references:
 
-       1. C. Boucher, Z. Altamimi, L. Duhem, 
-          "Results and analysis of the ITRF93", 
+       1. C. Boucher, Z. Altamimi, L. Duhem,
+          "Results and analysis of the ITRF93",
           IERS Technical Note 18, Observatoire de Paris, 1994.
 
-       2. W. M. Folkner, DSN station locations and uncertainties, 
+       2. W. M. Folkner, DSN station locations and uncertainties,
           JPL TDA Progress Report, 42-128,pp. 1-34,1996.
 
-       3. T. Moyer, "Mathematical formulation of the double-precision 
+       3. T. Moyer, "Mathematical formulation of the double-precision
           Orbit Determination Program", JPL Technical Report 32-1527, 1971
 
-       4. C. S. Jacobs and A. Rius, Internal consistency of VLBI surveying 
+       4. C. S. Jacobs and A. Rius, Internal consistency of VLBI surveying
           between DSS 63 and DSS 65", JPL IOM 335.3-90-034, 11 May 1992.
 
-       5. J. A. Estefan and W. M. Folkner, Sensitivity of planetary cruise 
-          navigation to Earth orientation calibration errors, JPL TDA 
+       5. J. A. Estefan and W. M. Folkner, Sensitivity of planetary cruise
+          navigation to Earth orientation calibration errors, JPL TDA
           Progress Report 42-123, pp. 1-29, 1995.
 
-       6. T. D. Moyer, "Frame tie rotations and nutation corrections for 
+       6. T. D. Moyer, "Frame tie rotations and nutation corrections for
           the ODP", JPL EM 314-558, 26 February 1993.
 
-       7. E. M. Standish, X X Newhall, J. G. Williams, W. M. Folkner, 
-          "JPL planetary and lunar ephemerides DE403/LE403", JPL IOM 
+       7. E. M. Standish, X X Newhall, J. G. Williams, W. M. Folkner,
+          "JPL planetary and lunar ephemerides DE403/LE403", JPL IOM
           314.10-127, 22 May 1995.
 
 
@@ -406,7 +406,7 @@ KPL/FK
    PARKES is called "DSS-49" in the data source.  The older names DSS-05
    and PARKES are associated with the ID code 399005 for backward
    compatibility.
- 
+
    The ID code 399064 is not yet a SPICE built-in code, so it is
    associated here with the name DSS-64.
 
@@ -897,4 +897,3 @@ KPL/FK
                                               180.0000000000000  )
 
 \begintext
-

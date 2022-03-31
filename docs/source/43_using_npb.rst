@@ -17,7 +17,7 @@ NPB Functional Scheme
 
 This section provides a very high-level overview of NPBs functional design
 and operation. If you need more details you might want to go to
-:ref:`source/50_api_docs:Functions and Modules Documentation`, or take a
+:ref:`source/50_api_docs:Modules, Classes, and Functions Documentation`, or take a
 look at the source code itself. The following text is extracted directly from
 the inline comments of the ``naif-pds4-bundler/src/pds/naif_pds4_bundler/__main__.py`` module.
 
@@ -751,7 +751,7 @@ SPICE Kernel Collection Validation
 Inventory Product Validation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: pds.naif_pds4_bundler.classes.product.InventoryProduct.validate
+.. automodule:: pds.naif_pds4_bundler.classes.product.InventoryProduct.validate_pds4
 
 
 Checksum Validation

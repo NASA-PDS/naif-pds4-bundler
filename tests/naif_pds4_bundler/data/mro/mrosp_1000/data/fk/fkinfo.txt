@@ -3,11 +3,11 @@ RECORD_TYPE             = STREAM
 
 OBJECT                  = TEXT
    INTERCHANGE_FORMAT   = ASCII
-   PUBLICATION_DATE     = 2009-02-27 
+   PUBLICATION_DATE     = 2009-02-27
    NOTE                 = "MRO FRAMES Kernel Information"
 END_OBJECT              = TEXT
-                                                                     
-END 
+
+END
 
 
 General Information About SPICE Frames Kernels
@@ -26,7 +26,7 @@ General Information About SPICE Frames Kernels
    toolkit for a number of languages and computer platforms is located
    in the ``/software'' subdirectory of the main directory of this data
    set.
- 
+
    Refer to the ``frames.req'' document provided with the toolkit to get
    more information about definition and usage of the frames within the
    SPICE system.
@@ -60,23 +60,22 @@ Kernel File Details
    The most detailed description of the data in an FK file is provided
    in metadata included inside the description area of the file. This
    information can be viewed using any text editor program.
-   
+
 
 Contact Information
 ===================
 
    Regarding MRO project specific information provided in this data set
    and for general information about SPICE system:
-   
-      Boris Semenov 
-      (818)-354-8136 
+
+      Boris Semenov
+      (818)-354-8136
       Boris.Semenov@jpl.nasa.gov
-      
+
    address:
-   
+
       Navigation and Ancillary Information Facility (NAIF)
       Jet Propulsion Laboratory
       MS 301-125L
       4800 Oak Grove Drive
-      Pasadena CA 91109 USA 
-
+      Pasadena CA 91109 USA

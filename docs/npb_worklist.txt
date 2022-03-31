@@ -19,6 +19,10 @@ Work List:
 
      To be implemented when PDS-EN registry copes with PDS3 data sets.
 
+  -- Implement validate_pds3 to validate index files against data set content.
+
+  -- Implement OREX functional tests -focusing on MKs and kernel mapping.
+
   Possible:
 
   -- NOT for this release, and maybe never, but should we consider adding

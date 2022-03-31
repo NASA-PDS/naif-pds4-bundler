@@ -785,5 +785,3 @@ class Bundle(object):
                     error_message("Check generation of Checksum files.", self.setup)
 
         logging.info("")
-
-        return

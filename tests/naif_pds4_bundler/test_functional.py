@@ -201,8 +201,8 @@ class TestFunctional(TestCase):
     def test_m2020_incorrect_mission_times(self):
         m2020.test_m2020_incorrect_mission_times(self)
 
-    def test_m2020_incorrect_increment_start_time(self):
-        m2020.test_m2020_incorrect_increment_start_time(self)
+    def test_m2020_incorrect_start_time(self):
+        m2020.test_m2020_incorrect_start_time(self)
 
     def test_m2020_increment_start_time(self):
         m2020.test_m2020_increment_start_time(self)

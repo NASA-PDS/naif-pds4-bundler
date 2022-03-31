@@ -2,9 +2,9 @@ KPL/IK
 
 FREND Instrument Kernel
 ===============================================================================
- 
+
    This instrument kernel (I-kernel) contains the ExoMars-2016 Trace Gas
-   Orbiter (TGO) Fine Resolution Epithermal Neutron Detector (FREND) 
+   Orbiter (TGO) Fine Resolution Epithermal Neutron Detector (FREND)
    instrument geometric parameters and field-of-view (FOV) definitions.
 
 
@@ -16,37 +16,37 @@ Version and Date
       Updated FoV reference angle and minor typos.
 
    Version 0.4 -- September 26, 2016 -- Marc Costa Sitja, ESAC/ESA
-   
-      After FREND review in the ExoMars 2016 SWT #11 only one FOV is 
-      required. FREND 3He detectors (TGO_FREND_HE) and FREND stilbene 
-      scintillator detector (TGO_FREND_SC) definitions have been 
-      removed and FREND full (TGO_FREND) has been renamed to FREND 
+
+      After FREND review in the ExoMars 2016 SWT #11 only one FOV is
+      required. FREND 3He detectors (TGO_FREND_HE) and FREND stilbene
+      scintillator detector (TGO_FREND_SC) definitions have been
+      removed and FREND full (TGO_FREND) has been renamed to FREND
       detectors. The INS-143210_PLATFORM_ID INS-143220_PLATFORM_ID ids
       have also been removed.
 
    Version 0.3 -- August 2, 2016 -- Marc Costa Sitja, ESAC/ESA
-   
+
       Corrected minor typos.
-      
+
       Preliminary version. Pending review by the FREND instrument team.
 
    Version 0.2 -- May 24, 2016 -- Jorge Diaz del Rio, ODC Space
-   
+
       Corrected TGO_FREND_SC frame definition.
-      
-      Preliminary version. Pending review by the TGO Science Operations 
+
+      Preliminary version. Pending review by the TGO Science Operations
       and by the FREND instrument team.
-   
+
    Version 0.1 -- May 19, 2016 -- Jorge Diaz del Rio, ODC Space
-   
+
       Added instrument description. Added TGO_FREND Full FoV definition.
       Corrected TGO_FREND_HE and TGO_FREND_SC reference frame values.
-      
-      Preliminary version. Pending review by the TGO Science Operations 
+
+      Preliminary version. Pending review by the TGO Science Operations
       and by the FREND instrument team.
-      
+
    Version 0.0 -- September 21, 2015 -- Anton Ledkov, IKI
-      
+
       Initial Release.
 
 
@@ -56,9 +56,9 @@ References
    1. ``Kernel Pool Required Reading''
 
    2. ExoMars-2016 Frames Definition Kernel (FK), latest version.
-   
+
    3. http://l503.iki.rssi.ru/FREND-en.html
-   
+
    4. ``FREND Mechanical ICD Drawings,'' EXM-FR-DRW-IKI-0020, Issue 1.2,
       1 March 2015
 
@@ -71,20 +71,20 @@ Contact Information
            Marc Costa Sitja
            (+34) 91-8131-457
            mcosta@sciops.esa.int, esa_spice@sciops.esa.int
-           
+
    or SPICE support at IKI:
-   
+
            Anton Ledkov
            +7 (495) 333-12-66
            aledkov@rssi.ru
-           
+
    or NAIF at JPL:
-   
+
            Boris Semenov
            +1 (818) 354-8136
            Boris.Semenov@jpl.nasa.gov
-      
-     
+
+
 Implementation Notes
 -------------------------------------------------------------------------------
 
@@ -100,12 +100,12 @@ Implementation Notes
 
    Loading the kernel using the SPICELIB routine FURNSH causes the data
    items and their associated values present in the kernel to become
-   associated with a data structure called the ``kernel pool''. 
-   
+   associated with a data structure called the ``kernel pool''.
+
    Once the file has been loaded, the SPICE routine GETFOV (getfov_c in
-   C, cspice_getfov in IDL and MATLAB and cspice.getfov in PYTHON) can be 
+   C, cspice_getfov in IDL and MATLAB and cspice.getfov in PYTHON) can be
    used to retrieve FOV parameters for a given instrument or structure.
-   
+
    The application program may obtain the value(s) for any other IK data
    item using the SPICELIB routines GDPOOL, GIPOOL, GCPOOL (gdpool_c, gipool_c,
    gcpool_c in C, cspice_gdpool, cspice_gipool, cspice_gcpool in IDL and
@@ -117,8 +117,8 @@ Implementation Notes
    * SPICEPY is a non-official, community developed Python wrapper for the
      NAIF SPICE toolkit. Its development is managed on Github.
      It is available at: https://github.com/AndrewAnnex/SpiceyPy
-   
-   
+
+
 Naming Conventions and Conventions for Specifying Data
 -------------------------------------------------------------------------------
 
@@ -128,7 +128,7 @@ Naming Conventions and Conventions for Specifying Data
    constructed using the spacecraft ID number (-143) followed by the
    NAIF three digit ID number for FREND module. These IDs are
    defined in [2] as follows:
-   
+
       Name                         NAIF ID
      ---------------------        ---------
       TGO_FREND                    -143200
@@ -157,34 +157,34 @@ Instrument Description
    to 500 keV, and stilbene-based scintillator for high-energy neutrons
    (up to 10 MeV) (see [3]). All of them have a narrow field of view (FOV)
    with a pixel size corresponding to 40 km on the Martian surface.
-   
+
    The instrument also includes a dosimetry module, which will constantly
    monitor the radiation environment while in orbit around the planet.
-   
+
    The 3He detectors are proportional counters filled with helium-3 under
    a pressure of 6 atmospheres and placed inside four openings of the
    collimator. Each of them counts neutrons independently, such that the count
    statistics is higher (and, thus, maps are statistically more reliable)
    and the instrument is more resistant to failures.
-   
+
    These detectors measure neutrons with energies ranging from 0.4 to 500 keV.
-   The Scintillation counter, which uses stilbene crystal, measures fast 
-   neutrons with energies between 0.5-10 MeV. The counter is placed inside the 
-   collimator. Scintillation module includes an anti-coincidence shielding, to 
-   discriminate between signals from high-energy charged particles and 
+   The Scintillation counter, which uses stilbene crystal, measures fast
+   neutrons with energies between 0.5-10 MeV. The counter is placed inside the
+   collimator. Scintillation module includes an anti-coincidence shielding, to
+   discriminate between signals from high-energy charged particles and
    neutrons.
-   
+
    FREND's collimation module is a passive element, encasing all five
    detectors. The collimator consists of two layers, the outer one made
    of high-density polyethylene, the inner one of enriched boron powder
    (B10). Neutrons, hitting the collimator's sides, are slowed down by
    polyethylene, with a large number of hydrogen atoms. So thermalized
    neutrons then pass through and get into the B10 layer, which absorbs them.
-   
-   The collimator's opening angle narrows FOV of the detectors to the spot 
-   with a diameter of 40 km on the Martian surface, when seen from the 
+
+   The collimator's opening angle narrows FOV of the detectors to the spot
+   with a diameter of 40 km on the Martian surface, when seen from the
    circular orbit with 400 km altitude -which is the one allocated for TGO-.
-   
+
    The Liulin-MO dosimetry module's detection system consists of two
    telescopes with 2 semiconductor detectors (effective area of 2 cm2)
    each. The Dosimeter's energy resolution is not lower than 100 keV in
@@ -198,20 +198,20 @@ Mounting Alignment
    Refer to the latest version of the ExoMars-2016 Frames Definition
    Kernel (FK) [2] for the FREND reference frame definitions and mounting
    alignment information.
-  
- 
+
+
 FREND Detectors Layout
 -------------------------------------------------------------------------------
 
    This section provides an overview of the FREND 3He and stilbene
    scintillation detectors layout and the location of the dosimetry module
    with respect to the detectors.
-   
+
    The drawings have been taken from [4].
 
    -Y FREND side (spacecraft science deck) view:
    ---------------------------------------------
-   
+
     +Ysc                         .-----------.
        x--------->              |  Dosimeter  |
        |       +Zsc             |             |
@@ -230,23 +230,23 @@ FREND Detectors Layout
                 | |                \   |   /                | |
                 | |      . --- .     . | .     . --- .      | |
                 | |    /         \     |     /         \    | |
-                | |   .           .    |    .           .   | |  
-                | |   |           |    v    |           |   | | 
+                | |   .           .    |    .           .   | |
+                | |   |           |    v    |           |   | |
                 | .   .           .    +Xfrend          .   . |
                 |  \   \         /           \         /   /  |
                 |    .   . ___ .               . ___ .   .    |
                 |     '.                               .'     |
                 |        '---------------------------'        |
                 '---------------------------------------------'
- 
- 
+
+
                                                     +Ysc and +Yfrend are
                                                      into the page.
 
 
    +Z FREND side view:
    -------------------
-                                                               \\   
+                                                               \\
                                              __________________//
                       .--------------------|                   \\
                       |   Dosimeter         |   Electrical  Connectors
@@ -270,7 +270,7 @@ FREND Detectors Layout
         ^       |                                              \\
         |       '----------------------------------------------//
                                                                \\
-                   
+
                                               +Zsc           +Ysc
                                                    o--------->
                                                    |
@@ -285,33 +285,33 @@ FREND Detectors Layout
 
 FOV Definitions
 --------------------------------------------------------
- 
-   The FREND Detectors Field of view is defined based on the shape of the 
-   detectors aperture in the -Y instrument side, and the distance to detector 
-   along this axis from the aperture, corresponding to a circular field of 
-   view with a half cone of 7.5 degrees (see [4], NR26-1).
-   
-   The instrument and detectors boresight is along the -Y TGO_FREND axis 
-   pointing --nominally-- towards the s/c nadir direction.
-   
-   This section contains an assignment defining the FREND FOV. This definition 
-   is based on the FREND detector layout provided in the previous section and 
-   are provided in a format consistent with/required by the SPICE TOOLKIT 
-   function GETFOV. 
 
-   
+   The FREND Detectors Field of view is defined based on the shape of the
+   detectors aperture in the -Y instrument side, and the distance to detector
+   along this axis from the aperture, corresponding to a circular field of
+   view with a half cone of 7.5 degrees (see [4], NR26-1).
+
+   The instrument and detectors boresight is along the -Y TGO_FREND axis
+   pointing --nominally-- towards the s/c nadir direction.
+
+   This section contains an assignment defining the FREND FOV. This definition
+   is based on the FREND detector layout provided in the previous section and
+   are provided in a format consistent with/required by the SPICE TOOLKIT
+   function GETFOV.
+
+
    FREND detectors (TGO_FREND) FoV:
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   The FoV definitions correspond to the NAIF Body Name: TGO_FREND. 
+   The FoV definitions correspond to the NAIF Body Name: TGO_FREND.
 
    \begindata
-  
+
       INS-143200_NAME                      = 'TGO_FREND'
       INS-143200_BORESIGHT                 = (
                      0.000000       -1.000000     0.000000
                                              )
-   
+
       INS-143200_FOV_FRAME                 = 'TGO_FREND'
       INS-143200_FOV_SHAPE                 = 'CIRCLE'
       INS-143200_FOV_CLASS_SPEC            = 'ANGLES'
@@ -320,17 +320,17 @@ FOV Definitions
                                              )
       INS-143200_FOV_REF_ANGLE             = ( 7.50000   )
       INS-143200_FOV_ANGLE_UNITS           = 'DEGREES'
-  
+
    \begintext
 
-   
+
 Platform ID
 -------------------------------------------------------------------------------
 
    This number is the NAIF instrument ID of the platform on which the
    sensors are mounted. For the Fine Resolution Epithermal Neutron Detector
-   (FREND) platform is spacecraft. Please refer to the latest version of the 
-   ExoMars-2016 NAIF ID Codes Definitions [3] for mapping of ID codes to 
+   (FREND) platform is spacecraft. Please refer to the latest version of the
+   ExoMars-2016 NAIF ID Codes Definitions [3] for mapping of ID codes to
    sensor and structure names.
 
 

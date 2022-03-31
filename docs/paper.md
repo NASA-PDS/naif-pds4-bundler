@@ -37,7 +37,7 @@ be accessed using the software called the SPICE Toolkit produced and distributed
 by the Navigation and Ancillary Information Facility (NAIF) Node of the
 Planetary Data System [@ACTON199665; @ACTON20189].
 
-NPB is an open source project led by the NAIF group at the Jet Propulsion
+NPB is an open source software project led by the NAIF group at the Jet Propulsion
 Laboratory (JPL) with the support of the PDS Engineering Node (PDS-EN).
 NPB makes use of the SPICE Toolkit through the open source Python wrapper
 SpiceyPy [@Annex2020]. NPB is hosted at the [NASA PDS GitHub repository](https://github.com/NASA-PDS/naif-pds4-bundler) and
@@ -97,7 +97,7 @@ a command-line interface for generating PDS4 Labels using a user provided PDS4 X
 template and input (source) data products. The PDS Geosciences Node provides [MakeLabels](https://pds-geosciences.wustl.edu/tools/makelabels.html)
 a program that generates PDS4 labels using a label template and one or two Excel
 spreadsheets. The PDS Small Bodies Node (SBN) also provides a [suite of tools](https://pds-smallbodies.astro.umd.edu/tools/tools_file-label.shtml)
-to assist the label generation. In addition SBN provides an end-to-end web-based
+to assist the label generation. In addition, SBN provides an end-to-end web-based
 tool to generate PDS4 archives, but it only supports Images (FITS and 2-D arrays)
 and tables.
 

@@ -44,7 +44,8 @@ def test_maven_mks_input(self):
     Test the generation of MK labels with MKs provided as inputs.
 
     The first run will provide the following error message::
-       RuntimeError: No kernels present in (...)maven_2015_v09.tm. Please review MK generation.
+
+        RuntimeError: No kernels present in (...)maven_2015_v09.tm. Please review MK generation.
 
     The second run will be successful.
 

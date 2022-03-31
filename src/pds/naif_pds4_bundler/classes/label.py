@@ -337,8 +337,6 @@ class PDSLabel(object):
         if self.__class__.__name__ != "SpiceKernelPDS3Label":
             logging.info("")
 
-        return
-
     def compare(self):
         """**Compare the Label with another label**.
 
@@ -525,8 +523,6 @@ class PDSLabel(object):
 
             compare_files(fromfile, tofile, dir, self.setup.diff)
 
-        return
-
 
 class BundlePDS4Label(PDSLabel):
     """PDS Label child class to generate a PDS4 Bundle Label.
@@ -597,8 +593,6 @@ class BundlePDS4Label(PDSLabel):
             )
 
         self.write_label()
-
-        return
 
     def get_target_reference_type(self):
         """Get target reference type.
@@ -734,8 +728,6 @@ class SpiceKernelPDS3Label(PDSLabel):
         self.SPACECRAFT_CLOCK_START_COUNT = f'"{sclk_start}"'
         self.SPACECRAFT_CLOCK_STOP_COUNT = f'"{sclk_stop}"'
 
-        return
-
     def set_kernel_ids(self, product):
         """Set the SPICE Kernel ID field of the label."""
         if product.type.upper() == "CK":
@@ -746,8 +738,6 @@ class SpiceKernelPDS3Label(PDSLabel):
             naif_instrument_id = '"N/A"'
 
         self.NAIF_INSTRUMENT_ID = format_multiple_values(naif_instrument_id)
-
-        return
 
     def format_description(self, description):
         """Format the SPICE kernel description appropriately.
@@ -854,8 +844,6 @@ class SpiceKernelPDS3Label(PDSLabel):
 
         logging.info('-- Label inserted to text kernel.')
 
-        return
-
     @spice_exception_handler
     def insert_binary_label(self):
         """Insert or update a label in a binary kernel.
@@ -921,8 +909,6 @@ class SpiceKernelPDS3Label(PDSLabel):
 
         logging.info('-- Label inserted to binary kernel.')
 
-        return
-
 
 class MetaKernelPDS4Label(PDSLabel):
     """PDS Label child class to generate a PDS4 SPICE Kernel MK Label.
@@ -963,7 +949,7 @@ class MetaKernelPDS4Label(PDSLabel):
         """Get the MK label internal references.
 
         :return: PDS4 formatted Kernel list used by the label for internal
-        references.
+                 references.
         :rtype: str
         """
         eol = self.setup.eol_pds4
@@ -1272,8 +1258,6 @@ class InventoryPDS3Label(PDSLabel):
 
         self.write_label()
 
-        return
-
 
 class DocumentPDS4Label(PDSLabel):
     """PDS Label child class to generate a PDS4 Document Label.
@@ -1281,7 +1265,7 @@ class DocumentPDS4Label(PDSLabel):
     :param setup: NPB execution Setup object
     :type setup: object
     :param collection: Collection to label
-    :type product: object
+    :type collection: object
     :param inventory: Inventory Product of the Collection
     :type inventory: object
     """

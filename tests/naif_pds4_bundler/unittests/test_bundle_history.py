@@ -16,4 +16,4 @@ def test_insight_history(self):
     test_bundle.setup = test_setup
     test_bundle.collections = None
 
-    Bundle.get_history(test_bundle, test_bundle, debug=True)
+    Bundle.get_history(test_bundle, test_bundle)

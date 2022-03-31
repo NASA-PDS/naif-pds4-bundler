@@ -49,4 +49,11 @@ Known differences from archives generated with NAIF's PDS3 archiving approach
 When generating a PDS3 data set increment with NPB compared to following the
 *NAIF's PDS3 archiving approach* -which implies using the NAIF utility
 ``MAKLABEL`` and several Perl scripts such as ``label_them_all.pl``,
-``xfer_index.pl``, and ``mkpdssum.pl``-. The following differences
+``xfer_index.pl``, and ``mkpdssum.pl``-. The following differences are known and
+are accepted by NAIF:
+
+   * ``MAKLABEL`` introduces a whitespace in the empty lines of the comments
+     with attached labels for binary kernels. This whitespace is not present
+     with NPB.
+   * The order of the items in the ``INDEXED_FILE_NAME`` field of the ``INDEX``
+     file label is alphabetical with NPB but somewhat "random" with ``xfer_index.pl``.

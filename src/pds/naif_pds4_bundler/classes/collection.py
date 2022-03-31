@@ -37,8 +37,6 @@ class Collection(object):
         if setup.pds_version == '4':
             self.set_collection_lid()
 
-        return
-
     def add(self, element):
         """Add a Product to the Collection.
 
@@ -55,10 +53,8 @@ class Collection(object):
 
     def set_collection_lid(self):
         """Set the Bundle LID."""
-        if self.setup.pds_version == "3":
-            return
-
-        self.lid = f"{self.setup.logical_identifier}:{self.type}"
+        if self.setup.pds_version != "3":
+            self.lid = f"{self.setup.logical_identifier}:{self.type}"
 
     def set_collection_vid(self):
         """Set the Bundle VID.
@@ -154,8 +150,6 @@ class SpiceKernelsCollection(Collection):
             self.stop_time = setup.mission_finish
 
         Collection.__init__(self, self.type, setup, bundle)
-
-        return
 
     def determine_meta_kernels(self):
         """Determine the name of the Meta-kernel(s) to be generated.
@@ -430,8 +424,6 @@ class SpiceKernelsCollection(Collection):
 
         self.setup.increment_finish = increment_finish
         self.setup.increment_start = increment_start
-
-        return
 
     def validate(self):
         """Validate the SPICE Kernels collection.

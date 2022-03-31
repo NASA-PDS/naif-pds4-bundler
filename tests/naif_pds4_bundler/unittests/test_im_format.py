@@ -30,6 +30,7 @@ def test_im_format(self):
     is adequate.
 
     Test is successful if the following error message is provided::
+
         RuntimeError: PDS4 Information Model 1.A.0.0 format from configuration is incorrect.
     """
     post_setup(self)
@@ -52,6 +53,7 @@ def test_im_xml_incoherent(self):
     with other elements of the configuration.
 
     Test is successful if the following error message is provided::
+
         RuntimeError: PDS4 Information Model 1600 is incoherent with the XML Model version: http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.sch.
     """
     post_setup(self)
@@ -74,6 +76,7 @@ def test_im_schema_incoherent(self):
     with other elements of the configuration.
 
     Test is successful if the following error message is provided::
+
         RuntimeError: PDS4 Information Model 1500 is incoherent with the Schema location: http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1A00.xsd.
     """
     post_setup(self)
@@ -138,6 +141,7 @@ def test_im_version_ascii_incorrect(self):
     with other elements of the configuration.
 
     Test is successful if the following error message is provided::
+
         RuntimeError: PDS4 Information Model AGBK is incoherent with the XML Model version: http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1G00.sch.
     """
     post_setup(self)
