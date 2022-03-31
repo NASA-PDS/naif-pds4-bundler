@@ -20,10 +20,6 @@ To execute just to show the help message, run:
 
     naif-pds4-bundler --help
 
-Run tests under `tests/naif_pds4_bundler`` with:
-
-    python -m unittest
-
 See the online documentation for [Installation](https://nasa-pds.github.io/naif-pds4-bundler/source/41_npb_installation.html) instructions.
 
 👉 _Note:_ The above commands demonstrate typical usage with a command-line prompt, such as that provided by the popular `bash` shell; your own prompt may appear differently and may vary depending on operating system, shell choice, and so forth.
@@ -37,7 +33,7 @@ maintained under the `docs` directory.
 The documentation describes the process to prepare SPICE archives and describes the NAIF
 approach to using PDS4 standards in great detail.
 
-### 🐈 To build the Sphinx HTML documentation:
+### 🐈 To build the Sphinx HTML documentation
 
 ```console
 $ python3 -m venv venv
