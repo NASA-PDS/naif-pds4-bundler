@@ -1,6 +1,6 @@
 # 🪐 NAIF PDS4 Bundler
 
-Software package by [NASA's Navigation and Ancillary Information Facility] (https://naif.jpl.nasa.gov/naif/) that enables SPICE kernels archive producers to get familiar with,
+Software package by [NASA's Navigation and Ancillary Information Facility](https://naif.jpl.nasa.gov/naif/) that enables SPICE kernels archive producers to get familiar with,
 design, and generate [Planetary Data System](https://pds.nasa.gov/) SPICE
 archives from end-to-end using the applicable PDS4 standards.
 
