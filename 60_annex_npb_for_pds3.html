@@ -1,0 +1,274 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Appendix: NPB for PDS3 Archives &mdash; NAIF PDS4 Bundler 1.0.0
+ documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Modules, Classes, and Functions Documentation" href="50_api_docs.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> NAIF PDS4 Bundler
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="10_overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="20_spice_kernel_archive_description.html">SPICE Kernel Archive Description</a></li>
+<li class="toctree-l1"><a class="reference internal" href="30_spice_kernel_archive_preparation_guide.html">SPICE Kernel Archive Preparation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="40_naif_pds4_bundler_user_guide.html">NAIF PDS4 Bundler User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="50_api_docs.html">Modules, Classes, and Functions Documentation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Appendix: NPB for PDS3 Archives</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#configuration-file-particulars">Configuration File Particulars</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-npb-for-pds3-archives">Using NPB for PDS3 Archives</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#known-differences-from-archives-generated-with-naif-s-pds3-archiving-approach">Known differences from archives generated with NAIF’s PDS3 archiving approach</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">NAIF PDS4 Bundler</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Appendix: NPB for PDS3 Archives</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/60_annex_npb_for_pds3.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="appendix-npb-for-pds3-archives">
+<h1>Appendix: NPB for PDS3 Archives<a class="headerlink" href="#appendix-npb-for-pds3-archives" title="Permalink to this headline">¶</a></h1>
+<p>NPB is capable to generate PDS3 SPICE kernels data sets increments. This
+capability is not intended for people external to NAIF and is only adept
+for PDS3 data sets archived by or for NAIF.</p>
+<p>For PDS3 archives, NPB follows the PDS3 standard and uses NAIF’s PDS3 archiving
+approach <a class="reference internal" href="12_bugs_contact_references.html#pds3guide" id="id1"><span>[PDS3GUIDE]</span></a>. The NAIF PDS3 archiving guide document is available
+under: <code class="docutils literal notranslate"><span class="pre">naif-pds4-bundler/docs/spice_archiving_guide.txt</span></code></p>
+<p>There might be some concepts and/or words used in this chapter that
+you might not know or understand, if so please take a look at the documents
+that describe the PDS3 standards. These documents are available at the
+<a class="reference external" href="https://pds.nasa.gov/datastandards/pds3/">PDS3 Data Standards page</a>.</p>
+<section id="configuration-file-particulars">
+<h2>Configuration File Particulars<a class="headerlink" href="#configuration-file-particulars" title="Permalink to this headline">¶</a></h2>
+<p>PDS3 archives require several modifications to the NPB configuration file
+that are not documented in section <a class="reference internal" href="42_npb_configuration_file.html#the-configuration-file"><span class="std std-ref">The Configuration File</span></a>.</p>
+<p>Use the MSL, the MRO or the JUNO configuration file examples as references. They
+are provided under: <code class="docutils literal notranslate"><span class="pre">/Users/mcosta/pds/naif-pds4-bundler/tests/naif_pds4_bundler/config</span></code></p>
+<p>The most relevant change is the inclusion of the PDS3 Mission Template element.
+This element incorporates the so called Mission Template Configuration File
+used to generate PDS3 labels with the NAIF utility <code class="docutils literal notranslate"><span class="pre">MAKLABEL</span></code>.</p>
+<p>Finally, another particularity is that the meta-kernels and ORBNUM files must
+have an entry in the Kernel List section. The value of the <code class="docutils literal notranslate"><span class="pre">mklabel_options</span></code>
+and <code class="docutils literal notranslate"><span class="pre">descriptions</span></code> elements is irrelevant, you can use <code class="docutils literal notranslate"><span class="pre">N/A</span></code>.</p>
+</section>
+<section id="using-npb-for-pds3-archives">
+<h2>Using NPB for PDS3 Archives<a class="headerlink" href="#using-npb-for-pds3-archives" title="Permalink to this headline">¶</a></h2>
+<p>You can use NPB for PDS3 archives exactly in the same way that you would for a
+PDS4 archive. The only differences being present in the content of NPB’s
+logging. Please refer to section
+<a class="reference internal" href="43_using_npb.html#using-npb"><span class="std std-ref">Using NPB</span></a>, for more information.</p>
+</section>
+<section id="known-differences-from-archives-generated-with-naif-s-pds3-archiving-approach">
+<h2>Known differences from archives generated with NAIF’s PDS3 archiving approach<a class="headerlink" href="#known-differences-from-archives-generated-with-naif-s-pds3-archiving-approach" title="Permalink to this headline">¶</a></h2>
+<p>When generating a PDS3 data set increment with NPB compared to following the
+<em>NAIF’s PDS3 archiving approach</em> -which implies using the NAIF utility
+<code class="docutils literal notranslate"><span class="pre">MAKLABEL</span></code> and several Perl scripts such as <code class="docutils literal notranslate"><span class="pre">label_them_all.pl</span></code>,
+<code class="docutils literal notranslate"><span class="pre">xfer_index.pl</span></code>, and <code class="docutils literal notranslate"><span class="pre">mkpdssum.pl</span></code>-. The following differences are known and
+are accepted by NAIF:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">MAKLABEL</span></code> introduces a whitespace in the empty lines of the comments
+with attached labels for binary kernels. This whitespace is not present
+with NPB.</p></li>
+<li><p>The order of the items in the <code class="docutils literal notranslate"><span class="pre">INDEXED_FILE_NAME</span></code> field of the <code class="docutils literal notranslate"><span class="pre">INDEX</span></code>
+file label is alphabetical with NPB but somewhat “random” with <code class="docutils literal notranslate"><span class="pre">xfer_index.pl</span></code>.</p></li>
+</ul>
+</div></blockquote>
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="50_api_docs.html" class="btn btn-neutral float-left" title="Modules, Classes, and Functions Documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2021, Caltech/JPL/NASA
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,2046 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>The Configuration File &mdash; NAIF PDS4 Bundler 1.0.0
+ documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Using NPB" href="43_using_npb.html" />
+    <link rel="prev" title="NPB Installation" href="41_npb_installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> NAIF PDS4 Bundler
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="10_overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="20_spice_kernel_archive_description.html">SPICE Kernel Archive Description</a></li>
+<li class="toctree-l1"><a class="reference internal" href="30_spice_kernel_archive_preparation_guide.html">SPICE Kernel Archive Preparation Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="40_naif_pds4_bundler_user_guide.html">NAIF PDS4 Bundler User Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="41_npb_installation.html">NPB Installation</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">The Configuration File</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#configuration-file-format">Configuration File Format</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pds-parameters">PDS Parameters</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#the-information-model">The Information Model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#context-products">Context Products</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#bundle-parameters">Bundle Parameters</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#spiceds">SPICEDS</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#readme-file">Readme File</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#increment-start-and-finish-times">Increment Start and Finish Times</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#date-format">Date Format</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#mission-parameters">Mission Parameters</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#on-names-and-acronyms">On Names and Acronyms</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#kernels-to-load">Kernels To Load</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#kernel-patterns">Kernel patterns</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#directories">Directories</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#templates-directory">Templates Directory</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#kernel-list">Kernel List</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#kernel-descriptions">Kernel Descriptions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mapping-kernels">Mapping kernels</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#meta-kernel">Meta-kernel</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#automatic-generation-of-meta-kernels">Automatic generation of Meta-kernels</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#manual-input">Manual Input</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#coverage-determination">Coverage determination</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#orbit-number-file">Orbit number file</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#orbnum-coverage-determination">ORBNUM Coverage determination</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="43_using_npb.html">Using NPB</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="50_api_docs.html">Modules, Classes, and Functions Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="60_annex_npb_for_pds3.html">Appendix: NPB for PDS3 Archives</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">NAIF PDS4 Bundler</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="40_naif_pds4_bundler_user_guide.html">NAIF PDS4 Bundler User Guide</a> &raquo;</li>
+        
+      <li>The Configuration File</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/42_npb_configuration_file.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="the-configuration-file">
+<h1>The Configuration File<a class="headerlink" href="#the-configuration-file" title="Permalink to this headline">¶</a></h1>
+<p>The NAIF PDS4 Bundler needs a configuration file to be executed.
+This configuration file is bundle-specific and it can also be release-specific.
+It is a rather long file and setting it up for the first time for a given bundle
+might take some effort.</p>
+<p>Once the configuration file is generated for the bundle and is adapted to the
+user’s environment using NPB becomes an trivial task.</p>
+<p>The following sections provide a detailed description and recommendations
+to facilitate the task of writing the NPB configuration file.</p>
+<p>If you are not familiar with the generation of PDS4 SPICE archives we recommend
+you to first read the chapter
+<a class="reference internal" href="20_spice_kernel_archive_description.html#spice-kernel-archive-description"><span class="std std-ref">SPICE Kernel Archive Description</span></a>
+in such a way that you get familiar with some concepts that are discussed in the
+following sections.</p>
+<section id="configuration-file-format">
+<h2>Configuration File Format<a class="headerlink" href="#configuration-file-format" title="Permalink to this headline">¶</a></h2>
+<p>The NPB configuration file is an XML (eXtensible Markup Language) file.
+The extension of the file should be .xml, although this is not strictly
+necessary.</p>
+<p>XML files (or documents), contain XML elements; these
+elements can contain:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>text</p></li>
+<li><p>attributes</p></li>
+<li><p>other elements</p></li>
+<li><p>a mix of these elements.</p></li>
+</ul>
+</div></blockquote>
+<p>Each XML element is defined in between angle brackets:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">element</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>elements enclose contents such as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">element</span><span class="o">&gt;</span><span class="n">Some</span> <span class="n">content</span><span class="o">&lt;</span>\<span class="n">element</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>and elements can have attributes with a value:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">element</span> <span class="n">an_attribute</span><span class="o">=</span><span class="s2">&quot;with value&quot;</span><span class="o">&gt;</span><span class="n">Some</span> <span class="n">content</span><span class="o">&lt;</span>\<span class="n">element</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>The NPB Configuration File includes all the elements described above.
+This document refers to configuration elements as parameters interchangeably.</p>
+<p>NPB includes a Configuration File XML Schema
+<code class="docutils literal notranslate"><span class="pre">src/naif_pds4_bundler/templates/configuration.xsd</span></code> that is used to validate
+configuration files. This validation is performed to confirm that the file is
+well-formed and also “valid” according to the structure defined in the Schema.</p>
+<p>Do not use the XML Schema as a reference to generate a configuration file, instead
+use one of the configuration files included in the test area of the NPB package.
+The MAVEN Configuration is the recommended reference: <code class="docutils literal notranslate"><span class="pre">tests/naif_pds4_bundler/config/maven.xml</span></code>.
+If the bundle to be generated includes secondary observers and/or targets
+complement the MAVEN Configuration with the DART configuration:
+<code class="docutils literal notranslate"><span class="pre">tests/naif_pds4_bundler/config/dart.xml</span></code>.</p>
+<p>The Configuration File consists of a number of nested parameters that are
+grouped in the following categories:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>PDS parameters</p></li>
+<li><p>Bundle parameters</p></li>
+<li><p>Mission parameters</p></li>
+<li><p>Directories</p></li>
+<li><p>Kernel list</p></li>
+<li><p>Meta-kernel</p></li>
+<li><p>Orbit number file (if ORBNUM files are present)</p></li>
+</ol>
+</div></blockquote>
+<p>In order to facilitate the understanding of the Configuration File, the MAVEN
+example is provided hereunder. We encourage you to first take a look
+at the example and then continue to the sections that explain in detail each
+parameter.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;?xml version=&#39;1.0&#39; encoding=&#39;UTF-8&#39;?&gt;
+&lt;naif-pds4-bundler_configuration&gt;
+
+    &lt;!-- =========================== --&gt;
+    &lt;!-- PDS parameters              --&gt;
+    &lt;!-- =========================== --&gt;
+    &lt;pds_parameters&gt;
+        &lt;pds_version&gt;4&lt;/pds_version&gt;
+        &lt;information_model&gt;1.5.0.0&lt;/information_model&gt;
+        &lt;xml_model&gt;http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.sch&lt;/xml_model&gt;
+        &lt;schema_location&gt;http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd
+        &lt;/schema_location&gt;
+        &lt;logical_identifier&gt;urn:nasa:pds:maven.spice&lt;/logical_identifier&gt;
+
+        &lt;!-- Optional Parameters --&gt;
+        &lt;!-- Context Products that are not present in the registered context
+             products JSON file --&gt;
+        &lt;context_products&gt;
+            &lt;!-- The product name, type, and lidvid needs to be provided --&gt;
+            &lt;product name=&quot;MAVEN&quot;&gt;
+                &lt;type&gt;Spacecraft&lt;/type&gt;
+                &lt;lidvid&gt;urn:nasa:pds:context:instrument_host:spacecraft.maven::1.0&lt;/lidvid&gt;
+            &lt;/product&gt;
+            &lt;product name=&quot;Oumuamua&quot;&gt;
+                &lt;type&gt;Hyperbolic Asteroid&lt;/type&gt;
+                &lt;lidvid&gt;urn:nasa:pds:context:target:asteroid.oumauma::2.0&lt;/lidvid&gt;
+            &lt;/product&gt;
+        &lt;/context_products&gt;
+    &lt;/pds_parameters&gt;
+
+    &lt;!-- =========================== --&gt;
+    &lt;!-- Bundle parameters           --&gt;
+    &lt;!-- =========================== --&gt;
+    &lt;bundle_parameters&gt;
+        &lt;producer_name&gt;Marc Costa Sitja&lt;/producer_name&gt;
+        &lt;author_list&gt;Semenov B. V.; Costa Sitja M.&lt;/author_list&gt;
+        &lt;institution&gt;NAIF/JPL&lt;/institution&gt;
+        &lt;doi&gt;10.17189/1520434&lt;/doi&gt;
+        &lt;!-- Location fo the SPICE archive description HTML file to be
+             included --&gt;
+        &lt;spiceds&gt;../data/spiceds_maven.html&lt;/spiceds&gt;
+        &lt;spice_name&gt;MAVEN&lt;/spice_name&gt;
+        &lt;!-- Information to be included in the archive readme file, only used
+             if the file is not present --&gt;
+        &lt;readme&gt;
+            &lt;overview&gt;
+                The MAVEN SPICE archive bundle contains observation geometry and
+                other ancillary data in the form of SPICE System kernel files for
+                the MAVEN spacecraft, its instruments, and targets.
+            &lt;/overview&gt;
+            &lt;cognisant_authority&gt;
+                This archive bundle was produced by Boris Semenov, Planetary Data
+                System Navigation and Ancillary Information Facility Node, Jet
+                Propulsion Laboratory, Pasadena, California.
+            &lt;/cognisant_authority&gt;
+        &lt;/readme&gt;
+
+        &lt;!-- Optional Parameters --&gt;
+        &lt;!-- Release date as a UTC calendar string. Use the following format:
+             YYYY-MM-DD e.g. 2021-04-09 --&gt;
+        &lt;release_date&gt;2021-06-25&lt;/release_date&gt;
+        &lt;!-- Creation date and time for all the new archive products, usage
+             of this parameter is highly discouraged --&gt;
+        &lt;creation_date_time&gt;2021-06-25T08:00:00&lt;/creation_date_time&gt;
+        &lt;!-- Increment start and stop times provided as a UTC calendar string.
+             Use the following format: YYYY-MM-DDThh:mm:ssZ
+             e.g. 2021-04-09T15:11:12Z --&gt;
+        &lt;increment_start&gt;2021-05-25T08:00:00Z&lt;/increment_start&gt;
+        &lt;increment_finish&gt;2021-06-25T08:00:00Z&lt;/increment_finish&gt;
+        &lt;!-- Date format can be &#39;maklabel&#39; style or &#39;infomod2&#39; style. Default
+             value is &#39;maklabel&#39;--&gt;
+        &lt;date_format&gt;maklabel&lt;/date_format&gt;
+        &lt;!-- End of line format can either be &#39;CRLF&#39; or &#39;LF&#39;, &#39;CRLF&#39; is the
+             default value --&gt;
+        &lt;end_of_line&gt;CRLF&lt;/end_of_line&gt;
+    &lt;/bundle_parameters&gt;
+
+    &lt;!-- =========================== --&gt;
+    &lt;!-- Mission Parameters          --&gt;
+    &lt;!-- =========================== --&gt;
+    &lt;mission_parameters&gt;
+        &lt;mission_acronym&gt;maven&lt;/mission_acronym&gt;
+        &lt;mission_name&gt;MAVEN&lt;/mission_name&gt;
+        &lt;mission_start&gt;2013-11-18T19:20:43Z&lt;/mission_start&gt;
+        &lt;mission_finish&gt;2050-01-01T00:00:00Z&lt;/mission_finish&gt;
+        &lt;observer&gt;MAVEN&lt;/observer&gt;
+        &lt;target&gt;MARS&lt;/target&gt;
+        &lt;kernels_to_load&gt;
+            &lt;lsk&gt;naif[0-9][0-9][0-9][0-9].tls&lt;/lsk&gt;
+            &lt;sclk&gt;MVN_SCLKSCET.[0-9][0-9][0-9][0-9][0-9].tsc&lt;/sclk&gt;
+            &lt;fk&gt;maven_v[0-9][0-9].tf&lt;/fk&gt;
+        &lt;/kernels_to_load&gt;
+    &lt;/mission_parameters&gt;
+
+    &lt;!-- =========================== --&gt;
+    &lt;!-- Directories                 --&gt;
+    &lt;!-- =========================== --&gt;
+    &lt;directories&gt;
+        &lt;working_directory&gt;working&lt;/working_directory&gt;
+        &lt;kernels_directory&gt;kernels&lt;/kernels_directory&gt;
+        &lt;staging_directory&gt;staging&lt;/staging_directory&gt;
+        &lt;bundle_directory&gt;maven&lt;/bundle_directory&gt;
+
+        &lt;!-- Optional Parameters --&gt;
+        &lt;orbnum_directory&gt;misc/orbnum&lt;/orbnum_directory&gt;
+        &lt;templates_directory&gt;../../../src/pds/naif_pds4_bundler/templates/1.5.0.0&lt;/templates_directory&gt;
+    &lt;/directories&gt;
+
+    &lt;!-- =========================== --&gt;
+    &lt;!-- Kernel List                 --&gt;
+    &lt;!-- =========================== --&gt;
+    &lt;kernel_list&gt;
+        &lt;kernel pattern=&quot;naif[0-9][0-9][0-9][0-9].tls&quot;&gt;
+            &lt;mklabel_options&gt;DEF_TIMES&lt;/mklabel_options&gt;
+            &lt;description&gt;SPICE LSK file incorporating leapseconds up to $DATE, created by NAIF, JPL.&lt;/description&gt;
+            &lt;patterns&gt;
+                &lt;DATE value=&quot;naif0011.tls&quot;&gt;2015-JAN-01&lt;/DATE&gt;
+                &lt;DATE value=&quot;naif0012.tls&quot;&gt;2017-JAN-01&lt;/DATE&gt;
+            &lt;/patterns&gt;
+        &lt;/kernel&gt;
+        &lt;kernel pattern=&quot;pck[0-9][0-9][0-9][0-9][0-9].tpc&quot;&gt;
+            &lt;mklabel_options&gt;DEF_TIMES&lt;/mklabel_options&gt;
+            &lt;description&gt;SPICE text PCK file containing constants from the $REPORT report, created by NAIF, JPL.
+            &lt;/description&gt;
+            &lt;patterns&gt;
+                &lt;REPORT value=&quot;pck00010.tpc&quot;&gt;IAU 2009&lt;/REPORT&gt;
+            &lt;/patterns&gt;
+        &lt;/kernel&gt;
+        &lt;kernel pattern=&quot;maven_v[0-9][0-9].tf&quot;&gt;
+            &lt;mklabel_options&gt;DEF_TIMES&lt;/mklabel_options&gt;
+            &lt;description&gt;SPICE FK file defining reference frames for the MAVEN spacecraft, its structures, and science
+                instruments, created by NAIF, JPL.
+            &lt;/description&gt;
+        &lt;/kernel&gt;
+        &lt;kernel pattern=&quot;maven_ant_v[0-9][0-9].ti&quot;&gt;
+            &lt;mklabel_options&gt;DEF_TIMES&lt;/mklabel_options&gt;
+            &lt;description&gt;SPICE IK file providing FOV definitions for the MAVEN communication antennae, created by NAIF,
+                JPL.
+            &lt;/description&gt;
+        &lt;/kernel&gt;
+        &lt;kernel pattern=&quot;maven_euv_v[0-9][0-9].ti&quot;&gt;
+            &lt;mklabel_options&gt;DEF_TIMES&lt;/mklabel_options&gt;
+            &lt;description&gt;SPICE IK file providing FOV definitions and other instrument parameters for the MAVEN Extreme
+                Ultraviolet (EUV) monitor instrument, created by NAIF, JPL.
+            &lt;/description&gt;
+        &lt;/kernel&gt;
+        &lt;kernel pattern=&quot;maven_iuvs_v[0-9][0-9].ti&quot;&gt;
+            &lt;mklabel_options&gt;DEF_TIMES&lt;/mklabel_options&gt;
+            &lt;description&gt;SPICE IK file providing FOV definitions and other instrument parameters for the MAVEN Imaging
+                Ultraviolet Spectrograph (IUVS) instrument, created by IUVS Team, CU/LASP.
+            &lt;/description&gt;
+        &lt;/kernel&gt;
+        &lt;kernel pattern=&quot;maven_ngims_v[0-9][0-9].ti&quot;&gt;
+            &lt;mklabel_options&gt;DEF_TIMES&lt;/mklabel_options&gt;
+            &lt;description&gt;SPICE IK file providing FOV definitions and other instrument parameters for the MAVEN Neutral
+                Gas and Ion Mass Spectrometer (NGIMS) instrument, created by NGIMS Team, GSFC.
+            &lt;/description&gt;
+        &lt;/kernel&gt;
+        &lt;kernel pattern=&quot;maven_sep_v[0-9][0-9].ti&quot;&gt;
+            &lt;mklabel_options&gt;DEF_TIMES&lt;/mklabel_options&gt;
+            &lt;description&gt;SPICE IK file providing FOV definitions and other instrument parameters for the Solar Energetic
+                Particle (SEP) instrument, created by SEP Team, UC Berkeley.
+            &lt;/description&gt;
+        &lt;/kernel&gt;
+        &lt;kernel pattern=&quot;maven_static_v[0-9][0-9].ti&quot;&gt;
+            &lt;mklabel_options&gt;DEF_TIMES&lt;/mklabel_options&gt;
+            &lt;description&gt;SPICE IK file providing FOV definitions and other instrument parameters for the SupraThermal
+                And Thermal Ion Composition (STATIC) instrument, created by STATIC Team, UC Berkeley.
+            &lt;/description&gt;
+        &lt;/kernel&gt;
+        &lt;kernel pattern=&quot;maven_swea_v[0-9][0-9].ti&quot;&gt;
+            &lt;mklabel_options&gt;DEF_TIMES&lt;/mklabel_options&gt;
+            &lt;description&gt;SPICE IK file providing FOV definitions and other instrument parameters for the MAVEN Solar
+                Wind Electron Analyzer (SWEA) instrument, created by SWEA Team, UC Berkeley.
+            &lt;/description&gt;
+        &lt;/kernel&gt;
+        &lt;kernel pattern=&quot;maven_swia_v[0-9][0-9].ti&quot;&gt;
+            &lt;mklabel_options&gt;DEF_TIMES&lt;/mklabel_options&gt;
+            &lt;description&gt;SPICE IK file providing FOV definitions and other instrument parameters for the MAVEN Solar
+                Wind Ion Analyzer (SWIA) instrument, created by SWIA Team, UC Berkeley.
+            &lt;/description&gt;
+        &lt;/kernel&gt;
+        &lt;kernel pattern=&quot;mvn_sclkscet_[0-9][0-9][0-9][0-9][0-9].tsc&quot;&gt;
+            &lt;mapping&gt;MVN_SCLKSCET.$VERSION.tsc&lt;/mapping&gt;
+            &lt;mklabel_options&gt;DEF_TIMES&lt;/mklabel_options&gt;
+            &lt;description&gt;SPICE SCLK file containing time correlation data for the main MAVEN on-board clock, created by
+                NAIF, JPL. The original name of this file was MVN_SCLKSCET.$VERSION.tsc.
+            &lt;/description&gt;
+            &lt;patterns&gt;
+                &lt;VERSION pattern=&quot;KERNEL&quot;&gt;mvn_sclkscet_$VERSION.tsc&lt;/VERSION&gt;
+            &lt;/patterns&gt;
+        &lt;/kernel&gt;
+        &lt;kernel pattern=&quot;de[0-9][0-9][0-9]s.bsp&quot;&gt;
+            &lt;mklabel_options&gt;de[0-9][0-9][0-9]s.bsp&lt;/mklabel_options&gt;
+            &lt;description&gt;SPICE SPK file containing JPL planetary ephemerides version $VERSION, created by NAIF, JPL.
+            &lt;/description&gt;
+            &lt;patterns&gt;
+                &lt;VERSION pattern=&quot;de430s.bsp&quot;&gt;DE430&lt;/VERSION&gt;
+            &lt;/patterns&gt;
+        &lt;/kernel&gt;
+        &lt;kernel pattern=&quot;mar[0-9][0-9][0-9]s.bsp&quot;&gt;
+            &lt;mklabel_options&gt;&lt;/mklabel_options&gt;
+            &lt;description&gt;SPICE SPK file containing JPL Martian satellite ephemerides version $VERSION, created by NAIF,
+                JPL.
+            &lt;/description&gt;
+            &lt;patterns&gt;
+                &lt;VERSION pattern=&quot;mar097s.bsp&quot;&gt;MAR097&lt;/VERSION&gt;
+            &lt;/patterns&gt;
+        &lt;/kernel&gt;
+        &lt;kernel pattern=&quot;maven_struct_v[0-9][0-9].bsp&quot;&gt;
+            &lt;mklabel_options&gt;&lt;/mklabel_options&gt;
+            &lt;description&gt;SPICE SPK file containing relative locations of selected MAVEN structures and science
+                instruments, created by NAIF, JPL.
+            &lt;/description&gt;
+        &lt;/kernel&gt;
+        &lt;kernel pattern=&quot;maven_cru_rec_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9].bsp&quot;&gt;
+            &lt;mklabel_options&gt;&lt;/mklabel_options&gt;
+            &lt;description&gt;SPICE SPK file containing reconstructed cruise trajectory of the MAVEN spacecraft, created by
+                MAVEN NAV Team, JPL. The original name of this file was trj_c_131118-140923_rec_v1.bsp.
+            &lt;/description&gt;
+        &lt;/kernel&gt;
+        &lt;kernel pattern=&quot;maven_orb_rec_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9].bsp&quot;&gt;
+            &lt;mklabel_options&gt;&lt;/mklabel_options&gt;
+            &lt;description&gt;SPICE SPK file containing reconstructed orbital trajectory of the MAVEN spacecraft, created by
+                NAIF, JPL by merging operational weekly reconstructed SPK files produced by MAVEN NAV Team, JPL.
+            &lt;/description&gt;
+        &lt;/kernel&gt;
+        &lt;kernel pattern=&quot;mvn_swea_nom_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9].bc&quot;&gt;
+            &lt;mklabel_options&gt;&lt;/mklabel_options&gt;
+            &lt;description&gt;SPICE CK file containing nominal orientation of the MAVEN SWEA instrument boom, created by
+                NAIF, JPL.
+            &lt;/description&gt;
+        &lt;/kernel&gt;
+        &lt;kernel pattern=&quot;mvn_app_rel_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9].bc&quot;&gt;
+            &lt;mklabel_options&gt;&lt;/mklabel_options&gt;
+            &lt;description&gt;SPICE CK file containing reconstructed orientation of the MAVEN Articulated Payload Platform
+                (APP), created by NAIF, JPL.
+            &lt;/description&gt;
+        &lt;/kernel&gt;
+        &lt;kernel pattern=&quot;mvn_iuvs_rem_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9].bc&quot;&gt;
+            &lt;mklabel_options&gt;&lt;/mklabel_options&gt;
+            &lt;description&gt;SPICE CK file containing reconstructed orientation of the MAVEN IUVS instrument internal
+                mirror, created by NAIF, JPL by merging data from daily IUVS CKs produced by the IUVS Team, CU/LASP.
+            &lt;/description&gt;
+        &lt;/kernel&gt;
+        &lt;kernel pattern=&quot;mvn_sc_rel_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9].bc&quot;&gt;
+            &lt;mklabel_options&gt;&lt;/mklabel_options&gt;
+            &lt;description&gt;SPICE CK file containing reconstructed orientation of the MAVEN spacecraft, created by NAIF,
+                JPL.
+            &lt;/description&gt;
+        &lt;/kernel&gt;
+        &lt;kernel pattern=&quot;mvn_sc_pred_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9].bc&quot;&gt;
+            &lt;mklabel_options&gt;&lt;/mklabel_options&gt;
+            &lt;description&gt;SPICE CK file containing predicted orientation of the MAVEN spacecraft, created by NAIF,
+                JPL. The original name of this file was $ORIGINAL.
+            &lt;/description&gt;
+            &lt;patterns&gt;
+                &lt;ORIGINAL value=&quot;mvn_sc_pred_210104_210120_v01.bc&quot;&gt;mvn_sc_pred_210104_210120_vm321_322_v03.bc&lt;/ORIGINAL&gt;
+                &lt;ORIGINAL value=&quot;mvn_sc_pred_141205_141209_v01.bc&quot;&gt;mvn_sc_pred_141205_141209_vm002OTM_v02.bc&lt;/ORIGINAL&gt;
+                &lt;ORIGINAL value=&quot;mvn_sc_pred_141223_150109_v01.bc&quot;&gt;mvn_sc_pred_141223_150109_vm004_v02.bc&lt;/ORIGINAL&gt;
+                &lt;ORIGINAL value=&quot;mvn_sc_pred_150302_150315_v01.bc&quot;&gt;mvn_sc_pred_150302_150315_vm013ar01_v01.bc&lt;/ORIGINAL&gt;
+                &lt;ORIGINAL value=&quot;mvn_sc_pred_150630_150707_v01.bc&quot;&gt;mvn_sc_pred_150630_150707_vm027b_v01.bc&lt;/ORIGINAL&gt;
+            &lt;/patterns&gt;
+        &lt;/kernel&gt;
+        &lt;kernel pattern=&quot;mvn_app_pred_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9].bc&quot;&gt;
+            &lt;mklabel_options&gt;&lt;/mklabel_options&gt;
+            &lt;description&gt;SPICE CK file containing predicted orientation of the MAVEN Articulated Payload Platform
+                (APP), created by NAIF, JPL. The original name of this file was $ORIGINAL.
+            &lt;/description&gt;
+            &lt;patterns&gt;
+                &lt;ORIGINAL value=&quot;mvn_app_pred_210104_210120_v01.bc&quot;&gt;mvn_app_pred_210104_210120_vm321_322_v03.bc&lt;/ORIGINAL&gt;
+                &lt;ORIGINAL value=&quot;mvn_app_pred_141205_141209_v01.bc&quot;&gt;mvn_app_pred_141205_141209_vm002OTM_v02.bc&lt;/ORIGINAL&gt;
+                &lt;ORIGINAL value=&quot;mvn_app_pred_141223_150109_v01.bc&quot;&gt;mvn_app_pred_141223_150109_vm004_v02.bc&lt;/ORIGINAL&gt;
+                &lt;ORIGINAL value=&quot;mvn_app_pred_150302_150315_v01.bc&quot;&gt;mvn_app_pred_150302_150315_vm013ar01_v01.bc&lt;/ORIGINAL&gt;
+                &lt;ORIGINAL value=&quot;mvn_app_pred_150630_150707_v01.bc&quot;&gt;mvn_app_pred_150630_150707_vm027b_v01.bc&lt;/ORIGINAL&gt;
+            &lt;/patterns&gt;
+        &lt;/kernel&gt;
+        &lt;kernel pattern=&quot;maven_[0-9][0-9][0-9][0-9]_v[0-9][0-9].tm&quot;&gt;
+            &lt;mklabel_options&gt;&lt;/mklabel_options&gt;
+            &lt;description&gt;SPICE MK file listing kernels for $YEAR, created by NAIF, JPL.&lt;/description&gt;
+            &lt;patterns&gt;
+                &lt;YEAR pattern=&quot;KERNEL&quot;&gt;maven_$YEAR_v[0-9][0-9].tm&lt;/YEAR&gt;
+            &lt;/patterns&gt;
+        &lt;/kernel&gt;
+    &lt;/kernel_list&gt;
+
+    &lt;!-- =========================== --&gt;
+    &lt;!-- Meta-kernel                 --&gt;
+    &lt;!-- =========================== --&gt;
+    &lt;meta-kernel&gt;
+        &lt;!-- Each meta-kernel present in the bundle can be automatically
+             generated by NPB, providing the parameters below. --&gt;
+        &lt;mk name=&quot;maven_$YEAR_v$VERSION.tm&quot;&gt;
+            &lt;name&gt;
+                &lt;pattern length=&quot;2&quot;&gt;VERSION&lt;/pattern&gt;
+                &lt;pattern length=&quot;4&quot;&gt;YEAR&lt;/pattern&gt;
+            &lt;/name&gt;
+            &lt;coverage_kernels&gt;
+                &lt;!-- These kernels determine the coverage of the increment --&gt;
+                &lt;pattern&gt;maven_orb_rec_[0-9]{6}_[0-9]{6}_v[0-9].bsp&lt;/pattern&gt;
+            &lt;/coverage_kernels&gt;
+            &lt;interrupt_to_update&gt;False&lt;/interrupt_to_update&gt;
+            &lt;grammar&gt;
+                &lt;!-- LSK --&gt;
+                &lt;pattern&gt;naif0012.tls&lt;/pattern&gt;
+                &lt;!-- PCK --&gt;
+                &lt;pattern&gt;pck00010.tpc&lt;/pattern&gt;
+                &lt;!-- FK --&gt;
+                &lt;pattern&gt;maven_v[0-9]{2}.tf&lt;/pattern&gt;
+                &lt;!-- IK --&gt;
+                &lt;pattern&gt;maven_ant_v[0-9]{2}.ti&lt;/pattern&gt;
+                &lt;pattern&gt;maven_euv_v[0-9]{2}.ti&lt;/pattern&gt;
+                &lt;pattern&gt;maven_iuvs_v[0-9]{2}.ti&lt;/pattern&gt;
+                &lt;pattern&gt;maven_ngims_v[0-9]{2}.ti&lt;/pattern&gt;
+                &lt;pattern&gt;maven_sep_v[0-9]{2}.ti&lt;/pattern&gt;
+                &lt;pattern&gt;maven_static_v[0-9]{2}.ti&lt;/pattern&gt;
+                &lt;pattern&gt;maven_swea_v[0-9]{2}.ti&lt;/pattern&gt;
+                &lt;pattern&gt;maven_swia_v[0-9]{2}.ti&lt;/pattern&gt;
+                &lt;!-- SCLK --&gt;
+                &lt;pattern&gt;MVN_SCLKSCET.[0-9]{5}.tsc&lt;/pattern&gt;
+                &lt;pattern&gt;mvn_sclkscet_[0-9]{5}.tsc&lt;/pattern&gt;
+                &lt;!-- SPK --&gt;
+                &lt;pattern&gt;de430s.bsp&lt;/pattern&gt;
+                &lt;pattern&gt;mar097s.bsp&lt;/pattern&gt;
+                &lt;pattern&gt;maven_struct_v[0-9]{2}.bsp&lt;/pattern&gt;
+                &lt;pattern&gt;date:maven_orb_rec_[0-9]{6}_[0-9]{6}_v[0-9].bsp&lt;/pattern&gt;
+                &lt;!-- CK --&gt;
+                &lt;pattern&gt;date:mvn_iuvs_rem_[0-9]{6}_[0-9]{6}_v[0-9]{2}.bc&lt;/pattern&gt;
+                &lt;pattern&gt;date:mvn_app_pred_[0-9]{6}_[0-9]{6}_v[0-9]{2}.bc&lt;/pattern&gt;
+                &lt;pattern&gt;date:mvn_app_rel_[0-9]{6}_[0-9]{6}_v[0-9]{2}.bc&lt;/pattern&gt;
+                &lt;pattern&gt;mvn_swea_nom_131118_300101_v[0-9]{2}.bc&lt;/pattern&gt;
+                &lt;pattern&gt;date:mvn_sc_pred_[0-9]{6}_[0-9]{6}_v[0-9]{2}.bc&lt;/pattern&gt;
+                &lt;pattern&gt;date:mvn_sc_rel_[0-9]{6}_[0-9]{6}_v[0-9]{2}.bc&lt;/pattern&gt;
+                &lt;!-- DSK --&gt;
+            &lt;/grammar&gt;
+            &lt;metadata&gt;
+                &lt;description&gt;
+                    This meta-kernel lists the MAVEN SPICE kernels providing coverage
+                    for $YEAR. All of the kernels listed below are archived in the PDS
+                    MAVEN SPICE kernel archive. This set of files and the order in which
+                    they are listed were picked to provide the best available data and
+                    the most complete coverage for the specified year based on the
+                    information about the kernels available at the time this meta-kernel
+                    was made. For detailed information about the kernels listed below
+                    refer to the internal comments included in the kernels and the
+                    documentation accompanying the MAVEN SPICE kernel archive.
+                &lt;/description&gt;
+                &lt;!-- The keyword field is used to speficy parameters such as the
+                     meta-kernel year.
+                --&gt;
+                &lt;keyword&gt; &lt;/keyword&gt;
+                &lt;data&gt; &lt;/data&gt;
+            &lt;/metadata&gt;
+        &lt;/mk&gt;
+    &lt;/meta-kernel&gt;
+
+    &lt;!-- =========================== --&gt;
+    &lt;!-- Orbit number file           --&gt;
+    &lt;!-- =========================== --&gt;
+    &lt;orbit_number_file&gt;
+        &lt;orbnum&gt;
+            &lt;pattern&gt;maven_orb_rec_[0-9]{6}_[0-9]{6}_v[0-9].orb&lt;/pattern&gt;
+            &lt;!-- Parameters from the orbnum generation preference file --&gt;
+            &lt;event_detection_frame&gt;
+                &lt;spice_name&gt;IAU_MARS&lt;/spice_name&gt;
+                &lt;description&gt;Mars body-fixed frame&lt;/description&gt;
+            &lt;/event_detection_frame&gt;
+            &lt;header_start_line&gt;1&lt;/header_start_line &gt;
+            &lt;pck&gt;
+                &lt;kernel_name&gt;pck0010.tpc&lt;/kernel_name&gt;
+                &lt;description&gt;IAU 2009 report&lt;/description&gt;
+            &lt;/pck&gt;
+            &lt;coverage&gt;
+                &lt;kernel cutoff=&quot;True&quot;&gt;../data/kernels/spk/maven_orb_rec_210101_210401_v2.bsp&lt;/kernel&gt;
+            &lt;/coverage&gt;
+            &lt;author&gt;NAIF, JPL&lt;/author&gt;
+        &lt;/orbnum&gt;
+    &lt;/orbit_number_file&gt;
+&lt;/naif-pds4-bundler_configuration&gt;
+</pre></div>
+</div>
+</section>
+<section id="pds-parameters">
+<h2>PDS Parameters<a class="headerlink" href="#pds-parameters" title="Permalink to this headline">¶</a></h2>
+<p>PDS Parameters are mission-level and bundle-level agnostic and are only related
+to the PDS version, information model (IM), and available registered context
+products. The table below provides a summary of the parameters:</p>
+<table class="colwidths-given docutils align-default" id="id3">
+<caption><span class="caption-text">PDS Parameters</span><a class="headerlink" href="#id3" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 60%" />
+<col style="width: 15%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Element</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Required?</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>pds_version</p></td>
+<td><p>Archive PDS version. Currently only 4 is fully
+implemented.</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-odd"><td><p>information_model</p></td>
+<td><p>Specifies the PDS4 information model to be used.</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-even"><td><p>xml_model</p></td>
+<td><p>URL location of the XML Schematron associated with an information model.
+The <code class="docutils literal notranslate"><span class="pre">information_model</span></code> and <code class="docutils literal notranslate"><span class="pre">xml_model</span></code> parameters must refer to the
+same information model.</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-odd"><td><p>schema_location</p></td>
+<td><p>URL location of the XML Schema associated with an information model. The
+<code class="docutils literal notranslate"><span class="pre">schema_location</span></code> and <code class="docutils literal notranslate"><span class="pre">xml_model</span></code> parameters must refer to the same
+information model.</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-even"><td><p>logical_identifier</p></td>
+<td><p>Logical identifier for the bundle.</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-odd"><td><p>context_products</p></td>
+<td><p>Provides the location of a file that lists required context products that are not available in
+the registered context products. More information below.</p></td>
+<td><p>No</p></td>
+</tr>
+</tbody>
+</table>
+<section id="the-information-model">
+<h3>The Information Model<a class="headerlink" href="#the-information-model" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">information_model</span></code> parameter will determine the PDS4 artifacts templates
+that will be used for the bundle generation. NPB provides different templates
+depending on the specified IM. The available templates are located under
+<code class="docutils literal notranslate"><span class="pre">naif-pds4-bundler/src/pds/naif_pds4_bundler/templates</span></code>.</p>
+<p>NAIF currently uses IM 1.5.0.0 for all its archives, but it is recommended to
+use IM 1.16.0.0 or higher especially if you need to include a DOI in the bundle
+label and have Line Feed (LF) as line endings for all the products. NPB will
+choose the templates that apply to the version you specify: if the IM is equal
+or higher than one of the available version templates, these templates will be
+used. You can also specify a directory with your own templates, see
+section <a class="reference internal" href="#templates-directory"><span class="std std-ref">Templates Directory</span></a>.</p>
+<p>The choice of the IM will determine the <code class="docutils literal notranslate"><span class="pre">xml_model</span></code> and <code class="docutils literal notranslate"><span class="pre">schema_location</span></code>
+values. The only element value that will change is the one that specifies the IM
+version.</p>
+<p>The IM choice impacts other elements of the configuration file
+and of the archive generation such as some contents of the SPICEDS file and
+the templates used for the generation of PDS artifacts. These impacts are
+described in the appropriate sections.</p>
+</section>
+<section id="context-products">
+<h3>Context Products<a class="headerlink" href="#context-products" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">context_products</span></code> parameter provides the location of a JSON file that
+contains additional context un-registered context products. This file is
+required if the primary and/or secondary observer(s) and/or target(s) of the
+bundle are not registered. The registered products are available in the
+following file:
+<code class="docutils literal notranslate"><span class="pre">src/naif_pds4_bundler/templates/registered_context_products.json</span></code>.
+This list of registered context products is generated based on the registered
+context products obtained with the PDS Validate tool with minor modifications,
+and is maintained by the NAIF NPB developer.</p>
+<p>The management of context products requires a bit of attention. Although NPB
+will raise a run time error if any of the observers or targets is not
+registered, we recommend that you search these items in the registered context
+products. If you cannot find them, you need to provide them in the configuration
+file. In order to do so, you will need to include the following elements
+per product:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Product Name e.g.: DART, InSight Mars Lander Spacecraft</p></li>
+<li><p>Product Type e.g.: Spacecraft, Planet, Asteroid, Satellite</p></li>
+<li><p>Product LIDIV e.g.:
+<code class="docutils literal notranslate"><span class="pre">urn:nasa:pds:context:instrument_host:spacecraft.dart::1.0</span></code>
+<code class="docutils literal notranslate"><span class="pre">urn:nasa:pds:context:instrument_host:spacecraft.insight::2.0</span></code></p></li>
+</ul>
+</div></blockquote>
+<p>Here’s an example for the DART mission:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">context_products</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">product</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;DART&quot;</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="nb">type</span><span class="o">&gt;</span><span class="n">Spacecraft</span><span class="o">&lt;/</span><span class="nb">type</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="n">lidvid</span><span class="o">&gt;</span><span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">context</span><span class="p">:</span><span class="n">instrument_host</span><span class="p">:</span><span class="n">spacecraft</span><span class="o">.</span><span class="n">dart</span><span class="p">::</span><span class="mf">1.0</span><span class="o">&lt;/</span><span class="n">lidvid</span><span class="o">&gt;</span>
+    <span class="o">&lt;/</span><span class="n">product</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">product</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;LICIA&quot;</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="nb">type</span><span class="o">&gt;</span><span class="n">Spacecraft</span><span class="o">&lt;/</span><span class="nb">type</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="n">lidvid</span><span class="o">&gt;</span><span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">context</span><span class="p">:</span><span class="n">instrument_host</span><span class="p">:</span><span class="n">spacecraft</span><span class="o">.</span><span class="n">licia</span><span class="p">::</span><span class="mf">1.0</span><span class="o">&lt;/</span><span class="n">lidvid</span><span class="o">&gt;</span>
+    <span class="o">&lt;/</span><span class="n">product</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">product</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Earth&quot;</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="nb">type</span><span class="o">&gt;</span><span class="n">Planet</span><span class="o">&lt;/</span><span class="nb">type</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="n">lidvid</span><span class="o">&gt;</span><span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">context</span><span class="p">:</span><span class="n">target</span><span class="p">:</span><span class="n">planet</span><span class="o">.</span><span class="n">earth</span><span class="p">::</span><span class="mf">1.0</span><span class="o">&lt;/</span><span class="n">lidvid</span><span class="o">&gt;</span>
+    <span class="o">&lt;/</span><span class="n">product</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">product</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Didymos&quot;</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="nb">type</span><span class="o">&gt;</span><span class="n">Asteroid</span><span class="o">&lt;/</span><span class="nb">type</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="n">lidvid</span><span class="o">&gt;</span><span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">context</span><span class="p">:</span><span class="n">target</span><span class="p">:</span><span class="n">asteroid</span><span class="o">.</span><span class="n">didymos</span><span class="p">::</span><span class="mf">1.0</span><span class="o">&lt;/</span><span class="n">lidvid</span><span class="o">&gt;</span>
+    <span class="o">&lt;/</span><span class="n">product</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">product</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Dimorphos&quot;</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="nb">type</span><span class="o">&gt;</span><span class="n">Satellite</span><span class="o">&lt;/</span><span class="nb">type</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="n">lidvid</span><span class="o">&gt;</span><span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">context</span><span class="p">:</span><span class="n">target</span><span class="p">:</span><span class="n">satellite</span><span class="o">.</span><span class="n">didymos</span><span class="o">.</span><span class="n">dimorphos</span><span class="p">::</span><span class="mf">1.0</span><span class="o">&lt;/</span><span class="n">lidvid</span><span class="o">&gt;</span>
+    <span class="o">&lt;/</span><span class="n">product</span><span class="o">&gt;</span>
+<span class="o">&lt;/</span><span class="n">context_products</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>In addition, contact your archiving authority contact to ensure that the
+context product information is correct. If your archiving authority is the PDS
+you will need to consult with the leading node of the mission archive.</p>
+</section>
+</section>
+<section id="bundle-parameters">
+<h2>Bundle Parameters<a class="headerlink" href="#bundle-parameters" title="Permalink to this headline">¶</a></h2>
+<p>Bundle Parameters provide bundle level information required for the PDS4
+artifacts and are SPICE Kernel collection-agnostic. The table below provides a
+summary of the parameters:</p>
+<table class="colwidths-given docutils align-default" id="id4">
+<caption><span class="caption-text">Bundle Parameters</span><a class="headerlink" href="#id4" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 60%" />
+<col style="width: 15%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Element</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Required?</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>producer_name</p></td>
+<td><p>Name of the archive producer (or NPB operator.)</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-odd"><td><p>author_list</p></td>
+<td><p>Name of the SPICE kernel main author(s) and the archive producer
+(or NPB operator.)</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-even"><td><p>institution</p></td>
+<td><p>Institution affiliation of the archive produced e.g., <code class="docutils literal notranslate"><span class="pre">NAIF/JPL</span></code>,
+<code class="docutils literal notranslate"><span class="pre">PSA/ESA</span></code>, etc.</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-odd"><td><p>doi</p></td>
+<td><p>Digital Object Identifier (DOI) of the bundle. More information in
+<a class="reference internal" href="22_pds4_spice_archive.html#digital-objects-identifiers"><span class="std std-ref">Digital Objects Identifiers</span></a>.</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-even"><td><p>spice_name</p></td>
+<td><p>Specifies the SPICE name of the main spacecraft of the archive.</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-odd"><td><p>spiceds</p></td>
+<td><p>Indicates the location of the SPICE Data Archive Description document
+(SPICEDS) for the release.</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-even"><td><p>readme</p></td>
+<td><p>Provides the parameters required to generate the bundle readme file by
+using the readme file template or the path to an input readme file.</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-odd"><td><p>release_date</p></td>
+<td><p>Bundle increment release date. The date is provided with a UTC calendar
+format string with following syntax: <code class="docutils literal notranslate"><span class="pre">YYYY-MM-DD</span></code> e.g. <code class="docutils literal notranslate"><span class="pre">2021-04-09</span></code>.
+If not provided the NPB execution date is used. NAIF does not recommend to
+include this parameter.</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-even"><td><p>creation_date_time</p></td>
+<td><p>Creation date and time for all the products of the release. Usage
+of this parameter is highly discouraged. The date is provided with
+a UTC calendar format string with following syntax: <code class="docutils literal notranslate"><span class="pre">YYYY-MM-DDThh:mm:ss</span></code>
+e.g. <code class="docutils literal notranslate"><span class="pre">2021-06-25T08:00:00</span></code>. If not provided the NPB execution date is used.</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-odd"><td><p>increment_start</p></td>
+<td><p>Archive release start time. This time forces the  More details are provided in
+<a class="reference internal" href="22_pds4_spice_archive.html#product-coverage-assignment-rules"><span class="std std-ref">Product Coverage Assignment Rules</span></a>. The
+date is provided with a UTC calendar format string with following syntax:
+<code class="docutils literal notranslate"><span class="pre">YYYY-MM-DDThh:mm:ssZ</span></code> e.g. <code class="docutils literal notranslate"><span class="pre">2021-06-25T08:00:00Z</span></code>. NAIF does not
+recommend to include this parameter.</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-even"><td><p>increment_finish</p></td>
+<td><p>Release stop time. More details are provided in
+<a class="reference internal" href="22_pds4_spice_archive.html#product-coverage-assignment-rules"><span class="std std-ref">Product Coverage Assignment Rules</span></a>. The
+date is provided with a UTC calendar format string with following syntax:
+<code class="docutils literal notranslate"><span class="pre">YYYY-MM-DDThh:mm:ssZ</span></code> e.g. <code class="docutils literal notranslate"><span class="pre">2021-06-25T08:00:00Z</span></code>. NAIF does not recommend
+to include this parameter.</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-odd"><td><p>date_format</p></td>
+<td><p>Product labels use different date and time formats. The values can
+be <code class="docutils literal notranslate"><span class="pre">infomod2</span></code> or <code class="docutils literal notranslate"><span class="pre">maklabel</span></code>. More information is provided below.
+The default value is <code class="docutils literal notranslate"><span class="pre">maklabel</span></code>.</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-even"><td><p>end_of_line</p></td>
+<td><p>The end of line character for products can either be <code class="docutils literal notranslate"><span class="pre">CRLF</span></code> or <code class="docutils literal notranslate"><span class="pre">LF</span></code>.
+The default is <code class="docutils literal notranslate"><span class="pre">CRLF</span></code> (for <code class="docutils literal notranslate"><span class="pre">&lt;CR&gt;&lt;LF&gt;</span></code>). NAIF recommends to use
+<code class="docutils literal notranslate"><span class="pre">&lt;CRLF&gt;</span></code> when using PDS IM version prior to 1.14.0.0, The choice of
+this parameter affects the content of the SPICEDS file (section
+“File Formats”.) More information is provided in
+<a class="reference internal" href="32_step_2_npb_setup.html#spice-data-set-catalog-file"><span class="std std-ref">SPICE Data Set Catalog File</span></a>.</p></td>
+<td><p>No</p></td>
+</tr>
+</tbody>
+</table>
+<section id="spiceds">
+<h3>SPICEDS<a class="headerlink" href="#spiceds" title="Permalink to this headline">¶</a></h3>
+<p>In addition to the NPB Configuration File -if the meta-kernel is generated
+automatically - the SPICEDS file is the only bundle product that requires manual
+intervention. More details on SPICEDS are provided in the section
+<a class="reference internal" href="32_step_2_npb_setup.html#spice-data-set-catalog-file"><span class="std std-ref">SPICE Data Set Catalog File</span></a>.</p>
+</section>
+<section id="readme-file">
+<h3>Readme File<a class="headerlink" href="#readme-file" title="Permalink to this headline">¶</a></h3>
+<p>The readme file configuration provides either the parameters required to
+generate the readme file by NPB or the path to an input readme file.</p>
+<p>If the readme file is generated by NPB, the readme file template will be used
+along with the elements included in the configuration:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">overview</span></code> provides an overview of the archive and</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cognisant_persons</span></code> indicates the institution responsible for the
+archive generation.</p></li>
+</ul>
+</div></blockquote>
+<p>If present these elements should have the same value for all archive releases.</p>
+<p>Otherwise if a path for the readme file is specified the following element
+needs to be included in the configuration:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">input</span></code> provides the relative or absolute path to the input readme file.</p></li>
+</ul>
+</div></blockquote>
+<p>This element of the configuration file must be present, when a readme file
+already exists in a bundle its generation will be ignored.</p>
+<p>More information on the readme file is provided in section
+<a class="reference internal" href="22_pds4_spice_archive.html#bundle-products-construction-rules"><span class="std std-ref">Bundle Products Construction Rules</span></a>.</p>
+</section>
+<section id="increment-start-and-finish-times">
+<h3>Increment Start and Finish Times<a class="headerlink" href="#increment-start-and-finish-times" title="Permalink to this headline">¶</a></h3>
+<p>These configuration elements, if present, set the archive increment start and
+stop times regardless of the coverage times provided by the MK(s) –if any–.</p>
+<p>NPB will set the MK(s) start and finish times to this elements –each
+individually–, and will propagate these times to the SPICE Kernels Collection
+and to the Bundle labels. Note that for yearly MKs –see section
+<a class="reference internal" href="31_step_1_preparing_data.html#preparing-meta-kernels"><span class="std std-ref">Preparing Meta-kernels</span></a>–, NPB will only
+update the start or finish times for the MKs that correspond either to the
+start or finish year.</p>
+<p>Note that these configuration elements should be used with care and
+understanding their implications on the bundle coverage.</p>
+</section>
+<section id="date-format">
+<h3>Date Format<a class="headerlink" href="#date-format" title="Permalink to this headline">¶</a></h3>
+<p>There two possible strategies for date time string format across the archive:
+<code class="docutils literal notranslate"><span class="pre">maklabel</span></code> and <code class="docutils literal notranslate"><span class="pre">infomod2</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">infomod2</span></code> stands for “PDS Information Model 2.0.0.0”. This format sets the
+format of all date time instances across the label products to:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">yyyy</span><span class="o">-</span><span class="n">mm</span><span class="o">-</span><span class="n">ddThh</span><span class="p">:</span><span class="n">mm</span><span class="p">:</span><span class="n">ss</span><span class="o">.</span><span class="n">sssZ</span>
+</pre></div>
+</div>
+<p>where</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">yyyy</span></code> is the 4-digit year</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mm</span></code> is the 2-digit month</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dd</span></code> is the 2-digit day</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hh</span></code> is the 2-digit hour (24h format)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mm</span></code> are the 2-digit minutes</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ss.sss</span></code> are the seconds and milliseconds rounded inwards to milliseconds.</p></li>
+</ul>
+</div></blockquote>
+<p>For example: <code class="docutils literal notranslate"><span class="pre">2016-01-01T00:00:00.000Z</span></code>. The main characteristic is of this
+format is that is used for all labels and milliseconds are rounded inwards:
+start times are rounded to the next nearest millisecond and stop times
+are rounded to the previous nearest millisecond. The coverage specified for
+SPICE kernels products and for those products whose coverage is determined by
+them will always be within the time bounds of the SPICE kernel. For example
+<code class="docutils literal notranslate"><span class="pre">2016-01-01T00:00:00.1257Z</span></code> will be rounded to  <code class="docutils literal notranslate"><span class="pre">2016-01-01T00:00:00.126Z</span></code>
+if it is a start time, and to <code class="docutils literal notranslate"><span class="pre">2016-01-01T00:00:00.125Z</span></code> if it is a stop time.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">maklabel</span></code> format replicates the date time formats provided by NAIF’s
+<code class="docutils literal notranslate"><span class="pre">MAKLABEL</span></code> utility <a class="reference internal" href="12_bugs_contact_references.html#maklabel" id="id1"><span>[MAKLABEL]</span></a>. <code class="docutils literal notranslate"><span class="pre">MAKLABEL</span></code> has been used for all NAIF’s
+PDS3 data sets and for some PDS4 archives and sets the format of all date
+time instances across the label products, except for the CK kernel labels to:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">yyyy</span><span class="o">-</span><span class="n">mm</span><span class="o">-</span><span class="n">ddThh</span><span class="p">:</span><span class="n">mm</span><span class="p">:</span><span class="n">ssZ</span>
+</pre></div>
+</div>
+<p>whereas sets times for CK kernel labels to:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">yyyy</span><span class="o">-</span><span class="n">mm</span><span class="o">-</span><span class="n">ddThh</span><span class="p">:</span><span class="n">mm</span><span class="p">:</span><span class="n">ss</span><span class="o">.</span><span class="n">sssZ</span>
+</pre></div>
+</div>
+<p>the fields are the same as for the <code class="docutils literal notranslate"><span class="pre">infomod2</span></code> format except that for non
+CK labels it rounds the decimal part of the seconds to the nearest second.
+Because of this, labels with non-integer-second times are outside of the actual
+file coverage.</p>
+<p>Note that the date time strings provided via configuration (<code class="docutils literal notranslate"><span class="pre">mission_start</span></code>,
+<code class="docutils literal notranslate"><span class="pre">mission_finish</span></code> at least) that feed label tags need to be provided with the
+appropriate format to NPB, if not NPB will raise a run time error.
+This does not apply to the times provided in the kernel list section of the
+configuration.</p>
+<p>NAIF uses the <code class="docutils literal notranslate"><span class="pre">maklabel</span></code> format for PDS IM 1.5.0.0 archives for comparison
+and reproducibility reasons. The idea is that NAIF will use <code class="docutils literal notranslate"><span class="pre">infomod2</span></code> only
+after the PDS IM 2.0.0.0 is released. NAIF recommends using the
+<code class="docutils literal notranslate"><span class="pre">infomod2</span></code> format, especially for new archives.</p>
+<p>More details on the determination of coverage for different files in the archives
+are provided in section <a class="reference internal" href="22_pds4_spice_archive.html#product-coverage-assignment-rules"><span class="std std-ref">Product Coverage Assignment Rules</span></a>.</p>
+</section>
+</section>
+<section id="mission-parameters">
+<h2>Mission Parameters<a class="headerlink" href="#mission-parameters" title="Permalink to this headline">¶</a></h2>
+<p>Mission parameters provide mission-specific information such as: mission
+name, acronym, observers, and targets. The table below provides a
+summary of the parameters:</p>
+<table class="colwidths-given docutils align-default" id="id5">
+<caption><span class="caption-text">Mission Parameters</span><a class="headerlink" href="#id5" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 60%" />
+<col style="width: 15%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Element</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Required?</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>mission_acronym</p></td>
+<td><p>Specifies the mission acronym that is used to construct the directory
+structure and some of the NPB execution by-products.</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-odd"><td><p>mission_name</p></td>
+<td><p>Specifies the mission name that is used in several product labels. This
+name must correspond to the name provided by the registered context
+products (including the ones provided via configuration.)</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-even"><td><p>observer</p></td>
+<td><p>The observer is the main spacecraft of the data and the SPICE kernels,
+this name must correspond to the name provided by the registered context
+products (including the ones provided via configuration.)</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-odd"><td><p>target</p></td>
+<td><p>The target is the mission’s primary target (investigated natural body),
+this name must correspond to the name provided by the registered context
+products including the ones provided via configuration.)</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-even"><td><p>kernels_to_load</p></td>
+<td><p>Lists the SPICE kernels that are required to run NPB. More information
+is provided below.</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-odd"><td><p>mission_start</p></td>
+<td><p>Mission start time; typically is the start time of the post-launch SPK.
+The date is provided with a UTC calendar format string. The syntax of
+the string is determined by the <code class="docutils literal notranslate"><span class="pre">date_format</span></code> used.</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-even"><td><p>mission_finish</p></td>
+<td><p>Mission finish time; typically is the start time of the post-launch SPK.
+The date is provided with a UTC calendar format string. The syntax of
+the string is determined by the <code class="docutils literal notranslate"><span class="pre">date_format</span></code> used.</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-odd"><td><p>secondary_observers</p></td>
+<td><p>Provides a list of the secondary spacecrafts present in the SPICE
+kernels. Each name entry must use the observer tag. These names must
+correspond to the names provided by the registered context products
+(including the ones provided via configuration.)</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-even"><td><p>secondary_targets</p></td>
+<td><p>Provides a list of the secondary targets present in the SPICE
+kernels. Each name entry must use the target tag. These names must
+correspond to the names provided by the registered context products
+(including the ones provided via configuration.)</p></td>
+<td><p>No</p></td>
+</tr>
+</tbody>
+</table>
+<section id="on-names-and-acronyms">
+<h3>On Names and Acronyms<a class="headerlink" href="#on-names-and-acronyms" title="Permalink to this headline">¶</a></h3>
+<p>Distinction in between <code class="docutils literal notranslate"><span class="pre">mission_acronym</span></code>, <code class="docutils literal notranslate"><span class="pre">mission_name</span></code>,
+observer, and the Bundle parameter <code class="docutils literal notranslate"><span class="pre">spice_name</span></code> can be rather confusing. A
+good example to distinguish in between the parameters is the Mars 2020 SPICE
+kernel archive, for which the values are as follows:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">mission_acronym</span></code>: mars2020</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mission_name</span></code>: Mars 2020 Perseverance Rover Mission</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">observer</span></code>: Mars 2020 Perseverance Rover</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">spice_name</span></code>: M2020</p></li>
+</ul>
+</div></blockquote>
+<p>Contrarily for other archives, such as MAVEN, is as follows:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">mission_acronym</span></code>: maven</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mission_name</span></code>: MAVEN</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">observer</span></code>: MAVEN</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">spice_name</span></code>: MAVEN</p></li>
+</ul>
+</div></blockquote>
+<p>A note on secondary observers and targets: although secondary s/c and/or targets
+might be present in the SPICE kernels, <strong>they do not have to be present in the
+Configuration File, nor in the bundle PDS4 labels</strong>. It is perfectly
+fine to use the primary s/c and target for all kernels.</p>
+<p>This is the case for the InSight SPICE kernel bundle: the secondary s/c MARCO-A
+and MARCO-B use InSight in their labels as observer. If this simplified approach
+is followed then it must be noted in the Errata section of the SPICE archive
+description document (SPICEDS) as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">All</span> <span class="n">MARCO</span><span class="o">-</span><span class="n">A</span> <span class="ow">and</span> <span class="n">MARCO</span><span class="o">-</span><span class="n">B</span> <span class="n">kernels</span> <span class="n">included</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">archive</span>
+<span class="n">are</span> <span class="n">labeled</span> <span class="k">as</span> <span class="n">being</span> <span class="n">associate</span> <span class="n">the</span> <span class="n">INSIGHT</span> <span class="n">instrument</span> <span class="n">host</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>This simplified approach is especially convenient for missions that have
+a main prime s/c or target. For other missions such as BepiColombo where the
+Mercury Planet Orbiter (MPO) and the Mercury Magnetospheric Orbiter (MMO or MIO)
+have a comparable relevance, the bundle must include a secondary s/c. Here’s an
+example of the entries for secondary s/c and targets for DART:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">observer</span><span class="o">&gt;</span><span class="n">DART</span><span class="o">&lt;/</span><span class="n">observer</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">target</span><span class="o">&gt;</span><span class="n">Didymos</span><span class="o">&lt;/</span><span class="n">target</span><span class="o">&gt;</span>
+<span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="o">&lt;</span><span class="n">secondary_observers</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">observer</span><span class="o">&gt;</span><span class="n">LICIA</span><span class="o">&lt;/</span><span class="n">observer</span><span class="o">&gt;</span>
+<span class="o">&lt;/</span><span class="n">secondary_observers</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">secondary_targets</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">target</span><span class="o">&gt;</span><span class="n">Dimorphos</span><span class="o">&lt;/</span><span class="n">target</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">target</span><span class="o">&gt;</span><span class="n">Earth</span><span class="o">&lt;/</span><span class="n">target</span><span class="o">&gt;</span>
+<span class="o">&lt;/</span><span class="n">secondary_targets</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="kernels-to-load">
+<h3>Kernels To Load<a class="headerlink" href="#kernels-to-load" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">kernels_to_load</span></code> mission parameter lists the SPICE kernels that are
+required to run NPB. At least a LSK, a SCLK, and a FK kernel will be required;
+if there are multiple observers most likely more FKs and SCLKs will be required.
+PCKs might also be needed.</p>
+<p>These kernels are used by NPB to use SPICE (via SpiceyPy <a class="reference internal" href="12_bugs_contact_references.html#spiceypy" id="id2"><span>[SPICEYPY]</span></a> a wrapper
+to CSPICE for Python) to perform time conversions (a LSK kernel is needed),
+to obtain different bundle coverages (SPKs, CKs, FKs and SCLKs are needed),
+and to support coverage determination of kernels included in the release.</p>
+<p>Understanding which kernels need to be loaded requires some experience with
+SPICE and some experience with the SPICE kernels of the mission to be archived.
+If you have any questions please contact the NAIF NPB developer.</p>
+<p>You can either specify a kernel name or a kernel name with a pattern
+(recommended). More information on kernel patterns is provided in
+<a class="reference internal" href="#kernel-patterns"><span class="std std-ref">Kernel patterns</span></a>.</p>
+<p>In the Configuration File, each entry must be specified by its kernel type,
+there can be multiple entries with the same kernel type. For InSight for
+example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">kernels_to_load</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">lsk</span><span class="o">&gt;</span><span class="n">naif</span><span class="p">[</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">][</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">][</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">][</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">]</span><span class="o">.</span><span class="n">tls</span><span class="o">&lt;/</span><span class="n">lsk</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">sclk</span><span class="o">&gt;</span><span class="n">NSY_SCLKSCET</span><span class="o">.</span><span class="p">[</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">][</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">][</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">][</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">][</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">]</span><span class="o">.</span><span class="n">tsc</span><span class="o">&lt;/</span><span class="n">sclk</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">sclk</span><span class="o">&gt;</span><span class="n">marcoa_fake_v</span><span class="p">[</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">][</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">]</span><span class="o">.</span><span class="n">tsc</span><span class="o">&lt;/</span><span class="n">sclk</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">fk</span><span class="o">&gt;../</span><span class="n">data</span><span class="o">/</span><span class="n">kernels</span><span class="o">/</span><span class="n">fk</span><span class="o">/</span><span class="n">insight_v05</span><span class="o">.</span><span class="n">tf</span><span class="o">&lt;/</span><span class="n">fk</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">fk</span><span class="o">&gt;</span><span class="n">marcob_v</span><span class="p">[</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">][</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">]</span><span class="o">.</span><span class="n">tf</span><span class="o">&lt;/</span><span class="n">fk</span><span class="o">&gt;</span>
+<span class="o">&lt;/</span><span class="n">kernels_to_load</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>NPB will use the <code class="docutils literal notranslate"><span class="pre">bundle_directory</span></code> and <code class="docutils literal notranslate"><span class="pre">kernels_directory</span></code> directories
+specified in the next section of the Configuration File “Directories” to search
+for the latest version of these kernels (if provided by patterns) or to the
+kernel specified (if the kernel name does not contain patterns.)</p>
+</section>
+<section id="kernel-patterns">
+<h3>Kernel patterns<a class="headerlink" href="#kernel-patterns" title="Permalink to this headline">¶</a></h3>
+<p>Throughout the configuration you will find multiple occurrences of kernels that
+are specified with a pattern. The usage of patterns allows NPB to know that it
+must scan a directory or a list of directories, for a specific version of the
+kernel within the possibilities provided by the pattern, such as the latest
+version of a specific kernel.</p>
+<p>The patterns recognised by NPB are quite limited and are a subset of the ones
+used for regular expressions. They are the following:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[0-9]</span></code>: any digit</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[a-z]</span></code>: any lowercase letter</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[A-Z]</span></code>: any uppercase letter</p></li>
+</ul>
+</div></blockquote>
+<p>In addition there are two special patterns:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">{n}</span></code>: is placed after another pattern and indicates “n” repetitions of
+that pattern; <code class="docutils literal notranslate"><span class="pre">n</span></code> spans from 1 to a <em>N</em> where <em>N</em> is a number
+limited by the SPICE file name length. E.g., <code class="docutils literal notranslate"><span class="pre">[0-6]{4}</span></code> are four
+consecutive digits (used to specify a year for example: 2021.)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">$</span></code>: indicates that the contiguous set of uppercase letters correspond to a
+literal pattern e.g., <code class="docutils literal notranslate"><span class="pre">$YEAR</span></code> indicates that this will be replaced by a
+year. Use cases are provided later in the document.</p></li>
+</ul>
+</div></blockquote>
+<p>Therefore the following FK kernel pattern: <code class="docutils literal notranslate"><span class="pre">maven_v[0-9][0-9].tf</span></code>, would
+be matched by any version of the MAVEN FK, for example <code class="docutils literal notranslate"><span class="pre">maven_v09.tf</span></code>.</p>
+</section>
+</section>
+<section id="directories">
+<h2>Directories<a class="headerlink" href="#directories" title="Permalink to this headline">¶</a></h2>
+<p>They specify the directories used to run NPB. The table below provides a summary
+of the required and optional directories:</p>
+<table class="colwidths-given docutils align-default" id="id6">
+<caption><span class="caption-text">Directories</span><a class="headerlink" href="#id6" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 60%" />
+<col style="width: 15%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Element</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Required?</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>working_directory</p></td>
+<td><p>Specifies the directory that will be used by NPB to generate the
+execution by-products that include but are not limited to: execution log,
+kernel list, and the file list. It is a good idea to use the working
+directory to store the configuration file(s), validation reports,
+archive plans, etc. More information of this directory is provided in
+section <a class="reference internal" href="32_step_2_npb_setup.html#working-directory"><span class="std std-ref">Working Directory</span></a>.</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-odd"><td><p>kernels_directory</p></td>
+<td><p>Specifies the directory(ies) that will be used by NPB to obtain the kernels
+to be archived from. These directories must follow the usual operational
+SPICE kernel sub-directory structure by kernel type.</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-even"><td><p>staging_directory</p></td>
+<td><p>This directory will be used by NPB to store the files generated by its
+execution for the archive (the release or increment.)</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-odd"><td><p>bundle_directory</p></td>
+<td><p>Indicates the directory where the current version of the SPICE kernel
+bundle is present (before the execution of NPB.)</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-even"><td><p>orbnum_directory</p></td>
+<td><p>Indicates the directory(ies) where the orbit number files to be archived
+are present.</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-odd"><td><p>templates_directory</p></td>
+<td><p>Indicates the directory where the user input templates are present.</p></td>
+<td><p>No</p></td>
+</tr>
+</tbody>
+</table>
+<p>More information on the setup of the NPB directories is provided in
+<a class="reference internal" href="32_step_2_npb_setup.html#workspace-setup"><span class="std std-ref">Workspace Setup</span></a>.</p>
+<section id="templates-directory">
+<h3>Templates Directory<a class="headerlink" href="#templates-directory" title="Permalink to this headline">¶</a></h3>
+<p>This entry is optional and specifies the directory where your own templates
+reside. These templates need to follow the specifications of the
+templates provided with NPB. An example of user provided templates is available
+for the ExoMars2016 bundle under
+<code class="docutils literal notranslate"><span class="pre">naif-pds4-bundler/tests/naif_pds4_bundler/templates/em16</span></code>.</p>
+<p>The templates need to include all the keywords present in the default NPB
+templates. These keywords start with <code class="docutils literal notranslate"><span class="pre">$</span></code> and are uppercase. You will also need
+to make sure that the resulting PDS4 products are correct by running the PDS
+validate tool against them. It is also recommended to provide them to NAIF for
+review.</p>
+</section>
+</section>
+<section id="kernel-list">
+<h2>Kernel List<a class="headerlink" href="#kernel-list" title="Permalink to this headline">¶</a></h2>
+<p>The Kernel List is an NPB execution by-product (more information on NPB
+execution by-products is provided in
+<a class="reference internal" href="43_using_npb.html#execution-by-products"><span class="std std-ref">Execution by-products</span></a>) that is used for two main
+purposes:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>to generate a description for each kernel to be archived; the
+description of the kernel is present in all kernel labels</p></li>
+<li><p>if necessary, to change the name of the provided kernels to the name
+required by the archive</p></li>
+</ul>
+</div></blockquote>
+<p>NPB will try to match every input kernel, including meta-kernels, with an entry
+of the kernel list and based on that will generate a Kernel List product.
+This section of the configuration provides a list of all the kernels that
+might be included in the bundle for any release. Consequently,
+the Kernel List section in the configuration file is prone to grow as new
+archive releases are prepared.</p>
+<p>The Kernel List configuration section includes a kernel element for
+each kernel that has a pattern attribute the value of which is a kernel name
+with (or without) a pattern. For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">kernel_list</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">kernel</span> <span class="n">pattern</span><span class="o">=</span><span class="s2">&quot;naif[0-9][0-9][0-9][0-9].tls&quot;</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>This kernel element is used to identify the leapseconds kernels present in
+the kernels to be archived. An important remark of the pattern attribute value
+is that it cannot contain any of the special patterns <code class="docutils literal notranslate"><span class="pre">{n}</span></code> or <code class="docutils literal notranslate"><span class="pre">$</span></code>, and
+therefore can only include <code class="docutils literal notranslate"><span class="pre">[0-9]</span></code>, <code class="docutils literal notranslate"><span class="pre">[a-z]</span></code>, and <code class="docutils literal notranslate"><span class="pre">[A-Z]</span></code> patterns.</p>
+<p>The first nested element of the kernel element is <code class="docutils literal notranslate"><span class="pre">&lt;mklabel_options&gt;</span></code>. This
+element is a leftover of the PDS3 data sets and for all the kernels in PDS4
+bundles can be omitted.</p>
+<p>If the number of characters for a given pattern of a kernel to load is not known
+in advance then multiple entries in the kernel list should be used in the
+configuration file. For example, if you do not know whether you will have one of
+the following files:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">msl_76_sclkscet_refit_j5</span><span class="o">.</span><span class="n">tsc</span>
+<span class="n">msl_76_sclkscet_refit_k13</span><span class="o">.</span><span class="n">tsc</span>
+</pre></div>
+</div>
+<p>Then the two entries specified hereunder can be provided in the kernel list:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">kernel</span> <span class="n">pattern</span><span class="o">=</span><span class="s2">&quot;msl_76_sclkscet_refit_[a-z][0-9].tsc&quot;</span><span class="o">&gt;</span>       <span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="o">&lt;</span><span class="n">kernel</span> <span class="n">pattern</span><span class="o">=</span><span class="s2">&quot;msl_76_sclkscet_refit_[a-z][0-9][0-9].tsc&quot;</span><span class="o">&gt;</span>  <span class="p">(</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The second and third element patterns are optional and provide the observers and
+targets required by the kernels. By default, the kernel label will set its
+observer and target elements to the <code class="docutils literal notranslate"><span class="pre">&lt;observer&gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">&lt;target&gt;</span></code> provided in
+the Mission Parameters section of the configuration file. But what happens if
+the kernel data for one of the secondary observers/targets or
+for several of them? Since there is no way to fully automatize the
+identification of all possible cases this is indicated in this
+element of the kernel list. The following example should be self-explanatory:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">observers</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">observer</span><span class="o">&gt;</span><span class="n">DART</span><span class="o">&lt;/</span><span class="n">observer</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">observer</span><span class="o">&gt;</span><span class="n">LICIA</span><span class="o">&lt;/</span><span class="n">observer</span><span class="o">&gt;</span>
+<span class="o">&lt;/</span><span class="n">observers</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">targets</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">target</span><span class="o">&gt;</span><span class="n">Didymos</span><span class="o">&lt;/</span><span class="n">target</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">target</span><span class="o">&gt;</span><span class="n">Dimorphos</span><span class="o">&lt;/</span><span class="n">target</span><span class="o">&gt;</span>
+<span class="o">&lt;/</span><span class="n">targets</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<section id="kernel-descriptions">
+<h3>Kernel Descriptions<a class="headerlink" href="#kernel-descriptions" title="Permalink to this headline">¶</a></h3>
+<p>The fourth (or second) nested element is the kernel description. This is a very
+important configuration parameter and its content must describe synthetically
+and precisely the SPICE kernel. The recommended structure of the description
+is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SPICE</span> <span class="o">&lt;</span><span class="n">text</span><span class="o">/</span><span class="n">binary</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">kernel</span> <span class="nb">type</span><span class="o">&gt;</span> <span class="n">kernel</span> <span class="o">...</span> <span class="n">created</span> <span class="n">by</span> <span class="o">&lt;</span><span class="n">producer</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">institution</span><span class="o">&gt;.</span>
+</pre></div>
+</div>
+<p>where</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;text/binary&gt;</span></code> is either text or binary</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;kernel</span> <span class="pre">type&gt;</span></code> is the kernel type acronym (SPK, FK, etc.)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;producer&gt;</span></code> is the author or the group that generated the kernel</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;institution&gt;</span></code> is the affiliation of the kernel producer.</p></li>
+</ul>
+</div></blockquote>
+<p>For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;description&gt;SPICE LSK file incorporating leapseconds up to $DATE, created by NAIF, JPL.&lt;/description&gt;
+</pre></div>
+</div>
+<p>The description element might contain patterns based on the special expression
+<code class="docutils literal notranslate"><span class="pre">$</span></code> followed by an upper case name, <code class="docutils literal notranslate"><span class="pre">$DATE</span></code> in the example above. These
+patterns are used to accommodate information particular to each individual
+kernel of each kind. In the example above the <code class="docutils literal notranslate"><span class="pre">$DATE</span></code> expression is meant to
+specify the year of the latest leapsecond provided by that kernel. Other
+examples are: original name of the kernel (see
+<a class="reference internal" href="31_step_1_preparing_data.html#renaming-files"><span class="std std-ref">Renaming Files</span></a>), version of the IAU
+report, kernel coverage, etc. These patterns are determined by the next element:
+<code class="docutils literal notranslate"><span class="pre">patterns</span></code>.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">patterns</span></code> element maps the patterns present in the description element
+with its value. NPB maps the patterns with one of the following methods:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>match by value</p></li>
+<li><p>match by pattern</p></li>
+<li><p>match from comment</p></li>
+</ul>
+</div></blockquote>
+<p>These are described in the following subsections.</p>
+<section id="match-by-value">
+<h4>Match by value<a class="headerlink" href="#match-by-value" title="Permalink to this headline">¶</a></h4>
+<p>The first method to identify patterns in the kernel pattern attribute value is
+by value. In order to do so, the kernel pattern attribute value is set to
+<code class="docutils literal notranslate"><span class="pre">value</span></code> and its value corresponds to the actual name of the kernel, without
+patterns, in such a way that the value of the element is substituted by the
+pattern in the resulting description. It is also possible to use a subset of
+the kernel name but this option should be used carefully and only if the subset
+identifies a unique kernel “type”.</p>
+<p>Going back to the leapseconds example, the complete entry in the kernel list
+would be:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;kernel pattern=&quot;naif[0-9][0-9][0-9][0-9].tls&quot;&gt;
+    &lt;description&gt;SPICE LSK file incorporating leapseconds up to $DATE, created by NAIF, JPL.&lt;/description&gt;
+    &lt;patterns&gt;
+        &lt;DATE value=&quot;naif0011.tls&quot;&gt;2015-JAN-01&lt;/DATE&gt;
+        &lt;DATE value=&quot;naif0012.tls&quot;&gt;2017-JAN-01&lt;/DATE&gt;
+    &lt;/patterns&gt;
+&lt;/kernel&gt;
+</pre></div>
+</div>
+<p>In this case, if the kernel to be archived is <code class="docutils literal notranslate"><span class="pre">naif0012.tls</span></code> then the
+description for the label will be:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SPICE</span> <span class="n">LSK</span> <span class="n">file</span> <span class="n">incorporating</span> <span class="n">leapseconds</span> <span class="n">up</span> <span class="n">to</span> <span class="mi">2017</span><span class="o">-</span><span class="n">JAN</span><span class="o">-</span><span class="mi">01</span><span class="p">,</span> <span class="n">created</span> <span class="n">by</span> <span class="n">NAIF</span><span class="p">,</span> <span class="n">JPL</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>Because the <code class="docutils literal notranslate"><span class="pre">$DATE</span></code> pattern has been replaced by the <code class="docutils literal notranslate"><span class="pre">DATE</span></code> element nested from
+the patterns element and the kernel name equals one of the values of the
+<code class="docutils literal notranslate"><span class="pre">value</span></code> attribute. With this configuration, archiving <code class="docutils literal notranslate"><span class="pre">naif0010.tls</span></code> would
+have resulted into a runtime error:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ne">RuntimeError</span><span class="p">:</span> <span class="o">--</span> <span class="n">Kernel</span> <span class="n">naif0010</span><span class="o">.</span><span class="n">tls</span> <span class="n">description</span> <span class="n">could</span> <span class="ow">not</span> <span class="n">be</span> <span class="n">updated</span> <span class="k">with</span> <span class="n">pattern</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>The names of the elements to map the patterns are defined by the user. Some
+examples are provided hereunder:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ORIGINAL</span></code>: specify the original name of the kernel.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">REPORT</span></code>: specify the IAU report for PCKs.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DATE</span></code>: specifies a date.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FILE</span></code>: specify the original name of the kernel</p></li>
+</ul>
+</div></blockquote>
+<p>These names are meant to help the archive producers to understand the pattern
+matching.</p>
+<p>The limitation of this method is that each individual kernel type requires an
+element entry in the configuration file.</p>
+</section>
+<section id="match-by-pattern">
+<h4>Match by pattern<a class="headerlink" href="#match-by-pattern" title="Permalink to this headline">¶</a></h4>
+<p>This method uses parts of the kernel name pattern to identify patterns required
+by the kernel description. Another way to describe it, using XML terminology:
+this method uses the pattern attribute value of the kernel element to map one
+pattern of its file name as obtained from the kernel name without patterns.</p>
+<p>To do so, nested elements from patterns are provided. The name of the element
+coincides with a pattern with the special pattern <code class="docutils literal notranslate"><span class="pre">$</span></code> and is indicated by an
+attribute called pattern.</p>
+<p>Take the following kernel element form the kernel list for MAVEN:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;kernel pattern=&quot;maven_[0-9][0-9][0-9][0-9]_v[0-9][0-9].tm&quot;&gt;
+    &lt;description&gt;SPICE MK file listing kernels for $YEAR, created by NAIF, JPL.&lt;/description&gt;
+    &lt;patterns&gt;
+        &lt;YEAR pattern=&quot;KERNEL&quot;&gt;maven_$YEAR_v[0-9][0-9].tm&lt;/YEAR&gt;
+    &lt;/patterns&gt;
+&lt;/kernel&gt;
+</pre></div>
+</div>
+<p>In this case we need to obtain the <code class="docutils literal notranslate"><span class="pre">$YEAR</span></code> pattern for the description. The
+value of the <code class="docutils literal notranslate"><span class="pre">YEAR</span></code> element indicates that NPB must extract the <code class="docutils literal notranslate"><span class="pre">$YEAR</span></code>
+value from the first pattern of the kernel pattern:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>maven_[0-9][0-9][0-9][0-9]_v[0-9][0-9].tm
+maven_       $YEAR        _v[0-9][0-9].tm
+</pre></div>
+</div>
+<p>If the archived kernel is <code class="docutils literal notranslate"><span class="pre">maven_2021_v01.tm</span></code> the <code class="docutils literal notranslate"><span class="pre">$YEAR</span></code> value will be
+<code class="docutils literal notranslate"><span class="pre">2021</span></code> and the description will be:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SPICE</span> <span class="n">MK</span> <span class="n">file</span> <span class="n">listing</span> <span class="n">kernels</span> <span class="k">for</span> <span class="mi">2021</span><span class="p">,</span> <span class="n">created</span> <span class="n">by</span> <span class="n">NAIF</span><span class="p">,</span> <span class="n">JPL</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>The names of the elements to map the patterns are defined by the configuration
+file schema. They are currently limited to:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">YEAR</span></code>: used to specify a year.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">START</span></code>: indicates that we are looking at the coverage start time.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FINISH</span></code>: indicates that we are looking at the coverage finish time.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">COVERAGE</span></code>: specific name for OSIRIS-REx DSKs.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">REFERENCE</span></code>: specific name for OSIRIS-REx DSKs.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">VERSION</span></code>: indicates that SPICE kernel version.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DATE</span></code>: indicates that we are extracting a date from the name.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ORIGINAL</span></code>: indicates that we obtaining the original kernel name.</p></li>
+</ul>
+</div></blockquote>
+<p>These names are meant to help the archive producers to understand the pattern
+matching. Any of these names can be used regardless of the pattern. If you
+need to add additional elements please contact the NAIF NPB developer.</p>
+</section>
+<section id="match-from-comment">
+<h4>Match from Comment<a class="headerlink" href="#match-from-comment" title="Permalink to this headline">¶</a></h4>
+<p>Sometimes the original name of the kernel that must be included in the
+description is only present in the comment area of the binary kernel (SPK, CK,
+DSK or binary PCK), if so the comment must be extracted from the kernel. The
+kernel file name must be in a single line. NPB will extract the comment if you
+indicate it to do so similar to the way the “Match by pattern” method is used.</p>
+<p>The pattern nested element must have an attribute called <code class="docutils literal notranslate"><span class="pre">file</span></code> the value of
+which must be <code class="docutils literal notranslate"><span class="pre">COMMENT</span></code>. Currently the only available name for the element is
+<code class="docutils literal notranslate"><span class="pre">ORIGINAL</span></code>, to indicate that you are mapping the description with the original
+kernel name. Also, the value of the <code class="docutils literal notranslate"><span class="pre">ORIGINAL</span></code> element must be the text of the
+line that precedes the original kernel name in the comment area of the kernel:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;kernel pattern=&quot;mro_sc_psp_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]p.bc&quot;&gt;
+    &lt;mklabel_options&gt;NAIF HGA PREDICT ESP&lt;/mklabel_options&gt;
+    &lt;description&gt;MRO SPICE CK file providing predicted orientation of the MRO spacecraft bus modeled by the MRO Spacecraft Team, LMA using the AtArPS tool for a part of the Extended Science phase of the mission, created by NAIF, JPL. The original name of this file was $ORIGINAL
+    &lt;/description&gt;
+    &lt;patterns&gt;
+        &lt;ORIGINAL file=&quot;COMMENT&quot;&gt;The original name of this file was&lt;/ORIGINAL&gt;
+    &lt;/patterns&gt;
+&lt;/kernel&gt;
+</pre></div>
+</div>
+<p>The value of the <code class="docutils literal notranslate"><span class="pre">ORIGINAL</span></code> element will be then used to extract the kernel
+name from the CK comment area. If we use the NAIF utility <code class="docutils literal notranslate"><span class="pre">COMMNT</span></code> we can read the
+comment in an example kernel <code class="docutils literal notranslate"><span class="pre">mro_sc_psp_210628_210710p.bc</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ commnt -r mro_sc_psp_210628_210710p.bc
+
+********************************************************************************
+
+The original name of this file was CK_Pred_21180_21192_sc_20210629155609.bc.
+It was changed to mro_sc_psp_210628_210710p.bc on Thu Aug 12 17:51:24 PDT 2021.
+(...)
+</pre></div>
+</div>
+<p>The line with <code class="docutils literal notranslate"><span class="pre">The</span> <span class="pre">original</span> <span class="pre">name</span> <span class="pre">of</span> <span class="pre">this</span> <span class="pre">file</span> <span class="pre">was</span></code> must be present and will be
+used and therefore <code class="docutils literal notranslate"><span class="pre">CK_Pred_21180_21192_sc_20210629155609.bc</span></code> will be
+extracted and the description will then be:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">MRO</span> <span class="n">SPICE</span> <span class="n">CK</span> <span class="n">file</span> <span class="n">providing</span> <span class="n">predicted</span> <span class="n">orientation</span> <span class="n">of</span> <span class="n">the</span> <span class="n">MRO</span> <span class="n">spacecraft</span>
+<span class="n">bus</span> <span class="n">modeled</span> <span class="n">by</span> <span class="n">the</span> <span class="n">MRO</span> <span class="n">Spacecraft</span> <span class="n">Team</span><span class="p">,</span> <span class="n">LMA</span> <span class="n">using</span> <span class="n">the</span> <span class="n">AtArPS</span> <span class="n">tool</span> <span class="k">for</span> <span class="n">a</span>
+<span class="n">part</span> <span class="n">of</span> <span class="n">the</span> <span class="n">Extended</span> <span class="n">Science</span> <span class="n">phase</span> <span class="n">of</span> <span class="n">the</span> <span class="n">mission</span><span class="p">,</span> <span class="n">created</span> <span class="n">by</span> <span class="n">NAIF</span><span class="p">,</span> <span class="n">JPL</span><span class="o">.</span>
+<span class="n">The</span> <span class="n">original</span> <span class="n">name</span> <span class="n">of</span> <span class="n">this</span> <span class="n">file</span> <span class="n">was</span> <span class="n">CK_Pred_21180_21192_sc_20210629155609</span><span class="o">.</span><span class="n">bc</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>This method has been implemented for the MRO PDS3 SPICE kernel data set
+generation. NAIF does not recommend to record the original name of the kernel
+in the comment area kernels.</p>
+</section>
+</section>
+<section id="mapping-kernels">
+<h3>Mapping kernels<a class="headerlink" href="#mapping-kernels" title="Permalink to this headline">¶</a></h3>
+<p>Sometimes the name of the archived kernel is modified with respect to the
+original kernel - sometimes present in the kernels operational area - this
+happens for kernels that have long names, mixed case, fields that are
+meaningless to users but are meaningful to operation engineers, etc. In such
+cases NAIF recommends to update the archived kernel name for it to be more user
+friendly.</p>
+<p>The mapping in between the original kernel name and the archived kernel name
+can be achieved in two different ways.</p>
+<p>The first approach consists to update the name manually and to use the
+updated name in the release plan. If the original name of the kernel has to be
+included in the kernel description, this can be implemented with the
+“Match by value” method by reflecting this on the attribute value of the given
+kernel element.</p>
+<p>The second and recommended approach also requires the name in the release plan to
+be the updated one but adds a special element nested in the corresponding kernel
+element of the kernel list configuration section. This special “mapping” element
+is called <code class="docutils literal notranslate"><span class="pre">mapping</span></code> and if present, it must be the first element of the nested
+elements of a kernel. If this element is present then the patterns present for
+the “Match by pattern” method must also be present. The mapping element contains
+the original kernel name with the patterns provided with the special pattern
+<code class="docutils literal notranslate"><span class="pre">$</span></code>; those patterns are then correlated with the ones provided in the
+patterns nested elements.</p>
+<p>Say that we need to rename the OSIRIS-REx asteroid Bennu DSKs.
+The original name is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">l_00050mm_alt_ptm_5595n04217_v021</span><span class="o">.</span><span class="n">bds</span>
+</pre></div>
+</div>
+<p>and we want to rename it to:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">bennu_l_00050mm_alt_ptm_5595n04217_v021</span><span class="o">.</span><span class="n">bds</span>
+</pre></div>
+</div>
+<p>With the first approach we would simply rename it, and given that in the
+description we want to include the original file name, the <code class="docutils literal notranslate"><span class="pre">&lt;kernel&gt;</span></code> entry
+in the Kernel List section of the configuration file would be:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;kernel pattern=&quot;bennu_l_[0-9][0-9][0-9][0-9][0-9]mm_alt_dtm_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds&quot;&gt;
+    &lt;description&gt;SPICE DSK file containing shape model data for the surface of asteroid (101955) Bennu,
+        created by the ORX Altimetry Working Group (AltWG). The original name of this file was $ORIGINAL.&lt;/description&gt;
+    &lt;patterns&gt;
+        &lt;ORIGINAL value=&quot;bennu_l_00050mm_alt_ptm_5595n04217_v021.bds&quot;&gt;l_00050mm_alt_ptm_5595n04217_v021.bds&lt;/ORIGINAL&gt;
+        &lt;ORIGINAL value=&quot;bennu_l_00050mm_alt_ptm_5595n04217_v020.bds&quot;&gt;l_00050mm_alt_ptm_5595n04217_v020.bds&lt;/ORIGINAL&gt;
+    &lt;/patterns&gt;
+&lt;/kernel&gt;
+</pre></div>
+</div>
+<p>This approach would require a pattern entry per DSK. The second approach, albeit
+more difficult to implement, would work for each DSK:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;kernel pattern=&quot;bennu_l_[0-9][0-9][0-9][0-9][0-9]mm_alt_dtm_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds&quot;&gt;
+    &lt;mapping&gt;l_$RESOLUTIONmm_alt_dtm_$REFERENCE_v$VERSION.bds&lt;/mapping&gt;
+    &lt;description&gt;SPICE DSK file containing shape model data for the surface of asteroid (101955) Bennu,
+        created by the ORX Altimetry Working Group (AltWG). The original name of this file was l_$RESOLUTIONmm_alt_dtm_$REFERENCE_v$VERSION.bds.&lt;/description&gt;
+    &lt;patterns&gt;
+        &lt;RESOLUTION pattern=&quot;KERNEL&quot;&gt;bennu_l_$RESOLUTIONmm_alt_dtm_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9][0-9].bds&lt;/RESOLUTION&gt;
+        &lt;REFERENCE pattern=&quot;KERNEL&quot;&gt;bennu_l_[0-9][0-9][0-9][0-9][0-9]mm_alt_dtm_$REFERENCE_v[0-9][0-9][0-9].bds&lt;/REFERENCE&gt;
+        &lt;VERSION pattern=&quot;KERNEL&quot;&gt;bennu_l_[0-9][0-9][0-9][0-9][0-9]mm_alt_dtm_[0-9][0-9][0-9][0-9][a-z][0-9][0-9][0-9][0-9][0-9]_v$VERSION.bds&lt;/VERSION&gt;
+    &lt;/patterns&gt;
+&lt;/kernel&gt;
+</pre></div>
+</div>
+<p>As you can see the three patterns present in the mapping element:
+<code class="docutils literal notranslate"><span class="pre">$RESOLUTION</span></code>, <code class="docutils literal notranslate"><span class="pre">$REFERENCE</span></code>, and <code class="docutils literal notranslate"><span class="pre">$VERSION</span></code> are present as pattern
+elements.</p>
+<p>When no release plan is provided as an input, the mapping of kernels does not
+occur and the kernels present in the kernels directories need to have their
+final names as described in the first approach.</p>
+</section>
+</section>
+<section id="meta-kernel">
+<h2>Meta-kernel<a class="headerlink" href="#meta-kernel" title="Permalink to this headline">¶</a></h2>
+<p>The next section of the configuration file is the one that defines the
+generation of the meta-kernels (MKs). NPB is capable to either generate MKs
+automatically or to assist you in their generation.</p>
+<p>If NPB is set to generate kernels automatically, after the MK is
+generated and if indicated via configuration, NPB will pause the execution and
+will provide you with the option to review the MK that it has generated.
+More information is provided in
+<a class="reference internal" href="33_step_3_running_npb.html#interactive-step-for-meta-kernels"><span class="std std-ref">Interactive step for Meta-kernels</span></a>.</p>
+<p>Alternatively you can provide MKs that you have generated manually or
+by any other mean to NPB via configuration as well. The elements of the MK
+section of the configuration file are the following:</p>
+<table class="colwidths-given docutils align-default" id="id7">
+<caption><span class="caption-text">Meta-kernels</span><a class="headerlink" href="#id7" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 60%" />
+<col style="width: 15%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Element</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Required?</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>mk_inputs</p></td>
+<td><p>You can specify a list of MKs for the archive release by
+providing their path.</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-odd"><td><p>mk</p></td>
+<td><p>This element provides the configuration elements necessary to
+automatically generate a MK.</p></td>
+<td><p>Yes</p></td>
+</tr>
+</tbody>
+</table>
+<p>The elements present in the <code class="docutils literal notranslate"><span class="pre">mk</span></code> element are: <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">coverage_kernels</span></code>,
+<code class="docutils literal notranslate"><span class="pre">interrupt_to_update</span></code>, <code class="docutils literal notranslate"><span class="pre">grammar</span></code>, and <code class="docutils literal notranslate"><span class="pre">metadata</span></code> - that at the same time
+consists of the <code class="docutils literal notranslate"><span class="pre">description</span></code>, <code class="docutils literal notranslate"><span class="pre">keyword</span></code> and <code class="docutils literal notranslate"><span class="pre">data</span></code> elements. There can be as many mk
+elements as needed. This element is described in detail below.</p>
+<section id="automatic-generation-of-meta-kernels">
+<h3>Automatic generation of Meta-kernels<a class="headerlink" href="#automatic-generation-of-meta-kernels" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">&lt;mk&gt;</span></code> element of the configuration provides the parameters required
+to automatically generate MKs. The first nested element of <code class="docutils literal notranslate"><span class="pre">&lt;mk&gt;</span></code> is the
+<code class="docutils literal notranslate"><span class="pre">&lt;name&gt;</span></code> element, that provides a mapping to the patterns in the name by
+specifying the length of these patterns; therefore these patterns must have
+a fixed length.</p>
+<p>The element <code class="docutils literal notranslate"><span class="pre">&lt;name&gt;</span></code> is required even if the MK is provided as an input –and
+therefore is not generated automatically.</p>
+<p>For example a MAVEN MK that provides yearly coverage and can have
+multiple versions would be as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">mk</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;maven_$YEAR_v$VERSION.tm&quot;</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">name</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="n">pattern</span> <span class="n">length</span><span class="o">=</span><span class="s2">&quot;2&quot;</span><span class="o">&gt;</span><span class="n">VERSION</span><span class="o">&lt;/</span><span class="n">pattern</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="n">pattern</span> <span class="n">length</span><span class="o">=</span><span class="s2">&quot;4&quot;</span><span class="o">&gt;</span><span class="n">YEAR</span><span class="o">&lt;/</span><span class="n">pattern</span><span class="o">&gt;</span>
+    <span class="o">&lt;/</span><span class="n">name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Please note that the patterns of the <code class="docutils literal notranslate"><span class="pre">&lt;mk&gt;</span></code> name attribute cannot be
+contiguous, the following is not permitted: <code class="docutils literal notranslate"><span class="pre">insight_$YEAR$VERSION.tm</span></code>.</p>
+<p>The next element is <code class="docutils literal notranslate"><span class="pre">&lt;interrupt_to_update&gt;</span></code>, this element determines whether if
+after kernel generation and before the kernel label generation NPB must be
+paused to provide the option to manually edit the generated MK. It must be set
+to either <code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+<section id="meta-kernel-grammar">
+<h4>Meta-kernel grammar<a class="headerlink" href="#meta-kernel-grammar" title="Permalink to this headline">¶</a></h4>
+<p>The next element is “grammar”. The kernel grammar provides an ordered list of
+kernel names with patterns that will populate the MK. For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;grammar&gt;
+    &lt;!-- LSK --&gt;
+    &lt;pattern&gt;naif0012.tls&lt;/pattern&gt;
+    &lt;!-- PCK --&gt;
+    &lt;pattern&gt;pck00010.tpc&lt;/pattern&gt;
+    &lt;!-- FK --&gt;
+    &lt;pattern&gt;maven_v[0-9]{2}.tf&lt;/pattern&gt;
+    &lt;!-- IK --&gt;
+    &lt;pattern&gt;maven_ant_v[0-9]{2}.ti&lt;/pattern&gt;
+    &lt;pattern&gt;maven_euv_v[0-9]{2}.ti&lt;/pattern&gt;
+    &lt;pattern&gt;maven_iuvs_v[0-9]{2}.ti&lt;/pattern&gt;
+    &lt;pattern&gt;maven_ngims_v[0-9]{2}.ti&lt;/pattern&gt;
+    &lt;pattern&gt;maven_sep_v[0-9]{2}.ti&lt;/pattern&gt;
+    &lt;pattern&gt;maven_static_v[0-9]{2}.ti&lt;/pattern&gt;
+    &lt;pattern&gt;maven_swea_v[0-9]{2}.ti&lt;/pattern&gt;
+    &lt;pattern&gt;maven_swia_v[0-9]{2}.ti&lt;/pattern&gt;
+    &lt;!-- SCLK --&gt;
+    &lt;pattern&gt;MVN_SCLKSCET.[0-9]{5}.tsc&lt;/pattern&gt;
+    &lt;pattern&gt;mvn_sclkscet_[0-9]{5}.tsc&lt;/pattern&gt;
+    &lt;!-- SPK --&gt;
+    &lt;pattern&gt;de430s.bsp&lt;/pattern&gt;
+    &lt;pattern&gt;mar097s.bsp&lt;/pattern&gt;
+    &lt;pattern&gt;maven_struct_v[0-9]{2}.bsp&lt;/pattern&gt;
+    &lt;pattern&gt;date:maven_orb_rec_[0-9]{6}_[0-9]{6}_v[0-9].bsp&lt;/pattern&gt;
+    &lt;!-- CK --&gt;
+    &lt;pattern&gt;date:mvn_iuvs_rem_[0-9]{6}_[0-9]{6}_v[0-9]{2}.bc&lt;/pattern&gt;
+    &lt;pattern&gt;date:mvn_app_pred_[0-9]{6}_[0-9]{6}_v[0-9]{2}.bc&lt;/pattern&gt;
+    &lt;pattern&gt;date:mvn_app_rel_[0-9]{6}_[0-9]{6}_v[0-9]{2}.bc&lt;/pattern&gt;
+    &lt;pattern&gt;mvn_swea_nom_131118_300101_v[0-9]{2}.bc&lt;/pattern&gt;
+    &lt;pattern&gt;date:mvn_sc_pred_[0-9]{6}_[0-9]{6}_v[0-9]{2}.bc&lt;/pattern&gt;
+    &lt;pattern&gt;date:mvn_sc_rel_[0-9]{6}_[0-9]{6}_v[0-9]{2}.bc&lt;/pattern&gt;
+    &lt;!-- DSK --&gt;
+&lt;/grammar&gt;
+</pre></div>
+</div>
+<p>As it can be seen in the example, there are three types of entries:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>entries without patterns e.g., <code class="docutils literal notranslate"><span class="pre">naif0012.tls</span></code></p></li>
+<li><p>entries with patterns e.g., <code class="docutils literal notranslate"><span class="pre">maven_v[0-9]{2}.tf</span></code></p></li>
+<li><p>entries with patterns and preceded by <code class="docutils literal notranslate"><span class="pre">date:</span></code> e.g.,
+<code class="docutils literal notranslate"><span class="pre">date:maven_orb_rec_[0-9]{6}_[0-9]{6}_v[0-9].bsp</span></code></p></li>
+</ul>
+</div></blockquote>
+<p>Entries without patterns will include the kernels literally specified. Entries
+with patterns will look for the last version of the kernel sorted in
+alphanumerical order. Entries with patterns and with <code class="docutils literal notranslate"><span class="pre">date:</span></code>
+will include the last version in alphanumerical order for each date specified
+by a set of its patterns; this allows for multiple SPK and CK kernels with the
+same pattern that provide coverage for a given year of for the whole mission to
+be included in the appropriate order.</p>
+<p>For example, the SPK kernel pattern
+<code class="docutils literal notranslate"><span class="pre">date:maven_orb_rec_[0-9]{6}_[0-9]{6}_v[0-9].bsp</span></code>, includes two patterns that
+specify the coverage start and finish: <code class="docutils literal notranslate"><span class="pre">[0-9]{6}</span></code>, by including the <code class="docutils literal notranslate"><span class="pre">date:</span></code>
+prefix in the pattern, NPB will include the following kernels:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39;$KERNELS/spk/orx_200827_201020_201020_od294_v1.bsp&#39;</span>
+<span class="s1">&#39;$KERNELS/spk/orx_201020_210524_210103_od297_v1.bsp&#39;</span>
+<span class="s1">&#39;$KERNELS/spk/orx_201020_201109_201020_od294_v1.bsp&#39;</span>
+</pre></div>
+</div>
+<p>instead of only:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39;$KERNELS/spk/orx_201020_201109_201020_od294_v1.bsp&#39;</span>
+</pre></div>
+</div>
+<p>NPB will combine search these kernels in the <code class="docutils literal notranslate"><span class="pre">staging_directory</span></code>,
+the <code class="docutils literal notranslate"><span class="pre">bundle_directory</span></code>, and as a last resort kernels present in
+other MKs.</p>
+</section>
+<section id="meta-kernel-metadata">
+<h4>Meta-kernel metadata<a class="headerlink" href="#meta-kernel-metadata" title="Permalink to this headline">¶</a></h4>
+<p>The MK metadata are all the other elements of the MK that
+are not kernels to be included in the NPB MK template, several templates
+are available in the different IM template directories e.g.:
+<code class="docutils literal notranslate"><span class="pre">naif-pds4-bundler/src/pds/naif_pds4_bundler/templates/1.5.0.0/template_metakernel.tm</span></code>.</p>
+<p>The metadata includes:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>a MK description that can have patterns;</p></li>
+<li><p>a keyword element that provides the values of the description patterns;</p></li>
+<li><p>a data element that provides additional data to be included in the MK.</p></li>
+</ul>
+</div></blockquote>
+<p>Here’s an example for InSight:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;metadata&gt;
+    &lt;description&gt;
+        This meta-kernel lists the INSIGHT SPICE kernels providing coverage
+        for the whole $MISSION. All of the kernels (...).
+    &lt;/description&gt;
+    &lt;keyword&gt;
+       &lt;MISSION&gt;mission&lt;/MISSION&gt;
+    &lt;/keyword&gt;
+    &lt;data&gt;
+        SPACECRAFT_ID     = -189
+        CENTER_ID         = 499
+        LANDING_TIME      = &#39;2018-11-26T19:44:52.444&#39;
+        LANDING_SOL_INDEX = 0
+        BODY10_GM         = 1.3271244004193938E+11
+    &lt;/data&gt;
+&lt;/metadata&gt;
+</pre></div>
+</div>
+</section>
+</section>
+<section id="manual-input">
+<h3>Manual Input<a class="headerlink" href="#manual-input" title="Permalink to this headline">¶</a></h3>
+<p>If you choose to provide a manually generated MK, you only need to provide
+the location of the MK(s) using the required number of entries of the
+<code class="docutils literal notranslate"><span class="pre">file</span></code> element in <code class="docutils literal notranslate"><span class="pre">mk_inputs</span></code>. E.g. for the LADEE archive the MK section
+of the configuration file can be as simple as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">meta</span><span class="o">-</span><span class="n">kernel</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">mk_inputs</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="n">file</span><span class="o">&gt;../</span><span class="n">data</span><span class="o">/</span><span class="n">ladee_v01</span><span class="o">.</span><span class="n">tm</span><span class="o">&lt;/</span><span class="n">file</span><span class="o">&gt;</span>
+    <span class="o">&lt;/</span><span class="n">mk_inputs</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">mk</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;ladee_v$VERSION.tm&quot;</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="n">name</span><span class="o">&gt;</span>
+            <span class="o">&lt;</span><span class="n">pattern</span> <span class="n">length</span><span class="o">=</span><span class="s2">&quot;2&quot;</span><span class="o">&gt;</span><span class="n">VERSION</span><span class="o">&lt;/</span><span class="n">pattern</span><span class="o">&gt;</span>
+        <span class="o">&lt;/</span><span class="n">name</span><span class="o">&gt;</span>
+     <span class="o">&lt;/</span><span class="n">mk</span><span class="o">&gt;</span>
+<span class="o">&lt;/</span><span class="n">meta</span><span class="o">-</span><span class="n">kernel</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="coverage-determination">
+<h3>Coverage determination<a class="headerlink" href="#coverage-determination" title="Permalink to this headline">¶</a></h3>
+<p>Whether if you generate the MKs automatically or provide them as inputs, NPB
+needs to know how to determine their coverage. The <code class="docutils literal notranslate"><span class="pre">&lt;coverage_kernel&gt;</span></code>
+element is optional and indicates the kernels that will determine the coverage
+of the MKs by providing a list of kernel patterns and binding each of them to a
+MK pattern using an attribute for each entry.</p>
+<p>The kernel pattern must match a kernel that is included in the MK.
+What follows is a Mars 2020 configuration file extract example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">coverage_kernels</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">pattern</span><span class="o">&gt;</span><span class="n">m2020_cruise_od138_v</span><span class="p">[</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">]</span><span class="o">.</span><span class="n">bsp</span><span class="o">&lt;/</span><span class="n">pattern</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">pattern</span><span class="o">&gt;</span><span class="n">m2020_surf_rover_loc_</span><span class="p">[</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">][</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">][</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">][</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">]</span><span class="n">_</span><span class="p">[</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">][</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">][</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">][</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">]</span><span class="n">_v</span><span class="p">[</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">]</span><span class="o">.</span><span class="n">bsp</span><span class="o">&lt;/</span><span class="n">pattern</span><span class="o">&gt;</span>
+<span class="o">&lt;/</span><span class="n">coverage_kernels</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>With this configuration, specified in the <code class="docutils literal notranslate"><span class="pre">&lt;mk&gt;</span></code> element <code class="docutils literal notranslate"><span class="pre">m2020_v$VERSION.tm</span></code>
+if the release includes the <code class="docutils literal notranslate"><span class="pre">m2020_v01.tm</span></code>. The MK coverage will be determined
+by the kernels included in the MK defined by the pattern. For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">m2020_cruise_od138_v1</span><span class="o">.</span><span class="n">bsp</span>
+<span class="n">m2020_surf_rover_loc_0001_0083_v1</span><span class="o">.</span><span class="n">bsp</span>
+</pre></div>
+</div>
+<p>If the <code class="docutils literal notranslate"><span class="pre">&lt;coverage_kernel&gt;</span></code> element is not specified the MK coverage will be
+set to the mission start and mission stop times specified in
+<a class="reference internal" href="#mission-parameters"><span class="std std-ref">Mission Parameters</span></a>.</p>
+<p>Please note that unless specified via configuration, the combined coverage
+of MKs for which kernels have been provided to determine their coverage will
+be used to determine the coverage of the SPICE Kernels and Miscellaneous
+Collections and the Bundle coverage. More details are provided in the section
+<a class="reference internal" href="22_pds4_spice_archive.html#product-coverage-assignment-rules"><span class="std std-ref">Product Coverage Assignment Rules</span></a>.</p>
+<section id="final-remarks">
+<h4>Final remarks<a class="headerlink" href="#final-remarks" title="Permalink to this headline">¶</a></h4>
+<p>Regardless of the content of the Meta-Kernel section of the configuration file,
+MKs must have entries in the Kernel List section in order to be considered by
+NPB as an input.</p>
+<p>Generating MKs is not a trivial task. NPB’s automated MK generation is designed
+to support you on the task.</p>
+<p>There is an infinite number of combinations in which a MK can be organised.
+This is a problem for already existing archives that start using NPB and the
+MK style of which does not match with the one provided by NPB. For such cases
+NPB can still be helpful since it can be set to pause after the MK generation
+and before the MK is labeled for the operator to update the automatically
+generated MK at will.</p>
+<p>When starting a new archive, NAIF recommends that you follow the style provided by
+NPB.</p>
+</section>
+</section>
+</section>
+<section id="orbit-number-file">
+<h2>Orbit number file<a class="headerlink" href="#orbit-number-file" title="Permalink to this headline">¶</a></h2>
+<p>The last element of the Configuration File is the Orbit number (ORBNUM) file
+configuration. ORBNUM files, if present, are included in the miscellaneous
+collection since they are not SPICE kernels. The generation of their labels
+requires some special configuration elements described in this section.</p>
+<p>An ORBNUM file provides a table of records ordered by an increasing orbit
+numbering scheme. The orbit number changes at every given orbit event
+(periapsis, apoapsis, etc.) and the information contained for each
+record includes a number of fields. Some of these fields are expressed in a
+given reference frame that makes use of a set of kernels (generally a PCK).
+More information on ORBNUM files is provided in the section
+<a class="reference internal" href="31_step_1_preparing_data.html#a-word-on-orbit-number-files"><span class="std std-ref">A Word on Orbit Number Files</span></a>. Here’s an example of the
+orbit number file section of the configuration file for MAVEN:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;orbit_number_file&gt;
+    &lt;orbnum&gt;
+        &lt;pattern&gt;maven_orb_rec_[0-9]{6}_[0-9]{6}_v[0-9].orb&lt;/pattern&gt;
+        &lt;!-- Parameters from the orbnum generation preference file --&gt;
+        &lt;event_detection_frame&gt;
+            &lt;spice_name&gt;IAU_MARS&lt;/spice_name&gt;
+            &lt;description&gt;Mars body-fixed frame&lt;/description&gt;
+        &lt;/event_detection_frame&gt;
+        &lt;header_start_line&gt;1&lt;/header_start_line &gt;
+        &lt;pck&gt;
+            &lt;kernel_name&gt;pck0010.tpc&lt;/kernel_name&gt;
+            &lt;description&gt;IAU 2009 report&lt;/description&gt;
+        &lt;/pck&gt;
+        &lt;coverage&gt;
+            &lt;kernel cutoff=&quot;True&quot;&gt;../data/kernels/spk/maven_orb_rec_210101_210401_v2.bsp&lt;/kernel&gt;
+        &lt;/coverage&gt;
+        &lt;author&gt;NAIF, JPL&lt;/author&gt;
+    &lt;/orbnum&gt;
+&lt;/orbit_number_file&gt;
+</pre></div>
+</div>
+<p>This section requires a <code class="docutils literal notranslate"><span class="pre">&lt;orbnum&gt;</span></code> configuration element nested from
+<code class="docutils literal notranslate"><span class="pre">&lt;orbit_number_file&gt;</span></code> per ORBNUM file type to be archived. Each of these
+<code class="docutils literal notranslate"><span class="pre">orbnum</span></code> elements will have a number of elements to facilitate the generation
+of the ORBNUM label:</p>
+<table class="colwidths-given docutils align-default" id="id8">
+<caption><span class="caption-text">orbnum (nested from orbit_number_file)</span><a class="headerlink" href="#id8" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 60%" />
+<col style="width: 15%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Element</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Required?</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>pattern</p></td>
+<td><p>Provides the ORBNUM file name with patterns to match with the ORBNUM file
+to be archived.</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-odd"><td><p>event_detection_frame</p></td>
+<td><p>Provides the SPICE name (e.g., IAU_MARS) and the description (e.g.,
+“Mars body-fixed frame”) for the reference frame that has been used to
+detect the orbit event.</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-even"><td><p>header_start_line</p></td>
+<td><p>Specifies the line where the ORBNUM file header starts (typically 1.)</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-odd"><td><p>pck</p></td>
+<td><p>Provides the PCK kernel name used with the event detection frame and its
+description (e.g., <code class="docutils literal notranslate"><span class="pre">pck0010.tpc</span></code> and <code class="docutils literal notranslate"><span class="pre">IAU</span> <span class="pre">2009</span> <span class="pre">report</span></code>.)</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-even"><td><p>coverage</p></td>
+<td><p>Provides the element to determine the coverage of the ORBNUM file.
+This element is described in detail in the next subsection.</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-odd"><td><p>author</p></td>
+<td><p>Indicates the organisation that originally generated the ORBNUM file.
+(e.g., <code class="docutils literal notranslate"><span class="pre">NAIF,</span> <span class="pre">JPL</span></code>)</p></td>
+<td><p>Yes</p></td>
+</tr>
+</tbody>
+</table>
+<section id="orbnum-coverage-determination">
+<h3>ORBNUM Coverage determination<a class="headerlink" href="#orbnum-coverage-determination" title="Permalink to this headline">¶</a></h3>
+<p>The coverage of an ORBNUM file can be determined in four different ways:</p>
+<blockquote>
+<div><ul>
+<li><p>If there is a one to one correspondence with an SPK
+file, the SPK file can be provided with the <code class="docutils literal notranslate"><span class="pre">&lt;kernel&gt;</span></code>
+element. The element value can be: a path to a specific kernel that
+does not have to be part of the increment, a kernel with patterns
+present in the increment, or a kernel with patterns
+present in the final directory of the archive. E.g.,</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">kernel</span><span class="o">&gt;</span><span class="n">maven_orb_rec_</span><span class="p">[</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">][</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">][</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">][</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">][</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">][</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">]</span><span class="n">_</span><span class="p">[</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">][</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">][</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">][</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">][</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">][</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">]</span><span class="n">_v</span><span class="p">[</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">]</span><span class="o">.</span><span class="n">bsp</span><span class="o">&lt;/</span><span class="n">kernel</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</li>
+<li><p>If there is a quasi one-to-one correspondence with an
+SPK file with a given cutoff time prior to the end
+of the SPK file, the SPK file can be provided with the
+<code class="docutils literal notranslate"><span class="pre">&lt;kernel&gt;</span></code> element. The value can be: a path to a specific kernel
+that does not have to be part of the increment, a pattern
+of a kernel present in the increment, or a pattern of
+a kernel present in the final directory of the archive.
+Currently the only cutoff pattern available is the
+boundary of the previous day of the SPK coverage stop
+time. The cutoff time is provided as an attribute of the
+<code class="docutils literal notranslate"><span class="pre">&lt;kernel&gt;</span></code> element and must be set to True or False. E.g.,</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">kernel</span> <span class="n">cutoff</span><span class="o">=</span><span class="s2">&quot;True&quot;</span><span class="o">&gt;../</span><span class="n">data</span><span class="o">/</span><span class="n">kernels</span><span class="o">/</span><span class="n">spk</span><span class="o">/</span><span class="n">maven_orb_rec_210101_210401_v2</span><span class="o">.</span><span class="n">bsp</span><span class="o">&lt;/</span><span class="n">kernel</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</li>
+<li><p>A user can provide a look up table with this configuration file, as
+follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">lookup_table</span><span class="o">&gt;</span>
+   <span class="o">&lt;</span><span class="n">file</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;maven_orb_rec_210101_210401_v1.orb&quot;</span><span class="o">&gt;</span>
+      <span class="o">&lt;</span><span class="n">start</span><span class="o">&gt;</span><span class="mi">2021</span><span class="o">-</span><span class="mi">01</span><span class="o">-</span><span class="mi">01</span><span class="n">T00</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">00</span><span class="n">Z</span><span class="o">&lt;/</span><span class="n">start</span><span class="o">&gt;</span>
+      <span class="o">&lt;</span><span class="n">finish</span><span class="o">&gt;</span><span class="mi">2021</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">01</span><span class="n">T01</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">00</span><span class="n">Z</span><span class="o">&lt;/</span><span class="n">finish</span><span class="o">&gt;</span>
+   <span class="o">&lt;/</span><span class="n">file</span><span class="o">&gt;</span>
+<span class="o">&lt;/</span><span class="n">lookup_table</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Note that in this particular case the first three and
+last three lines of the orbnum files would have provided:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Event</span> <span class="n">UTC</span> <span class="n">PERI</span>
+<span class="o">====================</span>
+<span class="mi">2021</span> <span class="n">JAN</span> <span class="mi">01</span> <span class="mi">00</span><span class="p">:</span><span class="mi">14</span><span class="p">:</span><span class="mi">15</span>
+<span class="mi">2021</span> <span class="n">JAN</span> <span class="mi">01</span> <span class="mi">03</span><span class="p">:</span><span class="mi">50</span><span class="p">:</span><span class="mi">43</span>
+<span class="mi">2021</span> <span class="n">JAN</span> <span class="mi">01</span> <span class="mi">07</span><span class="p">:</span><span class="mi">27</span><span class="p">:</span><span class="mi">09</span>
+<span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="mi">2021</span> <span class="n">MAR</span> <span class="mi">31</span> <span class="mi">15</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">05</span>
+<span class="mi">2021</span> <span class="n">MAR</span> <span class="mi">31</span> <span class="mi">18</span><span class="p">:</span><span class="mi">36</span><span class="p">:</span><span class="mi">29</span>
+<span class="mi">2021</span> <span class="n">MAR</span> <span class="mi">31</span> <span class="mi">22</span><span class="p">:</span><span class="mi">12</span><span class="p">:</span><span class="mi">54</span>
+</pre></div>
+</div>
+</li>
+<li><p>If nothing is provided NPB will provide the coverage based on the event
+time of the first orbit and the opposite event time of the last orbit.
+This will generate a warning because it is likely to be incorrect.</p></li>
+</ul>
+</div></blockquote>
+</section>
+</section>
+<section id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h2>
+<p>After going through the detailed description of every section of the
+Configuration File we hope that the MAVEN example provided at the beginning of
+this chapter is better understood.</p>
+<p>Some NPB configuration files can become quite complex especially because of the
+Kernel List, MK, and ORBNUM sections. A good
+example of a complex configuration file is the the OSIRIS-REx sample file:
+<code class="docutils literal notranslate"><span class="pre">naif-pds4-bundler/tests/naif_pds4_bundler/config/orex.xml</span></code>.</p>
+<p>Other configuration files can be really simple: descriptions do not require
+complex pattern matching and MKs are manually generated. An example of such
+configuration files is the LADEE sample file: <code class="docutils literal notranslate"><span class="pre">`naif-pds4-bundler/tests/naif_pds4_bundler/config/ladee.xml</span></code>.</p>
+<p>Generating the configuration file should be a one time effort for which the
+NAIF NPB developer can assist you. After the configuration file has been setup
+for the first release, it can be used with limited changes for all subsequent
+releases. Changes will probably be limited to:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>update spiceds name and/or location</p></li>
+<li><p>update directories</p></li>
+<li><p>addition of Kernel List elements</p></li>
+<li><p>meta-kernel updates</p></li>
+<li><p>new archive producer.</p></li>
+</ul>
+</div></blockquote>
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="43_using_npb.html" class="btn btn-neutral float-right" title="Using NPB" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="41_npb_installation.html" class="btn btn-neutral float-left" title="NPB Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2021, Caltech/JPL/NASA
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

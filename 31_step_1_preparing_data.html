@@ -1,0 +1,1161 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Step 1: Preparing Data &mdash; NAIF PDS4 Bundler 1.0.0
+ documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Step 2: Preparing the NAIF PDS4 Bundler Setup" href="32_step_2_npb_setup.html" />
+    <link rel="prev" title="SPICE Kernel Archive Preparation Guide" href="30_spice_kernel_archive_preparation_guide.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> NAIF PDS4 Bundler
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="10_overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="20_spice_kernel_archive_description.html">SPICE Kernel Archive Description</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="30_spice_kernel_archive_preparation_guide.html">SPICE Kernel Archive Preparation Guide</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Step 1: Preparing Data</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#identifying-data">Identifying Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#collecting-and-preparing-data">Collecting and Preparing Data</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#merging-files">Merging Files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#sub-setting-files">Sub-setting Files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#augmenting-files-with-comments">Augmenting Files with Comments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#renaming-files">Renaming Files</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#validating-data">Validating Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#preparing-meta-kernels">Preparing Meta-kernels</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#generating-mks-manually">Generating MKs Manually</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#generating-mks-automatically">Generating MKs Automatically</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bundle-coverage-and-mks">Bundle coverage and MKs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#releases-without-mks">Releases without MKs</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#a-word-on-orbit-number-files">A Word on Orbit Number Files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#a-word-on-other-files">A Word on Other Files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#obtaining-a-doi">Obtaining a DOI</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#writing-the-release-plan">Writing the Release Plan</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#meta-kernels-in-the-release-plan">Meta-kernels in the release plan</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="32_step_2_npb_setup.html">Step 2: Preparing the NAIF PDS4 Bundler Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="33_step_3_running_npb.html">Step 3: Running NAIF PDS4 Bundler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="34_step_4_checking_the_result.html">Step 4: Checking the Result and Finishing Up</a></li>
+<li class="toctree-l2"><a class="reference internal" href="35_step_5_packaging_to_naif.html">Step 5: Packaging and Delivering the Archive to the NAIF Node</a></li>
+<li class="toctree-l2"><a class="reference internal" href="36_step_by_step_summary.html">Step-by-Step Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="40_naif_pds4_bundler_user_guide.html">NAIF PDS4 Bundler User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="50_api_docs.html">Modules, Classes, and Functions Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="60_annex_npb_for_pds3.html">Appendix: NPB for PDS3 Archives</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">NAIF PDS4 Bundler</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="30_spice_kernel_archive_preparation_guide.html">SPICE Kernel Archive Preparation Guide</a> &raquo;</li>
+        
+      <li>Step 1: Preparing Data</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/31_step_1_preparing_data.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="step-1-preparing-data">
+<h1>Step 1: Preparing Data<a class="headerlink" href="#step-1-preparing-data" title="Permalink to this headline">¶</a></h1>
+<p>Ideally a SPICE kernel archive for a mission should include a comprehensive
+set of kernels allowing a scientist to compute geometry for any of the
+mission instruments in regards to any of the mission targets at all
+applicable times during the mission.</p>
+<p>To achieve this the archive would normally include all types of kernels
+needed to provide ephemerides (SPKs), orientation (PCK) and shape (PCK
+or DSK) of targets, trajectory (SPK) and orientation (CK) of the
+spacecraft, orientation (CK) and geometric parameters (IK) of the
+instruments, definitions of the spacecraft and instrument frames (FK),
+and data for various time conversions (LSK and SCLK). If the project
+produced Event Kernel (EK) files of any kind, they should also be
+included in the archive.</p>
+<p>If as a SPICE kernel archive producer you have been provided the data to be
+archived, if all data are present in a given directory structure or in a
+release plan, you might as well jump to
+<a class="reference internal" href="32_step_2_npb_setup.html#step-2-preparing-the-naif-pds4-bundler-setup"><span class="std std-ref">Step 2: Preparing the NAIF PDS4 Bundler Setup</span></a>.</p>
+<section id="identifying-data">
+<h2>Identifying Data<a class="headerlink" href="#identifying-data" title="Permalink to this headline">¶</a></h2>
+<p>Usually identifying data that should go into the archive is not very
+difficult, especially when SPICE kernels were produced and used by the
+project during operations. In such cases the following kernels used
+during operations – independent of whether if they were produced by the
+project teams or obtained from NAIF or other sources – should be
+included in the archive:</p>
+<blockquote>
+<div><ul>
+<li><p>SPKs</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>planetary ephemeris SPK file(s), officially accepted by
+the project</p></li>
+<li><p>any natural satellite ephemeris SPK file(s), officially
+accepted by the project</p></li>
+<li><p>latest SPK file(s) for other types of mission targets
+(e.g. comets, asteroids)</p></li>
+<li><p>latest reconstructed spacecraft trajectory SPK file(s)</p></li>
+<li><p>target and/or spacecraft trajectory SPK file(s) produced
+by science team(s) (for example Gravity or Radio
+science); if any</p></li>
+<li><p>latest ground stations locations SPK file(s); if any</p></li>
+<li><p>latest structures/instrument locations SPK file(s); if
+any</p></li>
+<li><p>predicted SPK(s); only if they are needed as gap-fillers
+for reconstructed data, or must be archived for the
+record; if any</p></li>
+<li><p>nominal/special SPK(s); only if they are needed to
+complete the position chains (such as M2020-at-landing
+site SPK); if any</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>PCK</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>latest generic text PCK file officially used by the project</p></li>
+<li><p>latest generic binary PCK file(s) officially used by the
+project</p></li>
+<li><p>latest project-specific PCK file(s) providing the
+rotational, shape and possibly additional constants for all
+of the mission targets; if any</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>IK</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>latest IK file for each of the instruments</p></li>
+<li><p>latest IK file for auxiliary s/c subsystems, the data
+from which might be used for science purposes (antennas,
+star trackers, horizon sensors, etc); if any</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>CK</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>the latest reconstructed spacecraft attitude CK files</p></li>
+<li><p>possibly latest predicted spacecraft attitude CK
+files if they provide a reasonably good prediction
+and are needed to fill gaps in the reconstructed CK
+files and/or for some other reason</p></li>
+<li><p>latest reconstructed spacecraft appendage (solar arrays,
+HGA, etc.) attitude CK files; if any</p></li>
+<li><p>possibly latest predicted spacecraft appendage
+(solar array, HGA, etc.) attitude CK files if they
+provide a reasonably good prediction and are needed to
+fill gaps in the reconstructed CK files and/or for some
+other reason</p></li>
+<li><p>latest reconstructed instrument orientation CK files for
+each of the articulating instruments; if any</p></li>
+<li><p>possibly latest predicted instrument orientation CK
+files if they provide a reasonably good prediction
+and are needed to fill gaps in the reconstructed CK files
+and/or for some other reason</p></li>
+<li><p>spacecraft and/or instrument CK files produced by
+science teams as part of C-smithing or other pointing
+reconstruction process; if any</p></li>
+<li><p>nominal/special CK files, only if they are needed to
+complete the orientation chains (for example, an
+instrument parking position orientation CK file); if
+any</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>LSK</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>last generic LSK file used by the project.</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>SCLK</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>latest spacecraft on-board clock(s) correlation SCLK
+file(s)</p></li>
+<li><p>additional latest SCLK files if the project and/or
+science teams produced special SCLKs for instrument or
+other hardware clocks or if more than one kind of SCLK
+kernel was made for the same clock; if any</p></li>
+<li><p>special SCLK file implementing mean local time or other
+SCLK-like time systems (see MER for examples); if any</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>FK</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>latest version of the main mission FK file(s)</p></li>
+<li><p>latest version of special mission FK file(s) (separate
+landing site FKs, etc); if any</p></li>
+<li><p>latest versions of separate instrument FK file(s); if any</p></li>
+<li><p>latest versions of generic FK file(s) for natural bodies
+(Moon, Earth, etc); if any</p></li>
+<li><p>latest versions of dynamic frames FK file(s); if any</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>DSK</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>latest DSK file (or files if multiple kernels with different
+resolutions and/or for different parts of the surface were
+produced) for each of the mission targets; if any</p></li>
+<li><p>latest DSK file (or files if multiple kernels with different
+resolutions and/or for different parts of the surface were
+produced) for the mission s/c(s); if any</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>EK (Note: the EK subsystem is rarely used on modern missions.)</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>PEF2EK-type sequence and command dictionary EK files
+(see SDU, Deep Impact for examples); if any</p></li>
+<li><p>database EK files (see CLEM for examples); if any</p></li>
+<li><p>CASSINI-style sequence, noise, plan, status EK files
+(see CASSINI for examples); if any</p></li>
+<li><p>ENB EK files (see MGS, SDU for examples); if any</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+<p>While no mission produces all kernels from the list above, most missions
+produce kernels of all types (maybe except EKs and DSKs) and most of these
+kernels are needed to compute observation geometry for the mission
+instruments and, therefore, should be included in the archive.</p>
+<p>Once the types of kernels that should go into the archive have been
+identified it is usually fairly easy to decide which actual individual
+kernels belonging to each “category” should be included. Considering
+these points may help to make this selection:</p>
+<blockquote>
+<div><ul>
+<li><p>For the kernel types that don’t cover specific time intervals,
+cover the whole mission and/or change rarely during the mission
+– such as planetary, satellite, structures SPKs, DSK, LSK,
+PCK, FK, IK, and SCLK – the latest version of each file at the
+time of archive preparation should be included.</p>
+<p>For the first archive release all latest kernels of these types
+should be included, while for subsequent releases only those
+kernels that had been updated or improved compared to the
+already archived files should be included.</p>
+<p>For example, if the project initially used the Martian
+Satellite Ephemerides MAR033 SPK file (which was included in
+the first archive release) but later switched to using the
+MAR066 SPK file, the MAR066 SPK file should be added to the
+archive at the next release opportunity. Another example is
+when the main project FK file was updated to include improved
+instrument alignment data; if this happened it should be added
+to the next archive release.</p>
+</li>
+<li><p>For the kernel types that provide data for specific time
+intervals that are normally much shorter than the whole
+duration of the mission – such as spacecraft SPK, spacecraft,
+structure, and instrument orientation CKs, and EK – the set of
+files providing complete coverage for the applicable interval
+should be included.</p>
+<p>If the archive preparation takes place at the end of the
+mission then all kernels of these types needed to provide data
+coverage for the whole mission should be included. If the
+mission is on-going and data is added to the archive at regular
+releases, each intended to cover a specific time
+interval, then each release should contain the set of these
+files providing complete coverage for the interval of interest.</p>
+</li>
+<li><p>In most cases including duplicate data should be avoided. For
+example, if the project is producing two strings of
+reconstructed spacecraft orientation CK files from the same
+telemetry input (daily “quick look” files and weekly
+“final” files) only the “final” CK files should be
+included. Another example is if the project used the same
+generic LSK file under two different names – its original name
+and a short-cut default name, – which is done sometimes to
+simplify operations infrastructure, then only the file with the
+original, actual name should be included in the archive.</p>
+<p>There are a few cases in which duplicate data should be
+included. The most common of these cases is when the data comes
+from two different producers, for example two sets of
+reconstructed spacecraft trajectory SPK files, one generated by
+the project NAV team and the other by the Gravity team. In such
+cases a determination of which set is “better” usually cannot
+be made and both sets should be archived.</p>
+</li>
+<li><p>Normally it is also not advisable to include obsolete or
+superseded data. There are numerous examples of cases when a
+kernel produced and used for some period in operation becomes
+obsolete when another version of the same data is released at a
+later time. The most common of these cases are predicted and
+quick-look reconstructed spacecraft trajectory SPK files that
+get superseded by the final reconstructed solution, and earlier
+versions of SCLK kernels that get superseded by the later
+versions.</p>
+<p>Exceptions to this suggestion include cases when superseded
+data is applicable as gap-filler (for example, predicted CKs
+used to fill gaps in telemetry based reconstructed CKs) or when
+an obsolete version needs to be archived to provide consistent
+access to other archived data (for example archiving an earlier
+version of SCLK that was used to make a predicted CK also
+included in the archive).</p>
+</li>
+<li><p>No kernel file or meta-kernel file already in the archive
+should ever be removed or replaced with a new version with the
+same name. Instead, any kernel or meta-kernel file added to the
+archive should have a name that is distinct from the names of
+all files already in the archive. If a kernel file supersedes
+one or more files already in the archive, this fact should be
+reflected in the SPICE Archive Description file (SPICEDS) and another
+version of the meta-kernel(s) should be created including this kernel
+file instead of the kernel file(s) that it supersedes.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="collecting-and-preparing-data">
+<h2>Collecting and Preparing Data<a class="headerlink" href="#collecting-and-preparing-data" title="Permalink to this headline">¶</a></h2>
+<p>Once the data files have been identified it makes sense to collect them
+in a single area (the <code class="docutils literal notranslate"><span class="pre">kernels_directory</span></code>) because frequently the kernels
+need to be pre-processed before they can go into the archive. Such
+pre-processing may involve merging or sub-setting files, renaming files
+to make their names PDS compliant, and augmenting files with internal
+comments. It should also include validating the final products that will
+go into the archive.</p>
+<p>The kernel area must be structured as the <code class="docutils literal notranslate"><span class="pre">spice_kernel</span></code> collection, with
+a subdirectory for each kernel type. It can virtually reside on more than
+one location given that more than one directory can be provided to
+the NAIF PDS4 Bundler via configuration, but having it on a single directory
+simplifies pre-processing and validation tasks. It does not have to include
+kernels that don’t require pre-processing (merging, renaming or additional
+comments) and can go into the archive “as is” <strong>but</strong> including these kernels
+might also simplify pre-processing and validation tasks that require multiple
+kernel types.</p>
+<p>The kernels that do need to be pre-processed should be copied or
+“binary FTP”-ed or “scp”-ed to the work area.</p>
+<p>The ways in which the files should be modified usually include one or more of
+the following:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>merging files</p></li>
+<li><p>sub-setting files</p></li>
+<li><p>augmenting file with comments</p></li>
+<li><p>renaming files</p></li>
+</ul>
+</div></blockquote>
+<p>Some rationale for each of these modifications are provided hereunder.</p>
+<section id="merging-files">
+<h3>Merging Files<a class="headerlink" href="#merging-files" title="Permalink to this headline">¶</a></h3>
+<p>The data from two or more files may need to be merged together
+for a number of reasons: to reduce the number of files included
+in the archive, to eliminate gaps in coverage at the file
+boundaries, to produce a file that segregates data pieces that
+must be used together, or to integrate data from updated
+un-official versions of a file into the official version.</p>
+<p>Merging to reduce the number of files is usually desirable for
+the project-generated CKs or SPKs covering short periods of
+time, for example daily or weekly files, when these files are
+not very large in size. Merging such files together into a
+single file covering the whole archive release time span –
+monthly, tri-monthly, etc. – or a few files covering parts of
+that span will result in substantially reduced number of files,
+which in turn will reduce the amount of processing needed to
+put this data into the archive and make access to the archive
+data more efficient.</p>
+<p>Merging files to eliminate gaps at file boundaries is usually
+desirable when the project generates a large number of CK files
+of the same kind with short coverages not overlapping each
+other. If the merged file is created from these individual CKs
+in such a way that data from multiple source segments is
+aggregated together in the new set of segments, the gaps at the
+original file boundary times will not be present in the new
+file.</p>
+<p>Merging files to produce a file that aggregates data pieces
+that must be used together in one place may be needed when the
+spacecraft trajectory SPK and the target ephemeris SPK used to
+determine it are delivered by the project in two separate
+files. When this happens it leaves a possibility for the users
+to use the spacecraft data with a different target trajectory
+resulting in the wrong relative geometry being computed. This
+situation happens very rarely but it needs to be checked and
+addressed.</p>
+<p>Merging files to integrate data from an updated un-official
+version of a file into the official version is usually needed
+when science teams keep a local copy of the main project FK and
+change it by modifying alignment of a previously defined
+frame(s) and/or introducing a new frame(s) for their
+instruments. It is important to inquire about such “local”
+updated copies and, if they exist, collect them and carefully
+incorporate the data from them into the new version of the
+official project FK file.</p>
+<p>When selecting how many files to merge together the size of the
+merged file should be one of the factors to consider. While
+SPICE does not impose a “hard” limit of a number of megabytes
+under which this size should be kept – except, of course, for
+the 2.1 GB which is the limit for 4-byte integer address space,
+– is it probably wise to keep the file size under 200-300 MB.</p>
+<p>NAIF distributes a few utility programs that can be used to
+merge various types of kernels. <code class="docutils literal notranslate"><span class="pre">SPKMERGE</span></code> provided in the
+generic Toolkit can be used to merge SPK files. <code class="docutils literal notranslate"><span class="pre">DAFCAT</span></code> and
+<code class="docutils literal notranslate"><span class="pre">CKSMRG</span></code> available on the
+<a class="reference external" href="http://naif.jpl.nasa.gov/naif/utilities.html">NAIF server</a> can be used to
+merge CK files. In some cases NAIF puts together scripts
+wrapped around these merge utilities to facilitate file merge
+tasks that have to be repeated for each archive release.</p>
+</section>
+<section id="sub-setting-files">
+<h3>Sub-setting Files<a class="headerlink" href="#sub-setting-files" title="Permalink to this headline">¶</a></h3>
+<p>Sub-setting source files to produce archival files with reduced
+scope or coverage is needed very rarely. In general it is
+better to include data files with coverage that extends beyond
+the current archive release interval rather than to try
+“chopping” the file’s coverage to line up with that boundary.
+But if the project archiving policies or other considerations
+require such “lining up” the <code class="docutils literal notranslate"><span class="pre">SPKMERGE</span></code> utility (provided in
+the generic Toolkit) can be used to subset SPK files and the
+<code class="docutils literal notranslate"><span class="pre">CKSLICER</span></code> utility (available on the
+<a class="reference external" href="http://naif.jpl.nasa.gov/naif/utilities.html">NAIF server</a> ) can be used to
+subset CK files.</p>
+</section>
+<section id="augmenting-files-with-comments">
+<h3>Augmenting Files with Comments<a class="headerlink" href="#augmenting-files-with-comments" title="Permalink to this headline">¶</a></h3>
+<p>It is absolutely crucial that every kernel included in the
+archive contains comprehensive internal comments describing its
+contents, source(s) of the data, applicability of the data,
+etc. This means that all kernels intended for the archive –
+binary and text ones, those that should be archived “as is”
+and those that were created by merging or sub-setting other
+files – should be checked to verify that they contain adequate
+comments and, if not, augmented with such comments.</p>
+<p>Kernels included in the archive must contain comprehensive internal comments
+that describe:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>contents of the file</p></li>
+<li><p>version and revision history</p></li>
+<li><p>status and purpose of the file</p></li>
+<li><p>source(s) of the data (including names of the original files if the file
+was created by merging or sub-setting other files)</p></li>
+<li><p>processing that was done on the data</p></li>
+<li><p>setup parameters and output logs for utility(ies) used to
+create the file</p></li>
+<li><p>applicability of the data</p></li>
+<li><p>data coverage</p></li>
+<li><p>data accuracy</p></li>
+<li><p>other kernels needed to use the file</p></li>
+<li><p>references</p></li>
+<li><p>data producer and contact information</p></li>
+</ul>
+</div></blockquote>
+<p>The comments for a particular file should address all of the categories
+from this list that are applicable to the kind of data stored in the
+file.</p>
+<p>The best approach to writing comments for a SPICE kernel is to start
+with the comments from a kernel of the same type containing the same or
+similar kind of information and modify these comments to describe the
+file in hand. These comments should be used as a reference or even the
+starting point for comments for the kernels intended for archiving.</p>
+<p>In binary kernels internal comments reside in the special area
+of the file called the “comment area”. The comments provided
+in this area can be accessed – displayed, added to, or deleted –
+using the <code class="docutils literal notranslate"><span class="pre">COMMNT</span></code> utility program. To add new comments to a
+binary kernel file that does not have any comments, one would
+first write a text file containing these comments and then add
+the contents of this file to the comment area using <code class="docutils literal notranslate"><span class="pre">commnt</span> <span class="pre">-a</span></code>.
+To replace existing comments in a binary kernel file, one
+would first view existing comments using <code class="docutils literal notranslate"><span class="pre">commnt</span> <span class="pre">-r</span></code> (or save
+them to a text file <code class="docutils literal notranslate"><span class="pre">commnt</span> <span class="pre">-e</span></code>), write a text file
+containing new comments (or edit the text file containing
+existing comments), delete existing comments from the file
+using <code class="docutils literal notranslate"><span class="pre">commnt</span> <span class="pre">-d</span></code>, and finally add new or updated comments to
+the file using <code class="docutils literal notranslate"><span class="pre">commnt</span> <span class="pre">-a</span></code>.</p>
+<p>In text kernels comments are located at the top part of the
+file, up to the first <code class="docutils literal notranslate"><span class="pre">\begindata</span></code> token on a line by itself,
+and in the file sections delimited by <code class="docutils literal notranslate"><span class="pre">\begintext</span></code> and
+<code class="docutils literal notranslate"><span class="pre">\begindata</span></code> tokens, each on a line by itself. Any number of
+comment sections intermixed with the data sections can be
+included in the file. Modifying comments in a text file can be
+done using any text editor. When modifications are made to the
+file comments, the file version should be increased and the
+scope of the comment modifications should be mentioned in the
+version section of the comments.</p>
+<p>Comments in both binary and text kernels should contain only
+printable ASCII characters (no TABs); it is also strongly
+recommended that comment lines should be no longer than 80
+characters.</p>
+<p>All archived kernels have a NAIF file ID architecture/type token as the first
+“word” on the first line of the file. The SPICE binary kernel
+files are guaranteed to have this ID word, but the ASCII text
+kernels: FK, IK, LSK, PCK, SCLK, are not. For completeness,
+the appropriate ID words are listed hereunder, so that they may be
+inserted into the ASCII text kernel files if necessary.</p>
+<table class="colwidths-given docutils align-default" id="id4">
+<caption><span class="caption-text">NAIF File ID Words</span><a class="headerlink" href="#id4" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>ASCII Text File Type</p></th>
+<th class="head"><p>ID Word</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>IK</p></td>
+<td><p>KPL/IK</p></td>
+</tr>
+<tr class="row-odd"><td><p>LSK</p></td>
+<td><p>KPL/LSK</p></td>
+</tr>
+<tr class="row-even"><td><p>PCL</p></td>
+<td><p>KPL/PCL</p></td>
+</tr>
+<tr class="row-odd"><td><p>SCLK</p></td>
+<td><p>KPL/SCLK</p></td>
+</tr>
+<tr class="row-even"><td><p>FRAMES</p></td>
+<td><p>KPL/FK</p></td>
+</tr>
+<tr class="row-odd"><td><p>MK</p></td>
+<td><p>KPL/MK</p></td>
+</tr>
+</tbody>
+</table>
+<p>While it is not possible to automate writing comments – as
+with any other documentation this is the task that needs to be
+done by the person who puts the archive together by hand or by
+“recruiting” the people/teams who provided the data – it is
+certainly possible to automate generating comments for a string
+of files of a certain type using a template and inserting these
+comments into the files.</p>
+</section>
+<section id="renaming-files">
+<h3>Renaming Files<a class="headerlink" href="#renaming-files" title="Permalink to this headline">¶</a></h3>
+<p>The names of the files to be included in the archive must comply with the PDS4
+file name rules. Rules for forming file and directory names are given in the
+PDS4 Standards Reference <a class="reference internal" href="12_bugs_contact_references.html#pds4std" id="id2"><span>[PDS4STD]</span></a>. Here are a few things to keep in mind:</p>
+<blockquote>
+<div><ul>
+<li><p>The file name -excluding the extension- must be unique within its parent
+directory (it is common to have SPKs and ORBNUMs with the same name but
+they are in different directories.)</p></li>
+<li><p>File names must be no longer than 255 characters, including the extension.</p></li>
+<li><p>File names must be case-insensitive; for example, <code class="docutils literal notranslate"><span class="pre">MyFile.txt</span></code> and
+<code class="docutils literal notranslate"><span class="pre">myfile.txt</span></code> are not permitted in the same directory.</p></li>
+<li><p>File names must be constructed from the character set:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">A-Z</span></code> ASCII <code class="docutils literal notranslate"><span class="pre">0x41</span></code> through <code class="docutils literal notranslate"><span class="pre">0x5A</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">a-z</span></code> ASCII <code class="docutils literal notranslate"><span class="pre">0x61</span></code> through <code class="docutils literal notranslate"><span class="pre">0x7A</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">0-9</span></code> ASCII <code class="docutils literal notranslate"><span class="pre">0x30</span></code> through <code class="docutils literal notranslate"><span class="pre">0x39</span></code></p></li>
+<li><p>dash <code class="docutils literal notranslate"><span class="pre">-</span></code> ASCII <code class="docutils literal notranslate"><span class="pre">0x2D</span></code></p></li>
+<li><p>underscore <code class="docutils literal notranslate"><span class="pre">_</span></code> ASCII <code class="docutils literal notranslate"><span class="pre">0x5F</span></code></p></li>
+<li><p>period <code class="docutils literal notranslate"><span class="pre">.</span></code> ASCII <code class="docutils literal notranslate"><span class="pre">0x2E</span></code></p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>File names must not begin or end with a dash, underscore, or period.</p></li>
+<li><p>The file name must include at least one period followed by an extension.
+A file name may have more than one period, but PDS will consider all
+periods other than the final one to be part of the base name.</p></li>
+</ul>
+</div></blockquote>
+<p>The requirement that NAIF imposes in addition to these general PDS requirements
+is that the extensions of the kernel files must follow the established
+convention for SPICE kernels:</p>
+<table class="colwidths-given docutils align-default" id="id5">
+<caption><span class="caption-text">SPICE kernels extensions</span><a class="headerlink" href="#id5" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Kernel type</p></th>
+<th class="head"><p>Extension</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Binary SPKs</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.bsp</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Binary PCKs</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.bpc</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Binary DSKs</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.bds</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Binary CKs</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.bc</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Binary Sequence EKs</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.bes</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Binary Database EKs</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.bdb</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Binary Plan EKs</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.bep</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Text PCKs</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.tpc</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Text IKs</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.ti</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Text FKs</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.tf</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Text LSKs</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.tls</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Text SCLKs</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.tsc</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Text Notebook EKs</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.ten</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Text Meta-kernels</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.tm</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p>ORBNUM files must have either a <code class="docutils literal notranslate"><span class="pre">.orb</span></code> or <code class="docutils literal notranslate"><span class="pre">.nrb</span></code> extension.</p>
+<p>All names that don’t comply with these requirements must be changed.</p>
+<p>On top of the PDS4 Standard rules, NAIF highly recommends to:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">a-z</span></code> ASCII <code class="docutils literal notranslate"><span class="pre">0x61</span></code> through <code class="docutils literal notranslate"><span class="pre">0x7A</span></code> (only lowercase)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">0-9</span></code> ASCII <code class="docutils literal notranslate"><span class="pre">0x30</span></code> through <code class="docutils literal notranslate"><span class="pre">0x39</span></code></p></li>
+<li><p>underscore <code class="docutils literal notranslate"><span class="pre">_</span></code> ASCII <code class="docutils literal notranslate"><span class="pre">0x5F</span></code></p></li>
+<li><p>only one period <code class="docutils literal notranslate"><span class="pre">.</span></code> ASCII <code class="docutils literal notranslate"><span class="pre">0x2E</span></code> to separate the extension</p></li>
+<li><p>limit the length of the file to a 36.3 form: 1-36 character long name + 1-3 character long extension</p></li>
+</ul>
+</div></blockquote>
+<p>It is especially important to have lowercase SPICE Kernels names given that
+LIDs -and therefore Kernel Internal References in meta-kernel labels- must be
+lowercase.</p>
+<p>NAIF also strongly recommends that the names of all mission
+specific kernels start with the acronym of the spacecraft or
+the mission (if a data file contains data for more than one
+spacecraft associated with the same mission). For example, the
+names of Mars 2020 kernels start with <code class="docutils literal notranslate"><span class="pre">m2020_</span></code>, the names of ExoMars2016
+kernels start with <code class="docutils literal notranslate"><span class="pre">em16_</span></code>, and so on. It is also recommended to exclude
+redundant information from the filename such as the kernel type.</p>
+<p>Because of the reasons explained above, very frequently the name of kernels
+to archive has to be updated. The update can be done manually simply by
+updating the file name or NPB can be configured to do so for you. For more
+information on how to implement kernel file name mapping see
+<a class="reference internal" href="42_npb_configuration_file.html#mapping-kernels"><span class="std std-ref">Mapping kernels</span></a> from the NPB
+Configuration File description.</p>
+<p>In order to preserve traceability with the original SPICE kernel name
+-especially if that kernel is stored in a publicly accessible storage-, you can
+provide the original file name in the PDS4 label description field or in the
+kernel internal comments (See section <a class="reference internal" href="42_npb_configuration_file.html#kernel-descriptions"><span class="std std-ref">Kernel Descriptions</span></a>.)</p>
+<p>For example the following kernel for the MAVEN mission:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">spk_MAVEN_20210101</span><span class="o">-</span><span class="mi">20220101</span><span class="n">_v01</span><span class="o">.</span><span class="n">oem</span><span class="o">.</span><span class="n">bsp</span>
+</pre></div>
+</div>
+<p>could be renamed to:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">maven_202210101_20220101_v01</span><span class="o">.</span><span class="n">bsp</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="validating-data">
+<h2>Validating Data<a class="headerlink" href="#validating-data" title="Permalink to this headline">¶</a></h2>
+<p>Although the majority of the source kernels (both those that go into the
+archive “as is” and those that have been used to make the merged
+archive files) have been used in operations and have been validated by
+this use, the final complete set of archival files must be validated by
+checking the files’ coverages, data scope, correctness of comments, data
+accessibility, integrity, and consistency. The following validation
+approaches complementing each other are suggested:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>summarizing individual binary kernels (binary SPK, DSK, CK,
+PCK, EK) and meta-kernels using <code class="docutils literal notranslate"><span class="pre">BRIEF</span></code>, <code class="docutils literal notranslate"><span class="pre">DSKBRIEF</span></code>, <code class="docutils literal notranslate"><span class="pre">CKBRIEF</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">SPACIT</span></code> utilities to verify that they are accessible, provide
+data for the right set of bodies/structures, and have expected
+coverage</p></li>
+<li><p>summarizing FOV definitions in IKs – directly or via
+meta-kernels – using <code class="docutils literal notranslate"><span class="pre">OPTIKS</span></code> to verify that the IKs are
+accessible and provide data for the right set of
+instruments/detectors</p></li>
+<li><p>checking comments in the kernels – both text and binary – for
+completeness, correctness and consistency with the summaries of
+the data produced by summary tools</p></li>
+<li><p>comparing files with similar data (for example spacecraft SPKs
+from different producers) and examining differences to see that
+they look reasonable; for SPK files this can be done using the
+<code class="docutils literal notranslate"><span class="pre">SPKDIFF</span></code> utility, for CK and FK files this can be done using the
+<code class="docutils literal notranslate"><span class="pre">FRMDIFF</span></code> utility</p></li>
+<li><p>comparing later versions of kernels that need to be added to
+the archive with already archived earlier versions; for text
+kernels this can be done by analyzing differences shown by Unix
+utilities <code class="docutils literal notranslate"><span class="pre">diff</span></code> or <code class="docutils literal notranslate"><span class="pre">tkdiff</span></code></p></li>
+<li><p>comparing merged archival products with the source operational
+files; for SPK files this can be done using the <code class="docutils literal notranslate"><span class="pre">SPKDIFF</span></code>
+utility, for CK files this can be done using the <code class="docutils literal notranslate"><span class="pre">FRMDIFF</span></code>
+utility</p></li>
+<li><p>checking file data integrity by running utilities like <code class="docutils literal notranslate"><span class="pre">SPY</span></code>
+(currently works only on SPK files)</p></li>
+<li><p>checking file data integrity by running a local instance of
+WebGeocalc or SPICE-Enhanced Cosmographia</p></li>
+<li><p>writing an application to compute geometry using the archival
+data and comparing that geometry to known values, for example
+from the geometry keywords in the science data labels; ideally
+such computations should be done for each of the instruments,
+for the quantities that require data from kernels of all types
+to be accessed, and over the whole span covered by the archive
+or a particular archive release</p></li>
+<li><p>asking the project SPICE users to re-run some of the geometry
+computations that they have done with source operational files
+using the final set of kernels and verify that they obtained
+the same results</p></li>
+</ul>
+</div></blockquote>
+<p>While some of the validation tasks can be scripted (for example checking
+coverage based on file summaries or running <code class="docutils literal notranslate"><span class="pre">SPY</span></code> to check file data
+integrity), many others have to be done by hand (for example assessing
+comments in new version of text kernels) in many cases making validation
+a time and effort consuming activity. Still, the person preparing the
+archive should try to give their best effort to make sure that each
+archive release contains the complete set of files (in terms of scope
+and coverage) that are well documented with internal comments.</p>
+</section>
+<section id="preparing-meta-kernels">
+<h2>Preparing Meta-kernels<a class="headerlink" href="#preparing-meta-kernels" title="Permalink to this headline">¶</a></h2>
+<p>Meta-kernel files (MKs, a.k.a “furnsh” files) provide a list of the
+kernels included in the archive suitable for loading
+into a SPICE-based application via the high level SPICE data
+loader routine <code class="docutils literal notranslate"><span class="pre">FURNSH</span></code>. Using meta-kernels makes it easy to
+load, with one call, a comprehensive SPICE data collection for
+a given period, which, given that SPICE archives can contain
+large number of files, is extremely helpful for users.</p>
+<p>For missions with a small number of archived kernels NAIF
+recommends creating a single meta-kernel providing data for the
+whole mission. The name of this meta-kernel should follow the
+<code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;_v??.tm</span></code> pattern where <code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;</span></code> is the mission acronym and
+<code class="docutils literal notranslate"><span class="pre">??</span></code> is the version number. The version number can have two or
+three digits, the number of digits must be the same for all the
+different meta-kernels included. If/when new kernels are added to
+the archive, a meta-kernel with the next version number,
+including the new kernels and leaving out superseded kernels
+should be created and added to the archive.</p>
+<p>For missions with a large number of archived kernels NAIF
+recommends creating a set of meta-kernels each covering one
+year of the mission. The names of these meta-kernels should
+follow the <code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;_yyyy_v??.tm</span></code> pattern where <code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;</span></code> is the
+mission acronym, <code class="docutils literal notranslate"><span class="pre">yyyy</span></code> is the year covered by this data, and
+<code class="docutils literal notranslate"><span class="pre">??</span></code> is the version number. If/when new kernels are added to
+the archive, meta-kernels for all applicable years with the
+next version number, including the new kernels and leaving out
+superseded kernels should be created and added to the archive.</p>
+<p>In general, though there can be more kinds of MKs in an archive and
+therefore in general MKs follow the <code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;&lt;_type&gt;_v??.tm</span></code> pattern.
+For example, the OSIRIS-REx archive includes a MK that includes a
+particular type of CK and another MK that excludes it; for a given
+release of a given year the added MKs are:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">orx_2021_v01</span><span class="o">.</span><span class="n">tm</span>
+<span class="n">orx_noola_2021_v01</span><span class="o">.</span><span class="n">tm</span>
+</pre></div>
+</div>
+<p>MKs can either be manually generated by the archive producer (or by the
+operations team) or can be automatically generated (or assisted) by NPB.</p>
+<section id="generating-mks-manually">
+<h3>Generating MKs Manually<a class="headerlink" href="#generating-mks-manually" title="Permalink to this headline">¶</a></h3>
+<p>If you chose to generate MKs manually, we recommend that as a starting point
+you use a MK from a similar archive or if you are incrementing an already
+existing archive to use the latest archived MK.</p>
+<p>You will need to specify the location of the new MK in the NPB configuration
+file as indicated in <a class="reference internal" href="42_npb_configuration_file.html#meta-kernel"><span class="std std-ref">Meta-kernel</span></a>,
+alternatively you can place the MK in the MK subdirectory of your input
+kernels directory and then include it in the release plan as indicated in
+<a class="reference internal" href="#meta-kernels-in-the-release-plan"><span class="std std-ref">Meta-kernels in the release plan</span></a>.</p>
+<p>More information on how to generate adequate MKs is available at <a class="reference internal" href="12_bugs_contact_references.html#kernels" id="id3"><span>[KERNELS]</span></a>.</p>
+</section>
+<section id="generating-mks-automatically">
+<h3>Generating MKs Automatically<a class="headerlink" href="#generating-mks-automatically" title="Permalink to this headline">¶</a></h3>
+<p>The generation of MKs can be automatized by providing to the NPB configuration
+file the appropriate parameters. This is described in detail in
+<a class="reference internal" href="42_npb_configuration_file.html#automatic-generation-of-meta-kernels"><span class="std std-ref">Automatic generation of Meta-kernels</span></a>.</p>
+<p>Please note that depending on the complexity and particulars of the MK(s) you
+need to archive, setting up the automatic generation might not be possible. If
+so please contact the NAIF NPB developer or, if reasonable, try to generate the
+MKs manually.</p>
+<p>The main advantage of generating MKs automatically is that you decrease the
+possibilities of a human error. We know by experience that introducing errors
+in manually generated MKs is very common.</p>
+<p>Regardless of the method that you chose to generate MKs be especially careful
+when reviewing and validating them.</p>
+</section>
+<section id="bundle-coverage-and-mks">
+<h3>Bundle coverage and MKs<a class="headerlink" href="#bundle-coverage-and-mks" title="Permalink to this headline">¶</a></h3>
+<p>In general, MKs will determine the archive increment start and finish times as
+described in section <a class="reference internal" href="22_pds4_spice_archive.html#product-coverage-assignment-rules"><span class="std std-ref">Product Coverage Assignment Rules</span></a>.</p>
+<p>The coverage will be determined by either a CK or a SPK kernel as specified
+via configuration –more information in section
+<a class="reference internal" href="42_npb_configuration_file.html#coverage-determination"><span class="std std-ref">Coverage determination</span></a>–, but the MK
+coverage can also be defined explicitly via configuration if necessary. This
+could be useful for example when SPks and CKs do not explicitly cover the
+dates required by the archive, e.g.: a lander mission with a fixed
+position provided by an SPK with extended coverage –this is the case for
+InSight–. This configuration parameter is explained in section
+<a class="reference internal" href="42_npb_configuration_file.html#increment-start-and-finish-times"><span class="std std-ref">Increment Start and Finish Times</span></a>.</p>
+</section>
+<section id="releases-without-mks">
+<h3>Releases without MKs<a class="headerlink" href="#releases-without-mks" title="Permalink to this headline">¶</a></h3>
+<p>But what if the release does not have any MK? This is perfectly fine, but
+NPB will lose the ability to compute the increment coverage from the MK and if
+the increment coverage is not provided via configuration as explained in section
+<a class="reference internal" href="42_npb_configuration_file.html#increment-start-and-finish-times"><span class="std std-ref">Increment Start and Finish Times</span></a>, then
+the increment times will be set to the mission start and finish times specified
+in the configuration file as described in section
+<a class="reference internal" href="42_npb_configuration_file.html#mission-parameters"><span class="std std-ref">Mission Parameters</span></a>.</p>
+</section>
+</section>
+<section id="a-word-on-orbit-number-files">
+<h2>A Word on Orbit Number Files<a class="headerlink" href="#a-word-on-orbit-number-files" title="Permalink to this headline">¶</a></h2>
+<p>For some of the orbiter-style missions NAIF has created a derived geometry
+product known as an Orbit Number File (ORBNUM). The primary purpose of such a
+file is to provide SPICE users a means to determine the time boundaries for
+each orbit. Some additional orbit geometry information is also provided.</p>
+<p>ORBNUM files are plain ASCII text files consisting of two header lines
+(column labels)
+followed by one line of data per orbit. ORBNUM files can be generated with
+NAIF’s <code class="docutils literal notranslate"><span class="pre">ORBNUM</span></code> utility program. One of the required inputs to generate
+ORBNUM files are SPKs.</p>
+<p>Normally the orbit number files have the same names as the
+corresponding SPK files but with the extension <code class="docutils literal notranslate"><span class="pre">.bsp</span></code> replaced by
+<code class="docutils literal notranslate"><span class="pre">.orb</span></code> or <code class="docutils literal notranslate"><span class="pre">.nrb</span></code>. In a few cases more than one orbit number file
+may exist for a given SPK, with only one file having the same name
+as the SPK and other files having a version token appended to the
+SPK name.</p>
+<p>ORBNUM files with the <code class="docutils literal notranslate"><span class="pre">.orb</span></code> extension contain data that
+follow the “periapsis-to-periapsis” orbit numbering scheme – with
+the orbit number changing at periapsis.</p>
+<p>ORBNUM files with the <code class="docutils literal notranslate"><span class="pre">.nrb</span></code> extension contain data that
+follow the “node-to-node” orbit numbering scheme – with the orbit
+number changing at the descending node.</p>
+<p>The information contained in ORBNUM files includes the
+orbit number (<code class="docutils literal notranslate"><span class="pre">No.</span></code>), periapsis or descending node UTC time
+(<code class="docutils literal notranslate"><span class="pre">Event</span> <span class="pre">UTC</span> <span class="pre">PERI</span></code> or <code class="docutils literal notranslate"><span class="pre">Event</span> <span class="pre">UTC</span> <span class="pre">D-NODE</span></code>) and SCLK time (<code class="docutils literal notranslate"><span class="pre">Event</span>
+<span class="pre">SCLK</span> <span class="pre">PERI</span></code> or <code class="docutils literal notranslate"><span class="pre">Event</span> <span class="pre">SCLK</span> <span class="pre">D-NODE</span></code> ), apoapsis or ascending UTC
+time (<code class="docutils literal notranslate"><span class="pre">OP-Event</span> <span class="pre">UTC</span> <span class="pre">APO</span></code> or <code class="docutils literal notranslate"><span class="pre">OP-Event</span> <span class="pre">UTC</span> <span class="pre">A-NODE</span></code>). It also
+includes a few additional items computed at the time of periapsis or
+descending node such as planetocentric subsolar longitude and
+latitude (<code class="docutils literal notranslate"><span class="pre">SolLon</span></code> and <code class="docutils literal notranslate"><span class="pre">SolLat</span></code>) in the given central body body-fixed
+frame.</p>
+<p>If ORBNUM files are (or can be generated) for a mission, they should be
+included in the archive.</p>
+<p>NPB includes several examples of ORBNUM files that can be found at
+<code class="docutils literal notranslate"><span class="pre">naif-pds4-bundler/tests/naif_pds4_bundler/data/misc/orbnum</span></code></p>
+</section>
+<section id="a-word-on-other-files">
+<h2>A Word on Other Files<a class="headerlink" href="#a-word-on-other-files" title="Permalink to this headline">¶</a></h2>
+<p>If the project produces other value-added files closely related to
+kernels and “insists” on archiving them, these files can also be added
+to the archive’s Miscellaneous collection, but will require a deviation from
+the current specification of a NAIF archive. For example, the CASSINI project
+produces comparison plots and pointing correction plots for its
+reconstructed and C-smithed CK files. CASSINI requests these plots be
+included in the archive.</p>
+<p>NAIF neither objects to nor recommends practices like this. If this is required
+we recommend you contact NAIF.</p>
+</section>
+<section id="obtaining-a-doi">
+<h2>Obtaining a DOI<a class="headerlink" href="#obtaining-a-doi" title="Permalink to this headline">¶</a></h2>
+<p>DOIs are not mandatory for SPICE kernel archives but are desirable.
+The DOI is provided in the NPB configuration file.</p>
+<p>If the archive uses IM 1.5.0.0, it will not be able to include the DOI tag in
+the bundle label (the IM does not allow it), if IM 1.14.0.0 or higher is used,
+the DOI will be able to be included it in the bundle label.</p>
+<p>Obtaining a DOI depends on the archive producer’s archiving authority.
+If you are producing a NASA SPICE Kernel bundle see the
+<a class="reference external" href="https://pds.jpl.nasa.gov/datastandards/citing/">PDS Citation indications</a>.
+Note that a DOI will need a landing page, Below are a couple of examples
+of DOIs and landing pages:</p>
+<table class="colwidths-given docutils align-default" id="id6">
+<caption><span class="caption-text">DOI Examples</span><a class="headerlink" href="#id6" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 15%" />
+<col style="width: 60%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Archive</p></th>
+<th class="head"><p>DOI</p></th>
+<th class="head"><p>Landing Page</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>InSight</p></td>
+<td><p>10.17189/1520436</p></td>
+<td><p><a class="reference external" href="https://pds.nasa.gov/ds-view/pds/viewBundle.jsp?identifier=urn%3Anasa%3Apds%3Ainsight.spice">https://pds.nasa.gov/ds-view/pds/viewBundle.jsp?identifier=urn%3Anasa%3Apds%3Ainsight.spice</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>ExoMars 2016</p></td>
+<td><p>10.5270/esa-pwviqkg</p></td>
+<td><p><a class="reference external" href="https://www.cosmos.esa.int/web/spice/exomars2016">https://www.cosmos.esa.int/web/spice/exomars2016</a></p></td>
+</tr>
+</tbody>
+</table>
+<p>Again coordinate with your archiving authority. To resolve a DOI to its Landing
+Page you can use the following web: <a class="reference external" href="https://dx.doi.org/">DOI resolution resource</a>.</p>
+</section>
+<section id="writing-the-release-plan">
+<h2>Writing the Release Plan<a class="headerlink" href="#writing-the-release-plan" title="Permalink to this headline">¶</a></h2>
+<p>After having gathered all the SPICE kernels and ORBNUM files (if applicable),
+you can (and probably must) write an Archive <strong>Release Plan</strong>, this release
+plan is a text file that will list all the kernels to be included in the archive
+<strong>including Meta-Kernels and ORBNUM files</strong>. Each kernel must be listed in a
+separate line using its file name. Additional trailing characters can be present
+as long as there are blank spaces between them and the kernel name. Lines
+containing text of any other kind are also acceptable.</p>
+<p>If the file names need to be modified, you must use the updated file name in
+the release plan and have the file name mapping properly specified by the NPB
+configuration file (this is described in <a class="reference internal" href="42_npb_configuration_file.html#mapping-kernels"><span class="std std-ref">Mapping kernels</span></a>.)</p>
+<p>Here’s three different extracts of release plan samples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">nsy_sclkscet_00019</span><span class="o">.</span><span class="n">tsc</span>
+<span class="n">insight_ida_enc_200829_201220_v1</span><span class="o">.</span><span class="n">bc</span>
+<span class="n">insight_ida_pot_200829_201220_v1</span><span class="o">.</span><span class="n">bc</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">NSY_SCLKSCET</span><span class="mf">.00019</span><span class="o">.</span><span class="n">tsc</span> \
+<span class="n">insight_ida_enc_200829_201220_v1</span><span class="o">.</span><span class="n">bc</span> \
+<span class="n">insight_ida_pot_200829_201220_v1</span><span class="o">.</span><span class="n">bc</span> \
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">---</span> <span class="n">SCLK</span>
+
+<span class="n">nsy_sclkscet_00019</span><span class="o">.</span><span class="n">tsc</span> \
+
+<span class="o">---</span> <span class="n">CK</span>
+
+<span class="n">insight_ida_enc_200829_201220_v1</span><span class="o">.</span><span class="n">bc</span> \
+<span class="n">insight_ida_pot_200829_201220_v1</span><span class="o">.</span><span class="n">bc</span> \
+
+<span class="n">No</span> <span class="n">Cruise</span> <span class="n">CKs</span> <span class="ow">in</span> <span class="n">this</span> <span class="n">release</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>We recommend one follows this file name scheme for release plan files:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;sc&gt;_release_??.plan
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;</span></code> is the mission acronym and <code class="docutils literal notranslate"><span class="pre">??</span></code> is the archive’s release
+version. The MAVEN release 24 plan will be:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">maven_release_24</span><span class="o">.</span><span class="n">plan</span>
+</pre></div>
+</div>
+<p>For archive increments after the first or second release, we recommend that
+you use the previous release plan as the starting point or the release plan
+(copy the previous one and update it.)</p>
+<p>Please note you can run NPB without providing a release plan. If you choose to
+do so, NPB will take as inputs all the kernel files that it finds in the
+kernels directory(ies) and will generate a release plan for you. This option is
+useful when the kernel directory(ies) are generated ad-hoc for each release
+or for first releases of small archives.</p>
+<section id="meta-kernels-in-the-release-plan">
+<h3>Meta-kernels in the release plan<a class="headerlink" href="#meta-kernels-in-the-release-plan" title="Permalink to this headline">¶</a></h3>
+<p>The inclusion of Meta-kernels in the release plan is optional if you have
+already specified their location via configuration
+(see <a class="reference internal" href="42_npb_configuration_file.html#meta-kernel"><span class="std std-ref">Meta-kernel</span></a>).</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="32_step_2_npb_setup.html" class="btn btn-neutral float-right" title="Step 2: Preparing the NAIF PDS4 Bundler Setup" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="30_spice_kernel_archive_preparation_guide.html" class="btn btn-neutral float-left" title="SPICE Kernel Archive Preparation Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2021, Caltech/JPL/NASA
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

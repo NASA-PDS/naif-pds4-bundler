@@ -1,0 +1,1106 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Using NPB &mdash; NAIF PDS4 Bundler 1.0.0
+ documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Modules, Classes, and Functions Documentation" href="50_api_docs.html" />
+    <link rel="prev" title="The Configuration File" href="42_npb_configuration_file.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> NAIF PDS4 Bundler
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="10_overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="20_spice_kernel_archive_description.html">SPICE Kernel Archive Description</a></li>
+<li class="toctree-l1"><a class="reference internal" href="30_spice_kernel_archive_preparation_guide.html">SPICE Kernel Archive Preparation Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="40_naif_pds4_bundler_user_guide.html">NAIF PDS4 Bundler User Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="41_npb_installation.html">NPB Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="42_npb_configuration_file.html">The Configuration File</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Using NPB</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#npb-functional-scheme">NPB Functional Scheme</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#running-npb-from-the-command-line">Running NPB from the command line</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#calling-npb-from-python">Calling NPB from Python</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#optional-arguments-description">Optional Arguments Description</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#p-plan-plan-plan"><code class="docutils literal notranslate"><span class="pre">-p</span> <span class="pre">PLAN,</span> <span class="pre">--plan</span> <span class="pre">PLAN</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#f-faucet-faucet-faucet"><code class="docutils literal notranslate"><span class="pre">-f</span> <span class="pre">FAUCET,</span> <span class="pre">--faucet</span> <span class="pre">FAUCET</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#l-log"><code class="docutils literal notranslate"><span class="pre">-l</span> <span class="pre">--log</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#s-silent"><code class="docutils literal notranslate"><span class="pre">-s,</span> <span class="pre">--silent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#v-verbose"><code class="docutils literal notranslate"><span class="pre">-v,</span> <span class="pre">--verbose</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#d-diff-diff-diff"><code class="docutils literal notranslate"><span class="pre">-d</span> <span class="pre">DIFF,</span> <span class="pre">--diff</span> <span class="pre">DIFF</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#c-clear-clear-clear"><code class="docutils literal notranslate"><span class="pre">-c</span> <span class="pre">CLEAR,</span> <span class="pre">--clear</span> <span class="pre">CLEAR</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#k-kerlist-kerlist-kerlist"><code class="docutils literal notranslate"><span class="pre">-k</span> <span class="pre">KERLIST,</span> <span class="pre">--kerlist</span> <span class="pre">KERLIST</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#s-checksum"><code class="docutils literal notranslate"><span class="pre">-s,</span> <span class="pre">--checksum</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#using-npb-in-label-mode">Using NPB in label mode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#execution-by-products">Execution by-products</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#release-plan">Release Plan</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#kernel-list">Kernel List</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#execution-log">Execution Log</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#execution-file-list">Execution File List</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#checksum-registry">Checksum Registry</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#validation-diff-files">Validation Diff Files</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#checks-performed-by-npb">Checks performed by NPB</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#module-pds.naif_pds4_bundler.classes.list.KernelList.validate">Kernel List Validation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-pds.naif_pds4_bundler.classes.list.KernelList.validate_complete">Complete Kernel List Validation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-pds.naif_pds4_bundler.classes.product.SpiceKernelProduct.check_kernel_integrity">SPICE Kernel Integrity Check</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-pds.naif_pds4_bundler.classes.product.MetaKernelProduct.validate">Meta-kernel Validation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-pds.naif_pds4_bundler.classes.collection.SpiceKernelsCollection.validate">SPICE Kernel Collection Validation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-pds.naif_pds4_bundler.classes.product.InventoryProduct.validate_pds4">Inventory Product Validation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-pds.naif_pds4_bundler.classes.bundle.Bundle.validate_history">Checksum Validation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-pds.naif_pds4_bundler.classes.label.PDSLabel.compare">Product Comparison</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="50_api_docs.html">Modules, Classes, and Functions Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="60_annex_npb_for_pds3.html">Appendix: NPB for PDS3 Archives</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">NAIF PDS4 Bundler</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="40_naif_pds4_bundler_user_guide.html">NAIF PDS4 Bundler User Guide</a> &raquo;</li>
+        
+      <li>Using NPB</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/43_using_npb.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="using-npb">
+<h1>Using NPB<a class="headerlink" href="#using-npb" title="Permalink to this headline">¶</a></h1>
+<p>The purpose of NPB is to generate SPICE kernel archives – new archives or
+archive increments. NPB achieves this by using as inputs a release plan and a
+configuration file, that specifies the location of needed input elements:
+input files directories, the directory with the current archive, the SPICEDS
+file, etc.</p>
+<p>Because of the nature of its functionality and the way it operates, NPB can be
+considered a software pipeline. More details on how NPB works are provided in
+the next section.</p>
+<section id="npb-functional-scheme">
+<h2>NPB Functional Scheme<a class="headerlink" href="#npb-functional-scheme" title="Permalink to this headline">¶</a></h2>
+<p>This section provides a very high-level overview of NPBs functional design
+and operation. If you need more details you might want to go to
+<a class="reference internal" href="50_api_docs.html#modules-classes-and-functions-documentation"><span class="std std-ref">Modules, Classes, and Functions Documentation</span></a>, or take a
+look at the source code itself. The following text is extracted directly from
+the inline comments of the <code class="docutils literal notranslate"><span class="pre">naif-pds4-bundler/src/pds/naif_pds4_bundler/__main__.py</span></code> module.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Generate the Setup object</p>
+<ul>
+<li><p>This object will be used by all the other objects</p></li>
+<li><p>Parse JSON configuration file into an object with attributes
+corresponding to Python dictionary keys.</p></li>
+</ul>
+</li>
+<li><p>Start the Log object</p>
+<ul>
+<li><p>The log will always be displayed on screen unless the silent
+option is chosen.</p></li>
+<li><p>The log file will be written in the working directory</p></li>
+</ul>
+</li>
+<li><p>Check the existence of a previous archive version.</p></li>
+<li><p>If the pipeline is running to clean-up a previous run, remove all the
+files in the bundle and staging area indicated by the file list and
+clean-up the kernel list and log from the previous run.</p>
+<ul>
+<li><p>The pipeline can be stopped after cleaning up the previous run
+by setting <code class="docutils literal notranslate"><span class="pre">-f,</span> <span class="pre">--faucet</span></code> to <code class="docutils literal notranslate"><span class="pre">clear</span></code>.</p></li>
+</ul>
+</li>
+<li><p>Generate the Kernel List object.</p>
+<ul>
+<li><p>If a plan file is provided it is processed; otherwise a plan is
+generated from the kernels directory.</p></li>
+<li><p>The pipeline can be stopped after generating or reading the release
+plan by setting <code class="docutils literal notranslate"><span class="pre">-f,</span> <span class="pre">--faucet</span></code> to <code class="docutils literal notranslate"><span class="pre">plan</span></code>.</p></li>
+<li><p>The pipeline can be stopped after generating or reading the kernel
+list plan by setting <code class="docutils literal notranslate"><span class="pre">-f,</span> <span class="pre">--faucet</span></code> to <code class="docutils literal notranslate"><span class="pre">list</span></code>.</p></li>
+</ul>
+</li>
+<li><p>Generate the PDS4 Bundle structure.</p></li>
+<li><p>Load LSK, FK and SCLK kernels for time conversions and coverage
+computations.</p></li>
+<li><p>Initialize the SPICE Kernels Collection.</p></li>
+<li><p>Initialize the Miscellaneous Collection.</p></li>
+<li><p>Generate the labels for each SPICE kernel or ORBNUM product and
+populate the SPICE kernels collection or the Miscellaneous collection
+accordingly.</p>
+<ul>
+<li><p>Each label is validated after generation.</p></li>
+</ul>
+</li>
+<li><p>Generate the Meta-kernel(s).</p></li>
+<li><p>Determine the SPICE kernels Collection increment times and Product
+Version Identifier (VID).</p></li>
+<li><p>Validate the SPICE Kernels collection:</p>
+<ul>
+<li><p>Note the validation of individual products is performed after
+writing the product itself.</p></li>
+<li><p>Check that there is a XML label for each file under <code class="docutils literal notranslate"><span class="pre">spice_kernels</span></code>.</p></li>
+</ul>
+</li>
+<li><p>Generate the SPICE Kernels Collection Inventory product (if the
+collection has been updated.)</p></li>
+<li><p>Generate the Document Collection.</p></li>
+<li><p>Generate the SPICEDS document.</p>
+<ul>
+<li><p>If the SPICEDS document is generated, generate the
+Documents Collection Inventory.</p></li>
+</ul>
+</li>
+<li><p>Add the SPICE Kernels Collection to the Bundle.
+Note that the Collections are provided to the Bundle Object
+in a given order.</p></li>
+<li><p>Generate the Miscellaneous collection. The Checksum product
+is initialized in such a way that its name can be obtained.</p></li>
+<li><p>The first thing that is checked is whether if the current
+Bundle has checksums; if not, all the checksums are generated,
+including for the corresponding Miscellaneous Collection Inventories
+and labels.</p></li>
+<li><p>Set the Miscellaneous collection VID.</p></li>
+<li><p>Add the Miscellaneous and Document Collections to the Bundle object.</p></li>
+<li><p>Generate Miscellaneous Collection and initialize the Checksum
+product for the current release.</p>
+<ul>
+<li><p>The miscellaneous collection is guaranteed to be updated.</p></li>
+</ul>
+</li>
+<li><p>Generate the Bundle label and if necessary the readme file.</p></li>
+<li><p>Generate the Checksum product a posteriori in such a way
+that the miscellaneous collection inventory includes the
+checksum and the checksum includes the md5 hash of the
+Miscellaneous Collection Inventory.</p></li>
+<li><p>List the files present in the staging area.</p></li>
+<li><p>The pipeline can be stopped after generating the products and before
+moving them to the <code class="docutils literal notranslate"><span class="pre">bundle_directory</span></code> by setting <code class="docutils literal notranslate"><span class="pre">-f,</span> <span class="pre">--faucet</span></code>
+to <code class="docutils literal notranslate"><span class="pre">staging</span></code>.</p></li>
+<li><p>Copy files to the bundle area.</p></li>
+<li><p>The pipeline can be stopped after generating the moving of the products
+<code class="docutils literal notranslate"><span class="pre">bundle_directory</span></code> by setting <code class="docutils literal notranslate"><span class="pre">-f,</span> <span class="pre">--faucet</span></code> to <code class="docutils literal notranslate"><span class="pre">bundle</span></code>.</p></li>
+<li><p>Validate the Bundle by checking Checksum files against the updated
+Bundle history and checking the bundle times.</p></li>
+<li><p>Validate Meta-kernel(s).
+This is the last step since it unloads all kernels.</p></li>
+</ul>
+</div></blockquote>
+<p>There are a significant number of steps that are not reflected in the
+bullets above, such as some validation steps performed by NPB. These validation
+steps are summarized in section
+<a class="reference internal" href="#checks-performed-by-npb"><span class="std std-ref">Checks performed by NPB</span></a>.</p>
+</section>
+<section id="running-npb-from-the-command-line">
+<h2>Running NPB from the command line<a class="headerlink" href="#running-npb-from-the-command-line" title="Permalink to this headline">¶</a></h2>
+<p>Once installed, you can run NPB in help mode with the following command in a
+terminal:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ naif-pds4-bundler --help
+</pre></div>
+</div>
+<p>or:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ naif-pds4-bundler -h
+</pre></div>
+</div>
+<p>You should expect the following result:</p>
+<span class="target" id="module-pds.naif_pds4_bundler.__main__"></span><p><strong>NAIF PDS4 Bundler Main Module</strong>.</p>
+<p>usage: naif-pds4-bundler [-h] [-p PLAN] [-f FAUCET] [-l] [-s] [-v] [-d DIFF] [-c CLEAR] [-k KERLIST] CONFIG [CONFIG …]</p>
+<p><strong>naif-pds4-bundler-0.13.1, NAIF PDS4 SPICE archive generation pipeline*</strong></p>
+<p>naif-pds4-bundler is a command-line utility program that generates PDS4
+bundles for SPICE kernel archives.</p>
+<dl>
+<dt>positional arguments:</dt><dd><p>CONFIG                XML Configuration file</p>
+</dd>
+<dt>optional arguments:</dt><dd><dl class="option-list">
+<dt><kbd><span class="option">-h</span>, <span class="option">--help</span></kbd></dt>
+<dd><p>show this help message and exit</p>
+</dd>
+<dt><kbd><span class="option">-p <var>PLAN</var></span>, <span class="option">--plan <var>PLAN</var></span></kbd></dt>
+<dd><p>Release plan file listing the kernels and/or ORBNUM
+files to be archived. If this argument is not
+provided, all the kernels found in the kernels
+directory specified in the configuration file
+in addition to new meta-kernels will be included
+in the increment. If the <code class="docutils literal notranslate"><span class="pre">-x</span> <span class="pre">--xml</span></code> argument
+is used this argument can be the name of a
+kernel or the path to a release plan file
+(ORBNUM files will be ignored.)</p>
+</dd>
+<dt><kbd><span class="option">-f <var>FAUCET</var></span>, <span class="option">--faucet <var>FAUCET</var></span></kbd></dt>
+<dd><p>Optional indication for end point of the pipeline.
+Allowed values are: <code class="docutils literal notranslate"><span class="pre">clear</span></code>, <code class="docutils literal notranslate"><span class="pre">plan</span></code>, <code class="docutils literal notranslate"><span class="pre">list</span></code>,
+<code class="docutils literal notranslate"><span class="pre">staging</span></code>, <code class="docutils literal notranslate"><span class="pre">bundle</span></code>, and <code class="docutils literal notranslate"><span class="pre">labels</span></code>.</p>
+</dd>
+<dt><kbd><span class="option">-l</span>, <span class="option">--log</span></kbd></dt>
+<dd><p>Write log in file</p>
+</dd>
+<dt><kbd><span class="option">-s</span>, <span class="option">--silent</span></kbd></dt>
+<dd><p>Log will not be prompted on the terminal during
+execution.</p>
+</dd>
+<dt><kbd><span class="option">-v</span>, <span class="option">--verbose</span></kbd></dt>
+<dd><p>Full log will be prompted on the terminal during
+execution. If the argument is provided the
+<code class="docutils literal notranslate"><span class="pre">-s,</span> <span class="pre">--silent</span></code> argument is omitted.</p>
+</dd>
+<dt><kbd><span class="option">-d <var>DIFF</var></span>, <span class="option">--diff <var>DIFF</var></span></kbd></dt>
+<dd><p>Optional generation of diff reports for products.
+Allowed values are: <code class="docutils literal notranslate"><span class="pre">files</span></code>, <code class="docutils literal notranslate"><span class="pre">log</span></code>, and <code class="docutils literal notranslate"><span class="pre">all</span></code>.</p>
+</dd>
+<dt><kbd><span class="option">-c <var>CLEAR</var></span>, <span class="option">--clear <var>CLEAR</var></span></kbd></dt>
+<dd><p>Clears the files listed in the input file from the
+staging and bundle directories and the kernel list
+from the working directory. The input file should be
+as generated by a prior execution with a <code class="docutils literal notranslate"><span class="pre">*.file_list</span></code>
+extension. If this argument is provided it
+overwrites the faucet argument to <code class="docutils literal notranslate"><span class="pre">clear</span></code> and
+therefore the pipeline is not executed. If you
+provide the adequate <code class="docutils literal notranslate"><span class="pre">-f,</span> <span class="pre">--faucet</span></code> argument, the
+pipeline will be executed until indicated.</p>
+</dd>
+<dt><kbd><span class="option">-k <var>KERLIST</var></span>, <span class="option">--kerlist <var>KERLIST</var></span></kbd></dt>
+<dd><p>Release plan file listing the kernels to be archived
+along with some parameters required for the run.
+If this argument is provided the release plan is
+not generated.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>The execution of NPB has one positional argument, <code class="docutils literal notranslate"><span class="pre">CONFIG</span></code>. This argument
+must provide the path of the Configuration File. More information on the
+Configuration File generation is available in section
+<a class="reference internal" href="42_npb_configuration_file.html#the-configuration-file"><span class="std std-ref">The Configuration File</span></a>.</p>
+<p>In addition there are a number of optional arguments that are detailed in
+section <a class="reference internal" href="#optional-arguments-description"><span class="std std-ref">Optional Arguments Description</span></a>.</p>
+</section>
+<section id="calling-npb-from-python">
+<h2>Calling NPB from Python<a class="headerlink" href="#calling-npb-from-python" title="Permalink to this headline">¶</a></h2>
+<p>In addition to using NPB from the command line you can also launch NPB from
+a Python script/module. In fact, this is the way that the NPB tests are
+implemented. To do so you will need to import the main function from the
+package and provide arguments for the parameter list. The
+parameter list mimics the command line parameters. Only the <code class="docutils literal notranslate"><span class="pre">config</span></code>
+parameter is mandatory. Here’s an example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pds.naif_pds4_bundler.__main__</span> <span class="kn">import</span> <span class="n">main</span>
+
+<span class="n">config</span> <span class="o">=</span> <span class="s2">&quot;working/dart_release_01.xml&quot;</span>
+
+<span class="n">main</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">plan</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">faucet</span><span class="o">=</span><span class="s2">&quot;bundle&quot;</span><span class="p">,</span> <span class="n">silent</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="optional-arguments-description">
+<h2>Optional Arguments Description<a class="headerlink" href="#optional-arguments-description" title="Permalink to this headline">¶</a></h2>
+<p>This section provides a description of the optional arguments that can be
+provided to NPB. The format with which this section is presented assumes that
+you are using NPB from the command line, nevertheless everything also applies
+when calling NPB with Python.</p>
+<section id="p-plan-plan-plan">
+<h3><code class="docutils literal notranslate"><span class="pre">-p</span> <span class="pre">PLAN,</span> <span class="pre">--plan</span> <span class="pre">PLAN</span></code><a class="headerlink" href="#p-plan-plan-plan" title="Permalink to this headline">¶</a></h3>
+<p>Indicates the path of the Release Plan. The input is a string. If provided,
+NPB will scan the directories specified by the <code class="docutils literal notranslate"><span class="pre">kernels_directory</span></code> elements
+of the Configuration File to obtain the files specified by the release plan.
+These files are the main input for the generation of the archive release.</p>
+<p>Since <code class="docutils literal notranslate"><span class="pre">--plan</span></code> is an optional argument, this means that you can run NPB
+without providing a release plan. If you choose to do so, NPB will take as
+inputs all the kernel files that it finds in the kernels directory(ies) and
+will generate a release plan for you. This option is useful when the kernel
+directory(ies) are generated ad-hoc for each release or for first releases of
+small archives.</p>
+<p>The resulting release plan will follow this naming scheme:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;sc&gt;_release_??.plan
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;</span></code> is the spacecraft acronym and <code class="docutils literal notranslate"><span class="pre">??</span></code> is the archive’s release
+version. The MAVEN release 26 plan would be:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">maven_release_26</span><span class="o">.</span><span class="n">plan</span>
+</pre></div>
+</div>
+<p>Please note that in general this is also the recommended naming scheme for
+release plans.</p>
+<p>The provision of this argument is highly recommended.</p>
+<p>All the information to generate the Release Plan is provided in section
+<a class="reference internal" href="31_step_1_preparing_data.html#writing-the-release-plan"><span class="std std-ref">Writing the Release Plan</span></a></p>
+<p>A release plan will <strong>not</strong> be generated if the <code class="docutils literal notranslate"><span class="pre">-k</span> <span class="pre">--kerlist</span></code>
+argument is provided.</p>
+<p>If you run NBP in label mode (that is, only to generate kernel labels), the
+<code class="docutils literal notranslate"><span class="pre">--plan</span></code> parameter can be the name of a single kernel instead of the path of
+a file. More information is provided in the section <code class="docutils literal notranslate"><span class="pre">-x,</span> <span class="pre">--xml</span></code>.</p>
+</section>
+<section id="f-faucet-faucet-faucet">
+<h3><code class="docutils literal notranslate"><span class="pre">-f</span> <span class="pre">FAUCET,</span> <span class="pre">--faucet</span> <span class="pre">FAUCET</span></code><a class="headerlink" href="#f-faucet-faucet-faucet" title="Permalink to this headline">¶</a></h3>
+<p>You can chose where to stop the pipeline execution before its complete
+execution. The options are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">clear</span></code>: stop after clearing the previous run see the <code class="docutils literal notranslate"><span class="pre">-c</span> <span class="pre">--clear</span></code>
+argument subsection for more information.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">plan</span></code>: stop after generating and/or reading the release plan. No
+products are written in the staging area (<code class="docutils literal notranslate"><span class="pre">staging_directory</span></code>.)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">list</span></code>: stop after generating and/or reading the kernel list.
+If the Kernel List has not been provided (via the <code class="docutils literal notranslate"><span class="pre">-k</span> <span class="pre">--kerlist</span></code>
+argument), a release plan will be generated.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">staging</span></code>: stop after generating the archive increment products.
+The product list file is described in
+the <code class="docutils literal notranslate"><span class="pre">-c</span> <span class="pre">--clear</span></code> argument subsection.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bundle</span></code>: stop after moving the products to the bundle directory but
+before performing the last checks.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">labels</span></code>: specifies NPB to run in label mode. More information in
+the section <a class="reference internal" href="#using-npb-in-label-mode"><span class="std std-ref">Using NPB in label mode</span></a></p></li>
+</ul>
+</div></blockquote>
+<p>Using these options might be useful in different phases of the archive
+generation, especially when the archive producer is not fully confident with
+the state of the files in the plan or with the state of the configuration file.</p>
+<p>You might also want to use the <code class="docutils literal notranslate"><span class="pre">bundle</span></code> option to prevent the checks from
+being performed if you are confident with you reason to do so (e.g. use of a
+meta-kernel not following NAIF’s convention.)</p>
+</section>
+<section id="l-log">
+<h3><code class="docutils literal notranslate"><span class="pre">-l</span> <span class="pre">--log</span></code><a class="headerlink" href="#l-log" title="Permalink to this headline">¶</a></h3>
+<p>This argument tells NPB if the execution log should be written into
+a file or not. If provided, the log will be written in the <code class="docutils literal notranslate"><span class="pre">working_directory</span></code>
+specified in the configuration file with the following naming scheme:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;sc&gt;_release_??.log
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;</span></code> is the spacecraft acronym and <code class="docutils literal notranslate"><span class="pre">??</span></code> is the archive’s release
+version. The MAVEN release 26 log would be:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">maven_release_26</span><span class="o">.</span><span class="n">log</span>
+</pre></div>
+</div>
+<p>More information on NPB logging is provided in the section
+<a class="reference internal" href="#execution-log"><span class="std std-ref">Execution Log</span></a>.</p>
+</section>
+<section id="s-silent">
+<h3><code class="docutils literal notranslate"><span class="pre">-s,</span> <span class="pre">--silent</span></code><a class="headerlink" href="#s-silent" title="Permalink to this headline">¶</a></h3>
+<p>If this option is used, NPB execution will be silent without any prompt. This
+argument is not recommended and was implemented mostly to avoid prompts during
+NPB testing.</p>
+</section>
+<section id="v-verbose">
+<h3><code class="docutils literal notranslate"><span class="pre">-v,</span> <span class="pre">--verbose</span></code><a class="headerlink" href="#v-verbose" title="Permalink to this headline">¶</a></h3>
+<p>If this option is used, NPB execution will be verbose and will be similar to the output
+provided in the log file. If not specified, NPB provides a summarized log on
+the terminal. Here’s an example of the non-verbose terminal output for the first
+release of the LADEE archive:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">naif</span><span class="o">-</span><span class="n">pds4</span><span class="o">-</span><span class="n">bundle</span><span class="o">-</span><span class="mf">0.12.0</span> <span class="k">for</span> <span class="n">LADEE</span>
+<span class="o">=================================</span>
+<span class="o">--</span> <span class="n">Executed</span> <span class="n">on</span> <span class="n">MT</span><span class="o">-</span><span class="mi">308302</span> <span class="n">at</span> <span class="mi">2021</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mi">28</span> <span class="mi">12</span><span class="p">:</span><span class="mi">57</span><span class="p">:</span><span class="mi">41</span>
+<span class="o">--</span> <span class="n">Setup</span> <span class="n">the</span> <span class="n">archive</span> <span class="n">generation</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">Kernel</span> <span class="n">List</span> <span class="n">generation</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">Bundle</span> <span class="n">structure</span> <span class="n">generation</span> <span class="n">at</span> <span class="n">staging</span> <span class="n">area</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">Load</span> <span class="n">LSK</span><span class="p">,</span> <span class="n">PCK</span><span class="p">,</span> <span class="n">FK</span> <span class="ow">and</span> <span class="n">SCLK</span> <span class="n">kernels</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">SPICE</span> <span class="n">kernel</span> <span class="n">collection</span><span class="o">/</span><span class="n">data</span> <span class="n">processing</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="n">spice_kernels</span><span class="o">/</span><span class="n">ck</span><span class="o">/</span><span class="n">ladee_13250_13330_v04</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="n">spice_kernels</span><span class="o">/</span><span class="n">spk</span><span class="o">/</span><span class="n">ladee_r_14108_99001_imp_v01</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">Generation</span> <span class="n">of</span> <span class="n">meta</span><span class="o">-</span><span class="n">kernel</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="n">spice_kernels</span><span class="o">/</span><span class="n">mk</span><span class="o">/</span><span class="n">ladee_v01</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">Determine</span> <span class="n">archive</span> <span class="n">increment</span> <span class="n">start</span> <span class="ow">and</span> <span class="n">finish</span> <span class="n">times</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">Validate</span> <span class="n">SPICE</span> <span class="n">kernel</span> <span class="n">collection</span> <span class="n">generation</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">Generation</span> <span class="n">of</span> <span class="n">spice_kernels</span> <span class="n">collection</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="o">/</span><span class="n">spice_kernels</span><span class="o">/</span><span class="n">collection_spice_kernels_inventory_v001</span><span class="o">.</span><span class="n">csv</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="n">spice_kernels</span><span class="o">/</span><span class="n">collection_spice_kernels_v001</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">Processing</span> <span class="n">spiceds</span> <span class="n">file</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="n">document</span><span class="o">/</span><span class="n">spiceds_v001</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">Generation</span> <span class="n">of</span> <span class="n">document</span> <span class="n">collection</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="o">/</span><span class="n">document</span><span class="o">/</span><span class="n">collection_document_inventory_v001</span><span class="o">.</span><span class="n">csv</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="n">document</span><span class="o">/</span><span class="n">collection_document_v001</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">Generation</span> <span class="n">of</span> <span class="n">miscellaneous</span> <span class="n">collection</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="o">/</span><span class="n">miscellaneous</span><span class="o">/</span><span class="n">collection_miscellaneous_inventory_v001</span><span class="o">.</span><span class="n">csv</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="n">miscellaneous</span><span class="o">/</span><span class="n">collection_miscellaneous_v001</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">Generation</span> <span class="n">of</span> <span class="n">bundle</span> <span class="n">products</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="n">readme</span> <span class="n">file</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="n">bundle_ladee_spice_v001</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">Generate</span> <span class="n">checksum</span> <span class="n">file</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="n">miscellaneous</span><span class="o">/</span><span class="n">checksum</span><span class="o">/</span><span class="n">checksum_v001</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">Recap</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">staging</span> <span class="n">area</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">Copy</span> <span class="n">files</span> <span class="n">to</span> <span class="n">the</span> <span class="n">bundle</span> <span class="n">area</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">Meta</span><span class="o">-</span><span class="n">kernel</span> <span class="n">ladee_v01</span><span class="o">.</span><span class="n">tm</span> <span class="n">validation</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">Validate</span> <span class="n">bundle</span> <span class="n">history</span> <span class="k">with</span> <span class="n">checksum</span> <span class="n">files</span><span class="o">.</span>
+<span class="n">Execution</span> <span class="n">finished</span> <span class="n">at</span> <span class="mi">2021</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mi">28</span> <span class="mi">12</span><span class="p">:</span><span class="mi">57</span><span class="p">:</span><span class="mi">43</span>
+</pre></div>
+</div>
+</section>
+<section id="d-diff-diff-diff">
+<h3><code class="docutils literal notranslate"><span class="pre">-d</span> <span class="pre">DIFF,</span> <span class="pre">--diff</span> <span class="pre">DIFF</span></code><a class="headerlink" href="#d-diff-diff-diff" title="Permalink to this headline">¶</a></h3>
+<p>If this argument is used, NPB generates Diff files for the archive’s release
+files. NPB’s Diff files are HTML files or plain text snippets that record
+differences in between two files, highlighting differences similar to the output
+of a GUI diff tool such as <code class="docutils literal notranslate"><span class="pre">tkdiff</span></code>. These files are useful to check and validate
+the archive increment. More information on how these files are generated is
+provided in section <a class="reference internal" href="#validation-diff-files"><span class="std std-ref">Validation Diff Files</span></a>.</p>
+<p>The options for this argument determine the destination of these diff files.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">files</span></code>: Diff files are HTML files that are written in the
+<code class="docutils literal notranslate"><span class="pre">working_directory</span></code>; each diff’ed file is provided as a separate file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">log</span></code>: Diff plan text snippets are provided in the NPB log. This argument
+will force the <code class="docutils literal notranslate"><span class="pre">-l</span> <span class="pre">--log</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">all</span></code>: Combines both <code class="docutils literal notranslate"><span class="pre">files</span></code> and <code class="docutils literal notranslate"><span class="pre">log</span></code> effects.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="c-clear-clear-clear">
+<h3><code class="docutils literal notranslate"><span class="pre">-c</span> <span class="pre">CLEAR,</span> <span class="pre">--clear</span> <span class="pre">CLEAR</span></code><a class="headerlink" href="#c-clear-clear-clear" title="Permalink to this headline">¶</a></h3>
+<p>This argument allows you to clear the products resulting from a NPB run
+from your workspace. Executing NPB with this argument will clear the files
+listed in the input file from the staging and bundle directories.</p>
+<p>After you run NPB (successfully or not) one of the by-products that it generates
+is the File List. The File List has the following naming scheme:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;sc&gt;_release_??.file_list
+</pre></div>
+</div>
+<p>where &lt;sc&gt; is the spacecraft acronym and ?? is the archive’s release
+version. The MAVEN release 26 file list would be:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">maven_release_26</span><span class="o">.</span><span class="n">file_list</span>
+</pre></div>
+</div>
+<p>This file contains a list of all the products that have been generated from
+a run with relative paths.</p>
+<p>If this argument is provided NPB defaults the argument <code class="docutils literal notranslate"><span class="pre">-f</span> <span class="pre">FAUCET,</span> <span class="pre">--faucet</span> <span class="pre">FAUCET</span></code> to
+<code class="docutils literal notranslate"><span class="pre">plan</span></code>, in such a way that the NPB execution will be stopped after cleaning
+up the workspace. This said, you can still provide a different value to
+<code class="docutils literal notranslate"><span class="pre">-f</span> <span class="pre">FAUCET,</span> <span class="pre">--faucet</span> <span class="pre">FAUCET</span></code> in order to instruct NPB to continue with the
+execution after clearing up the workspace.</p>
+<p>Note that executing NPB with the clear argument will not delete the kernel list
+or the release plan <strong>generated</strong> by the run in the working area unless you
+provide the the original value for the <code class="docutils literal notranslate"><span class="pre">-p,</span> <span class="pre">--plan</span></code> or <code class="docutils literal notranslate"><span class="pre">-k,</span> <span class="pre">--kerlist</span></code>
+arguments. If you do so NPB will remove the byproduct generated by the run. For
+example, the following command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ naif-pds4-bundler maven_release_26.xml -p working/maven_release_26.plan -c working/maven_release_26.file_list -v
+</pre></div>
+</div>
+<p>Will remove the <code class="docutils literal notranslate"><span class="pre">working/maven_release_26.kernel_list</span></code> byproduct, given that
+you are indicating that it has been generated with the original run, whereas:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ naif-pds4-bundler maven_release_26.xml -k working/maven_release_26.kernel_list -c working/maven_release_26.file_list -v
+</pre></div>
+</div>
+<p>would remove the <code class="docutils literal notranslate"><span class="pre">working/maven_release_26.plan</span></code> byproduct. Use both arguments
+to remove both.</p>
+<p>Note that other by-product files such as the
+checksums file, run log, file lists, and diff files are not deleted.</p>
+</section>
+<section id="k-kerlist-kerlist-kerlist">
+<h3><code class="docutils literal notranslate"><span class="pre">-k</span> <span class="pre">KERLIST,</span> <span class="pre">--kerlist</span> <span class="pre">KERLIST</span></code><a class="headerlink" href="#k-kerlist-kerlist-kerlist" title="Permalink to this headline">¶</a></h3>
+<p>Specifies the path of a user generated Kernel List.
+If provided, NPB will scan the directories specified by the
+<code class="docutils literal notranslate"><span class="pre">kernels_directory</span></code> elements of the Configuration File to obtain the files
+specified by the kernel list and will by-pass the kernel list generation.</p>
+<p>The provision of this argument is highly discouraged and should only be used
+in special cases where the automated generation of the kernel list via
+configuration is not possible. If you find yourself in this situation
+contact the NAIF NPB developer before using this argument.</p>
+<p>If this argument is provided no release plan file will be generated.</p>
+</section>
+<section id="s-checksum">
+<h3><code class="docutils literal notranslate"><span class="pre">-s,</span> <span class="pre">--checksum</span></code><a class="headerlink" href="#s-checksum" title="Permalink to this headline">¶</a></h3>
+<p>Using this argument indicates NPB to obtain MD5 Sums for products defined
+in the Checksum Registry file or from existing product labels instead of
+calculating them.</p>
+<p>The Checksum Registry file is an NPB run by-product that contains the checksums
+of all products. More information is provided in section
+<a class="reference internal" href="#checksum-registry"><span class="std std-ref">Checksum Registry</span></a>. This file is generated by a
+previous NPB run for the same archive increment and is stored in the
+<code class="docutils literal notranslate"><span class="pre">working_directory</span></code> specified in the configuration, it has a <code class="docutils literal notranslate"><span class="pre">*.checksum</span></code>
+extension.</p>
+<p>If no Checksum Registry files are available product labels from the
+<code class="docutils literal notranslate"><span class="pre">staging_directory</span></code> will be used.</p>
+<p>This argument is useful if large files have already been processed by a previous
+run.</p>
+</section>
+</section>
+<section id="using-npb-in-label-mode">
+<h2>Using NPB in label mode<a class="headerlink" href="#using-npb-in-label-mode" title="Permalink to this headline">¶</a></h2>
+<p>NPB can also be used to generate SPICE kernels labels rather
+than a complete PDS4 Bundle. When using NPB in label mode the same
+setup required for a “regular” execution applies and almost complete
+configuration file is required. The example configuration file for the
+Hubble Space Telescope provides a differentiated example of a configuration
+file used to generate labels only. The file is available at
+<code class="docutils literal notranslate"><span class="pre">naif-pds4-bundler/tests/naif_pds4_bundler/config/hst.xml</span></code>.</p>
+<p>In order to run NPB in label mode you need to set the <code class="docutils literal notranslate"><span class="pre">-f</span> <span class="pre">FAUCET,</span> <span class="pre">--faucet</span> <span class="pre">FAUCET</span></code>
+argument to <code class="docutils literal notranslate"><span class="pre">labels</span></code>.</p>
+<p>When doing so NPB runs in label mode and therefore does not
+generate a complete PDS4 Bundle. This option was implemented to meet the needs
+of some NPB users. Unless necessary, NAIF advises against its usage.</p>
+<p>When using this argument NPB bypasses some execution steps (including certain
+checks) in such a way that the only output of the execution is the generation
+of the XML labels of the products specified by the <code class="docutils literal notranslate"><span class="pre">-p</span> <span class="pre">--plan</span></code> argument.</p>
+<p>It is recommended to maintain a separate configuration file if NPB is executed
+both in “default” mode and in “label” mode. When using “label” mode,
+it is common to set the <code class="docutils literal notranslate"><span class="pre">bundle_directory</span></code> equal to the <code class="docutils literal notranslate"><span class="pre">kernel_directory</span></code>
+where the operational kernels usually reside.</p>
+<p>When using this mode, only kernels can be labeled (no ORBNUM products),
+MKs will not be automatically generated, and certain execution by-products
+will not be generated either.</p>
+<p>Using this mode will also change the file name of the NPB by-product files.
+The <code class="docutils literal notranslate"><span class="pre">_release_</span></code> part of the name will be changed to <code class="docutils literal notranslate"><span class="pre">_labels_</span></code> to indicate
+that the run did not generate a release but rather labels for a specific
+targeted release (the release number part of these files will be incremented.)</p>
+</section>
+<section id="execution-by-products">
+<h2>Execution by-products<a class="headerlink" href="#execution-by-products" title="Permalink to this headline">¶</a></h2>
+<p>After NPB is executed, a number of files are generated in the <code class="docutils literal notranslate"><span class="pre">working_directory</span></code>.
+These files have different purposes and some of them are generated if specified
+via argument parameters. These files are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Release Plan: <code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;_release_??.plan</span></code></p></li>
+<li><p>Kernel List: <code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;_release_??.kernel_list</span></code></p></li>
+<li><p>Execution Log: <code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;_release_??.log</span></code></p></li>
+<li><p>Execution File List: <code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;_release_??.file_list</span></code></p></li>
+<li><p>Checksum registry:<code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;_release_??.checksum</span></code></p></li>
+<li><p>Validation Diff files: <code class="docutils literal notranslate"><span class="pre">diff_&lt;new_file&gt;_&lt;old_file&gt;.html</span></code></p></li>
+</ul>
+</div></blockquote>
+<p>where</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;</span></code> is the short s/c name or acronym (e.g. maven, em16, etc.)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">??</span></code> is the release version</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;new_file&gt;</span></code> is the name of the file generated by NPB - without extension -</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;old_file&gt;</span></code> is the name of the with which <code class="docutils literal notranslate"><span class="pre">&lt;new_file&gt;</span></code> is compared to
+- without extension -.</p></li>
+</ul>
+</div></blockquote>
+<p>These files are described in the following sections.</p>
+<section id="release-plan">
+<h3>Release Plan<a class="headerlink" href="#release-plan" title="Permalink to this headline">¶</a></h3>
+<p>The release plan can be provided as an input as described in section
+<a class="reference internal" href="31_step_1_preparing_data.html#writing-the-release-plan"><span class="std std-ref">Writing the Release Plan</span></a>. Alternatively, if not
+provided as an input, NPB will generate it as an execution by-product.</p>
+<p>The release plan is an adequate record that summarizes the kernels and orbnum
+files included in each release.</p>
+<p>If the release plan is generated by NPB it will follow this naming schema
+<code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;_release_??.plan</span></code>.</p>
+</section>
+<section id="kernel-list">
+<h3>Kernel List<a class="headerlink" href="#kernel-list" title="Permalink to this headline">¶</a></h3>
+<p>The kernel list can also be provided as an input - although is highly discouraged -
+but in general is an execution by-product that includes a number of important
+elements, used by NPB to generate SPICE kernel and orbnum files labels, such as
+the kernel description.</p>
+<p>The kernel list is an adequate record to check that each kernel description has
+been written appropriately.</p>
+<p>If the kernel list is generated by NPB it will follow this naming schema
+<code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;_release_??.kernel_list</span></code>.</p>
+<section id="kernel-lists-in-pds3-data-sets">
+<h4>Kernel Lists in PDS3 data sets<a class="headerlink" href="#kernel-lists-in-pds3-data-sets" title="Permalink to this headline">¶</a></h4>
+<p>NPB can be used to generate kernel lists for PDS3 data set generation.</p>
+<p>For PDS3 data sets, the kernel list is used by the NAIF PDS3 data set archiving
+procedure. Because of that the kernel list for a particular release has a
+structure similar to:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>DATE = &lt;date&gt;
+SPACECRAFT = &lt;s/c&gt;
+NAIFER = &lt;full name&gt;
+PHONE = &lt;phone&gt;
+EMAIL = &lt;e-mail&gt;
+VOLUMEID = &lt;volume id&gt;
+RELEASE_ID   = &lt;number&gt;
+RELEASE_DATE = &lt;YYYY-MM-DD&gt;
+EOH
+FILE             = &lt;name of file 1&gt;
+MAKLABEL_OPTIONS = &lt;MAKLABEL options for file 1&gt;
+DESCRIPTION      = &lt;description of file 1, on a single line!&gt;
+FILE             = &lt;name of file 2&gt;
+MAKLABEL_OPTIONS = &lt;MAKLABEL options for file 2&gt;
+DESCRIPTION      = &lt;description of file 2, on a single line!&gt;
+...
+FILE             = &lt;name of file N&gt;
+MAKLABEL_OPTIONS = &lt;MAKLABEL options for file N&gt;
+DESCRIPTION      = &lt;description of file N, on a single line!&gt;
+</pre></div>
+</div>
+<p>The first five keywords – <code class="docutils literal notranslate"><span class="pre">DATE</span></code>, <code class="docutils literal notranslate"><span class="pre">SPACECRAFT</span></code>, <code class="docutils literal notranslate"><span class="pre">NAIFER</span></code>, <code class="docutils literal notranslate"><span class="pre">PHONE</span></code>,
+<code class="docutils literal notranslate"><span class="pre">EMAIL</span></code> – and
+the <code class="docutils literal notranslate"><span class="pre">EOH</span></code> end-of-the-header marker are optional and are included to
+provide identification information.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">VOLUMEID</span></code>, <code class="docutils literal notranslate"><span class="pre">RELEASE_ID</span></code>, and <code class="docutils literal notranslate"><span class="pre">RELEASE_DATE</span></code> keywords are required and
+must be set as follows: <code class="docutils literal notranslate"><span class="pre">VOLUMEID</span></code> must be set to the lowercased version
+of the volume ID (for example <code class="docutils literal notranslate"><span class="pre">mgsp_1000</span></code> for MGS), RELEASE_ID must be
+set to the release ID number (for example <code class="docutils literal notranslate"><span class="pre">0001</span></code> for release 1), and
+RELEASE_DATE must be set to the date on which the data will be released
+to the public (for example <code class="docutils literal notranslate"><span class="pre">2007-07-27</span></code> for July 27, 2007.)</p>
+<p>The rest of the kernel list file must provide triplets of lines, one for
+each of the files that constitute the release, containing <code class="docutils literal notranslate"><span class="pre">FILE</span></code>,
+<code class="docutils literal notranslate"><span class="pre">MAKLABEL_OPTIONS</span></code>, and <code class="docutils literal notranslate"><span class="pre">DESCRIPTION</span></code> keywords. The <code class="docutils literal notranslate"><span class="pre">FILE</span></code> line must always be
+first, followed by the <code class="docutils literal notranslate"><span class="pre">MAKLABEL_OPTIONS</span></code> line followed by the <code class="docutils literal notranslate"><span class="pre">DESCRIPTION</span></code>
+line.</p>
+<p>The FILE keyword must provide the file name relative to the volumes’s
+root directory (for example <code class="docutils literal notranslate"><span class="pre">data/spk/de403.bsp</span></code>).</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">MAKLABEL_OPTIONS</span></code> keyword must provide all <code class="docutils literal notranslate"><span class="pre">MAKLABEL</span></code> option tags
+applicable to the file named in the preceding FILE keyword. The option
+tags must be delimited by one or more spaces and will be passed “as
+is” to the <code class="docutils literal notranslate"><span class="pre">MAKLABEL</span></code> program. If no options are applicable to a file,
+<code class="docutils literal notranslate"><span class="pre">MAKLABEL_OPTIONS</span></code> can be set to blank but the line containing it must
+still be present in the list file, following the <code class="docutils literal notranslate"><span class="pre">FILE</span></code> keyword line.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">DESCRIPTION</span></code> keyword must provide a brief description of the file;
+this description will be inserted in the file label to replace the
+generic description generated by the <code class="docutils literal notranslate"><span class="pre">MAKLABEL</span></code> program. The value must be
+on the same line as the keyword and must not “spill” over onto the
+next line(s). The length of the description is not limited. <code class="docutils literal notranslate"><span class="pre">DESCRIPTION</span></code>
+can be set to blank but the line containing it must still be present in
+the list file, following the <code class="docutils literal notranslate"><span class="pre">MAKLABEL_OPTIONS</span></code> keyword line. When
+description is set to blank, <code class="docutils literal notranslate"><span class="pre">N/A</span></code> is placed in the label.</p>
+<p>The list file may contain blank lines as long as they are not placed
+between the lines in each of the triplets.</p>
+</section>
+</section>
+<section id="execution-log">
+<h3>Execution Log<a class="headerlink" href="#execution-log" title="Permalink to this headline">¶</a></h3>
+<p>The NPB execution log provides very useful information to determine whether
+if the execution has been successful or not.</p>
+<p>NPB uses the <code class="docutils literal notranslate"><span class="pre">logging</span></code> Python package to generate the log file. The log
+will preface each line with the severity level of the message provided. The
+severity levels are: <code class="docutils literal notranslate"><span class="pre">INFO</span></code>, <code class="docutils literal notranslate"><span class="pre">WARNING</span></code>, and <code class="docutils literal notranslate"><span class="pre">ERROR</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">INFO</span></code> messages provide general information for the NPB operator to understand
+what NPB is doing. <code class="docutils literal notranslate"><span class="pre">WARNING</span></code> messages flag unexpected or unusual actions
+taken by NPB and require a careful examination by the operator since they might
+lead to an undesired result in the archive generation. <code class="docutils literal notranslate"><span class="pre">ERROR</span></code> messages are
+only displayed if the NPB execution has failed and will only be present in
+the temporary log resulting from a failed execution.</p>
+<p>The NPB log is structured in such a way that it narrates the archive generation
+by providing numbered sections for each “main” action that NPB performs. The
+log also includes a preface that provides information on the platform used to
+run NPB, the execution parameters, and an epilogue that indicates the end of the
+execition. The result of the different checks performed by NPB are also
+provided in the log. More information on the checks done by NPB is provided in
+section <a class="reference internal" href="#checks-performed-by-npb"><span class="std std-ref">Checks performed by NPB</span></a>.
+A Mars 2020 execution log extract is provided hereunder:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">INFO</span>    <span class="p">:</span>
+<span class="n">INFO</span>    <span class="p">:</span> <span class="n">naif</span><span class="o">-</span><span class="n">pds4</span><span class="o">-</span><span class="n">bundle</span><span class="o">-</span><span class="mf">0.13.1</span> <span class="k">for</span> <span class="n">Mars</span> <span class="mi">2020</span> <span class="n">Perseverance</span> <span class="n">Rover</span> <span class="n">Mission</span>
+<span class="n">INFO</span>    <span class="p">:</span> <span class="o">================================================================</span>
+<span class="n">INFO</span>    <span class="p">:</span>
+<span class="n">INFO</span>    <span class="p">:</span> <span class="o">--</span> <span class="n">Executed</span> <span class="n">on</span> <span class="n">pepper</span><span class="o">.</span><span class="n">rn</span><span class="o">.</span><span class="n">jpl</span><span class="o">.</span><span class="n">net</span> <span class="n">at</span> <span class="mi">2021</span><span class="o">-</span><span class="mi">11</span><span class="o">-</span><span class="mi">19</span> <span class="mi">07</span><span class="p">:</span><span class="mi">20</span><span class="p">:</span><span class="mi">24</span>
+<span class="n">INFO</span>    <span class="p">:</span> <span class="o">--</span> <span class="n">Platform</span><span class="p">:</span> <span class="n">Linux</span><span class="o">-</span><span class="mf">3.10.0</span><span class="o">-</span><span class="mf">1160.45.1</span><span class="o">.</span><span class="n">el7</span><span class="o">.</span><span class="n">x86_64</span><span class="o">-</span><span class="n">x86_64</span><span class="o">-</span><span class="k">with</span><span class="o">-</span><span class="n">glibc2</span><span class="mf">.17</span>
+<span class="n">INFO</span>    <span class="p">:</span> <span class="o">--</span> <span class="n">Python</span> <span class="n">version</span><span class="p">:</span> <span class="mf">3.8.7</span> <span class="p">(</span><span class="n">Build</span><span class="p">:</span> <span class="n">May</span> <span class="mi">12</span> <span class="mi">2021</span> <span class="mi">16</span><span class="p">:</span><span class="mi">53</span><span class="p">:</span><span class="mi">18</span><span class="p">)</span>
+<span class="n">INFO</span>    <span class="p">:</span>
+<span class="n">INFO</span>    <span class="p">:</span> <span class="o">--</span> <span class="n">The</span> <span class="n">following</span> <span class="n">arguments</span> <span class="n">have</span> <span class="n">been</span> <span class="n">provided</span><span class="p">:</span>
+<span class="n">INFO</span>    <span class="p">:</span>      <span class="n">config</span><span class="p">:</span>  <span class="n">working</span><span class="o">/</span><span class="n">mars2020_release_02</span><span class="o">.</span><span class="n">xml</span>
+<span class="n">INFO</span>    <span class="p">:</span>      <span class="n">plan</span><span class="p">:</span>    <span class="n">working</span><span class="o">/</span><span class="n">mars2020_release_02</span><span class="o">.</span><span class="n">plan</span>
+<span class="n">INFO</span>    <span class="p">:</span>      <span class="n">log</span><span class="p">:</span>     <span class="kc">True</span>
+<span class="n">INFO</span>    <span class="p">:</span>      <span class="n">verbose</span><span class="p">:</span> <span class="kc">True</span>
+<span class="n">INFO</span>    <span class="p">:</span>
+<span class="n">INFO</span>    <span class="p">:</span>
+<span class="n">WARNING</span> <span class="p">:</span> <span class="o">--</span> <span class="n">Label</span> <span class="n">templates</span> <span class="n">will</span> <span class="n">use</span> <span class="n">the</span> <span class="n">ones</span> <span class="kn">from</span> <span class="nn">information</span> <span class="n">model</span> <span class="mf">1.5.0.0</span><span class="o">.</span>
+<span class="n">INFO</span>    <span class="p">:</span> <span class="o">--</span> <span class="n">Label</span> <span class="n">templates</span> <span class="n">directory</span><span class="p">:</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">mcosta</span><span class="o">/</span><span class="n">virtenvs</span><span class="o">/</span><span class="n">npb_3</span><span class="mf">.8</span><span class="o">/</span><span class="n">naif</span><span class="o">-</span><span class="n">pds4</span><span class="o">-</span><span class="n">bundler</span><span class="o">/</span><span class="n">src</span><span class="o">/</span><span class="n">pds</span><span class="o">/</span><span class="n">naif_pds4_bundler</span><span class="o">/</span><span class="n">templates</span><span class="o">/</span><span class="mf">1.5.0.0</span><span class="o">/</span>
+<span class="n">WARNING</span> <span class="p">:</span> <span class="o">--</span> <span class="n">There</span> <span class="ow">is</span> <span class="n">no</span> <span class="n">meta</span><span class="o">-</span><span class="n">kernel</span> <span class="n">configuration</span> <span class="n">to</span> <span class="n">check</span><span class="o">.</span>
+<span class="n">INFO</span>    <span class="p">:</span>
+<span class="n">INFO</span>    <span class="p">:</span>
+<span class="n">INFO</span>    <span class="p">:</span> <span class="n">Step</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">Setup</span> <span class="n">the</span> <span class="n">archive</span> <span class="n">generation</span>
+<span class="n">INFO</span>    <span class="p">:</span> <span class="o">-------------------------------------</span>
+<span class="n">INFO</span>    <span class="p">:</span>
+<span class="n">INFO</span>    <span class="p">:</span> <span class="o">--</span> <span class="n">Checking</span> <span class="n">existence</span> <span class="n">of</span> <span class="n">previous</span> <span class="n">release</span><span class="o">.</span>
+<span class="n">INFO</span>    <span class="p">:</span>      <span class="n">Generating</span> <span class="n">release</span> <span class="mf">002.</span>
+<span class="n">INFO</span>    <span class="p">:</span>
+<span class="n">INFO</span>    <span class="p">:</span>
+<span class="n">INFO</span>    <span class="p">:</span> <span class="n">Step</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">Kernel</span> <span class="n">List</span> <span class="n">generation</span>
+<span class="n">INFO</span>    <span class="p">:</span> <span class="o">-------------------------------</span>
+<span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="n">INFO</span>    <span class="p">:</span>
+<span class="n">INFO</span>    <span class="p">:</span> <span class="n">Execution</span> <span class="n">finished</span> <span class="n">at</span> <span class="mi">2021</span><span class="o">-</span><span class="mi">11</span><span class="o">-</span><span class="mi">19</span> <span class="mi">07</span><span class="p">:</span><span class="mi">20</span><span class="p">:</span><span class="mi">24</span>
+<span class="n">INFO</span>    <span class="p">:</span>
+<span class="n">INFO</span>    <span class="p">:</span> <span class="n">End</span> <span class="n">of</span> <span class="n">log</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>The execution log is only generated if specified via the argument <code class="docutils literal notranslate"><span class="pre">-l</span> <span class="pre">--log</span></code>,
+if so, the name will follow this naming convention: <code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;_release_??.log</span></code>.</p>
+</section>
+<section id="execution-file-list">
+<h3>Execution File List<a class="headerlink" href="#execution-file-list" title="Permalink to this headline">¶</a></h3>
+<p>The execution file list is an adequate record that provides a list of <strong>all</strong>
+the files generated by the NPB execution.</p>
+<p>This file is used by the <code class="docutils literal notranslate"><span class="pre">-c</span> <span class="pre">--clear</span></code> argument as the parameter to indicate
+the files to be cleared from a previous successful or unsuccessful NPB
+execution.</p>
+<p>This file is also very useful to be used as input to a procedure to move
+the archive increment from one location to the other.</p>
+<p>The execution file list follows this naming schema <code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;_release_??.file_list</span></code>
+as described in <a class="reference internal" href="#execution-by-products"><span class="std std-ref">Execution by-products</span></a>.</p>
+</section>
+<section id="checksum-registry">
+<h3>Checksum Registry<a class="headerlink" href="#checksum-registry" title="Permalink to this headline">¶</a></h3>
+<p>The checksum execution registry is a file that contains a checksum table with
+the md5 sum of every product of the increment whose md5 sum is used in the
+product’s label.</p>
+<p>The utility of these files is described in section
+<a class="reference internal" href="33_step_3_running_npb.html#processing-large-binary-kernels"><span class="std std-ref">Processing large binary kernels</span></a>.</p>
+<p>The Checksum Regsitry file follows this naming schema <code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;_release_??.checksum</span></code>
+as described in <a class="reference internal" href="#execution-by-products"><span class="std std-ref">Execution by-products</span></a>.</p>
+</section>
+<section id="validation-diff-files">
+<h3>Validation Diff Files<a class="headerlink" href="#validation-diff-files" title="Permalink to this headline">¶</a></h3>
+<p>Validation Diff files are HTML files that provide a side to side comparison of
+a product generated by NPB and another “similar” product in order to facilitate
+checking and validating the new product, highlighting differences similar to
+the output of a GUI diff tool such as <code class="docutils literal notranslate"><span class="pre">tkdiff</span></code>.</p>
+<p>This by-product is generated if indicated by the <code class="docutils literal notranslate"><span class="pre">-d</span> <span class="pre">DIFF,</span> <span class="pre">--diff</span> <span class="pre">DIFF</span></code>
+argument.</p>
+</section>
+</section>
+<section id="checks-performed-by-npb">
+<h2>Checks performed by NPB<a class="headerlink" href="#checks-performed-by-npb" title="Permalink to this headline">¶</a></h2>
+<p>NPB performs a series of checks to validate certain parts of its execution and
+provides means for the NPB operator to check the execution results. These
+checks are described hereunder.</p>
+<section id="module-pds.naif_pds4_bundler.classes.list.KernelList.validate">
+<span id="kernel-list-validation"></span><h3>Kernel List Validation<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.list.KernelList.validate" title="Permalink to this headline">¶</a></h3>
+<p>Validation of the Kernel List.</p>
+<p>The validation of the Kernel List performs the following checks:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>check that the list has the same number of <code class="docutils literal notranslate"><span class="pre">FILE</span></code>, <code class="docutils literal notranslate"><span class="pre">MAKLABEL_OPTIONS</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">DESCRIPTION</span></code> entries.</p></li>
+<li><p>check list against plan</p></li>
+<li><p>check that list for duplicate files</p></li>
+<li><p>check that all files listed in the list are on the <code class="docutils literal notranslate"><span class="pre">kernels_directory</span></code></p></li>
+<li><p>check that the files are not in the <code class="docutils literal notranslate"><span class="pre">bundle_directory</span></code></p></li>
+<li><p>display all the <code class="docutils literal notranslate"><span class="pre">MAKLABL_OPTIONS</span></code> used</p></li>
+<li><p>check that all the <code class="docutils literal notranslate"><span class="pre">MAKLBL_OPTIONS</span></code> are in the template for PDS3</p></li>
+<li><p>check that the list has no duplicates</p></li>
+<li><p>if the <code class="docutils literal notranslate"><span class="pre">-d</span> <span class="pre">DIFF</span> <span class="pre">--diff</span> <span class="pre">DIFF</span></code> argument is used, compare the kernel
+list with the kernel list of the previous release -if avaialble.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="module-pds.naif_pds4_bundler.classes.list.KernelList.validate_complete">
+<span id="complete-kernel-list-validation"></span><h3>Complete Kernel List Validation<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.list.KernelList.validate_complete" title="Permalink to this headline">¶</a></h3>
+<p>Validation of the complete Kernel List.</p>
+<p>The complete Kernel List is generated by NPB by merging all the
+available Kernel List files. These kernel list files must be located
+in the <code class="docutils literal notranslate"><span class="pre">working_directory</span></code> as specified by the NPB configuration.</p>
+<p>In principle all the kernels that have ever been added to the archive
+should be present.</p>
+<p>The validation of the complete Kernel List performs the following checks:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>check that the list has the same number of <code class="docutils literal notranslate"><span class="pre">FILE</span></code>, <code class="docutils literal notranslate"><span class="pre">MAKLABEL_OPTIONS</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">DESCRIPTION</span></code> entries</p></li>
+<li><p>check all the <code class="docutils literal notranslate"><span class="pre">MAKLABL_OPTIONS</span></code> used</p></li>
+<li><p>check that the list has no duplicates</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="module-pds.naif_pds4_bundler.classes.product.SpiceKernelProduct.check_kernel_integrity">
+<span id="spice-kernel-integrity-check"></span><h3>SPICE Kernel Integrity Check<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.product.SpiceKernelProduct.check_kernel_integrity" title="Permalink to this headline">¶</a></h3>
+<p>Check if the SPICE Kernel has the adequate architecture.</p>
+<p>All SPICE kernels must have a NAIF file ID word as the first “word” on
+the first line of the kernel. This “word” describes the architecture
+of the kernel.</p>
+<p>A binary kernel could have the following architectures:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">DAF</span></code>: The file is based on the DAF architecture.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DAS</span></code>: The file is based on the DAS architecture.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">XFR</span></code>: The file is in a SPICE transfer file format.</p></li>
+</ul>
+</div></blockquote>
+<p>For an archive only <code class="docutils literal notranslate"><span class="pre">DAF</span></code> is acceptable.</p>
+<p>Text kernels must have <code class="docutils literal notranslate"><span class="pre">KPL</span></code> (Kernel Pool File) architecture.</p>
+<p>NPB checks if binary kernels have a <code class="docutils literal notranslate"><span class="pre">DAF</span></code> architecture and text kernels
+a <code class="docutils literal notranslate"><span class="pre">KPL</span></code> architecture.</p>
+</section>
+<section id="module-pds.naif_pds4_bundler.classes.product.MetaKernelProduct.validate">
+<span id="meta-kernel-validation"></span><h3>Meta-kernel Validation<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.product.MetaKernelProduct.validate" title="Permalink to this headline">¶</a></h3>
+<p>Perform a basic validation of the Meta-kernel.</p>
+<p>The validation consists of:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>load the kernel with the SPICE API <code class="docutils literal notranslate"><span class="pre">FURNSH</span></code></p></li>
+<li><p>count the loaded kernels with SPICE API <code class="docutils literal notranslate"><span class="pre">KTOTAL</span></code></p></li>
+<li><p>compare the number of kernels in the kernel pool with the length
+of the MK collection list attribute.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="module-pds.naif_pds4_bundler.classes.collection.SpiceKernelsCollection.validate">
+<span id="spice-kernel-collection-validation"></span><h3>SPICE Kernel Collection Validation<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.collection.SpiceKernelsCollection.validate" title="Permalink to this headline">¶</a></h3>
+<p>Validate the SPICE Kernels collection.</p>
+<p>The SPICE Kernels collection validation performs the following checks:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>check that all the kernels from the kernel list are present</p></li>
+<li><p>check that all the kernels have been labeled</p></li>
+<li><p>display the key elements of the labels for the user to do a visual
+inspection. The key elements are: <code class="docutils literal notranslate"><span class="pre">logical_identifier</span></code>, <code class="docutils literal notranslate"><span class="pre">version_id</span></code>,
+<code class="docutils literal notranslate"><span class="pre">title</span></code>, <code class="docutils literal notranslate"><span class="pre">description</span></code>, <code class="docutils literal notranslate"><span class="pre">start_date_time</span></code>, <code class="docutils literal notranslate"><span class="pre">stop_date_time</span></code>,
+<code class="docutils literal notranslate"><span class="pre">file_name</span></code>, <code class="docutils literal notranslate"><span class="pre">file_size</span></code>, <code class="docutils literal notranslate"><span class="pre">md5_checksum</span></code>, <code class="docutils literal notranslate"><span class="pre">object_length</span></code>,
+<code class="docutils literal notranslate"><span class="pre">kernel_type</span></code>, and <code class="docutils literal notranslate"><span class="pre">encoding_type</span></code>.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="module-pds.naif_pds4_bundler.classes.product.InventoryProduct.validate_pds4">
+<span id="inventory-product-validation"></span><h3>Inventory Product Validation<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.product.InventoryProduct.validate_pds4" title="Permalink to this headline">¶</a></h3>
+<p>Validate the PDS4 Inventory Product.</p>
+<p>The Inventory is validated by checking that all the products listed
+are present in the archive.</p>
+</section>
+<section id="module-pds.naif_pds4_bundler.classes.bundle.Bundle.validate_history">
+<span id="checksum-validation"></span><h3>Checksum Validation<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.bundle.Bundle.validate_history" title="Permalink to this headline">¶</a></h3>
+<p>Validate the bundle updated history with the checksum files.</p>
+<p>This method validates all the archive Checksum files with the “Archive
+History”. The “Archive history” is obtained by extracting the
+previous releases and the Collections that correspond to each release
+from the Bundle labels. The other products’ information is extracted
+from the collection inventories.</p>
+<p>The archive history is then provided as a dictionary with releases
+as keys and each key contains a list of files for that release.</p>
+<p>The validation is performed by comparing each release entry of the
+dictionary with the release checksum file <code class="docutils literal notranslate"><span class="pre">checksum_v???.tab</span></code>.</p>
+<p>In parallel the method writes in the execution log the complete bundle
+release history, providing an ordered list of files released for each
+release number.</p>
+</section>
+<section id="module-pds.naif_pds4_bundler.classes.label.PDSLabel.compare">
+<span id="product-comparison"></span><h3>Product Comparison<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.label.PDSLabel.compare" title="Permalink to this headline">¶</a></h3>
+<p><strong>Compare the Label with another label</strong>.</p>
+<p>The product label is compared to a similar label. The label with which
+the generated label is compared to is determined
+by the first criteria that is met from the following list:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>find a different version of the same label</p></li>
+<li><p>find the label of a product of the same kind (e.g.: same kernel
+type)</p></li>
+<li><p>use a label of a product of the same kind from INSIGHT available
+from the NPB package.</p></li>
+</ul>
+</div></blockquote>
+<span class="target" id="module-pds.naif_pds4_bundler.classes.product.MetaKernelProduct.compare"></span><p><strong>Compare the Meta-kernel with the previous version</strong>.</p>
+<p>The MK is compared with a previous version of the MK. If no prior
+MK is found, the new MK is compared to NPB’s MK template.</p>
+<span class="target" id="module-pds.naif_pds4_bundler.classes.product.InventoryProduct.compare"></span><p><strong>Compare the Inventory Product with another Inventory</strong>.</p>
+<p>The Inventory Product is compared with the previous
+version and if it does not exist with the sample INSIGHT inventory
+product.</p>
+<span class="target" id="module-pds.naif_pds4_bundler.classes.product.SpicedsProduct.compare"></span><p><strong>Compare the SPICEDS Product with another SPICEDS</strong>.</p>
+<p>The SPICEDS Product is compared with the previous
+version and if it does not exist with the sample INSIGHT SPICEDS
+product.</p>
+<span class="target" id="module-pds.naif_pds4_bundler.classes.product.ChecksumProduct.compare"></span><p><strong>Compare the Checksum with the previous Checksum file</strong>.</p>
+<p>The Checksum file is compared with the previous version.</p>
+<section id="comparison-output">
+<h4>Comparison output<a class="headerlink" href="#comparison-output" title="Permalink to this headline">¶</a></h4>
+<p>Depending on the parameter provided to NPB with the argument
+<code class="docutils literal notranslate"><span class="pre">-d</span> <span class="pre">DIFF</span> <span class="pre">--d</span> <span class="pre">DIFF</span></code> the comparison will be provided either as a
+separate file, written in the execution log or in both ways.</p>
+<p>If the comparison is provided in the log, its format will be similar
+to the one provided by the Unix utility <code class="docutils literal notranslate"><span class="pre">diff</span></code> whereas if provided as a
+separate file, it will be similar to the format provided by the Unix
+utility <code class="docutils literal notranslate"><span class="pre">tkdiff</span></code>: a HTML file that provide a side to side comparison of
+the files following this naming scheme:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">diff_</span><span class="o">&lt;</span><span class="n">new_file</span><span class="o">&gt;</span><span class="n">_</span><span class="o">&lt;</span><span class="n">old_file</span><span class="o">&gt;.</span><span class="n">html</span>
+</pre></div>
+</div>
+<p>where</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>&lt;new_file&gt; is the name of the file generated by NPB - without extension -</p></li>
+<li><p>&lt;old_file&gt; is the name of the with which &lt;new_file&gt; is compared to - without extension -.</p></li>
+</ul>
+</div></blockquote>
+<p>If the <code class="docutils literal notranslate"><span class="pre">-d</span> <span class="pre">DIFF</span> <span class="pre">--d</span> <span class="pre">DIFF</span></code> argument is not provided the comparison
+will not happen.</p>
+</section>
+</section>
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="50_api_docs.html" class="btn btn-neutral float-right" title="Modules, Classes, and Functions Documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="42_npb_configuration_file.html" class="btn btn-neutral float-left" title="The Configuration File" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2021, Caltech/JPL/NASA
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

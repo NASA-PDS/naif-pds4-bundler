@@ -1,0 +1,291 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Step 5: Packaging and Delivering the Archive to the NAIF Node &mdash; NAIF PDS4 Bundler 1.0.0
+ documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Step-by-Step Summary" href="36_step_by_step_summary.html" />
+    <link rel="prev" title="Step 4: Checking the Result and Finishing Up" href="34_step_4_checking_the_result.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> NAIF PDS4 Bundler
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="10_overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="20_spice_kernel_archive_description.html">SPICE Kernel Archive Description</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="30_spice_kernel_archive_preparation_guide.html">SPICE Kernel Archive Preparation Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="31_step_1_preparing_data.html">Step 1: Preparing Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="32_step_2_npb_setup.html">Step 2: Preparing the NAIF PDS4 Bundler Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="33_step_3_running_npb.html">Step 3: Running NAIF PDS4 Bundler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="34_step_4_checking_the_result.html">Step 4: Checking the Result and Finishing Up</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Step 5: Packaging and Delivering the Archive to the NAIF Node</a></li>
+<li class="toctree-l2"><a class="reference internal" href="36_step_by_step_summary.html">Step-by-Step Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="40_naif_pds4_bundler_user_guide.html">NAIF PDS4 Bundler User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="50_api_docs.html">Modules, Classes, and Functions Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="60_annex_npb_for_pds3.html">Appendix: NPB for PDS3 Archives</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">NAIF PDS4 Bundler</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="30_spice_kernel_archive_preparation_guide.html">SPICE Kernel Archive Preparation Guide</a> &raquo;</li>
+        
+      <li>Step 5: Packaging and Delivering the Archive to the NAIF Node</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/35_step_5_packaging_to_naif.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="step-5-packaging-and-delivering-the-archive-to-the-naif-node">
+<h1>Step 5: Packaging and Delivering the Archive to the NAIF Node<a class="headerlink" href="#step-5-packaging-and-delivering-the-archive-to-the-naif-node" title="Permalink to this headline">¶</a></h1>
+<p>If the project archive plan calls for delivery of the SPICE archive to
+the NAIF Node of the PDS, the archive producer can do it in two ways:</p>
+<blockquote>
+<div><ol class="arabic">
+<li><p>If the volume of the data to be delivered is relatively small
+(under 2 GB), either the whole archive or only the files that
+were updated or added in the last release can be packaged into
+a <code class="docutils literal notranslate"><span class="pre">.tar</span></code> file, which is then made available to NAIF staff.
+The tar file should contain the whole archive directory tree
+starting at the <code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;_spice</span></code> level (where <code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;</span></code> is the
+mission acronym.)</p>
+<p>For example, to make a <code class="docutils literal notranslate"><span class="pre">.tar</span></code> file containing the whole MAVEN
+archive, the following commands can be used (to first change
+to the final archive area and then to “tar” the whole archive
+directory tree):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ cd /ftp/pub/naif/pds/pds4/maven
+$ tar -cvf maven_release_26.tar maven_spice
+</pre></div>
+</div>
+<p>To make a <code class="docutils literal notranslate"><span class="pre">.tar</span></code> file containing only additions and changes
+to the MAVEN archive from the latest release, the following
+commands can be used (to first change to the final archive area
+and then to <code class="docutils literal notranslate"><span class="pre">tar</span></code> all files included in the file list file):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ cd /ftp/pub/naif/pds/pds4/maven
+$ tar cBf maven_release_26.tar -T /home/naif/maven/pds/working/maven_release_26.file_list
+</pre></div>
+</div>
+</li>
+<li><p>If the volume of the data to be delivered is large (greater
+than 2 GB), NAIF staff should be given access to the final
+archive area (or a copy of it), which NAIF staff will mirror
+using either <code class="docutils literal notranslate"><span class="pre">wget</span></code> or <code class="docutils literal notranslate"><span class="pre">scp</span></code> tools (depending on the kind
+of access that was provided).</p>
+<p>The kind of access to be given to NAIF staff is up to the data provider.
+Any of the following ways is acceptable:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>putting <code class="docutils literal notranslate"><span class="pre">.tar</span></code> file(s) or a copy of the final archive tree
+on an anonymous public FTP server or a public Web server</p></li>
+<li><p>putting <code class="docutils literal notranslate"><span class="pre">.tar</span></code> file(s) or a copy of the final archive tree
+on a password-protected FTP server or a Web server. In this
+case NAIF staff should be provided with an account and
+password.</p></li>
+<li><p>putting <code class="docutils literal notranslate"><span class="pre">.tar</span></code> file(s) or a copy of the final archive tree
+on a UNIX workstation, providing NAIF staff with an account on
+this workstation, and setting file permissions allowing read
+access to the data.</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ol>
+</div></blockquote>
+<p>Providing the NPB Configuration File, Release Plan, Kernel List, and any other
+NPB execution by-products to NAIF is recommended. You can do so by providing
+them along with the <code class="docutils literal notranslate"><span class="pre">.tar</span></code> file or as an attachment to the email to
+communicate the delivery to NAIF.</p>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="36_step_by_step_summary.html" class="btn btn-neutral float-right" title="Step-by-Step Summary" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="34_step_4_checking_the_result.html" class="btn btn-neutral float-left" title="Step 4: Checking the Result and Finishing Up" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2021, Caltech/JPL/NASA
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

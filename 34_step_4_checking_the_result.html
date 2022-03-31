@@ -1,0 +1,468 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Step 4: Checking the Result and Finishing Up &mdash; NAIF PDS4 Bundler 1.0.0
+ documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Step 5: Packaging and Delivering the Archive to the NAIF Node" href="35_step_5_packaging_to_naif.html" />
+    <link rel="prev" title="Step 3: Running NAIF PDS4 Bundler" href="33_step_3_running_npb.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> NAIF PDS4 Bundler
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="10_overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="20_spice_kernel_archive_description.html">SPICE Kernel Archive Description</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="30_spice_kernel_archive_preparation_guide.html">SPICE Kernel Archive Preparation Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="31_step_1_preparing_data.html">Step 1: Preparing Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="32_step_2_npb_setup.html">Step 2: Preparing the NAIF PDS4 Bundler Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="33_step_3_running_npb.html">Step 3: Running NAIF PDS4 Bundler</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Step 4: Checking the Result and Finishing Up</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#checking-pds-artifacts">Checking PDS artifacts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#verifying-the-archive-using-pds-validate-tool">Verifying the Archive using PDS Validate Tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#deploying-to-the-final-archive-area">Deploying to the Final Archive Area</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cleaning-up-the-workspace">Cleaning up the Workspace</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="35_step_5_packaging_to_naif.html">Step 5: Packaging and Delivering the Archive to the NAIF Node</a></li>
+<li class="toctree-l2"><a class="reference internal" href="36_step_by_step_summary.html">Step-by-Step Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="40_naif_pds4_bundler_user_guide.html">NAIF PDS4 Bundler User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="50_api_docs.html">Modules, Classes, and Functions Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="60_annex_npb_for_pds3.html">Appendix: NPB for PDS3 Archives</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">NAIF PDS4 Bundler</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="30_spice_kernel_archive_preparation_guide.html">SPICE Kernel Archive Preparation Guide</a> &raquo;</li>
+        
+      <li>Step 4: Checking the Result and Finishing Up</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/34_step_4_checking_the_result.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="step-4-checking-the-result-and-finishing-up">
+<h1>Step 4: Checking the Result and Finishing Up<a class="headerlink" href="#step-4-checking-the-result-and-finishing-up" title="Permalink to this headline">¶</a></h1>
+<p>After running NPB the archive release is nearly done. Nevertheless a successful
+NPB execution is not necessarily a synonym of a successful archive increment
+generation. Reasons for that could be:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>incorrect input data (kernels, ORBNUM files or SPICEDS)</p></li>
+<li><p>incorrect Configuration File</p></li>
+<li><p>a bug in NPB</p></li>
+</ul>
+</div></blockquote>
+<p>Although NPB already performs a number of checks, as described in the section
+<a class="reference internal" href="43_using_npb.html#checks-performed-by-npb"><span class="std std-ref">Checks performed by NPB</span></a>, it is recommended to spend
+some time and effort to check the result of the execution. Look at the
+<code class="docutils literal notranslate"><span class="pre">WARNING</span></code> messages provided in the NPB run log file, checking the SPICEDS
+file, and especially checking the Meta-kernel(s), even if you generated
+them manually.</p>
+<p>If you think you have found a bug in NPB or the archiving process please do as
+indicated in <a class="reference internal" href="12_bugs_contact_references.html#reporting-bugs"><span class="std std-ref">Reporting Bugs</span></a>.</p>
+<p>The following sections provide you some hints to perform checks on the archive.</p>
+<section id="checking-pds-artifacts">
+<h2>Checking PDS artifacts<a class="headerlink" href="#checking-pds-artifacts" title="Permalink to this headline">¶</a></h2>
+<p>Amongst the PDS artifacts generated by NPB, labels are the ones that are
+most prone to error. It makes sense to visually inspect some or even all of
+them. In some cases doing this allows one to catch typos and incorrect
+information in the description, coverage, observer, target, and LID tags.</p>
+<p>One of the ways to look at the labels is simply using Unix <code class="docutils literal notranslate"><span class="pre">more</span></code> to inspect
+them:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>foreach ( `grep FILE working/maven_release_26.file_list | sed &#39;s/^FILE *= *//g&#39; )
+   echo label for $FF
+   more $FF:r.xml
+end
+</pre></div>
+</div>
+<p>What might be more interesting than examining individual labels is to compare
+them to similar labels. NPB facilitates this task with the
+<code class="docutils literal notranslate"><span class="pre">-d</span> <span class="pre">DIFF</span> <span class="pre">--diff</span> <span class="pre">DIFF</span></code> argument. More details are provided in
+<a class="reference internal" href="43_using_npb.html#optional-arguments-description"><span class="std std-ref">Optional Arguments Description</span></a>. The strategy
+with which NPB chooses similar labels is described in
+<a class="reference internal" href="43_using_npb.html#module-pds.naif_pds4_bundler.classes.label.PDSLabel.compare"><span class="std std-ref">Product Comparison</span></a>.</p>
+<p>You can check other PDS artifacts, such as inventories, in a similar manner.</p>
+<p>If any problems are found as the result of this examination, their causes
+should be fixed –probably by correcting the “Kernel List” section of the
+Configuration File–, the NPB execution must be cleared (using the
+<code class="docutils literal notranslate"><span class="pre">-c</span> <span class="pre">CLEAR</span> <span class="pre">--clear</span> <span class="pre">CLEAR</span></code> argument) and NPB must be re-run.</p>
+</section>
+<section id="verifying-the-archive-using-pds-validate-tool">
+<h2>Verifying the Archive using PDS Validate Tool<a class="headerlink" href="#verifying-the-archive-using-pds-validate-tool" title="Permalink to this headline">¶</a></h2>
+<p>Although NPB and the instructions given above provide a lot of safeguard to
+ensure production of a fully PDS-compliant archive, many inputs to the
+configuration file are done “by hand” and for this reason are prone to errors.
+Because of this the archive producer should validate the SPICE archive using the
+validation tool provided by the PDS Engineering Node.</p>
+<p>The <strong>Validate Tool</strong> performs the validation of the archive for PDS standards
+compliance. Validate Tool is a command line application well suited for batch
+mode processing.</p>
+<p>The Validate tool package can be obtained from the PDS Engineering node from
+<a class="reference external" href="https://nasa-pds.github.io/validate/">Validate Tool Documentation</a>.</p>
+<p>Once installed per instructions provided with the package, Validate Tool can be
+run to generate the full validation report for the final archive as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>validate &lt;path_to_archive&gt; -R pds4.bundle -r &lt;path_to_working_dir&gt;/&lt;sc&gt;_release_??.validate
+</pre></div>
+</div>
+<p>where</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">&lt;path_to_archive&gt;</span></code>: is the absolute or relative path of the archive
+pointing to the archive <code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;_spice</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">&lt;path_to_working_dir&gt;</span></code>: is the absolute or relative path pointing to
+the working directory of the workspace.</p>
+<p><code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;_release_??.validate</span></code>: is the suggested validate report name using the
+mission acronym and the release version.</p>
+</div></blockquote>
+<p>If you have included context products in the configuration file the Validate
+Tool might provide you the following error messages:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">FAIL</span><span class="p">:</span> <span class="n">file</span><span class="p">:</span><span class="o">/</span><span class="n">Users</span><span class="o">/</span><span class="n">mcosta</span><span class="o">/</span><span class="n">workspace</span><span class="o">/</span><span class="n">em16</span><span class="o">/</span><span class="n">em16_003</span><span class="o">/</span><span class="n">em16_spice</span><span class="o">/</span><span class="n">bundle_em16_spice_v003</span><span class="o">.</span><span class="n">xml</span>
+ <span class="n">ERROR</span>  <span class="p">[</span><span class="n">error</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">context_ref_not_found</span><span class="p">]</span>   <span class="n">line</span> <span class="mi">34</span><span class="p">:</span> <span class="s1">&#39;Context product not found: urn:esa:psa:context:investigation:mission.em16</span>
+ <span class="n">ERROR</span>  <span class="p">[</span><span class="n">error</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">context_ref_not_found</span><span class="p">]</span>   <span class="n">line</span> <span class="mi">43</span><span class="p">:</span> <span class="s1">&#39;Context product not found: urn:esa:psa:context:instrument_host:spacecraft.tgo</span>
+   <span class="mi">1</span> <span class="n">product</span> <span class="n">validation</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="n">completed</span>
+</pre></div>
+</div>
+<p>If so, you need to include the following argument when calling Validate:
+<code class="docutils literal notranslate"><span class="pre">--add-context-products</span></code> and provide the path to a local JSON file
+containing the missing context products as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+     <span class="p">{</span>
+          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="p">[</span>
+               <span class="s2">&quot;em16&quot;</span>
+          <span class="p">],</span>
+          <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="p">[</span>
+               <span class="s2">&quot;Mission&quot;</span>
+          <span class="p">],</span>
+          <span class="s2">&quot;lidvid&quot;</span><span class="p">:</span> <span class="s2">&quot;urn:esa:psa:context:investigation:mission.em16::1.0&quot;</span>
+     <span class="p">},</span>
+      <span class="p">{</span>
+          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="p">[</span>
+               <span class="s2">&quot;tgo&quot;</span>
+          <span class="p">],</span>
+          <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="p">[</span>
+               <span class="s2">&quot;Spacecraft&quot;</span>
+          <span class="p">],</span>
+          <span class="s2">&quot;lidvid&quot;</span><span class="p">:</span> <span class="s2">&quot;urn:esa:psa:context:instrument_host:spacecraft.tgo::1.0&quot;</span>
+     <span class="p">},{</span>
+          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="p">[</span>
+               <span class="s2">&quot;edm&quot;</span>
+          <span class="p">],</span>
+          <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="p">[</span>
+               <span class="s2">&quot;Spacecraft&quot;</span>
+          <span class="p">],</span>
+          <span class="s2">&quot;lidvid&quot;</span><span class="p">:</span> <span class="s2">&quot;urn:esa:psa:context:instrument_host:spacecraft.edm::1.0&quot;</span>
+     <span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>Then you can run Validate as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">validate</span> <span class="n">em16_spice</span> <span class="o">--</span><span class="n">add</span><span class="o">-</span><span class="n">context</span><span class="o">-</span><span class="n">products</span> <span class="n">registered_context_products</span><span class="o">.</span><span class="n">json</span> <span class="o">-</span><span class="n">R</span> <span class="n">pds4</span><span class="o">.</span><span class="n">bundle</span>  <span class="o">-</span><span class="n">r</span> <span class="n">working</span><span class="o">/</span><span class="n">em16_release_03</span><span class="o">.</span><span class="n">validate</span>
+</pre></div>
+</div>
+<p>Following the inclusion of this argument, you will still get the following
+warning message:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">WARNING</span>  <span class="p">[</span><span class="n">warning</span><span class="o">.</span><span class="n">product_not_registered</span><span class="p">]</span>   <span class="n">Non</span><span class="o">-</span><span class="n">registered</span> <span class="n">context</span> <span class="n">products</span> <span class="n">should</span> <span class="n">only</span> <span class="n">be</span> <span class="n">used</span> <span class="n">during</span> <span class="n">archive</span> <span class="n">development</span><span class="o">.</span> <span class="n">All</span> <span class="n">context</span> <span class="n">products</span> <span class="n">must</span> <span class="n">be</span> <span class="n">registered</span> <span class="k">for</span> <span class="n">a</span> <span class="n">valid</span><span class="p">,</span> <span class="n">released</span> <span class="n">archive</span> <span class="n">bundle</span><span class="o">.</span>
+   <span class="mi">1</span> <span class="n">product</span> <span class="n">validation</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="n">completed</span>
+</pre></div>
+</div>
+<p>This warning can be ignored. There should be no other errors or warnings in the
+report. If any other errors are present they should be investigated and fixed
+before the archive is released.</p>
+<p>NAIF recommends to set severity level of the Validation Tool reporting to
+<code class="docutils literal notranslate"><span class="pre">Info</span></code> (<code class="docutils literal notranslate"><span class="pre">-v</span> <span class="pre">1</span> <span class="pre">--verbose</span> <span class="pre">1</span></code>). This will mainly help to find issues in the
+context products. The resulting recommended way to run Validate is:</p>
+<blockquote>
+<div><p>validate -v 1 em16_spice –add-context-products registered_context_products.json -R pds4.bundle  -r working/em16_release_03.validate</p>
+</div></blockquote>
+<p>Please note that the Validate Tool is in continuous development with new
+releases for each PDS IM, therefore the details provided in this section
+might differ from the version of the Validate Tool you use. The results
+provided here are obtained using Validate Tool’s:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Version</span> <span class="mf">2.0.6</span>
+<span class="n">Release</span> <span class="n">Date</span><span class="p">:</span> <span class="mi">2021</span><span class="o">-</span><span class="mi">05</span><span class="o">-</span><span class="mi">25</span> <span class="mi">12</span><span class="p">:</span><span class="mi">08</span><span class="p">:</span><span class="mi">21</span>
+</pre></div>
+</div>
+</section>
+<section id="deploying-to-the-final-archive-area">
+<h2>Deploying to the Final Archive Area<a class="headerlink" href="#deploying-to-the-final-archive-area" title="Permalink to this headline">¶</a></h2>
+<p>After the archive has been validated, the new archive-ready files should be
+copied from the bundle directory of the workspace area to the final archive
+area, from which the archive will be served to customers or delivered to the
+responsible PDS node.</p>
+<p>The way of copying the files should be the one that best fits the data
+preparer’s hardware infrastructure – <code class="docutils literal notranslate"><span class="pre">scp</span></code>, <code class="docutils literal notranslate"><span class="pre">rsync</span></code>, <code class="docutils literal notranslate"><span class="pre">wget</span></code>, <code class="docutils literal notranslate"><span class="pre">tar</span></code>, or
+simply <code class="docutils literal notranslate"><span class="pre">cp</span></code>.</p>
+<p>NAIF has the workspace area and the final archive area file systems mounted to
+the workstation on which archive preparation is done and uses <code class="docutils literal notranslate"><span class="pre">tar</span></code> to
+perform the copy. For example if the NPB <code class="docutils literal notranslate"><span class="pre">bundle_directory</span></code> of the MAVEN
+archive is located at:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">naif</span><span class="o">/</span><span class="n">maven</span><span class="o">/</span><span class="n">pds</span><span class="o">/</span><span class="n">maven_spice</span>
+</pre></div>
+</div>
+<p>and has under it the file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">naif</span><span class="o">/</span><span class="n">maven</span><span class="o">/</span><span class="n">pds</span><span class="o">/</span><span class="n">working</span><span class="o">/</span><span class="n">maven_release_26</span><span class="o">.</span><span class="n">file_list</span>
+</pre></div>
+</div>
+<p>generated by the NPB run listing the files that should be copied to the final
+archive directory located at:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">ftp</span><span class="o">/</span><span class="n">pub</span><span class="o">/</span><span class="n">naif</span><span class="o">/</span><span class="n">pds</span><span class="o">/</span><span class="n">pds4</span><span class="o">/</span><span class="n">maven</span><span class="o">/</span><span class="n">maven_spice</span><span class="o">/</span>
+</pre></div>
+</div>
+<p>then this <code class="docutils literal notranslate"><span class="pre">tar</span></code> command can be used to perform the copy (the <code class="docutils literal notranslate"><span class="pre">cd</span></code>
+and <code class="docutils literal notranslate"><span class="pre">more</span></code> commands are included to show that <code class="docutils literal notranslate"><span class="pre">tar</span></code> should be run
+from, and the file names in the list should be relative to, the volume’s
+root directory in the staging area):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ cd /home/naif/maven/pds/working/
+
+$ more maven_release_26.file_list
+...
+
+$ tar cBf - `maven_release_26.file_list` | \
+  (cd /ftp/pub/naif/pds/pds4/maven/maven_spice/; \
+  tar xBf -)
+</pre></div>
+</div>
+<p>For peace of mind, since at this point all kernels and meta-kernels are
+in the right place in the final archive area, it would make sense to
+verify all meta-kernels included in the archive running the NAIF utility
+<code class="docutils literal notranslate"><span class="pre">BRIEF</span></code> from the volume root directory in the final archive area as
+follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ brief spice_kernels/mk/*.tm
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">BRIEF</span></code> will display a summary for all SPK files in the archive and should
+generate no “file could not be located” errors.</p>
+</section>
+<section id="cleaning-up-the-workspace">
+<h2>Cleaning up the Workspace<a class="headerlink" href="#cleaning-up-the-workspace" title="Permalink to this headline">¶</a></h2>
+<p>After the archive is done it makes sense to do some cleanup in the
+workspace area. Although not required, NAIF recommends removing all the
+files in the staging area. In addition, NAIF recommends not to delete the
+NPB Execution by-products from the <code class="docutils literal notranslate"><span class="pre">working_directory</span></code>. Keeping them serves
+as a backup copy, allows for reproducibility of the archive, and can allow its
+use for future releases.</p>
+<p>In addition, NAIF recommends maintaining a directory in the workspace
+replicating the bundle directory structure in order to store the files that
+are generated manually: SPICEDS files and potentially, Meta-kernels.</p>
+<p>Here’s an example of the Workspace for LADEE:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">.</span>
+<span class="o">|--</span> <span class="n">bundle</span>
+<span class="o">|</span>   <span class="o">|--</span> <span class="n">document</span>
+<span class="o">|</span>   <span class="o">|</span>   <span class="o">+--</span> <span class="n">spiceds_v001</span><span class="o">.</span><span class="n">html</span>
+<span class="o">|</span>   <span class="o">+--</span> <span class="n">spice_kernels</span>
+<span class="o">|</span>       <span class="o">+--</span> <span class="n">mk</span>
+<span class="o">|</span>           <span class="o">+--</span> <span class="n">ladee_v01</span><span class="o">.</span><span class="n">tm</span>
+<span class="o">|--</span> <span class="n">ladee_archive_generation</span><span class="o">.</span><span class="n">md</span>
+<span class="o">|--</span> <span class="n">staging</span>
+<span class="o">|</span>   <span class="o">+--</span> <span class="n">ladee_spice</span>
+<span class="o">+--</span> <span class="n">working</span>
+    <span class="o">|--</span> <span class="n">ladee_release_01</span><span class="o">.</span><span class="n">checksum</span>
+    <span class="o">|--</span> <span class="n">ladee_release_01</span><span class="o">.</span><span class="n">file_list</span>
+    <span class="o">|--</span> <span class="n">ladee_release_01</span><span class="o">.</span><span class="n">kernel_list</span>
+    <span class="o">|--</span> <span class="n">ladee_release_01</span><span class="o">.</span><span class="n">log</span>
+    <span class="o">|--</span> <span class="n">ladee_release_01</span><span class="o">.</span><span class="n">plan</span>
+    <span class="o">|--</span> <span class="n">ladee_release_01</span><span class="o">.</span><span class="n">validate_report</span>
+    <span class="o">+--</span> <span class="n">ladee_release_01</span><span class="o">.</span><span class="n">xml</span>
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">ladee_archive_generation.md</span></code> is a MarkDown text file that provides a
+LADEE-specific archiving guide. You might find writing such a file useful. The
+<code class="docutils literal notranslate"><span class="pre">bundle_directory</span></code> and <code class="docutils literal notranslate"><span class="pre">kernels_directory</span></code> are located somewhere else in
+the volume.</p>
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="35_step_5_packaging_to_naif.html" class="btn btn-neutral float-right" title="Step 5: Packaging and Delivering the Archive to the NAIF Node" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="33_step_3_running_npb.html" class="btn btn-neutral float-left" title="Step 3: Running NAIF PDS4 Bundler" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2021, Caltech/JPL/NASA
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,1013 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PDS4 SPICE Kernel Archive Description &mdash; NAIF PDS4 Bundler 1.0.0
+ documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="SPICE Kernel Archive Preparation Guide" href="30_spice_kernel_archive_preparation_guide.html" />
+    <link rel="prev" title="NAIF’s Approach to SPICE Kernel Archive Preparation" href="21_naif_approach.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> NAIF PDS4 Bundler
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="10_overview.html">Overview</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="20_spice_kernel_archive_description.html">SPICE Kernel Archive Description</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="21_naif_approach.html">NAIF’s Approach to SPICE Kernel Archive Preparation</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">PDS4 SPICE Kernel Archive Description</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#product-types">Product Types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#directory-structure-file-naming-product-types-and-lids-lidvids">Directory Structure, File naming, Product Types, and LIDs/LIDVIDs</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#directory-structure">Directory Structure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#spice-kernels-collection">SPICE Kernels Collection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#document-collection">Document Collection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#miscellaneous-collection">Miscellaneous Collection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#lids-vids-lidvids-and-file-naming">LIDs, VIDs, LIDVIDs, and File naming</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#lid-lidvid-construction-rules">LID/LIDVID Construction Rules</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#path-and-full-file-name-in-lid">Path and full file name in LID</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#path-and-file-name-without-version-in-lid">Path and file name without version in LID</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#subdirectory-name-only-in-lid">Subdirectory name only in LID</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#no-file-name-in-lid">No file name in LID</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#bundle-products-construction-rules">Bundle Products Construction Rules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#product-reference-and-collection-inventory-construction-rules">Product Reference and Collection Inventory Construction Rules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#product-coverage-assignment-rules">Product Coverage Assignment Rules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bundle-creation-date-time">Bundle Creation Date Time</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#miscellaneous-collection-rules">Miscellaneous Collection Rules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#checksum-files">Checksum files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bundles-with-multiple-observers-and-or-targets">Bundles with multiple observers and/or targets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pds-information-model">PDS Information Model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#digital-objects-identifiers">Digital Objects Identifiers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#product-set-label-lidvid-and-inventory-examples-for-maven-releases-1-and-2">Product set, label, LIDVID and inventory examples for MAVEN releases 1 and 2</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#a-note-on-spice-kernels-dissemination">A note on SPICE Kernels dissemination</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#spice-kernel-archive-divergences-rationale">SPICE Kernel archive divergences rationale</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="30_spice_kernel_archive_preparation_guide.html">SPICE Kernel Archive Preparation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="40_naif_pds4_bundler_user_guide.html">NAIF PDS4 Bundler User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="50_api_docs.html">Modules, Classes, and Functions Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="60_annex_npb_for_pds3.html">Appendix: NPB for PDS3 Archives</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">NAIF PDS4 Bundler</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="20_spice_kernel_archive_description.html">SPICE Kernel Archive Description</a> &raquo;</li>
+        
+      <li>PDS4 SPICE Kernel Archive Description</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/22_pds4_spice_archive.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="pds4-spice-kernel-archive-description">
+<h1>PDS4 SPICE Kernel Archive Description<a class="headerlink" href="#pds4-spice-kernel-archive-description" title="Permalink to this headline">¶</a></h1>
+<section id="product-types">
+<h2>Product Types<a class="headerlink" href="#product-types" title="Permalink to this headline">¶</a></h2>
+<p>SPICE bundles will include products only of these types:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Product_Bundle</p></li>
+<li><p>Product_Collection</p></li>
+<li><p>Product_SPICE_Kernel (under the <code class="docutils literal notranslate"><span class="pre">spice_kernels</span></code> directory)</p></li>
+<li><p>Product_Document     (under the <code class="docutils literal notranslate"><span class="pre">document</span></code> directory)</p></li>
+<li><p>Product_Ancillary    (under the <code class="docutils literal notranslate"><span class="pre">miscellaneous</span></code> directory)</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="directory-structure-file-naming-product-types-and-lids-lidvids">
+<h2>Directory Structure, File naming, Product Types, and LIDs/LIDVIDs<a class="headerlink" href="#directory-structure-file-naming-product-types-and-lids-lidvids" title="Permalink to this headline">¶</a></h2>
+<section id="directory-structure">
+<h3>Directory Structure<a class="headerlink" href="#directory-structure" title="Permalink to this headline">¶</a></h3>
+<p>The Bundle root directory contains a Readme file and a Bundle label along with
+the Bundle Collections.</p>
+<p>The Readme file provides a summary of the content of the archive whereas Bundle
+labels, provide a handful summary of different aspects of the archive, including
+the archive release, that is equivalent to the Bundle label version.</p>
+<p>A SPICE kernel archive bundle consists of three collections: the
+<em>spice_kernels</em> collection, the <em>miscellaneous</em> collection, and the
+<em>document</em> collection.</p>
+<p>Note that every collection will have a number of Inventory File CVS
+(Comma Separated Value) files and Collection XML labels.</p>
+</section>
+<section id="spice-kernels-collection">
+<h3>SPICE Kernels Collection<a class="headerlink" href="#spice-kernels-collection" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">spice_kernels</span></code> collection follows a particular directory structure and
+its products a particular file naming convention. The collection is composed
+of a series of directories that contain SPICE kernels of each kernel type. Each
+SPICE kernel product has its PDS4 label. These labels have the same file name
+of the labeled SPICE kernel except for the extension, which will be <code class="docutils literal notranslate"><span class="pre">.xml</span></code>.</p>
+</section>
+<section id="document-collection">
+<h3>Document Collection<a class="headerlink" href="#document-collection" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">document</span></code> collection contains all the versions of the SPICE Data Archive
+description file (SPICEDS). These files are described in the section
+<a class="reference internal" href="32_step_2_npb_setup.html#spice-data-set-catalog-file"><span class="std std-ref">SPICE Data Set Catalog File</span></a>.</p>
+</section>
+<section id="miscellaneous-collection">
+<h3>Miscellaneous Collection<a class="headerlink" href="#miscellaneous-collection" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">miscellaneous</span></code> collection contains checksum products under the
+<code class="docutils literal notranslate"><span class="pre">checksum</span></code> directory. These checksum files provide a table of MD5 sums for
+all the files in the archive as of a particular archive version, including
+checksums for all previous checksum files and their labels but excluding the
+checksum for the checksum file itself and its label.</p>
+<p>There should be a checksum product for each release of the archive. As for
+any other archive product, the checksum product will have a label. These labels
+have the same file name except for the extension, which will be <code class="docutils literal notranslate"><span class="pre">.xml</span></code>.</p>
+<p>In addition, the miscellaneous collection might contain orbit number files
+(ORBNUM) under an <code class="docutils literal notranslate"><span class="pre">orbnum</span></code> directory with their corresponding <code class="docutils literal notranslate"><span class="pre">.xml</span></code> labels.
+Any ORBNUM files go here because they are not SPICE kernels.</p>
+<p>Other types of files are currently not envisaged for the miscellaneous
+collection.</p>
+</section>
+<section id="lids-vids-lidvids-and-file-naming">
+<h3>LIDs, VIDs, LIDVIDs, and File naming<a class="headerlink" href="#lids-vids-lidvids-and-file-naming" title="Permalink to this headline">¶</a></h3>
+<p>Critical elements of PDS4 archives are the products’ Logical Identifiers
+(LID) and the products’ Version Identifiers (VID).</p>
+<p>A LID is a unique logical identifier that is assigned to each product,
+collection, and bundle. The nicety is that the LID is not bound to the data
+location and therefore is able to reference data uniquely. VIDs provides the
+capability to version the data identified by a LID; LIDVID combines the LID and
+the VID to provide a unique reference to a specific version of the data.</p>
+<p>For SPICE kernel archives LIDs and LIDVIDs are closely related to the file name
+and its location within the <code class="docutils literal notranslate"><span class="pre">spice_kernels</span></code> collection: for SPICE kernel
+products, except for meta-kernels, the fourth element of the LID will be a
+combination of the kernel type sub-directory and the kernel name itself.</p>
+<p>SPICE kernel archives take advantage of LIDs and LIDVIDs in a particular way
+given the nature of the SPICE kernels; in general the kernel file name contains
+a version number that identifies the kernel as a unique file; this version is
+considered part of the file name and not a version number per se. Hence, in an
+archive it is common to find products with a file name LIDVID pair such as:</p>
+<table class="colwidths-given docutils align-default" id="id1">
+<caption><span class="caption-text">SPICE kernel name - LIDVID examples</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 75%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>File name</p></th>
+<th class="head"><p>LIDVID</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>em16_tgo_v01.tf</p></td>
+<td><p><a class="reference external" href="urn:esa:psa:em16_spice:spice_kernels:fk_em16_tgo_v01.tf::1.0">urn:esa:psa:em16_spice:spice_kernels:fk_em16_tgo_v01.tf::1.0</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>em16_tgo_v02.tf</p></td>
+<td><p><a class="reference external" href="urn:esa:psa:em16_spice:spice_kernels:fk_em16_tgo_v02.tf::1.0">urn:esa:psa:em16_spice:spice_kernels:fk_em16_tgo_v02.tf::1.0</a></p></td>
+</tr>
+</tbody>
+</table>
+<p>We will talk more about this in the following section. For now lets take a
+look at the general directory tree of a SPICE kernel archive. In the following
+diagram you will be able to see the directory structure along with an
+indication on how files are named, their product type, and their LIDVID:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;sc&gt;_spice (bundle root directory)
+ |
+ |-- bundle_&lt;sc&gt;_spice_v001.xml                  --&gt; Product_Bundle
+ |                                                   urn:nasa:pds:&lt;sc&gt;.spice::1.0
+ |
+ |-- bundle_&lt;sc&gt;_spice_v002.xml                  --&gt; Product_Bundle
+ |                                                   urn:nasa:pds:&lt;sc&gt;.spice::2.0
+ | . . .
+ |
+ |-- bundle_&lt;sc&gt;_spice_v???.xml                  --&gt; Product_Bundle
+ |                                                   urn:nasa:pds:&lt;sc&gt;.spice::???.0
+ |-- readme.txt
+ |
+ |-- document
+ | |
+ | |-- collection_document_v001.xml              --&gt; Product_Collection
+ | |-- collection_document_inventory_v001.tab        urn:nasa:pds:&lt;sc&gt;.spice:document::1.0
+ | |
+ | |-- collection_document_v002.xml              --&gt; Product_Collection
+ | |-- collection_document_inventory_v002.tab        urn:nasa:pds:&lt;sc&gt;.spice:document::2.0
+ | |
+ | | . . .
+ | |
+ | |-- collection_document_v???.xml              --&gt; Product_Collection
+ | |-- collection_document_inventory_v???.tab        urn:nasa:pds:&lt;sc&gt;.spice:document::???.0
+ | |
+ | |-- spiceds_v001.html
+ | |-- spiceds_v001.xml                          --&gt; Product_Document
+ | |                                                 urn:nasa:pds:&lt;sc&gt;.spice:document:spiceds::1.0
+ | |-- spiceds_v002.html
+ | |-- spiceds_v002.xml                          --&gt; Product_Document
+ | |                                                 urn:nasa:pds:&lt;sc&gt;.spice:document:spiceds::2.0
+ | | . . .
+ | |
+ | |-- spiceds_v???.html
+ | +-- spiceds_v???.xml                          --&gt; Product_Document
+ |                                                   urn:nasa:pds:&lt;sc&gt;.spice:document:spiceds::???.0
+ |
+ |-- miscellaneous
+ | |
+ | |-- collection_miscellaneous_v001.xml         --&gt; Product_Collection
+ | |-- collection_miscellaneous_inventory_v001.tab   urn:nasa:pds:&lt;sc&gt;.spice:miscellaneous::1.0
+ | |
+ | |-- collection_miscellaneous_v002.xml         --&gt; Product_Collection
+ | |-- collection_miscellaneous_inventory_v002.tab   urn:nasa:pds:&lt;sc&gt;.spice:miscellaneous::2.0
+ | |
+ | | . . .
+ | |
+ | |-- collection_miscellaneous_v???.xml         --&gt; Product_Collection
+ | |-- collection_miscellaneous_inventory_v???.tab   urn:nasa:pds:&lt;sc&gt;.spice:miscellaneous::???.0
+ | |
+ | |
+ | |-- checksum
+ | | |
+ | | |-- checksum_v001.tab
+ | | |-- checksum_v001.xml                       --&gt; Product_Ancillary (described as Checksum_Manifest)
+ | | |                                               urn:nasa:pds:&lt;sc&gt;.spice:miscellaneous:checksum_checksum::1.0
+ | | |-- checksum_v002.tab
+ | | |-- checksum_v002.xml                       --&gt; Product_Ancillary (described as Checksum_Manifest)
+ | | |                                               urn:nasa:pds:&lt;sc&gt;.spice:miscellaneous:checksum_checksum::2.0
+ | | | . . .
+ | | |
+ | | |-- checksum_v???.tab
+ | | +-- checksum_v???.xml                       --&gt; Product_Ancillary (described as Checksum_Manifest)
+ | |                                                 urn:nasa:pds:&lt;sc&gt;.spice:miscellaneous:checksum_checksum::???.0
+ | +-- orbnum (as needed)
+ |   |
+ |   |-- *.orb,*.nrb
+ |   +-- *.xml                                   --&gt; Product_Ancillary (described as Table_Character)
+ |
+ +-- spice_kernels
+   |
+   | - collection_spice_kernels_v001.xml         --&gt; Product_Collection
+   | - collection_spice_kernels_inventory_v001.tab   urn:nasa:pds:&lt;sc&gt;.spice:spice_kernels::1.0
+   |
+   | - collection_spice_kernels_v002.xml         --&gt; Product_Collection
+   | - collection_spice_kernels_inventory_v002.tab   urn:nasa:pds:&lt;sc&gt;.spice:spice_kernels::2.0
+   |
+   | . . .
+   |
+   | - collection_spice_kernels_v???.xml         --&gt; Product_Collection
+   | - collection_spice_kernels_inventory_v???.tab   urn:nasa:pds:&lt;sc&gt;.spice:spice_kernels::???.0
+   |
+   |-- ck
+   | |
+   | |- *.bc
+   | +- *.xml                                    --&gt; Product_SPICE_Kernel
+   |                                                 urn:nasa:pds:&lt;sc&gt;.spice:spice_kernels:ck_&lt;filename.ext&gt;::1.0
+   |-- dbk (as needed)
+   | |
+   | |- *.bdb
+   | +- *.xml                                    --&gt; Product_SPICE_Kernel
+   |                                                 urn:nasa:pds:&lt;sc&gt;.spice:spice_kernels:dbk_&lt;filename.ext&gt;::1.0
+   |-- dsk (as needed)
+   | |
+   | |- *.bds
+   | +- *.xml                                    --&gt; Product_SPICE_Kernel
+   |                                                 urn:nasa:pds:&lt;sc&gt;.spice:spice_kernels:dsk_&lt;filename.ext&gt;::1.0
+   |-- ek (as needed)
+   | |
+   | |- *.bes,*.bep,*.ten,*.tep
+   | +- *.xml                                    --&gt; Product_SPICE_Kernel
+   |                                                 urn:nasa:pds:&lt;sc&gt;.spice:spice_kernels:ek_&lt;filename.ext&gt;::1.0
+   |-- fk
+   | |
+   | |- *.tf
+   | +- *.xml                                    --&gt; Product_SPICE_Kernel
+   |                                                 urn:nasa:pds:&lt;sc&gt;.spice:spice_kernels:fk_&lt;filename.ext&gt;::1.0
+   |-- ik
+   | |
+   | |- *.ti
+   | +- *.xml                                    --&gt; Product_SPICE_Kernel
+   |                                                 urn:nasa:pds:&lt;sc&gt;.spice:spice_kernels:ik_&lt;filename.ext&gt;::1.0
+   |-- lsk
+   | |
+   | |- *.tls
+   | +- *.xml                                    --&gt; Product_SPICE_Kernel
+   |                                                 urn:nasa:pds:&lt;sc&gt;.spice:spice_kernels:lsk_&lt;filename.ext&gt;::1.0
+   |-- mk
+   | |
+   | |- &lt;sc&gt;&lt;_type&gt;_v01.tm
+   | |- &lt;sc&gt;&lt;_type&gt;_v01.xml                      --&gt; Product_SPICE_Kernel
+   | |                                               urn:nasa:pds:&lt;sc&gt;.spice:spice_kernels:mk_&lt;sc&gt;_YYYY::1.0
+   | |- &lt;sc&gt;&lt;_type&gt;_v02.tm
+   | |- &lt;sc&gt;&lt;_type&gt;_v02.xml                      --&gt; Product_SPICE_Kernel
+   | |                                               urn:nasa:pds:&lt;sc&gt;.spice:spice_kernels:mk_&lt;sc&gt;_YYYY::2.0
+   | | . . .
+   | |
+   | |- &lt;sc&gt;&lt;_type&gt;_v??.tm
+   | +- &lt;sc&gt;&lt;_type&gt;_v??.xml                      --&gt; Product_SPICE_Kernel
+   |                                                 urn:nasa:pds:&lt;sc&gt;.spice:spice_kernels:mk_&lt;sc&gt;_YYYY::??.0
+   |-- pck
+   | |
+   | |- *.tpc,*.bpc
+   | +- *.xml                                    --&gt; Product_SPICE_Kernel
+   |                                                 urn:nasa:pds:&lt;sc&gt;.spice:spice_kernels:pck_&lt;filename.ext&gt;::1.0
+   |-- sclk
+   | |
+   | |- *.tsc
+   | +- *.xml                                    --&gt; Product_SPICE_Kernel
+   |                                                 urn:nasa:pds:&lt;sc&gt;.spice:spice_kernels:sclk_&lt;filename.ext&gt;::1.0
+   +-- spk
+     |
+     |- *.bsp
+     +- *.xml                                    --&gt; Product_SPICE_Kernel
+                                                     urn:nasa:pds:&lt;sc&gt;.spice:spice_kernels:spk_&lt;filename.ext&gt;::1.0
+</pre></div>
+</div>
+<p>Where:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;</span></code> is the short s/c name or acronym (e.g. maven, ladee, etc.)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">??</span></code> and <code class="docutils literal notranslate"><span class="pre">???</span></code> are two or three digit version numbers</p></li>
+<li><p>Several types of meta-kernel can be included specifying their type
+in the <code class="docutils literal notranslate"><span class="pre">&lt;_type&gt;</span></code> field. E.g. yearly meta-kernels will have a year
+in their type (<code class="docutils literal notranslate"><span class="pre">maven_2020_v01.tm</span></code>) as opposed to meta-kernels for the
+whole mission, that will not have a type field (<code class="docutils literal notranslate"><span class="pre">insight_v01.tm</span></code>.)</p></li>
+<li><p>Any kernel type subdirectories not applicable for the mission in
+question may be omitted.</p></li>
+<li><p>Additional products of file types that are allowed for
+Product_Ancillary may be provided in subdirectories under
+<code class="docutils literal notranslate"><span class="pre">miscellaneous</span></code>. To be acceptable for archiving, these products
+should contain types of ancillary information similar to those
+provided in the <code class="docutils literal notranslate"><span class="pre">extras</span></code> directory of the PDS3 SPICE data sets.
+Please contact NAIF if you wish to add any of these.</p></li>
+<li><p>Additional products of file types that are allowed for
+Product_Document may be provided in subdirectories under
+<code class="docutils literal notranslate"><span class="pre">document</span></code>. Please contact NAIF if you wish to add any of these.</p></li>
+</ul>
+</div></blockquote>
+<p>The following sections will provide more information to fully understand the
+tree diagram.</p>
+</section>
+</section>
+<section id="lid-lidvid-construction-rules">
+<h2>LID/LIDVID Construction Rules<a class="headerlink" href="#lid-lidvid-construction-rules" title="Permalink to this headline">¶</a></h2>
+<p>As specified in the previous section, LIDVIDs are constructed in a particular
+way for SPICE kernel archives that might differ from what is indicated in the
+PDS4 Standard documentation.</p>
+<p>For all products, the initial part of the LIDs will be:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">urn</span><span class="p">:</span><span class="o">&lt;</span><span class="n">agency</span><span class="o">&gt;</span><span class="p">:</span><span class="o">&lt;</span><span class="n">authority</span><span class="o">&gt;</span><span class="p">:</span><span class="o">&lt;</span><span class="n">sc</span><span class="o">&gt;.</span><span class="n">spice</span><span class="p">:</span>
+</pre></div>
+</div>
+<p>where</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;agency&gt;</span></code> is the mission’s space agency (e.g. nasa, esa, etc.)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;authority&gt;</span></code> is the agency’s archiving authority (e.g. pds, psa, etc.)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;</span></code> is the short s/c name or acronym (e.g. maven, em16, etc.) Note that
+some ESA PSA SPICE kernel bundles have <code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;_spice</span></code> instead of
+<code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;.spice</span></code>. NAIF recommends to use <code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;.spice</span></code></p></li>
+</ul>
+</div></blockquote>
+<p>for example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span>
+<span class="n">urn</span><span class="p">:</span><span class="n">jaxa</span><span class="p">:</span><span class="n">darts</span><span class="p">:</span><span class="n">hayabusa2</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span>
+<span class="n">urn</span><span class="p">:</span><span class="n">esa</span><span class="p">:</span><span class="n">psa</span><span class="p">:</span><span class="n">em16_spice</span><span class="p">:</span>
+</pre></div>
+</div>
+<p>The rest of the LIDVID can be constructed in four different ways depending
+on the product:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>path and full file name in LID</p></li>
+<li><p>path and file name without version in LID</p></li>
+<li><p>subdirectory name only in LID</p></li>
+<li><p>no file name in LID</p></li>
+</ul>
+</div></blockquote>
+<section id="path-and-full-file-name-in-lid">
+<h3>Path and full file name in LID<a class="headerlink" href="#path-and-full-file-name-in-lid" title="Permalink to this headline">¶</a></h3>
+<p>LIDs will include the directory path and the full file name with extension
+and VIDs will always be set to 1. This applies to the following products:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>SPICE kernels under <code class="docutils literal notranslate"><span class="pre">spice_kernels</span></code> <strong>except</strong> Meta-kernels
+<code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;&lt;_type&gt;_v??.tm</span></code></p></li>
+<li><p>orbit number files under <code class="docutils literal notranslate"><span class="pre">miscellaneous</span></code></p></li>
+<li><p>documents under <code class="docutils literal notranslate"><span class="pre">document</span></code> <strong>except</strong> <code class="docutils literal notranslate"><span class="pre">spiceds_v???.html</span></code></p></li>
+</ul>
+</div></blockquote>
+<p>The rationale behind is that the versioning of SPICE kernels and orbnum files
+is not linked to archive releases (usually is related to mission operations)
+and therefore the file version might not be sequential given that it is not
+necessary to release intermediate files that have been generated in between
+archive releases:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">miscellaneous</span><span class="o">/</span><span class="n">orbnum</span><span class="o">/</span><span class="n">maven_orb1</span><span class="o">.</span><span class="n">orb</span>   <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">miscellaneous</span><span class="p">:</span><span class="n">orbnum_maven_orb1</span><span class="o">.</span><span class="n">orb</span><span class="p">::</span><span class="mf">1.0</span>
+<span class="n">miscellaneous</span><span class="o">/</span><span class="n">orbnum</span><span class="o">/</span><span class="n">maven_orb2</span><span class="o">.</span><span class="n">orb</span>   <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">miscellaneous</span><span class="p">:</span><span class="n">orbnum_maven_orb2</span><span class="o">.</span><span class="n">orb</span><span class="p">::</span><span class="mf">1.0</span>
+
+<span class="n">spice_kernels</span><span class="o">/</span><span class="n">fk</span><span class="o">/</span><span class="n">bc_mpo_v02</span><span class="o">.</span><span class="n">tf</span>        <span class="n">urn</span><span class="p">:</span><span class="n">esa</span><span class="p">:</span><span class="n">psa</span><span class="p">:</span><span class="n">bc_spice</span><span class="p">:</span><span class="n">spice_kernels</span><span class="p">:</span><span class="n">fk_bc_mpo_v02</span><span class="o">.</span><span class="n">tf</span><span class="p">::</span><span class="mf">1.0</span>
+<span class="n">spice_kernels</span><span class="o">/</span><span class="n">fk</span><span class="o">/</span><span class="n">bc_mpo_v15</span><span class="o">.</span><span class="n">tf</span>        <span class="n">urn</span><span class="p">:</span><span class="n">esa</span><span class="p">:</span><span class="n">psa</span><span class="p">:</span><span class="n">bc_spice</span><span class="p">:</span><span class="n">spice_kernels</span><span class="p">:</span><span class="n">fk_bc_mpo_v15</span><span class="o">.</span><span class="n">tf</span><span class="p">::</span><span class="mf">1.0</span>
+
+<span class="n">spice_kernels</span><span class="o">/</span><span class="n">spk</span><span class="o">/</span><span class="n">de430</span><span class="o">.</span><span class="n">bsp</span>           <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">spice_kernels</span><span class="p">:</span><span class="n">spk_de430</span><span class="o">.</span><span class="n">bsp</span><span class="p">::</span><span class="mf">1.0</span>
+<span class="n">spice_kernels</span><span class="o">/</span><span class="n">spk</span><span class="o">/</span><span class="n">de431</span><span class="o">.</span><span class="n">bsp</span>           <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">spice_kernels</span><span class="p">:</span><span class="n">spk_de431</span><span class="o">.</span><span class="n">bsp</span><span class="p">::</span><span class="mf">1.0</span>
+</pre></div>
+</div>
+</section>
+<section id="path-and-file-name-without-version-in-lid">
+<h3>Path and file name without version in LID<a class="headerlink" href="#path-and-file-name-without-version-in-lid" title="Permalink to this headline">¶</a></h3>
+<p>LIDs will include the directory path and the file name up to the version part
+and VIDs will always be set to the version part from the file name. This applies
+to the following products.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Meta-kernels (<code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;&lt;_type&gt;_v??.tm</span></code>)</p></li>
+<li><p>checksum tables (<code class="docutils literal notranslate"><span class="pre">checksum_v???.tab</span></code>)</p></li>
+<li><p>SPICE archive description documents (<code class="docutils literal notranslate"><span class="pre">spiceds_v???.html</span></code>)</p></li>
+</ul>
+</div></blockquote>
+<p>This particular set of files are specific to the archive and therefore they
+are guaranteed to be sequential:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">spice_kernels</span><span class="o">/</span><span class="n">mk</span><span class="o">/</span><span class="n">maven_v01</span><span class="o">.</span><span class="n">tm</span>              <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">spice_kernels</span><span class="p">:</span><span class="n">mk_maven</span><span class="p">::</span><span class="mf">1.0</span>
+<span class="n">spice_kernels</span><span class="o">/</span><span class="n">mk</span><span class="o">/</span><span class="n">maven_v02</span><span class="o">.</span><span class="n">tm</span>              <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">spice_kernels</span><span class="p">:</span><span class="n">mk_maven</span><span class="p">::</span><span class="mf">2.0</span>
+
+<span class="n">spice_kernels</span><span class="o">/</span><span class="n">mk</span><span class="o">/</span><span class="n">maven_2014_v01</span><span class="o">.</span><span class="n">tm</span>         <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">spice_kernels</span><span class="p">:</span><span class="n">mk_maven_2014</span><span class="p">::</span><span class="mf">1.0</span>
+<span class="n">spice_kernels</span><span class="o">/</span><span class="n">mk</span><span class="o">/</span><span class="n">maven_2014_v02</span><span class="o">.</span><span class="n">tm</span>         <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">spice_kernels</span><span class="p">:</span><span class="n">mk_maven_2014</span><span class="p">::</span><span class="mf">2.0</span>
+
+<span class="n">miscellaneous</span><span class="o">/</span><span class="n">checksum</span><span class="o">/</span><span class="n">checksum_v001</span><span class="o">.</span><span class="n">tab</span>   <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">miscellaneous</span><span class="p">:</span><span class="n">checksum_checksum</span><span class="p">::</span><span class="mf">1.0</span>
+<span class="n">miscellaneous</span><span class="o">/</span><span class="n">checksum</span><span class="o">/</span><span class="n">checksum_v002</span><span class="o">.</span><span class="n">tab</span>   <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">miscellaneous</span><span class="p">:</span><span class="n">checksum_checksum</span><span class="p">::</span><span class="mf">2.0</span>
+
+<span class="n">document</span><span class="o">/</span><span class="n">spiceds_v001</span><span class="o">.</span><span class="n">html</span>                 <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">document</span><span class="p">:</span><span class="n">spiceds</span><span class="p">::</span><span class="mf">1.0</span>
+<span class="n">document</span><span class="o">/</span><span class="n">spiceds_v002</span><span class="o">.</span><span class="n">html</span>                 <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">document</span><span class="p">:</span><span class="n">spiceds</span><span class="p">::</span><span class="mf">2.0</span>
+</pre></div>
+</div>
+</section>
+<section id="subdirectory-name-only-in-lid">
+<h3>Subdirectory name only in LID<a class="headerlink" href="#subdirectory-name-only-in-lid" title="Permalink to this headline">¶</a></h3>
+<p>LIDs will include only the subdirectory name and VIDs will always be set to
+the version part from the file name. This applies to the following products:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>SPICE document collection products</p></li>
+<li><p>SPICE miscellaneous collection products</p></li>
+<li><p>SPICE kernels collection products</p></li>
+</ul>
+</div></blockquote>
+<p>In general these products are the label and the inventory files:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">document</span><span class="o">/</span><span class="n">collection_document_v001</span><span class="o">.</span><span class="n">xml</span>             <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">document</span><span class="p">::</span><span class="mf">1.0</span>
+<span class="n">document</span><span class="o">/</span><span class="n">collection_document_v002</span><span class="o">.</span><span class="n">xml</span>             <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">document</span><span class="p">::</span><span class="mf">2.0</span>
+
+<span class="n">miscellaneous</span><span class="o">/</span><span class="n">collection_miscellaneous_v001</span><span class="o">.</span><span class="n">xml</span>   <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">miscellaneous</span><span class="p">::</span><span class="mf">1.0</span>
+<span class="n">miscellaneous</span><span class="o">/</span><span class="n">collection_miscellaneous_v002</span><span class="o">.</span><span class="n">xml</span>   <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">miscellaneous</span><span class="p">::</span><span class="mf">2.0</span>
+
+<span class="n">spice_kernels</span><span class="o">/</span><span class="n">collection_spice_kernels_v001</span><span class="o">.</span><span class="n">xml</span>   <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">spice_kernels</span><span class="p">::</span><span class="mf">1.0</span>
+<span class="n">spice_kernels</span><span class="o">/</span><span class="n">collection_spice_kernels_v002</span><span class="o">.</span><span class="n">xml</span>   <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">spice_kernels</span><span class="p">::</span><span class="mf">2.0</span>
+</pre></div>
+</div>
+</section>
+<section id="no-file-name-in-lid">
+<h3>No file name in LID<a class="headerlink" href="#no-file-name-in-lid" title="Permalink to this headline">¶</a></h3>
+<p>LIDs will include only the initial part of the LID and VIDs will always be set
+to the version part from the file name. This applies to the following products:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>all SPICE bundle products</p></li>
+</ul>
+</div></blockquote>
+<p>which is reduced to the bundle label:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">bundle_maven_spice_v001</span><span class="o">.</span><span class="n">xml</span>   <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">::</span><span class="mf">1.0</span>
+<span class="n">bundle_maven_spice_v002</span><span class="o">.</span><span class="n">xml</span>   <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">::</span><span class="mf">2.0</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="bundle-products-construction-rules">
+<h2>Bundle Products Construction Rules<a class="headerlink" href="#bundle-products-construction-rules" title="Permalink to this headline">¶</a></h2>
+<p>Readme files cannot be overwritten (as for any other file in the archive)
+or versioned. This means that when the Readme file is generated for the first
+release of the archive, it will remain unchanged; make sure not to make
+mistakes when writing that file and write it as generically as possible.
+For example, do not specify the archive producer name, instead provide the
+the archive producer organization name (usually the archiving authority.)</p>
+<p>This is the reason why you will probably not see any reference to the
+Miscellaneous collection in most readme files of NAIF archives: the
+Miscellaneous collection was added after the several releases of the archive.</p>
+</section>
+<section id="product-reference-and-collection-inventory-construction-rules">
+<h2>Product Reference and Collection Inventory Construction Rules<a class="headerlink" href="#product-reference-and-collection-inventory-construction-rules" title="Permalink to this headline">¶</a></h2>
+<p>This set of rules applies to all the archive products:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>all products’ <code class="docutils literal notranslate"><span class="pre">Context_Area</span></code> includes only Mission (<code class="docutils literal notranslate"><span class="pre">*_to_investigation</span></code>),
+Spacecraft(s) (<code class="docutils literal notranslate"><span class="pre">is_instrument_host</span></code>), and Target(s) (<code class="docutils literal notranslate"><span class="pre">*_to_target</span></code>) LID
+references. These LIDs should be obtained from your archiving authority
+(the PDS coordinating node for NASA missions, PSA for ESA missions,
+DARTS for JAXA missions, etc.) or from the PDS Engineering Node.</p></li>
+<li><p>All products’ <code class="docutils literal notranslate"><span class="pre">Reference_List</span></code> includes the latest primary SPICE
+archive description document LID reference (<code class="docutils literal notranslate"><span class="pre">*_to_document</span></code>) (<strong>except</strong>
+the SPICE archive description documents (<code class="docutils literal notranslate"><span class="pre">spiceds_v???.html</span></code>)
+which can’t reference themselves.)</p></li>
+<li><p>Each Meta-kernel’s Reference_List also includes LIDVID references for
+all kernels (<code class="docutils literal notranslate"><span class="pre">data_to_associate</span></code>) listed in the MK.</p></li>
+<li><p>Each collection inventory lists LIDVIDs of <strong>all</strong> non-collection
+products provided under collection’s directory at the time when the
+collection product was created. In a particular collection
+inventory, <em>P</em> is used only for newly added products (that don’t
+appear in any of the collections with earlier versions) and <em>S</em> is
+used for products that have already been registered in a collection
+with an earlier version.</p></li>
+<li><p>Each Bundle label includes Bundle_Member_Entry’s only for the
+latest SPICE kernel collection LIDVID
+(<code class="docutils literal notranslate"><span class="pre">bundle_has_spice_kernel_collection</span></code>), the latest document collection
+LIDVID (<code class="docutils literal notranslate"><span class="pre">bundle_has_document_collection</span></code>) and the latest miscellaneous
+collection LIDVID (<code class="docutils literal notranslate"><span class="pre">bundle_has_miscellaneous_collection</span></code>). These
+collections have Primary statuses if they have not been registered
+in any earlier bundle versions. Otherwise they have Secondary
+statuses.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="product-coverage-assignment-rules">
+<h2>Product Coverage Assignment Rules<a class="headerlink" href="#product-coverage-assignment-rules" title="Permalink to this headline">¶</a></h2>
+<p>Determination of the coverage for the different products that needs to be
+recorded in the <code class="docutils literal notranslate"><span class="pre">Contex_Area/Time</span> <span class="pre">Coordinates</span></code> element of the product labels
+is not straightforward; to comply with the NAIF standard, the following rules
+must be followed:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">start_date_time</span></code> and <code class="docutils literal notranslate"><span class="pre">stop_date_time</span></code> appear in
+<code class="docutils literal notranslate"><span class="pre">Context_Area/Time_Coordinates</span></code> only in bundle, SPICE kernel collection,
+Miscellaneous collection, SPICE kernel labels, checksum, and orbit
+number file labels</p></li>
+<li><p>for kernels for which time boundaries can be determined from the
+data (SPKs, CKs, binary PCKs, and DSKs) <code class="docutils literal notranslate"><span class="pre">start_date_time</span></code> and
+<code class="docutils literal notranslate"><span class="pre">stop_date_time</span></code> are set to those boundaries</p></li>
+<li><p>for kernels for which time boundaries cannot be determined from the
+data (LSKs, SCLKs, text PCKs, FKs and IKs) <code class="docutils literal notranslate"><span class="pre">start_date_time</span></code> and
+<code class="docutils literal notranslate"><span class="pre">stop_date_time</span></code> are set to the default mission time range (from
+launch to an arbitrary date many decades into the future, e.g.
+<code class="docutils literal notranslate"><span class="pre">2050-01-01</span></code>)</p></li>
+<li><p>for whole mission meta-kernels <code class="docutils literal notranslate"><span class="pre">start_date_time</span></code> and <code class="docutils literal notranslate"><span class="pre">stop_date_time</span></code>
+are set to the coverage provided by spacecraft SPK, CKs, or to other
+dates at the discretion of the archive producer. These other dates might
+be required for missions whose SPks and CKs do not explicitly cover the
+dates required by the archive, e.g.: a lander mission with a fixed
+position provided by an SPK with extended coverage</p></li>
+<li><p>for yearly mission meta-kernels <code class="docutils literal notranslate"><span class="pre">start_date_time</span></code> and <code class="docutils literal notranslate"><span class="pre">stop_date_time</span></code>
+are set to the coverage from Jan 1 00:00 of the year to either the
+end of coverage provided by spacecraft SPK or CKs, or the end of the
+year (whichever is earlier)</p></li>
+<li><p>for a SPICE collection the coverage is set to the boundaries of the
+combined coverage of the latest MKs that are part of this collection</p></li>
+<li><p>for a Miscellaneous collection the coverage is set to the boundaries of
+the combined coverage of the latest checksum and the coverage provided by
+the orbit number file that are part of this collection</p></li>
+<li><p>for a SPICE bundle the coverage is set to the boundaries of the
+coverage of the SPICE collection that is its member.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="bundle-creation-date-time">
+<h2>Bundle Creation Date Time<a class="headerlink" href="#bundle-creation-date-time" title="Permalink to this headline">¶</a></h2>
+<p>The creation time of the current version of the bundle is provided in the
+bundle label under the <code class="docutils literal notranslate"><span class="pre">File_Area_Text</span></code> area. Although this should
+correspond to the creation date of the readme file, its <code class="docutils literal notranslate"><span class="pre">creation_date_time</span></code>
+element is used because is the only way to embed the creation date within
+the bundle label.</p>
+<p>There is no need to mention this in the errata section of the
+SPICE archive description document.</p>
+</section>
+<section id="miscellaneous-collection-rules">
+<h2>Miscellaneous Collection Rules<a class="headerlink" href="#miscellaneous-collection-rules" title="Permalink to this headline">¶</a></h2>
+<p>The generation of a new checksum product is bound to the addition of a
+SPICE kernel product in the SPICE Kernels collection or to the addition of an
+orbit number file product in the Miscellaneous collection. If none of these
+products are added, the checksum file will not be generated.</p>
+<p>It is highly convenient for the versions of the bundle, SPICE kernel, and
+Miscellaneous collections labels to be aligned. Therefore it is not recommended
+to produce an archive release that does not include an incremented SPICE kernel
+collection (that automatically triggers the Miscellaneous collection increment),
+or that only includes a Miscellaneous collection increment (for example to
+only add an orbit number file product or a correction in any other product that
+is not a SPICE kernel.)</p>
+</section>
+<section id="checksum-files">
+<h2>Checksum files<a class="headerlink" href="#checksum-files" title="Permalink to this headline">¶</a></h2>
+<p>It is highly recommended, not to say a policy, that archived files are ever
+altered in any way. This was not possible in PDS3 but it is in PDS4. Thanks to
+this, Checksum files provide the ability to revert to an earlier version
+of the archive – just take all the files listed in particular checksum plus
+the checksum itself and its label.</p>
+</section>
+<section id="bundles-with-multiple-observers-and-or-targets">
+<h2>Bundles with multiple observers and/or targets<a class="headerlink" href="#bundles-with-multiple-observers-and-or-targets" title="Permalink to this headline">¶</a></h2>
+<p>Multiple spacecrafts and mutliple targets. NPB incorporates the possibility to
+have mutliple spacecrafts and targets in a Bundle. This is provided via
+configuration. If so, the default spacecraft will be the primary spacecraft
+which is specified in the configuration file. Otherwise it needs to be
+specified in the Kernel List section of the configuration file. The non-kernels
+bundle products will include all the targets and all the spacecrafts in the
+labels.</p>
+</section>
+<section id="pds-information-model">
+<h2>PDS Information Model<a class="headerlink" href="#pds-information-model" title="Permalink to this headline">¶</a></h2>
+<p>According to the PDS4 Concepts Document, the PDS Information model is</p>
+<blockquote>
+<div><p>A representation of concepts, relationships, constraints, rules, and
+operations to specify data semantics for a chosen domain of discourse.
+Specifically, the PDS Information Model (IM) is the representation that
+specifies PDS4.</p>
+</div></blockquote>
+<p>The PDS IM is constantly evolving and new builds are released approximately
+every six months.</p>
+<p>For SPICE kernel archives the IM constrains the way in which labels are
+designed. Note that the constant evolution of the IM is in conflict with NAIF’s
+approach to archives: archived files should never be changed.</p>
+<p>NAIF recommends to archive producers to choose an IM and to stick with it
+(as much as possible) throughout all the archive releases. At this point NAIF
+uses IM 1.5.0.0 for all the NAIF PDS4 Bundles. IM 1.5.0.0 does not
+support the usage of Line-Feed line endings (LF) for products, nor does it
+support the inclusion of Digital Object Identifiers (DOIs) in the bundle label.
+DOIs where included in IM 1.11.0.0, –the ExoMars2016 PDS4 Bundle uses IM 1.11.0.0
+to be able to incorporate DOIs– and LF for products was incorporated in IM
+1.16.0.0. LF are only relevant to Checksum and ORBNUM products, given that they
+are Table Character products, and LF is only required if the archive you are
+generating or incrementing needs to include ORBNUM files also included in PDS3
+archives or in other holdings where these objects had LF.</p>
+<p>Because of these reasons NAIF recommends to use IM 1.16.0.0 for new archives.</p>
+</section>
+<section id="digital-objects-identifiers">
+<h2>Digital Objects Identifiers<a class="headerlink" href="#digital-objects-identifiers" title="Permalink to this headline">¶</a></h2>
+<p>A Digital Object Identifier (DOI) is a unique alphanumeric string assigned by a
+registration agency (the International DOI Foundation) to identify content and
+provide a persistent link to its location on the internet. DOIs can be used for
+example to cite the SPICE kernel archive in published articles.</p>
+<p>DOIs are not mandatory for SPICE kernel archives, but are desirable. A SPICE
+kernel archive should only have one DOI associated with the bundle and if
+applicable recorded in the bundle label under the <code class="docutils literal notranslate"><span class="pre">Identification_Area</span></code> as
+follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;Citation_Information&gt;
+  &lt;author_list&gt;$AUTHOR_LIST&lt;/author_list&gt;
+  &lt;publication_year&gt;$PRODUCT_CREATION_YEAR&lt;/publication_year&gt;
+  &lt;doi&gt;$DOI&lt;/doi&gt;
+  &lt;keyword&gt;Observation Geometry&lt;/keyword&gt;
+  &lt;description&gt;This bundle contains $MISSION_NAME SPICE kernels and related documentation.&lt;/description&gt;
+&lt;/Citation_Information&gt;
+</pre></div>
+</div>
+<p>where uppercase keywords preceded by a <code class="docutils literal notranslate"><span class="pre">$</span></code> are archive specific values.</p>
+</section>
+<section id="product-set-label-lidvid-and-inventory-examples-for-maven-releases-1-and-2">
+<h2>Product set, label, LIDVID and inventory examples for MAVEN releases 1 and 2<a class="headerlink" href="#product-set-label-lidvid-and-inventory-examples-for-maven-releases-1-and-2" title="Permalink to this headline">¶</a></h2>
+<p>Below is an example of files, product types, and LIDVIDs for the MAVEN 1st and
+2nd releases. Inventory contents are shown with <code class="docutils literal notranslate"><span class="pre">P</span></code> and <code class="docutils literal notranslate"><span class="pre">S</span></code> attributes. <code class="docutils literal notranslate"><span class="pre">+</span></code>
+as the first character on the line indicates files added in that release:</p>
+<p>Release 1 includes:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>1 document: <code class="docutils literal notranslate"><span class="pre">spiceds_v001.html</span></code></p></li>
+<li><p>2 misc products: <code class="docutils literal notranslate"><span class="pre">maven_orb1.orb</span></code>, <code class="docutils literal notranslate"><span class="pre">checksum_v001.tab</span></code></p></li>
+<li><p>3 kernels: <code class="docutils literal notranslate"><span class="pre">naif0011.tls</span></code>, <code class="docutils literal notranslate"><span class="pre">maven_2015_v01.tm</span></code>, <code class="docutils literal notranslate"><span class="pre">maven_orb1.bsp</span></code></p></li>
+</ul>
+</div></blockquote>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">---------------------------------------------------------</span>  <span class="o">-----------------------</span>  <span class="o">------------------------------------------------------------------</span>
+<span class="n">File</span>                                                       <span class="n">Product</span> <span class="n">Type</span>             <span class="n">LIDVID</span>
+     <span class="n">Inventory</span> <span class="n">Contents</span>
+<span class="o">---------------------------------------------------------</span>  <span class="o">-----------------------</span>  <span class="o">------------------------------------------------------------------</span>
+
+<span class="o">./</span><span class="n">bundle_maven_spice_v001</span><span class="o">.</span><span class="n">xml</span>                              <span class="n">Product_Bundle</span>           <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">::</span><span class="mf">1.0</span>
+     <span class="n">P</span><span class="p">,</span><span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">document</span><span class="p">::</span><span class="mf">1.0</span>
+     <span class="n">P</span><span class="p">,</span><span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">miscellaneous</span><span class="p">::</span><span class="mf">1.0</span>
+     <span class="n">P</span><span class="p">,</span><span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">spice_kernels</span><span class="p">::</span><span class="mf">1.0</span>
+<span class="o">./</span><span class="n">readme</span><span class="o">.</span><span class="n">txt</span>
+
+<span class="o">./</span><span class="n">document</span><span class="o">/</span><span class="n">collection_document_v001</span><span class="o">.</span><span class="n">xml</span>                    <span class="n">Product_Collection</span>       <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">document</span><span class="p">::</span><span class="mf">1.0</span>
+<span class="o">./</span><span class="n">document</span><span class="o">/</span><span class="n">collection_document_inventory_v001</span><span class="o">.</span><span class="n">tab</span>
+     <span class="n">P</span><span class="p">,</span><span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">document</span><span class="p">:</span><span class="n">spiceds</span><span class="p">::</span><span class="mf">1.0</span>
+
+<span class="o">./</span><span class="n">document</span><span class="o">/</span><span class="n">spiceds_v001</span><span class="o">.</span><span class="n">xml</span>                                <span class="n">Product_Document</span>         <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">document</span><span class="p">:</span><span class="n">spiceds</span><span class="p">::</span><span class="mf">1.0</span>
+<span class="o">./</span><span class="n">document</span><span class="o">/</span><span class="n">spiceds_v001</span><span class="o">.</span><span class="n">html</span>
+
+<span class="o">./</span><span class="n">miscellaneous</span><span class="o">/</span><span class="n">collection_miscellaneous_v001</span><span class="o">.</span><span class="n">xml</span>          <span class="n">Product_Collection</span>       <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">miscellaneous</span><span class="p">::</span><span class="mf">1.0</span>
+<span class="o">./</span><span class="n">miscellaneous</span><span class="o">/</span><span class="n">collection_miscellaneous_inventory_v001</span><span class="o">.</span><span class="n">tab</span>
+     <span class="n">P</span><span class="p">,</span><span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">miscellaneous</span><span class="p">:</span><span class="n">orbnum_maven_orb1</span><span class="o">.</span><span class="n">orb</span><span class="p">::</span><span class="mf">1.0</span>
+     <span class="n">P</span><span class="p">,</span><span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">miscellaneous</span><span class="p">:</span><span class="n">checksum_checksum</span><span class="p">::</span><span class="mf">1.0</span>
+
+<span class="o">./</span><span class="n">miscellaneous</span><span class="o">/</span><span class="n">orbnum</span><span class="o">/</span><span class="n">maven_orb1</span><span class="o">.</span><span class="n">xml</span>                      <span class="n">Product_Ancillary</span><span class="o">/</span><span class="n">Table</span>  <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">miscellaneous</span><span class="p">:</span><span class="n">orbnum_maven_orb1</span><span class="o">.</span><span class="n">orb</span><span class="p">::</span><span class="mf">1.0</span>
+<span class="o">./</span><span class="n">miscellaneous</span><span class="o">/</span><span class="n">orbnum</span><span class="o">/</span><span class="n">maven_orb1</span><span class="o">.</span><span class="n">orb</span>
+
+<span class="o">./</span><span class="n">miscellaneous</span><span class="o">/</span><span class="n">checksum</span><span class="o">/</span><span class="n">checksum_v001</span><span class="o">.</span><span class="n">xml</span>                 <span class="n">Product_Ancillary</span><span class="o">/</span><span class="n">Table</span>  <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">miscellaneous</span><span class="p">:</span><span class="n">checksum_checksum</span><span class="p">::</span><span class="mf">1.0</span>
+<span class="o">./</span><span class="n">miscellaneous</span><span class="o">/</span><span class="n">checksum</span><span class="o">/</span><span class="n">checksum_v001</span><span class="o">.</span><span class="n">tab</span>
+
+<span class="o">./</span><span class="n">spice_kernels</span><span class="o">/</span><span class="n">collection_spice_kernels_v001</span><span class="o">.</span><span class="n">xml</span>          <span class="n">Product_Collection</span>       <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">spice_kernels</span><span class="p">::</span><span class="mf">1.0</span>
+<span class="o">./</span><span class="n">spice_kernels</span><span class="o">/</span><span class="n">collection_spice_kernels_inventory_v001</span><span class="o">.</span><span class="n">tab</span>
+     <span class="n">P</span><span class="p">,</span><span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">spice_kernels</span><span class="p">:</span><span class="n">lsk_naif0011</span><span class="o">.</span><span class="n">tls</span><span class="p">::</span><span class="mf">1.0</span>
+     <span class="n">P</span><span class="p">,</span><span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">spice_kernels</span><span class="p">:</span><span class="n">mk_maven_2015</span><span class="p">::</span><span class="mf">1.0</span>
+     <span class="n">P</span><span class="p">,</span><span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">spice_kernels</span><span class="p">:</span><span class="n">spk_maven_orb1</span><span class="o">.</span><span class="n">bsp</span><span class="p">::</span><span class="mf">1.0</span>
+
+<span class="o">./</span><span class="n">spice_kernels</span><span class="o">/</span><span class="n">lsk</span><span class="o">/</span><span class="n">naif0011</span><span class="o">.</span><span class="n">xml</span>                           <span class="n">Product_SPICE_Kernel</span>     <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">spice_kernels</span><span class="p">:</span><span class="n">lsk_naif0011</span><span class="o">.</span><span class="n">tls</span><span class="p">::</span><span class="mf">1.0</span>
+<span class="o">./</span><span class="n">spice_kernels</span><span class="o">/</span><span class="n">lsk</span><span class="o">/</span><span class="n">naif0011</span><span class="o">.</span><span class="n">tls</span>
+
+<span class="o">./</span><span class="n">spice_kernels</span><span class="o">/</span><span class="n">mk</span><span class="o">/</span><span class="n">maven_2015_v01</span><span class="o">.</span><span class="n">xml</span>                      <span class="n">Product_SPICE_Kernel</span>     <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">spice_kernels</span><span class="p">:</span><span class="n">mk_maven_2015</span><span class="p">::</span><span class="mf">1.0</span>
+<span class="o">./</span><span class="n">spice_kernels</span><span class="o">/</span><span class="n">mk</span><span class="o">/</span><span class="n">maven_2015_v01</span><span class="o">.</span><span class="n">tm</span>
+
+<span class="o">./</span><span class="n">spice_kernels</span><span class="o">/</span><span class="n">spk</span><span class="o">/</span><span class="n">maven_orb1</span><span class="o">.</span><span class="n">xml</span>                         <span class="n">Product_SPICE_Kernel</span>     <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">spice_kernels</span><span class="p">:</span><span class="n">spk_maven_orb1</span><span class="o">.</span><span class="n">bsp</span><span class="p">::</span><span class="mf">1.0</span>
+<span class="o">./</span><span class="n">spice_kernels</span><span class="o">/</span><span class="n">spk</span><span class="o">/</span><span class="n">maven_orb1</span><span class="o">.</span><span class="n">bsp</span>
+<span class="o">---------------------------------------------------------</span>  <span class="o">-----------------------</span>  <span class="o">------------------------------------------------------------------</span>
+</pre></div>
+</div>
+<p>Release 2 adds:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>1 document: <code class="docutils literal notranslate"><span class="pre">spiceds_v002.html</span></code></p></li>
+<li><p>2 misc products: <code class="docutils literal notranslate"><span class="pre">maven_orb2.orb</span></code>, <code class="docutils literal notranslate"><span class="pre">checksum_v002.tab</span></code></p></li>
+<li><p>2 kernels: <code class="docutils literal notranslate"><span class="pre">maven_2015_v02.tm</span></code>, <code class="docutils literal notranslate"><span class="pre">maven_orb2.bsp</span></code></p></li>
+</ul>
+</div></blockquote>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>   <span class="o">---------------------------------------------------------</span>  <span class="o">-----------------------</span>  <span class="o">------------------------------------------------------------------</span>
+   <span class="n">File</span>                                                       <span class="n">Product</span> <span class="n">Type</span>             <span class="n">LIDVID</span>
+        <span class="n">Inventory</span> <span class="n">Contents</span>
+   <span class="o">---------------------------------------------------------</span>  <span class="o">-----------------------</span>  <span class="o">------------------------------------------------------------------</span>
+
+   <span class="o">./</span><span class="n">bundle_maven_spice_v001</span><span class="o">.</span><span class="n">xml</span>                              <span class="n">Product_Bundle</span>           <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">::</span><span class="mf">1.0</span>
+        <span class="n">P</span><span class="p">,</span><span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">document</span><span class="p">::</span><span class="mf">1.0</span>
+        <span class="n">P</span><span class="p">,</span><span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">miscellaneous</span><span class="p">::</span><span class="mf">1.0</span>
+        <span class="n">P</span><span class="p">,</span><span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">spice_kernels</span><span class="p">::</span><span class="mf">1.0</span>
+<span class="o">+</span>  <span class="o">./</span><span class="n">bundle_maven_spice_v002</span><span class="o">.</span><span class="n">xml</span>                              <span class="n">Product_Bundle</span>           <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">::</span><span class="mf">2.0</span>
+        <span class="n">P</span><span class="p">,</span><span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">document</span><span class="p">::</span><span class="mf">2.0</span>
+        <span class="n">P</span><span class="p">,</span><span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">miscellaneous</span><span class="p">::</span><span class="mf">2.0</span>
+        <span class="n">P</span><span class="p">,</span><span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">spice_kernels</span><span class="p">::</span><span class="mf">2.0</span>
+   <span class="o">./</span><span class="n">readme</span><span class="o">.</span><span class="n">txt</span>
+
+   <span class="o">./</span><span class="n">document</span><span class="o">/</span><span class="n">collection_document_v001</span><span class="o">.</span><span class="n">xml</span>                    <span class="n">Product_Collection</span>       <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">document</span><span class="p">::</span><span class="mf">1.0</span>
+   <span class="o">./</span><span class="n">document</span><span class="o">/</span><span class="n">collection_document_inventory_v001</span><span class="o">.</span><span class="n">tab</span>
+        <span class="n">P</span><span class="p">,</span><span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">document</span><span class="p">:</span><span class="n">spiceds</span><span class="p">::</span><span class="mf">1.0</span>
+<span class="o">+</span>  <span class="o">./</span><span class="n">document</span><span class="o">/</span><span class="n">collection_document_v002</span><span class="o">.</span><span class="n">xml</span>                    <span class="n">Product_Collection</span>       <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">document</span><span class="p">::</span><span class="mf">2.0</span>
+<span class="o">+</span>  <span class="o">./</span><span class="n">document</span><span class="o">/</span><span class="n">collection_document_inventory_v002</span><span class="o">.</span><span class="n">tab</span>
+        <span class="n">S</span><span class="p">,</span><span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">document</span><span class="p">:</span><span class="n">spiceds</span><span class="p">::</span><span class="mf">1.0</span>
+        <span class="n">P</span><span class="p">,</span><span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">document</span><span class="p">:</span><span class="n">spiceds</span><span class="p">::</span><span class="mf">2.0</span>
+
+   <span class="o">./</span><span class="n">document</span><span class="o">/</span><span class="n">spiceds_v001</span><span class="o">.</span><span class="n">xml</span>                                 <span class="n">Product_Document</span>        <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">document</span><span class="p">:</span><span class="n">spiceds</span><span class="p">::</span><span class="mf">1.0</span>
+   <span class="o">./</span><span class="n">document</span><span class="o">/</span><span class="n">spiceds_v001</span><span class="o">.</span><span class="n">html</span>
+<span class="o">+</span>  <span class="o">./</span><span class="n">document</span><span class="o">/</span><span class="n">spiceds_v002</span><span class="o">.</span><span class="n">xml</span>                                 <span class="n">Product_Document</span>        <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">document</span><span class="p">:</span><span class="n">spiceds</span><span class="p">::</span><span class="mf">2.0</span>
+<span class="o">+</span>  <span class="o">./</span><span class="n">document</span><span class="o">/</span><span class="n">spiceds_v002</span><span class="o">.</span><span class="n">html</span>
+
+   <span class="o">./</span><span class="n">miscellaneous</span><span class="o">/</span><span class="n">collection_miscellaneous_v001</span><span class="o">.</span><span class="n">xml</span>           <span class="n">Product_Collection</span>      <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">miscellaneous</span><span class="p">::</span><span class="mf">1.0</span>
+   <span class="o">./</span><span class="n">miscellaneous</span><span class="o">/</span><span class="n">collection_miscellaneous_inventory_v001</span><span class="o">.</span><span class="n">tab</span>
+        <span class="n">P</span><span class="p">,</span><span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">miscellaneous</span><span class="p">:</span><span class="n">orbnum_maven_orb1</span><span class="o">.</span><span class="n">orb</span><span class="p">::</span><span class="mf">1.0</span>
+        <span class="n">P</span><span class="p">,</span><span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">miscellaneous</span><span class="p">:</span><span class="n">checksum_checksum</span><span class="p">::</span><span class="mf">1.0</span>
+<span class="o">+</span>  <span class="o">./</span><span class="n">miscellaneous</span><span class="o">/</span><span class="n">collection_miscellaneous_v002</span><span class="o">.</span><span class="n">xml</span>           <span class="n">Product_Collection</span>      <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">miscellaneous</span><span class="p">::</span><span class="mf">2.0</span>
+<span class="o">+</span>  <span class="o">./</span><span class="n">miscellaneous</span><span class="o">/</span><span class="n">collection_miscellaneous_inventory_v002</span><span class="o">.</span><span class="n">tab</span>
+        <span class="n">S</span><span class="p">,</span><span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">miscellaneous</span><span class="p">:</span><span class="n">orbnum_maven_orb1</span><span class="o">.</span><span class="n">orb</span><span class="p">::</span><span class="mf">1.0</span>
+        <span class="n">P</span><span class="p">,</span><span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">miscellaneous</span><span class="p">:</span><span class="n">orbnum_maven_orb2</span><span class="o">.</span><span class="n">orb</span><span class="p">::</span><span class="mf">1.0</span>
+        <span class="n">S</span><span class="p">,</span><span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">miscellaneous</span><span class="p">:</span><span class="n">checksum_checksum</span><span class="p">::</span><span class="mf">1.0</span>
+        <span class="n">P</span><span class="p">,</span><span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">miscellaneous</span><span class="p">:</span><span class="n">checksum_checksum</span><span class="p">::</span><span class="mf">2.0</span>
+
+   <span class="o">./</span><span class="n">miscellaneous</span><span class="o">/</span><span class="n">orbnum</span><span class="o">/</span><span class="n">maven_orb1</span><span class="o">.</span><span class="n">xml</span>                      <span class="n">Product_Ancillary</span><span class="o">/</span><span class="n">Table</span>  <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">miscellaneous</span><span class="p">:</span><span class="n">orbnum_maven_orb1</span><span class="o">.</span><span class="n">orb</span><span class="p">::</span><span class="mf">1.0</span>
+   <span class="o">./</span><span class="n">miscellaneous</span><span class="o">/</span><span class="n">orbnum</span><span class="o">/</span><span class="n">maven_orb1</span><span class="o">.</span><span class="n">orb</span>
+<span class="o">+</span>  <span class="o">./</span><span class="n">miscellaneous</span><span class="o">/</span><span class="n">orbnum</span><span class="o">/</span><span class="n">maven_orb2</span><span class="o">.</span><span class="n">xml</span>                      <span class="n">Product_Ancillary</span><span class="o">/</span><span class="n">Table</span>  <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">miscellaneous</span><span class="p">:</span><span class="n">orbnum_maven_orb2</span><span class="o">.</span><span class="n">orb</span><span class="p">::</span><span class="mf">1.0</span>
+<span class="o">+</span>  <span class="o">./</span><span class="n">miscellaneous</span><span class="o">/</span><span class="n">orbnum</span><span class="o">/</span><span class="n">maven_orb2</span><span class="o">.</span><span class="n">orb</span>
+
+   <span class="o">./</span><span class="n">miscellaneous</span><span class="o">/</span><span class="n">checksum</span><span class="o">/</span><span class="n">checksum_v001</span><span class="o">.</span><span class="n">xml</span>                 <span class="n">Product_Ancillary</span><span class="o">/</span><span class="n">Table</span>  <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">miscellaneous</span><span class="p">:</span><span class="n">checksum_checksum</span><span class="p">::</span><span class="mf">1.0</span>
+   <span class="o">./</span><span class="n">miscellaneous</span><span class="o">/</span><span class="n">checksum</span><span class="o">/</span><span class="n">checksum_v001</span><span class="o">.</span><span class="n">tab</span>
+<span class="o">+</span>  <span class="o">./</span><span class="n">miscellaneous</span><span class="o">/</span><span class="n">checksum</span><span class="o">/</span><span class="n">checksum_v002</span><span class="o">.</span><span class="n">xml</span>                 <span class="n">Product_Ancillary</span><span class="o">/</span><span class="n">Table</span>  <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">miscellaneous</span><span class="p">:</span><span class="n">checksum_checksum</span><span class="p">::</span><span class="mf">2.0</span>
+<span class="o">+</span>  <span class="o">./</span><span class="n">miscellaneous</span><span class="o">/</span><span class="n">checksum</span><span class="o">/</span><span class="n">checksum_v002</span><span class="o">.</span><span class="n">tab</span>
+
+   <span class="o">./</span><span class="n">spice_kernels</span><span class="o">/</span><span class="n">collection_spice_kernels_v001</span><span class="o">.</span><span class="n">xml</span>          <span class="n">Product_Collection</span>       <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">spice_kernels</span><span class="p">::</span><span class="mf">1.0</span>
+   <span class="o">./</span><span class="n">spice_kernels</span><span class="o">/</span><span class="n">collection_spice_kernels_inventory_v001</span><span class="o">.</span><span class="n">tab</span>
+        <span class="n">P</span><span class="p">,</span><span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">spice_kernels</span><span class="p">:</span><span class="n">lsk_naif0011</span><span class="o">.</span><span class="n">tls</span><span class="p">::</span><span class="mf">1.0</span>
+        <span class="n">P</span><span class="p">,</span><span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">spice_kernels</span><span class="p">:</span><span class="n">mk_maven_2015</span><span class="p">::</span><span class="mf">1.0</span>
+        <span class="n">P</span><span class="p">,</span><span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">spice_kernels</span><span class="p">:</span><span class="n">spk_maven_orb1</span><span class="o">.</span><span class="n">bsp</span><span class="p">::</span><span class="mf">1.0</span>
+<span class="o">+</span>  <span class="o">./</span><span class="n">spice_kernels</span><span class="o">/</span><span class="n">collection_spice_kernels_v002</span><span class="o">.</span><span class="n">xml</span>          <span class="n">Product_Collection</span>       <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">spice_kernels</span><span class="p">::</span><span class="mf">2.0</span>
+<span class="o">+</span>  <span class="o">./</span><span class="n">spice_kernels</span><span class="o">/</span><span class="n">collection_spice_kernels_inventory_v002</span><span class="o">.</span><span class="n">tab</span>
+        <span class="n">S</span><span class="p">,</span><span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">spice_kernels</span><span class="p">:</span><span class="n">lsk_naif0011</span><span class="o">.</span><span class="n">tls</span><span class="p">::</span><span class="mf">1.0</span>
+        <span class="n">S</span><span class="p">,</span><span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">spice_kernels</span><span class="p">:</span><span class="n">mk_maven_2015</span><span class="p">::</span><span class="mf">1.0</span>
+        <span class="n">P</span><span class="p">,</span><span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">spice_kernels</span><span class="p">:</span><span class="n">mk_maven_2015</span><span class="p">::</span><span class="mf">2.0</span>
+        <span class="n">S</span><span class="p">,</span><span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">spice_kernels</span><span class="p">:</span><span class="n">spk_maven_orb1</span><span class="o">.</span><span class="n">bsp</span><span class="p">::</span><span class="mf">1.0</span>
+        <span class="n">P</span><span class="p">,</span><span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">spice_kernels</span><span class="p">:</span><span class="n">spk_maven_orb2</span><span class="o">.</span><span class="n">bsp</span><span class="p">::</span><span class="mf">1.0</span>
+
+   <span class="o">./</span><span class="n">spice_kernels</span><span class="o">/</span><span class="n">lsk</span><span class="o">/</span><span class="n">naif0011</span><span class="o">.</span><span class="n">xml</span>                           <span class="n">Product_SPICE_Kernel</span>     <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">spice_kernels</span><span class="p">:</span><span class="n">lsk_naif0011</span><span class="o">.</span><span class="n">tls</span><span class="p">::</span><span class="mf">1.0</span>
+   <span class="o">./</span><span class="n">spice_kernels</span><span class="o">/</span><span class="n">lsk</span><span class="o">/</span><span class="n">naif0011</span><span class="o">.</span><span class="n">tls</span>
+
+   <span class="o">./</span><span class="n">spice_kernels</span><span class="o">/</span><span class="n">mk</span><span class="o">/</span><span class="n">maven_2015_v01</span><span class="o">.</span><span class="n">xml</span>                      <span class="n">Product_SPICE_Kernel</span>     <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">spice_kernels</span><span class="p">:</span><span class="n">mk_maven_2015</span><span class="p">::</span><span class="mf">1.0</span>
+   <span class="o">./</span><span class="n">spice_kernels</span><span class="o">/</span><span class="n">mk</span><span class="o">/</span><span class="n">maven_2015_v01</span><span class="o">.</span><span class="n">tm</span>
+<span class="o">+</span>  <span class="o">./</span><span class="n">spice_kernels</span><span class="o">/</span><span class="n">mk</span><span class="o">/</span><span class="n">maven_2015_v02</span><span class="o">.</span><span class="n">xml</span>                      <span class="n">Product_SPICE_Kernel</span>     <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">spice_kernels</span><span class="p">:</span><span class="n">mk_maven_2015</span><span class="p">::</span><span class="mf">2.0</span>
+<span class="o">+</span>  <span class="o">./</span><span class="n">spice_kernels</span><span class="o">/</span><span class="n">mk</span><span class="o">/</span><span class="n">maven_2015_v02</span><span class="o">.</span><span class="n">tm</span>
+
+   <span class="o">./</span><span class="n">spice_kernels</span><span class="o">/</span><span class="n">spk</span><span class="o">/</span><span class="n">maven_orb1</span><span class="o">.</span><span class="n">xml</span>                         <span class="n">Product_SPICE_Kernel</span>     <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">spice_kernels</span><span class="p">:</span><span class="n">spk_maven_orb1</span><span class="o">.</span><span class="n">bsp</span><span class="p">::</span><span class="mf">1.0</span>
+   <span class="o">./</span><span class="n">spice_kernels</span><span class="o">/</span><span class="n">spk</span><span class="o">/</span><span class="n">maven_orb1</span><span class="o">.</span><span class="n">bsp</span>
+<span class="o">+</span>  <span class="o">./</span><span class="n">spice_kernels</span><span class="o">/</span><span class="n">spk</span><span class="o">/</span><span class="n">maven_orb2</span><span class="o">.</span><span class="n">xml</span>                         <span class="n">Product_SPICE_Kernel</span>     <span class="n">urn</span><span class="p">:</span><span class="n">nasa</span><span class="p">:</span><span class="n">pds</span><span class="p">:</span><span class="n">maven</span><span class="o">.</span><span class="n">spice</span><span class="p">:</span><span class="n">spice_kernels</span><span class="p">:</span><span class="n">spk_maven_orb2</span><span class="o">.</span><span class="n">bsp</span><span class="p">::</span><span class="mf">1.0</span>
+<span class="o">+</span>  <span class="o">./</span><span class="n">spice_kernels</span><span class="o">/</span><span class="n">spk</span><span class="o">/</span><span class="n">maven_orb2</span><span class="o">.</span><span class="n">bsp</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="a-note-on-spice-kernels-dissemination">
+<h1>A note on SPICE Kernels dissemination<a class="headerlink" href="#a-note-on-spice-kernels-dissemination" title="Permalink to this headline">¶</a></h1>
+<p>SPICE kernel archives might not be the only archives that include
+SPICE kernels. Any other archive is free to include SPICE kernels.
+As much as this is normal practice it can also be very dangerous. If you,
+as the archive producer for a mission, have a say on the SPICE kernels included
+in other archives of the mission, make sure of the following:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>check if the kernels have been peer-reviewed, are valid, useful,
+and well documented;</p></li>
+<li><p>if it makes sense to <strong>also</strong> or to <strong>only</strong> include the SPICE kernel
+product in the SPICE kernel archive;</p></li>
+<li><p>if these kernels need to be present in the meta-kernel or even if they
+need a specific meta-kernel in the SPICE kernel archive.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="spice-kernel-archive-divergences-rationale">
+<h1>SPICE Kernel archive divergences rationale<a class="headerlink" href="#spice-kernel-archive-divergences-rationale" title="Permalink to this headline">¶</a></h1>
+<p>The fact that the PDS artifacts in the SPICE Kernel archives are not 100%
+aligned with PDS best practices or recommendations does <strong>not</strong> make
+the kernels less usable because these products, such as labels, are not needed
+to understand or use the kernels (unlike labels for PDS images, tables or other
+science data product types.) It is the internal comments in the kernels and
+other meta-information provided in the SPICE Archive Description Document
+(SPICEDS) that one needs to understand to use kernels in the proper way.</p>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="30_spice_kernel_archive_preparation_guide.html" class="btn btn-neutral float-right" title="SPICE Kernel Archive Preparation Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="21_naif_approach.html" class="btn btn-neutral float-left" title="NAIF’s Approach to SPICE Kernel Archive Preparation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2021, Caltech/JPL/NASA
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

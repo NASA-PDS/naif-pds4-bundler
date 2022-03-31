@@ -1,0 +1,348 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>NAIF PDS4 Bundler User Guide &mdash; NAIF PDS4 Bundler 1.0.0
+ documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="NPB Installation" href="41_npb_installation.html" />
+    <link rel="prev" title="Step-by-Step Summary" href="36_step_by_step_summary.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> NAIF PDS4 Bundler
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="10_overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="20_spice_kernel_archive_description.html">SPICE Kernel Archive Description</a></li>
+<li class="toctree-l1"><a class="reference internal" href="30_spice_kernel_archive_preparation_guide.html">SPICE Kernel Archive Preparation Guide</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">NAIF PDS4 Bundler User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="41_npb_installation.html">NPB Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="42_npb_configuration_file.html">The Configuration File</a></li>
+<li class="toctree-l2"><a class="reference internal" href="43_using_npb.html">Using NPB</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="50_api_docs.html">Modules, Classes, and Functions Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="60_annex_npb_for_pds3.html">Appendix: NPB for PDS3 Archives</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">NAIF PDS4 Bundler</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>NAIF PDS4 Bundler User Guide</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/40_naif_pds4_bundler_user_guide.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="naif-pds4-bundler-user-guide">
+<h1>NAIF PDS4 Bundler User Guide<a class="headerlink" href="#naif-pds4-bundler-user-guide" title="Permalink to this headline">¶</a></h1>
+<p>This chapter provides a complete user guide to install, setup, operate, and
+understand the NAIF PDS4 Bundler Software Package.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="41_npb_installation.html">NPB Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="41_npb_installation.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="41_npb_installation.html#user-quickstart">User Quickstart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="41_npb_installation.html#manual-installation">Manual Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="41_npb_installation.html#development-and-contribution">Development and Contribution</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="41_npb_installation.html#installation">Installation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="41_npb_installation.html#packaging">Packaging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="41_npb_installation.html#running-tests">Running Tests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="41_npb_installation.html#documentation">Documentation</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="42_npb_configuration_file.html">The Configuration File</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="42_npb_configuration_file.html#configuration-file-format">Configuration File Format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="42_npb_configuration_file.html#pds-parameters">PDS Parameters</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="42_npb_configuration_file.html#the-information-model">The Information Model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="42_npb_configuration_file.html#context-products">Context Products</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="42_npb_configuration_file.html#bundle-parameters">Bundle Parameters</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="42_npb_configuration_file.html#spiceds">SPICEDS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="42_npb_configuration_file.html#readme-file">Readme File</a></li>
+<li class="toctree-l3"><a class="reference internal" href="42_npb_configuration_file.html#increment-start-and-finish-times">Increment Start and Finish Times</a></li>
+<li class="toctree-l3"><a class="reference internal" href="42_npb_configuration_file.html#date-format">Date Format</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="42_npb_configuration_file.html#mission-parameters">Mission Parameters</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="42_npb_configuration_file.html#on-names-and-acronyms">On Names and Acronyms</a></li>
+<li class="toctree-l3"><a class="reference internal" href="42_npb_configuration_file.html#kernels-to-load">Kernels To Load</a></li>
+<li class="toctree-l3"><a class="reference internal" href="42_npb_configuration_file.html#kernel-patterns">Kernel patterns</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="42_npb_configuration_file.html#directories">Directories</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="42_npb_configuration_file.html#templates-directory">Templates Directory</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="42_npb_configuration_file.html#kernel-list">Kernel List</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="42_npb_configuration_file.html#kernel-descriptions">Kernel Descriptions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="42_npb_configuration_file.html#match-by-value">Match by value</a></li>
+<li class="toctree-l4"><a class="reference internal" href="42_npb_configuration_file.html#match-by-pattern">Match by pattern</a></li>
+<li class="toctree-l4"><a class="reference internal" href="42_npb_configuration_file.html#match-from-comment">Match from Comment</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="42_npb_configuration_file.html#mapping-kernels">Mapping kernels</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="42_npb_configuration_file.html#meta-kernel">Meta-kernel</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="42_npb_configuration_file.html#automatic-generation-of-meta-kernels">Automatic generation of Meta-kernels</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="42_npb_configuration_file.html#meta-kernel-grammar">Meta-kernel grammar</a></li>
+<li class="toctree-l4"><a class="reference internal" href="42_npb_configuration_file.html#meta-kernel-metadata">Meta-kernel metadata</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="42_npb_configuration_file.html#manual-input">Manual Input</a></li>
+<li class="toctree-l3"><a class="reference internal" href="42_npb_configuration_file.html#coverage-determination">Coverage determination</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="42_npb_configuration_file.html#final-remarks">Final remarks</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="42_npb_configuration_file.html#orbit-number-file">Orbit number file</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="42_npb_configuration_file.html#orbnum-coverage-determination">ORBNUM Coverage determination</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="42_npb_configuration_file.html#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="43_using_npb.html">Using NPB</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="43_using_npb.html#npb-functional-scheme">NPB Functional Scheme</a></li>
+<li class="toctree-l2"><a class="reference internal" href="43_using_npb.html#running-npb-from-the-command-line">Running NPB from the command line</a></li>
+<li class="toctree-l2"><a class="reference internal" href="43_using_npb.html#calling-npb-from-python">Calling NPB from Python</a></li>
+<li class="toctree-l2"><a class="reference internal" href="43_using_npb.html#optional-arguments-description">Optional Arguments Description</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="43_using_npb.html#p-plan-plan-plan"><code class="docutils literal notranslate"><span class="pre">-p</span> <span class="pre">PLAN,</span> <span class="pre">--plan</span> <span class="pre">PLAN</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="43_using_npb.html#f-faucet-faucet-faucet"><code class="docutils literal notranslate"><span class="pre">-f</span> <span class="pre">FAUCET,</span> <span class="pre">--faucet</span> <span class="pre">FAUCET</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="43_using_npb.html#l-log"><code class="docutils literal notranslate"><span class="pre">-l</span> <span class="pre">--log</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="43_using_npb.html#s-silent"><code class="docutils literal notranslate"><span class="pre">-s,</span> <span class="pre">--silent</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="43_using_npb.html#v-verbose"><code class="docutils literal notranslate"><span class="pre">-v,</span> <span class="pre">--verbose</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="43_using_npb.html#d-diff-diff-diff"><code class="docutils literal notranslate"><span class="pre">-d</span> <span class="pre">DIFF,</span> <span class="pre">--diff</span> <span class="pre">DIFF</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="43_using_npb.html#c-clear-clear-clear"><code class="docutils literal notranslate"><span class="pre">-c</span> <span class="pre">CLEAR,</span> <span class="pre">--clear</span> <span class="pre">CLEAR</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="43_using_npb.html#k-kerlist-kerlist-kerlist"><code class="docutils literal notranslate"><span class="pre">-k</span> <span class="pre">KERLIST,</span> <span class="pre">--kerlist</span> <span class="pre">KERLIST</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="43_using_npb.html#s-checksum"><code class="docutils literal notranslate"><span class="pre">-s,</span> <span class="pre">--checksum</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="43_using_npb.html#using-npb-in-label-mode">Using NPB in label mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="43_using_npb.html#execution-by-products">Execution by-products</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="43_using_npb.html#release-plan">Release Plan</a></li>
+<li class="toctree-l3"><a class="reference internal" href="43_using_npb.html#kernel-list">Kernel List</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="43_using_npb.html#kernel-lists-in-pds3-data-sets">Kernel Lists in PDS3 data sets</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="43_using_npb.html#execution-log">Execution Log</a></li>
+<li class="toctree-l3"><a class="reference internal" href="43_using_npb.html#execution-file-list">Execution File List</a></li>
+<li class="toctree-l3"><a class="reference internal" href="43_using_npb.html#checksum-registry">Checksum Registry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="43_using_npb.html#validation-diff-files">Validation Diff Files</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="43_using_npb.html#checks-performed-by-npb">Checks performed by NPB</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="43_using_npb.html#module-pds.naif_pds4_bundler.classes.list.KernelList.validate">Kernel List Validation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="43_using_npb.html#module-pds.naif_pds4_bundler.classes.list.KernelList.validate_complete">Complete Kernel List Validation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="43_using_npb.html#module-pds.naif_pds4_bundler.classes.product.SpiceKernelProduct.check_kernel_integrity">SPICE Kernel Integrity Check</a></li>
+<li class="toctree-l3"><a class="reference internal" href="43_using_npb.html#module-pds.naif_pds4_bundler.classes.product.MetaKernelProduct.validate">Meta-kernel Validation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="43_using_npb.html#module-pds.naif_pds4_bundler.classes.collection.SpiceKernelsCollection.validate">SPICE Kernel Collection Validation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="43_using_npb.html#module-pds.naif_pds4_bundler.classes.product.InventoryProduct.validate_pds4">Inventory Product Validation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="43_using_npb.html#module-pds.naif_pds4_bundler.classes.bundle.Bundle.validate_history">Checksum Validation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="43_using_npb.html#module-pds.naif_pds4_bundler.classes.label.PDSLabel.compare">Product Comparison</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="43_using_npb.html#comparison-output">Comparison output</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="41_npb_installation.html" class="btn btn-neutral float-right" title="NPB Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="36_step_by_step_summary.html" class="btn btn-neutral float-left" title="Step-by-Step Summary" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2021, Caltech/JPL/NASA
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
