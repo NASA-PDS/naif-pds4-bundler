@@ -17,11 +17,11 @@
                 <lidvid>urn:jaxa:darts:context:investigation:mission.hyb2::1.0</lidvid>
             </product>
             <product name="Hayabusa2">
-                <type>Spacecraft</type>
+                <type>Host</type>
                 <lidvid>urn:jaxa:darts:context:instrument_host:spacecraft.hyb2::1.0</lidvid>
             </product>
             <product name="MASCOT">
-                <type>Lander</type>
+                <type>Host</type>
                 <lidvid>urn:jaxa:darts:context:instrument_host:lander.mascot::1.0</lidvid>
             </product>
             <product name="(162173) Ryugu">
