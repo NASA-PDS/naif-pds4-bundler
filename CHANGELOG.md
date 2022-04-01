@@ -1,8 +1,8 @@
 # Changelog
 
-## [v1.0.0-dev](https://github.com/NASA-PDS/naif-pds4-bundler/tree/v1.0.0-dev) (2022-03-31)
+## [v1.0.0](https://github.com/NASA-PDS/naif-pds4-bundler/tree/v1.0.0) (2022-03-31)
 
-[Full Changelog](https://github.com/NASA-PDS/naif-pds4-bundler/compare/v0.19.0...v1.0.0-dev)
+[Full Changelog](https://github.com/NASA-PDS/naif-pds4-bundler/compare/v0.19.0...v1.0.0)
 
 ## [v0.19.0](https://github.com/NASA-PDS/naif-pds4-bundler/tree/v0.19.0) (2022-03-23)
 
