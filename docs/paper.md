@@ -62,14 +62,13 @@ The expected forum to have discussions related to NPB is the [OpenPlanetary comm
 
 SPICE is widely used in the planetary data community and is the recommended
 ancillary data standard by the [International Planetary Data Alliance](https://planetarydata.org/)
-(IPDA). Most planetary science space missions that generate a SPICE kernels
-archive; NPB is aimed to make things easier for those generating mission SPICE
-PDS4 archives.
+(IPDA). Most planetary science space missions that use SPICE data
+normally intend to generate a PDS4 SPICE kernels archive; NPB
+is aimed to make things easier for those generating such archives.
 
 NPB is used in the day-to-day archiving activities of NAIF and is used to
-generate all the PDS4 archives: LADEE [@ladee.spice], MAVEN [@maven.spice],
-InSight [@insight.spice], OSIRIS-REx [@orex.spice], and Mars 2020
-[@mars2020.spice].
+generate all the PDS4 archives: Mars 2020 [@mars2020.spice], MAVEN [@maven.spice],
+InSight [@insight.spice], OSIRIS-REx [@orex.spice], and LADEE [@ladee.spice].
 
 Both the European Space Agency (ESA) SPICE Service (ESS) and the Japanese Space
 Exploration Agency (JAXA) Data Archives and Transmission System (DARTS) have
@@ -89,7 +88,7 @@ challenging endeavor. Because of this PDS is making an effort to generate and
 gather [training material](https://pds.nasa.gov/datastandards/training/) and to
 provide a number of tools to assist archive producers. NPB is part of this effort
 and benefits from NAIF's terse usage of the PDS4 standards and enables
-archive producers to generate a PDS archive from end-to-end with minimal effort.
+archive producers to generate a PDS4 SPICE archive from end-to-end with a minimal effort.
 
 Different nodes of the PDS offer a number of tools adequate for the data archived
 in their holdings. PDS-EN provides the [Metadata Injector for PDS Labels](https://nasa-pds.github.io/mi-label/) [@milabel];
@@ -107,5 +106,8 @@ and tables.
 The author would like to thank the NAIF group at JPL, especially Boris
 Semenov, the PDS-EN at JPL and the colleagues of the ESA SPICE Service and the
 Planetary Science Archive at the European Space and Astronomy Center.
+This project was carried out at the Jet Propulsion Laboratory, California
+Institute of Technology, under a contract with the National Aeronautics and
+Space Administration (80NM0018D0004).
 
 # References
