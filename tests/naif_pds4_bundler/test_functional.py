@@ -29,7 +29,7 @@ class TestFunctional(TestCase):
         cls.silent = True
         cls.verbose = False
         cls.log = True
-        cls.tmp_dir = tempfile.TemporaryDirectory(dir='/Users/mcosta')
+        cls.tmp_dir = tempfile.TemporaryDirectory()
 
         shutil.copytree(os.sep.join(cls.test_dir.split(os.sep)),
                         cls.tmp_dir.name + '/naif_pds4_bundler')
