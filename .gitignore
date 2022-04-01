@@ -19,15 +19,6 @@ docs/make.bat
 docs/Makefile
 docs/_build/
 docs/_templates/
-pds.rst
-pds.naif_pds4_bundler.rst
-pds.naif_pds4_bundler.classes.rst
-pds.naif_pds4_bundler.utils.rst
-tests.rst
-tests.naif_pds4_bundler.rst
-tests.naif_pds4_bundler.functional.rst
-tests.naif_pds4_bundler.regression.rst
-tests.naif_pds4_bundler.unittests.rst
 modules.rst
 paper.jats
 
