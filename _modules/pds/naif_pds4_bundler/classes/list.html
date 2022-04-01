@@ -1,0 +1,1213 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pds.naif_pds4_bundler.classes.list &mdash; NAIF PDS4 Bundler 1.0.1
+ documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home" alt="Documentation Home"> NAIF PDS4 Bundler
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../10_overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../20_spice_kernel_archive_description.html">SPICE Kernel Archive Description</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../30_spice_kernel_archive_preparation_guide.html">SPICE Kernel Archive Preparation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../40_naif_pds4_bundler_user_guide.html">NAIF PDS4 Bundler User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../50_api_docs.html">Modules, Classes, and Functions Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../60_annex_npb_for_pds3.html">Appendix: NPB for PDS3 Archives</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">NAIF PDS4 Bundler</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pds.naif_pds4_bundler.classes.list</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pds.naif_pds4_bundler.classes.list</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;List Class and Child Class Implementation.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">check_consecutive</span>
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">check_list_duplicates</span>
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">compare_files</span>
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">extension_to_type</span>
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">extract_comment</span>
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">fill_template</span>
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">spice_exception_handler</span>
+<span class="kn">from</span> <span class="nn">.log</span> <span class="kn">import</span> <span class="n">error_message</span>
+
+
+<div class="viewcode-block" id="List"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.list.List">[docs]</a><span class="k">class</span> <span class="nc">List</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Class to generate the List.</span>
+
+<span class="sd">    :param setup: NPB execution setup object</span>
+<span class="sd">    :type setup: object</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setup</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Constructor.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">files</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="nb">type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup</span> <span class="o">=</span> <span class="n">setup</span>
+
+<div class="viewcode-block" id="List.add"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.list.List.add">[docs]</a>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add file to the list.</span>
+
+<span class="sd">        :param element: SPICE Kernel product or ORBNUM product to be added to the list</span>
+<span class="sd">        :type element: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">element</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="KernelList"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.list.KernelList">[docs]</a><span class="k">class</span> <span class="nc">KernelList</span><span class="p">(</span><span class="n">List</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;List child class to generate the Kernel List.</span>
+
+<span class="sd">    :param setup: NPB execution setup object</span>
+<span class="sd">    :type setup: object</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setup</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Constructor.&quot;&quot;&quot;</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Step </span><span class="si">{</span><span class="n">setup</span><span class="o">.</span><span class="n">step</span><span class="si">}</span><span class="s2"> - Kernel List generation&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">))</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">setup</span><span class="o">.</span><span class="n">step</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">setup</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">silent</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">setup</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-- &quot;</span> <span class="o">+</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; - &quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span><span class="p">)</span>
+
+        <span class="n">List</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setup</span><span class="p">)</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># Object attributes to be replaced in template</span>
+        <span class="c1">#</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CURRENTDATE</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())[:</span><span class="mi">10</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">OBS</span> <span class="o">=</span> <span class="n">setup</span><span class="o">.</span><span class="n">observer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AUTHOR</span> <span class="o">=</span> <span class="n">setup</span><span class="o">.</span><span class="n">producer_name</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;3&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">DATA_SET_ID</span> <span class="o">=</span> <span class="n">setup</span><span class="o">.</span><span class="n">pds3_mission_template</span><span class="p">[</span><span class="s1">&#39;DATA_SET_ID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">VOLID</span> <span class="o">=</span> <span class="n">setup</span><span class="o">.</span><span class="n">volume_id</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">DATA_SET_ID</span> <span class="o">=</span> <span class="s2">&quot;N/A&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">VOLID</span> <span class="o">=</span> <span class="s2">&quot;N/A&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">RELID</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">setup</span><span class="o">.</span><span class="n">release</span><span class="p">)</span><span class="si">:</span><span class="s2">04d</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">RELDATE</span> <span class="o">=</span> <span class="n">setup</span><span class="o">.</span><span class="n">release_date</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">template</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">setup</span><span class="o">.</span><span class="n">templates_directory</span><span class="si">}</span><span class="s2">/template_kernel_list.txt&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">read_config</span><span class="p">()</span>
+
+<div class="viewcode-block" id="KernelList.add"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.list.KernelList.add">[docs]</a>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kernel</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add SPICE kernel or ORBNUM file to the list.</span>
+
+<span class="sd">        :param kernel: SPICE kernel or ORBNUM file added to the list</span>
+<span class="sd">        :type kernel: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">List</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kernel</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="KernelList.read_config"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.list.KernelList.read_config">[docs]</a>    <span class="k">def</span> <span class="nf">read_config</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Extract the Kernel List information from the configuration file.&quot;&quot;&quot;</span>
+        <span class="n">json_config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">kernel_list_config</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># Build a list of computed regular expressions from the JSON config</span>
+        <span class="c1">#</span>
+        <span class="n">re_config</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="n">json_config</span><span class="p">:</span>
+            <span class="n">re_config</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">pattern</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">re_config</span> <span class="o">=</span> <span class="n">re_config</span>
+        <span class="c1">#</span>
+        <span class="c1"># Also store it in setup for later use in meta-kernel description</span>
+        <span class="c1"># generation.</span>
+        <span class="c1">#</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">re_config</span> <span class="o">=</span> <span class="n">re_config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">json_config</span> <span class="o">=</span> <span class="n">json_config</span>
+
+        <span class="n">json_formatted_str</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">json_config</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">json_formatted_lst</span> <span class="o">=</span> <span class="n">json_formatted_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="KernelList.read_plan"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.list.KernelList.read_plan">[docs]</a>    <span class="k">def</span> <span class="nf">read_plan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plan</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read Release Plan from the main module input.</span>
+
+<span class="sd">        :param plan: Release Plan name</span>
+<span class="sd">        :type plan: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">kernels</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># Add mapping kernel patterns in list.</span>
+        <span class="c1">#</span>
+        <span class="n">patterns</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">json_config</span><span class="p">:</span>
+            <span class="n">patterns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s2">&quot;mapping&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">json_config</span><span class="p">[</span><span class="n">pattern</span><span class="p">]:</span>
+                <span class="n">patterns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">json_config</span><span class="p">[</span><span class="n">pattern</span><span class="p">][</span><span class="s2">&quot;mapping&quot;</span><span class="p">])</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># If NPB runs in labeling mode, a single file can be specified</span>
+        <span class="c1"># as a release plan. If so, a plan is generated.</span>
+        <span class="c1">#</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">plan</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;plan&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">faucet</span> <span class="o">==</span> <span class="s2">&quot;labels&quot;</span><span class="p">):</span>
+            <span class="n">plan_name</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">run_type</span><span class="si">}</span><span class="s2">_&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">release</span><span class="p">)</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">.plan&quot;</span>
+            <span class="p">)</span>
+            <span class="n">plan</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">working_directory</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="n">plan_name</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">plan</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">pl</span><span class="p">:</span>
+                <span class="n">pl</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">plan</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="n">plan</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;plan&quot;</span><span class="p">:</span>
+            <span class="n">error_message</span><span class="p">(</span>
+                <span class="s2">&quot;Release plan requires *.plan extension. Single &quot;</span>
+                <span class="s2">&quot;kernels are only allowed in labeling mode.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">plan</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">ker_matched</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">for</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="n">patterns</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
+                        <span class="n">ker_line</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span>
+                        <span class="n">kernels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ker_line</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+                        <span class="n">ker_matched</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">ker_matched</span><span class="p">:</span>
+                    <span class="c1">#</span>
+                    <span class="c1"># Add the  orbnum files that need to be added.</span>
+                    <span class="c1"># Match the pattern with the file.</span>
+                    <span class="c1">#</span>
+                    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">,</span> <span class="s2">&quot;orbnum&quot;</span><span class="p">):</span>
+                        <span class="k">for</span> <span class="n">orb</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">orbnum</span><span class="p">:</span>
+                            <span class="n">pattern</span> <span class="o">=</span> <span class="n">orb</span><span class="p">[</span><span class="s2">&quot;pattern&quot;</span><span class="p">]</span>
+                            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
+                                <span class="n">ker_line</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span>
+                                <span class="n">kernels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ker_line</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+                                <span class="n">ker_matched</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="c1">#</span>
+                    <span class="c1"># Display the lines that have not been match unless</span>
+                    <span class="c1"># they only contain blank spaces.</span>
+                    <span class="c1">#</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">ker_matched</span> <span class="ow">and</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+                        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                            <span class="s2">&quot;-- The following release plan line has not been matched:&quot;</span>
+                        <span class="p">)</span>
+                        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   </span><span class="si">{</span><span class="n">line</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># Report the kernels that will be included in the Kernel List</span>
+        <span class="c1">#</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- Reporting the products in Plan:&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">kernel</span> <span class="ow">in</span> <span class="n">kernels</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;     </span><span class="si">{</span><span class="n">kernel</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">kernel_list</span> <span class="o">=</span> <span class="n">kernels</span></div>
+
+<div class="viewcode-block" id="KernelList.write_plan"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.list.KernelList.write_plan">[docs]</a>    <span class="k">def</span> <span class="nf">write_plan</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write the Release Plan if not provided.</span>
+
+<span class="sd">        :return: True if a release plan has been generated, False if it has</span>
+<span class="sd">                 been provided as input</span>
+<span class="sd">        :rtype: bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">kernels</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">plan_name</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">run_type</span><span class="si">}</span><span class="s2">_&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">release</span><span class="p">)</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">.plan&quot;</span>
+        <span class="p">)</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># The release plan is generated from the kernel directory unless</span>
+        <span class="c1"># the parameter ``labels`` is provided by the ``-f --faucet`` argument.</span>
+        <span class="c1"># In such case only the input file is provided in the release plan.</span>
+        <span class="c1">#</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">faucet</span> <span class="o">==</span> <span class="s2">&quot;labels&quot;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">plan</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- Generate archiving plan from input kernel:&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">plan</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">kernels_in_dir</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">plan</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- Generate archiving plan from kernel directory(ies):&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="nb">dir</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">kernels_directory</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   </span><span class="si">{</span><span class="nb">dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="n">kernels_in_dir</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="nb">dir</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">kernels_directory</span><span class="p">:</span>
+                <span class="n">kernels_in_dir</span> <span class="o">+=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">dir</span><span class="si">}</span><span class="s2">/**/*.*&quot;</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="c1">#</span>
+            <span class="c1"># Filter out the meta-kernels from the automatically generated</span>
+            <span class="c1"># list.</span>
+            <span class="c1">#</span>
+            <span class="n">kernels_in_dir</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">kernels_in_dir</span> <span class="k">if</span> <span class="s2">&quot;.tm&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">item</span><span class="p">]</span>
+            <span class="n">kernels_in_dir</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># Filter the kernels with the patterns in the kernel list from the</span>
+        <span class="c1"># configuration. The patterns are present in the json_config</span>
+        <span class="c1"># attribute dictionary.</span>
+        <span class="c1">#</span>
+        <span class="n">patterns</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">json_config</span><span class="p">:</span>
+            <span class="n">patterns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s2">&quot;mapping&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">json_config</span><span class="p">[</span><span class="n">pattern</span><span class="p">]:</span>
+                <span class="n">patterns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">json_config</span><span class="p">[</span><span class="n">pattern</span><span class="p">][</span><span class="s2">&quot;mapping&quot;</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">kernel</span> <span class="ow">in</span> <span class="n">kernels_in_dir</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="n">patterns</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">kernel</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+                    <span class="n">kernels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">kernel</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># Sort the meta-kernels that need to be added if not running</span>
+        <span class="c1"># in label generation mode.</span>
+        <span class="c1">#</span>
+        <span class="c1"># First we look into the configuration file. If a meta-kernel is</span>
+        <span class="c1"># present, it is the one that will be used.</span>
+        <span class="c1">#</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">,</span> <span class="s2">&quot;mk_inputs&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">faucet</span> <span class="o">!=</span> <span class="s2">&quot;labels&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mk_inputs</span><span class="p">[</span><span class="s2">&quot;file&quot;</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">mks</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mk_inputs</span><span class="p">[</span><span class="s2">&quot;file&quot;</span><span class="p">]]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">mks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mk_inputs</span><span class="p">[</span><span class="s2">&quot;file&quot;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">mk</span> <span class="ow">in</span> <span class="n">mks</span><span class="p">:</span>
+                <span class="n">mk_new_name</span> <span class="o">=</span> <span class="n">mk</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">mk</span><span class="p">):</span>
+                    <span class="n">mk_path</span> <span class="o">=</span> <span class="n">mk</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">mk_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="n">mk</span>
+
+                <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">mk_path</span><span class="p">):</span>
+                    <span class="n">kernels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mk_new_name</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">error_message</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Meta-kernel provided via configuration &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">mk_new_name</span><span class="si">}</span><span class="s2"> does not exist.&quot;</span>
+                    <span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">faucet</span> <span class="o">!=</span> <span class="s2">&quot;labels&quot;</span><span class="p">:</span>
+            <span class="c1">#</span>
+            <span class="c1"># If no meta-kernel was provided via configuration, try to</span>
+            <span class="c1"># infer the on that needs to be generated.</span>
+            <span class="c1">#</span>
+            <span class="n">kernels_in_dir</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">bundle_directory</span><span class="si">}</span><span class="s2">/**/*&quot;</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+            <span class="n">mks_in_dir</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">mk</span> <span class="ow">in</span> <span class="n">kernels_in_dir</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">&quot;/mk/&quot;</span> <span class="ow">in</span> <span class="n">mk</span> <span class="ow">and</span> <span class="s2">&quot;.tm&quot;</span> <span class="ow">in</span> <span class="n">mk</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                    <span class="n">mks_in_dir</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mk</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+            <span class="n">mks_in_dir</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">mks_in_dir</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s2">&quot;-- No former meta-kernel found to generate &quot;</span>
+                    <span class="s2">&quot;meta-kernel for the list.&quot;</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+
+                <span class="n">mk_new_name</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+                <span class="c1">#</span>
+                <span class="c1"># If kernels are present, a meta-kernel might be able to be</span>
+                <span class="c1"># generated from the information of the bundle.</span>
+                <span class="c1">#</span>
+                <span class="k">if</span> <span class="n">kernels</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="n">patterns</span><span class="p">:</span>
+                        <span class="n">mk_name</span> <span class="o">=</span> <span class="n">mks_in_dir</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">mk_name</span><span class="p">):</span>
+                            <span class="n">version</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;_v[0-9]+&quot;</span><span class="p">,</span> <span class="n">mk_name</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                            <span class="n">new_version</span> <span class="o">=</span> <span class="s2">&quot;_v&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">version</span><span class="p">[</span><span class="mi">2</span><span class="p">:])</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span>
+                                <span class="nb">len</span><span class="p">(</span><span class="n">version</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span>
+                            <span class="p">)</span>
+                            <span class="n">mk_new_name</span> <span class="o">=</span> <span class="p">(</span>
+                                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">mk_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">version</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+                                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">new_version</span><span class="si">}{</span><span class="n">mk_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">version</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+                            <span class="p">)</span>
+
+                            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-- Plan will include </span><span class="si">{</span><span class="n">mk_new_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                            <span class="n">kernels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mk_new_name</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">mk_new_name</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                        <span class="s2">&quot;-- No former meta-kernel found to generate &quot;</span>
+                        <span class="s2">&quot;meta-kernel for the list.&quot;</span>
+                    <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- Meta-kernels not generated in labeling mode.&quot;</span><span class="p">)</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># Add possible orbnum files if not running in label generation</span>
+        <span class="c1"># mode.</span>
+        <span class="c1">#</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">,</span> <span class="s2">&quot;orbnum_directory&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">faucet</span> <span class="o">!=</span> <span class="s2">&quot;labels&quot;</span>
+        <span class="p">):</span>
+            <span class="n">orbnums_in_dir</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">orbnum_directory</span><span class="si">}</span><span class="s2">/*&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">orbnum_in_dir</span> <span class="ow">in</span> <span class="n">orbnums_in_dir</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">orbnum</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">orbnum</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">orbnum</span><span class="p">[</span><span class="s2">&quot;pattern&quot;</span><span class="p">],</span> <span class="n">orbnum_in_dir</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+                        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-- Plan will include </span><span class="si">{</span><span class="n">orbnum_in_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="n">kernels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">orbnum_in_dir</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># The kernel list is complete.</span>
+        <span class="c1">#</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">working_directory</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="n">plan_name</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">kernel</span> <span class="ow">in</span> <span class="n">kernels</span><span class="p">:</span>
+                <span class="n">p</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">kernel</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">kernels</span><span class="p">:</span>
+
+            <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;Inputs for the release not found&quot;</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-- </span><span class="si">{</span><span class="n">line</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">silent</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-- &quot;</span> <span class="o">+</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; - &quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">kernel_list</span> <span class="o">=</span> <span class="n">kernels</span>
+
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- Reporting the products in Plan:&quot;</span><span class="p">)</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># Report the kernels that will be included in the Kernel List</span>
+        <span class="c1">#</span>
+        <span class="k">for</span> <span class="n">kernel</span> <span class="ow">in</span> <span class="n">kernels</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;     </span><span class="si">{</span><span class="n">kernel</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">kernel_list</span> <span class="o">=</span> <span class="n">kernels</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># Add plan to the list of generated files.</span>
+        <span class="c1">#</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">add_file</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">working_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">plan_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="KernelList.write_list"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.list.KernelList.write_list">[docs]</a>    <span class="nd">@spice_exception_handler</span>
+    <span class="k">def</span> <span class="nf">write_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write the Kernel List product.</span>
+
+<span class="sd">        The list is not an archival product but an NPB by-product, therefore</span>
+<span class="sd">        it is not generated by any of the product classes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">list_name</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">run_type</span><span class="si">}</span><span class="s2">_&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">release</span><span class="p">)</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">.kernel_list&quot;</span>
+        <span class="p">)</span>
+
+        <span class="n">list_dictionary</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="n">fill_template</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">working_directory</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="n">list_name</span><span class="p">,</span> <span class="n">list_dictionary</span>
+        <span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">working_directory</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="n">list_name</span><span class="p">,</span> <span class="s2">&quot;a+&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+
+            <span class="k">for</span> <span class="n">kernel</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel_list</span><span class="p">:</span>
+                <span class="n">ker_added_to_list</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="c1">#</span>
+                <span class="c1"># Find the correspondence of the filename in the JSON file</span>
+                <span class="c1">#</span>
+                <span class="k">for</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">re_config</span><span class="p">:</span>
+
+                    <span class="k">if</span> <span class="n">pattern</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">kernel</span><span class="p">):</span>
+
+                        <span class="c1">#</span>
+                        <span class="c1"># Description is the only mandatory field.</span>
+                        <span class="c1">#</span>
+                        <span class="n">description</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">json_config</span><span class="p">[</span><span class="n">pattern</span><span class="o">.</span><span class="n">pattern</span><span class="p">][</span><span class="s2">&quot;description&quot;</span><span class="p">]</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">options</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">json_config</span><span class="p">[</span><span class="n">pattern</span><span class="o">.</span><span class="n">pattern</span><span class="p">][</span>
+                                <span class="s2">&quot;mklabel_options&quot;</span>
+                            <span class="p">]</span>
+                        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+                            <span class="n">options</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">patterns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">json_config</span><span class="p">[</span><span class="n">pattern</span><span class="o">.</span><span class="n">pattern</span><span class="p">][</span><span class="s2">&quot;patterns&quot;</span><span class="p">]</span>
+                        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+                            <span class="n">patterns</span> <span class="o">=</span> <span class="kc">False</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">mapping</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">json_config</span><span class="p">[</span><span class="n">pattern</span><span class="o">.</span><span class="n">pattern</span><span class="p">][</span><span class="s2">&quot;mapping&quot;</span><span class="p">]</span>
+                        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+                            <span class="n">mapping</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+                        <span class="c1">#</span>
+                        <span class="c1"># &quot;options&quot; and &quot;descriptions&quot; require to substitute parameters derived from the filenames</span>
+                        <span class="c1"># themselves or from the comments of the kernel.</span>
+                        <span class="c1">#</span>
+                        <span class="k">if</span> <span class="n">patterns</span><span class="p">:</span>
+                            <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">patterns</span><span class="p">:</span>
+                                <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;$&quot;</span> <span class="o">+</span> <span class="n">el</span><span class="p">)</span> <span class="ow">in</span> <span class="n">description</span> <span class="ow">or</span> <span class="p">(</span><span class="s2">&quot;$&quot;</span> <span class="o">+</span> <span class="n">el</span><span class="p">)</span> <span class="ow">in</span> <span class="n">mapping</span><span class="p">:</span>
+                                    <span class="n">value</span> <span class="o">=</span> <span class="n">patterns</span><span class="p">[</span><span class="n">el</span><span class="p">]</span>
+
+                                    <span class="c1">#</span>
+                                    <span class="c1"># There are two distinct patterns:</span>
+                                    <span class="c1">#    * extracted form the filename</span>
+                                    <span class="c1">#    * defined in the configuration file.</span>
+                                    <span class="c1">#</span>
+                                    <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;@pattern&quot;</span> <span class="ow">in</span> <span class="n">patterns</span><span class="p">[</span><span class="n">el</span><span class="p">]</span> <span class="ow">and</span> <span class="n">patterns</span><span class="p">[</span><span class="n">el</span><span class="p">][</span><span class="s2">&quot;@pattern&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;kernel&quot;</span><span class="p">):</span>
+                                        <span class="c1">#</span>
+                                        <span class="c1"># When extracted from the filename, the keyword  is matched in between patterns.</span>
+                                        <span class="c1">#</span>
+
+                                        <span class="c1">#</span>
+                                        <span class="c1"># First Turn the regex set into a single character to be able to know were in</span>
+                                        <span class="c1"># the filename is.</span>
+                                        <span class="c1">#</span>
+                                        <span class="n">patt_ker</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="s2">&quot;#text&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;[0-9]&quot;</span><span class="p">,</span> <span class="s2">&quot;$&quot;</span><span class="p">)</span>
+                                        <span class="n">patt_ker</span> <span class="o">=</span> <span class="n">patt_ker</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;[a-z]&quot;</span><span class="p">,</span> <span class="s2">&quot;$&quot;</span><span class="p">)</span>
+                                        <span class="n">patt_ker</span> <span class="o">=</span> <span class="n">patt_ker</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;[A-Z]&quot;</span><span class="p">,</span> <span class="s2">&quot;$&quot;</span><span class="p">)</span>
+                                        <span class="n">patt_ker</span> <span class="o">=</span> <span class="n">patt_ker</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;[a-zA-Z]&quot;</span><span class="p">,</span> <span class="s2">&quot;$&quot;</span><span class="p">)</span>
+
+                                        <span class="c1">#</span>
+                                        <span class="c1"># Split the resulting pattern to build up the indexes to extract the value</span>
+                                        <span class="c1"># from the kernel name.</span>
+                                        <span class="c1">#</span>
+                                        <span class="n">patt_split</span> <span class="o">=</span> <span class="n">patt_ker</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;$</span><span class="si">{</span><span class="n">el</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                                        <span class="c1">#</span>
+                                        <span class="c1"># Create a list with the length of each part.</span>
+                                        <span class="c1">#</span>
+                                        <span class="n">indexes</span> <span class="o">=</span> <span class="p">[]</span>
+                                        <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">patt_split</span><span class="p">:</span>
+                                            <span class="n">indexes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">element</span><span class="p">))</span>
+
+                                        <span class="c1">#</span>
+                                        <span class="c1"># Extract the value with the index from the kernel name.</span>
+                                        <span class="c1">#</span>
+                                        <span class="c1"># TODO: This indexes work because the mapping kernel and the resulting kernel are in the same place!</span>
+                                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">indexes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                                            <span class="n">value</span> <span class="o">=</span> <span class="n">kernel</span><span class="p">[</span><span class="n">indexes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">kernel</span><span class="p">)</span> <span class="o">-</span> <span class="n">indexes</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+                                            <span class="k">if</span> <span class="n">patterns</span><span class="p">[</span><span class="n">el</span><span class="p">][</span><span class="s2">&quot;@pattern&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">isupper</span><span class="p">():</span>
+                                                <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+                                        <span class="k">else</span><span class="p">:</span>
+                                            <span class="n">error_message</span><span class="p">(</span>
+                                                <span class="sa">f</span><span class="s2">&quot;Kernel pattern for </span><span class="si">{</span><span class="n">kernel</span><span class="si">}</span><span class="s2"> not adept to write description. Remember a &quot;</span>
+                                                <span class="s2">&quot;metacharacter cannot start or finish a kernel pattern.&quot;</span>
+                                            <span class="p">)</span>
+
+                                        <span class="k">if</span> <span class="n">mapping</span><span class="p">:</span>
+                                            <span class="n">mapping</span> <span class="o">=</span> <span class="n">mapping</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;$&quot;</span> <span class="o">+</span> <span class="n">el</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+                                    <span class="k">elif</span> <span class="p">(</span><span class="s2">&quot;@file&quot;</span> <span class="ow">in</span> <span class="n">patterns</span><span class="p">[</span><span class="n">el</span><span class="p">]</span> <span class="ow">and</span> <span class="n">patterns</span><span class="p">[</span><span class="n">el</span><span class="p">][</span><span class="s2">&quot;@file&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;comment&quot;</span><span class="p">):</span>
+                                        <span class="c1">#</span>
+                                        <span class="c1"># Extracting the value from the comment</span>
+                                        <span class="c1"># area of the kernel. This is usually to</span>
+                                        <span class="c1"># get the original kernel name.</span>
+                                        <span class="c1">#</span>
+                                        <span class="c1"># So far this method is implemented to accomodate MRO files</span>
+                                        <span class="c1">#</span>
+                                        <span class="n">comment</span> <span class="o">=</span> <span class="n">extract_comment</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">kernels_directory</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span>
+                                                                  <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span> <span class="n">extension_to_type</span><span class="p">(</span><span class="n">kernel</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="si">}</span><span class="s2">/&quot;</span> <span class="o">+</span>
+                                                                  <span class="n">kernel</span><span class="p">)</span>
+
+                                        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">comment</span><span class="p">:</span>
+                                            <span class="k">if</span> <span class="n">patterns</span><span class="p">[</span><span class="n">el</span><span class="p">][</span><span class="s2">&quot;#text&quot;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                                                <span class="n">value</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                                                <span class="k">break</span>
+
+                                        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                                            <span class="n">error_message</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Kernel pattern not found in comment area of </span><span class="si">{</span><span class="n">kernel</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+
+                                    <span class="k">else</span><span class="p">:</span>
+                                        <span class="c1">#</span>
+                                        <span class="c1"># For non-kernels the value is based</span>
+                                        <span class="c1"># on the value within the tag that</span>
+                                        <span class="c1"># needs to be provided by the user;</span>
+                                        <span class="c1"># there is no way this can be done</span>
+                                        <span class="c1"># automatically.</span>
+                                        <span class="c1">#</span>
+
+                                        <span class="c1">#</span>
+                                        <span class="c1"># First we convert into a list in</span>
+                                        <span class="c1"># case there is just one</span>
+                                        <span class="c1">#</span>
+                                        <span class="n">patterns_el</span> <span class="o">=</span> <span class="n">patterns</span><span class="p">[</span><span class="n">el</span><span class="p">]</span>
+                                        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">patterns_el</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                                            <span class="n">patterns_el</span> <span class="o">=</span> <span class="p">[</span><span class="n">patterns_el</span><span class="p">]</span>
+                                        <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">patterns_el</span><span class="p">:</span>
+                                            <span class="k">try</span><span class="p">:</span>
+                                                <span class="k">if</span> <span class="n">val</span><span class="p">[</span><span class="s2">&quot;@value&quot;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">kernel</span><span class="p">:</span>
+                                                    <span class="n">value</span> <span class="o">=</span> <span class="n">val</span><span class="p">[</span><span class="s2">&quot;#text&quot;</span><span class="p">]</span>
+                                            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                                                <span class="n">error_message</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error generating kernel list with </span><span class="si">{</span><span class="n">kernel</span><span class="si">}</span><span class="s2">. &quot;</span>
+                                                              <span class="sa">f</span><span class="s2">&quot;Consider reviewing your NPB setup.&quot;</span><span class="p">)</span>
+
+                                        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span>
+                                            <span class="n">value</span><span class="p">,</span> <span class="nb">dict</span>
+                                        <span class="p">):</span>
+                                            <span class="n">error_message</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-- Kernel </span><span class="si">{</span><span class="n">kernel</span><span class="si">}</span><span class="s2"> description could not be updated with &quot;</span>
+                                                          <span class="sa">f</span><span class="s2">&quot;pattern.&quot;</span><span class="p">)</span>
+
+                                    <span class="n">description</span> <span class="o">=</span> <span class="n">description</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;$&quot;</span> <span class="o">+</span> <span class="n">el</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+                        <span class="k">if</span> <span class="n">options</span><span class="p">:</span>
+                            <span class="k">for</span> <span class="n">option</span> <span class="ow">in</span> <span class="n">options</span><span class="o">.</span><span class="n">split</span><span class="p">():</span>
+                                <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;$&quot;</span> <span class="o">+</span> <span class="s2">&quot;PHASES&quot;</span><span class="p">)</span> <span class="ow">in</span> <span class="n">option</span><span class="p">:</span>
+                                    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">,</span> <span class="s2">&quot;phases&quot;</span><span class="p">):</span>
+                                        <span class="k">if</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">phases</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">0</span><span class="p">]:</span>
+                                            <span class="n">phases</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="s2">&quot;phase&quot;</span><span class="p">][</span><span class="s2">&quot;@name&quot;</span><span class="p">]</span>
+                                        <span class="k">else</span><span class="p">:</span>
+                                            <span class="n">phases</span> <span class="o">=</span> <span class="s2">&quot;N/A&quot;</span>
+                                    <span class="k">else</span><span class="p">:</span>
+                                        <span class="n">phases</span> <span class="o">=</span> <span class="s2">&quot;N/A&quot;</span>
+
+                                    <span class="n">options</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;$PHASES&quot;</span><span class="p">,</span> <span class="n">phases</span><span class="p">)</span>
+
+                        <span class="c1">#</span>
+                        <span class="c1"># Reformat the description, given that format of the XML file is not restrictive (spaces or</span>
+                        <span class="c1"># newlines might be present).</span>
+                        <span class="c1">#</span>
+                        <span class="n">description</span> <span class="o">=</span> <span class="n">description</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">)</span>
+                        <span class="n">description</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">description</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
+
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;3&quot;</span><span class="p">:</span>
+                            <span class="n">kerdir</span> <span class="o">=</span> <span class="s2">&quot;data/&quot;</span> <span class="o">+</span> <span class="n">extension_to_type</span><span class="p">(</span><span class="n">kernel</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">kerdir</span> <span class="o">=</span> <span class="s2">&quot;spice_kernels/&quot;</span> <span class="o">+</span> <span class="n">extension_to_type</span><span class="p">(</span><span class="n">kernel</span><span class="p">)</span>
+
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="p">:</span>
+                            <span class="n">options</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+                        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;FILE             = </span><span class="si">{</span><span class="n">kerdir</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">kernel</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="c1">#</span>
+                        <span class="c1"># Introduced to avoid trailing white space.</span>
+                        <span class="c1">#</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="p">:</span>
+                            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;MAKLABEL_OPTIONS =</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;MAKLABEL_OPTIONS = </span><span class="si">{</span><span class="n">options</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DESCRIPTION      = </span><span class="si">{</span><span class="n">description</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                        <span class="k">if</span> <span class="n">mapping</span><span class="p">:</span>
+
+                            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-- Mapping </span><span class="si">{</span><span class="n">kernel</span><span class="si">}</span><span class="s2"> with </span><span class="si">{</span><span class="n">mapping</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;MAPPING          = </span><span class="si">{</span><span class="n">mapping</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                        <span class="n">ker_added_to_list</span> <span class="o">=</span> <span class="kc">True</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">ker_added_to_list</span><span class="p">:</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;FILE             = miscellaneous/orbnum/</span><span class="si">{</span><span class="n">kernel</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;MAKLABEL_OPTIONS = N/A</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;DESCRIPTION      = N/A</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">list_name</span> <span class="o">=</span> <span class="n">list_name</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="KernelList.read_list"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.list.KernelList.read_list">[docs]</a>    <span class="k">def</span> <span class="nf">read_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kerlist</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read the Kernel List.</span>
+
+<span class="sd">        Note that the format that the kernel list has to follow is very</span>
+<span class="sd">        strict, including no whitespace at the end of each line and Line-feed</span>
+<span class="sd">        EOL.</span>
+
+<span class="sd">        :param kerlist: Kernel List path</span>
+<span class="sd">        :type kerlist: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">kernel_list</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">working_directory</span><span class="si">}</span><span class="s2">/&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">run_type</span><span class="si">}</span><span class="s2">_&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">release</span><span class="p">)</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">.kernel_list&quot;</span>
+        <span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span><span class="n">kerlist</span><span class="p">,</span> <span class="n">kernel_list</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">shutil</span><span class="o">.</span><span class="n">SameFileError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">list_name</span> <span class="o">=</span> <span class="n">kernel_list</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># Generate the kernel list attribute, necessary for the validation.</span>
+        <span class="c1">#</span>
+        <span class="n">kernels</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">kernel_list</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">lst</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lst</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">&quot;FILE             =&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                    <span class="n">kernels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">kernel_list</span> <span class="o">=</span> <span class="n">kernels</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="KernelList.write_complete_list"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.list.KernelList.write_complete_list">[docs]</a>    <span class="k">def</span> <span class="nf">write_complete_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write the complete Kernel List using the former ones.&quot;&quot;&quot;</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Step </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">step</span><span class="si">}</span><span class="s2"> - Generation of complete kernel list&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">))</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">step</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">silent</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-- &quot;</span> <span class="o">+</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; - &quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span><span class="p">)</span>
+
+        <span class="n">kernel_lists</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">working_directory</span>
+            <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span>
+            <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_release*&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;.kernel_list&quot;</span>
+        <span class="p">)</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># Sort list in inverse order in such way that the DATASETID is</span>
+        <span class="c1"># obtained from the header of the latest list.</span>
+        <span class="c1">#</span>
+        <span class="n">kernel_lists</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">complete_list</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_complete.kernel_list&quot;</span>
+
+        <span class="n">release_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">working_directory</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="n">complete_list</span><span class="p">,</span> <span class="s2">&quot;w+&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">c</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">kernel_list</span> <span class="ow">in</span> <span class="n">kernel_lists</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-- Adding </span><span class="si">{</span><span class="n">kernel_list</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">release_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">kernel_list</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot;.&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">3</span><span class="p">]))</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">kernel_list</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">lst</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lst</span><span class="p">:</span>
+                        <span class="n">c</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">check_consecutive</span><span class="p">(</span><span class="n">release_list</span><span class="p">):</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-- Incomplete Kernel lists available: </span><span class="si">{</span><span class="n">release_list</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">complete_list</span> <span class="o">=</span> <span class="n">complete_list</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate_complete</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="KernelList.validate"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.list.KernelList.validate">[docs]</a>    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Validation of the Kernel List.</span>
+
+<span class="sd">        The validation of the Kernel List performs the following checks:</span>
+
+<span class="sd">         * check that the list has the same number of ``FILE``, ``MAKLABEL_OPTIONS``,</span>
+<span class="sd">           and ``DESCRIPTION`` entries.</span>
+<span class="sd">         * check list against plan</span>
+<span class="sd">         * check that list for duplicate files</span>
+<span class="sd">         * check that all files listed in the list are on the ``kernels_directory``</span>
+<span class="sd">         * check that the files are not in the ``bundle_directory``</span>
+<span class="sd">         * display all the ``MAKLABL_OPTIONS`` used</span>
+<span class="sd">         * check that all the ``MAKLBL_OPTIONS`` are in the template for PDS3</span>
+<span class="sd">         * check that the list has no duplicates</span>
+<span class="sd">         * if the ``-d DIFF --diff DIFF`` argument is used, compare the kernel</span>
+<span class="sd">           list with the kernel list of the previous release -if avaialble.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">num_file</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">num_opti</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">num_desc</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">ker_in_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">opt_in_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">working_directory</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_name</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">lst</span><span class="p">:</span>
+
+            <span class="c1">#</span>
+            <span class="c1"># Check that the list has the same number of FILE,</span>
+            <span class="c1"># MAKLABEL_OPTIONS, and DESCRIPTION entries</span>
+            <span class="c1">#</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lst</span><span class="p">:</span>
+
+                <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;FILE&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()):</span>
+                    <span class="n">num_file</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="c1">#</span>
+                    <span class="c1"># We add kernels to compare plan and list and to look</span>
+                    <span class="c1"># for duplicates.</span>
+                    <span class="c1">#</span>
+                    <span class="n">ker_in_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+
+                <span class="k">elif</span> <span class="s2">&quot;OPTIONS&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                    <span class="n">num_opti</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="c1">#</span>
+                    <span class="c1"># We add options to display and compare to template</span>
+                    <span class="c1">#</span>
+                    <span class="n">options</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                    <span class="k">for</span> <span class="n">option</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">option</span> <span class="o">!=</span> <span class="s2">&quot;None&quot;</span><span class="p">:</span>
+                            <span class="n">opt_in_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">option</span><span class="p">)</span>
+
+                <span class="k">elif</span> <span class="p">(</span><span class="s2">&quot;DESCRIPTION&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()):</span>
+                    <span class="n">num_desc</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="n">num_file</span> <span class="o">!=</span> <span class="n">num_opti</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">num_opti</span> <span class="o">!=</span> <span class="n">num_desc</span><span class="p">):</span>
+                <span class="n">error</span> <span class="o">=</span> <span class="s2">&quot;List does not have the same number of entries&quot;</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">error</span><span class="si">}</span><span class="s2"> for:&quot;</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   FILE             (</span><span class="si">{</span><span class="n">num_file</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   MAKLABEL_OPTIONS (</span><span class="si">{</span><span class="n">num_opti</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   DESCRIPTION      (</span><span class="si">{</span><span class="n">num_desc</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;-- Display </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_name</span><span class="si">}</span><span class="s2"> kernel list &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;configuration file to double-check.&quot;</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">json_formatted_lst</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
+
+            <span class="c1">#</span>
+            <span class="c1"># Check list against plan</span>
+            <span class="c1">#</span>
+            <span class="k">for</span> <span class="n">ker</span> <span class="ow">in</span> <span class="n">ker_in_list</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">ker</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel_list</span><span class="p">:</span>
+                    <span class="n">error_message</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   </span><span class="si">{</span><span class="n">ker</span><span class="si">}</span><span class="s2"> not in list.&quot;</span><span class="p">)</span>
+
+            <span class="c1">#</span>
+            <span class="c1"># Check list for duplicate entries</span>
+            <span class="c1">#</span>
+            <span class="k">if</span> <span class="n">check_list_duplicates</span><span class="p">(</span><span class="n">ker_in_list</span><span class="p">):</span>
+                <span class="n">error_message</span><span class="p">(</span><span class="s2">&quot;List contains duplicates.&quot;</span><span class="p">)</span>
+
+            <span class="c1">#</span>
+            <span class="c1"># Check that all files listed are available in OPS area;</span>
+            <span class="c1"># This does not raise an error but only a warning.</span>
+            <span class="c1">#</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- Checking that kernels are present in: &quot;</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="nb">dir</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">kernels_directory</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   </span><span class="si">{</span><span class="nb">dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="n">present</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">all_present</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">for</span> <span class="n">ker</span> <span class="ow">in</span> <span class="n">ker_in_list</span><span class="p">:</span>
+                <span class="k">for</span> <span class="nb">dir</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">kernels_directory</span><span class="p">:</span>
+                    <span class="c1">#</span>
+                    <span class="c1"># We cannot assume that the file is under a certain</span>
+                    <span class="c1"># directory, it can be in any sub-directory.</span>
+                    <span class="c1">#</span>
+                    <span class="n">file</span> <span class="o">=</span> <span class="p">[</span>
+                        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="nb">dir</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">files</span>
+                        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="n">ker</span>
+                    <span class="p">]</span>
+                    <span class="k">if</span> <span class="n">file</span><span class="p">:</span>
+                        <span class="n">present</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">present</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s2">&quot;.tm&quot;</span> <span class="ow">in</span> <span class="n">ker</span><span class="p">:</span>
+                        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;     </span><span class="si">{</span><span class="n">ker</span><span class="si">}</span><span class="s2"> not present as expected.&quot;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;     </span><span class="si">{</span><span class="n">ker</span><span class="si">}</span><span class="s2"> not present. Kernel might be mapped.&quot;</span>
+                        <span class="p">)</span>
+                        <span class="n">all_present</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="n">all_present</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;     All kernels present in directory.&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+            <span class="c1">#</span>
+            <span class="c1"># Check that no file is in the final area.</span>
+            <span class="c1">#</span>
+            <span class="n">present</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;-- Checking that kernels are present in &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">bundle_directory</span><span class="si">}</span><span class="s2">:&quot;</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">ker</span> <span class="ow">in</span> <span class="n">ker_in_list</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">bundle_directory</span>
+                    <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_spice/&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;spice_kernels/&quot;</span> <span class="o">+</span> <span class="n">extension_to_type</span><span class="p">(</span><span class="n">ker</span><span class="p">)</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="n">ker</span>
+                <span class="p">):</span>
+                    <span class="n">present</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;     </span><span class="si">{</span><span class="n">ker</span><span class="si">}</span><span class="s2"> present.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">present</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;     No kernels present in final area.&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+            <span class="c1">#</span>
+            <span class="c1"># Display all the MAKLABL_OPTIONS used</span>
+            <span class="c1">#</span>
+            <span class="n">opt_in_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">opt_in_list</span><span class="p">))</span>
+            <span class="n">opt_in_list</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- Display all the MAKLABEL_OPTIONS:&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">option</span> <span class="ow">in</span> <span class="n">opt_in_list</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;     </span><span class="si">{</span><span class="n">option</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+            <span class="c1">#</span>
+            <span class="c1"># The PDS Mission Template file is not required for PDS4</span>
+            <span class="c1">#</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s1">&#39;3&#39;</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;-- Check that all template tags used in the list are present in template:&#39;</span><span class="p">)</span>
+
+                <span class="n">maklabel_options</span> <span class="o">=</span> \
+                    <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds3_mission_template</span><span class="p">[</span><span class="s1">&#39;maklabel_options&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+                <span class="k">for</span> <span class="n">option</span> <span class="ow">in</span> <span class="n">opt_in_list</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">option</span> <span class="ow">in</span> <span class="n">maklabel_options</span><span class="p">:</span>
+                        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;     </span><span class="si">{</span><span class="n">option</span><span class="si">}</span><span class="s1"> is present.&#39;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">option</span> <span class="o">!=</span> <span class="s1">&#39;N/A&#39;</span><span class="p">:</span>
+                            <span class="n">error_message</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">option</span><span class="si">}</span><span class="s1"> not in configuration.&#39;</span><span class="p">)</span>
+
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+            <span class="c1">#</span>
+            <span class="c1"># Check complete list for duplicate entries</span>
+            <span class="c1">#</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- Checking for duplicates in complete kernel list:&quot;</span><span class="p">)</span>
+
+            <span class="n">kernel_lists</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">working_directory</span>
+                <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span>
+                <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_release*&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;.kernel_list&quot;</span>
+            <span class="p">)</span>
+            <span class="n">kernel_lists</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+
+            <span class="n">ker_in_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">kernel_list</span> <span class="ow">in</span> <span class="n">kernel_lists</span><span class="p">:</span>
+
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">kernel_list</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">lst</span><span class="p">:</span>
+
+                    <span class="c1">#</span>
+                    <span class="c1"># Check that the list has the same number of FILE,</span>
+                    <span class="c1"># MAKLABEL_OPTIONS, and DESCRIPTION entries</span>
+                    <span class="c1">#</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;     Adding </span><span class="si">{</span><span class="n">kernel_list</span><span class="si">}</span><span class="s2"> in check.&quot;</span><span class="p">)</span>
+
+                    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lst</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;FILE&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()):</span>
+                            <span class="n">ker_in_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+
+            <span class="k">if</span> <span class="n">check_list_duplicates</span><span class="p">(</span><span class="n">ker_in_list</span><span class="p">):</span>
+                <span class="n">error_message</span><span class="p">(</span><span class="s2">&quot;List contains duplicates.&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;     List contains no duplicates.&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">diff</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">increment</span><span class="p">:</span>
+            <span class="c1">#</span>
+            <span class="c1"># Compare list with previous list</span>
+            <span class="c1">#</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- Comparing current list with previous list:&quot;</span><span class="p">)</span>
+
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="n">fromfile</span> <span class="o">=</span> <span class="n">kernel_lists</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">tofile</span> <span class="o">=</span> <span class="n">kernel_lists</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+                <span class="nb">dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">working_directory</span>
+                <span class="n">compare_files</span><span class="p">(</span><span class="n">fromfile</span><span class="p">,</span> <span class="n">tofile</span><span class="p">,</span> <span class="nb">dir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">diff</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;-- Previous list not available.&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="KernelList.validate_complete"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.list.KernelList.validate_complete">[docs]</a>    <span class="k">def</span> <span class="nf">validate_complete</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Validation of the complete Kernel List.</span>
+
+<span class="sd">        The complete Kernel List is generated by NPB by merging all the</span>
+<span class="sd">        available Kernel List files. These kernel list files must be located</span>
+<span class="sd">        in the ``working_directory`` as specified by the NPB configuration.</span>
+
+<span class="sd">        In principle all the kernels that have ever been added to the archive</span>
+<span class="sd">        should be present.</span>
+
+<span class="sd">        The validation of the complete Kernel List performs the following checks:</span>
+
+<span class="sd">         * check that the list has the same number of ``FILE``, ``MAKLABEL_OPTIONS``,</span>
+<span class="sd">           and ``DESCRIPTION`` entries</span>
+<span class="sd">         * check all the ``MAKLABL_OPTIONS`` used</span>
+<span class="sd">         * check that the list has no duplicates</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">num_file</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">num_opti</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">num_desc</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">ker_in_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">opt_in_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">working_directory</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">complete_list</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span>
+        <span class="p">)</span> <span class="k">as</span> <span class="n">lst</span><span class="p">:</span>
+
+            <span class="c1">#</span>
+            <span class="c1"># Check that the list has the same number of FILE,</span>
+            <span class="c1"># MAKLABEL_OPTIONS, and DESCRIPTION entries</span>
+            <span class="c1">#</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- Checking list number of entries coherence:&quot;</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lst</span><span class="p">:</span>
+
+                <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;FILE&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()):</span>
+                    <span class="n">num_file</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="c1">#</span>
+                    <span class="c1"># We add kernels to compare plan and list and to look</span>
+                    <span class="c1"># for duplicates.</span>
+                    <span class="c1">#</span>
+                    <span class="n">ker_in_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+
+                <span class="k">elif</span> <span class="s2">&quot;OPTIONS&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                    <span class="n">num_opti</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="c1">#</span>
+                    <span class="c1"># We add options to display and compare to template</span>
+                    <span class="c1">#</span>
+                    <span class="n">options</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                    <span class="k">for</span> <span class="n">option</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+                        <span class="n">opt_in_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">option</span><span class="p">)</span>
+
+                <span class="k">elif</span> <span class="p">(</span><span class="s2">&quot;DESCRIPTION&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()):</span>
+                    <span class="n">num_desc</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="n">num_file</span> <span class="o">!=</span> <span class="n">num_opti</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">num_opti</span> <span class="o">!=</span> <span class="n">num_desc</span><span class="p">):</span>
+                <span class="n">error</span> <span class="o">=</span> <span class="s2">&quot;List does not have the same number of entries&quot;</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">error</span><span class="si">}</span><span class="s2"> for:&quot;</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   FILE             (</span><span class="si">{</span><span class="n">num_file</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   MAKLABEL_OPTIONS (</span><span class="si">{</span><span class="n">num_opti</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   DESCRIPTION      (</span><span class="si">{</span><span class="n">num_desc</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;-- Display </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_name</span><span class="si">}</span><span class="s2"> kernel list &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;configuration file to double-check.&quot;</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">json_formatted_lst</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;     PASS with total of </span><span class="si">{</span><span class="n">num_file</span><span class="si">}</span><span class="s2"> entries.&quot;</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+            <span class="c1">#</span>
+            <span class="c1"># Check list for duplicate entries</span>
+            <span class="c1">#</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- Checking for duplicates in kernel list:&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">check_list_duplicates</span><span class="p">(</span><span class="n">ker_in_list</span><span class="p">):</span>
+                <span class="n">error_message</span><span class="p">(</span><span class="s2">&quot;List contains duplicates.&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;     List contains no duplicates.&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+            <span class="c1">#</span>
+            <span class="c1"># Display all the MAKLABL_OPTIONS used</span>
+            <span class="c1">#</span>
+            <span class="n">opt_in_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">opt_in_list</span><span class="p">))</span>
+            <span class="n">opt_in_list</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- Display all the MAKLABEL_OPTIONS:&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">option</span> <span class="ow">in</span> <span class="n">opt_in_list</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;     </span><span class="si">{</span><span class="n">option</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+            <span class="c1">#</span>
+            <span class="c1"># The PDS Mission Template file is not required for PDS4</span>
+            <span class="c1">#</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;3&quot;</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="s2">&quot;-- Check that all template tags used in the &quot;</span>
+                    <span class="s2">&quot;list are present in template:&quot;</span>
+                <span class="p">)</span>
+                <span class="n">template</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">root_dir</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;/config/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;_mission_template.pds&quot;</span>
+                <span class="p">)</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">o</span><span class="p">:</span>
+                    <span class="n">template_lines</span> <span class="o">=</span> <span class="n">o</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+
+                <span class="k">for</span> <span class="n">option</span> <span class="ow">in</span> <span class="n">opt_in_list</span><span class="p">:</span>
+                    <span class="n">present</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">template_lines</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="s2">&quot;--&quot;</span> <span class="o">+</span> <span class="n">option</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                            <span class="n">present</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">if</span> <span class="n">present</span><span class="p">:</span>
+                        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;     </span><span class="si">{</span><span class="n">option</span><span class="si">}</span><span class="s2"> is present.&quot;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">error_message</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">option</span><span class="si">}</span><span class="s2"> not in template.&quot;</span><span class="p">)</span>
+
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2021, Caltech/JPL/NASA
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

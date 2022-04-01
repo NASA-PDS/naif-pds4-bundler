@@ -149,4 +149,4 @@ described here.
    should be used together, providing an easy way to make data from
    these kernel sets available to a SPICE-based application by loading
    meta-kernels into the program using the high level SPICE data loader
-   routine FURNSH.
+   routine ``FURNSH``.

@@ -1,0 +1,2056 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pds.naif_pds4_bundler.classes package &mdash; NAIF PDS4 Bundler 1.0.1
+ documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="pds.naif_pds4_bundler.utils package" href="pds.naif_pds4_bundler.utils.html" />
+    <link rel="prev" title="pds.naif_pds4_bundler package" href="pds.naif_pds4_bundler.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> NAIF PDS4 Bundler
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="10_overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="20_spice_kernel_archive_description.html">SPICE Kernel Archive Description</a></li>
+<li class="toctree-l1"><a class="reference internal" href="30_spice_kernel_archive_preparation_guide.html">SPICE Kernel Archive Preparation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="40_naif_pds4_bundler_user_guide.html">NAIF PDS4 Bundler User Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="50_api_docs.html">Modules, Classes, and Functions Documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="pds.html">pds package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="pds.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="pds.naif_pds4_bundler.html">pds.naif_pds4_bundler package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pds.html#module-pds">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tests.html">tests package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="60_annex_npb_for_pds3.html">Appendix: NPB for PDS3 Archives</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">NAIF PDS4 Bundler</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="50_api_docs.html">Modules, Classes, and Functions Documentation</a> &raquo;</li>
+        
+          <li><a href="pds.html">pds package</a> &raquo;</li>
+        
+          <li><a href="pds.naif_pds4_bundler.html">pds.naif_pds4_bundler package</a> &raquo;</li>
+        
+      <li>pds.naif_pds4_bundler.classes package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/pds.naif_pds4_bundler.classes.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="pds-naif-pds4-bundler-classes-package">
+<h1>pds.naif_pds4_bundler.classes package<a class="headerlink" href="#pds-naif-pds4-bundler-classes-package" title="Permalink to this headline">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="module-pds.naif_pds4_bundler.classes.bundle">
+<span id="pds-naif-pds4-bundler-classes-bundle-module"></span><h2>pds.naif_pds4_bundler.classes.bundle module<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.bundle" title="Permalink to this headline">¶</a></h2>
+<p>Bundle Class Implementation.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.bundle.Bundle">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.classes.bundle.</span></span><span class="sig-name descname"><span class="pre">Bundle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">setup</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/bundle.html#Bundle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.bundle.Bundle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class to generate the PDS4 Bundle structure.</p>
+<p>The class construction will generate the top level directory structure for
+a PDS4 bundle or a PDS3 data set.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>setup</strong> (<em>object</em>) – NPB execution Setup object</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.bundle.Bundle.add">
+<span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">element</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/bundle.html#Bundle.add"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.bundle.Bundle.add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a Collection to the Bundle.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.bundle.Bundle.check_times">
+<span class="sig-name descname"><span class="pre">check_times</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/bundle.html#Bundle.check_times"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.bundle.Bundle.check_times" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check the correctness of the bundle times.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.bundle.Bundle.copy_to_bundle">
+<span class="sig-name descname"><span class="pre">copy_to_bundle</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/bundle.html#Bundle.copy_to_bundle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.bundle.Bundle.copy_to_bundle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy files from <code class="docutils literal notranslate"><span class="pre">staging_directory</span></code> to the <code class="docutils literal notranslate"><span class="pre">bundle_directory</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.bundle.Bundle.files_in_staging">
+<span class="sig-name descname"><span class="pre">files_in_staging</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/bundle.html#Bundle.files_in_staging"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.bundle.Bundle.files_in_staging" title="Permalink to this definition">¶</a></dt>
+<dd><p>Lists all the files in the staging area.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.bundle.Bundle.get_history">
+<span class="sig-name descname"><span class="pre">get_history</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/bundle.html#Bundle.get_history"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.bundle.Bundle.get_history" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method builds the “Archive History”.</p>
+<p>The “Archive history” is obtained by extracting the
+previous releases and the Collections that correspond to each release
+from the Bundle labels. The other products’ information is extracted
+from the collection inventories.</p>
+<p>The archive history is then provided as a dictionary with releases
+as keys and each key contains a list of files for that release.</p>
+<p>The method checks whether if there is any duplicated element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>object</strong> (<em>object</em>) – optional Bundle object for tests</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Archive history dictionary</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.bundle.Bundle.set_bundle_lid">
+<span class="sig-name descname"><span class="pre">set_bundle_lid</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/bundle.html#Bundle.set_bundle_lid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.bundle.Bundle.set_bundle_lid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the Bundle LID.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.bundle.Bundle.set_bundle_vid">
+<span class="sig-name descname"><span class="pre">set_bundle_vid</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/bundle.html#Bundle.set_bundle_vid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.bundle.Bundle.set_bundle_vid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the Bundle VID.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.bundle.Bundle.validate">
+<span class="sig-name descname"><span class="pre">validate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/bundle.html#Bundle.validate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.bundle.Bundle.validate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate the Bundle.</p>
+<p>The two implemented steps are to check checksum files against the
+updated bundle history and checking the bundle times.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.bundle.Bundle.validate_history">
+<span class="sig-name descname"><span class="pre">validate_history</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/bundle.html#Bundle.validate_history"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.bundle.Bundle.validate_history" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate the bundle updated history with the checksum files.</p>
+<p>This method validates all the archive Checksum files with the “Archive
+History”. The “Archive history” is obtained by extracting the
+previous releases and the Collections that correspond to each release
+from the Bundle labels. The other products’ information is extracted
+from the collection inventories.</p>
+<p>The archive history is then provided as a dictionary with releases
+as keys and each key contains a list of files for that release.</p>
+<p>The validation is performed by comparing each release entry of the
+dictionary with the release checksum file <code class="docutils literal notranslate"><span class="pre">checksum_v???.tab</span></code>.</p>
+<p>In parallel the method writes in the execution log the complete bundle
+release history, providing an ordered list of files released for each
+release number.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.bundle.Bundle.write_readme">
+<span class="sig-name descname"><span class="pre">write_readme</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/bundle.html#Bundle.write_readme"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.bundle.Bundle.write_readme" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the readme product if it does not exist.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-pds.naif_pds4_bundler.classes.collection">
+<span id="pds-naif-pds4-bundler-classes-collection-module"></span><h2>pds.naif_pds4_bundler.classes.collection module<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.collection" title="Permalink to this headline">¶</a></h2>
+<p>Collection Class amd Child Classes Implementation.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.collection.Collection">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.classes.collection.</span></span><span class="sig-name descname"><span class="pre">Collection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">setup</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bundle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/collection.html#Collection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.collection.Collection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class to generate a PDS4 Collection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>type</strong> (<em>str</em>) – Collection type: kernels, documents or miscellaneous</p></li>
+<li><p><strong>setup</strong> (<em>object</em>) – Setup Object</p></li>
+<li><p><strong>bundle</strong> (<em>object</em>) – Bundle Object to which the Collection belongs to</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.collection.Collection.add">
+<span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">element</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/collection.html#Collection.add"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.collection.Collection.add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a Product to the Collection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>element</strong> (<em>object</em>) – Product to add to Collection</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.collection.Collection.set_collection_lid">
+<span class="sig-name descname"><span class="pre">set_collection_lid</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/collection.html#Collection.set_collection_lid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.collection.Collection.set_collection_lid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the Bundle LID.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.collection.Collection.set_collection_vid">
+<span class="sig-name descname"><span class="pre">set_collection_vid</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/collection.html#Collection.set_collection_vid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.collection.Collection.set_collection_vid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the Bundle VID.</p>
+<p>In general Collection versions are not equal to the release number.
+If the collection has been updated we obtain the increased
+version, but if it has not been updated we use the previous
+version.</p>
+<p>Given the case thatt he version cannot be determined: if it is the
+SPICE kernels collection assume is the same version as the bundle,
+otherwise we set it to 1.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.collection.DocumentCollection">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.classes.collection.</span></span><span class="sig-name descname"><span class="pre">DocumentCollection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">setup</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bundle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/collection.html#DocumentCollection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.collection.DocumentCollection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pds.naif_pds4_bundler.classes.collection.Collection" title="pds.naif_pds4_bundler.classes.collection.Collection"><code class="xref py py-class docutils literal notranslate"><span class="pre">pds.naif_pds4_bundler.classes.collection.Collection</span></code></a></p>
+<p>Collection child class to generate a PDS3 or PDS4 Document Collection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>setup</strong> (<em>object</em>) – NPB execution setup object</p></li>
+<li><p><strong>bundle</strong> (<em>object</em>) – Bundle object</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.collection.DocumentCollection.get_pds3_documents">
+<span class="sig-name descname"><span class="pre">get_pds3_documents</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/collection.html#DocumentCollection.get_pds3_documents"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.collection.DocumentCollection.get_pds3_documents" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collects the updated PDS3 documents for the increment.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.collection.MiscellaneousCollection">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.classes.collection.</span></span><span class="sig-name descname"><span class="pre">MiscellaneousCollection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">setup</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bundle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/collection.html#MiscellaneousCollection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.collection.MiscellaneousCollection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pds.naif_pds4_bundler.classes.collection.Collection" title="pds.naif_pds4_bundler.classes.collection.Collection"><code class="xref py py-class docutils literal notranslate"><span class="pre">pds.naif_pds4_bundler.classes.collection.Collection</span></code></a></p>
+<p>Collection child class to generate a PDS4 Document Collection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>setup</strong> (<em>object</em>) – NPB execution setup object</p></li>
+<li><p><strong>bundle</strong> (<em>object</em>) – Bundle object</p></li>
+<li><p><strong>list</strong> (<em>object</em>) – Kernel List object</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.collection.SpiceKernelsCollection">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.classes.collection.</span></span><span class="sig-name descname"><span class="pre">SpiceKernelsCollection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">setup</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bundle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/collection.html#SpiceKernelsCollection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.collection.SpiceKernelsCollection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pds.naif_pds4_bundler.classes.collection.Collection" title="pds.naif_pds4_bundler.classes.collection.Collection"><code class="xref py py-class docutils literal notranslate"><span class="pre">pds.naif_pds4_bundler.classes.collection.Collection</span></code></a></p>
+<p>Collection child class to generate a PDS4 SPICE Kernels Collection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>setup</strong> (<em>object</em>) – NPB execution setup object</p></li>
+<li><p><strong>bundle</strong> (<em>object</em>) – Bundle object</p></li>
+<li><p><strong>list</strong> (<em>object</em>) – Kernel List object</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.collection.SpiceKernelsCollection.determine_meta_kernels">
+<span class="sig-name descname"><span class="pre">determine_meta_kernels</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/collection.html#SpiceKernelsCollection.determine_meta_kernels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.collection.SpiceKernelsCollection.determine_meta_kernels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine the name of the Meta-kernel(s) to be generated.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Alphabetically sorted list of meta-kernels to be generated,
+List of meta-kernels provided by the user</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(list, list)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.collection.SpiceKernelsCollection.set_increment_times">
+<span class="sig-name descname"><span class="pre">set_increment_times</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/collection.html#SpiceKernelsCollection.set_increment_times"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.collection.SpiceKernelsCollection.set_increment_times" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine the archive increment start and finish times.</p>
+<p>This is done based on the identification of the coverage of a given
+SPK or CK kernel. Alternatively it can be provided as a parameter of the
+execution.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.collection.SpiceKernelsCollection.type">
+<span class="sig-name descname"><span class="pre">type</span></span><a class="headerlink" href="#pds.naif_pds4_bundler.classes.collection.SpiceKernelsCollection.type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collection type (<cite>str</cite>).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.collection.SpiceKernelsCollection.validate">
+<span class="sig-name descname"><span class="pre">validate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/collection.html#SpiceKernelsCollection.validate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.collection.SpiceKernelsCollection.validate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate the SPICE Kernels collection.</p>
+<p>The SPICE Kernels collection validation performs the following checks:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>check that all the kernels from the kernel list are present</p></li>
+<li><p>check that all the kernels have been labeled</p></li>
+<li><p>display the key elements of the labels for the user to do a visual
+inspection. The key elements are: <code class="docutils literal notranslate"><span class="pre">logical_identifier</span></code>, <code class="docutils literal notranslate"><span class="pre">version_id</span></code>,
+<code class="docutils literal notranslate"><span class="pre">title</span></code>, <code class="docutils literal notranslate"><span class="pre">description</span></code>, <code class="docutils literal notranslate"><span class="pre">start_date_time</span></code>, <code class="docutils literal notranslate"><span class="pre">stop_date_time</span></code>,
+<code class="docutils literal notranslate"><span class="pre">file_name</span></code>, <code class="docutils literal notranslate"><span class="pre">file_size</span></code>, <code class="docutils literal notranslate"><span class="pre">md5_checksum</span></code>, <code class="docutils literal notranslate"><span class="pre">object_length</span></code>,
+<code class="docutils literal notranslate"><span class="pre">kernel_type</span></code>, and <code class="docutils literal notranslate"><span class="pre">encoding_type</span></code>.</p></li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-pds.naif_pds4_bundler.classes.label">
+<span id="pds-naif-pds4-bundler-classes-label-module"></span><h2>pds.naif_pds4_bundler.classes.label module<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.label" title="Permalink to this headline">¶</a></h2>
+<p>PDS Label Class and Child Classes Implementation.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.label.BundlePDS4Label">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.classes.label.</span></span><span class="sig-name descname"><span class="pre">BundlePDS4Label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">setup</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">readme</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/label.html#BundlePDS4Label"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.label.BundlePDS4Label" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pds.naif_pds4_bundler.classes.label.PDSLabel" title="pds.naif_pds4_bundler.classes.label.PDSLabel"><code class="xref py py-class docutils literal notranslate"><span class="pre">pds.naif_pds4_bundler.classes.label.PDSLabel</span></code></a></p>
+<p>PDS Label child class to generate a PDS4 Bundle Label.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>setup</strong> (<em>object</em>) – NPB execution Setup object</p></li>
+<li><p><strong>readme</strong> – Readme product</p></li>
+</ul>
+</dd>
+<dt class="field-even">Rype readme</dt>
+<dd class="field-even"><p>object</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.label.BundlePDS4Label.get_target_reference_type">
+<span class="sig-name descname"><span class="pre">get_target_reference_type</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/label.html#BundlePDS4Label.get_target_reference_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.label.BundlePDS4Label.get_target_reference_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get target reference type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Literally <code class="docutils literal notranslate"><span class="pre">bundle_to_target</span></code></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.label.ChecksumPDS3Label">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.classes.label.</span></span><span class="sig-name descname"><span class="pre">ChecksumPDS3Label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">setup</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">product</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/label.html#ChecksumPDS3Label"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.label.ChecksumPDS3Label" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pds.naif_pds4_bundler.classes.label.PDSLabel" title="pds.naif_pds4_bundler.classes.label.PDSLabel"><code class="xref py py-class docutils literal notranslate"><span class="pre">pds.naif_pds4_bundler.classes.label.PDSLabel</span></code></a></p>
+<p>PDS Label child class to generate a PDS3 Checksum Label.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>setup</strong> (<em>object</em>) – NPB  execution Setup object</p></li>
+<li><p><strong>product</strong> (<em>object</em>) – Checksum product to label</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.label.ChecksumPDS4Label">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.classes.label.</span></span><span class="sig-name descname"><span class="pre">ChecksumPDS4Label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">setup</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">product</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/label.html#ChecksumPDS4Label"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.label.ChecksumPDS4Label" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pds.naif_pds4_bundler.classes.label.PDSLabel" title="pds.naif_pds4_bundler.classes.label.PDSLabel"><code class="xref py py-class docutils literal notranslate"><span class="pre">pds.naif_pds4_bundler.classes.label.PDSLabel</span></code></a></p>
+<p>PDS Label child class to generate a PDS4 Checksum Label.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>setup</strong> (<em>object</em>) – NPB execution Setup object</p></li>
+<li><p><strong>product</strong> (<em>object</em>) – Checksum product to label</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.label.DocumentPDS4Label">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.classes.label.</span></span><span class="sig-name descname"><span class="pre">DocumentPDS4Label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">setup</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collection</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inventory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/label.html#DocumentPDS4Label"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.label.DocumentPDS4Label" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pds.naif_pds4_bundler.classes.label.PDSLabel" title="pds.naif_pds4_bundler.classes.label.PDSLabel"><code class="xref py py-class docutils literal notranslate"><span class="pre">pds.naif_pds4_bundler.classes.label.PDSLabel</span></code></a></p>
+<p>PDS Label child class to generate a PDS4 Document Label.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>setup</strong> (<em>object</em>) – NPB execution Setup object</p></li>
+<li><p><strong>collection</strong> (<em>object</em>) – Collection to label</p></li>
+<li><p><strong>inventory</strong> (<em>object</em>) – Inventory Product of the Collection</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.label.InventoryPDS3Label">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.classes.label.</span></span><span class="sig-name descname"><span class="pre">InventoryPDS3Label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mission</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collection</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inventory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/label.html#InventoryPDS3Label"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.label.InventoryPDS3Label" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pds.naif_pds4_bundler.classes.label.PDSLabel" title="pds.naif_pds4_bundler.classes.label.PDSLabel"><code class="xref py py-class docutils literal notranslate"><span class="pre">pds.naif_pds4_bundler.classes.label.PDSLabel</span></code></a></p>
+<p>PDS Label child class to generate a PDS3 Index Label.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>setup</strong> (<em>object</em>) – NPB execution Setup object</p></li>
+<li><p><strong>collection</strong> – Index Collection</p></li>
+<li><p><strong>inventory</strong> (<em>object</em>) – Index Product</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.label.InventoryPDS4Label">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.classes.label.</span></span><span class="sig-name descname"><span class="pre">InventoryPDS4Label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">setup</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collection</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inventory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/label.html#InventoryPDS4Label"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.label.InventoryPDS4Label" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pds.naif_pds4_bundler.classes.label.PDSLabel" title="pds.naif_pds4_bundler.classes.label.PDSLabel"><code class="xref py py-class docutils literal notranslate"><span class="pre">pds.naif_pds4_bundler.classes.label.PDSLabel</span></code></a></p>
+<p>PDS Label child class to generate a PDS4 Collection Inventory Label.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>setup</strong> (<em>object</em>) – NPB execution Setup object</p></li>
+<li><p><strong>collection</strong> – Collection to label</p></li>
+<li><p><strong>inventory</strong> (<em>object</em>) – Inventory Product of the Collection</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.label.InventoryPDS4Label.get_target_reference_type">
+<span class="sig-name descname"><span class="pre">get_target_reference_type</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/label.html#InventoryPDS4Label.get_target_reference_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.label.InventoryPDS4Label.get_target_reference_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get target reference type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Literally <code class="docutils literal notranslate"><span class="pre">collection_to_target</span></code></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.label.MetaKernelPDS4Label">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.classes.label.</span></span><span class="sig-name descname"><span class="pre">MetaKernelPDS4Label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">setup</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">product</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/label.html#MetaKernelPDS4Label"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.label.MetaKernelPDS4Label" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pds.naif_pds4_bundler.classes.label.PDSLabel" title="pds.naif_pds4_bundler.classes.label.PDSLabel"><code class="xref py py-class docutils literal notranslate"><span class="pre">pds.naif_pds4_bundler.classes.label.PDSLabel</span></code></a></p>
+<p>PDS Label child class to generate a PDS4 SPICE Kernel MK Label.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>setup</strong> (<em>object</em>) – NPB execution Setup object</p></li>
+<li><p><strong>product</strong> (<em>object</em>) – MK product to label</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.label.MetaKernelPDS4Label.get_kernel_internal_references">
+<span class="sig-name descname"><span class="pre">get_kernel_internal_references</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/label.html#MetaKernelPDS4Label.get_kernel_internal_references"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.label.MetaKernelPDS4Label.get_kernel_internal_references" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the MK label internal references.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>PDS4 formatted Kernel list used by the label for internal
+references.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.label.OrbnumFilePDS4Label">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.classes.label.</span></span><span class="sig-name descname"><span class="pre">OrbnumFilePDS4Label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">setup</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">product</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/label.html#OrbnumFilePDS4Label"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.label.OrbnumFilePDS4Label" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pds.naif_pds4_bundler.classes.label.PDSLabel" title="pds.naif_pds4_bundler.classes.label.PDSLabel"><code class="xref py py-class docutils literal notranslate"><span class="pre">pds.naif_pds4_bundler.classes.label.PDSLabel</span></code></a></p>
+<p>PDS Label child class to generate a PDS4 Orbit Number File Label.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>setup</strong> (<em>object</em>) – NPB execution Setup object</p></li>
+<li><p><strong>product</strong> (<em>object</em>) – ORBNUM product to label</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.label.OrbnumFilePDS4Label.field_template">
+<span class="sig-name descname"><span class="pre">field_template</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">location</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blanks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/label.html#OrbnumFilePDS4Label.field_template"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.label.OrbnumFilePDS4Label.field_template" title="Permalink to this definition">¶</a></dt>
+<dd><p>For a label provide all the parameters required for an ORBNUM field character.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Name field</p></li>
+<li><p><strong>number</strong> (<em>str</em>) – Number field</p></li>
+<li><p><strong>location</strong> (<em>str</em>) – Location field</p></li>
+<li><p><strong>type</strong> (<em>str</em>) – Type field</p></li>
+<li><p><strong>length</strong> (<em>str</em>) – Length field</p></li>
+<li><p><strong>format</strong> (<em>str</em>) – Format field</p></li>
+<li><p><strong>description</strong> (<em>str</em>) – Description field</p></li>
+<li><p><strong>unit</strong> (<em>str</em>) – Unit field</p></li>
+<li><p><strong>blanks</strong> (<em>str</em>) – Blank space missing contant indication</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Field Character for ORBNUM PDS4 label</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.label.OrbnumFilePDS4Label.get_table_character_description">
+<span class="sig-name descname"><span class="pre">get_table_character_description</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/label.html#OrbnumFilePDS4Label.get_table_character_description"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.label.OrbnumFilePDS4Label.get_table_character_description" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get The description of the Table Character.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Table Character description</p>
+</dd>
+<dt class="field-even">Rytpe</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.label.OrbnumFilePDS4Label.get_table_character_fields">
+<span class="sig-name descname"><span class="pre">get_table_character_fields</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/label.html#OrbnumFilePDS4Label.get_table_character_fields"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.label.OrbnumFilePDS4Label.get_table_character_fields" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the Table Character fields.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Table Character fields</p>
+</dd>
+<dt class="field-even">Rytpe</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.label.PDSLabel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.classes.label.</span></span><span class="sig-name descname"><span class="pre">PDSLabel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">setup</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">product</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/label.html#PDSLabel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.label.PDSLabel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class to generate a PDS Label.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>setup</strong> (<em>object</em>) – NPB execution Setup object</p></li>
+<li><p><strong>product</strong> (<em>object</em>) – Product to be labeled</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.label.PDSLabel.compare">
+<span class="sig-name descname"><span class="pre">compare</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/label.html#PDSLabel.compare"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.label.PDSLabel.compare" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>Compare the Label with another label</strong>.</p>
+<p>The product label is compared to a similar label. The label with which
+the generated label is compared to is determined
+by the first criteria that is met from the following list:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>find a different version of the same label</p></li>
+<li><p>find the label of a product of the same kind (e.g.: same kernel
+type)</p></li>
+<li><p>use a label of a product of the same kind from INSIGHT available
+from the NPB package.</p></li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.label.PDSLabel.get_observers">
+<span class="sig-name descname"><span class="pre">get_observers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/label.html#PDSLabel.get_observers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.label.PDSLabel.get_observers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the label observers from the context products.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>List of Observers to be included in the label</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.label.PDSLabel.get_target_reference_type">
+<span class="sig-name descname"><span class="pre">get_target_reference_type</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/label.html#PDSLabel.get_target_reference_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.label.PDSLabel.get_target_reference_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the target reference type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Target_Reference_Type value for PDS4 label</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.label.PDSLabel.get_targets">
+<span class="sig-name descname"><span class="pre">get_targets</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/label.html#PDSLabel.get_targets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.label.PDSLabel.get_targets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the label targets from the context products.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>List of Targets to be included in the label</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.label.PDSLabel.write_label">
+<span class="sig-name descname"><span class="pre">write_label</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/label.html#PDSLabel.write_label"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.label.PDSLabel.write_label" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the Label.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.label.SpiceKernelPDS3Label">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.classes.label.</span></span><span class="sig-name descname"><span class="pre">SpiceKernelPDS3Label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mission</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">product</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/label.html#SpiceKernelPDS3Label"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.label.SpiceKernelPDS3Label" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pds.naif_pds4_bundler.classes.label.PDSLabel" title="pds.naif_pds4_bundler.classes.label.PDSLabel"><code class="xref py py-class docutils literal notranslate"><span class="pre">pds.naif_pds4_bundler.classes.label.PDSLabel</span></code></a></p>
+<p>PDS Label child class to generate a PDS3 SPICE Kernel Label.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.label.SpiceKernelPDS3Label.format_description">
+<span class="sig-name descname"><span class="pre">format_description</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">description</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/label.html#SpiceKernelPDS3Label.format_description"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.label.SpiceKernelPDS3Label.format_description" title="Permalink to this definition">¶</a></dt>
+<dd><p>Format the SPICE kernel description appropriately.</p>
+<p>The first line goes from character 33 to 78.
+Successive lines go from character  1 to 78.
+Last line has a blank space after the full stop.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Formatted label description</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.label.SpiceKernelPDS3Label.insert_binary_label">
+<span class="sig-name descname"><span class="pre">insert_binary_label</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/label.html#SpiceKernelPDS3Label.insert_binary_label"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.label.SpiceKernelPDS3Label.insert_binary_label" title="Permalink to this definition">¶</a></dt>
+<dd><p>Insert or update a label in a binary kernel.</p>
+<p>The routine inserts the label in the kernel comment.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.label.SpiceKernelPDS3Label.insert_text_label">
+<span class="sig-name descname"><span class="pre">insert_text_label</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/label.html#SpiceKernelPDS3Label.insert_text_label"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.label.SpiceKernelPDS3Label.insert_text_label" title="Permalink to this definition">¶</a></dt>
+<dd><p>Insert or update a label in a text kernel.</p>
+<p>The routine inserts the label, after the first line containing the
+kernel architecture specification and removes extra empty lines at the
+end of the kernel file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.label.SpiceKernelPDS3Label.set_kernel_ids">
+<span class="sig-name descname"><span class="pre">set_kernel_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">product</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/label.html#SpiceKernelPDS3Label.set_kernel_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.label.SpiceKernelPDS3Label.set_kernel_ids" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the SPICE Kernel ID field of the label.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.label.SpiceKernelPDS3Label.set_sclk_times">
+<span class="sig-name descname"><span class="pre">set_sclk_times</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">product</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'UTC'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/label.html#SpiceKernelPDS3Label.set_sclk_times"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.label.SpiceKernelPDS3Label.set_sclk_times" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the SCLK times for PDS3 labels.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.label.SpiceKernelPDS4Label">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.classes.label.</span></span><span class="sig-name descname"><span class="pre">SpiceKernelPDS4Label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">setup</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">product</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/label.html#SpiceKernelPDS4Label"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.label.SpiceKernelPDS4Label" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pds.naif_pds4_bundler.classes.label.PDSLabel" title="pds.naif_pds4_bundler.classes.label.PDSLabel"><code class="xref py py-class docutils literal notranslate"><span class="pre">pds.naif_pds4_bundler.classes.label.PDSLabel</span></code></a></p>
+<p>PDS Label child class to generate a non-MK PDS4 SPICE Kernel Label.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>setup</strong> (<em>object</em>) – NPB execution Setup object</p></li>
+<li><p><strong>product</strong> (<em>object</em>) – SPICE Kernel product to be labeled</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-pds.naif_pds4_bundler.classes.list">
+<span id="pds-naif-pds4-bundler-classes-list-module"></span><h2>pds.naif_pds4_bundler.classes.list module<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.list" title="Permalink to this headline">¶</a></h2>
+<p>List Class and Child Class Implementation.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.list.KernelList">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.classes.list.</span></span><span class="sig-name descname"><span class="pre">KernelList</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">setup</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/list.html#KernelList"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.list.KernelList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pds.naif_pds4_bundler.classes.list.List" title="pds.naif_pds4_bundler.classes.list.List"><code class="xref py py-class docutils literal notranslate"><span class="pre">pds.naif_pds4_bundler.classes.list.List</span></code></a></p>
+<p>List child class to generate the Kernel List.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>setup</strong> (<em>object</em>) – NPB execution setup object</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.list.KernelList.add">
+<span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kernel</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/list.html#KernelList.add"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.list.KernelList.add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add SPICE kernel or ORBNUM file to the list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>kernel</strong> (<em>str</em>) – SPICE kernel or ORBNUM file added to the list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.list.KernelList.read_config">
+<span class="sig-name descname"><span class="pre">read_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/list.html#KernelList.read_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.list.KernelList.read_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract the Kernel List information from the configuration file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.list.KernelList.read_list">
+<span class="sig-name descname"><span class="pre">read_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kerlist</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/list.html#KernelList.read_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.list.KernelList.read_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the Kernel List.</p>
+<p>Note that the format that the kernel list has to follow is very
+strict, including no whitespace at the end of each line and Line-feed
+EOL.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>kerlist</strong> (<em>str</em>) – Kernel List path</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.list.KernelList.read_plan">
+<span class="sig-name descname"><span class="pre">read_plan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plan</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/list.html#KernelList.read_plan"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.list.KernelList.read_plan" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read Release Plan from the main module input.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>plan</strong> (<em>str</em>) – Release Plan name</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.list.KernelList.validate">
+<span class="sig-name descname"><span class="pre">validate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/list.html#KernelList.validate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.list.KernelList.validate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validation of the Kernel List.</p>
+<p>The validation of the Kernel List performs the following checks:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>check that the list has the same number of <code class="docutils literal notranslate"><span class="pre">FILE</span></code>, <code class="docutils literal notranslate"><span class="pre">MAKLABEL_OPTIONS</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">DESCRIPTION</span></code> entries.</p></li>
+<li><p>check list against plan</p></li>
+<li><p>check that list for duplicate files</p></li>
+<li><p>check that all files listed in the list are on the <code class="docutils literal notranslate"><span class="pre">kernels_directory</span></code></p></li>
+<li><p>check that the files are not in the <code class="docutils literal notranslate"><span class="pre">bundle_directory</span></code></p></li>
+<li><p>display all the <code class="docutils literal notranslate"><span class="pre">MAKLABL_OPTIONS</span></code> used</p></li>
+<li><p>check that all the <code class="docutils literal notranslate"><span class="pre">MAKLBL_OPTIONS</span></code> are in the template for PDS3</p></li>
+<li><p>check that the list has no duplicates</p></li>
+<li><p>if the <code class="docutils literal notranslate"><span class="pre">-d</span> <span class="pre">DIFF</span> <span class="pre">--diff</span> <span class="pre">DIFF</span></code> argument is used, compare the kernel
+list with the kernel list of the previous release -if avaialble.</p></li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.list.KernelList.validate_complete">
+<span class="sig-name descname"><span class="pre">validate_complete</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/list.html#KernelList.validate_complete"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.list.KernelList.validate_complete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validation of the complete Kernel List.</p>
+<p>The complete Kernel List is generated by NPB by merging all the
+available Kernel List files. These kernel list files must be located
+in the <code class="docutils literal notranslate"><span class="pre">working_directory</span></code> as specified by the NPB configuration.</p>
+<p>In principle all the kernels that have ever been added to the archive
+should be present.</p>
+<p>The validation of the complete Kernel List performs the following checks:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>check that the list has the same number of <code class="docutils literal notranslate"><span class="pre">FILE</span></code>, <code class="docutils literal notranslate"><span class="pre">MAKLABEL_OPTIONS</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">DESCRIPTION</span></code> entries</p></li>
+<li><p>check all the <code class="docutils literal notranslate"><span class="pre">MAKLABL_OPTIONS</span></code> used</p></li>
+<li><p>check that the list has no duplicates</p></li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.list.KernelList.write_complete_list">
+<span class="sig-name descname"><span class="pre">write_complete_list</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/list.html#KernelList.write_complete_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.list.KernelList.write_complete_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the complete Kernel List using the former ones.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.list.KernelList.write_list">
+<span class="sig-name descname"><span class="pre">write_list</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/list.html#KernelList.write_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.list.KernelList.write_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the Kernel List product.</p>
+<p>The list is not an archival product but an NPB by-product, therefore
+it is not generated by any of the product classes.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.list.KernelList.write_plan">
+<span class="sig-name descname"><span class="pre">write_plan</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/list.html#KernelList.write_plan"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.list.KernelList.write_plan" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the Release Plan if not provided.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>True if a release plan has been generated, False if it has
+been provided as input</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.list.List">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.classes.list.</span></span><span class="sig-name descname"><span class="pre">List</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">setup</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/list.html#List"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.list.List" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class to generate the List.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>setup</strong> (<em>object</em>) – NPB execution setup object</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.list.List.add">
+<span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">element</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/list.html#List.add"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.list.List.add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add file to the list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>element</strong> (<em>str</em>) – SPICE Kernel product or ORBNUM product to be added to the list</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-pds.naif_pds4_bundler.classes.log">
+<span id="pds-naif-pds4-bundler-classes-log-module"></span><h2>pds.naif_pds4_bundler.classes.log module<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.log" title="Permalink to this headline">¶</a></h2>
+<p>Log Class Implementation.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.log.Log">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.classes.log.</span></span><span class="sig-name descname"><span class="pre">Log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">setup</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/log.html#Log"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.log.Log" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Log class to write and output NPB’s log.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> (<em>object</em>) – Parameter arguments from NPB’s main function.</p></li>
+<li><p><strong>version</strong> (<em>str</em>) – NPB version.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.log.Log.start">
+<span class="sig-name descname"><span class="pre">start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/log.html#Log.start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.log.Log.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start the generation of the log for the execution.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.log.Log.stop">
+<span class="sig-name descname"><span class="pre">stop</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/log.html#Log.stop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.log.Log.stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write log, file list, and checksum registry files when NPB stops.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.log.error_message">
+<span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.classes.log.</span></span><span class="sig-name descname"><span class="pre">error_message</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">setup</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/log.html#error_message"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.log.error_message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to signal a NPB error message.</p>
+<p>The File List and Checksum Registry files are also written.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>message</strong> (<em>str</em>) – Error message</p></li>
+<li><p><strong>setup</strong> (<em>object</em>) – Setup object, if provided a file will be written</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-pds.naif_pds4_bundler.classes.object">
+<span id="pds-naif-pds4-bundler-classes-object-module"></span><h2>pds.naif_pds4_bundler.classes.object module<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.object" title="Permalink to this headline">¶</a></h2>
+<p>Dummy Class Implementation.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.object.Object">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.classes.object.</span></span><span class="sig-name descname"><span class="pre">Object</span></span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/object.html#Object"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.object.Object" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Dummy Class.</p>
+</dd></dl>
+
+</section>
+<section id="module-pds.naif_pds4_bundler.classes.product">
+<span id="pds-naif-pds4-bundler-classes-product-module"></span><h2>pds.naif_pds4_bundler.classes.product module<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.product" title="Permalink to this headline">¶</a></h2>
+<p>Product Class and Child Classes Implementation.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.ChecksumProduct">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.classes.product.</span></span><span class="sig-name descname"><span class="pre">ChecksumProduct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">setup</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collection</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_previous_checksum</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#ChecksumProduct"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.ChecksumProduct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pds.naif_pds4_bundler.classes.product.Product" title="pds.naif_pds4_bundler.classes.product.Product"><code class="xref py py-class docutils literal notranslate"><span class="pre">pds.naif_pds4_bundler.classes.product.Product</span></code></a></p>
+<p>Product child class to generate a Checksum Product.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>setup</strong> (<em>object</em>) – NPB execution setup object</p></li>
+<li><p><strong>collection</strong> (<em>object</em>) – Miscellaneous Collection</p></li>
+<li><p><strong>add_previous_checksum</strong> (<em>bool</em>) – True if there is a previous checksum file to
+be added, False otherwise</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.ChecksumProduct.compare">
+<span class="sig-name descname"><span class="pre">compare</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#ChecksumProduct.compare"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.ChecksumProduct.compare" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>Compare the Checksum with the previous Checksum file</strong>.</p>
+<p>The Checksum file is compared with the previous version.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.ChecksumProduct.generate">
+<span class="sig-name descname"><span class="pre">generate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">history</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#ChecksumProduct.generate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.ChecksumProduct.generate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write and label the Checksum file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>history</strong> (<em>bool</em>) – True if the checksum will be generated with the archive
+history, False otherwise</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.ChecksumProduct.read_current_product">
+<span class="sig-name descname"><span class="pre">read_current_product</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">add_previous_checksum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#ChecksumProduct.read_current_product"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.ChecksumProduct.read_current_product" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the current checksum file.</p>
+<p>Reads the current checksum file, determines the version of the
+new checksum file, and adds the checksum file itself and its label.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>add_previous_checksum</strong> (<em>bool</em>) – True if there is a previous checksum file to
+be added, False otherwise</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.ChecksumProduct.set_coverage">
+<span class="sig-name descname"><span class="pre">set_coverage</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#ChecksumProduct.set_coverage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.ChecksumProduct.set_coverage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine the coverage of the Checksum file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.ChecksumProduct.set_product_lid">
+<span class="sig-name descname"><span class="pre">set_product_lid</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#ChecksumProduct.set_product_lid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.ChecksumProduct.set_product_lid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set Product LID.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.ChecksumProduct.set_product_vid">
+<span class="sig-name descname"><span class="pre">set_product_vid</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#ChecksumProduct.set_product_vid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.ChecksumProduct.set_product_vid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set Product VID.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.ChecksumProduct.write_product">
+<span class="sig-name descname"><span class="pre">write_product</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">history</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">set_coverage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#ChecksumProduct.write_product"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.ChecksumProduct.write_product" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the Checksum file and determine its start and stop time.</p>
+<p>This method can also be used to determine the start and stop time of
+the checksum file, necessary to determine these times for the
+miscellaneous collection before the checksum is actually written.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>history</strong> (<em>dict</em>) – Archive History</p></li>
+<li><p><strong>set_coverage</strong> (<em>bool</em>) – Determines the start and stop of the checksum file
+if set to True, False otherwise</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.InventoryProduct">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.classes.product.</span></span><span class="sig-name descname"><span class="pre">InventoryProduct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">setup</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collection</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#InventoryProduct"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.InventoryProduct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pds.naif_pds4_bundler.classes.product.Product" title="pds.naif_pds4_bundler.classes.product.Product"><code class="xref py py-class docutils literal notranslate"><span class="pre">pds.naif_pds4_bundler.classes.product.Product</span></code></a></p>
+<p>Product child Class that defines a Collection Inventory product.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>setup</strong> (<em>object</em>) – NPB execution setup object</p></li>
+<li><p><strong>collection</strong> (<em>object</em>) – Collection that the inventory product belongs to</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.InventoryProduct.compare">
+<span class="sig-name descname"><span class="pre">compare</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#InventoryProduct.compare"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.InventoryProduct.compare" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>Compare the Inventory Product with another Inventory</strong>.</p>
+<p>The Inventory Product is compared with the previous
+version and if it does not exist with the sample INSIGHT inventory
+product.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.InventoryProduct.set_product_lid">
+<span class="sig-name descname"><span class="pre">set_product_lid</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#InventoryProduct.set_product_lid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.InventoryProduct.set_product_lid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the Product LID.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.InventoryProduct.set_product_vid">
+<span class="sig-name descname"><span class="pre">set_product_vid</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#InventoryProduct.set_product_vid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.InventoryProduct.set_product_vid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the Product VID.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.InventoryProduct.validate_pds3">
+<span class="sig-name descname"><span class="pre">validate_pds3</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#InventoryProduct.validate_pds3"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.InventoryProduct.validate_pds3" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate the PDS3 Index.</p>
+<p>The Inventory is validated by checking that all the products listed
+are present in the archive and comparing the index file with the
+previous one.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.InventoryProduct.validate_pds4">
+<span class="sig-name descname"><span class="pre">validate_pds4</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#InventoryProduct.validate_pds4"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.InventoryProduct.validate_pds4" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate the PDS4 Inventory Product.</p>
+<p>The Inventory is validated by checking that all the products listed
+are present in the archive.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.InventoryProduct.write_pds3_index_product">
+<span class="sig-name descname"><span class="pre">write_pds3_index_product</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#InventoryProduct.write_pds3_index_product"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.InventoryProduct.write_pds3_index_product" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method uses the previous index file to generate the new one.</p>
+<p>There is a NAIF Perl script that will generate an index file from a
+kernel list file. Please contact the NAIF if you are interested in such
+script.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.InventoryProduct.write_pds4_collection_product">
+<span class="sig-name descname"><span class="pre">write_pds4_collection_product</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#InventoryProduct.write_pds4_collection_product"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.InventoryProduct.write_pds4_collection_product" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the PDS4 Collection product.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.InventoryProduct.write_product">
+<span class="sig-name descname"><span class="pre">write_product</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#InventoryProduct.write_product"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.InventoryProduct.write_product" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write and validate the Collection inventory.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.MetaKernelProduct">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.classes.product.</span></span><span class="sig-name descname"><span class="pre">MetaKernelProduct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">setup</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spice_kernels_collection</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_input</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#MetaKernelProduct"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.MetaKernelProduct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pds.naif_pds4_bundler.classes.product.Product" title="pds.naif_pds4_bundler.classes.product.Product"><code class="xref py py-class docutils literal notranslate"><span class="pre">pds.naif_pds4_bundler.classes.product.Product</span></code></a></p>
+<p>Product child class Meta-Kernel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>setup</strong> (<em>object</em>) – NPB execution setup object</p></li>
+<li><p><strong>kernel</strong> (<em>str</em>) – Meta-kernel path</p></li>
+<li><p><strong>spice_kernels_collection</strong> (<em>object</em>) – SPICE Kernel Collection</p></li>
+<li><p><strong>user_input</strong> (<em>bool</em>) – Indicates whether if the meta-kernel is provided by the user</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.MetaKernelProduct.check_version">
+<span class="sig-name descname"><span class="pre">check_version</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#MetaKernelProduct.check_version"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.MetaKernelProduct.check_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if the provided Meta-kernel version is correct.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.MetaKernelProduct.compare">
+<span class="sig-name descname"><span class="pre">compare</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#MetaKernelProduct.compare"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.MetaKernelProduct.compare" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>Compare the Meta-kernel with the previous version</strong>.</p>
+<p>The MK is compared with a previous version of the MK. If no prior
+MK is found, the new MK is compared to NPB’s MK template.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.MetaKernelProduct.coverage">
+<span class="sig-name descname"><span class="pre">coverage</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#MetaKernelProduct.coverage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.MetaKernelProduct.coverage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine Meta-kernel coverage.</p>
+<p>Meta-kernel coverage is determined by:</p>
+<ul class="simple">
+<li><p>for whole mission meta-kernels <code class="docutils literal notranslate"><span class="pre">start_date_time</span></code> and <code class="docutils literal notranslate"><span class="pre">stop_date_time</span></code>
+are set to the coverage provided by spacecraft SPK, CKs, or to other
+dates at the discretion of the archive producer. These other dates might
+be required for missions whose SPks and CKs do not explicitly cover the
+dates required by the archive, e.g.: a lander mission with a fixed
+position provided by an SPK with extended coverage</p></li>
+<li><p>for yearly mission meta-kernels <code class="docutils literal notranslate"><span class="pre">start_date_time</span></code> and <code class="docutils literal notranslate"><span class="pre">stop_date_time</span></code>
+are set to the coverage from <code class="docutils literal notranslate"><span class="pre">Jan</span> <span class="pre">1</span> <span class="pre">00:00</span></code> of the year to either the
+end of coverage provided by spacecraft SPK or CKs, or the end of
+the year (whichever is earlier)</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.MetaKernelProduct.get_description">
+<span class="sig-name descname"><span class="pre">get_description</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#MetaKernelProduct.get_description"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.MetaKernelProduct.get_description" title="Permalink to this definition">¶</a></dt>
+<dd><p>Obtain the kernel product description information.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.MetaKernelProduct.set_product_lid">
+<span class="sig-name descname"><span class="pre">set_product_lid</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#MetaKernelProduct.set_product_lid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.MetaKernelProduct.set_product_lid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the Meta-kernel LID.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.MetaKernelProduct.set_product_vid">
+<span class="sig-name descname"><span class="pre">set_product_vid</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#MetaKernelProduct.set_product_vid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.MetaKernelProduct.set_product_vid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the Meta-kernel VID.</p>
+<p>If the meta-kernel has been automatically generated as indicated in
+the configuration file, it has a version attribute, otherwise it does
+not and its version number must be equal to the expected VID.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.MetaKernelProduct.validate">
+<span class="sig-name descname"><span class="pre">validate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#MetaKernelProduct.validate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.MetaKernelProduct.validate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform a basic validation of the Meta-kernel.</p>
+<p>The validation consists of:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>load the kernel with the SPICE API <code class="docutils literal notranslate"><span class="pre">FURNSH</span></code></p></li>
+<li><p>count the loaded kernels with SPICE API <code class="docutils literal notranslate"><span class="pre">KTOTAL</span></code></p></li>
+<li><p>compare the number of kernels in the kernel pool with the length
+of the MK collection list attribute.</p></li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.MetaKernelProduct.write_product">
+<span class="sig-name descname"><span class="pre">write_product</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#MetaKernelProduct.write_product"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.MetaKernelProduct.write_product" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the Meta-kernel.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.OrbnumFileProduct">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.classes.product.</span></span><span class="sig-name descname"><span class="pre">OrbnumFileProduct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">setup</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collection</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spice_kernels_collection</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#OrbnumFileProduct"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.OrbnumFileProduct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pds.naif_pds4_bundler.classes.product.Product" title="pds.naif_pds4_bundler.classes.product.Product"><code class="xref py py-class docutils literal notranslate"><span class="pre">pds.naif_pds4_bundler.classes.product.Product</span></code></a></p>
+<p>Product child class ORBNUM File.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>setup</strong> (<em>object</em>) – NPB execution setup object</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – ORBNUM file path</p></li>
+<li><p><strong>collection</strong> (<em>object</em>) – Miscellaneous Collection that contains the ORBNUM product</p></li>
+<li><p><strong>spice_kernels_collection</strong> (<em>object</em>) – SPICE Kernel Collection</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.OrbnumFileProduct.coverage">
+<span class="sig-name descname"><span class="pre">coverage</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#OrbnumFileProduct.coverage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.OrbnumFileProduct.coverage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine the coverage of the ORNBUM file.</p>
+<p>The coverage of the ORBNUM file can be determined in three different
+ways:</p>
+<blockquote>
+<div><ul>
+<li><p>If there is a one to one correspondence with an SPK
+file, the SPK file can be provided with the <code class="docutils literal notranslate"><span class="pre">&lt;kernel&gt;</span></code>
+tag. The tag can be a path to a specific kernel that
+does not have to be part of the increment, a pattern
+of a kernel present in the increment or a pattern of
+a kernel present in the final directory of the archive.</p></li>
+<li><p>If there is a quasi one to one correspondence with an
+SPK file with a given cutoff time prior to the end
+of the SPK file, the SPK file can be provided with the
+<code class="docutils literal notranslate"><span class="pre">&lt;kernel&gt;</span></code> tag. The tag can be a path to a specific kernel
+that does not have to be part of the increment, a pattern
+of a kernel present in the increment or a pattern of
+a kernel present in the final directory of the archive.
+Currently, the only cutoff pattern available is the
+boundary of the previous day of the SPK coverage stop
+time.</p></li>
+<li><p>A user can provide a look-up table with this file, as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">lookup_table</span><span class="o">&gt;</span>
+   <span class="o">&lt;</span><span class="n">file</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;maven_orb_rec_210101_210401_v1.orb&quot;</span><span class="o">&gt;</span>
+      <span class="o">&lt;</span><span class="n">start</span><span class="o">&gt;</span><span class="mi">2021</span><span class="o">-</span><span class="mi">01</span><span class="o">-</span><span class="mi">01</span><span class="n">T00</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mf">00.000</span><span class="n">Z</span><span class="o">&lt;/</span><span class="n">start</span><span class="o">&gt;</span>
+      <span class="o">&lt;</span><span class="n">finish</span><span class="o">&gt;</span><span class="mi">2021</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">01</span><span class="n">T01</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mf">00.000</span><span class="n">Z</span><span class="o">&lt;/</span><span class="n">finish</span><span class="o">&gt;</span>
+   <span class="o">&lt;/</span><span class="n">file</span><span class="o">&gt;</span>
+<span class="o">&lt;/</span><span class="n">lookup_table</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Note that in this particular case the first three and
+last three lines of the orbnum files would have provided:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Event</span> <span class="n">UTC</span> <span class="n">PERI</span>
+<span class="o">====================</span>
+<span class="mi">2021</span> <span class="n">JAN</span> <span class="mi">01</span> <span class="mi">00</span><span class="p">:</span><span class="mi">14</span><span class="p">:</span><span class="mi">15</span>
+<span class="mi">2021</span> <span class="n">JAN</span> <span class="mi">01</span> <span class="mi">03</span><span class="p">:</span><span class="mi">50</span><span class="p">:</span><span class="mi">43</span>
+<span class="mi">2021</span> <span class="n">JAN</span> <span class="mi">01</span> <span class="mi">07</span><span class="p">:</span><span class="mi">27</span><span class="p">:</span><span class="mi">09</span>
+<span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="mi">2021</span> <span class="n">MAR</span> <span class="mi">31</span> <span class="mi">15</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">05</span>
+<span class="mi">2021</span> <span class="n">MAR</span> <span class="mi">31</span> <span class="mi">18</span><span class="p">:</span><span class="mi">36</span><span class="p">:</span><span class="mi">29</span>
+<span class="mi">2021</span> <span class="n">MAR</span> <span class="mi">31</span> <span class="mi">22</span><span class="p">:</span><span class="mi">12</span><span class="p">:</span><span class="mi">54</span>
+</pre></div>
+</div>
+</li>
+<li><p>If nothing is provided NPB will provide the coverage based on
+the event time of the first orbit and the opposite event time
+of the last orbit.</p></li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.OrbnumFileProduct.event_mapping">
+<span class="sig-name descname"><span class="pre">event_mapping</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#OrbnumFileProduct.event_mapping"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.OrbnumFileProduct.event_mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Maps the event keyword to the event name/description.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>event</strong> (<em>str</em>) – ORBNUM event key</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>ORBNUM event description</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.OrbnumFileProduct.get_description">
+<span class="sig-name descname"><span class="pre">get_description</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#OrbnumFileProduct.get_description"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.OrbnumFileProduct.get_description" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the ORBNUM table character description.</p>
+<p>Write the ORBNUM product description information based on the orbit
+determination event and the PCK kernel used.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>ORBNUM file description for label.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.OrbnumFileProduct.get_header_length">
+<span class="sig-name descname"><span class="pre">get_header_length</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#OrbnumFileProduct.get_header_length"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.OrbnumFileProduct.get_header_length" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read an ORBNUM file and return the length of the header in bytes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>ORBNUM file header length</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.OrbnumFileProduct.get_params">
+<span class="sig-name descname"><span class="pre">get_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">header</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#OrbnumFileProduct.get_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.OrbnumFileProduct.get_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Obtain the parameters present in the ORBNUM file.</p>
+<p>Currently, there are 11 orbital parameters available:</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">No.</span></code>          The orbit number of a descending node event.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Event</span> <span class="pre">UTC</span></code>    The UTC time of that event.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Event</span> <span class="pre">SCLK</span></code>    The SCLK time of the event.</p>
+<p><code class="docutils literal notranslate"><span class="pre">OP-Event</span> <span class="pre">UTC</span></code> The UTC time of the opposite event.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Sub</span> <span class="pre">Sol</span> <span class="pre">Lon</span></code>  Sub-solar planetodetic longitude at event
+time (DEGS).</p>
+<p><code class="docutils literal notranslate"><span class="pre">Sub</span> <span class="pre">Sol</span> <span class="pre">Lat</span></code>  Sub-solar planetodetic latitude at event
+time (DEGS).</p>
+<p><code class="docutils literal notranslate"><span class="pre">Sub</span> <span class="pre">SC</span> <span class="pre">Lon</span></code>   Sub-target planetodetic longitude (DEGS).</p>
+<p><code class="docutils literal notranslate"><span class="pre">Sub</span> <span class="pre">SC</span> <span class="pre">Lat</span></code>   Sub-target planetodetic latitude (DEGS).</p>
+<p><code class="docutils literal notranslate"><span class="pre">Alt</span></code>          Altitude of the target above the observer
+body at event time (KM).</p>
+<p><code class="docutils literal notranslate"><span class="pre">Inc</span></code>          Inclination of the vehicle orbit plane at
+event time (DEGS).</p>
+<p><code class="docutils literal notranslate"><span class="pre">Ecc</span></code>          Eccentricity of the target orbit about
+the primary body at event time (DEGS),</p>
+<p><code class="docutils literal notranslate"><span class="pre">Lon</span> <span class="pre">Node</span></code>     Longitude of the ascending node of the
+orbit plane at event time (DEGS).</p>
+<p><code class="docutils literal notranslate"><span class="pre">Arg</span> <span class="pre">Per</span></code>      Argument of periapsis of the orbit plane at
+event time (DEGS).</p>
+<p><code class="docutils literal notranslate"><span class="pre">Sol</span> <span class="pre">Dist</span></code>     Solar distance from target at event
+time (KM).</p>
+<p><code class="docutils literal notranslate"><span class="pre">Semi</span> <span class="pre">Axis</span></code>   Semi-major axis of the target’s orbit at
+event time (KM).</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>header</strong> (<em>list</em>) – ORBNUM file header line</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.OrbnumFileProduct.get_sample_record">
+<span class="sig-name descname"><span class="pre">get_sample_record</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#OrbnumFileProduct.get_sample_record"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.OrbnumFileProduct.get_sample_record" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read an orbnum file and return one record sample.</p>
+<p>This sample (one data line) will be used to determine the format of
+each parameter of the orbnum file. The sample is re-processed in such a
+way that it contains no spaces for the UTC dates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>sample record line</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.OrbnumFileProduct.opposite_event_mapping">
+<span class="sig-name descname"><span class="pre">opposite_event_mapping</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#OrbnumFileProduct.opposite_event_mapping"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.OrbnumFileProduct.opposite_event_mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Maps the event keyword to the opposite event keyword.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>event</strong> (<em>str</em>) – ORBNUM event key</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>ORBNUM opposite event keyword</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.OrbnumFileProduct.read_header">
+<span class="sig-name descname"><span class="pre">read_header</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#OrbnumFileProduct.read_header"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.OrbnumFileProduct.read_header" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read and process an ORBNUM file header.</p>
+<p>Defines the record_fixed_length attribute that provides the length of
+a record.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>ORBNUM header line</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.OrbnumFileProduct.read_records">
+<span class="sig-name descname"><span class="pre">read_records</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#OrbnumFileProduct.read_records"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.OrbnumFileProduct.read_records" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read and interpret the records of an ORBNUM file.</p>
+<p>Read an orbnum file and set the number of records attribute,
+the length of the records attribute, determine which lines have blank
+records and, perform simple checks of the records.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>number of records of ORBNUM file</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.OrbnumFileProduct.set_event_detection_key">
+<span class="sig-name descname"><span class="pre">set_event_detection_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">header</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#OrbnumFileProduct.set_event_detection_key"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.OrbnumFileProduct.set_event_detection_key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Obtain the ORBNUM event detection key.</p>
+<p>The event detection key is a string identifying which geometric event
+signifies the start of an orbit. The possible events are:</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">APO</span></code>    signals a search for apoapsis</p>
+<p><code class="docutils literal notranslate"><span class="pre">PERI</span></code>   signals a search for periapsis</p>
+<p><code class="docutils literal notranslate"><span class="pre">A-NODE</span></code> signals a search for passage through
+the ascending node</p>
+<p><code class="docutils literal notranslate"><span class="pre">D-NODE</span></code> signals a search for passage through
+the descending node</p>
+<p><code class="docutils literal notranslate"><span class="pre">MINLAT</span></code> signals a search for the time of
+minimum planetocentric latitude</p>
+<p><code class="docutils literal notranslate"><span class="pre">MAXLAT</span></code> signals a search for the time of
+maximum planetocentric latitude</p>
+<p><code class="docutils literal notranslate"><span class="pre">MINZ</span></code>   signals a search for the time of the
+minimum value of the Z (Cartesian) coordinate</p>
+<p><code class="docutils literal notranslate"><span class="pre">MAXZ</span></code>   signals a search for the time of the
+maximum value of the Z (Cartesian) coordinate</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>header</strong> (<em>list</em>) – ORBNUM file header line</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.OrbnumFileProduct.set_params">
+<span class="sig-name descname"><span class="pre">set_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">header</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#OrbnumFileProduct.set_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.OrbnumFileProduct.set_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Define the parameters’ template dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>header</strong> (<em>list</em>) – ORBNUM file header line</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.OrbnumFileProduct.set_previous_orbnum">
+<span class="sig-name descname"><span class="pre">set_previous_orbnum</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#OrbnumFileProduct.set_previous_orbnum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.OrbnumFileProduct.set_previous_orbnum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine the previous version of the ORBNUM file.</p>
+<p>For some cases, more than one orbit number file
+may exist for a given SPK, with only one file having the same name
+as the SPK and other files having a version token appended to the
+SPK name. It is also possible that a version token is always present.
+This method finds the latest version of such an orbnum file in the
+final area.</p>
+<p>NPB assumes that the version pattern of the orbnum file name follows
+the REGEX pattern:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">_</span><span class="p">[</span><span class="n">vV</span><span class="p">][</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">]</span><span class="o">*</span><span class="p">[</span><span class="o">.</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>E.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="o">...</span><span class="p">)</span><span class="n">_v01</span><span class="o">.</span><span class="n">orb</span>
+<span class="p">(</span><span class="o">...</span><span class="p">)</span><span class="n">_V9999</span><span class="o">.</span><span class="n">nrb</span>
+<span class="p">(</span><span class="o">...</span><span class="p">)</span><span class="n">_v1</span><span class="o">.</span><span class="n">orb</span>
+</pre></div>
+</div>
+<p>This method provides values to the <code class="docutils literal notranslate"><span class="pre">_previous_orbnum</span></code> and
+<code class="docutils literal notranslate"><span class="pre">_orbnum_version</span></code> protected attributes, both are strings.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.OrbnumFileProduct.set_product_lid">
+<span class="sig-name descname"><span class="pre">set_product_lid</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#OrbnumFileProduct.set_product_lid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.OrbnumFileProduct.set_product_lid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the Product LID.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.OrbnumFileProduct.set_product_vid">
+<span class="sig-name descname"><span class="pre">set_product_vid</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#OrbnumFileProduct.set_product_vid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.OrbnumFileProduct.set_product_vid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the Product VID.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.OrbnumFileProduct.table_character_description">
+<span class="sig-name descname"><span class="pre">table_character_description</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#OrbnumFileProduct.table_character_description"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.OrbnumFileProduct.table_character_description" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the ORBNUM table character description.</p>
+<p>Write the orbnum table character description information
+determination event and the PCK kernel used.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.OrbnumFileProduct.utc_blanks_to_dashes">
+<span class="sig-name descname"><span class="pre">utc_blanks_to_dashes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_record</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#OrbnumFileProduct.utc_blanks_to_dashes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.OrbnumFileProduct.utc_blanks_to_dashes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reformat UTC strings in the ORBNUM file.</p>
+<p>Re-process the UTC string fields of an ORBNUM sample row
+to remove blank spaces.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>sample_record</strong> (<em>str</em>) – sample row with UTC string with blank spaces</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>sample row with UTC string with dashes</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.PDS3DocumentProduct">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.classes.product.</span></span><span class="sig-name descname"><span class="pre">PDS3DocumentProduct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">setup</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#PDS3DocumentProduct"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.PDS3DocumentProduct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pds.naif_pds4_bundler.classes.product.Product" title="pds.naif_pds4_bundler.classes.product.Product"><code class="xref py py-class docutils literal notranslate"><span class="pre">pds.naif_pds4_bundler.classes.product.Product</span></code></a></p>
+<p>Product child class that represents a PDS3 Document Product.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>setup</strong> (<em>object</em>) – NPB execution setup object</p></li>
+<li><p><strong>path</strong> (<em>str</em>) – PDS3 Document path</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.PDS3DocumentProduct.validate">
+<span class="sig-name descname"><span class="pre">validate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#PDS3DocumentProduct.validate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.PDS3DocumentProduct.validate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Try to validate the PDS3 document.</p>
+<p>The outcome of the validation is an INFO or a WARNING log message.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.Product">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.classes.product.</span></span><span class="sig-name descname"><span class="pre">Product</span></span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#Product"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.Product" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Parent Class that defines a generic archive product (or file).</p>
+<p>Assigns value to the common attributes for all Products: file size,
+creation time and date, and file extension.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.Product.get_observer_and_target">
+<span class="sig-name descname"><span class="pre">get_observer_and_target</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#Product.get_observer_and_target"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.Product.get_observer_and_target" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the configuration to extract the observers and the targets.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>observers and targets</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.ReadmeProduct">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.classes.product.</span></span><span class="sig-name descname"><span class="pre">ReadmeProduct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">setup</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bundle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#ReadmeProduct"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.ReadmeProduct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pds.naif_pds4_bundler.classes.product.Product" title="pds.naif_pds4_bundler.classes.product.Product"><code class="xref py py-class docutils literal notranslate"><span class="pre">pds.naif_pds4_bundler.classes.product.Product</span></code></a></p>
+<p>Product child class to generate the Readme Product.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>setup</strong> (<em>object</em>) – NPB execution setup object</p></li>
+<li><p><strong>bundle</strong> (<em>object</em>) – Bundle that contains the Readme Product</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.ReadmeProduct.write_product">
+<span class="sig-name descname"><span class="pre">write_product</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#ReadmeProduct.write_product"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.ReadmeProduct.write_product" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the Readme product.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.SpiceKernelProduct">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.classes.product.</span></span><span class="sig-name descname"><span class="pre">SpiceKernelProduct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">setup</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pds.naif_pds4_bundler.classes.setup.Setup" title="pds.naif_pds4_bundler.classes.setup.Setup"><span class="pre">pds.naif_pds4_bundler.classes.setup.Setup</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collection</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#SpiceKernelProduct"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.SpiceKernelProduct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pds.naif_pds4_bundler.classes.product.Product" title="pds.naif_pds4_bundler.classes.product.Product"><code class="xref py py-class docutils literal notranslate"><span class="pre">pds.naif_pds4_bundler.classes.product.Product</span></code></a></p>
+<p>Product child Class that defines a SPICE Kernel file archive product.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>setup</strong> (<em>object</em>) – NPB run Setup Object</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – SPICE Kernel filename</p></li>
+<li><p><strong>collection</strong> (<a class="reference internal" href="#pds.naif_pds4_bundler.classes.object.Object" title="pds.naif_pds4_bundler.classes.object.Object"><em>Object</em></a>) – SPICE Kernel collection that will be a container of
+the SPICE Kernel Product Object</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.SpiceKernelProduct.check_kernel_integrity">
+<span class="sig-name descname"><span class="pre">check_kernel_integrity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#SpiceKernelProduct.check_kernel_integrity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.SpiceKernelProduct.check_kernel_integrity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if the SPICE Kernel has the adequate architecture.</p>
+<p>All SPICE kernels must have a NAIF file ID word as the first “word” on
+the first line of the kernel. This “word” describes the architecture
+of the kernel.</p>
+<p>A binary kernel could have the following architectures:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">DAF</span></code>: The file is based on the DAF architecture.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DAS</span></code>: The file is based on the DAS architecture.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">XFR</span></code>: The file is in a SPICE transfer file format.</p></li>
+</ul>
+</div></blockquote>
+<p>For an archive only <code class="docutils literal notranslate"><span class="pre">DAF</span></code> is acceptable.</p>
+<p>Text kernels must have <code class="docutils literal notranslate"><span class="pre">KPL</span></code> (Kernel Pool File) architecture.</p>
+<p>NPB checks if binary kernels have a <code class="docutils literal notranslate"><span class="pre">DAF</span></code> architecture and text kernels
+a <code class="docutils literal notranslate"><span class="pre">KPL</span></code> architecture.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.SpiceKernelProduct.ck_kernel_ids">
+<span class="sig-name descname"><span class="pre">ck_kernel_ids</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#SpiceKernelProduct.ck_kernel_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.SpiceKernelProduct.ck_kernel_ids" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract IDs from CK.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>List of IDs present in the CK</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.SpiceKernelProduct.coverage">
+<span class="sig-name descname"><span class="pre">coverage</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#SpiceKernelProduct.coverage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.SpiceKernelProduct.coverage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine the product coverage.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.SpiceKernelProduct.ik_kernel_ids">
+<span class="sig-name descname"><span class="pre">ik_kernel_ids</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#SpiceKernelProduct.ik_kernel_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.SpiceKernelProduct.ik_kernel_ids" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract IDs from IK.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>List of IDs present in the IK</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.SpiceKernelProduct.product_lid">
+<span class="sig-name descname"><span class="pre">product_lid</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#SpiceKernelProduct.product_lid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.SpiceKernelProduct.product_lid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine product logical identifier (LID).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>product LID</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.SpiceKernelProduct.product_mapping">
+<span class="sig-name descname"><span class="pre">product_mapping</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#SpiceKernelProduct.product_mapping"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.SpiceKernelProduct.product_mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Obtain the kernel mapping.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Kernel Mapping</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.SpiceKernelProduct.product_vid">
+<span class="sig-name descname"><span class="pre">product_vid</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#SpiceKernelProduct.product_vid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.SpiceKernelProduct.product_vid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine product logical identifier (VID).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>product VID</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.SpiceKernelProduct.read_description">
+<span class="sig-name descname"><span class="pre">read_description</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#SpiceKernelProduct.read_description"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.SpiceKernelProduct.read_description" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the kernel list to return the description.</p>
+<p>The generated kernel list file must be used because it contains the
+description.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Kernel Description from the Kernel List</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.SpiceKernelProduct.read_maklabel_options">
+<span class="sig-name descname"><span class="pre">read_maklabel_options</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#SpiceKernelProduct.read_maklabel_options"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.SpiceKernelProduct.read_maklabel_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the kernel list to return the <code class="docutils literal notranslate"><span class="pre">MAKLABEL_OPTIONS</span></code>.</p>
+<p>The generated kernel list file must be used because it contains the
+<code class="docutils literal notranslate"><span class="pre">MAKLABEL_OPTIONS</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">MAKLABEL_OPTIONS</span></code> from kernel list</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.SpicedsProduct">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.classes.product.</span></span><span class="sig-name descname"><span class="pre">SpicedsProduct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">setup</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collection</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#SpicedsProduct"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.SpicedsProduct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Product child class to process the SPICEDS file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>setup</strong> (<em>object</em>) – NPB execution setup object</p></li>
+<li><p><strong>collection</strong> (<em>object</em>) – Collection that the inventory product belongs to</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.SpicedsProduct.check_cr">
+<span class="sig-name descname"><span class="pre">check_cr</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#SpicedsProduct.check_cr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.SpicedsProduct.check_cr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine whether if <code class="docutils literal notranslate"><span class="pre">&lt;CR&gt;</span></code> has to be added to the SPICEDS.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.SpicedsProduct.check_product">
+<span class="sig-name descname"><span class="pre">check_product</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#SpicedsProduct.check_product"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.SpicedsProduct.check_product" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if the SPICEDS product needs to be generated.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>True if the SPICEDS products needs to be generated, False otherwise</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.SpicedsProduct.compare">
+<span class="sig-name descname"><span class="pre">compare</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#SpicedsProduct.compare"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.SpicedsProduct.compare" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>Compare the SPICEDS Product with another SPICEDS</strong>.</p>
+<p>The SPICEDS Product is compared with the previous
+version and if it does not exist with the sample INSIGHT SPICEDS
+product.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.SpicedsProduct.set_product_lid">
+<span class="sig-name descname"><span class="pre">set_product_lid</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#SpicedsProduct.set_product_lid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.SpicedsProduct.set_product_lid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the Product LID.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.product.SpicedsProduct.set_product_vid">
+<span class="sig-name descname"><span class="pre">set_product_vid</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/product.html#SpicedsProduct.set_product_vid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.product.SpicedsProduct.set_product_vid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the Product VID.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-pds.naif_pds4_bundler.classes.setup">
+<span id="pds-naif-pds4-bundler-classes-setup-module"></span><h2>pds.naif_pds4_bundler.classes.setup module<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.setup" title="Permalink to this headline">¶</a></h2>
+<p>Setup Class Implementation.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.setup.Setup">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.classes.setup.</span></span><span class="sig-name descname"><span class="pre">Setup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pds.naif_pds4_bundler.classes.object.Object" title="pds.naif_pds4_bundler.classes.object.Object"><span class="pre">pds.naif_pds4_bundler.classes.object.Object</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/setup.html#Setup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.setup.Setup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class that parses and processes the NPB XML configuration file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> (<em>object</em>) – Parameters arguments from NPB main function</p></li>
+<li><p><strong>version</strong> (<em>str</em>) – NPB version</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.setup.Setup.add_checksum">
+<span class="sig-name descname"><span class="pre">add_checksum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checksum</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/setup.html#Setup.add_checksum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.setup.Setup.add_checksum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add checksum to Checksum record.</p>
+<p>Adds a MD5sum entry with the product it corresponds to for the run
+by-product Checksum record file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>str</em>) – File path for checksum</p></li>
+<li><p><strong>checksum</strong> (<em>str</em>) – Checksum value for checksum</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.setup.Setup.add_file">
+<span class="sig-name descname"><span class="pre">add_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/setup.html#Setup.add_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.setup.Setup.add_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add file fo Product List.</p>
+<p>Adds a product to the run by-product Product List.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>file</strong> (<em>str</em>) – Product to be added</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.setup.Setup.check_configuration">
+<span class="sig-name descname"><span class="pre">check_configuration</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/setup.html#Setup.check_configuration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.setup.Setup.check_configuration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs the following checks to the loaded configuration items:</p>
+<ul class="simple">
+<li><p>IM, Line Feed, and Date Time format NAIF recommendations</p></li>
+<li><p>Archive increment start and finish times</p></li>
+<li><p>Transform relative to absolute paths</p></li>
+<li><p>Existence of kernel directories</p></li>
+<li><p>IM, XML model, and Schema Location coherence</p></li>
+<li><p>Check existence of templates according to the IM</p></li>
+<li><p>Meta-kernel configuration</p></li>
+<li><p>Presence of uppercase characters in the kernel list configuration</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.setup.Setup.clear_run">
+<span class="sig-name descname"><span class="pre">clear_run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/setup.html#Setup.clear_run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.setup.Setup.clear_run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clears the files generated by a previous run.</p>
+<p>Clears the files generated by a previous run when specified with the
+clear argument and the kernel list of the previous run.</p>
+<p>Please note that newly created directories will not be erased.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>debug</strong> (<em>bool</em>) – If True, the by-product files are not cleaned up. This is
+useful when testing</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.setup.Setup.load_kernels">
+<span class="sig-name descname"><span class="pre">load_kernels</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/setup.html#Setup.load_kernels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.setup.Setup.load_kernels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads the kernels required to run NPB.</p>
+<p>Note that kernels that
+are not required might be loaded as well, but given that the
+required memory is not much, we stay on the safe side by loading
+additional kernels.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.setup.Setup.set_release">
+<span class="sig-name descname"><span class="pre">set_release</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/setup.html#Setup.set_release"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.setup.Setup.set_release" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine the Bundle release number.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.setup.Setup.write_checksum_registry">
+<span class="sig-name descname"><span class="pre">write_checksum_registry</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/setup.html#Setup.write_checksum_registry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.setup.Setup.write_checksum_registry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the run by-product Checksum Record.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.classes.setup.Setup.write_file_list">
+<span class="sig-name descname"><span class="pre">write_file_list</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/classes/setup.html#Setup.write_file_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.classes.setup.Setup.write_file_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the run by-product File List.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-pds.naif_pds4_bundler.classes">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes" title="Permalink to this headline">¶</a></h2>
+<p>NAIF PDS4 Bundle Classes Namespace.</p>
+<p>The NPB Classes implement the main functionalities of the pipeline.</p>
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="pds.naif_pds4_bundler.utils.html" class="btn btn-neutral float-right" title="pds.naif_pds4_bundler.utils package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="pds.naif_pds4_bundler.html" class="btn btn-neutral float-left" title="pds.naif_pds4_bundler package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2021, Caltech/JPL/NASA
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

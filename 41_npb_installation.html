@@ -8,7 +8,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>NPB Installation &mdash; NAIF PDS4 Bundler 1.0.0
+  <title>NPB Installation &mdash; NAIF PDS4 Bundler 1.0.1
  documentation</title>
   
 
@@ -282,12 +282,29 @@ in <code class="docutils literal notranslate"><span class="pre">setup.cfg</span>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">unittest</span>
 </pre></div>
 </div>
+<p>NPB tests use data available in the package and involves file and directory
+creation and destruction. Depending on your environment the package might be
+in a location where your user can have permission issues. To solve this issue
+NPB uses a temporary directory for the tests. In order to do this, NPB searches
+a standard list of directories to find one which the calling user can create
+files in. The list is:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>The directory named by the <code class="docutils literal notranslate"><span class="pre">TMPDIR</span></code> environment variable.</p></li>
+<li><p>The directory named by the <code class="docutils literal notranslate"><span class="pre">TEMP</span></code> environment variable.</p></li>
+<li><p>The directory named by the <code class="docutils literal notranslate"><span class="pre">TMP</span></code> environment variable.</p></li>
+<li><p>The directories <code class="docutils literal notranslate"><span class="pre">/tmp</span></code>, <code class="docutils literal notranslate"><span class="pre">/var/tmp</span></code>, and <code class="docutils literal notranslate"><span class="pre">/usr/tmp</span></code>, in that order.</p></li>
+<li><p>As a last resort, the current working directory.</p></li>
+</ol>
+</div></blockquote>
+<p>If need be, create of modify one of the environment variables described above
+to ensure your user has the appropriate permissions.</p>
 <p>You can also run the tests using a DOCKER container. Assuming that you have
 DOCKER installed, you can use the DOCKER file from
 <code class="docutils literal notranslate"><span class="pre">naif-pds4-bundler/tests/naif_pds4_bundler/docker/dockerfile</span></code></p>
 <p>Further indications on how to use DOCKER are available in the provided Shell
 script <code class="docutils literal notranslate"><span class="pre">naif-pds4-bundler/tests/naif_pds4_bundler/docker/build_docker.sh</span></code>.</p>
-<p>The implemented tests are documented in section <span class="xref std std-ref">tests:tests package</span></p>
+<p>The implemented tests are documented in section <a class="reference internal" href="tests.html#tests-package"><span class="std std-ref">tests package</span></a></p>
 </section>
 <section id="documentation">
 <h3>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h3>
