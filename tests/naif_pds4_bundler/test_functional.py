@@ -29,7 +29,7 @@ class TestFunctional(TestCase):
         cls.silent = True
         cls.verbose = False
         cls.log = True
-        cls.tmp_dir = tempfile.TemporaryDirectory()
+        cls.tmp_dir = tempfile.TemporaryDirectory(dir='/Users/mcosta')
 
         shutil.copytree(os.sep.join(cls.test_dir.split(os.sep)),
                         cls.tmp_dir.name + '/naif_pds4_bundler')
@@ -247,13 +247,16 @@ class TestFunctional(TestCase):
         maven.test_maven_load_kernels(self)
 
     #
-    # DART functional tests,
+    # DART functional tests.
     #
     def test_dart_multiple_obs_tar(self):
         dart.test_dart_multiple_obs_tar(self)
 
+    def test_dart_host_type(self):
+        dart.test_dart_host_type(self)
+
     #
-    # MRO functional tests,
+    # MRO functional tests.
     #
     def test_mro_basic(self):
         mro.test_mro_basic(self)

@@ -174,6 +174,7 @@ class PDSLabel(object):
                         or product["type"][0] == "Host"
                     ):
                         ob_lid = product["lidvid"].split("::")[0]
+                        ob_type = product['type'][0]
 
                 if not ob_lid:
                     error_message(
@@ -184,7 +185,7 @@ class PDSLabel(object):
                 obs_list_for_label += (
                       f"{' ' * 3*tab}<Observing_System_Component>{eol}"
                       + f"{' ' * (3+1)*tab}<name>{ob_name}</name>{eol}"
-                      + f"{' ' * (3+1)*tab}<type>Spacecraft</type>{eol}"
+                      + f"{' ' * (3+1)*tab}<type>{ob_type}</type>{eol}"
                       + f"{' ' * (3+1)*tab}<Internal_Reference>{eol}"
                       + f"{' ' * (3 + 2)*tab}<lid_reference>{ob_lid}"
                       f"</lid_reference>{eol}"
