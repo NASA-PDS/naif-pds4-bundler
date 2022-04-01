@@ -2,7 +2,7 @@
 <?xml-model href="$XML_MODEL"
     schematypens="http://purl.oclc.org/dsdl/schematron"?>
 
-<Product_Ancillary xmlns="http://pds.nasa.gov/pds4/pds/v1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd">
+<Product_Ancillary xmlns="http://pds.nasa.gov/pds4/pds/v1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="$SCHEMA_LOCATION">
   <Identification_Area>
     <logical_identifier>$PRODUCT_LID</logical_identifier>
     <version_id>$PRODUCT_VID</version_id>
