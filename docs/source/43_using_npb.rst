@@ -369,7 +369,7 @@ is the File List. The File List has the following naming scheme::
 
   <sc>_release_??.file_list
 
-where <sc> is the spacecraft acronym and ?? is the archive's release
+where ``<sc>`` is the spacecraft acronym and ``??`` is the archive's release
 version. The MAVEN release 26 file list would be::
 
    maven_release_26.file_list
