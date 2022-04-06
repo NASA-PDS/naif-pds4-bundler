@@ -10,7 +10,7 @@
         <xml_model>http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1G00.sch</xml_model>
         <schema_location>http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1G00.xsd
         </schema_location>
-        <logical_identifier>urn:jaxa:darts:vco.spice</logical_identifier>
+        <logical_identifier>urn:jaxa:darts:vco_spice</logical_identifier>
         <context_products>
             <product name="VCO">
                 <type>Spacecraft</type>
