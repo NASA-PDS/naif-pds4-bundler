@@ -567,7 +567,10 @@ class BundlePDS4Label(PDSLabel):
                 else:
                     self.COLL_STATUS = "Secondary"
             if collection.name == "miscellaneous":
-                self.COLL_NAME = "member"
+                if setup.information_model_float >= 1011001000.0:
+                    self.COLL_NAME = "miscellaneous"
+                else:
+                    self.COLL_NAME = "member"
                 self.COLL_LIDVID = collection.lid + "::" + collection.vid
                 if collection.updated:
                     self.COLL_STATUS = "Primary"
