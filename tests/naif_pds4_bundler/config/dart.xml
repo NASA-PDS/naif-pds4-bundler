@@ -20,10 +20,6 @@
                 <type>Spacecraft</type>
                 <lidvid>urn:nasa:pds:context:instrument_host:spacecraft.licia::1.0</lidvid>
             </product>
-            <product name="Earth">
-                <type>Planet</type>
-                <lidvid>urn:nasa:pds:context:target:planet.earth::1.0</lidvid>
-            </product>
             <product name="Didymos">
                 <type>Asteroid</type>
                 <lidvid>urn:nasa:pds:context:target:asteroid.didymos::1.0</lidvid>
@@ -42,7 +38,7 @@
         <producer_name>Hari Nair</producer_name>
         <author_list>Nair H.; Costa Sitja M.</author_list>
         <institution>JHU/APL</institution>
-        <doi></doi>
+        <doi>10.17189/9acz-aw83</doi>
         <spiceds>../data/spiceds_dart.html</spiceds>
         <spice_name>DART</spice_name>
         <readme>
@@ -86,7 +82,6 @@
         </secondary_observers>
         <secondary_targets>
             <target>Dimorphos</target>
-            <target>Earth</target>
         </secondary_targets>
     </mission_parameters>
 
@@ -260,14 +255,14 @@
                 <target>Didymos</target>
                 <target>Dimorphos</target>
             </targets>
-            <description>SPICE CK file containing DART spacecraft attitude history from DOY $STARTYEAR-$STARTDOI to $FINISHYEAR-$FINISHDOI,
+            <description>SPICE CK file containing DART spacecraft attitude history from DOY $STARTYEAR-$STARTDOY to $FINISHYEAR-$FINISHDOY,
                 created by the DART science team, JHU/APL.
             </description>
             <patterns>
                 <STARTYEAR pattern="KERNEL">dart_$STARTYEAR_[0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9]_ah.bc</STARTYEAR>
                 <FINISHYEAR pattern="KERNEL">dart_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_$FINISHYEAR_[0-9][0-9][0-9]_[0-9][0-9][0-9]_ah.bc</FINISHYEAR>
-                <STARTDOI pattern="KERNEL">dart_[0-9][0-9][0-9][0-9]_$STARTDOI_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9]_ah.bc</STARTDOI>
-                <FINISHDOI pattern="KERNEL">dart_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_$FINISHDOI_[0-9][0-9][0-9]_ah.bc</FINISHDOI>
+                <STARTDOY pattern="KERNEL">dart_[0-9][0-9][0-9][0-9]_$STARTDOY_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9]_ah.bc</STARTDOY>
+                <FINISHDOY pattern="KERNEL">dart_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_$FINISHDOY_[0-9][0-9][0-9]_ah.bc</FINISHDOY>
             </patterns>
         </kernel>
         <kernel pattern="dart_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9]_ap.bc">
@@ -275,14 +270,14 @@
                 <target>Didymos</target>
                 <target>Dimorphos</target>
             </targets>
-            <description>SPICE CK file containing DART spacecraft predicted attitude from DOY $STARTYEAR-$STARTDOI to $FINISHYEAR-$FINISHDOI,
+            <description>SPICE CK file containing DART spacecraft predicted attitude from DOY $STARTYEAR-$STARTDOY to $FINISHYEAR-$FINISHDOY,
                 created by the DART science team, JHU/APL.
             </description>
             <patterns>
                 <STARTYEAR pattern="KERNEL">dart_$STARTYEAR_[0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9]_ap.bc</STARTYEAR>
                 <FINISHYEAR pattern="KERNEL">dart_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_$FINISHYEAR_[0-9][0-9][0-9]_[0-9][0-9][0-9]_ap.bc</FINISHYEAR>
-                <STARTDOI pattern="KERNEL">dart_[0-9][0-9][0-9][0-9]_$STARTDOI_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9]_ap.bc</STARTDOI>
-                <FINISHDOI pattern="KERNEL">dart_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_$FINISHDOI_[0-9][0-9][0-9]_ap.bc</FINISHDOI>
+                <STARTDOY pattern="KERNEL">dart_[0-9][0-9][0-9][0-9]_$STARTDOY_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9]_ap.bc</STARTDOY>
+                <FINISHDOY pattern="KERNEL">dart_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_$FINISHDOY_[0-9][0-9][0-9]_ap.bc</FINISHDOY>
             </patterns>
         </kernel>
 
@@ -291,14 +286,14 @@
                 <target>Didymos</target>
                 <target>Dimorphos</target>
             </targets>
-            <description>SPICE CK file containing DART spacecraft attitude history from DOY $STARTYEAR-$STARTDOI to $FINISHYEAR-$FINISHDOI,
+            <description>SPICE CK file containing DART spacecraft attitude history from DOY $STARTYEAR-$STARTDOY to $FINISHYEAR-$FINISHDOY,
                 created by the DART science team, JHU/APL.
             </description>
             <patterns>
                 <STARTYEAR pattern="KERNEL">licia_$STARTYEAR_[0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9]_ah.bc</STARTYEAR>
                 <FINISHYEAR pattern="KERNEL">licia_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_$FINISHYEAR_[0-9][0-9][0-9]_[0-9][0-9][0-9]_ah.bc</FINISHYEAR>
-                <STARTDOI pattern="KERNEL">licia_[0-9][0-9][0-9][0-9]_$STARTDOI_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9]_ah.bc</STARTDOI>
-                <FINISHDOI pattern="KERNEL">licia_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_$FINISHDOI_[0-9][0-9][0-9]_ah.bc</FINISHDOI>
+                <STARTDOY pattern="KERNEL">licia_[0-9][0-9][0-9][0-9]_$STARTDOY_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9]_ah.bc</STARTDOY>
+                <FINISHDOY pattern="KERNEL">licia_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_$FINISHDOY_[0-9][0-9][0-9]_ah.bc</FINISHDOY>
             </patterns>
         </kernel>
         <kernel pattern="licia_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9]_ap.bc">
@@ -309,14 +304,14 @@
                 <target>Didymos</target>
                 <target>Dimorphos</target>
             </targets>
-            <description>SPICE CK file containing DART spacecraft predicted attitude from DOY $STARTYEAR-$STARTDOI to $FINISHYEAR-$FINISHDOI,
+            <description>SPICE CK file containing DART spacecraft predicted attitude from DOY $STARTYEAR-$STARTDOY to $FINISHYEAR-$FINISHDOY,
                 created by the DART science team, JHU/APL.
             </description>
             <patterns>
                 <STARTYEAR pattern="KERNEL">licia_$STARTYEAR_[0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9]_ap.bc</STARTYEAR>
                 <FINISHYEAR pattern="KERNEL">licia_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_$FINISHYEAR_[0-9][0-9][0-9]_[0-9][0-9][0-9]_ap.bc</FINISHYEAR>
-                <STARTDOI pattern="KERNEL">licia_[0-9][0-9][0-9][0-9]_$STARTDOI_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9]_ap.bc</STARTDOI>
-                <FINISHDOI pattern="KERNEL">licia_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_$FINISHDOI_[0-9][0-9][0-9]_ap.bc</FINISHDOI>
+                <STARTDOY pattern="KERNEL">licia_[0-9][0-9][0-9][0-9]_$STARTDOY_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9]_ap.bc</STARTDOY>
+                <FINISHDOY pattern="KERNEL">licia_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_$FINISHDOY_[0-9][0-9][0-9]_ap.bc</FINISHDOY>
             </patterns>
         </kernel>
         <kernel pattern="dimorphos_g_01050mm_lgt_0000n00000_v001.bds">
@@ -336,7 +331,7 @@
                 <target>Didymos</target>
                 <target>Dimorphos</target>
             </targets>
-            <description>SPICE MK file listing kernels for the whole mission, created by NAIF, JPL.
+            <description>SPICE MK file listing kernels for the whole mission, created by the DART science team, JHU/APL.
             </description>
         </kernel>
     </kernel_list>
