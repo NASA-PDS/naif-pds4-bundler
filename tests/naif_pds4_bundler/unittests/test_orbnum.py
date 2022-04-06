@@ -3,6 +3,7 @@ import os
 import shutil
 
 from pds.naif_pds4_bundler.__main__ import main
+from pds.naif_pds4_bundler.utils.files import string_in_file
 
 
 def post_setup(self):
@@ -581,3 +582,52 @@ def test_pds4_orbnum_multiple_files_in_spk_dir(self):
     )
 
     main(updated_config, plan=plan, faucet="bundle", silent=self.silent, log=True)
+
+
+def test_pds4_orbnum_bundle_member(self):
+    """Test that the ``member_reference_type`` of the Bundle is set correctly.
+
+    The value ``bundle_has_member_collection`` is used for
+    Product_Bundle/Bundle_Member_Entry/reference_type but it became
+    deprecated from the IM version 1.11.1.0 and the value
+    ``bundle_has_miscellaneous_collection`` became appropriate for the later
+    versions.
+    """
+    post_setup(self)
+    config = "../config/maven.xml"
+    updated_config = "working/maven.xml"
+    plan = "working/maven_orbnum.plan"
+
+    with open(config, "r") as c:
+        with open(updated_config, "w") as n:
+            for line in c:
+                if "<information_model>1.5.0.0</information_model>" in line:
+                    n.write("<information_model>1.16.0.0</information_model>\n")
+                elif (
+                    "<xml_model>http://pds.nasa.gov/pds4/pds/v1/"
+                    "PDS4_PDS_1500.sch</xml_model>\n" in line
+                ):
+                    n.write(
+                        "<xml_model>http://pds.nasa.gov/pds4/pds/v1/"
+                        "PDS4_PDS_1G00.sch</xml_model>\n"
+                    )
+                elif (
+                    "<schema_location>http://pds.nasa.gov/pds4/pds/v1 "
+                    "http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd" in line
+                ):
+                    n.write(
+                        "<schema_location>http://pds.nasa.gov/pds4/pds/"
+                        "v1 http://pds.nasa.gov/pds4/pds/v1/"
+                        "PDS4_PDS_1G00.xsd\n"
+                    )
+                else:
+                    n.write(line)
+
+    with open(plan, "w") as p:
+        p.write("maven_orb_rec_210101_210401_v1.orb")
+        p.write("\nmaven_orb_rec_210101_210401_v1.nrb")
+
+    line_check = "<reference_type>bundle_has_miscellaneous_collection</reference_type>"
+    main(updated_config, plan, faucet="bundle", silent=self.silent)
+    if not string_in_file("maven/maven_spice/bundle_maven_spice_v001.xml", line_check):
+        raise BaseException
