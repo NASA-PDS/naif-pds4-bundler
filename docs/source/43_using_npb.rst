@@ -615,8 +615,9 @@ severity levels are: ``INFO``, ``WARNING``, and ``ERROR``.
 what NPB is doing. ``WARNING`` messages flag unexpected or unusual actions
 taken by NPB and require a careful examination by the operator since they might
 lead to an undesired result in the archive generation. ``ERROR`` messages are
-only displayed if the NPB execution has failed and will only be present in
-the temporary log resulting from a failed execution.
+displayed if the NPB execution has failed -and therefore will only be present in
+the temporary log resulting from a failed execution- or if an archived meta-kernel
+is not loadable by the SPICE API ``FURNSH``.
 
 The NPB log is structured in such a way that it narrates the archive generation
 by providing numbered sections for each "main" action that NPB performs. The
