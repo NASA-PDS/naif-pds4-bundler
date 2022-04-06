@@ -190,7 +190,6 @@ parameter.::
         <!-- =========================== -->
         <kernel_list>
             <kernel pattern="naif[0-9][0-9][0-9][0-9].tls">
-                <mklabel_options>DEF_TIMES</mklabel_options>
                 <description>SPICE LSK file incorporating leapseconds up to $DATE, created by NAIF, JPL.</description>
                 <patterns>
                     <DATE value="naif0011.tls">2015-JAN-01</DATE>
@@ -198,7 +197,6 @@ parameter.::
                 </patterns>
             </kernel>
             <kernel pattern="pck[0-9][0-9][0-9][0-9][0-9].tpc">
-                <mklabel_options>DEF_TIMES</mklabel_options>
                 <description>SPICE text PCK file containing constants from the $REPORT report, created by NAIF, JPL.
                 </description>
                 <patterns>
@@ -206,62 +204,52 @@ parameter.::
                 </patterns>
             </kernel>
             <kernel pattern="maven_v[0-9][0-9].tf">
-                <mklabel_options>DEF_TIMES</mklabel_options>
                 <description>SPICE FK file defining reference frames for the MAVEN spacecraft, its structures, and science
                     instruments, created by NAIF, JPL.
                 </description>
             </kernel>
             <kernel pattern="maven_ant_v[0-9][0-9].ti">
-                <mklabel_options>DEF_TIMES</mklabel_options>
                 <description>SPICE IK file providing FOV definitions for the MAVEN communication antennae, created by NAIF,
                     JPL.
                 </description>
             </kernel>
             <kernel pattern="maven_euv_v[0-9][0-9].ti">
-                <mklabel_options>DEF_TIMES</mklabel_options>
                 <description>SPICE IK file providing FOV definitions and other instrument parameters for the MAVEN Extreme
                     Ultraviolet (EUV) monitor instrument, created by NAIF, JPL.
                 </description>
             </kernel>
             <kernel pattern="maven_iuvs_v[0-9][0-9].ti">
-                <mklabel_options>DEF_TIMES</mklabel_options>
                 <description>SPICE IK file providing FOV definitions and other instrument parameters for the MAVEN Imaging
                     Ultraviolet Spectrograph (IUVS) instrument, created by IUVS Team, CU/LASP.
                 </description>
             </kernel>
             <kernel pattern="maven_ngims_v[0-9][0-9].ti">
-                <mklabel_options>DEF_TIMES</mklabel_options>
                 <description>SPICE IK file providing FOV definitions and other instrument parameters for the MAVEN Neutral
                     Gas and Ion Mass Spectrometer (NGIMS) instrument, created by NGIMS Team, GSFC.
                 </description>
             </kernel>
             <kernel pattern="maven_sep_v[0-9][0-9].ti">
-                <mklabel_options>DEF_TIMES</mklabel_options>
                 <description>SPICE IK file providing FOV definitions and other instrument parameters for the Solar Energetic
                     Particle (SEP) instrument, created by SEP Team, UC Berkeley.
                 </description>
             </kernel>
             <kernel pattern="maven_static_v[0-9][0-9].ti">
-                <mklabel_options>DEF_TIMES</mklabel_options>
                 <description>SPICE IK file providing FOV definitions and other instrument parameters for the SupraThermal
                     And Thermal Ion Composition (STATIC) instrument, created by STATIC Team, UC Berkeley.
                 </description>
             </kernel>
             <kernel pattern="maven_swea_v[0-9][0-9].ti">
-                <mklabel_options>DEF_TIMES</mklabel_options>
                 <description>SPICE IK file providing FOV definitions and other instrument parameters for the MAVEN Solar
                     Wind Electron Analyzer (SWEA) instrument, created by SWEA Team, UC Berkeley.
                 </description>
             </kernel>
             <kernel pattern="maven_swia_v[0-9][0-9].ti">
-                <mklabel_options>DEF_TIMES</mklabel_options>
                 <description>SPICE IK file providing FOV definitions and other instrument parameters for the MAVEN Solar
                     Wind Ion Analyzer (SWIA) instrument, created by SWIA Team, UC Berkeley.
                 </description>
             </kernel>
             <kernel pattern="mvn_sclkscet_[0-9][0-9][0-9][0-9][0-9].tsc">
                 <mapping>MVN_SCLKSCET.$VERSION.tsc</mapping>
-                <mklabel_options>DEF_TIMES</mklabel_options>
                 <description>SPICE SCLK file containing time correlation data for the main MAVEN on-board clock, created by
                     NAIF, JPL. The original name of this file was MVN_SCLKSCET.$VERSION.tsc.
                 </description>
@@ -270,7 +258,6 @@ parameter.::
                 </patterns>
             </kernel>
             <kernel pattern="de[0-9][0-9][0-9]s.bsp">
-                <mklabel_options>de[0-9][0-9][0-9]s.bsp</mklabel_options>
                 <description>SPICE SPK file containing JPL planetary ephemerides version $VERSION, created by NAIF, JPL.
                 </description>
                 <patterns>
@@ -278,7 +265,6 @@ parameter.::
                 </patterns>
             </kernel>
             <kernel pattern="mar[0-9][0-9][0-9]s.bsp">
-                <mklabel_options></mklabel_options>
                 <description>SPICE SPK file containing JPL Martian satellite ephemerides version $VERSION, created by NAIF,
                     JPL.
                 </description>
@@ -287,49 +273,41 @@ parameter.::
                 </patterns>
             </kernel>
             <kernel pattern="maven_struct_v[0-9][0-9].bsp">
-                <mklabel_options></mklabel_options>
                 <description>SPICE SPK file containing relative locations of selected MAVEN structures and science
                     instruments, created by NAIF, JPL.
                 </description>
             </kernel>
             <kernel pattern="maven_cru_rec_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9].bsp">
-                <mklabel_options></mklabel_options>
                 <description>SPICE SPK file containing reconstructed cruise trajectory of the MAVEN spacecraft, created by
                     MAVEN NAV Team, JPL. The original name of this file was trj_c_131118-140923_rec_v1.bsp.
                 </description>
             </kernel>
             <kernel pattern="maven_orb_rec_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9].bsp">
-                <mklabel_options></mklabel_options>
                 <description>SPICE SPK file containing reconstructed orbital trajectory of the MAVEN spacecraft, created by
                     NAIF, JPL by merging operational weekly reconstructed SPK files produced by MAVEN NAV Team, JPL.
                 </description>
             </kernel>
             <kernel pattern="mvn_swea_nom_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9].bc">
-                <mklabel_options></mklabel_options>
                 <description>SPICE CK file containing nominal orientation of the MAVEN SWEA instrument boom, created by
                     NAIF, JPL.
                 </description>
             </kernel>
             <kernel pattern="mvn_app_rel_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9].bc">
-                <mklabel_options></mklabel_options>
                 <description>SPICE CK file containing reconstructed orientation of the MAVEN Articulated Payload Platform
                     (APP), created by NAIF, JPL.
                 </description>
             </kernel>
             <kernel pattern="mvn_iuvs_rem_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9].bc">
-                <mklabel_options></mklabel_options>
                 <description>SPICE CK file containing reconstructed orientation of the MAVEN IUVS instrument internal
                     mirror, created by NAIF, JPL by merging data from daily IUVS CKs produced by the IUVS Team, CU/LASP.
                 </description>
             </kernel>
             <kernel pattern="mvn_sc_rel_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9].bc">
-                <mklabel_options></mklabel_options>
                 <description>SPICE CK file containing reconstructed orientation of the MAVEN spacecraft, created by NAIF,
                     JPL.
                 </description>
             </kernel>
             <kernel pattern="mvn_sc_pred_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9].bc">
-                <mklabel_options></mklabel_options>
                 <description>SPICE CK file containing predicted orientation of the MAVEN spacecraft, created by NAIF,
                     JPL. The original name of this file was $ORIGINAL.
                 </description>
@@ -342,7 +320,6 @@ parameter.::
                 </patterns>
             </kernel>
             <kernel pattern="mvn_app_pred_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9][0-9].bc">
-                <mklabel_options></mklabel_options>
                 <description>SPICE CK file containing predicted orientation of the MAVEN Articulated Payload Platform
                     (APP), created by NAIF, JPL. The original name of this file was $ORIGINAL.
                 </description>
@@ -355,7 +332,6 @@ parameter.::
                 </patterns>
             </kernel>
             <kernel pattern="maven_[0-9][0-9][0-9][0-9]_v[0-9][0-9].tm">
-                <mklabel_options></mklabel_options>
                 <description>SPICE MK file listing kernels for $YEAR, created by NAIF, JPL.</description>
                 <patterns>
                     <YEAR pattern="KERNEL">maven_$YEAR_v[0-9][0-9].tm</YEAR>
@@ -1049,7 +1025,6 @@ the kernels to be archived. An important remark of the pattern attribute value
 is that it cannot contain any of the special patterns ``{n}`` or ``$``, and
 therefore can only include ``[0-9]``, ``[a-z]``, and ``[A-Z]`` patterns.
 
-The first nested element of the kernel element is ``<mklabel_options>``. This
 element is a leftover of the PDS3 data sets and for all the kernels in PDS4
 bundles can be omitted.
 
@@ -1241,7 +1216,6 @@ kernel name. Also, the value of the ``ORIGINAL`` element must be the text of the
 line that precedes the original kernel name in the comment area of the kernel::
 
         <kernel pattern="mro_sc_psp_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]p.bc">
-            <mklabel_options>NAIF HGA PREDICT ESP</mklabel_options>
             <description>MRO SPICE CK file providing predicted orientation of the MRO spacecraft bus modeled by the MRO Spacecraft Team, LMA using the AtArPS tool for a part of the Extended Science phase of the mission, created by NAIF, JPL. The original name of this file was $ORIGINAL
             </description>
             <patterns>
