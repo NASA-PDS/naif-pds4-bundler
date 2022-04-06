@@ -803,14 +803,16 @@ class KernelList(List):
             logging.info("")
 
             #
-            # Display all the MAKLABL_OPTIONS used
+            # IF you generate a PDS23 data set, display all the MAKLABL_OPTIONS
+            # used
             #
-            opt_in_list = list(dict.fromkeys(opt_in_list))
-            opt_in_list.sort()
-            logging.info("-- Display all the MAKLABEL_OPTIONS:")
-            for option in opt_in_list:
-                logging.info(f"     {option}")
-            logging.info("")
+            if self.setup.pds_version == '3':
+                opt_in_list = list(dict.fromkeys(opt_in_list))
+                opt_in_list.sort()
+                logging.info("-- Display all the MAKLABEL_OPTIONS:")
+                for option in opt_in_list:
+                    logging.info(f"     {option}")
+                logging.info("")
 
             #
             # The PDS Mission Template file is not required for PDS4
@@ -967,14 +969,15 @@ class KernelList(List):
             logging.info("")
 
             #
-            # Display all the MAKLABL_OPTIONS used
+            # Display all the MAKLABL_OPTIONS used if archive is PDS3.
             #
-            opt_in_list = list(dict.fromkeys(opt_in_list))
-            opt_in_list.sort()
-            logging.info("-- Display all the MAKLABEL_OPTIONS:")
-            for option in opt_in_list:
-                logging.info(f"     {option}")
-            logging.info("")
+            if self.setup.pds_version == "3":
+                opt_in_list = list(dict.fromkeys(opt_in_list))
+                opt_in_list.sort()
+                logging.info("-- Display all the MAKLABEL_OPTIONS:")
+                for option in opt_in_list:
+                    logging.info(f"     {option}")
+                logging.info("")
 
             #
             # The PDS Mission Template file is not required for PDS4
