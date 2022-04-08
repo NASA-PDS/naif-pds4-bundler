@@ -1113,7 +1113,7 @@ class OrbnumFilePDS4Label(PDSLabel):
         :type description: str
         :param unit: Unit field
         :type unit: str
-        :param blanks: Blank space missing contant indication
+        :param blanks: Blank space missing constant indication
         :type blanks: str
         :return: Field Character for ORBNUM PDS4 label
         :rtype: str
