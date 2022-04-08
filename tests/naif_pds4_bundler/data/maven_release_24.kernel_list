@@ -7,11 +7,11 @@ RELEASE_ID = 0001
 RELEASE_DATE = 2021-04-27
 $EOH
 FILE             = spice_kernels/sclk/mvn_sclkscet_00085.tsc
-MAKLABEL_OPTIONS = DEF_TIMES
+MAKLABEL_OPTIONS =
 DESCRIPTION      = SPICE SCLK file containing time correlation data for the main MAVEN on-board clock, created by NAIF, JPL. The original name of this file was MVN_SCLKSCET.00085.tsc.
 MAPPING          = MVN_SCLKSCET.00085.tsc
 FILE             = spice_kernels/sclk/mvn_sclkscet_00086.tsc
-MAKLABEL_OPTIONS = DEF_TIMES
+MAKLABEL_OPTIONS =
 DESCRIPTION      = SPICE SCLK file containing time correlation data for the main MAVEN on-board clock, created by NAIF, JPL. The original name of this file was MVN_SCLKSCET.00086.tsc.
 MAPPING          = MVN_SCLKSCET.00086.tsc
 FILE             = spice_kernels/spk/maven_orb_rec_201001_210101_v1.bsp

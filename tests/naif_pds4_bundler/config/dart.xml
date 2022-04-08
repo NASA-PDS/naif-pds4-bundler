@@ -20,10 +20,6 @@
                 <type>Spacecraft</type>
                 <lidvid>urn:nasa:pds:context:instrument_host:spacecraft.licia::1.0</lidvid>
             </product>
-            <product name="Earth">
-                <type>Planet</type>
-                <lidvid>urn:nasa:pds:context:target:planet.earth::1.0</lidvid>
-            </product>
             <product name="Didymos">
                 <type>Asteroid</type>
                 <lidvid>urn:nasa:pds:context:target:asteroid.didymos::1.0</lidvid>
@@ -39,10 +35,10 @@
     <!-- Bundle parameters           -->
     <!-- =========================== -->
     <bundle_parameters>
-        <producer_name>Marc Costa Sitja</producer_name>
-        <author_list>Costa Sitja M.; Semenov B. V.</author_list>
-        <institution>NAIF/JPL</institution>
-        <doi></doi>
+        <producer_name>Hari Nair</producer_name>
+        <author_list>Nair H.; Costa Sitja M.</author_list>
+        <institution>JHU/APL</institution>
+        <doi>10.17189/9acz-aw83</doi>
         <spiceds>../data/spiceds_dart.html</spiceds>
         <spice_name>DART</spice_name>
         <readme>
@@ -52,9 +48,8 @@
                 the DART and LICIA spacecrafts, their instruments, and targets.
             </overview>
             <cognisant_authority>
-                This archive bundle was produced by the Planetary Data System (PDS)
-                Navigation and Ancillary Information Facility (NAIF) Node, Jet
-                Propulsion Laboratory, Pasadena, California.
+                This archive bundle was produced by the Johns Hopkins University (JHU),
+                Applied Physics Laboratory (APL), Laurel, Maryland.
             </cognisant_authority>
         </readme>
 
@@ -76,7 +71,9 @@
         <kernels_to_load>
             <lsk>naif[0-9][0-9][0-9][0-9].tls</lsk>
             <sclk>dart_sclk_[0-9][0-9][0-9][0-9].tsc</sclk>
+            <sclk>licia_sclk_[0-9][0-9][0-9][0-9].tsc</sclk>
             <fk>dart_[0-9][0-9][0-9].tf</fk>
+            <fk>licia_[0-9][0-9][0-9].tf</fk>
         </kernels_to_load>
 
         <!-- Optional Parameters -->
@@ -85,7 +82,6 @@
         </secondary_observers>
         <secondary_targets>
             <target>Dimorphos</target>
-            <target>Earth</target>
         </secondary_targets>
     </mission_parameters>
 
@@ -117,7 +113,7 @@
                 <REPORT value="pck00010.tpc">IAU 2009</REPORT>
             </patterns>
         </kernel>
-        <kernel pattern="didymos_system_d300_s101_02.tpc">
+        <kernel pattern="didymos_system_d[0-9][0-9][0-9]_s[0-9][0-9][0-9]_[0-9][0-9].tpc">
             <observers>
                 <observer>DART</observer>
                 <observer>LICIA</observer>
@@ -206,7 +202,7 @@
                 System Dynamics group (SSD), JPL.
             </description>
         </kernel>
-        <kernel pattern="didymos_barycenter_d300_v01.bsp">
+        <kernel pattern="didymos_barycenter_d[0-9][0-9][0-9]_[0-9][0-9].bsp">
             <observers>
                 <observer>DART</observer>
                 <observer>LICIA</observer>
@@ -218,7 +214,7 @@
             <description>SPICE SPK file containing ephemeris of the asteroid system barycenter (20065803) Didymos, created by the DART science team, JHU/APL.
             </description>
         </kernel>
-        <kernel pattern="didymos_d300_s101_v01.bsp">
+        <kernel pattern="didymos_d[0-9][0-9][0-9]_s[0-9][0-9][0-9]_[0-9][0-9].bsp">
             <observers>
                 <observer>DART</observer>
                 <observer>LICIA</observer>
@@ -230,7 +226,7 @@
             <description>SPICE SPK file containing ephemeris of asteroid (120065803) Didymos, created by the DART science team, JHU/APL.
             </description>
         </kernel>
-        <kernel pattern="dimorphos_d300_s101_v01.bsp">
+        <kernel pattern="dimorphos_d[0-9][0-9][0-9]_s[0-9][0-9][0-9]_[0-9][0-9].bsp">
             <observers>
                 <observer>DART</observer>
                 <observer>LICIA</observer>
@@ -242,48 +238,89 @@
             <description>SPICE SPK file containing ephemeris of asteroid (120065803) Dimorphos, created by the DART science team, JHU/APL.
             </description>
         </kernel>
-        <kernel pattern="dart_211124_221017_v01.bsp">
-            <description>SPICE SPK file providing reconstructed trajectory od the DART spacecraft, created by the DART science team, JHU/APL. The original name of this
-                file was $ORIGINAL.
+        <kernel pattern="dart_structures_v[0-9][0-9].bsp">
+            <description>SPICE SPK file containing relative locations of selected DART structures and science instruments, created by the DART science team, JHU/APL.
             </description>
-            <patterns>
-                <ORIGINAL value="dart_211124_221017_v01.bsp">D210426-L211124-EP-RA26-V01_traj.bsp</ORIGINAL>
-            </patterns>
         </kernel>
-        <kernel pattern="dart_sc_pred_211124_221017_v01.bc">
+        <kernel pattern="dart_[0-9]{8}_[0-9]{8}_v[0-9][0-9].bsp">
+            <description>SPICE SPK file providing reconstructed trajectory od the DART spacecraft, created by the DART science team, JHU/APL.
+            </description>
+        </kernel>
+        <kernel pattern="dart_[0-9]{8}_[0-9]{8}_v[0-9][0-9].bsp">
+            <description>SPICE SPK file providing reconstructed trajectory od the LICIA spacecraft, created by the LICIA SOC, JHU/APL.
+            </description>
+        </kernel>
+        <kernel pattern="dart_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9]_ah.bc">
             <targets>
                 <target>Didymos</target>
                 <target>Dimorphos</target>
             </targets>
-            <description>SPICE CK file containing predicted DART spacecraft orientation, created by the DART science team, JHU/APL.
-            </description>
-        </kernel>
-        <kernel pattern="dida_g_50680mm_rdr_0000n00000_v001.bds">
-            <observers>
-                <observer>DART</observer>
-                <observer>LICIA</observer>
-            </observers>
-            <description>SPICE DSK file containing the shape model for Didymos, created by the DART science team, JHU/APL.
-                The original name of this file was $ORIGINAL.
+            <description>SPICE CK file containing DART spacecraft attitude history from DOY $STARTYEAR-$STARTDOY to $FINISHYEAR-$FINISHDOY,
+                created by the DART science team, JHU/APL.
             </description>
             <patterns>
-                <ORIGINAL value="dida_g_50680mm_rdr_0000n00000_v001.bds">g_50680mm_rdr_obj_dida_0000n00000_v001.bds</ORIGINAL>
+                <STARTYEAR pattern="KERNEL">dart_$STARTYEAR_[0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9]_ah.bc</STARTYEAR>
+                <FINISHYEAR pattern="KERNEL">dart_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_$FINISHYEAR_[0-9][0-9][0-9]_[0-9][0-9][0-9]_ah.bc</FINISHYEAR>
+                <STARTDOY pattern="KERNEL">dart_[0-9][0-9][0-9][0-9]_$STARTDOY_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9]_ah.bc</STARTDOY>
+                <FINISHDOY pattern="KERNEL">dart_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_$FINISHDOY_[0-9][0-9][0-9]_ah.bc</FINISHDOY>
             </patterns>
         </kernel>
-        <kernel pattern="didb_g_06650mm_rdr_0000n00000_v001.bds">
-            <observers>
-                <observer>DART</observer>
+        <kernel pattern="dart_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9]_ap.bc">
+            <targets>
+                <target>Didymos</target>
+                <target>Dimorphos</target>
+            </targets>
+            <description>SPICE CK file containing DART spacecraft predicted attitude from DOY $STARTYEAR-$STARTDOY to $FINISHYEAR-$FINISHDOY,
+                created by the DART science team, JHU/APL.
+            </description>
+            <patterns>
+                <STARTYEAR pattern="KERNEL">dart_$STARTYEAR_[0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9]_ap.bc</STARTYEAR>
+                <FINISHYEAR pattern="KERNEL">dart_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_$FINISHYEAR_[0-9][0-9][0-9]_[0-9][0-9][0-9]_ap.bc</FINISHYEAR>
+                <STARTDOY pattern="KERNEL">dart_[0-9][0-9][0-9][0-9]_$STARTDOY_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9]_ap.bc</STARTDOY>
+                <FINISHDOY pattern="KERNEL">dart_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_$FINISHDOY_[0-9][0-9][0-9]_ap.bc</FINISHDOY>
+            </patterns>
+        </kernel>
+
+        <kernel pattern="licia_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9]_ah.bc">
+            <targets>
+                <target>Didymos</target>
+                <target>Dimorphos</target>
+            </targets>
+            <description>SPICE CK file containing DART spacecraft attitude history from DOY $STARTYEAR-$STARTDOY to $FINISHYEAR-$FINISHDOY,
+                created by the DART science team, JHU/APL.
+            </description>
+            <patterns>
+                <STARTYEAR pattern="KERNEL">licia_$STARTYEAR_[0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9]_ah.bc</STARTYEAR>
+                <FINISHYEAR pattern="KERNEL">licia_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_$FINISHYEAR_[0-9][0-9][0-9]_[0-9][0-9][0-9]_ah.bc</FINISHYEAR>
+                <STARTDOY pattern="KERNEL">licia_[0-9][0-9][0-9][0-9]_$STARTDOY_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9]_ah.bc</STARTDOY>
+                <FINISHDOY pattern="KERNEL">licia_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_$FINISHDOY_[0-9][0-9][0-9]_ah.bc</FINISHDOY>
+            </patterns>
+        </kernel>
+        <kernel pattern="licia_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9]_ap.bc">
+             <observers>
                 <observer>LICIA</observer>
             </observers>
             <targets>
+                <target>Didymos</target>
                 <target>Dimorphos</target>
             </targets>
-            <description>SPICE DSK file containing the shape model for Dimorphos, created by the DART science team, JHU/APL.
-                The original name of this file was $ORIGINAL.
+            <description>SPICE CK file containing DART spacecraft predicted attitude from DOY $STARTYEAR-$STARTDOY to $FINISHYEAR-$FINISHDOY,
+                created by the DART science team, JHU/APL.
             </description>
             <patterns>
-                <ORIGINAL value="didb_g_06650mm_rdr_0000n00000_v001.bds">g_06650mm_rdr_obj_didb_0000n00000_v001.bds</ORIGINAL>
+                <STARTYEAR pattern="KERNEL">licia_$STARTYEAR_[0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9]_ap.bc</STARTYEAR>
+                <FINISHYEAR pattern="KERNEL">licia_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_$FINISHYEAR_[0-9][0-9][0-9]_[0-9][0-9][0-9]_ap.bc</FINISHYEAR>
+                <STARTDOY pattern="KERNEL">licia_[0-9][0-9][0-9][0-9]_$STARTDOY_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9]_ap.bc</STARTDOY>
+                <FINISHDOY pattern="KERNEL">licia_[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_$FINISHDOY_[0-9][0-9][0-9]_ap.bc</FINISHDOY>
             </patterns>
+        </kernel>
+        <kernel pattern="dimorphos_g_01050mm_lgt_0000n00000_v001.bds">
+            <observers>
+                <observer>DART</observer>
+                <observer>LICIA</observer>
+            </observers>
+            <description>SPICE DSK file containing the shape model for Dimorphos, created by the DART science team, JHU/APL.
+            </description>
         </kernel>
         <kernel pattern="dart_v[0-9][0-9].tm">
             <observers>
@@ -294,7 +331,7 @@
                 <target>Didymos</target>
                 <target>Dimorphos</target>
             </targets>
-            <description>SPICE MK file listing kernels for the whole mission, created by NAIF, JPL.
+            <description>SPICE MK file listing kernels for the whole mission, created by the DART science team, JHU/APL.
             </description>
         </kernel>
     </kernel_list>
@@ -311,7 +348,7 @@
                 <pattern length="2">VERSION</pattern>
             </name>
             <coverage_kernels>
-               <pattern>dart_[0-6]{6}_[0-6]{6}_v[0-6]{2}.bsp</pattern>
+               <pattern>dart_[0-9]{8}_[0-9]{8}_v[0-9][0-9].bsp</pattern>
             </coverage_kernels>
          </mk>
     </meta-kernel>

@@ -2168,7 +2168,7 @@ class OrbnumFileProduct(Product):
 
         #
         # For orbnum files generated with older versions of the ORBNUM
-        # utility, the event colunms have a different format. For example,
+        # utility, the event columns have a different format. For example,
         # for Mars Odyssey (m01_ext64.nrb):
         #
         #  No.      Desc-Node UTC         Node SCLK          Asc-Node UTC  ...
@@ -2312,16 +2312,29 @@ class OrbnumFileProduct(Product):
         :type header: list
         """
         # The orbit number, UTC date and angular parameters have fixed
-        # lengths, which are provided in the parameters template.
+        # lengths, which are provided in the parameters' template.
         # The length of the rest of the parameters depends on each orbnum
         # file and are obtained from the ORBNUM file itself.
+        #
+        # For ORBNUM files using IM previous to v1.7.0.0 the ``field_format``
+        # values are:
+        #
+        #    Parameter      IM < 1.7.0.0  IM >= 1.7.0.0
+        #    =============  ============  =============
+        #    No.            I5            %5d
+        #    Event UTC      A20           %20s
+        #    Desc-Node UTC  A20           %20s
+        #    Event SCLK     A?            %?s
+        #    Node SCLK      A?            %?s
+        #    OP-Event UTC   A20           %20s
+        #    Asc-Node UTC   A20           %20s
+        #    All the rest   F?.?          %?.?f
         #
         params_template = {
             "No.": {
                 "location": "1",
                 "type": "ASCII_Integer",
                 "length": "5",
-                "format": "I5",
                 "description": "Number that provides an incremental orbit "
                                "count determined by the $EVENT event.",
             },
@@ -2329,7 +2342,6 @@ class OrbnumFileProduct(Product):
                 "type": "ASCII_String",
                 "location": "8",
                 "length": "20",
-                "format": "A20",
                 "description": "UTC time of the $EVENT event that "
                                "signifies the start of an orbit.",
             },
@@ -2337,65 +2349,55 @@ class OrbnumFileProduct(Product):
                 "type": "ASCII_String",
                 "location": "8",
                 "length": "20",
-                "format": "A20",
                 "description": "UTC time of the $EVENT event that "
                                "signifies the start of an orbit.",
             },
             "Event SCLK": {
                 "type": "ASCII_String",
-                "format": "A",
                 "description": "SCLK time of the $EVENT event that "
                                "signifies the start of an orbit.",
             },
             "Node SCLK": {
                 "type": "ASCII_String",
-                "format": "A",
                 "description": "SCLK time of the $EVENT event that "
                                "signifies the start of an orbit.",
             },
             "OP-Event UTC": {
                 "type": "ASCII_String",
                 "length": "20",
-                "format": "A20",
                 "description": "UTC time of opposite event ($OPPEVENT).",
             },
             "Asc-Node UTC": {
                 "type": "ASCII_String",
                 "length": "20",
-                "format": "A20",
                 "description": "UTC time of opposite event ($OPPEVENT).",
             },
             "SolLon": {
                 "type": "ASCII_Real",
-                "format": "F",
                 "description": "Sub-solar planetodetic longitude at the "
                                "$EVENT event time in the $FRAME.",
                 "unit": "deg",
             },
             "SolLat": {
                 "type": "ASCII_Real",
-                "format": "F",
                 "description": "Sub-solar planetodetic latitude at the "
                                "$EVENT event time in the $FRAME.",
                 "unit": "deg",
             },
             "SC Lon": {
                 "type": "ASCII_Real",
-                "format": "F",
                 "description": "Sub-target planetodetic longitude at the "
                                "$EVENT event time in the $FRAME.",
                 "unit": "deg",
             },
             "SC Lat": {
                 "type": "ASCII_Real",
-                "format": "F",
                 "description": "Sub-target planetodetic latitude at at the "
                                "$EVENT event time in the $FRAME.",
                 "unit": "deg",
             },
             "Alt": {
                 "type": "ASCII_Real",
-                "format": "F",
                 "description": "Altitude of the target above the observer "
                                "body at the $EVENT event time relative to"
                                " the $TARGET ellipsoid.",
@@ -2403,42 +2405,36 @@ class OrbnumFileProduct(Product):
             },
             "Inc": {
                 "type": "ASCII_Real",
-                "format": "F",
                 "description": "Inclination of the vehicle orbit plane at "
                                "event time.",
                 "unit": "km",
             },
             "Ecc": {
                 "type": "ASCII_Real",
-                "format": "F",
                 "description": "Eccentricity of the target orbit about "
                                "the primary body at the $EVENT event time.",
                 "unit": "deg",
             },
             "LonNode": {
                 "type": "ASCII_Real",
-                "format": "F",
                 "description": "Longitude of the ascending node of the"
                                " orbit plane at the $EVENT event time.",
                 "unit": "deg",
             },
             "Arg Per": {
                 "type": "ASCII_Real",
-                "format": "F",
                 "description": "Argument of periapsis of the orbit plane at "
                                "the $EVENT event time.",
                 "unit": "deg",
             },
             "Sol Dist": {
                 "type": "ASCII_Real",
-                "format": "F",
                 "description": "Solar distance from target at the $EVENT "
                                "event time.",
                 "unit": "km",
             },
             "Semi Axis": {
                 "type": "ASCII_Real",
-                "format": "F",
                 "description": "Semi-major axis of the target's orbit at"
                                " the $EVENT event time.",
                 "unit": "km",
@@ -2493,26 +2489,50 @@ class OrbnumFileProduct(Product):
 
             if "length" in params_template[param]:
                 length = params_template[param]["length"]
-                format = params_template[param]["format"]
+                param_length = False
             else:
                 #
                 # Obtain the parameter length as the length of the table
                 # separator from the header.
                 #
                 length = str(len(header[1].split()[number]))
-                format = params_template[param]["format"] + length
-
                 #
                 # If the parameter is a float we need to include the decimal
                 # part.
                 #
-                if "F" in params_template[param]["format"]:
+                if "ASCII_Real" in params_template[param]["type"]:
                     #
                     # We need to sort the number of decimals.
                     #
                     param_record = sample_record.split()[number]
                     param_length = str(len(param_record.split(".")[-1]))
-                    format += "." + param_length
+
+                else:
+                    param_length = False
+
+            #
+            # Write the format
+            #
+            if self.setup.information_model_float >= 1007000000.0:
+                format = '%' + length
+                if "ASCII_Real" in params_template[param]["type"]:
+                    format += '.' + param_length + 'f'
+                elif "ASCII_String" in params_template[param]["type"]:
+                    format += 's'
+                elif "ASCII_Integer" in params_template[param]["type"]:
+                    format += 'd'
+                else:
+                    error_message("Parameter type for ORBNUM file is incorrect.")
+            else:
+                if "ASCII_Real" in params_template[param]["type"]:
+                    format = 'F' + length + '.' + param_length
+                elif "ASCII_String" in params_template[param]["type"]:
+                    format = 'A' + length
+                elif "ASCII_Integer" in params_template[param]["type"]:
+                    format = 'I' + length
+                else:
+                    error_message("Parameter type for ORBNUM file is incorrect.")
+
             #
             # Parameter number (column number)
             #

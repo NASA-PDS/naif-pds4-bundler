@@ -53,8 +53,8 @@ Configuration File--, the NPB execution must be cleared (using the
 ``-c CLEAR --clear CLEAR`` argument) and NPB must be re-run.
 
 
-Verifying the Archive using PDS Validate Tool
----------------------------------------------
+Verifying the Archive using the PDS Validate Tool
+-------------------------------------------------
 
 Although NPB and the instructions given above provide a lot of safeguard to
 ensure production of a fully PDS-compliant archive, many inputs to the
@@ -72,7 +72,7 @@ The Validate tool package can be obtained from the PDS Engineering node from
 Once installed per instructions provided with the package, Validate Tool can be
 run to generate the full validation report for the final archive as follows::
 
-   validate <path_to_archive> -R pds4.bundle -r <path_to_working_dir>/<sc>_release_??.validate
+   validate -t <path_to_archive> -R pds4.bundle -x <pds_im_schema> -S <pds_im_schematron> --strict-field-checks -r <path_to_working_dir>/<sc>_release_??.validate
 
 where
 
@@ -85,6 +85,18 @@ where
    ``<sc>_release_??.validate``: is the suggested validate report name using the
    mission acronym and the release version.
 
+   ``<pds_im_schema>``: is the local path of PDS IM schema for the IM of the bundle, e.g.:
+   ``working/PDS4_PDS_1H00.xsd``
+
+   ``<pds_im_schematron>``: is the local path of PDS IM schematron for the IM of the bundle,
+   ``working/PDS4_PDS_1H00.sch``
+
+You can download the PDS4 IM adequate schema and schematron from
+`PDS Data Standards - Data Dictionaries <https://pds.nasa.gov/datastandards/dictionaries/index-versions.shtml>`_,
+choose the adequate IM version and download the ``PDS4_PDS_????.xsd``
+and ``PDS4_PDS_????.sch`` or the ``PDS4_PDS_????.zip`` files. NAIF recommends to
+put these files in the NPB working directory.
+
 If you have included context products in the configuration file the Validate
 Tool might provide you the following error messages::
 
@@ -93,7 +105,7 @@ Tool might provide you the following error messages::
       ERROR  [error.label.context_ref_not_found]   line 43: 'Context product not found: urn:esa:psa:context:instrument_host:spacecraft.tgo
         1 product validation(s) completed
 
-If so, you need to include the following argument when calling Validate:
+If so, you need to include the following argument when calling ``validate``:
 ``--add-context-products`` and provide the path to a local JSON file
 containing the missing context products as follows::
 
@@ -126,9 +138,9 @@ containing the missing context products as follows::
           }
      ]
 
-Then you can run Validate as follows::
+Then you can run ``validate`` as follows::
 
-   validate em16_spice --add-context-products registered_context_products.json -R pds4.bundle  -r working/em16_release_03.validate
+   validate -t em16/em16_spice --add-context-products registered_context_products.json -R pds4.bundle -x working/PDS4_PDS_1B00.xsd -S working/PDS4_PDS_1B00.sch --strict-field-checks -r working/em16_release_03.validate
 
 
 Following the inclusion of this argument, you will still get the following
@@ -141,11 +153,14 @@ This warning can be ignored. There should be no other errors or warnings in the
 report. If any other errors are present they should be investigated and fixed
 before the archive is released.
 
+Alternatively you can run ``validate`` without checking the context products by
+using the argument: ``--skip-context-validation``
+
 NAIF recommends to set severity level of the Validation Tool reporting to
 ``Info`` (``-v 1 --verbose 1``). This will mainly help to find issues in the
 context products. The resulting recommended way to run Validate is:
 
-   validate -v 1 em16_spice --add-context-products registered_context_products.json -R pds4.bundle  -r working/em16_release_03.validate
+   validate -v 1 -t em16/em16_spice --skip-context-validation -R pds4.bundle -x working/PDS4_PDS_1B00.xsd -S working/PDS4_PDS_1B00.sch --strict-field-checks -r working/em16_release_03.validate
 
 Please note that the Validate Tool is in continuous development with new
 releases for each PDS IM, therefore the details provided in this section

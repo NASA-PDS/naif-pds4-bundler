@@ -39,7 +39,7 @@ class TestUnitTests(TestCase):
         cls.faucet = "list"
         cls.verbose = False
         cls.log = True
-        cls.tmp_dir = tempfile.TemporaryDirectory()
+        cls.tmp_dir = tempfile.TemporaryDirectory(dir="/Users/mcosta")
 
         shutil.copytree(os.sep.join(cls.test_dir.split(os.sep)),
                         cls.tmp_dir.name + '/naif_pds4_bundler')
@@ -278,6 +278,9 @@ class TestUnitTests(TestCase):
 
     def test_pds4_orbnum_multiple_files_in_spk_dir(self):
         orbnum.test_pds4_orbnum_multiple_files_in_spk_dir(self)
+
+    def test_pds4_orbnum_new_im(self):
+        orbnum.test_pds4_orbnum_new_im(self)
 
     #
     # Plan generation test.

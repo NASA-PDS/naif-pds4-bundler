@@ -6,14 +6,14 @@
     <!-- =========================== -->
     <pds_parameters>
         <pds_version>4</pds_version>
-        <information_model>1.16.0.0</information_model>
-        <xml_model>http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1G00.sch</xml_model>
-        <schema_location>http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1G00.xsd
+        <information_model>1.17.0.0</information_model>
+        <xml_model>http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1H00.sch</xml_model>
+        <schema_location>http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1H00.xsd
         </schema_location>
-        <logical_identifier>urn:jaxa:darts:vco.spice</logical_identifier>
+        <logical_identifier>urn:jaxa:darts:vco_spice</logical_identifier>
         <context_products>
             <product name="VCO">
-                <type>Spacecraft</type>
+                <type>Host</type>
                 <lidvid>urn:jaxa:darts:context:instrument_host:spacecraft.vco::1.0</lidvid>
             </product>
         </context_products>
