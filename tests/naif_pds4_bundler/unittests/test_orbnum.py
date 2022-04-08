@@ -29,6 +29,9 @@ def test_pds4_orbnum_coverage_user_spk(self):
     The coverage is provided by the following configuration element::
 
             <kernel cutoff="True">../data/kernels/spk/maven_orb_rec_210101_210401_v2.bsp</kernel>
+
+    The tests also checks that the ``field_format`` for PDS IM 1.5.0.0 are
+    correct.
     """
     post_setup(self)
     config = "../config/maven.xml"
@@ -38,7 +41,23 @@ def test_pds4_orbnum_coverage_user_spk(self):
         p.write("maven_orb_rec_210101_210401_v1.orb")
         p.write("\nmaven_orb_rec_210101_210401_v1.nrb")
 
-    main(config, plan, self.faucet, silent=self.silent)
+    main(config, plan, faucet="bundle", silent=self.silent)
+
+    line_check = "<field_format>I5</field_format>"
+    if not string_in_file("maven/maven_spice/miscellaneous/orbnum/maven_orb_rec_210101_210401_v1.xml", line_check, 1):
+        raise BaseException
+    line_check = "<field_format>A20</field_format>"
+    if not string_in_file("maven/maven_spice/miscellaneous/orbnum/maven_orb_rec_210101_210401_v1.xml", line_check, 3):
+        raise BaseException
+    line_check = "<field_format>F7.2</field_format>"
+    if not string_in_file("maven/maven_spice/miscellaneous/orbnum/maven_orb_rec_210101_210401_v1.xml", line_check, 4):
+        raise BaseException
+    line_check = "<field_format>F10.2</field_format>"
+    if not string_in_file("maven/maven_spice/miscellaneous/orbnum/maven_orb_rec_210101_210401_v1.xml", line_check, 1):
+        raise BaseException
+    line_check = "<field_format>F12.1</field_format>"
+    if not string_in_file("maven/maven_spice/miscellaneous/orbnum/maven_orb_rec_210101_210401_v1.xml", line_check, 1):
+        raise BaseException
 
 
 def test_pds4_orbnum_coverage_increment_spk(self):
@@ -584,14 +603,22 @@ def test_pds4_orbnum_multiple_files_in_spk_dir(self):
     main(updated_config, plan=plan, faucet="bundle", silent=self.silent, log=True)
 
 
-def test_pds4_orbnum_bundle_member(self):
-    """Test that the ``member_reference_type`` of the Bundle is set correctly.
+def test_pds4_orbnum_new_im(self):
+    """Test that IM > 1.5.0.0 features are implemented for ORBNUM files labels.
+
+    This tests checks that the ``member_reference_type`` of the Bundle is set
+    correctly and that the ORBNUM label ``field_format`` for PDS IM >= 1.7.0.0
+    is generated appropriately.
 
     The value ``bundle_has_member_collection`` is used for
     Product_Bundle/Bundle_Member_Entry/reference_type but it became
     deprecated from the IM version 1.11.1.0 and the value
     ``bundle_has_miscellaneous_collection`` became appropriate for the later
     versions.
+
+    From PDS4 IM 1.7.0.0 the ``field_format`` has to respect the pattern
+    ``%[\+,-]?[0-9]+(\.([0-9]+))?[doxfeEs]``, this tests checks that the pattern
+    is implemented.
     """
     post_setup(self)
     config = "../config/maven.xml"
@@ -627,7 +654,24 @@ def test_pds4_orbnum_bundle_member(self):
         p.write("maven_orb_rec_210101_210401_v1.orb")
         p.write("\nmaven_orb_rec_210101_210401_v1.nrb")
 
-    line_check = "<reference_type>bundle_has_miscellaneous_collection</reference_type>"
     main(updated_config, plan, faucet="bundle", silent=self.silent)
+
+    line_check = "<reference_type>bundle_has_miscellaneous_collection</reference_type>"
     if not string_in_file("maven/maven_spice/bundle_maven_spice_v001.xml", line_check):
+        raise BaseException
+
+    line_check = "<field_format>%5d</field_format>"
+    if not string_in_file("maven/maven_spice/miscellaneous/orbnum/maven_orb_rec_210101_210401_v1.xml", line_check, 1):
+        raise BaseException
+    line_check = "<field_format>%20s</field_format>"
+    if not string_in_file("maven/maven_spice/miscellaneous/orbnum/maven_orb_rec_210101_210401_v1.xml", line_check, 3):
+        raise BaseException
+    line_check = "<field_format>%7.2f</field_format>"
+    if not string_in_file("maven/maven_spice/miscellaneous/orbnum/maven_orb_rec_210101_210401_v1.xml", line_check, 4):
+        raise BaseException
+    line_check = "<field_format>%10.2f</field_format>"
+    if not string_in_file("maven/maven_spice/miscellaneous/orbnum/maven_orb_rec_210101_210401_v1.xml", line_check, 1):
+        raise BaseException
+    line_check = "<field_format>%12.1f</field_format>"
+    if not string_in_file("maven/maven_spice/miscellaneous/orbnum/maven_orb_rec_210101_210401_v1.xml", line_check, 1):
         raise BaseException

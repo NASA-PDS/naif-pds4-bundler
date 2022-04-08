@@ -279,8 +279,8 @@ class TestUnitTests(TestCase):
     def test_pds4_orbnum_multiple_files_in_spk_dir(self):
         orbnum.test_pds4_orbnum_multiple_files_in_spk_dir(self)
 
-    def test_pds4_orbnum_bundle_member(self):
-        orbnum.test_pds4_orbnum_bundle_member(self)
+    def test_pds4_orbnum_new_im(self):
+        orbnum.test_pds4_orbnum_new_im(self)
 
     #
     # Plan generation test.
