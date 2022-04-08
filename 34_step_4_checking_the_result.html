@@ -8,7 +8,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Step 4: Checking the Result and Finishing Up &mdash; NAIF PDS4 Bundler 1.0.1
+  <title>Step 4: Checking the Result and Finishing Up &mdash; NAIF PDS4 Bundler 1.0.2
  documentation</title>
   
 
@@ -99,7 +99,7 @@
 <li class="toctree-l2"><a class="reference internal" href="33_step_3_running_npb.html">Step 3: Running NAIF PDS4 Bundler</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Step 4: Checking the Result and Finishing Up</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#checking-pds-artifacts">Checking PDS artifacts</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#verifying-the-archive-using-pds-validate-tool">Verifying the Archive using PDS Validate Tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#verifying-the-archive-using-the-pds-validate-tool">Verifying the Archive using the PDS Validate Tool</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#deploying-to-the-final-archive-area">Deploying to the Final Archive Area</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#cleaning-up-the-workspace">Cleaning up the Workspace</a></li>
 </ul>
@@ -225,8 +225,8 @@ should be fixed –probably by correcting the “Kernel List” section of the
 Configuration File–, the NPB execution must be cleared (using the
 <code class="docutils literal notranslate"><span class="pre">-c</span> <span class="pre">CLEAR</span> <span class="pre">--clear</span> <span class="pre">CLEAR</span></code> argument) and NPB must be re-run.</p>
 </section>
-<section id="verifying-the-archive-using-pds-validate-tool">
-<h2>Verifying the Archive using PDS Validate Tool<a class="headerlink" href="#verifying-the-archive-using-pds-validate-tool" title="Permalink to this headline">¶</a></h2>
+<section id="verifying-the-archive-using-the-pds-validate-tool">
+<h2>Verifying the Archive using the PDS Validate Tool<a class="headerlink" href="#verifying-the-archive-using-the-pds-validate-tool" title="Permalink to this headline">¶</a></h2>
 <p>Although NPB and the instructions given above provide a lot of safeguard to
 ensure production of a fully PDS-compliant archive, many inputs to the
 configuration file are done “by hand” and for this reason are prone to errors.
@@ -239,7 +239,7 @@ mode processing.</p>
 <a class="reference external" href="https://nasa-pds.github.io/validate/">Validate Tool Documentation</a>.</p>
 <p>Once installed per instructions provided with the package, Validate Tool can be
 run to generate the full validation report for the final archive as follows:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>validate &lt;path_to_archive&gt; -R pds4.bundle -r &lt;path_to_working_dir&gt;/&lt;sc&gt;_release_??.validate
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>validate -t &lt;path_to_archive&gt; -R pds4.bundle -x &lt;pds_im_schema&gt; -S &lt;pds_im_schematron&gt; --strict-field-checks -r &lt;path_to_working_dir&gt;/&lt;sc&gt;_release_??.validate
 </pre></div>
 </div>
 <p>where</p>
@@ -250,7 +250,16 @@ pointing to the archive <code class="docutils literal notranslate"><span class="
 the working directory of the workspace.</p>
 <p><code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;_release_??.validate</span></code>: is the suggested validate report name using the
 mission acronym and the release version.</p>
+<p><code class="docutils literal notranslate"><span class="pre">&lt;pds_im_schema&gt;</span></code>: is the local path of PDS IM schema for the IM of the bundle, e.g.:
+<code class="docutils literal notranslate"><span class="pre">working/PDS4_PDS_1H00.xsd</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">&lt;pds_im_schematron&gt;</span></code>: is the local path of PDS IM schematron for the IM of the bundle,
+<code class="docutils literal notranslate"><span class="pre">working/PDS4_PDS_1H00.sch</span></code></p>
 </div></blockquote>
+<p>You can download the PDS4 IM adequate schema and schematron from
+<a class="reference external" href="https://pds.nasa.gov/datastandards/dictionaries/index-versions.shtml">PDS Data Standards - Data Dictionaries</a>,
+choose the adequate IM version and download the <code class="docutils literal notranslate"><span class="pre">PDS4_PDS_????.xsd</span></code>
+and <code class="docutils literal notranslate"><span class="pre">PDS4_PDS_????.sch</span></code> or the <code class="docutils literal notranslate"><span class="pre">PDS4_PDS_????.zip</span></code> files. NAIF recommends to
+put these files in the NPB working directory.</p>
 <p>If you have included context products in the configuration file the Validate
 Tool might provide you the following error messages:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">FAIL</span><span class="p">:</span> <span class="n">file</span><span class="p">:</span><span class="o">/</span><span class="n">Users</span><span class="o">/</span><span class="n">mcosta</span><span class="o">/</span><span class="n">workspace</span><span class="o">/</span><span class="n">em16</span><span class="o">/</span><span class="n">em16_003</span><span class="o">/</span><span class="n">em16_spice</span><span class="o">/</span><span class="n">bundle_em16_spice_v003</span><span class="o">.</span><span class="n">xml</span>
@@ -259,7 +268,7 @@ Tool might provide you the following error messages:</p>
    <span class="mi">1</span> <span class="n">product</span> <span class="n">validation</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="n">completed</span>
 </pre></div>
 </div>
-<p>If so, you need to include the following argument when calling Validate:
+<p>If so, you need to include the following argument when calling <code class="docutils literal notranslate"><span class="pre">validate</span></code>:
 <code class="docutils literal notranslate"><span class="pre">--add-context-products</span></code> and provide the path to a local JSON file
 containing the missing context products as follows:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
@@ -292,8 +301,8 @@ containing the missing context products as follows:</p>
 <span class="p">]</span>
 </pre></div>
 </div>
-<p>Then you can run Validate as follows:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">validate</span> <span class="n">em16_spice</span> <span class="o">--</span><span class="n">add</span><span class="o">-</span><span class="n">context</span><span class="o">-</span><span class="n">products</span> <span class="n">registered_context_products</span><span class="o">.</span><span class="n">json</span> <span class="o">-</span><span class="n">R</span> <span class="n">pds4</span><span class="o">.</span><span class="n">bundle</span>  <span class="o">-</span><span class="n">r</span> <span class="n">working</span><span class="o">/</span><span class="n">em16_release_03</span><span class="o">.</span><span class="n">validate</span>
+<p>Then you can run <code class="docutils literal notranslate"><span class="pre">validate</span></code> as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">validate</span> <span class="o">-</span><span class="n">t</span> <span class="n">em16</span><span class="o">/</span><span class="n">em16_spice</span> <span class="o">--</span><span class="n">add</span><span class="o">-</span><span class="n">context</span><span class="o">-</span><span class="n">products</span> <span class="n">registered_context_products</span><span class="o">.</span><span class="n">json</span> <span class="o">-</span><span class="n">R</span> <span class="n">pds4</span><span class="o">.</span><span class="n">bundle</span> <span class="o">-</span><span class="n">x</span> <span class="n">working</span><span class="o">/</span><span class="n">PDS4_PDS_1B00</span><span class="o">.</span><span class="n">xsd</span> <span class="o">-</span><span class="n">S</span> <span class="n">working</span><span class="o">/</span><span class="n">PDS4_PDS_1B00</span><span class="o">.</span><span class="n">sch</span> <span class="o">--</span><span class="n">strict</span><span class="o">-</span><span class="n">field</span><span class="o">-</span><span class="n">checks</span> <span class="o">-</span><span class="n">r</span> <span class="n">working</span><span class="o">/</span><span class="n">em16_release_03</span><span class="o">.</span><span class="n">validate</span>
 </pre></div>
 </div>
 <p>Following the inclusion of this argument, you will still get the following
@@ -305,11 +314,13 @@ warning message:</p>
 <p>This warning can be ignored. There should be no other errors or warnings in the
 report. If any other errors are present they should be investigated and fixed
 before the archive is released.</p>
+<p>Alternatively you can run <code class="docutils literal notranslate"><span class="pre">validate</span></code> without checking the context products by
+using the argument: <code class="docutils literal notranslate"><span class="pre">--skip-context-validation</span></code></p>
 <p>NAIF recommends to set severity level of the Validation Tool reporting to
 <code class="docutils literal notranslate"><span class="pre">Info</span></code> (<code class="docutils literal notranslate"><span class="pre">-v</span> <span class="pre">1</span> <span class="pre">--verbose</span> <span class="pre">1</span></code>). This will mainly help to find issues in the
 context products. The resulting recommended way to run Validate is:</p>
 <blockquote>
-<div><p>validate -v 1 em16_spice –add-context-products registered_context_products.json -R pds4.bundle  -r working/em16_release_03.validate</p>
+<div><p>validate -v 1 -t em16/em16_spice –skip-context-validation -R pds4.bundle -x working/PDS4_PDS_1B00.xsd -S working/PDS4_PDS_1B00.sch –strict-field-checks -r working/em16_release_03.validate</p>
 </div></blockquote>
 <p>Please note that the Validate Tool is in continuous development with new
 releases for each PDS IM, therefore the details provided in this section

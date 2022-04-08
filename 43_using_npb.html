@@ -8,7 +8,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Using NPB &mdash; NAIF PDS4 Bundler 1.0.1
+  <title>Using NPB &mdash; NAIF PDS4 Bundler 1.0.2
  documentation</title>
   
 
@@ -591,7 +591,7 @@ is the File List. The File List has the following naming scheme:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;sc&gt;_release_??.file_list
 </pre></div>
 </div>
-<p>where &lt;sc&gt; is the spacecraft acronym and ?? is the archive’s release
+<p>where <code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;</span></code> is the spacecraft acronym and <code class="docutils literal notranslate"><span class="pre">??</span></code> is the archive’s release
 version. The MAVEN release 26 file list would be:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">maven_release_26</span><span class="o">.</span><span class="n">file_list</span>
 </pre></div>
@@ -798,8 +798,9 @@ severity levels are: <code class="docutils literal notranslate"><span class="pre
 what NPB is doing. <code class="docutils literal notranslate"><span class="pre">WARNING</span></code> messages flag unexpected or unusual actions
 taken by NPB and require a careful examination by the operator since they might
 lead to an undesired result in the archive generation. <code class="docutils literal notranslate"><span class="pre">ERROR</span></code> messages are
-only displayed if the NPB execution has failed and will only be present in
-the temporary log resulting from a failed execution.</p>
+displayed if the NPB execution has failed -and therefore will only be present in
+the temporary log resulting from a failed execution- or if an archived meta-kernel
+is not loadable by the SPICE API <code class="docutils literal notranslate"><span class="pre">FURNSH</span></code>.</p>
 <p>The NPB log is structured in such a way that it narrates the archive generation
 by providing numbered sections for each “main” action that NPB performs. The
 log also includes a preface that provides information on the platform used to

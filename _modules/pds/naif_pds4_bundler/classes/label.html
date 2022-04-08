@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pds.naif_pds4_bundler.classes.label &mdash; NAIF PDS4 Bundler 1.0.1
+  <title>pds.naif_pds4_bundler.classes.label &mdash; NAIF PDS4 Bundler 1.0.2
  documentation</title>
   
 
@@ -727,7 +727,10 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">COLL_STATUS</span> <span class="o">=</span> <span class="s2">&quot;Secondary&quot;</span>
             <span class="k">if</span> <span class="n">collection</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;miscellaneous&quot;</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">COLL_NAME</span> <span class="o">=</span> <span class="s2">&quot;member&quot;</span>
+                <span class="k">if</span> <span class="n">setup</span><span class="o">.</span><span class="n">information_model_float</span> <span class="o">&gt;=</span> <span class="mf">1011001000.0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">COLL_NAME</span> <span class="o">=</span> <span class="s2">&quot;miscellaneous&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">COLL_NAME</span> <span class="o">=</span> <span class="s2">&quot;member&quot;</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">COLL_LIDVID</span> <span class="o">=</span> <span class="n">collection</span><span class="o">.</span><span class="n">lid</span> <span class="o">+</span> <span class="s2">&quot;::&quot;</span> <span class="o">+</span> <span class="n">collection</span><span class="o">.</span><span class="n">vid</span>
                 <span class="k">if</span> <span class="n">collection</span><span class="o">.</span><span class="n">updated</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">COLL_STATUS</span> <span class="o">=</span> <span class="s2">&quot;Primary&quot;</span>
@@ -1270,7 +1273,7 @@
 <span class="sd">        :type description: str</span>
 <span class="sd">        :param unit: Unit field</span>
 <span class="sd">        :type unit: str</span>
-<span class="sd">        :param blanks: Blank space missing contant indication</span>
+<span class="sd">        :param blanks: Blank space missing constant indication</span>
 <span class="sd">        :type blanks: str</span>
 <span class="sd">        :return: Field Character for ORBNUM PDS4 label</span>
 <span class="sd">        :rtype: str</span>

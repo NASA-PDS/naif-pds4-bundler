@@ -8,7 +8,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>PDS4 SPICE Kernel Archive Description &mdash; NAIF PDS4 Bundler 1.0.1
+  <title>PDS4 SPICE Kernel Archive Description &mdash; NAIF PDS4 Bundler 1.0.2
  documentation</title>
   
 
@@ -749,14 +749,14 @@ approach to archives: archived files should never be changed.</p>
 <p>NAIF recommends to archive producers to choose an IM and to stick with it
 (as much as possible) throughout all the archive releases. At this point NAIF
 uses IM 1.5.0.0 for all the NAIF PDS4 Bundles. IM 1.5.0.0 does not
-support the usage of Line-Feed line endings (LF) for products, nor does it
+support the usage of Line-Feed line endings (<code class="docutils literal notranslate"><span class="pre">LF</span></code>) for products, nor does it
 support the inclusion of Digital Object Identifiers (DOIs) in the bundle label.
 DOIs where included in IM 1.11.0.0, –the ExoMars2016 PDS4 Bundle uses IM 1.11.0.0
-to be able to incorporate DOIs– and LF for products was incorporated in IM
-1.16.0.0. LF are only relevant to Checksum and ORBNUM products, given that they
-are Table Character products, and LF is only required if the archive you are
+to be able to incorporate DOIs– and <code class="docutils literal notranslate"><span class="pre">LF</span></code> for products was incorporated in IM
+1.16.0.0. <code class="docutils literal notranslate"><span class="pre">LF</span></code> are only relevant to Checksum and ORBNUM products, given that they
+are Table Character products, and <code class="docutils literal notranslate"><span class="pre">LF</span></code> is only required if the archive you are
 generating or incrementing needs to include ORBNUM files also included in PDS3
-archives or in other holdings where these objects had LF.</p>
+archives or in other holdings where these objects had <code class="docutils literal notranslate"><span class="pre">LF</span></code>.</p>
 <p>Because of these reasons NAIF recommends to use IM 1.16.0.0 for new archives.</p>
 </section>
 <section id="digital-objects-identifiers">

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pds.naif_pds4_bundler.classes.product &mdash; NAIF PDS4 Bundler 1.0.1
+  <title>pds.naif_pds4_bundler.classes.product &mdash; NAIF PDS4 Bundler 1.0.2
  documentation</title>
   
 
@@ -2328,7 +2328,7 @@
 
         <span class="c1">#</span>
         <span class="c1"># For orbnum files generated with older versions of the ORBNUM</span>
-        <span class="c1"># utility, the event colunms have a different format. For example,</span>
+        <span class="c1"># utility, the event columns have a different format. For example,</span>
         <span class="c1"># for Mars Odyssey (m01_ext64.nrb):</span>
         <span class="c1">#</span>
         <span class="c1">#  No.      Desc-Node UTC         Node SCLK          Asc-Node UTC  ...</span>
@@ -2472,16 +2472,29 @@
 <span class="sd">        :type header: list</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># The orbit number, UTC date and angular parameters have fixed</span>
-        <span class="c1"># lengths, which are provided in the parameters template.</span>
+        <span class="c1"># lengths, which are provided in the parameters&#39; template.</span>
         <span class="c1"># The length of the rest of the parameters depends on each orbnum</span>
         <span class="c1"># file and are obtained from the ORBNUM file itself.</span>
+        <span class="c1">#</span>
+        <span class="c1"># For ORBNUM files using IM previous to v1.7.0.0 the ``field_format``</span>
+        <span class="c1"># values are:</span>
+        <span class="c1">#</span>
+        <span class="c1">#    Parameter      IM &lt; 1.7.0.0  IM &gt;= 1.7.0.0</span>
+        <span class="c1">#    =============  ============  =============</span>
+        <span class="c1">#    No.            I5            %5d</span>
+        <span class="c1">#    Event UTC      A20           %20s</span>
+        <span class="c1">#    Desc-Node UTC  A20           %20s</span>
+        <span class="c1">#    Event SCLK     A?            %?s</span>
+        <span class="c1">#    Node SCLK      A?            %?s</span>
+        <span class="c1">#    OP-Event UTC   A20           %20s</span>
+        <span class="c1">#    Asc-Node UTC   A20           %20s</span>
+        <span class="c1">#    All the rest   F?.?          %?.?f</span>
         <span class="c1">#</span>
         <span class="n">params_template</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;No.&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">&quot;location&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ASCII_Integer&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;length&quot;</span><span class="p">:</span> <span class="s2">&quot;5&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;I5&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Number that provides an incremental orbit &quot;</span>
                                <span class="s2">&quot;count determined by the $EVENT event.&quot;</span><span class="p">,</span>
             <span class="p">},</span>
@@ -2489,7 +2502,6 @@
                 <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ASCII_String&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;location&quot;</span><span class="p">:</span> <span class="s2">&quot;8&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;length&quot;</span><span class="p">:</span> <span class="s2">&quot;20&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;A20&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;UTC time of the $EVENT event that &quot;</span>
                                <span class="s2">&quot;signifies the start of an orbit.&quot;</span><span class="p">,</span>
             <span class="p">},</span>
@@ -2497,65 +2509,55 @@
                 <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ASCII_String&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;location&quot;</span><span class="p">:</span> <span class="s2">&quot;8&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;length&quot;</span><span class="p">:</span> <span class="s2">&quot;20&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;A20&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;UTC time of the $EVENT event that &quot;</span>
                                <span class="s2">&quot;signifies the start of an orbit.&quot;</span><span class="p">,</span>
             <span class="p">},</span>
             <span class="s2">&quot;Event SCLK&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ASCII_String&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;A&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;SCLK time of the $EVENT event that &quot;</span>
                                <span class="s2">&quot;signifies the start of an orbit.&quot;</span><span class="p">,</span>
             <span class="p">},</span>
             <span class="s2">&quot;Node SCLK&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ASCII_String&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;A&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;SCLK time of the $EVENT event that &quot;</span>
                                <span class="s2">&quot;signifies the start of an orbit.&quot;</span><span class="p">,</span>
             <span class="p">},</span>
             <span class="s2">&quot;OP-Event UTC&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ASCII_String&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;length&quot;</span><span class="p">:</span> <span class="s2">&quot;20&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;A20&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;UTC time of opposite event ($OPPEVENT).&quot;</span><span class="p">,</span>
             <span class="p">},</span>
             <span class="s2">&quot;Asc-Node UTC&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ASCII_String&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;length&quot;</span><span class="p">:</span> <span class="s2">&quot;20&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;A20&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;UTC time of opposite event ($OPPEVENT).&quot;</span><span class="p">,</span>
             <span class="p">},</span>
             <span class="s2">&quot;SolLon&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ASCII_Real&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;F&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Sub-solar planetodetic longitude at the &quot;</span>
                                <span class="s2">&quot;$EVENT event time in the $FRAME.&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;deg&quot;</span><span class="p">,</span>
             <span class="p">},</span>
             <span class="s2">&quot;SolLat&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ASCII_Real&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;F&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Sub-solar planetodetic latitude at the &quot;</span>
                                <span class="s2">&quot;$EVENT event time in the $FRAME.&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;deg&quot;</span><span class="p">,</span>
             <span class="p">},</span>
             <span class="s2">&quot;SC Lon&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ASCII_Real&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;F&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Sub-target planetodetic longitude at the &quot;</span>
                                <span class="s2">&quot;$EVENT event time in the $FRAME.&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;deg&quot;</span><span class="p">,</span>
             <span class="p">},</span>
             <span class="s2">&quot;SC Lat&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ASCII_Real&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;F&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Sub-target planetodetic latitude at at the &quot;</span>
                                <span class="s2">&quot;$EVENT event time in the $FRAME.&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;deg&quot;</span><span class="p">,</span>
             <span class="p">},</span>
             <span class="s2">&quot;Alt&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ASCII_Real&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;F&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Altitude of the target above the observer &quot;</span>
                                <span class="s2">&quot;body at the $EVENT event time relative to&quot;</span>
                                <span class="s2">&quot; the $TARGET ellipsoid.&quot;</span><span class="p">,</span>
@@ -2563,42 +2565,36 @@
             <span class="p">},</span>
             <span class="s2">&quot;Inc&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ASCII_Real&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;F&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Inclination of the vehicle orbit plane at &quot;</span>
                                <span class="s2">&quot;event time.&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;km&quot;</span><span class="p">,</span>
             <span class="p">},</span>
             <span class="s2">&quot;Ecc&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ASCII_Real&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;F&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Eccentricity of the target orbit about &quot;</span>
                                <span class="s2">&quot;the primary body at the $EVENT event time.&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;deg&quot;</span><span class="p">,</span>
             <span class="p">},</span>
             <span class="s2">&quot;LonNode&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ASCII_Real&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;F&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Longitude of the ascending node of the&quot;</span>
                                <span class="s2">&quot; orbit plane at the $EVENT event time.&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;deg&quot;</span><span class="p">,</span>
             <span class="p">},</span>
             <span class="s2">&quot;Arg Per&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ASCII_Real&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;F&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Argument of periapsis of the orbit plane at &quot;</span>
                                <span class="s2">&quot;the $EVENT event time.&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;deg&quot;</span><span class="p">,</span>
             <span class="p">},</span>
             <span class="s2">&quot;Sol Dist&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ASCII_Real&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;F&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Solar distance from target at the $EVENT &quot;</span>
                                <span class="s2">&quot;event time.&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;km&quot;</span><span class="p">,</span>
             <span class="p">},</span>
             <span class="s2">&quot;Semi Axis&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ASCII_Real&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;F&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Semi-major axis of the target&#39;s orbit at&quot;</span>
                                <span class="s2">&quot; the $EVENT event time.&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;km&quot;</span><span class="p">,</span>
@@ -2653,26 +2649,50 @@
 
             <span class="k">if</span> <span class="s2">&quot;length&quot;</span> <span class="ow">in</span> <span class="n">params_template</span><span class="p">[</span><span class="n">param</span><span class="p">]:</span>
                 <span class="n">length</span> <span class="o">=</span> <span class="n">params_template</span><span class="p">[</span><span class="n">param</span><span class="p">][</span><span class="s2">&quot;length&quot;</span><span class="p">]</span>
-                <span class="nb">format</span> <span class="o">=</span> <span class="n">params_template</span><span class="p">[</span><span class="n">param</span><span class="p">][</span><span class="s2">&quot;format&quot;</span><span class="p">]</span>
+                <span class="n">param_length</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1">#</span>
                 <span class="c1"># Obtain the parameter length as the length of the table</span>
                 <span class="c1"># separator from the header.</span>
                 <span class="c1">#</span>
                 <span class="n">length</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">header</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="n">number</span><span class="p">]))</span>
-                <span class="nb">format</span> <span class="o">=</span> <span class="n">params_template</span><span class="p">[</span><span class="n">param</span><span class="p">][</span><span class="s2">&quot;format&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">length</span>
-
                 <span class="c1">#</span>
                 <span class="c1"># If the parameter is a float we need to include the decimal</span>
                 <span class="c1"># part.</span>
                 <span class="c1">#</span>
-                <span class="k">if</span> <span class="s2">&quot;F&quot;</span> <span class="ow">in</span> <span class="n">params_template</span><span class="p">[</span><span class="n">param</span><span class="p">][</span><span class="s2">&quot;format&quot;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="s2">&quot;ASCII_Real&quot;</span> <span class="ow">in</span> <span class="n">params_template</span><span class="p">[</span><span class="n">param</span><span class="p">][</span><span class="s2">&quot;type&quot;</span><span class="p">]:</span>
                     <span class="c1">#</span>
                     <span class="c1"># We need to sort the number of decimals.</span>
                     <span class="c1">#</span>
                     <span class="n">param_record</span> <span class="o">=</span> <span class="n">sample_record</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="n">number</span><span class="p">]</span>
                     <span class="n">param_length</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">param_record</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
-                    <span class="nb">format</span> <span class="o">+=</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="n">param_length</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">param_length</span> <span class="o">=</span> <span class="kc">False</span>
+
+            <span class="c1">#</span>
+            <span class="c1"># Write the format</span>
+            <span class="c1">#</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">information_model_float</span> <span class="o">&gt;=</span> <span class="mf">1007000000.0</span><span class="p">:</span>
+                <span class="nb">format</span> <span class="o">=</span> <span class="s1">&#39;%&#39;</span> <span class="o">+</span> <span class="n">length</span>
+                <span class="k">if</span> <span class="s2">&quot;ASCII_Real&quot;</span> <span class="ow">in</span> <span class="n">params_template</span><span class="p">[</span><span class="n">param</span><span class="p">][</span><span class="s2">&quot;type&quot;</span><span class="p">]:</span>
+                    <span class="nb">format</span> <span class="o">+=</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="n">param_length</span> <span class="o">+</span> <span class="s1">&#39;f&#39;</span>
+                <span class="k">elif</span> <span class="s2">&quot;ASCII_String&quot;</span> <span class="ow">in</span> <span class="n">params_template</span><span class="p">[</span><span class="n">param</span><span class="p">][</span><span class="s2">&quot;type&quot;</span><span class="p">]:</span>
+                    <span class="nb">format</span> <span class="o">+=</span> <span class="s1">&#39;s&#39;</span>
+                <span class="k">elif</span> <span class="s2">&quot;ASCII_Integer&quot;</span> <span class="ow">in</span> <span class="n">params_template</span><span class="p">[</span><span class="n">param</span><span class="p">][</span><span class="s2">&quot;type&quot;</span><span class="p">]:</span>
+                    <span class="nb">format</span> <span class="o">+=</span> <span class="s1">&#39;d&#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">error_message</span><span class="p">(</span><span class="s2">&quot;Parameter type for ORBNUM file is incorrect.&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">&quot;ASCII_Real&quot;</span> <span class="ow">in</span> <span class="n">params_template</span><span class="p">[</span><span class="n">param</span><span class="p">][</span><span class="s2">&quot;type&quot;</span><span class="p">]:</span>
+                    <span class="nb">format</span> <span class="o">=</span> <span class="s1">&#39;F&#39;</span> <span class="o">+</span> <span class="n">length</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="n">param_length</span>
+                <span class="k">elif</span> <span class="s2">&quot;ASCII_String&quot;</span> <span class="ow">in</span> <span class="n">params_template</span><span class="p">[</span><span class="n">param</span><span class="p">][</span><span class="s2">&quot;type&quot;</span><span class="p">]:</span>
+                    <span class="nb">format</span> <span class="o">=</span> <span class="s1">&#39;A&#39;</span> <span class="o">+</span> <span class="n">length</span>
+                <span class="k">elif</span> <span class="s2">&quot;ASCII_Integer&quot;</span> <span class="ow">in</span> <span class="n">params_template</span><span class="p">[</span><span class="n">param</span><span class="p">][</span><span class="s2">&quot;type&quot;</span><span class="p">]:</span>
+                    <span class="nb">format</span> <span class="o">=</span> <span class="s1">&#39;I&#39;</span> <span class="o">+</span> <span class="n">length</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">error_message</span><span class="p">(</span><span class="s2">&quot;Parameter type for ORBNUM file is incorrect.&quot;</span><span class="p">)</span>
+
             <span class="c1">#</span>
             <span class="c1"># Parameter number (column number)</span>
             <span class="c1">#</span>
