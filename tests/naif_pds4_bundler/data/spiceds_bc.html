@@ -24,10 +24,12 @@ Introduction
 
    This document describes the BepiColombo SPICE kernel data set (SKD)
    containing observation geometry and other ancillary data in the form of
-   SPICE System kernel files for the MPO, MMO and MTM spacecrafts, their
-   instruments and targets. It describes the data set directory structure,
-   kernels included in the data set, their naming conventions, and provides
-   pointers to the SPICE software and documentation.
+   SPICE System kernel files for the Mercury Planetary Orbiter (MPO),
+   Mercury Magnetospheric Orbiter (MMO or MIO), and Mercurt Transfer
+   Module (MTM) spacecrafts, their instruments and targets. It describes the
+   data set directory structure, kernels included in the data set, their
+   naming conventions, and provides pointers to the SPICE software and
+   documentation.
 
 <a name="Table of Contents"></a>
 Table of Contents
@@ -93,8 +95,7 @@ Errata
       are covered by predicted CK files. For High Gain Antenna, Medium Gain
       Antenna, Solar Arrays, and instruments with movable components, the user
       can load the CK files that provide canonical (zero) orientation. Note
-      that these last files are not included in the meta-kernel.
-
+      that these last files are not included in the archive.
 
 <a href="#Table of Contents" style="float: right;">Back to Table of Contents</a>
 <a name="Archive Contents"></a>
@@ -269,10 +270,9 @@ Archived Kernel Details
 <a name="SPK Files"></a>
 SPK Files
 
-     This directory contains the SPICE SP-Kernel files for the BepiColombo
-     mission, including mission analysis, nominal and operational spacecraft
-     trajectory SPKs, generic planetary and satellite ephemeris SPKs.
-
+   This directory contains the SPICE SP-Kernel files for the BepiColombo
+   mission, including mission analysis, nominal and operational spacecraft
+   trajectory SPKs, generic planetary and satellite ephemeris SPKs.
 
 
    Naming Scheme for BepiColombo spacecraft SPKs:
@@ -326,7 +326,6 @@ SPK Files
 
            NN        version number, starting from 01 (required; e.g. 01);
 
-
      The naming scheme for the BepiColombo spacecraft center-of-gravity
      SPKs is:
 
@@ -350,7 +349,6 @@ SPK Files
 
            NN        version number, starting from 01 (required; e.g. 01);
 
-
      The naming scheme for the BepiColombo spacecraft structures SPKs is:
 
            bc_SC_struct_vNN.bsp
@@ -368,15 +366,33 @@ SPK Files
 
            NN        version number, starting from 01 (required; e.g. 01);
 
+     The naming scheme for the BepiColombo spacecraft cruise SPKs is:
 
-     The naming scheme for BepiColombo Schulte vector points SPKs is:
-
-           bc_mpo_schulte_vector_vNN.bsp
+           bc_SC_cruise_vNN.bsp
 
      where
 
-           NN       version (required; e.g. 01);
+           SC        acronym of the spacecraft:
 
+                          mmo: for the Mercury Magnetospheric Orbiter (MMO)
+                               spacecraft;
+                          mtm: for the Mercury Transfer Module (MTM)
+                               spacecraft
+
+           NN        version number, starting from 01 (required; e.g. 01);
+
+     The naming scheme for the BepiColombo spacecraft prelaunch SPKs is:
+
+           bc_SC_prelaunch_vNN.bsp
+
+     where
+
+           SC        acronym of the spacecraft:
+
+                          mpo: for the Mercury Planetary Orbiter (MPO)
+                               spacecraft
+
+           NN        version number, starting from 01 (required; e.g. 01);
 
    Naming Scheme for Generic Planetary Ephemeris SPKs
 
@@ -388,7 +404,6 @@ SPK Files
 
            NNN       DE version (required; e.g. 421);
 
-
    Naming Scheme for ESA ESTRACK ground stations SPKs
 
      The naming scheme for ESA ESTRACK ground stations SPKs is:
@@ -399,17 +414,15 @@ SPK Files
 
            NN       version (required; e.g. 01);
 
-
    Naming Scheme for NASA DSN ground stations SPKs
 
      The naming scheme for NASA DSN ground stations SPKs is:
 
-           earthstns_itrf93_YYYYMMDD.bsp
+           earthstns_itrf93_YYMMDD.bsp
 
      where
 
-           YYYYMMDD       product creation time (required);
-
+           YYMMDD       product creation time (required);
 
    Naming Scheme for BepiColombo science frames origins SPKs
 
@@ -421,18 +434,14 @@ SPK Files
 
            NN       version (required; e.g. 01);
 
-
-
 <a href="#Table of Contents" style="float: right;">Back to Table of Contents</a>
 <a name="PCK Files"></a>
 PCK Files
 
-     This directory contains generic and mission-specific SPICE Planetary
-     Constants Kernel files for the BepiColombo mission. The data in these
-     kernels correspond to the best knowledge of the orientation, size and
-     shape of Mercury, Venus and the Earth.
-
-
+   This directory contains generic and mission-specific SPICE Planetary
+   Constants Kernel files for the BepiColombo mission. The data in these
+   kernels correspond to the best knowledge of the orientation, size and
+   shape of Mercury, Venus and the Earth.
 
    Naming Scheme for Generic PCKs
 
@@ -448,11 +457,10 @@ PCK Files
                     provided, always use the latest version (unless an
                     earlier version is needed for some special reasons.)
 
-
      The naming scheme for generic PCK containing masses for Solar System
      bodies is:
 
-           de-NNN-masses.tpc
+           gm_deNNN.tpc
 
      where
 
@@ -461,7 +469,6 @@ PCK Files
                     If multiple versions of a generic PCK Kernel file are
                     provided, always use the latest version (unless an
                     earlier version is needed for some special reasons).
-
 
    Naming Scheme for Earth high-precision PCKs
 
@@ -479,17 +486,13 @@ PCK Files
                     in the file corresponds to predicted data. Any data
                     prior to this date corresponds to actual measurements.
 
-
-
 <a href="#Table of Contents" style="float: right;">Back to Table of Contents</a>
 <a name="IK Files"></a>
 IK Files
 
-     This directory contains the SPICE Instrument Kernel files for the
-     BepiColombo remote sensing and in-situ measurement/plasma science
-     instruments.
-
-
+   This directory contains the SPICE Instrument Kernel files for the
+   BepiColombo remote sensing and in-situ measurement/plasma science
+   instruments.
 
      The naming scheme for BepiColombo IKs is:
 
@@ -528,17 +531,13 @@ IK Files
                     instrument, always use the latest version (unless
                     earlier version is needed for some special reasons.)
 
-
-
 <a href="#Table of Contents" style="float: right;">Back to Table of Contents</a>
 <a name="CK Files"></a>
 CK Files
 
-     This directory contains the SPICE C-Kernel files for the BepiColombo
-     (MPO, MMO, MTM, MCS) spacecrafts, their structures, and science
-     instruments.
-
-
+   This directory contains the SPICE C-Kernel files for the BepiColombo
+   (MPO, MMO, MTM, MCS) spacecrafts, their structures, and science
+   instruments.
 
    BepiColombo spacecraft CK:
 
@@ -555,9 +554,7 @@ CK Files
                           mmo: for the Mercury Magnetospheric Orbiter (MPO)
                                spacecraft;
                           mtm: for the Mercury Transfer Module (MTM)
-                               spacecraft;
-                          mcs: for the Mercury Composite Spacecraft (MCS)
-                               it is the union of the previous three.
+                               spacecraft
 
            INST     instrument/structure/sensor identifier (required):
 
@@ -613,20 +610,52 @@ CK Files
 
            NN        CK version number -- 2 digits (required).
 
+      The naming scheme for the BepiColombo spacecraft cruise CKs is:
+
+           bc_SC_INST_cruise_vNN.bc
+
+      where
+
+           SC        acronym of the spacecraft:
+
+                          mmo: for the Mercury Magnetospheric Orbiter (MMO)
+                               spacecraft;
+                          mtm: for the Mercury Transfer Module (MTM)
+                               spacecraft
+
+           INST      instrument/structure/sensor identifier (required):
+
+                          sc:      for the MMO/MTM spacecraft frame
+
+           NN        version number, starting from 01 (required; e.g. 01);
+
+      The naming scheme for the BepiColombo spacecraft prelaunch CKs is:
+
+           bc_SC_INST_prelaunch_vNN.bsp
+
+      where
+
+           SC        acronym of the spacecraft:
+
+                          mpo: for the Mercury Planetary Orbiter (MPO)
+                               spacecraft
+
+           INST      instrument/structure/sensor identifier (required):
+
+                          sc:      for the MPO spacecraft frame
+
+           NN        version number, starting from 01 (required; e.g. 01);
+
 
    If multiple versions of a C-Kernel file are provided, always use the latest
    version (unless earlier version is needed for some special reasons.)
-
-
 
 <a href="#Table of Contents" style="float: right;">Back to Table of Contents</a>
 <a name="LSK Files"></a>
 LSK Files
 
-     This directory contains the generic SPICE Leapseconds Kernel files for
-     the BepiColombo mission.
-
-
+   This directory contains the generic SPICE Leapseconds Kernel files for
+   the BepiColombo mission.
 
      The naming scheme for generic LSKs is:
 
@@ -640,16 +669,12 @@ LSK Files
                     provided, always use the latest version (unless earlier
                     version is needed for some special reasons.)
 
-
-
 <a href="#Table of Contents" style="float: right;">Back to Table of Contents</a>
 <a name="SCLK Files"></a>
 SCLK Files
 
-     This directory contains the SPICE Spacecraft Clock-Kernel files for the
-     BepiColombo spacecraft on-board clock.
-
-
+   This directory contains the SPICE Spacecraft Clock-Kernel files for the
+   BepiColombo spacecraft on-board clock.
 
      The naming scheme for BepiColombo SCLKs is:
 
@@ -690,30 +715,24 @@ SCLK Files
                    fictional SCLKs or date of the last TCP used to generate
                    the SCLK in stretch/step mode.
 
-
-
 <a href="#Table of Contents" style="float: right;">Back to Table of Contents</a>
 <a name="FK Files"></a>
 FK Files
 
-     This directory contains the SPICE Frames Definition Kernel files for the
-     BepiColombo spacecraft, its structures, and science instruments, as well
-     as for the Ground Earth Stations. Moreover, it contains frame definitions
-     for science operations and for data analysis and scientific
-     investigations.
+   This directory contains the SPICE Frames Definition Kernel files for the
+   BepiColombo spacecraft, its structures, and science instruments, as well
+   as for the Ground Earth Stations. Moreover, it contains frame definitions
+   for science operations and for data analysis and scientific
+   investigations.
 
-
-
-     The following table provides information on which file contains which
-     frames, their file naming conventions and some particular details:
+   The following table provides information on which file contains which
+   frames, their file naming conventions and some particular details:
 
          File                         Contents
         ---------------------------  -----------------------------------------
         estrack_vNN.tf               ESA Ground Stations topocentric frames.
 
-        bc_SC_sci_vNN.tf             BepiColombo science support frames.
-
-        bc_SC_ops_vNN.tf             BepiColombo science operations frames.
+        bc_sci_vNN.tf                BepiColombo science support frames.
 
         bc_SC_vNN.tf                 BepiColombo spacecraft, structures,
                                      instruments and sensors frames.
@@ -727,7 +746,7 @@ FK Files
         earth_topo_YYMMDD.tf         NASA DSN Ground Stations topocentric
                                      frames.
 
-        rssd0004.tf                  Cross-mission frames kernel that defines
+        rssd0002.tf                  Cross-mission frames kernel that defines
                                      frames of interest not ``built'' in the
                                      SPICE toolkit.
 
@@ -751,15 +770,12 @@ FK Files
                         earlier version is needed for some special reasons).
 
 
-
 <a href="#Table of Contents" style="float: right;">Back to Table of Contents</a>
 <a name="DSK Files"></a>
 DSK Files
 
-     This directory contains the SPICE DS-Kernel files for the MPO, MMO and
-     MTM spacecrafts, its structures, and science instruments.
-
-
+   This directory contains the SPICE DS-Kernel files for the MPO, MMO and
+   MTM spacecrafts, its structures, and science instruments.
 
    BepiColombo spacecraft DSK:
 
@@ -794,11 +810,8 @@ DSK Files
 
            NN      DSK version number -- 2 digits (required).
 
-
    If multiple versions of a DS-Kernel file are provided, always use the latest
    version (unless earlier version is needed for some special reasons.)
-
-
 
 <a href="#Table of Contents" style="float: right;">Back to Table of Contents</a>
 <a name="MK Files"></a>
@@ -924,23 +937,19 @@ Contact Information
    or NAIF at JPL:
 
              Boris Semenov
-             (818) 354-8136
+             +1 (818) 354-8136
              Boris.Semenov@jpl.nasa.gov
-
-             Marc Costa Sitja
-             (818) 354-4852
-             Marc.Costa.Sitja@jpl.nasa.gov
 
 <a href="#Table of Contents" style="float: right;">Back to Table of Contents</a>
 <a name="Cognisant Persons"></a>
 Cognisant Persons
 ===============================
 
-   This archive was produced by Alfredo Escalante and Ricardo Valles,
-   Archives and SPICE Software Development and Operations Work Area,
-   Data and Engineering Division (SCI-OP), Directorate of Science (D/SCI),
-   European Space Astronomy Centre (ESAC), European Space Agency (ESA),
-   Villanueva de la Canada, Spain.
+   This archive was produced by Alfredo Escalante, Ricardo Valles, and
+   Marc Costa Sitja, Archives and SPICE Software Development and Operations
+   Work Area, Data and Engineering Division (SCI-OP), Directorate of Science
+   (D/SCI), European Space Astronomy Centre (ESAC), European Space Agency
+   (ESA), Villanueva de la Canada, Spain.
 
 
 End of BepiColombo SPICE archive description.
