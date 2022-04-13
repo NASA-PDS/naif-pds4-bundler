@@ -152,6 +152,7 @@ parameter.::
             <!-- End of line format can either be 'CRLF' or 'LF', 'CRLF' is the
                  default value -->
             <end_of_line>CRLF</end_of_line>
+            <binary_endianness>LTL-IEEE</binary_endianness>
         </bundle_parameters>
 
         <!-- =========================== -->
@@ -629,10 +630,19 @@ summary of the parameters:
    * - end_of_line
      - The end of line character for products can either be ``CRLF`` or ``LF``.
        The default is ``CRLF`` (for ``<CR><LF>``). NAIF recommends to use
-       ``<CRLF>`` when using PDS IM version prior to 1.14.0.0, The choice of
+       ``<CRLF>`` when using PDS IM version prior to 1.14.0.0. The choice of
        this parameter affects the content of the SPICEDS file (section
        "File Formats".) More information is provided in
        :ref:`32_step_2_npb_setup:SPICE Data Set Catalog File`.
+     - No
+   * - binary_endianness
+     - Binary SPICE kernels (SPK, CK, DSK, PCK) can either be little endian
+       (``LTL-IEEE``, ``little``) or big endian (``BIG-IEEE``, ``big``). NAIF
+       requires little endian binary kernels for PDS4 archives and therefore it
+       is the default value of this element. The choice of this parameter
+       affects the content of the SPICEDS file (section "File Formats".) More
+       information is provided in
+       :ref:`31_step_1_preparing_data:Binary Kernels Endianness`.
      - No
 
 
