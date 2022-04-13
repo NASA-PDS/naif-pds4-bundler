@@ -9,6 +9,7 @@ import spiceypy
 import unittests.test_bundle_history as bundle_history
 import unittests.test_checksums as checksums
 import unittests.test_clear as clear
+import unittests.test_endianness as endianness
 import unittests.test_extract_comment as extract_comment
 import unittests.test_files as files
 import unittests.test_im_format as im_format
@@ -39,7 +40,7 @@ class TestUnitTests(TestCase):
         cls.faucet = "list"
         cls.verbose = False
         cls.log = True
-        cls.tmp_dir = tempfile.TemporaryDirectory()
+        cls.tmp_dir = tempfile.TemporaryDirectory(dir="/Users/mcosta")
 
         shutil.copytree(os.sep.join(cls.test_dir.split(os.sep)),
                         cls.tmp_dir.name + '/naif_pds4_bundler')
@@ -158,6 +159,30 @@ class TestUnitTests(TestCase):
 
     def test_im_templates(self):
         im_format.test_im_templates(self)
+
+    #
+    # Binary kernel endianness tests.
+    #
+    def test_pds4_big_endianness(self):
+        endianness.test_pds4_big_endianness(self)
+
+    def test_pds4_big_endianness_config(self):
+        endianness.test_pds4_big_endianness_config(self)
+
+    def test_pds4_ltl_endianness(self):
+        endianness.test_pds4_ltl_endianness(self)
+
+    def test_pds4_ltl_endianness_config(self):
+        endianness.test_pds4_ltl_endianness_config(self)
+
+    def test_pds3_ltl_endianness(self):
+        endianness.test_pds3_ltl_endianness(self)
+
+    def test_pds3_ltl_endianness_config(self):
+        endianness.test_pds3_ltl_endianness_config(self)
+
+    def test_pds3_big_endianness(self):
+        endianness.test_pds3_big_endianness(self)
 
     #
     # Kernel integrity tests.
