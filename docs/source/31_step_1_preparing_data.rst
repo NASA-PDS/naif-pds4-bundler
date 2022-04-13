@@ -682,6 +682,36 @@ archive release contains the complete set of files (in terms of scope
 and coverage) that are well documented with internal comments.
 
 
+Binary Kernels Endianness
+-------------------------
+
+As specified in :ref:`21_naif_approach:NAIF's Approach to SPICE Kernel Archive Preparation`,
+NAIF requires all binary kernels to be in ``LTL-IEEE`` (little-endian, also
+known as IEEE LSB) binary format. By default NPB will enforce binary kernels to
+be ``LTL-IEEE`` and the execution will stop in case any binary kernel is
+``BIG-IEEE`` (big-endian, also known as IEEE MSB). You can force
+NPB to accept ``BIG-IEEE`` binary kernels by specifying it via configuration
+as described in :ref:`42_npb_configuration_file:Bundle Parameters`.
+
+In order to determine the endianness of a binary kernel you can use
+NAIF's utility ``BFF``. ``BFF`` is a command line program that displays the
+binary file format ID for one or more binary kernel files. E.g.::
+
+      $ bff mer2_surf_rover.bsp
+      BIG-IEEE
+
+If a binary kernel has been generated with a ``BIG-IEEE`` machine you can use
+the NAIF utility ``BINGO`` to change its endianness. E.g.::
+
+      $ bingo mer2_surf_rover.bsp mer2_surf_rover.little.bsp
+      $ mv mer2_surf_rover.little.bsp mer2_surf_rover.bsp
+      $ bff mer2_surf_rover.bsp
+      LTL-IEEE
+
+The endianness of the binary kernels of the archive should be indicated in the
+**File Formats** section of the SPICEDS file.
+
+
 Preparing Meta-kernels
 ----------------------
 
