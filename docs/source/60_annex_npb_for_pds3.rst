@@ -43,6 +43,22 @@ logging. Please refer to section
 :ref:`43_using_npb:Using NPB`, for more information.
 
 
+Binary kernels endianness in PDS3 archives
+------------------------------------------
+
+NAIF requires all their PDS3 archives to have ``BIG-IEEE`` binary kernels. The
+same applies to "old" archives from other agencies (ESA, JAXA) such as
+Mars Express (``mex-e_m-spice-6-v1.0``), Venus Express (``vex-e_v-spice-6-v1.0``),
+Rosetta (``ros-e_m_a_c-spice-6-v1.0``), and Hayabusa (``hay-a-spice-6-v1.0``).
+
+The only intentional exception to this rule are DSKs in the DAWN archive
+(``dawn-m_a-spice-6-v1.0``) which are ``LTL-IEEE``.
+
+For "recent", PDS3 ESA archives (``vex-e_v-spice-6-v2.0``, ``mex-e_m-spice-6-v2.0``,
+and ``ro_rl-e_m_a_c-spice-6-v1.0``) and for JAXA's Venus Climate Orbiter Akatsuki
+(``co-v-spice-6-v1.0``) archive endianness is set to ``LTL-IEEE``.
+
+
 Known differences from archives generated with NAIF's PDS3 archiving approach
 =============================================================================
 
