@@ -5,6 +5,8 @@ Work List:
 
   Next:
 
+  -- Correct missing module documentation for tests.
+
   -- Include option to provide plan with kernel names to be mapped or to
      provide kernels from directory with original names.
 
