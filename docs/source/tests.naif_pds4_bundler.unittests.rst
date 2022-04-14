@@ -28,6 +28,14 @@ tests.naif\_pds4\_bundler.unittests.test\_clear module
    :undoc-members:
    :show-inheritance:
 
+tests.naif\_pds4\_bundler.unittests.test\_endianness module
+-----------------------------------------------------------
+
+.. automodule:: tests.naif_pds4_bundler.unittests.test_endianness
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 tests.naif\_pds4\_bundler.unittests.test\_extract\_comment module
 -----------------------------------------------------------------
 
