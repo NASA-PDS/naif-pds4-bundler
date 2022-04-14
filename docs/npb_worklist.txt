@@ -5,6 +5,19 @@ Work List:
 
   Next:
 
+  -- Advance kernel checks to kernel list generation including:
+
+        End of Line checks
+        Kernel architecture checks
+        bad character warning messages
+        any other checks done at PDS3 level
+
+     The documentation has to be updated accordingly.
+
+  -- Implement OREX functional tests -focusing on MKs and kernel mapping.
+
+  -- Implement BINGO dependency for LTL-IEEE machines for PDS3 data sets.
+
   -- Correct missing module documentation for tests.
 
   -- Include option to provide plan with kernel names to be mapped or to
@@ -22,8 +35,6 @@ Work List:
      To be implemented when PDS-EN registry copes with PDS3 data sets.
 
   -- Implement validate_pds3 to validate index files against data set content.
-
-  -- Implement OREX functional tests -focusing on MKs and kernel mapping.
 
   Possible:
 

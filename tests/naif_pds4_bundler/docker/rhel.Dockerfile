@@ -7,14 +7,14 @@ ENV USERN ${username}
 ENV PASSW ${password}
 
 RUN subscription-manager register --username ${USERN} --password ${PASSW} --auto-attach
+
+#
+# Install supporting libraries.
+#
 RUN yum -y update
 RUN yum install -y gcc
 RUN yum install -y libgfortran
 RUN yum install -y git
-
-#
-# Python 3.6 (pip3 install is enough)
-#
 RUN yum install openssl -y
 RUN yum install openssl-devel -y
 RUN yum install wget -y
@@ -22,6 +22,10 @@ RUN yum install zlib-devel -y
 RUN yum install make -y
 RUN yum install bzip2-devel -y
 RUN yum install libffi-devel -y
+
+#
+# Install Python
+#
 RUN wget https://www.python.org/ftp/python/3.9.6/Python-3.9.6.tgz
 RUN tar xzf Python-3.9.6.tgz
 WORKDIR Python-3.9.6
@@ -32,6 +36,9 @@ RUN make install
 WORKDIR /
 RUN ls
 
+#
+# Install Python dependencies.
+#
 RUN python3.9 -m pip install beautifulsoup4
 RUN python3.9 -m pip install nose
 RUN python3.9 -m pip install pytest
