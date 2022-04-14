@@ -47,14 +47,14 @@ COPY naif-pds4-bundler root/naif-pds4-bundler/
 WORKDIR /root
 
 #
-# Install ADCSng and ARCGEN
+# Install NPB
 #
 RUN ls
 WORKDIR /root/naif-pds4-bundler
 RUN python3.9 -m pip install -e .
 
 #
-# Run ADCSng regression tests
+# Run NPB regression tests
 #
 WORKDIR /root/naif-pds4-bundler/tests/naif_pds4_bundler
 RUN python3.9 -m unittest
