@@ -11,8 +11,10 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt update
 RUN apt install -y software-properties-common
 RUN apt install -y python3.8
+RUN apt install -y python3.8-dev
 RUN apt install -y python3-pip
 RUN apt install -y python3.8-venv
+
 
 #
 # Install Git, a virtual environment, and NPB.
@@ -22,6 +24,8 @@ WORKDIR /root
 RUN git clone https://github.com/NASA-PDS/naif-pds4-bundler.git
 WORKDIR /root/naif-pds4-bundler
 RUN python3.8 -m venv venv
+RUN ./venv/bin/python3.8 -m pip install -U setuptools
+RUN ./venv/bin/python3.8 -m pip install cython
 RUN ./venv/bin/python3.8 -m pip install -e .
 
 #
