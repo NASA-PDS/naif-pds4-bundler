@@ -645,18 +645,20 @@ class MiscellaneousCollection(Collection):
         else:
             self.type = "extras"
 
-        line = f"Step {setup.step} - Generation of {self.type} collection"
-        logging.info("")
-        logging.info(line)
-        logging.info("-" * len(line))
-        logging.info("")
-        setup.step += 1
-        if not setup.args.silent and not setup.args.verbose:
-            print("-- " + line.split(" - ")[-1] + ".")
-
         #
         # Included for ORBNUM files observers and targets.
         #
         self.list = list
 
         Collection.__init__(self, self.type, setup, bundle)
+
+    def report(self):
+        """Report the Collection generation step."""
+        line = f"Step {self.setup.step} - Generation of {self.type} collection"
+        logging.info("")
+        logging.info(line)
+        logging.info("-" * len(line))
+        logging.info("")
+        self.setup.step += 1
+        if not self.setup.args.silent and not self.setup.args.verbose:
+            print("-- " + line.split(" - ")[-1] + ".")

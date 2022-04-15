@@ -79,6 +79,7 @@
                   </xs:restriction>
                 </xs:simpleType>
               </xs:element>
+              <xs:element name="binary_endianness" type="xs:string" minOccurs="0"/>
             </xs:sequence>
             <xs:assert test="not(pds_version = 4) or author_list" />
             <xs:assert test="not(pds_version = 3) or volume_id" />

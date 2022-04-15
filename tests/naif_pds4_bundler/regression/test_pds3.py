@@ -66,7 +66,6 @@ def compare(self):
 def test_msl(self):
     """Test to generate a MSL data set increment."""
     self.mission = "msl"
-    self.config = f"../config/msl.xml"
     self.pds3_dir = "msl-m-spice-6-v1.0"
     self.volid = "mslsp_1000"
     self.release = "29"
@@ -77,6 +76,17 @@ def test_msl(self):
     os.mkdir("msl-m-spice-6-v1.0")
 
     plan = "working/msl_release_29.plan"
+
+    config = "../config/msl.xml"
+    updated_config = 'working/msl.xml'
+    with open(config, "r") as c:
+        with open(updated_config, "w") as n:
+            for line in c:
+                if "<spice_name>MSL</spice_name>" in line:
+                    n.write(line)
+                    n.write("<binary_endianness>LTL-IEEE</binary_endianness>\n")
+                else:
+                    n.write(line)
 
     shutil.copy2(f"../data/spiceds_{self.mission}.cat",
                  f"staging/{self.volid}/catalog/spiceds.cat"
@@ -95,5 +105,5 @@ def test_msl(self):
     shutil.copytree("../data/msl/mslsp_1000",
                     f"{self.pds3_dir}/{self.volid}")
 
-    main(self.config, plan, silent=True, log=self.log)
+    main(updated_config, plan, silent=True, log=self.log)
     compare(self)

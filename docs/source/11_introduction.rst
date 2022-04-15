@@ -82,7 +82,7 @@ software. The SPICE data contain geometric and other ancillary information
 needed to recover the full value of science instrument data. In particular
 SPICE kernels provide spacecraft and planetary ephemerides,
 spacecraft and instrument orientation, instrument mounting
-alignments, data specifiying target body size, shape and orientation,
+alignments, data specifying target body size, shape and orientation,
 and data needed for relevant time conversions. Data in
 SPICE kernel files must be accessed using the software called
 the SPICE Toolkit produced and distributed by the Navigation and

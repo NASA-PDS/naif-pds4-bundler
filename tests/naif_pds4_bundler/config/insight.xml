@@ -43,6 +43,7 @@
         </readme>
         <date_format>maklabel</date_format>
         <end_of_line>CRLF</end_of_line>
+        <binary_endianness>LTL-IEEE</binary_endianness>
     </bundle_parameters>
 
     <!-- =========================== -->

@@ -570,6 +570,8 @@ def main(
         #   including the corresponding Miscellaneous Collection Inventories
         #   and labels.
         #
+        miscellaneous_collection.report()
+
         if setup.increment:
             checksum_dir = (
                 setup.bundle_directory

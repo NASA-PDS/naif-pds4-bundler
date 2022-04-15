@@ -8,10 +8,10 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 from collections import defaultdict
 from collections import OrderedDict
 from datetime import date
-from typing import Union
 
 import numpy as np
 import spiceypy
@@ -232,7 +232,7 @@ class SpiceKernelProduct(Product):
                         if name == ker
                     ]
 
-                    origin_path: Union[bytes, str] = file[0]
+                    origin_path = file[0]
 
                     shutil.copy2(origin_path, product_path + os.sep + self.name)
                     self.new_product = True
@@ -256,6 +256,12 @@ class SpiceKernelProduct(Product):
                     except BaseException:
                         origin_path = ''
                         error_message(f"{self.name} not present in {path}.", setup=setup)
+
+                #
+                # Check binary kernel endianness.
+                #
+                if self.extension[0].lower() == "b":
+                    self.check_binary_endianness(self, origin_path)
 
                 self.check_kernel_integrity(self, origin_path)
 
@@ -600,6 +606,40 @@ class SpiceKernelProduct(Product):
                 f"is not the one expected: {type}.",
                 setup=object.setup,
             )
+
+    @spice_exception_handler
+    def check_binary_endianness(self, object, path):
+        """Check if the SPICE Kernel has the adequate architecture.
+
+        PDS4 Bundles require LTL-IEEE binary kernels and PDS3 data sets require
+        BIG-IEEE binary kernels. This behavior can be changed via configuration.
+
+        This method ensures that the endianness of binary kernels is the
+        appropriate one according to the configuration.
+        """
+        endianness = self.setup.kernel_endianness
+
+        try:
+            handle = spiceypy.dafopw(path)
+        except BaseException:
+            if sys.byteorder != endianness:
+                logging.warning(f"-- The binary kernel is {endianness} endian; this"
+                                f" endianness is not supported by your machine.")
+                logging.warning("   You can use NAIF's utility BINGO to convert the file.")
+            else:
+                error_message("The binary kernel is not readable by your machine.")
+        else:
+            if sys.byteorder != endianness:
+                error_message(f"The binary kernel is {sys.byteorder} endian; this"
+                              f" endianness is not the one specified via"
+                              f" configuration.")
+            else:
+                pass
+        finally:
+            try:
+                spiceypy.dafcls(handle)
+            except BaseException:
+                pass
 
 
 class MetaKernelProduct(Product):
