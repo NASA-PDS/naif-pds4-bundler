@@ -23,7 +23,10 @@ def post_setup(self):
         "kernels/mk",
     ]
     for dir in dirs:
-        shutil.rmtree(dir, ignore_errors=True)
+        try:
+            shutil.move(dir, f"{dir}_old")
+        except BaseException:
+            pass
         os.mkdir(dir)
 
 

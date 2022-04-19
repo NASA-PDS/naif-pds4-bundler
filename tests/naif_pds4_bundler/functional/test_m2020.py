@@ -108,7 +108,7 @@ def test_m2020_duplicated_kernel(self):
     Test is successful if NPB is executed without errors.
     """
     post_setup(self)
-    shutil.rmtree("kernels")
+    shutil.move("kernels", "kernels_old")
     shutil.copytree(
         "../data/regression/mars2020_spice/spice_kernels",
         "kernels",

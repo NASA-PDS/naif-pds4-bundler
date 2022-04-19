@@ -44,10 +44,10 @@ def test_mro_basic(self):
     )
 
     shutil.copytree("../data/kernels", "kernels")
-    shutil.rmtree("misc")
+    shutil.move("misc", "misc_old")
     shutil.copytree("../data/misc", "misc")
     shutil.copytree("../data/mro", "bundle")
-    shutil.rmtree("staging")
+    shutil.move("staging", "staging_old")
     shutil.copytree("../data/mro", "staging")
 
     shutil.copy2(

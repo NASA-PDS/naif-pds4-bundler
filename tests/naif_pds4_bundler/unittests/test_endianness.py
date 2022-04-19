@@ -142,7 +142,7 @@ def test_pds3_ltl_endianness(self):
         "../data/kernels/spk/mro_psp60.bsp",
         "kernels/spk/"
     )
-    shutil.rmtree("bundle")
+    shutil.move("bundle", "bundle_old")
     shutil.copytree("../data/mro", "bundle")
 
     try:
@@ -164,7 +164,7 @@ def test_pds3_ltl_endianness_config(self):
         "../data/kernels/spk/mro_psp60.bsp",
         "kernels/spk/"
     )
-    shutil.rmtree("bundle")
+    shutil.move("bundle", "bundle_old")
     shutil.copytree("../data/mro", "bundle")
 
     config = "../config/mro.xml"
@@ -194,7 +194,7 @@ def test_pds3_big_endianness(self):
         "../data/kernels/spk/mro_psp60.big.bsp",
         "kernels/spk/mro_psp60.bsp"
     )
-    shutil.rmtree("bundle")
+    shutil.move("bundle", "bundle_old")
     shutil.copytree("../data/mro", "bundle")
 
     try:

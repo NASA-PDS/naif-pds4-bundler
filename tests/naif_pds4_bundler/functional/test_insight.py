@@ -22,7 +22,6 @@ def test_insight_basic(self):
         "working/insight_release_07.kernel_list",
     )
     shutil.copytree("../data/insight", "insight")
-    shutil.rmtree("kernels", ignore_errors=True)
     shutil.copytree("../data/kernels", "kernels")
 
     with open("../data/insight.list", "r") as i:
@@ -171,7 +170,7 @@ def test_insight_files_in_staging(self):
     for file in glob.glob("../data/insight_release_0[0-7].kernel_list"):
         shutil.copy2(file, "working")
 
-    shutil.rmtree("staging")
+    shutil.move("staging", "staging_old")
     shutil.copytree("../data/insight", "staging")
     os.makedirs("insight", exist_ok=True)
 
