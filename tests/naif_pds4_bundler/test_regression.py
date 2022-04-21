@@ -18,7 +18,7 @@ class TestRegression(TestCase):
         Method that will be executed once for this test case class.
         It will execute before all tests methods.
         """
-        print(f"NPB - Functional Tests - {cls.__name__}")
+        print(f"NPB - Regression Tests - {cls.__name__}")
 
         cls.test_dir = os.path.dirname(__file__)
         cls.silent = True
@@ -31,7 +31,9 @@ class TestRegression(TestCase):
         shutil.copytree(os.sep.join(cls.test_dir.split(os.sep)[:-2]) +
                         "/src/pds/naif_pds4_bundler/templates/1.5.0.0",
                         cls.tmp_dir.name + '/naif_pds4_bundler/templates/1.5.0.0')
-        os.chdir(cls.tmp_dir.name + "/naif_pds4_bundler/functional/")
+        tests_dir = cls.tmp_dir.name + "/naif_pds4_bundler/regression/"
+        print(f"       Tests data on: {cls.tmp_dir.name}")
+        os.chdir(tests_dir)
 
     @classmethod
     def tearDownClass(cls):
@@ -65,10 +67,11 @@ class TestRegression(TestCase):
         This method will be executed after each test function.
         """
         unittest.TestCase.tearDown(self)
+        test_dir = self.tmp_dir.name + "/naif_pds4_bundler/regression/"
         dirs = next(os.walk('.'))[1]
         for dir in dirs:
             try:
-                shutil.rmtree(dir, ignore_errors=True)
+                shutil.rmtree(test_dir + dir)
             except BaseException:
                 pass
 

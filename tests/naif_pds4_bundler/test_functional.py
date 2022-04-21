@@ -36,7 +36,10 @@ class TestFunctional(TestCase):
         shutil.copytree(os.sep.join(cls.test_dir.split(os.sep)[:-2]) +
                         "/src/pds/naif_pds4_bundler/templates/1.5.0.0",
                         cls.tmp_dir.name + '/naif_pds4_bundler/templates/1.5.0.0')
-        os.chdir(cls.tmp_dir.name + "/naif_pds4_bundler/functional/")
+
+        tests_dir = cls.tmp_dir.name + "/naif_pds4_bundler/functional/"
+        print(f"      Tests data on: {cls.tmp_dir.name}")
+        os.chdir(tests_dir)
 
     @classmethod
     def tearDownClass(cls):
@@ -71,10 +74,11 @@ class TestFunctional(TestCase):
         This method will be executed after each test function.
         """
         unittest.TestCase.tearDown(self)
-        dirs = next(os.walk('.'))[1]
+        test_dir = self.tmp_dir.name + "/naif_pds4_bundler/functional/"
+        dirs = next(os.walk(test_dir))[1]
         for dir in dirs:
             try:
-                shutil.rmtree(dir, ignore_errors=True)
+                shutil.rmtree(test_dir + dir)
             except BaseException:
                 pass
 

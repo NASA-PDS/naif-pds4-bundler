@@ -60,7 +60,7 @@ def test_checksum_from_labels(self):
 
     dirs = ["working", "mars2020"]
     for dir in dirs:
-        shutil.rmtree(dir, ignore_errors=True)
+        shutil.move(dir, f"{dir}_old")
     try:
         os.mkdir("working")
         os.mkdir("mars2020")

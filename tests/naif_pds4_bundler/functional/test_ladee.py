@@ -16,10 +16,7 @@ def tearDown(self):
 
     dirs = ["working", "staging", "ladee", "kernels"]
     for dir in dirs:
-        shutil.rmtree(dir, ignore_errors=True)
-
-    if os.path.exists("staging"):
-        os.remove("staging")
+        shutil.move(dir, f"{dir}_old")
 
 
 def test_ladee_update_input_mk_name(self):

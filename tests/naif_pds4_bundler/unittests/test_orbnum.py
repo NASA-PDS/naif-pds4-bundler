@@ -8,7 +8,7 @@ from pds.naif_pds4_bundler.utils.files import string_in_file
 
 def post_setup(self):
     """Post Setup Test."""
-    shutil.rmtree("kernels")
+    shutil.move("kernels", "kernels_old")
     shutil.copytree("../data/kernels", "kernels")
     shutil.copytree("../data/misc", "misc")
 

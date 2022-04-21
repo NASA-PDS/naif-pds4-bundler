@@ -59,7 +59,7 @@ def compare(self):
                 self.assertTrue(False)
     dirs = ["working", "staging", "kernels", mis]
     for dir in dirs:
-        shutil.rmtree(dir, ignore_errors=True)
+        shutil.move(dir, f"{dir}_old")
         pass
 
 

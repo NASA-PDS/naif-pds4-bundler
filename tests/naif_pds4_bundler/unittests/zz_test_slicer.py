@@ -32,7 +32,7 @@ class ZzTestSlicer(TestCase):
 
         os.chdir(os.path.dirname(__file__))
 
-        shutil.rmtree("kernels_sliced", ignore_errors=True)
+        shutil.move("kernels_sliced", ignore_errors=True)
 
     def setUp(self):
         """Setup Test.

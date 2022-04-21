@@ -45,11 +45,6 @@ def compare(self):
             if fromlines != tolines:
                 print(f"Assertion False for: {product}")
                 self.assertTrue(False)
-    dirs = ["working", "staging", "kernels", mis]
-    for dir in dirs:
-        shutil.rmtree(dir, ignore_errors=True)
-
-        pass
 
 
 def post_setup(self):
@@ -94,8 +89,8 @@ def test_insight(self):
         "../data/insight_release_basic.kernel_list",
         "working/insight_release_07.kernel_list",
     )
-    shutil.copytree("../data/insight", "insight")
-    shutil.copytree("../data/kernels", "kernels")
+    shutil.copytree("../data/insight", "insight", dirs_exist_ok=True)
+    shutil.copytree("../data/kernels", "kernels", dirs_exist_ok=True)
 
     #
     # Remove the MK used for other tests. MK will be generated
@@ -119,6 +114,7 @@ def test_ladee(self):
         "../data/regression/ladee_spice/spice_kernels",
         "kernels",
         ignore=shutil.ignore_patterns("*.xml", "*.csv"),
+        dirs_exist_ok=True
     )
 
     main(self.updated_config, silent=self.silent, log=self.log)
@@ -135,6 +131,7 @@ def test_kplo(self):
         "../data/regression/kplo_spice/spice_kernels",
         "kernels",
         ignore=shutil.ignore_patterns("*.xml", "*.csv"),
+        dirs_exist_ok=True
     )
 
     main(self.updated_config, silent=self.silent, log=self.log)
@@ -157,6 +154,7 @@ def test_m2020(self):
         "../data/regression/mars2020_spice/spice_kernels",
         "kernels",
         ignore=shutil.ignore_patterns("*.xml", "*.csv"),
+        dirs_exist_ok=True
     )
 
     plan = '../data/mars2020_release_01.plan'

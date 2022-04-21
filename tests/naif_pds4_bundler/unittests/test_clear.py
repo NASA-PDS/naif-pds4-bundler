@@ -18,9 +18,9 @@ def test_insight_basic(self):
         "../data/insight_release_basic.kernel_list",
         "working/insight_release_07.kernel_list",
     )
-    shutil.rmtree("insight", ignore_errors=True)
+    shutil.move("insight", "insight_old")
     shutil.copytree("../data/insight", "insight")
-    shutil.rmtree("kernels", ignore_errors=True)
+    shutil.move("kernels", "kernels_old")
     shutil.copytree("../data/kernels", "kernels")
 
     with open("../data/insight.list", "r") as i:
@@ -72,9 +72,9 @@ def test_insight_error(self):
 
     plan = "../data/insight_release_08.plan"
 
-    shutil.rmtree("insight")
+    shutil.move("insight", "insight_old")
     shutil.copytree("../data/insight", "insight")
-    shutil.rmtree("kernels")
+    shutil.move("kernels", "kernels_old")
     shutil.copytree("../data/kernels", "kernels")
 
     #
@@ -109,7 +109,7 @@ def test_clear_label_mode(self):
 
     Test is successful if NPB is executed without errors.
     """
-    shutil.rmtree("kernels")
+    shutil.move("kernels", "kernels_old")
     shutil.copytree(
         "../data/regression/ladee_spice/spice_kernels",
         "kernels",
