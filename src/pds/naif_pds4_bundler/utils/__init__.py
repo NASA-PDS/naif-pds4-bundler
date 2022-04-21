@@ -28,6 +28,9 @@ from .files import string_in_file
 from .files import type_to_extension
 from .files import type_to_pds3_type
 from .files import utf8len
+from .files import product_mapping
+from .files import check_kernel_integrity
+from .files import check_binary_endianness
 from .time import ck_coverage
 from .time import creation_time
 from .time import current_date
@@ -75,5 +78,8 @@ __all__ = [
     string_in_file,
     et_to_date,
     replace_string_in_file,
-    format_multiple_values
+    format_multiple_values,
+    product_mapping,
+    check_kernel_integrity,
+    check_binary_endianness
 ]

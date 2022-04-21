@@ -14,6 +14,9 @@ from ..utils import extension_to_type
 from ..utils import extract_comment
 from ..utils import fill_template
 from ..utils import spice_exception_handler
+from ..utils import product_mapping
+from ..utils import check_kernel_integrity
+from ..utils import check_binary_endianness
 from .log import error_message
 
 
@@ -1005,3 +1008,114 @@ class KernelList(List):
                         error_message(f"{option} not in template.")
 
                 logging.info("")
+
+    def check_products(self):
+        """Check the SPICE kernel and ORBNUM products.
+
+        The checks performed to the products are the following:
+
+         * Identify if a product is present in multiple directories
+         * End of Line character
+         * Bad character warning messages
+         * Kernel architecture
+         * Endianness of binary kernels
+        """
+        logging.info("-- Checking kernel list products:")
+        #
+        # A products errors list and a warnings list will be created these
+        # will be stored in a product dictionary. The error list will stop
+        # the execution while the warnings list will only display warning
+        # messages in the log.
+        #
+        product_errors = {}
+        product_warnings = {}
+
+        for product in self.kernel_list:
+
+            product_errors[product] = list()
+            product_warnings[product] = list()
+
+            #
+            # Check if a product is present in multiple directories
+            #
+            # The origin_paths is a list that contains all the locations of
+            # the product. In the case of an ORBNUM file it can only be one.
+            #
+            origin_paths = []
+
+            #
+            # Identify the path(s) of each product.
+            #
+            if (".nrb" in product.lower()) or (".orb" in product.lower()):
+                pass
+            else:
+                for directory in self.setup.kernels_directory:
+                    try:
+                        file = [
+                            os.path.join(root, ker)
+                            for root, dirs, files in os.walk(directory)
+                            for ker in files
+                            if product == ker
+                        ]
+                        origin_paths.append(file[0])
+                    except BaseException:
+                        try:
+                            file = [
+                                os.path.join(root, ker)
+                                for root, dirs, files in os.walk(directory)
+                                for ker in files
+                                if product_mapping(product, self.setup) == ker
+                            ]
+                            origin_paths.append(file[0])
+                        except BaseException:
+                           pass
+
+            if not origin_paths:
+                product_errors[product].append("Product not present in any kernel directory(ies)")
+                continue
+            else:
+                if len(origin_paths) > 1:
+                    product_warnings[product].append("Product present in multiple directories:")
+                    for path in origin_paths:
+                        product_warnings[product].append(f"  {path}")
+                    product_warnings[product].append("The product in the first directory will be used.")
+            #
+            # From here on the product present in the first directory from
+            # configuration will be checked.
+            #
+            origin_path = origin_paths[0]
+
+            #
+            # Check Kernel architecture.
+            #
+            if not (".nrb" in product.lower()) and not (".orb" in product.lower()):
+                error_message = check_kernel_integrity(origin_path)
+                if error_message:
+                    product_errors[product].append(error_message)
+
+            #
+            # Check binary kernel endianness.
+            #
+            if product.split(".")[-1].strip().lower() == "b":
+                endianness = self.setup.kernel_endianness
+                error_message = check_binary_endianness(origin_path, endianness)
+                if error_message:
+                    product_errors[product].append(error_message)
+
+        #
+        # With all checks performed now they need to be reported.
+        #
+        error_flag = False
+        for product in self.kernel_list:
+            if product_errors[product] or product_warnings[product]:
+                logging.warning(f"   {product}")
+                if product_warnings[product]:
+                    for line in product_warnings[product]:
+                        logging.warning(f"     {line}")
+                if product_errors[product]:
+                    error_flag = True
+                    for line in product_errors[product]:
+                        logging.error(f"     {line}")
+
+        if error_flag:
+            error_message("Products listed above require work")
