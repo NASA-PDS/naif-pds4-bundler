@@ -46,7 +46,7 @@
         </readme>
         <!-- Optional Parameters -->
         <date_format>infomod2</date_format>
-        <end_of_line>LF</end_of_line>
+        <end_of_line>CRLF</end_of_line>
     </bundle_parameters>
 
     <!-- =========================== -->
@@ -55,7 +55,7 @@
     <mission_parameters>
         <mission_acronym>bc</mission_acronym>
         <mission_name>BepiColombo</mission_name>
-        <mission_start>2018-10-20T01:45:28.000Z</mission_start>
+        <mission_start>2018-10-20T00:21:51.380Z</mission_start>
         <mission_finish>2050-01-01T00:00:00.000Z</mission_finish>
         <observer>MPO</observer>
         <target>Mercury</target>
@@ -63,6 +63,7 @@
             <lsk>naif[0-9][0-9][0-9][0-9].tls</lsk>
             <sclk>bc_mpo_step_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].tsc</sclk>
             <sclk>bc_mpo_fict_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].tsc</sclk>
+            <sclk>bc_mmo_fict_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].tsc</sclk>
             <fk>bc_mpo_v[0-9][0-9].tf</fk>
             <fk>bc_mtm_v[0-9][0-9].tf</fk>
         </kernels_to_load>
@@ -112,6 +113,9 @@
             </description>
         </kernel>
         <kernel pattern="earth_000101_[0-9]{6}_[0-9]{6}.bpc">
+            <targets>
+                <target>Earth</target>
+            </targets>
             <description>SPICE binary PCK file containing the orientation of the Earth as a function of time for the
                 given interval with reconstructed and predicted data, created by NAIF, JPL.
             </description>
@@ -133,16 +137,14 @@
             <observers>
                 <observer>MPO</observer>
             </observers>
-            <description>SPICE FK file that provides MPO spacecraft, structures, instruments and sensors frames.
-                Created by the ESA SPICE Service (ESS).
+            <description>SPICE FK file that provides MPO spacecraft, structures, instruments and sensors frames, created by the ESA SPICE Service (ESS).
             </description>
         </kernel>
         <kernel pattern="bc_mtm_v[0-9][0-9].tf">
             <observers>
                 <observer>MTM</observer>
             </observers>
-            <description>SPICE FK file that provides MTM spacecraft, structures, instruments and sensors frames,
-                created by the ESA SPICE Service (ESS).
+            <description>SPICE FK file that provides MTM spacecraft, structures, instruments and sensors frames, created by the ESA SPICE Service (ESS).
             </description>
         </kernel>
         <kernel pattern="bc_ops_v[0-9][0-9].tf">
@@ -150,10 +152,17 @@
             </description>
         </kernel>
         <kernel pattern="bc_sci_v[0-9][0-9].tf">
+            <observers>
+                <observer>MPO</observer>
+                <observer>MMO</observer>
+            </observers>
             <description>SPICE FK file that provides BepiColombo science frames, created by the ESA SPICE Service (ESS).
             </description>
         </kernel>
         <kernel pattern="earth_topo_[0-9]{6}.tf">
+            <targets>
+                <target>Earth</target>
+            </targets>
             <description>SPICE FK kernel for the topocentric reference frames for the Deep Space Network (DSN) stations.
                 This kernel was released on $DATE, created by NAIF, JPL.
             </description>
@@ -162,11 +171,17 @@
             </patterns>
         </kernel>
         <kernel pattern="earthfixeditrf93.tf">
+            <targets>
+                <target>Earth</target>
+            </targets>
             <description>SPICE FK file that makes the ITRF93 frame coincide with the Earth fixed reference frame,
                 created by NAIF, JPL.
             </description>
         </kernel>
         <kernel pattern="estrack_v[0-9][0-9].tf">
+            <targets>
+                <target>Earth</target>
+            </targets>
             <description>SPICE FK file that provides topocentric frames for the ESA Ground Stations,
                 created by the ESA SPICE Service (ESS).
             </description>
@@ -230,7 +245,7 @@
             <observers>
                 <observer>MMO</observer>
             </observers>
-            <description>SPICE IK file providing optics, detector, and field-of-view (FOV) parameters for the MMO Mercury Sodium Atmosphere Spectral Image (MSASI), created by the ESA SPICE Service (ESS) and by JAXA.
+            <description>SPICE IK file providing optics, detector, and field-of-view (FOV) parameters for the MMO Mercury Sodium Atmosphere Spectral Imager (MSASI), created by the ESA SPICE Service (ESS) and by JAXA.
             </description>
         </kernel>
         <kernel pattern="bc_mpo_str_v[0-9][0-9].ti">
@@ -275,8 +290,22 @@
             <description>SPICE SCLK file containing time correlation data for the MPO on-board clock, created by the ESA SPICE Service (ESS).
             </description>
         </kernel>
+        <kernel pattern="bc_mpo_fict_[0-9]{8}.tsc">
+            <observers>
+                <observer>MPO</observer>
+            </observers>
+            <description>SPICE SCLK file assuming an absolutely constant clock rate for MPO. This file is used for working with planning data, created by the ESA SPICE Service (ESS).
+            </description>
+        </kernel>
+        <kernel pattern="bc_mmo_fict_[0-9]{8}.tsc">
+            <observers>
+                <observer>MMO</observer>
+            </observers>
+            <description>SPICE SCLK file assuming an absolutely constant clock rate for MMO. This file is used for working with planning data, created by the ESA SPICE Service (ESS).
+            </description>
+        </kernel>
         <kernel pattern="bc_sci_v[0-9][0-9].bsp">
-            <description>SPICE SPK file that contains position information for the BepicColombo science frames origins
+            <description>SPICE SPK file that contains position information for the BepiColombo science frames origins
                 as defined in the science frames FK bc_sci_v$VERSION.tf, created by the ESA SPICE Service (ESS).
             </description>
             <patterns>
@@ -291,12 +320,11 @@
                 <VERSION pattern="KERNEL">estrack_v$VERSION.bsp</VERSION>
             </patterns>
         </kernel>
-        <kernel pattern="bc_mpo_fcp_00109_20181020_20251102_v[0-9][0-9].bsp">
+        <kernel pattern="bc_mpo_fcp_[0-9]{5}_[0-9]{8}_[0-9]{8}_v[0-9][0-9].bsp">
             <observers>
                 <observer>MPO</observer>
             </observers>
-            <description>SPICE SPK file that contains MPO spacecraft operational Sun centric ephemeris for the Cruise,
-                phase. This file contains both reconstructed and predicted data, created by the ESA SPICE Service (ESS).
+            <description>SPICE SPK file that contains MPO spacecraft Sun-centric reconstructed and predicted ephemeris for the Cruise phase, created by the ESA SPICE Service (ESS).
             </description>
         </kernel>
         <kernel pattern="bc_mtm_struct_v[0-9][0-9].bsp">
@@ -310,7 +338,7 @@
             <observers>
                 <observer>MMO</observer>
             </observers>
-            <description>SPICE SPK file that contains Mercury Magnetosphetic Spacecraft (MMO) relative position with respect to MPO in order to bind MMO to the MPO trajectory, created by the ESA SPICE Service (ESS).
+            <description>SPICE SPK file that contains MMO relative position with respect to MPO in order to bind MMO to the MPO trajectory, created by the ESA SPICE Service (ESS).
             </description>
         </kernel>
         <kernel pattern="bc_mpo_schulte_v[0-9][0-9].bsp">
@@ -321,7 +349,19 @@
             </description>
         </kernel>
         <kernel pattern="earthstns_itrf93_050714.bsp">
+            <targets>
+                <target>Earth</target>
+            </targets>
             <description>SPICE SPK file that contains ephemeris data for NASA DSN stations relative to the terrestrial reference frame label 'ITRF93'. This file was released the 14th of July 2005, created by NAIF, JPL.
+            </description>
+        </kernel>
+        <kernel pattern="bc_mpo_cog_v[0-9][0-9].bsp">
+            <observers>
+                <observer>MPO</observer>
+            </observers>
+            <description>SPICE SPK file that contains MPO spacecraft center-of-gravity (CoG) history.
+                It is important to note that the MPO trajectory SPK files provide ephemeris information for MPO (-121) and
+                refer to the CoG. This file provides provides the position of MPO_SPACECRAFT (-121000), created by the ESA SPICE Service (ESS).
             </description>
         </kernel>
         <kernel pattern="bc_mpo_cog_[0-9]{5}_[0-9]{8}_[0-9]{8}_v[0-9][0-9].bsp">
@@ -347,6 +387,13 @@
             <description>SPICE SPK file that contains MPO spacecraft structures positions involved in the Schulte Vector computations, created by the ESA SPICE Service (ESS).
             </description>
         </kernel>
+        <kernel pattern="bc_mpo_prelaunch_v[0-9][0-9].bsp">
+            <observers>
+                <observer>MPO</observer>
+            </observers>
+            <description>SPICE SPK file that contains MPO trajectory for before the launch in order to have coverage before launch, created by the ESA SPICE Service (ESS).
+            </description>
+        </kernel>
         <kernel pattern="bc_mmo_struct_v[0-9][0-9].bsp">
             <observers>
                 <observer>MMO</observer>
@@ -358,7 +405,7 @@
             <observers>
                 <observer>MTM</observer>
             </observers>
-            <description>SPICE SPK file that contains Mercury Transfer Module (MTM) relative position with respect to MPO in order to bind MTM to the MPO trajectory, created by the ESA SPICE Service (ESS).
+            <description>SPICE SPK file that contains MTM relative position with respect to MPO in order to bind MTM to the MPO trajectory, created by the ESA SPICE Service (ESS).
             </description>
         </kernel>
         <kernel pattern="de432s.bsp">
@@ -457,18 +504,25 @@
             <description>SPICE CK file that contains MTM Solar Electric Propulsion (SEP) frame providing information of engine's turn-on/off times, created by the ESA SPICE Service (ESS).
             </description>
         </kernel>
-        <kernel pattern="bc_mpo_magboom_default_v[0-9][0-9].bc">
+        <kernel pattern="bc_mpo_magboom_v[0-9][0-9].bc">
             <observers>
                 <observer>MPO</observer>
             </observers>
             <description>SPICE CK file that contains the default orientation of the MAG Boom, created by the ESA SPICE Service (ESS).
             </description>
         </kernel>
-        <kernel pattern="bc_mpo_sc_fsp_[0-9]{5}_[0-9]{8}_[0-9]{8}_s[0-9]{8}_v[0-9][0-9].bc">
+        <kernel pattern="bc_mpo_sc_fsp_[0-9]{5}_[0-9]{8}_[0-9]{8}_f[0-9]{8}_v[0-9][0-9].bc">
             <observers>
                 <observer>MPO</observer>
             </observers>
             <description>SPICE CK file that contains MPO predicted attitude for short term planning and as commanded to the S/C in the operations loop. The source data is originated by Flight Dynamics, created by the ESA SPICE Service (ESS).
+            </description>
+        </kernel>
+        <kernel pattern="bc_mpo_sc_prelaunch_v[0-9][0-9].bc">
+            <observers>
+                <observer>MPO</observer>
+            </observers>
+            <description>SPICE CK file that contains pre-launch MPO attitude, created by the ESA SPICE Service (ESS).
             </description>
         </kernel>
         <kernel pattern="bc_mtm_sc_bus_v[0-9][0-9].bds">
