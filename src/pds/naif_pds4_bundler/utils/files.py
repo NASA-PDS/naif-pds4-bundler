@@ -5,10 +5,10 @@ import glob
 import hashlib
 import json
 import logging
-import sys
 import os
 import re
 import shutil
+import sys
 from collections import defaultdict
 
 import spiceypy
@@ -911,7 +911,6 @@ def format_multiple_values(value):
 
 def product_mapping(name, setup):
     """Obtain the kernel mapping.
-
 
     :return: Kernel Mapping
     :rtype: str

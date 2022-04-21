@@ -8,7 +8,6 @@ import os
 import re
 import shutil
 import subprocess
-import sys
 from collections import defaultdict
 from collections import OrderedDict
 from datetime import date
@@ -32,6 +31,7 @@ from ..utils import match_patterns
 from ..utils import md5
 from ..utils import mk_to_list
 from ..utils import pck_coverage
+from ..utils import product_mapping
 from ..utils import replace_string_in_file
 from ..utils import safe_make_directory
 from ..utils import spice_exception_handler
@@ -39,7 +39,6 @@ from ..utils import spk_coverage
 from ..utils import string_in_file
 from ..utils import type_to_extension
 from ..utils import utf8len
-from ..utils import product_mapping
 from .label import BundlePDS4Label
 from .label import ChecksumPDS3Label
 from .label import ChecksumPDS4Label

@@ -7,16 +7,16 @@ import os
 import re
 import shutil
 
+from ..utils import check_binary_endianness
 from ..utils import check_consecutive
+from ..utils import check_kernel_integrity
 from ..utils import check_list_duplicates
 from ..utils import compare_files
 from ..utils import extension_to_type
 from ..utils import extract_comment
 from ..utils import fill_template
-from ..utils import spice_exception_handler
 from ..utils import product_mapping
-from ..utils import check_kernel_integrity
-from ..utils import check_binary_endianness
+from ..utils import spice_exception_handler
 from .log import error_message
 
 
@@ -1068,7 +1068,7 @@ class KernelList(List):
                             ]
                             origin_paths.append(file[0])
                         except BaseException:
-                           pass
+                            pass
 
             if not origin_paths:
                 product_errors[product].append("Product not present in any kernel directory(ies)")
