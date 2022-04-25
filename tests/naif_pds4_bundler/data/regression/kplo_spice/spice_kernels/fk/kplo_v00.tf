@@ -16,7 +16,7 @@ Version and Date
       Corrected KPLO_SHADOWCAM Name in description --> KPLO_SHC
 
       Added SHC_A frame definition for SHC requested by ASU:
-      e-mail dated Sep. 15 2020, (Two separate IDs for ShadowCam –
+      e-mail dated Sep. 15 2020, (Two separate IDs for ShadowCam -
       We would like two separate frame IDs. One fixed frame ID
       will be used to remove the ~45 rotation and the second
       (CK derived) will be used to adjust the orientation

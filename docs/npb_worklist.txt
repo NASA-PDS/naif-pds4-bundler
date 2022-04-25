@@ -5,14 +5,7 @@ Work List:
 
   Next:
 
-  -- Advance kernel checks to kernel list generation including:
-
-        End of Line checks
-        Kernel architecture checks
-        bad character warning messages
-        any other checks done at PDS3 level
-
-     The documentation has to be updated accordingly.
+  -- Remove MK input from configuration file.
 
   -- Implement OREX functional tests -focusing on MKs and kernel mapping.
 
@@ -44,6 +37,16 @@ Work List:
 
 Changelog:
 
+v1.0.3
+
+  -- Advance kernel checks to kernel list generation including:
+
+        End of Line checks
+        Kernel architecture checks
+        bad character warning messages
+        any other checks done at PDS3 level
+
+     The documentation has to be updated accordingly.
 
 v0.19.0
 
