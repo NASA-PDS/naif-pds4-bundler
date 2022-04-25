@@ -909,7 +909,7 @@ def format_multiple_values(value):
     return value
 
 
-def product_mapping(name, setup):
+def product_mapping(name, setup, cleanup=True):
     """Obtain the kernel mapping.
 
     :return: Kernel Mapping
@@ -933,6 +933,8 @@ def product_mapping(name, setup):
                 mapping = line.split("=")[-1].strip()
                 get_map = False
 
+    if not cleanup:
+        setup = False
     if not mapping:
         error_message(
             f"{name} does not have mapping on {kernel_list_file}.",
@@ -1057,5 +1059,60 @@ def check_binary_endianness(path, endianness):
             spiceypy.dafcls(handle)
         except BaseException:
             pass
+
+    return error
+
+
+def check_badchar(file):
+    """Check NON-ASCII characters for a file.
+
+    :param file: Path to file to check
+    :return: Resulting error messages
+    :rtype: list
+    """
+    error = []
+    line_num = 1
+    with open(file, 'r') as f:
+        for line in f:
+            if not line.isascii():
+                char_count = 0
+                badchars = []
+                for char in line:
+                    if not char.isascii():
+                        badchars.append(char_count)
+                    char_count += 1
+
+                error.append(f"NON-ASCII character(s) in line {line_num}:")
+                error.append(f"{line.rstrip()}")
+                badchar_line = " "*len(line.rstrip())
+                for badchar in badchars:
+                    badchar_line = badchar_line[:badchar] + "^" + badchar_line[badchar + 1:]
+                error.append(badchar_line)
+            line_num += 1
+
+    return error
+
+
+def check_eol(file, eol):
+    """Check file EOL.
+
+    :param file: Path to file to check
+    :param eol: Expected End of Line
+    :return: Resulting error messages
+    :rtype: str
+    """
+    error = ''
+
+    with open(file, 'rb') as open_file:
+        content = open_file.read()
+
+    if eol == '\n':
+        if b'\r\n' in content:
+            error = "Incorrect EOL in file, LF (\\n) expected."
+    elif eol == '\r\n':
+        if content.count(b'\r\n') != content.count(b'\n'):
+            error = "Incorrect EOL in file, CRLF (\\r\\n) expected."
+    else:
+        error_message(f"Incorrect EOL in configuration: {eol}")
 
     return error
