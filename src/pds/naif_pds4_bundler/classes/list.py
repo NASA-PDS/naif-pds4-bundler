@@ -7,8 +7,10 @@ import os
 import re
 import shutil
 
+from ..utils import check_badchar
 from ..utils import check_binary_endianness
 from ..utils import check_consecutive
+from ..utils import check_eol
 from ..utils import check_kernel_integrity
 from ..utils import check_list_duplicates
 from ..utils import compare_files
@@ -1015,8 +1017,8 @@ class KernelList(List):
         The checks performed to the products are the following:
 
          * Identify if a product is present in multiple directories
-         * End of Line character
-         * Bad character warning messages
+         * Check End of Line character
+         * Check files for non-printing and non-ASCII characters.
          * Kernel architecture
          * Endianness of binary kernels
         """
@@ -1030,7 +1032,9 @@ class KernelList(List):
         product_errors = {}
         product_warnings = {}
 
-        for product in self.kernel_list:
+        product_list = self.kernel_list
+
+        for product in product_list:
 
             product_errors[product] = list()
             product_warnings[product] = list()
@@ -1047,7 +1051,7 @@ class KernelList(List):
             # Identify the path(s) of each product.
             #
             if (".nrb" in product.lower()) or (".orb" in product.lower()):
-                pass
+                origin_paths.append(self.setup.orbnum_directory + os.sep + product)
             else:
                 for directory in self.setup.kernels_directory:
                     try:
@@ -1064,21 +1068,24 @@ class KernelList(List):
                                 os.path.join(root, ker)
                                 for root, dirs, files in os.walk(directory)
                                 for ker in files
-                                if product_mapping(product, self.setup) == ker
+                                if product_mapping(product, self.setup, cleanup=False) == ker
                             ]
                             origin_paths.append(file[0])
                         except BaseException:
                             pass
 
-            if not origin_paths:
+            if not origin_paths and ".tm" not in product.lower():
                 product_errors[product].append("Product not present in any kernel directory(ies)")
                 continue
-            else:
-                if len(origin_paths) > 1:
-                    product_warnings[product].append("Product present in multiple directories:")
-                    for path in origin_paths:
-                        product_warnings[product].append(f"  {path}")
-                    product_warnings[product].append("The product in the first directory will be used.")
+            elif not origin_paths and ".tm" in product.lower():
+                product_warnings[product].append("Meta-kernel will be generated during this run.")
+                continue
+            elif len(origin_paths) > 1:
+                product_warnings[product].append("Product present in multiple directories:")
+                for path in origin_paths:
+                    product_warnings[product].append(f"  {path}")
+                product_warnings[product].append("The product in the first directory will be used.")
+
             #
             # From here on the product present in the first directory from
             # configuration will be checked.
@@ -1086,29 +1093,51 @@ class KernelList(List):
             origin_path = origin_paths[0]
 
             #
+            # Check bad characters and EOL for text kernels and ORBNUM files.
+            #
+            if product.split(".")[-1].strip()[0].lower() != "b":
+                if (".nrb" not in product.lower()) and (".orb" not in product.lower()):
+                    eol = '\n'
+                elif ((".nrb" in product.lower()) or (".orb" not in product.lower())) \
+                        and self.setup.pds_version == '3':
+                    eol = '\n'
+                else:
+                    eol = self.setup.eol
+
+                error = check_eol(origin_path, eol)
+                if error:
+                    product_errors[product].append(error)
+
+                error = check_badchar(origin_path)
+                if error:
+                    product_errors[product] += error
+
+            #
             # Check Kernel architecture.
             #
             if not (".nrb" in product.lower()) and not (".orb" in product.lower()):
-                error_message = check_kernel_integrity(origin_path)
-                if error_message:
-                    product_errors[product].append(error_message)
+                error = check_kernel_integrity(origin_path)
+                if error:
+                    product_errors[product].append(error)
 
             #
             # Check binary kernel endianness.
             #
-            if product.split(".")[-1].strip().lower() == "b":
+            if product.split(".")[-1].strip()[0].lower() == "b":
                 endianness = self.setup.kernel_endianness
-                error_message = check_binary_endianness(origin_path, endianness)
-                if error_message:
-                    product_errors[product].append(error_message)
+                error = check_binary_endianness(origin_path, endianness)
+                if error:
+                    product_errors[product].append(error)
 
         #
         # With all checks performed now they need to be reported.
         #
         error_flag = False
-        for product in self.kernel_list:
+        warning_flag = False
+        for product in product_list:
             if product_errors[product] or product_warnings[product]:
                 logging.warning(f"   {product}")
+                warning_flag = True
                 if product_warnings[product]:
                     for line in product_warnings[product]:
                         logging.warning(f"     {line}")
@@ -1118,4 +1147,7 @@ class KernelList(List):
                         logging.error(f"     {line}")
 
         if error_flag:
-            error_message("Products listed above require work")
+            logging.error('')
+            error_message("Products listed above require work", self.setup)
+        elif not warning_flag:
+            logging.info("     All products checks have succeeded.")
