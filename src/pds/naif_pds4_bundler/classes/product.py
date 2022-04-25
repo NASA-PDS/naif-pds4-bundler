@@ -16,7 +16,6 @@ import numpy as np
 import spiceypy
 
 from ..utils import add_carriage_return
-from ..utils import add_crs_to_file
 from ..utils import checksum_from_label
 from ..utils import checksum_from_registry
 from ..utils import ck_coverage
@@ -610,12 +609,6 @@ class MetaKernelProduct(Product):
         if user_input:
             self.name = kernel.split(os.sep)[-1]
             self.path = kernel
-
-            #
-            # If the meta-kernel is provided by the user check the
-            # integrity.
-            #
-            SpiceKernelProduct.check_kernel_integrity(self, self, self.path)
         else:
             self.path = product_path + self.name
 
@@ -1625,11 +1618,6 @@ class OrbnumFileProduct(Product):
             logging.warning(f"     {self.name} already present in staging directory.")
 
             self.new_product = False
-
-        #
-        # Add CRs to the orbnum file
-        #
-        add_crs_to_file(product_path + os.sep + self.name, self.setup.eol, self.setup)
 
         #
         # We update the path after having copied the kernel.
