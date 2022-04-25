@@ -246,6 +246,10 @@ execution. The options are:
      If the Kernel List has not been provided (via the ``-k --kerlist``
      argument), a release plan will be generated.
 
+   * ``checks``: stop after performing a number of checks on the products
+     present in the kernel list. These checks are useful to identify issues
+     on the SPICE kernels and ORBNUM files to be archived.
+
    * ``staging``: stop after generating the archive increment products.
      The product list file is described in
      the ``-c --clear`` argument subsection.

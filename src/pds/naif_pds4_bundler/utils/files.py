@@ -203,7 +203,7 @@ def type_to_extension(kernel_type):
     return kernel_extension
 
 
-def add_carriage_return(line, eol, setup):
+def add_carriage_return(line, eol, setup=False):
     """Adds Carriage Return (``<CR>``) to a line.
 
     :param line: Input line
@@ -231,7 +231,7 @@ def add_carriage_return(line, eol, setup):
     return line
 
 
-def add_crs_to_file(file, eol, setup):
+def add_crs_to_file(file, eol, setup=False):
     """Adds Carriage Return (``<CR>``) to a file.
 
     :param line: Input file
