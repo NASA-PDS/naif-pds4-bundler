@@ -1122,7 +1122,7 @@ class KernelList(List):
 
                 error = check_badchar(origin_path)
                 if error:
-                    product_errors[product] += error
+                    product_warnings[product] += error
 
             #
             # Check Kernel architecture.

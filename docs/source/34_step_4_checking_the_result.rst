@@ -63,14 +63,26 @@ Because of this the archive producer should validate the SPICE archive using the
 validation tool provided by the PDS Engineering Node.
 
 The **Validate Tool** performs the validation of the archive for PDS standards
-compliance. Validate Tool is a command line application well suited for batch
+compliance. ``validate`` is a command line application well suited for batch
 mode processing.
 
 The Validate tool package can be obtained from the PDS Engineering node from
 `Validate Tool Documentation <https://nasa-pds.github.io/validate/>`_.
 
-Once installed per instructions provided with the package, Validate Tool can be
-run to generate the full validation report for the final archive as follows::
+Once installed per instructions provided with the package, ``validate`` can be
+run to generate the full validation report for the final archive as follows.
+
+A successful NPB run will generate a PDS validate tool configuration file to
+validate the resulting bundle with. More information is provided in
+:ref:`43_using_npb:PDS Validate Tool Configuration File`. NPB will also try to
+download the PDS Schema and Schematron for you. However you can always run
+``validate`` "manually" as indicated in the section hereunder.
+
+
+Running Validate manually
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+After installing ``validate`` and generating the bundle you can run it as follows::
 
    validate -t <path_to_archive> -R pds4.bundle -x <pds_im_schema> -S <pds_im_schematron> --strict-field-checks -r <path_to_working_dir>/<sc>_release_??.validate
 
