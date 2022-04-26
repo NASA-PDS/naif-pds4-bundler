@@ -1182,5 +1182,6 @@ class KernelList(List):
             error_message("Products listed above require work.", self.setup)
         elif not warning_flag:
             logging.info("-- All products checks have succeeded.")
+            logging.info("")
             if not self.setup.args.silent and not self.setup.args.verbose:
                 print("-- All products checks have succeeded.")
