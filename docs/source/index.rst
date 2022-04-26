@@ -11,6 +11,8 @@ NPB enables SPICE archive producers to understand, design,
 and generate Planetary Data System (PDS) SPICE archives from end
 to end using the applicable PDS4 standards.
 
+NPB is hosted at the `NASA PDS GitHub repository <https://github.com/NASA-PDS/naif-pds4-bundler>`_.
+
 .. toctree::
    :maxdepth: 7
 
