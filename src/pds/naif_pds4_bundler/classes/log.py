@@ -145,10 +145,13 @@ class Log(object):
             os.remove(template)
 
         #
-        # Generate the file list and the checksum registry.
+        # Generate the file list, the checksum registry, and the PDS validate
+        # configuration file.
         #
         self.setup.write_file_list()
         self.setup.write_checksum_registry()
+        if self.setup.pds_version == '4':
+            self.setup.write_validate_configuration()
 
         #
         # Clear the kernel pool

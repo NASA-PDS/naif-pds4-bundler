@@ -4,6 +4,7 @@ import shutil
 
 import spiceypy
 from pds.naif_pds4_bundler.__main__ import main
+from pds.naif_pds4_bundler.utils import add_crs_to_file
 from pds.naif_pds4_bundler.utils.files import string_in_file
 
 
@@ -335,3 +336,90 @@ def test_m2020_empty_spk(self):
 
     with self.assertRaises(BaseException):
         main(config, plan=plan, silent=True, log=True)
+
+
+def test_m2020_kernel_list_checks(self):
+    """Test kernel list checks.
+
+    Test that kernel list checks generate the expected warning and error
+    messages in the log file.
+    """
+    post_setup(self)
+    config = "../config/mars2020.xml"
+    updated_config = "working/mars2020.xml"
+    plan = "../data/mars2020_release_00.plan"
+
+    #
+    # Check that the kernel in the first kernel_directory is used. At the same
+    # time this kernel is incorrect and is reported. The kernel architecure
+    # is also checked.
+    #
+    os.mkdir('kernels2')
+    os.mkdir('kernels2/spk')
+    shutil.copy2("../data/kernels/spk/m2020_cruise_od138_v1.bsp", "kernels2/spk/")
+    shutil.copy2("../data/kernels/ck/mro_sc_psp_210705_210717p.bc", "kernels2/spk/m2020_cruise_od138_v1.bsp")
+
+    with open(config, "r") as c:
+        with open(updated_config, "w") as n:
+            for line in c:
+                if "<kernels_directory>kernels</kernels_directory>" in line:
+                    n.write("<kernels_directory>kernels2</kernels_directory>\n")
+                    n.write("<kernels_directory>kernels</kernels_directory>\n")
+                else:
+                    n.write(line)
+
+    #
+    # Check incorrect end-of-line characters and non-printable ASCII characters.
+    #
+    os.mkdir('kernels2/fk')
+    with open("../data/kernels/fk/m2020_v04.tf", 'r') as i:
+        with open("kernels2/fk/m2020_v04.tf", 'w') as o:
+            for line in i:
+                if "This frame kernel contains complete set of frame definitions for" in line:
+                    o.write("This framÈ kernel ©ontains compl€te set of frÆme definitiøns for")
+                elif "1. ``Frames Required Reading''" in line:
+                    o.write("1. ``Frames Requißed Reading''")
+                else:
+                    o.write(line)
+    add_crs_to_file("kernels2/fk/m2020_v04.tf", "\r\n")
+
+    #
+    # Check endianness of a binary kernel.
+    #
+    shutil.copy2("../data/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp",
+                 "../data/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.ltl.bsp")
+    shutil.copy2("../data/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.big.bsp",
+                 "../data/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp")
+
+    #
+    # The resulting log must have all the entries for the expected warning and
+    # errors.
+    #
+    with self.assertRaises(RuntimeError):
+        main(updated_config, plan=plan, silent=self.silent, log=self.log, faucet="checks")
+
+    line_checks = [
+        "Product present in multiple directories:",
+        "NON-ASCII character(s) in line"
+    ]
+    for line in line_checks:
+        if not string_in_file("working/mars2020_release_temp.log", line, 2):
+            raise BaseException
+
+    line_checks = [
+        "Incorrect EOL in file, LF (\\n) expected.",
+        "This framÈ kernel ©ontains compl€te set of frÆme definitiøns for",
+        "         ^        ^             ^            ^           ^",
+        "1. ``Frames Requißed Reading''",
+        "                 ^",
+        "Kernel m2020_cruise_od138_v1.bsp type SPK is not the one expected: CK."
+    ]
+    for line in line_checks:
+        if not string_in_file("working/mars2020_release_temp.log", line, 1):
+            raise BaseException
+
+    #
+    # Restore the appropriate SPK for the subsequent tests.
+    #
+    shutil.copy2("../data/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.ltl.bsp",
+                 "../data/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp")

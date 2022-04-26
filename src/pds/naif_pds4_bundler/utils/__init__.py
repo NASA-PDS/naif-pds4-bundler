@@ -5,7 +5,11 @@ The utils module implements general utility capabilities used elsewhere in NPB.
 from .decorators import spice_exception_handler
 from .files import add_carriage_return
 from .files import add_crs_to_file
+from .files import check_badchar
+from .files import check_binary_endianness
 from .files import check_consecutive
+from .files import check_eol
+from .files import check_kernel_integrity
 from .files import check_list_duplicates
 from .files import checksum_from_label
 from .files import checksum_from_registry
@@ -22,6 +26,7 @@ from .files import kernel_name
 from .files import match_patterns
 from .files import md5
 from .files import mk_to_list
+from .files import product_mapping
 from .files import replace_string_in_file
 from .files import safe_make_directory
 from .files import string_in_file
@@ -75,5 +80,10 @@ __all__ = [
     string_in_file,
     et_to_date,
     replace_string_in_file,
-    format_multiple_values
+    format_multiple_values,
+    product_mapping,
+    check_kernel_integrity,
+    check_binary_endianness,
+    check_badchar,
+    check_eol
 ]

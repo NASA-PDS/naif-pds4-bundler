@@ -11,6 +11,8 @@ import functional.test_ladee as ladee
 import functional.test_m2020 as m2020
 import functional.test_maven as maven
 import functional.test_mro as mro
+from pds.naif_pds4_bundler.utils import add_crs_to_file
+
 
 
 class TestFunctional(TestCase):
@@ -40,6 +42,21 @@ class TestFunctional(TestCase):
         tests_dir = cls.tmp_dir.name + "/naif_pds4_bundler/functional/"
         print(f"      Tests data on: {cls.tmp_dir.name}")
         os.chdir(tests_dir)
+
+        #
+        # The ORBNUM files that are supposed to have CRLF are updated here.
+        # The reason is to avoid issues with Git LF to CRLF updates: The
+        # repository only contains files with LF line endings.
+        #
+        files = [
+            f"{tests_dir}../data/misc/orbnum/maven_orb_rec_210101_210401.orb",
+            f"{tests_dir}../data/misc/orbnum/maven_orb_rec_210101_210401_v1.orb",
+            f"{tests_dir}../data/misc/orbnum/maven_orb_rec_210101_210401_v2.orb",
+            f"{tests_dir}../data/misc/orbnum/maven_orb_rec_210101_210401_v3.orb"
+        ]
+        for file in files:
+            add_crs_to_file(file, "\r\n")
+
 
     @classmethod
     def tearDownClass(cls):
@@ -219,6 +236,9 @@ class TestFunctional(TestCase):
 
     def test_m2020_empty_spk(self):
         m2020.test_m2020_empty_spk(self)
+
+    def test_m2020_kernel_list_checks(self):
+        m2020.test_m2020_kernel_list_checks(self)
 
     #
     # MAVEN functional tests.

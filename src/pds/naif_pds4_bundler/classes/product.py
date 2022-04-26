@@ -8,7 +8,6 @@ import os
 import re
 import shutil
 import subprocess
-import sys
 from collections import defaultdict
 from collections import OrderedDict
 from datetime import date
@@ -17,7 +16,6 @@ import numpy as np
 import spiceypy
 
 from ..utils import add_carriage_return
-from ..utils import add_crs_to_file
 from ..utils import checksum_from_label
 from ..utils import checksum_from_registry
 from ..utils import ck_coverage
@@ -32,6 +30,7 @@ from ..utils import match_patterns
 from ..utils import md5
 from ..utils import mk_to_list
 from ..utils import pck_coverage
+from ..utils import product_mapping
 from ..utils import replace_string_in_file
 from ..utils import safe_make_directory
 from ..utils import spice_exception_handler
@@ -219,15 +218,16 @@ class SpiceKernelProduct(Product):
         safe_make_directory(product_path)
 
         #
-        # We copy the kernel to the staging directory.
+        # We copy the kernel to the staging directory. If multiple directories
+        # are provided, the first one is used.
         #
         logging.info(f"-- Copy {self.name} to staging directory.")
         if not os.path.isfile(product_path + self.name):
-            for path in self.setup.kernels_directory:
+            for directory in self.setup.kernels_directory:
                 try:
                     file = [
                         os.path.join(root, ker)
-                        for root, dirs, files in os.walk(path)
+                        for root, dirs, files in os.walk(directory)
                         for ker in files
                         if name == ker
                     ]
@@ -240,9 +240,9 @@ class SpiceKernelProduct(Product):
                     try:
                         file = [
                             os.path.join(root, ker)
-                            for root, dirs, files in os.walk(path)
+                            for root, dirs, files in os.walk(directory)
                             for ker in files
-                            if self.product_mapping() == ker
+                            if product_mapping(self.name, self.setup) == ker
                         ]
 
                         origin_path = file[0]
@@ -250,20 +250,11 @@ class SpiceKernelProduct(Product):
                         shutil.copy2(origin_path, product_path + os.sep + self.name)
                         self.new_product = True
                         logging.info(
-                            f"-- Mapping {self.product_mapping()} "
+                            f"-- Mapping {product_mapping(self.name, self.setup)} "
                             f"with {self.name}"
                         )
                     except BaseException:
-                        origin_path = ''
-                        error_message(f"{self.name} not present in {path}.", setup=setup)
-
-                #
-                # Check binary kernel endianness.
-                #
-                if self.extension[0].lower() == "b":
-                    self.check_binary_endianness(self, origin_path)
-
-                self.check_kernel_integrity(self, origin_path)
+                        error_message(f"{self.name} not present in {directory}.", setup=setup)
 
                 if self.new_product:
                     break
@@ -509,138 +500,6 @@ class SpiceKernelProduct(Product):
 
         return ','.join(id_list)
 
-    def product_mapping(self):
-        """Obtain the kernel mapping.
-
-        :return: Kernel Mapping
-        :rtype: str
-        """
-        kernel_list_file = (
-                self.setup.working_directory
-                + os.sep
-                + f"{self.setup.mission_acronym}_{self.setup.run_type}_"
-                  f"{int(self.setup.release):02d}.kernel_list"
-        )
-
-        get_map = False
-        mapping = False
-
-        with open(kernel_list_file, 'r') as lst:
-            for line in lst:
-                if self.name in line:
-                    get_map = True
-                if get_map and "MAPPING" in line:
-                    mapping = line.split("=")[-1].strip()
-                    get_map = False
-
-        if not mapping:
-            error_message(
-                f"{self.name} does not have mapping on {kernel_list_file}.",
-                setup=self.setup,
-            )
-
-        return mapping
-
-    @spice_exception_handler
-    def check_kernel_integrity(self, object, path):
-        """Check if the SPICE Kernel has the adequate architecture.
-
-        All SPICE kernels must have a NAIF file ID word as the first "word" on
-        the first line of the kernel. This "word" describes the architecture
-        of the kernel.
-
-        A binary kernel could have the following architectures:
-
-          * ``DAF``: The file is based on the DAF architecture.
-          * ``DAS``: The file is based on the DAS architecture.
-          * ``XFR``: The file is in a SPICE transfer file format.
-
-        For an archive only ``DAF`` is acceptable.
-
-        Text kernels must have ``KPL`` (Kernel Pool File) architecture.
-
-        NPB checks if binary kernels have a ``DAF`` architecture and text kernels
-        a ``KPL`` architecture.
-        """
-        #
-        # All files that are to have labels generated must have a NAIF
-        # file ID word as the first "word" on the first line of the
-        # file. Check if it is the case.
-        #
-        (arch, type) = spiceypy.getfat(path)
-
-        if object.file_format == "Binary":
-
-            #
-            # A binary file could have the following architectures:
-            #
-            #   DAF - The file is based on the DAF architecture.
-            #   DAS - The file is based on the DAS architecture.
-            #   XFR - The file is in a SPICE transfer file format.
-            #
-            # But for an archive only DAF is acceptable.
-            #
-            if (arch != "DAF") and (arch != "DAS"):
-                error_message(
-                    f"Kernel {object.name} architecture {arch} is invalid.",
-                    setup=object.setup,
-                )
-            else:
-                pass
-        elif object.file_format == "Character":
-
-            #
-            # Text kernels must have KPL architecture:
-            #
-            #    KPL -- Kernel Pool File (i.e., a text kernel)
-            #
-            if arch != "KPL":
-                error_message(
-                    f"Kernel {object.name} architecture {arch} is invalid.",
-                    setup=object.setup,
-                )
-
-        if type != object.type.upper():
-            error_message(
-                f"Kernel {object.name} type {object.type.upper()} "
-                f"is not the one expected: {type}.",
-                setup=object.setup,
-            )
-
-    @spice_exception_handler
-    def check_binary_endianness(self, object, path):
-        """Check if the SPICE Kernel has the adequate architecture.
-
-        PDS4 Bundles require LTL-IEEE binary kernels and PDS3 data sets require
-        BIG-IEEE binary kernels. This behavior can be changed via configuration.
-
-        This method ensures that the endianness of binary kernels is the
-        appropriate one according to the configuration.
-        """
-        endianness = self.setup.kernel_endianness
-
-        try:
-            handle = spiceypy.dafopw(path)
-        except BaseException:
-            if sys.byteorder != endianness:
-                logging.warning(f"-- The binary kernel is {endianness} endian; this"
-                                f" endianness is not supported by your machine.")
-                logging.warning("   You can use NAIF's utility BINGO to convert the file.")
-            else:
-                error_message("The binary kernel is not readable by your machine.")
-        else:
-            if sys.byteorder != endianness:
-                error_message(f"The binary kernel is {sys.byteorder} endian; this"
-                              f" endianness is not the one specified via"
-                              f" configuration.")
-            else:
-                pass
-        finally:
-            try:
-                spiceypy.dafcls(handle)
-            except BaseException:
-                pass
-
 
 class MetaKernelProduct(Product):
     """Product child class Meta-Kernel.
@@ -750,12 +609,6 @@ class MetaKernelProduct(Product):
         if user_input:
             self.name = kernel.split(os.sep)[-1]
             self.path = kernel
-
-            #
-            # If the meta-kernel is provided by the user check the
-            # integrity.
-            #
-            SpiceKernelProduct.check_kernel_integrity(self, self, self.path)
         else:
             self.path = product_path + self.name
 
@@ -1765,11 +1618,6 @@ class OrbnumFileProduct(Product):
             logging.warning(f"     {self.name} already present in staging directory.")
 
             self.new_product = False
-
-        #
-        # Add CRs to the orbnum file
-        #
-        add_crs_to_file(product_path + os.sep + self.name, self.setup.eol, self.setup)
 
         #
         # We update the path after having copied the kernel.

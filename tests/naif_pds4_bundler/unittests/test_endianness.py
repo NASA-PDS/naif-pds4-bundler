@@ -52,11 +52,10 @@ def test_pds4_big_endianness(self):
             raise BaseException
 
         line_check = "The binary kernel is not readable by your machine."
-        if not string_in_file("working/mars2020_release_temp.log", line_check, 3):
+        if not string_in_file("working/mars2020_release_temp.log", line_check, 1):
             raise BaseException
     else:
         raise BaseException
-
 
 
 def test_pds4_big_endianness_config(self):
@@ -149,7 +148,7 @@ def test_pds3_ltl_endianness(self):
         main(config, silent=True, log=True, faucet="Bundle")
     except BaseException:
         line_check = "The binary kernel is little endian; this endianness is not the one specified via configuration"
-        if not string_in_file("working/mro_release_temp.log", line_check, 2):
+        if not string_in_file("working/mro_release_temp.log", line_check, 1):
             raise BaseException
 
 

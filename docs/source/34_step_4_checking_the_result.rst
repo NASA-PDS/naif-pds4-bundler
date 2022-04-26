@@ -12,9 +12,9 @@ generation. Reasons for that could be:
 Although NPB already performs a number of checks, as described in the section
 :ref:`43_using_npb:Checks performed by NPB`, it is recommended to spend
 some time and effort to check the result of the execution. Look at the
-``WARNING`` messages provided in the NPB run log file, checking the SPICEDS
-file, and especially checking the Meta-kernel(s), even if you generated
-them manually.
+``WARNING`` and/or ``ERROR`` messages provided in the NPB run log file,
+checking the SPICEDS file, and especially checking the Meta-kernel(s), even
+if you generated them manually.
 
 If you think you have found a bug in NPB or the archiving process please do as
 indicated in :ref:`12_bugs_contact_references:Reporting Bugs`.
@@ -63,14 +63,26 @@ Because of this the archive producer should validate the SPICE archive using the
 validation tool provided by the PDS Engineering Node.
 
 The **Validate Tool** performs the validation of the archive for PDS standards
-compliance. Validate Tool is a command line application well suited for batch
+compliance. ``validate`` is a command line application well suited for batch
 mode processing.
 
 The Validate tool package can be obtained from the PDS Engineering node from
 `Validate Tool Documentation <https://nasa-pds.github.io/validate/>`_.
 
-Once installed per instructions provided with the package, Validate Tool can be
-run to generate the full validation report for the final archive as follows::
+Once installed per instructions provided with the package, ``validate`` can be
+run to generate the full validation report for the final archive as follows.
+
+A successful NPB run will generate a PDS validate tool configuration file to
+validate the resulting bundle with. More information is provided in
+:ref:`43_using_npb:PDS Validate Tool Configuration File`. NPB will also try to
+download the PDS Schema and Schematron for you. However you can always run
+``validate`` "manually" as indicated in the section hereunder.
+
+
+Running Validate manually
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+After installing ``validate`` and generating the bundle you can run it as follows::
 
    validate -t <path_to_archive> -R pds4.bundle -x <pds_im_schema> -S <pds_im_schematron> --strict-field-checks -r <path_to_working_dir>/<sc>_release_??.validate
 
@@ -158,7 +170,7 @@ using the argument: ``--skip-context-validation``
 
 NAIF recommends to set severity level of the Validation Tool reporting to
 ``Info`` (``-v 1 --verbose 1``). This will mainly help to find issues in the
-context products. The resulting recommended way to run Validate is:
+context products. The resulting recommended way to run Validate is::
 
    validate -v 1 -t em16/em16_spice --skip-context-validation -R pds4.bundle -x working/PDS4_PDS_1B00.xsd -S working/PDS4_PDS_1B00.sch --strict-field-checks -r working/em16_release_03.validate
 

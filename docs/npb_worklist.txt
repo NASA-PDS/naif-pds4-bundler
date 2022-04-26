@@ -5,14 +5,17 @@ Work List:
 
   Next:
 
-  -- Advance kernel checks to kernel list generation including:
+  -- Generate validate tool configuration file. Setup schema download, and
+     remove the need to have these items in configuration:
 
-        End of Line checks
-        Kernel architecture checks
-        bad character warning messages
-        any other checks done at PDS3 level
+        <information_model>1.5.0.0</information_model>
+        <xml_model>http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.sch</xml_model>
+        <schema_location>http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd
+        </schema_location>
 
-     The documentation has to be updated accordingly.
+     Build them up only with the IM version, they would still be optional.
+
+  -- Remove MK input from configuration file.
 
   -- Implement OREX functional tests -focusing on MKs and kernel mapping.
 
@@ -44,6 +47,17 @@ Work List:
 
 Changelog:
 
+v1.0.3
+
+  -- Advance kernel checks to kernel list generation including:
+
+        End of Line checks
+        Kernel architecture checks
+        bad character warning messages
+        any other checks done at PDS3 level
+
+     The documentation has to be updated accordingly. Also document the fact
+     that the "list" faucet will not run the checks.
 
 v0.19.0
 

@@ -190,7 +190,7 @@ def main(
             type=str,
             help="Optional indication for end point of the "
             "pipeline. Allowed values are: ``clear``, "
-            "``plan``, ``list``, ``staging``, ``bundle``, and ``labels``.",
+            "``plan``, ``list``, ``checks``, ``staging``, ``bundle``, and ``labels``.",
         )
         parser.add_argument(
             "-l", "--log",
@@ -321,7 +321,7 @@ def main(
     #
     if args.diff not in ["all", "log", "files", ""]:
         raise Exception("-d, --diff argument has incorrect value.")
-    if args.faucet not in ["clear", "plan", "list", "staging", "bundle", "labels", ""]:
+    if args.faucet not in ["clear", "plan", "list", "checks", "staging", "bundle", "labels", ""]:
         raise Exception("-f, --faucet argument has incorrect value.")
 
     #
@@ -417,6 +417,19 @@ def main(
     #      list plan by setting ``-f, --faucet`` to ``list``.
     #
     if setup.faucet == "list":
+        log.stop()
+        return
+
+    #
+    #    * Check the products present in the list (SPICE kernels and ORBNUM
+    #      files)
+    list.check_products()
+
+    #
+    #    * The pipeline can be stopped after checking the kernel
+    #      list by setting ``-f, --faucet`` to ``checks``.
+    #
+    if setup.faucet == "checks":
         log.stop()
         return
 

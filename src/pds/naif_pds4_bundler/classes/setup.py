@@ -10,6 +10,7 @@ from os.path import dirname
 from pathlib import Path
 from xml.etree import cElementTree as ET
 
+import requests
 import spiceypy
 import xmlschema
 
@@ -1112,3 +1113,63 @@ class Setup(object):
             ) as l:
                 for element in self.checksum_registry:
                     l.write(element + "\n")
+
+    def write_validate_configuration(self):
+        """Write a PDS validate tool configuration file.
+
+        NPB will write a PDS validate tool configuration file for convenience
+        of the user. The following validate example command for ExoMars2016::
+
+           $ validate -v 1 -t em16/em16_spice –skip-context-validation \
+           -R pds4.bundle -x working/PDS4_PDS_1B00.xsd -S working/PDS4_PDS_1B00.sch \
+           –strict-field-checks -r working/em16_release_03.validate
+
+        Would be equivalent to the following resulting Validate configuration
+        file::
+
+           # Run the PDS validate tool where the NPB working directory resides:
+           # $ validate -c working/em16_release_03.config.validate
+           validate.target = em16/em16_spice
+           validate.verbose = 1
+           validate.skip-context-validation = true
+           validate.rule = pds4.bundle
+           validate.schema = working/PDS4_PDS_1B00.xsd
+           validate.schematron = working/PDS4_PDS_1B00.sch
+           validate.strictFieldChecks = true
+           validate.report = working/em16_release_03.validate
+
+        If there is an issue during the generation of this file --e.g.: no
+        internet connection-- the process will silently fail but the NPB run
+        will be successful.
+        """
+        pds_schematron_location = self.xml_model
+        pds_schematron = pds_schematron_location.split('/')[-1]
+        try:
+            r = requests.get(pds_schematron_location, allow_redirects=True)
+        except BaseException:
+            return
+        with open(f"{self.working_directory}/{pds_schematron}", 'wb') as f:
+            f.write(r.content)
+
+        pds_schema_location = self.schema_location.split()[-1]
+        pds_schema = pds_schema_location.split('/')[-1]
+        try:
+            r = requests.get(pds_schema_location, allow_redirects=True)
+        except BaseException:
+            return
+        with open(f"{self.working_directory}/{pds_schema}", 'wb') as f:
+            f.write(r.content)
+
+        filename = f"{self.mission_acronym}_{self.run_type}_{int(self.release):02d}"
+
+        with open(f"{self.working_directory}/{filename}.config.validate", "w") as l:
+            l.write("# Run the PDS validate tool where the NPB working directory resides:\n")
+            l.write(f"# $ validate -c {self.working_directory}/{filename}.config.validate\n#\n")
+            l.write(f"validate.target = {self.bundle_directory}/{self.mission_acronym}_spice\n")
+            l.write(f"validate.report = {self.working_directory}/{filename}.validate\n")
+            l.write(f"validate.schema = {self.working_directory}/{pds_schema}\n")
+            l.write(f"validate.schematron = {self.working_directory}/{pds_schematron}\n")
+            l.write(f"validate.verbose = 1\n")
+            l.write(f"validate.skipContextValidation = true\n")
+            l.write(f"validate.rule = pds4.bundle\n")
+            l.write(f"validate.strictFieldChecks = true\n")

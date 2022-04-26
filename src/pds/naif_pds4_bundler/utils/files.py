@@ -8,6 +8,7 @@ import logging
 import os
 import re
 import shutil
+import sys
 from collections import defaultdict
 
 import spiceypy
@@ -202,7 +203,7 @@ def type_to_extension(kernel_type):
     return kernel_extension
 
 
-def add_carriage_return(line, eol, setup):
+def add_carriage_return(line, eol, setup=False):
     """Adds Carriage Return (``<CR>``) to a line.
 
     :param line: Input line
@@ -230,7 +231,7 @@ def add_carriage_return(line, eol, setup):
     return line
 
 
-def add_crs_to_file(file, eol, setup):
+def add_crs_to_file(file, eol, setup=False):
     """Adds Carriage Return (``<CR>``) to a file.
 
     :param line: Input file
@@ -906,3 +907,217 @@ def format_multiple_values(value):
         value = value[:-2] + '\n' + ' ' * 31 + "}\n"
 
     return value
+
+
+def product_mapping(name, setup, cleanup=True):
+    """Obtain the kernel mapping.
+
+    :return: Kernel Mapping
+    :rtype: str
+    """
+    kernel_list_file = (
+            setup.working_directory
+            + os.sep
+            + f"{setup.mission_acronym}_{setup.run_type}_"
+              f"{int(setup.release):02d}.kernel_list"
+    )
+
+    get_map = False
+    mapping = False
+
+    with open(kernel_list_file, 'r') as lst:
+        for line in lst:
+            if name in line:
+                get_map = True
+            if get_map and "MAPPING" in line:
+                mapping = line.split("=")[-1].strip()
+                get_map = False
+
+    if not cleanup:
+        setup = False
+    #
+    # If cleanup is not being performed this is an indication that if the kernel
+    # mapping does not exist, this can be intentional and therefore an error
+    # does not have to be reported.
+    #
+    if not mapping and cleanup:
+        error_message(
+            f"{name} does not have mapping on {kernel_list_file}.",
+            setup=setup,
+        )
+
+    return mapping
+
+
+def check_kernel_integrity(path):
+    """Check if the SPICE Kernel has the adequate architecture.
+
+    All SPICE kernels must have a NAIF file ID word as the first "word" on
+    the first line of the kernel. This "word" describes the architecture
+    of the kernel.
+
+    A binary kernel could have the following architectures:
+
+      * ``DAF``: The file is based on the DAF architecture.
+      * ``DAS``: The file is based on the DAS architecture.
+      * ``XFR``: The file is in a SPICE transfer file format.
+
+    For an archive only ``DAF`` is acceptable.
+
+    Text kernels must have ``KPL`` (Kernel Pool File) architecture.
+
+    NPB checks if binary kernels have a ``DAF`` architecture and text kernels
+    a ``KPL`` architecture.
+
+    :param path: SPICE Kernel or ORBNUM path
+    :type path: str
+    :return: Error message if error present
+    :rtype: str
+    """
+    error = ''
+    name = path.split(os.sep)[-1].strip()
+    extension = path.split(".")[-1].strip()
+    type_file = extension_to_type(name).upper()
+
+    #
+    # Determine if it is a binary or a text kernel.
+    #
+    if extension[0].lower() == "b":
+        file_format = "Binary"
+    else:
+        file_format = "Character"
+
+    #
+    # All files that are to have labels generated must have a NAIF
+    # file ID word as the first "word" on the first line of the
+    # file. Check if it is the case.
+    #
+    (arch, type) = spiceypy.getfat(path)
+
+    if file_format == "Binary":
+
+        #
+        # A binary file could have the following architectures:
+        #
+        #   DAF - The file is based on the DAF architecture.
+        #   DAS - The file is based on the DAS architecture.
+        #   XFR - The file is in a SPICE transfer file format.
+        #
+        # But for an archive only DAF is acceptable.
+        #
+        if (arch != "DAF") and (arch != "DAS"):
+            error = f"Kernel {name} architecture {arch} is invalid."
+        else:
+            pass
+
+    elif file_format == "Character":
+
+        #
+        # Text kernels must have KPL architecture:
+        #
+        #    KPL -- Kernel Pool File (i.e., a text kernel)
+        #
+        if arch != "KPL":
+            error = f"Kernel {name} architecture {arch} is invalid."
+
+    if type != type_file:
+        error = f"Kernel {name} type {type_file} is not the one expected: {type}."
+
+    return error
+
+
+def check_binary_endianness(path, endianness):
+    """Check if the SPICE Kernel has the adequate architecture.
+
+    PDS4 Bundles require LTL-IEEE binary kernels and PDS3 data sets require
+    BIG-IEEE binary kernels. This behavior can be changed via configuration.
+
+    This method ensures that the endianness of binary kernels is the
+    appropriate one according to the configuration.
+
+    :param path: Binary SPICE kernel path
+    :type path: str
+    :param endianness: Expected Binary file endianness
+    :type endianness: str
+    :return: Error message if error present
+    :rtype: str
+    """
+    error = ''
+
+    try:
+        handle = spiceypy.dafopw(path)
+    except BaseException:
+        if sys.byteorder != endianness:
+            logging.warning(f"-- The binary kernel is {endianness} endian; this"
+                            f" endianness is not supported by your machine.")
+            logging.warning("   You can use NAIF's utility BINGO to convert the file.")
+        else:
+            error = "The binary kernel is not readable by your machine."
+    else:
+        if sys.byteorder != endianness:
+            error = f"The binary kernel is {sys.byteorder} endian; this " \
+                    f"endianness is not the one specified via configuration."
+        else:
+            pass
+    finally:
+        try:
+            spiceypy.dafcls(handle)
+        except BaseException:
+            pass
+
+    return error
+
+
+def check_badchar(file):
+    """Check NON-ASCII characters for a file.
+
+    :param file: Path to file to check
+    :return: Resulting error messages
+    :rtype: list
+    """
+    error = []
+    line_num = 1
+    with open(file, 'r') as f:
+        for line in f:
+            if not line.isascii():
+                char_count = 0
+                badchars = []
+                for char in line:
+                    if not char.isascii():
+                        badchars.append(char_count)
+                    char_count += 1
+
+                error.append(f"NON-ASCII character(s) in line {line_num}:")
+                error.append(f"{line.rstrip()}")
+                badchar_line = " "*len(line.rstrip())
+                for badchar in badchars:
+                    badchar_line = badchar_line[:badchar] + "^" + badchar_line[badchar + 1:]
+                error.append(badchar_line)
+            line_num += 1
+
+    return error
+
+
+def check_eol(file, eol):
+    """Check file EOL.
+
+    :param file: Path to file to check
+    :param eol: Expected End of Line
+    :return: Resulting error messages
+    :rtype: str
+    """
+    error = ''
+
+    with open(file, 'rb') as open_file:
+        content = open_file.read()
+
+    if eol == '\n':
+        if b'\r\n' in content:
+            error = "Incorrect EOL in file, LF (\\n) expected."
+    elif eol == '\r\n':
+        if content.count(b'\r\n') != content.count(b'\n'):
+            error = "Incorrect EOL in file, CRLF (\\r\\n) expected."
+    else:
+        error_message(f"Incorrect EOL in configuration: {eol}")
+
+    return error
