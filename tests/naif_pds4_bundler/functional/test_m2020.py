@@ -386,6 +386,8 @@ def test_m2020_kernel_list_checks(self):
     #
     # Check endianness of a binary kernel.
     #
+    shutil.copy2("../data/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp",
+                 "../data/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.ltl.bsp")
     shutil.copy2("../data/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.big.bsp",
                  "../data/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp")
 
@@ -415,3 +417,9 @@ def test_m2020_kernel_list_checks(self):
     for line in line_checks:
         if not string_in_file("working/mars2020_release_temp.log", line, 1):
             raise BaseException
+
+    #
+    # Restore the appropriate SPK for the subsequent tests.
+    #
+    shutil.copy2("../data/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.ltl.bsp",
+                 "../data/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp")
