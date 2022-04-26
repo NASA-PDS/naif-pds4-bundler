@@ -935,7 +935,12 @@ def product_mapping(name, setup, cleanup=True):
 
     if not cleanup:
         setup = False
-    if not mapping:
+    #
+    # If cleanup is not being performed this is an indication that if the kernel
+    # mapping does not exist, this can be intentional and therefore an error
+    # does not have to be reported.
+    #
+    if not mapping and cleanup:
         error_message(
             f"{name} does not have mapping on {kernel_list_file}.",
             setup=setup,

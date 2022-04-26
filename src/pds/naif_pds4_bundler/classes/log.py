@@ -149,6 +149,7 @@ class Log(object):
         #
         self.setup.write_file_list()
         self.setup.write_checksum_registry()
+        self.setup.write_validate_configuration()
 
         #
         # Clear the kernel pool

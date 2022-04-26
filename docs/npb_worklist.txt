@@ -5,6 +5,16 @@ Work List:
 
   Next:
 
+  -- Generate validate tool configuration file. Setup schema download, and
+     remove the need to have these items in configuration:
+
+        <information_model>1.5.0.0</information_model>
+        <xml_model>http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.sch</xml_model>
+        <schema_location>http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd
+        </schema_location>
+
+     Build them up only with the IM version, they would still be optional.
+
   -- Remove MK input from configuration file.
 
   -- Implement OREX functional tests -focusing on MKs and kernel mapping.
@@ -46,7 +56,8 @@ v1.0.3
         bad character warning messages
         any other checks done at PDS3 level
 
-     The documentation has to be updated accordingly.
+     The documentation has to be updated accordingly. Also document the fact
+     that the "list" faucet will not run the checks.
 
 v0.19.0
 

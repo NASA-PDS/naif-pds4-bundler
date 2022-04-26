@@ -55,6 +55,23 @@ in the ``naif-pds4-bundler`` top level directory. To uninstall run::
    pip uninstall naif-pds4-bundler
 
 
+Known Installation Issues
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Certain versions of Python might report an installation error triggered by
+the installation of the NumPy package that is required by SpiceyPy. The error
+should point to a missing or invalid Cython package. In order to fix this error
+please update Python SetupTools and Cython packages by running the following
+commands::
+
+   python -m pip install -U setuptools
+   python -m pip install cython
+
+Then you can run the installation as usual::
+
+   python setup.py install
+
+
 Development and Contribution
 ----------------------------
 
@@ -80,7 +97,7 @@ the ``pre-commit`` hooks::
 Packaging
 ^^^^^^^^^
 
-To isolate and be able to re-produce the environment for this package,
+To isolate and be able to reproduce the environment for this package,
 you should use a
 `Python Virtual Environment <https://docs.python.org/3/tutorial/venv.html>`_.
 To do so, run::

@@ -12,9 +12,9 @@ generation. Reasons for that could be:
 Although NPB already performs a number of checks, as described in the section
 :ref:`43_using_npb:Checks performed by NPB`, it is recommended to spend
 some time and effort to check the result of the execution. Look at the
-``WARNING`` messages provided in the NPB run log file, checking the SPICEDS
-file, and especially checking the Meta-kernel(s), even if you generated
-them manually.
+``WARNING`` and/or ``ERROR`` messages provided in the NPB run log file,
+checking the SPICEDS file, and especially checking the Meta-kernel(s), even
+if you generated them manually.
 
 If you think you have found a bug in NPB or the archiving process please do as
 indicated in :ref:`12_bugs_contact_references:Reporting Bugs`.
@@ -158,7 +158,7 @@ using the argument: ``--skip-context-validation``
 
 NAIF recommends to set severity level of the Validation Tool reporting to
 ``Info`` (``-v 1 --verbose 1``). This will mainly help to find issues in the
-context products. The resulting recommended way to run Validate is:
+context products. The resulting recommended way to run Validate is::
 
    validate -v 1 -t em16/em16_spice --skip-context-validation -R pds4.bundle -x working/PDS4_PDS_1B00.xsd -S working/PDS4_PDS_1B00.sch --strict-field-checks -r working/em16_release_03.validate
 

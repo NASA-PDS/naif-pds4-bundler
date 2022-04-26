@@ -735,6 +735,12 @@ Complete Kernel List Validation
 .. automodule:: pds.naif_pds4_bundler.classes.list.KernelList.validate_complete
 
 
+Product in Kernel List Checks
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: pds.naif_pds4_bundler.classes.list.KernelList.check_products
+
+
 SPICE Kernel Integrity Check
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
