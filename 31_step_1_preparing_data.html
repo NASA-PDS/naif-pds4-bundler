@@ -8,7 +8,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Step 1: Preparing Data &mdash; NAIF PDS4 Bundler 1.0.2
+  <title>Step 1: Preparing Data &mdash; NAIF PDS4 Bundler 1.1.0
  documentation</title>
   
 
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                1.0
+                1.1
               </div>
             
           
@@ -104,6 +104,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#validating-data">Validating Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#binary-kernels-endianness">Binary Kernels Endianness</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#preparing-meta-kernels">Preparing Meta-kernels</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#generating-mks-manually">Generating MKs Manually</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#generating-mks-automatically">Generating MKs Automatically</a></li>
@@ -861,6 +862,33 @@ a time and effort consuming activity. Still, the person preparing the
 archive should try to give their best effort to make sure that each
 archive release contains the complete set of files (in terms of scope
 and coverage) that are well documented with internal comments.</p>
+</section>
+<section id="binary-kernels-endianness">
+<h2>Binary Kernels Endianness<a class="headerlink" href="#binary-kernels-endianness" title="Permalink to this headline">¶</a></h2>
+<p>As specified in <a class="reference internal" href="21_naif_approach.html#naif-s-approach-to-spice-kernel-archive-preparation"><span class="std std-ref">NAIF’s Approach to SPICE Kernel Archive Preparation</span></a>,
+NAIF requires all binary kernels to be in <code class="docutils literal notranslate"><span class="pre">LTL-IEEE</span></code> (little-endian, also
+known as IEEE LSB) binary format. By default NPB will enforce binary kernels to
+be <code class="docutils literal notranslate"><span class="pre">LTL-IEEE</span></code> and the execution will stop in case any binary kernel is
+<code class="docutils literal notranslate"><span class="pre">BIG-IEEE</span></code> (big-endian, also known as IEEE MSB). You can force
+NPB to accept <code class="docutils literal notranslate"><span class="pre">BIG-IEEE</span></code> binary kernels by specifying it via configuration
+as described in <a class="reference internal" href="42_npb_configuration_file.html#bundle-parameters"><span class="std std-ref">Bundle Parameters</span></a>.</p>
+<p>In order to determine the endianness of a binary kernel you can use
+NAIF’s utility <code class="docutils literal notranslate"><span class="pre">BFF</span></code>. <code class="docutils literal notranslate"><span class="pre">BFF</span></code> is a command line program that displays the
+binary file format ID for one or more binary kernel files. E.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ bff mer2_surf_rover.bsp
+BIG-IEEE
+</pre></div>
+</div>
+<p>If a binary kernel has been generated with a <code class="docutils literal notranslate"><span class="pre">BIG-IEEE</span></code> machine you can use
+the NAIF utility <code class="docutils literal notranslate"><span class="pre">BINGO</span></code> to change its endianness. E.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ bingo mer2_surf_rover.bsp mer2_surf_rover.little.bsp
+$ mv mer2_surf_rover.little.bsp mer2_surf_rover.bsp
+$ bff mer2_surf_rover.bsp
+LTL-IEEE
+</pre></div>
+</div>
+<p>The endianness of the binary kernels of the archive should be indicated in the
+<strong>File Formats</strong> section of the SPICEDS file.</p>
 </section>
 <section id="preparing-meta-kernels">
 <h2>Preparing Meta-kernels<a class="headerlink" href="#preparing-meta-kernels" title="Permalink to this headline">¶</a></h2>

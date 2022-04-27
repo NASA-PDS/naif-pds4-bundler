@@ -8,7 +8,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Step 4: Checking the Result and Finishing Up &mdash; NAIF PDS4 Bundler 1.0.2
+  <title>Step 4: Checking the Result and Finishing Up &mdash; NAIF PDS4 Bundler 1.1.0
  documentation</title>
   
 
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                1.0
+                1.1
               </div>
             
           
@@ -99,7 +99,10 @@
 <li class="toctree-l2"><a class="reference internal" href="33_step_3_running_npb.html">Step 3: Running NAIF PDS4 Bundler</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Step 4: Checking the Result and Finishing Up</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#checking-pds-artifacts">Checking PDS artifacts</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#verifying-the-archive-using-the-pds-validate-tool">Verifying the Archive using the PDS Validate Tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#verifying-the-archive-using-the-pds-validate-tool">Verifying the Archive using the PDS Validate Tool</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#running-validate-manually">Running Validate manually</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#deploying-to-the-final-archive-area">Deploying to the Final Archive Area</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#cleaning-up-the-workspace">Cleaning up the Workspace</a></li>
 </ul>
@@ -193,9 +196,9 @@ generation. Reasons for that could be:</p>
 <p>Although NPB already performs a number of checks, as described in the section
 <a class="reference internal" href="43_using_npb.html#checks-performed-by-npb"><span class="std std-ref">Checks performed by NPB</span></a>, it is recommended to spend
 some time and effort to check the result of the execution. Look at the
-<code class="docutils literal notranslate"><span class="pre">WARNING</span></code> messages provided in the NPB run log file, checking the SPICEDS
-file, and especially checking the Meta-kernel(s), even if you generated
-them manually.</p>
+<code class="docutils literal notranslate"><span class="pre">WARNING</span></code> and/or <code class="docutils literal notranslate"><span class="pre">ERROR</span></code> messages provided in the NPB run log file,
+checking the SPICEDS file, and especially checking the Meta-kernel(s), even
+if you generated them manually.</p>
 <p>If you think you have found a bug in NPB or the archiving process please do as
 indicated in <a class="reference internal" href="12_bugs_contact_references.html#reporting-bugs"><span class="std std-ref">Reporting Bugs</span></a>.</p>
 <p>The following sections provide you some hints to perform checks on the archive.</p>
@@ -233,12 +236,20 @@ configuration file are done “by hand” and for this reason are prone to error
 Because of this the archive producer should validate the SPICE archive using the
 validation tool provided by the PDS Engineering Node.</p>
 <p>The <strong>Validate Tool</strong> performs the validation of the archive for PDS standards
-compliance. Validate Tool is a command line application well suited for batch
+compliance. <code class="docutils literal notranslate"><span class="pre">validate</span></code> is a command line application well suited for batch
 mode processing.</p>
 <p>The Validate tool package can be obtained from the PDS Engineering node from
 <a class="reference external" href="https://nasa-pds.github.io/validate/">Validate Tool Documentation</a>.</p>
-<p>Once installed per instructions provided with the package, Validate Tool can be
-run to generate the full validation report for the final archive as follows:</p>
+<p>Once installed per instructions provided with the package, <code class="docutils literal notranslate"><span class="pre">validate</span></code> can be
+run to generate the full validation report for the final archive as follows.</p>
+<p>A successful NPB run will generate a PDS validate tool configuration file to
+validate the resulting bundle with. More information is provided in
+<a class="reference internal" href="43_using_npb.html#pds-validate-tool-configuration-file"><span class="std std-ref">PDS Validate Tool Configuration File</span></a>. NPB will also try to
+download the PDS Schema and Schematron for you. However you can always run
+<code class="docutils literal notranslate"><span class="pre">validate</span></code> “manually” as indicated in the section hereunder.</p>
+<section id="running-validate-manually">
+<h3>Running Validate manually<a class="headerlink" href="#running-validate-manually" title="Permalink to this headline">¶</a></h3>
+<p>After installing <code class="docutils literal notranslate"><span class="pre">validate</span></code> and generating the bundle you can run it as follows:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>validate -t &lt;path_to_archive&gt; -R pds4.bundle -x &lt;pds_im_schema&gt; -S &lt;pds_im_schematron&gt; --strict-field-checks -r &lt;path_to_working_dir&gt;/&lt;sc&gt;_release_??.validate
 </pre></div>
 </div>
@@ -319,9 +330,9 @@ using the argument: <code class="docutils literal notranslate"><span class="pre"
 <p>NAIF recommends to set severity level of the Validation Tool reporting to
 <code class="docutils literal notranslate"><span class="pre">Info</span></code> (<code class="docutils literal notranslate"><span class="pre">-v</span> <span class="pre">1</span> <span class="pre">--verbose</span> <span class="pre">1</span></code>). This will mainly help to find issues in the
 context products. The resulting recommended way to run Validate is:</p>
-<blockquote>
-<div><p>validate -v 1 -t em16/em16_spice –skip-context-validation -R pds4.bundle -x working/PDS4_PDS_1B00.xsd -S working/PDS4_PDS_1B00.sch –strict-field-checks -r working/em16_release_03.validate</p>
-</div></blockquote>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">validate</span> <span class="o">-</span><span class="n">v</span> <span class="mi">1</span> <span class="o">-</span><span class="n">t</span> <span class="n">em16</span><span class="o">/</span><span class="n">em16_spice</span> <span class="o">--</span><span class="n">skip</span><span class="o">-</span><span class="n">context</span><span class="o">-</span><span class="n">validation</span> <span class="o">-</span><span class="n">R</span> <span class="n">pds4</span><span class="o">.</span><span class="n">bundle</span> <span class="o">-</span><span class="n">x</span> <span class="n">working</span><span class="o">/</span><span class="n">PDS4_PDS_1B00</span><span class="o">.</span><span class="n">xsd</span> <span class="o">-</span><span class="n">S</span> <span class="n">working</span><span class="o">/</span><span class="n">PDS4_PDS_1B00</span><span class="o">.</span><span class="n">sch</span> <span class="o">--</span><span class="n">strict</span><span class="o">-</span><span class="n">field</span><span class="o">-</span><span class="n">checks</span> <span class="o">-</span><span class="n">r</span> <span class="n">working</span><span class="o">/</span><span class="n">em16_release_03</span><span class="o">.</span><span class="n">validate</span>
+</pre></div>
+</div>
 <p>Please note that the Validate Tool is in continuous development with new
 releases for each PDS IM, therefore the details provided in this section
 might differ from the version of the Validate Tool you use. The results
@@ -330,6 +341,7 @@ provided here are obtained using Validate Tool’s:</p>
 <span class="n">Release</span> <span class="n">Date</span><span class="p">:</span> <span class="mi">2021</span><span class="o">-</span><span class="mi">05</span><span class="o">-</span><span class="mi">25</span> <span class="mi">12</span><span class="p">:</span><span class="mi">08</span><span class="p">:</span><span class="mi">21</span>
 </pre></div>
 </div>
+</section>
 </section>
 <section id="deploying-to-the-final-archive-area">
 <h2>Deploying to the Final Archive Area<a class="headerlink" href="#deploying-to-the-final-archive-area" title="Permalink to this headline">¶</a></h2>

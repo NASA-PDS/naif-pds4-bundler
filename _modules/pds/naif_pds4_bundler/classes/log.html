@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pds.naif_pds4_bundler.classes.log &mdash; NAIF PDS4 Bundler 1.0.2
+  <title>pds.naif_pds4_bundler.classes.log &mdash; NAIF PDS4 Bundler 1.1.0
  documentation</title>
   
 
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                1.0
+                1.1
               </div>
             
           
@@ -305,10 +305,13 @@
             <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">template</span><span class="p">)</span>
 
         <span class="c1">#</span>
-        <span class="c1"># Generate the file list and the checksum registry.</span>
+        <span class="c1"># Generate the file list, the checksum registry, and the PDS validate</span>
+        <span class="c1"># configuration file.</span>
         <span class="c1">#</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">write_file_list</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">write_checksum_registry</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s1">&#39;4&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">write_validate_configuration</span><span class="p">()</span>
 
         <span class="c1">#</span>
         <span class="c1"># Clear the kernel pool</span>

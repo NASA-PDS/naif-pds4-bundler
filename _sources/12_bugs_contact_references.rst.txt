@@ -13,7 +13,7 @@ Contact Information
 ===================
 
 If you have any questions on any aspect of the generation
-of a SPICE kernel archive please contact Marc Costa Sitja (Marc.Costa.Sitja@jpl.nasa.gov)
+of a SPICE kernel archive please contact Boris Semenov (Boris.V.Semenov@jpl.nasa.gov)
 
 at the
 

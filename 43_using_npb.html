@@ -8,7 +8,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Using NPB &mdash; NAIF PDS4 Bundler 1.0.2
+  <title>Using NPB &mdash; NAIF PDS4 Bundler 1.1.0
  documentation</title>
   
 
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                1.0
+                1.1
               </div>
             
           
@@ -120,13 +120,15 @@
 <li class="toctree-l4"><a class="reference internal" href="#execution-log">Execution Log</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#execution-file-list">Execution File List</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#checksum-registry">Checksum Registry</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#validation-diff-files">Validation Diff Files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#product-diff-files">Product Diff Files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pds-validate-tool-configuration-file">PDS Validate Tool Configuration File</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#checks-performed-by-npb">Checks performed by NPB</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#module-pds.naif_pds4_bundler.classes.list.KernelList.validate">Kernel List Validation</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-pds.naif_pds4_bundler.classes.list.KernelList.validate_complete">Complete Kernel List Validation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-pds.naif_pds4_bundler.classes.product.SpiceKernelProduct.check_kernel_integrity">SPICE Kernel Integrity Check</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-pds.naif_pds4_bundler.classes.list.KernelList.check_products">Product in Kernel List Checks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#spice-kernel-integrity-check">SPICE Kernel Integrity Check</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-pds.naif_pds4_bundler.classes.product.MetaKernelProduct.validate">Meta-kernel Validation</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-pds.naif_pds4_bundler.classes.collection.SpiceKernelsCollection.validate">SPICE Kernel Collection Validation</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-pds.naif_pds4_bundler.classes.product.InventoryProduct.validate_pds4">Inventory Product Validation</a></li>
@@ -480,6 +482,9 @@ products are written in the staging area (<code class="docutils literal notransl
 <li><p><code class="docutils literal notranslate"><span class="pre">list</span></code>: stop after generating and/or reading the kernel list.
 If the Kernel List has not been provided (via the <code class="docutils literal notranslate"><span class="pre">-k</span> <span class="pre">--kerlist</span></code>
 argument), a release plan will be generated.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">checks</span></code>: stop after performing a number of checks on the products
+present in the kernel list. These checks are useful to identify issues
+on the SPICE kernels and ORBNUM files to be archived.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">staging</span></code>: stop after generating the archive increment products.
 The product list file is described in
 the <code class="docutils literal notranslate"><span class="pre">-c</span> <span class="pre">--clear</span></code> argument subsection.</p></li>
@@ -569,7 +574,7 @@ files. NPB’s Diff files are HTML files or plain text snippets that record
 differences in between two files, highlighting differences similar to the output
 of a GUI diff tool such as <code class="docutils literal notranslate"><span class="pre">tkdiff</span></code>. These files are useful to check and validate
 the archive increment. More information on how these files are generated is
-provided in section <a class="reference internal" href="#validation-diff-files"><span class="std std-ref">Validation Diff Files</span></a>.</p>
+provided in section <a class="reference internal" href="#product-diff-files"><span class="std std-ref">Product Diff Files</span></a>.</p>
 <p>The options for this argument determine the destination of these diff files.</p>
 <blockquote>
 <div><ul class="simple">
@@ -691,7 +696,8 @@ via argument parameters. These files are:</p>
 <li><p>Execution Log: <code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;_release_??.log</span></code></p></li>
 <li><p>Execution File List: <code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;_release_??.file_list</span></code></p></li>
 <li><p>Checksum registry:<code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;_release_??.checksum</span></code></p></li>
-<li><p>Validation Diff files: <code class="docutils literal notranslate"><span class="pre">diff_&lt;new_file&gt;_&lt;old_file&gt;.html</span></code></p></li>
+<li><p>Product Diff files: <code class="docutils literal notranslate"><span class="pre">diff_&lt;new_file&gt;_&lt;old_file&gt;.html</span></code></p></li>
+<li><p>PDS Validate Tool Configuration files: <code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;_release_??.setup.validate</span></code></p></li>
 </ul>
 </div></blockquote>
 <p>where</p>
@@ -870,14 +876,62 @@ product’s label.</p>
 <p>The Checksum Regsitry file follows this naming schema <code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;_release_??.checksum</span></code>
 as described in <a class="reference internal" href="#execution-by-products"><span class="std std-ref">Execution by-products</span></a>.</p>
 </section>
-<section id="validation-diff-files">
-<h3>Validation Diff Files<a class="headerlink" href="#validation-diff-files" title="Permalink to this headline">¶</a></h3>
-<p>Validation Diff files are HTML files that provide a side to side comparison of
+<section id="product-diff-files">
+<h3>Product Diff Files<a class="headerlink" href="#product-diff-files" title="Permalink to this headline">¶</a></h3>
+<p>Product Diff files are HTML files that provide a side to side comparison of
 a product generated by NPB and another “similar” product in order to facilitate
 checking and validating the new product, highlighting differences similar to
 the output of a GUI diff tool such as <code class="docutils literal notranslate"><span class="pre">tkdiff</span></code>.</p>
 <p>This by-product is generated if indicated by the <code class="docutils literal notranslate"><span class="pre">-d</span> <span class="pre">DIFF,</span> <span class="pre">--diff</span> <span class="pre">DIFF</span></code>
 argument.</p>
+</section>
+<section id="pds-validate-tool-configuration-file">
+<h3>PDS Validate Tool Configuration File<a class="headerlink" href="#pds-validate-tool-configuration-file" title="Permalink to this headline">¶</a></h3>
+<p>NPB will write a PDS Validate Tool (<code class="docutils literal notranslate"><span class="pre">validate</span></code>) configuration file for convenience
+of the user. The options provided by the configuration file are the ones
+recommended by NAIF. Namely:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">verbosity</span></code> is set to <code class="docutils literal notranslate"><span class="pre">1</span></code> for <code class="docutils literal notranslate"><span class="pre">validate</span></code> to provide all <code class="docutils literal notranslate"><span class="pre">INFO</span></code> level messages.
+Some tabular data –checksum and ORBNUM products– content checks are only
+provided as <code class="docutils literal notranslate"><span class="pre">INFO</span></code> messages</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">skip-context-validation</span></code> is set to <code class="docutils literal notranslate"><span class="pre">true</span></code> and indicates validate to
+skip the validation of the context products. This is not good practice but
+currently the context products are not consolidated enough to take them under
+consideration. Feel free to remove this argument or set it to <code class="docutils literal notranslate"><span class="pre">false</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rule</span></code> set to <code class="docutils literal notranslate"><span class="pre">true</span></code> ensures that the bundle will be validated
+against the schema</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">schema</span></code>, the PDS IM Schema has to be explicitly provided to
+<code class="docutils literal notranslate"><span class="pre">validate</span></code> for it to check it as it would do with any other
+dictionary. This was not the case for older versions of validate</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">schematron</span></code>, as per <code class="docutils literal notranslate"><span class="pre">schema</span></code>, the schematron has to be explicitly provided</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">strict-field-checks</span></code> is set to <code class="docutils literal notranslate"><span class="pre">true</span></code> for validate to provide check the
+tabular data –checksum and ORBNUM products–</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">target</span></code> simply specifies the location of the bundle</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">report</span></code> simply specifies the location of the resulting validation report</p></li>
+</ul>
+</div></blockquote>
+<p>The following <code class="docutils literal notranslate"><span class="pre">validate</span></code> example command for ExoMars2016:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ validate -v 1 -t em16/em16_spice –skip-context-validation \
+-R pds4.bundle -x working/PDS4_PDS_1B00.xsd -S working/PDS4_PDS_1B00.sch \
+–strict-field-checks -r working/em16_release_03.validate
+</pre></div>
+</div>
+<p>Would be equivalent to the following resulting <code class="docutils literal notranslate"><span class="pre">validate</span></code> configuration file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run the PDS validate tool where the NPB working directory resides:</span>
+<span class="c1"># $ validate -c working/em16_release_03.config.validate</span>
+<span class="n">validate</span><span class="o">.</span><span class="n">target</span> <span class="o">=</span> <span class="n">em16</span><span class="o">/</span><span class="n">em16_spice</span>
+<span class="n">validate</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">validate</span><span class="o">.</span><span class="n">skipContextValidation</span> <span class="o">=</span> <span class="n">true</span>
+<span class="n">validate</span><span class="o">.</span><span class="n">rule</span> <span class="o">=</span> <span class="n">pds4</span><span class="o">.</span><span class="n">bundle</span>
+<span class="n">validate</span><span class="o">.</span><span class="n">schema</span> <span class="o">=</span> <span class="n">working</span><span class="o">/</span><span class="n">PDS4_PDS_1B00</span><span class="o">.</span><span class="n">xsd</span>
+<span class="n">validate</span><span class="o">.</span><span class="n">schematron</span> <span class="o">=</span> <span class="n">working</span><span class="o">/</span><span class="n">PDS4_PDS_1B00</span><span class="o">.</span><span class="n">sch</span>
+<span class="n">validate</span><span class="o">.</span><span class="n">strictFieldChecks</span> <span class="o">=</span> <span class="n">true</span>
+<span class="n">validate</span><span class="o">.</span><span class="n">report</span> <span class="o">=</span> <span class="n">working</span><span class="o">/</span><span class="n">em16_release_03</span><span class="o">.</span><span class="n">validate</span>
+</pre></div>
+</div>
+<p>If there is an issue during the generation of this file –e.g.: no internet
+connection– the process will silently fail but the NPB run will be successful.</p>
 </section>
 </section>
 <section id="checks-performed-by-npb">
@@ -923,24 +977,25 @@ and <code class="docutils literal notranslate"><span class="pre">DESCRIPTION</sp
 </ul>
 </div></blockquote>
 </section>
-<section id="module-pds.naif_pds4_bundler.classes.product.SpiceKernelProduct.check_kernel_integrity">
-<span id="spice-kernel-integrity-check"></span><h3>SPICE Kernel Integrity Check<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.product.SpiceKernelProduct.check_kernel_integrity" title="Permalink to this headline">¶</a></h3>
-<p>Check if the SPICE Kernel has the adequate architecture.</p>
-<p>All SPICE kernels must have a NAIF file ID word as the first “word” on
-the first line of the kernel. This “word” describes the architecture
-of the kernel.</p>
-<p>A binary kernel could have the following architectures:</p>
+<section id="module-pds.naif_pds4_bundler.classes.list.KernelList.check_products">
+<span id="product-in-kernel-list-checks"></span><h3>Product in Kernel List Checks<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.list.KernelList.check_products" title="Permalink to this headline">¶</a></h3>
+<p>Check the SPICE kernel and ORBNUM products from the kernel list.</p>
+<p>The products present in the Kernel List –whether if generated by NPB
+or provided by the user– will be checked and if issues are found they
+will be reported as <code class="docutils literal notranslate"><span class="pre">WARNING</span></code> or <code class="docutils literal notranslate"><span class="pre">ERROR</span></code> messages.</p>
+<p>The checks performed to the products are the following:</p>
 <blockquote>
 <div><ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">DAF</span></code>: The file is based on the DAF architecture.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">DAS</span></code>: The file is based on the DAS architecture.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">XFR</span></code>: The file is in a SPICE transfer file format.</p></li>
+<li><p>identify if a SPICE kernel is present in multiple kernel directories</p></li>
+<li><p>check End of Line character for text SPICE kernels and ORBNUM files.</p></li>
+<li><p>check text SPICE kernels and ORBNUM files for non-ASCII characters.</p></li>
+<li><p>validate kernel architecture</p></li>
+<li><p>check endianness of binary kernels</p></li>
 </ul>
 </div></blockquote>
-<p>For an archive only <code class="docutils literal notranslate"><span class="pre">DAF</span></code> is acceptable.</p>
-<p>Text kernels must have <code class="docutils literal notranslate"><span class="pre">KPL</span></code> (Kernel Pool File) architecture.</p>
-<p>NPB checks if binary kernels have a <code class="docutils literal notranslate"><span class="pre">DAF</span></code> architecture and text kernels
-a <code class="docutils literal notranslate"><span class="pre">KPL</span></code> architecture.</p>
+</section>
+<section id="spice-kernel-integrity-check">
+<h3>SPICE Kernel Integrity Check<a class="headerlink" href="#spice-kernel-integrity-check" title="Permalink to this headline">¶</a></h3>
 </section>
 <section id="module-pds.naif_pds4_bundler.classes.product.MetaKernelProduct.validate">
 <span id="meta-kernel-validation"></span><h3>Meta-kernel Validation<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.product.MetaKernelProduct.validate" title="Permalink to this headline">¶</a></h3>

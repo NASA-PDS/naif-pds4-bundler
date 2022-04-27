@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pds.naif_pds4_bundler.utils.files &mdash; NAIF PDS4 Bundler 1.0.2
+  <title>pds.naif_pds4_bundler.utils.files &mdash; NAIF PDS4 Bundler 1.1.0
  documentation</title>
   
 
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                1.0
+                1.1
               </div>
             
           
@@ -168,6 +168,7 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
 
 <span class="kn">import</span> <span class="nn">spiceypy</span>
@@ -362,7 +363,7 @@
     <span class="k">return</span> <span class="n">kernel_extension</span></div>
 
 
-<div class="viewcode-block" id="add_carriage_return"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.utils.html#pds.naif_pds4_bundler.utils.files.add_carriage_return">[docs]</a><span class="k">def</span> <span class="nf">add_carriage_return</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">eol</span><span class="p">,</span> <span class="n">setup</span><span class="p">):</span>
+<div class="viewcode-block" id="add_carriage_return"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.utils.html#pds.naif_pds4_bundler.utils.files.add_carriage_return">[docs]</a><span class="k">def</span> <span class="nf">add_carriage_return</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">eol</span><span class="p">,</span> <span class="n">setup</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Adds Carriage Return (``&lt;CR&gt;``) to a line.</span>
 
 <span class="sd">    :param line: Input line</span>
@@ -390,7 +391,7 @@
     <span class="k">return</span> <span class="n">line</span></div>
 
 
-<div class="viewcode-block" id="add_crs_to_file"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.utils.html#pds.naif_pds4_bundler.utils.files.add_crs_to_file">[docs]</a><span class="k">def</span> <span class="nf">add_crs_to_file</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">eol</span><span class="p">,</span> <span class="n">setup</span><span class="p">):</span>
+<div class="viewcode-block" id="add_crs_to_file"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.utils.html#pds.naif_pds4_bundler.utils.files.add_crs_to_file">[docs]</a><span class="k">def</span> <span class="nf">add_crs_to_file</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">eol</span><span class="p">,</span> <span class="n">setup</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Adds Carriage Return (``&lt;CR&gt;``) to a file.</span>
 
 <span class="sd">    :param line: Input file</span>
@@ -1066,6 +1067,220 @@
         <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">*</span> <span class="mi">31</span> <span class="o">+</span> <span class="s2">&quot;}</span><span class="se">\n</span><span class="s2">&quot;</span>
 
     <span class="k">return</span> <span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="product_mapping"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.utils.html#pds.naif_pds4_bundler.utils.files.product_mapping">[docs]</a><span class="k">def</span> <span class="nf">product_mapping</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">setup</span><span class="p">,</span> <span class="n">cleanup</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Obtain the kernel mapping.</span>
+
+<span class="sd">    :return: Kernel Mapping</span>
+<span class="sd">    :rtype: str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">kernel_list_file</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">setup</span><span class="o">.</span><span class="n">working_directory</span>
+            <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span>
+            <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">setup</span><span class="o">.</span><span class="n">run_type</span><span class="si">}</span><span class="s2">_&quot;</span>
+              <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">setup</span><span class="o">.</span><span class="n">release</span><span class="p">)</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">.kernel_list&quot;</span>
+    <span class="p">)</span>
+
+    <span class="n">get_map</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">mapping</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">kernel_list_file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">lst</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lst</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                <span class="n">get_map</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="n">get_map</span> <span class="ow">and</span> <span class="s2">&quot;MAPPING&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                <span class="n">mapping</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="n">get_map</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">cleanup</span><span class="p">:</span>
+        <span class="n">setup</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="c1">#</span>
+    <span class="c1"># If cleanup is not being performed this is an indication that if the kernel</span>
+    <span class="c1"># mapping does not exist, this can be intentional and therefore an error</span>
+    <span class="c1"># does not have to be reported.</span>
+    <span class="c1">#</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">mapping</span> <span class="ow">and</span> <span class="n">cleanup</span><span class="p">:</span>
+        <span class="n">error_message</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> does not have mapping on </span><span class="si">{</span><span class="n">kernel_list_file</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">,</span>
+            <span class="n">setup</span><span class="o">=</span><span class="n">setup</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">mapping</span></div>
+
+
+<div class="viewcode-block" id="check_kernel_integrity"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.utils.html#pds.naif_pds4_bundler.utils.files.check_kernel_integrity">[docs]</a><span class="k">def</span> <span class="nf">check_kernel_integrity</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Check if the SPICE Kernel has the adequate architecture.</span>
+
+<span class="sd">    All SPICE kernels must have a NAIF file ID word as the first &quot;word&quot; on</span>
+<span class="sd">    the first line of the kernel. This &quot;word&quot; describes the architecture</span>
+<span class="sd">    of the kernel.</span>
+
+<span class="sd">    A binary kernel could have the following architectures:</span>
+
+<span class="sd">      * ``DAF``: The file is based on the DAF architecture.</span>
+<span class="sd">      * ``DAS``: The file is based on the DAS architecture.</span>
+<span class="sd">      * ``XFR``: The file is in a SPICE transfer file format.</span>
+
+<span class="sd">    For an archive only ``DAF`` is acceptable.</span>
+
+<span class="sd">    Text kernels must have ``KPL`` (Kernel Pool File) architecture.</span>
+
+<span class="sd">    NPB checks if binary kernels have a ``DAF`` architecture and text kernels</span>
+<span class="sd">    a ``KPL`` architecture.</span>
+
+<span class="sd">    :param path: SPICE Kernel or ORBNUM path</span>
+<span class="sd">    :type path: str</span>
+<span class="sd">    :return: Error message if error present</span>
+<span class="sd">    :rtype: str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">error</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="n">extension</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="n">type_file</span> <span class="o">=</span> <span class="n">extension_to_type</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+
+    <span class="c1">#</span>
+    <span class="c1"># Determine if it is a binary or a text kernel.</span>
+    <span class="c1">#</span>
+    <span class="k">if</span> <span class="n">extension</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;b&quot;</span><span class="p">:</span>
+        <span class="n">file_format</span> <span class="o">=</span> <span class="s2">&quot;Binary&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">file_format</span> <span class="o">=</span> <span class="s2">&quot;Character&quot;</span>
+
+    <span class="c1">#</span>
+    <span class="c1"># All files that are to have labels generated must have a NAIF</span>
+    <span class="c1"># file ID word as the first &quot;word&quot; on the first line of the</span>
+    <span class="c1"># file. Check if it is the case.</span>
+    <span class="c1">#</span>
+    <span class="p">(</span><span class="n">arch</span><span class="p">,</span> <span class="nb">type</span><span class="p">)</span> <span class="o">=</span> <span class="n">spiceypy</span><span class="o">.</span><span class="n">getfat</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">file_format</span> <span class="o">==</span> <span class="s2">&quot;Binary&quot;</span><span class="p">:</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># A binary file could have the following architectures:</span>
+        <span class="c1">#</span>
+        <span class="c1">#   DAF - The file is based on the DAF architecture.</span>
+        <span class="c1">#   DAS - The file is based on the DAS architecture.</span>
+        <span class="c1">#   XFR - The file is in a SPICE transfer file format.</span>
+        <span class="c1">#</span>
+        <span class="c1"># But for an archive only DAF is acceptable.</span>
+        <span class="c1">#</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">arch</span> <span class="o">!=</span> <span class="s2">&quot;DAF&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">arch</span> <span class="o">!=</span> <span class="s2">&quot;DAS&quot;</span><span class="p">):</span>
+            <span class="n">error</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Kernel </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> architecture </span><span class="si">{</span><span class="n">arch</span><span class="si">}</span><span class="s2"> is invalid.&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+    <span class="k">elif</span> <span class="n">file_format</span> <span class="o">==</span> <span class="s2">&quot;Character&quot;</span><span class="p">:</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># Text kernels must have KPL architecture:</span>
+        <span class="c1">#</span>
+        <span class="c1">#    KPL -- Kernel Pool File (i.e., a text kernel)</span>
+        <span class="c1">#</span>
+        <span class="k">if</span> <span class="n">arch</span> <span class="o">!=</span> <span class="s2">&quot;KPL&quot;</span><span class="p">:</span>
+            <span class="n">error</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Kernel </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> architecture </span><span class="si">{</span><span class="n">arch</span><span class="si">}</span><span class="s2"> is invalid.&quot;</span>
+
+    <span class="k">if</span> <span class="nb">type</span> <span class="o">!=</span> <span class="n">type_file</span><span class="p">:</span>
+        <span class="n">error</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Kernel </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> type </span><span class="si">{</span><span class="n">type_file</span><span class="si">}</span><span class="s2"> is not the one expected: </span><span class="si">{</span><span class="nb">type</span><span class="si">}</span><span class="s2">.&quot;</span>
+
+    <span class="k">return</span> <span class="n">error</span></div>
+
+
+<div class="viewcode-block" id="check_binary_endianness"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.utils.html#pds.naif_pds4_bundler.utils.files.check_binary_endianness">[docs]</a><span class="k">def</span> <span class="nf">check_binary_endianness</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">endianness</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Check if the SPICE Kernel has the adequate architecture.</span>
+
+<span class="sd">    PDS4 Bundles require LTL-IEEE binary kernels and PDS3 data sets require</span>
+<span class="sd">    BIG-IEEE binary kernels. This behavior can be changed via configuration.</span>
+
+<span class="sd">    This method ensures that the endianness of binary kernels is the</span>
+<span class="sd">    appropriate one according to the configuration.</span>
+
+<span class="sd">    :param path: Binary SPICE kernel path</span>
+<span class="sd">    :type path: str</span>
+<span class="sd">    :param endianness: Expected Binary file endianness</span>
+<span class="sd">    :type endianness: str</span>
+<span class="sd">    :return: Error message if error present</span>
+<span class="sd">    :rtype: str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">error</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">handle</span> <span class="o">=</span> <span class="n">spiceypy</span><span class="o">.</span><span class="n">dafopw</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">byteorder</span> <span class="o">!=</span> <span class="n">endianness</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-- The binary kernel is </span><span class="si">{</span><span class="n">endianness</span><span class="si">}</span><span class="s2"> endian; this&quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot; endianness is not supported by your machine.&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;   You can use NAIF&#39;s utility BINGO to convert the file.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">error</span> <span class="o">=</span> <span class="s2">&quot;The binary kernel is not readable by your machine.&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">byteorder</span> <span class="o">!=</span> <span class="n">endianness</span><span class="p">:</span>
+            <span class="n">error</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;The binary kernel is </span><span class="si">{</span><span class="n">sys</span><span class="o">.</span><span class="n">byteorder</span><span class="si">}</span><span class="s2"> endian; this &quot;</span> \
+                    <span class="sa">f</span><span class="s2">&quot;endianness is not the one specified via configuration.&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">pass</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">spiceypy</span><span class="o">.</span><span class="n">dafcls</span><span class="p">(</span><span class="n">handle</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+    <span class="k">return</span> <span class="n">error</span></div>
+
+
+<div class="viewcode-block" id="check_badchar"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.utils.html#pds.naif_pds4_bundler.utils.files.check_badchar">[docs]</a><span class="k">def</span> <span class="nf">check_badchar</span><span class="p">(</span><span class="n">file</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Check NON-ASCII characters for a file.</span>
+
+<span class="sd">    :param file: Path to file to check</span>
+<span class="sd">    :return: Resulting error messages</span>
+<span class="sd">    :rtype: list</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">error</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">line_num</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">isascii</span><span class="p">():</span>
+                <span class="n">char_count</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">badchars</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">char</span><span class="o">.</span><span class="n">isascii</span><span class="p">():</span>
+                        <span class="n">badchars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">char_count</span><span class="p">)</span>
+                    <span class="n">char_count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+                <span class="n">error</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;NON-ASCII character(s) in line </span><span class="si">{</span><span class="n">line_num</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
+                <span class="n">error</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">line</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">badchar_line</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">rstrip</span><span class="p">())</span>
+                <span class="k">for</span> <span class="n">badchar</span> <span class="ow">in</span> <span class="n">badchars</span><span class="p">:</span>
+                    <span class="n">badchar_line</span> <span class="o">=</span> <span class="n">badchar_line</span><span class="p">[:</span><span class="n">badchar</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;^&quot;</span> <span class="o">+</span> <span class="n">badchar_line</span><span class="p">[</span><span class="n">badchar</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span>
+                <span class="n">error</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">badchar_line</span><span class="p">)</span>
+            <span class="n">line_num</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">error</span></div>
+
+
+<div class="viewcode-block" id="check_eol"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.utils.html#pds.naif_pds4_bundler.utils.files.check_eol">[docs]</a><span class="k">def</span> <span class="nf">check_eol</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">eol</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Check file EOL.</span>
+
+<span class="sd">    :param file: Path to file to check</span>
+<span class="sd">    :param eol: Expected End of Line</span>
+<span class="sd">    :return: Resulting error messages</span>
+<span class="sd">    :rtype: str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">error</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">open_file</span><span class="p">:</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="n">open_file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">eol</span> <span class="o">==</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\r\n</span><span class="s1">&#39;</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
+            <span class="n">error</span> <span class="o">=</span> <span class="s2">&quot;Incorrect EOL in file, LF (</span><span class="se">\\</span><span class="s2">n) expected.&quot;</span>
+    <span class="k">elif</span> <span class="n">eol</span> <span class="o">==</span> <span class="s1">&#39;</span><span class="se">\r\n</span><span class="s1">&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">content</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;</span><span class="se">\r\n</span><span class="s1">&#39;</span><span class="p">)</span> <span class="o">!=</span> <span class="n">content</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">):</span>
+            <span class="n">error</span> <span class="o">=</span> <span class="s2">&quot;Incorrect EOL in file, CRLF (</span><span class="se">\\</span><span class="s2">r</span><span class="se">\\</span><span class="s2">n) expected.&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">error_message</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Incorrect EOL in configuration: </span><span class="si">{</span><span class="n">eol</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">error</span></div>
 </pre></div>
 
            </div>

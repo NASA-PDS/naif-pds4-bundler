@@ -8,7 +8,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>NAIF’s Approach to SPICE Kernel Archive Preparation &mdash; NAIF PDS4 Bundler 1.0.2
+  <title>NAIF’s Approach to SPICE Kernel Archive Preparation &mdash; NAIF PDS4 Bundler 1.1.0
  documentation</title>
   
 
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                1.0
+                1.1
               </div>
             
           
@@ -172,7 +172,7 @@
             
   <section id="naif-s-approach-to-spice-kernel-archive-preparation">
 <h1>NAIF’s Approach to SPICE Kernel Archive Preparation<a class="headerlink" href="#naif-s-approach-to-spice-kernel-archive-preparation" title="Permalink to this headline">¶</a></h1>
-<p>NAIF’s approach to creating SPICE archives can be summarized by this
+<p>NAIF’s approach to creating PDS4 SPICE archives can be summarized by this
 statement:</p>
 <blockquote>
 <div><p>All SPICE data for a given mission are archived as UNIX
@@ -189,14 +189,14 @@ parentheses is briefly explained below:</p>
 <div><ol class="arabic">
 <li><p><em>All SPICE data are archived as UNIX text and binary kernels,
 meaning that all text kernels have lines terminated by</em> <code class="docutils literal notranslate"><span class="pre">&lt;LF&gt;</span></code> <em>(line feed)
-only and all binary kernels are in</em> <code class="docutils literal notranslate"><span class="pre">BIG-IEEE</span></code> <em>(big-endian) binary
+only and all binary kernels are in</em> <code class="docutils literal notranslate"><span class="pre">LTL-IEEE</span></code> <em>(little-endian or IEEE LSB) binary
 format.</em></p>
 <p>Following this requirement ensures consistency across all SPICE
 archives and usability of the data for both future users and
 the archive distribution and manipulation tools at the NAIF
 Node of the PDS. If conversion of text kernels with
 lines terminated by <code class="docutils literal notranslate"><span class="pre">&lt;CR&gt;&lt;LF&gt;</span></code> (carriage return and line feed)
-and binary kernels in <code class="docutils literal notranslate"><span class="pre">LTL-IEEE</span></code> (little-endian) format to the
+and binary kernels in <code class="docutils literal notranslate"><span class="pre">BIG-IEEE</span></code> (big-endian) format to the
 required format is needed, NAIF provides a utility program called <code class="docutils literal notranslate"><span class="pre">BINGO</span></code>,
 available on the “Utilities”s page on the NAIF web site.</p>
 </li>

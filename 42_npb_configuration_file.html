@@ -8,7 +8,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>The Configuration File &mdash; NAIF PDS4 Bundler 1.0.2
+  <title>The Configuration File &mdash; NAIF PDS4 Bundler 1.1.0
  documentation</title>
   
 
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                1.0
+                1.1
               </div>
             
           
@@ -356,6 +356,7 @@ parameter.:</p>
         &lt;!-- End of line format can either be &#39;CRLF&#39; or &#39;LF&#39;, &#39;CRLF&#39; is the
              default value --&gt;
         &lt;end_of_line&gt;CRLF&lt;/end_of_line&gt;
+        &lt;binary_endianness&gt;LTL-IEEE&lt;/binary_endianness&gt;
     &lt;/bundle_parameters&gt;
 
     &lt;!-- =========================== --&gt;
@@ -858,10 +859,20 @@ The default value is <code class="docutils literal notranslate"><span class="pre
 <tr class="row-even"><td><p>end_of_line</p></td>
 <td><p>The end of line character for products can either be <code class="docutils literal notranslate"><span class="pre">CRLF</span></code> or <code class="docutils literal notranslate"><span class="pre">LF</span></code>.
 The default is <code class="docutils literal notranslate"><span class="pre">CRLF</span></code> (for <code class="docutils literal notranslate"><span class="pre">&lt;CR&gt;&lt;LF&gt;</span></code>). NAIF recommends to use
-<code class="docutils literal notranslate"><span class="pre">&lt;CRLF&gt;</span></code> when using PDS IM version prior to 1.14.0.0, The choice of
+<code class="docutils literal notranslate"><span class="pre">&lt;CRLF&gt;</span></code> when using PDS IM version prior to 1.14.0.0. The choice of
 this parameter affects the content of the SPICEDS file (section
 “File Formats”.) More information is provided in
 <a class="reference internal" href="32_step_2_npb_setup.html#spice-data-set-catalog-file"><span class="std std-ref">SPICE Data Set Catalog File</span></a>.</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-odd"><td><p>binary_endianness</p></td>
+<td><p>Binary SPICE kernels (SPK, CK, DSK, PCK) can either be little endian
+(<code class="docutils literal notranslate"><span class="pre">LTL-IEEE</span></code>, <code class="docutils literal notranslate"><span class="pre">little</span></code>) or big endian (<code class="docutils literal notranslate"><span class="pre">BIG-IEEE</span></code>, <code class="docutils literal notranslate"><span class="pre">big</span></code>). NAIF
+requires little endian binary kernels for PDS4 archives and therefore it
+is the default value of this element. The choice of this parameter
+affects the content of the SPICEDS file (section “File Formats”.) More
+information is provided in
+<a class="reference internal" href="31_step_1_preparing_data.html#binary-kernels-endianness"><span class="std std-ref">Binary Kernels Endianness</span></a>.</p></td>
 <td><p>No</p></td>
 </tr>
 </tbody>

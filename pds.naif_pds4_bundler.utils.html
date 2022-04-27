@@ -8,7 +8,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pds.naif_pds4_bundler.utils package &mdash; NAIF PDS4 Bundler 1.0.2
+  <title>pds.naif_pds4_bundler.utils package &mdash; NAIF PDS4 Bundler 1.1.0
  documentation</title>
   
 
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                1.0
+                1.1
               </div>
             
           
@@ -202,7 +202,7 @@ wrapped function. See: <a class="reference external" href="https://github.com/sp
 <p>File and Text Management Functions to support NPB Classes.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="pds.naif_pds4_bundler.utils.files.add_carriage_return">
-<span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.utils.files.</span></span><span class="sig-name descname"><span class="pre">add_carriage_return</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">line</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">setup</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/utils/files.html#add_carriage_return"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.utils.files.add_carriage_return" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.utils.files.</span></span><span class="sig-name descname"><span class="pre">add_carriage_return</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">line</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">setup</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/utils/files.html#add_carriage_return"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.utils.files.add_carriage_return" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds Carriage Return (<code class="docutils literal notranslate"><span class="pre">&lt;CR&gt;</span></code>) to a line.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -222,7 +222,7 @@ wrapped function. See: <a class="reference external" href="https://github.com/sp
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pds.naif_pds4_bundler.utils.files.add_crs_to_file">
-<span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.utils.files.</span></span><span class="sig-name descname"><span class="pre">add_crs_to_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">setup</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/utils/files.html#add_crs_to_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.utils.files.add_crs_to_file" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.utils.files.</span></span><span class="sig-name descname"><span class="pre">add_crs_to_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">setup</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/utils/files.html#add_crs_to_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.utils.files.add_crs_to_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds Carriage Return (<code class="docutils literal notranslate"><span class="pre">&lt;CR&gt;</span></code>) to a file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -233,6 +233,47 @@ wrapped function. See: <a class="reference external" href="https://github.com/sp
 </dd>
 <dt class="field-even">Raise</dt>
 <dd class="field-even"><p>If CR cannot be added to the file</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.utils.files.check_badchar">
+<span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.utils.files.</span></span><span class="sig-name descname"><span class="pre">check_badchar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/utils/files.html#check_badchar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.utils.files.check_badchar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check NON-ASCII characters for a file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>file</strong> – Path to file to check</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Resulting error messages</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.utils.files.check_binary_endianness">
+<span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.utils.files.</span></span><span class="sig-name descname"><span class="pre">check_binary_endianness</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endianness</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/utils/files.html#check_binary_endianness"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.utils.files.check_binary_endianness" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if the SPICE Kernel has the adequate architecture.</p>
+<p>PDS4 Bundles require LTL-IEEE binary kernels and PDS3 data sets require
+BIG-IEEE binary kernels. This behavior can be changed via configuration.</p>
+<p>This method ensures that the endianness of binary kernels is the
+appropriate one according to the configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>str</em>) – Binary SPICE kernel path</p></li>
+<li><p><strong>endianness</strong> (<em>str</em>) – Expected Binary file endianness</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Error message if error present</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
 </dd>
 </dl>
 </dd></dl>
@@ -252,6 +293,58 @@ in such a way that the enumeration contains all expected numbers.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.utils.files.check_eol">
+<span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.utils.files.</span></span><span class="sig-name descname"><span class="pre">check_eol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eol</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/utils/files.html#check_eol"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.utils.files.check_eol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check file EOL.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file</strong> – Path to file to check</p></li>
+<li><p><strong>eol</strong> – Expected End of Line</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Resulting error messages</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.utils.files.check_kernel_integrity">
+<span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.utils.files.</span></span><span class="sig-name descname"><span class="pre">check_kernel_integrity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/utils/files.html#check_kernel_integrity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.utils.files.check_kernel_integrity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if the SPICE Kernel has the adequate architecture.</p>
+<p>All SPICE kernels must have a NAIF file ID word as the first “word” on
+the first line of the kernel. This “word” describes the architecture
+of the kernel.</p>
+<p>A binary kernel could have the following architectures:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">DAF</span></code>: The file is based on the DAF architecture.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DAS</span></code>: The file is based on the DAS architecture.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">XFR</span></code>: The file is in a SPICE transfer file format.</p></li>
+</ul>
+</div></blockquote>
+<p>For an archive only <code class="docutils literal notranslate"><span class="pre">DAF</span></code> is acceptable.</p>
+<p>Text kernels must have <code class="docutils literal notranslate"><span class="pre">KPL</span></code> (Kernel Pool File) architecture.</p>
+<p>NPB checks if binary kernels have a <code class="docutils literal notranslate"><span class="pre">DAF</span></code> architecture and text kernels
+a <code class="docutils literal notranslate"><span class="pre">KPL</span></code> architecture.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>path</strong> (<em>str</em>) – SPICE Kernel or ORBNUM path</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Error message if error present</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
 </dd>
 </dl>
 </dd></dl>
@@ -594,6 +687,20 @@ sign <code class="docutils literal notranslate"><span class="pre">$</span></code
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pds.naif_pds4_bundler.utils.files.product_mapping">
+<span class="sig-prename descclassname"><span class="pre">pds.naif_pds4_bundler.utils.files.</span></span><span class="sig-name descname"><span class="pre">product_mapping</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">setup</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cleanup</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pds/naif_pds4_bundler/utils/files.html#product_mapping"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pds.naif_pds4_bundler.utils.files.product_mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Obtain the kernel mapping.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Kernel Mapping</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
 </dd>
 </dl>
 </dd></dl>

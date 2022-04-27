@@ -1,7 +1,7 @@
 NAIF's Approach to SPICE Kernel Archive Preparation
 ===================================================
 
-NAIF's approach to creating SPICE archives can be summarized by this
+NAIF's approach to creating PDS4 SPICE archives can be summarized by this
 statement:
 
     All SPICE data for a given mission are archived as UNIX
@@ -17,7 +17,7 @@ parentheses is briefly explained below:
 
     1. *All SPICE data are archived as UNIX text and binary kernels,
        meaning that all text kernels have lines terminated by* ``<LF>`` *(line feed)
-       only and all binary kernels are in* ``BIG-IEEE`` *(big-endian) binary
+       only and all binary kernels are in* ``LTL-IEEE`` *(little-endian or IEEE LSB) binary
        format.*
 
        Following this requirement ensures consistency across all SPICE
@@ -25,7 +25,7 @@ parentheses is briefly explained below:
        the archive distribution and manipulation tools at the NAIF
        Node of the PDS. If conversion of text kernels with
        lines terminated by ``<CR><LF>`` (carriage return and line feed)
-       and binary kernels in ``LTL-IEEE`` (little-endian) format to the
+       and binary kernels in ``BIG-IEEE`` (big-endian) format to the
        required format is needed, NAIF provides a utility program called ``BINGO``,
        available on the "Utilities"s page on the NAIF web site.
 

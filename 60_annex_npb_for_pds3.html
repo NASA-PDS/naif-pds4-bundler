@@ -8,7 +8,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Appendix: NPB for PDS3 Archives &mdash; NAIF PDS4 Bundler 1.0.2
+  <title>Appendix: NPB for PDS3 Archives &mdash; NAIF PDS4 Bundler 1.1.0
  documentation</title>
   
 
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                1.0
+                1.1
               </div>
             
           
@@ -97,7 +97,10 @@
 <li class="toctree-l1"><a class="reference internal" href="50_api_docs.html">Modules, Classes, and Functions Documentation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Appendix: NPB for PDS3 Archives</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#configuration-file-particulars">Configuration File Particulars</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#using-npb-for-pds3-archives">Using NPB for PDS3 Archives</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-npb-for-pds3-archives">Using NPB for PDS3 Archives</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#binary-kernels-endianness-in-pds3-archives">Binary kernels endianness in PDS3 archives</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#known-differences-from-archives-generated-with-naif-s-pds3-archiving-approach">Known differences from archives generated with NAIF’s PDS3 archiving approach</a></li>
 </ul>
 </li>
@@ -197,6 +200,18 @@ and <code class="docutils literal notranslate"><span class="pre">descriptions</s
 PDS4 archive. The only differences being present in the content of NPB’s
 logging. Please refer to section
 <a class="reference internal" href="43_using_npb.html#using-npb"><span class="std std-ref">Using NPB</span></a>, for more information.</p>
+<section id="binary-kernels-endianness-in-pds3-archives">
+<h3>Binary kernels endianness in PDS3 archives<a class="headerlink" href="#binary-kernels-endianness-in-pds3-archives" title="Permalink to this headline">¶</a></h3>
+<p>NAIF requires all their PDS3 archives to have <code class="docutils literal notranslate"><span class="pre">BIG-IEEE</span></code> binary kernels. The
+same applies to “old” archives from other agencies (ESA, JAXA) such as
+Mars Express (<code class="docutils literal notranslate"><span class="pre">mex-e_m-spice-6-v1.0</span></code>), Venus Express (<code class="docutils literal notranslate"><span class="pre">vex-e_v-spice-6-v1.0</span></code>),
+Rosetta (<code class="docutils literal notranslate"><span class="pre">ros-e_m_a_c-spice-6-v1.0</span></code>), and Hayabusa (<code class="docutils literal notranslate"><span class="pre">hay-a-spice-6-v1.0</span></code>).</p>
+<p>The only intentional exception to this rule are DSKs in the DAWN archive
+(<code class="docutils literal notranslate"><span class="pre">dawn-m_a-spice-6-v1.0</span></code>) which are <code class="docutils literal notranslate"><span class="pre">LTL-IEEE</span></code>.</p>
+<p>For “recent”, PDS3 ESA archives (<code class="docutils literal notranslate"><span class="pre">vex-e_v-spice-6-v2.0</span></code>, <code class="docutils literal notranslate"><span class="pre">mex-e_m-spice-6-v2.0</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">ro_rl-e_m_a_c-spice-6-v1.0</span></code>) and for JAXA’s Venus Climate Orbiter Akatsuki
+(<code class="docutils literal notranslate"><span class="pre">co-v-spice-6-v1.0</span></code>) archive endianness is set to <code class="docutils literal notranslate"><span class="pre">LTL-IEEE</span></code>.</p>
+</section>
 </section>
 <section id="known-differences-from-archives-generated-with-naif-s-pds3-archiving-approach">
 <h2>Known differences from archives generated with NAIF’s PDS3 archiving approach<a class="headerlink" href="#known-differences-from-archives-generated-with-naif-s-pds3-archiving-approach" title="Permalink to this headline">¶</a></h2>

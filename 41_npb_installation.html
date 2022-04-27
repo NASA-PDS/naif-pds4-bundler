@@ -8,7 +8,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>NPB Installation &mdash; NAIF PDS4 Bundler 1.0.2
+  <title>NPB Installation &mdash; NAIF PDS4 Bundler 1.1.0
  documentation</title>
   
 
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                1.0
+                1.1
               </div>
             
           
@@ -98,7 +98,10 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#">NPB Installation</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#user-quickstart">User Quickstart</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#manual-installation">Manual Installation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#manual-installation">Manual Installation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#known-installation-issues">Known Installation Issues</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#development-and-contribution">Development and Contribution</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#installation">Installation</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#packaging">Packaging</a></li>
@@ -234,6 +237,22 @@ Then run:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">uninstall</span> <span class="n">naif</span><span class="o">-</span><span class="n">pds4</span><span class="o">-</span><span class="n">bundler</span>
 </pre></div>
 </div>
+<section id="known-installation-issues">
+<h3>Known Installation Issues<a class="headerlink" href="#known-installation-issues" title="Permalink to this headline">¶</a></h3>
+<p>Certain versions of Python might report an installation error triggered by
+the installation of the NumPy package that is required by SpiceyPy. The error
+should point to a missing or invalid Cython package. In order to fix this error
+please update Python SetupTools and Cython packages by running the following
+commands:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">U</span> <span class="n">setuptools</span>
+<span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">cython</span>
+</pre></div>
+</div>
+<p>Then you can run the installation as usual:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span>
+</pre></div>
+</div>
+</section>
 </section>
 <section id="development-and-contribution">
 <h2>Development and Contribution<a class="headerlink" href="#development-and-contribution" title="Permalink to this headline">¶</a></h2>
@@ -255,7 +274,7 @@ the <code class="docutils literal notranslate"><span class="pre">pre-commit</spa
 </section>
 <section id="packaging">
 <h3>Packaging<a class="headerlink" href="#packaging" title="Permalink to this headline">¶</a></h3>
-<p>To isolate and be able to re-produce the environment for this package,
+<p>To isolate and be able to reproduce the environment for this package,
 you should use a
 <a class="reference external" href="https://docs.python.org/3/tutorial/venv.html">Python Virtual Environment</a>.
 To do so, run:</p>

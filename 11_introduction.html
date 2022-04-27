@@ -8,7 +8,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Applicability &mdash; NAIF PDS4 Bundler 1.0.2
+  <title>Applicability &mdash; NAIF PDS4 Bundler 1.1.0
  documentation</title>
   
 
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                1.0
+                1.1
               </div>
             
           
@@ -94,12 +94,7 @@
 <li class="toctree-l1 current"><a class="reference internal" href="10_overview.html">Overview</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Applicability</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#motivation">Motivation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#naif-s-approach-to-spice-kernel-archive-preparation">NAIF’s Approach to SPICE Kernel Archive Preparation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#how-to-read-this-document">How to Read This Document?</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#a-very-brief-introduction-to-spice">A Very Brief Introduction to SPICE</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#spice-kernels-organization">SPICE Kernels Organization</a></li>
-</ul>
-</li>
 <li class="toctree-l2"><a class="reference internal" href="12_bugs_contact_references.html">Reporting Bugs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="12_bugs_contact_references.html#contact-information">Contact Information</a></li>
 <li class="toctree-l2"><a class="reference internal" href="12_bugs_contact_references.html#references">References</a></li>
@@ -188,6 +183,16 @@ data at some other archive facility.</p>
 </section>
 <section id="motivation">
 <h1>Motivation<a class="headerlink" href="#motivation" title="Permalink to this headline">¶</a></h1>
+<p>NAIF’s approach to creating SPICE kernel archives can be summarized by this
+statement:</p>
+<p><strong>All SPICE data for a given mission are archived as UNIX text and binary
+files in a single, accumulating archive on a single virtual volume having
+the same directory structure, the same set of meta information files, data
+file labels with the same structure, and archive documents with the same
+structure as all SPICE archives produced by NAIF.</strong></p>
+<p>Each time that an accumulating archive is released we either refer this to
+a release of the archive or to an archive increment. In this document you
+will find both terms used interchangeably.</p>
 <p>This document should be seen as something more than a user’s software guide
 since it describes the whole process to prepare SPICE archives and it also
 describes the NAIF approach to using PDS4 standards in great detail (These
@@ -207,19 +212,6 @@ guidance, recommendations, and tools to generate and to validate
 the archives. These can help a great deal, but there is much that only the
 archive preparer can do.</p>
 </section>
-<section id="naif-s-approach-to-spice-kernel-archive-preparation">
-<h1>NAIF’s Approach to SPICE Kernel Archive Preparation<a class="headerlink" href="#naif-s-approach-to-spice-kernel-archive-preparation" title="Permalink to this headline">¶</a></h1>
-<p>NAIF’s approach to creating SPICE kernel archives can be summarized by this
-statement:</p>
-<p><strong>All SPICE data for a given mission are archived as UNIX text and binary
-files in a single, accumulating archive on a single virtual volume having
-the same directory structure, the same set of meta information files, data
-file labels with the same structure, and archive documents with the same
-structure as all SPICE archives produced by NAIF.</strong></p>
-<p>Each time that an accumulating archive is released we either refer this to
-a release of the archive or to an archive increment. In this document you
-will find both terms used interchangeably.</p>
-</section>
 <section id="how-to-read-this-document">
 <h1>How to Read This Document?<a class="headerlink" href="#how-to-read-this-document" title="Permalink to this headline">¶</a></h1>
 <p>We are glad that you got this far, but you’ve got a ways to go.
@@ -235,82 +227,6 @@ dedicated to the description of functions and
 modules is aimed at potential contributors to the further development of this
 NPB software package, if you are not planning to do so, don’t bother to take a
 look at that chapter.</p>
-</section>
-<section id="a-very-brief-introduction-to-spice">
-<h1>A Very Brief Introduction to SPICE<a class="headerlink" href="#a-very-brief-introduction-to-spice" title="Permalink to this headline">¶</a></h1>
-<p>The SPICE (Spacecraft Planets Instrument C- Matrix Events) information
-system uses ancillary data to provide solar system geometry information
-to scientists and engineers for planetary missions in order to plan and
-analyze scientific observations from space-born instruments.</p>
-<p>A SPICE archive includes the complete set of SPICE data files
-(kernel files) for a given mission, which can be accessed using SPICE
-software. The SPICE data contain geometric and other ancillary information
-needed to recover the full value of science instrument data. In particular
-SPICE kernels provide spacecraft and planetary ephemerides,
-spacecraft and instrument orientation, instrument mounting
-alignments, data specifiying target body size, shape and orientation,
-and data needed for relevant time conversions. Data in
-SPICE kernel files must be accessed using the software called
-the SPICE Toolkit produced and distributed by the Navigation and
-Ancillary Information Facility (NAIF) Node of the Planetary Data
-System.</p>
-<p>The SPICE toolkit is available in FORTRAN, C at the
-<a class="reference external" href="https://naif.jpl.nasa.gov">NAIF web site</a>.
-Interfaces to higher-level data analysis software in the Interactive Data
-Language (IDL), Matlab and JAVA are also provided. There are several other
-wrappers amongst which we highlight the Python wrapper SpiceyPy.</p>
-<section id="spice-kernels-organization">
-<h2>SPICE Kernels Organization<a class="headerlink" href="#spice-kernels-organization" title="Permalink to this headline">¶</a></h2>
-<p>SPICE kernels in a SPICE archive are grouped into a set of subdirectories.
-Each subdirectory contains one specific kernel type; those types are briefly
-described here.</p>
-<blockquote>
-<div><ul class="simple">
-<li><p><strong>SPK</strong> (Spacecraft Planet Kernel) files contain ephemerides (position
-and velocity) for spacecraft, planets, satellites, comets and
-asteroids as well as for moving or fixed spacecraft and instrument
-structures.</p></li>
-<li><p><strong>PCK</strong> (Planetary Constants Kernel) files contain certain physical,
-dynamical and cartographic constants for target bodies, such as size
-and shape specifications, and orientation of the spin axis and prime
-meridian.</p></li>
-<li><p><strong>IK</strong> (Instrument Kernel) files contain instrument parameters relevant
-for computing an instrument’s geometry such as field-of-view
-definitions, CCD and optical distortion characteristics, and internal
-timing parameters.</p></li>
-<li><p><strong>CK</strong> (C-matrix Kernel) files contain time varying orientations for
-spacecraft, spacecraft structures, and articulating science
-instruments.</p></li>
-<li><p><strong>LSK</strong> (Leapseconds Kernel) files contain the leapseconds and the
-values of other constants required to perform a transformation
-between Universal Time Coordinated (UTC) and Ephemeris time (ET),
-which is also known as Barycentric Dynamical Time (TDB).</p></li>
-<li><p><strong>SCLK</strong> (Spacecraft Clock Kernel) files contain on-board clock
-calibration data required to perform a transformation between
-Ephemeris time (ET) and spacecraft on-board time (SCLK).</p></li>
-<li><p><strong>FK</strong> (Frame definitions Kernel) files contain information required to
-define reference frames, sources of frame orientation data and
-connections between these frames and other frames supported within
-the SPICE system. The science instrument frame definitions provided
-in the FK files include mounting alignment information for the
-instruments.</p></li>
-<li><p><strong>DSK</strong> (Digital Shape Kernel) files contain detailed shape models for
-extended objects such as planets, natural satellites, asteroids, and
-comet nuclei.</p></li>
-</ul>
-</div></blockquote>
-<p>A SPICE archive contains one additional subdirectory holding meta-kernels,
-described here.</p>
-<blockquote>
-<div><ul class="simple">
-<li><p><strong>MK</strong> (Meta-Kernel) files list sets of related SPICE kernels that
-should be used together, providing an easy way to make data from
-these kernel sets available to a SPICE-based application by loading
-meta-kernels into the program using the high level SPICE data loader
-routine <code class="docutils literal notranslate"><span class="pre">FURNSH</span></code>.</p></li>
-</ul>
-</div></blockquote>
-</section>
 </section>
 
 

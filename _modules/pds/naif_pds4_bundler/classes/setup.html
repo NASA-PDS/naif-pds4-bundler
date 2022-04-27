@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pds.naif_pds4_bundler.classes.setup &mdash; NAIF PDS4 Bundler 1.0.2
+  <title>pds.naif_pds4_bundler.classes.setup &mdash; NAIF PDS4 Bundler 1.1.0
  documentation</title>
   
 
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                1.0
+                1.1
               </div>
             
           
@@ -165,10 +165,12 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">dirname</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span> <span class="nn">xml.etree</span> <span class="kn">import</span> <span class="n">cElementTree</span> <span class="k">as</span> <span class="n">ET</span>
 
+<span class="kn">import</span> <span class="nn">requests</span>
 <span class="kn">import</span> <span class="nn">spiceypy</span>
 <span class="kn">import</span> <span class="nn">xmlschema</span>
 
@@ -343,7 +345,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">date_format</span> <span class="o">=</span> <span class="s2">&quot;maklabel&quot;</span>
 
         <span class="c1">#</span>
-        <span class="c1"># Check End of Line format and set EoL length.</span>
+        <span class="c1"># Check text End of Line format and set EoL length.</span>
         <span class="c1">#</span>
         <span class="c1"># CRs are added to all text, XML, and other PDS meta-files</span>
         <span class="c1"># present in PDS4 archives as dictated by the standard.</span>
@@ -369,6 +371,26 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">eol_mk</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">eol_mk_len</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">eol_pds3</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\r\n</span><span class="s2">&quot;</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># Check and determine endianness.</span>
+        <span class="c1">#</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;binary_endianness&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s1">&#39;4&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">kernel_endianness</span> <span class="o">=</span> <span class="s2">&quot;little&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">kernel_endianness</span> <span class="o">=</span> <span class="s2">&quot;big&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">binary_endianness</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;little&quot;</span> <span class="ow">or</span> \
+                    <span class="bp">self</span><span class="o">.</span><span class="n">binary_endianness</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;ltl-ieee&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">kernel_endianness</span> <span class="o">=</span> <span class="s2">&quot;little&quot;</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">binary_endianness</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;big&quot;</span> <span class="ow">or</span> \
+                    <span class="bp">self</span><span class="o">.</span><span class="n">binary_endianness</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;big-ieee&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">kernel_endianness</span> <span class="o">=</span> <span class="s2">&quot;big&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">error_message</span><span class="p">(</span><span class="s2">&quot;binary_endianness configuration parameter value must be&quot;</span>
+                              <span class="s2">&quot; &#39;big&#39;, &#39;BIG-IEEE&#39;, &#39;little&#39; or &#39;LTL-IEEE&#39;. Case is not&quot;</span>
+                              <span class="s2">&quot; sensitive.&quot;</span><span class="p">)</span>
 
         <span class="c1">#</span>
         <span class="c1"># Fill missing fields.</span>
@@ -436,6 +458,35 @@
                 <span class="s2">&quot;[0-9]</span><span class="si">{4}</span><span class="s2">-[0-9]</span><span class="si">{2}</span><span class="s2">-[0-9]</span><span class="si">{2}</span><span class="s2">T&quot;</span> <span class="s2">&quot;[0-9]</span><span class="si">{2}</span><span class="s2">:[0-9]</span><span class="si">{2}</span><span class="s2">:[0-9]</span><span class="si">{2}</span><span class="s2">Z&quot;</span>
             <span class="p">)</span>
             <span class="nb">format</span> <span class="o">=</span> <span class="s2">&quot;YYYY-MM-DDThh:mm:ssZ&quot;</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># Check binary kernels endianness.</span>
+        <span class="c1">#</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s1">&#39;4&#39;</span><span class="p">:</span>
+            <span class="k">if</span>  <span class="bp">self</span><span class="o">.</span><span class="n">kernel_endianness</span> <span class="o">==</span> <span class="s2">&quot;little&quot;</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- Binary SPICE kernels expected to have LTL-IEEE (little endian) binary format.&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- Binary SPICE kernels expected to have BIG-IEEE (little endian) binary format.&quot;</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;-- NAIF strongly recommends to use LTL-IEEE (little endian) for binary kernels in PDS4 archives &quot;</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;   and enforces it if the archive is hosted by NAIF.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel_endianness</span> <span class="o">==</span> <span class="s2">&quot;little&quot;</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- Binary SPICE kernels expected to have LTL-IEEE (little endian) binary format.&quot;</span><span class="p">)</span>
+
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s2">&quot;-- NAIF strongly recommends to use BIG-IEEE (big endian) for binary kernels in PDS3 archives &quot;</span>
+                <span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span> <span class="s2">&quot;   and enforces it if the archive is hosted by NAIF.&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">byteorder</span> <span class="o">==</span> <span class="s2">&quot;big&quot;</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;   Your system is BIG-IEEE (big endian): PDS3 Labels cannot be attached to binary kernels.&quot;</span><span class="p">)</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;   If binary kernels are present this will result in an error.&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- Binary SPICE kernels expected to have BIG-IEEE (big endian) binary format.&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">byteorder</span> <span class="o">!=</span> <span class="s2">&quot;big&quot;</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                        <span class="s2">&quot;   Your system is LTL-IEEE (little endian): PDS3 Labels cannot be attached to binary kernels.&quot;</span>
+                    <span class="p">)</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;   If binary kernels are present this will result in an error.&quot;</span><span class="p">)</span>
 
         <span class="c1">#</span>
         <span class="c1"># Check Bundle increment start and finish times. For the two accepted</span>
@@ -1077,6 +1128,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">sclks</span> <span class="o">=</span> <span class="n">sclks</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lsk</span> <span class="o">=</span> <span class="n">lsk</span></div>
 
+<div class="viewcode-block" id="Setup.information_model_setup"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.setup.Setup.information_model_setup">[docs]</a>    <span class="k">def</span> <span class="nf">information_model_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Setup and check PDS4 Information Model related things.&quot;&quot;&quot;</span></div>
+
 <div class="viewcode-block" id="Setup.clear_run"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.setup.Setup.clear_run">[docs]</a>    <span class="k">def</span> <span class="nf">clear_run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Clears the files generated by a previous run.</span>
 
@@ -1218,7 +1272,67 @@
                 <span class="s2">&quot;w&quot;</span><span class="p">,</span>
             <span class="p">)</span> <span class="k">as</span> <span class="n">l</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">checksum_registry</span><span class="p">:</span>
-                    <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">element</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div></div>
+                    <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">element</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Setup.write_validate_configuration"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.setup.Setup.write_validate_configuration">[docs]</a>    <span class="k">def</span> <span class="nf">write_validate_configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write a PDS validate tool configuration file.</span>
+
+<span class="sd">        NPB will write a PDS validate tool configuration file for convenience</span>
+<span class="sd">        of the user. The following validate example command for ExoMars2016::</span>
+
+<span class="sd">           $ validate -v 1 -t em16/em16_spice –skip-context-validation \</span>
+<span class="sd">           -R pds4.bundle -x working/PDS4_PDS_1B00.xsd -S working/PDS4_PDS_1B00.sch \</span>
+<span class="sd">           –strict-field-checks -r working/em16_release_03.validate</span>
+
+<span class="sd">        Would be equivalent to the following resulting Validate configuration</span>
+<span class="sd">        file::</span>
+
+<span class="sd">           # Run the PDS validate tool where the NPB working directory resides:</span>
+<span class="sd">           # $ validate -c working/em16_release_03.config.validate</span>
+<span class="sd">           validate.target = em16/em16_spice</span>
+<span class="sd">           validate.verbose = 1</span>
+<span class="sd">           validate.skip-context-validation = true</span>
+<span class="sd">           validate.rule = pds4.bundle</span>
+<span class="sd">           validate.schema = working/PDS4_PDS_1B00.xsd</span>
+<span class="sd">           validate.schematron = working/PDS4_PDS_1B00.sch</span>
+<span class="sd">           validate.strictFieldChecks = true</span>
+<span class="sd">           validate.report = working/em16_release_03.validate</span>
+
+<span class="sd">        If there is an issue during the generation of this file --e.g.: no</span>
+<span class="sd">        internet connection-- the process will silently fail but the NPB run</span>
+<span class="sd">        will be successful.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pds_schematron_location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xml_model</span>
+        <span class="n">pds_schematron</span> <span class="o">=</span> <span class="n">pds_schematron_location</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pds_schematron_location</span><span class="p">,</span> <span class="n">allow_redirects</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">pds_schematron</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+
+        <span class="n">pds_schema_location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">schema_location</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">pds_schema</span> <span class="o">=</span> <span class="n">pds_schema_location</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pds_schema_location</span><span class="p">,</span> <span class="n">allow_redirects</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">pds_schema</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+
+        <span class="n">filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">run_type</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="p">)</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">.config.validate&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">l</span><span class="p">:</span>
+            <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;# Run the PDS validate tool where the NPB working directory resides:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;# $ validate -c </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">.config.validate</span><span class="se">\n</span><span class="s2">#</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;validate.target = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">bundle_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_spice</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;validate.report = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">.validate</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;validate.schema = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">pds_schema</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;validate.schematron = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">pds_schematron</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;validate.verbose = 1</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;validate.skipContextValidation = true</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;validate.rule = pds4.bundle</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;validate.strictFieldChecks = true</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div></div>
 </pre></div>
 
            </div>
