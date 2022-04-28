@@ -440,27 +440,46 @@ class Setup(object):
 
                 short_version = f"{major}{minor}{maint}{build}"
 
-                xml_model_version = self.xml_model.split("PDS4_PDS_")[-1]
-                xml_model_version = xml_model_version.split(".sch")[0]
+                #
+                # Check if xml_model is provided via configuration, if so check
+                # its validity and if not generate it.
+                #
+                if hasattr(self, "xml_model"):
+                    xml_model_version = self.xml_model.split("PDS4_PDS_")[-1]
+                    xml_model_version = xml_model_version.split(".sch")[0]
 
-                if xml_model_version != short_version:
-                    error_message(
-                        f"PDS4 Information Model "
-                        f"{short_version} "
-                        f"is incoherent with the XML Model version: "
-                        f"{self.xml_model}."
-                    )
+                    if xml_model_version != short_version:
+                        error_message(
+                            f"PDS4 Information Model "
+                            f"{short_version} "
+                            f"is incoherent with the XML Model version: "
+                            f"{self.xml_model}."
+                        )
+                else:
+                    self.xml_model = f"http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_{short_version}.sch"
+                    logging.info("-- Schema XML Model (xml_model) not provided with configuration file. Set to:")
+                    logging.info(f"   {self.xml_model}")
 
-                schema_loc_version = self.schema_location.split("/PDS4_PDS_")[-1]
-                schema_loc_version = schema_loc_version.split(".xsd")[0]
+                #
+                # Check if schema_location is provided via configuration, if so check
+                # its validity and if not generate it.
+                #
+                if hasattr(self, "schema_location"):
+                    schema_loc_version = self.schema_location.split("/PDS4_PDS_")[-1]
+                    schema_loc_version = schema_loc_version.split(".xsd")[0]
 
-                if schema_loc_version != short_version:
-                    error_message(
-                        f"PDS4 Information Model "
-                        f"{short_version} "
-                        f"is incoherent with the Schema location: "
-                        f"{self.schema_location}."
-                    )
+                    if schema_loc_version != short_version:
+                        error_message(
+                            f"PDS4 Information Model "
+                            f"{short_version} "
+                            f"is incoherent with the Schema location: "
+                            f"{self.schema_location}."
+                        )
+                else:
+                    self.schema_location = f"http://pds.nasa.gov/pds4/pds/v1 " \
+                                           f"http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_{short_version}.xsd"
+                    logging.info("-- Schema Location (schema_location) not provided with configuration file. Set to:")
+                    logging.info(f"   {self.schema_location}")
 
             else:
                 error_message(
