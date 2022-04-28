@@ -8,8 +8,7 @@
         <pds_version>4</pds_version>
         <information_model>1.5.0.0</information_model>
         <xml_model>http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.sch</xml_model>
-        <schema_location>http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd
-        </schema_location>
+        <schema_location>http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd</schema_location>
         <logical_identifier>urn:nasa:pds:insight.spice</logical_identifier>
         <context_products>
             <product name="InSight Mars Lander Spacecraft">

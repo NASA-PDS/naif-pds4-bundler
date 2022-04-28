@@ -179,6 +179,9 @@ class TestUnitTests(TestCase):
     def test_im_templates(self):
         im_format.test_im_templates(self)
 
+    def test_im_schema_resolution(self):
+        im_format.test_im_schema_resolution(self)
+
     #
     # Binary kernel endianness tests.
     #

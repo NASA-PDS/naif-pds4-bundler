@@ -85,12 +85,12 @@ def test_im_schema_incoherent(self):
             for line in c:
                 if (
                     "<schema_location>http://pds.nasa.gov/pds4/pds/v1 "
-                    "http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd" in line
+                    "http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd</schema_location>" in line
                 ):
                     n.write(
                         "<schema_location>http://pds.nasa.gov/pds4/pds/"
                         "v1 http://pds.nasa.gov/pds4/pds/v1/"
-                        "PDS4_PDS_1A00.xsd\n"
+                        "PDS4_PDS_1A00.xsd</schema_location>\n"
                     )
                 else:
                     n.write(line)
@@ -121,12 +121,12 @@ def test_im_version_ascii(self):
                     )
                 elif (
                     "<schema_location>http://pds.nasa.gov/pds4/pds/v1 "
-                    "http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd" in line
+                    "http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd</schema_location>" in line
                 ):
                     n.write(
                         "<schema_location>http://pds.nasa.gov/pds4/pds/"
                         "v1 http://pds.nasa.gov/pds4/pds/v1/"
-                        "PDS4_PDS_1G00.xsd\n"
+                        "PDS4_PDS_1G00.xsd</schema_location>\n"
                     )
                 else:
                     n.write(line)
@@ -162,12 +162,12 @@ def test_im_version_ascii_incorrect(self):
                     )
                 elif (
                     "<schema_location>http://pds.nasa.gov/pds4/pds/v1 "
-                    "http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd" in line
+                    "http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd</schema_location>" in line
                 ):
                     n.write(
                         "<schema_location>http://pds.nasa.gov/pds4/pds/"
                         "v1 http://pds.nasa.gov/pds4/pds/v1/"
-                        "PDS4_PDS_1G00.xsd\n"
+                        "PDS4_PDS_1G00.xsd</schema_location>\n"
                     )
                 else:
                     n.write(line)
@@ -194,12 +194,12 @@ def test_im_templates_16(self):
                     )
                 elif (
                     "<schema_location>http://pds.nasa.gov/pds4/pds/v1 "
-                    "http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd" in line
+                    "http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd</schema_location>" in line
                 ):
                     n.write(
                         "<schema_location>http://pds.nasa.gov/pds4/pds/"
                         "v1 http://pds.nasa.gov/pds4/pds/v1/"
-                        "PDS4_PDS_1J00.xsd\n"
+                        "PDS4_PDS_1J00.xsd<schema_location>\n"
                     )
                 else:
                     n.write(line)
@@ -233,12 +233,12 @@ def test_im_templates_14(self):
                     )
                 elif (
                     "<schema_location>http://pds.nasa.gov/pds4/pds/v1 "
-                    "http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd" in line
+                    "http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd</schema_location>" in line
                 ):
                     n.write(
                         "<schema_location>http://pds.nasa.gov/pds4/pds/"
                         "v1 http://pds.nasa.gov/pds4/pds/v1/"
-                        "PDS4_PDS_1F00.xsd\n"
+                        "PDS4_PDS_1F00.xsd<schema_location>\n"
                     )
                 else:
                     n.write(line)
@@ -271,12 +271,12 @@ def test_im_templates_11(self):
                     )
                 elif (
                     "<schema_location>http://pds.nasa.gov/pds4/pds/v1 "
-                    "http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd" in line
+                    "http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd</schema_location>" in line
                 ):
                     n.write(
                         "<schema_location>http://pds.nasa.gov/pds4/pds/"
                         "v1 http://pds.nasa.gov/pds4/pds/v1/"
-                        "PDS4_PDS_1C00.xsd\n"
+                        "PDS4_PDS_1C00.xsd</schema_location>\n"
                     )
                 else:
                     n.write(line)
@@ -309,12 +309,12 @@ def test_im_templates(self):
                     )
                 elif (
                     "<schema_location>http://pds.nasa.gov/pds4/pds/v1 "
-                    "http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd" in line
+                    "http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd</schema_location>" in line
                 ):
                     n.write(
                         "<schema_location>http://pds.nasa.gov/pds4/pds/"
                         "v1 http://pds.nasa.gov/pds4/pds/v1/"
-                        "PDS4_PDS_1B00.xsd\n"
+                        "PDS4_PDS_1B00.xsd</schema_location>\n"
                     )
                 else:
                     n.write(line)
@@ -328,3 +328,19 @@ def test_im_templates(self):
                 line_in_log = True
 
     self.assertTrue(line_in_log)
+
+
+def test_im_schema_resolution(self):
+    """Test determination of xml model and schema location from IM."""
+    post_setup(self)
+    with open(self.config, "r") as c:
+        with open(self.updated_config, "w") as n:
+            for line in c:
+                if ("<xml_model>" in line):
+                    pass
+                elif ("<schema_location>" in line):
+                    pass
+                else:
+                    n.write(line)
+
+    main(self.updated_config, faucet=self.faucet, silent=True, log=True)
