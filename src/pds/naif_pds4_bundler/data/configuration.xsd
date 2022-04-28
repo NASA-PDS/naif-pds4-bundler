@@ -35,8 +35,6 @@
               </xs:element>
             </xs:sequence>
             <xs:assert test="not(pds_version = 4) or information_model" />
-            <xs:assert test="not(pds_version = 4) or xml_model" />
-            <xs:assert test="not(pds_version = 4) or schema_location" />
             <xs:assert test="not(pds_version = 4) or logical_identifier" />
           </xs:complexType>
         </xs:element>
