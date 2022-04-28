@@ -459,13 +459,13 @@ products. The table below provides a summary of the parameters:
    * - xml_model
      - URL location of the XML Schematron associated with an information model.
        The ``information_model`` and ``xml_model`` parameters must refer to the
-       same information model.
-     - Yes
+       same information model. If not provided NPB generates it from the ``information_model``.
+     - No
    * - schema_location
      - URL location of the XML Schema associated with an information model. The
        ``schema_location`` and ``xml_model`` parameters must refer to the same
-       information model.
-     - Yes
+       information model. If not provided NPB generates it from the ``information_model``.
+     - No
    * - logical_identifier
      - Logical identifier for the bundle.
      - Yes
@@ -1513,10 +1513,12 @@ Here's an example for InSight::
 Manual Input
 ^^^^^^^^^^^^
 
-If you choose to provide a manually generated MK, you only need to provide
-the location of the MK(s) using the required number of entries of the
-``file`` element in ``mk_inputs``. E.g. for the LADEE archive the MK section
-of the configuration file can be as simple as: ::
+If you choose to provide a manually generated MK, an alternative to specify the
+MK in the release plan or in the kernel list is to provide it in the MK section
+of the configuration file: you can provide the location of the MK(s) using the
+required number of entries of the ``file`` element in ``mk_inputs``. E.g. for
+the LADEE archive the MK section of the configuration file can be as simple
+as::
 
     <meta-kernel>
         <mk_inputs>
