@@ -109,8 +109,6 @@ class Log(object):
                     f"{argument_dict[attribute]}"
                 )
 
-        logging.info("")
-
         if self.args.faucet == "labels":
             logging.info(
                 "-- Running in labeling mode. Only label products are generated."
