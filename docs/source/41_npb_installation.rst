@@ -125,7 +125,7 @@ Running Tests
 
 Run tests under the ``tests/naif_pds4_bundler`` directory with::
 
-    python -m unittest
+    python -m unittest discover -s tests/naif_pds4_bundler
 
 NPB tests use data available in the package and involves file and directory
 creation and destruction. Depending on your environment the package might be
