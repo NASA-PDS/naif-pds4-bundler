@@ -86,6 +86,12 @@ class Setup(object):
             self.kernels_directory = [self.kernels_directory]
 
         #
+        # Generate empty orbnum directory if not present.
+        #
+        if not hasattr(self, "orbnum_directory"):
+            self.orbnum_directory = ''
+
+        #
         # Kernel list configuration needs refactoring.
         #
         self.__dict__.update(config["kernel_list"])
@@ -365,6 +371,14 @@ class Setup(object):
                 )
 
         #
+        # Check that directories are not the same.
+        #
+        if (self.working_directory == self.staging_directory) or \
+                (self.bundle_directory == self.staging_directory) or \
+                (self.bundle_directory == self.working_directory):
+            error_message("The working, staging, and kernels directories must be different.")
+
+        #
         # Sort out if directories are provided as relative paths and
         # if so convert them in absolute for the execution
         #
@@ -386,25 +400,38 @@ class Setup(object):
             error_message(f"Directory does not exist: {self.working_directory}.")
 
         if os.path.isdir(cwd + os.sep + self.staging_directory):
-            self.staging_directory = (
-                cwd + os.sep + self.staging_directory + f"/{mission_dir}"
-            )
+            self.staging_directory = (cwd + os.sep + self.staging_directory + f"/{mission_dir}")
         elif not os.path.isdir(self.staging_directory):
-            print(
-                f"Creating missing directory: {self.staging_directory}/"
-                f"{mission_dir}"
+            logging.warning(
+                f"-- Creating staging directory: {self.staging_directory}/{mission_dir}."
             )
+            #
+            # If the faucet is set to plan, kerlist, or checks, this is just
+            # fine. Otherwise the non-existence must trigger an error.
+            #
             try:
-                os.mkdir(self.staging_directory)
-            except Exception as e:
-                print(e)
+                os.mkdir(cwd + os.sep + self.staging_directory)
+            except BaseException:
+                if self.faucet in ["plan", "list", "checks"]:
+                    logging.warning(f"-- Staging directory cannot be created but is not used with {self.faucet} faucet.")
+                else:
+                    error_message(f"Staging directory cannot be created: {self.staging_directory}.")
+
         elif f"/{mission_dir}" not in self.staging_directory:
             self.staging_directory += f"/{mission_dir}"
 
         if os.path.isdir(cwd + os.sep + self.bundle_directory):
             self.bundle_directory = cwd + os.sep + self.bundle_directory
+
+        #
+        # If the faucet is set to plan, kerlist, or checks, this is just
+        # fine. Otherwise the non-existence must trigger an error.
+        #
         if not os.path.isdir(self.bundle_directory):
-            error_message(f"Directory does not exist: {self.bundle_directory}.")
+            if self.faucet in ["plan", "list", "checks"]:
+                logging.warning(f"-- Bundle directory does not exist but is not used with {self.faucet} faucet.")
+            else:
+                error_message(f"Bundle directory does not exist: {self.bundle_directory}.")
 
         #
         # There might be more than one kernel directory

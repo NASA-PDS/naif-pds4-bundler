@@ -94,10 +94,7 @@ class TestFunctional(TestCase):
         test_dir = self.tmp_dir.name + "/naif_pds4_bundler/functional/"
         dirs = next(os.walk(test_dir))[1]
         for dir in dirs:
-            try:
-                shutil.rmtree(test_dir + dir)
-            except BaseException:
-                pass
+            shutil.rmtree(test_dir + dir)
 
     #
     # InSight functional tests.
@@ -176,6 +173,15 @@ class TestFunctional(TestCase):
 
     def test_insight_increment_with_misc(self):
         insight.test_insight_increment_with_misc(self)
+
+#å   def test_insight_missing_bundle_directory(self):
+#å       insight.test_insight_missing_bundle_directory(self)
+
+    def test_insight_missing_staging_directory_nok(self):
+        insight.test_insight_missing_staging_directory_nok(self)
+
+    def test_insight_flat_kernel_directory(self):
+        insight.test_insight_flat_kernel_directory(self)
 
     #
     # LADEE functional tests.
