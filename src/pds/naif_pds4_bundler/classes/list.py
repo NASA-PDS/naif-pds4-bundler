@@ -327,9 +327,7 @@ class KernelList(List):
         # Add possible orbnum files if not running in label generation
         # mode.
         #
-        if hasattr(self.setup, "orbnum_directory") and (
-            self.setup.args.faucet != "labels"
-        ):
+        if self.setup.orbnum_directory and (self.setup.args.faucet != "labels"):
             orbnums_in_dir = glob.glob(f"{self.setup.orbnum_directory}/*")
             for orbnum_in_dir in orbnums_in_dir:
                 for orbnum in self.setup.orbnum:
