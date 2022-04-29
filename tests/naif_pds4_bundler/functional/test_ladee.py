@@ -108,6 +108,7 @@ def test_ladee_date_format(self):
 
     main(updated_config, plan=False, silent=self.silent, log=self.log)
 
+
 def test_ladee_label_mode(self):
     """Test basic Label mode functionality.
 
@@ -134,6 +135,7 @@ def test_ladee_label_mode(self):
         silent=True,
         log=self.log,
     )
+
 
 def test_ladee_label_mode_ker_input(self):
     """Test Label mode functionality with single kernel as input.
@@ -191,6 +193,7 @@ def test_ladee_label_mode_ker_input(self):
         log=self.log,
     )
 
+
 def test_ladee_label_mode_plan_input(self):
     """Test basic Label mode functionality with a list as input.
 
@@ -237,6 +240,7 @@ def test_ladee_label_mode_plan_input(self):
         silent=True,
         log=self.log,
     )
+
 
 def test_ladee_label_mode_ker_bun_dir(self):
     """Test Label mode with same bundle and kernel directories.

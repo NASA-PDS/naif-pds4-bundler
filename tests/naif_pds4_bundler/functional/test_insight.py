@@ -924,3 +924,92 @@ def test_insight_increment_with_misc(self):
                  "kernels/mk/insight_2021_v08.tm")
 
     main(updated_config, plan, faucet="bundle", silent=self.silent, log=self.log)
+
+
+def test_insight_missing_bundle_directory(self):
+    """Test for missing bundle directory.
+
+    Test is successful if an error message is raised.
+    """
+    config = "../config/insight.xml"
+    plan = "../data/insight_release_26.plan"
+    faucet = "bundle"
+
+    shutil.copy(
+        "../data/insight_release_basic.kernel_list",
+        "working/insight_release_07.kernel_list")
+
+    shutil.copytree("../data/kernels", "kernels")
+
+    with self.assertRaises(RuntimeError):
+        main(config, plan, faucet, silent=self.silent, log=self.log)
+
+
+def test_insight_missing_staging_directory_nok(self):
+    """Test for missing staging directory."""
+    config = "../config/insight.xml"
+    updated_config = "insight.xml"
+    plan = "../data/insight_release_26.plan"
+    faucet = "list"
+
+    shutil.copytree("../data/insight", "insight")
+    shutil.copytree("../data/kernels", "kernels")
+
+    with open("../data/insight.list", "r") as i:
+        for line in i:
+            with open(f"insight/insight_spice/{line[0:-1]}", "w"):
+                pass
+
+    with open(config, "r") as c:
+        with open(updated_config, "w") as n:
+            for line in c:
+                if '<staging_directory>staging</staging_directory>' in line:
+                    n.write('<staging_directory>insight</staging_directory>\n')
+                else:
+                    n.write(line)
+
+    with self.assertRaises(RuntimeError):
+        main(updated_config, plan, faucet, silent=self.silent, log=self.log)
+
+    with open(config, "r") as c:
+        with open(updated_config, "w") as n:
+            for line in c:
+                if '<staging_directory>staging</staging_directory>' in line:
+                    n.write('<staging_directory>working</staging_directory>\n')
+                else:
+                    n.write(line)
+
+    with self.assertRaises(RuntimeError):
+        main(updated_config, plan, faucet, silent=self.silent, log=self.log)
+
+
+def test_insight_flat_kernel_directory(self):
+    """Test that kernels are obtained from a flat kernel directory.
+
+    No sub-directories present in the kernel directory structure expt for FKs.
+    """
+    config = "../config/insight.xml"
+    plan = "../data/insight_release_26.plan"
+    faucet = "bundle"
+
+    shutil.copy2(
+        "../data/insight_release_basic.kernel_list",
+        "working/insight_release_07.kernel_list",
+    )
+    shutil.copytree("../data/insight", "insight")
+
+    os.mkdir("kernels")
+
+    shutil.copytree("../data/kernels/fk", "kernels/fk")
+    shutil.copytree("../data/kernels/ik", "kernels/", dirs_exist_ok=True)
+    shutil.copytree("../data/kernels/lsk", "kernels/", dirs_exist_ok=True)
+    shutil.copytree("../data/kernels/mk", "kernels/", dirs_exist_ok=True)
+    shutil.copytree("../data/kernels/sclk", "kernels/", dirs_exist_ok=True)
+
+
+    with open("../data/insight.list", "r") as i:
+        for line in i:
+            with open(f"insight/insight_spice/{line[0:-1]}", "w"):
+                pass
+
+    main(config, plan, faucet, silent=self.silent, log=self.log)

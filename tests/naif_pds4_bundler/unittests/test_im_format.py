@@ -186,7 +186,7 @@ def test_im_templates_16(self):
                     n.write("<information_model>1.19.0.0</information_model>\n")
                 elif (
                     "<xml_model>http://pds.nasa.gov/pds4/pds/v1/"
-                    "PDS4_PDS_1500.sch</xml_model>\n" in line
+                    "PDS4_PDS_1500.sch</xml_model>" in line
                 ):
                     n.write(
                         "<xml_model>http://pds.nasa.gov/pds4/pds/v1/"
@@ -199,7 +199,7 @@ def test_im_templates_16(self):
                     n.write(
                         "<schema_location>http://pds.nasa.gov/pds4/pds/"
                         "v1 http://pds.nasa.gov/pds4/pds/v1/"
-                        "PDS4_PDS_1J00.xsd<schema_location>\n"
+                        "PDS4_PDS_1J00.xsd</schema_location>\n"
                     )
                 else:
                     n.write(line)
@@ -225,7 +225,7 @@ def test_im_templates_14(self):
                     n.write("<information_model>1.15.0.0</information_model>\n")
                 elif (
                     "<xml_model>http://pds.nasa.gov/pds4/pds/v1/"
-                    "PDS4_PDS_1500.sch</xml_model>\n" in line
+                    "PDS4_PDS_1500.sch</xml_model>" in line
                 ):
                     n.write(
                         "<xml_model>http://pds.nasa.gov/pds4/pds/v1/"
@@ -238,7 +238,7 @@ def test_im_templates_14(self):
                     n.write(
                         "<schema_location>http://pds.nasa.gov/pds4/pds/"
                         "v1 http://pds.nasa.gov/pds4/pds/v1/"
-                        "PDS4_PDS_1F00.xsd<schema_location>\n"
+                        "PDS4_PDS_1F00.xsd</schema_location>\n"
                     )
                 else:
                     n.write(line)
