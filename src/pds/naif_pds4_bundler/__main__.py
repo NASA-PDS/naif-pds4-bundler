@@ -24,7 +24,7 @@ optional arguments:
   -f FAUCET, --faucet FAUCET
                         Optional indication for end point of the pipeline.
                         Allowed values are: ``clear``, ``plan``, ``list``,
-                        ``staging``, ``bundle``, and ``labels``.
+                        ``checks``, ``staging``, ``bundle``, and ``labels``.
   -l, --log             Write log in file
   -s, --silent          Log will not be prompted on the terminal during
                         execution.
@@ -99,7 +99,7 @@ def main(
     :type plan: str
     :param faucet: Optional indication for end point of the pipeline.
                    Allowed values are: `clear``, ``plan``, ``list``,
-                   ``staging``, ``bundle``, and ``labels``.
+                   ``checks``, ``staging``, ``bundle``, and ``labels``.
     :type faucet: str
     :param log: Write log in file. The file is written in the
                 ``working_directory`` specified in the configuration file.
