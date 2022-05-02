@@ -72,7 +72,10 @@ class KernelList(List):
         self.AUTHOR = setup.producer_name
 
         if self.setup.pds_version == "3":
-            self.DATA_SET_ID = setup.pds3_mission_template['DATA_SET_ID'].lower()
+            if '"' in setup.pds3_mission_template['DATA_SET_ID']:
+                self.DATA_SET_ID = setup.pds3_mission_template['DATA_SET_ID'].split('"')[1].upper()
+            else:
+                self.DATA_SET_ID = setup.pds3_mission_template['DATA_SET_ID'].upper()
             self.VOLID = setup.volume_id.lower()
         else:
             self.DATA_SET_ID = "N/A"
