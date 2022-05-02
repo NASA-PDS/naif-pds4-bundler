@@ -5,6 +5,16 @@ Work List:
 
   Next:
 
+  -- Remove strict order of directories in configuration.
+
+  -- Remove unnecessary message from when mapping kernels.
+     Remove also buggy messages for checksum labels.
+
+  -- Review that PDS3 tempalte tags are properly logged.
+
+  -- Consider to stop PDS3 execution after kernel list generation for
+     when no faucet is indicated.
+
   -- Implement OREX functional tests -focusing on MKs and kernel mapping.
 
   -- Implement BINGO dependency for LTL-IEEE machines for PDS3 data sets.
