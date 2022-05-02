@@ -11,6 +11,7 @@ from pds.naif_pds4_bundler.classes.list import KernelList
 from pds.naif_pds4_bundler.classes.object import Object
 from pds.naif_pds4_bundler.classes.setup import Setup
 from pds.naif_pds4_bundler.utils import etree_to_dict
+from pds.naif_pds4_bundler.utils.files import string_in_file
 
 
 def test_pds3_msl_list(self):
@@ -38,6 +39,13 @@ def test_pds3_msl_list(self):
     with open("../data/msl_release_29.kernel_list", "r") as f:
         for line in f:
             old_file += line
+
+    #
+    # Check that the DATA_SET_ID is in capital letters and without quotes.
+    #
+    line_check = "DATASETID = MSL-M-SPICE-6-V1.0"
+    if not string_in_file("working/msl_release_29.kernel_list", line_check, 1):
+        raise BaseException
 
     self.assertEqual(old_file.split("\n")[7:], new_file.split("\n")[7:])
 
