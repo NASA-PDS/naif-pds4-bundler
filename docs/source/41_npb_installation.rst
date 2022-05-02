@@ -21,6 +21,7 @@ A number of Python packages are required as well:
    * nose
    * coverage
    * xmlschema
+   * requests
 
 Please note that the dependency that might cause issues is SpiceyPy. SpiceyPy
 will check if you have the SPICE Toolkit in C: CSPICE, installed. If you don't
