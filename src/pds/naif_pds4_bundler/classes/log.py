@@ -118,24 +118,6 @@ class Log(object):
 
     def stop(self):
         """Write log, file list, and checksum registry files when NPB stops."""
-        stop_message = f"Execution finished at {str(datetime.datetime.now())[:-7]}"
-        logging.info("")
-        logging.info(stop_message)
-        logging.info("")
-        logging.info("End of log.")
-        if not self.setup.args.silent and not self.setup.args.verbose:
-            print(stop_message)
-            print("")
-
-        #
-        # Rename the log file according to the version.
-        #
-        if self.log_file:
-            shutil.move(
-                self.log_file,
-                self.log_file.replace("temp", f"{int(self.setup.release):02d}"),
-            )
-
         #
         # Remove the templates.
         #
@@ -156,6 +138,23 @@ class Log(object):
         #
         spiceypy.kclear()
 
+        stop_message = f"Execution finished at {str(datetime.datetime.now())[:-7]}"
+        logging.info("")
+        logging.info(stop_message)
+        logging.info("")
+        logging.info("End of log.")
+        if not self.setup.args.silent and not self.setup.args.verbose:
+            print(stop_message)
+            print("")
+
+        #
+        # Rename the log file according to the version.
+        #
+        if self.log_file:
+            shutil.move(
+                self.log_file,
+                self.log_file.replace("temp", f"{int(self.setup.release):02d}"),
+            )
 
 def error_message(message, setup=False):
     """Function to signal a NPB error message.
