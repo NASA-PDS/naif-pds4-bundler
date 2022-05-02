@@ -3025,7 +3025,7 @@ class InventoryProduct(Product):
                 index_row = [kernel.start_time.split('Z')[0],
                              kernel.stop_time.split('Z')[0],
                              'data/' + kernel.path.split('/data/')[-1].split('.')[0] + '.lbl',
-                             self.collection.list.DATA_SET_ID.upper().split('"')[1],
+                             self.collection.list.DATA_SET_ID,
                              kernel.creation_time,
                              self.collection.list.RELID,
                              self.collection.list.RELDATE,
