@@ -376,7 +376,11 @@ class Setup(object):
         if (self.working_directory == self.staging_directory) or \
                 (self.bundle_directory == self.staging_directory) or \
                 (self.bundle_directory == self.working_directory):
-            error_message("The working, staging, and kernels directories must be different.")
+            logging.error("--The working, staging, and bundle directories must be different:")
+            logging.error(f"  working: {self.working_directory}")
+            logging.error(f"  staging: {self.staging_directory}")
+            logging.error(f"  bundle:  {self.bundle_directory}")
+            error_message("Update working, staging, or bundle directory.")
 
         #
         # Sort out if directories are provided as relative paths and
@@ -1146,6 +1150,7 @@ class Setup(object):
             ) as l:
                 for file in self.file_list:
                     l.write(file + "\n")
+            logging.info("-- Run File List file written in working area.")
 
     def write_checksum_registry(self):
         """Write the run by-product Checksum Record."""
@@ -1159,6 +1164,7 @@ class Setup(object):
             ) as l:
                 for element in self.checksum_registry:
                     l.write(element + "\n")
+            logging.info("-- Run Checksum Registry file written in working area.")
 
     def write_validate_configuration(self):
         """Write a PDS validate tool configuration file.
@@ -1193,6 +1199,8 @@ class Setup(object):
         try:
             r = requests.get(pds_schematron_location, allow_redirects=True)
         except BaseException:
+            logging.warning("-- PDS Validate Tool configuration file not written.")
+            logging.warning(f"   PDS Schematron not reachable: {pds_schematron}")
             return
         with open(f"{self.working_directory}/{pds_schematron}", 'wb') as f:
             f.write(r.content)
@@ -1202,6 +1210,8 @@ class Setup(object):
         try:
             r = requests.get(pds_schema_location, allow_redirects=True)
         except BaseException:
+            logging.warning("-- PDS Validate Tool configuration file not written.")
+            logging.warning(f"   PDS Schema location not reachable: {pds_schema_location}")
             return
         with open(f"{self.working_directory}/{pds_schema}", 'wb') as f:
             f.write(r.content)
@@ -1219,3 +1229,5 @@ class Setup(object):
             l.write(f"validate.skipContextValidation = true\n")
             l.write(f"validate.rule = pds4.bundle\n")
             l.write(f"validate.strictFieldChecks = true\n")
+
+        logging.info("-- PDS Validate Tool configuration file written in working area.")
