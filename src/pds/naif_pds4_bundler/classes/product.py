@@ -16,6 +16,8 @@ import numpy as np
 import spiceypy
 
 from ..utils import add_carriage_return
+from ..utils import add_crs_to_file
+from ..utils import check_eol
 from ..utils import checksum_from_label
 from ..utils import checksum_from_registry
 from ..utils import ck_coverage
@@ -38,8 +40,6 @@ from ..utils import spk_coverage
 from ..utils import string_in_file
 from ..utils import type_to_extension
 from ..utils import utf8len
-from ..utils import add_crs_to_file
-from ..utils import check_eol
 from .label import BundlePDS4Label
 from .label import ChecksumPDS3Label
 from .label import ChecksumPDS4Label
