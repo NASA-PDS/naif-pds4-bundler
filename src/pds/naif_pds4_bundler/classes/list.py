@@ -1111,7 +1111,7 @@ class KernelList(List):
             if product.split(".")[-1].strip()[0].lower() != "b":
                 if (".nrb" not in product.lower()) and (".orb" not in product.lower()):
                     eol = '\n'
-                elif ((".nrb" in product.lower()) or (".orb" not in product.lower())) \
+                elif ((".nrb" in product.lower()) or (".orb" in product.lower())) \
                         and self.setup.pds_version == '3':
                     eol = '\n'
                 else:
@@ -1119,7 +1119,7 @@ class KernelList(List):
 
                 error = check_eol(origin_path, eol)
                 if error:
-                    if ((".nrb" in product.lower()) or (".orb" not in product.lower())):
+                    if ((".nrb" in product.lower()) or (".orb" in product.lower())):
                         product_warnings[product].append(error)
                     else:
                         product_errors[product].append(error)
