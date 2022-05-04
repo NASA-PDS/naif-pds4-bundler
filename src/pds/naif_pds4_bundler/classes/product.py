@@ -38,6 +38,8 @@ from ..utils import spk_coverage
 from ..utils import string_in_file
 from ..utils import type_to_extension
 from ..utils import utf8len
+from ..utils import add_crs_to_file
+from ..utils import check_eol
 from .label import BundlePDS4Label
 from .label import ChecksumPDS3Label
 from .label import ChecksumPDS4Label
@@ -223,41 +225,52 @@ class SpiceKernelProduct(Product):
         #
         logging.info(f"-- Copy {self.name} to staging directory.")
         if not os.path.isfile(product_path + self.name):
+            origin_path = ''
             for directory in self.setup.kernels_directory:
-                try:
+                file = [
+                    os.path.join(root, ker)
+                    for root, dirs, files in os.walk(directory)
+                    for ker in files
+                    if name == ker
+                ]
+
+                #
+                # If the file exists save the path and escape the loop.
+                #
+                if file:
+                    origin_path = file[0]
+                    self.new_product = True
+                    break
+
+            #
+            # If after the first loop the file is not present we do another
+            # loop to see if the file needs mapping.
+            #
+            if not origin_path:
+                for directory in self.setup.kernels_directory:
                     file = [
                         os.path.join(root, ker)
                         for root, dirs, files in os.walk(directory)
                         for ker in files
-                        if name == ker
+                        if product_mapping(self.name, self.setup) == ker
                     ]
 
-                    origin_path = file[0]
-
-                    shutil.copy2(origin_path, product_path + os.sep + self.name)
-                    self.new_product = True
-                except BaseException:
-                    try:
-                        file = [
-                            os.path.join(root, ker)
-                            for root, dirs, files in os.walk(directory)
-                            for ker in files
-                            if product_mapping(self.name, self.setup) == ker
-                        ]
-
+                    if file:
                         origin_path = file[0]
-
-                        shutil.copy2(origin_path, product_path + os.sep + self.name)
                         self.new_product = True
                         logging.info(
                             f"-- Mapping {product_mapping(self.name, self.setup)} "
-                            f"with {self.name}"
-                        )
-                    except BaseException:
-                        error_message(f"{self.name} not present in {directory}.", setup=setup)
+                            f"with {self.name}")
+                        break
 
-                if self.new_product:
-                    break
+            #
+            # If after the two loops the file is not present raise an error.
+            #
+            if not origin_path:
+                error_message(f"{self.name} not present in {directory}.", setup=setup)
+
+            shutil.copy2(origin_path, product_path + os.sep + self.name)
+
         else:
             logging.warning(f"     {self.name} already present in staging directory.")
 
@@ -1618,6 +1631,14 @@ class OrbnumFileProduct(Product):
             logging.warning(f"     {self.name} already present in staging directory.")
 
             self.new_product = False
+
+        #
+        # Add CRs to the ORBNUM file. Need reveiw for PDS3.
+        #
+        if self.setup.pds_version == '4':
+            if check_eol(product_path + os.sep + self.name, self.setup.eol):
+                logging.info("--Adding CRLF to ORBNUM file.")
+                add_crs_to_file(product_path + os.sep + self.name, self.setup.eol, self.setup)
 
         #
         # We update the path after having copied the kernel.
