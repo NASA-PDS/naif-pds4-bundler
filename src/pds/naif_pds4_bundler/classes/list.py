@@ -1119,7 +1119,10 @@ class KernelList(List):
 
                 error = check_eol(origin_path, eol)
                 if error:
-                    product_errors[product].append(error)
+                    if ((".nrb" in product.lower()) or (".orb" not in product.lower())):
+                        product_warnings[product].append(error)
+                    else:
+                        product_errors[product].append(error)
 
                 error = check_badchar(origin_path)
                 if error:
