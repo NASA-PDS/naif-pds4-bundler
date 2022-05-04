@@ -156,6 +156,7 @@ class Log(object):
                 self.log_file.replace("temp", f"{int(self.setup.release):02d}"),
             )
 
+
 def error_message(message, setup=False):
     """Function to signal a NPB error message.
 
