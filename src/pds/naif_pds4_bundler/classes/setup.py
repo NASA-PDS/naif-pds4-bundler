@@ -1172,9 +1172,9 @@ class Setup(object):
         NPB will write a PDS validate tool configuration file for convenience
         of the user. The following validate example command for ExoMars2016::
 
-           $ validate -v 1 -t em16/em16_spice –skip-context-validation \
+           $ validate -v 1 -t em16/em16_spice –-skip-context-validation \
            -R pds4.bundle -x working/PDS4_PDS_1B00.xsd -S working/PDS4_PDS_1B00.sch \
-           –strict-field-checks -r working/em16_release_03.validate
+           -–strict-field-checks -r working/em16_release_03.validate
 
         Would be equivalent to the following resulting Validate configuration
         file::
@@ -1188,7 +1188,7 @@ class Setup(object):
            validate.schema = working/PDS4_PDS_1B00.xsd
            validate.schematron = working/PDS4_PDS_1B00.sch
            validate.strictFieldChecks = true
-           validate.report = working/em16_release_03.validate
+           validate.report = working/em16_release_03.validate_report
 
         If there is an issue during the generation of this file --e.g.: no
         internet connection-- the process will silently fail but the NPB run
@@ -1218,11 +1218,11 @@ class Setup(object):
 
         filename = f"{self.mission_acronym}_{self.run_type}_{int(self.release):02d}"
 
-        with open(f"{self.working_directory}/{filename}.config.validate", "w") as l:
+        with open(f"{self.working_directory}/{filename}.validate_config", "w") as l:
             l.write("# Run the PDS validate tool where the NPB working directory resides:\n")
-            l.write(f"# $ validate -c {self.working_directory}/{filename}.config.validate\n#\n")
-            l.write(f"validate.target = {self.bundle_directory}/{self.mission_acronym}_spice\n")
-            l.write(f"validate.report = {self.working_directory}/{filename}.validate\n")
+            l.write(f"# $ validate -t {self.bundle_directory}/{self.mission_acronym}_spice "
+                    f"-c {self.working_directory}/{filename}.validate_config "
+                    f"-r {self.working_directory}/{filename}.validate_report\n#\n")
             l.write(f"validate.schema = {self.working_directory}/{pds_schema}\n")
             l.write(f"validate.schematron = {self.working_directory}/{pds_schematron}\n")
             l.write(f"validate.verbose = 1\n")
@@ -1230,4 +1230,5 @@ class Setup(object):
             l.write(f"validate.rule = pds4.bundle\n")
             l.write(f"validate.strictFieldChecks = true\n")
 
-        logging.info("-- PDS Validate Tool configuration file written in working area.")
+        logging.info("-- PDS Validate Tool configuration file written in working area:")
+        logging.info(f"   {self.working_directory}/{filename}.validate_config")
