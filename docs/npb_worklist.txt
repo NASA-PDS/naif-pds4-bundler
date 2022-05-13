@@ -3,6 +3,35 @@ naif-pds4-bundle worklist by MCS/NAIF
 
 Work List:
 
+
+  -- Log all the kernels used to determine MK coverage, regardless if they
+     are in the plan or already in the bundle.
+
+  -- If specified MKs are not found, stop the pipeline.
+
+  -- Test and check generation of yearly MKs. MKs not found in kernels directories
+     and reading them from the configuration directory creates multiple
+     instances.
+
+  -- Add MKs products as diff files.
+
+  -- Description log not ordered.
+
+  -- Header of document collectoin in log missplaced
+
+  -- Header for last file generation and add names to files.
+
+  -- Bundle increment set from previous increment from WARNING to INFO.
+     But if Bundle start increment is modified from increment, show
+     WARNING
+
+  -- Add comment syntax with # for the release plan.
+
+  -- Within the documentation create links to the files in the Git
+     repository wherever necessary.
+
+  -- Do not generate validate config file for a clear run.
+
   Next:
 
   -- Remove strict order of directories in configuration.
