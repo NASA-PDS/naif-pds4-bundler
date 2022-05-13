@@ -1532,6 +1532,9 @@ as::
          </mk>
     </meta-kernel>
 
+If the MKs specified by this list are not found the pipeline will stop its
+execution.
+
 
 Coverage determination
 ^^^^^^^^^^^^^^^^^^^^^^
