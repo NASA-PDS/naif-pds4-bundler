@@ -2,7 +2,7 @@
 
 usage: naif-pds4-bundler [-h] [-p PLAN] [-f FAUCET] [-l] [-s] [-v] [-d DIFF] [-c CLEAR] [-k KERLIST] CONFIG [CONFIG ...]
 
-**naif-pds4-bundler-0.13.1, NAIF PDS4 SPICE archive generation pipeline***
+**naif-pds4-bundler-0.13.1, NAIF PDS4 SPICE archive generation pipeline**
 
 naif-pds4-bundler is a command-line utility program that generates PDS4
 bundles for SPICE kernel archives.
