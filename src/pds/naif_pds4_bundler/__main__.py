@@ -482,12 +482,11 @@ def main(
     #
     # * Generate the Meta-kernel(s).
     #
-    (meta_kernels, user_input) = spice_kernels_collection.determine_meta_kernels()
+    meta_kernels = spice_kernels_collection.determine_meta_kernels()
     if meta_kernels:
-        for mk in meta_kernels:
-            meta_kernel = MetaKernelProduct(
-                setup, mk, spice_kernels_collection, user_input=user_input
-            )
+        for mk in sorted(meta_kernels):
+            meta_kernel = MetaKernelProduct(setup, mk, spice_kernels_collection,
+                                            user_input=meta_kernels[mk])
             if setup.pds_version == '4':
                 spice_kernels_collection.add(meta_kernel)
             else:
