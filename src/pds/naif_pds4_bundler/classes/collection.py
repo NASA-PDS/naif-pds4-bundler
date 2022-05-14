@@ -249,8 +249,8 @@ class SpiceKernelsCollection(Collection):
                         version_length = int(self.setup.mk[0]["name"][0]["pattern"]["@length"])
 
                         version = "1"
-                        meta_kernel =  self.setup.mk[0]["@name"].replace("$VERSION", version.zfill(version_length))
-                        existing_path =  f"{self.setup.bundle_directory}/{self.setup.mission_acronym}_spice/spice_kernels/mk/{meta_kernel}"
+                        meta_kernel = self.setup.mk[0]["@name"].replace("$VERSION", version.zfill(version_length))
+                        existing_path = f"{self.setup.bundle_directory}/{self.setup.mission_acronym}_spice/spice_kernels/mk/{meta_kernel}"
                         if not os.path.exists(existing_path):
                             meta_kernels[meta_kernel] = False
 
