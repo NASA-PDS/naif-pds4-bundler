@@ -570,7 +570,7 @@ def compare_files(fromfile, tofile, dir, display):
 
     Compares two files and provides the logic to determine whether if the
     comparison should be added to the log or to an individual file with the
-    comparison. The default name of the possible resuling file is::
+    comparison. The default name of the possible resulting file is::
 
        diff_`fromfile'[extension removed]_`tofile'[extension_removed].html
 
