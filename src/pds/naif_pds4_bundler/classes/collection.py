@@ -154,9 +154,10 @@ class SpiceKernelsCollection(Collection):
     def determine_meta_kernels(self):
         """Determine the name of the Meta-kernel(s) to be generated.
 
-        :return: Alphabetically sorted list of meta-kernels to be generated,
-                 List of meta-kernels provided by the user
-        :rtype: (list, list)
+        :return: Dictionary of meta-kernels to be generated. The keys list the
+                 meta-kernels and the values whether if they are provided by the
+                 user or not.
+        :rtype: dictionary.
         """
         line = f"Step {self.setup.step} - Generation of meta-kernel(s)"
         logging.info("")
@@ -167,9 +168,7 @@ class SpiceKernelsCollection(Collection):
         if not self.setup.args.silent and not self.setup.args.verbose:
             print("-- " + line.split(" - ")[-1] + ".")
 
-        meta_kernels = []
-        user_input = False
-
+        meta_kernels = {}
         #
         # First check if a meta-kernel has been provided via configuration by
         # the user. If so, only the provided meta-kernels will be taken into
@@ -190,8 +189,7 @@ class SpiceKernelsCollection(Collection):
                             f" does not exist: {mk}"
                         )
                     else:
-                        meta_kernels.append(mk)
-                        user_input = True
+                        meta_kernels[mk] = True
             else:
                 logging.warning("-- Configuration item mk_inputs is empty.")
 
@@ -205,17 +203,20 @@ class SpiceKernelsCollection(Collection):
         #
         if not meta_kernels:
             for kernel in self.list.kernel_list:
+                kernel_present = False
                 if ".tm" in kernel:
                     for kernel_dir in self.setup.kernels_directory:
                         path = f"{kernel_dir}/mk/{kernel}"
                         if os.path.exists(path):
-                            meta_kernels.append(path)
-                            user_input = True
-                    if not user_input:
-                        logging.info("-- No meta-kernel provided as input in kernels directory.")
-                        for kernel_dir in self.setup.kernels_directory:
-                            path = f"{kernel_dir}/mk/{kernel}"
-                            meta_kernels.append(path)
+                            meta_kernels[path] = True
+                            kernel_present = True
+                            break
+                    if not kernel_present:
+                        #
+                        # If the kernel is not present we don't provide the path.
+                        #
+                        logging.info(f"-- {kernel} not provided as input in kernels directory.")
+                        meta_kernels[kernel] = False
 
         #
         # If no meta-kernels are provided as inputs or in the kernel list,
@@ -234,6 +235,8 @@ class SpiceKernelsCollection(Collection):
             #
             # This will happen only if there are kernels in the collection.
             #
+            # If the kernel already exists, it will not be generated.
+            #
             if (hasattr(self.setup, "mk")) and (self.product) and (self.setup.args.faucet != "labels"):
                 if (
                     self.setup.mk.__len__() == 1
@@ -242,29 +245,32 @@ class SpiceKernelsCollection(Collection):
                     and self.setup.mk[0]["name"][0]["pattern"].__len__() == 2
                     and not isinstance(self.setup.mk[0]["name"][0]["pattern"], list)
                 ):
-
                     if self.setup.mk[0]["name"][0]["pattern"]["#text"] == "VERSION":
-                        version_length = int(
-                            self.setup.mk[0]["name"][0]["pattern"]["@length"]
-                        )
+                        version_length = int(self.setup.mk[0]["name"][0]["pattern"]["@length"])
 
-                        meta_kernels.append(
-                            self.setup.mk[0]["@name"].replace(
-                                "$VERSION", "1".zfill(version_length)
-                            )
-                        )
+                        version = "1"
+                        meta_kernel =  self.setup.mk[0]["@name"].replace("$VERSION", version.zfill(version_length))
+                        existing_path =  f"{self.setup.bundle_directory}/{self.setup.mission_acronym}_spice/spice_kernels/mk/{meta_kernel}"
+                        if not os.path.exists(existing_path):
+                            meta_kernels[meta_kernel] = False
 
-            if not meta_kernels:
-                logging.info("")
-                logging.warning("-- No Meta-kernel will be generated.")
-                return ("", None)
+        if not meta_kernels:
+            logging.info("")
+            logging.warning("-- No Meta-kernel will be generated.")
+        else:
+            #
+            # Check that the meta-kernels are not present. If a meta-kernel is
+            # present stop the execution.
+            #
+            for meta_kernel in sorted(meta_kernels):
+                if self.setup.pds_version == '4':
+                    existing_path = f"{self.setup.bundle_directory}/{self.setup.mission_acronym}_spice/spice_kernels/mk/{meta_kernel}"
+                else:
+                    existing_path = f"{self.setup.bundle_directory}/{self.setup.volume_id}/extras/mk/{meta_kernel}"
+                if os.path.exists(existing_path):
+                    error_message(f"MK already exists in the archive: {existing_path}")
 
-        #
-        # Sort the list of meta-kernels alphabetically.
-        #
-        meta_kernels = sorted(meta_kernels)
-
-        return (meta_kernels, user_input)
+        return meta_kernels
 
     def set_increment_times(self):
         """Determine the archive increment start and finish times.
