@@ -3,27 +3,18 @@ naif-pds4-bundle worklist by MCS/NAIF
 
 Work List:
 
-
   -- Log all the kernels used to determine MK coverage, regardless if they
      are in the plan or already in the bundle.
 
   -- If specified MKs are not found, stop the pipeline.
 
-  -- Test and check generation of yearly MKs. MKs not found in kernels directories
-     and reading them from the configuration directory creates multiple
-     instances.
-
   -- Add MKs products as diff files.
 
   -- Description log not ordered.
 
-  -- Header of document collectoin in log missplaced
+  -- Header of document collection in log misplaced
 
   -- Header for last file generation and add names to files.
-
-  -- Bundle increment set from previous increment from WARNING to INFO.
-     But if Bundle start increment is modified from increment, show
-     WARNING
 
   -- Add comment syntax with # for the release plan.
 
@@ -32,14 +23,12 @@ Work List:
 
   -- Do not generate validate config file for a clear run.
 
-  Next:
-
   -- Remove strict order of directories in configuration.
 
   -- Remove unnecessary message from when mapping kernels.
      Remove also buggy messages for checksum labels.
 
-  -- Review that PDS3 tempalte tags are properly logged.
+  -- Review that PDS3 template tags are properly logged.
 
   -- Consider to stop PDS3 execution after kernel list generation for
      when no faucet is indicated.
@@ -63,16 +52,26 @@ Work List:
 
   -- Implement validate_pds3 to validate index files against data set content.
 
-  Possible:
+
+Parking log:
 
   -- NOT for this release, and maybe never, but should we consider adding
      a reference from to the LIDVIDs of SPK -- or SPKs -- that were used to
      generate an ORBNUM to its label?
 
+
 Changelog:
 
 
+v1.2.0
 
+  -- Bundle increment set from previous increment from WARNING to INFO.
+     But if Bundle start increment is modified from increment, show
+     WARNING.
+
+  -- Test and check generation of yearly MKs. MKs not found in kernels directories
+     and reading them from the configuration directory creates multiple
+     instances.
 
 v1.1.1
 
@@ -256,20 +255,25 @@ v0.10.2
 v0.6.0 - Generation of LADEE Bundle.
 
   -- Beware of meta-kernels with "_v" in name besides from version.
+
   -- Split meta-kernel by year.
 
 v0.5.0 - Generation of MAVEN Bundle with user input meta-kernels.
 
   -- Add test case for using similar labels from previous increment
      (that is case 2; not the appropriate one).
+
   -- Files that need a change in the filename to be a configuration item
      (kernel list will then be generated easier).
+
   -- Label templates for specific information models. Include:
         * 1.5.0.0
         * 1.11.0.0
         * latest model available at the time of implementation
+
   -- Label templates to be provided by users. Check if exiting use these
      if present.
+
   -- Convert configuration file to a format similar to NDT or an XML file
      that can be validated against a schematron. JSON can still be used as an
      intermediate format if need be.
@@ -277,26 +281,36 @@ v0.5.0 - Generation of MAVEN Bundle with user input meta-kernels.
 v0.4.0 - BVS/NAIF feedback incorporation, first round.
 
   -- The faucet item of the configuration file to be a parameter instead
-  --  Format of the Plan file can be reviewed and made more convenient for
+
+  -- Format of the Plan file can be reviewed and made more convenient for
      users.
+
   -- Kernel List, meta-kernel grammar, meta-kernel template to be part
      of the configuration file.
+
   -- spiceds template to be versioned, after all it will change continuously.
+
   -- Step 3 - Bundle/dataset structure generation to include staging area
      reference to make it clear to users.
 
   -- PCK file needs to be loaded as well. Maybe after all it is just better
      to generate and load a meta-kernel.
+
   -- Label and product comparison log visualization to be an option. Default
      to be set to false.
+
   -- Incorporate a comparison of selected files as well (as with the previous
      point, for those subject to user errors from configuration etc.)
-  --  URN or LID to be fully configurable (for example KPLO will need that).
+
+  -- URN or LID to be fully configurable (for example KPLO will need that).
+
   -- Automated documentation to be generated from function and class
      headers with Spynx. This will be useful for developers and for the
      community.
+
   -- Documentation of the process not to use faketex or any NAIF style instead
      use MD for example.
+
   -- dsindex files not required for PDS4 archives (update in generation
      index Perl script not really required).
 
