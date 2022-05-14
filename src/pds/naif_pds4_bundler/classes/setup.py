@@ -889,6 +889,15 @@ class Setup(object):
         pck_patterns = []
         lsk_patterns = []
 
+        #
+        # We inspect the kernels directory and the bundle directory.
+        #
+        directories = self.kernels_directory
+        if self.pds_version == '4':
+            directories.append(self.bundle_directory +  f"/{self.mission_acronym}_spice/spice_kernels")
+        else:
+            directories.append(self.bundle_directory + f"{self.volume_id}/data")
+
         for type in self.kernels_to_load:
             if "fk" in type:
                 fks = self.kernels_to_load[type]
@@ -924,7 +933,7 @@ class Setup(object):
                 lsks.append(pattern)
                 spiceypy.furnsh(pattern)
             else:
-                for dir in self.kernels_directory:
+                for dir in directories:
                     lsk_pattern = [
                         os.path.join(root, name)
                         for root, dirs, files in os.walk(dir)
@@ -949,7 +958,7 @@ class Setup(object):
                 pcks.append(pattern)
                 spiceypy.furnsh(pattern)
             else:
-                for dir in self.kernels_directory:
+                for dir in directories:
                     pcks_pattern = [
                         os.path.join(root, name)
                         for root, dirs, files in os.walk(dir)
@@ -972,7 +981,7 @@ class Setup(object):
                 fks.append(pattern)
                 spiceypy.furnsh(pattern)
             else:
-                for dir in self.kernels_directory:
+                for dir in directories:
                     fks_pattern = [
                         os.path.join(root, name)
                         for root, dirs, files in os.walk(dir)
@@ -996,7 +1005,7 @@ class Setup(object):
                 sclks.append(pattern)
                 spiceypy.furnsh(pattern)
             else:
-                for dir in self.kernels_directory:
+                for dir in directories:
                     sclks_pattern = [
                         os.path.join(root, name)
                         for root, dirs, files in os.walk(dir)
@@ -1007,6 +1016,7 @@ class Setup(object):
                         sclks_pattern.sort(key=kernel_name)
                         spiceypy.furnsh(sclks_pattern[-1])
                         sclks.append(sclks_pattern[-1])
+                        break
         if not sclks:
             logging.error(f"-- SCLK not found.")
         else:
