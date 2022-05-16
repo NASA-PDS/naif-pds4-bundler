@@ -8,7 +8,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>The Configuration File &mdash; NAIF PDS4 Bundler 1.1.0
+  <title>The Configuration File &mdash; NAIF PDS4 Bundler 1.2.0
  documentation</title>
   
 
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                1.1
+                1.2
               </div>
             
           
@@ -139,6 +139,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="43_using_npb.html">Using NPB</a></li>
+<li class="toctree-l2"><a class="reference internal" href="44_working_example.html">Working Example</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="50_api_docs.html">Modules, Classes, and Functions Documentation</a></li>
@@ -671,14 +672,14 @@ implemented.</p></td>
 <tr class="row-even"><td><p>xml_model</p></td>
 <td><p>URL location of the XML Schematron associated with an information model.
 The <code class="docutils literal notranslate"><span class="pre">information_model</span></code> and <code class="docutils literal notranslate"><span class="pre">xml_model</span></code> parameters must refer to the
-same information model.</p></td>
-<td><p>Yes</p></td>
+same information model. If not provided NPB generates it from the <code class="docutils literal notranslate"><span class="pre">information_model</span></code>.</p></td>
+<td><p>No</p></td>
 </tr>
 <tr class="row-odd"><td><p>schema_location</p></td>
 <td><p>URL location of the XML Schema associated with an information model. The
 <code class="docutils literal notranslate"><span class="pre">schema_location</span></code> and <code class="docutils literal notranslate"><span class="pre">xml_model</span></code> parameters must refer to the same
-information model.</p></td>
-<td><p>Yes</p></td>
+information model. If not provided NPB generates it from the <code class="docutils literal notranslate"><span class="pre">information_model</span></code>.</p></td>
+<td><p>No</p></td>
 </tr>
 <tr class="row-even"><td><p>logical_identifier</p></td>
 <td><p>Logical identifier for the bundle.</p></td>
@@ -1201,8 +1202,8 @@ section <a class="reference internal" href="32_step_2_npb_setup.html#working-dir
 </tr>
 <tr class="row-odd"><td><p>kernels_directory</p></td>
 <td><p>Specifies the directory(ies) that will be used by NPB to obtain the kernels
-to be archived from. These directories must follow the usual operational
-SPICE kernel sub-directory structure by kernel type.</p></td>
+to be archived from. It is recommended that these directories follow the
+usual operational SPICE kernel sub-directory structure by kernel type.</p></td>
 <td><p>Yes</p></td>
 </tr>
 <tr class="row-even"><td><p>staging_directory</p></td>
@@ -1226,7 +1227,8 @@ are present.</p></td>
 </tr>
 </tbody>
 </table>
-<p>More information on the setup of the NPB directories is provided in
+<p>The working, staging, and bundle directories cannot be the same. More
+information on the setup of the NPB directories is provided in
 <a class="reference internal" href="32_step_2_npb_setup.html#workspace-setup"><span class="std std-ref">Workspace Setup</span></a>.</p>
 <section id="templates-directory">
 <h3>Templates Directory<a class="headerlink" href="#templates-directory" title="Permalink to this headline">¶</a></h3>
@@ -1733,10 +1735,12 @@ are available in the different IM template directories e.g.:
 </section>
 <section id="manual-input">
 <h3>Manual Input<a class="headerlink" href="#manual-input" title="Permalink to this headline">¶</a></h3>
-<p>If you choose to provide a manually generated MK, you only need to provide
-the location of the MK(s) using the required number of entries of the
-<code class="docutils literal notranslate"><span class="pre">file</span></code> element in <code class="docutils literal notranslate"><span class="pre">mk_inputs</span></code>. E.g. for the LADEE archive the MK section
-of the configuration file can be as simple as:</p>
+<p>If you choose to provide a manually generated MK, an alternative to specify the
+MK in the release plan or in the kernel list is to provide it in the MK section
+of the configuration file: you can provide the location of the MK(s) using the
+required number of entries of the <code class="docutils literal notranslate"><span class="pre">file</span></code> element in <code class="docutils literal notranslate"><span class="pre">mk_inputs</span></code>. E.g. for
+the LADEE archive the MK section of the configuration file can be as simple
+as:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">meta</span><span class="o">-</span><span class="n">kernel</span><span class="o">&gt;</span>
     <span class="o">&lt;</span><span class="n">mk_inputs</span><span class="o">&gt;</span>
         <span class="o">&lt;</span><span class="n">file</span><span class="o">&gt;../</span><span class="n">data</span><span class="o">/</span><span class="n">ladee_v01</span><span class="o">.</span><span class="n">tm</span><span class="o">&lt;/</span><span class="n">file</span><span class="o">&gt;</span>
@@ -1749,6 +1753,8 @@ of the configuration file can be as simple as:</p>
 <span class="o">&lt;/</span><span class="n">meta</span><span class="o">-</span><span class="n">kernel</span><span class="o">&gt;</span>
 </pre></div>
 </div>
+<p>If the MKs specified by this list are not found the pipeline will stop its
+execution.</p>
 </section>
 <section id="coverage-determination">
 <h3>Coverage determination<a class="headerlink" href="#coverage-determination" title="Permalink to this headline">¶</a></h3>

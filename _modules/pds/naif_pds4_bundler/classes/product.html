@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pds.naif_pds4_bundler.classes.product &mdash; NAIF PDS4 Bundler 1.1.0
+  <title>pds.naif_pds4_bundler.classes.product &mdash; NAIF PDS4 Bundler 1.2.0
  documentation</title>
   
 
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                1.1
+                1.2
               </div>
             
           
@@ -176,6 +176,8 @@
 <span class="kn">import</span> <span class="nn">spiceypy</span>
 
 <span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">add_carriage_return</span>
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">add_crs_to_file</span>
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">check_eol</span>
 <span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">checksum_from_label</span>
 <span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">checksum_from_registry</span>
 <span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">ck_coverage</span>
@@ -383,41 +385,52 @@
         <span class="c1">#</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-- Copy </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> to staging directory.&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">product_path</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
+            <span class="n">origin_path</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
             <span class="k">for</span> <span class="n">directory</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">kernels_directory</span><span class="p">:</span>
-                <span class="k">try</span><span class="p">:</span>
+                <span class="n">file</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">ker</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">ker</span> <span class="ow">in</span> <span class="n">files</span>
+                    <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="n">ker</span>
+                <span class="p">]</span>
+
+                <span class="c1">#</span>
+                <span class="c1"># If the file exists save the path and escape the loop.</span>
+                <span class="c1">#</span>
+                <span class="k">if</span> <span class="n">file</span><span class="p">:</span>
+                    <span class="n">origin_path</span> <span class="o">=</span> <span class="n">file</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">new_product</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">break</span>
+
+            <span class="c1">#</span>
+            <span class="c1"># If after the first loop the file is not present we do another</span>
+            <span class="c1"># loop to see if the file needs mapping.</span>
+            <span class="c1">#</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">origin_path</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">directory</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">kernels_directory</span><span class="p">:</span>
                     <span class="n">file</span> <span class="o">=</span> <span class="p">[</span>
                         <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">ker</span><span class="p">)</span>
                         <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
                         <span class="k">for</span> <span class="n">ker</span> <span class="ow">in</span> <span class="n">files</span>
-                        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="n">ker</span>
+                        <span class="k">if</span> <span class="n">product_mapping</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">)</span> <span class="o">==</span> <span class="n">ker</span>
                     <span class="p">]</span>
 
-                    <span class="n">origin_path</span> <span class="o">=</span> <span class="n">file</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-
-                    <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span><span class="n">origin_path</span><span class="p">,</span> <span class="n">product_path</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">new_product</span> <span class="o">=</span> <span class="kc">True</span>
-                <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
-                    <span class="k">try</span><span class="p">:</span>
-                        <span class="n">file</span> <span class="o">=</span> <span class="p">[</span>
-                            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">ker</span><span class="p">)</span>
-                            <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
-                            <span class="k">for</span> <span class="n">ker</span> <span class="ow">in</span> <span class="n">files</span>
-                            <span class="k">if</span> <span class="n">product_mapping</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">)</span> <span class="o">==</span> <span class="n">ker</span>
-                        <span class="p">]</span>
-
+                    <span class="k">if</span> <span class="n">file</span><span class="p">:</span>
                         <span class="n">origin_path</span> <span class="o">=</span> <span class="n">file</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-
-                        <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span><span class="n">origin_path</span><span class="p">,</span> <span class="n">product_path</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">new_product</span> <span class="o">=</span> <span class="kc">True</span>
                         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                             <span class="sa">f</span><span class="s2">&quot;-- Mapping </span><span class="si">{</span><span class="n">product_mapping</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">)</span><span class="si">}</span><span class="s2"> &quot;</span>
-                            <span class="sa">f</span><span class="s2">&quot;with </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
-                        <span class="p">)</span>
-                    <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
-                        <span class="n">error_message</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> not present in </span><span class="si">{</span><span class="n">directory</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">,</span> <span class="n">setup</span><span class="o">=</span><span class="n">setup</span><span class="p">)</span>
+                            <span class="sa">f</span><span class="s2">&quot;with </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="k">break</span>
 
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">new_product</span><span class="p">:</span>
-                    <span class="k">break</span>
+            <span class="c1">#</span>
+            <span class="c1"># If after the two loops the file is not present raise an error.</span>
+            <span class="c1">#</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">origin_path</span><span class="p">:</span>
+                <span class="n">error_message</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> not present in </span><span class="si">{</span><span class="n">directory</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">,</span> <span class="n">setup</span><span class="o">=</span><span class="n">setup</span><span class="p">)</span>
+
+            <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span><span class="n">origin_path</span><span class="p">,</span> <span class="n">product_path</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
         <span class="k">else</span><span class="p">:</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;     </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> already present in staging directory.&quot;</span><span class="p">)</span>
 
@@ -1311,27 +1324,29 @@
         <span class="c1"># etc. pause the pipeline to allow the user to introduce changes.</span>
         <span class="c1">#</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;mk_setup&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;    * The meta-kernel might need to be updated. You can:&quot;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span>
-                <span class="s1">&#39;        - Type &quot;vi&quot; and press ENTER to edit the &#39;</span>
-                <span class="s2">&quot;file with the VI text editor.&quot;</span>
-            <span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span>
-                <span class="s2">&quot;        - Edit the file with your favorite edit &quot;</span>
-                <span class="s2">&quot;and press ENTER and continue.&quot;</span>
-            <span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;        - Press ENTER to continue.&quot;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;      MK path: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;mk_setup&quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mk_setup</span><span class="p">[</span><span class="s2">&quot;interrupt_to_update&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;    * The meta-kernel might need to be updated. You can:&quot;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span>
+                        <span class="s1">&#39;        - Type &quot;vi&quot; and press ENTER to edit the &#39;</span>
+                        <span class="s2">&quot;file with the VI text editor.&quot;</span>
+                    <span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span>
+                        <span class="s2">&quot;        - Edit the file with your favorite edit &quot;</span>
+                        <span class="s2">&quot;and press ENTER and continue.&quot;</span>
+                    <span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;        - Press ENTER to continue.&quot;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;      MK path: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-            <span class="n">inp</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;&gt;&gt; Type &#39;vi&#39; and/or press ENTER to continue... &quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">inp</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;vi&quot;</span><span class="p">:</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">cmd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;EDITOR&quot;</span><span class="p">,</span> <span class="s2">&quot;vi&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span>
-                    <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;-- Meta-kernel edited with Vi by the user.&quot;</span><span class="p">)</span>
-                <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Vi text editor is not available.&quot;</span><span class="p">)</span>
-                    <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;&gt;&gt; Press Enter to continue... &quot;</span><span class="p">)</span>
+                    <span class="n">inp</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;&gt;&gt; Type &#39;vi&#39; and/or press ENTER to continue... &quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">inp</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;vi&quot;</span><span class="p">:</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">cmd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;EDITOR&quot;</span><span class="p">,</span> <span class="s2">&quot;vi&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span>
+                            <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;-- Meta-kernel edited with Vi by the user.&quot;</span><span class="p">)</span>
+                        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Vi text editor is not available.&quot;</span><span class="p">)</span>
+                            <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;&gt;&gt; Press Enter to continue... &quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">diff</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">compare</span><span class="p">()</span>
@@ -1778,6 +1793,14 @@
             <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;     </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> already present in staging directory.&quot;</span><span class="p">)</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">new_product</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># Add CRs to the ORBNUM file. Need reveiw for PDS3.</span>
+        <span class="c1">#</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s1">&#39;4&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">check_eol</span><span class="p">(</span><span class="n">product_path</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">eol</span><span class="p">):</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- Adding CRLF to ORBNUM file.&quot;</span><span class="p">)</span>
+                <span class="n">add_crs_to_file</span><span class="p">(</span><span class="n">product_path</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">eol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">)</span>
 
         <span class="c1">#</span>
         <span class="c1"># We update the path after having copied the kernel.</span>
@@ -3185,7 +3208,7 @@
                 <span class="n">index_row</span> <span class="o">=</span> <span class="p">[</span><span class="n">kernel</span><span class="o">.</span><span class="n">start_time</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;Z&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
                              <span class="n">kernel</span><span class="o">.</span><span class="n">stop_time</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;Z&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
                              <span class="s1">&#39;data/&#39;</span> <span class="o">+</span> <span class="n">kernel</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/data/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.lbl&#39;</span><span class="p">,</span>
-                             <span class="bp">self</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">list</span><span class="o">.</span><span class="n">DATA_SET_ID</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span>
+                             <span class="bp">self</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">list</span><span class="o">.</span><span class="n">DATA_SET_ID</span><span class="p">,</span>
                              <span class="n">kernel</span><span class="o">.</span><span class="n">creation_time</span><span class="p">,</span>
                              <span class="bp">self</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">list</span><span class="o">.</span><span class="n">RELID</span><span class="p">,</span>
                              <span class="bp">self</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">list</span><span class="o">.</span><span class="n">RELDATE</span><span class="p">,</span>

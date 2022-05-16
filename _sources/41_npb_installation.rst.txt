@@ -21,6 +21,7 @@ A number of Python packages are required as well:
    * nose
    * coverage
    * xmlschema
+   * requests
 
 Please note that the dependency that might cause issues is SpiceyPy. SpiceyPy
 will check if you have the SPICE Toolkit in C: CSPICE, installed. If you don't
@@ -125,7 +126,7 @@ Running Tests
 
 Run tests under the ``tests/naif_pds4_bundler`` directory with::
 
-    python -m unittest
+    python -m unittest discover -s tests/naif_pds4_bundler
 
 NPB tests use data available in the package and involves file and directory
 creation and destruction. Depending on your environment the package might be

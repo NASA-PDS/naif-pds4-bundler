@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pds.naif_pds4_bundler.classes.list &mdash; NAIF PDS4 Bundler 1.1.0
+  <title>pds.naif_pds4_bundler.classes.list &mdash; NAIF PDS4 Bundler 1.2.0
  documentation</title>
   
 
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                1.1
+                1.2
               </div>
             
           
@@ -232,7 +232,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">AUTHOR</span> <span class="o">=</span> <span class="n">setup</span><span class="o">.</span><span class="n">producer_name</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;3&quot;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">DATA_SET_ID</span> <span class="o">=</span> <span class="n">setup</span><span class="o">.</span><span class="n">pds3_mission_template</span><span class="p">[</span><span class="s1">&#39;DATA_SET_ID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="k">if</span> <span class="s1">&#39;&quot;&#39;</span> <span class="ow">in</span> <span class="n">setup</span><span class="o">.</span><span class="n">pds3_mission_template</span><span class="p">[</span><span class="s1">&#39;DATA_SET_ID&#39;</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">DATA_SET_ID</span> <span class="o">=</span> <span class="n">setup</span><span class="o">.</span><span class="n">pds3_mission_template</span><span class="p">[</span><span class="s1">&#39;DATA_SET_ID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">DATA_SET_ID</span> <span class="o">=</span> <span class="n">setup</span><span class="o">.</span><span class="n">pds3_mission_template</span><span class="p">[</span><span class="s1">&#39;DATA_SET_ID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">VOLID</span> <span class="o">=</span> <span class="n">setup</span><span class="o">.</span><span class="n">volume_id</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">DATA_SET_ID</span> <span class="o">=</span> <span class="s2">&quot;N/A&quot;</span>
@@ -487,9 +490,7 @@
         <span class="c1"># Add possible orbnum files if not running in label generation</span>
         <span class="c1"># mode.</span>
         <span class="c1">#</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">,</span> <span class="s2">&quot;orbnum_directory&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">faucet</span> <span class="o">!=</span> <span class="s2">&quot;labels&quot;</span>
-        <span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">orbnum_directory</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">faucet</span> <span class="o">!=</span> <span class="s2">&quot;labels&quot;</span><span class="p">):</span>
             <span class="n">orbnums_in_dir</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">orbnum_directory</span><span class="si">}</span><span class="s2">/*&quot;</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">orbnum_in_dir</span> <span class="ow">in</span> <span class="n">orbnums_in_dir</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">orbnum</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">orbnum</span><span class="p">:</span>
@@ -1270,7 +1271,7 @@
             <span class="k">if</span> <span class="n">product</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">!=</span> <span class="s2">&quot;b&quot;</span><span class="p">:</span>
                 <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;.nrb&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">product</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span> <span class="ow">and</span> <span class="p">(</span><span class="s2">&quot;.orb&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">product</span><span class="o">.</span><span class="n">lower</span><span class="p">()):</span>
                     <span class="n">eol</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
-                <span class="k">elif</span> <span class="p">((</span><span class="s2">&quot;.nrb&quot;</span> <span class="ow">in</span> <span class="n">product</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span> <span class="ow">or</span> <span class="p">(</span><span class="s2">&quot;.orb&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">product</span><span class="o">.</span><span class="n">lower</span><span class="p">()))</span> \
+                <span class="k">elif</span> <span class="p">((</span><span class="s2">&quot;.nrb&quot;</span> <span class="ow">in</span> <span class="n">product</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span> <span class="ow">or</span> <span class="p">(</span><span class="s2">&quot;.orb&quot;</span> <span class="ow">in</span> <span class="n">product</span><span class="o">.</span><span class="n">lower</span><span class="p">()))</span> \
                         <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s1">&#39;3&#39;</span><span class="p">:</span>
                     <span class="n">eol</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
                 <span class="k">else</span><span class="p">:</span>
@@ -1278,7 +1279,10 @@
 
                 <span class="n">error</span> <span class="o">=</span> <span class="n">check_eol</span><span class="p">(</span><span class="n">origin_path</span><span class="p">,</span> <span class="n">eol</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">error</span><span class="p">:</span>
-                    <span class="n">product_errors</span><span class="p">[</span><span class="n">product</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="p">((</span><span class="s2">&quot;.nrb&quot;</span> <span class="ow">in</span> <span class="n">product</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span> <span class="ow">or</span> <span class="p">(</span><span class="s2">&quot;.orb&quot;</span> <span class="ow">in</span> <span class="n">product</span><span class="o">.</span><span class="n">lower</span><span class="p">())):</span>
+                        <span class="n">product_warnings</span><span class="p">[</span><span class="n">product</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">product_errors</span><span class="p">[</span><span class="n">product</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
 
                 <span class="n">error</span> <span class="o">=</span> <span class="n">check_badchar</span><span class="p">(</span><span class="n">origin_path</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">error</span><span class="p">:</span>

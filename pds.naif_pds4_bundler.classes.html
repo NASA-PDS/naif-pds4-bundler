@@ -8,7 +8,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pds.naif_pds4_bundler.classes package &mdash; NAIF PDS4 Bundler 1.1.0
+  <title>pds.naif_pds4_bundler.classes package &mdash; NAIF PDS4 Bundler 1.2.0
  documentation</title>
   
 
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                1.1
+                1.2
               </div>
             
           
@@ -406,11 +406,12 @@ otherwise we set it to 1.</p>
 <dd><p>Determine the name of the Meta-kernel(s) to be generated.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Alphabetically sorted list of meta-kernels to be generated,
-List of meta-kernels provided by the user</p>
+<dd class="field-odd"><p>Dictionary of meta-kernels to be generated. The keys list the
+meta-kernels and the values whether if they are provided by the
+user or not.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p>(list, list)</p>
+<dd class="field-even"><p>dictionary.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1989,7 +1990,7 @@ additional kernels.</p>
 <dd><p>Write a PDS validate tool configuration file.</p>
 <p>NPB will write a PDS validate tool configuration file for convenience
 of the user. The following validate example command for ExoMars2016:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ validate -v 1 -t em16/em16_spice –skip-context-validation            -R pds4.bundle -x working/PDS4_PDS_1B00.xsd -S working/PDS4_PDS_1B00.sch            –strict-field-checks -r working/em16_release_03.validate
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ validate -v 1 -t em16/em16_spice –-skip-context-validation            -R pds4.bundle -x working/PDS4_PDS_1B00.xsd -S working/PDS4_PDS_1B00.sch            -–strict-field-checks -r working/em16_release_03.validate
 </pre></div>
 </div>
 <p>Would be equivalent to the following resulting Validate configuration
@@ -2003,7 +2004,7 @@ file:</p>
 <span class="n">validate</span><span class="o">.</span><span class="n">schema</span> <span class="o">=</span> <span class="n">working</span><span class="o">/</span><span class="n">PDS4_PDS_1B00</span><span class="o">.</span><span class="n">xsd</span>
 <span class="n">validate</span><span class="o">.</span><span class="n">schematron</span> <span class="o">=</span> <span class="n">working</span><span class="o">/</span><span class="n">PDS4_PDS_1B00</span><span class="o">.</span><span class="n">sch</span>
 <span class="n">validate</span><span class="o">.</span><span class="n">strictFieldChecks</span> <span class="o">=</span> <span class="n">true</span>
-<span class="n">validate</span><span class="o">.</span><span class="n">report</span> <span class="o">=</span> <span class="n">working</span><span class="o">/</span><span class="n">em16_release_03</span><span class="o">.</span><span class="n">validate</span>
+<span class="n">validate</span><span class="o">.</span><span class="n">report</span> <span class="o">=</span> <span class="n">working</span><span class="o">/</span><span class="n">em16_release_03</span><span class="o">.</span><span class="n">validate_report</span>
 </pre></div>
 </div>
 <p>If there is an issue during the generation of this file –e.g.: no

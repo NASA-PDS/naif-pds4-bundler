@@ -8,7 +8,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Step 2: Preparing the NAIF PDS4 Bundler Setup &mdash; NAIF PDS4 Bundler 1.1.0
+  <title>Step 2: Preparing the NAIF PDS4 Bundler Setup &mdash; NAIF PDS4 Bundler 1.2.0
  documentation</title>
   
 
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                1.1
+                1.2
               </div>
             
           
@@ -213,6 +213,7 @@ generate PDS artifacts), and the directory where NPB will write the archive
 generation logs and by-products (<strong>working</strong> directory).</p>
 <p>If you are providing your own templates to NPB then you will also need to
 specify a directory for them (<strong>templates</strong> directory.)</p>
+<p>The working, staging, and bundle directories cannot be the same.</p>
 <section id="working-directory">
 <h3>Working Directory<a class="headerlink" href="#working-directory" title="Permalink to this headline">¶</a></h3>
 <p>NPB requires a directory to generate the execution by-products that include but
@@ -228,13 +229,14 @@ you to have a history of all the releases of an archive.</p>
 <h3>Kernels Directory<a class="headerlink" href="#kernels-directory" title="Permalink to this headline">¶</a></h3>
 <p>NPB needs to know where it will get the input kernels from. You can define as
 many kernel directories as you want via configuration: NPB will search all of
-them looking for the kernels specified in the <strong>release plan</strong>. As soon as it
-finds one, it will short-circuit the search in the other directories for the
-given kernel.</p>
-<p>These directories must follow the usual SPICE kernel subdirectory structure based
-on kernel type. The required subdirectories depend of the input kernel types.</p>
-<p>The directory(ies) structure can be created ad-hoc for NPB or can already exist:
-you might use your operational SPICE kernel operational directories.</p>
+them –and their eventual sub-directories– looking for the kernels specified
+in the <strong>release plan</strong>. The priority order of the search is the order in which
+the directories has been provided in the configuration file: as soon as the
+kernel is found, NPB short-circuits the search.</p>
+<p>It is recommended that these directories follow the usual SPICE kernel
+subdirectory structure based on kernel type. The directory(ies) structure can
+be created ad-hoc for NPB or can already exist: you might use your operational
+SPICE kernel operational directories.</p>
 <p>If you call the directory <code class="docutils literal notranslate"><span class="pre">kernels</span></code> and you are archiving the following
 kernels:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">nsy_sclkscet_00019</span><span class="o">.</span><span class="n">tsc</span>
@@ -242,18 +244,21 @@ kernels:</p>
 <span class="n">insight_ida_pot_200829_201220_v1</span><span class="o">.</span><span class="n">bc</span>
 </pre></div>
 </div>
-<p>your kernels directory structure should be, at least:</p>
+<p>your kernels directory structure could be:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">kernels</span><span class="o">/</span>
 <span class="o">|--</span> <span class="n">ck</span>
+<span class="o">|</span> <span class="o">|</span>
+<span class="o">|</span> <span class="o">|--</span> <span class="n">insight_ida_enc_200829_201220_v1</span><span class="o">.</span><span class="n">bc</span>
+<span class="o">|</span> <span class="o">+--</span> <span class="n">insight_ida_pot_200829_201220_v1</span><span class="o">.</span><span class="n">bc</span>
+<span class="o">|</span>
 <span class="o">+--</span> <span class="n">sclk</span>
+  <span class="o">|</span>
+  <span class="o">+--</span> <span class="n">nsy_sclkscet_00019</span><span class="o">.</span><span class="n">tsc</span>
 </pre></div>
 </div>
-<p>Of course it could also be something like this:
-<a class="reference external" href="https://naif.jpl.nasa.gov/pub/naif/INSIGHT/kernels/">https://naif.jpl.nasa.gov/pub/naif/INSIGHT/kernels/</a></p>
-<p>Please note that if you chose to generate MKs automatically (as explained
-in section <a class="reference internal" href="31_step_1_preparing_data.html#generating-mks-automatically"><span class="std std-ref">Generating MKs Automatically</span></a>),
-you might not need to include a <code class="docutils literal notranslate"><span class="pre">mk</span></code> subdirectory in the kernels directory
-structure.</p>
+<p>Alternatively all the kernels could simply be under <code class="docutils literal notranslate"><span class="pre">kernels</span></code> or you could
+have the complete operational SPICE kernels sub-directory structrue as in
+the <a class="reference external" href="https://naif.jpl.nasa.gov/pub/naif/INSIGHT/kernels/">INSIGHT operational kernels at NAIF</a>.</p>
 </section>
 <section id="orbnum-directory">
 <h3>ORBNUM Directory<a class="headerlink" href="#orbnum-directory" title="Permalink to this headline">¶</a></h3>
@@ -482,7 +487,7 @@ here.</p>
 <p>You should see a result similar to the following one:</p>
 <span class="target" id="module-pds.naif_pds4_bundler.__main__"></span><p><strong>NAIF PDS4 Bundler Main Module</strong>.</p>
 <p>usage: naif-pds4-bundler [-h] [-p PLAN] [-f FAUCET] [-l] [-s] [-v] [-d DIFF] [-c CLEAR] [-k KERLIST] CONFIG [CONFIG …]</p>
-<p><strong>naif-pds4-bundler-0.13.1, NAIF PDS4 SPICE archive generation pipeline*</strong></p>
+<p><strong>naif-pds4-bundler-0.13.1, NAIF PDS4 SPICE archive generation pipeline</strong></p>
 <p>naif-pds4-bundler is a command-line utility program that generates PDS4
 bundles for SPICE kernel archives.</p>
 <dl>
@@ -506,7 +511,7 @@ kernel or the path to a release plan file
 <dt><kbd><span class="option">-f <var>FAUCET</var></span>, <span class="option">--faucet <var>FAUCET</var></span></kbd></dt>
 <dd><p>Optional indication for end point of the pipeline.
 Allowed values are: <code class="docutils literal notranslate"><span class="pre">clear</span></code>, <code class="docutils literal notranslate"><span class="pre">plan</span></code>, <code class="docutils literal notranslate"><span class="pre">list</span></code>,
-<code class="docutils literal notranslate"><span class="pre">staging</span></code>, <code class="docutils literal notranslate"><span class="pre">bundle</span></code>, and <code class="docutils literal notranslate"><span class="pre">labels</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">checks</span></code>, <code class="docutils literal notranslate"><span class="pre">staging</span></code>, <code class="docutils literal notranslate"><span class="pre">bundle</span></code>, and <code class="docutils literal notranslate"><span class="pre">labels</span></code>.</p>
 </dd>
 <dt><kbd><span class="option">-l</span>, <span class="option">--log</span></kbd></dt>
 <dd><p>Write log in file</p>

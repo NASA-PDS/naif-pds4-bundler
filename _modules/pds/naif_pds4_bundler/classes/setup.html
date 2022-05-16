@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pds.naif_pds4_bundler.classes.setup &mdash; NAIF PDS4 Bundler 1.1.0
+  <title>pds.naif_pds4_bundler.classes.setup &mdash; NAIF PDS4 Bundler 1.2.0
  documentation</title>
   
 
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                1.1
+                1.2
               </div>
             
           
@@ -244,6 +244,12 @@
         <span class="c1">#</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kernels_directory</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">kernels_directory</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">kernels_directory</span><span class="p">]</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># Generate empty orbnum directory if not present.</span>
+        <span class="c1">#</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;orbnum_directory&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">orbnum_directory</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
 
         <span class="c1">#</span>
         <span class="c1"># Kernel list configuration needs refactoring.</span>
@@ -525,6 +531,18 @@
                 <span class="p">)</span>
 
         <span class="c1">#</span>
+        <span class="c1"># Check that directories are not the same.</span>
+        <span class="c1">#</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">staging_directory</span><span class="p">)</span> <span class="ow">or</span> \
+                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bundle_directory</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">staging_directory</span><span class="p">)</span> <span class="ow">or</span> \
+                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bundle_directory</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="p">):</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;--The working, staging, and bundle directories must be different:&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  working: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  staging: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">staging_directory</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  bundle:  </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">bundle_directory</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">error_message</span><span class="p">(</span><span class="s2">&quot;Update working, staging, or bundle directory.&quot;</span><span class="p">)</span>
+
+        <span class="c1">#</span>
         <span class="c1"># Sort out if directories are provided as relative paths and</span>
         <span class="c1"># if so convert them in absolute for the execution</span>
         <span class="c1">#</span>
@@ -546,25 +564,38 @@
             <span class="n">error_message</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Directory does not exist: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">cwd</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">staging_directory</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">staging_directory</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">cwd</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">staging_directory</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="n">mission_dir</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">staging_directory</span> <span class="o">=</span> <span class="p">(</span><span class="n">cwd</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">staging_directory</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="n">mission_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">staging_directory</span><span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Creating missing directory: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">staging_directory</span><span class="si">}</span><span class="s2">/&quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">mission_dir</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;-- Creating staging directory: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">staging_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">mission_dir</span><span class="si">}</span><span class="s2">.&quot;</span>
             <span class="p">)</span>
+            <span class="c1">#</span>
+            <span class="c1"># If the faucet is set to plan, kerlist, or checks, this is just</span>
+            <span class="c1"># fine. Otherwise the non-existence must trigger an error.</span>
+            <span class="c1">#</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">staging_directory</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">cwd</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">staging_directory</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">faucet</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;plan&quot;</span><span class="p">,</span> <span class="s2">&quot;list&quot;</span><span class="p">,</span> <span class="s2">&quot;checks&quot;</span><span class="p">]:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-- Staging directory cannot be created but is not used with </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">faucet</span><span class="si">}</span><span class="s2"> faucet.&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">error_message</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Staging directory cannot be created: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">staging_directory</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+
         <span class="k">elif</span> <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="n">mission_dir</span><span class="si">}</span><span class="s2">&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">staging_directory</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">staging_directory</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="n">mission_dir</span><span class="si">}</span><span class="s2">&quot;</span>
 
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">cwd</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">bundle_directory</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">bundle_directory</span> <span class="o">=</span> <span class="n">cwd</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">bundle_directory</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># If the faucet is set to plan, kerlist, or checks, this is just</span>
+        <span class="c1"># fine. Otherwise the non-existence must trigger an error.</span>
+        <span class="c1">#</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bundle_directory</span><span class="p">):</span>
-            <span class="n">error_message</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Directory does not exist: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">bundle_directory</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">faucet</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;plan&quot;</span><span class="p">,</span> <span class="s2">&quot;list&quot;</span><span class="p">,</span> <span class="s2">&quot;checks&quot;</span><span class="p">]:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-- Bundle directory does not exist but is not used with </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">faucet</span><span class="si">}</span><span class="s2"> faucet.&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">error_message</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Bundle directory does not exist: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">bundle_directory</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
 
         <span class="c1">#</span>
         <span class="c1"># There might be more than one kernel directory</span>
@@ -600,27 +631,46 @@
 
                 <span class="n">short_version</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">major</span><span class="si">}{</span><span class="n">minor</span><span class="si">}{</span><span class="n">maint</span><span class="si">}{</span><span class="n">build</span><span class="si">}</span><span class="s2">&quot;</span>
 
-                <span class="n">xml_model_version</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xml_model</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;PDS4_PDS_&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-                <span class="n">xml_model_version</span> <span class="o">=</span> <span class="n">xml_model_version</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.sch&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="c1">#</span>
+                <span class="c1"># Check if xml_model is provided via configuration, if so check</span>
+                <span class="c1"># its validity and if not generate it.</span>
+                <span class="c1">#</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;xml_model&quot;</span><span class="p">):</span>
+                    <span class="n">xml_model_version</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xml_model</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;PDS4_PDS_&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="n">xml_model_version</span> <span class="o">=</span> <span class="n">xml_model_version</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.sch&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
-                <span class="k">if</span> <span class="n">xml_model_version</span> <span class="o">!=</span> <span class="n">short_version</span><span class="p">:</span>
-                    <span class="n">error_message</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">&quot;PDS4 Information Model &quot;</span>
-                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">short_version</span><span class="si">}</span><span class="s2"> &quot;</span>
-                        <span class="sa">f</span><span class="s2">&quot;is incoherent with the XML Model version: &quot;</span>
-                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">xml_model</span><span class="si">}</span><span class="s2">.&quot;</span>
-                    <span class="p">)</span>
+                    <span class="k">if</span> <span class="n">xml_model_version</span> <span class="o">!=</span> <span class="n">short_version</span><span class="p">:</span>
+                        <span class="n">error_message</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;PDS4 Information Model &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">short_version</span><span class="si">}</span><span class="s2"> &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;is incoherent with the XML Model version: &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">xml_model</span><span class="si">}</span><span class="s2">.&quot;</span>
+                        <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">xml_model</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_</span><span class="si">{</span><span class="n">short_version</span><span class="si">}</span><span class="s2">.sch&quot;</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- Schema XML Model (xml_model) not provided with configuration file. Set to:&quot;</span><span class="p">)</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">xml_model</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-                <span class="n">schema_loc_version</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">schema_location</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/PDS4_PDS_&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-                <span class="n">schema_loc_version</span> <span class="o">=</span> <span class="n">schema_loc_version</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.xsd&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="c1">#</span>
+                <span class="c1"># Check if schema_location is provided via configuration, if so check</span>
+                <span class="c1"># its validity and if not generate it.</span>
+                <span class="c1">#</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;schema_location&quot;</span><span class="p">):</span>
+                    <span class="n">schema_loc_version</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">schema_location</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/PDS4_PDS_&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="n">schema_loc_version</span> <span class="o">=</span> <span class="n">schema_loc_version</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.xsd&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
-                <span class="k">if</span> <span class="n">schema_loc_version</span> <span class="o">!=</span> <span class="n">short_version</span><span class="p">:</span>
-                    <span class="n">error_message</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">&quot;PDS4 Information Model &quot;</span>
-                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">short_version</span><span class="si">}</span><span class="s2"> &quot;</span>
-                        <span class="sa">f</span><span class="s2">&quot;is incoherent with the Schema location: &quot;</span>
-                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">schema_location</span><span class="si">}</span><span class="s2">.&quot;</span>
-                    <span class="p">)</span>
+                    <span class="k">if</span> <span class="n">schema_loc_version</span> <span class="o">!=</span> <span class="n">short_version</span><span class="p">:</span>
+                        <span class="n">error_message</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;PDS4 Information Model &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">short_version</span><span class="si">}</span><span class="s2"> &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;is incoherent with the Schema location: &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">schema_location</span><span class="si">}</span><span class="s2">.&quot;</span>
+                        <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">schema_location</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;http://pds.nasa.gov/pds4/pds/v1 &quot;</span> \
+                                           <span class="sa">f</span><span class="s2">&quot;http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_</span><span class="si">{</span><span class="n">short_version</span><span class="si">}</span><span class="s2">.xsd&quot;</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- Schema Location (schema_location) not provided with configuration file. Set to:&quot;</span><span class="p">)</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">schema_location</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">error_message</span><span class="p">(</span>
@@ -999,6 +1049,15 @@
         <span class="n">pck_patterns</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">lsk_patterns</span> <span class="o">=</span> <span class="p">[]</span>
 
+        <span class="c1">#</span>
+        <span class="c1"># We inspect the kernels directory and the bundle directory.</span>
+        <span class="c1">#</span>
+        <span class="n">directories</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernels_directory</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s1">&#39;4&#39;</span><span class="p">:</span>
+            <span class="n">directories</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bundle_directory</span> <span class="o">+</span>  <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_spice/spice_kernels&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">directories</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bundle_directory</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">volume_id</span><span class="si">}</span><span class="s2">/data&quot;</span><span class="p">)</span>
+
         <span class="k">for</span> <span class="nb">type</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernels_to_load</span><span class="p">:</span>
             <span class="k">if</span> <span class="s2">&quot;fk&quot;</span> <span class="ow">in</span> <span class="nb">type</span><span class="p">:</span>
                 <span class="n">fks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernels_to_load</span><span class="p">[</span><span class="nb">type</span><span class="p">]</span>
@@ -1034,7 +1093,7 @@
                 <span class="n">lsks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>
                 <span class="n">spiceypy</span><span class="o">.</span><span class="n">furnsh</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">for</span> <span class="nb">dir</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernels_directory</span><span class="p">:</span>
+                <span class="k">for</span> <span class="nb">dir</span> <span class="ow">in</span> <span class="n">directories</span><span class="p">:</span>
                     <span class="n">lsk_pattern</span> <span class="o">=</span> <span class="p">[</span>
                         <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
                         <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="nb">dir</span><span class="p">)</span>
@@ -1059,7 +1118,7 @@
                 <span class="n">pcks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>
                 <span class="n">spiceypy</span><span class="o">.</span><span class="n">furnsh</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">for</span> <span class="nb">dir</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernels_directory</span><span class="p">:</span>
+                <span class="k">for</span> <span class="nb">dir</span> <span class="ow">in</span> <span class="n">directories</span><span class="p">:</span>
                     <span class="n">pcks_pattern</span> <span class="o">=</span> <span class="p">[</span>
                         <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
                         <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="nb">dir</span><span class="p">)</span>
@@ -1082,7 +1141,7 @@
                 <span class="n">fks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>
                 <span class="n">spiceypy</span><span class="o">.</span><span class="n">furnsh</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">for</span> <span class="nb">dir</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernels_directory</span><span class="p">:</span>
+                <span class="k">for</span> <span class="nb">dir</span> <span class="ow">in</span> <span class="n">directories</span><span class="p">:</span>
                     <span class="n">fks_pattern</span> <span class="o">=</span> <span class="p">[</span>
                         <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
                         <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="nb">dir</span><span class="p">)</span>
@@ -1106,7 +1165,7 @@
                 <span class="n">sclks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>
                 <span class="n">spiceypy</span><span class="o">.</span><span class="n">furnsh</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">for</span> <span class="nb">dir</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernels_directory</span><span class="p">:</span>
+                <span class="k">for</span> <span class="nb">dir</span> <span class="ow">in</span> <span class="n">directories</span><span class="p">:</span>
                     <span class="n">sclks_pattern</span> <span class="o">=</span> <span class="p">[</span>
                         <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
                         <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="nb">dir</span><span class="p">)</span>
@@ -1117,6 +1176,7 @@
                         <span class="n">sclks_pattern</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">kernel_name</span><span class="p">)</span>
                         <span class="n">spiceypy</span><span class="o">.</span><span class="n">furnsh</span><span class="p">(</span><span class="n">sclks_pattern</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
                         <span class="n">sclks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sclks_pattern</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                        <span class="k">break</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">sclks</span><span class="p">:</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-- SCLK not found.&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1259,7 +1319,8 @@
                 <span class="s2">&quot;w&quot;</span><span class="p">,</span>
             <span class="p">)</span> <span class="k">as</span> <span class="n">l</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_list</span><span class="p">:</span>
-                    <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+                    <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- Run File List file written in working area.&quot;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Setup.write_checksum_registry"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.setup.Setup.write_checksum_registry">[docs]</a>    <span class="k">def</span> <span class="nf">write_checksum_registry</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Write the run by-product Checksum Record.&quot;&quot;&quot;</span>
@@ -1272,7 +1333,8 @@
                 <span class="s2">&quot;w&quot;</span><span class="p">,</span>
             <span class="p">)</span> <span class="k">as</span> <span class="n">l</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">checksum_registry</span><span class="p">:</span>
-                    <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">element</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+                    <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">element</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- Run Checksum Registry file written in working area.&quot;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Setup.write_validate_configuration"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.setup.Setup.write_validate_configuration">[docs]</a>    <span class="k">def</span> <span class="nf">write_validate_configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Write a PDS validate tool configuration file.</span>
@@ -1280,9 +1342,9 @@
 <span class="sd">        NPB will write a PDS validate tool configuration file for convenience</span>
 <span class="sd">        of the user. The following validate example command for ExoMars2016::</span>
 
-<span class="sd">           $ validate -v 1 -t em16/em16_spice –skip-context-validation \</span>
+<span class="sd">           $ validate -v 1 -t em16/em16_spice –-skip-context-validation \</span>
 <span class="sd">           -R pds4.bundle -x working/PDS4_PDS_1B00.xsd -S working/PDS4_PDS_1B00.sch \</span>
-<span class="sd">           –strict-field-checks -r working/em16_release_03.validate</span>
+<span class="sd">           -–strict-field-checks -r working/em16_release_03.validate</span>
 
 <span class="sd">        Would be equivalent to the following resulting Validate configuration</span>
 <span class="sd">        file::</span>
@@ -1296,7 +1358,7 @@
 <span class="sd">           validate.schema = working/PDS4_PDS_1B00.xsd</span>
 <span class="sd">           validate.schematron = working/PDS4_PDS_1B00.sch</span>
 <span class="sd">           validate.strictFieldChecks = true</span>
-<span class="sd">           validate.report = working/em16_release_03.validate</span>
+<span class="sd">           validate.report = working/em16_release_03.validate_report</span>
 
 <span class="sd">        If there is an issue during the generation of this file --e.g.: no</span>
 <span class="sd">        internet connection-- the process will silently fail but the NPB run</span>
@@ -1307,6 +1369,8 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pds_schematron_location</span><span class="p">,</span> <span class="n">allow_redirects</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;-- PDS Validate Tool configuration file not written.&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   PDS Schematron not reachable: </span><span class="si">{</span><span class="n">pds_schematron</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">return</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">pds_schematron</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
@@ -1316,23 +1380,28 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pds_schema_location</span><span class="p">,</span> <span class="n">allow_redirects</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;-- PDS Validate Tool configuration file not written.&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   PDS Schema location not reachable: </span><span class="si">{</span><span class="n">pds_schema_location</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">return</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">pds_schema</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
 
         <span class="n">filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">run_type</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="p">)</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">&quot;</span>
 
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">.config.validate&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">l</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">.validate_config&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">l</span><span class="p">:</span>
             <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;# Run the PDS validate tool where the NPB working directory resides:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;# $ validate -c </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">.config.validate</span><span class="se">\n</span><span class="s2">#</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;validate.target = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">bundle_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_spice</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;validate.report = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">.validate</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;# $ validate -t </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">bundle_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_spice &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;-c </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">.validate_config &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;-r </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">.validate_report</span><span class="se">\n</span><span class="s2">#</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;validate.schema = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">pds_schema</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;validate.schematron = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">pds_schematron</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;validate.verbose = 1</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;validate.skipContextValidation = true</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;validate.rule = pds4.bundle</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;validate.strictFieldChecks = true</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div></div>
+            <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;validate.strictFieldChecks = true</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- PDS Validate Tool configuration file written in working area:&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">.validate_config&quot;</span><span class="p">)</span></div></div>
 </pre></div>
 
            </div>

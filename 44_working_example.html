@@ -1,0 +1,412 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Working Example &mdash; NAIF PDS4 Bundler 1.2.0
+ documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Modules, Classes, and Functions Documentation" href="50_api_docs.html" />
+    <link rel="prev" title="Using NPB" href="43_using_npb.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> NAIF PDS4 Bundler
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="10_overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="20_spice_kernel_archive_description.html">SPICE Kernel Archive Description</a></li>
+<li class="toctree-l1"><a class="reference internal" href="30_spice_kernel_archive_preparation_guide.html">SPICE Kernel Archive Preparation Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="40_naif_pds4_bundler_user_guide.html">NAIF PDS4 Bundler User Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="41_npb_installation.html">NPB Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="42_npb_configuration_file.html">The Configuration File</a></li>
+<li class="toctree-l2"><a class="reference internal" href="43_using_npb.html">Using NPB</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Working Example</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#setup-the-workspace">Setup the workspace</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#prepare-the-configuration-file">Prepare the Configuration File</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#run-npb">Run NPB</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#checking-the-results">Checking the Results</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="50_api_docs.html">Modules, Classes, and Functions Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="60_annex_npb_for_pds3.html">Appendix: NPB for PDS3 Archives</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">NAIF PDS4 Bundler</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="40_naif_pds4_bundler_user_guide.html">NAIF PDS4 Bundler User Guide</a> &raquo;</li>
+        
+      <li>Working Example</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/44_working_example.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="working-example">
+<h1>Working Example<a class="headerlink" href="#working-example" title="Permalink to this headline">¶</a></h1>
+<p>This section provides a working example for the user to be able to exercise
+NPB’s execution before using it to generate an actual archive. This section
+assumes that NPB is properly installed as indicated in <a class="reference internal" href="41_npb_installation.html#npb-installation"><span class="std std-ref">NPB Installation</span></a>
+and that you have the package available in the user’s computer. We will assume that
+its location is <code class="docutils literal notranslate"><span class="pre">~/naif-pds4-bundler/</span></code> and that NPB can executed with the
+command <code class="docutils literal notranslate"><span class="pre">naif-pds4-bundler</span></code>.</p>
+<section id="setup-the-workspace">
+<h2>Setup the workspace<a class="headerlink" href="#setup-the-workspace" title="Permalink to this headline">¶</a></h2>
+<p>We will generate an increment of the INSIGHT archive. The first step is to
+define our workspace, we will do so by creating the adequate directory
+structure as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="o">~/</span>
+<span class="n">mkdir</span> <span class="n">insight</span>
+<span class="n">mkdir</span> <span class="n">insight</span><span class="o">/</span><span class="n">working</span>
+<span class="n">mkdir</span> <span class="n">insight</span><span class="o">/</span><span class="n">staging</span>
+<span class="n">mkdir</span> <span class="n">insight</span><span class="o">/</span><span class="n">bundle</span>
+<span class="n">mkdir</span> <span class="n">insight</span><span class="o">/</span><span class="n">kernels</span>
+<span class="n">mkdir</span> <span class="n">insight</span><span class="o">/</span><span class="n">kernels</span><span class="o">/</span><span class="n">sclk</span>
+<span class="n">mkdir</span> <span class="n">insight</span><span class="o">/</span><span class="n">kernels</span><span class="o">/</span><span class="n">ck</span>
+</pre></div>
+</div>
+<p>The next step is to copy the “current” version of the INSIGHT SPICE Kernel
+(version 7). This is provided as test data with NPB:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cp</span> <span class="o">-</span><span class="n">pr</span> <span class="n">naif</span><span class="o">-</span><span class="n">pds4</span><span class="o">-</span><span class="n">bundler</span><span class="o">/</span><span class="n">tests</span><span class="o">/</span><span class="n">naif_pds4_bundler</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">insight</span><span class="o">/</span><span class="n">insight_spice</span> <span class="n">insight</span><span class="o">/</span><span class="n">bundle</span><span class="o">/</span>
+</pre></div>
+</div>
+<p>Now we copy the kernels that we will include in the archive increment (that will
+be version 8):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cp</span> <span class="o">-</span><span class="n">p</span> <span class="n">naif</span><span class="o">-</span><span class="n">pds4</span><span class="o">-</span><span class="n">bundler</span><span class="o">/</span><span class="n">tests</span><span class="o">/</span><span class="n">naif_pds4_bundler</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">kernels</span><span class="o">/</span><span class="n">sclk</span><span class="o">/</span><span class="n">NSY_SCLKSCET</span><span class="mf">.00019</span><span class="o">.</span><span class="n">tsc</span> <span class="n">insight</span><span class="o">/</span><span class="n">kernels</span><span class="o">/</span><span class="n">sclk</span><span class="o">/</span><span class="n">nsy_sclkscet_00019</span><span class="o">.</span><span class="n">tsc</span>
+<span class="n">cp</span> <span class="o">-</span><span class="n">p</span> <span class="n">naif</span><span class="o">-</span><span class="n">pds4</span><span class="o">-</span><span class="n">bundler</span><span class="o">/</span><span class="n">tests</span><span class="o">/</span><span class="n">naif_pds4_bundler</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">kernels</span><span class="o">/</span><span class="n">ck</span><span class="o">/</span><span class="n">insight_ida_enc_200829_201220_v1</span><span class="o">.</span><span class="n">bc</span> <span class="n">insight</span><span class="o">/</span><span class="n">kernels</span><span class="o">/</span><span class="n">ck</span><span class="o">/</span>
+<span class="n">cp</span> <span class="o">-</span><span class="n">p</span> <span class="n">naif</span><span class="o">-</span><span class="n">pds4</span><span class="o">-</span><span class="n">bundler</span><span class="o">/</span><span class="n">tests</span><span class="o">/</span><span class="n">naif_pds4_bundler</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">kernels</span><span class="o">/</span><span class="n">ck</span><span class="o">/</span><span class="n">insight_ida_pot_200829_201220_v1</span><span class="o">.</span><span class="n">bc</span> <span class="n">insight</span><span class="o">/</span><span class="n">kernels</span><span class="o">/</span><span class="n">ck</span><span class="o">/</span>
+</pre></div>
+</div>
+<p>The next step is to write the archive release plan that indicates the SPICE
+kernels that we want to archive. We will also include the meta-kernel in the
+release plan – it will be automatically generated by NPB and therefore
+we do not need to provide it. The release plan can be generated as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="n">ls</span> <span class="o">-</span><span class="mi">1</span> <span class="n">insight</span><span class="o">/</span><span class="n">kernels</span><span class="o">/</span><span class="n">sclk</span><span class="p">;</span> <span class="n">ls</span> <span class="o">-</span><span class="mi">1</span> <span class="n">insight</span><span class="o">/</span><span class="n">kernels</span><span class="o">/</span><span class="n">ck</span><span class="p">}</span> <span class="o">&gt;</span> <span class="n">insight</span><span class="o">/</span><span class="n">working</span><span class="o">/</span><span class="n">insight_release_08</span><span class="o">.</span><span class="n">plan</span>
+</pre></div>
+</div>
+<p>The next step is to setup the NPB configuration file appropriately. The starting
+point will be the configuration file provided for INSIGHT in the NPB test data:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cp</span> <span class="n">naif</span><span class="o">-</span><span class="n">pds4</span><span class="o">-</span><span class="n">bundler</span><span class="o">/</span><span class="n">tests</span><span class="o">/</span><span class="n">naif_pds4_bundler</span><span class="o">/</span><span class="n">config</span><span class="o">/</span><span class="n">insight</span><span class="o">.</span><span class="n">xml</span> <span class="n">insight</span><span class="o">/</span><span class="n">working</span><span class="o">/</span><span class="n">insight_release_v08</span><span class="o">.</span><span class="n">xml</span>
+</pre></div>
+</div>
+</section>
+<section id="prepare-the-configuration-file">
+<h2>Prepare the Configuration File<a class="headerlink" href="#prepare-the-configuration-file" title="Permalink to this headline">¶</a></h2>
+<p>We will now need to modify the configuration file to adapt it to our workspace.
+In order to do so open the file with a text editor and do the replacements
+indicated hereunder:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">vi</span> <span class="n">insight</span><span class="o">/</span><span class="n">working</span><span class="o">/</span><span class="n">insight_release_v08</span><span class="o">.</span><span class="n">xml</span>
+</pre></div>
+</div>
+<p>Because we are not providing an updated SPICEDS file, remove the following line:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">spiceds</span><span class="o">&gt;../</span><span class="n">data</span><span class="o">/</span><span class="n">spiceds_insight</span><span class="o">.</span><span class="n">html</span><span class="o">&lt;/</span><span class="n">spiceds</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Replace:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">sclk</span><span class="o">&gt;</span><span class="n">NSY_SCLKSCET</span><span class="o">.</span><span class="p">[</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">][</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">][</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">][</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">][</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">]</span><span class="o">.</span><span class="n">tsc</span><span class="o">&lt;/</span><span class="n">sclk</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">sclk</span><span class="o">&gt;</span><span class="n">nsy_sclkscet_</span><span class="p">[</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">][</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">][</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">][</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">][</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">]</span><span class="o">.</span><span class="n">tsc</span><span class="o">&lt;/</span><span class="n">sclk</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Given that we do not need to map the SCLK kernel name – we already copied the
+file with the update name.</p>
+<p>Replace:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">bundle_directory</span><span class="o">&gt;</span><span class="n">insight</span><span class="o">&lt;/</span><span class="n">bundle_directory</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">bundle_directory</span><span class="o">&gt;</span><span class="n">bundle</span><span class="o">&lt;/</span><span class="n">bundle_directory</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Finally, replace:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">interrupt_to_update</span><span class="o">&gt;</span><span class="kc">True</span><span class="o">&lt;/</span><span class="n">interrupt_to_update</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">interrupt_to_update</span><span class="o">&gt;</span><span class="kc">False</span><span class="o">&lt;/</span><span class="n">interrupt_to_update</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>This will prevent NPB from pausing the process to update the automatically
+generated meta-kernel.</p>
+</section>
+<section id="run-npb">
+<h2>Run NPB<a class="headerlink" href="#run-npb" title="Permalink to this headline">¶</a></h2>
+<p>We are ready to run NPB and to generate the archive increment. To do so change
+the directory to <code class="docutils literal notranslate"><span class="pre">insight</span></code> and then run NPB:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">insight</span>
+<span class="n">naif</span><span class="o">-</span><span class="n">pds4</span><span class="o">-</span><span class="n">bundler</span> <span class="n">working</span><span class="o">/</span><span class="n">insight_release_v08</span><span class="o">.</span><span class="n">xml</span> <span class="o">-</span><span class="n">p</span> <span class="n">working</span><span class="o">/</span><span class="n">insight_release_08</span><span class="o">.</span><span class="n">plan</span> <span class="o">-</span><span class="n">l</span>
+</pre></div>
+</div>
+<p>You should see something similar to this in your screen (minor differences can
+happen due to the usage of different versions of NPB):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">naif</span><span class="o">-</span><span class="n">pds4</span><span class="o">-</span><span class="n">bundler</span><span class="o">-</span><span class="mf">1.2.0</span> <span class="k">for</span> <span class="n">InSight</span> <span class="n">Mars</span> <span class="n">Lander</span> <span class="n">Mission</span>
+<span class="o">=======================================================</span>
+<span class="o">--</span> <span class="n">Executed</span> <span class="n">on</span> <span class="n">MT</span><span class="o">-</span><span class="mi">308302</span> <span class="n">at</span> <span class="mi">2022</span><span class="o">-</span><span class="mi">05</span><span class="o">-</span><span class="mi">13</span> <span class="mi">16</span><span class="p">:</span><span class="mi">17</span><span class="p">:</span><span class="mi">39</span>
+<span class="o">--</span> <span class="n">Setup</span> <span class="n">the</span> <span class="n">archive</span> <span class="n">generation</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">Kernel</span> <span class="n">List</span> <span class="n">generation</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">Check</span> <span class="n">kernel</span> <span class="nb">list</span> <span class="n">products</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">All</span> <span class="n">products</span> <span class="n">checks</span> <span class="n">have</span> <span class="n">succeeded</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">Bundle</span><span class="o">/</span><span class="n">data</span> <span class="nb">set</span> <span class="n">structure</span> <span class="n">generation</span> <span class="n">at</span> <span class="n">staging</span> <span class="n">area</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">Load</span> <span class="n">LSK</span><span class="p">,</span> <span class="n">PCK</span><span class="p">,</span> <span class="n">FK</span> <span class="ow">and</span> <span class="n">SCLK</span> <span class="n">kernels</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">SPICE</span> <span class="n">kernel</span> <span class="n">collection</span><span class="o">/</span><span class="n">data</span> <span class="n">processing</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="n">spice_kernels</span><span class="o">/</span><span class="n">sclk</span><span class="o">/</span><span class="n">nsy_sclkscet_00019</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="n">spice_kernels</span><span class="o">/</span><span class="n">ck</span><span class="o">/</span><span class="n">insight_ida_enc_200829_201220_v1</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="n">spice_kernels</span><span class="o">/</span><span class="n">ck</span><span class="o">/</span><span class="n">insight_ida_pot_200829_201220_v1</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">Generation</span> <span class="n">of</span> <span class="n">meta</span><span class="o">-</span><span class="n">kernel</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">Determine</span> <span class="n">archive</span> <span class="n">increment</span> <span class="n">start</span> <span class="ow">and</span> <span class="n">finish</span> <span class="n">times</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">Validate</span> <span class="n">SPICE</span> <span class="n">kernel</span> <span class="n">collection</span> <span class="n">generation</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">Generation</span> <span class="n">of</span> <span class="n">spice_kernels</span> <span class="n">collection</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="o">/</span><span class="n">spice_kernels</span><span class="o">/</span><span class="n">collection_spice_kernels_inventory_v008</span><span class="o">.</span><span class="n">csv</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="n">spice_kernels</span><span class="o">/</span><span class="n">collection_spice_kernels_v008</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">Processing</span> <span class="n">spiceds</span> <span class="n">file</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">Generation</span> <span class="n">of</span> <span class="n">miscellaneous</span> <span class="n">collection</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">Generate</span> <span class="n">checksum</span> <span class="n">file</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="n">miscellaneous</span><span class="o">/</span><span class="n">checksum</span><span class="o">/</span><span class="n">checksum_v001</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="o">/</span><span class="n">miscellaneous</span><span class="o">/</span><span class="n">collection_miscellaneous_inventory_v001</span><span class="o">.</span><span class="n">csv</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="n">miscellaneous</span><span class="o">/</span><span class="n">collection_miscellaneous_v001</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">Generate</span> <span class="n">checksum</span> <span class="n">file</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="n">miscellaneous</span><span class="o">/</span><span class="n">checksum</span><span class="o">/</span><span class="n">checksum_v002</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="o">/</span><span class="n">miscellaneous</span><span class="o">/</span><span class="n">collection_miscellaneous_inventory_v002</span><span class="o">.</span><span class="n">csv</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="n">miscellaneous</span><span class="o">/</span><span class="n">collection_miscellaneous_v002</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">Generate</span> <span class="n">checksum</span> <span class="n">file</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="n">miscellaneous</span><span class="o">/</span><span class="n">checksum</span><span class="o">/</span><span class="n">checksum_v003</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="o">/</span><span class="n">miscellaneous</span><span class="o">/</span><span class="n">collection_miscellaneous_inventory_v003</span><span class="o">.</span><span class="n">csv</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="n">miscellaneous</span><span class="o">/</span><span class="n">collection_miscellaneous_v003</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">Generate</span> <span class="n">checksum</span> <span class="n">file</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="n">miscellaneous</span><span class="o">/</span><span class="n">checksum</span><span class="o">/</span><span class="n">checksum_v004</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="o">/</span><span class="n">miscellaneous</span><span class="o">/</span><span class="n">collection_miscellaneous_inventory_v004</span><span class="o">.</span><span class="n">csv</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="n">miscellaneous</span><span class="o">/</span><span class="n">collection_miscellaneous_v004</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">Generate</span> <span class="n">checksum</span> <span class="n">file</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="n">miscellaneous</span><span class="o">/</span><span class="n">checksum</span><span class="o">/</span><span class="n">checksum_v005</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="o">/</span><span class="n">miscellaneous</span><span class="o">/</span><span class="n">collection_miscellaneous_inventory_v005</span><span class="o">.</span><span class="n">csv</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="n">miscellaneous</span><span class="o">/</span><span class="n">collection_miscellaneous_v005</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">Generate</span> <span class="n">checksum</span> <span class="n">file</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="n">miscellaneous</span><span class="o">/</span><span class="n">checksum</span><span class="o">/</span><span class="n">checksum_v006</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="o">/</span><span class="n">miscellaneous</span><span class="o">/</span><span class="n">collection_miscellaneous_inventory_v006</span><span class="o">.</span><span class="n">csv</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="n">miscellaneous</span><span class="o">/</span><span class="n">collection_miscellaneous_v006</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">Generate</span> <span class="n">checksum</span> <span class="n">file</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="n">miscellaneous</span><span class="o">/</span><span class="n">checksum</span><span class="o">/</span><span class="n">checksum_v007</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="o">/</span><span class="n">miscellaneous</span><span class="o">/</span><span class="n">collection_miscellaneous_inventory_v007</span><span class="o">.</span><span class="n">csv</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="n">miscellaneous</span><span class="o">/</span><span class="n">collection_miscellaneous_v007</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">Generate</span> <span class="n">checksum</span> <span class="n">file</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="o">/</span><span class="n">miscellaneous</span><span class="o">/</span><span class="n">collection_miscellaneous_inventory_v008</span><span class="o">.</span><span class="n">csv</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="n">miscellaneous</span><span class="o">/</span><span class="n">collection_miscellaneous_v008</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">Generation</span> <span class="n">of</span> <span class="n">bundle</span> <span class="n">products</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="n">bundle_insight_spice_v008</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span>
+   <span class="o">*</span> <span class="n">Created</span> <span class="n">miscellaneous</span><span class="o">/</span><span class="n">checksum</span><span class="o">/</span><span class="n">checksum_v008</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">Recap</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">staging</span> <span class="n">area</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">Copy</span> <span class="n">files</span> <span class="n">to</span> <span class="n">the</span> <span class="n">bundle</span> <span class="n">area</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">Validate</span> <span class="n">bundle</span> <span class="n">history</span> <span class="k">with</span> <span class="n">checksum</span> <span class="n">files</span><span class="o">.</span>
+<span class="n">Execution</span> <span class="n">finished</span> <span class="n">at</span> <span class="mi">2022</span><span class="o">-</span><span class="mi">05</span><span class="o">-</span><span class="mi">13</span> <span class="mi">16</span><span class="p">:</span><span class="mi">17</span><span class="p">:</span><span class="mi">40</span>
+</pre></div>
+</div>
+</section>
+<section id="checking-the-results">
+<h2>Checking the Results<a class="headerlink" href="#checking-the-results" title="Permalink to this headline">¶</a></h2>
+<p>NPB has been executed successfully. The result can be checked by inspecting the
+run by-products that are under the <code class="docutils literal notranslate"><span class="pre">working</span></code> directory:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">PDS4_PDS_1500</span><span class="o">.</span><span class="n">sch</span>
+<span class="n">PDS4_PDS_1500</span><span class="o">.</span><span class="n">xsd</span>
+<span class="n">insight_release_08</span><span class="o">.</span><span class="n">checksum</span>
+<span class="n">insight_release_08</span><span class="o">.</span><span class="n">file_list</span>
+<span class="n">insight_release_08</span><span class="o">.</span><span class="n">kernel_list</span>
+<span class="n">insight_release_08</span><span class="o">.</span><span class="n">log</span>
+<span class="n">insight_release_08</span><span class="o">.</span><span class="n">validate_config</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="50_api_docs.html" class="btn btn-neutral float-right" title="Modules, Classes, and Functions Documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="43_using_npb.html" class="btn btn-neutral float-left" title="Using NPB" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2021, Caltech/JPL/NASA
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

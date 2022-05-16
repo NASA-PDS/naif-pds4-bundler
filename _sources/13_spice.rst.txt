@@ -33,49 +33,49 @@ SPICE kernels in a SPICE archive are grouped into a set of subdirectories.
 Each subdirectory contains one specific kernel type; those types are briefly
 described here.
 
- * **SPK** (Spacecraft Planet Kernel) files contain ephemerides (position
+ * **``spk/``** (Spacecraft Planet Kernel) files contain ephemerides (position
    and velocity) for spacecraft, planets, satellites, comets and
    asteroids as well as for moving or fixed spacecraft and instrument
    structures.
 
- * **PCK** (Planetary Constants Kernel) files contain certain physical,
+ * **``pck/``** (Planetary Constants Kernel) files contain certain physical,
    dynamical and cartographic constants for target bodies, such as size
    and shape specifications, and orientation of the spin axis and prime
    meridian.
 
- * **IK** (Instrument Kernel) files contain instrument parameters relevant
+ * **``ik/``** (Instrument Kernel) files contain instrument parameters relevant
    for computing an instrument's geometry such as field-of-view
    definitions, CCD and optical distortion characteristics, and internal
    timing parameters.
 
- * **CK** (C-matrix Kernel) files contain time varying orientations for
+ * **``ck/``** (C-matrix Kernel) files contain time varying orientations for
    spacecraft, spacecraft structures, and articulating science
    instruments.
 
- * **LSK** (Leapseconds Kernel) files contain the leapseconds and the
+ * **``lsk/``** (Leapseconds Kernel) files contain the leapseconds and the
    values of other constants required to perform a transformation
    between Universal Time Coordinated (UTC) and Ephemeris time (ET),
    which is also known as Barycentric Dynamical Time (TDB).
 
- * **SCLK** (Spacecraft Clock Kernel) files contain on-board clock
+ * **``sclk/``** (Spacecraft Clock Kernel) files contain on-board clock
    calibration data required to perform a transformation between
    Ephemeris time (ET) and spacecraft on-board time (SCLK).
 
- * **FK** (Frame definitions Kernel) files contain information required to
+ * **``fk/``** (Frame definitions Kernel) files contain information required to
    define reference frames, sources of frame orientation data and
    connections between these frames and other frames supported within
    the SPICE system. The science instrument frame definitions provided
    in the FK files include mounting alignment information for the
    instruments.
 
- * **DSK** (Digital Shape Kernel) files contain detailed shape models for
+ * **``dsk/``** (Digital Shape Kernel) files contain detailed shape models for
    extended objects such as planets, natural satellites, asteroids, and
    comet nuclei.
 
 A SPICE archive contains one additional subdirectory holding meta-kernels,
 described here.
 
- * **MK** (Meta-Kernel) files list sets of related SPICE kernels that
+ * **``mk/``** (Meta-Kernel) files list sets of related SPICE kernels that
    should be used together, providing an easy way to make data from
    these kernel sets available to a SPICE-based application by loading
    meta-kernels into the program using the high level SPICE data loader

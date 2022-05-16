@@ -27,6 +27,8 @@ generation logs and by-products (**working** directory).
 If you are providing your own templates to NPB then you will also need to
 specify a directory for them (**templates** directory.)
 
+The working, staging, and bundle directories cannot be the same.
+
 
 Working Directory
 ^^^^^^^^^^^^^^^^^
@@ -47,15 +49,15 @@ Kernels Directory
 
 NPB needs to know where it will get the input kernels from. You can define as
 many kernel directories as you want via configuration: NPB will search all of
-them looking for the kernels specified in the **release plan**. As soon as it
-finds one, it will short-circuit the search in the other directories for the
-given kernel.
+them --and their eventual sub-directories-- looking for the kernels specified
+in the **release plan**. The priority order of the search is the order in which
+the directories has been provided in the configuration file: as soon as the
+kernel is found, NPB short-circuits the search.
 
-These directories must follow the usual SPICE kernel subdirectory structure based
-on kernel type. The required subdirectories depend of the input kernel types.
-
-The directory(ies) structure can be created ad-hoc for NPB or can already exist:
-you might use your operational SPICE kernel operational directories.
+It is recommended that these directories follow the usual SPICE kernel
+subdirectory structure based on kernel type. The directory(ies) structure can
+be created ad-hoc for NPB or can already exist: you might use your operational
+SPICE kernel operational directories.
 
 If you call the directory ``kernels`` and you are archiving the following
 kernels::
@@ -64,19 +66,21 @@ kernels::
    insight_ida_enc_200829_201220_v1.bc
    insight_ida_pot_200829_201220_v1.bc
 
-your kernels directory structure should be, at least::
+your kernels directory structure could be::
 
    kernels/
    |-- ck
+   | |
+   | |-- insight_ida_enc_200829_201220_v1.bc
+   | +-- insight_ida_pot_200829_201220_v1.bc
+   |
    +-- sclk
+     |
+     +-- nsy_sclkscet_00019.tsc
 
-Of course it could also be something like this:
-https://naif.jpl.nasa.gov/pub/naif/INSIGHT/kernels/
-
-Please note that if you chose to generate MKs automatically (as explained
-in section :ref:`31_step_1_preparing_data:Generating MKs Automatically`),
-you might not need to include a ``mk`` subdirectory in the kernels directory
-structure.
+Alternatively all the kernels could simply be under ``kernels`` or you could
+have the complete operational SPICE kernels sub-directory structrue as in
+the `INSIGHT operational kernels at NAIF <https://naif.jpl.nasa.gov/pub/naif/INSIGHT/kernels/>`_.
 
 
 ORBNUM Directory
