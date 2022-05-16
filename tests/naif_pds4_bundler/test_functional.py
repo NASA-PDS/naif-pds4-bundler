@@ -174,14 +174,17 @@ class TestFunctional(TestCase):
     def test_insight_increment_with_misc(self):
         insight.test_insight_increment_with_misc(self)
 
-#å   def test_insight_missing_bundle_directory(self):
-#å       insight.test_insight_missing_bundle_directory(self)
+#   def test_insight_missing_bundle_directory(self):
+#       insight.test_insight_missing_bundle_directory(self)
 
     def test_insight_missing_staging_directory_nok(self):
         insight.test_insight_missing_staging_directory_nok(self)
 
     def test_insight_flat_kernel_directory(self):
         insight.test_insight_flat_kernel_directory(self)
+
+#    def test_insight_multiple_kernel_directory(self):
+#        insight.test_insight_multiple_kernel_directory(self)
 
     #
     # LADEE functional tests.
