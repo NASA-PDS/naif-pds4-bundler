@@ -3,12 +3,15 @@ naif-pds4-bundle worklist by MCS/NAIF
 
 Work List:
 
+  -- Check ASCII characters in kernel list in the configuration file to avoid
+     the VCO IK description issue.
+
   -- Log all the kernels used to determine MK coverage, regardless if they
      are in the plan or already in the bundle.
 
   -- If specified MKs are not found, stop the pipeline.
 
-  -- Add MKs products as diff files.
+  -- Check MKs products as diff files.
 
   -- Description log not ordered.
 
@@ -23,24 +26,26 @@ Work List:
 
   -- Do not generate validate config file for a clear run.
 
+  -- Check line length of kernels.
+
   -- Remove strict order of directories in configuration.
 
   -- Remove unnecessary message from when mapping kernels.
      Remove also buggy messages for checksum labels.
+
+  -- Implement OREX functional tests -focusing on MKs and kernel mapping.
+
+  -- Correct missing module documentation for tests.
+
+
+Parking lot:
 
   -- Review that PDS3 template tags are properly logged.
 
   -- Consider to stop PDS3 execution after kernel list generation for
      when no faucet is indicated.
 
-  -- Implement OREX functional tests -focusing on MKs and kernel mapping.
-
   -- Implement BINGO dependency for LTL-IEEE machines for PDS3 data sets.
-
-  -- Correct missing module documentation for tests.
-
-  -- Include option to provide plan with kernel names to be mapped or to
-     provide kernels from directory with original names.
 
   -- New product for PDS3 archives: MKs in data/mk. To be a copy of the
      extras/mk products with _pds4_ added to the filename with a PATH value
@@ -51,9 +56,6 @@ Work List:
      To be implemented when PDS-EN registry copes with PDS3 data sets.
 
   -- Implement validate_pds3 to validate index files against data set content.
-
-
-Parking log:
 
   -- NOT for this release, and maybe never, but should we consider adding
      a reference from to the LIDVIDs of SPK -- or SPKs -- that were used to

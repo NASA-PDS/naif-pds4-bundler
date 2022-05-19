@@ -121,7 +121,8 @@ If so, you need to include the following argument when calling ``validate``:
 ``--add-context-products`` and provide the path to a local JSON file
 containing the missing context products as follows::
 
-     [
+     {
+     "Product_Context": [
           {
                "name": [
                     "em16"
@@ -149,6 +150,7 @@ containing the missing context products as follows::
                "lidvid": "urn:esa:psa:context:instrument_host:spacecraft.edm::1.0"
           }
      ]
+     }
 
 Then you can run ``validate`` as follows::
 

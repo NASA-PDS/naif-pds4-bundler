@@ -45,10 +45,10 @@ $TARGETS
   </Reference_List>
   <File_Area_Ancillary>
     <File>
-        <file_name>$FILE_NAME</file_name>
-        <creation_date_time>$PRODUCT_CREATION_TIME</creation_date_time>
-        <file_size unit="byte">$FILE_SIZE</file_size>
-        <md5_checksum>$FILE_CHECKSUM</md5_checksum>
+      <file_name>$FILE_NAME</file_name>
+      <creation_date_time>$PRODUCT_CREATION_TIME</creation_date_time>
+      <file_size unit="byte">$FILE_SIZE</file_size>
+      <md5_checksum>$FILE_CHECKSUM</md5_checksum>
     </File>
     <Header>
       <name>Orbit number header</name>
