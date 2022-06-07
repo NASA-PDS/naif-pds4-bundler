@@ -1,44 +1,25 @@
 naif-pds4-bundle worklist by MCS/NAIF
 =====================================
 
-Work List:
+This document describes the status of requirements, features, and
+bug implementations for NAIF PDS4 Bundler.
 
-  -- Check ASCII characters in kernel list in the configuration file to avoid
-     the VCO IK description issue.
-
-  -- Log all the kernels used to determine MK coverage, regardless if they
-     are in the plan or already in the bundle.
-
-  -- If specified MKs are not found, stop the pipeline.
-
-  -- Check MKs products as diff files.
-
-  -- Description log not ordered.
-
-  -- Header of document collection in log misplaced
-
-  -- Header for last file generation and add names to files.
-
-  -- Add comment syntax with # for the release plan.
-
-  -- Within the documentation create links to the files in the Git
-     repository wherever necessary.
-
-  -- Do not generate validate config file for a clear run.
-
-  -- Check line length of kernels.
-
-  -- Remove strict order of directories in configuration.
-
-  -- Remove unnecessary message from when mapping kernels.
-     Remove also buggy messages for checksum labels.
-
-  -- Implement OREX functional tests -focusing on MKs and kernel mapping.
-
-  -- Correct missing module documentation for tests.
+Created by Marc Costa Sitja (NAIF/JPL).
 
 
-Parking lot:
+Work List
+------------------------
+
+Contains bug fixes, features, and requirements to be implemented.
+The work list has now been migrated to the GitHub issues:
+https://github.com/NASA-PDS/naif-pds4-bundler/issues
+
+
+Parking lot
+------------------------
+
+Lists a number of possible future implementations to be migrated
+to the work list:
 
   -- Review that PDS3 template tags are properly logged.
 
@@ -57,13 +38,15 @@ Parking lot:
 
   -- Implement validate_pds3 to validate index files against data set content.
 
-  -- NOT for this release, and maybe never, but should we consider adding
-     a reference from to the LIDVIDs of SPK -- or SPKs -- that were used to
-     generate an ORBNUM to its label?
+  -- Consider adding a reference from to the LIDVIDs of SPK -- or SPKs -- that
+     were used to generate an ORBNUM to its label?
 
 
-Changelog:
+Changelog (until v1.2.0)
+------------------------
 
+After release v1.2.0, the changelog can be traced from GitHub. Issues before
+v1.2.0 are not recorded in GitHub.
 
 v1.2.0
 
@@ -321,3 +304,6 @@ v0.3.0 - Generation of InSight Bundle from existing archive.
 v0.2.0 - Generation of a PDS4 Bundle with examples.
 
 v0.1.0 - Generation of kernel lists.
+
+
+End of file.
