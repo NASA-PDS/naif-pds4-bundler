@@ -162,7 +162,7 @@ class KernelList(List):
                         ker_matched = True
                 if not ker_matched:
                     #
-                    # Add the  orbnum files that need to be added.
+                    # Add the orbnum files that need to be added.
                     # Match the pattern with the file.
                     #
                     if hasattr(self.setup, "orbnum"):

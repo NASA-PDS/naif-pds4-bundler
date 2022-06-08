@@ -10,7 +10,10 @@ present on the users's computer:
    * Python 3.8 (or higher)
    * A NAIF supported C compiler (`See link to NAIF CSPICE page <https://naif.jpl.nasa.gov/naif/toolkit_C.html>`_)
 
-Your computer must be based on a 64-bit Unix operating system: a Linux or OSX.
+.. warning::
+   Your computer must be based on a 64-bit Unix operating system: a Linux or OSX.
+   Your computer must also be little-endian.
+
 
 A number of Python packages are required as well:
 
@@ -74,15 +77,15 @@ Then you can run the installation as usual::
 
 
 Development and Contribution
-----------------------------
+============================
 
 For information on how to contribute to NASA-PDS codebases please take a
 look at our
 `Contributing guidelines <https://github.com/NASA-PDS/.github/blob/main/CONTRIBUTING.md>`_.
 
 
-Installation
-^^^^^^^^^^^^
+Installation for developers
+---------------------------
 
 You can install NPB in editable mode and with extra developer dependencies into
 your virtual environment of choice by running::
@@ -96,7 +99,7 @@ the ``pre-commit`` hooks::
 
 
 Packaging
-^^^^^^^^^
+---------
 
 To isolate and be able to reproduce the environment for this package,
 you should use a
@@ -122,7 +125,7 @@ All the source code is in ``naif_pds4_bundler`` under ``src``.
 
 
 Running Tests
-^^^^^^^^^^^^^
+-------------
 
 Run tests under the ``tests/naif_pds4_bundler`` directory with::
 
@@ -159,7 +162,7 @@ The implemented tests are documented in section :ref:`tests:tests package`
 
 
 Documentation
-^^^^^^^^^^^^^
+-------------
 
 NPB uses `Sphinx <https://www.sphinx-doc.org/en/master/>`_ to build its
 documentation. You can build the NPB docs with::
