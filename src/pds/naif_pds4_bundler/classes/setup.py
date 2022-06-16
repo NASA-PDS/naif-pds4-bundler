@@ -30,7 +30,7 @@ class Setup(object):
     :type version: str
     """
 
-    def __init__(self, args: Object, version: str) -> object:
+    def __init__(self, args: Object, version: str):
         """Constructor."""
         try:
             #

@@ -62,7 +62,7 @@ class Product(object):
     creation time and date, and file extension.
     """
 
-    def __init__(self) -> object:
+    def __init__(self):
         """Constructor."""
         stat_info = os.stat(self.path)
         self.size = str(stat_info.st_size)
@@ -174,7 +174,7 @@ class SpiceKernelProduct(Product):
                        the SPICE Kernel Product Object
     :type collection: Object
     """
-    def __init__(self, setup: Setup, name: str, collection: object) -> object:
+    def __init__(self, setup: Setup, name: str, collection: object):
         """Constructor."""
         self.collection = collection
         self.setup = setup
@@ -527,7 +527,7 @@ class MetaKernelProduct(Product):
     :type user_input: bool
     """
 
-    def __init__(self, setup: object, kernel: object, spice_kernels_collection: object, user_input: object = False) -> object:
+    def __init__(self, setup: object, kernel: object, spice_kernels_collection: object, user_input: object = False):
         """Constructor."""
         if user_input:
             logging.info(f"-- Copy meta-kernel: {kernel}")
@@ -1579,7 +1579,7 @@ class OrbnumFileProduct(Product):
     """
 
     def __init__(self, setup: object, name: object, collection: object,
-                 spice_kernels_collection: object) -> object:
+                 spice_kernels_collection: object):
         """Constructor."""
         self.collection = collection
         self.kernels_collection = spice_kernels_collection
@@ -2834,7 +2834,7 @@ class InventoryProduct(Product):
     :type collection: object
     """
 
-    def __init__(self, setup: object, collection: object) -> object:
+    def __init__(self, setup: object, collection: object):
         """Constructor."""
         if collection.name != 'miscellaneous':
             line = f"Step {setup.step} - Generation of {collection.name} collection"
@@ -3216,7 +3216,7 @@ class SpicedsProduct(object):
     :type collection: object
     """
 
-    def __init__(self, setup: object, collection: object) -> object:
+    def __init__(self, setup: object, collection: object):
         """Constructor."""
         self.setup = setup
         self.collection = collection
@@ -3458,7 +3458,7 @@ class ReadmeProduct(Product):
     :type bundle: object
     """
 
-    def __init__(self, setup: object, bundle: object) -> object:
+    def __init__(self, setup: object, bundle: object):
         """Constructor."""
         line = f"Step {setup.step} - Generation of bundle products"
         logging.info("")
@@ -3574,7 +3574,7 @@ class ChecksumProduct(Product):
     :type add_previous_checksum: bool
     """
 
-    def __init__(self, setup: object, collection: object, add_previous_checksum: bool = True) -> object:
+    def __init__(self, setup: object, collection: object, add_previous_checksum: bool = True):
         """Constructor."""
         #
         # The initialisation of the checksum class is lighter than the
@@ -4117,7 +4117,7 @@ class PDS3DocumentProduct(Product):
     :type path: str
     """
 
-    def __init__(self, setup: object, path: str) -> object:
+    def __init__(self, setup: object, path: str):
         """Constructor."""
         self.path = path
         self.setup = setup

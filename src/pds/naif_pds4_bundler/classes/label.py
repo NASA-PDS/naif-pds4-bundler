@@ -25,7 +25,7 @@ class PDSLabel(object):
     :type product: object
     """
 
-    def __init__(self, setup: object, product: object) -> object:
+    def __init__(self, setup: object, product: object):
         """Constructor."""
         if setup.pds_version == '4':
             try:
@@ -534,7 +534,7 @@ class BundlePDS4Label(PDSLabel):
     :rype readme: object
     """
 
-    def __init__(self, setup: object, readme: object) -> object:
+    def __init__(self, setup: object, readme: object):
         """Constructor."""
         PDSLabel.__init__(self, setup, readme)
 
@@ -616,7 +616,7 @@ class SpiceKernelPDS4Label(PDSLabel):
     :type product: object
     """
 
-    def __init__(self, setup: object, product: object) -> object:
+    def __init__(self, setup: object, product: object):
         """Constructor."""
         PDSLabel.__init__(self, setup, product)
 
@@ -923,7 +923,7 @@ class MetaKernelPDS4Label(PDSLabel):
     :type product: object
     """
 
-    def __init__(self, setup: object, product: object) -> object:
+    def __init__(self, setup: object, product: object):
         """Constructor."""
         PDSLabel.__init__(self, setup, product)
 
@@ -1010,7 +1010,7 @@ class OrbnumFilePDS4Label(PDSLabel):
     :type product: object
     """
 
-    def __init__(self, setup: object, product: object) -> object:
+    def __init__(self, setup: object, product: object):
         """Constructor."""
         PDSLabel.__init__(self, setup, product)
 
@@ -1157,7 +1157,7 @@ class InventoryPDS4Label(PDSLabel):
     :param inventory: Inventory Product of the Collection
     :type inventory: object
     """
-    def __init__(self, setup: object, collection: object, inventory: object) -> object:
+    def __init__(self, setup: object, collection: object, inventory: object):
         """Constructor."""
         PDSLabel.__init__(self, setup, inventory)
 
@@ -1231,7 +1231,7 @@ class InventoryPDS3Label(PDSLabel):
     :type inventory: object
     """
 
-    def __init__(self, mission: object, collection: object, inventory: object) -> object:
+    def __init__(self, mission: object, collection: object, inventory: object):
         """Constructor."""
         PDSLabel.__init__(self, mission, inventory)
 
@@ -1274,7 +1274,7 @@ class DocumentPDS4Label(PDSLabel):
     :type inventory: object
     """
 
-    def __init__(self, setup: object, collection: object, inventory: object) -> object:
+    def __init__(self, setup: object, collection: object, inventory: object):
         """Constructor."""
         PDSLabel.__init__(self, setup, inventory)
 
@@ -1304,7 +1304,7 @@ class ChecksumPDS4Label(PDSLabel):
     :type product: object
     """
 
-    def __init__(self, setup: object, product: object) -> object:
+    def __init__(self, setup: object, product: object):
         """Constructor."""
         PDSLabel.__init__(self, setup, product)
 

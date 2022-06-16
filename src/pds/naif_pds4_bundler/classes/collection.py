@@ -22,7 +22,7 @@ class Collection(object):
     :type bundle: object
     """
 
-    def __init__(self, type: str, setup: object, bundle: object) -> object:
+    def __init__(self, type: str, setup: object, bundle: object):
         """Constructor."""
         self.product = []
         self.name = type
@@ -129,7 +129,7 @@ class SpiceKernelsCollection(Collection):
     :type list: object
     """
 
-    def __init__(self, setup: object, bundle: object, list: object) -> object:
+    def __init__(self, setup: object, bundle: object, list: object):
         """Constructor."""
         line = f"Step {setup.step} - SPICE kernel collection/data processing"
         logging.info("")
@@ -606,7 +606,7 @@ class DocumentCollection(Collection):
     :type bundle: object
     """
 
-    def __init__(self, setup: object, bundle: object) -> object:
+    def __init__(self, setup: object, bundle: object):
         """Constructor."""
         if setup.pds_version == "3":
             self.type = "DOCUMENT"
@@ -644,7 +644,7 @@ class MiscellaneousCollection(Collection):
     :type list: object
     """
 
-    def __init__(self, setup: object, bundle: object, list: object) -> object:
+    def __init__(self, setup: object, bundle: object, list: object):
         """Constructor."""
         if setup.pds_version == "4":
             self.type = "miscellaneous"

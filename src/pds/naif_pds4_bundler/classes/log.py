@@ -18,7 +18,7 @@ class Log(object):
     :type version: str
     """
 
-    def __init__(self, setup: object, args: object) -> object:
+    def __init__(self, setup: object, args: object):
         """Constructor."""
         self.setup = setup
         self.args = args

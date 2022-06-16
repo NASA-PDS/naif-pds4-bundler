@@ -29,7 +29,7 @@ class Bundle(object):
     :type setup: object
     """
 
-    def __init__(self, setup: object) -> object:
+    def __init__(self, setup: object):
         """Constructor."""
         line = (
             f"Step {setup.step} - Bundle/data set structure generation "
