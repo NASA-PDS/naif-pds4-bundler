@@ -97,7 +97,7 @@ class Product:
         if hasattr(self.setup, "creation_date_time"):
             self.creation_time = self.setup.creation_date_time
         else:
-            self.creation_time = creation_time(format=self.setup.date_format)
+            self.creation_time = creation_time(time_format=self.setup.date_format)
 
         self.creation_date = self.creation_time.split("T")[0]
         self.extension = self.path.split(os.sep)[-1].split(".")[-1]
@@ -478,8 +478,8 @@ class SpiceKernelProduct(Product):
         ids = spiceypy.ckobj(f"{self.path}")
 
         id_list = list()
-        for id in ids:
-            id_list.append(str(id))
+        for _id in ids:
+            id_list.append(str(_id))
 
         id_list = sorted(id_list, reverse=True)
 
@@ -1241,14 +1241,14 @@ class MetaKernelProduct(Product):
 
         fromfile = self.path
         tofile = val_mk
-        dir = self.setup.working_directory
+        working_dir = self.setup.working_directory
 
         logging.info(
             f"-- Comparing "
             f'{self.name.split(f"{self.setup.mission_acronym}_spice/")[-1]}'
             f"..."
         )
-        compare_files(fromfile, tofile, dir, self.setup.diff)
+        compare_files(fromfile, tofile, working_dir, self.setup.diff)
 
     def validate(self):
         """Perform a basic validation of the Meta-kernel.
@@ -2396,7 +2396,7 @@ class OrbnumFileProduct(Product):
                 blankspaces = blankspaces_loc[1] - blankspaces_loc[0] + 1
                 location += int(length) + blankspaces
 
-            type = params_template[param]["type"]
+            param_type = params_template[param]["type"]
 
             if "length" in params_template[param]:
                 length = params_template[param]["length"]
@@ -2425,22 +2425,22 @@ class OrbnumFileProduct(Product):
             # Write the format
             #
             if self.setup.information_model_float >= 1007000000.0:
-                format = '%' + length
+                _format = '%' + length
                 if "ASCII_Real" in params_template[param]["type"]:
-                    format += '.' + param_length + 'f'
+                    _format += '.' + param_length + 'f'
                 elif "ASCII_String" in params_template[param]["type"]:
-                    format += 's'
+                    _format += 's'
                 elif "ASCII_Integer" in params_template[param]["type"]:
-                    format += 'd'
+                    _format += 'd'
                 else:
                     error_message("Parameter type for ORBNUM file is incorrect.")
             else:
                 if "ASCII_Real" in params_template[param]["type"]:
-                    format = 'F' + length + '.' + param_length
+                    _format = 'F' + length + '.' + param_length
                 elif "ASCII_String" in params_template[param]["type"]:
-                    format = 'A' + length
+                    _format = 'A' + length
                 elif "ASCII_Integer" in params_template[param]["type"]:
-                    format = 'I' + length
+                    _format = 'I' + length
                 else:
                     error_message("Parameter type for ORBNUM file is incorrect.")
 
@@ -2501,9 +2501,9 @@ class OrbnumFileProduct(Product):
                 "name": name,
                 "number": number,
                 "location": location,
-                "type": type,
+                "type": param_type,
                 "length": length,
-                "format": format,
+                "format": _format,
                 "description": description,
                 "unit": unit,
             }
@@ -3186,9 +3186,9 @@ class InventoryProduct(Product):
 
             fromfile = self.path_current
             tofile = self.path
-            dir = self.setup.working_directory
+            working_dir = self.setup.working_directory
 
-            compare_files(fromfile, tofile, dir, self.setup.diff)
+            compare_files(fromfile, tofile, working_dir, self.setup.diff)
 
         else:
 
@@ -3200,9 +3200,9 @@ class InventoryProduct(Product):
             fromfiles.sort()
             fromfile = fromfiles[-1]
             tofile = self.path
-            dir = self.setup.working_directory
+            working_dir = self.setup.working_directory
 
-            compare_files(fromfile, tofile, dir, self.setup.diff)
+            compare_files(fromfile, tofile, working_dir, self.setup.diff)
 
         logging.info("")
 
@@ -3444,9 +3444,9 @@ class SpicedsProduct:
         logging.info("")
         fromfile = val_spd
         tofile = self.path
-        dir = self.setup.working_directory
+        working_dir = self.setup.working_directory
 
-        compare_files(fromfile, tofile, dir, self.setup.diff)
+        compare_files(fromfile, tofile, working_dir, self.setup.diff)
 
 
 class ReadmeProduct(Product):

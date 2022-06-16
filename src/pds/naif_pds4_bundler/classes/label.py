@@ -257,20 +257,20 @@ class PDSLabel:
         :rtype: str
         """
         if self.__class__.__name__ == "ChecksumPDS4Label":
-            type = "ancillary_to_target"
+            target_ref_type = "ancillary_to_target"
         elif self.__class__.__name__ == "BundlePDS4Label":
-            type = "bundle_to_target"
+            target_ref_type = "bundle_to_target"
         elif self.__class__.__name__ == "InventoryPDS4Label":
-            type = "collection_to_target"
+            target_ref_type = "collection_to_target"
         elif self.__class__.__name__ == "OrbnumFilePDS4Label":
             if self.setup.information_model_float >= 1014000000.0:
-                type = "ancillary_to_target"
+                target_ref_type = "ancillary_to_target"
             else:
-                type = "data_to_target"
+                target_ref_type = "data_to_target"
         else:
-            type = "data_to_target"
+            target_ref_type = "data_to_target"
 
-        return type
+        return target_ref_type
 
     def write_label(self):
         """Write the Label."""
@@ -520,9 +520,9 @@ class PDSLabel:
             logging.info("")
             fromfile = val_label
             tofile = self.name
-            dir = self.setup.working_directory
+            working_dir = self.setup.working_directory
 
-            compare_files(fromfile, tofile, dir, self.setup.diff)
+            compare_files(fromfile, tofile, working_dir, self.setup.diff)
 
 
 class BundlePDS4Label(PDSLabel):
@@ -1093,7 +1093,7 @@ class OrbnumFilePDS4Label(PDSLabel):
         return description
 
     def field_template(
-        self, name, number, location, type, length, format, description, unit, blanks
+        self, name, number, location, field_type, length, field_format, description, unit, blanks
     ):
         """For a label provide all the parameters required for an ORBNUM field character.
 
@@ -1103,12 +1103,12 @@ class OrbnumFilePDS4Label(PDSLabel):
         :type number: str
         :param location: Location field
         :type location: str
-        :param type: Type field
-        :type type: str
+        :param field_type: Type field
+        :type field_type: str
         :param length: Length field
         :type length: str
-        :param format: Format field
-        :type format: str
+        :param field_format: Format field
+        :type field_format: str
         :param description: Description field
         :type description: str
         :param unit: Unit field
@@ -1127,10 +1127,10 @@ class OrbnumFilePDS4Label(PDSLabel):
             f'{" " * (4*tab + 1*tab)}<field_number>{number}</field_number>{eol}'
             f'{" " * (4*tab + 1*tab)}<field_location unit="byte">{location}'
             f"</field_location>{eol}"
-            f'{" " * (4*tab + 1*tab)}<data_type>{type}</data_type>{eol}'
+            f'{" " * (4*tab + 1*tab)}<data_type>{field_type}</data_type>{eol}'
             f'{" " * (4*tab + 1*tab)}<field_length unit="byte">{length}'
             f"</field_length>{eol}"
-            f'{" " * (4*tab + 1*tab)}<field_format>{format}</field_format>{eol}'
+            f'{" " * (4*tab + 1*tab)}<field_format>{field_format}</field_format>{eol}'
         )
         if unit:
             field += f'{" " * (4*tab + 1*tab)}<unit>{unit}</unit>{eol}'
@@ -1242,10 +1242,10 @@ class InventoryPDS3Label(PDSLabel):
         self.ROW_BYTES = str(self.product.row_bytes)
         self.ROWS = str(self.product.rows)
 
-        for i, bytes in enumerate(self.product.column_bytes):
+        for i, _bytes in enumerate(self.product.column_bytes):
 
             setattr(self, f"START_BYTE_{i+1:02d}", str(self.product.column_start_bytes[i]))
-            setattr(self, f"BYTES_{i+1:02d}", str(bytes))
+            setattr(self, f"BYTES_{i+1:02d}", str(_bytes))
 
         file_types = self.product.file_types
         if len(file_types) == 1:

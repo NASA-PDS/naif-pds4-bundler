@@ -5,20 +5,20 @@ import datetime
 import spiceypy
 
 
-def current_time(format="infomod2"):
+def current_time(time_format="infomod2"):
     """Returns the current date and time in ``%Y-%m-%dT%H:%M:%S`` format.
 
-    :param format: Time format from configuration.
-    :type format: string
+    :param time_format: Time format from configuration.
+    :type time_format: string
     :return: Current date and time
     :rtype: str
     """
     time = str(datetime.datetime.now())
     time = time.replace(" ", "T")
 
-    if format == "maklabel":
+    if time_format == "maklabel":
         time = time.split(".")[0]
-    elif format == "infomod2":
+    elif time_format == "infomod2":
         time = time[:-3] + "Z"
 
     return time
@@ -44,14 +44,14 @@ def current_date(date=''):
     return date
 
 
-def creation_time(format="infomod2"):
+def creation_time(time_format="infomod2"):
     """Returns the creation date and time.
 
     The date is either in ``maklabel`` or ``infomod2``
     ``%Y-%m-%dT%H:%M:%S.%f`` format.
 
-    :param format: Time format
-    :type format: str
+    :param time_format: Time format
+    :type time_format: str
     :return: Current time
     :rtype: str
     """
@@ -59,7 +59,7 @@ def creation_time(format="infomod2"):
     dt, micro = datetime.datetime.strftime(t, "%Y-%m-%dT%H:%M:%S.%f").split(".")
     creation_time = "%s.%03d" % (dt, int(micro) / 1000) + "Z"
 
-    if format == "maklabel":
+    if time_format == "maklabel":
         creation_time = creation_time[:-5]
 
     return creation_time
@@ -109,15 +109,15 @@ def spk_coverage(path, main_name="", date_format="infomod2", system="UTC"):
         #
         main_id = spiceypy.bodn2c(main_name)
 
-        for id in ids:
-            if id == main_id:
+        for _id in ids:
+            if _id == main_id:
                 ids = [main_id]
                 break
 
-    for id in ids:
+    for _id in ids:
 
         spiceypy.scard, 0, coverage
-        spiceypy.spkcov(spk=path, idcode=id, cover=coverage)
+        spiceypy.spkcov(spk=path, idcode=_id, cover=coverage)
 
         num_inter = spiceypy.wncard(coverage)
 
@@ -167,12 +167,12 @@ def ck_coverage(path, timsys="TDB", date_format="infomod2", system="UTC"):
     ids = spiceypy.support_types.SPICEINT_CELL(maxobj)
     ids = spiceypy.ckobj(ck=path, out_cell=ids)
 
-    for id in ids:
+    for _id in ids:
         coverage = spiceypy.support_types.SPICEDOUBLE_CELL(winsiz)
         spiceypy.scard, 0, coverage
         coverage = spiceypy.ckcov(
             ck=path,
-            idcode=id,
+            idcode=_id,
             needav=False,
             level="SEGMENT",
             tol=0.0,
@@ -232,10 +232,10 @@ def pck_coverage(path, date_format="infomod2", system="UTC"):
     start_points_list = list()
     end_points_list = list()
 
-    for id in ids:
+    for _id in ids:
 
         spiceypy.scard, 0, coverage
-        spiceypy.pckcov(pck=path, idcode=id, cover=coverage)
+        spiceypy.pckcov(pck=path, idcode=_id, cover=coverage)
 
         num_inter = spiceypy.wncard(coverage)
 
