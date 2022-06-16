@@ -21,7 +21,7 @@ from .log import error_message
 from .object import Object
 
 
-class Setup():
+class Setup:
     """Class that parses and processes the NPB XML configuration file.
 
     :param args: Parameters arguments from NPB main function
@@ -309,7 +309,7 @@ class Setup():
         # Check binary kernels endianness.
         #
         if self.pds_version == '4':
-            if  self.kernel_endianness == "little":
+            if self.kernel_endianness == "little":
                 logging.info("-- Binary SPICE kernels expected to have LTL-IEEE (little endian) binary format.")
             else:
                 logging.info("-- Binary SPICE kernels expected to have BIG-IEEE (little endian) binary format.")
@@ -1114,7 +1114,6 @@ class Setup():
                     os.remove(path + os.sep + byproduct.split(os.sep)[-1])
                 except:
                     logging.warning(f"     File {byproduct} not found.")
-
 
         else:
             error_message(

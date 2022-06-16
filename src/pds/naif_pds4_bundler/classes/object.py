@@ -1,7 +1,7 @@
 """Dummy Class Implementation."""
 
 
-class Object():
+class Object:
     """Dummy Class."""
 
     def __init__(self):

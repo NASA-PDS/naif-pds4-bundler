@@ -9,7 +9,7 @@ import socket
 import spiceypy
 
 
-class Log():
+class Log:
     """Log class to write and output NPB's log.
 
     :param args: Parameter arguments from NPB's main function.

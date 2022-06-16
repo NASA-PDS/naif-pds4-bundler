@@ -379,8 +379,8 @@ def et_to_date(beget, endet, date_format="infomod2", kernel_type="Text",
 def pds3_label_gen_date(file):
     """Returns the creation date of a given PDS3 label.
 
-    :param path: File path
-    :type path: str
+    :param file: File path
+    :type file: str
     :return: Creation date
     :rtype: str
     """

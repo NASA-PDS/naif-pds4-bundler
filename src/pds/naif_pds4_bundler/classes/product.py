@@ -55,7 +55,7 @@ from .object import Object
 from .setup import Setup
 
 
-class Product():
+class Product:
     """Parent Class that defines a generic archive product (or file).
 
     Assigns value to the common attributes for all Products: file size,
@@ -3207,7 +3207,7 @@ class InventoryProduct(Product):
         logging.info("")
 
 
-class SpicedsProduct():
+class SpicedsProduct:
     """Product child class to process the SPICEDS file.
 
     :param setup: NPB execution setup object
@@ -4020,7 +4020,7 @@ class ChecksumProduct(Product):
             #
             for product in md5_list:
                 if ("spice_kernels/collection_spice_kernels_v" in product) or (
-                        ("miscellaneous/orbnum/" in product) and ((".xml" in product))
+                        ("miscellaneous/orbnum/" in product) and (".xml" in product)
                 ):
                     coverage_list.append(product.split()[-1])
 

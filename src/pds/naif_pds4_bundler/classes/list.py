@@ -22,7 +22,7 @@ from ..utils import spice_exception_handler
 from .log import error_message
 
 
-class List():
+class List:
     """Class to generate the List.
 
     :param setup: NPB execution setup object
@@ -1119,7 +1119,7 @@ class KernelList(List):
 
                 error = check_eol(origin_path, eol)
                 if error:
-                    if ((".nrb" in product.lower()) or (".orb" in product.lower())):
+                    if (".nrb" in product.lower()) or (".orb" in product.lower()):
                         product_warnings[product].append(error)
                     else:
                         product_errors[product].append(error)
