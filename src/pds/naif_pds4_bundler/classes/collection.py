@@ -11,7 +11,7 @@ from .log import error_message
 from .product import PDS3DocumentProduct
 
 
-class Collection():
+class Collection:
     """Class to generate a PDS4 Collection.
 
     :param type: Collection type: kernels, documents or miscellaneous

@@ -16,7 +16,7 @@ from ..utils import type_to_pds3_type
 from .log import error_message
 
 
-class PDSLabel():
+class PDSLabel:
     """Class to generate a PDS Label.
 
     :param setup: NPB execution Setup object

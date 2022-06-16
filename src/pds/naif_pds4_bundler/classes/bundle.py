@@ -19,7 +19,7 @@ from .log import error_message
 from .product import ReadmeProduct
 
 
-class Bundle():
+class Bundle:
     """Class to generate the PDS4 Bundle structure.
 
     The class construction will generate the top level directory structure for
