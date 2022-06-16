@@ -21,7 +21,7 @@ from .log import error_message
 from .object import Object
 
 
-class Setup(object):
+class Setup():
     """Class that parses and processes the NPB XML configuration file.
 
     :param args: Parameters arguments from NPB main function

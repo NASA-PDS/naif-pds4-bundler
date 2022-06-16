@@ -22,7 +22,7 @@ from ..utils import spice_exception_handler
 from .log import error_message
 
 
-class List(object):
+class List():
     """Class to generate the List.
 
     :param setup: NPB execution setup object
