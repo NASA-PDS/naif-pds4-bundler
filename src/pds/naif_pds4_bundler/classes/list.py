@@ -7,6 +7,7 @@ import os
 import re
 import shutil
 
+from .setup import Setup
 from ..utils import check_badchar
 from ..utils import check_binary_endianness
 from ..utils import check_consecutive
@@ -26,10 +27,10 @@ class List:
     """Class to generate the List.
 
     :param setup: NPB execution setup object
-    :type setup: object
+    :type setup: Setup
     """
 
-    def __init__(self, setup: object):
+    def __init__(self, setup: Setup):
         """Constructor."""
         self.files = []
         self.name = type
@@ -48,10 +49,10 @@ class KernelList(List):
     """List child class to generate the Kernel List.
 
     :param setup: NPB execution setup object
-    :type setup: object
+    :type setup: Setup
     """
 
-    def __init__(self, setup: object):
+    def __init__(self, setup: Setup):
         """Constructor."""
         line = f"Step {setup.step} - Kernel List generation"
         logging.info("")

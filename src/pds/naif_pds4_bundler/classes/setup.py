@@ -25,7 +25,7 @@ class Setup:
     """Class that parses and processes the NPB XML configuration file.
 
     :param args: Parameters arguments from NPB main function
-    :type args: object
+    :type args: Object
     :param version: NPB version
     :type version: str
     """

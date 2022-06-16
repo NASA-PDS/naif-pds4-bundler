@@ -5,6 +5,9 @@ import os
 
 import spiceypy
 
+from .bundle import Bundle
+from .list import List
+from .setup import Setup
 from ..utils import et_to_date
 from ..utils import extension_to_type
 from .log import error_message
@@ -17,12 +20,12 @@ class Collection:
     :param collection_type: Collection type: kernels, documents or miscellaneous
     :type collection_type: str
     :param setup: Setup Object
-    :type setup: object
+    :type setup: Setup
     :param bundle: Bundle Object to which the Collection belongs to
-    :type bundle: object
+    :type bundle: Bundle
     """
 
-    def __init__(self, collection_type: str, setup: object, bundle: object):
+    def __init__(self, collection_type: str, setup: Setup, bundle: Bundle):
         """Constructor."""
         self.product = []
         self.name = collection_type
@@ -122,14 +125,14 @@ class SpiceKernelsCollection(Collection):
     """Collection child class to generate a PDS4 SPICE Kernels Collection.
 
     :param setup: NPB execution setup object
-    :type setup: object
+    :type setup: Setup
     :param bundle: Bundle object
-    :type bundle: object
+    :type bundle: Bundle
     :param kernels_list: Kernel List object
-    :type kernels_list: object
+    :type kernels_list: List
     """
 
-    def __init__(self, setup: object, bundle: object, kernels_list: object):
+    def __init__(self, setup: Setup, bundle: Bundle, kernels_list: List):
         """Constructor."""
         line = f"Step {setup.step} - SPICE kernel collection/data processing"
         logging.info("")
@@ -601,12 +604,12 @@ class DocumentCollection(Collection):
     """Collection child class to generate a PDS3 or PDS4 Document Collection.
 
     :param setup: NPB execution setup object
-    :type setup: object
+    :type setup: Setup
     :param bundle: Bundle object
-    :type bundle: object
+    :type bundle: Bundle
     """
 
-    def __init__(self, setup: object, bundle: object):
+    def __init__(self, setup: Setup, bundle: Bundle):
         """Constructor."""
         if setup.pds_version == "3":
             self.type = "DOCUMENT"
@@ -637,14 +640,14 @@ class MiscellaneousCollection(Collection):
     """Collection child class to generate a PDS4 Document Collection.
 
     :param setup: NPB execution setup object
-    :type setup: object
+    :type setup: Setup
     :param bundle: Bundle object
-    :type bundle: object
+    :type bundle: Bundle
     :param kernels_list: Kernel List object
-    :type kernels_list: object
+    :type kernels_list: List
     """
 
-    def __init__(self, setup: object, bundle: object, kernels_list: object):
+    def __init__(self, setup: Setup, bundle: Bundle, kernels_list: List):
         """Constructor."""
         if setup.pds_version == "4":
             self.type = "miscellaneous"
