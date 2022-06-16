@@ -29,7 +29,7 @@ class List(object):
     :type setup: object
     """
 
-    def __init__(self, setup: object) -> object:
+    def __init__(self, setup: object):
         """Constructor."""
         self.files = []
         self.name = type
@@ -51,7 +51,7 @@ class KernelList(List):
     :type setup: object
     """
 
-    def __init__(self, setup: object) -> object:
+    def __init__(self, setup: object):
         """Constructor."""
         line = f"Step {setup.step} - Kernel List generation"
         logging.info("")
