@@ -10,6 +10,7 @@ from xml.etree import cElementTree
 
 import spiceypy
 
+from .setup import Setup
 from ..utils import check_list_duplicates
 from ..utils import etree_to_dict
 from ..utils import get_context_products
@@ -26,10 +27,10 @@ class Bundle:
     a PDS4 bundle or a PDS3 data set.
 
     :param setup: NPB execution Setup object
-    :type setup: object
+    :type setup: Setup
     """
 
-    def __init__(self, setup: object):
+    def __init__(self, setup: Setup):
         """Constructor."""
         line = (
             f"Step {setup.step} - Bundle/data set structure generation "

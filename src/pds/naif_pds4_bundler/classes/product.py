@@ -167,14 +167,14 @@ class SpiceKernelProduct(Product):
     """Product child Class that defines a SPICE Kernel file archive product.
 
     :param setup: NPB run Setup Object
-    :type setup: object
+    :type setup: Setup
     :param name: SPICE Kernel filename
     :type name: str
     :param collection: SPICE Kernel collection that will be a container of
                        the SPICE Kernel Product Object
-    :type collection: Object
+    :type collection: Collection
     """
-    def __init__(self, setup: Setup, name: str, collection: object):
+    def __init__(self, setup: Setup, name: str, collection):
         """Constructor."""
         self.collection = collection
         self.setup = setup
@@ -518,7 +518,7 @@ class MetaKernelProduct(Product):
     """Product child class Meta-Kernel.
 
     :param setup: NPB execution setup object
-    :type setup: object
+    :type setup: Setup
     :param kernel: Meta-kernel path
     :type kernel: str
     :param spice_kernels_collection: SPICE Kernel Collection
@@ -527,7 +527,7 @@ class MetaKernelProduct(Product):
     :type user_input: bool
     """
 
-    def __init__(self, setup: object, kernel: object, spice_kernels_collection: object, user_input: object = False):
+    def __init__(self, setup: Setup, kernel, spice_kernels_collection, user_input=False):
         """Constructor."""
         if user_input:
             logging.info(f"-- Copy meta-kernel: {kernel}")
@@ -1573,13 +1573,13 @@ class OrbnumFileProduct(Product):
     :param name: ORBNUM file path
     :type name: str
     :param collection: Miscellaneous Collection that contains the ORBNUM product
-    :type collection: object
+    :type collection: Collection
     :param spice_kernels_collection: SPICE Kernel Collection
-    :type spice_kernels_collection: object
+    :type spice_kernels_collection: Collection
     """
 
-    def __init__(self, setup: object, name: object, collection: object,
-                 spice_kernels_collection: object):
+    def __init__(self, setup: Setup, name: str, collection,
+                 spice_kernels_collection):
         """Constructor."""
         self.collection = collection
         self.kernels_collection = spice_kernels_collection
@@ -2829,12 +2829,12 @@ class InventoryProduct(Product):
     """Product child Class that defines a Collection Inventory product.
 
     :param setup: NPB execution setup object
-    :type setup: object
+    :type setup: Setup
     :param collection: Collection that the inventory product belongs to
-    :type collection: object
+    :type collection: Collection
     """
 
-    def __init__(self, setup: object, collection: object):
+    def __init__(self, setup: Setup, collection):
         """Constructor."""
         if collection.name != 'miscellaneous':
             line = f"Step {setup.step} - Generation of {collection.name} collection"
@@ -3211,12 +3211,12 @@ class SpicedsProduct:
     """Product child class to process the SPICEDS file.
 
     :param setup: NPB execution setup object
-    :type setup: object
+    :type setup: Setup
     :param collection: Collection that the inventory product belongs to
-    :type collection: object
+    :type collection: Collection
     """
 
-    def __init__(self, setup: object, collection: object):
+    def __init__(self, setup: Setup, collection):
         """Constructor."""
         self.setup = setup
         self.collection = collection
@@ -3453,12 +3453,12 @@ class ReadmeProduct(Product):
     """Product child class to generate the Readme Product.
 
     :param setup: NPB execution setup object
-    :type setup: object
+    :type setup: Setup
     :param bundle: Bundle that contains the Readme Product
-    :type bundle: object
+    :type bundle: Bundle
     """
 
-    def __init__(self, setup: object, bundle: object):
+    def __init__(self, setup: Setup, bundle):
         """Constructor."""
         line = f"Step {setup.step} - Generation of bundle products"
         logging.info("")
@@ -3566,15 +3566,15 @@ class ChecksumProduct(Product):
     """Product child class to generate a Checksum Product.
 
     :param setup: NPB execution setup object
-    :type setup: object
+    :type setup: Setup
     :param collection: Miscellaneous Collection
-    :type collection: object
+    :type collection: Collection
     :param add_previous_checksum: True if there is a previous checksum file to
                                   be added, False otherwise
     :type add_previous_checksum: bool
     """
 
-    def __init__(self, setup: object, collection: object, add_previous_checksum: bool = True):
+    def __init__(self, setup: Setup, collection, add_previous_checksum=True):
         """Constructor."""
         #
         # The initialisation of the checksum class is lighter than the
@@ -4112,12 +4112,12 @@ class PDS3DocumentProduct(Product):
     """Product child class that represents a PDS3 Document Product.
 
     :param setup: NPB execution setup object
-    :type setup: object
+    :type setup: Setup
     :param path: PDS3 Document path
     :type path: str
     """
 
-    def __init__(self, setup: object, path: str):
+    def __init__(self, setup: Setup, path: str):
         """Constructor."""
         self.path = path
         self.setup = setup

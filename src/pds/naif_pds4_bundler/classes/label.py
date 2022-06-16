@@ -5,6 +5,7 @@ import os
 
 import spiceypy
 
+from .setup import Setup
 from ..utils import add_carriage_return
 from ..utils import ck_coverage
 from ..utils import compare_files
@@ -20,12 +21,12 @@ class PDSLabel:
     """Class to generate a PDS Label.
 
     :param setup: NPB execution Setup object
-    :type setup: object
+    :type setup: Setup
     :param product: Product to be labeled
-    :type product: object
+    :type product: Product
     """
 
-    def __init__(self, setup: object, product: object):
+    def __init__(self, setup: Setup, product):
         """Constructor."""
         if setup.pds_version == '4':
             try:
@@ -534,7 +535,7 @@ class BundlePDS4Label(PDSLabel):
     :rype readme: object
     """
 
-    def __init__(self, setup: object, readme: object):
+    def __init__(self, setup: Setup, readme):
         """Constructor."""
         PDSLabel.__init__(self, setup, readme)
 
@@ -613,10 +614,10 @@ class SpiceKernelPDS4Label(PDSLabel):
     :param setup: NPB execution Setup object
     :type setup: object
     :param product: SPICE Kernel product to be labeled
-    :type product: object
+    :type product: SpiceKernelProduct
     """
 
-    def __init__(self, setup: object, product: object):
+    def __init__(self, setup: Setup, product):
         """Constructor."""
         PDSLabel.__init__(self, setup, product)
 
@@ -920,10 +921,10 @@ class MetaKernelPDS4Label(PDSLabel):
     :param setup: NPB execution Setup object
     :type setup: object
     :param product: MK product to label
-    :type product: object
+    :type product: MetaKernelProduct
     """
 
-    def __init__(self, setup: object, product: object):
+    def __init__(self, setup: Setup, product):
         """Constructor."""
         PDSLabel.__init__(self, setup, product)
 
@@ -1007,10 +1008,10 @@ class OrbnumFilePDS4Label(PDSLabel):
     :param setup: NPB execution Setup object
     :type setup: object
     :param product: ORBNUM product to label
-    :type product: object
+    :type product: OrbnumFileProduct
     """
 
-    def __init__(self, setup: object, product: object):
+    def __init__(self, setup: Setup, product):
         """Constructor."""
         PDSLabel.__init__(self, setup, product)
 
@@ -1151,13 +1152,13 @@ class InventoryPDS4Label(PDSLabel):
     """PDS Label child class to generate a PDS4 Collection Inventory Label.
 
     :param setup: NPB execution Setup object
-    :type setup: object
+    :type setup: Setup
     :param collection: Collection to label
-    :type product: object
+    :type product: Collection
     :param inventory: Inventory Product of the Collection
-    :type inventory: object
+    :type inventory: InventoryProduct
     """
-    def __init__(self, setup: object, collection: object, inventory: object):
+    def __init__(self, setup: Setup, collection, inventory):
         """Constructor."""
         PDSLabel.__init__(self, setup, inventory)
 
@@ -1224,16 +1225,16 @@ class InventoryPDS3Label(PDSLabel):
     """PDS Label child class to generate a PDS3 Index Label.
 
     :param setup: NPB execution Setup object
-    :type setup: object
+    :type setup: Setup
     :param collection: Index Collection
-    :type product: object
+    :type product: Collection
     :param inventory: Index Product
-    :type inventory: object
+    :type inventory: Product
     """
 
-    def __init__(self, mission: object, collection: object, inventory: object):
+    def __init__(self, setup: Setup, collection, inventory):
         """Constructor."""
-        PDSLabel.__init__(self, mission, inventory)
+        PDSLabel.__init__(self, setup, inventory)
 
         self.collection = collection
         self.template = self.root_dir + "/templates/pds3/template_collection_{}.lbl".format(collection.type)
@@ -1269,12 +1270,12 @@ class DocumentPDS4Label(PDSLabel):
     :param setup: NPB execution Setup object
     :type setup: object
     :param collection: Collection to label
-    :type collection: object
+    :type collection: Collection
     :param inventory: Inventory Product of the Collection
-    :type inventory: object
+    :type inventory: Product
     """
 
-    def __init__(self, setup: object, collection: object, inventory: object):
+    def __init__(self, setup: Setup, collection, inventory):
         """Constructor."""
         PDSLabel.__init__(self, setup, inventory)
 
@@ -1299,12 +1300,12 @@ class ChecksumPDS4Label(PDSLabel):
     """PDS Label child class to generate a PDS4 Checksum Label.
 
     :param setup: NPB execution Setup object
-    :type setup: object
+    :type setup: Setup
     :param product: Checksum product to label
-    :type product: object
+    :type product: Product
     """
 
-    def __init__(self, setup: object, product: object):
+    def __init__(self, setup: Setup, product):
         """Constructor."""
         PDSLabel.__init__(self, setup, product)
 
@@ -1327,9 +1328,9 @@ class ChecksumPDS3Label(PDSLabel):
     """PDS Label child class to generate a PDS3 Checksum Label.
 
     :param setup: NPB  execution Setup object
-    :type setup: object
+    :type setup: Setup
     :param product: Checksum product to label
-    :type product: object
+    :type product: Product
     """
 
     def __init__(self, setup, product):
