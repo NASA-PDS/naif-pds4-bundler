@@ -14,18 +14,18 @@ from .product import PDS3DocumentProduct
 class Collection:
     """Class to generate a PDS4 Collection.
 
-    :param type: Collection type: kernels, documents or miscellaneous
-    :type type: str
+    :param collection_type: Collection type: kernels, documents or miscellaneous
+    :type collection_type: str
     :param setup: Setup Object
     :type setup: object
     :param bundle: Bundle Object to which the Collection belongs to
     :type bundle: object
     """
 
-    def __init__(self, type: str, setup: object, bundle: object):
+    def __init__(self, collection_type: str, setup: object, bundle: object):
         """Constructor."""
         self.product = []
-        self.name = type
+        self.name = collection_type
         self.setup = setup
         self.bundle = bundle
 
@@ -125,11 +125,11 @@ class SpiceKernelsCollection(Collection):
     :type setup: object
     :param bundle: Bundle object
     :type bundle: object
-    :param list: Kernel List object
-    :type list: object
+    :param kernels_list: Kernel List object
+    :type kernels_list: object
     """
 
-    def __init__(self, setup: object, bundle: object, list: object):
+    def __init__(self, setup: object, bundle: object, kernels_list: object):
         """Constructor."""
         line = f"Step {setup.step} - SPICE kernel collection/data processing"
         logging.info("")
@@ -141,7 +141,7 @@ class SpiceKernelsCollection(Collection):
             print("-- " + line.split(" - ")[-1] + ".")
 
         self.bundle = bundle
-        self.list = list
+        self.list = kernels_list
         self.type = "spice_kernels"
         """Collection type (`str`)."""
 
@@ -640,11 +640,11 @@ class MiscellaneousCollection(Collection):
     :type setup: object
     :param bundle: Bundle object
     :type bundle: object
-    :param list: Kernel List object
-    :type list: object
+    :param kernels_list: Kernel List object
+    :type kernels_list: object
     """
 
-    def __init__(self, setup: object, bundle: object, list: object):
+    def __init__(self, setup: object, bundle: object, kernels_list: object):
         """Constructor."""
         if setup.pds_version == "4":
             self.type = "miscellaneous"
@@ -654,7 +654,7 @@ class MiscellaneousCollection(Collection):
         #
         # Included for ORBNUM files observers and targets.
         #
-        self.list = list
+        self.list = kernels_list
 
         Collection.__init__(self, self.type, setup, bundle)
 

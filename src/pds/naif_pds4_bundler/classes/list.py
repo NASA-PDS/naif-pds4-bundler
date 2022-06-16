@@ -219,12 +219,12 @@ class KernelList(List):
             kernels_in_dir = [self.setup.args.plan]
         else:
             logging.info("-- Generate archiving plan from kernel directory(ies):")
-            for dir in self.setup.kernels_directory:
-                logging.info(f"   {dir}")
+            for kernel_dir in self.setup.kernels_directory:
+                logging.info(f"   {kernel_dir}")
 
             kernels_in_dir = []
-            for dir in self.setup.kernels_directory:
-                kernels_in_dir += glob.glob(f"{dir}/**/*.*", recursive=True)
+            for kernel_dir in self.setup.kernels_directory:
+                kernels_in_dir += glob.glob(f"{kernel_dir}/**/*.*", recursive=True)
             #
             # Filter out the meta-kernels from the automatically generated
             # list.
@@ -757,20 +757,20 @@ class KernelList(List):
             #
             logging.info("-- Checking that kernels are present in: ")
 
-            for dir in self.setup.kernels_directory:
-                logging.info(f"   {dir}")
+            for kernel_dir in self.setup.kernels_directory:
+                logging.info(f"   {kernel_dir}")
 
             present = False
             all_present = True
             for ker in ker_in_list:
-                for dir in self.setup.kernels_directory:
+                for kernel_dir in self.setup.kernels_directory:
                     #
                     # We cannot assume that the file is under a certain
                     # directory, it can be in any sub-directory.
                     #
                     file = [
                         os.path.join(root, name)
-                        for root, dirs, files in os.walk(dir)
+                        for root, dirs, files in os.walk(kernel_dir)
                         for name in files
                         if name == ker
                     ]
@@ -882,8 +882,8 @@ class KernelList(List):
             fromfile = kernel_lists[-1]
             try:
                 tofile = kernel_lists[-2]
-                dir = self.setup.working_directory
-                compare_files(fromfile, tofile, dir, self.setup.diff)
+                kernel_dir = self.setup.working_directory
+                compare_files(fromfile, tofile, kernel_dir, self.setup.diff)
             except BaseException:
                 logging.error("-- Previous list not available.")
 
