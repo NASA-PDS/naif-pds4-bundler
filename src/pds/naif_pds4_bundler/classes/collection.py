@@ -401,7 +401,9 @@ class SpiceKernelsCollection(Collection):
             #
             if prev_increment_start < increment_start:
                 increment_start = prev_increment_start
-                logging.warning("-- Increment start corrected from previous bundle.")
+                logging.info("-- Increment start corrected from previous bundle.")
+            elif prev_increment_start > increment_start:
+                logging.warning("-- Increment start from previous bundle not used.")
 
             if prev_increment_finish > increment_finish:
                 increment_finish = prev_increment_finish
@@ -571,7 +573,8 @@ class SpiceKernelsCollection(Collection):
 
         elements_dict = dict.fromkeys(elements)
 
-        for product in self.product:
+        products = self.product
+        for product in products:
             label_name = product.label.name
             with open(label_name, "r") as p:
                 for line in p:
@@ -581,9 +584,6 @@ class SpiceKernelsCollection(Collection):
                                 elements_dict[element] = [line.strip()]
                             else:
                                 elements_dict[element].append(line.strip())
-
-        if self.setup.pds_version == "4":
-            elements_dict["description"] = list(set(elements_dict["description"]))
 
         logging.info("")
         logging.info("-- Providing relevant fields of labels for visual inspection.")
