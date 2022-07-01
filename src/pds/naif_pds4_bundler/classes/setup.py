@@ -1176,7 +1176,7 @@ class Setup(object):
                     l.write(element + "\n")
             logging.info("-- Run Checksum Registry file written in working area.")
 
-    def write_validate_configuration(self):
+    def write_validate_config(self):
         """Write a PDS validate tool configuration file.
 
         NPB will write a PDS validate tool configuration file for convenience
