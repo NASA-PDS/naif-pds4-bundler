@@ -131,7 +131,7 @@ class Log(object):
         self.setup.write_file_list()
         self.setup.write_checksum_registry()
         if self.setup.pds_version == '4':
-            self.setup.write_validate_configuration()
+            self.setup.write_validate_config()
 
         #
         # Clear the kernel pool
