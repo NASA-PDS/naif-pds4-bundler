@@ -4,11 +4,11 @@
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>PDS4 SPICE Kernel Archive Description &mdash; NAIF PDS4 Bundler 1.2.0
+  <title>PDS4 SPICE Kernel Archive Description &mdash; NAIF PDS4 Bundler 1.2.1
  documentation</title>
   
 
@@ -33,6 +33,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -123,13 +124,14 @@
 <li class="toctree-l3"><a class="reference internal" href="#product-set-label-lidvid-and-inventory-examples-for-maven-releases-1-and-2">Product set, label, LIDVID and inventory examples for MAVEN releases 1 and 2</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#pds4-spice-kernel-archives-examples">PDS4 SPICE kernel archives examples</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#a-note-on-spice-kernels-dissemination">A note on SPICE Kernels dissemination</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#spice-kernel-archive-divergences-rationale">SPICE Kernel archive divergences rationale</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="30_spice_kernel_archive_preparation_guide.html">SPICE Kernel Archive Preparation Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="40_naif_pds4_bundler_user_guide.html">NAIF PDS4 Bundler User Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="50_api_docs.html">Modules, Classes, and Functions Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="50_api_docs.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="60_annex_npb_for_pds3.html">Appendix: NPB for PDS3 Archives</a></li>
 </ul>
 
@@ -199,9 +201,9 @@
            <div itemprop="articleBody">
             
   <section id="pds4-spice-kernel-archive-description">
-<h1>PDS4 SPICE Kernel Archive Description<a class="headerlink" href="#pds4-spice-kernel-archive-description" title="Permalink to this headline">¶</a></h1>
+<h1>PDS4 SPICE Kernel Archive Description<a class="headerlink" href="#pds4-spice-kernel-archive-description" title="Permalink to this heading">¶</a></h1>
 <section id="product-types">
-<h2>Product Types<a class="headerlink" href="#product-types" title="Permalink to this headline">¶</a></h2>
+<h2>Product Types<a class="headerlink" href="#product-types" title="Permalink to this heading">¶</a></h2>
 <p>SPICE bundles will include products only of these types:</p>
 <blockquote>
 <div><ul class="simple">
@@ -214,9 +216,9 @@
 </div></blockquote>
 </section>
 <section id="directory-structure-file-naming-product-types-and-lids-lidvids">
-<h2>Directory Structure, File naming, Product Types, and LIDs/LIDVIDs<a class="headerlink" href="#directory-structure-file-naming-product-types-and-lids-lidvids" title="Permalink to this headline">¶</a></h2>
+<h2>Directory Structure, File naming, Product Types, and LIDs/LIDVIDs<a class="headerlink" href="#directory-structure-file-naming-product-types-and-lids-lidvids" title="Permalink to this heading">¶</a></h2>
 <section id="directory-structure">
-<h3>Directory Structure<a class="headerlink" href="#directory-structure" title="Permalink to this headline">¶</a></h3>
+<h3>Directory Structure<a class="headerlink" href="#directory-structure" title="Permalink to this heading">¶</a></h3>
 <p>The Bundle root directory contains a Readme file and a Bundle label along with
 the Bundle Collections.</p>
 <p>The Readme file provides a summary of the content of the archive whereas Bundle
@@ -229,7 +231,7 @@ the archive release, that is equivalent to the Bundle label version.</p>
 (Comma Separated Value) files and Collection XML labels.</p>
 </section>
 <section id="spice-kernels-collection">
-<h3>SPICE Kernels Collection<a class="headerlink" href="#spice-kernels-collection" title="Permalink to this headline">¶</a></h3>
+<h3>SPICE Kernels Collection<a class="headerlink" href="#spice-kernels-collection" title="Permalink to this heading">¶</a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">spice_kernels</span></code> collection follows a particular directory structure and
 its products a particular file naming convention. The collection is composed
 of a series of directories that contain SPICE kernels of each kernel type. Each
@@ -237,13 +239,13 @@ SPICE kernel product has its PDS4 label. These labels have the same file name
 of the labeled SPICE kernel except for the extension, which will be <code class="docutils literal notranslate"><span class="pre">.xml</span></code>.</p>
 </section>
 <section id="document-collection">
-<h3>Document Collection<a class="headerlink" href="#document-collection" title="Permalink to this headline">¶</a></h3>
+<h3>Document Collection<a class="headerlink" href="#document-collection" title="Permalink to this heading">¶</a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">document</span></code> collection contains all the versions of the SPICE Data Archive
 description file (SPICEDS). These files are described in the section
 <a class="reference internal" href="32_step_2_npb_setup.html#spice-data-set-catalog-file"><span class="std std-ref">SPICE Data Set Catalog File</span></a>.</p>
 </section>
 <section id="miscellaneous-collection">
-<h3>Miscellaneous Collection<a class="headerlink" href="#miscellaneous-collection" title="Permalink to this headline">¶</a></h3>
+<h3>Miscellaneous Collection<a class="headerlink" href="#miscellaneous-collection" title="Permalink to this heading">¶</a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">miscellaneous</span></code> collection contains checksum products under the
 <code class="docutils literal notranslate"><span class="pre">checksum</span></code> directory. These checksum files provide a table of MD5 sums for
 all the files in the archive as of a particular archive version, including
@@ -259,7 +261,7 @@ Any ORBNUM files go here because they are not SPICE kernels.</p>
 collection.</p>
 </section>
 <section id="lids-vids-lidvids-and-file-naming">
-<h3>LIDs, VIDs, LIDVIDs, and File naming<a class="headerlink" href="#lids-vids-lidvids-and-file-naming" title="Permalink to this headline">¶</a></h3>
+<h3>LIDs, VIDs, LIDVIDs, and File naming<a class="headerlink" href="#lids-vids-lidvids-and-file-naming" title="Permalink to this heading">¶</a></h3>
 <p>Critical elements of PDS4 archives are the products’ Logical Identifiers
 (LID) and the products’ Version Identifiers (VID).</p>
 <p>A LID is a unique logical identifier that is assigned to each product,
@@ -276,7 +278,7 @@ given the nature of the SPICE kernels; in general the kernel file name contains
 a version number that identifies the kernel as a unique file; this version is
 considered part of the file name and not a version number per se. Hence, in an
 archive it is common to find products with a file name LIDVID pair such as:</p>
-<table class="colwidths-given docutils align-default" id="id1">
+<table class="docutils align-default" id="id1">
 <caption><span class="caption-text">SPICE kernel name - LIDVID examples</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col style="width: 25%" />
@@ -475,7 +477,7 @@ tree diagram.</p>
 </section>
 </section>
 <section id="lid-lidvid-construction-rules">
-<h2>LID/LIDVID Construction Rules<a class="headerlink" href="#lid-lidvid-construction-rules" title="Permalink to this headline">¶</a></h2>
+<h2>LID/LIDVID Construction Rules<a class="headerlink" href="#lid-lidvid-construction-rules" title="Permalink to this heading">¶</a></h2>
 <p>As specified in the previous section, LIDVIDs are constructed in a particular
 way for SPICE kernel archives that might differ from what is indicated in the
 PDS4 Standard documentation.</p>
@@ -510,7 +512,7 @@ on the product:</p>
 </ul>
 </div></blockquote>
 <section id="path-and-full-file-name-in-lid">
-<h3>Path and full file name in LID<a class="headerlink" href="#path-and-full-file-name-in-lid" title="Permalink to this headline">¶</a></h3>
+<h3>Path and full file name in LID<a class="headerlink" href="#path-and-full-file-name-in-lid" title="Permalink to this heading">¶</a></h3>
 <p>LIDs will include the directory path and the full file name with extension
 and VIDs will always be set to 1. This applies to the following products:</p>
 <blockquote>
@@ -538,7 +540,7 @@ archive releases:</p>
 </div>
 </section>
 <section id="path-and-file-name-without-version-in-lid">
-<h3>Path and file name without version in LID<a class="headerlink" href="#path-and-file-name-without-version-in-lid" title="Permalink to this headline">¶</a></h3>
+<h3>Path and file name without version in LID<a class="headerlink" href="#path-and-file-name-without-version-in-lid" title="Permalink to this heading">¶</a></h3>
 <p>LIDs will include the directory path and the file name up to the version part
 and VIDs will always be set to the version part from the file name. This applies
 to the following products.</p>
@@ -566,7 +568,7 @@ are guaranteed to be sequential:</p>
 </div>
 </section>
 <section id="subdirectory-name-only-in-lid">
-<h3>Subdirectory name only in LID<a class="headerlink" href="#subdirectory-name-only-in-lid" title="Permalink to this headline">¶</a></h3>
+<h3>Subdirectory name only in LID<a class="headerlink" href="#subdirectory-name-only-in-lid" title="Permalink to this heading">¶</a></h3>
 <p>LIDs will include only the subdirectory name and VIDs will always be set to
 the version part from the file name. This applies to the following products:</p>
 <blockquote>
@@ -589,7 +591,7 @@ the version part from the file name. This applies to the following products:</p>
 </div>
 </section>
 <section id="no-file-name-in-lid">
-<h3>No file name in LID<a class="headerlink" href="#no-file-name-in-lid" title="Permalink to this headline">¶</a></h3>
+<h3>No file name in LID<a class="headerlink" href="#no-file-name-in-lid" title="Permalink to this heading">¶</a></h3>
 <p>LIDs will include only the initial part of the LID and VIDs will always be set
 to the version part from the file name. This applies to the following products:</p>
 <blockquote>
@@ -605,7 +607,7 @@ to the version part from the file name. This applies to the following products:<
 </section>
 </section>
 <section id="bundle-products-construction-rules">
-<h2>Bundle Products Construction Rules<a class="headerlink" href="#bundle-products-construction-rules" title="Permalink to this headline">¶</a></h2>
+<h2>Bundle Products Construction Rules<a class="headerlink" href="#bundle-products-construction-rules" title="Permalink to this heading">¶</a></h2>
 <p>Readme files cannot be overwritten (as for any other file in the archive)
 or versioned. This means that when the Readme file is generated for the first
 release of the archive, it will remain unchanged; make sure not to make
@@ -617,7 +619,7 @@ Miscellaneous collection in most readme files of NAIF archives: the
 Miscellaneous collection was added after the several releases of the archive.</p>
 </section>
 <section id="product-reference-and-collection-inventory-construction-rules">
-<h2>Product Reference and Collection Inventory Construction Rules<a class="headerlink" href="#product-reference-and-collection-inventory-construction-rules" title="Permalink to this headline">¶</a></h2>
+<h2>Product Reference and Collection Inventory Construction Rules<a class="headerlink" href="#product-reference-and-collection-inventory-construction-rules" title="Permalink to this heading">¶</a></h2>
 <p>This set of rules applies to all the archive products:</p>
 <blockquote>
 <div><ul class="simple">
@@ -651,7 +653,7 @@ statuses.</p></li>
 </div></blockquote>
 </section>
 <section id="product-coverage-assignment-rules">
-<h2>Product Coverage Assignment Rules<a class="headerlink" href="#product-coverage-assignment-rules" title="Permalink to this headline">¶</a></h2>
+<h2>Product Coverage Assignment Rules<a class="headerlink" href="#product-coverage-assignment-rules" title="Permalink to this heading">¶</a></h2>
 <p>Determination of the coverage for the different products that needs to be
 recorded in the <code class="docutils literal notranslate"><span class="pre">Contex_Area/Time</span> <span class="pre">Coordinates</span></code> element of the product labels
 is not straightforward; to comply with the NAIF standard, the following rules
@@ -691,7 +693,7 @@ coverage of the SPICE collection that is its member.</p></li>
 </div></blockquote>
 </section>
 <section id="bundle-creation-date-time">
-<h2>Bundle Creation Date Time<a class="headerlink" href="#bundle-creation-date-time" title="Permalink to this headline">¶</a></h2>
+<h2>Bundle Creation Date Time<a class="headerlink" href="#bundle-creation-date-time" title="Permalink to this heading">¶</a></h2>
 <p>The creation time of the current version of the bundle is provided in the
 bundle label under the <code class="docutils literal notranslate"><span class="pre">File_Area_Text</span></code> area. Although this should
 correspond to the creation date of the readme file, its <code class="docutils literal notranslate"><span class="pre">creation_date_time</span></code>
@@ -701,7 +703,7 @@ the bundle label.</p>
 SPICE archive description document.</p>
 </section>
 <section id="miscellaneous-collection-rules">
-<h2>Miscellaneous Collection Rules<a class="headerlink" href="#miscellaneous-collection-rules" title="Permalink to this headline">¶</a></h2>
+<h2>Miscellaneous Collection Rules<a class="headerlink" href="#miscellaneous-collection-rules" title="Permalink to this heading">¶</a></h2>
 <p>The generation of a new checksum product is bound to the addition of a
 SPICE kernel product in the SPICE Kernels collection or to the addition of an
 orbit number file product in the Miscellaneous collection. If none of these
@@ -715,7 +717,7 @@ only add an orbit number file product or a correction in any other product that
 is not a SPICE kernel.)</p>
 </section>
 <section id="checksum-files">
-<h2>Checksum files<a class="headerlink" href="#checksum-files" title="Permalink to this headline">¶</a></h2>
+<h2>Checksum files<a class="headerlink" href="#checksum-files" title="Permalink to this heading">¶</a></h2>
 <p>It is highly recommended, not to say a policy, that archived files are ever
 altered in any way. This was not possible in PDS3 but it is in PDS4. Thanks to
 this, Checksum files provide the ability to revert to an earlier version
@@ -723,7 +725,7 @@ of the archive – just take all the files listed in particular checksum plus
 the checksum itself and its label.</p>
 </section>
 <section id="bundles-with-multiple-observers-and-or-targets">
-<h2>Bundles with multiple observers and/or targets<a class="headerlink" href="#bundles-with-multiple-observers-and-or-targets" title="Permalink to this headline">¶</a></h2>
+<h2>Bundles with multiple observers and/or targets<a class="headerlink" href="#bundles-with-multiple-observers-and-or-targets" title="Permalink to this heading">¶</a></h2>
 <p>Multiple spacecrafts and mutliple targets. NPB incorporates the possibility to
 have mutliple spacecrafts and targets in a Bundle. This is provided via
 configuration. If so, the default spacecraft will be the primary spacecraft
@@ -733,7 +735,7 @@ bundle products will include all the targets and all the spacecrafts in the
 labels.</p>
 </section>
 <section id="pds-information-model">
-<h2>PDS Information Model<a class="headerlink" href="#pds-information-model" title="Permalink to this headline">¶</a></h2>
+<h2>PDS Information Model<a class="headerlink" href="#pds-information-model" title="Permalink to this heading">¶</a></h2>
 <p>According to the PDS4 Concepts Document, the PDS Information model is</p>
 <blockquote>
 <div><p>A representation of concepts, relationships, constraints, rules, and
@@ -760,7 +762,7 @@ archives or in other holdings where these objects had <code class="docutils lite
 <p>Because of these reasons NAIF recommends to use IM 1.16.0.0 for new archives.</p>
 </section>
 <section id="digital-objects-identifiers">
-<h2>Digital Objects Identifiers<a class="headerlink" href="#digital-objects-identifiers" title="Permalink to this headline">¶</a></h2>
+<h2>Digital Objects Identifiers<a class="headerlink" href="#digital-objects-identifiers" title="Permalink to this heading">¶</a></h2>
 <p>A Digital Object Identifier (DOI) is a unique alphanumeric string assigned by a
 registration agency (the International DOI Foundation) to identify content and
 provide a persistent link to its location on the internet. DOIs can be used for
@@ -781,7 +783,7 @@ follows:</p>
 <p>where uppercase keywords preceded by a <code class="docutils literal notranslate"><span class="pre">$</span></code> are archive specific values.</p>
 </section>
 <section id="product-set-label-lidvid-and-inventory-examples-for-maven-releases-1-and-2">
-<h2>Product set, label, LIDVID and inventory examples for MAVEN releases 1 and 2<a class="headerlink" href="#product-set-label-lidvid-and-inventory-examples-for-maven-releases-1-and-2" title="Permalink to this headline">¶</a></h2>
+<h2>Product set, label, LIDVID and inventory examples for MAVEN releases 1 and 2<a class="headerlink" href="#product-set-label-lidvid-and-inventory-examples-for-maven-releases-1-and-2" title="Permalink to this heading">¶</a></h2>
 <p>Below is an example of files, product types, and LIDVIDs for the MAVEN 1st and
 2nd releases. Inventory contents are shown with <code class="docutils literal notranslate"><span class="pre">P</span></code> and <code class="docutils literal notranslate"><span class="pre">S</span></code> attributes. <code class="docutils literal notranslate"><span class="pre">+</span></code>
 as the first character on the line indicates files added in that release:</p>
@@ -925,8 +927,37 @@ as the first character on the line indicates files added in that release:</p>
 </div>
 </section>
 </section>
+<section id="pds4-spice-kernel-archives-examples">
+<h1>PDS4 SPICE kernel archives examples<a class="headerlink" href="#pds4-spice-kernel-archives-examples" title="Permalink to this heading">¶</a></h1>
+<p>There is a number of published PDS4 SPICE kernel archives. Most
+of these archives have been generated - at least the latter increments -
+with NPB and are probably the best reference and can provide valuable
+guidelines when generating a new archive:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference external" href="https://naif.jpl.nasa.gov/pub/naif/pds/pds4/insight/insight_spice/">INSIGHT PDS4 SPICE kernel archive</a>:
+Mars lander mission, an example of a small incremental archive.</p></li>
+<li><p><a class="reference external" href="https://naif.jpl.nasa.gov/pub/naif/pds/pds4/maven/maven_spice/">MAVEN PDS4 SPICE kernel archive</a>:
+Mars orbiter mission, an example of a medium incremental archive with
+a single host (spacecraft), a single target, and that includes ORBNUM file products.</p></li>
+<li><p><a class="reference external" href="https://naif.jpl.nasa.gov/pub/naif/pds/pds4/mars2020/mars2020_spice/">Mars 2020 PDS4 SPICE kernel archive</a>:
+Mars rover mission, an example of a small incremental archive for a rover.</p></li>
+<li><p><a class="reference external" href="https://naif.jpl.nasa.gov/pub/naif/pds/pds4/orex/orex_spice/">OSIRIS ReX PDS4 SPICE kernel archive</a>:
+Asteroid orbiter mission, an example of a large incremental archive that
+includes big data products and DSK kernels.</p></li>
+<li><p><a class="reference external" href="https://naif.jpl.nasa.gov/pub/naif/pds/pds4/ladee/ladee_spice/">LADEE PDS4 SPICE kernel archive</a>:
+Moon orbiter mission, an example of a small archive with a single release at the end of the mission.</p></li>
+<li><p><a class="reference external" href="https://naif.jpl.nasa.gov/pub/naif/pds/pds4/em16/em16_spice">ExoMars2016 PDS4 SPICE kernel archive</a>:
+Mars Orbiter and lander mission, an example of a Planetary Science Archive bundle that uses a different
+PDS Information Model (IM v1.11.0.0).</p></li>
+<li><p><a class="reference external" href="https://naif.jpl.nasa.gov/pub/naif/pds/pds4/bc/bc_spice">BepiColombo PDS4 SPICE kernel archive</a>:
+Double Mercury orbiter mission, an example of a Planetary Science Archive bundle that uses a different
+PDS Information Model (IM v1.11.0.0) and with multiple hosts (spacecrafts).</p></li>
+</ul>
+</div></blockquote>
+</section>
 <section id="a-note-on-spice-kernels-dissemination">
-<h1>A note on SPICE Kernels dissemination<a class="headerlink" href="#a-note-on-spice-kernels-dissemination" title="Permalink to this headline">¶</a></h1>
+<h1>A note on SPICE Kernels dissemination<a class="headerlink" href="#a-note-on-spice-kernels-dissemination" title="Permalink to this heading">¶</a></h1>
 <p>SPICE kernel archives might not be the only archives that include
 SPICE kernels. Any other archive is free to include SPICE kernels.
 As much as this is normal practice it can also be very dangerous. If you,
@@ -944,7 +975,7 @@ need a specific meta-kernel in the SPICE kernel archive.</p></li>
 </div></blockquote>
 </section>
 <section id="spice-kernel-archive-divergences-rationale">
-<h1>SPICE Kernel archive divergences rationale<a class="headerlink" href="#spice-kernel-archive-divergences-rationale" title="Permalink to this headline">¶</a></h1>
+<h1>SPICE Kernel archive divergences rationale<a class="headerlink" href="#spice-kernel-archive-divergences-rationale" title="Permalink to this heading">¶</a></h1>
 <p>The fact that the PDS artifacts in the SPICE Kernel archives are not 100%
 aligned with PDS best practices or recommendations does <strong>not</strong> make
 the kernels less usable because these products, such as labels, are not needed

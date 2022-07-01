@@ -4,11 +4,11 @@
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>NPB Installation &mdash; NAIF PDS4 Bundler 1.2.0
+  <title>NPB Installation &mdash; NAIF PDS4 Bundler 1.2.1
  documentation</title>
   
 
@@ -33,6 +33,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -102,13 +103,13 @@
 <li class="toctree-l4"><a class="reference internal" href="#known-installation-issues">Known Installation Issues</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#development-and-contribution">Development and Contribution</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#installation">Installation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#packaging">Packaging</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#running-tests">Running Tests</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#documentation">Documentation</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#development-and-contribution">Development and Contribution</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#installation-for-developers">Installation for developers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#packaging">Packaging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#running-tests">Running Tests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#documentation">Documentation</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="42_npb_configuration_file.html">The Configuration File</a></li>
@@ -116,7 +117,7 @@
 <li class="toctree-l2"><a class="reference internal" href="44_working_example.html">Working Example</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="50_api_docs.html">Modules, Classes, and Functions Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="50_api_docs.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="60_annex_npb_for_pds3.html">Appendix: NPB for PDS3 Archives</a></li>
 </ul>
 
@@ -186,9 +187,9 @@
            <div itemprop="articleBody">
             
   <section id="npb-installation">
-<h1>NPB Installation<a class="headerlink" href="#npb-installation" title="Permalink to this headline">¶</a></h1>
+<h1>NPB Installation<a class="headerlink" href="#npb-installation" title="Permalink to this heading">¶</a></h1>
 <section id="prerequisites">
-<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this heading">¶</a></h2>
 <p>In order to run the NAIF PDS4 Bundler (NPB), the following software must be
 present on the users’s computer:</p>
 <blockquote>
@@ -197,7 +198,11 @@ present on the users’s computer:</p>
 <li><p>A NAIF supported C compiler (<a class="reference external" href="https://naif.jpl.nasa.gov/naif/toolkit_C.html">See link to NAIF CSPICE page</a>)</p></li>
 </ul>
 </div></blockquote>
-<p>Your computer must be based on a 64-bit Unix operating system: a Linux or OSX.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Your computer must be based on a 64-bit Unix operating system: a Linux or OSX.
+Your computer must also be little-endian.</p>
+</div>
 <p>A number of Python packages are required as well:</p>
 <blockquote>
 <div><ul class="simple">
@@ -217,7 +222,7 @@ it will automatically install it for you.</p>
 <p>The following section will provides instructions to install NPB.</p>
 </section>
 <section id="user-quickstart">
-<h2>User Quickstart<a class="headerlink" href="#user-quickstart" title="Permalink to this headline">¶</a></h2>
+<h2>User Quickstart<a class="headerlink" href="#user-quickstart" title="Permalink to this heading">¶</a></h2>
 <p>Install with:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">naif</span><span class="o">-</span><span class="n">pds4</span><span class="o">-</span><span class="n">bundler</span>
 </pre></div>
@@ -228,7 +233,7 @@ it will automatically install it for you.</p>
 </div>
 </section>
 <section id="manual-installation">
-<h2>Manual Installation<a class="headerlink" href="#manual-installation" title="Permalink to this headline">¶</a></h2>
+<h2>Manual Installation<a class="headerlink" href="#manual-installation" title="Permalink to this heading">¶</a></h2>
 <p>If you wish to install NPB from source first download or clone the project
 from the <a class="reference external" href="https://github.com/NASA-PDS/naif-pds4-bundler">NPB GitHub repository</a>.
 Then run:</p>
@@ -240,7 +245,7 @@ Then run:</p>
 </pre></div>
 </div>
 <section id="known-installation-issues">
-<h3>Known Installation Issues<a class="headerlink" href="#known-installation-issues" title="Permalink to this headline">¶</a></h3>
+<h3>Known Installation Issues<a class="headerlink" href="#known-installation-issues" title="Permalink to this heading">¶</a></h3>
 <p>Certain versions of Python might report an installation error triggered by
 the installation of the NumPy package that is required by SpiceyPy. The error
 should point to a missing or invalid Cython package. In order to fix this error
@@ -256,13 +261,14 @@ commands:</p>
 </div>
 </section>
 </section>
+</section>
 <section id="development-and-contribution">
-<h2>Development and Contribution<a class="headerlink" href="#development-and-contribution" title="Permalink to this headline">¶</a></h2>
+<h1>Development and Contribution<a class="headerlink" href="#development-and-contribution" title="Permalink to this heading">¶</a></h1>
 <p>For information on how to contribute to NASA-PDS codebases please take a
 look at our
 <a class="reference external" href="https://github.com/NASA-PDS/.github/blob/main/CONTRIBUTING.md">Contributing guidelines</a>.</p>
-<section id="installation">
-<h3>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h3>
+<section id="installation-for-developers">
+<h2>Installation for developers<a class="headerlink" href="#installation-for-developers" title="Permalink to this heading">¶</a></h2>
 <p>You can install NPB in editable mode and with extra developer dependencies into
 your virtual environment of choice by running:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">editable</span> <span class="s1">&#39;.[dev]&#39;</span>
@@ -275,7 +281,7 @@ the <code class="docutils literal notranslate"><span class="pre">pre-commit</spa
 </div>
 </section>
 <section id="packaging">
-<h3>Packaging<a class="headerlink" href="#packaging" title="Permalink to this headline">¶</a></h3>
+<h2>Packaging<a class="headerlink" href="#packaging" title="Permalink to this heading">¶</a></h2>
 <p>To isolate and be able to reproduce the environment for this package,
 you should use a
 <a class="reference external" href="https://docs.python.org/3/tutorial/venv.html">Python Virtual Environment</a>.
@@ -298,7 +304,7 @@ in <code class="docutils literal notranslate"><span class="pre">setup.cfg</span>
 <p>All the source code is in <code class="docutils literal notranslate"><span class="pre">naif_pds4_bundler</span></code> under <code class="docutils literal notranslate"><span class="pre">src</span></code>.</p>
 </section>
 <section id="running-tests">
-<h3>Running Tests<a class="headerlink" href="#running-tests" title="Permalink to this headline">¶</a></h3>
+<h2>Running Tests<a class="headerlink" href="#running-tests" title="Permalink to this heading">¶</a></h2>
 <p>Run tests under the <code class="docutils literal notranslate"><span class="pre">tests/naif_pds4_bundler</span></code> directory with:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">unittest</span> <span class="n">discover</span> <span class="o">-</span><span class="n">s</span> <span class="n">tests</span><span class="o">/</span><span class="n">naif_pds4_bundler</span>
 </pre></div>
@@ -328,7 +334,7 @@ script <code class="docutils literal notranslate"><span class="pre">naif-pds4-bu
 <p>The implemented tests are documented in section <a class="reference internal" href="tests.html#tests-package"><span class="std std-ref">tests package</span></a></p>
 </section>
 <section id="documentation">
-<h3>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h3>
+<h2>Documentation<a class="headerlink" href="#documentation" title="Permalink to this heading">¶</a></h2>
 <p>NPB uses <a class="reference external" href="https://www.sphinx-doc.org/en/master/">Sphinx</a> to build its
 documentation. You can build the NPB docs with:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">build_sphinx</span>
@@ -348,7 +354,6 @@ project root:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">docs</span><span class="o">/</span><span class="n">_build</span>
 </pre></div>
 </div>
-</section>
 </section>
 </section>
 

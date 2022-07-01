@@ -4,11 +4,11 @@
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>A Very Brief Introduction to SPICE &mdash; NAIF PDS4 Bundler 1.2.0
+  <title>A Very Brief Introduction to SPICE &mdash; NAIF PDS4 Bundler 1.2.1
  documentation</title>
   
 
@@ -33,6 +33,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -107,7 +108,7 @@
 <li class="toctree-l1"><a class="reference internal" href="20_spice_kernel_archive_description.html">SPICE Kernel Archive Description</a></li>
 <li class="toctree-l1"><a class="reference internal" href="30_spice_kernel_archive_preparation_guide.html">SPICE Kernel Archive Preparation Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="40_naif_pds4_bundler_user_guide.html">NAIF PDS4 Bundler User Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="50_api_docs.html">Modules, Classes, and Functions Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="50_api_docs.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="60_annex_npb_for_pds3.html">Appendix: NPB for PDS3 Archives</a></li>
 </ul>
 
@@ -177,7 +178,7 @@
            <div itemprop="articleBody">
             
   <section id="a-very-brief-introduction-to-spice">
-<h1>A Very Brief Introduction to SPICE<a class="headerlink" href="#a-very-brief-introduction-to-spice" title="Permalink to this headline">¶</a></h1>
+<h1>A Very Brief Introduction to SPICE<a class="headerlink" href="#a-very-brief-introduction-to-spice" title="Permalink to this heading">¶</a></h1>
 <p>The SPICE (Spacecraft Planets Instrument C- Matrix Events) information
 system uses ancillary data to provide solar system geometry information
 to scientists and engineers for planetary missions in order to plan and
@@ -200,41 +201,41 @@ Interfaces to higher-level data analysis software in the Interactive Data
 Language (IDL), Matlab and JAVA are also provided. There are several other
 wrappers amongst which we highlight the Python wrapper SpiceyPy.</p>
 <section id="spice-kernels-organization">
-<h2>SPICE Kernels Organization<a class="headerlink" href="#spice-kernels-organization" title="Permalink to this headline">¶</a></h2>
+<h2>SPICE Kernels Organization<a class="headerlink" href="#spice-kernels-organization" title="Permalink to this heading">¶</a></h2>
 <p>SPICE kernels in a SPICE archive are grouped into a set of subdirectories.
 Each subdirectory contains one specific kernel type; those types are briefly
 described here.</p>
 <blockquote>
 <div><ul class="simple">
-<li><p><strong>``spk/``</strong> (Spacecraft Planet Kernel) files contain ephemerides (position
+<li><p><strong>spk/</strong> (Spacecraft Planet Kernel) files contain ephemerides (position
 and velocity) for spacecraft, planets, satellites, comets and
 asteroids as well as for moving or fixed spacecraft and instrument
 structures.</p></li>
-<li><p><strong>``pck/``</strong> (Planetary Constants Kernel) files contain certain physical,
+<li><p><strong>pck/</strong> (Planetary Constants Kernel) files contain certain physical,
 dynamical and cartographic constants for target bodies, such as size
 and shape specifications, and orientation of the spin axis and prime
 meridian.</p></li>
-<li><p><strong>``ik/``</strong> (Instrument Kernel) files contain instrument parameters relevant
+<li><p><strong>ik/</strong> (Instrument Kernel) files contain instrument parameters relevant
 for computing an instrument’s geometry such as field-of-view
 definitions, CCD and optical distortion characteristics, and internal
 timing parameters.</p></li>
-<li><p><strong>``ck/``</strong> (C-matrix Kernel) files contain time varying orientations for
+<li><p><strong>ck/</strong> (C-matrix Kernel) files contain time varying orientations for
 spacecraft, spacecraft structures, and articulating science
 instruments.</p></li>
-<li><p><strong>``lsk/``</strong> (Leapseconds Kernel) files contain the leapseconds and the
+<li><p><strong>lsk/</strong> (Leapseconds Kernel) files contain the leapseconds and the
 values of other constants required to perform a transformation
 between Universal Time Coordinated (UTC) and Ephemeris time (ET),
 which is also known as Barycentric Dynamical Time (TDB).</p></li>
-<li><p><strong>``sclk/``</strong> (Spacecraft Clock Kernel) files contain on-board clock
+<li><p><strong>sclk/</strong> (Spacecraft Clock Kernel) files contain on-board clock
 calibration data required to perform a transformation between
 Ephemeris time (ET) and spacecraft on-board time (SCLK).</p></li>
-<li><p><strong>``fk/``</strong> (Frame definitions Kernel) files contain information required to
+<li><p><strong>fk/</strong> (Frame definitions Kernel) files contain information required to
 define reference frames, sources of frame orientation data and
 connections between these frames and other frames supported within
 the SPICE system. The science instrument frame definitions provided
 in the FK files include mounting alignment information for the
 instruments.</p></li>
-<li><p><strong>``dsk/``</strong> (Digital Shape Kernel) files contain detailed shape models for
+<li><p><strong>dsk/</strong> (Digital Shape Kernel) files contain detailed shape models for
 extended objects such as planets, natural satellites, asteroids, and
 comet nuclei.</p></li>
 </ul>
@@ -243,7 +244,7 @@ comet nuclei.</p></li>
 described here.</p>
 <blockquote>
 <div><ul class="simple">
-<li><p><strong>``mk/``</strong> (Meta-Kernel) files list sets of related SPICE kernels that
+<li><p><strong>mk/</strong> (Meta-Kernel) files list sets of related SPICE kernels that
 should be used together, providing an easy way to make data from
 these kernel sets available to a SPICE-based application by loading
 meta-kernels into the program using the high level SPICE data loader

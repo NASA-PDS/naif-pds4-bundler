@@ -45,7 +45,6 @@ the archives. These can help a great deal, but there is much that only the
 archive preparer can do.
 
 
-
 How to Read This Document?
 ==========================
 
@@ -57,8 +56,12 @@ you are very familiar with PDS SPICE kernel archives you can skip the
 chapter and jump directly to
 :ref:`30_spice_kernel_archive_preparation_guide:SPICE Kernel Archive Preparation Guide`.
 
+Also if you are only interested in the NAIF PDS4 Bundler software package
+itself you can jump to :ref:`40_naif_pds4_bundler_user_guide:NAIF PDS4 Bundler User Guide`. The installation
+instructions are available at :ref:`41_npb_installation:NPB Installation`.
+
 Needless to say, the chapter
-:ref:`50_api_docs:Modules, Classes, and Functions Documentation`
+:ref:`50_api_docs:API Reference`
 dedicated to the description of functions and
 modules is aimed at potential contributors to the further development of this
 NPB software package, if you are not planning to do so, don't bother to take a

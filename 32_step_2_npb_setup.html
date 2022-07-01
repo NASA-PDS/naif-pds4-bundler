@@ -4,11 +4,11 @@
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Step 2: Preparing the NAIF PDS4 Bundler Setup &mdash; NAIF PDS4 Bundler 1.2.0
+  <title>Step 2: Preparing the NAIF PDS4 Bundler Setup &mdash; NAIF PDS4 Bundler 1.2.1
  documentation</title>
   
 
@@ -33,6 +33,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -118,7 +119,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="40_naif_pds4_bundler_user_guide.html">NAIF PDS4 Bundler User Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="50_api_docs.html">Modules, Classes, and Functions Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="50_api_docs.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="60_annex_npb_for_pds3.html">Appendix: NPB for PDS3 Archives</a></li>
 </ul>
 
@@ -188,7 +189,7 @@
            <div itemprop="articleBody">
             
   <section id="step-2-preparing-the-naif-pds4-bundler-setup">
-<h1>Step 2: Preparing the NAIF PDS4 Bundler Setup<a class="headerlink" href="#step-2-preparing-the-naif-pds4-bundler-setup" title="Permalink to this headline">¶</a></h1>
+<h1>Step 2: Preparing the NAIF PDS4 Bundler Setup<a class="headerlink" href="#step-2-preparing-the-naif-pds4-bundler-setup" title="Permalink to this heading">¶</a></h1>
 <p>After having gathered, prepared, and listed the kernels to archive the next
 step is to get ready to run the NAIF PDS4 Bundler (NPB). You need to
 take the following steps:</p>
@@ -201,7 +202,7 @@ take the following steps:</p>
 </ul>
 </div></blockquote>
 <section id="workspace-setup">
-<h2>Workspace Setup<a class="headerlink" href="#workspace-setup" title="Permalink to this headline">¶</a></h2>
+<h2>Workspace Setup<a class="headerlink" href="#workspace-setup" title="Permalink to this heading">¶</a></h2>
 <p>NPB requires a directory layout but without a rigid or particular structure
 since each directory is specified in the configuration file. Although
 this is discussed later under the configuration file section, NPB needs to
@@ -215,7 +216,7 @@ generation logs and by-products (<strong>working</strong> directory).</p>
 specify a directory for them (<strong>templates</strong> directory.)</p>
 <p>The working, staging, and bundle directories cannot be the same.</p>
 <section id="working-directory">
-<h3>Working Directory<a class="headerlink" href="#working-directory" title="Permalink to this headline">¶</a></h3>
+<h3>Working Directory<a class="headerlink" href="#working-directory" title="Permalink to this heading">¶</a></h3>
 <p>NPB requires a directory to generate the execution by-products that include but
 are not limited to (depending on the execution arguments): an execution log,
 a  kernel list, diff report files, and the file list. These files are described
@@ -226,7 +227,7 @@ release: configuration file, validation report, release plan, etc. This allows
 you to have a history of all the releases of an archive.</p>
 </section>
 <section id="kernels-directory">
-<h3>Kernels Directory<a class="headerlink" href="#kernels-directory" title="Permalink to this headline">¶</a></h3>
+<h3>Kernels Directory<a class="headerlink" href="#kernels-directory" title="Permalink to this heading">¶</a></h3>
 <p>NPB needs to know where it will get the input kernels from. You can define as
 many kernel directories as you want via configuration: NPB will search all of
 them –and their eventual sub-directories– looking for the kernels specified
@@ -261,7 +262,7 @@ have the complete operational SPICE kernels sub-directory structrue as in
 the <a class="reference external" href="https://naif.jpl.nasa.gov/pub/naif/INSIGHT/kernels/">INSIGHT operational kernels at NAIF</a>.</p>
 </section>
 <section id="orbnum-directory">
-<h3>ORBNUM Directory<a class="headerlink" href="#orbnum-directory" title="Permalink to this headline">¶</a></h3>
+<h3>ORBNUM Directory<a class="headerlink" href="#orbnum-directory" title="Permalink to this heading">¶</a></h3>
 <p>ORBNUM files are not stored in the <strong>kernels</strong> directory, therefore
 NPB requires you to specify where the ORBNUM files are located. For some
 missions these files are under the <code class="docutils literal notranslate"><span class="pre">kernels/spk</span></code> directory, for others they
@@ -269,14 +270,14 @@ are under <code class="docutils literal notranslate"><span class="pre">misc/orbn
 and could be anywhere.</p>
 </section>
 <section id="staging-directory">
-<h3>Staging Directory<a class="headerlink" href="#staging-directory" title="Permalink to this headline">¶</a></h3>
+<h3>Staging Directory<a class="headerlink" href="#staging-directory" title="Permalink to this heading">¶</a></h3>
 <p>The staging directory is used by NPB to copy the input files to, and to generate
 the archive increment. This directory could be empty for every NPB run or could
 contain the files of the previous increment.</p>
 <p>NAIF recommends you clear this directory for every archive release.</p>
 </section>
 <section id="bundle-directory">
-<h3>Bundle Directory<a class="headerlink" href="#bundle-directory" title="Permalink to this headline">¶</a></h3>
+<h3>Bundle Directory<a class="headerlink" href="#bundle-directory" title="Permalink to this heading">¶</a></h3>
 <p>The bundle directory points to the complete archive. This directory could be
 the final, public destination of the archive or not (NAIF recommends
 against it being the final destination). In any case this directory must contain
@@ -287,13 +288,13 @@ bundle directory, unless indicated otherwise, as you will be able to learn in
 </section>
 </section>
 <section id="determination-of-the-archive-release-version">
-<h2>Determination of the Archive Release Version<a class="headerlink" href="#determination-of-the-archive-release-version" title="Permalink to this headline">¶</a></h2>
+<h2>Determination of the Archive Release Version<a class="headerlink" href="#determination-of-the-archive-release-version" title="Permalink to this heading">¶</a></h2>
 <p>NPB will determine the archive release version by accessing the existing bundle
 label from the bundle directory. If no bundle is present NPB will default the
 version to <code class="docutils literal notranslate"><span class="pre">01</span></code>.</p>
 </section>
 <section id="spice-kernel-descriptions-across-the-archive">
-<h2>SPICE Kernel descriptions across the archive<a class="headerlink" href="#spice-kernel-descriptions-across-the-archive" title="Permalink to this headline">¶</a></h2>
+<h2>SPICE Kernel descriptions across the archive<a class="headerlink" href="#spice-kernel-descriptions-across-the-archive" title="Permalink to this heading">¶</a></h2>
 <p>Spending the effort to prepare adequate descriptions of the data is
 essential to guarantee that the data can be used correctly and efficiently
 by future users. NAIF requires that SPICE archives provide kernel data
@@ -324,7 +325,7 @@ labels are described in greater detail in the next few sub-sections of this
 document.</p>
 </section>
 <section id="spice-data-set-catalog-file">
-<h2>SPICE Data Set Catalog File<a class="headerlink" href="#spice-data-set-catalog-file" title="Permalink to this headline">¶</a></h2>
+<h2>SPICE Data Set Catalog File<a class="headerlink" href="#spice-data-set-catalog-file" title="Permalink to this heading">¶</a></h2>
 <p>The SPICE Archive Description file (SPICEDS) provides a high level overview of
 SPICE, Kernel types, and the archive; covering briefly the type of information
 provided in, the source of, and the accuracy of each kind of kernel included in
@@ -471,7 +472,7 @@ characters with the only exception for lines containing HTML references that
 can extend beyond the 78 character limit.</p>
 </section>
 <section id="install-and-or-update-the-naif-pds4-bundler">
-<h2>Install and/or update the NAIF PDS4 Bundler<a class="headerlink" href="#install-and-or-update-the-naif-pds4-bundler" title="Permalink to this headline">¶</a></h2>
+<h2>Install and/or update the NAIF PDS4 Bundler<a class="headerlink" href="#install-and-or-update-the-naif-pds4-bundler" title="Permalink to this heading">¶</a></h2>
 <p>Once the kernels are ready, the kernel list is ready, the meta-kernels have been
 identified or have been written, the workspace is in place, and the SPICEDS file
 has been generated or updated, it is time for the NAIF PDS4 Bundler (NPB) to
@@ -551,7 +552,7 @@ not generated.</p>
 </dl>
 </section>
 <section id="write-and-or-update-the-npb-configuration-file">
-<h2>Write and/or update the NPB Configuration File<a class="headerlink" href="#write-and-or-update-the-npb-configuration-file" title="Permalink to this headline">¶</a></h2>
+<h2>Write and/or update the NPB Configuration File<a class="headerlink" href="#write-and-or-update-the-npb-configuration-file" title="Permalink to this heading">¶</a></h2>
 <p>Writing and/or updating the NPB Configuration File is the most important and
 “challenging” step of the archive generation, second only to the collection and
 preparation of the data. It requires a considerable effort, especially for the

@@ -4,11 +4,11 @@
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Applicability &mdash; NAIF PDS4 Bundler 1.2.0
+  <title>Applicability &mdash; NAIF PDS4 Bundler 1.2.1
  documentation</title>
   
 
@@ -33,6 +33,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -104,7 +105,7 @@
 <li class="toctree-l1"><a class="reference internal" href="20_spice_kernel_archive_description.html">SPICE Kernel Archive Description</a></li>
 <li class="toctree-l1"><a class="reference internal" href="30_spice_kernel_archive_preparation_guide.html">SPICE Kernel Archive Preparation Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="40_naif_pds4_bundler_user_guide.html">NAIF PDS4 Bundler User Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="50_api_docs.html">Modules, Classes, and Functions Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="50_api_docs.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="60_annex_npb_for_pds3.html">Appendix: NPB for PDS3 Archives</a></li>
 </ul>
 
@@ -174,7 +175,7 @@
            <div itemprop="articleBody">
             
   <section id="applicability">
-<h1>Applicability<a class="headerlink" href="#applicability" title="Permalink to this headline">¶</a></h1>
+<h1>Applicability<a class="headerlink" href="#applicability" title="Permalink to this heading">¶</a></h1>
 <p>This document is written for anyone who will be preparing a new or
 augmented SPICE data archive for submission to the NAIF Node of the PDS.
 However, following the standards and procedures provided in this document
@@ -182,7 +183,7 @@ is highly encouraged for any entity involved in archiving SPICE ancillary
 data at some other archive facility.</p>
 </section>
 <section id="motivation">
-<h1>Motivation<a class="headerlink" href="#motivation" title="Permalink to this headline">¶</a></h1>
+<h1>Motivation<a class="headerlink" href="#motivation" title="Permalink to this heading">¶</a></h1>
 <p>NAIF’s approach to creating SPICE kernel archives can be summarized by this
 statement:</p>
 <p><strong>All SPICE data for a given mission are archived as UNIX text and binary
@@ -213,7 +214,7 @@ the archives. These can help a great deal, but there is much that only the
 archive preparer can do.</p>
 </section>
 <section id="how-to-read-this-document">
-<h1>How to Read This Document?<a class="headerlink" href="#how-to-read-this-document" title="Permalink to this headline">¶</a></h1>
+<h1>How to Read This Document?<a class="headerlink" href="#how-to-read-this-document" title="Permalink to this heading">¶</a></h1>
 <p>We are glad that you got this far, but you’ve got a ways to go.
 You might not have to look into each section of this document.
 If you already know about SPICE you can skip the rest of this chapter. If
@@ -221,8 +222,11 @@ you are very familiar with PDS SPICE kernel archives you can skip the
 <a class="reference internal" href="20_spice_kernel_archive_description.html#spice-kernel-archive-description"><span class="std std-ref">SPICE Kernel Archive Description</span></a>
 chapter and jump directly to
 <a class="reference internal" href="30_spice_kernel_archive_preparation_guide.html#spice-kernel-archive-preparation-guide"><span class="std std-ref">SPICE Kernel Archive Preparation Guide</span></a>.</p>
+<p>Also if you are only interested in the NAIF PDS4 Bundler software package
+itself you can jump to <a class="reference internal" href="40_naif_pds4_bundler_user_guide.html#naif-pds4-bundler-user-guide"><span class="std std-ref">NAIF PDS4 Bundler User Guide</span></a>. The installation
+instructions are available at <a class="reference internal" href="41_npb_installation.html#npb-installation"><span class="std std-ref">NPB Installation</span></a>.</p>
 <p>Needless to say, the chapter
-<a class="reference internal" href="50_api_docs.html#modules-classes-and-functions-documentation"><span class="std std-ref">Modules, Classes, and Functions Documentation</span></a>
+<a class="reference internal" href="50_api_docs.html#api-reference"><span class="std std-ref">API Reference</span></a>
 dedicated to the description of functions and
 modules is aimed at potential contributors to the further development of this
 NPB software package, if you are not planning to do so, don’t bother to take a

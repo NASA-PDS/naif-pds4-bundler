@@ -4,11 +4,11 @@
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Appendix: NPB for PDS3 Archives &mdash; NAIF PDS4 Bundler 1.2.0
+  <title>Appendix: NPB for PDS3 Archives &mdash; NAIF PDS4 Bundler 1.2.1
  documentation</title>
   
 
@@ -33,6 +33,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -94,7 +95,7 @@
 <li class="toctree-l1"><a class="reference internal" href="20_spice_kernel_archive_description.html">SPICE Kernel Archive Description</a></li>
 <li class="toctree-l1"><a class="reference internal" href="30_spice_kernel_archive_preparation_guide.html">SPICE Kernel Archive Preparation Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="40_naif_pds4_bundler_user_guide.html">NAIF PDS4 Bundler User Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="50_api_docs.html">Modules, Classes, and Functions Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="50_api_docs.html">API Reference</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Appendix: NPB for PDS3 Archives</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#configuration-file-particulars">Configuration File Particulars</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#using-npb-for-pds3-archives">Using NPB for PDS3 Archives</a><ul>
@@ -170,7 +171,7 @@
            <div itemprop="articleBody">
             
   <section id="appendix-npb-for-pds3-archives">
-<h1>Appendix: NPB for PDS3 Archives<a class="headerlink" href="#appendix-npb-for-pds3-archives" title="Permalink to this headline">¶</a></h1>
+<h1>Appendix: NPB for PDS3 Archives<a class="headerlink" href="#appendix-npb-for-pds3-archives" title="Permalink to this heading">¶</a></h1>
 <p>NPB is capable to generate PDS3 SPICE kernels data sets increments. This
 capability is not intended for people external to NAIF and is only adept
 for PDS3 data sets archived by or for NAIF.</p>
@@ -182,7 +183,7 @@ you might not know or understand, if so please take a look at the documents
 that describe the PDS3 standards. These documents are available at the
 <a class="reference external" href="https://pds.nasa.gov/datastandards/pds3/">PDS3 Data Standards page</a>.</p>
 <section id="configuration-file-particulars">
-<h2>Configuration File Particulars<a class="headerlink" href="#configuration-file-particulars" title="Permalink to this headline">¶</a></h2>
+<h2>Configuration File Particulars<a class="headerlink" href="#configuration-file-particulars" title="Permalink to this heading">¶</a></h2>
 <p>PDS3 archives require several modifications to the NPB configuration file
 that are not documented in section <a class="reference internal" href="42_npb_configuration_file.html#the-configuration-file"><span class="std std-ref">The Configuration File</span></a>.</p>
 <p>Use the MSL, the MRO or the JUNO configuration file examples as references. They
@@ -195,13 +196,13 @@ have an entry in the Kernel List section. The value of the <code class="docutils
 and <code class="docutils literal notranslate"><span class="pre">descriptions</span></code> elements is irrelevant, you can use <code class="docutils literal notranslate"><span class="pre">N/A</span></code>.</p>
 </section>
 <section id="using-npb-for-pds3-archives">
-<h2>Using NPB for PDS3 Archives<a class="headerlink" href="#using-npb-for-pds3-archives" title="Permalink to this headline">¶</a></h2>
+<h2>Using NPB for PDS3 Archives<a class="headerlink" href="#using-npb-for-pds3-archives" title="Permalink to this heading">¶</a></h2>
 <p>You can use NPB for PDS3 archives exactly in the same way that you would for a
 PDS4 archive. The only differences being present in the content of NPB’s
 logging. Please refer to section
 <a class="reference internal" href="43_using_npb.html#using-npb"><span class="std std-ref">Using NPB</span></a>, for more information.</p>
 <section id="binary-kernels-endianness-in-pds3-archives">
-<h3>Binary kernels endianness in PDS3 archives<a class="headerlink" href="#binary-kernels-endianness-in-pds3-archives" title="Permalink to this headline">¶</a></h3>
+<h3>Binary kernels endianness in PDS3 archives<a class="headerlink" href="#binary-kernels-endianness-in-pds3-archives" title="Permalink to this heading">¶</a></h3>
 <p>NAIF requires all their PDS3 archives to have <code class="docutils literal notranslate"><span class="pre">BIG-IEEE</span></code> binary kernels. The
 same applies to “old” archives from other agencies (ESA, JAXA) such as
 Mars Express (<code class="docutils literal notranslate"><span class="pre">mex-e_m-spice-6-v1.0</span></code>), Venus Express (<code class="docutils literal notranslate"><span class="pre">vex-e_v-spice-6-v1.0</span></code>),
@@ -214,7 +215,7 @@ and <code class="docutils literal notranslate"><span class="pre">ro_rl-e_m_a_c-s
 </section>
 </section>
 <section id="known-differences-from-archives-generated-with-naif-s-pds3-archiving-approach">
-<h2>Known differences from archives generated with NAIF’s PDS3 archiving approach<a class="headerlink" href="#known-differences-from-archives-generated-with-naif-s-pds3-archiving-approach" title="Permalink to this headline">¶</a></h2>
+<h2>Known differences from archives generated with NAIF’s PDS3 archiving approach<a class="headerlink" href="#known-differences-from-archives-generated-with-naif-s-pds3-archiving-approach" title="Permalink to this heading">¶</a></h2>
 <p>When generating a PDS3 data set increment with NPB compared to following the
 <em>NAIF’s PDS3 archiving approach</em> -which implies using the NAIF utility
 <code class="docutils literal notranslate"><span class="pre">MAKLABEL</span></code> and several Perl scripts such as <code class="docutils literal notranslate"><span class="pre">label_them_all.pl</span></code>,

@@ -770,6 +770,34 @@ Release 2 adds:
     +  ./spice_kernels/spk/maven_orb2.bsp
 
 
+PDS4 SPICE kernel archives examples
+===================================
+
+There is a number of published PDS4 SPICE kernel archives. Most
+of these archives have been generated - at least the latter increments -
+with NPB and are probably the best reference and can provide valuable
+guidelines when generating a new archive:
+
+   * `INSIGHT PDS4 SPICE kernel archive <https://naif.jpl.nasa.gov/pub/naif/pds/pds4/insight/insight_spice/>`_:
+     Mars lander mission, an example of a small incremental archive.
+   * `MAVEN PDS4 SPICE kernel archive <https://naif.jpl.nasa.gov/pub/naif/pds/pds4/maven/maven_spice/>`_:
+     Mars orbiter mission, an example of a medium incremental archive with
+     a single host (spacecraft), a single target, and that includes ORBNUM file products.
+   * `Mars 2020 PDS4 SPICE kernel archive <https://naif.jpl.nasa.gov/pub/naif/pds/pds4/mars2020/mars2020_spice/>`_:
+     Mars rover mission, an example of a small incremental archive for a rover.
+   * `OSIRIS ReX PDS4 SPICE kernel archive <https://naif.jpl.nasa.gov/pub/naif/pds/pds4/orex/orex_spice/>`_:
+     Asteroid orbiter mission, an example of a large incremental archive that
+     includes big data products and DSK kernels.
+   * `LADEE PDS4 SPICE kernel archive <https://naif.jpl.nasa.gov/pub/naif/pds/pds4/ladee/ladee_spice/>`_:
+     Moon orbiter mission, an example of a small archive with a single release at the end of the mission.
+   * `ExoMars2016 PDS4 SPICE kernel archive <https://naif.jpl.nasa.gov/pub/naif/pds/pds4/em16/em16_spice>`_:
+     Mars Orbiter and lander mission, an example of a Planetary Science Archive bundle that uses a different
+     PDS Information Model (IM v1.11.0.0).
+   * `BepiColombo PDS4 SPICE kernel archive <https://naif.jpl.nasa.gov/pub/naif/pds/pds4/bc/bc_spice>`_:
+     Double Mercury orbiter mission, an example of a Planetary Science Archive bundle that uses a different
+     PDS Information Model (IM v1.11.0.0) and with multiple hosts (spacecrafts).
+
+
 A note on SPICE Kernels dissemination
 =====================================
 

@@ -4,11 +4,11 @@
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Using NPB &mdash; NAIF PDS4 Bundler 1.2.0
+  <title>Using NPB &mdash; NAIF PDS4 Bundler 1.2.1
  documentation</title>
   
 
@@ -33,6 +33,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -96,6 +97,7 @@
 <li class="toctree-l1"><a class="reference internal" href="30_spice_kernel_archive_preparation_guide.html">SPICE Kernel Archive Preparation Guide</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="40_naif_pds4_bundler_user_guide.html">NAIF PDS4 Bundler User Guide</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="41_npb_installation.html">NPB Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="41_npb_installation.html#development-and-contribution">Development and Contribution</a></li>
 <li class="toctree-l2"><a class="reference internal" href="42_npb_configuration_file.html">The Configuration File</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Using NPB</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#npb-functional-scheme">NPB Functional Scheme</a></li>
@@ -141,7 +143,7 @@
 <li class="toctree-l2"><a class="reference internal" href="44_working_example.html">Working Example</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="50_api_docs.html">Modules, Classes, and Functions Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="50_api_docs.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="60_annex_npb_for_pds3.html">Appendix: NPB for PDS3 Archives</a></li>
 </ul>
 
@@ -211,7 +213,7 @@
            <div itemprop="articleBody">
             
   <section id="using-npb">
-<h1>Using NPB<a class="headerlink" href="#using-npb" title="Permalink to this headline">¶</a></h1>
+<h1>Using NPB<a class="headerlink" href="#using-npb" title="Permalink to this heading">¶</a></h1>
 <p>The purpose of NPB is to generate SPICE kernel archives – new archives or
 archive increments. NPB achieves this by using as inputs a release plan and a
 configuration file, that specifies the location of needed input elements:
@@ -221,10 +223,10 @@ file, etc.</p>
 considered a software pipeline. More details on how NPB works are provided in
 the next section.</p>
 <section id="npb-functional-scheme">
-<h2>NPB Functional Scheme<a class="headerlink" href="#npb-functional-scheme" title="Permalink to this headline">¶</a></h2>
+<h2>NPB Functional Scheme<a class="headerlink" href="#npb-functional-scheme" title="Permalink to this heading">¶</a></h2>
 <p>This section provides a very high-level overview of NPBs functional design
 and operation. If you need more details you might want to go to
-<a class="reference internal" href="50_api_docs.html#modules-classes-and-functions-documentation"><span class="std std-ref">Modules, Classes, and Functions Documentation</span></a>, or take a
+<span class="xref std std-ref">50_api_docs:Modules, Classes, and Functions Documentation</span>, or take a
 look at the source code itself. The following text is extracted directly from
 the inline comments of the <code class="docutils literal notranslate"><span class="pre">naif-pds4-bundler/src/pds/naif_pds4_bundler/__main__.py</span></code> module.</p>
 <blockquote>
@@ -334,7 +336,7 @@ steps are summarized in section
 <a class="reference internal" href="#checks-performed-by-npb"><span class="std std-ref">Checks performed by NPB</span></a>.</p>
 </section>
 <section id="running-npb-from-the-command-line">
-<h2>Running NPB from the command line<a class="headerlink" href="#running-npb-from-the-command-line" title="Permalink to this headline">¶</a></h2>
+<h2>Running NPB from the command line<a class="headerlink" href="#running-npb-from-the-command-line" title="Permalink to this heading">¶</a></h2>
 <p>Once installed, you can run NPB in help mode with the following command in a
 terminal:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ naif-pds4-bundler --help
@@ -417,7 +419,7 @@ Configuration File generation is available in section
 section <a class="reference internal" href="#optional-arguments-description"><span class="std std-ref">Optional Arguments Description</span></a>.</p>
 </section>
 <section id="calling-npb-from-python">
-<h2>Calling NPB from Python<a class="headerlink" href="#calling-npb-from-python" title="Permalink to this headline">¶</a></h2>
+<h2>Calling NPB from Python<a class="headerlink" href="#calling-npb-from-python" title="Permalink to this heading">¶</a></h2>
 <p>In addition to using NPB from the command line you can also launch NPB from
 a Python script/module. In fact, this is the way that the NPB tests are
 implemented. To do so you will need to import the main function from the
@@ -433,13 +435,13 @@ parameter is mandatory. Here’s an example:</p>
 </div>
 </section>
 <section id="optional-arguments-description">
-<h2>Optional Arguments Description<a class="headerlink" href="#optional-arguments-description" title="Permalink to this headline">¶</a></h2>
+<h2>Optional Arguments Description<a class="headerlink" href="#optional-arguments-description" title="Permalink to this heading">¶</a></h2>
 <p>This section provides a description of the optional arguments that can be
 provided to NPB. The format with which this section is presented assumes that
 you are using NPB from the command line, nevertheless everything also applies
 when calling NPB with Python.</p>
 <section id="p-plan-plan-plan">
-<h3><code class="docutils literal notranslate"><span class="pre">-p</span> <span class="pre">PLAN,</span> <span class="pre">--plan</span> <span class="pre">PLAN</span></code><a class="headerlink" href="#p-plan-plan-plan" title="Permalink to this headline">¶</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">-p</span> <span class="pre">PLAN,</span> <span class="pre">--plan</span> <span class="pre">PLAN</span></code><a class="headerlink" href="#p-plan-plan-plan" title="Permalink to this heading">¶</a></h3>
 <p>Indicates the path of the Release Plan. The input is a string. If provided,
 NPB will scan the directories specified by the <code class="docutils literal notranslate"><span class="pre">kernels_directory</span></code> elements
 of the Configuration File to obtain the files specified by the release plan.
@@ -471,7 +473,7 @@ argument is provided.</p>
 a file. More information is provided in the section <code class="docutils literal notranslate"><span class="pre">-x,</span> <span class="pre">--xml</span></code>.</p>
 </section>
 <section id="f-faucet-faucet-faucet">
-<h3><code class="docutils literal notranslate"><span class="pre">-f</span> <span class="pre">FAUCET,</span> <span class="pre">--faucet</span> <span class="pre">FAUCET</span></code><a class="headerlink" href="#f-faucet-faucet-faucet" title="Permalink to this headline">¶</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">-f</span> <span class="pre">FAUCET,</span> <span class="pre">--faucet</span> <span class="pre">FAUCET</span></code><a class="headerlink" href="#f-faucet-faucet-faucet" title="Permalink to this heading">¶</a></h3>
 <p>You can chose where to stop the pipeline execution before its complete
 execution. The options are:</p>
 <blockquote>
@@ -503,7 +505,7 @@ being performed if you are confident with you reason to do so (e.g. use of a
 meta-kernel not following NAIF’s convention.)</p>
 </section>
 <section id="l-log">
-<h3><code class="docutils literal notranslate"><span class="pre">-l</span> <span class="pre">--log</span></code><a class="headerlink" href="#l-log" title="Permalink to this headline">¶</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">-l</span> <span class="pre">--log</span></code><a class="headerlink" href="#l-log" title="Permalink to this heading">¶</a></h3>
 <p>This argument tells NPB if the execution log should be written into
 a file or not. If provided, the log will be written in the <code class="docutils literal notranslate"><span class="pre">working_directory</span></code>
 specified in the configuration file with the following naming scheme:</p>
@@ -519,13 +521,13 @@ version. The MAVEN release 26 log would be:</p>
 <a class="reference internal" href="#execution-log"><span class="std std-ref">Execution Log</span></a>.</p>
 </section>
 <section id="s-silent">
-<h3><code class="docutils literal notranslate"><span class="pre">-s,</span> <span class="pre">--silent</span></code><a class="headerlink" href="#s-silent" title="Permalink to this headline">¶</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">-s,</span> <span class="pre">--silent</span></code><a class="headerlink" href="#s-silent" title="Permalink to this heading">¶</a></h3>
 <p>If this option is used, NPB execution will be silent without any prompt. This
 argument is not recommended and was implemented mostly to avoid prompts during
 NPB testing.</p>
 </section>
 <section id="v-verbose">
-<h3><code class="docutils literal notranslate"><span class="pre">-v,</span> <span class="pre">--verbose</span></code><a class="headerlink" href="#v-verbose" title="Permalink to this headline">¶</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">-v,</span> <span class="pre">--verbose</span></code><a class="headerlink" href="#v-verbose" title="Permalink to this heading">¶</a></h3>
 <p>If this option is used, NPB execution will be verbose and will be similar to the output
 provided in the log file. If not specified, NPB provides a summarized log on
 the terminal. Here’s an example of the non-verbose terminal output for the first
@@ -569,7 +571,7 @@ release of the LADEE archive:</p>
 </div>
 </section>
 <section id="d-diff-diff-diff">
-<h3><code class="docutils literal notranslate"><span class="pre">-d</span> <span class="pre">DIFF,</span> <span class="pre">--diff</span> <span class="pre">DIFF</span></code><a class="headerlink" href="#d-diff-diff-diff" title="Permalink to this headline">¶</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">-d</span> <span class="pre">DIFF,</span> <span class="pre">--diff</span> <span class="pre">DIFF</span></code><a class="headerlink" href="#d-diff-diff-diff" title="Permalink to this heading">¶</a></h3>
 <p>If this argument is used, NPB generates Diff files for the archive’s release
 files. NPB’s Diff files are HTML files or plain text snippets that record
 differences in between two files, highlighting differences similar to the output
@@ -588,7 +590,7 @@ will force the <code class="docutils literal notranslate"><span class="pre">-l</
 </div></blockquote>
 </section>
 <section id="c-clear-clear-clear">
-<h3><code class="docutils literal notranslate"><span class="pre">-c</span> <span class="pre">CLEAR,</span> <span class="pre">--clear</span> <span class="pre">CLEAR</span></code><a class="headerlink" href="#c-clear-clear-clear" title="Permalink to this headline">¶</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">-c</span> <span class="pre">CLEAR,</span> <span class="pre">--clear</span> <span class="pre">CLEAR</span></code><a class="headerlink" href="#c-clear-clear-clear" title="Permalink to this heading">¶</a></h3>
 <p>This argument allows you to clear the products resulting from a NPB run
 from your workspace. Executing NPB with this argument will clear the files
 listed in the input file from the staging and bundle directories.</p>
@@ -628,7 +630,7 @@ to remove both.</p>
 checksums file, run log, file lists, and diff files are not deleted.</p>
 </section>
 <section id="k-kerlist-kerlist-kerlist">
-<h3><code class="docutils literal notranslate"><span class="pre">-k</span> <span class="pre">KERLIST,</span> <span class="pre">--kerlist</span> <span class="pre">KERLIST</span></code><a class="headerlink" href="#k-kerlist-kerlist-kerlist" title="Permalink to this headline">¶</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">-k</span> <span class="pre">KERLIST,</span> <span class="pre">--kerlist</span> <span class="pre">KERLIST</span></code><a class="headerlink" href="#k-kerlist-kerlist-kerlist" title="Permalink to this heading">¶</a></h3>
 <p>Specifies the path of a user generated Kernel List.
 If provided, NPB will scan the directories specified by the
 <code class="docutils literal notranslate"><span class="pre">kernels_directory</span></code> elements of the Configuration File to obtain the files
@@ -640,7 +642,7 @@ contact the NAIF NPB developer before using this argument.</p>
 <p>If this argument is provided no release plan file will be generated.</p>
 </section>
 <section id="s-checksum">
-<h3><code class="docutils literal notranslate"><span class="pre">-s,</span> <span class="pre">--checksum</span></code><a class="headerlink" href="#s-checksum" title="Permalink to this headline">¶</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">-s,</span> <span class="pre">--checksum</span></code><a class="headerlink" href="#s-checksum" title="Permalink to this heading">¶</a></h3>
 <p>Using this argument indicates NPB to obtain MD5 Sums for products defined
 in the Checksum Registry file or from existing product labels instead of
 calculating them.</p>
@@ -657,7 +659,7 @@ run.</p>
 </section>
 </section>
 <section id="using-npb-in-label-mode">
-<h2>Using NPB in label mode<a class="headerlink" href="#using-npb-in-label-mode" title="Permalink to this headline">¶</a></h2>
+<h2>Using NPB in label mode<a class="headerlink" href="#using-npb-in-label-mode" title="Permalink to this heading">¶</a></h2>
 <p>NPB can also be used to generate SPICE kernels labels rather
 than a complete PDS4 Bundle. When using NPB in label mode the same
 setup required for a “regular” execution applies and almost complete
@@ -686,7 +688,7 @@ that the run did not generate a release but rather labels for a specific
 targeted release (the release number part of these files will be incremented.)</p>
 </section>
 <section id="execution-by-products">
-<h2>Execution by-products<a class="headerlink" href="#execution-by-products" title="Permalink to this headline">¶</a></h2>
+<h2>Execution by-products<a class="headerlink" href="#execution-by-products" title="Permalink to this heading">¶</a></h2>
 <p>After NPB is executed, a number of files are generated in the <code class="docutils literal notranslate"><span class="pre">working_directory</span></code>.
 These files have different purposes and some of them are generated if specified
 via argument parameters. These files are:</p>
@@ -713,7 +715,7 @@ via argument parameters. These files are:</p>
 </div></blockquote>
 <p>These files are described in the following sections.</p>
 <section id="release-plan">
-<h3>Release Plan<a class="headerlink" href="#release-plan" title="Permalink to this headline">¶</a></h3>
+<h3>Release Plan<a class="headerlink" href="#release-plan" title="Permalink to this heading">¶</a></h3>
 <p>The release plan can be provided as an input as described in section
 <a class="reference internal" href="31_step_1_preparing_data.html#writing-the-release-plan"><span class="std std-ref">Writing the Release Plan</span></a>. Alternatively, if not
 provided as an input, NPB will generate it as an execution by-product.</p>
@@ -723,7 +725,7 @@ files included in each release.</p>
 <code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;_release_??.plan</span></code>.</p>
 </section>
 <section id="kernel-list">
-<h3>Kernel List<a class="headerlink" href="#kernel-list" title="Permalink to this headline">¶</a></h3>
+<h3>Kernel List<a class="headerlink" href="#kernel-list" title="Permalink to this heading">¶</a></h3>
 <p>The kernel list can also be provided as an input - although is highly discouraged -
 but in general is an execution by-product that includes a number of important
 elements, used by NPB to generate SPICE kernel and orbnum files labels, such as
@@ -733,7 +735,7 @@ been written appropriately.</p>
 <p>If the kernel list is generated by NPB it will follow this naming schema
 <code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;_release_??.kernel_list</span></code>.</p>
 <section id="kernel-lists-in-pds3-data-sets">
-<h4>Kernel Lists in PDS3 data sets<a class="headerlink" href="#kernel-lists-in-pds3-data-sets" title="Permalink to this headline">¶</a></h4>
+<h4>Kernel Lists in PDS3 data sets<a class="headerlink" href="#kernel-lists-in-pds3-data-sets" title="Permalink to this heading">¶</a></h4>
 <p>NPB can be used to generate kernel lists for PDS3 data set generation.</p>
 <p>For PDS3 data sets, the kernel list is used by the NAIF PDS3 data set archiving
 procedure. Because of that the kernel list for a particular release has a
@@ -795,7 +797,7 @@ between the lines in each of the triplets.</p>
 </section>
 </section>
 <section id="execution-log">
-<h3>Execution Log<a class="headerlink" href="#execution-log" title="Permalink to this headline">¶</a></h3>
+<h3>Execution Log<a class="headerlink" href="#execution-log" title="Permalink to this heading">¶</a></h3>
 <p>The NPB execution log provides very useful information to determine whether
 if the execution has been successful or not.</p>
 <p>NPB uses the <code class="docutils literal notranslate"><span class="pre">logging</span></code> Python package to generate the log file. The log
@@ -856,7 +858,7 @@ A Mars 2020 execution log extract is provided hereunder:</p>
 if so, the name will follow this naming convention: <code class="docutils literal notranslate"><span class="pre">&lt;sc&gt;_release_??.log</span></code>.</p>
 </section>
 <section id="execution-file-list">
-<h3>Execution File List<a class="headerlink" href="#execution-file-list" title="Permalink to this headline">¶</a></h3>
+<h3>Execution File List<a class="headerlink" href="#execution-file-list" title="Permalink to this heading">¶</a></h3>
 <p>The execution file list is an adequate record that provides a list of <strong>all</strong>
 the files generated by the NPB execution.</p>
 <p>This file is used by the <code class="docutils literal notranslate"><span class="pre">-c</span> <span class="pre">--clear</span></code> argument as the parameter to indicate
@@ -868,7 +870,7 @@ the archive increment from one location to the other.</p>
 as described in <a class="reference internal" href="#execution-by-products"><span class="std std-ref">Execution by-products</span></a>.</p>
 </section>
 <section id="checksum-registry">
-<h3>Checksum Registry<a class="headerlink" href="#checksum-registry" title="Permalink to this headline">¶</a></h3>
+<h3>Checksum Registry<a class="headerlink" href="#checksum-registry" title="Permalink to this heading">¶</a></h3>
 <p>The checksum execution registry is a file that contains a checksum table with
 the md5 sum of every product of the increment whose md5 sum is used in the
 product’s label.</p>
@@ -878,7 +880,7 @@ product’s label.</p>
 as described in <a class="reference internal" href="#execution-by-products"><span class="std std-ref">Execution by-products</span></a>.</p>
 </section>
 <section id="product-diff-files">
-<h3>Product Diff Files<a class="headerlink" href="#product-diff-files" title="Permalink to this headline">¶</a></h3>
+<h3>Product Diff Files<a class="headerlink" href="#product-diff-files" title="Permalink to this heading">¶</a></h3>
 <p>Product Diff files are HTML files that provide a side to side comparison of
 a product generated by NPB and another “similar” product in order to facilitate
 checking and validating the new product, highlighting differences similar to
@@ -887,7 +889,7 @@ the output of a GUI diff tool such as <code class="docutils literal notranslate"
 argument.</p>
 </section>
 <section id="pds-validate-tool-configuration-file">
-<h3>PDS Validate Tool Configuration File<a class="headerlink" href="#pds-validate-tool-configuration-file" title="Permalink to this headline">¶</a></h3>
+<h3>PDS Validate Tool Configuration File<a class="headerlink" href="#pds-validate-tool-configuration-file" title="Permalink to this heading">¶</a></h3>
 <p>NPB will write a PDS Validate Tool (<code class="docutils literal notranslate"><span class="pre">validate</span></code>) configuration file for convenience
 of the user. The options provided by the configuration file are the ones
 recommended by NAIF. Namely:</p>
@@ -936,12 +938,12 @@ connection– the process will silently fail but the NPB run will be successful.
 </section>
 </section>
 <section id="checks-performed-by-npb">
-<h2>Checks performed by NPB<a class="headerlink" href="#checks-performed-by-npb" title="Permalink to this headline">¶</a></h2>
+<h2>Checks performed by NPB<a class="headerlink" href="#checks-performed-by-npb" title="Permalink to this heading">¶</a></h2>
 <p>NPB performs a series of checks to validate certain parts of its execution and
 provides means for the NPB operator to check the execution results. These
 checks are described hereunder.</p>
 <section id="module-pds.naif_pds4_bundler.classes.list.KernelList.validate">
-<span id="kernel-list-validation"></span><h3>Kernel List Validation<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.list.KernelList.validate" title="Permalink to this headline">¶</a></h3>
+<span id="kernel-list-validation"></span><h3>Kernel List Validation<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.list.KernelList.validate" title="Permalink to this heading">¶</a></h3>
 <p>Validation of the Kernel List.</p>
 <p>The validation of the Kernel List performs the following checks:</p>
 <blockquote>
@@ -961,7 +963,7 @@ list with the kernel list of the previous release -if avaialble.</p></li>
 </div></blockquote>
 </section>
 <section id="module-pds.naif_pds4_bundler.classes.list.KernelList.validate_complete">
-<span id="complete-kernel-list-validation"></span><h3>Complete Kernel List Validation<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.list.KernelList.validate_complete" title="Permalink to this headline">¶</a></h3>
+<span id="complete-kernel-list-validation"></span><h3>Complete Kernel List Validation<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.list.KernelList.validate_complete" title="Permalink to this heading">¶</a></h3>
 <p>Validation of the complete Kernel List.</p>
 <p>The complete Kernel List is generated by NPB by merging all the
 available Kernel List files. These kernel list files must be located
@@ -979,7 +981,7 @@ and <code class="docutils literal notranslate"><span class="pre">DESCRIPTION</sp
 </div></blockquote>
 </section>
 <section id="module-pds.naif_pds4_bundler.classes.list.KernelList.check_products">
-<span id="product-in-kernel-list-checks"></span><h3>Product in Kernel List Checks<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.list.KernelList.check_products" title="Permalink to this headline">¶</a></h3>
+<span id="product-in-kernel-list-checks"></span><h3>Product in Kernel List Checks<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.list.KernelList.check_products" title="Permalink to this heading">¶</a></h3>
 <p>Check the SPICE kernel and ORBNUM products from the kernel list.</p>
 <p>The products present in the Kernel List –whether if generated by NPB
 or provided by the user– will be checked and if issues are found they
@@ -996,10 +998,10 @@ will be reported as <code class="docutils literal notranslate"><span class="pre"
 </div></blockquote>
 </section>
 <section id="spice-kernel-integrity-check">
-<h3>SPICE Kernel Integrity Check<a class="headerlink" href="#spice-kernel-integrity-check" title="Permalink to this headline">¶</a></h3>
+<h3>SPICE Kernel Integrity Check<a class="headerlink" href="#spice-kernel-integrity-check" title="Permalink to this heading">¶</a></h3>
 </section>
 <section id="module-pds.naif_pds4_bundler.classes.product.MetaKernelProduct.validate">
-<span id="meta-kernel-validation"></span><h3>Meta-kernel Validation<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.product.MetaKernelProduct.validate" title="Permalink to this headline">¶</a></h3>
+<span id="meta-kernel-validation"></span><h3>Meta-kernel Validation<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.product.MetaKernelProduct.validate" title="Permalink to this heading">¶</a></h3>
 <p>Perform a basic validation of the Meta-kernel.</p>
 <p>The validation consists of:</p>
 <blockquote>
@@ -1012,7 +1014,7 @@ of the MK collection list attribute.</p></li>
 </div></blockquote>
 </section>
 <section id="module-pds.naif_pds4_bundler.classes.collection.SpiceKernelsCollection.validate">
-<span id="spice-kernel-collection-validation"></span><h3>SPICE Kernel Collection Validation<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.collection.SpiceKernelsCollection.validate" title="Permalink to this headline">¶</a></h3>
+<span id="spice-kernel-collection-validation"></span><h3>SPICE Kernel Collection Validation<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.collection.SpiceKernelsCollection.validate" title="Permalink to this heading">¶</a></h3>
 <p>Validate the SPICE Kernels collection.</p>
 <p>The SPICE Kernels collection validation performs the following checks:</p>
 <blockquote>
@@ -1028,13 +1030,13 @@ inspection. The key elements are: <code class="docutils literal notranslate"><sp
 </div></blockquote>
 </section>
 <section id="module-pds.naif_pds4_bundler.classes.product.InventoryProduct.validate_pds4">
-<span id="inventory-product-validation"></span><h3>Inventory Product Validation<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.product.InventoryProduct.validate_pds4" title="Permalink to this headline">¶</a></h3>
+<span id="inventory-product-validation"></span><h3>Inventory Product Validation<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.product.InventoryProduct.validate_pds4" title="Permalink to this heading">¶</a></h3>
 <p>Validate the PDS4 Inventory Product.</p>
 <p>The Inventory is validated by checking that all the products listed
 are present in the archive.</p>
 </section>
 <section id="module-pds.naif_pds4_bundler.classes.bundle.Bundle.validate_history">
-<span id="checksum-validation"></span><h3>Checksum Validation<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.bundle.Bundle.validate_history" title="Permalink to this headline">¶</a></h3>
+<span id="checksum-validation"></span><h3>Checksum Validation<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.bundle.Bundle.validate_history" title="Permalink to this heading">¶</a></h3>
 <p>Validate the bundle updated history with the checksum files.</p>
 <p>This method validates all the archive Checksum files with the “Archive
 History”. The “Archive history” is obtained by extracting the
@@ -1050,7 +1052,7 @@ release history, providing an ordered list of files released for each
 release number.</p>
 </section>
 <section id="module-pds.naif_pds4_bundler.classes.label.PDSLabel.compare">
-<span id="product-comparison"></span><h3>Product Comparison<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.label.PDSLabel.compare" title="Permalink to this headline">¶</a></h3>
+<span id="product-comparison"></span><h3>Product Comparison<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.label.PDSLabel.compare" title="Permalink to this heading">¶</a></h3>
 <p><strong>Compare the Label with another label</strong>.</p>
 <p>The product label is compared to a similar label. The label with which
 the generated label is compared to is determined
@@ -1078,7 +1080,7 @@ product.</p>
 <span class="target" id="module-pds.naif_pds4_bundler.classes.product.ChecksumProduct.compare"></span><p><strong>Compare the Checksum with the previous Checksum file</strong>.</p>
 <p>The Checksum file is compared with the previous version.</p>
 <section id="comparison-output">
-<h4>Comparison output<a class="headerlink" href="#comparison-output" title="Permalink to this headline">¶</a></h4>
+<h4>Comparison output<a class="headerlink" href="#comparison-output" title="Permalink to this heading">¶</a></h4>
 <p>Depending on the parameter provided to NPB with the argument
 <code class="docutils literal notranslate"><span class="pre">-d</span> <span class="pre">DIFF</span> <span class="pre">--d</span> <span class="pre">DIFF</span></code> the comparison will be provided either as a
 separate file, written in the execution log or in both ways.</p>

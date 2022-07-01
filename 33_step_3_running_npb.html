@@ -4,11 +4,11 @@
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Step 3: Running NAIF PDS4 Bundler &mdash; NAIF PDS4 Bundler 1.2.0
+  <title>Step 3: Running NAIF PDS4 Bundler &mdash; NAIF PDS4 Bundler 1.2.1
  documentation</title>
   
 
@@ -33,6 +33,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -111,7 +112,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="40_naif_pds4_bundler_user_guide.html">NAIF PDS4 Bundler User Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="50_api_docs.html">Modules, Classes, and Functions Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="50_api_docs.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="60_annex_npb_for_pds3.html">Appendix: NPB for PDS3 Archives</a></li>
 </ul>
 
@@ -181,11 +182,11 @@
            <div itemprop="articleBody">
             
   <section id="step-3-running-naif-pds4-bundler">
-<h1>Step 3: Running NAIF PDS4 Bundler<a class="headerlink" href="#step-3-running-naif-pds4-bundler" title="Permalink to this headline">¶</a></h1>
+<h1>Step 3: Running NAIF PDS4 Bundler<a class="headerlink" href="#step-3-running-naif-pds4-bundler" title="Permalink to this heading">¶</a></h1>
 <p>Once you have reached this step, the hard work is done. From here onwards the
 process should take full advantage of NPB and should be mostly automatic.</p>
 <section id="run-npb-from-the-command-line">
-<h2>Run NPB from the command line<a class="headerlink" href="#run-npb-from-the-command-line" title="Permalink to this headline">¶</a></h2>
+<h2>Run NPB from the command line<a class="headerlink" href="#run-npb-from-the-command-line" title="Permalink to this heading">¶</a></h2>
 <p>If you are in a hurry run NPB as follows: open your favorite
 terminal application and with coherence with respect to the workspace that you
 have defined for NPB, execute the following command:</p>
@@ -224,7 +225,7 @@ to use a kernel list as your input (instead of a release plan with
 experienced with its usage and you have a strong reason to do so.</p>
 </section>
 <section id="interactive-step-for-meta-kernels">
-<h2>Interactive step for Meta-kernels<a class="headerlink" href="#interactive-step-for-meta-kernels" title="Permalink to this headline">¶</a></h2>
+<h2>Interactive step for Meta-kernels<a class="headerlink" href="#interactive-step-for-meta-kernels" title="Permalink to this heading">¶</a></h2>
 <p>If the Meta-kernel(s) are being generated automatically, which means that
 you have provided a a <code class="docutils literal notranslate"><span class="pre">&lt;mk&gt;</span></code> section in the configuration file and that you
 have set the nested element <code class="docutils literal notranslate"><span class="pre">&lt;interrupt_to_update&gt;</span></code> to <code class="docutils literal notranslate"><span class="pre">True</span></code>, NPB will pause
@@ -245,7 +246,7 @@ message that you will see is similar to:</p>
 and <a class="reference internal" href="42_npb_configuration_file.html#meta-kernel"><span class="std std-ref">Meta-kernel</span></a>.</p>
 </section>
 <section id="understanding-npb-prompting-and-logging">
-<h2>Understanding NPB prompting and logging<a class="headerlink" href="#understanding-npb-prompting-and-logging" title="Permalink to this headline">¶</a></h2>
+<h2>Understanding NPB prompting and logging<a class="headerlink" href="#understanding-npb-prompting-and-logging" title="Permalink to this heading">¶</a></h2>
 <p>We have recommended you to run NPB in verbose mode (<code class="docutils literal notranslate"><span class="pre">-v</span> <span class="pre">--verbose</span></code>) and to
 generate the run log (<code class="docutils literal notranslate"><span class="pre">-l</span> <span class="pre">--log</span></code>). If you do so, NPB will provide you either
 on the screen or in the log a structured and comprehensive step-by-step
@@ -267,7 +268,7 @@ something fishy about your input data or your configuration file.</p>
 </div>
 </section>
 <section id="what-if-something-goes-wrong">
-<h2>What if something goes wrong?<a class="headerlink" href="#what-if-something-goes-wrong" title="Permalink to this headline">¶</a></h2>
+<h2>What if something goes wrong?<a class="headerlink" href="#what-if-something-goes-wrong" title="Permalink to this heading">¶</a></h2>
 <p>You’re covered. NPB has an argument: <code class="docutils literal notranslate"><span class="pre">-c</span> <span class="pre">CLEAR</span> <span class="pre">--clear</span> <span class="pre">CLEAR</span></code>, that allows you
 to clear the resulting products of a run from your workspace.</p>
 <p>After you run NPB (successfully or not) one of the by-products that NPB
@@ -280,7 +281,7 @@ this argument. For example:</p>
 has been cleared.</p>
 </section>
 <section id="processing-large-binary-kernels">
-<h2>Processing large binary kernels<a class="headerlink" href="#processing-large-binary-kernels" title="Permalink to this headline">¶</a></h2>
+<h2>Processing large binary kernels<a class="headerlink" href="#processing-large-binary-kernels" title="Permalink to this heading">¶</a></h2>
 <p>When working with large binary kernels (CKs, SPKs, DSKs or PCKs) obtaining
 the md5 sum hash (checksum, required by the products’ labels) of each file can
 take a large amount of time. In order to avoid re-calculating
@@ -300,7 +301,7 @@ whether if the checksum registry files in the working directory and/or the
 labeled products in the staging area are adequate.</p>
 </section>
 <section id="until-you-get-it-right">
-<h2>Until you get it right<a class="headerlink" href="#until-you-get-it-right" title="Permalink to this headline">¶</a></h2>
+<h2>Until you get it right<a class="headerlink" href="#until-you-get-it-right" title="Permalink to this heading">¶</a></h2>
 <p>It is hard to get NPB to work on the first try, especially for the first
 release of the archive or after a major update of the configuration file. Most
 likely you will need to try several times before you get it right. That is why

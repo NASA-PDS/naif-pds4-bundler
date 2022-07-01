@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pds.naif_pds4_bundler.classes.collection &mdash; NAIF PDS4 Bundler 1.2.0
+  <title>pds.naif_pds4_bundler.classes.collection &mdash; NAIF PDS4 Bundler 1.2.1
  documentation</title>
   
 
@@ -32,6 +32,7 @@
         <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
         <script src="../../../../_static/jquery.js"></script>
         <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../../../_static/doctools.js"></script>
     
     <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
@@ -92,7 +93,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../20_spice_kernel_archive_description.html">SPICE Kernel Archive Description</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../30_spice_kernel_archive_preparation_guide.html">SPICE Kernel Archive Preparation Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../40_naif_pds4_bundler_user_guide.html">NAIF PDS4 Bundler User Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../50_api_docs.html">Modules, Classes, and Functions Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../50_api_docs.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../60_annex_npb_for_pds3.html">Appendix: NPB for PDS3 Archives</a></li>
 </ul>
 
@@ -561,7 +562,9 @@
             <span class="c1">#</span>
             <span class="k">if</span> <span class="n">prev_increment_start</span> <span class="o">&lt;</span> <span class="n">increment_start</span><span class="p">:</span>
                 <span class="n">increment_start</span> <span class="o">=</span> <span class="n">prev_increment_start</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;-- Increment start corrected from previous bundle.&quot;</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- Increment start corrected from previous bundle.&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">prev_increment_start</span> <span class="o">&gt;</span> <span class="n">increment_start</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;-- Increment start from previous bundle not used.&quot;</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">prev_increment_finish</span> <span class="o">&gt;</span> <span class="n">increment_finish</span><span class="p">:</span>
                 <span class="n">increment_finish</span> <span class="o">=</span> <span class="n">prev_increment_finish</span>
@@ -731,7 +734,8 @@
 
         <span class="n">elements_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">elements</span><span class="p">)</span>
 
-        <span class="k">for</span> <span class="n">product</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">:</span>
+        <span class="n">products</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">product</span>
+        <span class="k">for</span> <span class="n">product</span> <span class="ow">in</span> <span class="n">products</span><span class="p">:</span>
             <span class="n">label_name</span> <span class="o">=</span> <span class="n">product</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">name</span>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">label_name</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">p</span><span class="p">:</span>
@@ -741,9 +745,6 @@
                                 <span class="n">elements_dict</span><span class="p">[</span><span class="n">element</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span>
                             <span class="k">else</span><span class="p">:</span>
                                 <span class="n">elements_dict</span><span class="p">[</span><span class="n">element</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span><span class="p">:</span>
-            <span class="n">elements_dict</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">elements_dict</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]))</span>
 
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- Providing relevant fields of labels for visual inspection.&quot;</span><span class="p">)</span>

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pds.naif_pds4_bundler.classes.log &mdash; NAIF PDS4 Bundler 1.2.0
+  <title>pds.naif_pds4_bundler.classes.log &mdash; NAIF PDS4 Bundler 1.2.1
  documentation</title>
   
 
@@ -32,6 +32,7 @@
         <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
         <script src="../../../../_static/jquery.js"></script>
         <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../../../_static/doctools.js"></script>
     
     <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
@@ -92,7 +93,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../20_spice_kernel_archive_description.html">SPICE Kernel Archive Description</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../30_spice_kernel_archive_preparation_guide.html">SPICE Kernel Archive Preparation Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../40_naif_pds4_bundler_user_guide.html">NAIF PDS4 Bundler User Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../50_api_docs.html">Modules, Classes, and Functions Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../50_api_docs.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../60_annex_npb_for_pds3.html">Appendix: NPB for PDS3 Archives</a></li>
 </ul>
 
@@ -291,7 +292,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">write_file_list</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">write_checksum_registry</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s1">&#39;4&#39;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">write_validate_configuration</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">write_validate_config</span><span class="p">()</span>
 
         <span class="c1">#</span>
         <span class="c1"># Clear the kernel pool</span>

@@ -915,7 +915,7 @@ of DOIs and landing pages:
 
 
 Again coordinate with your archiving authority. To resolve a DOI to its Landing
-Page you can use the following web: `DOI resolution resource <https://dx.doi.org/>`_.
+Page you can use the `DOI resolution resource <https://dx.doi.org/>`_.
 
 
 Writing the Release Plan
@@ -971,6 +971,10 @@ version. The MAVEN release 24 plan will be::
 For archive increments after the first or second release, we recommend that
 you use the previous release plan as the starting point or the release plan
 (copy the previous one and update it.)
+
+
+Using no Release Plan
+^^^^^^^^^^^^^^^^^^^^^
 
 Please note you can run NPB without providing a release plan. If you choose to
 do so, NPB will take as inputs all the kernel files that it finds in the

@@ -1,6 +1,6 @@
-*********************************************
-Modules, Classes, and Functions Documentation
-*********************************************
+*************
+API Reference
+*************
 
 .. The API documentation is automatically generated with:
 .. sphinx-apidoc -f -o source ../src/pds
