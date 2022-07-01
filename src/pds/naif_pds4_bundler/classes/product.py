@@ -1063,8 +1063,12 @@ class MetaKernelProduct(Product):
         num_ker_total = len(self.collection.product)
         num_ker_mk = len(collection_metakernel)
 
-        logging.warning(f"-- Archived kernels:           {num_ker_total}")
-        logging.warning(f"-- Kernels in meta-kernel:     {num_ker_mk}")
+        if num_ker_total != num_ker_mk:
+            logging.warning(f"-- Archived kernels:           {num_ker_total}")
+            logging.warning(f"-- Kernels in meta-kernel:     {num_ker_mk}")
+        else:
+            logging.info(f"-- Archived kernels:           {num_ker_total}")
+            logging.info(f"-- Kernels in meta-kernel:     {num_ker_mk}")
 
         #
         # The kernel list for the new mk is formatted accordingly
