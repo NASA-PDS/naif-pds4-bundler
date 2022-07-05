@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pds.naif_pds4_bundler.classes.product &mdash; NAIF PDS4 Bundler 1.2.1
+  <title>pds.naif_pds4_bundler.classes.product &mdash; NAIF PDS4 Bundler 1.2.2
  documentation</title>
   
 
@@ -1330,28 +1330,29 @@
         <span class="c1">#</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;mk_setup&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;mk_setup&quot;</span><span class="p">):</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mk_setup</span><span class="p">[</span><span class="s2">&quot;interrupt_to_update&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;    * The meta-kernel might need to be updated. You can:&quot;</span><span class="p">)</span>
-                    <span class="nb">print</span><span class="p">(</span>
-                        <span class="s1">&#39;        - Type &quot;vi&quot; and press ENTER to edit the &#39;</span>
-                        <span class="s2">&quot;file with the VI text editor.&quot;</span>
-                    <span class="p">)</span>
-                    <span class="nb">print</span><span class="p">(</span>
-                        <span class="s2">&quot;        - Edit the file with your favorite edit &quot;</span>
-                        <span class="s2">&quot;and press ENTER and continue.&quot;</span>
-                    <span class="p">)</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;        - Press ENTER to continue.&quot;</span><span class="p">)</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;      MK path: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="s2">&quot;interrupt_to_update&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mk_setup</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mk_setup</span><span class="p">[</span><span class="s2">&quot;interrupt_to_update&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;    * The meta-kernel might need to be updated. You can:&quot;</span><span class="p">)</span>
+                        <span class="nb">print</span><span class="p">(</span>
+                            <span class="s1">&#39;        - Type &quot;vi&quot; and press ENTER to edit the &#39;</span>
+                            <span class="s2">&quot;file with the VI text editor.&quot;</span>
+                        <span class="p">)</span>
+                        <span class="nb">print</span><span class="p">(</span>
+                            <span class="s2">&quot;        - Edit the file with your favorite edit &quot;</span>
+                            <span class="s2">&quot;and press ENTER and continue.&quot;</span>
+                        <span class="p">)</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;        - Press ENTER to continue.&quot;</span><span class="p">)</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;      MK path: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-                    <span class="n">inp</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;&gt;&gt; Type &#39;vi&#39; and/or press ENTER to continue... &quot;</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">inp</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;vi&quot;</span><span class="p">:</span>
-                        <span class="k">try</span><span class="p">:</span>
-                            <span class="n">cmd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;EDITOR&quot;</span><span class="p">,</span> <span class="s2">&quot;vi&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span>
-                            <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-                            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;-- Meta-kernel edited with Vi by the user.&quot;</span><span class="p">)</span>
-                        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
-                            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Vi text editor is not available.&quot;</span><span class="p">)</span>
-                            <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;&gt;&gt; Press Enter to continue... &quot;</span><span class="p">)</span>
+                        <span class="n">inp</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;&gt;&gt; Type &#39;vi&#39; and/or press ENTER to continue... &quot;</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">inp</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;vi&quot;</span><span class="p">:</span>
+                            <span class="k">try</span><span class="p">:</span>
+                                <span class="n">cmd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;EDITOR&quot;</span><span class="p">,</span> <span class="s2">&quot;vi&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span>
+                                <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;-- Meta-kernel edited with Vi by the user.&quot;</span><span class="p">)</span>
+                            <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+                                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Vi text editor is not available.&quot;</span><span class="p">)</span>
+                                <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;&gt;&gt; Press Enter to continue... &quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">diff</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">compare</span><span class="p">()</span>

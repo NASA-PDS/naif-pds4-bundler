@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pds.naif_pds4_bundler.utils.files &mdash; NAIF PDS4 Bundler 1.2.1
+  <title>pds.naif_pds4_bundler.utils.files &mdash; NAIF PDS4 Bundler 1.2.2
  documentation</title>
   
 
@@ -1205,8 +1205,18 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">error</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
 
+    <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;bds&quot;</span><span class="p">:</span>
+        <span class="n">arch</span> <span class="o">=</span> <span class="s1">&#39;das&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">arch</span> <span class="o">=</span> <span class="s1">&#39;daf&#39;</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">handle</span> <span class="o">=</span> <span class="n">spiceypy</span><span class="o">.</span><span class="n">dafopw</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">arch</span> <span class="o">==</span> <span class="s1">&#39;daf&#39;</span><span class="p">:</span>
+            <span class="n">handle</span> <span class="o">=</span> <span class="n">spiceypy</span><span class="o">.</span><span class="n">dafopw</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">arch</span> <span class="o">==</span> <span class="s1">&#39;das&#39;</span><span class="p">:</span>
+            <span class="n">handle</span> <span class="o">=</span> <span class="n">spiceypy</span><span class="o">.</span><span class="n">dasopw</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">BaseException</span>
+
     <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">byteorder</span> <span class="o">!=</span> <span class="n">endianness</span><span class="p">:</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-- The binary kernel is </span><span class="si">{</span><span class="n">endianness</span><span class="si">}</span><span class="s2"> endian; this&quot;</span>
@@ -1222,7 +1232,11 @@
             <span class="k">pass</span>
     <span class="k">finally</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">spiceypy</span><span class="o">.</span><span class="n">dafcls</span><span class="p">(</span><span class="n">handle</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">arch</span> <span class="o">==</span> <span class="s1">&#39;daf&#39;</span><span class="p">:</span>
+                <span class="n">spiceypy</span><span class="o">.</span><span class="n">dafcls</span><span class="p">(</span><span class="n">handle</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">arch</span> <span class="o">==</span> <span class="s1">&#39;das&#39;</span><span class="p">:</span>
+                <span class="n">spiceypy</span><span class="o">.</span><span class="n">dascls</span><span class="p">(</span><span class="n">handle</span><span class="p">)</span>
+
         <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
             <span class="k">pass</span>
 
