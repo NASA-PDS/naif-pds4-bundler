@@ -1044,8 +1044,18 @@ def check_binary_endianness(path, endianness):
     """
     error = ''
 
+    if path.split(".")[-1].lower() == "bds":
+        arch = 'das'
+    else:
+        arch = 'daf'
     try:
-        handle = spiceypy.dafopw(path)
+        if arch == 'daf':
+            handle = spiceypy.dafopw(path)
+        elif arch == 'das':
+            handle = spiceypy.dasopw(path)
+        else:
+            raise BaseException
+
     except BaseException:
         if sys.byteorder != endianness:
             logging.warning(f"-- The binary kernel is {endianness} endian; this"
@@ -1061,7 +1071,11 @@ def check_binary_endianness(path, endianness):
             pass
     finally:
         try:
-            spiceypy.dafcls(handle)
+            if arch == 'daf':
+                spiceypy.dafcls(handle)
+            elif arch == 'das':
+                spiceypy.dascls(handle)
+
         except BaseException:
             pass
 
