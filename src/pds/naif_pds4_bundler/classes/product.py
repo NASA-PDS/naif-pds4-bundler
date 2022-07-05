@@ -1169,28 +1169,29 @@ class MetaKernelProduct(Product):
         #
         if hasattr(self, "mk_setup") and not self.setup.args.debug:
             if hasattr(self, "mk_setup"):
-                if self.mk_setup["interrupt_to_update"].lower() == "true":
-                    print("    * The meta-kernel might need to be updated. You can:")
-                    print(
-                        '        - Type "vi" and press ENTER to edit the '
-                        "file with the VI text editor."
-                    )
-                    print(
-                        "        - Edit the file with your favorite edit "
-                        "and press ENTER and continue."
-                    )
-                    print("        - Press ENTER to continue.")
-                    print(f"      MK path: {self.path}")
+                if "interrupt_to_update" in self.mk_setup:
+                    if self.mk_setup["interrupt_to_update"].lower() == "true":
+                        print("    * The meta-kernel might need to be updated. You can:")
+                        print(
+                            '        - Type "vi" and press ENTER to edit the '
+                            "file with the VI text editor."
+                        )
+                        print(
+                            "        - Edit the file with your favorite edit "
+                            "and press ENTER and continue."
+                        )
+                        print("        - Press ENTER to continue.")
+                        print(f"      MK path: {self.path}")
 
-                    inp = input(">> Type 'vi' and/or press ENTER to continue... ")
-                    if str(inp).lower() == "vi":
-                        try:
-                            cmd = os.environ.get("EDITOR", "vi") + " " + self.path
-                            subprocess.call(cmd, shell=True)
-                            logging.warning("-- Meta-kernel edited with Vi by the user.")
-                        except BaseException:
-                            print("Vi text editor is not available.")
-                            input(">> Press Enter to continue... ")
+                        inp = input(">> Type 'vi' and/or press ENTER to continue... ")
+                        if str(inp).lower() == "vi":
+                            try:
+                                cmd = os.environ.get("EDITOR", "vi") + " " + self.path
+                                subprocess.call(cmd, shell=True)
+                                logging.warning("-- Meta-kernel edited with Vi by the user.")
+                            except BaseException:
+                                print("Vi text editor is not available.")
+                                input(">> Press Enter to continue... ")
 
         if self.setup.diff:
             self.compare()
