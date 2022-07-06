@@ -3,7 +3,9 @@ repos:
     rev: v4.0.1
     hooks:
     -   id: trailing-whitespace
+        exclude: REQUIREMENTS\.md$
     -   id: end-of-file-fixer
+        exclude: REQUIREMENTS\.md$
     -   id: check-executables-have-shebangs
     -   id: check-merge-conflict
     -   id: debug-statements
@@ -15,6 +17,23 @@ repos:
     hooks:
     -   id: reorder-python-imports
         files: ^src/|tests/
+
+-   repo: local
+    hooks:
+    -   id: mypy
+        name: mypy
+        entry: mypy src
+        language: system
+        pass_filenames: false
+
+-   repo: local
+    hooks:
+    -   id: black
+        name: black
+        entry: black
+        files: ^src/|tests/
+        language: system
+        types: [python]
 
 -   repo: local
     hooks:
