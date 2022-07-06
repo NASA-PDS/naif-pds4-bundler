@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="$XML_MODEL"
+    schematypens="http://purl.oclc.org/dsdl/schematron"?>
+
+<Product_Document xmlns="http://pds.nasa.gov/pds4/pds/v1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="$SCHEMA_LOCATION">
+  <Identification_Area>
+    <logical_identifier>$PRODUCT_LID</logical_identifier>
+    <version_id>$PRODUCT_VID</version_id>
+    <title>$MISSION_NAME SPICE Archive Description</title>
+    <information_model_version>$INFORMATION_MODEL_VERSION</information_model_version>
+    <product_class>Product_Document</product_class>
+    <Citation_Information>
+      <publication_year>$PRODUCT_CREATION_YEAR</publication_year>
+      <keyword>Observation Geometry</keyword>
+      <description>
+                This document provides a comprehensive description of
+                the $MISSION_NAME SPICE kernel archive
+                containing observation geometry and other ancillary
+                data in the form of SPICE System kernel files for the
+                $PDS4_OBSERVER_NAME
+                instruments and targets. It describes the archive
+                directory structure, kernels included in the archive,
+                their naming conventions, and provides pointers to the
+                SPICE software and documentation.
+            </description>
+    </Citation_Information>
+  </Identification_Area>
+  <Context_Area>
+    <Primary_Result_Summary>
+      <purpose>Observation Geometry</purpose>
+      <processing_level>Derived</processing_level>
+    </Primary_Result_Summary>
+    <Investigation_Area>
+      <name>$MISSION_NAME</name>
+      <type>Mission</type>
+      <Internal_Reference>
+        <lid_reference>$PDS4_MISSION_LID</lid_reference>
+        <reference_type>document_to_investigation</reference_type>
+      </Internal_Reference>
+    </Investigation_Area>
+    <Observing_System>
+$OBSERVERS
+    </Observing_System>
+  </Context_Area>
+  <Document>
+    <document_name>$MISSION_NAME SPICE Archive Description</document_name>
+    <publication_date>$PRODUCT_CREATION_DATE</publication_date>
+    <document_editions>1</document_editions>
+    <description>
+            This document provides a comprehensive description of
+            the $MISSION_NAME SPICE kernel archive
+            containing observation geometry and other ancillary
+            data in the form of SPICE System kernel files for the
+            $PDS4_OBSERVER_NAME
+            instruments and targets. It describes the archive
+            directory structure, kernels included in the archive,
+            their naming conventions, and provides pointers to the
+            SPICE software and documentation.
+        </description>
+    <Document_Edition>
+      <edition_name>$MISSION_NAME SPICE Archive Description</edition_name>
+      <language>English</language>
+      <files>1</files>
+      <description>
+                This document provides a comprehensive description of
+                the $MISSION_NAME SPICE kernel archive
+                containing observation geometry and other ancillary
+                data in the form of SPICE System kernel files for the
+                $PDS4_OBSERVER_NAME
+                instruments and targets. It describes the archive
+                directory structure, kernels included in the archive,
+                their naming conventions, and provides pointers to the
+                SPICE software and documentation.
+            </description>
+      <Document_File>
+        <file_name>$FILE_NAME</file_name>
+        <creation_date_time>$PRODUCT_CREATION_TIME</creation_date_time>
+        <file_size unit="byte">$FILE_SIZE</file_size>
+        <md5_checksum>$FILE_CHECKSUM</md5_checksum>
+        <document_standard_id>HTML</document_standard_id>
+      </Document_File>
+    </Document_Edition>
+  </Document>
+</Product_Document>

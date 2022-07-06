@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <?xml-model href="http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1B00.sch"
     schematypens="http://purl.oclc.org/dsdl/schematron"?>
 
@@ -65,12 +64,12 @@
         <File>
             <file_name>em16_tgo_step_20220103.tsc</file_name>
             <creation_date_time>2021-06-25T08:00:00</creation_date_time>
-            <file_size unit="byte">23013</file_size>
-            <md5_checksum>49b94b555dabd44219320a3b67a33046</md5_checksum>
+            <file_size unit="byte">23014</file_size>
+            <md5_checksum>3c11c4fd8b14a4254e9384191bea87ab</md5_checksum>
         </File>
         <SPICE_Kernel>
             <offset unit="byte">0</offset>
-            <object_length unit="byte">23013</object_length>
+            <object_length unit="byte">23014</object_length>
             <parsing_standard_id>SPICE</parsing_standard_id>
             <description>SPICE SCLK file containing time correlation data for the TGO on-board clock. Created by the ESA SPICE Service (ESS).</description>
             <kernel_type>SCLK</kernel_type>

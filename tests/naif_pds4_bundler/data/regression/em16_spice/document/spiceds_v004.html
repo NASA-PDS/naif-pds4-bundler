@@ -16,7 +16,7 @@
 +-----------------------------------------------------------------------------+
 The ExoMars 2016 Mission Archived SPICE Kernel Data set
 
-   Last update: 2022-01-31T12:48:01
+   Last update: 2022-07-01T15:15:00
 
 <a name="Introduction"></a>
 Introduction
@@ -39,7 +39,7 @@ Table of Contents
    <a href="#Errata">Errata</a>
    <a href="#Archive Contents">Archive Contents</a>
    <a href="#Kernel Types">Kernel Types</a>
-   <a href="#Kernel Details">Kernel Details</a>
+   <a href="#Archived Kernel Details">Archived Kernel Details</a>
       <a href="#SPK Files">SPK Files</a>
       <a href="#PCK Files">PCK Files</a>
       <a href="#IK Files">IK Files</a>
@@ -49,8 +49,12 @@ Table of Contents
       <a href="#FK Files">FK Files</a>
       <a href="#DSK Files">DSK Files</a>
       <a href="#MK Files">MK Files</a>
+   <A href="#Miscellaneous Files">Miscellaneous Files</A>
+      <A href="#Checksum Files">Checksum Files</A>
+   <a href="#File Formats">File Formats</a>
    <a href="#SPICE Software and Documentation">SPICE Software and Documentation</a>
    <a href="#Contact Information">Contact Information</a>
+   <a href="#Cognisant Persons">Cognisant Persons</a>
 
 <a name="Overview"></a>
 Overview
@@ -70,9 +74,10 @@ Overview
 
    This archive includes data covering from ExoMars 2016 launch,
    through the end time of the latest spacecraft orientation file
-   supplied in the archive. Until the end of the spacecraft lifespan
-   this archive will be accumulating with new data added according to
-   the project archiving plan.
+   supplied in the archive. However, it is possible that trajectory
+   data beyond that time is included in the archive. Until the end
+   of the spacecraft lifespan this archive will be accumulating with
+   new data added according to the project archiving plan.
 
 <a href="#Table of Contents" style="float: right;">Back to Table of Contents</a>
 <a name="Errata"></a>
@@ -103,6 +108,30 @@ Errata
    4. Meta-kernels before version 003 use the low precision Earth rotation
       model which is used by the ESA Tracking Stations. Results using these
       versions differ considerably and are discouraged.
+
+   5. Due to an error in the on-board spacecraft software, there is a variable
+      offset affecting the time correlation provided by the SCLK files. This
+      offset has been fully corrected in the SCLK em16_tgo_step_20220426.tsc.
+      This affects the attitude data from the Housekeeping Telemetry based and
+      the Flight Dynamics CKs.
+
+   6. The FK em16_tgo_v23.tf included in this bundle differs from the same file
+      published in the ESA SPICE Service operational FTP and Git repository.
+      Because of that, the text "Updated TIRVIM scanner reference frames and
+      descriptions." in the Version and Date section of the FK em16_tgo_v24.tf
+      is incorrectly placed under Version 2.3. The associated changes were
+      introduced in Version 2.4.
+
+   7. The SPK file earthstns_itrf93_050714.bsp endianness is IEEE MSB
+      (BIG-IEEE) which is not adequate as indicated in the File Formats
+      section of this document.
+
+   8. The Miscellaneous collection was only added to the bundle in the
+      release 05 (July 2022) and therefore the checksum tables and collection
+      inventories and their labels that correspond to previous releases were
+      added irregularly in that release. This is reflected in the bundle label
+      of that particular release that contains additional Bundle_Member_Entry
+      classes for that miscellaneous collection.
 
 
 <a href="#Table of Contents" style="float: right;">Back to Table of Contents</a>
@@ -172,6 +201,17 @@ Archive Contents
    |   |
    |   |-- *.bsp                         Binary SPK files.
    |   +-- *.xml                         PDS4 labels for SPK files.
+   |
+   |-+-<a href="../miscellaneous/">[miscellaneous]</a>                   Directory miscellaneous files.
+   | |
+   | |- collection_miscellaneous_v*.xml  PDS4 labels for miscellaneous collections.
+   | |- collection_miscellaneous_inventory_v*.tab
+   | |                                   Miscellaneous collections' inventories.
+   | |
+   | +-<a href="../miscellaneous/checksum/">[checksum]</a>                        Directory containing checksum files.
+   |   |
+   |   |-- *.tab                         Text checksum files.
+   |   +-- *.xml                         PDS4 labels for checksum files.
    |
    +-<a href="../document/">[document]</a>                          Directory containing documents.
      |
@@ -679,7 +719,7 @@ FK Files
 
       new_norcia_topo.tf           ESA New Norcia topocentric frame.
 
-      earth_topo_050714.tf         NASA DSN Ground Stations topocentric
+      earth_topo_201023.tf         NASA DSN Ground Stations topocentric
                                    frames.
 
       rssd0002.tf                  Cross-mission frames kernel that defines
@@ -825,13 +865,48 @@ MK Files
    file. This information can be viewed using any text editor program.
 
 <a href="#Table of Contents" style="float: right;">Back to Table of Contents</a>
+<a name="Miscellaneous Files"></a>
+Miscellaneous Files
+===================
+
+   Miscellaneous files provide value added elements that are outside the
+   scope of the PDS archive requirements. Miscellaneous files included in
+   this archive are currently limited to checksum files.
+
+   The subsection below provides details for these files.
+
+<a href="#Table of Contents" style="float: right;">Back to Table of Contents</a>
+<a name="Checksum Files"></a>
+Checksum Files
+
+   A checksum file provides a table of MD5 checksums for all files in the
+   archive as of a particular archive (bundle) version, including
+   checksums for all previous checksums files and their labels but
+   excluding the checksum for the checksum file itself and its label.
+
+   The checksum files are provided under the <a href="../miscellaneous/checksum/">miscellaneous/checksum</a>
+   directory and are named according to the following scheme:
+
+      -  ExoMars 2016 checksum files
+
+               checksum_vVVV.tab
+
+            where
+
+               VVV       is the version; the file with the latest
+                         version supersedes all similarly named
+                         files with earlier versions and can be
+                         used to validate the archive in its
+                         entirety.
+
+<a href="#Table of Contents" style="float: right;">Back to Table of Contents</a>
 <a name="File Formats"></a>
 File Formats
 ============
 
-   All text documents and other meta information files such as
-   descriptions, detached PDS4 labels, and inventory tables are stream
-   format files, with a carriage return (ASCII 13) and a line feed
+   All text documents, checksum files, and other meta information files
+   such as descriptions, detached PDS4 labels, and inventory tables are
+   stream format files, with a carriage return (ASCII 13) and a line feed
    character (ASCII 10) at the end of the records. This allows the
    files to be read by most operating systems.
 
@@ -890,12 +965,8 @@ Contact Information
    or NAIF at JPL:
 
              Boris Semenov
-             (818) 354-8136
+             +1 (818) 354-8136
              Boris.Semenov@jpl.nasa.gov
-
-             Marc Costa Sitja
-             (626) 469-1244
-             Marc.Costa.Sitja@jpl.nasa.gov
 
 <a href="#Table of Contents" style="float: right;">Back to Table of Contents</a>
 <a name="Cognisant Persons"></a>
