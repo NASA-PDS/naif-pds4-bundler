@@ -14,9 +14,9 @@
 | \__, .__/ \__/    .__/ |    | \__, |___    .__/ |___ |  \  \/  | \__, |___  |
 |                                                                             |
 +-----------------------------------------------------------------------------+
-The BepiColombo Mission Archived SPICE Kernel Data set
+The BepiColombo Mission Archived SPICE Kernel Data Set
 
-   Last update: 2021-10-21T13:15:18
+   Last update: 2022-07-05T23:07:00
 
 <a name="Introduction"></a>
 Introduction
@@ -25,8 +25,8 @@ Introduction
    This document describes the BepiColombo SPICE kernel data set (SKD)
    containing observation geometry and other ancillary data in the form of
    SPICE System kernel files for the Mercury Planetary Orbiter (MPO),
-   Mercury Magnetospheric Orbiter (MMO or MIO), and Mercurt Transfer
-   Module (MTM) spacecrafts, their instruments and targets. It describes the
+   Mercury Magnetospheric Orbiter (MMO or MIO), and Mercury Transfer
+   Module (MTM) spacecrafts their instruments, and targets. It describes the
    data set directory structure, kernels included in the data set, their
    naming conventions, and provides pointers to the SPICE software and
    documentation.
@@ -41,7 +41,7 @@ Table of Contents
    <a href="#Errata">Errata</a>
    <a href="#Archive Contents">Archive Contents</a>
    <a href="#Kernel Types">Kernel Types</a>
-   <a href="#Kernel Details">Kernel Details</a>
+   <a href="#Archived Kernel Details">Archived Kernel Details</a>
       <a href="#SPK Files">SPK Files</a>
       <a href="#PCK Files">PCK Files</a>
       <a href="#IK Files">IK Files</a>
@@ -51,8 +51,12 @@ Table of Contents
       <a href="#FK Files">FK Files</a>
       <a href="#DSK Files">DSK Files</a>
       <a href="#MK Files">MK Files</a>
+   <a href="#Miscellaneous Files">Miscellaneous Files</a>
+      <a href="#Checksum Files">Checksum Files</a>
+   <a href="#File Formats">File Formats</a>
    <a href="#SPICE Software and Documentation">SPICE Software and Documentation</a>
    <a href="#Contact Information">Contact Information</a>
+   <a href="#Cognisant Persons">Cognisant Persons</a>
 
 <a name="Overview"></a>
 Overview
@@ -89,11 +93,11 @@ Errata
       consistency of SPICE bundles, it will exist in the archive
       as an HTML document.
 
-   2. C-Matrix Kernels generated from Housekeeping Telemetry contain several
+   2. C-Matrix Kernels generated from housekeeping telemetry contain several
       gaps for different known reasons. Some of the gaps might be restored in
       future versions of the bundle. Note that for S/C attitude those gaps
       are covered by predicted CK files. For High Gain Antenna, Medium Gain
-      Antenna, Solar Arrays, and instruments with movable components, the user
+      Antenna, Solar Arrays, and instruments with movable components the user
       can load the CK files that provide canonical (zero) orientation. Note
       that these last files are not included in the archive.
 
@@ -110,7 +114,7 @@ Archive Contents
 
   <a href="../">[top-level-directory]</a>
    |
-   |- bundle_bc_spice_v*.xml           Bundle PDS4 label, one or more versions.
+   |- bundle_bc_spice_v*.xml             Bundle PDS4 label, one or more versions.
    |- <a href="../readme.txt">readme.txt</a>                         Bundle top-level readme file.
    |
    |-<a href="../spice_kernels/">[spice_kernels]</a>                     Directory containing SPICE kernels.
@@ -547,14 +551,14 @@ CK Files
 
       where
 
-           SC        accronym of the spacecraft:
+           SC        acronym of the spacecraft:
 
-                          mpo: for the Mercury Planetary Orbiter (MPO)
-                               spacecraft;
-                          mmo: for the Mercury Magnetospheric Orbiter (MPO)
-                               spacecraft;
-                          mtm: for the Mercury Transfer Module (MTM)
-                               spacecraft
+                       mpo: for the Mercury Planetary Orbiter (MPO)
+                            spacecraft;
+                       mmo: for the Mercury Magnetospheric Orbiter (MPO)
+                            spacecraft;
+                       mtm: for the Mercury Transfer Module (MTM)
+                            spacecraft
 
            INST     instrument/structure/sensor identifier (required):
 
@@ -573,26 +577,26 @@ CK Files
                      is provided. This is a three letter acronym. The first
                      letter defines the file originator:
 
-                          s: Science Operations Center;
-                          m: Mission Analysis;
-                          f: Flight Dynamics;
+                       s: Science Operations Center;
+                       m: Mission Analysis;
+                       f: Flight Dynamics;
 
                      the second letter defines the reference period of the
                      data:
 
-                          c: Cruise phase reference;
-                          l: Science phase Long term reference;
-                          m: Science phase Medium term reference;
-                          s: Science phase Short term reference;
-                          o: Undefined reference;
+                       c: Cruise phase reference;
+                       l: Science phase Long term reference;
+                       m: Science phase Medium term reference;
+                       s: Science phase Short term reference;
+                       o: Undefined reference;
 
                      the third letter indicates the type of data
 
-                          p: Predicted data;
-                          r: Reconstructed data;
-                          t: Test data;
-                          c: Commanded data (from Housekeeping Telemetry)
-                          m: Measured data (from Housekeeping Telemetry)
+                       p: Predicted data;
+                       r: Reconstructed data;
+                       t: Test data;
+                       c: Commanded data (from Housekeeping Telemetry)
+                       m: Measured data (from Housekeeping Telemetry)
 
            ID        mapping to the original file product IDs as defined per
                      an ICD document (optional);
@@ -604,9 +608,9 @@ CK Files
 
            SCLK      reference to SCLK used to created the CK (required):
 
-                         sYYMMDD: SCLK version YYMMDD for type ``step''
-                         tYYMMDD: SCLK version YYMMDD for type ``stretch''
-                         fYYMMDD: SCLK version YYMMDD for type ``fictional''
+                      sYYMMDD: SCLK version YYMMDD for type ``step''
+                      tYYMMDD: SCLK version YYMMDD for type ``stretch''
+                      fYYMMDD: SCLK version YYMMDD for type ``fictional''
 
            NN        CK version number -- 2 digits (required).
 
@@ -684,10 +688,10 @@ SCLK Files
 
           SC       acronym of the spacecraft:
 
-                           mpo: for the Mercury Planetary Orbiter (MPO)
-                                spacecraft;
-                           mmo: for the Mercury Magnetospheric Orbiter (MMO)
-                                spacecraft;
+                   mpo: for the Mercury Planetary Orbiter (MPO)
+                        spacecraft;
+                   mmo: for the Mercury Magnetospheric Orbiter (MMO)
+                        spacecraft;
 
           TYPE     SCLK data type contained within the file:
 
@@ -800,12 +804,12 @@ DSK Files
 
            STRUC   instrument/structure/sensor identifier (optional):
 
-                       bus: for the spacecraft bus;
-                       sa: for the MPO solar array;
-                       sapx: for the MTM +X Solar Array;
-                       samx: for the MTM -X Solar Array;
-                       hga: for the high gain antenna;
-                       mga: for the medium gain antenna;
+                       bus:   for the spacecraft bus;
+                       sa:    for the MPO solar array;
+                       sapx:  for the MTM +X Solar Array;
+                       samx:  for the MTM -X Solar Array;
+                       hga:   for the high gain antenna;
+                       mga:   for the medium gain antenna;
                        mosif: for the MMO sunshield
 
            NN      DSK version number -- 2 digits (required).
@@ -872,13 +876,48 @@ MK Files
    file. This information can be viewed using any text editor program.
 
 <a href="#Table of Contents" style="float: right;">Back to Table of Contents</a>
+<a name="Miscellaneous Files"></a>
+Miscellaneous Files
+===================
+
+   Miscellaneous files provide value added elements that are outside the
+   scope of the PDS archive requirements. Miscellaneous files included in
+   this archive are currently limited to checksum files.
+
+   The subsection below provides details for these files.
+
+<a href="#Table of Contents" style="float: right;">Back to Table of Contents</a>
+<a name="Checksum Files"></a>
+Checksum Files
+
+   A checksum file provides a table of MD5 checksums for all files in the
+   archive as of a particular archive (bundle) version, including
+   checksums for all previous checksums files and their labels but
+   excluding the checksum for the checksum file itself and its label.
+
+   The checksum files are provided under the <a href="../miscellaneous/checksum/">miscellaneous/checksum</a>
+   directory and are named according to the following scheme:
+
+      -  BepiColombo checksum files
+
+               checksum_vVVV.tab
+
+            where
+
+               VVV       is the version; the file with the latest
+                         version supersedes all similarly named
+                         files with earlier versions and can be
+                         used to validate the archive in its
+                         entirety.
+
+<a href="#Table of Contents" style="float: right;">Back to Table of Contents</a>
 <a name="File Formats"></a>
 File Formats
 ============
 
-   All text documents and other meta information files such as
-   descriptions, detached PDS4 labels, and inventory tables are stream
-   format files, with a carriage return (ASCII 13) and a line feed
+   All text documents, checksum files, and other meta information files
+   such as descriptions, detached PDS4 labels, and inventory tables are
+   stream format files, with a carriage return (ASCII 13) and a line feed
    character (ASCII 10) at the end of the records. This allows the
    files to be read by most operating systems.
 

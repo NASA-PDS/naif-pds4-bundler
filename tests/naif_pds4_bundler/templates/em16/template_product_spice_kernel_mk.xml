@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <?xml-model href="$XML_MODEL"
     schematypens="http://purl.oclc.org/dsdl/schematron"?>
 
-§§<Product_SPICE_Kernel xmlns="http://pds.nasa.gov/pds4/pds/v1"
+<Product_SPICE_Kernel xmlns="http://pds.nasa.gov/pds4/pds/v1"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
  xsi:schemaLocation="$SCHEMA_LOCATION">
 

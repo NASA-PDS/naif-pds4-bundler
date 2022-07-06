@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <?xml-model href="http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1B00.sch"
     schematypens="http://purl.oclc.org/dsdl/schematron"?>
 
@@ -85,8 +84,8 @@
             <Document_File>
                 <file_name>spiceds_v004.html</file_name>
                 <creation_date_time>2021-06-25T08:00:00</creation_date_time>
-                <file_size unit="byte">36641</file_size>
-                <md5_checksum>53f4aec8d79ffca36afb10bc8438ae8d</md5_checksum>
+                <file_size unit="byte">40296</file_size>
+                <md5_checksum>5be7ac5d464423a7771cbb3fd2122d2f</md5_checksum>
                 <document_standard_id>HTML</document_standard_id>
             </Document_File>
         </Document_Edition>

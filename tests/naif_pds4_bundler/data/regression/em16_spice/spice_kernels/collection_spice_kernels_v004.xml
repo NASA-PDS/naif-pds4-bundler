@@ -1,6 +1,6 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <?xml-model href="http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1B00.sch"
     schematypens="http://purl.oclc.org/dsdl/schematron"?>
+
 
 <Product_Collection xmlns="http://pds.nasa.gov/pds4/pds/v1"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -14,6 +14,7 @@
         <product_class>Product_Collection</product_class>
         <Citation_Information>
             <publication_year>2021</publication_year>
+            <doi>10.5270/esa-kfjsoi9</doi>
             <keyword>Observation Geometry</keyword>
             <description>This collection contains SPICE kernels for the TGO spacecraft and its instruments and targets.</description>
         </Citation_Information>

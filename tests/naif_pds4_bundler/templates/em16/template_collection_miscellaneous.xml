@@ -1,7 +1,6 @@
 <?xml-model href="$XML_MODEL"
     schematypens="http://purl.oclc.org/dsdl/schematron"?>
 
-
 <Product_Collection xmlns="http://pds.nasa.gov/pds4/pds/v1"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
  xsi:schemaLocation="$SCHEMA_LOCATION">
@@ -9,32 +8,31 @@
     <Identification_Area>
         <logical_identifier>$COLLECTION_LID</logical_identifier>
         <version_id>$COLLECTION_VID</version_id>
-        <title>$MISSION_NAME SPICE Kernel collection</title>
+        <title>$MISSION_NAME SPICE Kernel Archive Miscellaneous Collection</title>
         <information_model_version>$INFORMATION_MODEL_VERSION</information_model_version>
         <product_class>Product_Collection</product_class>
         <Citation_Information>
             <publication_year>$PRODUCT_CREATION_YEAR</publication_year>
-            <doi>10.5270/esa-kfjsoi9</doi>
             <keyword>Observation Geometry</keyword>
-            <description>This collection contains SPICE kernels for the $PDS4_OBSERVER_NAME instruments and targets.</description>
+            <description>This collection contains miscellaneous files for the $MISSION_NAME SPICE kernel archive.</description>
         </Citation_Information>
     </Identification_Area>
     <Context_Area>
         <Time_Coordinates>
-            <start_date_time>$START_TIME</start_date_time>
-            <stop_date_time>$STOP_TIME</stop_date_time>
+          <start_date_time>$START_TIME</start_date_time>
+          <stop_date_time>$STOP_TIME</stop_date_time>
         </Time_Coordinates>
         <Primary_Result_Summary>
-            <purpose>Observation Geometry</purpose>
-            <processing_level>Derived</processing_level>
+          <purpose>Observation Geometry</purpose>
+          <processing_level>Derived</processing_level>
         </Primary_Result_Summary>
         <Investigation_Area>
-            <name>$MISSION_NAME</name>
-            <type>Mission</type>
-            <Internal_Reference>
-                <lid_reference>$PDS4_MISSION_LID</lid_reference>
-                <reference_type>collection_to_investigation</reference_type>
-            </Internal_Reference>
+          <name>$MISSION_NAME</name>
+          <type>Mission</type>
+          <Internal_Reference>
+            <lid_reference>$PDS4_MISSION_LID</lid_reference>
+            <reference_type>collection_to_investigation</reference_type>
+          </Internal_Reference>
         </Investigation_Area>
         <Observing_System>
 $OBSERVERS
@@ -48,8 +46,8 @@ $TARGETS
         </Internal_Reference>
     </Reference_List>
     <Collection>
-        <collection_type>SPICE Kernel</collection_type>
-        <description>This collection contains SPICE kernels for the $PDS4_OBSERVER_NAME instruments and targets.</description>
+        <collection_type>Miscellaneous</collection_type>
+        <description>This collection contains miscellaneous files for the $MISSION_NAME SPICE kernel archive.</description>
     </Collection>
     <File_Area_Inventory>
         <File>
