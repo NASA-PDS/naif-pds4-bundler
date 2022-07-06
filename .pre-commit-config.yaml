@@ -20,14 +20,6 @@ repos:
 
 -   repo: local
     hooks:
-    -   id: mypy
-        name: mypy
-        entry: mypy src
-        language: system
-        pass_filenames: false
-
--   repo: local
-    hooks:
     -   id: black
         name: black
         entry: black
