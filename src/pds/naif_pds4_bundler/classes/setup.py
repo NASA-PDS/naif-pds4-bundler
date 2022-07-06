@@ -253,7 +253,6 @@ class Setup(object):
             self.dataset_id = ""
             self.volume_id = ""
 
-
     def check_configuration(self):
         """Performs the following checks to the loaded configuration items:
 
