@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pds.naif_pds4_bundler.classes.bundle &mdash; NAIF PDS4 Bundler 1.2.2
+  <title>pds.naif_pds4_bundler.classes.bundle &mdash; NAIF PDS4 Bundler 1.3.0
  documentation</title>
   
 
@@ -63,7 +63,7 @@
             
             
               <div class="version">
-                1.2
+                1.3
               </div>
             
           
@@ -298,18 +298,22 @@
         <span class="k">for</span> <span class="n">collection</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">collections</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">product</span> <span class="ow">in</span> <span class="n">collection</span><span class="o">.</span><span class="n">product</span><span class="p">:</span>
                 <span class="n">new_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">product</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
-                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">product</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">product</span><span class="p">,</span> <span class="s2">&quot;label&quot;</span><span class="p">):</span>
                     <span class="n">new_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">product</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;-- Product </span><span class="si">{</span><span class="n">product</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1"> has no label in staging area.&#39;</span><span class="p">)</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;-- Product </span><span class="si">{</span><span class="n">product</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> has no label in staging area.&quot;</span>
+                    <span class="p">)</span>
 
         <span class="c1">#</span>
         <span class="c1"># Include the bundle products if not running in label mode.</span>
         <span class="c1">#</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">faucet</span> <span class="o">==</span> <span class="s2">&quot;labels&quot;</span><span class="p">:</span>
             <span class="n">new_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">staging_directory</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;readme&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">readme</span><span class="o">.</span><span class="n">new_product</span><span class="p">:</span>
-                <span class="n">new_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">staging_directory</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">readme</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;readme&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">readme</span><span class="o">.</span><span class="n">new_product</span><span class="p">:</span>
+                <span class="n">new_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">staging_directory</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">readme</span><span class="o">.</span><span class="n">name</span>
+                <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">new_files</span> <span class="o">=</span> <span class="n">new_files</span>
 
@@ -370,7 +374,11 @@
             <span class="c1">#</span>
             <span class="c1"># If the file is a label we copy it anyway.</span>
             <span class="c1">#</span>
-            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s1">&#39;3&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dst</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span><span class="n">dst</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">label_extension</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;3&quot;</span><span class="p">)</span>
+                <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dst</span><span class="p">))</span>
+                <span class="ow">or</span> <span class="p">(</span><span class="n">dst</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">label_extension</span><span class="p">)</span>
+            <span class="p">):</span>
                 <span class="n">copied_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
                 <span class="c1">#</span>
                 <span class="c1"># We do not use copy2 (copy data and metadata) because</span>
@@ -490,7 +498,11 @@
                 <span class="n">history</span><span class="p">[</span><span class="n">rel</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;readme.txt&quot;</span><span class="p">)</span>
 
             <span class="n">bundle_label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">object</span><span class="o">.</span><span class="n">name</span><span class="p">[:</span><span class="o">-</span><span class="mi">7</span><span class="p">]</span><span class="si">}{</span><span class="n">rel</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">.xml&quot;</span>
-            <span class="n">bundle_label_path</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">bundle_directory</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="nb">object</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_spice/&quot;</span> <span class="o">+</span> <span class="n">bundle_label</span>
+            <span class="n">bundle_label_path</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="nb">object</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">bundle_directory</span>
+                <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="nb">object</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_spice/&quot;</span>
+                <span class="o">+</span> <span class="n">bundle_label</span>
+            <span class="p">)</span>
 
             <span class="c1">#</span>
             <span class="c1"># Check if the bundle label for the release exists, if not, signal</span>
@@ -526,7 +538,7 @@
             <span class="c1"># &#39;http://pds.nasa.gov/pds4/pds/v1http://pds.nasa.gov/pds4/pds/v1&#39;,</span>
             <span class="c1"># which is the URL of the XML model.</span>
             <span class="c1">#</span>
-            <span class="n">prefix</span> <span class="o">=</span> <span class="s1">&#39;{&#39;</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">xml_model</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;}&#39;</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;{&quot;</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">xml_model</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="s2">&quot;}&quot;</span>
 
             <span class="n">members</span> <span class="o">=</span> <span class="n">entries</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">Product_Bundle&quot;</span><span class="p">][</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">Bundle_Member_Entry&quot;</span><span class="p">]</span>
 
@@ -535,19 +547,23 @@
             <span class="c1"># of the release.</span>
             <span class="c1">#</span>
             <span class="k">for</span> <span class="n">member</span> <span class="ow">in</span> <span class="n">members</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">member</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">member_status&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;Primary&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">member</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">member_status&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Primary&quot;</span><span class="p">:</span>
                     <span class="n">lidvid</span> <span class="o">=</span> <span class="n">member</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">lidvid_reference&quot;</span><span class="p">]</span>
                     <span class="k">if</span> <span class="s2">&quot;spice:spice_kernels::&quot;</span> <span class="ow">in</span> <span class="n">lidvid</span><span class="p">:</span>
-                        <span class="n">rel_ker_col_ver</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span>
-                            <span class="n">lidvid</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;spice:spice_kernels::&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.0&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+                        <span class="n">rel_ker_col_ver</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                            <span class="nb">int</span><span class="p">(</span>
+                                <span class="n">lidvid</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;spice:spice_kernels::&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.0&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                            <span class="p">)</span>
                         <span class="p">)</span>
                     <span class="k">elif</span> <span class="s2">&quot;spice:document::&quot;</span> <span class="ow">in</span> <span class="n">lidvid</span><span class="p">:</span>
-                        <span class="n">rel_doc_col_ver</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span>
-                            <span class="n">lidvid</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;spice:document::&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.0&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+                        <span class="n">rel_doc_col_ver</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                            <span class="nb">int</span><span class="p">(</span><span class="n">lidvid</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;spice:document::&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.0&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
                         <span class="p">)</span>
                     <span class="k">elif</span> <span class="s2">&quot;spice:miscellaneous::&quot;</span> <span class="ow">in</span> <span class="n">lidvid</span><span class="p">:</span>
-                        <span class="n">rel_mis_col_ver</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span>
-                            <span class="n">lidvid</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;spice:miscellaneous::&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.0&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+                        <span class="n">rel_mis_col_ver</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                            <span class="nb">int</span><span class="p">(</span>
+                                <span class="n">lidvid</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;spice:miscellaneous::&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.0&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                            <span class="p">)</span>
                         <span class="p">)</span>
 
             <span class="c1">#</span>
@@ -574,10 +590,10 @@
                         <span class="n">history</span><span class="p">[</span><span class="n">rel</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ker_collection_lbl</span><span class="p">)</span>
 
                         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span>
-                                <span class="nb">object</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">bundle_directory</span>
-                                <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="nb">object</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_spice/&quot;</span>
-                                <span class="o">+</span> <span class="n">ker_collection</span><span class="p">,</span>
-                                <span class="s2">&quot;r&quot;</span><span class="p">,</span>
+                            <span class="nb">object</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">bundle_directory</span>
+                            <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="nb">object</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_spice/&quot;</span>
+                            <span class="o">+</span> <span class="n">ker_collection</span><span class="p">,</span>
+                            <span class="s2">&quot;r&quot;</span><span class="p">,</span>
                         <span class="p">)</span> <span class="k">as</span> <span class="n">c</span><span class="p">:</span>
                             <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">c</span><span class="p">:</span>
 
@@ -608,7 +624,7 @@
                                             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
                                                 <span class="n">pattern</span> <span class="o">=</span> <span class="p">[</span><span class="n">pattern</span><span class="p">]</span>
                                             <span class="k">for</span> <span class="n">pattern_word</span> <span class="ow">in</span> <span class="n">pattern</span><span class="p">:</span>
-                                                <span class="n">pattern_key</span> <span class="o">=</span> <span class="n">pattern_word</span><span class="p">[</span><span class="s1">&#39;pattern&#39;</span><span class="p">]</span>
+                                                <span class="n">pattern_key</span> <span class="o">=</span> <span class="n">pattern_word</span><span class="p">[</span><span class="s2">&quot;pattern&quot;</span><span class="p">]</span>
                                                 <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pattern_key</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
                                                     <span class="n">pattern_key</span> <span class="o">=</span> <span class="p">[</span><span class="n">pattern_key</span><span class="p">]</span>
                                                 <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">pattern_key</span><span class="p">:</span>
@@ -635,13 +651,17 @@
                                                                 <span class="sa">f</span><span class="s2">&quot;v</span><span class="si">{</span><span class="n">mk_ver</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">.tm&quot;</span>
                                                             <span class="p">)</span>
                                                         <span class="k">else</span><span class="p">:</span>
-                                                            <span class="n">error_message</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Meta-kernel version &quot;</span>
-                                                                          <span class="sa">f</span><span class="s2">&quot;length of </span><span class="si">{</span><span class="n">version_length</span><span class="si">}</span><span class="s2">&quot;</span>
-                                                                          <span class="sa">f</span><span class="s2">&quot;digits is incorrect.&quot;</span><span class="p">)</span>
+                                                            <span class="n">error_message</span><span class="p">(</span>
+                                                                <span class="sa">f</span><span class="s2">&quot;Meta-kernel version &quot;</span>
+                                                                <span class="sa">f</span><span class="s2">&quot;length of </span><span class="si">{</span><span class="n">version_length</span><span class="si">}</span><span class="s2">&quot;</span>
+                                                                <span class="sa">f</span><span class="s2">&quot;digits is incorrect.&quot;</span>
+                                                            <span class="p">)</span>
 
                                                         <span class="n">history</span><span class="p">[</span><span class="n">rel</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">product</span><span class="p">)</span>
                                                         <span class="n">history</span><span class="p">[</span><span class="n">rel</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                                                            <span class="n">product</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.tm&quot;</span><span class="p">,</span> <span class="s2">&quot;.xml&quot;</span><span class="p">)</span>
+                                                            <span class="n">product</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+                                                                <span class="s2">&quot;.tm&quot;</span><span class="p">,</span> <span class="s2">&quot;.xml&quot;</span>
+                                                            <span class="p">)</span>
                                                         <span class="p">)</span>
 
                                                         <span class="k">break</span>
@@ -651,7 +671,7 @@
                                         <span class="c1"># Try to derive the digits from the MK input.</span>
                                         <span class="c1">#</span>
                                         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mk_inputs</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-                                            <span class="n">mk_names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mk_inputs</span><span class="p">[</span><span class="s1">&#39;file&#39;</span><span class="p">]</span>
+                                            <span class="n">mk_names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mk_inputs</span><span class="p">[</span><span class="s2">&quot;file&quot;</span><span class="p">]</span>
                                         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mk_names</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
                                             <span class="n">mk_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">mk_names</span><span class="p">]</span>
 
@@ -663,7 +683,9 @@
 
                                             <span class="k">if</span> <span class="n">product</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">history</span><span class="p">[</span><span class="n">rel</span><span class="p">]:</span>
                                                 <span class="n">history</span><span class="p">[</span><span class="n">rel</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">product</span><span class="p">)</span>
-                                                <span class="n">history</span><span class="p">[</span><span class="n">rel</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">product</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.tm&quot;</span><span class="p">,</span> <span class="s2">&quot;.xml&quot;</span><span class="p">))</span>
+                                                <span class="n">history</span><span class="p">[</span><span class="n">rel</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                                                    <span class="n">product</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.tm&quot;</span><span class="p">,</span> <span class="s2">&quot;.xml&quot;</span><span class="p">)</span>
+                                                <span class="p">)</span>
                                     <span class="k">else</span><span class="p">:</span>
                                         <span class="c1">#</span>
                                         <span class="c1"># Default to 2. Might trigger an error.</span>
@@ -682,7 +704,9 @@
                                             <span class="sa">f</span><span class="s2">&quot;v</span><span class="si">{</span><span class="n">mk_ver</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">.tm&quot;</span>
                                         <span class="p">)</span>
                                         <span class="n">history</span><span class="p">[</span><span class="n">rel</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">product</span><span class="p">)</span>
-                                        <span class="n">history</span><span class="p">[</span><span class="n">rel</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">product</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.tm&quot;</span><span class="p">,</span> <span class="s2">&quot;.xml&quot;</span><span class="p">))</span>
+                                        <span class="n">history</span><span class="p">[</span><span class="n">rel</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                                            <span class="n">product</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.tm&quot;</span><span class="p">,</span> <span class="s2">&quot;.xml&quot;</span><span class="p">)</span>
+                                        <span class="p">)</span>
 
                         <span class="n">ker_col_ver</span> <span class="o">=</span> <span class="n">ver</span>
 
@@ -701,9 +725,9 @@
                         <span class="p">)</span>
 
                         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span>
-                                <span class="nb">object</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">bundle_directory</span>
-                                <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="nb">object</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_spice/&quot;</span>
-                                <span class="o">+</span> <span class="n">mis_collection</span>
+                            <span class="nb">object</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">bundle_directory</span>
+                            <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="nb">object</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_spice/&quot;</span>
+                            <span class="o">+</span> <span class="n">mis_collection</span>
                         <span class="p">):</span>
                             <span class="n">history</span><span class="p">[</span><span class="n">rel</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mis_collection</span><span class="p">)</span>
 
@@ -714,10 +738,10 @@
                             <span class="n">history</span><span class="p">[</span><span class="n">rel</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mis_collection_lbl</span><span class="p">)</span>
 
                             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span>
-                                    <span class="nb">object</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">bundle_directory</span>
-                                    <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="nb">object</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_spice/&quot;</span>
-                                    <span class="o">+</span> <span class="n">mis_collection</span><span class="p">,</span>
-                                    <span class="s2">&quot;r&quot;</span><span class="p">,</span>
+                                <span class="nb">object</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">bundle_directory</span>
+                                <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="nb">object</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_spice/&quot;</span>
+                                <span class="o">+</span> <span class="n">mis_collection</span><span class="p">,</span>
+                                <span class="s2">&quot;r&quot;</span><span class="p">,</span>
                             <span class="p">)</span> <span class="k">as</span> <span class="n">c</span><span class="p">:</span>
                                 <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">c</span><span class="p">:</span>
                                     <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;P&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="s2">&quot;:checksum_&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">line</span><span class="p">):</span>
@@ -740,7 +764,9 @@
                                             <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">product_name</span><span class="si">}</span><span class="s2">_v</span><span class="si">{</span><span class="n">rel_misc</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">.tab&quot;</span>
                                         <span class="p">)</span>
                                         <span class="n">history</span><span class="p">[</span><span class="n">rel</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">product</span><span class="p">)</span>
-                                        <span class="n">history</span><span class="p">[</span><span class="n">rel</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">product</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.tab&quot;</span><span class="p">,</span> <span class="s2">&quot;.xml&quot;</span><span class="p">))</span>
+                                        <span class="n">history</span><span class="p">[</span><span class="n">rel</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                                            <span class="n">product</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.tab&quot;</span><span class="p">,</span> <span class="s2">&quot;.xml&quot;</span><span class="p">)</span>
+                                        <span class="p">)</span>
 
                         <span class="n">mis_col_ver</span> <span class="o">=</span> <span class="n">ver</span>
 
@@ -758,14 +784,16 @@
                         <span class="p">)</span>
                         <span class="n">history</span><span class="p">[</span><span class="n">rel</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">doc_collection</span><span class="p">)</span>
 
-                        <span class="n">doc_collection_lbl</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;document/collection_document_v</span><span class="si">{</span><span class="n">ver</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">.xml&quot;</span>
+                        <span class="n">doc_collection_lbl</span> <span class="o">=</span> <span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;document/collection_document_v</span><span class="si">{</span><span class="n">ver</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">.xml&quot;</span>
+                        <span class="p">)</span>
                         <span class="n">history</span><span class="p">[</span><span class="n">rel</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">doc_collection_lbl</span><span class="p">)</span>
 
                         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span>
-                                <span class="nb">object</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">bundle_directory</span>
-                                <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="nb">object</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_spice/&quot;</span>
-                                <span class="o">+</span> <span class="n">doc_collection</span><span class="p">,</span>
-                                <span class="s2">&quot;r&quot;</span><span class="p">,</span>
+                            <span class="nb">object</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">bundle_directory</span>
+                            <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="nb">object</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_spice/&quot;</span>
+                            <span class="o">+</span> <span class="n">doc_collection</span><span class="p">,</span>
+                            <span class="s2">&quot;r&quot;</span><span class="p">,</span>
                         <span class="p">)</span> <span class="k">as</span> <span class="n">c</span><span class="p">:</span>
                             <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">c</span><span class="p">:</span>
                                 <span class="k">if</span> <span class="s2">&quot;P&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
@@ -775,7 +803,9 @@
                                         <span class="sa">f</span><span class="s2">&quot;v</span><span class="si">{</span><span class="n">ver</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">.html&quot;</span>
                                     <span class="p">)</span>
                                     <span class="n">history</span><span class="p">[</span><span class="n">rel</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">product</span><span class="p">)</span>
-                                    <span class="n">history</span><span class="p">[</span><span class="n">rel</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">product</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.html&quot;</span><span class="p">,</span> <span class="s2">&quot;.xml&quot;</span><span class="p">))</span>
+                                    <span class="n">history</span><span class="p">[</span><span class="n">rel</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                                        <span class="n">product</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.html&quot;</span><span class="p">,</span> <span class="s2">&quot;.xml&quot;</span><span class="p">)</span>
+                                    <span class="p">)</span>
 
                         <span class="n">doc_col_ver</span> <span class="o">=</span> <span class="n">ver</span>
 
@@ -819,13 +849,13 @@
         <span class="c1">#</span>
         <span class="c1"># Remove &#39;Z&#39; due to a bug in CSPICE N0066. See Header of TPARTV.</span>
         <span class="c1">#</span>
-        <span class="k">if</span> <span class="s1">&#39;Z&#39;</span> <span class="ow">in</span> <span class="n">str_msn_strt</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">&quot;Z&quot;</span> <span class="ow">in</span> <span class="n">str_msn_strt</span><span class="p">:</span>
             <span class="n">str_msn_strt</span> <span class="o">=</span> <span class="n">str_msn_strt</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-        <span class="k">if</span> <span class="s1">&#39;Z&#39;</span> <span class="ow">in</span> <span class="n">str_inc_strt</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">&quot;Z&quot;</span> <span class="ow">in</span> <span class="n">str_inc_strt</span><span class="p">:</span>
             <span class="n">str_inc_strt</span> <span class="o">=</span> <span class="n">str_inc_strt</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-        <span class="k">if</span> <span class="s1">&#39;Z&#39;</span> <span class="ow">in</span> <span class="n">str_inc_stop</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">&quot;Z&quot;</span> <span class="ow">in</span> <span class="n">str_inc_stop</span><span class="p">:</span>
             <span class="n">str_inc_stop</span> <span class="o">=</span> <span class="n">str_inc_stop</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-        <span class="k">if</span> <span class="s1">&#39;Z&#39;</span> <span class="ow">in</span> <span class="n">str_msn_stop</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">&quot;Z&quot;</span> <span class="ow">in</span> <span class="n">str_msn_stop</span><span class="p">:</span>
             <span class="n">str_msn_stop</span> <span class="o">=</span> <span class="n">str_msn_stop</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
         <span class="n">et_msn_strt</span> <span class="o">=</span> <span class="n">spiceypy</span><span class="o">.</span><span class="n">str2et</span><span class="p">(</span><span class="n">str_msn_strt</span><span class="p">)</span>
@@ -834,10 +864,10 @@
         <span class="n">et_msn_stop</span> <span class="o">=</span> <span class="n">spiceypy</span><span class="o">.</span><span class="n">str2et</span><span class="p">(</span><span class="n">str_msn_stop</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="p">(</span>
-                <span class="ow">not</span> <span class="p">(</span><span class="n">et_msn_strt</span> <span class="o">&lt;=</span> <span class="n">et_inc_strt</span><span class="p">)</span>
-                <span class="ow">or</span> <span class="ow">not</span> <span class="p">(</span><span class="n">et_inc_strt</span> <span class="o">&lt;=</span> <span class="n">et_inc_stop</span><span class="p">)</span>
-                <span class="ow">or</span> <span class="ow">not</span> <span class="p">(</span><span class="n">et_inc_stop</span> <span class="o">&lt;=</span> <span class="n">et_msn_stop</span><span class="p">)</span>
-                <span class="ow">or</span> <span class="ow">not</span> <span class="p">(</span><span class="n">et_msn_strt</span> <span class="o">&lt;</span> <span class="n">et_msn_stop</span><span class="p">)</span>
+            <span class="ow">not</span> <span class="p">(</span><span class="n">et_msn_strt</span> <span class="o">&lt;=</span> <span class="n">et_inc_strt</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="ow">not</span> <span class="p">(</span><span class="n">et_inc_strt</span> <span class="o">&lt;=</span> <span class="n">et_inc_stop</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="ow">not</span> <span class="p">(</span><span class="n">et_inc_stop</span> <span class="o">&lt;=</span> <span class="n">et_msn_stop</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="ow">not</span> <span class="p">(</span><span class="n">et_msn_strt</span> <span class="o">&lt;</span> <span class="n">et_msn_stop</span><span class="p">)</span>
         <span class="p">):</span>
             <span class="n">error_message</span><span class="p">(</span>
                 <span class="s2">&quot;The resulting Mission and Increment start and finish dates &quot;</span>

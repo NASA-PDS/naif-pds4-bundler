@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pds.naif_pds4_bundler.utils.files &mdash; NAIF PDS4 Bundler 1.2.2
+  <title>pds.naif_pds4_bundler.utils.files &mdash; NAIF PDS4 Bundler 1.3.0
  documentation</title>
   
 
@@ -63,7 +63,7 @@
             
             
               <div class="version">
-                1.2
+                1.3
               </div>
             
           
@@ -442,7 +442,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">product_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
 
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="nb">object</span><span class="o">.</span><span class="n">template</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="nb">object</span><span class="o">.</span><span class="n">template</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">t</span><span class="p">:</span>
                 <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
                 <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">product_dictionary</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -975,7 +975,7 @@
     <span class="p">(</span><span class="n">lincmt</span><span class="p">,</span> <span class="n">commnt</span><span class="p">,</span> <span class="n">done</span><span class="p">)</span> <span class="o">=</span> <span class="n">spiceypy</span><span class="o">.</span><span class="n">dafec</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span> <span class="n">buffsz</span><span class="p">,</span> <span class="n">linlen</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">lincmt</span> <span class="o">&gt;</span> <span class="n">buffsz</span><span class="p">:</span>
         <span class="n">spiceypy</span><span class="o">.</span><span class="n">dafcls</span><span class="p">(</span><span class="n">handle</span><span class="p">)</span>
-        <span class="n">error_message</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Comment from </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s1"> is longer than buffer size.&#39;</span><span class="p">)</span>
+        <span class="n">error_message</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Comment from </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2"> is longer than buffer size.&quot;</span><span class="p">)</span>
 
     <span class="c1">#</span>
     <span class="c1"># Remove empty lines at the end of the comment.</span>
@@ -988,7 +988,7 @@
             <span class="k">break</span>
     <span class="k">if</span> <span class="n">lines_to_remove</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">lines_to_remove</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>
-        <span class="n">commnt</span> <span class="o">=</span> <span class="n">commnt</span><span class="p">[:</span><span class="n">lines_to_remove</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">commnt</span> <span class="o">=</span> <span class="n">commnt</span><span class="p">[:</span> <span class="n">lines_to_remove</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="n">close_file</span><span class="p">:</span>
         <span class="n">spiceypy</span><span class="o">.</span><span class="n">dafcls</span><span class="p">(</span><span class="n">handle</span><span class="p">)</span>
@@ -1042,11 +1042,11 @@
         <span class="n">new_file_content</span> <span class="o">+=</span> <span class="n">add_carriage_return</span><span class="p">(</span><span class="n">new_line</span><span class="p">,</span> <span class="n">setup</span><span class="o">.</span><span class="n">eol_pds3</span><span class="p">,</span> <span class="n">setup</span><span class="p">)</span>
     <span class="n">reading_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-    <span class="n">writing_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;temp.file&#39;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+    <span class="n">writing_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;temp.file&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
     <span class="n">writing_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">new_file_content</span><span class="p">)</span>
     <span class="n">writing_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-    <span class="n">shutil</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="s1">&#39;temp.file&#39;</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span></div>
+    <span class="n">shutil</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="s2">&quot;temp.file&quot;</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="format_multiple_values"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.utils.html#pds.naif_pds4_bundler.utils.files.format_multiple_values">[docs]</a><span class="k">def</span> <span class="nf">format_multiple_values</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
@@ -1060,12 +1060,12 @@
 <span class="sd">    :return: PDS3 key value reformatted</span>
 <span class="sd">    :rtype: str</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="s1">&#39;,&#39;</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
-        <span class="n">values</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s2">&quot;,&quot;</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
         <span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;{</span><span class="se">\n</span><span class="s2">&quot;</span>
         <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
             <span class="n">value</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39; &#39;</span> <span class="o">*</span> <span class="mi">31</span><span class="si">}{</span><span class="n">val</span><span class="si">}</span><span class="s2">,</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">*</span> <span class="mi">31</span> <span class="o">+</span> <span class="s2">&quot;}</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="mi">31</span> <span class="o">+</span> <span class="s2">&quot;}</span><span class="se">\n</span><span class="s2">&quot;</span>
 
     <span class="k">return</span> <span class="n">value</span></div>
 
@@ -1077,16 +1077,14 @@
 <span class="sd">    :rtype: str</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">kernel_list_file</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">setup</span><span class="o">.</span><span class="n">working_directory</span>
-            <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span>
-            <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">setup</span><span class="o">.</span><span class="n">run_type</span><span class="si">}</span><span class="s2">_&quot;</span>
-              <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">setup</span><span class="o">.</span><span class="n">release</span><span class="p">)</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">.kernel_list&quot;</span>
+        <span class="n">setup</span><span class="o">.</span><span class="n">working_directory</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">setup</span><span class="o">.</span><span class="n">run_type</span><span class="si">}</span><span class="s2">_&quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">setup</span><span class="o">.</span><span class="n">release</span><span class="p">)</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">.kernel_list&quot;</span>
     <span class="p">)</span>
 
     <span class="n">get_map</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="n">mapping</span> <span class="o">=</span> <span class="kc">False</span>
 
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">kernel_list_file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">lst</span><span class="p">:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">kernel_list_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">lst</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lst</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
                 <span class="n">get_map</span> <span class="o">=</span> <span class="kc">True</span>
@@ -1135,7 +1133,7 @@
 <span class="sd">    :return: Error message if error present</span>
 <span class="sd">    :rtype: str</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">error</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">error</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
     <span class="n">name</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
     <span class="n">extension</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
     <span class="n">type_file</span> <span class="o">=</span> <span class="n">extension_to_type</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
@@ -1203,38 +1201,42 @@
 <span class="sd">    :return: Error message if error present</span>
 <span class="sd">    :rtype: str</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">error</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">error</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
 
     <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;bds&quot;</span><span class="p">:</span>
-        <span class="n">arch</span> <span class="o">=</span> <span class="s1">&#39;das&#39;</span>
+        <span class="n">arch</span> <span class="o">=</span> <span class="s2">&quot;das&quot;</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">arch</span> <span class="o">=</span> <span class="s1">&#39;daf&#39;</span>
+        <span class="n">arch</span> <span class="o">=</span> <span class="s2">&quot;daf&quot;</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">arch</span> <span class="o">==</span> <span class="s1">&#39;daf&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">arch</span> <span class="o">==</span> <span class="s2">&quot;daf&quot;</span><span class="p">:</span>
             <span class="n">handle</span> <span class="o">=</span> <span class="n">spiceypy</span><span class="o">.</span><span class="n">dafopw</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">arch</span> <span class="o">==</span> <span class="s1">&#39;das&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">arch</span> <span class="o">==</span> <span class="s2">&quot;das&quot;</span><span class="p">:</span>
             <span class="n">handle</span> <span class="o">=</span> <span class="n">spiceypy</span><span class="o">.</span><span class="n">dasopw</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">BaseException</span>
 
     <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">byteorder</span> <span class="o">!=</span> <span class="n">endianness</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-- The binary kernel is </span><span class="si">{</span><span class="n">endianness</span><span class="si">}</span><span class="s2"> endian; this&quot;</span>
-                            <span class="sa">f</span><span class="s2">&quot; endianness is not supported by your machine.&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;-- The binary kernel is </span><span class="si">{</span><span class="n">endianness</span><span class="si">}</span><span class="s2"> endian; this&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot; endianness is not supported by your machine.&quot;</span>
+            <span class="p">)</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;   You can use NAIF&#39;s utility BINGO to convert the file.&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">error</span> <span class="o">=</span> <span class="s2">&quot;The binary kernel is not readable by your machine.&quot;</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">byteorder</span> <span class="o">!=</span> <span class="n">endianness</span><span class="p">:</span>
-            <span class="n">error</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;The binary kernel is </span><span class="si">{</span><span class="n">sys</span><span class="o">.</span><span class="n">byteorder</span><span class="si">}</span><span class="s2"> endian; this &quot;</span> \
-                    <span class="sa">f</span><span class="s2">&quot;endianness is not the one specified via configuration.&quot;</span>
+            <span class="n">error</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The binary kernel is </span><span class="si">{</span><span class="n">sys</span><span class="o">.</span><span class="n">byteorder</span><span class="si">}</span><span class="s2"> endian; this &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;endianness is not the one specified via configuration.&quot;</span>
+            <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">pass</span>
     <span class="k">finally</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">arch</span> <span class="o">==</span> <span class="s1">&#39;daf&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">arch</span> <span class="o">==</span> <span class="s2">&quot;daf&quot;</span><span class="p">:</span>
                 <span class="n">spiceypy</span><span class="o">.</span><span class="n">dafcls</span><span class="p">(</span><span class="n">handle</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="n">arch</span> <span class="o">==</span> <span class="s1">&#39;das&#39;</span><span class="p">:</span>
+            <span class="k">elif</span> <span class="n">arch</span> <span class="o">==</span> <span class="s2">&quot;das&quot;</span><span class="p">:</span>
                 <span class="n">spiceypy</span><span class="o">.</span><span class="n">dascls</span><span class="p">(</span><span class="n">handle</span><span class="p">)</span>
 
         <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
@@ -1252,7 +1254,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">error</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">line_num</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">isascii</span><span class="p">():</span>
                 <span class="n">char_count</span> <span class="o">=</span> <span class="mi">0</span>
@@ -1264,9 +1266,11 @@
 
                 <span class="n">error</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;NON-ASCII character(s) in line </span><span class="si">{</span><span class="n">line_num</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
                 <span class="n">error</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">line</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="n">badchar_line</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">rstrip</span><span class="p">())</span>
+                <span class="n">badchar_line</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">rstrip</span><span class="p">())</span>
                 <span class="k">for</span> <span class="n">badchar</span> <span class="ow">in</span> <span class="n">badchars</span><span class="p">:</span>
-                    <span class="n">badchar_line</span> <span class="o">=</span> <span class="n">badchar_line</span><span class="p">[:</span><span class="n">badchar</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;^&quot;</span> <span class="o">+</span> <span class="n">badchar_line</span><span class="p">[</span><span class="n">badchar</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span>
+                    <span class="n">badchar_line</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="n">badchar_line</span><span class="p">[:</span><span class="n">badchar</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;^&quot;</span> <span class="o">+</span> <span class="n">badchar_line</span><span class="p">[</span><span class="n">badchar</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:]</span>
+                    <span class="p">)</span>
                 <span class="n">error</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">badchar_line</span><span class="p">)</span>
             <span class="n">line_num</span> <span class="o">+=</span> <span class="mi">1</span>
 
@@ -1281,16 +1285,16 @@
 <span class="sd">    :return: Resulting error messages</span>
 <span class="sd">    :rtype: str</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">error</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">error</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
 
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">open_file</span><span class="p">:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">open_file</span><span class="p">:</span>
         <span class="n">content</span> <span class="o">=</span> <span class="n">open_file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 
-    <span class="k">if</span> <span class="n">eol</span> <span class="o">==</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">:</span>
-        <span class="k">if</span> <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\r\n</span><span class="s1">&#39;</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">eol</span> <span class="o">==</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="sa">b</span><span class="s2">&quot;</span><span class="se">\r\n</span><span class="s2">&quot;</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
             <span class="n">error</span> <span class="o">=</span> <span class="s2">&quot;Incorrect EOL in file, LF (</span><span class="se">\\</span><span class="s2">n) expected.&quot;</span>
-    <span class="k">elif</span> <span class="n">eol</span> <span class="o">==</span> <span class="s1">&#39;</span><span class="se">\r\n</span><span class="s1">&#39;</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">content</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;</span><span class="se">\r\n</span><span class="s1">&#39;</span><span class="p">)</span> <span class="o">!=</span> <span class="n">content</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">):</span>
+    <span class="k">elif</span> <span class="n">eol</span> <span class="o">==</span> <span class="s2">&quot;</span><span class="se">\r\n</span><span class="s2">&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">content</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;</span><span class="se">\r\n</span><span class="s2">&quot;</span><span class="p">)</span> <span class="o">!=</span> <span class="n">content</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">):</span>
             <span class="n">error</span> <span class="o">=</span> <span class="s2">&quot;Incorrect EOL in file, CRLF (</span><span class="se">\\</span><span class="s2">r</span><span class="se">\\</span><span class="s2">n) expected.&quot;</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">error_message</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Incorrect EOL in configuration: </span><span class="si">{</span><span class="n">eol</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>

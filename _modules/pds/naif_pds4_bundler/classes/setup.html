@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pds.naif_pds4_bundler.classes.setup &mdash; NAIF PDS4 Bundler 1.2.2
+  <title>pds.naif_pds4_bundler.classes.setup &mdash; NAIF PDS4 Bundler 1.3.0
  documentation</title>
   
 
@@ -63,7 +63,7 @@
             
             
               <div class="version">
-                1.2
+                1.3
               </div>
             
           
@@ -250,7 +250,7 @@
         <span class="c1"># Generate empty orbnum directory if not present.</span>
         <span class="c1">#</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;orbnum_directory&quot;</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">orbnum_directory</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">orbnum_directory</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
 
         <span class="c1">#</span>
         <span class="c1"># Kernel list configuration needs refactoring.</span>
@@ -383,21 +383,27 @@
         <span class="c1"># Check and determine endianness.</span>
         <span class="c1">#</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;binary_endianness&quot;</span><span class="p">):</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s1">&#39;4&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">kernel_endianness</span> <span class="o">=</span> <span class="s2">&quot;little&quot;</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">kernel_endianness</span> <span class="o">=</span> <span class="s2">&quot;big&quot;</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">binary_endianness</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;little&quot;</span> <span class="ow">or</span> \
-                    <span class="bp">self</span><span class="o">.</span><span class="n">binary_endianness</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;ltl-ieee&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">binary_endianness</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;little&quot;</span>
+                <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">binary_endianness</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;ltl-ieee&quot;</span>
+            <span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">kernel_endianness</span> <span class="o">=</span> <span class="s2">&quot;little&quot;</span>
-            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">binary_endianness</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;big&quot;</span> <span class="ow">or</span> \
-                    <span class="bp">self</span><span class="o">.</span><span class="n">binary_endianness</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;big-ieee&quot;</span><span class="p">:</span>
+            <span class="k">elif</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">binary_endianness</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;big&quot;</span>
+                <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">binary_endianness</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;big-ieee&quot;</span>
+            <span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">kernel_endianness</span> <span class="o">=</span> <span class="s2">&quot;big&quot;</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">error_message</span><span class="p">(</span><span class="s2">&quot;binary_endianness configuration parameter value must be&quot;</span>
-                              <span class="s2">&quot; &#39;big&#39;, &#39;BIG-IEEE&#39;, &#39;little&#39; or &#39;LTL-IEEE&#39;. Case is not&quot;</span>
-                              <span class="s2">&quot; sensitive.&quot;</span><span class="p">)</span>
+                <span class="n">error_message</span><span class="p">(</span>
+                    <span class="s2">&quot;binary_endianness configuration parameter value must be&quot;</span>
+                    <span class="s2">&quot; &#39;big&#39;, &#39;BIG-IEEE&#39;, &#39;little&#39; or &#39;LTL-IEEE&#39;. Case is not&quot;</span>
+                    <span class="s2">&quot; sensitive.&quot;</span>
+                <span class="p">)</span>
 
         <span class="c1">#</span>
         <span class="c1"># Fill missing fields.</span>
@@ -411,14 +417,14 @@
 <div class="viewcode-block" id="Setup.check_configuration"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.setup.Setup.check_configuration">[docs]</a>    <span class="k">def</span> <span class="nf">check_configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Performs the following checks to the loaded configuration items:</span>
 
-<span class="sd">               * IM, Line Feed, and Date Time format NAIF recommendations</span>
-<span class="sd">               * Archive increment start and finish times</span>
-<span class="sd">               * Transform relative to absolute paths</span>
-<span class="sd">               * Existence of kernel directories</span>
-<span class="sd">               * IM, XML model, and Schema Location coherence</span>
-<span class="sd">               * Check existence of templates according to the IM</span>
-<span class="sd">               * Meta-kernel configuration</span>
-<span class="sd">               * Presence of uppercase characters in the kernel list configuration</span>
+<span class="sd">        * IM, Line Feed, and Date Time format NAIF recommendations</span>
+<span class="sd">        * Archive increment start and finish times</span>
+<span class="sd">        * Transform relative to absolute paths</span>
+<span class="sd">        * Existence of kernel directories</span>
+<span class="sd">        * IM, XML model, and Schema Location coherence</span>
+<span class="sd">        * Check existence of templates according to the IM</span>
+<span class="sd">        * Meta-kernel configuration</span>
+<span class="sd">        * Presence of uppercase characters in the kernel list configuration</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1">#</span>
         <span class="c1"># Check IM, Line Feed, and Date Time format NAIF recommendations.</span>
@@ -469,31 +475,47 @@
         <span class="c1">#</span>
         <span class="c1"># Check binary kernels endianness.</span>
         <span class="c1">#</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s1">&#39;4&#39;</span><span class="p">:</span>
-            <span class="k">if</span>  <span class="bp">self</span><span class="o">.</span><span class="n">kernel_endianness</span> <span class="o">==</span> <span class="s2">&quot;little&quot;</span><span class="p">:</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- Binary SPICE kernels expected to have LTL-IEEE (little endian) binary format.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel_endianness</span> <span class="o">==</span> <span class="s2">&quot;little&quot;</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="s2">&quot;-- Binary SPICE kernels expected to have LTL-IEEE (little endian) binary format.&quot;</span>
+                <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- Binary SPICE kernels expected to have BIG-IEEE (little endian) binary format.&quot;</span><span class="p">)</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;-- NAIF strongly recommends to use LTL-IEEE (little endian) for binary kernels in PDS4 archives &quot;</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="s2">&quot;-- Binary SPICE kernels expected to have BIG-IEEE (little endian) binary format.&quot;</span>
+                <span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s2">&quot;-- NAIF strongly recommends to use LTL-IEEE (little endian) for binary kernels in PDS4 archives &quot;</span>
+                <span class="p">)</span>
                 <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;   and enforces it if the archive is hosted by NAIF.&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel_endianness</span> <span class="o">==</span> <span class="s2">&quot;little&quot;</span><span class="p">:</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- Binary SPICE kernels expected to have LTL-IEEE (little endian) binary format.&quot;</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="s2">&quot;-- Binary SPICE kernels expected to have LTL-IEEE (little endian) binary format.&quot;</span>
+                <span class="p">)</span>
 
                 <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                     <span class="s2">&quot;-- NAIF strongly recommends to use BIG-IEEE (big endian) for binary kernels in PDS3 archives &quot;</span>
                 <span class="p">)</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span> <span class="s2">&quot;   and enforces it if the archive is hosted by NAIF.&quot;</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;   and enforces it if the archive is hosted by NAIF.&quot;</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">byteorder</span> <span class="o">==</span> <span class="s2">&quot;big&quot;</span><span class="p">:</span>
-                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;   Your system is BIG-IEEE (big endian): PDS3 Labels cannot be attached to binary kernels.&quot;</span><span class="p">)</span>
-                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;   If binary kernels are present this will result in an error.&quot;</span><span class="p">)</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                        <span class="s2">&quot;   Your system is BIG-IEEE (big endian): PDS3 Labels cannot be attached to binary kernels.&quot;</span>
+                    <span class="p">)</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                        <span class="s2">&quot;   If binary kernels are present this will result in an error.&quot;</span>
+                    <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- Binary SPICE kernels expected to have BIG-IEEE (big endian) binary format.&quot;</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="s2">&quot;-- Binary SPICE kernels expected to have BIG-IEEE (big endian) binary format.&quot;</span>
+                <span class="p">)</span>
                 <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">byteorder</span> <span class="o">!=</span> <span class="s2">&quot;big&quot;</span><span class="p">:</span>
                     <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                         <span class="s2">&quot;   Your system is LTL-IEEE (little endian): PDS3 Labels cannot be attached to binary kernels.&quot;</span>
                     <span class="p">)</span>
-                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;   If binary kernels are present this will result in an error.&quot;</span><span class="p">)</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                        <span class="s2">&quot;   If binary kernels are present this will result in an error.&quot;</span>
+                    <span class="p">)</span>
 
         <span class="c1">#</span>
         <span class="c1"># Check Bundle increment start and finish times. For the two accepted</span>
@@ -519,7 +541,8 @@
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;increment_finish&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">increment_finish</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">pattern</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">increment_finish</span><span class="p">):</span>
                 <span class="n">error_message</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;increment_finish does not match the required &quot;</span> <span class="sa">f</span><span class="s2">&quot;format: </span><span class="si">{</span><span class="nb">format</span><span class="si">}</span><span class="s2">.&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;increment_finish does not match the required &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;format: </span><span class="si">{</span><span class="nb">format</span><span class="si">}</span><span class="s2">.&quot;</span>
                 <span class="p">)</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;increment_start&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;increment_finish&quot;</span><span class="p">):</span>
             <span class="k">if</span> <span class="p">((</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">increment_start</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">increment_finish</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span>
@@ -534,10 +557,14 @@
         <span class="c1">#</span>
         <span class="c1"># Check that directories are not the same.</span>
         <span class="c1">#</span>
-        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">staging_directory</span><span class="p">)</span> <span class="ow">or</span> \
-                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bundle_directory</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">staging_directory</span><span class="p">)</span> <span class="ow">or</span> \
-                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bundle_directory</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="p">):</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;--The working, staging, and bundle directories must be different:&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">staging_directory</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bundle_directory</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">staging_directory</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bundle_directory</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="s2">&quot;--The working, staging, and bundle directories must be different:&quot;</span>
+            <span class="p">)</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  working: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  staging: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">staging_directory</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  bundle:  </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">bundle_directory</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -565,7 +592,9 @@
             <span class="n">error_message</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Directory does not exist: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">cwd</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">staging_directory</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">staging_directory</span> <span class="o">=</span> <span class="p">(</span><span class="n">cwd</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">staging_directory</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="n">mission_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">staging_directory</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">cwd</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">staging_directory</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="n">mission_dir</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">staging_directory</span><span class="p">):</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;-- Creating staging directory: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">staging_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">mission_dir</span><span class="si">}</span><span class="s2">.&quot;</span>
@@ -578,9 +607,13 @@
                 <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">cwd</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">staging_directory</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">faucet</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;plan&quot;</span><span class="p">,</span> <span class="s2">&quot;list&quot;</span><span class="p">,</span> <span class="s2">&quot;checks&quot;</span><span class="p">]:</span>
-                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-- Staging directory cannot be created but is not used with </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">faucet</span><span class="si">}</span><span class="s2"> faucet.&quot;</span><span class="p">)</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;-- Staging directory cannot be created but is not used with </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">faucet</span><span class="si">}</span><span class="s2"> faucet.&quot;</span>
+                    <span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">error_message</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Staging directory cannot be created: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">staging_directory</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+                    <span class="n">error_message</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Staging directory cannot be created: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">staging_directory</span><span class="si">}</span><span class="s2">.&quot;</span>
+                    <span class="p">)</span>
 
         <span class="k">elif</span> <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="n">mission_dir</span><span class="si">}</span><span class="s2">&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">staging_directory</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">staging_directory</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="n">mission_dir</span><span class="si">}</span><span class="s2">&quot;</span>
@@ -594,9 +627,13 @@
         <span class="c1">#</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bundle_directory</span><span class="p">):</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">faucet</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;plan&quot;</span><span class="p">,</span> <span class="s2">&quot;list&quot;</span><span class="p">,</span> <span class="s2">&quot;checks&quot;</span><span class="p">]:</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-- Bundle directory does not exist but is not used with </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">faucet</span><span class="si">}</span><span class="s2"> faucet.&quot;</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;-- Bundle directory does not exist but is not used with </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">faucet</span><span class="si">}</span><span class="s2"> faucet.&quot;</span>
+                <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">error_message</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Bundle directory does not exist: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">bundle_directory</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+                <span class="n">error_message</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Bundle directory does not exist: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">bundle_directory</span><span class="si">}</span><span class="s2">.&quot;</span>
+                <span class="p">)</span>
 
         <span class="c1">#</span>
         <span class="c1"># There might be more than one kernel directory</span>
@@ -648,8 +685,12 @@
                             <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">xml_model</span><span class="si">}</span><span class="s2">.&quot;</span>
                         <span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">xml_model</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_</span><span class="si">{</span><span class="n">short_version</span><span class="si">}</span><span class="s2">.sch&quot;</span>
-                    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- Schema XML Model (xml_model) not provided with configuration file. Set to:&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">xml_model</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_</span><span class="si">{</span><span class="n">short_version</span><span class="si">}</span><span class="s2">.sch&quot;</span>
+                    <span class="p">)</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                        <span class="s2">&quot;-- Schema XML Model (xml_model) not provided with configuration file. Set to:&quot;</span>
+                    <span class="p">)</span>
                     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">xml_model</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
                 <span class="c1">#</span>
@@ -668,9 +709,13 @@
                             <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">schema_location</span><span class="si">}</span><span class="s2">.&quot;</span>
                         <span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">schema_location</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;http://pds.nasa.gov/pds4/pds/v1 &quot;</span> \
-                                           <span class="sa">f</span><span class="s2">&quot;http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_</span><span class="si">{</span><span class="n">short_version</span><span class="si">}</span><span class="s2">.xsd&quot;</span>
-                    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- Schema Location (schema_location) not provided with configuration file. Set to:&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">schema_location</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;http://pds.nasa.gov/pds4/pds/v1 &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_</span><span class="si">{</span><span class="n">short_version</span><span class="si">}</span><span class="s2">.xsd&quot;</span>
+                    <span class="p">)</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                        <span class="s2">&quot;-- Schema Location (schema_location) not provided with configuration file. Set to:&quot;</span>
+                    <span class="p">)</span>
                     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">schema_location</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
             <span class="k">else</span><span class="p">:</span>
@@ -703,7 +748,7 @@
                 <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">x</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
                 <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">root_dir</span><span class="si">}</span><span class="s2">templates/*/&quot;</span><span class="p">)</span>
             <span class="p">]</span>
-            <span class="n">schemas</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;pds3&#39;</span><span class="p">)</span>
+            <span class="n">schemas</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s2">&quot;pds3&quot;</span><span class="p">)</span>
 
             <span class="n">schemas_eval</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">schema</span> <span class="ow">in</span> <span class="n">schemas</span><span class="p">:</span>
@@ -719,7 +764,9 @@
             <span class="c1">#</span>
             <span class="c1"># Reorder the schema list according to their value.</span>
             <span class="c1">#</span>
-            <span class="n">schemas_index</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">schemas_eval</span><span class="p">)),</span><span class="n">key</span><span class="o">=</span><span class="n">schemas_eval</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">,</span><span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">schemas_index</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+                <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">schemas_eval</span><span class="p">)),</span> <span class="n">key</span><span class="o">=</span><span class="n">schemas_eval</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
             <span class="n">schemas_eval</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">schemas</span> <span class="o">=</span> <span class="p">[</span><span class="n">schemas</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">schemas_index</span><span class="p">]</span>
 
@@ -743,7 +790,6 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">templates_directory</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">root_dir</span><span class="si">}</span><span class="s2">templates/pds3/&quot;</span>
 
-
         <span class="n">template_files</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;templates_directory&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span><span class="p">:</span>
 
@@ -751,7 +797,10 @@
 
             <span class="n">templates</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">templates_directory</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">template</span> <span class="ow">in</span> <span class="n">templates</span><span class="p">:</span>
-                <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">templates_directory</span><span class="p">,</span><span class="n">template</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">templates_directory</span><span class="p">)</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">templates_directory</span><span class="p">,</span> <span class="n">template</span><span class="p">),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">templates_directory</span><span class="p">,</span>
+                <span class="p">)</span>
                 <span class="n">template_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="n">template</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">config_schema</span> <span class="ow">in</span> <span class="n">schemas_eval</span><span class="p">:</span>
@@ -773,8 +822,7 @@
             <span class="p">]</span>
 
             <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span>
-                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">templates_directory</span><span class="si">}</span><span class="s2">/*&quot;</span><span class="p">)</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">templates_directory</span><span class="si">}</span><span class="s2">/*&quot;</span><span class="p">)</span>
             <span class="p">]</span>
 
             <span class="c1">#</span>
@@ -782,13 +830,20 @@
             <span class="c1">#</span>
             <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">labels_check</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">:</span>
-                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-- Template </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2"> has not been provided. &quot;</span>
-                                    <span class="sa">f</span><span class="s2">&quot;Using label from: &quot;</span><span class="p">)</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;-- Template </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2"> has not been provided. &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;Using label from: &quot;</span>
+                    <span class="p">)</span>
                     <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   </span><span class="si">{</span><span class="n">templates_directory</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                    <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">templates_directory</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="n">label</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="p">)</span>
+                    <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
+                        <span class="n">templates_directory</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="n">label</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span>
+                    <span class="p">)</span>
                     <span class="n">template_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="n">label</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">templates_directory</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="n">label</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="p">)</span>
+                    <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">templates_directory</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="n">label</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="p">,</span>
+                    <span class="p">)</span>
                     <span class="n">template_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="n">label</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1">#</span>
@@ -797,7 +852,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">templates_directory</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">root_dir</span><span class="si">}</span><span class="s2">templates/pds3&quot;</span>
             <span class="n">templates</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">templates_directory</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">template</span> <span class="ow">in</span> <span class="n">templates</span><span class="p">:</span>
-                <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">templates_directory</span><span class="p">,</span> <span class="n">template</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="p">)</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">templates_directory</span><span class="p">,</span> <span class="n">template</span><span class="p">),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="p">,</span>
+                <span class="p">)</span>
                 <span class="n">template_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="n">template</span><span class="p">)</span>
 
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-- Label templates directory: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">templates_directory</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -810,20 +868,26 @@
         <span class="c1"># to the templates. The default for the built-in templates is 2.</span>
         <span class="c1">#</span>
         <span class="n">xml_tab</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s1">&#39;4&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">xml_tag</span> <span class="o">=</span> <span class="s1">&#39;&lt;Identification_Area&gt;&#39;</span>
-                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">templates_directory</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s1">&#39;template_bundle.xml&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+                <span class="n">xml_tag</span> <span class="o">=</span> <span class="s2">&quot;&lt;Identification_Area&gt;&quot;</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">templates_directory</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">&quot;template_bundle.xml&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span>
+                <span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
                     <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">t</span><span class="p">:</span>
                         <span class="k">if</span> <span class="n">xml_tag</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
                             <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
                             <span class="n">xml_tab</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">xml_tag</span><span class="p">)</span>
             <span class="k">except</span><span class="p">:</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;-- XML Template not found to determine XML Tab. It has been set to 2.&quot;</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s2">&quot;-- XML Template not found to determine XML Tab. It has been set to 2.&quot;</span>
+                <span class="p">)</span>
                 <span class="n">xml_tab</span> <span class="o">=</span> <span class="mi">2</span>
 
             <span class="k">if</span> <span class="n">xml_tab</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;-- XML Template not useful to determine XML Tab. It has been set to 2.&quot;</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s2">&quot;-- XML Template not useful to determine XML Tab. It has been set to 2.&quot;</span>
+                <span class="p">)</span>
                 <span class="n">xml_tab</span> <span class="o">=</span> <span class="mi">2</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">xml_tab</span> <span class="o">=</span> <span class="n">xml_tab</span>
@@ -883,7 +947,10 @@
         <span class="c1"># If a readme file is present the readme section of the configuration</span>
         <span class="c1"># is irrelevant.</span>
         <span class="c1">#</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">bundle_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">mission_dir</span><span class="si">}</span><span class="s2">/readme.txt&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s1">&#39;4&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">bundle_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">mission_dir</span><span class="si">}</span><span class="s2">/readme.txt&quot;</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span>
+        <span class="p">):</span>
             <span class="c1">#</span>
             <span class="c1"># Check readme file inputs in configuration. Raise an error immediately</span>
             <span class="c1"># if things do not look good.</span>
@@ -916,10 +983,14 @@
                 <span class="n">kernel_pattern_is_upper</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="n">kernel_pattern_upper</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">kernel_pattern</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">kernel_pattern_is_upper</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;-- Kernel list configuration has entries with uppercase letters:&#39;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s2">&quot;-- Kernel list configuration has entries with uppercase letters:&quot;</span>
+            <span class="p">)</span>
             <span class="k">for</span> <span class="n">kernel_pattern</span> <span class="ow">in</span> <span class="n">kernel_pattern_upper</span><span class="p">:</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;      </span><span class="si">{</span><span class="n">kernel_pattern</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;   Uppercase letters in kernel names are HIGHLY discouraged. &#39;</span><span class="p">)</span></div>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;      </span><span class="si">{</span><span class="n">kernel_pattern</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s2">&quot;   Uppercase letters in kernel names are HIGHLY discouraged. &quot;</span>
+            <span class="p">)</span></div>
 
 <div class="viewcode-block" id="Setup.set_release"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.setup.Setup.set_release">[docs]</a>    <span class="k">def</span> <span class="nf">set_release</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Determine the Bundle release number.&quot;&quot;&quot;</span>
@@ -973,7 +1044,7 @@
                 <span class="n">increment</span> <span class="o">=</span> <span class="kc">True</span>
 
             <span class="k">except</span><span class="p">:</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s1">&#39;4&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span><span class="p">:</span>
                     <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                         <span class="s2">&quot;-- Bundle label not found. Checking previous kernel list.&quot;</span>
                     <span class="p">)</span>
@@ -1054,8 +1125,10 @@
         <span class="c1"># We inspect the kernels directory and the bundle directory.</span>
         <span class="c1">#</span>
         <span class="n">directories</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernels_directory</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s1">&#39;4&#39;</span><span class="p">:</span>
-            <span class="n">directories</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bundle_directory</span> <span class="o">+</span>  <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_spice/spice_kernels&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span><span class="p">:</span>
+            <span class="n">directories</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">bundle_directory</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_spice/spice_kernels&quot;</span>
+            <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">directories</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bundle_directory</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">volume_id</span><span class="si">}</span><span class="s2">/data&quot;</span><span class="p">)</span>
 
@@ -1259,23 +1332,18 @@
             <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">kerlist</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
-                    <span class="n">byproduct</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">clear</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.plan&#39;</span>
-                    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">&quot;-- Removing previous run by-product: </span><span class="si">{</span><span class="n">byproduct</span><span class="si">}</span><span class="s2">.&quot;</span>
-                    <span class="p">)</span>
+                    <span class="n">byproduct</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">clear</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.plan&quot;</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-- Removing previous run by-product: </span><span class="si">{</span><span class="n">byproduct</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
                     <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">path</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="n">byproduct</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
                 <span class="k">except</span><span class="p">:</span>
                     <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;     File </span><span class="si">{</span><span class="n">byproduct</span><span class="si">}</span><span class="s2"> not found.&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">plan</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
-                    <span class="n">byproduct</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">clear</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.kernel_list&#39;</span>
-                    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">&quot;-- Removing previous run by-product: </span><span class="si">{</span><span class="n">byproduct</span><span class="si">}</span><span class="s2">.&quot;</span>
-                    <span class="p">)</span>
+                    <span class="n">byproduct</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">clear</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.kernel_list&quot;</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-- Removing previous run by-product: </span><span class="si">{</span><span class="n">byproduct</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
                     <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">path</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="n">byproduct</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
                 <span class="k">except</span><span class="p">:</span>
                     <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;     File </span><span class="si">{</span><span class="n">byproduct</span><span class="si">}</span><span class="s2"> not found.&quot;</span><span class="p">)</span>
-
 
         <span class="k">else</span><span class="p">:</span>
             <span class="n">error_message</span><span class="p">(</span>
@@ -1366,36 +1434,44 @@
 <span class="sd">        will be successful.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">pds_schematron_location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xml_model</span>
-        <span class="n">pds_schematron</span> <span class="o">=</span> <span class="n">pds_schematron_location</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">pds_schematron</span> <span class="o">=</span> <span class="n">pds_schematron_location</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pds_schematron_location</span><span class="p">,</span> <span class="n">allow_redirects</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;-- PDS Validate Tool configuration file not written.&quot;</span><span class="p">)</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   PDS Schematron not reachable: </span><span class="si">{</span><span class="n">pds_schematron</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">return</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">pds_schematron</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">pds_schematron</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
 
         <span class="n">pds_schema_location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">schema_location</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-        <span class="n">pds_schema</span> <span class="o">=</span> <span class="n">pds_schema_location</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">pds_schema</span> <span class="o">=</span> <span class="n">pds_schema_location</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pds_schema_location</span><span class="p">,</span> <span class="n">allow_redirects</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;-- PDS Validate Tool configuration file not written.&quot;</span><span class="p">)</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   PDS Schema location not reachable: </span><span class="si">{</span><span class="n">pds_schema_location</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;   PDS Schema location not reachable: </span><span class="si">{</span><span class="n">pds_schema_location</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
             <span class="k">return</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">pds_schema</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">pds_schema</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
 
         <span class="n">filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">run_type</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="p">)</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">&quot;</span>
 
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">.validate_config&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">l</span><span class="p">:</span>
-            <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;# Run the PDS validate tool where the NPB working directory resides:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;# $ validate -t </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">bundle_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_spice &quot;</span>
-                    <span class="sa">f</span><span class="s2">&quot;-c </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">.validate_config &quot;</span>
-                    <span class="sa">f</span><span class="s2">&quot;-r </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">.validate_report</span><span class="se">\n</span><span class="s2">#</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+                <span class="s2">&quot;# Run the PDS validate tool where the NPB working directory resides:</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;# $ validate -t </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">bundle_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_spice &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;-c </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">.validate_config &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;-r </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">.validate_report</span><span class="se">\n</span><span class="s2">#</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
             <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;validate.schema = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">pds_schema</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;validate.schematron = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">pds_schematron</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;validate.schematron = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">pds_schematron</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
             <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;validate.verbose = 1</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;validate.skipContextValidation = true</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;validate.rule = pds4.bundle</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>

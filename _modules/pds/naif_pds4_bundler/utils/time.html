@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pds.naif_pds4_bundler.utils.time &mdash; NAIF PDS4 Bundler 1.2.2
+  <title>pds.naif_pds4_bundler.utils.time &mdash; NAIF PDS4 Bundler 1.3.0
  documentation</title>
   
 
@@ -63,7 +63,7 @@
             
             
               <div class="version">
-                1.2
+                1.3
               </div>
             
           
@@ -185,7 +185,7 @@
     <span class="k">return</span> <span class="n">time</span></div>
 
 
-<div class="viewcode-block" id="current_date"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.utils.html#pds.naif_pds4_bundler.utils.time.current_date">[docs]</a><span class="k">def</span> <span class="nf">current_date</span><span class="p">(</span><span class="n">date</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="current_date"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.utils.html#pds.naif_pds4_bundler.utils.time.current_date">[docs]</a><span class="k">def</span> <span class="nf">current_date</span><span class="p">(</span><span class="n">date</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Returns the current date in ``%Y-%m-%d`` format.</span>
 
 <span class="sd">    :param date: If present, forces a current date otherwise is obtained from</span>
@@ -355,7 +355,13 @@
     <span class="k">if</span> <span class="n">timsys</span> <span class="o">==</span> <span class="s2">&quot;SCLK&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">start_time</span><span class="p">,</span> <span class="n">stop_time</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">et_to_date</span><span class="p">(</span><span class="n">start_time</span><span class="p">,</span> <span class="n">stop_time</span><span class="p">,</span> <span class="n">date_format</span><span class="o">=</span><span class="n">date_format</span><span class="p">,</span> <span class="n">kernel_type</span><span class="o">=</span><span class="s2">&quot;ck&quot;</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span> <span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">et_to_date</span><span class="p">(</span>
+            <span class="n">start_time</span><span class="p">,</span>
+            <span class="n">stop_time</span><span class="p">,</span>
+            <span class="n">date_format</span><span class="o">=</span><span class="n">date_format</span><span class="p">,</span>
+            <span class="n">kernel_type</span><span class="o">=</span><span class="s2">&quot;ck&quot;</span><span class="p">,</span>
+            <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="pck_coverage"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.utils.html#pds.naif_pds4_bundler.utils.time.pck_coverage">[docs]</a><span class="k">def</span> <span class="nf">pck_coverage</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">date_format</span><span class="o">=</span><span class="s2">&quot;infomod2&quot;</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="s2">&quot;UTC&quot;</span><span class="p">):</span>
@@ -481,8 +487,7 @@
     <span class="k">return</span> <span class="n">et_to_date</span><span class="p">(</span><span class="n">start_time</span><span class="p">,</span> <span class="n">stop_time</span><span class="p">,</span> <span class="n">date_format</span><span class="o">=</span><span class="n">date_format</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="et_to_date"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.utils.html#pds.naif_pds4_bundler.utils.time.et_to_date">[docs]</a><span class="k">def</span> <span class="nf">et_to_date</span><span class="p">(</span><span class="n">beget</span><span class="p">,</span> <span class="n">endet</span><span class="p">,</span> <span class="n">date_format</span><span class="o">=</span><span class="s2">&quot;infomod2&quot;</span><span class="p">,</span> <span class="n">kernel_type</span><span class="o">=</span><span class="s2">&quot;Text&quot;</span><span class="p">,</span>
-               <span class="n">system</span><span class="o">=</span><span class="s2">&quot;UTC&quot;</span><span class="p">):</span>
+<div class="viewcode-block" id="et_to_date"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.utils.html#pds.naif_pds4_bundler.utils.time.et_to_date">[docs]</a><span class="k">def</span> <span class="nf">et_to_date</span><span class="p">(</span><span class="n">beget</span><span class="p">,</span> <span class="n">endet</span><span class="p">,</span> <span class="n">date_format</span><span class="o">=</span><span class="s2">&quot;infomod2&quot;</span><span class="p">,</span> <span class="n">kernel_type</span><span class="o">=</span><span class="s2">&quot;Text&quot;</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="s2">&quot;UTC&quot;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Convert ET (ephemeris time) to a Date Time string.</span>
 
 <span class="sd">    :param beget: Start ephemeris time (ET)</span>
@@ -518,20 +523,20 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;date_format argument is incorrect.&quot;</span><span class="p">)</span>
 
-    <span class="n">start_time_cal</span> <span class="o">=</span> <span class="p">(</span><span class="n">spiceypy</span><span class="o">.</span><span class="n">timout</span><span class="p">(</span><span class="n">beget</span><span class="p">,</span> <span class="n">time_format</span><span class="p">,</span> <span class="n">time_length</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;Z&quot;</span><span class="p">)</span>
-    <span class="n">stop_time_cal</span> <span class="o">=</span> <span class="p">(</span><span class="n">spiceypy</span><span class="o">.</span><span class="n">timout</span><span class="p">(</span><span class="n">endet</span><span class="p">,</span> <span class="n">time_format</span><span class="p">,</span> <span class="n">time_length</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;Z&quot;</span><span class="p">)</span>
+    <span class="n">start_time_cal</span> <span class="o">=</span> <span class="n">spiceypy</span><span class="o">.</span><span class="n">timout</span><span class="p">(</span><span class="n">beget</span><span class="p">,</span> <span class="n">time_format</span><span class="p">,</span> <span class="n">time_length</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;Z&quot;</span>
+    <span class="n">stop_time_cal</span> <span class="o">=</span> <span class="n">spiceypy</span><span class="o">.</span><span class="n">timout</span><span class="p">(</span><span class="n">endet</span><span class="p">,</span> <span class="n">time_format</span><span class="p">,</span> <span class="n">time_length</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;Z&quot;</span>
 
     <span class="c1">#</span>
     <span class="c1"># Inward seconds are only taken into account if the milliseconds are not</span>
     <span class="c1"># 000.</span>
     <span class="c1">#</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">date_format</span> <span class="o">==</span> <span class="s2">&quot;infomod2&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="s1">&#39;000Z&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">start_time_cal</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">date_format</span> <span class="o">==</span> <span class="s2">&quot;infomod2&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="s2">&quot;000Z&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">start_time_cal</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
         <span class="n">start_time_cal</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">spiceypy</span><span class="o">.</span><span class="n">timout</span><span class="p">(</span><span class="n">beget</span> <span class="o">+</span> <span class="n">inwards_seconds</span><span class="p">,</span> <span class="n">time_format</span><span class="p">,</span> <span class="n">time_length</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;Z&quot;</span>
+            <span class="n">spiceypy</span><span class="o">.</span><span class="n">timout</span><span class="p">(</span><span class="n">beget</span> <span class="o">+</span> <span class="n">inwards_seconds</span><span class="p">,</span> <span class="n">time_format</span><span class="p">,</span> <span class="n">time_length</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;Z&quot;</span>
         <span class="p">)</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">date_format</span> <span class="o">==</span> <span class="s2">&quot;infomod2&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="s1">&#39;000Z&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">stop_time_cal</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">date_format</span> <span class="o">==</span> <span class="s2">&quot;infomod2&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="s2">&quot;000Z&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">stop_time_cal</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
         <span class="n">stop_time_cal</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">spiceypy</span><span class="o">.</span><span class="n">timout</span><span class="p">(</span><span class="n">endet</span> <span class="o">-</span> <span class="n">inwards_seconds</span><span class="p">,</span> <span class="n">time_format</span><span class="p">,</span> <span class="n">time_length</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;Z&quot;</span>
+            <span class="n">spiceypy</span><span class="o">.</span><span class="n">timout</span><span class="p">(</span><span class="n">endet</span> <span class="o">-</span> <span class="n">inwards_seconds</span><span class="p">,</span> <span class="n">time_format</span><span class="p">,</span> <span class="n">time_length</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;Z&quot;</span>
         <span class="p">)</span>
 
     <span class="k">return</span> <span class="p">[</span><span class="n">start_time_cal</span><span class="p">,</span> <span class="n">stop_time_cal</span><span class="p">]</span></div>

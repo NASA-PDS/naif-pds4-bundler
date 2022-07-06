@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pds.naif_pds4_bundler.classes.product &mdash; NAIF PDS4 Bundler 1.2.2
+  <title>pds.naif_pds4_bundler.classes.product &mdash; NAIF PDS4 Bundler 1.3.0
  documentation</title>
   
 
@@ -63,7 +63,7 @@
             
             
               <div class="version">
-                1.2
+                1.3
               </div>
             
           
@@ -238,11 +238,13 @@
         <span class="c1">#</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">!=</span> <span class="s2">&quot;ChecksumProduct&quot;</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">checksum</span><span class="p">:</span>
-                <span class="n">checksum</span> <span class="o">=</span> <span class="n">checksum_from_registry</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">working_directory</span><span class="p">)</span>
+                <span class="n">checksum</span> <span class="o">=</span> <span class="n">checksum_from_registry</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">working_directory</span>
+                <span class="p">)</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">checksum</span><span class="p">:</span>
                     <span class="n">checksum</span> <span class="o">=</span> <span class="n">checksum_from_label</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">checksum</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+                <span class="n">checksum</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">checksum</span><span class="p">:</span>
                 <span class="n">checksum</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">md5</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
@@ -250,7 +252,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">checksum</span> <span class="o">=</span> <span class="n">checksum</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s1">&#39;4&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span><span class="p">:</span>
             <span class="n">archive_dir</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_spice/&quot;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">archive_dir</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">volume_id</span><span class="si">}</span><span class="s2">/&quot;</span>
@@ -335,6 +337,7 @@
 <span class="sd">                       the SPICE Kernel Product Object</span>
 <span class="sd">    :type collection: Object</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setup</span><span class="p">:</span> <span class="n">Setup</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">collection</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Constructor.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">collection</span> <span class="o">=</span> <span class="n">collection</span>
@@ -386,7 +389,7 @@
         <span class="c1">#</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-- Copy </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> to staging directory.&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">product_path</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
-            <span class="n">origin_path</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+            <span class="n">origin_path</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
             <span class="k">for</span> <span class="n">directory</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">kernels_directory</span><span class="p">:</span>
                 <span class="n">file</span> <span class="o">=</span> <span class="p">[</span>
                     <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">ker</span><span class="p">)</span>
@@ -421,7 +424,8 @@
                         <span class="bp">self</span><span class="o">.</span><span class="n">new_product</span> <span class="o">=</span> <span class="kc">True</span>
                         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                             <span class="sa">f</span><span class="s2">&quot;-- Mapping </span><span class="si">{</span><span class="n">product_mapping</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">)</span><span class="si">}</span><span class="s2"> &quot;</span>
-                            <span class="sa">f</span><span class="s2">&quot;with </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                            <span class="sa">f</span><span class="s2">&quot;with </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="p">)</span>
                         <span class="k">break</span>
 
             <span class="c1">#</span>
@@ -502,16 +506,16 @@
 <span class="sd">        :rtype: str</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">kernel_list_file</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">working_directory</span>
-                <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span>
-                <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">run_type</span><span class="si">}</span><span class="s2">_&quot;</span>
-                  <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">release</span><span class="p">)</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">.kernel_list&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">working_directory</span>
+            <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span>
+            <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">run_type</span><span class="si">}</span><span class="s2">_&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">release</span><span class="p">)</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">.kernel_list&quot;</span>
         <span class="p">)</span>
 
         <span class="n">get_token</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">description</span> <span class="o">=</span> <span class="kc">False</span>
 
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">kernel_list_file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">lst</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">kernel_list_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">lst</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lst</span><span class="p">:</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
                     <span class="n">get_token</span> <span class="o">=</span> <span class="kc">True</span>
@@ -537,16 +541,16 @@
 <span class="sd">        :rtype: str</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">kernel_list_file</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">working_directory</span>
-                <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span>
-                <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">run_type</span><span class="si">}</span><span class="s2">_&quot;</span>
-                  <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">release</span><span class="p">)</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">.kernel_list&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">working_directory</span>
+            <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span>
+            <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">run_type</span><span class="si">}</span><span class="s2">_&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">release</span><span class="p">)</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">.kernel_list&quot;</span>
         <span class="p">)</span>
 
         <span class="n">get_token</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">maklabel_options</span> <span class="o">=</span> <span class="kc">False</span>
 
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">kernel_list_file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">lst</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">kernel_list_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">lst</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lst</span><span class="p">:</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
                     <span class="n">get_token</span> <span class="o">=</span> <span class="kc">True</span>
@@ -598,7 +602,7 @@
                 <span class="c1"># For PDS3, do not consider the main body for coverage but all</span>
                 <span class="c1"># bodies, to follow MAKLABEL style.</span>
                 <span class="c1">#</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s1">&#39;3&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;3&quot;</span><span class="p">:</span>
                     <span class="n">main_name</span> <span class="o">=</span> <span class="kc">False</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">main_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">spice_name</span>
@@ -607,20 +611,20 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
                     <span class="n">main_name</span><span class="o">=</span><span class="n">main_name</span><span class="p">,</span>
                     <span class="n">date_format</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">date_format</span><span class="p">,</span>
-                    <span class="n">system</span><span class="o">=</span><span class="n">system</span>
+                    <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;ck&quot;</span><span class="p">:</span>
-                <span class="n">coverage</span> <span class="o">+=</span> <span class="n">ck_coverage</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
-                                        <span class="n">date_format</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">date_format</span><span class="p">,</span>
-                                        <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">)</span>
+                <span class="n">coverage</span> <span class="o">+=</span> <span class="n">ck_coverage</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">date_format</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">date_format</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span>
+                <span class="p">)</span>
             <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">extension</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;bpc&quot;</span><span class="p">:</span>
-                <span class="n">coverage</span> <span class="o">+=</span> <span class="n">pck_coverage</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
-                                         <span class="n">date_format</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">date_format</span><span class="p">,</span>
-                                         <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">)</span>
+                <span class="n">coverage</span> <span class="o">+=</span> <span class="n">pck_coverage</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">date_format</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">date_format</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span>
+                <span class="p">)</span>
             <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;dsk&quot;</span><span class="p">:</span>
-                <span class="n">coverage</span> <span class="o">+=</span> <span class="n">dsk_coverage</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
-                                         <span class="n">date_format</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">date_format</span><span class="p">,</span>
-                                         <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">)</span>
+                <span class="n">coverage</span> <span class="o">+=</span> <span class="n">dsk_coverage</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">date_format</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">date_format</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span>
+                <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;3&quot;</span><span class="p">:</span>
                     <span class="n">coverage</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&quot;N/A&quot;&#39;</span><span class="p">,</span> <span class="s1">&#39;&quot;N/A&quot;&#39;</span><span class="p">]</span>
@@ -644,7 +648,7 @@
 
         <span class="n">id_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">id_list</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">id_list</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">id_list</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="SpiceKernelProduct.ik_kernel_ids"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.product.SpiceKernelProduct.ik_kernel_ids">[docs]</a>    <span class="k">def</span> <span class="nf">ik_kernel_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Extract IDs from IK.</span>
@@ -672,7 +676,7 @@
 
         <span class="n">id_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">id_list</span><span class="p">))</span>
 
-        <span class="k">return</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">id_list</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">id_list</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="MetaKernelProduct"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.product.MetaKernelProduct">[docs]</a><span class="k">class</span> <span class="nc">MetaKernelProduct</span><span class="p">(</span><span class="n">Product</span><span class="p">):</span>
@@ -688,7 +692,13 @@
 <span class="sd">    :type user_input: bool</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setup</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">kernel</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">spice_kernels_collection</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">user_input</span><span class="p">:</span> <span class="nb">object</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">setup</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span>
+        <span class="n">kernel</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span>
+        <span class="n">spice_kernels_collection</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span>
+        <span class="n">user_input</span><span class="p">:</span> <span class="nb">object</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Constructor.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">user_input</span><span class="p">:</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-- Copy meta-kernel: </span><span class="si">{</span><span class="n">kernel</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -743,8 +753,7 @@
 
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;mk_setup&quot;</span><span class="p">):</span>
             <span class="n">error_message</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Meta-kernel </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> has not been matched &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;in configuration.&quot;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">&quot;Meta-kernel </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> has not been matched &quot;</span> <span class="sa">f</span><span class="s2">&quot;in configuration.&quot;</span><span class="p">,</span>
                 <span class="n">setup</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">,</span>
             <span class="p">)</span>
 
@@ -755,7 +764,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">KERNELPATH</span> <span class="o">=</span> <span class="s2">&quot;./data&quot;</span>
         <span class="k">elif</span> <span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">collection_path</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="n">setup</span><span class="o">.</span><span class="n">staging_directory</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">&quot;spice_kernels&quot;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span>
+                <span class="n">setup</span><span class="o">.</span><span class="n">staging_directory</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">&quot;spice_kernels&quot;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span>
             <span class="p">)</span>
             <span class="n">product_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">collection_path</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span>
 
@@ -887,7 +896,7 @@
             <span class="n">version_index</span> <span class="o">=</span> <span class="n">pattern</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;?&quot;</span><span class="p">)</span>
 
             <span class="n">version</span> <span class="o">=</span> <span class="n">versions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-            <span class="n">version</span> <span class="o">=</span> <span class="n">version</span><span class="p">[</span><span class="n">version_index</span><span class="p">:</span> <span class="n">version_index</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">key</span><span class="p">])]</span>
+            <span class="n">version</span> <span class="o">=</span> <span class="n">version</span><span class="p">[</span><span class="n">version_index</span> <span class="p">:</span> <span class="n">version_index</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">key</span><span class="p">])]</span>
             <span class="n">version</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">version</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
 
             <span class="k">if</span> <span class="n">version</span> <span class="o">==</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">):</span>
@@ -997,8 +1006,8 @@
                             <span class="c1">#    * defined in the configuration file.</span>
                             <span class="c1">#</span>
                             <span class="k">if</span> <span class="p">(</span>
-                                    <span class="s2">&quot;@pattern&quot;</span> <span class="ow">in</span> <span class="n">patterns</span><span class="p">[</span><span class="n">el</span><span class="p">]</span>
-                                    <span class="ow">and</span> <span class="n">patterns</span><span class="p">[</span><span class="n">el</span><span class="p">][</span><span class="s2">&quot;@pattern&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;kernel&quot;</span>
+                                <span class="s2">&quot;@pattern&quot;</span> <span class="ow">in</span> <span class="n">patterns</span><span class="p">[</span><span class="n">el</span><span class="p">]</span>
+                                <span class="ow">and</span> <span class="n">patterns</span><span class="p">[</span><span class="n">el</span><span class="p">][</span><span class="s2">&quot;@pattern&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;kernel&quot;</span>
                             <span class="p">):</span>
                                 <span class="c1">#</span>
                                 <span class="c1"># When extracted from the filename, the</span>
@@ -1035,8 +1044,8 @@
                                 <span class="c1">#</span>
                                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">indexes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
                                     <span class="n">value</span> <span class="o">=</span> <span class="n">kernel</span><span class="p">[</span>
-                                            <span class="n">indexes</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="nb">len</span><span class="p">(</span><span class="n">kernel</span><span class="p">)</span> <span class="o">-</span> <span class="n">indexes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-                                            <span class="p">]</span>
+                                        <span class="n">indexes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">kernel</span><span class="p">)</span> <span class="o">-</span> <span class="n">indexes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                                    <span class="p">]</span>
                                     <span class="k">if</span> <span class="n">patterns</span><span class="p">[</span><span class="n">el</span><span class="p">][</span><span class="s2">&quot;@pattern&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">isupper</span><span class="p">():</span>
                                         <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
                                         <span class="c1">#</span>
@@ -1098,7 +1107,9 @@
         <span class="c1"># Obtain meta-kernel grammar from configuration.</span>
         <span class="c1">#</span>
         <span class="k">if</span> <span class="s2">&quot;grammar&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mk_setup</span><span class="p">:</span>
-            <span class="n">error_message</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Meta-kernel grammar not defined in configuration for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">error_message</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Meta-kernel grammar not defined in configuration for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
         <span class="n">kernel_grammar_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mk_setup</span><span class="p">[</span><span class="s2">&quot;grammar&quot;</span><span class="p">][</span><span class="s2">&quot;pattern&quot;</span><span class="p">]</span>
 
         <span class="c1">#</span>
@@ -1144,7 +1155,9 @@
                 <span class="c1">#</span>
                 <span class="n">paths</span> <span class="o">=</span> <span class="p">[]</span>
                 <span class="n">mks</span> <span class="o">=</span> <span class="p">[]</span>
-                <span class="k">if</span> <span class="n">kernel_grammar</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">type_to_extension</span><span class="p">(</span><span class="n">kernel_type</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">kernel_grammar</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">type_to_extension</span><span class="p">(</span>
+                    <span class="n">kernel_type</span>
+                <span class="p">):</span>
                     <span class="k">try</span><span class="p">:</span>
                         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;3&quot;</span><span class="p">:</span>
                             <span class="n">paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">staging_directory</span> <span class="o">+</span> <span class="s2">&quot;/DATA&quot;</span><span class="p">)</span>
@@ -1288,10 +1301,10 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">metakernel_dictionary</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                     <span class="k">if</span> <span class="p">(</span>
-                            <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
-                            <span class="ow">and</span> <span class="n">key</span><span class="o">.</span><span class="n">isupper</span><span class="p">()</span>
-                            <span class="ow">and</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">line</span>
-                            <span class="ow">and</span> <span class="s2">&quot;$&quot;</span> <span class="ow">in</span> <span class="n">line</span>
+                        <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+                        <span class="ow">and</span> <span class="n">key</span><span class="o">.</span><span class="n">isupper</span><span class="p">()</span>
+                        <span class="ow">and</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">line</span>
+                        <span class="ow">and</span> <span class="s2">&quot;$&quot;</span> <span class="ow">in</span> <span class="n">line</span>
                     <span class="p">):</span>
                         <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;$&quot;</span> <span class="o">+</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
                 <span class="n">curated_desc</span> <span class="o">+=</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">+</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">+</span> <span class="n">eol</span>
@@ -1307,10 +1320,10 @@
                     <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
                     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">metakernel_dictionary</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                         <span class="k">if</span> <span class="p">(</span>
-                                <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
-                                <span class="ow">and</span> <span class="n">key</span><span class="o">.</span><span class="n">isupper</span><span class="p">()</span>
-                                <span class="ow">and</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">line</span>
-                                <span class="ow">and</span> <span class="s2">&quot;$&quot;</span> <span class="ow">in</span> <span class="n">line</span>
+                            <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+                            <span class="ow">and</span> <span class="n">key</span><span class="o">.</span><span class="n">isupper</span><span class="p">()</span>
+                            <span class="ow">and</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">line</span>
+                            <span class="ow">and</span> <span class="s2">&quot;$&quot;</span> <span class="ow">in</span> <span class="n">line</span>
                         <span class="p">):</span>
                             <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;$&quot;</span> <span class="o">+</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
                     <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span> <span class="o">+</span> <span class="n">eol</span><span class="p">)</span>
@@ -1332,7 +1345,9 @@
             <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;mk_setup&quot;</span><span class="p">):</span>
                 <span class="k">if</span> <span class="s2">&quot;interrupt_to_update&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mk_setup</span><span class="p">:</span>
                     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mk_setup</span><span class="p">[</span><span class="s2">&quot;interrupt_to_update&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span><span class="p">:</span>
-                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;    * The meta-kernel might need to be updated. You can:&quot;</span><span class="p">)</span>
+                        <span class="nb">print</span><span class="p">(</span>
+                            <span class="s2">&quot;    * The meta-kernel might need to be updated. You can:&quot;</span>
+                        <span class="p">)</span>
                         <span class="nb">print</span><span class="p">(</span>
                             <span class="s1">&#39;        - Type &quot;vi&quot; and press ENTER to edit the &#39;</span>
                             <span class="s2">&quot;file with the VI text editor.&quot;</span>
@@ -1349,7 +1364,9 @@
                             <span class="k">try</span><span class="p">:</span>
                                 <span class="n">cmd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;EDITOR&quot;</span><span class="p">,</span> <span class="s2">&quot;vi&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span>
                                 <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-                                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;-- Meta-kernel edited with Vi by the user.&quot;</span><span class="p">)</span>
+                                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                                    <span class="s2">&quot;-- Meta-kernel edited with Vi by the user.&quot;</span>
+                                <span class="p">)</span>
                             <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
                                 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Vi text editor is not available.&quot;</span><span class="p">)</span>
                                 <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;&gt;&gt; Press Enter to continue... &quot;</span><span class="p">)</span>
@@ -1437,9 +1454,9 @@
 
         <span class="n">rel_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_spice/&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">path</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">bundle_directory</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_spice&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_spice/&quot;</span>
-                <span class="o">+</span> <span class="n">rel_path</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">bundle_directory</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_spice&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_spice/&quot;</span>
+            <span class="o">+</span> <span class="n">rel_path</span>
         <span class="p">)</span>
 
         <span class="n">cwd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
@@ -1604,11 +1621,16 @@
                 <span class="n">finish_times</span> <span class="o">=</span> <span class="p">[</span><span class="n">et_year_stop</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mk_sets_coverage</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- Meta-kernel will be used to determine SPICE &quot;</span>
-                         <span class="s2">&quot;Collection coverage.&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s2">&quot;-- Meta-kernel will be used to determine SPICE &quot;</span> <span class="s2">&quot;Collection coverage.&quot;</span>
+            <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">((</span><span class="s2">&quot;-- Meta-kernel will not be used to determine &quot;</span>
-                             <span class="s2">&quot;SPICE Collection coverage.&quot;</span><span class="p">))</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="p">(</span>
+                    <span class="s2">&quot;-- Meta-kernel will not be used to determine &quot;</span>
+                    <span class="s2">&quot;SPICE Collection coverage.&quot;</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
 
         <span class="k">try</span><span class="p">:</span>
 
@@ -1632,14 +1654,18 @@
                 <span class="n">et_incremn_finish</span> <span class="o">=</span> <span class="n">spiceypy</span><span class="o">.</span><span class="n">utc2et</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">increment_finish</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
                 <span class="n">et_year_start</span> <span class="o">=</span> <span class="n">spiceypy</span><span class="o">.</span><span class="n">utc2et</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">year</span><span class="si">}</span><span class="s2">-01-01T00:00:00&quot;</span><span class="p">)</span>
 
-                <span class="k">if</span> <span class="n">et_year_start</span> <span class="o">&gt;</span> <span class="n">et_mission_start</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">year</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_start</span><span class="p">[:</span><span class="mi">4</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">et_year_start</span> <span class="o">&gt;</span> <span class="n">et_mission_start</span> <span class="ow">and</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">year</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_start</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span>
+                <span class="p">):</span>
                     <span class="n">start_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_start</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">start_time</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">year</span><span class="si">}</span><span class="s2">-01-01T00:00:00Z&quot;</span>
 
                 <span class="n">et_year_stop</span> <span class="o">=</span> <span class="n">spiceypy</span><span class="o">.</span><span class="n">utc2et</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">year</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="si">}</span><span class="s2">-01-01T00:00:00&quot;</span><span class="p">)</span>
 
-                <span class="k">if</span> <span class="n">et_incremn_finish</span> <span class="o">&lt;</span> <span class="n">et_year_stop</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">year</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">increment_finish</span><span class="p">[:</span><span class="mi">4</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">et_incremn_finish</span> <span class="o">&lt;</span> <span class="n">et_year_stop</span> <span class="ow">and</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">year</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">increment_finish</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span>
+                <span class="p">):</span>
                     <span class="n">stop_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">increment_finish</span>
                 <span class="k">elif</span> <span class="n">et_mission_finish</span> <span class="o">&lt;</span> <span class="n">et_year_stop</span><span class="p">:</span>
                     <span class="n">stop_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_finish</span>
@@ -1690,14 +1716,16 @@
                     <span class="c1">#</span>
                     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">increment_start</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span> <span class="o">==</span> <span class="n">start_time</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]:</span>
                         <span class="n">start_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">increment_start</span>
-                        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-- Coverage start time corrected with &quot;</span>
-                                        <span class="sa">f</span><span class="s2">&quot;increment start from configuration file to: </span><span class="si">{</span><span class="n">start_time</span><span class="si">}</span><span class="s2">&quot;</span>
-                                        <span class="p">)</span>
+                        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;-- Coverage start time corrected with &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;increment start from configuration file to: </span><span class="si">{</span><span class="n">start_time</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">start_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">increment_start</span>
-                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-- Coverage start time corrected with &quot;</span>
-                                    <span class="sa">f</span><span class="s2">&quot;increment start from configuration file to: </span><span class="si">{</span><span class="n">start_time</span><span class="si">}</span><span class="s2">&quot;</span>
-                                    <span class="p">)</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;-- Coverage start time corrected with &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;increment start from configuration file to: </span><span class="si">{</span><span class="n">start_time</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
 
             <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">,</span> <span class="s2">&quot;increment_finish&quot;</span><span class="p">):</span>
                 <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;year&quot;</span><span class="p">):</span>
@@ -1707,12 +1735,16 @@
                     <span class="c1">#</span>
                     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">increment_finish</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span> <span class="o">==</span> <span class="n">stop_time</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]:</span>
                         <span class="n">stop_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">increment_finish</span>
-                        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-- Coverage finish time corrected with &quot;</span>
-                                        <span class="sa">f</span><span class="s2">&quot;increment finish from configuration file to: </span><span class="si">{</span><span class="n">stop_time</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;-- Coverage finish time corrected with &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;increment finish from configuration file to: </span><span class="si">{</span><span class="n">stop_time</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">stop_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">increment_finish</span>
-                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-- Coverage finish time corrected with &quot;</span>
-                                    <span class="sa">f</span><span class="s2">&quot;increment finish from configuration file to: </span><span class="si">{</span><span class="n">stop_time</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;-- Coverage finish time corrected with &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;increment finish from configuration file to: </span><span class="si">{</span><span class="n">stop_time</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
 
             <span class="c1">#</span>
             <span class="c1"># Re-format the time accordingly. The &#39;Z&#39; is removed from the UTC</span>
@@ -1722,10 +1754,12 @@
                 <span class="n">system</span> <span class="o">=</span> <span class="s2">&quot;TDB&quot;</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">system</span> <span class="o">=</span> <span class="s2">&quot;UTC&quot;</span>
-            <span class="p">(</span><span class="n">start_time</span><span class="p">,</span> <span class="n">stop_time</span><span class="p">)</span> <span class="o">=</span> <span class="n">et_to_date</span><span class="p">(</span><span class="n">spiceypy</span><span class="o">.</span><span class="n">utc2et</span><span class="p">(</span><span class="n">start_time</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span>
-                                                 <span class="n">spiceypy</span><span class="o">.</span><span class="n">utc2et</span><span class="p">(</span><span class="n">stop_time</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span>
-                                                 <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">date_format</span><span class="p">,</span>
-                                                 <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">)</span>
+            <span class="p">(</span><span class="n">start_time</span><span class="p">,</span> <span class="n">stop_time</span><span class="p">)</span> <span class="o">=</span> <span class="n">et_to_date</span><span class="p">(</span>
+                <span class="n">spiceypy</span><span class="o">.</span><span class="n">utc2et</span><span class="p">(</span><span class="n">start_time</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span>
+                <span class="n">spiceypy</span><span class="o">.</span><span class="n">utc2et</span><span class="p">(</span><span class="n">stop_time</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">date_format</span><span class="p">,</span>
+                <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
+            <span class="p">)</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span> <span class="o">=</span> <span class="n">start_time</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">stop_time</span> <span class="o">=</span> <span class="n">stop_time</span></div></div>
@@ -1744,8 +1778,13 @@
 <span class="sd">    :type spice_kernels_collection: object</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setup</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">collection</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span>
-                 <span class="n">spice_kernels_collection</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">setup</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span>
+        <span class="n">collection</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span>
+        <span class="n">spice_kernels_collection</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Constructor.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">collection</span> <span class="o">=</span> <span class="n">collection</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">kernels_collection</span> <span class="o">=</span> <span class="n">spice_kernels_collection</span>
@@ -1777,7 +1816,7 @@
                 <span class="n">setup</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">,</span>
             <span class="p">)</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s1">&#39;4&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">set_product_lid</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">set_product_vid</span><span class="p">()</span>
 
@@ -1803,10 +1842,12 @@
         <span class="c1">#</span>
         <span class="c1"># Add CRs to the ORBNUM file. Need reveiw for PDS3.</span>
         <span class="c1">#</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s1">&#39;4&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">check_eol</span><span class="p">(</span><span class="n">product_path</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">eol</span><span class="p">):</span>
                 <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- Adding CRLF to ORBNUM file.&quot;</span><span class="p">)</span>
-                <span class="n">add_crs_to_file</span><span class="p">(</span><span class="n">product_path</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">eol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">)</span>
+                <span class="n">add_crs_to_file</span><span class="p">(</span>
+                    <span class="n">product_path</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">eol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span>
+                <span class="p">)</span>
 
         <span class="c1">#</span>
         <span class="c1"># We update the path after having copied the kernel.</span>
@@ -1816,7 +1857,7 @@
         <span class="c1">#</span>
         <span class="c1"># We obtain the parameters required to fill the label.</span>
         <span class="c1">#</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s1">&#39;4&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span><span class="p">:</span>
             <span class="n">header</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_header</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">set_event_detection_key</span><span class="p">(</span><span class="n">header</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">header_length</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_header_length</span><span class="p">()</span>
@@ -1850,7 +1891,7 @@
         <span class="c1">#</span>
         <span class="c1"># The kernel is labeled.</span>
         <span class="c1">#</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s1">&#39;4&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span><span class="p">:</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-- Labeling </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">OrbnumFilePDS4Label</span><span class="p">(</span><span class="n">setup</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
 
@@ -2087,7 +2128,7 @@
                     <span class="c1">#</span>
                     <span class="k">if</span> <span class="n">lines</span> <span class="o">&gt;</span> <span class="n">header_start</span><span class="p">:</span>
                         <span class="k">if</span> <span class="n">previous_orbit_number</span> <span class="ow">and</span> <span class="p">(</span>
-                                <span class="n">orbit_number</span> <span class="o">-</span> <span class="n">previous_orbit_number</span> <span class="o">!=</span> <span class="mi">1</span>
+                            <span class="n">orbit_number</span> <span class="o">-</span> <span class="n">previous_orbit_number</span> <span class="o">!=</span> <span class="mi">1</span>
                         <span class="p">):</span>
                             <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                                 <span class="sa">f</span><span class="s2">&quot;-- Orbit number &quot;</span>
@@ -2100,7 +2141,7 @@
                                 <span class="n">setup</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">,</span>
                             <span class="p">)</span>
                         <span class="k">elif</span> <span class="p">(</span>
-                                <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">and</span> <span class="n">records_length</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">record_fixed_length</span>
+                            <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">and</span> <span class="n">records_length</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">record_fixed_length</span>
                         <span class="p">):</span>
                             <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                                 <span class="sa">f</span><span class="s2">&quot;-- Orbit number </span><span class="si">{</span><span class="n">orbit_number</span><span class="si">}</span><span class="s2"> &quot;</span>
@@ -2413,31 +2454,31 @@
                 <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ASCII_Integer&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;length&quot;</span><span class="p">:</span> <span class="s2">&quot;5&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Number that provides an incremental orbit &quot;</span>
-                               <span class="s2">&quot;count determined by the $EVENT event.&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;count determined by the $EVENT event.&quot;</span><span class="p">,</span>
             <span class="p">},</span>
             <span class="s2">&quot;Event UTC&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ASCII_String&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;location&quot;</span><span class="p">:</span> <span class="s2">&quot;8&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;length&quot;</span><span class="p">:</span> <span class="s2">&quot;20&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;UTC time of the $EVENT event that &quot;</span>
-                               <span class="s2">&quot;signifies the start of an orbit.&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;signifies the start of an orbit.&quot;</span><span class="p">,</span>
             <span class="p">},</span>
             <span class="s2">&quot;Desc-Node UTC&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ASCII_String&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;location&quot;</span><span class="p">:</span> <span class="s2">&quot;8&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;length&quot;</span><span class="p">:</span> <span class="s2">&quot;20&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;UTC time of the $EVENT event that &quot;</span>
-                               <span class="s2">&quot;signifies the start of an orbit.&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;signifies the start of an orbit.&quot;</span><span class="p">,</span>
             <span class="p">},</span>
             <span class="s2">&quot;Event SCLK&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ASCII_String&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;SCLK time of the $EVENT event that &quot;</span>
-                               <span class="s2">&quot;signifies the start of an orbit.&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;signifies the start of an orbit.&quot;</span><span class="p">,</span>
             <span class="p">},</span>
             <span class="s2">&quot;Node SCLK&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ASCII_String&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;SCLK time of the $EVENT event that &quot;</span>
-                               <span class="s2">&quot;signifies the start of an orbit.&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;signifies the start of an orbit.&quot;</span><span class="p">,</span>
             <span class="p">},</span>
             <span class="s2">&quot;OP-Event UTC&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ASCII_String&quot;</span><span class="p">,</span>
@@ -2452,68 +2493,68 @@
             <span class="s2">&quot;SolLon&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ASCII_Real&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Sub-solar planetodetic longitude at the &quot;</span>
-                               <span class="s2">&quot;$EVENT event time in the $FRAME.&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;$EVENT event time in the $FRAME.&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;deg&quot;</span><span class="p">,</span>
             <span class="p">},</span>
             <span class="s2">&quot;SolLat&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ASCII_Real&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Sub-solar planetodetic latitude at the &quot;</span>
-                               <span class="s2">&quot;$EVENT event time in the $FRAME.&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;$EVENT event time in the $FRAME.&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;deg&quot;</span><span class="p">,</span>
             <span class="p">},</span>
             <span class="s2">&quot;SC Lon&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ASCII_Real&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Sub-target planetodetic longitude at the &quot;</span>
-                               <span class="s2">&quot;$EVENT event time in the $FRAME.&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;$EVENT event time in the $FRAME.&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;deg&quot;</span><span class="p">,</span>
             <span class="p">},</span>
             <span class="s2">&quot;SC Lat&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ASCII_Real&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Sub-target planetodetic latitude at at the &quot;</span>
-                               <span class="s2">&quot;$EVENT event time in the $FRAME.&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;$EVENT event time in the $FRAME.&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;deg&quot;</span><span class="p">,</span>
             <span class="p">},</span>
             <span class="s2">&quot;Alt&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ASCII_Real&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Altitude of the target above the observer &quot;</span>
-                               <span class="s2">&quot;body at the $EVENT event time relative to&quot;</span>
-                               <span class="s2">&quot; the $TARGET ellipsoid.&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;body at the $EVENT event time relative to&quot;</span>
+                <span class="s2">&quot; the $TARGET ellipsoid.&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;km&quot;</span><span class="p">,</span>
             <span class="p">},</span>
             <span class="s2">&quot;Inc&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ASCII_Real&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Inclination of the vehicle orbit plane at &quot;</span>
-                               <span class="s2">&quot;event time.&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;event time.&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;km&quot;</span><span class="p">,</span>
             <span class="p">},</span>
             <span class="s2">&quot;Ecc&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ASCII_Real&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Eccentricity of the target orbit about &quot;</span>
-                               <span class="s2">&quot;the primary body at the $EVENT event time.&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;the primary body at the $EVENT event time.&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;deg&quot;</span><span class="p">,</span>
             <span class="p">},</span>
             <span class="s2">&quot;LonNode&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ASCII_Real&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Longitude of the ascending node of the&quot;</span>
-                               <span class="s2">&quot; orbit plane at the $EVENT event time.&quot;</span><span class="p">,</span>
+                <span class="s2">&quot; orbit plane at the $EVENT event time.&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;deg&quot;</span><span class="p">,</span>
             <span class="p">},</span>
             <span class="s2">&quot;Arg Per&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ASCII_Real&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Argument of periapsis of the orbit plane at &quot;</span>
-                               <span class="s2">&quot;the $EVENT event time.&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;the $EVENT event time.&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;deg&quot;</span><span class="p">,</span>
             <span class="p">},</span>
             <span class="s2">&quot;Sol Dist&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ASCII_Real&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Solar distance from target at the $EVENT &quot;</span>
-                               <span class="s2">&quot;event time.&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;event time.&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;km&quot;</span><span class="p">,</span>
             <span class="p">},</span>
             <span class="s2">&quot;Semi Axis&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ASCII_Real&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Semi-major axis of the target&#39;s orbit at&quot;</span>
-                               <span class="s2">&quot; the $EVENT event time.&quot;</span><span class="p">,</span>
+                <span class="s2">&quot; the $EVENT event time.&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;km&quot;</span><span class="p">,</span>
             <span class="p">},</span>
         <span class="p">}</span>
@@ -2591,22 +2632,22 @@
             <span class="c1"># Write the format</span>
             <span class="c1">#</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">information_model_float</span> <span class="o">&gt;=</span> <span class="mf">1007000000.0</span><span class="p">:</span>
-                <span class="nb">format</span> <span class="o">=</span> <span class="s1">&#39;%&#39;</span> <span class="o">+</span> <span class="n">length</span>
+                <span class="nb">format</span> <span class="o">=</span> <span class="s2">&quot;%&quot;</span> <span class="o">+</span> <span class="n">length</span>
                 <span class="k">if</span> <span class="s2">&quot;ASCII_Real&quot;</span> <span class="ow">in</span> <span class="n">params_template</span><span class="p">[</span><span class="n">param</span><span class="p">][</span><span class="s2">&quot;type&quot;</span><span class="p">]:</span>
-                    <span class="nb">format</span> <span class="o">+=</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="n">param_length</span> <span class="o">+</span> <span class="s1">&#39;f&#39;</span>
+                    <span class="nb">format</span> <span class="o">+=</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="n">param_length</span> <span class="o">+</span> <span class="s2">&quot;f&quot;</span>
                 <span class="k">elif</span> <span class="s2">&quot;ASCII_String&quot;</span> <span class="ow">in</span> <span class="n">params_template</span><span class="p">[</span><span class="n">param</span><span class="p">][</span><span class="s2">&quot;type&quot;</span><span class="p">]:</span>
-                    <span class="nb">format</span> <span class="o">+=</span> <span class="s1">&#39;s&#39;</span>
+                    <span class="nb">format</span> <span class="o">+=</span> <span class="s2">&quot;s&quot;</span>
                 <span class="k">elif</span> <span class="s2">&quot;ASCII_Integer&quot;</span> <span class="ow">in</span> <span class="n">params_template</span><span class="p">[</span><span class="n">param</span><span class="p">][</span><span class="s2">&quot;type&quot;</span><span class="p">]:</span>
-                    <span class="nb">format</span> <span class="o">+=</span> <span class="s1">&#39;d&#39;</span>
+                    <span class="nb">format</span> <span class="o">+=</span> <span class="s2">&quot;d&quot;</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">error_message</span><span class="p">(</span><span class="s2">&quot;Parameter type for ORBNUM file is incorrect.&quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">if</span> <span class="s2">&quot;ASCII_Real&quot;</span> <span class="ow">in</span> <span class="n">params_template</span><span class="p">[</span><span class="n">param</span><span class="p">][</span><span class="s2">&quot;type&quot;</span><span class="p">]:</span>
-                    <span class="nb">format</span> <span class="o">=</span> <span class="s1">&#39;F&#39;</span> <span class="o">+</span> <span class="n">length</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="n">param_length</span>
+                    <span class="nb">format</span> <span class="o">=</span> <span class="s2">&quot;F&quot;</span> <span class="o">+</span> <span class="n">length</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="n">param_length</span>
                 <span class="k">elif</span> <span class="s2">&quot;ASCII_String&quot;</span> <span class="ow">in</span> <span class="n">params_template</span><span class="p">[</span><span class="n">param</span><span class="p">][</span><span class="s2">&quot;type&quot;</span><span class="p">]:</span>
-                    <span class="nb">format</span> <span class="o">=</span> <span class="s1">&#39;A&#39;</span> <span class="o">+</span> <span class="n">length</span>
+                    <span class="nb">format</span> <span class="o">=</span> <span class="s2">&quot;A&quot;</span> <span class="o">+</span> <span class="n">length</span>
                 <span class="k">elif</span> <span class="s2">&quot;ASCII_Integer&quot;</span> <span class="ow">in</span> <span class="n">params_template</span><span class="p">[</span><span class="n">param</span><span class="p">][</span><span class="s2">&quot;type&quot;</span><span class="p">]:</span>
-                    <span class="nb">format</span> <span class="o">=</span> <span class="s1">&#39;I&#39;</span> <span class="o">+</span> <span class="n">length</span>
+                    <span class="nb">format</span> <span class="o">=</span> <span class="s2">&quot;I&quot;</span> <span class="o">+</span> <span class="n">length</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">error_message</span><span class="p">(</span><span class="s2">&quot;Parameter type for ORBNUM file is incorrect.&quot;</span><span class="p">)</span>
 
@@ -3002,7 +3043,7 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setup</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">collection</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Constructor.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">collection</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s1">&#39;miscellaneous&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">collection</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s2">&quot;miscellaneous&quot;</span><span class="p">:</span>
             <span class="n">line</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Step </span><span class="si">{</span><span class="n">setup</span><span class="o">.</span><span class="n">step</span><span class="si">}</span><span class="s2"> - Generation of </span><span class="si">{</span><span class="n">collection</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> collection&quot;</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
@@ -3075,7 +3116,7 @@
 
             <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;collection_</span><span class="si">{</span><span class="n">collection</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">_inventory_v</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="si">:</span><span class="s2">03</span><span class="si">}</span><span class="s2">.csv&quot;</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="n">setup</span><span class="o">.</span><span class="n">staging_directory</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="n">collection</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+                <span class="n">setup</span><span class="o">.</span><span class="n">staging_directory</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="n">collection</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
             <span class="p">)</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">set_product_lid</span><span class="p">()</span>
@@ -3091,18 +3132,24 @@
 
         <span class="k">if</span> <span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">InventoryPDS4Label</span><span class="p">(</span><span class="n">setup</span><span class="p">,</span> <span class="n">collection</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s1">&#39;3&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;3&quot;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">InventoryPDS3Label</span><span class="p">(</span><span class="n">setup</span><span class="p">,</span> <span class="n">collection</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
 
             <span class="c1">#</span>
             <span class="c1"># Generate dsindex files.</span>
             <span class="c1">#</span>
-            <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">staging_directory</span> <span class="o">+</span> <span class="s1">&#39;/../dsindex.tab&#39;</span><span class="p">)</span>
-            <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.tab&#39;</span><span class="p">,</span> <span class="s1">&#39;.lbl&#39;</span><span class="p">),</span>
-                         <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">staging_directory</span> <span class="o">+</span> <span class="s1">&#39;/../dsindex.lbl&#39;</span><span class="p">)</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">staging_directory</span> <span class="o">+</span> <span class="s2">&quot;/../dsindex.tab&quot;</span><span class="p">)</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.tab&quot;</span><span class="p">,</span> <span class="s2">&quot;.lbl&quot;</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">staging_directory</span> <span class="o">+</span> <span class="s2">&quot;/../dsindex.lbl&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
 
-            <span class="n">replace_string_in_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">staging_directory</span> <span class="o">+</span> <span class="s1">&#39;/../dsindex.lbl&#39;</span><span class="p">,</span>
-                                   <span class="s1">&#39;&quot;INDEX.TAB&quot;&#39;</span><span class="p">,</span> <span class="s1">&#39;&quot;DSINDEX.TAB&quot;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">)</span>
+            <span class="n">replace_string_in_file</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">staging_directory</span> <span class="o">+</span> <span class="s2">&quot;/../dsindex.lbl&quot;</span><span class="p">,</span>
+                <span class="s1">&#39;&quot;INDEX.TAB&quot;&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;&quot;DSINDEX.TAB&quot;&#39;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">,</span>
+            <span class="p">)</span>
 
 <div class="viewcode-block" id="InventoryProduct.set_product_lid"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.product.InventoryProduct.set_product_lid">[docs]</a>    <span class="k">def</span> <span class="nf">set_product_lid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Set the Product LID.&quot;&quot;&quot;</span>
@@ -3179,7 +3226,9 @@
         <span class="n">column_length</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">increment</span><span class="p">:</span>
-            <span class="n">existing_index</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">bundle_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">volume_id</span><span class="si">}</span><span class="s2">/index/index.tab&quot;</span>
+            <span class="n">existing_index</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">bundle_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">volume_id</span><span class="si">}</span><span class="s2">/index/index.tab&quot;</span>
+            <span class="p">)</span>
 
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">existing_index</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
@@ -3211,17 +3260,18 @@
 
         <span class="k">for</span> <span class="n">kernel</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">product</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">kernel</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">!=</span> <span class="s2">&quot;MetaKernelProduct&quot;</span><span class="p">:</span>
-                <span class="n">index_row</span> <span class="o">=</span> <span class="p">[</span><span class="n">kernel</span><span class="o">.</span><span class="n">start_time</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;Z&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
-                             <span class="n">kernel</span><span class="o">.</span><span class="n">stop_time</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;Z&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
-                             <span class="s1">&#39;data/&#39;</span> <span class="o">+</span> <span class="n">kernel</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/data/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.lbl&#39;</span><span class="p">,</span>
-                             <span class="bp">self</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">list</span><span class="o">.</span><span class="n">DATA_SET_ID</span><span class="p">,</span>
-                             <span class="n">kernel</span><span class="o">.</span><span class="n">creation_time</span><span class="p">,</span>
-                             <span class="bp">self</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">list</span><span class="o">.</span><span class="n">RELID</span><span class="p">,</span>
-                             <span class="bp">self</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">list</span><span class="o">.</span><span class="n">RELDATE</span><span class="p">,</span>
-                             <span class="n">kernel</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span>
-                             <span class="n">kernel</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-                             <span class="bp">self</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">list</span><span class="o">.</span><span class="n">VOLID</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-                             <span class="p">]</span>
+                <span class="n">index_row</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">kernel</span><span class="o">.</span><span class="n">start_time</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;Z&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="n">kernel</span><span class="o">.</span><span class="n">stop_time</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;Z&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="s2">&quot;data/&quot;</span> <span class="o">+</span> <span class="n">kernel</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/data/&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.lbl&quot;</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">list</span><span class="o">.</span><span class="n">DATA_SET_ID</span><span class="p">,</span>
+                    <span class="n">kernel</span><span class="o">.</span><span class="n">creation_time</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">list</span><span class="o">.</span><span class="n">RELID</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">list</span><span class="o">.</span><span class="n">RELDATE</span><span class="p">,</span>
+                    <span class="n">kernel</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span>
+                    <span class="n">kernel</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">list</span><span class="o">.</span><span class="n">VOLID</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span>
+                <span class="p">]</span>
 
                 <span class="n">new_index</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">index_row</span><span class="p">)</span>
 
@@ -3238,38 +3288,42 @@
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;w+&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">index</span><span class="p">:</span>
                 <span class="n">rows</span> <span class="o">+=</span> <span class="mi">1</span>
-                <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
                 <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">row</span><span class="p">):</span>
                     <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">4</span> <span class="ow">or</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">6</span><span class="p">:</span>
-                        <span class="k">if</span> <span class="n">col</span> <span class="o">==</span> <span class="s1">&#39;N/A&#39;</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">col</span> <span class="o">==</span> <span class="s2">&quot;N/A&quot;</span><span class="p">:</span>
                             <span class="n">col</span> <span class="o">=</span> <span class="s1">&#39;&quot;N/A&quot;&#39;</span>
                         <span class="n">line</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">col</span><span class="si">}{</span><span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">column_length</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">col</span><span class="p">))</span><span class="si">}</span><span class="s1">&#39;</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">line</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;&quot;</span><span class="si">{</span><span class="n">col</span><span class="si">}{</span><span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">column_length</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">col</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s1">&quot;&#39;</span>
                         <span class="n">line_for_length</span> <span class="o">=</span> <span class="n">line</span>
                     <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="mi">9</span><span class="p">:</span>
-                        <span class="n">line</span> <span class="o">+=</span> <span class="s1">&#39;,&#39;</span>
+                        <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;,&quot;</span>
 
                 <span class="n">line</span> <span class="o">=</span> <span class="n">add_carriage_return</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">eol_pds3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">)</span>
-                <span class="n">file_types</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">type_to_extension</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)[</span><span class="mi">7</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">())[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">file_types</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="n">type_to_extension</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)[</span><span class="mi">7</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="p">)</span>
                 <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
 
             <span class="c1">#</span>
             <span class="c1"># Bytes of each column is necessary to write the index label.</span>
             <span class="c1">#</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">line_for_length</span><span class="p">:</span>
-                <span class="n">error_message</span><span class="p">(</span><span class="s2">&quot;The index file is incomplete since no binary &quot;</span>
-                              <span class="s2">&quot;kernel is present in the archive.&quot;</span><span class="p">)</span>
-            <span class="n">columns</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+                <span class="n">error_message</span><span class="p">(</span>
+                    <span class="s2">&quot;The index file is incomplete since no binary &quot;</span>
+                    <span class="s2">&quot;kernel is present in the archive.&quot;</span>
+                <span class="p">)</span>
+            <span class="n">columns</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
             <span class="n">column_start_bytes</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="n">start_bytes</span> <span class="o">=</span> <span class="mi">1</span>
             <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
 
                 <span class="n">column_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">column</span><span class="p">)</span>
 
-                <span class="k">if</span> <span class="s1">&#39;</span><span class="se">\n\r</span><span class="s1">&#39;</span> <span class="ow">in</span> <span class="n">column</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">&quot;</span><span class="se">\n\r</span><span class="s2">&quot;</span> <span class="ow">in</span> <span class="n">column</span><span class="p">:</span>
                     <span class="n">column_length</span> <span class="o">-=</span> <span class="mi">3</span>
-                <span class="k">elif</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="ow">in</span> <span class="n">column</span><span class="p">:</span>
+                <span class="k">elif</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="ow">in</span> <span class="n">column</span><span class="p">:</span>
                     <span class="n">column_length</span> <span class="o">-=</span> <span class="mi">2</span>
                 <span class="k">if</span> <span class="s1">&#39;&quot;&#39;</span> <span class="ow">in</span> <span class="n">column</span><span class="p">:</span>
                     <span class="n">column_length</span> <span class="o">-=</span> <span class="mi">2</span>
@@ -3408,12 +3462,12 @@
         <span class="c1"># Obtain the previous spiceds file if it exists</span>
         <span class="c1">#</span>
         <span class="n">path</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">setup</span><span class="o">.</span><span class="n">bundle_directory</span>
-                <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span>
-                <span class="o">+</span> <span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span>
-                <span class="o">+</span> <span class="s2">&quot;_spice&quot;</span>
-                <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span>
-                <span class="o">+</span> <span class="n">collection</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">setup</span><span class="o">.</span><span class="n">bundle_directory</span>
+            <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span>
+            <span class="o">+</span> <span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span>
+            <span class="o">+</span> <span class="s2">&quot;_spice&quot;</span>
+            <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span>
+            <span class="o">+</span> <span class="n">collection</span><span class="o">.</span><span class="n">name</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">increment</span><span class="p">:</span>
             <span class="n">spiceds_files</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">path</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">&quot;spiceds_v*.html&quot;</span><span class="p">)</span>
@@ -3456,7 +3510,7 @@
         <span class="c1">#</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;spiceds_v</span><span class="si">{0:0=3d}</span><span class="s2">.html&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">setup</span><span class="o">.</span><span class="n">staging_directory</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="n">collection</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">setup</span><span class="o">.</span><span class="n">staging_directory</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="n">collection</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mission</span> <span class="o">=</span> <span class="n">setup</span>
 
@@ -3560,9 +3614,9 @@
             <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">diff</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;-&quot;</span><span class="p">:</span>
                     <span class="k">if</span> <span class="p">(</span>
-                            <span class="s2">&quot;Last update&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">line</span>
-                            <span class="ow">and</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">!=</span> <span class="s2">&quot;-&quot;</span>
-                            <span class="ow">and</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">!=</span> <span class="s2">&quot;-</span><span class="se">\n</span><span class="s2">&quot;</span>
+                        <span class="s2">&quot;Last update&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">line</span>
+                        <span class="ow">and</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">!=</span> <span class="s2">&quot;-&quot;</span>
+                        <span class="ow">and</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">!=</span> <span class="s2">&quot;-</span><span class="se">\n</span><span class="s2">&quot;</span>
                     <span class="p">):</span>
                         <span class="n">generate_spiceds</span> <span class="o">=</span> <span class="kc">True</span>
 
@@ -3644,8 +3698,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
 
         <span class="n">path</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">bundle_directory</span>
-                <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_spice/readme.txt&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">bundle_directory</span>
+            <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_spice/readme.txt&quot;</span>
         <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
@@ -3690,7 +3744,9 @@
                 <span class="n">error_message</span><span class="p">(</span><span class="s2">&quot;Readme file provided via configuration does not exist.&quot;</span><span class="p">)</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">):</span>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;w+&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">templates_directory</span> <span class="o">+</span> <span class="s2">&quot;/template_readme.txt&quot;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">templates_directory</span> <span class="o">+</span> <span class="s2">&quot;/template_readme.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span>
+                <span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
                     <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">t</span><span class="p">:</span>
                         <span class="k">if</span> <span class="s2">&quot;$SPICE_NAME&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
                             <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;$SPICE_NAME&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">spice_name</span><span class="p">)</span>
@@ -3710,13 +3766,17 @@
                             <span class="n">overview</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">readme</span><span class="p">[</span><span class="s2">&quot;overview&quot;</span><span class="p">]</span>
                             <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">overview</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">):</span>
                                 <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">+</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
-                                <span class="n">line</span> <span class="o">=</span> <span class="n">add_carriage_return</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">eol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">)</span>
+                                <span class="n">line</span> <span class="o">=</span> <span class="n">add_carriage_return</span><span class="p">(</span>
+                                    <span class="n">line</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">eol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span>
+                                <span class="p">)</span>
                                 <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
                         <span class="k">elif</span> <span class="s2">&quot;$COGNISANT_AUTHORITY&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
                             <span class="n">cognisant</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">readme</span><span class="p">[</span><span class="s2">&quot;cognisant_authority&quot;</span><span class="p">]</span>
                             <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">cognisant</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">):</span>
                                 <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">+</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
-                                <span class="n">line</span> <span class="o">=</span> <span class="n">add_carriage_return</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">eol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">)</span>
+                                <span class="n">line</span> <span class="o">=</span> <span class="n">add_carriage_return</span><span class="p">(</span>
+                                    <span class="n">line</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">eol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span>
+                                <span class="p">)</span>
                                 <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
                         <span class="k">else</span><span class="p">:</span>
                             <span class="n">line_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
@@ -3740,7 +3800,9 @@
 <span class="sd">    :type add_previous_checksum: bool</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setup</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">collection</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">add_previous_checksum</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">setup</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">collection</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">add_previous_checksum</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Constructor.&quot;&quot;&quot;</span>
         <span class="c1">#</span>
         <span class="c1"># The initialisation of the checksum class is lighter than the</span>
@@ -3753,7 +3815,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">setup</span> <span class="o">=</span> <span class="n">setup</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">collection</span> <span class="o">=</span> <span class="n">collection</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">collection_path</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">staging_directory</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">&quot;miscellaneous&quot;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">staging_directory</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">&quot;miscellaneous&quot;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span>
         <span class="p">)</span>
 
         <span class="n">line</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Step </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">step</span><span class="si">}</span><span class="s2"> - Generate checksum file&quot;</span>
@@ -3768,7 +3830,7 @@
         <span class="c1">#</span>
         <span class="c1"># We generate the kernel directory if not present</span>
         <span class="c1">#</span>
-        <span class="k">if</span> <span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s1">&#39;4&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span><span class="p">:</span>
             <span class="n">product_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">collection_path</span> <span class="o">+</span> <span class="s2">&quot;checksum/&quot;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">product_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">setup</span><span class="o">.</span><span class="n">staging_directory</span><span class="si">}</span><span class="s2">/index/&quot;</span>
@@ -3784,7 +3846,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">read_current_product</span><span class="p">(</span><span class="n">add_previous_checksum</span><span class="o">=</span><span class="n">add_previous_checksum</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s1">&#39;4&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">set_product_lid</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">set_product_vid</span><span class="p">()</span>
 
@@ -3819,7 +3881,7 @@
         <span class="c1"># The checksum is labeled.</span>
         <span class="c1">#</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-- Labeling </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s1">&#39;4&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">ChecksumPDS4Label</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">ChecksumPDS3Label</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span></div>
@@ -3884,31 +3946,34 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">path_current</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
 
                 <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-- Default to version </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;-- Make sure this is the first release of the archive.&quot;</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s2">&quot;-- Make sure this is the first release of the archive.&quot;</span>
+                <span class="p">)</span>
                 <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;checksum_v</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="si">:</span><span class="s2">03</span><span class="si">}</span><span class="s2">.tab&quot;</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">staging_directory</span>
-                    <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span>
-                    <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">name</span>
-                    <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span>
-                    <span class="o">+</span> <span class="s2">&quot;checksum&quot;</span>
-                    <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span>
-                    <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">staging_directory</span>
+                <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span>
+                <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">name</span>
+                <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span>
+                <span class="o">+</span> <span class="s2">&quot;checksum&quot;</span>
+                <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span>
+                <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
             <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">name_current</span> <span class="o">=</span> <span class="s2">&quot;checksum.tab&quot;</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">path_current</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">bundle_directory</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">volume_id</span> <span class="o">+</span> <span class="s2">&quot;/index/checksum.tab&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">path_current</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">bundle_directory</span>
+                <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span>
+                <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">volume_id</span>
+                <span class="o">+</span> <span class="s2">&quot;/index/checksum.tab&quot;</span>
+            <span class="p">)</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;checksum.tab&quot;</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">staging_directory</span>
-                    <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span>
-                    <span class="o">+</span> <span class="s2">&quot;index&quot;</span>
-                    <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span>
-                    <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">staging_directory</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">&quot;index&quot;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
             <span class="p">)</span>
 
         <span class="c1">#</span>
@@ -3953,16 +4018,22 @@
                     <span class="n">label_current</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_current</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.tab&quot;</span><span class="p">,</span> <span class="s2">&quot;.lbl&quot;</span><span class="p">)</span>
 
                 <span class="n">md5_current</span> <span class="o">=</span> <span class="n">md5</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_current</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">md5_dict</span><span class="p">[</span><span class="n">checksum_dir</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_current</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">md5_current</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">md5_dict</span><span class="p">[</span>
+                    <span class="n">checksum_dir</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_current</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="p">]</span> <span class="o">=</span> <span class="n">md5_current</span>
 
                 <span class="n">md5_label</span> <span class="o">=</span> <span class="n">md5</span><span class="p">(</span><span class="n">label_current</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">md5_dict</span><span class="p">[</span><span class="n">checksum_dir</span> <span class="o">+</span> <span class="n">label_current</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">md5_label</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">md5_dict</span><span class="p">[</span>
+                    <span class="n">checksum_dir</span> <span class="o">+</span> <span class="n">label_current</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="p">]</span> <span class="o">=</span> <span class="n">md5_label</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">new_product</span> <span class="o">=</span> <span class="kc">True</span></div>
 
 <div class="viewcode-block" id="ChecksumProduct.set_product_lid"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.product.ChecksumProduct.set_product_lid">[docs]</a>    <span class="k">def</span> <span class="nf">set_product_lid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Set Product LID.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">lid</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">logical_identifier</span><span class="si">}</span><span class="s2">:miscellaneous:checksum_checksum&quot;</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lid</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">logical_identifier</span><span class="si">}</span><span class="s2">:miscellaneous:checksum_checksum&quot;</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="p">)</span></div>
 
 <div class="viewcode-block" id="ChecksumProduct.set_product_vid"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.product.ChecksumProduct.set_product_vid">[docs]</a>    <span class="k">def</span> <span class="nf">set_product_vid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Set Product VID.&quot;&quot;&quot;</span>
@@ -3995,7 +4066,7 @@
             <span class="c1">#</span>
             <span class="k">for</span> <span class="n">collection</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">bundle</span><span class="o">.</span><span class="n">collections</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">product</span> <span class="ow">in</span> <span class="n">collection</span><span class="o">.</span><span class="n">product</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s1">&#39;4&#39;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span><span class="p">:</span>
                         <span class="n">archive_dir</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="n">msn_acr</span><span class="si">}</span><span class="s2">_spice/&quot;</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">archive_dir</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">volume_id</span><span class="si">}</span><span class="s2">/&quot;</span>
@@ -4008,10 +4079,14 @@
                         <span class="c1"># a different name raise an error unless you are</span>
                         <span class="c1"># running NPB in debug mode.</span>
                         <span class="c1">#</span>
-                        <span class="k">if</span> <span class="n">product</span><span class="o">.</span><span class="n">checksum</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">md5_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="ow">and</span> \
-                                <span class="bp">self</span><span class="o">.</span><span class="n">md5_dict</span><span class="p">[</span><span class="n">product_name</span><span class="p">]</span> <span class="o">!=</span> <span class="n">product</span><span class="o">.</span><span class="n">checksum</span><span class="p">:</span>
-                            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Two products have the same MD5 sum, &quot;</span> \
-                                  <span class="sa">f</span><span class="s2">&quot;the product </span><span class="si">{</span><span class="n">product_name</span><span class="si">}</span><span class="s2"> might be a duplicate.&quot;</span>
+                        <span class="k">if</span> <span class="p">(</span>
+                            <span class="n">product</span><span class="o">.</span><span class="n">checksum</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">md5_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+                            <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">md5_dict</span><span class="p">[</span><span class="n">product_name</span><span class="p">]</span> <span class="o">!=</span> <span class="n">product</span><span class="o">.</span><span class="n">checksum</span>
+                        <span class="p">):</span>
+                            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+                                <span class="sa">f</span><span class="s2">&quot;Two products have the same MD5 sum, &quot;</span>
+                                <span class="sa">f</span><span class="s2">&quot;the product </span><span class="si">{</span><span class="n">product_name</span><span class="si">}</span><span class="s2"> might be a duplicate.&quot;</span>
+                            <span class="p">)</span>
                             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
                                 <span class="n">error_message</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
                             <span class="k">else</span><span class="p">:</span>
@@ -4028,7 +4103,9 @@
                     <span class="c1">#</span>
                     <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">product</span><span class="p">,</span> <span class="s2">&quot;label&quot;</span><span class="p">):</span>
                         <span class="n">label_checksum</span> <span class="o">=</span> <span class="n">md5</span><span class="p">(</span><span class="n">product</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">md5_dict</span><span class="p">[</span><span class="n">product</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">archive_dir</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">label_checksum</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">md5_dict</span><span class="p">[</span>
+                            <span class="n">product</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">archive_dir</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                        <span class="p">]</span> <span class="o">=</span> <span class="n">label_checksum</span>
 
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-- </span><span class="si">{</span><span class="n">product_name</span><span class="si">}</span><span class="s2"> does not have a label.&quot;</span><span class="p">)</span>
@@ -4044,10 +4121,12 @@
             <span class="c1">#</span>
             <span class="c1"># Include the bundle label, that is paired to the readme file.</span>
             <span class="c1">#</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s1">&#39;4&#39;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">set_coverage</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">set_coverage</span><span class="p">:</span>
                 <span class="n">label_checksum</span> <span class="o">=</span> <span class="n">md5</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">bundle</span><span class="o">.</span><span class="n">readme</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">md5_dict</span><span class="p">[</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">bundle</span><span class="o">.</span><span class="n">readme</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="n">msn_acr</span><span class="si">}</span><span class="s2">_spice/&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">bundle</span><span class="o">.</span><span class="n">readme</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="n">msn_acr</span><span class="si">}</span><span class="s2">_spice/&quot;</span>
+                    <span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
                 <span class="p">]</span> <span class="o">=</span> <span class="n">label_checksum</span>
 
         <span class="c1">#</span>
@@ -4057,9 +4136,9 @@
         <span class="k">if</span> <span class="n">history</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">product</span> <span class="ow">in</span> <span class="n">history</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
                 <span class="n">path</span> <span class="o">=</span> <span class="p">(</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">bundle_directory</span>
-                        <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_spice/&quot;</span>
-                        <span class="o">+</span> <span class="n">product</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">bundle_directory</span>
+                    <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_spice/&quot;</span>
+                    <span class="o">+</span> <span class="n">product</span>
                 <span class="p">)</span>
                 <span class="c1">#</span>
                 <span class="c1"># Computing checksums is resource consuming; let&#39;s see if the</span>
@@ -4100,9 +4179,9 @@
         <span class="k">if</span> <span class="n">md5_check_dict</span><span class="p">:</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;-- The following products have the same MD5 sum:&quot;</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">md5_check_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;   </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">v</span><span class="p">:</span>
-                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;      </span><span class="si">{</span><span class="n">file</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;      </span><span class="si">{</span><span class="n">file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="c1">#</span>
         <span class="c1"># The resulting dictionary needs to be transformed into a list</span>
@@ -4156,7 +4235,9 @@
 
             <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">md5_dict_keys</span><span class="p">):</span>
                 <span class="n">key</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;~&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;|&quot;</span><span class="p">,</span> <span class="s2">&quot;.&quot;</span><span class="p">)</span>
-                <span class="n">md5_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">md5_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">key</span><span class="si">}{</span><span class="s1">&#39; &#39;</span> <span class="o">*</span> <span class="p">(</span><span class="n">max_key_len</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">key</span><span class="p">))</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">md5_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">md5_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">key</span><span class="si">}{</span><span class="s1">&#39; &#39;</span> <span class="o">*</span> <span class="p">(</span><span class="n">max_key_len</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">key</span><span class="p">))</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">bytes</span> <span class="o">=</span> <span class="n">max_key_len</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">record_bytes</span> <span class="o">=</span> <span class="mi">32</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">+</span> <span class="n">max_key_len</span>
@@ -4177,7 +4258,7 @@
         <span class="c1"># by the spice_kernel collection and the orbnum files in the</span>
         <span class="c1"># miscellaneous collection.</span>
         <span class="c1">#</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s1">&#39;4&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span><span class="p">:</span>
             <span class="n">coverage_list</span> <span class="o">=</span> <span class="p">[]</span>
 
             <span class="c1">#</span>
@@ -4186,7 +4267,7 @@
             <span class="c1">#</span>
             <span class="k">for</span> <span class="n">product</span> <span class="ow">in</span> <span class="n">md5_list</span><span class="p">:</span>
                 <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;spice_kernels/collection_spice_kernels_v&quot;</span> <span class="ow">in</span> <span class="n">product</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span>
-                        <span class="p">(</span><span class="s2">&quot;miscellaneous/orbnum/&quot;</span> <span class="ow">in</span> <span class="n">product</span><span class="p">)</span> <span class="ow">and</span> <span class="p">((</span><span class="s2">&quot;.xml&quot;</span> <span class="ow">in</span> <span class="n">product</span><span class="p">))</span>
+                    <span class="p">(</span><span class="s2">&quot;miscellaneous/orbnum/&quot;</span> <span class="ow">in</span> <span class="n">product</span><span class="p">)</span> <span class="ow">and</span> <span class="p">((</span><span class="s2">&quot;.xml&quot;</span> <span class="ow">in</span> <span class="n">product</span><span class="p">))</span>
                 <span class="p">):</span>
                     <span class="n">coverage_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">product</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
 
@@ -4197,8 +4278,8 @@
                 <span class="c1"># The files can either be in the staging or the final area.</span>
                 <span class="c1">#</span>
                 <span class="n">path</span> <span class="o">=</span> <span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">bundle_directory</span><span class="si">}</span><span class="s2">/&quot;</span>
-                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_spice/&quot;</span> <span class="o">+</span> <span class="n">product</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">bundle_directory</span><span class="si">}</span><span class="s2">/&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_spice/&quot;</span> <span class="o">+</span> <span class="n">product</span>
                 <span class="p">)</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
                     <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">staging_directory</span><span class="si">}</span><span class="s2">/&quot;</span> <span class="o">+</span> <span class="n">product</span>
@@ -4217,9 +4298,9 @@
                                 <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
                                 <span class="n">start_times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">start_time</span><span class="p">)</span>
                             <span class="k">if</span> <span class="s2">&quot;&lt;stop_date_time&gt;&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
-                                <span class="n">stop_time</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;&lt;stop_date_time&gt;&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;&lt;/&quot;</span><span class="p">)[</span>
-                                    <span class="mi">0</span>
-                                <span class="p">]</span>
+                                <span class="n">stop_time</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;&lt;stop_date_time&gt;&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span>
+                                    <span class="s2">&quot;&lt;/&quot;</span>
+                                <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
                                 <span class="n">stop_times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stop_time</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="ow">not</span> <span class="n">start_times</span><span class="p">:</span>
@@ -4293,14 +4374,16 @@
         <span class="c1"># Compare with the already existing file -that has the same name-, if</span>
         <span class="c1"># files are the same do not include as an updated file.</span>
         <span class="c1">#</span>
-        <span class="n">existing_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">bundle_directory</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">volume_id</span> <span class="o">+</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">volume_id</span><span class="p">)[</span>
-            <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">existing_path</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">bundle_directory</span>
+            <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span>
+            <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">volume_id</span>
+            <span class="o">+</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">volume_id</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="p">)</span>
 
-        <span class="n">same_files</span> <span class="o">=</span> <span class="n">compare_files</span><span class="p">(</span><span class="n">existing_path</span><span class="p">,</span>
-                                   <span class="n">path</span><span class="p">,</span>
-                                   <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">working_directory</span><span class="p">,</span>
-                                   <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">diff</span>
-                                   <span class="p">)</span>
+        <span class="n">same_files</span> <span class="o">=</span> <span class="n">compare_files</span><span class="p">(</span>
+            <span class="n">existing_path</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">working_directory</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">diff</span>
+        <span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">same_files</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">new_product</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">else</span><span class="p">:</span>
@@ -4315,28 +4398,28 @@
 
 <span class="sd">        The outcome of the validation is an INFO or a WARNING log message.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;release.cat&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;release.cat&quot;</span><span class="p">:</span>
             <span class="n">release_strings</span> <span class="o">=</span> <span class="p">[</span>
                 <span class="sa">f</span><span class="s1">&#39;RELEASE_ID                      = &quot;0</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">release</span><span class="si">}</span><span class="s1">&quot;&#39;</span><span class="p">,</span>
-                <span class="sa">f</span><span class="s1">&#39;RELEASE_DATE                    = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">release_date</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
-                <span class="sa">f</span><span class="s1">&#39;RELEASE_PARAMETER_TEXT          = &quot;&amp;RELEASE_ID=0</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">release</span><span class="si">}</span><span class="s1">&quot;&#39;</span>
+                <span class="sa">f</span><span class="s2">&quot;RELEASE_DATE                    = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">release_date</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s1">&#39;RELEASE_PARAMETER_TEXT          = &quot;&amp;RELEASE_ID=0</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">release</span><span class="si">}</span><span class="s1">&quot;&#39;</span><span class="p">,</span>
             <span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">release_strings</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">release_date</span><span class="p">]</span>
 
         <span class="k">for</span> <span class="n">string</span> <span class="ow">in</span> <span class="n">release_strings</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
             <span class="n">present</span> <span class="o">=</span> <span class="n">string_in_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">string</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">present</span><span class="p">:</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;-- The following string:&#39;</span><span class="p">)</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;   </span><span class="si">{</span><span class="n">string</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;   Is not present in: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;-- The following string:&quot;</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   </span><span class="si">{</span><span class="n">string</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   Is not present in: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;-- The following string:&#39;</span><span class="p">)</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;   </span><span class="si">{</span><span class="n">string</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;   Is present in: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- The following string:&quot;</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   </span><span class="si">{</span><span class="n">string</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   Is present in: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span></div></div>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span></div></div>
 </pre></div>
 
            </div>
