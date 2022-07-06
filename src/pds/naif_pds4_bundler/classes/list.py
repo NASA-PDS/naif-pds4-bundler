@@ -72,10 +72,12 @@ class KernelList(List):
         self.AUTHOR = setup.producer_name
 
         if self.setup.pds_version == "3":
-            if '"' in setup.pds3_mission_template['DATA_SET_ID']:
-                self.DATA_SET_ID = setup.pds3_mission_template['DATA_SET_ID'].split('"')[1].upper()
+            if '"' in setup.pds3_mission_template["DATA_SET_ID"]:
+                self.DATA_SET_ID = (
+                    setup.pds3_mission_template["DATA_SET_ID"].split('"')[1].upper()
+                )
             else:
-                self.DATA_SET_ID = setup.pds3_mission_template['DATA_SET_ID'].upper()
+                self.DATA_SET_ID = setup.pds3_mission_template["DATA_SET_ID"].upper()
             self.VOLID = setup.volume_id.lower()
         else:
             self.DATA_SET_ID = "N/A"
@@ -439,7 +441,10 @@ class KernelList(List):
                                     #    * extracted form the filename
                                     #    * defined in the configuration file.
                                     #
-                                    if ("@pattern" in patterns[el] and patterns[el]["@pattern"].lower() == "kernel"):
+                                    if (
+                                        "@pattern" in patterns[el]
+                                        and patterns[el]["@pattern"].lower() == "kernel"
+                                    ):
                                         #
                                         # When extracted from the filename, the keyword  is matched in between patterns.
                                         #
@@ -471,7 +476,9 @@ class KernelList(List):
                                         #
                                         # TODO: This indexes work because the mapping kernel and the resulting kernel are in the same place!
                                         if len(indexes) == 2:
-                                            value = kernel[indexes[0] : len(kernel) - indexes[1]]
+                                            value = kernel[
+                                                indexes[0] : len(kernel) - indexes[1]
+                                            ]
                                             if patterns[el]["@pattern"].isupper():
                                                 value = value.upper()
                                         else:
@@ -483,7 +490,10 @@ class KernelList(List):
                                         if mapping:
                                             mapping = mapping.replace("$" + el, value)
 
-                                    elif ("@file" in patterns[el] and patterns[el]["@file"].lower() == "comment"):
+                                    elif (
+                                        "@file" in patterns[el]
+                                        and patterns[el]["@file"].lower() == "comment"
+                                    ):
                                         #
                                         # Extracting the value from the comment
                                         # area of the kernel. This is usually to
@@ -491,9 +501,11 @@ class KernelList(List):
                                         #
                                         # So far this method is implemented to accomodate MRO files
                                         #
-                                        comment = extract_comment(self.setup.kernels_directory[0] +
-                                                                  f"/{ extension_to_type(kernel.split('.')[-1])}/" +
-                                                                  kernel)
+                                        comment = extract_comment(
+                                            self.setup.kernels_directory[0]
+                                            + f"/{ extension_to_type(kernel.split('.')[-1])}/"
+                                            + kernel
+                                        )
 
                                         for line in comment:
                                             if patterns[el]["#text"] in line:
@@ -501,7 +513,9 @@ class KernelList(List):
                                                 break
 
                                         if not isinstance(value, str):
-                                            error_message(f"Kernel pattern not found in comment area of {kernel}.")
+                                            error_message(
+                                                f"Kernel pattern not found in comment area of {kernel}."
+                                            )
 
                                     else:
                                         #
@@ -524,14 +538,18 @@ class KernelList(List):
                                                 if val["@value"] in kernel:
                                                     value = val["#text"]
                                             except KeyError:
-                                                error_message(f"Error generating kernel list with {kernel}. "
-                                                              f"Consider reviewing your NPB setup.")
+                                                error_message(
+                                                    f"Error generating kernel list with {kernel}. "
+                                                    f"Consider reviewing your NPB setup."
+                                                )
 
                                         if isinstance(value, list) or isinstance(
                                             value, dict
                                         ):
-                                            error_message(f"-- Kernel {kernel} description could not be updated with "
-                                                          f"pattern.")
+                                            error_message(
+                                                f"-- Kernel {kernel} description could not be updated with "
+                                                f"pattern."
+                                            )
 
                                     description = description.replace("$" + el, value)
 
@@ -812,7 +830,7 @@ class KernelList(List):
             # IF you generate a PDS23 data set, display all the MAKLABL_OPTIONS
             # used
             #
-            if self.setup.pds_version == '3':
+            if self.setup.pds_version == "3":
                 opt_in_list = list(dict.fromkeys(opt_in_list))
                 opt_in_list.sort()
                 logging.info("-- Display all the MAKLABEL_OPTIONS:")
@@ -823,20 +841,23 @@ class KernelList(List):
             #
             # The PDS Mission Template file is not required for PDS4
             #
-            if self.setup.pds_version == '3':
-                logging.info('-- Check that all template tags used in the list are present in template:')
+            if self.setup.pds_version == "3":
+                logging.info(
+                    "-- Check that all template tags used in the list are present in template:"
+                )
 
-                maklabel_options = \
-                    self.setup.pds3_mission_template['maklabel_options'].keys()
+                maklabel_options = self.setup.pds3_mission_template[
+                    "maklabel_options"
+                ].keys()
 
                 for option in opt_in_list:
                     if option in maklabel_options:
-                        logging.info(f'     {option} is present.')
+                        logging.info(f"     {option} is present.")
                     else:
-                        if option != 'N/A':
-                            error_message(f'{option} not in configuration.')
+                        if option != "N/A":
+                            error_message(f"{option} not in configuration.")
 
-                logging.info('')
+                logging.info("")
 
             #
             # Check complete list for duplicate entries
@@ -1081,23 +1102,32 @@ class KernelList(List):
                                 os.path.join(root, ker)
                                 for root, dirs, files in os.walk(directory)
                                 for ker in files
-                                if product_mapping(product, self.setup, cleanup=False) == ker
+                                if product_mapping(product, self.setup, cleanup=False)
+                                == ker
                             ]
                             origin_paths.append(file[0])
                         except BaseException:
                             pass
 
             if not origin_paths and ".tm" not in product.lower():
-                product_errors[product].append("Product not present in any kernel directory(ies)")
+                product_errors[product].append(
+                    "Product not present in any kernel directory(ies)"
+                )
                 continue
             elif not origin_paths and ".tm" in product.lower():
-                product_warnings[product].append("Meta-kernel will be generated during this run.")
+                product_warnings[product].append(
+                    "Meta-kernel will be generated during this run."
+                )
                 continue
             elif len(origin_paths) > 1:
-                product_warnings[product].append("Product present in multiple directories:")
+                product_warnings[product].append(
+                    "Product present in multiple directories:"
+                )
                 for path in origin_paths:
                     product_warnings[product].append(f"  {path}")
-                product_warnings[product].append("The product in the first directory will be used.")
+                product_warnings[product].append(
+                    "The product in the first directory will be used."
+                )
 
             #
             # From here on the product present in the first directory from
@@ -1110,16 +1140,17 @@ class KernelList(List):
             #
             if product.split(".")[-1].strip()[0].lower() != "b":
                 if (".nrb" not in product.lower()) and (".orb" not in product.lower()):
-                    eol = '\n'
-                elif ((".nrb" in product.lower()) or (".orb" in product.lower())) \
-                        and self.setup.pds_version == '3':
-                    eol = '\n'
+                    eol = "\n"
+                elif (
+                    (".nrb" in product.lower()) or (".orb" in product.lower())
+                ) and self.setup.pds_version == "3":
+                    eol = "\n"
                 else:
                     eol = self.setup.eol
 
                 error = check_eol(origin_path, eol)
                 if error:
-                    if ((".nrb" in product.lower()) or (".orb" in product.lower())):
+                    if (".nrb" in product.lower()) or (".orb" in product.lower()):
                         product_warnings[product].append(error)
                     else:
                         product_errors[product].append(error)
@@ -1182,7 +1213,7 @@ class KernelList(List):
         if error_flag:
             if not self.setup.args.silent and not self.setup.args.verbose:
                 print("-- Products listed above require work.")
-            logging.error('')
+            logging.error("")
             error_message("Products listed above require work.", self.setup)
         elif not warning_flag:
             logging.info("-- All products checks have succeeded.")

@@ -76,9 +76,7 @@ def test_insight_mk_double_keyword_in_pattern(self):
                     n.write(
                         '                   <pattern length="2">VERSION</pattern>\n'
                     )
-                    n.write(
-                        '                   <pattern length="4">YEAR</pattern>\n'
-                    )
+                    n.write('                   <pattern length="4">YEAR</pattern>\n')
                 else:
                     n.write(line)
 
@@ -104,9 +102,7 @@ def test_insight_mk_double_keyword_in_pattern_no_gen(self):
                     n.write(
                         '                   <pattern length="2">VERSION</pattern>\n'
                     )
-                    n.write(
-                        '                   <pattern length="4">YEAR</pattern>\n'
-                    )
+                    n.write('                   <pattern length="4">YEAR</pattern>\n')
                 else:
                     n.write(line)
 
@@ -124,62 +120,62 @@ def zz_test_orex_mk_multiple_mks(self):
 def zz_test_orex_mk_multiple_mks_version_three_digits(self):
     """Test MKs with 3 digits in the version."""
     config = "../config/orex.xml"
-    updated_config = 'working/orex.xml'
-    plan = 'working/orex_release_10.plan'
+    updated_config = "working/orex.xml"
+    plan = "working/orex_release_10.plan"
 
     with open(config, "r") as c:
         with open(updated_config, "w") as n:
             for line in c:
                 if '<pattern length="2">VERSION</pattern>' in line:
                     n.write('<pattern length="3">VERSION</pattern>\n')
-                elif 'v[0-9]{2}.tm' in line:
-                    n.write(line.replace('v[0-9]{2}.tm', 'v[0-9]{3}.tm'))
-                elif '<mk_inputs>' in line:
-                    n.write('<!-- <mk_inputs>\n')
-                elif '</mk_inputs>' in line:
-                    n.write('</mk_inputs> -->\n')
-                elif '_v[0-9][0-9].tm' in line:
-                    n.write(line.replace('_v[0-9][0-9].tm', '_v[0-9][0-9][0-9].tm'))
+                elif "v[0-9]{2}.tm" in line:
+                    n.write(line.replace("v[0-9]{2}.tm", "v[0-9]{3}.tm"))
+                elif "<mk_inputs>" in line:
+                    n.write("<!-- <mk_inputs>\n")
+                elif "</mk_inputs>" in line:
+                    n.write("</mk_inputs> -->\n")
+                elif "_v[0-9][0-9].tm" in line:
+                    n.write(line.replace("_v[0-9][0-9].tm", "_v[0-9][0-9][0-9].tm"))
                 else:
                     n.write(line)
 
-    shutil.copy2('kernels/mk/orx_2020_v05.tm', 'kernels/mk/orx_2020_v003.tm')
-    shutil.copy2('kernels/mk/orx_2020_v05.tm', 'kernels/mk/orx_noola_2020_v003.tm')
+    shutil.copy2("kernels/mk/orx_2020_v05.tm", "kernels/mk/orx_2020_v003.tm")
+    shutil.copy2("kernels/mk/orx_2020_v05.tm", "kernels/mk/orx_noola_2020_v003.tm")
 
     with open(plan, "w") as c:
-        c.write('orx_2020_v003.tm\n')
-        c.write('orx_noola_2020_v003.tm\n')
+        c.write("orx_2020_v003.tm\n")
+        c.write("orx_noola_2020_v003.tm\n")
 
-    main(updated_config, plan, faucet='staging', silent=self.silent, log=True)
+    main(updated_config, plan, faucet="staging", silent=self.silent, log=True)
 
 
 def zz_test_orex_mk_multiple_mks_version_one_digit(self):
     """Test MKs with 1 digits in the version."""
     config = "../config/orex.xml"
-    updated_config = 'working/orex.xml'
-    plan = 'working/orex_release_10.plan'
+    updated_config = "working/orex.xml"
+    plan = "working/orex_release_10.plan"
 
     with open(config, "r") as c:
         with open(updated_config, "w") as n:
             for line in c:
                 if '<pattern length="2">VERSION</pattern>' in line:
                     n.write('<pattern length="1">VERSION</pattern>\n')
-                elif 'v[0-9]{2}.tm' in line:
-                    n.write(line.replace('v[0-9]{2}.tm', 'v[0-9].tm'))
-                elif '<mk_inputs>' in line:
-                    n.write('<!-- <mk_inputs>\n')
-                elif '</mk_inputs>' in line:
-                    n.write('</mk_inputs> -->\n')
-                elif '_v[0-9][0-9].tm' in line:
-                    n.write(line.replace('_v[0-9][0-9].tm', '_v[0-9].tm'))
+                elif "v[0-9]{2}.tm" in line:
+                    n.write(line.replace("v[0-9]{2}.tm", "v[0-9].tm"))
+                elif "<mk_inputs>" in line:
+                    n.write("<!-- <mk_inputs>\n")
+                elif "</mk_inputs>" in line:
+                    n.write("</mk_inputs> -->\n")
+                elif "_v[0-9][0-9].tm" in line:
+                    n.write(line.replace("_v[0-9][0-9].tm", "_v[0-9].tm"))
                 else:
                     n.write(line)
 
-    shutil.copy2('kernels/mk/orx_2020_v05.tm', 'kernels/mk/orx_2020_v3.tm')
-    shutil.copy2('kernels/mk/orx_2020_v05.tm', 'kernels/mk/orx_noola_2020_v3.tm')
+    shutil.copy2("kernels/mk/orx_2020_v05.tm", "kernels/mk/orx_2020_v3.tm")
+    shutil.copy2("kernels/mk/orx_2020_v05.tm", "kernels/mk/orx_noola_2020_v3.tm")
 
     with open(plan, "w") as c:
-        c.write('orx_2020_v3.tm\n')
-        c.write('orx_noola_2020_v3.tm\n')
+        c.write("orx_2020_v3.tm\n")
+        c.write("orx_noola_2020_v3.tm\n")
 
-    main(updated_config, plan, faucet='staging', silent=self.silent, log=True)
+    main(updated_config, plan, faucet="staging", silent=self.silent, log=True)

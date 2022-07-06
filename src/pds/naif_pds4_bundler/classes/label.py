@@ -27,7 +27,7 @@ class PDSLabel(object):
 
     def __init__(self, setup: object, product: object) -> object:
         """Constructor."""
-        if setup.pds_version == '4':
+        if setup.pds_version == "4":
             try:
                 context_products = product.collection.bundle.context_products
                 if not context_products:
@@ -45,7 +45,7 @@ class PDSLabel(object):
         self.mission_acronym = setup.mission_acronym
         self.MISSION_NAME = setup.mission_name
 
-        if setup.pds_version == '4':
+        if setup.pds_version == "4":
             self.XML_MODEL = setup.xml_model
             self.SCHEMA_LOCATION = setup.schema_location
             self.INFORMATION_MODEL_VERSION = setup.information_model
@@ -55,7 +55,9 @@ class PDSLabel(object):
             #
             if hasattr(setup, "secondary_observers"):
                 if len(setup.secondary_observers) == 1:
-                    observers_text = f"{setup.observer} and {setup.secondary_observers[0]}"
+                    observers_text = (
+                        f"{setup.observer} and {setup.secondary_observers[0]}"
+                    )
                 else:
                     observers_text = f"{setup.observer}, "
                     for i in range(len(setup.secondary_observers)):
@@ -174,7 +176,7 @@ class PDSLabel(object):
                         or product["type"][0] == "Host"
                     ):
                         ob_lid = product["lidvid"].split("::")[0]
-                        ob_type = product['type'][0]
+                        ob_type = product["type"][0]
 
                 if not ob_lid:
                     error_message(
@@ -183,16 +185,16 @@ class PDSLabel(object):
                     )
 
                 obs_list_for_label += (
-                      f"{' ' * 3*tab}<Observing_System_Component>{eol}"
-                      + f"{' ' * (3+1)*tab}<name>{ob_name}</name>{eol}"
-                      + f"{' ' * (3+1)*tab}<type>{ob_type}</type>{eol}"
-                      + f"{' ' * (3+1)*tab}<Internal_Reference>{eol}"
-                      + f"{' ' * (3 + 2)*tab}<lid_reference>{ob_lid}"
-                      f"</lid_reference>{eol}"
-                      + f"{' ' * (3 + 2)*tab}<reference_type>is_instrument_host"
-                      f"</reference_type>{eol}"
-                      + f"{' ' * (3+1)*tab}</Internal_Reference>{eol}"
-                      + f"{' ' * 3*tab}</Observing_System_Component>{eol}"
+                    f"{' ' * 3*tab}<Observing_System_Component>{eol}"
+                    + f"{' ' * (3+1)*tab}<name>{ob_name}</name>{eol}"
+                    + f"{' ' * (3+1)*tab}<type>{ob_type}</type>{eol}"
+                    + f"{' ' * (3+1)*tab}<Internal_Reference>{eol}"
+                    + f"{' ' * (3 + 2)*tab}<lid_reference>{ob_lid}"
+                    f"</lid_reference>{eol}"
+                    + f"{' ' * (3 + 2)*tab}<reference_type>is_instrument_host"
+                    f"</reference_type>{eol}"
+                    + f"{' ' * (3+1)*tab}</Internal_Reference>{eol}"
+                    + f"{' ' * 3*tab}</Observing_System_Component>{eol}"
                 )
 
         if not obs_list_for_label:
@@ -232,16 +234,16 @@ class PDSLabel(object):
                         target_type = product["type"][0].capitalize()
 
                 tar_list_for_label += (
-                        f"{' ' * 2*tab}<Target_Identification>{eol}"
-                        + f"{' ' * 3 * tab}<name>{target_name}</name>{eol}"
-                        + f"{' ' * 3 * tab}<type>{target_type}</type>{eol}"
-                        + f"{' ' * 3 * tab}<Internal_Reference>{eol}"
-                        + f"{' ' * 4  *  tab}<lid_reference>{target_lid}"
-                        f"</lid_reference>{eol}" + f"{' ' * 4  *  tab}<reference_type>"
-                        f"{self.get_target_reference_type()}"
-                        f"</reference_type>{eol}"
-                        + f"{' ' * 3 * tab}</Internal_Reference>{eol}"
-                        + f"{' ' * 2*tab}</Target_Identification>{eol}"
+                    f"{' ' * 2*tab}<Target_Identification>{eol}"
+                    + f"{' ' * 3 * tab}<name>{target_name}</name>{eol}"
+                    + f"{' ' * 3 * tab}<type>{target_type}</type>{eol}"
+                    + f"{' ' * 3 * tab}<Internal_Reference>{eol}"
+                    + f"{' ' * 4  *  tab}<lid_reference>{target_lid}"
+                    f"</lid_reference>{eol}" + f"{' ' * 4  *  tab}<reference_type>"
+                    f"{self.get_target_reference_type()}"
+                    f"</reference_type>{eol}"
+                    + f"{' ' * 3 * tab}</Internal_Reference>{eol}"
+                    + f"{' ' * 2*tab}</Target_Identification>{eol}"
                 )
 
         if not tar_list_for_label:
@@ -299,7 +301,7 @@ class PDSLabel(object):
             label_name = label_name.replace("inventory_", "")
 
         with open(label_name, "w+") as f:
-            with open(self.template, 'r') as t:
+            with open(self.template, "r") as t:
                 for line in t:
                     line = line.rstrip()
                     for key, value in label_dictionary.items():
@@ -311,8 +313,8 @@ class PDSLabel(object):
                     # the one generated by mkpdssum.pl must have the same
                     # line length as the checksum file.
                     #
-                    if label_name.split(os.sep)[-1] == 'checksum.lbl':
-                        line += ' '*(self.product.record_bytes-len(line)-2)
+                    if label_name.split(os.sep)[-1] == "checksum.lbl":
+                        line += " " * (self.product.record_bytes - len(line) - 2)
                     line = add_carriage_return(line, eol, self.setup)
 
                     f.write(line)
@@ -652,14 +654,13 @@ class SpiceKernelPDS3Label(PDSLabel):
 
         self.FILE_NAME = f'"{product.name}"'
         self.INTERCHANGE_FORMAT = product.file_format
-        self.START_TIME = product.start_time.split('Z')[0]
-        self.STOP_TIME = product.stop_time.split('Z')[0]
+        self.START_TIME = product.start_time.split("Z")[0]
+        self.STOP_TIME = product.stop_time.split("Z")[0]
         self.KERNEL_TYPE_ID = product.type.upper()
         self.KERNEL_TYPE = type_to_pds3_type(product.type.upper())
         self.RECORD_TYPE = product.record_type
         self.RECORD_BYTES = product.record_bytes
-        self.SPICE_KERNEL_DESCRIPTION = \
-            self.format_description(product.description)
+        self.SPICE_KERNEL_DESCRIPTION = self.format_description(product.description)
 
         self.set_kernel_ids(product)
         self.set_sclk_times(product)
@@ -668,7 +669,7 @@ class SpiceKernelPDS3Label(PDSLabel):
         # Values from template defaults first.
         #
         for item in self.setup.pds3_mission_template.items():
-            if item[0] != 'maklabel_options':
+            if item[0] != "maklabel_options":
                 maklabel_key = item[0]
                 maklabel_val = item[1]
                 self.__setattr__(maklabel_key, maklabel_val)
@@ -677,7 +678,7 @@ class SpiceKernelPDS3Label(PDSLabel):
         # Values extracted from the mission template.
         #
         for option in product.maklabel_options:
-            values = self.setup.pds3_mission_template['maklabel_options'][option]
+            values = self.setup.pds3_mission_template["maklabel_options"][option]
 
             for item in values.items():
                 maklabel_key = item[0]
@@ -690,19 +691,20 @@ class SpiceKernelPDS3Label(PDSLabel):
         #
         # Remove the quotes from the target name and product version type.
         #
-        if hasattr(self, 'TARGET_NAME'):
+        if hasattr(self, "TARGET_NAME"):
             if '"' in self.TARGET_NAME:
-                self.TARGET_NAME = \
-                    self.TARGET_NAME.split('"')[1]
-        if hasattr(self, 'PRODUCT_VERSION_TYPE'):
+                self.TARGET_NAME = self.TARGET_NAME.split('"')[1]
+        if hasattr(self, "PRODUCT_VERSION_TYPE"):
             if '"' in self.PRODUCT_VERSION_TYPE:
-                self.PRODUCT_VERSION_TYPE = \
-                    self.PRODUCT_VERSION_TYPE.split('"')[1]
-        if hasattr(self, 'PLATFORM_OR_MOUNTING_NAME'):
-            if '"' in self.PLATFORM_OR_MOUNTING_NAME and \
-                    self.PLATFORM_OR_MOUNTING_NAME != '"N/A"':
-                self.PLATFORM_OR_MOUNTING_NAME = \
-                    self.PLATFORM_OR_MOUNTING_NAME.split('"')[1]
+                self.PRODUCT_VERSION_TYPE = self.PRODUCT_VERSION_TYPE.split('"')[1]
+        if hasattr(self, "PLATFORM_OR_MOUNTING_NAME"):
+            if (
+                '"' in self.PLATFORM_OR_MOUNTING_NAME
+                and self.PLATFORM_OR_MOUNTING_NAME != '"N/A"'
+            ):
+                self.PLATFORM_OR_MOUNTING_NAME = self.PLATFORM_OR_MOUNTING_NAME.split(
+                    '"'
+                )[1]
 
         self.write_label()
 
@@ -719,9 +721,9 @@ class SpiceKernelPDS3Label(PDSLabel):
         if product.type.upper() == "CK":
             spice_id = spiceypy.bodn2c(self.setup.spice_name)
 
-            (start_ticks, stop_ticks) = ck_coverage(product.path,
-                                                    timsys="SCLK",
-                                                    system=system)
+            (start_ticks, stop_ticks) = ck_coverage(
+                product.path, timsys="SCLK", system=system
+            )
 
             sclk_start = spiceypy.scdecd(spice_id, start_ticks)
             sclk_stop = spiceypy.scdecd(spice_id, stop_ticks)
@@ -755,17 +757,17 @@ class SpiceKernelPDS3Label(PDSLabel):
         """
         description = description.split()
 
-        desc = ''
+        desc = ""
         line_len = 32
         for word in description:
-            if line_len + len(word + ' ') < 77 :
+            if line_len + len(word + " ") < 77:
                 if not desc:
                     desc += '"' + word
                 else:
-                    desc += ' ' + word
-                line_len += len(' ' + word)
+                    desc += " " + word
+                line_len += len(" " + word)
             else:
-                desc += '\n'
+                desc += "\n"
                 desc += word
                 line_len = len(word)
 
@@ -781,41 +783,43 @@ class SpiceKernelPDS3Label(PDSLabel):
         kernel architecture specification and removes extra empty lines at the
         end of the kernel file.
         """
-        with open(self.name, 'r') as label:
+        with open(self.name, "r") as label:
             label_lines = label.readlines()
 
-        with open(self.product.path, 'r+') as kernel:
+        with open(self.product.path, "r+") as kernel:
             kernel_lines = kernel.readlines()
 
-        with open(self.product.path, 'w') as kernel:
+        with open(self.product.path, "w") as kernel:
 
-            if 'KPL/' in kernel_lines[0]:
+            if "KPL/" in kernel_lines[0]:
                 kernel.write(kernel_lines[0])
             else:
-                error_message(f'Kernel {self.product.name} does not have '
-                              f'architecture spec as first line.')
+                error_message(
+                    f"Kernel {self.product.name} does not have "
+                    f"architecture spec as first line."
+                )
 
-            kernel.write('\n\\beginlabel\n')
+            kernel.write("\n\\beginlabel\n")
 
             for line in label_lines:
-                if line.strip() != 'END':
+                if line.strip() != "END":
                     kernel.write(line)
 
-            kernel.write('\\endlabel')
+            kernel.write("\\endlabel")
 
             write_line = True
 
-            kernel_lines[-1] += '\n'
+            kernel_lines[-1] += "\n"
 
             #
             # If the kernel does not have a label add an empty line.
             #
             label_in_kernel = False
             for line in kernel_lines:
-                if '\\beginlabel' in line:
+                if "\\beginlabel" in line:
                     label_in_kernel = True
             if not label_in_kernel:
-                kernel.write('\n')
+                kernel.write("\n")
 
             #
             # Remove empty lines at the end of the kernel, add a new line
@@ -835,18 +839,18 @@ class SpiceKernelPDS3Label(PDSLabel):
             # Add kernel list to kernel.
             #
             for line in kernel_lines:
-                if '\\beginlabel' in line:
+                if "\\beginlabel" in line:
                     write_line = False
-                    logging.info('-- Updating label in kernel.')
+                    logging.info("-- Updating label in kernel.")
 
                 if write_line:
                     if line != kernel_lines[0]:
-                        kernel.write(line.rstrip() + '\n')
+                        kernel.write(line.rstrip() + "\n")
 
-                if '\\endlabel' in line:
+                if "\\endlabel" in line:
                     write_line = True
 
-        logging.info('-- Label inserted to text kernel.')
+        logging.info("-- Label inserted to text kernel.")
 
     @spice_exception_handler
     def insert_binary_label(self):
@@ -855,9 +859,9 @@ class SpiceKernelPDS3Label(PDSLabel):
         The routine inserts the label in the kernel comment.
         """
         label_lines = []
-        with open(self.name, 'r') as label:
+        with open(self.name, "r") as label:
             for line in label:
-                if line.strip() != 'END':
+                if line.strip() != "END":
                     label_lines.append(line.rstrip())
 
         handle = spiceypy.dafopw(self.product.path)
@@ -883,16 +887,16 @@ class SpiceKernelPDS3Label(PDSLabel):
         #
         for i, line in enumerate(commnt):
             if not line:
-                commnt[i] = ' '
+                commnt[i] = " "
 
         #
         # Add or replace label to comment list.
         #
-        new_commnt = ['\\beginlabel'] + label_lines + ['\\endlabel'] + 2*[' ']
+        new_commnt = ["\\beginlabel"] + label_lines + ["\\endlabel"] + 2 * [" "]
 
-        if '\\endlabel' in commnt:
-            index = commnt.index('\\endlabel')
-            commnt = commnt[index+1:]
+        if "\\endlabel" in commnt:
+            index = commnt.index("\\endlabel")
+            commnt = commnt[index + 1 :]
 
         new_commnt += commnt
 
@@ -911,7 +915,7 @@ class SpiceKernelPDS3Label(PDSLabel):
         #
         spiceypy.dafcls(handle)
 
-        logging.info('-- Label inserted to binary kernel.')
+        logging.info("-- Label inserted to binary kernel.")
 
 
 class MetaKernelPDS4Label(PDSLabel):
@@ -979,21 +983,21 @@ class MetaKernelPDS4Label(PDSLabel):
             #
             if tab == 4:
                 kernel_list_for_label += (
-                        f"{' ' * 2 * tab}<Internal_Reference>{eol}" +
-                        f"{' ' * 3 * tab}<lid_reference>{kernel_lid}{eol}"
-                        f"{' ' * 3 * tab}</lid_reference>{eol}" +
-                        f"{' ' * 3 * tab}<reference_type>data_to_associate"
-                        f"</reference_type>{eol}" +
-                        f"{' ' * 2 * tab}</Internal_Reference>{eol}"
+                    f"{' ' * 2 * tab}<Internal_Reference>{eol}"
+                    + f"{' ' * 3 * tab}<lid_reference>{kernel_lid}{eol}"
+                    f"{' ' * 3 * tab}</lid_reference>{eol}"
+                    + f"{' ' * 3 * tab}<reference_type>data_to_associate"
+                    f"</reference_type>{eol}"
+                    + f"{' ' * 2 * tab}</Internal_Reference>{eol}"
                 )
             else:
                 kernel_list_for_label += (
-                    f"{' ' * 2*tab}<Internal_Reference>{eol}" +
-                    f"{' ' * 3*tab}<lid_reference>{kernel_lid}"
-                    f"</lid_reference>{eol}" +
-                    f"{' ' * 3*tab}<reference_type>data_to_associate"
-                    f"</reference_type>{eol}" +
-                    f"{' ' * 2*tab}</Internal_Reference>{eol}"
+                    f"{' ' * 2*tab}<Internal_Reference>{eol}"
+                    + f"{' ' * 3*tab}<lid_reference>{kernel_lid}"
+                    f"</lid_reference>{eol}"
+                    + f"{' ' * 3*tab}<reference_type>data_to_associate"
+                    f"</reference_type>{eol}"
+                    + f"{' ' * 2*tab}</Internal_Reference>{eol}"
                 )
 
         kernel_list_for_label = kernel_list_for_label.rstrip() + eol
@@ -1157,6 +1161,7 @@ class InventoryPDS4Label(PDSLabel):
     :param inventory: Inventory Product of the Collection
     :type inventory: object
     """
+
     def __init__(self, setup: object, collection: object, inventory: object) -> object:
         """Constructor."""
         PDSLabel.__init__(self, setup, inventory)
@@ -1231,12 +1236,17 @@ class InventoryPDS3Label(PDSLabel):
     :type inventory: object
     """
 
-    def __init__(self, mission: object, collection: object, inventory: object) -> object:
+    def __init__(
+        self, mission: object, collection: object, inventory: object
+    ) -> object:
         """Constructor."""
         PDSLabel.__init__(self, mission, inventory)
 
         self.collection = collection
-        self.template = self.root_dir + "/templates/pds3/template_collection_{}.lbl".format(collection.type)
+        self.template = (
+            self.root_dir
+            + "/templates/pds3/template_collection_{}.lbl".format(collection.type)
+        )
 
         self.VOLUME_ID = self.setup.volume_id
         self.ROW_BYTES = str(self.product.row_bytes)
@@ -1244,7 +1254,9 @@ class InventoryPDS3Label(PDSLabel):
 
         for i, bytes in enumerate(self.product.column_bytes):
 
-            setattr(self, f"START_BYTE_{i+1:02d}", str(self.product.column_start_bytes[i]))
+            setattr(
+                self, f"START_BYTE_{i+1:02d}", str(self.product.column_start_bytes[i])
+            )
             setattr(self, f"BYTES_{i+1:02d}", str(bytes))
 
         file_types = self.product.file_types
@@ -1256,7 +1268,9 @@ class InventoryPDS3Label(PDSLabel):
             for file_type in file_types:
                 indexed_file_name += f'{29*" "}  "*.{file_type}",{self.setup.eol_pds3}'
 
-            indexed_file_name = indexed_file_name[:-3] + self.setup.eol_pds3 + 29 * " " + "}\n"
+            indexed_file_name = (
+                indexed_file_name[:-3] + self.setup.eol_pds3 + 29 * " " + "}\n"
+            )
 
         self.INDEXED_FILE_NAME = indexed_file_name
 

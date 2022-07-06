@@ -281,7 +281,7 @@ def fill_template(object, product_file, product_dictionary):
     """
     with open(product_file, "w") as f:
 
-        with open(object.template, 'r') as t:
+        with open(object.template, "r") as t:
             for line in t:
                 line = line.rstrip()
                 for key, value in product_dictionary.items():
@@ -814,7 +814,7 @@ def extract_comment(path, handle=False):
     (lincmt, commnt, done) = spiceypy.dafec(handle, buffsz, linlen)
     if lincmt > buffsz:
         spiceypy.dafcls(handle)
-        error_message(f'Comment from {path} is longer than buffer size.')
+        error_message(f"Comment from {path} is longer than buffer size.")
 
     #
     # Remove empty lines at the end of the comment.
@@ -827,7 +827,7 @@ def extract_comment(path, handle=False):
             break
     if lines_to_remove > 0:
         lines_to_remove *= -1
-        commnt = commnt[:lines_to_remove + 1]
+        commnt = commnt[: lines_to_remove + 1]
 
     if close_file:
         spiceypy.dafcls(handle)
@@ -881,11 +881,11 @@ def replace_string_in_file(file, old_string, new_string, setup):
         new_file_content += add_carriage_return(new_line, setup.eol_pds3, setup)
     reading_file.close()
 
-    writing_file = open('temp.file', "w")
+    writing_file = open("temp.file", "w")
     writing_file.write(new_file_content)
     writing_file.close()
 
-    shutil.move('temp.file', file)
+    shutil.move("temp.file", file)
 
 
 def format_multiple_values(value):
@@ -899,12 +899,12 @@ def format_multiple_values(value):
     :return: PDS3 key value reformatted
     :rtype: str
     """
-    if ',' in value:
-        values = value.split(',')
+    if "," in value:
+        values = value.split(",")
         value = "{\n"
         for val in values:
             value += f"{' ' * 31}{val},\n"
-        value = value[:-2] + '\n' + ' ' * 31 + "}\n"
+        value = value[:-2] + "\n" + " " * 31 + "}\n"
 
     return value
 
@@ -916,16 +916,14 @@ def product_mapping(name, setup, cleanup=True):
     :rtype: str
     """
     kernel_list_file = (
-            setup.working_directory
-            + os.sep
-            + f"{setup.mission_acronym}_{setup.run_type}_"
-              f"{int(setup.release):02d}.kernel_list"
+        setup.working_directory + os.sep + f"{setup.mission_acronym}_{setup.run_type}_"
+        f"{int(setup.release):02d}.kernel_list"
     )
 
     get_map = False
     mapping = False
 
-    with open(kernel_list_file, 'r') as lst:
+    with open(kernel_list_file, "r") as lst:
         for line in lst:
             if name in line:
                 get_map = True
@@ -974,7 +972,7 @@ def check_kernel_integrity(path):
     :return: Error message if error present
     :rtype: str
     """
-    error = ''
+    error = ""
     name = path.split(os.sep)[-1].strip()
     extension = path.split(".")[-1].strip()
     type_file = extension_to_type(name).upper()
@@ -1042,38 +1040,42 @@ def check_binary_endianness(path, endianness):
     :return: Error message if error present
     :rtype: str
     """
-    error = ''
+    error = ""
 
     if path.split(".")[-1].lower() == "bds":
-        arch = 'das'
+        arch = "das"
     else:
-        arch = 'daf'
+        arch = "daf"
     try:
-        if arch == 'daf':
+        if arch == "daf":
             handle = spiceypy.dafopw(path)
-        elif arch == 'das':
+        elif arch == "das":
             handle = spiceypy.dasopw(path)
         else:
             raise BaseException
 
     except BaseException:
         if sys.byteorder != endianness:
-            logging.warning(f"-- The binary kernel is {endianness} endian; this"
-                            f" endianness is not supported by your machine.")
+            logging.warning(
+                f"-- The binary kernel is {endianness} endian; this"
+                f" endianness is not supported by your machine."
+            )
             logging.warning("   You can use NAIF's utility BINGO to convert the file.")
         else:
             error = "The binary kernel is not readable by your machine."
     else:
         if sys.byteorder != endianness:
-            error = f"The binary kernel is {sys.byteorder} endian; this " \
-                    f"endianness is not the one specified via configuration."
+            error = (
+                f"The binary kernel is {sys.byteorder} endian; this "
+                f"endianness is not the one specified via configuration."
+            )
         else:
             pass
     finally:
         try:
-            if arch == 'daf':
+            if arch == "daf":
                 spiceypy.dafcls(handle)
-            elif arch == 'das':
+            elif arch == "das":
                 spiceypy.dascls(handle)
 
         except BaseException:
@@ -1091,7 +1093,7 @@ def check_badchar(file):
     """
     error = []
     line_num = 1
-    with open(file, 'r') as f:
+    with open(file, "r") as f:
         for line in f:
             if not line.isascii():
                 char_count = 0
@@ -1103,9 +1105,11 @@ def check_badchar(file):
 
                 error.append(f"NON-ASCII character(s) in line {line_num}:")
                 error.append(f"{line.rstrip()}")
-                badchar_line = " "*len(line.rstrip())
+                badchar_line = " " * len(line.rstrip())
                 for badchar in badchars:
-                    badchar_line = badchar_line[:badchar] + "^" + badchar_line[badchar + 1:]
+                    badchar_line = (
+                        badchar_line[:badchar] + "^" + badchar_line[badchar + 1 :]
+                    )
                 error.append(badchar_line)
             line_num += 1
 
@@ -1120,16 +1124,16 @@ def check_eol(file, eol):
     :return: Resulting error messages
     :rtype: str
     """
-    error = ''
+    error = ""
 
-    with open(file, 'rb') as open_file:
+    with open(file, "rb") as open_file:
         content = open_file.read()
 
-    if eol == '\n':
-        if b'\r\n' in content:
+    if eol == "\n":
+        if b"\r\n" in content:
             error = "Incorrect EOL in file, LF (\\n) expected."
-    elif eol == '\r\n':
-        if content.count(b'\r\n') != content.count(b'\n'):
+    elif eol == "\r\n":
+        if content.count(b"\r\n") != content.count(b"\n"):
             error = "Incorrect EOL in file, CRLF (\\r\\n) expected."
     else:
         error_message(f"Incorrect EOL in configuration: {eol}")

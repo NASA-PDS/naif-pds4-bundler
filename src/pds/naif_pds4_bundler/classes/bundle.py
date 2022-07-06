@@ -137,18 +137,22 @@ class Bundle(object):
         for collection in self.collections:
             for product in collection.product:
                 new_files.append(product.path)
-                if hasattr(product, 'label'):
+                if hasattr(product, "label"):
                     new_files.append(product.label.name)
                 else:
-                    logging.info(f'-- Product {product.name} has no label in staging area.')
+                    logging.info(
+                        f"-- Product {product.name} has no label in staging area."
+                    )
 
         #
         # Include the bundle products if not running in label mode.
         #
         if self.setup.pds_version == "4" and not self.setup.faucet == "labels":
             new_files.append(self.setup.staging_directory + os.sep + self.name)
-            if hasattr(self, 'readme') and self.readme.new_product:
-                new_files.append(self.setup.staging_directory + os.sep + self.readme.name)
+            if hasattr(self, "readme") and self.readme.new_product:
+                new_files.append(
+                    self.setup.staging_directory + os.sep + self.readme.name
+                )
 
         self.new_files = new_files
 
@@ -209,7 +213,11 @@ class Bundle(object):
             #
             # If the file is a label we copy it anyway.
             #
-            if (self.setup.pds_version == '3') or (not os.path.exists(dst)) or (dst.split(".")[-1] == label_extension):
+            if (
+                (self.setup.pds_version == "3")
+                or (not os.path.exists(dst))
+                or (dst.split(".")[-1] == label_extension)
+            ):
                 copied_files.append(file)
                 #
                 # We do not use copy2 (copy data and metadata) because
@@ -329,7 +337,11 @@ class Bundle(object):
                 history[rel].append("readme.txt")
 
             bundle_label = f"{object.name[:-7]}{rel:03d}.xml"
-            bundle_label_path = object.setup.bundle_directory + f"/{object.setup.mission_acronym}_spice/" + bundle_label
+            bundle_label_path = (
+                object.setup.bundle_directory
+                + f"/{object.setup.mission_acronym}_spice/"
+                + bundle_label
+            )
 
             #
             # Check if the bundle label for the release exists, if not, signal
@@ -365,7 +377,7 @@ class Bundle(object):
             # 'http://pds.nasa.gov/pds4/pds/v1http://pds.nasa.gov/pds4/pds/v1',
             # which is the URL of the XML model.
             #
-            prefix = '{' + '/'.join(self.setup.xml_model.split('/')[0:-1]) + '}'
+            prefix = "{" + "/".join(self.setup.xml_model.split("/")[0:-1]) + "}"
 
             members = entries[f"{prefix}Product_Bundle"][f"{prefix}Bundle_Member_Entry"]
 
@@ -374,19 +386,23 @@ class Bundle(object):
             # of the release.
             #
             for member in members:
-                if member[f"{prefix}member_status"] == 'Primary':
+                if member[f"{prefix}member_status"] == "Primary":
                     lidvid = member[f"{prefix}lidvid_reference"]
                     if "spice:spice_kernels::" in lidvid:
-                        rel_ker_col_ver.append(int(
-                            lidvid.split("spice:spice_kernels::")[-1].split(".0")[0])
+                        rel_ker_col_ver.append(
+                            int(
+                                lidvid.split("spice:spice_kernels::")[-1].split(".0")[0]
+                            )
                         )
                     elif "spice:document::" in lidvid:
-                        rel_doc_col_ver.append(int(
-                            lidvid.split("spice:document::")[-1].split(".0")[0])
+                        rel_doc_col_ver.append(
+                            int(lidvid.split("spice:document::")[-1].split(".0")[0])
                         )
                     elif "spice:miscellaneous::" in lidvid:
-                        rel_mis_col_ver.append(int(
-                            lidvid.split("spice:miscellaneous::")[-1].split(".0")[0])
+                        rel_mis_col_ver.append(
+                            int(
+                                lidvid.split("spice:miscellaneous::")[-1].split(".0")[0]
+                            )
                         )
 
             #
@@ -413,10 +429,10 @@ class Bundle(object):
                         history[rel].append(ker_collection_lbl)
 
                         with open(
-                                object.setup.bundle_directory
-                                + f"/{object.setup.mission_acronym}_spice/"
-                                + ker_collection,
-                                "r",
+                            object.setup.bundle_directory
+                            + f"/{object.setup.mission_acronym}_spice/"
+                            + ker_collection,
+                            "r",
                         ) as c:
                             for line in c:
 
@@ -447,7 +463,7 @@ class Bundle(object):
                                             if not isinstance(pattern, list):
                                                 pattern = [pattern]
                                             for pattern_word in pattern:
-                                                pattern_key = pattern_word['pattern']
+                                                pattern_key = pattern_word["pattern"]
                                                 if not isinstance(pattern_key, list):
                                                     pattern_key = [pattern_key]
                                                 for key in pattern_key:
@@ -474,13 +490,17 @@ class Bundle(object):
                                                                 f"v{mk_ver:03d}.tm"
                                                             )
                                                         else:
-                                                            error_message(f"Meta-kernel version "
-                                                                          f"length of {version_length}"
-                                                                          f"digits is incorrect.")
+                                                            error_message(
+                                                                f"Meta-kernel version "
+                                                                f"length of {version_length}"
+                                                                f"digits is incorrect."
+                                                            )
 
                                                         history[rel].append(product)
                                                         history[rel].append(
-                                                            product.replace(".tm", ".xml")
+                                                            product.replace(
+                                                                ".tm", ".xml"
+                                                            )
                                                         )
 
                                                         break
@@ -490,7 +510,7 @@ class Bundle(object):
                                         # Try to derive the digits from the MK input.
                                         #
                                         if isinstance(self.setup.mk_inputs, dict):
-                                            mk_names = self.setup.mk_inputs['file']
+                                            mk_names = self.setup.mk_inputs["file"]
                                         if not isinstance(mk_names, list):
                                             mk_names = [mk_names]
 
@@ -502,7 +522,9 @@ class Bundle(object):
 
                                             if product not in history[rel]:
                                                 history[rel].append(product)
-                                                history[rel].append(product.replace(".tm", ".xml"))
+                                                history[rel].append(
+                                                    product.replace(".tm", ".xml")
+                                                )
                                     else:
                                         #
                                         # Default to 2. Might trigger an error.
@@ -521,7 +543,9 @@ class Bundle(object):
                                             f"v{mk_ver:02d}.tm"
                                         )
                                         history[rel].append(product)
-                                        history[rel].append(product.replace(".tm", ".xml"))
+                                        history[rel].append(
+                                            product.replace(".tm", ".xml")
+                                        )
 
                         ker_col_ver = ver
 
@@ -540,9 +564,9 @@ class Bundle(object):
                         )
 
                         if os.path.exists(
-                                object.setup.bundle_directory
-                                + f"/{object.setup.mission_acronym}_spice/"
-                                + mis_collection
+                            object.setup.bundle_directory
+                            + f"/{object.setup.mission_acronym}_spice/"
+                            + mis_collection
                         ):
                             history[rel].append(mis_collection)
 
@@ -553,10 +577,10 @@ class Bundle(object):
                             history[rel].append(mis_collection_lbl)
 
                             with open(
-                                    object.setup.bundle_directory
-                                    + f"/{object.setup.mission_acronym}_spice/"
-                                    + mis_collection,
-                                    "r",
+                                object.setup.bundle_directory
+                                + f"/{object.setup.mission_acronym}_spice/"
+                                + mis_collection,
+                                "r",
                             ) as c:
                                 for line in c:
                                     if ("P" in line) and (":checksum_" not in line):
@@ -579,7 +603,9 @@ class Bundle(object):
                                             f"{product_name}_v{rel_misc:03d}.tab"
                                         )
                                         history[rel].append(product)
-                                        history[rel].append(product.replace(".tab", ".xml"))
+                                        history[rel].append(
+                                            product.replace(".tab", ".xml")
+                                        )
 
                         mis_col_ver = ver
 
@@ -597,14 +623,16 @@ class Bundle(object):
                         )
                         history[rel].append(doc_collection)
 
-                        doc_collection_lbl = f"document/collection_document_v{ver:03d}.xml"
+                        doc_collection_lbl = (
+                            f"document/collection_document_v{ver:03d}.xml"
+                        )
                         history[rel].append(doc_collection_lbl)
 
                         with open(
-                                object.setup.bundle_directory
-                                + f"/{object.setup.mission_acronym}_spice/"
-                                + doc_collection,
-                                "r",
+                            object.setup.bundle_directory
+                            + f"/{object.setup.mission_acronym}_spice/"
+                            + doc_collection,
+                            "r",
                         ) as c:
                             for line in c:
                                 if "P" in line:
@@ -614,7 +642,9 @@ class Bundle(object):
                                         f"v{ver:03d}.html"
                                     )
                                     history[rel].append(product)
-                                    history[rel].append(product.replace(".html", ".xml"))
+                                    history[rel].append(
+                                        product.replace(".html", ".xml")
+                                    )
 
                         doc_col_ver = ver
 
@@ -658,13 +688,13 @@ class Bundle(object):
         #
         # Remove 'Z' due to a bug in CSPICE N0066. See Header of TPARTV.
         #
-        if 'Z' in str_msn_strt:
+        if "Z" in str_msn_strt:
             str_msn_strt = str_msn_strt[:-1]
-        if 'Z' in str_inc_strt:
+        if "Z" in str_inc_strt:
             str_inc_strt = str_inc_strt[:-1]
-        if 'Z' in str_inc_stop:
+        if "Z" in str_inc_stop:
             str_inc_stop = str_inc_stop[:-1]
-        if 'Z' in str_msn_stop:
+        if "Z" in str_msn_stop:
             str_msn_stop = str_msn_stop[:-1]
 
         et_msn_strt = spiceypy.str2et(str_msn_strt)
@@ -673,10 +703,10 @@ class Bundle(object):
         et_msn_stop = spiceypy.str2et(str_msn_stop)
 
         if (
-                not (et_msn_strt <= et_inc_strt)
-                or not (et_inc_strt <= et_inc_stop)
-                or not (et_inc_stop <= et_msn_stop)
-                or not (et_msn_strt < et_msn_stop)
+            not (et_msn_strt <= et_inc_strt)
+            or not (et_inc_strt <= et_inc_stop)
+            or not (et_inc_stop <= et_msn_stop)
+            or not (et_msn_strt < et_msn_stop)
         ):
             error_message(
                 "The resulting Mission and Increment start and finish dates "

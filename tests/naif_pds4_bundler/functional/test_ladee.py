@@ -211,9 +211,7 @@ def test_ladee_label_mode_plan_input(self):
     config = "../config/ladee.xml"
 
     with open("working/ladee_labels_01.plan", "w") as n:
-        n.write(
-            "ladee_14030_14108_v04.bc\n" "ladee_ldex_v01.ti\n" "ladee_uvs_v00.ti"
-        )
+        n.write("ladee_14030_14108_v04.bc\n" "ladee_ldex_v01.ti\n" "ladee_uvs_v00.ti")
 
     main(
         config,
@@ -285,9 +283,7 @@ def test_ladee_label_mode_ker_bun_dir(self):
     )
 
     with open("working/ladee_labels_01.plan", "w") as n:
-        n.write(
-            "ladee_14030_14108_v04.bc\n" "ladee_ldex_v01.ti\n" "ladee_uvs_v00.ti"
-        )
+        n.write("ladee_14030_14108_v04.bc\n" "ladee_ldex_v01.ti\n" "ladee_uvs_v00.ti")
 
     main(
         updated_config,

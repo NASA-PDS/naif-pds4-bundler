@@ -14,7 +14,6 @@ import functional.test_mro as mro
 from pds.naif_pds4_bundler.utils import add_crs_to_file
 
 
-
 class TestFunctional(TestCase):
     """Functional Test Family Class."""
 
@@ -33,11 +32,15 @@ class TestFunctional(TestCase):
         cls.log = True
         cls.tmp_dir = tempfile.TemporaryDirectory()
 
-        shutil.copytree(os.sep.join(cls.test_dir.split(os.sep)),
-                        cls.tmp_dir.name + '/naif_pds4_bundler')
-        shutil.copytree(os.sep.join(cls.test_dir.split(os.sep)[:-2]) +
-                        "/src/pds/naif_pds4_bundler/templates/1.5.0.0",
-                        cls.tmp_dir.name + '/naif_pds4_bundler/templates/1.5.0.0')
+        shutil.copytree(
+            os.sep.join(cls.test_dir.split(os.sep)),
+            cls.tmp_dir.name + "/naif_pds4_bundler",
+        )
+        shutil.copytree(
+            os.sep.join(cls.test_dir.split(os.sep)[:-2])
+            + "/src/pds/naif_pds4_bundler/templates/1.5.0.0",
+            cls.tmp_dir.name + "/naif_pds4_bundler/templates/1.5.0.0",
+        )
 
         tests_dir = cls.tmp_dir.name + "/naif_pds4_bundler/functional/"
         print(f"      Tests data on: {cls.tmp_dir.name}")
@@ -52,11 +55,10 @@ class TestFunctional(TestCase):
             f"{tests_dir}../data/misc/orbnum/maven_orb_rec_210101_210401.orb",
             f"{tests_dir}../data/misc/orbnum/maven_orb_rec_210101_210401_v1.orb",
             f"{tests_dir}../data/misc/orbnum/maven_orb_rec_210101_210401_v2.orb",
-            f"{tests_dir}../data/misc/orbnum/maven_orb_rec_210101_210401_v3.orb"
+            f"{tests_dir}../data/misc/orbnum/maven_orb_rec_210101_210401_v3.orb",
         ]
         for file in files:
             add_crs_to_file(file, "\r\n")
-
 
     @classmethod
     def tearDownClass(cls):
@@ -77,8 +79,7 @@ class TestFunctional(TestCase):
         unittest.TestCase.setUp(self)
         print(f"    * {self._testMethodName}")
 
-        dirs = ["working", "staging", "misc", "ladee", "mars2020", "dart",
-                "orex"]
+        dirs = ["working", "staging", "misc", "ladee", "mars2020", "dart", "orex"]
         for dir in dirs:
             try:
                 os.makedirs(dir, exist_ok=True)
@@ -174,8 +175,8 @@ class TestFunctional(TestCase):
     def test_insight_increment_with_misc(self):
         insight.test_insight_increment_with_misc(self)
 
-#   def test_insight_missing_bundle_directory(self):
-#       insight.test_insight_missing_bundle_directory(self)
+    #   def test_insight_missing_bundle_directory(self):
+    #       insight.test_insight_missing_bundle_directory(self)
 
     def test_insight_missing_staging_directory_nok(self):
         insight.test_insight_missing_staging_directory_nok(self)
@@ -183,8 +184,8 @@ class TestFunctional(TestCase):
     def test_insight_flat_kernel_directory(self):
         insight.test_insight_flat_kernel_directory(self)
 
-#    def test_insight_multiple_kernel_directory(self):
-#        insight.test_insight_multiple_kernel_directory(self)
+    #    def test_insight_multiple_kernel_directory(self):
+    #        insight.test_insight_multiple_kernel_directory(self)
 
     #
     # LADEE functional tests.

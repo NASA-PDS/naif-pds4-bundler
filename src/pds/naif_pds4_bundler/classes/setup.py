@@ -89,7 +89,7 @@ class Setup(object):
         # Generate empty orbnum directory if not present.
         #
         if not hasattr(self, "orbnum_directory"):
-            self.orbnum_directory = ''
+            self.orbnum_directory = ""
 
         #
         # Kernel list configuration needs refactoring.
@@ -222,21 +222,27 @@ class Setup(object):
         # Check and determine endianness.
         #
         if not hasattr(self, "binary_endianness"):
-            if self.pds_version == '4':
+            if self.pds_version == "4":
                 self.kernel_endianness = "little"
             else:
                 self.kernel_endianness = "big"
         else:
-            if self.binary_endianness.lower() == "little" or \
-                    self.binary_endianness.lower() == "ltl-ieee":
+            if (
+                self.binary_endianness.lower() == "little"
+                or self.binary_endianness.lower() == "ltl-ieee"
+            ):
                 self.kernel_endianness = "little"
-            elif self.binary_endianness.lower() == "big" or \
-                    self.binary_endianness.lower() == "big-ieee":
+            elif (
+                self.binary_endianness.lower() == "big"
+                or self.binary_endianness.lower() == "big-ieee"
+            ):
                 self.kernel_endianness = "big"
             else:
-                error_message("binary_endianness configuration parameter value must be"
-                              " 'big', 'BIG-IEEE', 'little' or 'LTL-IEEE'. Case is not"
-                              " sensitive.")
+                error_message(
+                    "binary_endianness configuration parameter value must be"
+                    " 'big', 'BIG-IEEE', 'little' or 'LTL-IEEE'. Case is not"
+                    " sensitive."
+                )
 
         #
         # Fill missing fields.
@@ -247,17 +253,18 @@ class Setup(object):
             self.dataset_id = ""
             self.volume_id = ""
 
+
     def check_configuration(self):
         """Performs the following checks to the loaded configuration items:
 
-               * IM, Line Feed, and Date Time format NAIF recommendations
-               * Archive increment start and finish times
-               * Transform relative to absolute paths
-               * Existence of kernel directories
-               * IM, XML model, and Schema Location coherence
-               * Check existence of templates according to the IM
-               * Meta-kernel configuration
-               * Presence of uppercase characters in the kernel list configuration
+        * IM, Line Feed, and Date Time format NAIF recommendations
+        * Archive increment start and finish times
+        * Transform relative to absolute paths
+        * Existence of kernel directories
+        * IM, XML model, and Schema Location coherence
+        * Check existence of templates according to the IM
+        * Meta-kernel configuration
+        * Presence of uppercase characters in the kernel list configuration
         """
         #
         # Check IM, Line Feed, and Date Time format NAIF recommendations.
@@ -308,31 +315,47 @@ class Setup(object):
         #
         # Check binary kernels endianness.
         #
-        if self.pds_version == '4':
-            if  self.kernel_endianness == "little":
-                logging.info("-- Binary SPICE kernels expected to have LTL-IEEE (little endian) binary format.")
+        if self.pds_version == "4":
+            if self.kernel_endianness == "little":
+                logging.info(
+                    "-- Binary SPICE kernels expected to have LTL-IEEE (little endian) binary format."
+                )
             else:
-                logging.info("-- Binary SPICE kernels expected to have BIG-IEEE (little endian) binary format.")
-                logging.warning("-- NAIF strongly recommends to use LTL-IEEE (little endian) for binary kernels in PDS4 archives ")
+                logging.info(
+                    "-- Binary SPICE kernels expected to have BIG-IEEE (little endian) binary format."
+                )
+                logging.warning(
+                    "-- NAIF strongly recommends to use LTL-IEEE (little endian) for binary kernels in PDS4 archives "
+                )
                 logging.warning("   and enforces it if the archive is hosted by NAIF.")
         else:
             if self.kernel_endianness == "little":
-                logging.info("-- Binary SPICE kernels expected to have LTL-IEEE (little endian) binary format.")
+                logging.info(
+                    "-- Binary SPICE kernels expected to have LTL-IEEE (little endian) binary format."
+                )
 
                 logging.warning(
                     "-- NAIF strongly recommends to use BIG-IEEE (big endian) for binary kernels in PDS3 archives "
                 )
-                logging.warning( "   and enforces it if the archive is hosted by NAIF.")
+                logging.warning("   and enforces it if the archive is hosted by NAIF.")
                 if sys.byteorder == "big":
-                    logging.warning("   Your system is BIG-IEEE (big endian): PDS3 Labels cannot be attached to binary kernels.")
-                    logging.warning("   If binary kernels are present this will result in an error.")
+                    logging.warning(
+                        "   Your system is BIG-IEEE (big endian): PDS3 Labels cannot be attached to binary kernels."
+                    )
+                    logging.warning(
+                        "   If binary kernels are present this will result in an error."
+                    )
             else:
-                logging.info("-- Binary SPICE kernels expected to have BIG-IEEE (big endian) binary format.")
+                logging.info(
+                    "-- Binary SPICE kernels expected to have BIG-IEEE (big endian) binary format."
+                )
                 if sys.byteorder != "big":
                     logging.warning(
                         "   Your system is LTL-IEEE (little endian): PDS3 Labels cannot be attached to binary kernels."
                     )
-                    logging.warning("   If binary kernels are present this will result in an error.")
+                    logging.warning(
+                        "   If binary kernels are present this will result in an error."
+                    )
 
         #
         # Check Bundle increment start and finish times. For the two accepted
@@ -358,7 +381,8 @@ class Setup(object):
         if hasattr(self, "increment_finish") and self.increment_finish:
             if not pattern.match(self.increment_finish):
                 error_message(
-                    f"increment_finish does not match the required " f"format: {format}."
+                    f"increment_finish does not match the required "
+                    f"format: {format}."
                 )
         if hasattr(self, "increment_start") and hasattr(self, "increment_finish"):
             if ((not self.increment_start) and (self.increment_finish)) or (
@@ -373,10 +397,14 @@ class Setup(object):
         #
         # Check that directories are not the same.
         #
-        if (self.working_directory == self.staging_directory) or \
-                (self.bundle_directory == self.staging_directory) or \
-                (self.bundle_directory == self.working_directory):
-            logging.error("--The working, staging, and bundle directories must be different:")
+        if (
+            (self.working_directory == self.staging_directory)
+            or (self.bundle_directory == self.staging_directory)
+            or (self.bundle_directory == self.working_directory)
+        ):
+            logging.error(
+                "--The working, staging, and bundle directories must be different:"
+            )
             logging.error(f"  working: {self.working_directory}")
             logging.error(f"  staging: {self.staging_directory}")
             logging.error(f"  bundle:  {self.bundle_directory}")
@@ -404,7 +432,9 @@ class Setup(object):
             error_message(f"Directory does not exist: {self.working_directory}.")
 
         if os.path.isdir(cwd + os.sep + self.staging_directory):
-            self.staging_directory = (cwd + os.sep + self.staging_directory + f"/{mission_dir}")
+            self.staging_directory = (
+                cwd + os.sep + self.staging_directory + f"/{mission_dir}"
+            )
         elif not os.path.isdir(self.staging_directory):
             logging.warning(
                 f"-- Creating staging directory: {self.staging_directory}/{mission_dir}."
@@ -417,9 +447,13 @@ class Setup(object):
                 os.mkdir(cwd + os.sep + self.staging_directory)
             except BaseException:
                 if self.faucet in ["plan", "list", "checks"]:
-                    logging.warning(f"-- Staging directory cannot be created but is not used with {self.faucet} faucet.")
+                    logging.warning(
+                        f"-- Staging directory cannot be created but is not used with {self.faucet} faucet."
+                    )
                 else:
-                    error_message(f"Staging directory cannot be created: {self.staging_directory}.")
+                    error_message(
+                        f"Staging directory cannot be created: {self.staging_directory}."
+                    )
 
         elif f"/{mission_dir}" not in self.staging_directory:
             self.staging_directory += f"/{mission_dir}"
@@ -433,9 +467,13 @@ class Setup(object):
         #
         if not os.path.isdir(self.bundle_directory):
             if self.faucet in ["plan", "list", "checks"]:
-                logging.warning(f"-- Bundle directory does not exist but is not used with {self.faucet} faucet.")
+                logging.warning(
+                    f"-- Bundle directory does not exist but is not used with {self.faucet} faucet."
+                )
             else:
-                error_message(f"Bundle directory does not exist: {self.bundle_directory}.")
+                error_message(
+                    f"Bundle directory does not exist: {self.bundle_directory}."
+                )
 
         #
         # There might be more than one kernel directory
@@ -487,8 +525,12 @@ class Setup(object):
                             f"{self.xml_model}."
                         )
                 else:
-                    self.xml_model = f"http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_{short_version}.sch"
-                    logging.info("-- Schema XML Model (xml_model) not provided with configuration file. Set to:")
+                    self.xml_model = (
+                        f"http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_{short_version}.sch"
+                    )
+                    logging.info(
+                        "-- Schema XML Model (xml_model) not provided with configuration file. Set to:"
+                    )
                     logging.info(f"   {self.xml_model}")
 
                 #
@@ -507,9 +549,13 @@ class Setup(object):
                             f"{self.schema_location}."
                         )
                 else:
-                    self.schema_location = f"http://pds.nasa.gov/pds4/pds/v1 " \
-                                           f"http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_{short_version}.xsd"
-                    logging.info("-- Schema Location (schema_location) not provided with configuration file. Set to:")
+                    self.schema_location = (
+                        f"http://pds.nasa.gov/pds4/pds/v1 "
+                        f"http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_{short_version}.xsd"
+                    )
+                    logging.info(
+                        "-- Schema Location (schema_location) not provided with configuration file. Set to:"
+                    )
                     logging.info(f"   {self.schema_location}")
 
             else:
@@ -542,7 +588,7 @@ class Setup(object):
                 os.path.basename(x[:-1])
                 for x in glob.glob(f"{self.root_dir}templates/*/")
             ]
-            schemas.remove('pds3')
+            schemas.remove("pds3")
 
             schemas_eval = []
             for schema in schemas:
@@ -558,7 +604,9 @@ class Setup(object):
             #
             # Reorder the schema list according to their value.
             #
-            schemas_index = sorted(range(len(schemas_eval)),key=schemas_eval.__getitem__,reverse=True)
+            schemas_index = sorted(
+                range(len(schemas_eval)), key=schemas_eval.__getitem__, reverse=True
+            )
             schemas_eval.sort(reverse=True)
             schemas = [schemas[i] for i in schemas_index]
 
@@ -582,7 +630,6 @@ class Setup(object):
         else:
             templates_directory = f"{self.root_dir}templates/pds3/"
 
-
         template_files = []
         if not hasattr(self, "templates_directory") and self.pds_version == "4":
 
@@ -590,7 +637,10 @@ class Setup(object):
 
             templates = os.listdir(templates_directory)
             for template in templates:
-                shutil.copy2(os.path.join(templates_directory,template), self.templates_directory)
+                shutil.copy2(
+                    os.path.join(templates_directory, template),
+                    self.templates_directory,
+                )
                 template_files.append(self.working_directory + os.sep + template)
 
             if config_schema in schemas_eval:
@@ -612,8 +662,7 @@ class Setup(object):
             ]
 
             labels = [
-                os.path.basename(x)
-                for x in glob.glob(f"{self.templates_directory}/*")
+                os.path.basename(x) for x in glob.glob(f"{self.templates_directory}/*")
             ]
 
             #
@@ -621,13 +670,20 @@ class Setup(object):
             #
             for label in labels_check:
                 if label not in labels:
-                    logging.warning(f"-- Template {label} has not been provided. "
-                                    f"Using label from: ")
+                    logging.warning(
+                        f"-- Template {label} has not been provided. "
+                        f"Using label from: "
+                    )
                     logging.warning(f"   {templates_directory}")
-                    shutil.copy(templates_directory + os.sep + label, self.working_directory)
+                    shutil.copy(
+                        templates_directory + os.sep + label, self.working_directory
+                    )
                     template_files.append(self.working_directory + os.sep + label)
                 else:
-                    shutil.copy(self.templates_directory + os.sep + label, self.working_directory)
+                    shutil.copy(
+                        self.templates_directory + os.sep + label,
+                        self.working_directory,
+                    )
                     template_files.append(self.working_directory + os.sep + label)
         else:
             #
@@ -636,7 +692,10 @@ class Setup(object):
             self.templates_directory = f"{self.root_dir}templates/pds3"
             templates = os.listdir(self.templates_directory)
             for template in templates:
-                shutil.copy2(os.path.join(self.templates_directory, template), self.working_directory)
+                shutil.copy2(
+                    os.path.join(self.templates_directory, template),
+                    self.working_directory,
+                )
                 template_files.append(self.working_directory + os.sep + template)
 
         logging.info(f"-- Label templates directory: {self.templates_directory}")
@@ -649,20 +708,26 @@ class Setup(object):
         # to the templates. The default for the built-in templates is 2.
         #
         xml_tab = 0
-        if self.pds_version == '4':
+        if self.pds_version == "4":
             try:
-                xml_tag = '<Identification_Area>'
-                with open(self.templates_directory + os.sep + 'template_bundle.xml', 'r') as t:
+                xml_tag = "<Identification_Area>"
+                with open(
+                    self.templates_directory + os.sep + "template_bundle.xml", "r"
+                ) as t:
                     for line in t:
                         if xml_tag in line:
                             line = line.rstrip()
                             xml_tab = len(line) - len(xml_tag)
             except:
-                logging.warning("-- XML Template not found to determine XML Tab. It has been set to 2.")
+                logging.warning(
+                    "-- XML Template not found to determine XML Tab. It has been set to 2."
+                )
                 xml_tab = 2
 
             if xml_tab <= 0:
-                logging.warning("-- XML Template not useful to determine XML Tab. It has been set to 2.")
+                logging.warning(
+                    "-- XML Template not useful to determine XML Tab. It has been set to 2."
+                )
                 xml_tab = 2
 
         self.xml_tab = xml_tab
@@ -722,7 +787,10 @@ class Setup(object):
         # If a readme file is present the readme section of the configuration
         # is irrelevant.
         #
-        if not os.path.exists(f"{self.bundle_directory}/{mission_dir}/readme.txt") and self.pds_version == '4':
+        if (
+            not os.path.exists(f"{self.bundle_directory}/{mission_dir}/readme.txt")
+            and self.pds_version == "4"
+        ):
             #
             # Check readme file inputs in configuration. Raise an error immediately
             # if things do not look good.
@@ -755,10 +823,14 @@ class Setup(object):
                 kernel_pattern_is_upper = True
                 kernel_pattern_upper.append(kernel_pattern)
         if kernel_pattern_is_upper:
-            logging.warning('-- Kernel list configuration has entries with uppercase letters:')
+            logging.warning(
+                "-- Kernel list configuration has entries with uppercase letters:"
+            )
             for kernel_pattern in kernel_pattern_upper:
-                logging.warning(f'      {kernel_pattern}')
-            logging.warning('   Uppercase letters in kernel names are HIGHLY discouraged. ')
+                logging.warning(f"      {kernel_pattern}")
+            logging.warning(
+                "   Uppercase letters in kernel names are HIGHLY discouraged. "
+            )
 
     def set_release(self):
         """Determine the Bundle release number."""
@@ -812,7 +884,7 @@ class Setup(object):
                 increment = True
 
             except:
-                if self.pds_version == '4':
+                if self.pds_version == "4":
                     logging.warning(
                         "-- Bundle label not found. Checking previous kernel list."
                     )
@@ -893,8 +965,10 @@ class Setup(object):
         # We inspect the kernels directory and the bundle directory.
         #
         directories = self.kernels_directory
-        if self.pds_version == '4':
-            directories.append(self.bundle_directory +  f"/{self.mission_acronym}_spice/spice_kernels")
+        if self.pds_version == "4":
+            directories.append(
+                self.bundle_directory + f"/{self.mission_acronym}_spice/spice_kernels"
+            )
         else:
             directories.append(self.bundle_directory + f"{self.volume_id}/data")
 
@@ -1098,23 +1172,18 @@ class Setup(object):
             path = self.working_directory
             if self.args.kerlist:
                 try:
-                    byproduct = self.args.clear.split('.')[0] + '.plan'
-                    logging.info(
-                        f"-- Removing previous run by-product: {byproduct}."
-                    )
+                    byproduct = self.args.clear.split(".")[0] + ".plan"
+                    logging.info(f"-- Removing previous run by-product: {byproduct}.")
                     os.remove(path + os.sep + byproduct.split(os.sep)[-1])
                 except:
                     logging.warning(f"     File {byproduct} not found.")
             if self.args.plan:
                 try:
-                    byproduct = self.args.clear.split('.')[0] + '.kernel_list'
-                    logging.info(
-                        f"-- Removing previous run by-product: {byproduct}."
-                    )
+                    byproduct = self.args.clear.split(".")[0] + ".kernel_list"
+                    logging.info(f"-- Removing previous run by-product: {byproduct}.")
                     os.remove(path + os.sep + byproduct.split(os.sep)[-1])
                 except:
                     logging.warning(f"     File {byproduct} not found.")
-
 
         else:
             error_message(
@@ -1205,36 +1274,44 @@ class Setup(object):
         will be successful.
         """
         pds_schematron_location = self.xml_model
-        pds_schematron = pds_schematron_location.split('/')[-1]
+        pds_schematron = pds_schematron_location.split("/")[-1]
         try:
             r = requests.get(pds_schematron_location, allow_redirects=True)
         except BaseException:
             logging.warning("-- PDS Validate Tool configuration file not written.")
             logging.warning(f"   PDS Schematron not reachable: {pds_schematron}")
             return
-        with open(f"{self.working_directory}/{pds_schematron}", 'wb') as f:
+        with open(f"{self.working_directory}/{pds_schematron}", "wb") as f:
             f.write(r.content)
 
         pds_schema_location = self.schema_location.split()[-1]
-        pds_schema = pds_schema_location.split('/')[-1]
+        pds_schema = pds_schema_location.split("/")[-1]
         try:
             r = requests.get(pds_schema_location, allow_redirects=True)
         except BaseException:
             logging.warning("-- PDS Validate Tool configuration file not written.")
-            logging.warning(f"   PDS Schema location not reachable: {pds_schema_location}")
+            logging.warning(
+                f"   PDS Schema location not reachable: {pds_schema_location}"
+            )
             return
-        with open(f"{self.working_directory}/{pds_schema}", 'wb') as f:
+        with open(f"{self.working_directory}/{pds_schema}", "wb") as f:
             f.write(r.content)
 
         filename = f"{self.mission_acronym}_{self.run_type}_{int(self.release):02d}"
 
         with open(f"{self.working_directory}/{filename}.validate_config", "w") as l:
-            l.write("# Run the PDS validate tool where the NPB working directory resides:\n")
-            l.write(f"# $ validate -t {self.bundle_directory}/{self.mission_acronym}_spice "
-                    f"-c {self.working_directory}/{filename}.validate_config "
-                    f"-r {self.working_directory}/{filename}.validate_report\n#\n")
+            l.write(
+                "# Run the PDS validate tool where the NPB working directory resides:\n"
+            )
+            l.write(
+                f"# $ validate -t {self.bundle_directory}/{self.mission_acronym}_spice "
+                f"-c {self.working_directory}/{filename}.validate_config "
+                f"-r {self.working_directory}/{filename}.validate_report\n#\n"
+            )
             l.write(f"validate.schema = {self.working_directory}/{pds_schema}\n")
-            l.write(f"validate.schematron = {self.working_directory}/{pds_schematron}\n")
+            l.write(
+                f"validate.schematron = {self.working_directory}/{pds_schematron}\n"
+            )
             l.write(f"validate.verbose = 1\n")
             l.write(f"validate.skipContextValidation = true\n")
             l.write(f"validate.rule = pds4.bundle\n")

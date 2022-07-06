@@ -44,19 +44,39 @@ def test_pds4_orbnum_coverage_user_spk(self):
     main(config, plan, faucet="bundle", silent=self.silent)
 
     line_check = "<field_format>I5</field_format>"
-    if not string_in_file("maven/maven_spice/miscellaneous/orbnum/maven_orb_rec_210101_210401_v1.xml", line_check, 1):
+    if not string_in_file(
+        "maven/maven_spice/miscellaneous/orbnum/maven_orb_rec_210101_210401_v1.xml",
+        line_check,
+        1,
+    ):
         raise BaseException
     line_check = "<field_format>A20</field_format>"
-    if not string_in_file("maven/maven_spice/miscellaneous/orbnum/maven_orb_rec_210101_210401_v1.xml", line_check, 3):
+    if not string_in_file(
+        "maven/maven_spice/miscellaneous/orbnum/maven_orb_rec_210101_210401_v1.xml",
+        line_check,
+        3,
+    ):
         raise BaseException
     line_check = "<field_format>F7.2</field_format>"
-    if not string_in_file("maven/maven_spice/miscellaneous/orbnum/maven_orb_rec_210101_210401_v1.xml", line_check, 4):
+    if not string_in_file(
+        "maven/maven_spice/miscellaneous/orbnum/maven_orb_rec_210101_210401_v1.xml",
+        line_check,
+        4,
+    ):
         raise BaseException
     line_check = "<field_format>F10.2</field_format>"
-    if not string_in_file("maven/maven_spice/miscellaneous/orbnum/maven_orb_rec_210101_210401_v1.xml", line_check, 1):
+    if not string_in_file(
+        "maven/maven_spice/miscellaneous/orbnum/maven_orb_rec_210101_210401_v1.xml",
+        line_check,
+        1,
+    ):
         raise BaseException
     line_check = "<field_format>F12.1</field_format>"
-    if not string_in_file("maven/maven_spice/miscellaneous/orbnum/maven_orb_rec_210101_210401_v1.xml", line_check, 1):
+    if not string_in_file(
+        "maven/maven_spice/miscellaneous/orbnum/maven_orb_rec_210101_210401_v1.xml",
+        line_check,
+        1,
+    ):
         raise BaseException
 
 
@@ -239,14 +259,12 @@ def test_pds4_orbnum_with_former_version(self):
         p.write("maven_orb_rec_210101_210401_v2.orb")
 
     with open(
-        "maven/maven_spice/miscellaneous/orbnum/"
-        "maven_orb_rec_210101_210401_v1.orb",
+        "maven/maven_spice/miscellaneous/orbnum/" "maven_orb_rec_210101_210401_v1.orb",
         "w",
     ):
         pass
     with open(
-        "maven/maven_spice/miscellaneous/orbnum/"
-        "maven_orb_rec_210101_2105401_v2.orb",
+        "maven/maven_spice/miscellaneous/orbnum/" "maven_orb_rec_210101_2105401_v2.orb",
         "w",
     ):
         pass
@@ -301,14 +319,12 @@ def test_pds4_orbnum_blank_records(self):
         p.write("maven_orb_rec_210101_210401_v3.orb")
 
     with open(
-        "maven/maven_spice/miscellaneous/orbnum/"
-        "maven_orb_rec_210101_210401_v1.orb",
+        "maven/maven_spice/miscellaneous/orbnum/" "maven_orb_rec_210101_210401_v1.orb",
         "w",
     ):
         pass
     with open(
-        "maven/maven_spice/miscellaneous/orbnum/"
-        "maven_orb_rec_210101_2105401_v2.orb",
+        "maven/maven_spice/miscellaneous/orbnum/" "maven_orb_rec_210101_2105401_v2.orb",
         "w",
     ):
         pass
@@ -367,9 +383,7 @@ def test_pds4_orbnum_blank_records_no_version(self):
         with open(updated_config, "w") as n:
             for line in c:
                 if "<pattern>maven_orb_rec_[0-9]{6}_[0-9]{6}_v[0-9].orb" in line:
-                    n.write(
-                        "<pattern>maven_orb_rec_[0-9]{6}_[0-9]{6}.orb</pattern>\n"
-                    )
+                    n.write("<pattern>maven_orb_rec_[0-9]{6}_[0-9]{6}.orb</pattern>\n")
                 else:
                     n.write(line)
 
@@ -661,17 +675,37 @@ def test_pds4_orbnum_new_im(self):
         raise BaseException
 
     line_check = "<field_format>%5d</field_format>"
-    if not string_in_file("maven/maven_spice/miscellaneous/orbnum/maven_orb_rec_210101_210401_v1.xml", line_check, 1):
+    if not string_in_file(
+        "maven/maven_spice/miscellaneous/orbnum/maven_orb_rec_210101_210401_v1.xml",
+        line_check,
+        1,
+    ):
         raise BaseException
     line_check = "<field_format>%20s</field_format>"
-    if not string_in_file("maven/maven_spice/miscellaneous/orbnum/maven_orb_rec_210101_210401_v1.xml", line_check, 3):
+    if not string_in_file(
+        "maven/maven_spice/miscellaneous/orbnum/maven_orb_rec_210101_210401_v1.xml",
+        line_check,
+        3,
+    ):
         raise BaseException
     line_check = "<field_format>%7.2f</field_format>"
-    if not string_in_file("maven/maven_spice/miscellaneous/orbnum/maven_orb_rec_210101_210401_v1.xml", line_check, 4):
+    if not string_in_file(
+        "maven/maven_spice/miscellaneous/orbnum/maven_orb_rec_210101_210401_v1.xml",
+        line_check,
+        4,
+    ):
         raise BaseException
     line_check = "<field_format>%10.2f</field_format>"
-    if not string_in_file("maven/maven_spice/miscellaneous/orbnum/maven_orb_rec_210101_210401_v1.xml", line_check, 1):
+    if not string_in_file(
+        "maven/maven_spice/miscellaneous/orbnum/maven_orb_rec_210101_210401_v1.xml",
+        line_check,
+        1,
+    ):
         raise BaseException
     line_check = "<field_format>%12.1f</field_format>"
-    if not string_in_file("maven/maven_spice/miscellaneous/orbnum/maven_orb_rec_210101_210401_v1.xml", line_check, 1):
+    if not string_in_file(
+        "maven/maven_spice/miscellaneous/orbnum/maven_orb_rec_210101_210401_v1.xml",
+        line_check,
+        1,
+    ):
         raise BaseException

@@ -17,6 +17,7 @@ def test_dsk_coverage(self):
         ("1950-01-01T00:00:00.000Z", "2049-12-31T23:59:59.000Z"),
     )
 
+
 def test_spk_coverage(self):
     """Test SPK coverage function."""
     lsk_file = "../data/kernels/lsk/naif0012.tls"

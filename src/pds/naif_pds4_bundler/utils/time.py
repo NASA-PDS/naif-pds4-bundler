@@ -24,7 +24,7 @@ def current_time(format="infomod2"):
     return time
 
 
-def current_date(date=''):
+def current_date(date=""):
     """Returns the current date in ``%Y-%m-%d`` format.
 
     :param date: If present, forces a current date otherwise is obtained from
@@ -194,7 +194,13 @@ def ck_coverage(path, timsys="TDB", date_format="infomod2", system="UTC"):
     if timsys == "SCLK":
         return (start_time, stop_time)
     else:
-        return et_to_date(start_time, stop_time, date_format=date_format, kernel_type="ck", system=system, )
+        return et_to_date(
+            start_time,
+            stop_time,
+            date_format=date_format,
+            kernel_type="ck",
+            system=system,
+        )
 
 
 def pck_coverage(path, date_format="infomod2", system="UTC"):
@@ -320,8 +326,7 @@ def dsk_coverage(path, date_format="infomod2", system="UTC"):
     return et_to_date(start_time, stop_time, date_format=date_format, system=system)
 
 
-def et_to_date(beget, endet, date_format="infomod2", kernel_type="Text",
-               system="UTC"):
+def et_to_date(beget, endet, date_format="infomod2", kernel_type="Text", system="UTC"):
     """Convert ET (ephemeris time) to a Date Time string.
 
     :param beget: Start ephemeris time (ET)
@@ -357,20 +362,20 @@ def et_to_date(beget, endet, date_format="infomod2", kernel_type="Text",
     else:
         raise ValueError("date_format argument is incorrect.")
 
-    start_time_cal = (spiceypy.timout(beget, time_format, time_length) + "Z")
-    stop_time_cal = (spiceypy.timout(endet, time_format, time_length) + "Z")
+    start_time_cal = spiceypy.timout(beget, time_format, time_length) + "Z"
+    stop_time_cal = spiceypy.timout(endet, time_format, time_length) + "Z"
 
     #
     # Inward seconds are only taken into account if the milliseconds are not
     # 000.
     #
-    if (date_format == "infomod2") and ('000Z' not in start_time_cal.split('.')[-1]):
+    if (date_format == "infomod2") and ("000Z" not in start_time_cal.split(".")[-1]):
         start_time_cal = (
-                spiceypy.timout(beget + inwards_seconds, time_format, time_length) + "Z"
+            spiceypy.timout(beget + inwards_seconds, time_format, time_length) + "Z"
         )
-    if (date_format == "infomod2") and ('000Z' not in stop_time_cal.split('.')[-1]):
+    if (date_format == "infomod2") and ("000Z" not in stop_time_cal.split(".")[-1]):
         stop_time_cal = (
-                spiceypy.timout(endet - inwards_seconds, time_format, time_length) + "Z"
+            spiceypy.timout(endet - inwards_seconds, time_format, time_length) + "Z"
         )
 
     return [start_time_cal, stop_time_cal]

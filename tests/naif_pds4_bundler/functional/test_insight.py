@@ -308,9 +308,7 @@ def test_insight_incorrect_times(self):
                     n.write(line)
 
     with self.assertRaises(RuntimeError):
-        main(
-            updated_config, plan, faucet, silent=self.silent, log=self.log, diff=""
-        )
+        main(updated_config, plan, faucet, silent=self.silent, log=self.log, diff="")
 
     with open(config, "r") as c:
         with open(updated_config, "w") as n:
@@ -324,9 +322,7 @@ def test_insight_incorrect_times(self):
                     n.write(line)
 
     with self.assertRaises(RuntimeError):
-        main(
-            updated_config, plan, faucet, silent=self.silent, log=self.log, diff=""
-        )
+        main(updated_config, plan, faucet, silent=self.silent, log=self.log, diff="")
 
 
 def test_insight_mk_input(self):
@@ -350,7 +346,6 @@ def test_insight_mk_input(self):
 
     shutil.copytree("../data/kernels", "kernels")
     os.makedirs("insight", exist_ok=True)
-
 
     with open(config, "r") as c:
         with open(updated_config, "w") as n:
@@ -385,8 +380,14 @@ def test_insight_mk_input(self):
             diff="all",
         )
 
-    main(updated_config, plan, clear='working/insight_release_08.file_list',
-         silent=self.silent, log=self.log, diff="all")
+    main(
+        updated_config,
+        plan,
+        clear="working/insight_release_08.file_list",
+        silent=self.silent,
+        log=self.log,
+        diff="all",
+    )
 
     with open(config, "r") as c:
         with open(updated_config, "w") as n:
@@ -825,7 +826,6 @@ def test_insight_only_checksums(self):
     shutil.copytree("../data/insight", "insight")
     os.makedirs("kernels", exist_ok=True)
 
-
     with open(config, "r") as c:
         with open(updated_config, "w") as n:
             for line in c:
@@ -863,15 +863,13 @@ def test_insight_extra_mk_pattern(self):
                 else:
                     n.write(line)
 
-    updated_plan = 'working/insight_updated.plan'
+    updated_plan = "working/insight_updated.plan"
 
     with open(plan, "r") as c:
         with open(updated_plan, "w") as n:
             for line in c:
-                if 'insight_v08.tm' in line:
-                    n.write(
-                        'insight_2021_v08.tm \\\n'
-                    )
+                if "insight_v08.tm" in line:
+                    n.write("insight_2021_v08.tm \\\n")
                 else:
                     n.write(line)
 
@@ -920,8 +918,7 @@ def test_insight_increment_with_misc(self):
     with open(plan, "w") as n:
         n.write("insight_2021_v08.tm")
 
-    shutil.copy2("../data/kernels/mk/insight_v08.tm",
-                 "kernels/mk/insight_2021_v08.tm")
+    shutil.copy2("../data/kernels/mk/insight_v08.tm", "kernels/mk/insight_2021_v08.tm")
 
     main(updated_config, plan, faucet="bundle", silent=self.silent, log=self.log)
 
@@ -937,7 +934,8 @@ def test_insight_missing_bundle_directory(self):
 
     shutil.copy(
         "../data/insight_release_basic.kernel_list",
-        "working/insight_release_07.kernel_list")
+        "working/insight_release_07.kernel_list",
+    )
 
     shutil.copytree("../data/kernels", "kernels")
 
@@ -963,8 +961,8 @@ def test_insight_missing_staging_directory_nok(self):
     with open(config, "r") as c:
         with open(updated_config, "w") as n:
             for line in c:
-                if '<staging_directory>staging</staging_directory>' in line:
-                    n.write('<staging_directory>insight</staging_directory>\n')
+                if "<staging_directory>staging</staging_directory>" in line:
+                    n.write("<staging_directory>insight</staging_directory>\n")
                 else:
                     n.write(line)
 
@@ -974,8 +972,8 @@ def test_insight_missing_staging_directory_nok(self):
     with open(config, "r") as c:
         with open(updated_config, "w") as n:
             for line in c:
-                if '<staging_directory>staging</staging_directory>' in line:
-                    n.write('<staging_directory>working</staging_directory>\n')
+                if "<staging_directory>staging</staging_directory>" in line:
+                    n.write("<staging_directory>working</staging_directory>\n")
                 else:
                     n.write(line)
 
@@ -1005,7 +1003,6 @@ def test_insight_flat_kernel_directory(self):
     shutil.copytree("../data/kernels/lsk", "kernels/", dirs_exist_ok=True)
     shutil.copytree("../data/kernels/mk", "kernels/", dirs_exist_ok=True)
     shutil.copytree("../data/kernels/sclk", "kernels/", dirs_exist_ok=True)
-
 
     with open("../data/insight.list", "r") as i:
         for line in i:

@@ -13,12 +13,13 @@ def spice_exception_handler(func):
     A wrapper is inserted as a workaround to unmask the docstring of the
     wrapped function. See: https://github.com/sphinx-doc/sphinx/issues/3783
     """
+
     @wraps(func)
     def inner_function(*args, **kwargs):
         try:
             func(*args, **kwargs)
         except Exception:
-            if hasattr(args[0], 'setup'):
+            if hasattr(args[0], "setup"):
                 error_message(traceback.format_exc(), setup=args[0].setup)
             else:
                 error_message(traceback.format_exc())

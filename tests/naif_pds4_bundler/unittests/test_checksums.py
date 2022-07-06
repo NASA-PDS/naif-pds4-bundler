@@ -26,7 +26,9 @@ def post_setup(self):
     shutil.copy2("../data/kernels/fk/m2020_v04.tf", "kernels/fk/")
     shutil.copy2("../data/kernels/mk/m2020_v01.tm", "kernels/mk/")
     shutil.copy2("../data/kernels/mk/m2020_chronos_v01.tm", "kernels/mk/")
-    shutil.copy2("../data/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp", "kernels/spk/")
+    shutil.copy2(
+        "../data/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp", "kernels/spk/"
+    )
     shutil.copy2("../data/kernels/spk/m2020_cruise_od138_v1.bsp", "kernels/spk/")
 
 
@@ -38,11 +40,15 @@ def test_checksum_from_record(self):
 
     main(config, plan=plan, silent=self.silent, log=self.log)
 
-    main(config, plan=plan, clear='working/mars2020_release_01.file_list',
-         silent=self.silent, log=self.log)
+    main(
+        config,
+        plan=plan,
+        clear="working/mars2020_release_01.file_list",
+        silent=self.silent,
+        log=self.log,
+    )
 
-    main(config, plan=plan, silent=self.silent, log=self.log,
-         checksum=True)
+    main(config, plan=plan, silent=self.silent, log=self.log, checksum=True)
 
     line_check = "Checksum obtained from Checksum Registry file:"
 
@@ -67,8 +73,7 @@ def test_checksum_from_labels(self):
     except BaseException:
         pass
 
-    main(config, plan=plan, silent=self.silent, log=self.log,
-         checksum=True)
+    main(config, plan=plan, silent=self.silent, log=self.log, checksum=True)
 
     line_check = "Checksum obtained from existing label:"
 

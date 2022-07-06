@@ -85,7 +85,8 @@ def test_im_schema_incoherent(self):
             for line in c:
                 if (
                     "<schema_location>http://pds.nasa.gov/pds4/pds/v1 "
-                    "http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd</schema_location>" in line
+                    "http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd</schema_location>"
+                    in line
                 ):
                     n.write(
                         "<schema_location>http://pds.nasa.gov/pds4/pds/"
@@ -121,7 +122,8 @@ def test_im_version_ascii(self):
                     )
                 elif (
                     "<schema_location>http://pds.nasa.gov/pds4/pds/v1 "
-                    "http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd</schema_location>" in line
+                    "http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd</schema_location>"
+                    in line
                 ):
                     n.write(
                         "<schema_location>http://pds.nasa.gov/pds4/pds/"
@@ -149,9 +151,7 @@ def test_im_version_ascii_incorrect(self):
         with open(self.updated_config, "w") as n:
             for line in c:
                 if "<information_model>1.5.0.0</information_model>" in line:
-                    n.write(
-                        "<information_model>10.16.11.20" "</information_model>\n"
-                    )
+                    n.write("<information_model>10.16.11.20" "</information_model>\n")
                 elif (
                     "<xml_model>http://pds.nasa.gov/pds4/pds/v1/"
                     "PDS4_PDS_1500.sch</xml_model>\n" in line
@@ -162,7 +162,8 @@ def test_im_version_ascii_incorrect(self):
                     )
                 elif (
                     "<schema_location>http://pds.nasa.gov/pds4/pds/v1 "
-                    "http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd</schema_location>" in line
+                    "http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd</schema_location>"
+                    in line
                 ):
                     n.write(
                         "<schema_location>http://pds.nasa.gov/pds4/pds/"
@@ -194,7 +195,8 @@ def test_im_templates_16(self):
                     )
                 elif (
                     "<schema_location>http://pds.nasa.gov/pds4/pds/v1 "
-                    "http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd</schema_location>" in line
+                    "http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd</schema_location>"
+                    in line
                 ):
                     n.write(
                         "<schema_location>http://pds.nasa.gov/pds4/pds/"
@@ -207,9 +209,12 @@ def test_im_templates_16(self):
     main(self.updated_config, faucet=self.faucet, silent=True, log=True)
 
     line_in_log = False
-    with open('working/insight_release_01.log', 'r') as log:
+    with open("working/insight_release_01.log", "r") as log:
         for line in log:
-            if 'Label templates will use the ones from information model 1.16.0.0.' in line:
+            if (
+                "Label templates will use the ones from information model 1.16.0.0."
+                in line
+            ):
                 line_in_log = True
 
     self.assertTrue(line_in_log)
@@ -233,7 +238,8 @@ def test_im_templates_14(self):
                     )
                 elif (
                     "<schema_location>http://pds.nasa.gov/pds4/pds/v1 "
-                    "http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd</schema_location>" in line
+                    "http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd</schema_location>"
+                    in line
                 ):
                     n.write(
                         "<schema_location>http://pds.nasa.gov/pds4/pds/"
@@ -246,12 +252,16 @@ def test_im_templates_14(self):
     main(self.updated_config, faucet=self.faucet, silent=True, log=True)
 
     line_in_log = False
-    with open('working/insight_release_01.log', 'r') as log:
+    with open("working/insight_release_01.log", "r") as log:
         for line in log:
-            if 'Label templates will use the ones from information model 1.14.0.0.' in line:
+            if (
+                "Label templates will use the ones from information model 1.14.0.0."
+                in line
+            ):
                 line_in_log = True
 
     self.assertTrue(line_in_log)
+
 
 def test_im_templates_11(self):
     """Test appropriate selection of templates for the IM for 1.11.0.0."""
@@ -271,7 +281,8 @@ def test_im_templates_11(self):
                     )
                 elif (
                     "<schema_location>http://pds.nasa.gov/pds4/pds/v1 "
-                    "http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd</schema_location>" in line
+                    "http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd</schema_location>"
+                    in line
                 ):
                     n.write(
                         "<schema_location>http://pds.nasa.gov/pds4/pds/"
@@ -284,12 +295,16 @@ def test_im_templates_11(self):
     main(self.updated_config, faucet=self.faucet, silent=True, log=True)
 
     line_in_log = False
-    with open('working/insight_release_01.log', 'r') as log:
+    with open("working/insight_release_01.log", "r") as log:
         for line in log:
-            if 'Label templates will use the ones from information model 1.11.0.0.' in line:
+            if (
+                "Label templates will use the ones from information model 1.11.0.0."
+                in line
+            ):
                 line_in_log = True
 
     self.assertTrue(line_in_log)
+
 
 def test_im_templates(self):
     """Test appropriate selection of templates for the IM for 1.11.0.0."""
@@ -309,7 +324,8 @@ def test_im_templates(self):
                     )
                 elif (
                     "<schema_location>http://pds.nasa.gov/pds4/pds/v1 "
-                    "http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd</schema_location>" in line
+                    "http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd</schema_location>"
+                    in line
                 ):
                     n.write(
                         "<schema_location>http://pds.nasa.gov/pds4/pds/"
@@ -322,9 +338,12 @@ def test_im_templates(self):
     main(self.updated_config, faucet=self.faucet, silent=True, log=True)
 
     line_in_log = False
-    with open('working/insight_release_01.log', 'r') as log:
+    with open("working/insight_release_01.log", "r") as log:
         for line in log:
-            if 'Label templates will use the ones from information model 1.11.0.0.' in line:
+            if (
+                "Label templates will use the ones from information model 1.11.0.0."
+                in line
+            ):
                 line_in_log = True
 
     self.assertTrue(line_in_log)
@@ -336,9 +355,9 @@ def test_im_schema_resolution(self):
     with open(self.config, "r") as c:
         with open(self.updated_config, "w") as n:
             for line in c:
-                if ("<xml_model>" in line):
+                if "<xml_model>" in line:
                     pass
-                elif ("<schema_location>" in line):
+                elif "<schema_location>" in line:
                     pass
                 else:
                     n.write(line)

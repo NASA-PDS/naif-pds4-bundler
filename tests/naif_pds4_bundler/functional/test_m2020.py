@@ -13,12 +13,7 @@ def post_setup(self):
 
     This method will be executed before each test function.
     """
-    dirs = ["kernels",
-            "kernels/fk",
-            "kernels/lsk",
-            "kernels/spk",
-            "kernels/mk"
-            ]
+    dirs = ["kernels", "kernels/fk", "kernels/lsk", "kernels/spk", "kernels/mk"]
     for dir in dirs:
         os.mkdir(dir)
 
@@ -117,11 +112,11 @@ def test_m2020_duplicated_kernel(self):
     )
 
     config = "../config/mars2020.xml"
-    plan = '../data/mars2020_release_01.plan'
+    plan = "../data/mars2020_release_01.plan"
 
     main(config, plan=plan, silent=self.silent)
 
-    updated_config = 'working/mars2020_release_02.xml'
+    updated_config = "working/mars2020_release_02.xml"
 
     with open(config, "r") as c:
         with open(updated_config, "w") as n:
@@ -133,10 +128,10 @@ def test_m2020_duplicated_kernel(self):
                 else:
                     n.write(line)
 
-    plan = '../data/mars2020_release_02.plan'
+    plan = "../data/mars2020_release_02.plan"
     main(updated_config, plan=plan, silent=self.silent)
 
-    updated_config = 'working/mars2020_release_03.xml'
+    updated_config = "working/mars2020_release_03.xml"
     mk_inputs = False
     with open(config, "r") as c:
         with open(updated_config, "w") as n:
@@ -149,13 +144,14 @@ def test_m2020_duplicated_kernel(self):
                     n.write(line)
 
     plan = "../data/mars2020_release_03.plan"
-    shutil.copy2("kernels/sclk/m2020_168_sclkscet_refit_v02.tsc",
-                 "kernels/sclk/m2020_168_sclkscet_refit_v03.tsc")
+    shutil.copy2(
+        "kernels/sclk/m2020_168_sclkscet_refit_v02.tsc",
+        "kernels/sclk/m2020_168_sclkscet_refit_v03.tsc",
+    )
 
-    main(updated_config, plan=plan, silent=self.silent, log=self.log,
-         debug=False)
+    main(updated_config, plan=plan, silent=self.silent, log=self.log, debug=False)
 
-    line_check = 'e95003d6b0ff5fae6c2813c483108b6e'
+    line_check = "e95003d6b0ff5fae6c2813c483108b6e"
     if not string_in_file("working/mars2020_release_03.log", line_check, 3):
         raise BaseException
 
@@ -166,21 +162,35 @@ def test_m2020_spk_with_unrelated_id(self):
     config = "../config/mars2020.xml"
     plan = "../data/mars2020_release_00.plan"
 
-    spk = 'kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp'
+    spk = "kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp"
     if os.path.isfile(spk):
         os.remove(spk)
 
     handle = spiceypy.spkopn(spk, "test spk file", 5000)
-    spiceypy.spk14b(handle, 1, 999, 0, 'J2000', 666952140.1852001,
-                    666952240.1852001, 2)
+    spiceypy.spk14b(handle, 1, 999, 0, "J2000", 666952140.1852001, 666952240.1852001, 2)
 
-    data = [150.0, 50.0,
-            1.0101, 1.0102, 1.0103,
-            1.0201, 1.0202, 1.0203,
-            1.0301, 1.0302, 1.0303,
-            1.0401, 1.0402, 1.0403,
-            1.0501, 1.0502, 1.0503,
-            1.0601, 1.0602, 1.0603]
+    data = [
+        150.0,
+        50.0,
+        1.0101,
+        1.0102,
+        1.0103,
+        1.0201,
+        1.0202,
+        1.0203,
+        1.0301,
+        1.0302,
+        1.0303,
+        1.0401,
+        1.0402,
+        1.0403,
+        1.0501,
+        1.0502,
+        1.0503,
+        1.0601,
+        1.0602,
+        1.0603,
+    ]
 
     spiceypy.spk14a(handle, 1, data, [666952140.1852001])
     spiceypy.spk14e(handle)
@@ -194,7 +204,7 @@ def test_m2020_incorrect_mission_times(self):
     post_setup(self)
     config = "../config/mars2020.xml"
     plan = "../data/mars2020_release_00.plan"
-    updated_config = 'working/mars2020.xml'
+    updated_config = "working/mars2020.xml"
 
     with open(config, "r") as c:
         with open(updated_config, "w") as n:
@@ -205,10 +215,7 @@ def test_m2020_incorrect_mission_times(self):
                     n.write(line)
 
     with self.assertRaises(RuntimeError):
-        main(
-            updated_config, plan=plan, silent=self.silent, log=self.log,
-            debug=False
-        )
+        main(updated_config, plan=plan, silent=self.silent, log=self.log, debug=False)
 
 
 def test_m2020_incorrect_start_time(self):
@@ -216,7 +223,7 @@ def test_m2020_incorrect_start_time(self):
     post_setup(self)
     config = "../config/mars2020.xml"
     plan = "../data/mars2020_release_00.plan"
-    updated_config = 'working/mars2020.xml'
+    updated_config = "working/mars2020.xml"
 
     with open(config, "r") as c:
         with open(updated_config, "w") as n:
@@ -228,9 +235,7 @@ def test_m2020_incorrect_start_time(self):
                     n.write(line)
 
     with self.assertRaises(RuntimeError):
-        main(
-            updated_config, plan=plan, silent=self.silent, log=self.log
-        )
+        main(updated_config, plan=plan, silent=self.silent, log=self.log)
 
 
 def test_m2020_increment_start_time(self):
@@ -238,7 +243,7 @@ def test_m2020_increment_start_time(self):
     post_setup(self)
     config = "../config/mars2020.xml"
     plan = "../data/mars2020_release_00.plan"
-    updated_config = 'working/mars2020.xml'
+    updated_config = "working/mars2020.xml"
 
     with open(config, "r") as c:
         with open(updated_config, "w") as n:
@@ -251,8 +256,10 @@ def test_m2020_increment_start_time(self):
 
     main(updated_config, plan=plan, silent=self.silent, log=self.log)
 
-    line_check = "Coverage start time corrected with increment start from " \
-                 "configuration file to: 2021-01-25T08:00:00Z"
+    line_check = (
+        "Coverage start time corrected with increment start from "
+        "configuration file to: 2021-01-25T08:00:00Z"
+    )
 
     if not string_in_file("working/mars2020_release_01.log", line_check):
         raise BaseException
@@ -268,21 +275,25 @@ def test_m2020_increment_finish_time(self):
     post_setup(self)
     config = "../config/mars2020.xml"
     plan = "../data/mars2020_release_00.plan"
-    updated_config = 'working/mars2020.xml'
+    updated_config = "working/mars2020.xml"
 
     with open(config, "r") as c:
         with open(updated_config, "w") as n:
             for line in c:
                 if "<release_date>2021-08-20</release_date>" in line:
                     n.write(line)
-                    n.write("<increment_finish>2021-04-23T08:00:00Z</increment_finish>\n")
+                    n.write(
+                        "<increment_finish>2021-04-23T08:00:00Z</increment_finish>\n"
+                    )
                 else:
                     n.write(line)
 
     main(updated_config, plan=plan, silent=self.silent, log=self.log)
 
-    line_check = "Coverage finish time corrected with increment finish " \
-                 "from configuration file to: 2021-04-23T08:00:00Z"
+    line_check = (
+        "Coverage finish time corrected with increment finish "
+        "from configuration file to: 2021-04-23T08:00:00Z"
+    )
 
     if not string_in_file("working/mars2020_release_01.log", line_check):
         raise BaseException
@@ -305,9 +316,9 @@ def test_m2020_mks_incorrect_path(self):
     config = "../config/mars2020.xml"
     plan = "../data/mars2020_release_00.plan"
 
-    shutil.move('kernels/mk/m2020_v01.tm', 'kernels/mk/m2020.tm')
-    with open('kernels/mk/m2020.tm', "r") as c:
-        with open('kernels/mk/m2020_v01.tm', "w") as n:
+    shutil.move("kernels/mk/m2020_v01.tm", "kernels/mk/m2020.tm")
+    with open("kernels/mk/m2020.tm", "r") as c:
+        with open("kernels/mk/m2020_v01.tm", "w") as n:
             for line in c:
                 if "PATH_VALUES       = ( '..'      )" in line:
                     n.write("PATH_VALUES       = ( './'      )\n")
@@ -327,11 +338,11 @@ def test_m2020_empty_spk(self):
     plan = "../data/mars2020_release_00.plan"
     shutil.copytree("../data/kernels", "kernels")
 
-    spk = 'kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp'
+    spk = "kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp"
     if os.path.isfile(spk):
         os.remove(spk)
 
-    with open(spk, 'w'):
+    with open(spk, "w"):
         pass
 
     with self.assertRaises(BaseException):
@@ -354,10 +365,13 @@ def test_m2020_kernel_list_checks(self):
     # time this kernel is incorrect and is reported. The kernel architecure
     # is also checked.
     #
-    os.mkdir('kernels2')
-    os.mkdir('kernels2/spk')
+    os.mkdir("kernels2")
+    os.mkdir("kernels2/spk")
     shutil.copy2("../data/kernels/spk/m2020_cruise_od138_v1.bsp", "kernels2/spk/")
-    shutil.copy2("../data/kernels/ck/mro_sc_psp_210705_210717p.bc", "kernels2/spk/m2020_cruise_od138_v1.bsp")
+    shutil.copy2(
+        "../data/kernels/ck/mro_sc_psp_210705_210717p.bc",
+        "kernels2/spk/m2020_cruise_od138_v1.bsp",
+    )
 
     with open(config, "r") as c:
         with open(updated_config, "w") as n:
@@ -371,12 +385,17 @@ def test_m2020_kernel_list_checks(self):
     #
     # Check incorrect end-of-line characters and non-printable ASCII characters.
     #
-    os.mkdir('kernels2/fk')
-    with open("../data/kernels/fk/m2020_v04.tf", 'r') as i:
-        with open("kernels2/fk/m2020_v04.tf", 'w') as o:
+    os.mkdir("kernels2/fk")
+    with open("../data/kernels/fk/m2020_v04.tf", "r") as i:
+        with open("kernels2/fk/m2020_v04.tf", "w") as o:
             for line in i:
-                if "This frame kernel contains complete set of frame definitions for" in line:
-                    o.write("This framÈ kernel ©ontains compl€te set of frÆme definitiøns for")
+                if (
+                    "This frame kernel contains complete set of frame definitions for"
+                    in line
+                ):
+                    o.write(
+                        "This framÈ kernel ©ontains compl€te set of frÆme definitiøns for"
+                    )
                 elif "1. ``Frames Required Reading''" in line:
                     o.write("1. ``Frames Requißed Reading''")
                 else:
@@ -386,21 +405,27 @@ def test_m2020_kernel_list_checks(self):
     #
     # Check endianness of a binary kernel.
     #
-    shutil.copy2("../data/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp",
-                 "../data/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.ltl.bsp")
-    shutil.copy2("../data/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.big.bsp",
-                 "../data/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp")
+    shutil.copy2(
+        "../data/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp",
+        "../data/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.ltl.bsp",
+    )
+    shutil.copy2(
+        "../data/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.big.bsp",
+        "../data/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp",
+    )
 
     #
     # The resulting log must have all the entries for the expected warning and
     # errors.
     #
     with self.assertRaises(RuntimeError):
-        main(updated_config, plan=plan, silent=self.silent, log=self.log, faucet="checks")
+        main(
+            updated_config, plan=plan, silent=self.silent, log=self.log, faucet="checks"
+        )
 
     line_checks = [
         "Product present in multiple directories:",
-        "NON-ASCII character(s) in line"
+        "NON-ASCII character(s) in line",
     ]
     for line in line_checks:
         if not string_in_file("working/mars2020_release_temp.log", line, 2):
@@ -412,7 +437,7 @@ def test_m2020_kernel_list_checks(self):
         "         ^        ^             ^            ^           ^",
         "1. ``Frames Requißed Reading''",
         "                 ^",
-        "Kernel m2020_cruise_od138_v1.bsp type SPK is not the one expected: CK."
+        "Kernel m2020_cruise_od138_v1.bsp type SPK is not the one expected: CK.",
     ]
     for line in line_checks:
         if not string_in_file("working/mars2020_release_temp.log", line, 1):
@@ -421,5 +446,7 @@ def test_m2020_kernel_list_checks(self):
     #
     # Restore the appropriate SPK for the subsequent tests.
     #
-    shutil.copy2("../data/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.ltl.bsp",
-                 "../data/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp")
+    shutil.copy2(
+        "../data/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.ltl.bsp",
+        "../data/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp",
+    )

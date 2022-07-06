@@ -12,7 +12,7 @@ def post_setup(self):
     This method will be executed before each test function.
     """
     if sys.byteorder == "little":
-        updated_config = 'working/mro.xml'
+        updated_config = "working/mro.xml"
         with open(self.config, "r") as c:
             with open(updated_config, "w") as n:
                 for line in c:
@@ -25,7 +25,7 @@ def post_setup(self):
         kernels = glob.glob("kernels/**/*.*")
         for kernel in kernels:
             if ".big." in kernel:
-                shutil.move(kernel, kernel.split('.')[0] + '.' + kernel.split('.')[-1])
+                shutil.move(kernel, kernel.split(".")[0] + "." + kernel.split(".")[-1])
 
         updated_config = self.config
 
@@ -39,8 +39,7 @@ def test_mro_basic(self):
     faucet = "bundle"
 
     shutil.copy2(
-        "../data/mro_release_58.kernel_list",
-        "working/mro_release_58.kernel_list"
+        "../data/mro_release_58.kernel_list", "working/mro_release_58.kernel_list"
     )
 
     shutil.copytree("../data/kernels", "kernels")
@@ -50,15 +49,9 @@ def test_mro_basic(self):
     shutil.move("staging", "staging_old")
     shutil.copytree("../data/mro", "staging")
 
-    shutil.copy2(
-        "../data/release_mro.cat",
-        "staging/mrosp_1000/catalog/release.cat"
-    )
+    shutil.copy2("../data/release_mro.cat", "staging/mrosp_1000/catalog/release.cat")
 
-    shutil.copy2(
-        "../data/spiceds_mro.cat",
-        "staging/mrosp_1000/catalog/spiceds.cat"
-    )
+    shutil.copy2("../data/spiceds_mro.cat", "staging/mrosp_1000/catalog/spiceds.cat")
 
     post_setup(self)
 

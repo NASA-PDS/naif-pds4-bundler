@@ -43,11 +43,15 @@ class TestUnitTests(TestCase):
         cls.log = True
         cls.tmp_dir = tempfile.TemporaryDirectory()
 
-        shutil.copytree(os.sep.join(cls.test_dir.split(os.sep)),
-                        cls.tmp_dir.name + '/naif_pds4_bundler')
-        shutil.copytree(os.sep.join(cls.test_dir.split(os.sep)[:-2]) +
-                        "/src/pds/naif_pds4_bundler/templates/1.5.0.0",
-                        cls.tmp_dir.name + '/naif_pds4_bundler/templates/1.5.0.0')
+        shutil.copytree(
+            os.sep.join(cls.test_dir.split(os.sep)),
+            cls.tmp_dir.name + "/naif_pds4_bundler",
+        )
+        shutil.copytree(
+            os.sep.join(cls.test_dir.split(os.sep)[:-2])
+            + "/src/pds/naif_pds4_bundler/templates/1.5.0.0",
+            cls.tmp_dir.name + "/naif_pds4_bundler/templates/1.5.0.0",
+        )
 
         tests_dir = cls.tmp_dir.name + "/naif_pds4_bundler/unittests/"
         print(f"       Tests data on: {cls.tmp_dir.name}")
@@ -62,7 +66,7 @@ class TestUnitTests(TestCase):
             f"{tests_dir}../data/misc/orbnum/maven_orb_rec_210101_210401.orb",
             f"{tests_dir}../data/misc/orbnum/maven_orb_rec_210101_210401_v1.orb",
             f"{tests_dir}../data/misc/orbnum/maven_orb_rec_210101_210401_v2.orb",
-            f"{tests_dir}../data/misc/orbnum/maven_orb_rec_210101_210401_v3.orb"
+            f"{tests_dir}../data/misc/orbnum/maven_orb_rec_210101_210401_v3.orb",
         ]
         for file in files:
             add_crs_to_file(file, "\r\n")
@@ -87,9 +91,21 @@ class TestUnitTests(TestCase):
         unittest.TestCase.setUp(self)
         print(f"    * {self._testMethodName}")
 
-        dirs = ["working", "staging", "kernels", "ladee", "insight",
-                "msl-m-spice-6-v1.0", "bundle", "insight", "maven",
-                "mars2020", "orex", "vco", "hyb2"]
+        dirs = [
+            "working",
+            "staging",
+            "kernels",
+            "ladee",
+            "insight",
+            "msl-m-spice-6-v1.0",
+            "bundle",
+            "insight",
+            "maven",
+            "mars2020",
+            "orex",
+            "vco",
+            "hyb2",
+        ]
         for dir in dirs:
             try:
                 os.makedirs(dir, exist_ok=True)
@@ -147,7 +163,7 @@ class TestUnitTests(TestCase):
     # File utilities tests.
     #
     def test_mk_to_list(self):
-       files.test_mk_to_list(self)
+        files.test_mk_to_list(self)
 
     #
     # Information Model tests.

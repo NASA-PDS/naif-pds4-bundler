@@ -85,15 +85,14 @@ class ZzTestSlicer(TestCase):
         kernels_dir = "../data/kplo/kplo_spice/spice_kernels"
         out_kernels_dir = "kernels_sliced"
         lsk_file = "../data/kernels/lsk/naif0012.tls"
-        sclk_file = (
-            "../data/kplo/kplo_spice/spice_kernels/sclk/kplo_200926_000100.tsc"
-        )
+        sclk_file = "../data/kplo/kplo_spice/spice_kernels/sclk/kplo_200926_000100.tsc"
         start_time = "2023 JAN 18 00:00:00.000"
         stop_time = "2023 JAN 18 12:00:00.000"
 
         slice_kernels(
             kernels_dir, out_kernels_dir, lsk_file, sclk_file, start_time, stop_time
         )
+
 
 if __name__ == "__main__":
     unittest.main()

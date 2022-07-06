@@ -79,7 +79,8 @@ def test_maven_mks_input(self):
         p.write("mvn_sclkscet_00088.tsc")
 
     with self.assertRaises(RuntimeError):
-        main(updated_config,
+        main(
+            updated_config,
             plan=plan,
             silent=self.silent,
             verbose=self.verbose,
@@ -340,23 +341,29 @@ def test_maven_increment_times_from_yearly_mks(self):
         log=self.log,
     )
 
-    line_check = "No kernel(s) found to determine MK coverage. Times from " \
-                 "configuration in accordance to yearly MK will be used: " \
-                 "2020-01-01T00:00:00Z - 2021-01-01T00:00:00Z"
+    line_check = (
+        "No kernel(s) found to determine MK coverage. Times from "
+        "configuration in accordance to yearly MK will be used: "
+        "2020-01-01T00:00:00Z - 2021-01-01T00:00:00Z"
+    )
 
     if not string_in_file("working/maven_release_25.log", line_check):
         raise BaseException
 
-    line_check = "No kernel(s) found to determine MK coverage. Times from " \
-                 "configuration in accordance to yearly MK will be used: " \
-                 "2015-01-01T00:00:00Z - 2016-01-01T00:00:00Z"
+    line_check = (
+        "No kernel(s) found to determine MK coverage. Times from "
+        "configuration in accordance to yearly MK will be used: "
+        "2015-01-01T00:00:00Z - 2016-01-01T00:00:00Z"
+    )
 
     if not string_in_file("working/maven_release_25.log", line_check):
         raise BaseException
 
-    line_check = "No kernel(s) found to determine MK coverage. Times from " \
-                 "configuration in accordance to yearly MK will be used: " \
-                 "2021-01-01T00:00:00Z - 2021-06-25T08:00:00Z"
+    line_check = (
+        "No kernel(s) found to determine MK coverage. Times from "
+        "configuration in accordance to yearly MK will be used: "
+        "2021-01-01T00:00:00Z - 2021-06-25T08:00:00Z"
+    )
 
     if not string_in_file("working/maven_release_25.log", line_check):
         raise BaseException
@@ -370,6 +377,7 @@ def test_maven_increment_times_from_yearly_mks(self):
 
     if not string_in_file("working/maven_release_25.log", line_check):
         raise BaseException
+
 
 def test_maven_load_kernels(self):
     """Basic kernel load test.
@@ -390,15 +398,9 @@ def test_maven_load_kernels(self):
 
     os.mkdir("maven")
 
-    shutil.copytree(
-        "../data/kernels",
-        "kernels"
-    )
+    shutil.copytree("../data/kernels", "kernels")
 
-    shutil.copytree(
-        "../data/misc/orbnum",
-        "misc/orbnum"
-    )
+    shutil.copytree("../data/misc/orbnum", "misc/orbnum")
 
     shutil.copy2(
         "kernels/sclk/MVN_SCLKSCET.00088.tsc",
@@ -406,8 +408,7 @@ def test_maven_load_kernels(self):
     )
 
     shutil.copy2(
-        "kernels/sclk/MVN_SCLKSCET.00088.tsc",
-        "kernels/sclk/MVN_SCLKSCET.00000.tsc"
+        "kernels/sclk/MVN_SCLKSCET.00088.tsc", "kernels/sclk/MVN_SCLKSCET.00000.tsc"
     )
 
     os.mkdir("kernels/sclk/zzarchive")
@@ -418,9 +419,7 @@ def test_maven_load_kernels(self):
 
     main(config, plan, faucet=faucet, silent=self.silent, log=True)
 
-    log_line = (
-        "naif_pds4_bundler/functional/kernels/sclk/MVN_SCLKSCET.00088.tsc'"
-    )
+    log_line = "naif_pds4_bundler/functional/kernels/sclk/MVN_SCLKSCET.00088.tsc'"
 
     with open("working/maven_release_01.log", "r") as f:
         for line in f.readlines():

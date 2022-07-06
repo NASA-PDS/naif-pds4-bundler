@@ -85,5 +85,5 @@ __all__ = [
     check_kernel_integrity,
     check_binary_endianness,
     check_badchar,
-    check_eol
+    check_eol,
 ]

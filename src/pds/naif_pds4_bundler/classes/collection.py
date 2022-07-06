@@ -34,7 +34,7 @@ class Collection(object):
         #
         self.updated = False
 
-        if setup.pds_version == '4':
+        if setup.pds_version == "4":
             self.set_collection_lid()
 
     def add(self, element):
@@ -215,7 +215,9 @@ class SpiceKernelsCollection(Collection):
                         #
                         # If the kernel is not present we don't provide the path.
                         #
-                        logging.info(f"-- {kernel} not provided as input in kernels directory.")
+                        logging.info(
+                            f"-- {kernel} not provided as input in kernels directory."
+                        )
                         meta_kernels[kernel] = False
 
         #
@@ -223,9 +225,13 @@ class SpiceKernelsCollection(Collection):
         #
         if not meta_kernels:
             if self.setup.args.faucet == "labels":
-                logging.info("-- No meta-kernel provided as input in the plan in labeling mode.")
+                logging.info(
+                    "-- No meta-kernel provided as input in the plan in labeling mode."
+                )
             else:
-                logging.info("-- No meta-kernel provided in the kernel list or via configuration.")
+                logging.info(
+                    "-- No meta-kernel provided in the kernel list or via configuration."
+                )
 
             #
             # NPB will try to determine if a meta-kernel can be generated
@@ -237,7 +243,11 @@ class SpiceKernelsCollection(Collection):
             #
             # If the kernel already exists, it will not be generated.
             #
-            if (hasattr(self.setup, "mk")) and (self.product) and (self.setup.args.faucet != "labels"):
+            if (
+                (hasattr(self.setup, "mk"))
+                and (self.product)
+                and (self.setup.args.faucet != "labels")
+            ):
                 if (
                     self.setup.mk.__len__() == 1
                     and self.setup.mk[0]["name"].__len__() == 1
@@ -246,10 +256,14 @@ class SpiceKernelsCollection(Collection):
                     and not isinstance(self.setup.mk[0]["name"][0]["pattern"], list)
                 ):
                     if self.setup.mk[0]["name"][0]["pattern"]["#text"] == "VERSION":
-                        version_length = int(self.setup.mk[0]["name"][0]["pattern"]["@length"])
+                        version_length = int(
+                            self.setup.mk[0]["name"][0]["pattern"]["@length"]
+                        )
 
                         version = "1"
-                        meta_kernel = self.setup.mk[0]["@name"].replace("$VERSION", version.zfill(version_length))
+                        meta_kernel = self.setup.mk[0]["@name"].replace(
+                            "$VERSION", version.zfill(version_length)
+                        )
                         existing_path = f"{self.setup.bundle_directory}/{self.setup.mission_acronym}_spice/spice_kernels/mk/{meta_kernel}"
                         if not os.path.exists(existing_path):
                             meta_kernels[meta_kernel] = False
@@ -263,7 +277,7 @@ class SpiceKernelsCollection(Collection):
             # present stop the execution.
             #
             for meta_kernel in sorted(meta_kernels):
-                if self.setup.pds_version == '4':
+                if self.setup.pds_version == "4":
                     existing_path = f"{self.setup.bundle_directory}/{self.setup.mission_acronym}_spice/spice_kernels/mk/{meta_kernel}"
                 else:
                     existing_path = f"{self.setup.bundle_directory}/{self.setup.volume_id}/extras/mk/{meta_kernel}"
@@ -291,8 +305,8 @@ class SpiceKernelsCollection(Collection):
         if not self.setup.args.silent and not self.setup.args.verbose:
             print("-- " + line.split(" - ")[-1] + ".")
 
-        increment_start = ''
-        increment_finish = ''
+        increment_start = ""
+        increment_finish = ""
         #
         # The increment start and finish times are to be set with the MK.
         # This is the first step taken.
@@ -321,9 +335,7 @@ class SpiceKernelsCollection(Collection):
             # increment stop time has been provided as an input
             # parameter.
             #
-            logging.warning("-- No Meta-kernels found to determine increment "
-                            "times."
-                            )
+            logging.warning("-- No Meta-kernels found to determine increment " "times.")
 
             if hasattr(self.setup, "increment_start"):
                 logging.info(
@@ -421,10 +433,13 @@ class SpiceKernelsCollection(Collection):
             (increment_start, increment_finish) = et_to_date(
                 spiceypy.utc2et(increment_start[:-1]),
                 spiceypy.utc2et(increment_finish[:-1]),
-                self.setup.date_format)
+                self.setup.date_format,
+            )
         except BaseException:
-            logging.warning("-- A leapseconds kernel (LSK) has not been loaded. "
-                            "Increment start/finish times will not be corrected.")
+            logging.warning(
+                "-- A leapseconds kernel (LSK) has not been loaded. "
+                "Increment start/finish times will not be corrected."
+            )
 
         logging.info("-- Increment interval for collection and bundle set to:")
         logging.info(f"   {increment_start} - {increment_finish}")
@@ -473,16 +488,18 @@ class SpiceKernelsCollection(Collection):
 
         non_present_products = []
         for product in self.list.kernel_list:
-            if not os.path.exists(
-                self.setup.staging_directory
-                + ker_dir
-                + extension_to_type(product)
-                + os.sep
-                + product
-            ) and not os.path.exists(
-                self.setup.staging_directory + orbnum_dir + product
-            ) and not os.path.exists(
-                self.setup.staging_directory + mk_dir + product
+            if (
+                not os.path.exists(
+                    self.setup.staging_directory
+                    + ker_dir
+                    + extension_to_type(product)
+                    + os.sep
+                    + product
+                )
+                and not os.path.exists(
+                    self.setup.staging_directory + orbnum_dir + product
+                )
+                and not os.path.exists(self.setup.staging_directory + mk_dir + product)
             ):
                 non_present_products.append(product)
 
@@ -625,8 +642,10 @@ class DocumentCollection(Collection):
         if not self.setup.args.silent and not self.setup.args.verbose:
             print("-- " + line.split(" - ")[-1] + ".")
 
-        for file in glob.glob(f'{self.setup.staging_directory}/**/*[.]*', recursive=True):
-            if '.txt' in file or '.cat' in file or 'aareadme.' in file:
+        for file in glob.glob(
+            f"{self.setup.staging_directory}/**/*[.]*", recursive=True
+        ):
+            if ".txt" in file or ".cat" in file or "aareadme." in file:
                 document = PDS3DocumentProduct(self.setup, file)
 
                 if document.new_product:

@@ -75,7 +75,7 @@ def test_im_schema_incoherent(self):
     with open(self.config, "r") as c:
         with open(self.updated_config, "w") as n:
             for line in c:
-                if ("PDS4_PDS_1500.xsd" in line):
+                if "PDS4_PDS_1500.xsd" in line:
                     n.write(
                         "<schema_location>http://pds.nasa.gov/pds4/pds/ v1 "
                         "http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1A00.xsd</schema_location>\n"
@@ -100,7 +100,8 @@ def test_im_version_ascii(self):
                 if "<information_model>1.5.0.0</information_model>" in line:
                     n.write("<information_model>1.16.0.0</information_model>\n")
                 elif (
-                    "<xml_model>http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.sch</xml_model>" in line
+                    "<xml_model>http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.sch</xml_model>"
+                    in line
                 ):
                     n.write(
                         "<xml_model>http://pds.nasa.gov/pds4/pds/v1/"
@@ -108,7 +109,8 @@ def test_im_version_ascii(self):
                     )
                 elif (
                     "<schema_location>http://pds.nasa.gov/pds4/pds/v1 "
-                    "http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd</schema_location>" in line
+                    "http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd</schema_location>"
+                    in line
                 ):
                     n.write(
                         "<schema_location>http://pds.nasa.gov/pds4/pds/"
@@ -136,9 +138,7 @@ def test_im_version_ascii_incorrect(self):
         with open(self.updated_config, "w") as n:
             for line in c:
                 if "<information_model>1.5.0.0</information_model>" in line:
-                    n.write(
-                        "<information_model>10.16.11.20</information_model>\n"
-                    )
+                    n.write("<information_model>10.16.11.20</information_model>\n")
                 elif (
                     "<xml_model>http://pds.nasa.gov/pds4/pds/v1/"
                     "PDS4_PDS_1500.sch</xml_model>\n" in line
@@ -149,7 +149,8 @@ def test_im_version_ascii_incorrect(self):
                     )
                 elif (
                     "<schema_location>http://pds.nasa.gov/pds4/pds/v1 "
-                    "http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd</schema_location>" in line
+                    "http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd</schema_location>"
+                    in line
                 ):
                     n.write(
                         "<schema_location>http://pds.nasa.gov/pds4/pds/"

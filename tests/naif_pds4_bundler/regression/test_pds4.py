@@ -98,9 +98,7 @@ def test_insight(self):
     #
     os.remove("kernels/mk/insight_v08.tm")
 
-    main(
-        self.updated_config, plan, silent=self.silent, log=self.log
-    )
+    main(self.updated_config, plan, silent=self.silent, log=self.log)
     compare(self)
 
 
@@ -114,7 +112,7 @@ def test_ladee(self):
         "../data/regression/ladee_spice/spice_kernels",
         "kernels",
         ignore=shutil.ignore_patterns("*.xml", "*.csv"),
-        dirs_exist_ok=True
+        dirs_exist_ok=True,
     )
 
     main(self.updated_config, silent=self.silent, log=self.log)
@@ -131,7 +129,7 @@ def test_kplo(self):
         "../data/regression/kplo_spice/spice_kernels",
         "kernels",
         ignore=shutil.ignore_patterns("*.xml", "*.csv"),
-        dirs_exist_ok=True
+        dirs_exist_ok=True,
     )
 
     main(self.updated_config, silent=self.silent, log=self.log)
@@ -154,14 +152,14 @@ def test_m2020(self):
         "../data/regression/mars2020_spice/spice_kernels",
         "kernels",
         ignore=shutil.ignore_patterns("*.xml", "*.csv"),
-        dirs_exist_ok=True
+        dirs_exist_ok=True,
     )
 
-    plan = '../data/mars2020_release_01.plan'
+    plan = "../data/mars2020_release_01.plan"
 
     main(self.updated_config, plan=plan, silent=self.silent, log=self.log)
 
-    updated_config = 'working/mars2020_release_02.xml'
+    updated_config = "working/mars2020_release_02.xml"
 
     with open(self.updated_config, "r") as c:
         with open(updated_config, "w") as n:
@@ -173,10 +171,10 @@ def test_m2020(self):
                 else:
                     n.write(line)
 
-    plan = '../data/mars2020_release_02.plan'
+    plan = "../data/mars2020_release_02.plan"
     main(updated_config, plan=plan, silent=self.silent, log=self.log)
 
-    updated_config = 'working/mars2020_release_03.xml'
+    updated_config = "working/mars2020_release_03.xml"
     mk_inputs = False
     with open(self.updated_config, "r") as c:
         with open(updated_config, "w") as n:
@@ -189,8 +187,10 @@ def test_m2020(self):
                     n.write(line)
 
     plan = "../data/mars2020_release_03.plan"
-    shutil.copy2("../data/kernels/sclk/m2020_168_sclkscet_refit_v03.tsc",
-                 "kernels/sclk/m2020_168_sclkscet_refit_v03.tsc")
+    shutil.copy2(
+        "../data/kernels/sclk/m2020_168_sclkscet_refit_v03.tsc",
+        "kernels/sclk/m2020_168_sclkscet_refit_v03.tsc",
+    )
     main(updated_config, plan=plan, silent=self.silent, log=self.log)
     compare(self)
 
@@ -207,7 +207,7 @@ def test_em16(self):
     )
     shutil.copytree("../data/em16", "em16")
 
-    plan = '../data/em16_release_04.plan'
+    plan = "../data/em16_release_04.plan"
 
     main(self.updated_config, plan=plan, silent=self.silent, log=self.log)
     compare(self)

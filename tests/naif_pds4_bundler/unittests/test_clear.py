@@ -59,6 +59,7 @@ def test_insight_basic(self):
         clear="working/insight_release_08.file_list",
     )
 
+
 def test_insight_error(self):
     """Test complete clearing basic Insight archive generation with error.
 
@@ -100,6 +101,7 @@ def test_insight_error(self):
     # Run the pipeline again.
     #
     main(config, plan, "bundle", silent=self.silent, log=self.log)
+
 
 def test_clear_label_mode(self):
     """Test clear option in label mode.

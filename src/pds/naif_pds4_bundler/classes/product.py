@@ -77,11 +77,13 @@ class Product(object):
         #
         if self.__class__.__name__ != "ChecksumProduct":
             if self.setup.args.checksum:
-                checksum = checksum_from_registry(self.path, self.setup.working_directory)
+                checksum = checksum_from_registry(
+                    self.path, self.setup.working_directory
+                )
                 if not checksum:
                     checksum = checksum_from_label(self.path)
             else:
-                checksum = ''
+                checksum = ""
             if not checksum:
                 checksum = str(md5(self.path))
         else:
@@ -89,7 +91,7 @@ class Product(object):
 
         self.checksum = checksum
 
-        if self.setup.pds_version == '4':
+        if self.setup.pds_version == "4":
             archive_dir = f"{self.setup.mission_acronym}_spice/"
         else:
             archive_dir = f"{self.setup.volume_id}/"
@@ -174,6 +176,7 @@ class SpiceKernelProduct(Product):
                        the SPICE Kernel Product Object
     :type collection: Object
     """
+
     def __init__(self, setup: Setup, name: str, collection: object) -> object:
         """Constructor."""
         self.collection = collection
@@ -225,7 +228,7 @@ class SpiceKernelProduct(Product):
         #
         logging.info(f"-- Copy {self.name} to staging directory.")
         if not os.path.isfile(product_path + self.name):
-            origin_path = ''
+            origin_path = ""
             for directory in self.setup.kernels_directory:
                 file = [
                     os.path.join(root, ker)
@@ -260,7 +263,8 @@ class SpiceKernelProduct(Product):
                         self.new_product = True
                         logging.info(
                             f"-- Mapping {product_mapping(self.name, self.setup)} "
-                            f"with {self.name}")
+                            f"with {self.name}"
+                        )
                         break
 
             #
@@ -341,16 +345,16 @@ class SpiceKernelProduct(Product):
         :rtype: str
         """
         kernel_list_file = (
-                self.setup.working_directory
-                + os.sep
-                + f"{self.setup.mission_acronym}_{self.setup.run_type}_"
-                  f"{int(self.setup.release):02d}.kernel_list"
+            self.setup.working_directory
+            + os.sep
+            + f"{self.setup.mission_acronym}_{self.setup.run_type}_"
+            f"{int(self.setup.release):02d}.kernel_list"
         )
 
         get_token = False
         description = False
 
-        with open(kernel_list_file, 'r') as lst:
+        with open(kernel_list_file, "r") as lst:
             for line in lst:
                 if self.name in line:
                     get_token = True
@@ -376,16 +380,16 @@ class SpiceKernelProduct(Product):
         :rtype: str
         """
         kernel_list_file = (
-                self.setup.working_directory
-                + os.sep
-                + f"{self.setup.mission_acronym}_{self.setup.run_type}_"
-                  f"{int(self.setup.release):02d}.kernel_list"
+            self.setup.working_directory
+            + os.sep
+            + f"{self.setup.mission_acronym}_{self.setup.run_type}_"
+            f"{int(self.setup.release):02d}.kernel_list"
         )
 
         get_token = False
         maklabel_options = False
 
-        with open(kernel_list_file, 'r') as lst:
+        with open(kernel_list_file, "r") as lst:
             for line in lst:
                 if self.name in line:
                     get_token = True
@@ -437,7 +441,7 @@ class SpiceKernelProduct(Product):
                 # For PDS3, do not consider the main body for coverage but all
                 # bodies, to follow MAKLABEL style.
                 #
-                if self.setup.pds_version == '3':
+                if self.setup.pds_version == "3":
                     main_name = False
                 else:
                     main_name = self.setup.spice_name
@@ -446,20 +450,20 @@ class SpiceKernelProduct(Product):
                     self.path,
                     main_name=main_name,
                     date_format=self.setup.date_format,
-                    system=system
+                    system=system,
                 )
             elif self.type.lower() == "ck":
-                coverage += ck_coverage(self.path,
-                                        date_format=self.setup.date_format,
-                                        system=system)
+                coverage += ck_coverage(
+                    self.path, date_format=self.setup.date_format, system=system
+                )
             elif self.extension.lower() == "bpc":
-                coverage += pck_coverage(self.path,
-                                         date_format=self.setup.date_format,
-                                         system=system)
+                coverage += pck_coverage(
+                    self.path, date_format=self.setup.date_format, system=system
+                )
             elif self.type.lower() == "dsk":
-                coverage += dsk_coverage(self.path,
-                                         date_format=self.setup.date_format,
-                                         system=system)
+                coverage += dsk_coverage(
+                    self.path, date_format=self.setup.date_format, system=system
+                )
             else:
                 if self.setup.pds_version == "3":
                     coverage = ['"N/A"', '"N/A"']
@@ -483,7 +487,7 @@ class SpiceKernelProduct(Product):
 
         id_list = sorted(id_list, reverse=True)
 
-        return ','.join(id_list)
+        return ",".join(id_list)
 
     def ik_kernel_ids(self):
         """Extract IDs from IK.
@@ -511,7 +515,7 @@ class SpiceKernelProduct(Product):
 
         id_list = list(set(id_list))
 
-        return ','.join(id_list)
+        return ",".join(id_list)
 
 
 class MetaKernelProduct(Product):
@@ -527,7 +531,13 @@ class MetaKernelProduct(Product):
     :type user_input: bool
     """
 
-    def __init__(self, setup: object, kernel: object, spice_kernels_collection: object, user_input: object = False) -> object:
+    def __init__(
+        self,
+        setup: object,
+        kernel: object,
+        spice_kernels_collection: object,
+        user_input: object = False,
+    ) -> object:
         """Constructor."""
         if user_input:
             logging.info(f"-- Copy meta-kernel: {kernel}")
@@ -582,8 +592,7 @@ class MetaKernelProduct(Product):
 
         if not hasattr(self, "mk_setup"):
             error_message(
-                f"Meta-kernel {self.name} has not been matched "
-                f"in configuration.",
+                f"Meta-kernel {self.name} has not been matched " f"in configuration.",
                 setup=self.setup,
             )
 
@@ -594,7 +603,7 @@ class MetaKernelProduct(Product):
             self.KERNELPATH = "./data"
         elif setup.pds_version == "4":
             self.collection_path = (
-                    setup.staging_directory + os.sep + "spice_kernels" + os.sep
+                setup.staging_directory + os.sep + "spice_kernels" + os.sep
             )
             product_path = self.collection_path + self.type + os.sep
 
@@ -726,7 +735,7 @@ class MetaKernelProduct(Product):
             version_index = pattern.find("?")
 
             version = versions[-1].split(os.sep)[-1]
-            version = version[version_index: version_index + len(self.values[key])]
+            version = version[version_index : version_index + len(self.values[key])]
             version = int(version) + 1
 
             if version == int(self.version):
@@ -836,8 +845,8 @@ class MetaKernelProduct(Product):
                             #    * defined in the configuration file.
                             #
                             if (
-                                    "@pattern" in patterns[el]
-                                    and patterns[el]["@pattern"].lower() == "kernel"
+                                "@pattern" in patterns[el]
+                                and patterns[el]["@pattern"].lower() == "kernel"
                             ):
                                 #
                                 # When extracted from the filename, the
@@ -874,8 +883,8 @@ class MetaKernelProduct(Product):
                                 #
                                 if len(indexes) == 2:
                                     value = kernel[
-                                            indexes[0]: len(kernel) - indexes[1]
-                                            ]
+                                        indexes[0] : len(kernel) - indexes[1]
+                                    ]
                                     if patterns[el]["@pattern"].isupper():
                                         value = value.upper()
                                         #
@@ -937,7 +946,9 @@ class MetaKernelProduct(Product):
         # Obtain meta-kernel grammar from configuration.
         #
         if "grammar" not in self.mk_setup:
-            error_message(f'Meta-kernel grammar not defined in configuration for {self.name}')
+            error_message(
+                f"Meta-kernel grammar not defined in configuration for {self.name}"
+            )
         kernel_grammar_list = self.mk_setup["grammar"]["pattern"]
 
         #
@@ -983,7 +994,9 @@ class MetaKernelProduct(Product):
                 #
                 paths = []
                 mks = []
-                if kernel_grammar.split(".")[-1].lower() in type_to_extension(kernel_type):
+                if kernel_grammar.split(".")[-1].lower() in type_to_extension(
+                    kernel_type
+                ):
                     try:
                         if self.setup.pds_version == "3":
                             paths.append(self.setup.staging_directory + "/DATA")
@@ -1127,10 +1140,10 @@ class MetaKernelProduct(Product):
             else:
                 for key, value in metakernel_dictionary.items():
                     if (
-                            isinstance(value, str)
-                            and key.isupper()
-                            and key in line
-                            and "$" in line
+                        isinstance(value, str)
+                        and key.isupper()
+                        and key in line
+                        and "$" in line
                     ):
                         line = line.replace("$" + key, value)
                 curated_desc += " " * 3 + line.strip() + eol
@@ -1146,10 +1159,10 @@ class MetaKernelProduct(Product):
                     line = line.rstrip()
                     for key, value in metakernel_dictionary.items():
                         if (
-                                isinstance(value, str)
-                                and key.isupper()
-                                and key in line
-                                and "$" in line
+                            isinstance(value, str)
+                            and key.isupper()
+                            and key in line
+                            and "$" in line
                         ):
                             line = line.replace("$" + key, value)
                     f.write(line + eol)
@@ -1171,7 +1184,9 @@ class MetaKernelProduct(Product):
             if hasattr(self, "mk_setup"):
                 if "interrupt_to_update" in self.mk_setup:
                     if self.mk_setup["interrupt_to_update"].lower() == "true":
-                        print("    * The meta-kernel might need to be updated. You can:")
+                        print(
+                            "    * The meta-kernel might need to be updated. You can:"
+                        )
                         print(
                             '        - Type "vi" and press ENTER to edit the '
                             "file with the VI text editor."
@@ -1188,7 +1203,9 @@ class MetaKernelProduct(Product):
                             try:
                                 cmd = os.environ.get("EDITOR", "vi") + " " + self.path
                                 subprocess.call(cmd, shell=True)
-                                logging.warning("-- Meta-kernel edited with Vi by the user.")
+                                logging.warning(
+                                    "-- Meta-kernel edited with Vi by the user."
+                                )
                             except BaseException:
                                 print("Vi text editor is not available.")
                                 input(">> Press Enter to continue... ")
@@ -1276,9 +1293,9 @@ class MetaKernelProduct(Product):
 
         rel_path = self.path.split(f"/{self.setup.mission_acronym}_spice/")[-1]
         path = (
-                self.setup.bundle_directory.split(f"{self.setup.mission_acronym}_spice")[0]
-                + f"/{self.setup.mission_acronym}_spice/"
-                + rel_path
+            self.setup.bundle_directory.split(f"{self.setup.mission_acronym}_spice")[0]
+            + f"/{self.setup.mission_acronym}_spice/"
+            + rel_path
         )
 
         cwd = os.getcwd()
@@ -1443,11 +1460,16 @@ class MetaKernelProduct(Product):
                 finish_times = [et_year_stop]
 
         if self.mk_sets_coverage:
-            logging.info("-- Meta-kernel will be used to determine SPICE "
-                         "Collection coverage.")
+            logging.info(
+                "-- Meta-kernel will be used to determine SPICE " "Collection coverage."
+            )
         else:
-            logging.warning(("-- Meta-kernel will not be used to determine "
-                             "SPICE Collection coverage."))
+            logging.warning(
+                (
+                    "-- Meta-kernel will not be used to determine "
+                    "SPICE Collection coverage."
+                )
+            )
 
         try:
 
@@ -1471,14 +1493,18 @@ class MetaKernelProduct(Product):
                 et_incremn_finish = spiceypy.utc2et(self.setup.increment_finish[:-1])
                 et_year_start = spiceypy.utc2et(f"{self.year}-01-01T00:00:00")
 
-                if et_year_start > et_mission_start and (self.year == self.setup.mission_start[:4]):
+                if et_year_start > et_mission_start and (
+                    self.year == self.setup.mission_start[:4]
+                ):
                     start_time = self.setup.mission_start
                 else:
                     start_time = f"{self.year}-01-01T00:00:00Z"
 
                 et_year_stop = spiceypy.utc2et(f"{int(self.year) + 1}-01-01T00:00:00")
 
-                if et_incremn_finish < et_year_stop and (self.year == self.setup.increment_finish[:4]):
+                if et_incremn_finish < et_year_stop and (
+                    self.year == self.setup.increment_finish[:4]
+                ):
                     stop_time = self.setup.increment_finish
                 elif et_mission_finish < et_year_stop:
                     stop_time = self.setup.mission_finish
@@ -1529,14 +1555,16 @@ class MetaKernelProduct(Product):
                     #
                     if self.setup.increment_start[0:4] == start_time[0:4]:
                         start_time = self.setup.increment_start
-                        logging.warning(f"-- Coverage start time corrected with "
-                                        f"increment start from configuration file to: {start_time}"
-                                        )
+                        logging.warning(
+                            f"-- Coverage start time corrected with "
+                            f"increment start from configuration file to: {start_time}"
+                        )
                 else:
                     start_time = self.setup.increment_start
-                    logging.warning(f"-- Coverage start time corrected with "
-                                    f"increment start from configuration file to: {start_time}"
-                                    )
+                    logging.warning(
+                        f"-- Coverage start time corrected with "
+                        f"increment start from configuration file to: {start_time}"
+                    )
 
             if hasattr(self.setup, "increment_finish"):
                 if hasattr(self, "year"):
@@ -1546,12 +1574,16 @@ class MetaKernelProduct(Product):
                     #
                     if self.setup.increment_finish[0:4] == stop_time[0:4]:
                         stop_time = self.setup.increment_finish
-                        logging.warning(f"-- Coverage finish time corrected with "
-                                        f"increment finish from configuration file to: {stop_time}")
+                        logging.warning(
+                            f"-- Coverage finish time corrected with "
+                            f"increment finish from configuration file to: {stop_time}"
+                        )
                 else:
                     stop_time = self.setup.increment_finish
-                    logging.warning(f"-- Coverage finish time corrected with "
-                                    f"increment finish from configuration file to: {stop_time}")
+                    logging.warning(
+                        f"-- Coverage finish time corrected with "
+                        f"increment finish from configuration file to: {stop_time}"
+                    )
 
             #
             # Re-format the time accordingly. The 'Z' is removed from the UTC
@@ -1561,10 +1593,12 @@ class MetaKernelProduct(Product):
                 system = "TDB"
             else:
                 system = "UTC"
-            (start_time, stop_time) = et_to_date(spiceypy.utc2et(start_time[:-1]),
-                                                 spiceypy.utc2et(stop_time[:-1]),
-                                                 self.setup.date_format,
-                                                 system=system)
+            (start_time, stop_time) = et_to_date(
+                spiceypy.utc2et(start_time[:-1]),
+                spiceypy.utc2et(stop_time[:-1]),
+                self.setup.date_format,
+                system=system,
+            )
 
             self.start_time = start_time
             self.stop_time = stop_time
@@ -1583,8 +1617,13 @@ class OrbnumFileProduct(Product):
     :type spice_kernels_collection: object
     """
 
-    def __init__(self, setup: object, name: object, collection: object,
-                 spice_kernels_collection: object) -> object:
+    def __init__(
+        self,
+        setup: object,
+        name: object,
+        collection: object,
+        spice_kernels_collection: object,
+    ) -> object:
         """Constructor."""
         self.collection = collection
         self.kernels_collection = spice_kernels_collection
@@ -1616,7 +1655,7 @@ class OrbnumFileProduct(Product):
                 setup=self.setup,
             )
 
-        if self.setup.pds_version == '4':
+        if self.setup.pds_version == "4":
             self.set_product_lid()
             self.set_product_vid()
 
@@ -1642,10 +1681,12 @@ class OrbnumFileProduct(Product):
         #
         # Add CRs to the ORBNUM file. Need reveiw for PDS3.
         #
-        if self.setup.pds_version == '4':
+        if self.setup.pds_version == "4":
             if check_eol(product_path + os.sep + self.name, self.setup.eol):
                 logging.info("-- Adding CRLF to ORBNUM file.")
-                add_crs_to_file(product_path + os.sep + self.name, self.setup.eol, self.setup)
+                add_crs_to_file(
+                    product_path + os.sep + self.name, self.setup.eol, self.setup
+                )
 
         #
         # We update the path after having copied the kernel.
@@ -1655,7 +1696,7 @@ class OrbnumFileProduct(Product):
         #
         # We obtain the parameters required to fill the label.
         #
-        if self.setup.pds_version == '4':
+        if self.setup.pds_version == "4":
             header = self.read_header()
             self.set_event_detection_key(header)
             self.header_length = self.get_header_length()
@@ -1689,7 +1730,7 @@ class OrbnumFileProduct(Product):
         #
         # The kernel is labeled.
         #
-        if self.setup.pds_version == '4':
+        if self.setup.pds_version == "4":
             logging.info(f"-- Labeling {self.name}...")
             self.label = OrbnumFilePDS4Label(setup, self)
 
@@ -1926,7 +1967,7 @@ class OrbnumFileProduct(Product):
                     #
                     if lines > header_start:
                         if previous_orbit_number and (
-                                orbit_number - previous_orbit_number != 1
+                            orbit_number - previous_orbit_number != 1
                         ):
                             logging.warning(
                                 f"-- Orbit number "
@@ -1939,7 +1980,7 @@ class OrbnumFileProduct(Product):
                                 setup=self.setup,
                             )
                         elif (
-                                line.strip() and records_length != self.record_fixed_length
+                            line.strip() and records_length != self.record_fixed_length
                         ):
                             logging.warning(
                                 f"-- Orbit number {orbit_number} "
@@ -2252,31 +2293,31 @@ class OrbnumFileProduct(Product):
                 "type": "ASCII_Integer",
                 "length": "5",
                 "description": "Number that provides an incremental orbit "
-                               "count determined by the $EVENT event.",
+                "count determined by the $EVENT event.",
             },
             "Event UTC": {
                 "type": "ASCII_String",
                 "location": "8",
                 "length": "20",
                 "description": "UTC time of the $EVENT event that "
-                               "signifies the start of an orbit.",
+                "signifies the start of an orbit.",
             },
             "Desc-Node UTC": {
                 "type": "ASCII_String",
                 "location": "8",
                 "length": "20",
                 "description": "UTC time of the $EVENT event that "
-                               "signifies the start of an orbit.",
+                "signifies the start of an orbit.",
             },
             "Event SCLK": {
                 "type": "ASCII_String",
                 "description": "SCLK time of the $EVENT event that "
-                               "signifies the start of an orbit.",
+                "signifies the start of an orbit.",
             },
             "Node SCLK": {
                 "type": "ASCII_String",
                 "description": "SCLK time of the $EVENT event that "
-                               "signifies the start of an orbit.",
+                "signifies the start of an orbit.",
             },
             "OP-Event UTC": {
                 "type": "ASCII_String",
@@ -2291,68 +2332,68 @@ class OrbnumFileProduct(Product):
             "SolLon": {
                 "type": "ASCII_Real",
                 "description": "Sub-solar planetodetic longitude at the "
-                               "$EVENT event time in the $FRAME.",
+                "$EVENT event time in the $FRAME.",
                 "unit": "deg",
             },
             "SolLat": {
                 "type": "ASCII_Real",
                 "description": "Sub-solar planetodetic latitude at the "
-                               "$EVENT event time in the $FRAME.",
+                "$EVENT event time in the $FRAME.",
                 "unit": "deg",
             },
             "SC Lon": {
                 "type": "ASCII_Real",
                 "description": "Sub-target planetodetic longitude at the "
-                               "$EVENT event time in the $FRAME.",
+                "$EVENT event time in the $FRAME.",
                 "unit": "deg",
             },
             "SC Lat": {
                 "type": "ASCII_Real",
                 "description": "Sub-target planetodetic latitude at at the "
-                               "$EVENT event time in the $FRAME.",
+                "$EVENT event time in the $FRAME.",
                 "unit": "deg",
             },
             "Alt": {
                 "type": "ASCII_Real",
                 "description": "Altitude of the target above the observer "
-                               "body at the $EVENT event time relative to"
-                               " the $TARGET ellipsoid.",
+                "body at the $EVENT event time relative to"
+                " the $TARGET ellipsoid.",
                 "unit": "km",
             },
             "Inc": {
                 "type": "ASCII_Real",
                 "description": "Inclination of the vehicle orbit plane at "
-                               "event time.",
+                "event time.",
                 "unit": "km",
             },
             "Ecc": {
                 "type": "ASCII_Real",
                 "description": "Eccentricity of the target orbit about "
-                               "the primary body at the $EVENT event time.",
+                "the primary body at the $EVENT event time.",
                 "unit": "deg",
             },
             "LonNode": {
                 "type": "ASCII_Real",
                 "description": "Longitude of the ascending node of the"
-                               " orbit plane at the $EVENT event time.",
+                " orbit plane at the $EVENT event time.",
                 "unit": "deg",
             },
             "Arg Per": {
                 "type": "ASCII_Real",
                 "description": "Argument of periapsis of the orbit plane at "
-                               "the $EVENT event time.",
+                "the $EVENT event time.",
                 "unit": "deg",
             },
             "Sol Dist": {
                 "type": "ASCII_Real",
                 "description": "Solar distance from target at the $EVENT "
-                               "event time.",
+                "event time.",
                 "unit": "km",
             },
             "Semi Axis": {
                 "type": "ASCII_Real",
                 "description": "Semi-major axis of the target's orbit at"
-                               " the $EVENT event time.",
+                " the $EVENT event time.",
                 "unit": "km",
             },
         }
@@ -2430,22 +2471,22 @@ class OrbnumFileProduct(Product):
             # Write the format
             #
             if self.setup.information_model_float >= 1007000000.0:
-                format = '%' + length
+                format = "%" + length
                 if "ASCII_Real" in params_template[param]["type"]:
-                    format += '.' + param_length + 'f'
+                    format += "." + param_length + "f"
                 elif "ASCII_String" in params_template[param]["type"]:
-                    format += 's'
+                    format += "s"
                 elif "ASCII_Integer" in params_template[param]["type"]:
-                    format += 'd'
+                    format += "d"
                 else:
                     error_message("Parameter type for ORBNUM file is incorrect.")
             else:
                 if "ASCII_Real" in params_template[param]["type"]:
-                    format = 'F' + length + '.' + param_length
+                    format = "F" + length + "." + param_length
                 elif "ASCII_String" in params_template[param]["type"]:
-                    format = 'A' + length
+                    format = "A" + length
                 elif "ASCII_Integer" in params_template[param]["type"]:
-                    format = 'I' + length
+                    format = "I" + length
                 else:
                     error_message("Parameter type for ORBNUM file is incorrect.")
 
@@ -2841,7 +2882,7 @@ class InventoryProduct(Product):
 
     def __init__(self, setup: object, collection: object) -> object:
         """Constructor."""
-        if collection.name != 'miscellaneous':
+        if collection.name != "miscellaneous":
             line = f"Step {setup.step} - Generation of {collection.name} collection"
             logging.info("")
             logging.info(line)
@@ -2914,7 +2955,7 @@ class InventoryProduct(Product):
 
             self.name = f"collection_{collection.name}_inventory_v{self.version:03}.csv"
             self.path = (
-                    setup.staging_directory + os.sep + collection.name + os.sep + self.name
+                setup.staging_directory + os.sep + collection.name + os.sep + self.name
             )
 
             self.set_product_lid()
@@ -2930,18 +2971,24 @@ class InventoryProduct(Product):
 
         if setup.pds_version == "4":
             self.label = InventoryPDS4Label(setup, collection, self)
-        elif setup.pds_version == '3':
+        elif setup.pds_version == "3":
             self.label = InventoryPDS3Label(setup, collection, self)
 
             #
             # Generate dsindex files.
             #
-            shutil.copy2(self.path, self.setup.staging_directory + '/../dsindex.tab')
-            shutil.copy2(self.path.replace('.tab', '.lbl'),
-                         self.setup.staging_directory + '/../dsindex.lbl')
+            shutil.copy2(self.path, self.setup.staging_directory + "/../dsindex.tab")
+            shutil.copy2(
+                self.path.replace(".tab", ".lbl"),
+                self.setup.staging_directory + "/../dsindex.lbl",
+            )
 
-            replace_string_in_file(self.setup.staging_directory + '/../dsindex.lbl',
-                                   '"INDEX.TAB"', '"DSINDEX.TAB"', self.setup)
+            replace_string_in_file(
+                self.setup.staging_directory + "/../dsindex.lbl",
+                '"INDEX.TAB"',
+                '"DSINDEX.TAB"',
+                self.setup,
+            )
 
     def set_product_lid(self):
         """Set the Product LID."""
@@ -3018,7 +3065,9 @@ class InventoryProduct(Product):
         column_length = np.zeros(10)
 
         if self.setup.increment:
-            existing_index = f"{self.setup.bundle_directory}/{self.setup.volume_id}/index/index.tab"
+            existing_index = (
+                f"{self.setup.bundle_directory}/{self.setup.volume_id}/index/index.tab"
+            )
 
             with open(existing_index, "r") as f:
                 for line in f:
@@ -3050,17 +3099,18 @@ class InventoryProduct(Product):
 
         for kernel in self.collection.product:
             if type(kernel).__name__ != "MetaKernelProduct":
-                index_row = [kernel.start_time.split('Z')[0],
-                             kernel.stop_time.split('Z')[0],
-                             'data/' + kernel.path.split('/data/')[-1].split('.')[0] + '.lbl',
-                             self.collection.list.DATA_SET_ID,
-                             kernel.creation_time,
-                             self.collection.list.RELID,
-                             self.collection.list.RELDATE,
-                             kernel.type.upper(),
-                             kernel.name,
-                             self.collection.list.VOLID.lower()
-                             ]
+                index_row = [
+                    kernel.start_time.split("Z")[0],
+                    kernel.stop_time.split("Z")[0],
+                    "data/" + kernel.path.split("/data/")[-1].split(".")[0] + ".lbl",
+                    self.collection.list.DATA_SET_ID,
+                    kernel.creation_time,
+                    self.collection.list.RELID,
+                    self.collection.list.RELDATE,
+                    kernel.type.upper(),
+                    kernel.name,
+                    self.collection.list.VOLID.lower(),
+                ]
 
                 new_index.append(index_row)
 
@@ -3077,38 +3127,42 @@ class InventoryProduct(Product):
         with open(self.path, "w+") as f:
             for row in index:
                 rows += 1
-                line = ''
+                line = ""
                 for i, col in enumerate(row):
                     if i < 2 or i == 4 or i == 6:
-                        if col == 'N/A':
+                        if col == "N/A":
                             col = '"N/A"'
                         line += f'{col}{" " * (int(column_length[i]) - len(col))}'
                     else:
                         line += f'"{col}{" " * (int(column_length[i]) - len(col) - 2)}"'
                         line_for_length = line
                     if i != 9:
-                        line += ','
+                        line += ","
 
                 line = add_carriage_return(line, self.setup.eol_pds3, self.setup)
-                file_types.append(type_to_extension(line.split(',')[7].split('"')[1].strip())[0])
+                file_types.append(
+                    type_to_extension(line.split(",")[7].split('"')[1].strip())[0]
+                )
                 f.write(line)
 
             #
             # Bytes of each column is necessary to write the index label.
             #
             if not line_for_length:
-                error_message("The index file is incomplete since no binary "
-                              "kernel is present in the archive.")
-            columns = line.split(',')
+                error_message(
+                    "The index file is incomplete since no binary "
+                    "kernel is present in the archive."
+                )
+            columns = line.split(",")
             column_start_bytes = []
             start_bytes = 1
             for column in columns:
 
                 column_length = len(column)
 
-                if '\n\r' in column:
+                if "\n\r" in column:
                     column_length -= 3
-                elif '\n' in column:
+                elif "\n" in column:
                     column_length -= 2
                 if '"' in column:
                     column_length -= 2
@@ -3247,12 +3301,12 @@ class SpicedsProduct(object):
         # Obtain the previous spiceds file if it exists
         #
         path = (
-                setup.bundle_directory
-                + os.sep
-                + setup.mission_acronym
-                + "_spice"
-                + os.sep
-                + collection.name
+            setup.bundle_directory
+            + os.sep
+            + setup.mission_acronym
+            + "_spice"
+            + os.sep
+            + collection.name
         )
         if self.setup.increment:
             spiceds_files = glob.glob(path + os.sep + "spiceds_v*.html")
@@ -3295,7 +3349,7 @@ class SpicedsProduct(object):
         #
         self.name = "spiceds_v{0:0=3d}.html".format(self.version)
         self.path = (
-                setup.staging_directory + os.sep + collection.name + os.sep + self.name
+            setup.staging_directory + os.sep + collection.name + os.sep + self.name
         )
         self.mission = setup
 
@@ -3399,9 +3453,9 @@ class SpicedsProduct(object):
             for line in diff:
                 if line[0] == "-":
                     if (
-                            "Last update" not in line
-                            and line.strip() != "-"
-                            and line.strip() != "-\n"
+                        "Last update" not in line
+                        and line.strip() != "-"
+                        and line.strip() != "-\n"
                     ):
                         generate_spiceds = True
 
@@ -3483,8 +3537,8 @@ class ReadmeProduct(Product):
         self.collection.name = ""
 
         path = (
-                self.setup.bundle_directory
-                + f"/{self.setup.mission_acronym}_spice/readme.txt"
+            self.setup.bundle_directory
+            + f"/{self.setup.mission_acronym}_spice/readme.txt"
         )
 
         if os.path.exists(path):
@@ -3529,7 +3583,9 @@ class ReadmeProduct(Product):
                 error_message("Readme file provided via configuration does not exist.")
         elif not os.path.isfile(self.path):
             with open(self.path, "w+") as f:
-                with open(self.setup.templates_directory + "/template_readme.txt", 'r') as t:
+                with open(
+                    self.setup.templates_directory + "/template_readme.txt", "r"
+                ) as t:
                     for line in t:
                         if "$SPICE_NAME" in line:
                             line = line.replace("$SPICE_NAME", self.setup.spice_name)
@@ -3549,13 +3605,17 @@ class ReadmeProduct(Product):
                             overview = self.setup.readme["overview"]
                             for line in overview.split("\n"):
                                 line = " " * 3 + line.strip() + "\n"
-                                line = add_carriage_return(line, self.setup.eol, self.setup)
+                                line = add_carriage_return(
+                                    line, self.setup.eol, self.setup
+                                )
                                 f.write(line)
                         elif "$COGNISANT_AUTHORITY" in line:
                             cognisant = self.setup.readme["cognisant_authority"]
                             for line in cognisant.split("\n"):
                                 line = " " * 3 + line.strip() + "\n"
-                                line = add_carriage_return(line, self.setup.eol, self.setup)
+                                line = add_carriage_return(
+                                    line, self.setup.eol, self.setup
+                                )
                                 f.write(line)
                         else:
                             line_length = len(line) - 1
@@ -3579,7 +3639,9 @@ class ChecksumProduct(Product):
     :type add_previous_checksum: bool
     """
 
-    def __init__(self, setup: object, collection: object, add_previous_checksum: bool = True) -> object:
+    def __init__(
+        self, setup: object, collection: object, add_previous_checksum: bool = True
+    ) -> object:
         """Constructor."""
         #
         # The initialisation of the checksum class is lighter than the
@@ -3592,7 +3654,7 @@ class ChecksumProduct(Product):
         self.setup = setup
         self.collection = collection
         self.collection_path = (
-                self.setup.staging_directory + os.sep + "miscellaneous" + os.sep
+            self.setup.staging_directory + os.sep + "miscellaneous" + os.sep
         )
 
         line = f"Step {self.setup.step} - Generate checksum file"
@@ -3607,7 +3669,7 @@ class ChecksumProduct(Product):
         #
         # We generate the kernel directory if not present
         #
-        if setup.pds_version == '4':
+        if setup.pds_version == "4":
             product_path = self.collection_path + "checksum/"
         else:
             product_path = f"{setup.staging_directory}/index/"
@@ -3623,7 +3685,7 @@ class ChecksumProduct(Product):
 
         self.read_current_product(add_previous_checksum=add_previous_checksum)
 
-        if setup.pds_version == '4':
+        if setup.pds_version == "4":
             self.set_product_lid()
             self.set_product_vid()
 
@@ -3658,7 +3720,7 @@ class ChecksumProduct(Product):
         # The checksum is labeled.
         #
         logging.info(f"-- Labeling {self.name}...")
-        if self.setup.pds_version == '4':
+        if self.setup.pds_version == "4":
             self.label = ChecksumPDS4Label(self.setup, self)
         else:
             self.label = ChecksumPDS3Label(self.setup, self)
@@ -3723,31 +3785,34 @@ class ChecksumProduct(Product):
                 self.path_current = ""
 
                 logging.warning(f"-- Default to version {self.version}.")
-                logging.warning("-- Make sure this is the first release of the archive.")
+                logging.warning(
+                    "-- Make sure this is the first release of the archive."
+                )
                 logging.warning("")
 
             self.name = f"checksum_v{self.version:03}.tab"
             self.path = (
-                    self.setup.staging_directory
-                    + os.sep
-                    + self.collection.name
-                    + os.sep
-                    + "checksum"
-                    + os.sep
-                    + self.name
+                self.setup.staging_directory
+                + os.sep
+                + self.collection.name
+                + os.sep
+                + "checksum"
+                + os.sep
+                + self.name
             )
         else:
 
             self.name_current = "checksum.tab"
-            self.path_current = self.setup.bundle_directory + os.sep + self.setup.volume_id + "/index/checksum.tab"
+            self.path_current = (
+                self.setup.bundle_directory
+                + os.sep
+                + self.setup.volume_id
+                + "/index/checksum.tab"
+            )
 
             self.name = "checksum.tab"
             self.path = (
-                    self.setup.staging_directory
-                    + os.sep
-                    + "index"
-                    + os.sep
-                    + self.name
+                self.setup.staging_directory + os.sep + "index" + os.sep + self.name
             )
 
         #
@@ -3792,16 +3857,22 @@ class ChecksumProduct(Product):
                     label_current = self.path_current.replace(".tab", ".lbl")
 
                 md5_current = md5(self.path_current)
-                self.md5_dict[checksum_dir + self.path_current.split(os.sep)[-1]] = md5_current
+                self.md5_dict[
+                    checksum_dir + self.path_current.split(os.sep)[-1]
+                ] = md5_current
 
                 md5_label = md5(label_current)
-                self.md5_dict[checksum_dir + label_current.split(os.sep)[-1]] = md5_label
+                self.md5_dict[
+                    checksum_dir + label_current.split(os.sep)[-1]
+                ] = md5_label
 
         self.new_product = True
 
     def set_product_lid(self):
         """Set Product LID."""
-        self.lid = f"{self.setup.logical_identifier}:miscellaneous:checksum_checksum".lower()
+        self.lid = (
+            f"{self.setup.logical_identifier}:miscellaneous:checksum_checksum".lower()
+        )
 
     def set_product_vid(self):
         """Set Product VID."""
@@ -3834,7 +3905,7 @@ class ChecksumProduct(Product):
             #
             for collection in self.collection.bundle.collections:
                 for product in collection.product:
-                    if self.setup.pds_version == '4':
+                    if self.setup.pds_version == "4":
                         archive_dir = f"/{msn_acr}_spice/"
                     else:
                         archive_dir = f"/{self.setup.volume_id}/"
@@ -3847,10 +3918,14 @@ class ChecksumProduct(Product):
                         # a different name raise an error unless you are
                         # running NPB in debug mode.
                         #
-                        if product.checksum in list(self.md5_dict.keys()) and \
-                                self.md5_dict[product_name] != product.checksum:
-                            msg = f"Two products have the same MD5 sum, " \
-                                  f"the product {product_name} might be a duplicate."
+                        if (
+                            product.checksum in list(self.md5_dict.keys())
+                            and self.md5_dict[product_name] != product.checksum
+                        ):
+                            msg = (
+                                f"Two products have the same MD5 sum, "
+                                f"the product {product_name} might be a duplicate."
+                            )
                             if not self.setup.args.debug:
                                 error_message(msg)
                             else:
@@ -3867,7 +3942,9 @@ class ChecksumProduct(Product):
                     #
                     if hasattr(product, "label"):
                         label_checksum = md5(product.label.name)
-                        self.md5_dict[product.label.name.split(archive_dir)[-1]] = label_checksum
+                        self.md5_dict[
+                            product.label.name.split(archive_dir)[-1]
+                        ] = label_checksum
 
                     else:
                         logging.warning(f"-- {product_name} does not have a label.")
@@ -3883,10 +3960,12 @@ class ChecksumProduct(Product):
             #
             # Include the bundle label, that is paired to the readme file.
             #
-            if self.setup.pds_version == '4' and not set_coverage:
+            if self.setup.pds_version == "4" and not set_coverage:
                 label_checksum = md5(self.collection.bundle.readme.label.name)
                 self.md5_dict[
-                    self.collection.bundle.readme.label.name.split(f"/{msn_acr}_spice/")[-1]
+                    self.collection.bundle.readme.label.name.split(
+                        f"/{msn_acr}_spice/"
+                    )[-1]
                 ] = label_checksum
 
         #
@@ -3896,9 +3975,9 @@ class ChecksumProduct(Product):
         if history and self.setup.pds_version == "4":
             for product in history[1]:
                 path = (
-                        self.setup.bundle_directory
-                        + f"/{self.setup.mission_acronym}_spice/"
-                        + product
+                    self.setup.bundle_directory
+                    + f"/{self.setup.mission_acronym}_spice/"
+                    + product
                 )
                 #
                 # Computing checksums is resource consuming; let's see if the
@@ -3939,9 +4018,9 @@ class ChecksumProduct(Product):
         if md5_check_dict:
             logging.warning("-- The following products have the same MD5 sum:")
             for k, v in md5_check_dict.items():
-                logging.warning(f'   {k}')
+                logging.warning(f"   {k}")
                 for file in v:
-                    logging.warning(f'      {file}')
+                    logging.warning(f"      {file}")
 
         #
         # The resulting dictionary needs to be transformed into a list
@@ -3995,7 +4074,9 @@ class ChecksumProduct(Product):
 
             for key in sorted(md5_dict_keys):
                 key = key.replace("~", "_").replace("|", ".")
-                md5_list.append(f"{self.md5_dict[key]}  {key}{' ' * (max_key_len - len(key))}")
+                md5_list.append(
+                    f"{self.md5_dict[key]}  {key}{' ' * (max_key_len - len(key))}"
+                )
 
             self.bytes = max_key_len
             self.record_bytes = 32 + 4 + max_key_len
@@ -4016,7 +4097,7 @@ class ChecksumProduct(Product):
         # by the spice_kernel collection and the orbnum files in the
         # miscellaneous collection.
         #
-        if self.setup.pds_version == '4':
+        if self.setup.pds_version == "4":
             coverage_list = []
 
             #
@@ -4025,7 +4106,7 @@ class ChecksumProduct(Product):
             #
             for product in md5_list:
                 if ("spice_kernels/collection_spice_kernels_v" in product) or (
-                        ("miscellaneous/orbnum/" in product) and ((".xml" in product))
+                    ("miscellaneous/orbnum/" in product) and ((".xml" in product))
                 ):
                     coverage_list.append(product.split()[-1])
 
@@ -4036,8 +4117,8 @@ class ChecksumProduct(Product):
                 # The files can either be in the staging or the final area.
                 #
                 path = (
-                        f"{self.setup.bundle_directory}/"
-                        f"{self.setup.mission_acronym}_spice/" + product
+                    f"{self.setup.bundle_directory}/"
+                    f"{self.setup.mission_acronym}_spice/" + product
                 )
                 if not os.path.isfile(path):
                     path = f"{self.setup.staging_directory}/" + product
@@ -4056,9 +4137,9 @@ class ChecksumProduct(Product):
                                 )[0]
                                 start_times.append(start_time)
                             if "<stop_date_time>" in line:
-                                stop_time = line.split("<stop_date_time>")[-1].split("</")[
-                                    0
-                                ]
+                                stop_time = line.split("<stop_date_time>")[-1].split(
+                                    "</"
+                                )[0]
                                 stop_times.append(stop_time)
 
             if not start_times:
@@ -4132,14 +4213,16 @@ class PDS3DocumentProduct(Product):
         # Compare with the already existing file -that has the same name-, if
         # files are the same do not include as an updated file.
         #
-        existing_path = self.setup.bundle_directory + os.sep + self.setup.volume_id + path.split(self.setup.volume_id)[
-            -1]
+        existing_path = (
+            self.setup.bundle_directory
+            + os.sep
+            + self.setup.volume_id
+            + path.split(self.setup.volume_id)[-1]
+        )
 
-        same_files = compare_files(existing_path,
-                                   path,
-                                   self.setup.working_directory,
-                                   self.setup.diff
-                                   )
+        same_files = compare_files(
+            existing_path, path, self.setup.working_directory, self.setup.diff
+        )
         if not same_files:
             self.new_product = False
         else:
@@ -4154,25 +4237,25 @@ class PDS3DocumentProduct(Product):
 
         The outcome of the validation is an INFO or a WARNING log message.
         """
-        if self.name == 'release.cat':
+        if self.name == "release.cat":
             release_strings = [
                 f'RELEASE_ID                      = "0{self.setup.release}"',
-                f'RELEASE_DATE                    = {self.setup.release_date}',
-                f'RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0{self.setup.release}"'
+                f"RELEASE_DATE                    = {self.setup.release_date}",
+                f'RELEASE_PARAMETER_TEXT          = "&RELEASE_ID=0{self.setup.release}"',
             ]
         else:
             release_strings = [self.setup.release_date]
 
         for string in release_strings:
-            logging.info('')
+            logging.info("")
             present = string_in_file(self.path, string)
             if not present:
-                logging.warning('-- The following string:')
-                logging.warning(f'   {string}')
-                logging.warning(f'   Is not present in: {self.name}')
+                logging.warning("-- The following string:")
+                logging.warning(f"   {string}")
+                logging.warning(f"   Is not present in: {self.name}")
             else:
-                logging.info('-- The following string:')
-                logging.info(f'   {string}')
-                logging.info(f'   Is present in: {self.name}')
+                logging.info("-- The following string:")
+                logging.info(f"   {string}")
+                logging.info(f"   Is present in: {self.name}")
 
-        logging.info('')
+        logging.info("")

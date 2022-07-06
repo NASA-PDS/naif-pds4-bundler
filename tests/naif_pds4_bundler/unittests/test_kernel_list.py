@@ -49,6 +49,7 @@ def test_pds3_msl_list(self):
 
     self.assertEqual(old_file.split("\n")[7:], new_file.split("\n")[7:])
 
+
 def test_pds3_m01_list(self):
     """Basic test for M01 kernel list generation.
 
@@ -77,6 +78,7 @@ def test_pds3_m01_list(self):
 
     self.assertEqual(old_file.split("\n")[7:], new_file.split("\n")[7:])
 
+
 def test_pds3_mro_list(self):
     """Basic test for MRO kernel list generation.
 
@@ -88,14 +90,10 @@ def test_pds3_mro_list(self):
     faucet = "list"
 
     shutil.copy2(
-        "../data/mro_release_58.kernel_list",
-        "working/mro_release_58.kernel_list"
+        "../data/mro_release_58.kernel_list", "working/mro_release_58.kernel_list"
     )
 
-    shutil.copytree(
-        "../data/kernels/ck",
-        "kernels/ck"
-    )
+    shutil.copytree("../data/kernels/ck", "kernels/ck")
 
     main(config, plan, faucet, silent=self.silent)
 
@@ -112,6 +110,7 @@ def test_pds3_mro_list(self):
                 old_file += line
 
     self.assertEqual(old_file.split("\n")[7:], new_file.split("\n")[7:])
+
 
 def test_pds4_insight_list(self):
     """Basic test for InSight kernel list generation.
@@ -142,6 +141,7 @@ def test_pds4_insight_list(self):
 
     self.assertEqual(old_file.split("\n")[7:], new_file.split("\n")[7:])
 
+
 def test_pds4_maven_list(self):
     """Basic test for MAVEN kernel list generation.
 
@@ -165,6 +165,7 @@ def test_pds4_maven_list(self):
             old_file += line
 
     self.assertEqual(old_file.split("\n")[7:], new_file.split("\n")[7:])
+
 
 def test_pds4_mars2020_list(self):
     """Basic test for MAVEN kernel list generation.
@@ -193,6 +194,7 @@ def test_pds4_mars2020_list(self):
 
     self.assertEqual(old_file.split("\n")[7:], new_file.split("\n")[7:])
 
+
 def test_pds4_orex_list(self):
     """Basic test for OSIRISReX kernel list generation.
 
@@ -217,6 +219,7 @@ def test_pds4_orex_list(self):
 
     self.assertEqual(old_file.split("\n")[7:], new_file.split("\n")[7:])
 
+
 def test_pds3_juno_list(self):
     """Basic test for JUNO kernel list generation.
 
@@ -228,8 +231,7 @@ def test_pds3_juno_list(self):
     faucet = "list"
 
     shutil.copy2(
-        "../data/juno_release_17.kernel_list",
-        "working/juno_release_17.kernel_list"
+        "../data/juno_release_17.kernel_list", "working/juno_release_17.kernel_list"
     )
 
     main(config, plan, faucet, silent=self.silent)
@@ -247,6 +249,7 @@ def test_pds3_juno_list(self):
                 old_file += line
 
     self.assertEqual(old_file.split("\n")[7:], new_file.split("\n")[7:])
+
 
 def test_pds4_vco_list(self):
     """Basic test for Venus Climate Orbiter Akatsuki kernel list generation.
@@ -273,6 +276,7 @@ def test_pds4_vco_list(self):
                 old_file += line
 
     self.assertEqual(old_file.split("\n")[7:], new_file.split("\n")[7:])
+
 
 def test_pds4_hyb2_list(self):
     """Basic test for Hayabusa2 kernel list generation.
@@ -310,12 +314,8 @@ def test_xml_reader(self):
     """
     shutil.copy2("../data/kernels/fk/insight_v05.tf", "kernels/fk")
     shutil.copy2("../data/kernels/lsk/naif0012.tls", "kernels/lsk")
-    shutil.copy2(
-        "../data/kernels/ck/insight_ida_enc_200829_201220_v1.bc", "kernels/ck"
-    )
-    shutil.copy2(
-        "../data/kernels/ck/insight_ida_pot_200829_201220_v1.bc", "kernels/ck"
-    )
+    shutil.copy2("../data/kernels/ck/insight_ida_enc_200829_201220_v1.bc", "kernels/ck")
+    shutil.copy2("../data/kernels/ck/insight_ida_pot_200829_201220_v1.bc", "kernels/ck")
     shutil.copy2("../data/kernels/sclk/NSY_SCLKSCET.00019.tsc", "kernels/sclk")
 
     #

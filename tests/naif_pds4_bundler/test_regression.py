@@ -8,6 +8,7 @@ from unittest import TestCase
 import regression.test_pds3 as pds3
 import regression.test_pds4 as pds4
 
+
 class TestRegression(TestCase):
     """Regression Test Family Class."""
 
@@ -26,11 +27,15 @@ class TestRegression(TestCase):
         cls.log = True
         cls.tmp_dir = tempfile.TemporaryDirectory()
 
-        shutil.copytree(os.sep.join(cls.test_dir.split(os.sep)),
-                        cls.tmp_dir.name + '/naif_pds4_bundler')
-        shutil.copytree(os.sep.join(cls.test_dir.split(os.sep)[:-2]) +
-                        "/src/pds/naif_pds4_bundler/templates/1.5.0.0",
-                        cls.tmp_dir.name + '/naif_pds4_bundler/templates/1.5.0.0')
+        shutil.copytree(
+            os.sep.join(cls.test_dir.split(os.sep)),
+            cls.tmp_dir.name + "/naif_pds4_bundler",
+        )
+        shutil.copytree(
+            os.sep.join(cls.test_dir.split(os.sep)[:-2])
+            + "/src/pds/naif_pds4_bundler/templates/1.5.0.0",
+            cls.tmp_dir.name + "/naif_pds4_bundler/templates/1.5.0.0",
+        )
         tests_dir = cls.tmp_dir.name + "/naif_pds4_bundler/regression/"
         print(f"       Tests data on: {cls.tmp_dir.name}")
         os.chdir(tests_dir)
@@ -68,7 +73,7 @@ class TestRegression(TestCase):
         """
         unittest.TestCase.tearDown(self)
         test_dir = self.tmp_dir.name + "/naif_pds4_bundler/regression/"
-        dirs = next(os.walk('.'))[1]
+        dirs = next(os.walk("."))[1]
         for dir in dirs:
             try:
                 shutil.rmtree(test_dir + dir)
