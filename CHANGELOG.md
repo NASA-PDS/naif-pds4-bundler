@@ -1,5 +1,13 @@
 # Changelog
 
+## [«unknown»](https://github.com/NASA-PDS/naif-pds4-bundler/tree/«unknown») (2022-07-07)
+
+[Full Changelog](https://github.com/NASA-PDS/naif-pds4-bundler/compare/v1.4.0-dev...«unknown»)
+
+**Requirements:**
+
+- Check line length of kernels [\#12](https://github.com/NASA-PDS/naif-pds4-bundler/issues/12)
+
 ## [v1.4.0-dev](https://github.com/NASA-PDS/naif-pds4-bundler/tree/v1.4.0-dev) (2022-07-07)
 
 [Full Changelog](https://github.com/NASA-PDS/naif-pds4-bundler/compare/v1.3.0...v1.4.0-dev)
