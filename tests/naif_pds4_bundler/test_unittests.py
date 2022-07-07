@@ -165,6 +165,9 @@ class TestUnitTests(TestCase):
     def test_mk_to_list(self):
         files.test_mk_to_list(self)
 
+    def test_check_line_length(self):
+        files.test_check_line_length(self)
+
     #
     # Information Model tests.
     #

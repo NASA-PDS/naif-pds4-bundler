@@ -12,6 +12,7 @@ from ..utils import check_binary_endianness
 from ..utils import check_consecutive
 from ..utils import check_eol
 from ..utils import check_kernel_integrity
+from ..utils import check_line_length
 from ..utils import check_list_duplicates
 from ..utils import compare_files
 from ..utils import extension_to_type
@@ -1045,6 +1046,7 @@ class KernelList(List):
          * identify if a SPICE kernel is present in multiple kernel directories
          * check End of Line character for text SPICE kernels and ORBNUM files.
          * check text SPICE kernels and ORBNUM files for non-ASCII characters.
+         * check if text SPICE kernels have more than 80 characters per line.
          * validate kernel architecture
          * check endianness of binary kernels
         """
@@ -1137,6 +1139,7 @@ class KernelList(List):
 
             #
             # Check bad characters and EOL for text kernels and ORBNUM files.
+            # Check line length < 80 for text kernels.
             #
             if product.split(".")[-1].strip()[0].lower() != "b":
                 if (".nrb" not in product.lower()) and (".orb" not in product.lower()):
@@ -1158,6 +1161,11 @@ class KernelList(List):
                 error = check_badchar(origin_path)
                 if error:
                     product_warnings[product] += error
+
+                if (".nrb" not in product.lower()) and (".orb" not in product.lower()):
+                    error = check_line_length(origin_path)
+                    if error:
+                        product_warnings[product] += error
 
             #
             # Check Kernel architecture.

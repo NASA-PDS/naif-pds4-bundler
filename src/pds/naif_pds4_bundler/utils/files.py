@@ -1139,3 +1139,21 @@ def check_eol(file, eol):
         error_message(f"Incorrect EOL in configuration: {eol}")
 
     return error
+
+
+def check_line_length(file):
+    """Check SPICE text kernel line length.
+
+    :param file: Path to file to check
+    :return: Resulting error messages
+    :rtype: str
+    """
+    error = []
+    line_num = 1
+    with open(file, "r") as f:
+        for line in f:
+            if len(line) > 80:
+                error.append(f"Line {line_num} is longer than 80 characters")
+            line_num += 1
+
+    return error

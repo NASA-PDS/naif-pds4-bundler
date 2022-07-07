@@ -18,6 +18,7 @@ import spiceypy
 from ..utils import add_carriage_return
 from ..utils import add_crs_to_file
 from ..utils import check_eol
+from ..utils import check_line_length
 from ..utils import checksum_from_label
 from ..utils import checksum_from_registry
 from ..utils import ck_coverage
@@ -1280,7 +1281,8 @@ class MetaKernelProduct(Product):
            * load the kernel with the SPICE API ``FURNSH``
            * count the loaded kernels with SPICE API ``KTOTAL``
            * compare the number of kernels in the kernel pool with the length
-             of the MK collection list attribute.
+             of the MK collection list attribute
+           * check that line lengths are less than 80 characters
         """
         line = f"Step {self.setup.step} - Meta-kernel {self.name} validation"
         logging.info("")
@@ -1327,6 +1329,15 @@ class MetaKernelProduct(Product):
             logging.error("-- The MK could not be loaded with the SPICE API FURNSH.")
 
         spiceypy.kclear()
+
+        line_length_errors = check_line_length(path)
+        if line_length_errors:
+            logging.warning(
+                "-- The MK has lines with length longer than 80 characters:"
+            )
+            for line in line_length_errors:
+                logging.warning(f"   {line}")
+
         os.chdir(cwd)
 
     @spice_exception_handler

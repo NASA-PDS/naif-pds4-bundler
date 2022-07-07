@@ -10,6 +10,7 @@ from .files import check_binary_endianness
 from .files import check_consecutive
 from .files import check_eol
 from .files import check_kernel_integrity
+from .files import check_line_length
 from .files import check_list_duplicates
 from .files import checksum_from_label
 from .files import checksum_from_registry
@@ -48,6 +49,7 @@ __all__ = [
     add_carriage_return,
     add_crs_to_file,
     check_consecutive,
+    check_line_length,
     check_list_duplicates,
     checksum_from_label,
     checksum_from_registry,
