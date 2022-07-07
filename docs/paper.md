@@ -22,14 +22,14 @@ bibliography: paper.bib
 # Summary
 
 ``naif-pds4-bundler`` (NPB) is a Python package that enables SPICE kernels
-archive producers to get familiar with, design, and generate Planetary Data
+archive producers to become familiar with, design, and generate Planetary Data
 System (PDS) [@Prockter2021Planetary] SPICE archives from end-to-end using the
 applicable PDS4 standards [@pds4standard].
 
 A SPICE archive includes the complete set of SPICE data files (kernel files) for
 a given mission, which can be accessed using SPICE software. The SPICE data
 contain geometric and other ancillary information needed to recover the full
-value of science instrument data. In particular SPICE kernels provide spacecraft
+value of science instrument data. In particular, SPICE kernels provide spacecraft
 and planetary ephemerides, spacecraft and instrument orientation, instrument
 mounting alignments, data specifying target body size, shape and orientation,
 and data needed for relevant time conversions. Data in SPICE kernel files must
@@ -55,7 +55,7 @@ will be, part of archive systems.
 
 The planetary data community and SPICE archive producers are encouraged to
 contribute to the project following the [NASA PDS Code of Conduct](https://github.com/NASA-PDS/.github/blob/main/CODE_OF_CONDUCT.md).
-The expected forum to have discussions related to NPB is the [OpenPlanetary community](http://openplanetary.co/).
+The expected forum for discussions related to NPB is the [OpenPlanetary community](http://openplanetary.co/).
 
 
 # Statement of need
@@ -84,19 +84,19 @@ to reduce the effort spent on generating SPICE PDS4 archives.
 # State of the field
 
 Understanding and generating the PDS4 artifacts required by PDS4 archives is a
-challenging endeavor. Because of this PDS is making an effort to generate and
+challenging endeavor. Because of this, PDS is making an effort to generate and
 gather [training material](https://pds.nasa.gov/datastandards/training/) and to
 provide a number of tools to assist archive producers. NPB is part of this effort
 and benefits from NAIF's terse usage of the PDS4 standards and enables
-archive producers to generate a PDS4 SPICE archive from end-to-end with a minimal effort.
+archive producers to generate a PDS4 SPICE archive from end-to-end with minimal effort.
 
 Different nodes of the PDS offer a number of tools adequate for the data archived
-in their holdings. PDS-EN provides the [Metadata Injector for PDS Labels](https://nasa-pds.github.io/mi-label/) [@milabel];
+in their holdings. PDS-EN provides the [Metadata Injector for PDS Labels](https://nasa-pds.github.io/mi-label/) [@milabel],
 a command-line interface for generating PDS4 Labels using a user provided PDS4 XML
-template and input (source) data products. The PDS Geosciences Node provides [MakeLabels](https://pds-geosciences.wustl.edu/tools/makelabels.html)
+template and input (source) data products. The PDS Geosciences Node provides [MakeLabels](https://pds-geosciences.wustl.edu/tools/makelabels.html),
 a program that generates PDS4 labels using a label template and one or two Excel
 spreadsheets. The PDS Small Bodies Node (SBN) also provides a [suite of tools](https://pds-smallbodies.astro.umd.edu/tools/tools_file-label.shtml)
-to assist the label generation. In addition, SBN provides an end-to-end web-based
+to assist in label generation. In addition, SBN provides an end-to-end web-based
 tool to generate PDS4 archives, but it only supports Images (FITS and 2-D arrays)
 and tables.
 
@@ -104,7 +104,7 @@ and tables.
 # Acknowledgements
 
 The author would like to thank the NAIF group at JPL, especially Boris
-Semenov, the PDS-EN at JPL and the colleagues of the ESA SPICE Service and the
+Semenov, the PDS-EN at JPL, and the colleagues of the ESA SPICE Service and the
 Planetary Science Archive at the European Space and Astronomy Center.
 This project was carried out at the Jet Propulsion Laboratory, California
 Institute of Technology, under a contract with the National Aeronautics and
