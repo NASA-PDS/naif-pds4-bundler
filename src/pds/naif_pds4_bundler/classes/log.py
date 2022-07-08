@@ -128,6 +128,15 @@ class Log(object):
         # Generate the file list, the checksum registry, and the PDS validate
         # configuration file.
         #
+        line = f"Step {self.setup.step} - Generate run by-product files"
+        logging.info("")
+        logging.info(line)
+        logging.info("-" * len(line))
+        logging.info("")
+        self.setup.step += 1
+        if not self.setup.args.silent and not self.setup.args.verbose:
+            print("-- " + line.split(" - ")[-1] + ".")
+
         self.setup.write_file_list()
         self.setup.write_checksum_registry()
         if self.setup.pds_version == "4":
