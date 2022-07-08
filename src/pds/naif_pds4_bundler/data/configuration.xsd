@@ -244,6 +244,7 @@
                     <xs:element name="grammar" minOccurs="0">
                       <xs:complexType>
                         <xs:sequence>
+                          <xs:element minOccurs="0" maxOccurs="1" name="padding" type="xs:string" />
                           <xs:element maxOccurs="unbounded" name="pattern" type="xs:string" />
                         </xs:sequence>
                       </xs:complexType>

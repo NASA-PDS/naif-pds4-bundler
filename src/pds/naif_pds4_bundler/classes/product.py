@@ -953,6 +953,29 @@ class MetaKernelProduct(Product):
         kernel_grammar_list = self.mk_setup["grammar"]["pattern"]
 
         #
+        # Obtain meta-kernel grammar left padding. If not included in
+        # configuration padding is set to True.
+        #
+        if "padding" in self.mk_setup["grammar"]:
+            kernel_grammar_padding = self.mk_setup["grammar"]["padding"]
+            if kernel_grammar_padding.lower() == "true":
+                padding = " "
+                logging.info("-- Left padding applied to kernels entries in MK.")
+            elif kernel_grammar_padding.lower() == "false":
+                padding = ""
+                logging.info("-- No left padding applied to kernels entries in MK.")
+            else:
+                logging.warning(
+                    f"-- Padding value in NPB configuration file MK grammar is "
+                    f"{kernel_grammar_padding}"
+                )
+                logging.warning(
+                    "   The value should be 'True' or 'False'. Case is not relevant. "
+                )
+        else:
+            padding = " "
+
+        #
         # We scan the kernel directory to obtain the list of available kernels
         #
         kernel_type_list = ["lsk", "pck", "fk", "ik", "sclk", "spk", "ck", "dsk"]
@@ -1097,7 +1120,7 @@ class MetaKernelProduct(Product):
 
             kernel_dir_name = kernel.split(".")[1]
 
-            kernels += f"{' ' * 26}'$KERNELS/{kernel}'{eol}"
+            kernels += f"{padding * 26}'$KERNELS/{kernel}'{eol}"
 
         self.KERNELS_IN_METAKERNEL = kernels
 

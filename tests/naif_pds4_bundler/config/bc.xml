@@ -6,9 +6,9 @@
     <!-- =========================== -->
     <pds_parameters>
         <pds_version>4</pds_version>
-        <information_model>1.11.0.0</information_model>
-        <xml_model>http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1B00.sch</xml_model>
-        <schema_location>http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1B00.xsd
+        <information_model>1.15.0.0</information_model>
+        <xml_model>http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1F00.sch</xml_model>
+        <schema_location>http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1F00.xsd
         </schema_location>
         <logical_identifier>urn:esa:psa:bc_spice</logical_identifier>
         <context_products>
@@ -17,15 +17,15 @@
                 <lidvid>urn:esa:psa:context:investigation:mission.bc::1.0</lidvid>
             </product>
             <product name="MPO">
-                <type>Spacecraft</type>
+                <type>Host</type>
                 <lidvid>urn:esa:psa:context:instrument_host:spacecraft.mpo::1.0</lidvid>
             </product>
             <product name="MMO">
-                <type>Spacecraft</type>
+                <type>Host</type>
                 <lidvid>urn:esa:psa:context:instrument_host:spacecraft.mmo::1.0</lidvid>
             </product>
             <product name="MTM">
-                <type>Spacecraft</type>
+                <type>Host</type>
                 <lidvid>urn:esa:psa:context:instrument_host:spacecraft.mtm::1.0</lidvid>
             </product>
         </context_products>
@@ -113,9 +113,6 @@
             </description>
         </kernel>
         <kernel pattern="earth_000101_[0-9]{6}_[0-9]{6}.bpc">
-            <targets>
-                <target>Earth</target>
-            </targets>
             <description>SPICE binary PCK file containing the orientation of the Earth as a function of time for the
                 given interval with reconstructed and predicted data, created by NAIF, JPL.
             </description>
@@ -160,28 +157,19 @@
             </description>
         </kernel>
         <kernel pattern="earth_topo_[0-9]{6}.tf">
-            <targets>
-                <target>Earth</target>
-            </targets>
             <description>SPICE FK kernel for the topocentric reference frames for the Deep Space Network (DSN) stations.
                 This kernel was released on $DATE, created by NAIF, JPL.
             </description>
             <patterns>
-                <DATE value="earth_topo_050714.tf">2005-JUL-14</DATE>
+                <DATE value="earth_topo_201023.tf">2020-OCT-23</DATE>
             </patterns>
         </kernel>
         <kernel pattern="earthfixeditrf93.tf">
-            <targets>
-                <target>Earth</target>
-            </targets>
             <description>SPICE FK file that makes the ITRF93 frame coincide with the Earth fixed reference frame,
                 created by NAIF, JPL.
             </description>
         </kernel>
         <kernel pattern="estrack_v[0-9][0-9].tf">
-            <targets>
-                <target>Earth</target>
-            </targets>
             <description>SPICE FK file that provides topocentric frames for the ESA Ground Stations,
                 created by the ESA SPICE Service (ESS).
             </description>
@@ -348,12 +336,12 @@
             <description>SPICE SPK file that contains MPO spacecraft structures positions involved in the Schulte Vector calculations, created by the ESA SPICE Service (ESS).
             </description>
         </kernel>
-        <kernel pattern="earthstns_itrf93_050714.bsp">
-            <targets>
-                <target>Earth</target>
-            </targets>
-            <description>SPICE SPK file that contains ephemeris data for NASA DSN stations relative to the terrestrial reference frame label 'ITRF93'. This file was released the 14th of July 2005, created by NAIF, JPL.
+        <kernel pattern="earthstns_itrf93_[0-9]{6}.bsp">
+            <description>SPICE SPK file that contains ephemeris data for NASA DSN stations relative to the terrestrial reference frame label 'ITRF93'. This kernel was released on $DATE, created by NAIF, JPL.
             </description>
+            <patterns>
+                <DATE value="earthstns_itrf93_201023.bsp">2020-OCT-23</DATE>
+            </patterns>
         </kernel>
         <kernel pattern="bc_mpo_cog_v[0-9][0-9].bsp">
             <observers>
@@ -511,7 +499,7 @@
             <description>SPICE CK file that contains the default orientation of the MAG Boom, created by the ESA SPICE Service (ESS).
             </description>
         </kernel>
-        <kernel pattern="bc_mpo_sc_fsp_[0-9]{5}_[0-9]{8}_[0-9]{8}_f[0-9]{8}_v[0-9][0-9].bc">
+        <kernel pattern="bc_mpo_sc_fcp_[0-9]{5}_[0-9]{8}_[0-9]{8}_f[0-9]{8}_v[0-9][0-9].bc">
             <observers>
                 <observer>MPO</observer>
             </observers>
@@ -598,9 +586,6 @@
     <!-- Meta-kernel                 -->
     <!-- =========================== -->
     <meta-kernel>
-        <mk_inputs>
-            <file>kernels/mk/bc_v001.tm</file>
-        </mk_inputs>
         <mk name="bc_v$VERSION.tm">
             <name>
                 <pattern length="3">VERSION</pattern>
@@ -609,6 +594,93 @@
             <!-- These kernels determine the coverage of the increment-->
                <pattern>bc_mpo_sc_scm_[0-9]{8}_[0-9]{8}_s[0-9]{8}_v[0-9][0-9].bc</pattern>
             </coverage_kernels>
+            <grammar>
+                <!-- Left padding -->
+                <padding>False</padding>
+                <!-- CK -->
+                <pattern>bc_mpo_magboom_v[0-9]{2}.bc</pattern>
+                <pattern>bc_mpo_hga_scm_2018[0-9]{4}_[0-9]{8}_s[0-9]{8}_v[0-9]{2}.bc</pattern>
+                <pattern>bc_mpo_hga_scm_2019[0-9]{4}_[0-9]{8}_s[0-9]{8}_v[0-9]{2}.bc</pattern>
+                <pattern>bc_mpo_hga_scm_2020[0-9]{4}_[0-9]{8}_s[0-9]{8}_v[0-9]{2}.bc</pattern>
+                <pattern>bc_mpo_hga_scm_2021[0-9]{4}_[0-9]{8}_s[0-9]{8}_v[0-9]{2}.bc</pattern>
+                <pattern>bc_mpo_mga_scm_2018[0-9]{4}_[0-9]{8}_s[0-9]{8}_v[0-9]{2}.bc</pattern>
+                <pattern>bc_mpo_mga_scm_2019[0-9]{4}_[0-9]{8}_s[0-9]{8}_v[0-9]{2}.bc</pattern>
+                <pattern>bc_mpo_mga_scm_2020[0-9]{4}_[0-9]{8}_s[0-9]{8}_v[0-9]{2}.bc</pattern>
+                <pattern>bc_mpo_mga_scm_2021[0-9]{4}_[0-9]{8}_s[0-9]{8}_v[0-9]{2}.bc</pattern>
+                <pattern>bc_mpo_sa_scm_2018[0-9]{4}_[0-9]{8}_s[0-9]{8}_v[0-9]{2}.bc</pattern>
+                <pattern>bc_mpo_sa_scm_2019[0-9]{4}_[0-9]{8}_s[0-9]{8}_v[0-9]{2}.bc</pattern>
+                <pattern>bc_mpo_sa_scm_2020[0-9]{4}_[0-9]{8}_s[0-9]{8}_v[0-9]{2}.bc</pattern>
+                <pattern>bc_mpo_sa_scm_2021[0-9]{4}_[0-9]{8}_s[0-9]{8}_v[0-9]{2}.bc</pattern>
+                <pattern>bc_mtm_sa_scm_2018[0-9]{4}_[0-9]{8}_s[0-9]{8}_v[0-9]{2}.bc</pattern>
+                <pattern>bc_mtm_sa_scm_2019[0-9]{4}_[0-9]{8}_s[0-9]{8}_v[0-9]{2}.bc</pattern>
+                <pattern>bc_mtm_sa_scm_2020[0-9]{4}_[0-9]{8}_s[0-9]{8}_v[0-9]{2}.bc</pattern>
+                <pattern>bc_mtm_sa_scm_2021[0-9]{4}_[0-9]{8}_s[0-9]{8}_v[0-9]{2}.bc</pattern>
+                <pattern>bc_mmo_sc_cruise_v[0-9]{2}.bc</pattern>
+                <pattern>bc_mtm_sc_cruise_v[0-9]{2}.bc</pattern>
+                <pattern>bc_mtm_sep_scp_[0-9]{8}_[0-9]{8}_f[0-9]{8}_v[0-9]{2}.bc</pattern>
+                <pattern>bc_mpo_sc_prelaunch_v[0-9]{2}.bc</pattern>
+                <pattern>bc_mpo_sc_fcp_[0-9]{5}_[0-9]{8}_[0-9]{8}_f[0-9]{8}_v[0-9]{2}.bc</pattern>
+                <pattern>bc_mpo_sc_scm_2018[0-9]{4}_[0-9]{8}_s[0-9]{8}_v[0-9]{2}.bc</pattern>
+                <pattern>bc_mpo_sc_scm_2019[0-9]{4}_[0-9]{8}_s[0-9]{8}_v[0-9]{2}.bc</pattern>
+                <pattern>bc_mpo_sc_scm_2020[0-9]{4}_[0-9]{8}_s[0-9]{8}_v[0-9]{2}.bc</pattern>
+                <pattern>bc_mpo_sc_scm_2021[0-9]{4}_[0-9]{8}_s[0-9]{8}_v[0-9]{2}.bc</pattern>
+                <!-- FK -->
+                <pattern>bc_mpo_v[0-9]{2}.tf</pattern>
+                <pattern>bc_mtm_v[0-9]{2}.tf</pattern>
+                <pattern>bc_mmo_v[0-9]{2}.tf</pattern>
+                <pattern>bc_sci_v[0-9]{2}.tf</pattern>
+                <pattern>bc_dsk_surfaces_v[0-9]{2}.tf</pattern>
+                <pattern>rssd00[0-9]{2}.tf</pattern>
+                <pattern>earth_topo_[0-9]{6}.tf</pattern>
+                <pattern>estrack_v[0-9]{2}.tf</pattern>
+                <!-- IK -->
+                <pattern>bc_mpo_bela_v[0-9]{2}.ti</pattern>
+                <pattern>bc_mpo_mertis_v[0-9]{2}.ti</pattern>
+                <pattern>bc_mpo_mgns_v[0-9]{2}.ti</pattern>
+                <pattern>bc_mpo_mixs_v[0-9]{2}.ti</pattern>
+                <pattern>bc_mpo_phebus_v[0-9]{2}.ti</pattern>
+                <pattern>bc_mpo_serena_v[0-9]{2}.ti</pattern>
+                <pattern>bc_mpo_simbio-sys_v[0-9]{2}.ti</pattern>
+                <pattern>bc_mpo_sixs_v[0-9]{2}.ti</pattern>
+                <pattern>bc_mpo_str_v[0-9]{2}.ti</pattern>
+                <pattern>bc_mpo_aux_v[0-9]{2}.ti</pattern>
+                <pattern>bc_mtm_mcam_v[0-9]{2}.ti</pattern>
+                <pattern>bc_mmo_mppe_v[0-9]{2}.ti</pattern>
+                <pattern>bc_mmo_msasi_v[0-9]{2}.ti</pattern>
+                <!-- LSK -->
+                <pattern>naif0012.tls</pattern>
+                <!-- PCK -->
+                <pattern>pck00010.tpc</pattern>
+                <pattern>gm_de431.tpc</pattern>
+                <pattern>earth_000101_[0-9]{6}_[0-9]{6}.bpc</pattern>
+                <!-- SCLK -->
+                <pattern>bc_mpo_fict_[0-9]{8}.tsc</pattern>
+                <pattern>bc_mpo_step_[0-9]{8}.tsc</pattern>
+                <pattern>bc_mmo_fict_[0-9]{8}.tsc</pattern>
+                <!-- SPK -->
+                <pattern>de432s.bsp</pattern>
+                <pattern>earthstns_itrf93_[0-9]{6}.bsp</pattern>
+                <pattern>estrack_v[0-9]{2}.bsp</pattern>
+                <pattern>bc_sci_v[0-9]{2}.bsp</pattern>
+                <pattern>bc_mmo_struct_v[0-9]{2}.bsp</pattern>
+                <pattern>bc_mmo_cruise_v[0-9]{2}.bsp</pattern>
+                <pattern>bc_mtm_struct_v[0-9]{2}.bsp</pattern>
+                <pattern>bc_mtm_cruise_v[0-9]{2}.bsp</pattern>
+                <pattern>bc_mpo_cog_v[0-9]{2}.bsp</pattern>
+                <pattern>bc_mpo_cog_[0-9]{5}_[0-9]{8}_[0-9]{8}_v[0-9]{2}.bsp</pattern>
+                <pattern>bc_mpo_struct_v[0-9]{2}.bsp</pattern>
+                <pattern>bc_mpo_prelaunch_v[0-9]{2}.bsp</pattern>
+                <pattern>bc_mpo_fcp_[0-9]{5}_[0-9]{8}_[0-9]{8}_v[0-9]{2}.bsp</pattern>
+                <!-- DSK -->
+            </grammar>
+            <metadata>
+                <description>
+                </description>
+                <keyword>
+                </keyword>
+                <data>
+                </data>
+            </metadata>
         </mk>
     </meta-kernel>
 </naif-pds4-bundler_configuration>

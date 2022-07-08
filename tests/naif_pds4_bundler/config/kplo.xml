@@ -159,6 +159,8 @@
             </coverage_kernels>
             <interrupt_to_update>False</interrupt_to_update>
             <grammar>
+                <!-- Left padding -->
+                <padding>True</padding>
                 <!-- LSK -->
                 <pattern>naif0012.tls</pattern>
                 <!-- PCK -->
