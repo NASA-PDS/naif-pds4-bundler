@@ -8,7 +8,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>The Configuration File &mdash; NAIF PDS4 Bundler 1.3.0
+  <title>The Configuration File &mdash; NAIF PDS4 Bundler 1.4.0
  documentation</title>
   
 
@@ -66,7 +66,7 @@
             
             
               <div class="version">
-                1.3
+                1.4
               </div>
             
           
@@ -1630,7 +1630,7 @@ paused to provide the option to manually edit the generated MK. It must be set
 to either <code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
 <section id="meta-kernel-grammar">
 <h4>Meta-kernel grammar<a class="headerlink" href="#meta-kernel-grammar" title="Permalink to this heading">¶</a></h4>
-<p>The next element is “grammar”. The kernel grammar provides an ordered list of
+<p>The next element is <code class="docutils literal notranslate"><span class="pre">&lt;grammar&gt;</span></code>. The kernel grammar provides an ordered list of
 kernel names with patterns that will populate the MK. For example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;grammar&gt;
     &lt;!-- LSK --&gt;
@@ -1699,6 +1699,63 @@ prefix in the pattern, NPB will include the following kernels:</p>
 <p>NPB will combine search these kernels in the <code class="docutils literal notranslate"><span class="pre">staging_directory</span></code>,
 the <code class="docutils literal notranslate"><span class="pre">bundle_directory</span></code>, and as a last resort kernels present in
 other MKs.</p>
+</section>
+<section id="kernel-entries-left-padding">
+<h4>Kernel entries left padding<a class="headerlink" href="#kernel-entries-left-padding" title="Permalink to this heading">¶</a></h4>
+<p>In addition the <code class="docutils literal notranslate"><span class="pre">&lt;grammar&gt;</span></code> element can include an optional <code class="docutils literal notranslate"><span class="pre">&lt;padding&gt;</span></code> element.
+This element indicates whether if the kernels listed in the meta-kernel should
+have the usual 26 blank spaces left padding or not. Usually these blank spaces
+are recommended but sometimes due to long kernel names the resulting line length
+can exceed the maximum recommended length of 80 characters. In such case it is
+better to remove this left padding. This can be done by setting the element
+<code class="docutils literal notranslate"><span class="pre">&lt;padding&gt;</span></code> to <code class="docutils literal notranslate"><span class="pre">False</span></code>. The default value, even if not defined is <code class="docutils literal notranslate"><span class="pre">True</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;grammar&gt;
+    &lt;!-- Left padding --&gt;
+    &lt;padding&gt;False&lt;/padding&gt;
+    &lt;!-- LSK --&gt;
+    &lt;pattern&gt;naif0012.tls&lt;/pattern&gt;
+    &lt;!-- PCK --&gt;
+</pre></div>
+</div>
+<p>will result in a MK as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>   \<span class="n">begindata</span>
+
+      <span class="n">PATH_VALUES</span>     <span class="o">=</span> <span class="p">(</span> <span class="s1">&#39;..&#39;</span>      <span class="p">)</span>
+
+      <span class="n">PATH_SYMBOLS</span>    <span class="o">=</span> <span class="p">(</span> <span class="s1">&#39;KERNELS&#39;</span> <span class="p">)</span>
+
+      <span class="n">KERNELS_TO_LOAD</span> <span class="o">=</span> <span class="p">(</span>
+
+<span class="s1">&#39;$KERNELS/lsk/naif0012.tls&#39;</span>
+
+<span class="s1">&#39;$KERNELS/pck/pck00010.tpc&#39;</span>
+<span class="s1">&#39;$KERNELS/pck/gm_de431.tpc&#39;</span>
+</pre></div>
+</div>
+<p>whereas the with “padding” set to “True” or not defined:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;grammar&gt;
+    &lt;!-- Left padding --&gt;
+    &lt;padding&gt;True&lt;/padding&gt;
+    &lt;!-- LSK --&gt;
+    &lt;pattern&gt;naif0012.tls&lt;/pattern&gt;
+    &lt;!-- PCK --&gt;
+</pre></div>
+</div>
+<p>will result in a MK as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>\<span class="n">begindata</span>
+
+  <span class="n">PATH_VALUES</span>       <span class="o">=</span> <span class="p">(</span> <span class="s1">&#39;..&#39;</span> <span class="p">)</span>
+
+  <span class="n">PATH_SYMBOLS</span>      <span class="o">=</span> <span class="p">(</span> <span class="s1">&#39;KERNELS&#39;</span> <span class="p">)</span>
+
+  <span class="n">KERNELS_TO_LOAD</span>   <span class="o">=</span> <span class="p">(</span>
+
+                       <span class="s1">&#39;$KERNELS/lsk/naif0012.tls&#39;</span>
+
+                       <span class="s1">&#39;$KERNELS/pck/pck00010.tpc&#39;</span>
+                       <span class="s1">&#39;$KERNELS/pck/gm_de431.tpc&#39;</span>
+</pre></div>
+</div>
 </section>
 <section id="meta-kernel-metadata">
 <h4>Meta-kernel metadata<a class="headerlink" href="#meta-kernel-metadata" title="Permalink to this heading">¶</a></h4>

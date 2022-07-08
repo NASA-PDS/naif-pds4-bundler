@@ -1407,7 +1407,7 @@ to either ``True`` or ``False``.
 Meta-kernel grammar
 """""""""""""""""""
 
-The next element is "grammar". The kernel grammar provides an ordered list of
+The next element is ``<grammar>``. The kernel grammar provides an ordered list of
 kernel names with patterns that will populate the MK. For example::
 
             <grammar>
@@ -1475,6 +1475,64 @@ instead of only::
 NPB will combine search these kernels in the ``staging_directory``,
 the ``bundle_directory``, and as a last resort kernels present in
 other MKs.
+
+
+Kernel entries left padding
+"""""""""""""""""""""""""""
+
+In addition the ``<grammar>`` element can include an optional ``<padding>`` element.
+This element indicates whether if the kernels listed in the meta-kernel should
+have the usual 26 blank spaces left padding or not. Usually these blank spaces
+are recommended but sometimes due to long kernel names the resulting line length
+can exceed the maximum recommended length of 80 characters. In such case it is
+better to remove this left padding. This can be done by setting the element
+``<padding>`` to ``False``. The default value, even if not defined is ``True``::
+
+            <grammar>
+                <!-- Left padding -->
+                <padding>False</padding>
+                <!-- LSK -->
+                <pattern>naif0012.tls</pattern>
+                <!-- PCK -->
+
+will result in a MK as follows::
+
+        \begindata
+
+           PATH_VALUES     = ( '..'      )
+
+           PATH_SYMBOLS    = ( 'KERNELS' )
+
+           KERNELS_TO_LOAD = (
+
+     '$KERNELS/lsk/naif0012.tls'
+
+     '$KERNELS/pck/pck00010.tpc'
+     '$KERNELS/pck/gm_de431.tpc'
+
+whereas the with "padding" set to "True" or not defined::
+
+            <grammar>
+                <!-- Left padding -->
+                <padding>True</padding>
+                <!-- LSK -->
+                <pattern>naif0012.tls</pattern>
+                <!-- PCK -->
+
+will result in a MK as follows::
+
+   \begindata
+
+     PATH_VALUES       = ( '..' )
+
+     PATH_SYMBOLS      = ( 'KERNELS' )
+
+     KERNELS_TO_LOAD   = (
+
+                          '$KERNELS/lsk/naif0012.tls'
+
+                          '$KERNELS/pck/pck00010.tpc'
+                          '$KERNELS/pck/gm_de431.tpc'
 
 
 Meta-kernel metadata
