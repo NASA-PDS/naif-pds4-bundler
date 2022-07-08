@@ -1478,7 +1478,7 @@ other MKs.
 
 
 Kernel entries left padding
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""""""""""
 
 In addition the ``<grammar>`` element can include an optional ``<padding>`` element.
 This element indicates whether if the kernels listed in the meta-kernel should
