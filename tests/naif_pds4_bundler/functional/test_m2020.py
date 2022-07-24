@@ -451,6 +451,7 @@ def test_m2020_kernel_list_checks(self):
         "../data/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp",
     )
 
+
 def test_m2020_multiple_kernel_directories(self):
     """Test archive generation with multiple kernel directories.
 
@@ -466,9 +467,7 @@ def test_m2020_multiple_kernel_directories(self):
             for line in c:
                 if "<kernels_directory>kernels</kernels_directory>" in line:
                     n.write(line)
-                    n.write(
-                        "<kernels_directory>more_kernels</kernels_directory>\n"
-                    )
+                    n.write("<kernels_directory>more_kernels</kernels_directory>\n")
                 else:
                     n.write(line)
 

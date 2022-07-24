@@ -62,10 +62,11 @@ class PDSLabel(object):
                     observers_text = f"{setup.observer}, "
                     for i in range(len(setup.secondary_observers)):
                         if i == len(setup.secondary_observers) - 1:
-                            observers_text += "and "
-                        observers_text += f"{setup.secondary_observers[i]}, "
+                            observers_text += f"and {setup.secondary_observers[i]}"
+                        else:
+                            observers_text += f"{setup.secondary_observers[i]}, "
 
-                self.PDS4_OBSERVER_NAME = f"{observers_text}spacecrafts and their"
+                self.PDS4_OBSERVER_NAME = f"{observers_text} spacecraft and their"
             else:
                 self.PDS4_OBSERVER_NAME = f"{setup.observer} spacecraft and its"
 
