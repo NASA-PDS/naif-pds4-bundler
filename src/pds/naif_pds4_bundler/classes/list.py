@@ -804,7 +804,7 @@ class KernelList(List):
                         )
                         all_present = False
             if all_present:
-                logging.info("     All kernels present in directory.")
+                logging.info("     All kernels present.")
             logging.info("")
 
             #
