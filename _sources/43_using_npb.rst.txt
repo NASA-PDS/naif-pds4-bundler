@@ -160,7 +160,7 @@ must provide the path of the Configuration File. More information on the
 Configuration File generation is available in section
 :ref:`42_npb_configuration_file:The Configuration File`.
 
-In addition there are a number of optional arguments that are detailed in
+These arguments are described in detail in
 section :ref:`43_using_npb:Optional Arguments Description`.
 
 
@@ -179,6 +179,13 @@ parameter is mandatory. Here's an example::
    config = "working/dart_release_01.xml"
 
    main(config, plan=False, faucet="bundle", silent=True, log=True)
+
+
+When calling NPB from Python an additional argument is available -- with respect
+to using the command line -- ``debug``. This argument indicates NPB to skip certain
+checks -- checksum and meta-kernel validation -- and to change the logging format.
+This argument is aimed to support the development and debugging of NPB and to
+accommodate certain test cases and thus should never be used to generate an archive.
 
 
 Optional Arguments Description

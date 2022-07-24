@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pds.naif_pds4_bundler.classes.label &mdash; NAIF PDS4 Bundler 1.4.0
+  <title>pds.naif_pds4_bundler.classes.label &mdash; NAIF PDS4 Bundler 1.5.0
  documentation</title>
   
 
@@ -63,7 +63,7 @@
             
             
               <div class="version">
-                1.4
+                1.5
               </div>
             
           
@@ -223,10 +223,11 @@
                     <span class="n">observers_text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">setup</span><span class="o">.</span><span class="n">observer</span><span class="si">}</span><span class="s2">, &quot;</span>
                     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">setup</span><span class="o">.</span><span class="n">secondary_observers</span><span class="p">)):</span>
                         <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">setup</span><span class="o">.</span><span class="n">secondary_observers</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
-                            <span class="n">observers_text</span> <span class="o">+=</span> <span class="s2">&quot;and &quot;</span>
-                        <span class="n">observers_text</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">setup</span><span class="o">.</span><span class="n">secondary_observers</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">}</span><span class="s2">, &quot;</span>
+                            <span class="n">observers_text</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;and </span><span class="si">{</span><span class="n">setup</span><span class="o">.</span><span class="n">secondary_observers</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">observers_text</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">setup</span><span class="o">.</span><span class="n">secondary_observers</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">}</span><span class="s2">, &quot;</span>
 
-                <span class="bp">self</span><span class="o">.</span><span class="n">PDS4_OBSERVER_NAME</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">observers_text</span><span class="si">}</span><span class="s2">spacecrafts and their&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">PDS4_OBSERVER_NAME</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">observers_text</span><span class="si">}</span><span class="s2"> spacecraft and their&quot;</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">PDS4_OBSERVER_NAME</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">setup</span><span class="o">.</span><span class="n">observer</span><span class="si">}</span><span class="s2"> spacecraft and its&quot;</span>
 

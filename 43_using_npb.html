@@ -4,11 +4,11 @@
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Using NPB &mdash; NAIF PDS4 Bundler 1.4.0
+  <title>Using NPB &mdash; NAIF PDS4 Bundler 1.5.0
  documentation</title>
   
 
@@ -66,7 +66,7 @@
             
             
               <div class="version">
-                1.4
+                1.5
               </div>
             
           
@@ -415,7 +415,7 @@ not generated.</p>
 must provide the path of the Configuration File. More information on the
 Configuration File generation is available in section
 <a class="reference internal" href="42_npb_configuration_file.html#the-configuration-file"><span class="std std-ref">The Configuration File</span></a>.</p>
-<p>In addition there are a number of optional arguments that are detailed in
+<p>These arguments are described in detail in
 section <a class="reference internal" href="#optional-arguments-description"><span class="std std-ref">Optional Arguments Description</span></a>.</p>
 </section>
 <section id="calling-npb-from-python">
@@ -433,6 +433,11 @@ parameter is mandatory. Here’s an example:</p>
 <span class="n">main</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">plan</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">faucet</span><span class="o">=</span><span class="s2">&quot;bundle&quot;</span><span class="p">,</span> <span class="n">silent</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>When calling NPB from Python an additional argument is available – with respect
+to using the command line – <code class="docutils literal notranslate"><span class="pre">debug</span></code>. This argument indicates NPB to skip certain
+checks – checksum and meta-kernel validation – and to change the logging format.
+This argument is aimed to support the development and debugging of NPB and to
+accommodate certain test cases and thus should never be used to generate an archive.</p>
 </section>
 <section id="optional-arguments-description">
 <h2>Optional Arguments Description<a class="headerlink" href="#optional-arguments-description" title="Permalink to this heading">¶</a></h2>
