@@ -6,18 +6,29 @@ from pds.naif_pds4_bundler.utils.files import string_in_file
 
 
 def test_dart_multiple_obs_tar(self):
-    """Test Archive with multiple Observers and Targets.
+    """Test Archive with two Observers and Targets.
 
     This test is designed to test the implementation of multiple observers
     and targets in a SPICE Kernel Archive. DART has two observers and two
     targets with kernels using different combinations.
 
-    Test is successful if NPB is executed without errors.
+    Test is successful if NPB is executed without errors and if the SPICE
+    Kernel collection description is correct.
     """
     config = "../config/dart.xml"
     shutil.copytree("../data/kernels", "kernels")
 
     main(config, plan=False, faucet="bundle", silent=self.silent, log=self.log)
+
+    line_checks = [
+        "<description>This collection contains SPICE kernels for the DART and LICIA "
+        "spacecraft and their instruments.</description>",
+    ]
+    for line in line_checks:
+        if not string_in_file(
+            "dart/dart_spice/spice_kernels/collection_spice_kernels_v001.xml", line, 2
+        ):
+            raise BaseException
 
 
 def test_dart_host_type(self):

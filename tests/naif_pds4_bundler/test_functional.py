@@ -5,6 +5,7 @@ import tempfile
 import unittest
 from unittest import TestCase
 
+import functional.test_bc as bc
 import functional.test_dart as dart
 import functional.test_insight as insight
 import functional.test_ladee as ladee
@@ -79,7 +80,7 @@ class TestFunctional(TestCase):
         unittest.TestCase.setUp(self)
         print(f"    * {self._testMethodName}")
 
-        dirs = ["working", "staging", "misc", "ladee", "mars2020", "dart", "orex"]
+        dirs = ["working", "staging", "misc", "ladee", "mars2020", "dart", "orex", "bc"]
         for dir in dirs:
             try:
                 os.makedirs(dir, exist_ok=True)
@@ -291,6 +292,12 @@ class TestFunctional(TestCase):
 
     def test_dart_host_type(self):
         dart.test_dart_host_type(self)
+
+    #
+    # BepiColombo functional tests.
+    #
+    def test_bc_multiple_obs_tar(self):
+        bc.test_bc_multiple_obs_tar(self)
 
     #
     # MRO functional tests.
