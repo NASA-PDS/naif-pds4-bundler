@@ -362,7 +362,7 @@ def test_m2020_kernel_list_checks(self):
 
     #
     # Check that the kernel in the first kernel_directory is used. At the same
-    # time this kernel is incorrect and is reported. The kernel architecure
+    # time this kernel is incorrect and is reported. The kernel architecture
     # is also checked.
     #
     os.mkdir("kernels2")
@@ -450,3 +450,34 @@ def test_m2020_kernel_list_checks(self):
         "../data/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.ltl.bsp",
         "../data/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp",
     )
+
+def test_m2020_multiple_kernel_directories(self):
+    """Test archive generation with multiple kernel directories.
+
+    In this particular tests the meta-kernels are generated automatically.
+    """
+    post_setup(self)
+    config = "../config/mars2020.xml"
+    plan = "../data/mars2020_release_00.plan"
+    updated_config = "working/mars2020.xml"
+
+    with open(config, "r") as c:
+        with open(updated_config, "w") as n:
+            for line in c:
+                if "<kernels_directory>kernels</kernels_directory>" in line:
+                    n.write(line)
+                    n.write(
+                        "<kernels_directory>more_kernels</kernels_directory>\n"
+                    )
+                else:
+                    n.write(line)
+
+    os.mkdir("more_kernels")
+    os.mkdir("more_kernels/fk")
+    shutil.move("kernels/fk/m2020_v04.tf", "more_kernels/fk/m2020_v04.tf")
+    shutil.rmtree("kernels/mk")
+
+    main(updated_config, plan=plan, silent=self.silent, log=self.log)
+
+    shutil.move("more_kernels/fk/m2020_v04.tf", "kernels/fk/m2020_v04.tf")
+    shutil.rmtree("more_kernels")

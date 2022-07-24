@@ -250,6 +250,9 @@ class TestFunctional(TestCase):
     def test_m2020_kernel_list_checks(self):
         m2020.test_m2020_kernel_list_checks(self)
 
+    def test_m2020_multiple_kernel_directories(self):
+        m2020.test_m2020_multiple_kernel_directories(self)
+
     #
     # MAVEN functional tests.
     #
