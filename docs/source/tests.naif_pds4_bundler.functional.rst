@@ -4,6 +4,14 @@ tests.naif\_pds4\_bundler.functional package
 Submodules
 ----------
 
+tests.naif\_pds4\_bundler.functional.test\_bc module
+----------------------------------------------------
+
+.. automodule:: tests.naif_pds4_bundler.functional.test_bc
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 tests.naif\_pds4\_bundler.functional.test\_dart module
 ------------------------------------------------------
 
