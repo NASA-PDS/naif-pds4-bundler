@@ -1,8 +1,16 @@
 # Changelog
 
-## [v1.4.0-dev](https://github.com/NASA-PDS/naif-pds4-bundler/tree/v1.4.0-dev) (2022-07-08)
+## [v1.5.0-dev](https://github.com/NASA-PDS/naif-pds4-bundler/tree/v1.5.0-dev) (2022-07-24)
 
-[Full Changelog](https://github.com/NASA-PDS/naif-pds4-bundler/compare/v1.3.0...v1.4.0-dev)
+[Full Changelog](https://github.com/NASA-PDS/naif-pds4-bundler/compare/v1.4.0...v1.5.0-dev)
+
+**Defects:**
+
+- Spacecraft names in Kernel collection description [\#22](https://github.com/NASA-PDS/naif-pds4-bundler/issues/22)
+
+## [v1.4.0](https://github.com/NASA-PDS/naif-pds4-bundler/tree/v1.4.0) (2022-07-08)
+
+[Full Changelog](https://github.com/NASA-PDS/naif-pds4-bundler/compare/v1.3.0...v1.4.0)
 
 **Requirements:**
 
