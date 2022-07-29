@@ -168,19 +168,19 @@ def test_pds4_maven_list(self):
 
 
 def test_pds4_mars2020_list(self):
-    """Basic test for MAVEN kernel list generation.
+    """Basic test for Mars2020 kernel list generation.
 
     This test was implemented to support the generation of the kernel
     list for the first release.
 
-    The particularity of this test is that it includes two meta-kernels
-    provided as inputs.
+    The particularity of this test is that it includes a kernel
+    commented out.
     """
     config = "../config/mars2020.xml"
     plan = "../data/mars2020_release_10.plan"
     faucet = "list"
 
-    main(config, plan, faucet=faucet, silent=True)
+    main(config, plan, faucet=faucet, silent=True, log=True)
 
     new_file = ""
     with open("working/mars2020_release_01.kernel_list", "r") as f:

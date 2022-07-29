@@ -14,6 +14,7 @@ from ..utils import check_eol
 from ..utils import check_kernel_integrity
 from ..utils import check_line_length
 from ..utils import check_list_duplicates
+from ..utils import check_permissions
 from ..utils import compare_files
 from ..utils import extension_to_type
 from ..utils import extract_comment
@@ -161,11 +162,17 @@ class KernelList(List):
                 for pattern in patterns:
                     if re.search(pattern, line):
                         ker_line = re.search(pattern, line)
-                        kernels.append(ker_line.group(0))
-                        ker_matched = True
+
+                        #
+                        # The kernel is not matched if there is a comment character in front.
+                        #
+                        if line.lstrip()[0] != "#":
+                            kernels.append(ker_line.group(0))
+                            ker_matched = True
+
                 if not ker_matched:
                     #
-                    # Add the orbnum files that need to be added.
+                    # Add the ORBNUM files that need to be added.
                     # Match the pattern with the file.
                     #
                     if hasattr(self.setup, "orbnum"):
@@ -176,7 +183,7 @@ class KernelList(List):
                                 kernels.append(ker_line.group(0))
                                 ker_matched = True
                     #
-                    # Display the lines that have not been match unless
+                    # Display the lines that have not been matched unless
                     # they only contain blank spaces.
                     #
                     if not ker_matched and line.strip():
@@ -1048,7 +1055,7 @@ class KernelList(List):
          * check text SPICE kernels and ORBNUM files for non-ASCII characters.
          * check if text SPICE kernels have more than 80 characters per line.
          * validate kernel architecture
-         * check endianness of binary kernels
+         * check endianness and permissions of binary kernels
         """
         line = f"Step {self.setup.step} - Check kernel list products"
         logging.info("")
@@ -1176,13 +1183,24 @@ class KernelList(List):
                     product_errors[product].append(error)
 
             #
+            # Check file permissions.
+            #
+
+
+            #
             # Check binary kernel endianness.
             #
             if product.split(".")[-1].strip()[0].lower() == "b":
-                endianness = self.setup.kernel_endianness
-                error = check_binary_endianness(origin_path, endianness)
+                error = check_binary_endianness(origin_path)
                 if error:
                     product_errors[product].append(error)
+
+            #
+            # Check kernel permissions
+            #
+            error = check_permissions(origin_path)
+            if error:
+                product_warnings[product] += error
 
         #
         # With all checks performed now they need to be reported.

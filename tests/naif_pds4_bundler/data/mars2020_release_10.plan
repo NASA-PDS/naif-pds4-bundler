@@ -22,4 +22,7 @@ m2020_surf_rover_loc_0000_0089_v1.bsp
 m2020_surf_rover_tlm_0000_0089_v1.bsp
 mar097.bsp
 m2020_v01.tm
-m2020_chronos_v01.tm
+m2020_chronos_v01.tm # This kernel is included
+# m2020_chronos_v02.tm But this kernel is not included
+# m2020_chronos_v03.tm # This one is not included either
+
