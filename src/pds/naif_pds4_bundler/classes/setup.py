@@ -225,9 +225,9 @@ class Setup(object):
             #
             # Placeholder for when PDS3 is fully implemented.
             #
-            #if self.pds_version == "4":
+            # if self.pds_version == "4":
             #    self.kernel_endianness = "little"
-            #else:
+            # else:
             #    self.kernel_endianness = "big"
             self.kernel_endianness = "little"
         else:

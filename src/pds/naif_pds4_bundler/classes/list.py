@@ -1186,7 +1186,6 @@ class KernelList(List):
             # Check file permissions.
             #
 
-
             #
             # Check binary kernel endianness.
             #

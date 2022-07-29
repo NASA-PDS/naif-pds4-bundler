@@ -102,7 +102,7 @@ def test_pds4_mars2020_no_plan(self):
             new_file += line
 
     old_file = ""
-    with open("../data/mars2020_release_10.plan", "r") as f:
+    with open("../data/mars2020_release_11.plan", "r") as f:
         for line in f:
             if "m2020_168_sclkscet_00007.tsc" not in line:
                 old_file += line
