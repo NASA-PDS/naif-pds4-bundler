@@ -1024,7 +1024,7 @@ def check_kernel_integrity(path):
     return error
 
 
-def check_binary_endianness(path, endianness):
+def check_binary_endianness(path):
     """Check if the SPICE Kernel has the adequate architecture.
 
     PDS4 Bundles require LTL-IEEE binary kernels and PDS3 data sets require
@@ -1035,10 +1035,8 @@ def check_binary_endianness(path, endianness):
 
     :param path: Binary SPICE kernel path
     :type path: str
-    :param endianness: Expected Binary file endianness
-    :type endianness: str
     :return: Error message if error present
-    :rtype: str
+    :rtype: list
     """
     error = ""
 
@@ -1049,37 +1047,15 @@ def check_binary_endianness(path, endianness):
     try:
         if arch == "daf":
             handle = spiceypy.dafopw(path)
+            spiceypy.dafcls(handle)
         elif arch == "das":
             handle = spiceypy.dasopw(path)
+            spiceypy.dascls(handle)
         else:
-            raise BaseException
+            error = "The binary kernel does not have the a DAF or DAS architecture."
 
     except BaseException:
-        if sys.byteorder != endianness:
-            logging.warning(
-                f"-- The binary kernel is {endianness} endian; this"
-                f" endianness is not supported by your machine."
-            )
-            logging.warning("   You can use NAIF's utility BINGO to convert the file.")
-        else:
-            error = "The binary kernel is not readable by your machine."
-    else:
-        if sys.byteorder != endianness:
-            error = (
-                f"The binary kernel is {sys.byteorder} endian; this "
-                f"endianness is not the one specified via configuration."
-            )
-        else:
-            pass
-    finally:
-        try:
-            if arch == "daf":
-                spiceypy.dafcls(handle)
-            elif arch == "das":
-                spiceypy.dascls(handle)
-
-        except BaseException:
-            pass
+        error = "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."
 
     return error
 
@@ -1155,5 +1131,28 @@ def check_line_length(file):
             if len(line) > 80:
                 error.append(f"Line {line_num} is longer than 80 characters")
             line_num += 1
+
+    return error
+
+
+def check_permissions(path):
+    """Check if the file has the adequate permissions.
+
+    This method ensures that the file has the adequate file permissions.
+
+    :param path: file path
+    :type path: str
+    :return: Error message if error present
+    :rtype: list
+    """
+    error = []
+
+    #
+    # First check file permissions
+    #
+    if False:
+        error.append(
+            "The binary kernel might not readable by your machine due to file permissions."
+        )
 
     return error

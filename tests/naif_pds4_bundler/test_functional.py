@@ -254,6 +254,12 @@ class TestFunctional(TestCase):
     def test_m2020_multiple_kernel_directories(self):
         m2020.test_m2020_multiple_kernel_directories(self)
 
+    def test_m2020_endianness_log(self):
+        m2020.test_m2020_endianness_log(self)
+
+    def test_m2020_permissions(self):
+        m2020.test_m2020_permissions(self)
+
     #
     # MAVEN functional tests.
     #

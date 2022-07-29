@@ -44,18 +44,8 @@ def test_pds4_big_endianness(self):
         "kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp",
     )
 
-    try:
+    with self.assertRaises(RuntimeError):
         main(config, silent=True, log=True, faucet="Bundle")
-    except BaseException:
-        line_check = "Binary SPICE kernels expected to have LTL-IEEE (little endian) binary format."
-        if not string_in_file("working/mars2020_release_temp.log", line_check, 1):
-            raise BaseException
-
-        line_check = "The binary kernel is not readable by your machine."
-        if not string_in_file("working/mars2020_release_temp.log", line_check, 1):
-            raise BaseException
-    else:
-        raise BaseException
 
 
 def test_pds4_big_endianness_config(self):
@@ -78,11 +68,8 @@ def test_pds4_big_endianness_config(self):
         "kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp",
     )
 
-    main(updated_config, silent=True, log=True, faucet="Bundle")
-
-    line_check = "The binary kernel is big endian; this endianness is not supported by your machine."
-    if not string_in_file("working/mars2020_release_01.log", line_check, 1):
-        raise BaseException
+    with self.assertRaises(RuntimeError):
+        main(config, silent=True, log=True, faucet="Bundle")
 
 
 def test_pds4_ltl_endianness(self):
@@ -195,9 +182,5 @@ def test_pds3_big_endianness(self):
     shutil.move("bundle", "bundle_old")
     shutil.copytree("../data/mro", "bundle")
 
-    try:
+    with self.assertRaises(RuntimeError):
         main(config, silent=True, log=True, faucet="Bundle")
-    except BaseException:
-        line_check = "The binary kernel is big endian; this endianness is not supported by your machine."
-        if not string_in_file("working/mro_release_temp.log", line_check, 1):
-            raise BaseException

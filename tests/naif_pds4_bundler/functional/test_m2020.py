@@ -480,3 +480,69 @@ def test_m2020_multiple_kernel_directories(self):
 
     shutil.move("more_kernels/fk/m2020_v04.tf", "kernels/fk/m2020_v04.tf")
     shutil.rmtree("more_kernels")
+
+
+def test_m2020_endianness_log(self):
+    """Test logging of a big-endian file in a little-endian environment."""
+    post_setup(self)
+    config = "../config/mars2020.xml"
+    plan = "../data/mars2020_release_00.plan"
+    updated_plan = "working/mars2020_release_00.plan"
+
+    with open(plan, "r") as c:
+        with open(updated_plan, "w") as n:
+            for line in c:
+                if "m2020_chronos_v01.tm" in line:
+                    n.write(line)
+                    n.write("m2020_surf_rsm_tlmres_0299_0419_v1.bc")
+                else:
+                    n.write(line)
+    os.mkdir("kernels/ck/")
+    shutil.copy2(
+        "../data/kernels/ck/m2020_surf_rsm_tlmres_0299_0419_v1.big.bc",
+        "kernels/ck/m2020_surf_rsm_tlmres_0299_0419_v1.bc",
+    )
+
+    with self.assertRaises(RuntimeError):
+        main(config, plan=updated_plan, silent=self.silent, log=self.log)
+
+    line_checks = [
+        "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."
+    ]
+    for line in line_checks:
+        if not string_in_file("working/mars2020_release_temp.log", line, 1):
+            raise BaseException
+
+
+def test_m2020_permissions(self):
+    """Test file permissions with a big endian file."""
+    post_setup(self)
+    config = "../config/mars2020.xml"
+    plan = "../data/mars2020_release_00.plan"
+    updated_plan = "working/mars2020_release_00.plan"
+
+    with open(plan, "r") as c:
+        with open(updated_plan, "w") as n:
+            for line in c:
+                if "m2020_chronos_v01.tm" in line:
+                    n.write(line)
+                    n.write("m2020_surf_rsm_tlmres_0299_0419_v1.bc")
+                else:
+                    n.write(line)
+    os.mkdir("kernels/ck/")
+    shutil.copy2(
+        "../data/kernels/ck/m2020_surf_rsm_tlmres_0299_0419_v1.big.bc",
+        "kernels/ck/m2020_surf_rsm_tlmres_0299_0419_v1.bc",
+    )
+
+    os.chmod("kernels/ck/m2020_surf_rsm_tlmres_0299_0419_v1.bc", 444)
+
+    with self.assertRaises(RuntimeError):
+        main(config, plan=updated_plan, silent=self.silent, log=self.log)
+
+    line_checks = [
+        "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."
+    ]
+    for line in line_checks:
+        if not string_in_file("working/mars2020_release_temp.log", line, 1):
+            raise BaseException

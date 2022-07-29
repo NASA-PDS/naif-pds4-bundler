@@ -222,10 +222,14 @@ class Setup(object):
         # Check and determine endianness.
         #
         if not hasattr(self, "binary_endianness"):
-            if self.pds_version == "4":
-                self.kernel_endianness = "little"
-            else:
-                self.kernel_endianness = "big"
+            #
+            # Placeholder for when PDS3 is fully implemented.
+            #
+            #if self.pds_version == "4":
+            #    self.kernel_endianness = "little"
+            #else:
+            #    self.kernel_endianness = "big"
+            self.kernel_endianness = "little"
         else:
             if (
                 self.binary_endianness.lower() == "little"
@@ -243,6 +247,12 @@ class Setup(object):
                     " 'big', 'BIG-IEEE', 'little' or 'LTL-IEEE'. Case is not"
                     " sensitive."
                 )
+
+        if sys.byteorder != self.kernel_endianness:
+            error_message(
+                f"binary_endianness configuration parameter value must be "
+                f"the same as your system endianness: {sys.byteorder}."
+            )
 
         #
         # Fill missing fields.

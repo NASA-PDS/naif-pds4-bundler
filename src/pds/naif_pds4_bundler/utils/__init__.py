@@ -12,6 +12,7 @@ from .files import check_eol
 from .files import check_kernel_integrity
 from .files import check_line_length
 from .files import check_list_duplicates
+from .files import check_permissions
 from .files import checksum_from_label
 from .files import checksum_from_registry
 from .files import compare_files
@@ -88,4 +89,5 @@ __all__ = [
     check_binary_endianness,
     check_badchar,
     check_eol,
+    check_permissions,
 ]
