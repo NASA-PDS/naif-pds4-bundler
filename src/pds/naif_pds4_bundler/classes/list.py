@@ -707,6 +707,7 @@ class KernelList(List):
          * display all the ``MAKLABL_OPTIONS`` used
          * check that all the ``MAKLBL_OPTIONS`` are in the template for PDS3
          * check that the list has no duplicates
+         * check that the list has no bad characters
          * if the ``-d DIFF --diff DIFF`` argument is used, compare the kernel
            list with the kernel list of the previous release -if avaialble.
         """
@@ -717,7 +718,18 @@ class KernelList(List):
         ker_in_list = []
         opt_in_list = []
 
-        with open(self.setup.working_directory + os.sep + self.list_name, "r") as lst:
+        list_path = self.setup.working_directory + os.sep + self.list_name
+
+        #
+        # Check that the list has no bad characters.
+        # This does not raise an error message but does not stop NPB.
+        #
+        errors = check_badchar(list_path)
+        if errors:
+            for err in errors:
+                logging.error(f"   {err}")
+
+        with open(list_path, "r") as lst:
 
             #
             # Check that the list has the same number of FILE,
@@ -765,14 +777,14 @@ class KernelList(List):
                 raise Exception(error)
 
             #
-            # Check list against plan
+            # Check list against plan.
             #
             for ker in ker_in_list:
                 if ker not in self.kernel_list:
                     error_message(f"   {ker} not in list.")
 
             #
-            # Check list for duplicate entries
+            # Check list for duplicate entries.
             #
             if check_list_duplicates(ker_in_list):
                 error_message("List contains duplicates.")
@@ -1183,8 +1195,9 @@ class KernelList(List):
                     product_errors[product].append(error)
 
             #
-            # Check file permissions.
+            # Check that file has read permissions.
             #
+            check_permissions(origin_path)
 
             #
             # Check binary kernel endianness.

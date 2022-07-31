@@ -12,6 +12,7 @@ import unittests.test_clear as clear
 import unittests.test_endianness as endianness
 import unittests.test_extract_comment as extract_comment
 import unittests.test_files as files
+import unittests.test_permissions as permissions
 import unittests.test_im_format as im_format
 import unittests.test_kernel_integrity as kernel_integrity
 import unittests.test_kernel_list as kernel_list
@@ -224,6 +225,12 @@ class TestUnitTests(TestCase):
 
     def test_pds3_big_endianness(self):
         endianness.test_pds3_big_endianness(self)
+
+    #
+    # Kernel permission tests.
+    #
+    def test_binary_permissions(self):
+        permissions.test_binary_permissions(self)
 
     #
     # Kernel integrity tests.

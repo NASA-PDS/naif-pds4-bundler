@@ -9,6 +9,7 @@ import os
 import re
 import shutil
 from collections import defaultdict
+from stat import *
 
 import spiceypy
 
@@ -1135,23 +1136,24 @@ def check_line_length(file):
 
 
 def check_permissions(path):
-    """Check if the file has the adequate permissions.
+    """Check if the file has read permissions.
 
     This method ensures that the file has the adequate file permissions.
 
     :param path: file path
     :type path: str
     :return: Error message if error present
-    :rtype: list
+    :rtype: none
     """
-    error = []
 
     #
-    # First check file permissions
+    # This provides the usual chmod style file permissions.
     #
-    if False:
-        error.append(
-            "The binary kernel might not readable by your machine due to file permissions."
-        )
+    permissions = oct(os.stat(path)[ST_MODE])[-3:]
 
-    return error
+    #
+    # The first two digits must be at least 4.
+    #
+    if int(permissions[0]) < 4 or int(permissions[1]) < 4:
+        error_message(f"File {path} is not readable by the account that runs NPB. "
+                      f"Update permissions.")
