@@ -183,8 +183,8 @@ class SpiceKernelsCollection(Collection):
                 for mk in mks:
                     if not os.path.exists(mk):
                         logging.info("")
-                        logging.warning(
-                            f"-- Meta-kernel provided via"
+                        error_message(
+                            f"Meta-kernel provided via"
                             f" configuration"
                             f" does not exist: {mk}"
                         )
