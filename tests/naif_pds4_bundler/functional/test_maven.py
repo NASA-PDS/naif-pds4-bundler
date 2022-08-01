@@ -166,10 +166,7 @@ def test_maven_mks_list_config_in_kernels(self):
 
     The MKs are both present in the configuration file and are present in
     the input ``kernels_directory``. The files specified by the
-    configuration file are not present and NPB uses the ones under the
-    ``kernels_directory``.
-
-    Test is successful if NPB is executed without errors.
+    configuration file are not present and NPB raises an error.
     """
     post_setup(self)
     config = "../config/maven.xml"
@@ -196,14 +193,15 @@ def test_maven_mks_list_config_in_kernels(self):
 
     generate_mks(self, directory="kernels/mk")
 
-    main(
-        updated_config,
-        plan=plan,
-        faucet=faucet,
-        silent=self.silent,
-        verbose=self.verbose,
-        log=self.log,
-    )
+    with self.assertRaises(RuntimeError):
+        main(
+            updated_config,
+            plan=plan,
+            faucet=faucet,
+            silent=self.silent,
+            verbose=self.verbose,
+            log=self.log,
+        )
 
 
 def test_maven_mks_list_config_in_kernels_and_config(self):

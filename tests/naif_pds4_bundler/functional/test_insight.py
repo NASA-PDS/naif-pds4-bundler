@@ -347,20 +347,6 @@ def test_insight_mk_input(self):
     shutil.copytree("../data/kernels", "kernels")
     os.makedirs("insight", exist_ok=True)
 
-    with open(config, "r") as c:
-        with open(updated_config, "w") as n:
-            for line in c:
-                if '<mk name="insight_v$VERSION.tm">' in line:
-                    n.write(
-                        "        <mk_inputs>\n"
-                        "            <file>working/insight_2021_v08.tm"
-                        "</file>\n"
-                        "        </mk_inputs>\n"
-                        '        <mk name="insight_v$VERSION.tm">\n'
-                    )
-                else:
-                    n.write(line)
-
     with open("working/insight_2021_v08.tm", "w") as p:
         p.write("test")
 
@@ -369,25 +355,6 @@ def test_insight_mk_input(self):
 
     for file in glob.glob("../data/insight_release_0[0-7].kernel_list"):
         shutil.copy2(file, "working")
-
-    with self.assertRaises(RuntimeError):
-        main(
-            updated_config,
-            plan,
-            faucet,
-            silent=self.silent,
-            log=self.log,
-            diff="all",
-        )
-
-    main(
-        updated_config,
-        plan,
-        clear="working/insight_release_08.file_list",
-        silent=self.silent,
-        log=self.log,
-        diff="all",
-    )
 
     with open(config, "r") as c:
         with open(updated_config, "w") as n:
@@ -465,6 +432,7 @@ def test_insight_mks_input(self):
             diff="all",
         )
 
+    pass
 
 def test_insight_mks_inputs_coverage(self):
     """Test MK coverage not determined from kernels in MK.

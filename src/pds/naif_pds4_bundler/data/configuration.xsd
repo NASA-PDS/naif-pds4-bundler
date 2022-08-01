@@ -204,7 +204,7 @@
               <xs:element name="mk_inputs" minOccurs="0">
                 <xs:complexType>
                   <xs:sequence>
-                    <xs:element name="file" type="xs:string" maxOccurs="unbounded"/>
+                    <xs:element name="file" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
                   </xs:sequence>
                 </xs:complexType>
               </xs:element>

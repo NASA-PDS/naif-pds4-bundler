@@ -468,6 +468,10 @@ def test_m2020_multiple_kernel_directories(self):
                 if "<kernels_directory>kernels</kernels_directory>" in line:
                     n.write(line)
                     n.write("<kernels_directory>more_kernels</kernels_directory>\n")
+                elif "<file>kernels/mk/m2020_v01.tm</file>" in line:
+                    pass
+                elif "<file>kernels/mk/m2020_chronos_v01.tm</file>" in line:
+                    pass
                 else:
                     n.write(line)
 

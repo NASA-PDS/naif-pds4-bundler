@@ -176,7 +176,7 @@ class SpiceKernelsCollection(Collection):
         # message if more meta-kernels are expected).
         #
         if hasattr(self.setup, "mk_inputs") and (self.setup.args.faucet != "labels"):
-            if self.setup.mk_inputs["file"]:
+            if "file" in self.setup.mk_inputs:
                 mks = self.setup.mk_inputs["file"]
                 if not isinstance(mks, list):
                     mks = [mks]
