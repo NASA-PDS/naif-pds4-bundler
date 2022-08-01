@@ -434,6 +434,7 @@ def test_insight_mks_input(self):
 
     pass
 
+
 def test_insight_mks_inputs_coverage(self):
     """Test MK coverage not determined from kernels in MK.
 
