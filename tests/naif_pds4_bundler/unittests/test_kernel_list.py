@@ -288,9 +288,14 @@ def test_pds4_vco_list_badchar(self):
     with open(config, "r") as f:
         with open(updated_config, "w") as u:
             for line in f:
-                if "VCO SPICE reconstructed CK file providing the Venus Climate Orbiter" in line:
-                    u.write("<description>VCO SPICE ± CK file providing the Venus Climate Orbiter "
-                            "(VCO, also known as PLANET-C and AKATSUKI)")
+                if (
+                    "VCO SPICE reconstructed CK file providing the Venus Climate Orbiter"
+                    in line
+                ):
+                    u.write(
+                        "<description>VCO SPICE ± CK file providing the Venus Climate Orbiter "
+                        "(VCO, also known as PLANET-C and AKATSUKI)"
+                    )
                 else:
                     u.write(line)
 
