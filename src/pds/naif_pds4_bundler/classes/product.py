@@ -677,6 +677,13 @@ class MetaKernelProduct(Product):
             shutil.copy2(self.path, f"{product_path}{self.name}")
             self.path = f"{product_path}{self.name}"
 
+        #
+        # Compare the meta-kernels.
+        #
+        if self.setup.diff:
+            self.compare()
+        logging.info("")
+
         self.new_product = True
 
         #
@@ -1233,10 +1240,6 @@ class MetaKernelProduct(Product):
                             except BaseException:
                                 print("Vi text editor is not available.")
                                 input(">> Press Enter to continue... ")
-
-        if self.setup.diff:
-            self.compare()
-        logging.info("")
 
         return
 
