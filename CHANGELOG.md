@@ -1,14 +1,5 @@
 # Changelog
 
-## [«unknown»](https://github.com/NASA-PDS/naif-pds4-bundler/tree/«unknown») (2022-08-01)
-
-[Full Changelog](https://github.com/NASA-PDS/naif-pds4-bundler/compare/v1.4.1-dev...«unknown»)
-
-**Requirements:**
-
-- Do not generate validate config file for a clear run. [\#11](https://github.com/NASA-PDS/naif-pds4-bundler/issues/11)
-- Log all the kernels used to determine MK coverage, regardless if they are in the plan or already in the bundle. [\#6](https://github.com/NASA-PDS/naif-pds4-bundler/issues/6)
-
 ## [v1.4.1-dev](https://github.com/NASA-PDS/naif-pds4-bundler/tree/v1.4.1-dev) (2022-08-01)
 
 [Full Changelog](https://github.com/NASA-PDS/naif-pds4-bundler/compare/v1.4.1...v1.4.1-dev)
@@ -17,8 +8,14 @@
 
 - Allow comment syntax for release plan [\#16](https://github.com/NASA-PDS/naif-pds4-bundler/issues/16)
 - Remove strict order of directories in configuration. [\#13](https://github.com/NASA-PDS/naif-pds4-bundler/issues/13)
+- Do not generate validate config file for a clear run. [\#11](https://github.com/NASA-PDS/naif-pds4-bundler/issues/11)
 - If specified MKs are not found, stop the pipeline. [\#7](https://github.com/NASA-PDS/naif-pds4-bundler/issues/7)
+- Log all the kernels used to determine MK coverage, regardless if they are in the plan or already in the bundle. [\#6](https://github.com/NASA-PDS/naif-pds4-bundler/issues/6)
 - Check ASCII characters in kernel list in the configuration file to avoid  the VCO IK description issue. [\#5](https://github.com/NASA-PDS/naif-pds4-bundler/issues/5)
+
+**Defects:**
+
+- MK Diff files are not reported.  [\#8](https://github.com/NASA-PDS/naif-pds4-bundler/issues/8)
 
 ## [v1.4.1](https://github.com/NASA-PDS/naif-pds4-bundler/tree/v1.4.1) (2022-07-24)
 
