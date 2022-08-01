@@ -12,13 +12,13 @@ import unittests.test_clear as clear
 import unittests.test_endianness as endianness
 import unittests.test_extract_comment as extract_comment
 import unittests.test_files as files
-import unittests.test_permissions as permissions
 import unittests.test_im_format as im_format
 import unittests.test_kernel_integrity as kernel_integrity
 import unittests.test_kernel_list as kernel_list
 import unittests.test_match_patterns as match_patterns
 import unittests.test_mk_config as mk_config
 import unittests.test_orbnum as orbnum
+import unittests.test_permissions as permissions
 import unittests.test_plan as plan
 import unittests.test_readme as readme
 import unittests.test_time as time

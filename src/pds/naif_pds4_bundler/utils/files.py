@@ -1155,5 +1155,7 @@ def check_permissions(path):
     # The first two digits must be at least 4.
     #
     if int(permissions[0]) < 4 or int(permissions[1]) < 4:
-        error_message(f"File {path} is not readable by the account that runs NPB. "
-                      f"Update permissions.")
+        error_message(
+            f"File {path} is not readable by the account that runs NPB. "
+            f"Update permissions."
+        )

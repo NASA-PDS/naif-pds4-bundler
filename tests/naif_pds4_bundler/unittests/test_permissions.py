@@ -21,6 +21,7 @@ def post_setup(self):
     shutil.copy2("../data/kernels/mk/m2020_v01.tm", "kernels/mk/")
     shutil.copy2("../data/kernels/mk/m2020_chronos_v01.tm", "kernels/mk/")
 
+
 def test_binary_permissions(self):
     """Test permissions of binary files.
 
@@ -38,6 +39,9 @@ def test_binary_permissions(self):
 
     with self.assertRaises(RuntimeError) as cm:
         main(config, silent=True, log=True, faucet="Bundle")
-    if "/naif_pds4_bundler/unittests/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp " \
-       "is not readable by the account that runs NPB. Update permissions." not in str(cm.exception):
-        raise Exception('Test error.')
+    if (
+        "/naif_pds4_bundler/unittests/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp "
+        "is not readable by the account that runs NPB. Update permissions."
+        not in str(cm.exception)
+    ):
+        raise Exception("Test error.")
