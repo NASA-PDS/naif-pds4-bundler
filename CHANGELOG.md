@@ -1,5 +1,14 @@
 # Changelog
 
+## [«unknown»](https://github.com/NASA-PDS/naif-pds4-bundler/tree/«unknown») (2022-08-01)
+
+[Full Changelog](https://github.com/NASA-PDS/naif-pds4-bundler/compare/v1.4.1-dev...«unknown»)
+
+**Requirements:**
+
+- Do not generate validate config file for a clear run. [\#11](https://github.com/NASA-PDS/naif-pds4-bundler/issues/11)
+- Log all the kernels used to determine MK coverage, regardless if they are in the plan or already in the bundle. [\#6](https://github.com/NASA-PDS/naif-pds4-bundler/issues/6)
+
 ## [v1.4.1-dev](https://github.com/NASA-PDS/naif-pds4-bundler/tree/v1.4.1-dev) (2022-08-01)
 
 [Full Changelog](https://github.com/NASA-PDS/naif-pds4-bundler/compare/v1.4.1...v1.4.1-dev)
