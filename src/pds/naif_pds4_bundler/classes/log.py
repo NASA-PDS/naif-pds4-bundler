@@ -139,7 +139,11 @@ class Log(object):
 
         self.setup.write_file_list()
         self.setup.write_checksum_registry()
-        if self.setup.pds_version == "4":
+
+        #
+        # The validate file is not generated for an NPB clear run.
+        #
+        if self.setup.pds_version == "4" and self.setup.args.faucet != "clear":
             self.setup.write_validate_config()
 
         #
