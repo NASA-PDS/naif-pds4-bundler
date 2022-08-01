@@ -151,14 +151,14 @@
         </xs:element>
         <xs:element name="directories">
           <xs:complexType>
-            <xs:sequence>
+            <xs:all>
               <xs:element name="working_directory" type="xs:string" />
               <xs:element name="kernels_directory" type="xs:string" maxOccurs="unbounded"/>
               <xs:element name="staging_directory" type="xs:string" />
               <xs:element name="bundle_directory" type="xs:string" />
               <xs:element name="orbnum_directory" type="xs:string" minOccurs="0"/>
               <xs:element name="templates_directory" type="xs:string" minOccurs="0"/>
-            </xs:sequence>
+            </xs:all>
           </xs:complexType>
         </xs:element>
         <xs:element name="kernel_list">
