@@ -169,7 +169,7 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">shutil</span>
-<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">stat</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
 
 <span class="kn">import</span> <span class="nn">spiceypy</span>
@@ -1185,7 +1185,7 @@
     <span class="k">return</span> <span class="n">error</span></div>
 
 
-<div class="viewcode-block" id="check_binary_endianness"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.utils.html#pds.naif_pds4_bundler.utils.files.check_binary_endianness">[docs]</a><span class="k">def</span> <span class="nf">check_binary_endianness</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">endianness</span><span class="p">):</span>
+<div class="viewcode-block" id="check_binary_endianness"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.utils.html#pds.naif_pds4_bundler.utils.files.check_binary_endianness">[docs]</a><span class="k">def</span> <span class="nf">check_binary_endianness</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Check if the SPICE Kernel has the adequate architecture.</span>
 
 <span class="sd">    PDS4 Bundles require LTL-IEEE binary kernels and PDS3 data sets require</span>
@@ -1196,10 +1196,8 @@
 
 <span class="sd">    :param path: Binary SPICE kernel path</span>
 <span class="sd">    :type path: str</span>
-<span class="sd">    :param endianness: Expected Binary file endianness</span>
-<span class="sd">    :type endianness: str</span>
 <span class="sd">    :return: Error message if error present</span>
-<span class="sd">    :rtype: str</span>
+<span class="sd">    :rtype: list</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">error</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
 
@@ -1210,37 +1208,15 @@
     <span class="k">try</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">arch</span> <span class="o">==</span> <span class="s2">&quot;daf&quot;</span><span class="p">:</span>
             <span class="n">handle</span> <span class="o">=</span> <span class="n">spiceypy</span><span class="o">.</span><span class="n">dafopw</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+            <span class="n">spiceypy</span><span class="o">.</span><span class="n">dafcls</span><span class="p">(</span><span class="n">handle</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">arch</span> <span class="o">==</span> <span class="s2">&quot;das&quot;</span><span class="p">:</span>
             <span class="n">handle</span> <span class="o">=</span> <span class="n">spiceypy</span><span class="o">.</span><span class="n">dasopw</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+            <span class="n">spiceypy</span><span class="o">.</span><span class="n">dascls</span><span class="p">(</span><span class="n">handle</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">BaseException</span>
+            <span class="n">error</span> <span class="o">=</span> <span class="s2">&quot;The binary kernel does not have the a DAF or DAS architecture.&quot;</span>
 
     <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">byteorder</span> <span class="o">!=</span> <span class="n">endianness</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;-- The binary kernel is </span><span class="si">{</span><span class="n">endianness</span><span class="si">}</span><span class="s2"> endian; this&quot;</span>
-                <span class="sa">f</span><span class="s2">&quot; endianness is not supported by your machine.&quot;</span>
-            <span class="p">)</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;   You can use NAIF&#39;s utility BINGO to convert the file.&quot;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">error</span> <span class="o">=</span> <span class="s2">&quot;The binary kernel is not readable by your machine.&quot;</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">byteorder</span> <span class="o">!=</span> <span class="n">endianness</span><span class="p">:</span>
-            <span class="n">error</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;The binary kernel is </span><span class="si">{</span><span class="n">sys</span><span class="o">.</span><span class="n">byteorder</span><span class="si">}</span><span class="s2"> endian; this &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;endianness is not the one specified via configuration.&quot;</span>
-            <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">pass</span>
-    <span class="k">finally</span><span class="p">:</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">arch</span> <span class="o">==</span> <span class="s2">&quot;daf&quot;</span><span class="p">:</span>
-                <span class="n">spiceypy</span><span class="o">.</span><span class="n">dafcls</span><span class="p">(</span><span class="n">handle</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="n">arch</span> <span class="o">==</span> <span class="s2">&quot;das&quot;</span><span class="p">:</span>
-                <span class="n">spiceypy</span><span class="o">.</span><span class="n">dascls</span><span class="p">(</span><span class="n">handle</span><span class="p">)</span>
-
-        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
-            <span class="k">pass</span>
+        <span class="n">error</span> <span class="o">=</span> <span class="s2">&quot;The kernel cannot be loaded because of its endianness. Use NAIF&#39;s utility BINGO to convert the file.&quot;</span>
 
     <span class="k">return</span> <span class="n">error</span></div>
 
@@ -1318,6 +1294,32 @@
             <span class="n">line_num</span> <span class="o">+=</span> <span class="mi">1</span>
 
     <span class="k">return</span> <span class="n">error</span></div>
+
+
+<div class="viewcode-block" id="check_permissions"><a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.utils.html#pds.naif_pds4_bundler.utils.files.check_permissions">[docs]</a><span class="k">def</span> <span class="nf">check_permissions</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Check if the file has read permissions.</span>
+
+<span class="sd">    This method ensures that the file has the adequate file permissions.</span>
+
+<span class="sd">    :param path: file path</span>
+<span class="sd">    :type path: str</span>
+<span class="sd">    :return: Error message if error present</span>
+<span class="sd">    :rtype: none</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1">#</span>
+    <span class="c1"># This provides the usual chmod style file permissions.</span>
+    <span class="c1">#</span>
+    <span class="n">permissions</span> <span class="o">=</span> <span class="nb">oct</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">path</span><span class="p">)[</span><span class="n">stat</span><span class="o">.</span><span class="n">ST_MODE</span><span class="p">])[</span><span class="o">-</span><span class="mi">3</span><span class="p">:]</span>
+
+    <span class="c1">#</span>
+    <span class="c1"># The first two digits must be at least 4.</span>
+    <span class="c1">#</span>
+    <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">permissions</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mi">4</span> <span class="ow">or</span> <span class="nb">int</span><span class="p">(</span><span class="n">permissions</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="n">error_message</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;File </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2"> is not readable by the account that runs NPB. &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Update permissions.&quot;</span>
+        <span class="p">)</span></div>
 </pre></div>
 
            </div>

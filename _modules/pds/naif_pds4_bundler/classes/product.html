@@ -838,6 +838,13 @@
             <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">product_path</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">product_path</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
 
+        <span class="c1">#</span>
+        <span class="c1"># Compare the meta-kernels.</span>
+        <span class="c1">#</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">diff</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">compare</span><span class="p">()</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">new_product</span> <span class="o">=</span> <span class="kc">True</span>
 
         <span class="c1">#</span>
@@ -1394,10 +1401,6 @@
                             <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
                                 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Vi text editor is not available.&quot;</span><span class="p">)</span>
                                 <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;&gt;&gt; Press Enter to continue... &quot;</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">diff</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">compare</span><span class="p">()</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
 
         <span class="k">return</span></div>
 

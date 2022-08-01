@@ -300,7 +300,11 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">write_file_list</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">write_checksum_registry</span><span class="p">()</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span><span class="p">:</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># The validate file is not generated for an NPB clear run.</span>
+        <span class="c1">#</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">faucet</span> <span class="o">!=</span> <span class="s2">&quot;clear&quot;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">write_validate_config</span><span class="p">()</span>
 
         <span class="c1">#</span>

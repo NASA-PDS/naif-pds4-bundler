@@ -100,6 +100,14 @@ tests.naif\_pds4\_bundler.unittests.test\_orbnum module
    :undoc-members:
    :show-inheritance:
 
+tests.naif\_pds4\_bundler.unittests.test\_permissions module
+------------------------------------------------------------
+
+.. automodule:: tests.naif_pds4_bundler.unittests.test_permissions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 tests.naif\_pds4\_bundler.unittests.test\_plan module
 -----------------------------------------------------
 

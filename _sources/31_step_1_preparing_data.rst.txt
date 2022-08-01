@@ -929,6 +929,9 @@ separate line using its file name. Additional trailing characters can be present
 as long as there are blank spaces between them and the kernel name. Lines
 containing text of any other kind are also acceptable.
 
+You can also add comments with a leading ``#`` character; by doing so any SPICE
+kernel or ORBNUM file after the ``#`` will be ignored.
+
 If the file names need to be modified, you must use the updated file name in
 the release plan and have the file name mapping properly specified by the NPB
 configuration file (this is described in :ref:`42_npb_configuration_file:Mapping kernels`.)

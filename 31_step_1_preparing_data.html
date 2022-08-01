@@ -1080,6 +1080,8 @@ plan is a text file that will list all the kernels to be included in the archive
 separate line using its file name. Additional trailing characters can be present
 as long as there are blank spaces between them and the kernel name. Lines
 containing text of any other kind are also acceptable.</p>
+<p>You can also add comments with a leading <code class="docutils literal notranslate"><span class="pre">#</span></code> character; by doing so any SPICE
+kernel or ORBNUM file after the <code class="docutils literal notranslate"><span class="pre">#</span></code> will be ignored.</p>
 <p>If the file names need to be modified, you must use the updated file name in
 the release plan and have the file name mapping properly specified by the NPB
 configuration file (this is described in <a class="reference internal" href="42_npb_configuration_file.html#mapping-kernels"><span class="std std-ref">Mapping kernels</span></a>.)</p>
