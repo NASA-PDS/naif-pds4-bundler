@@ -8,8 +8,8 @@ import logging
 import os
 import re
 import shutil
+import stat
 from collections import defaultdict
-from stat import *
 
 import spiceypy
 
@@ -1149,7 +1149,7 @@ def check_permissions(path):
     #
     # This provides the usual chmod style file permissions.
     #
-    permissions = oct(os.stat(path)[ST_MODE])[-3:]
+    permissions = oct(os.stat(path)[stat.ST_MODE])[-3:]
 
     #
     # The first two digits must be at least 4.

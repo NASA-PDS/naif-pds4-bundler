@@ -261,7 +261,7 @@ def test_pds4_vco_list(self):
     plan = "../data/vco_release_01.plan"
     faucet = "list"
 
-    main(config, plan, faucet, silent=self.silent)
+    main(config, plan, faucet, silent=self.silent, log=True)
 
     new_file = ""
     with open("working/vco_release_01.kernel_list", "r") as f:
@@ -276,6 +276,30 @@ def test_pds4_vco_list(self):
                 old_file += line
 
     self.assertEqual(old_file.split("\n")[7:], new_file.split("\n")[7:])
+
+
+def test_pds4_vco_list_badchar(self):
+    """Badchar test for Venus Climate Orbiter Akatsuki kernel list generation."""
+    config = "../config/vco.xml"
+    plan = "../data/vco_release_01.plan"
+    faucet = "list"
+
+    updated_config = "vco.xml"
+    with open(config, "r") as f:
+        with open(updated_config, "w") as u:
+            for line in f:
+                if "VCO SPICE reconstructed CK file providing the Venus Climate Orbiter" in line:
+                    u.write("<description>VCO SPICE ± CK file providing the Venus Climate Orbiter "
+                            "(VCO, also known as PLANET-C and AKATSUKI)")
+                else:
+                    u.write(line)
+
+    main(updated_config, plan, faucet, silent=self.silent, log=True)
+
+    line_checks = ["NON-ASCII character(s) in line"]
+    for line in line_checks:
+        if not string_in_file("working/vco_release_01.log", line, 12):
+            raise BaseException
 
 
 def test_pds4_hyb2_list(self):

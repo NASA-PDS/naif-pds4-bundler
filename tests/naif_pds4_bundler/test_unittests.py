@@ -271,6 +271,9 @@ class TestUnitTests(TestCase):
     def test_pds4_vco_list(self):
         kernel_list.test_pds4_vco_list(self)
 
+    def test_pds4_vco_list_badchar(self):
+        kernel_list.test_pds4_vco_list_badchar(self)
+
     def test_pds4_hyb2_list(self):
         kernel_list.test_pds4_hyb2_list(self)
 
