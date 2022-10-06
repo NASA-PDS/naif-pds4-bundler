@@ -389,7 +389,7 @@ SPK Files
 
      The naming scheme for the ExoMars 2016 spacecraft structures SPKs is:
 
-           em16_SC_structures_vNN.bsp
+           em16_SC_struct_vNN.bsp
 
      where
 
@@ -441,6 +441,39 @@ SPK Files
      The naming scheme for ESA ESTRACK ground stations SPKs is:
 
            estrack_vNN.bsp
+
+     where
+
+           NN       version (required; e.g. 01);
+
+
+   Naming Scheme for NASA DSN ground stations SPKs
+
+     The naming scheme for NASA DSN ground stations SPKs is:
+
+           earthstns_itrf93_YYMMDD.bsp
+
+     where
+
+           YYMMDD    release date (required; e.g. 050714);
+
+
+   Naming Scheme for Russian ground stations SPKs
+
+     The naming scheme for Russian ground stations SPKs is:
+
+           earthstns_ru_YYYYMMDD.bsp
+
+     where
+
+           YYYYMMDD  creation date (required; e.g. 20210706);
+
+
+   Naming Scheme for ExoMars 2016 relay locations SPKs
+
+     The naming scheme for ExoMars 2016 relay locations SPKs is:
+
+           em16_tgo_relay_locations_vNN.bsp
 
      where
 
@@ -553,8 +586,8 @@ IK Files
 <a name="CK Files"></a>
 CK Files
 
-     CK (Camera-Matrix Kernel) files contain time varying orientation for
-     the ExoMars2016 TGO spacecraft, its structures, and science instruments.
+   CK (Camera-Matrix Kernel) files contain time varying orientation for
+   the ExoMars2016 TGO spacecraft, its structures, and science instruments.
 
 
 
@@ -577,6 +610,8 @@ CK Files
                        cassis: for the CaSSIS Telescope frame;
                        nomad: for the NOMAD LNO Scanning mirror frame;
                        acs: for the Atmospheric Chemistry Suite ACS;
+                       hga: for the High Gain Antenna;
+                       sa: for the Solar Arrays;
 
            TYPE      Data type, where a reference to the originator of the
                      data, the type of data and the and the reference period
@@ -711,33 +746,40 @@ FK Files
    The following table provides information on which file contains which
    frames, their file naming conventions and some particular details:
 
-      File                         Contents
-     ---------------------------  -----------------------------------------
-      earthfixediau.tf             Makes the IAU_EARTH coincide with
-                                   the Earth fixed reference frame.
+      File                              Contents
+     --------------------------------   ---------------------------------------
+      earthfixediau.tf                  Makes the IAU_EARTH coincide with
+                                        the Earth fixed reference frame.
 
-      earthfixeditrf93.tf          Makes the ITRF93 frame coincide with
-                                   the Earth fixed reference frame.
+      earthfixeditrf93.tf               Makes the ITRF93 frame coincide with
+                                        the Earth fixed reference frame.
 
-      estrack_vNN.tf               ESA Ground Stations topocentric frames.
+      estrack_vNN.tf                    ESA Ground Stations topocentric frames.
 
-      new_norcia_topo.tf           ESA New Norcia topocentric frame.
+      new_norcia_topo.tf                ESA New Norcia topocentric frame.
 
-      earth_topo_201023.tf         NASA DSN Ground Stations topocentric
-                                   frames.
+      earth_topo_YYMMDD.tf              NASA DSN Ground Stations topocentric
+                                        frames released at date YYMMDD.
 
-      rssd0002.tf                  Cross-mission frames kernel that defines
-                                   frames of interest not ``built'' in the
-                                   SPICE toolkit.
+      earthstns_ru_YYYYMMDD.tf          Russian ground stations topocentric
+                                        frames created at date YYYYMMDD.
 
-      em16_tgo_ops_vNN.tf          ExoMars 2016 TGO science operations
-                                   frames.
+      rssd0002.tf                       Cross-mission frames kernel that
+                                        defines frames of interest not
+                                        ``built'' in the SPICE toolkit.
 
-      em16_tgo_vNN.tf              ExoMars2016 TGO spacecraft, structures,
-                                   instruments and sensors frames.
+      em16_tgo_ops_vNN.tf               ExoMars 2016 TGO science operations
+                                        frames.
 
-      em16_dsk_surfaces_vNN.tf     ExoMars2016 TGO Surface definitions for
-                                   Digital Shape Kernels.
+      em16_tgo_vNN.tf                   ExoMars2016 TGO spacecraft, structures,
+                                        instruments and sensors frames.
+
+      em16_dsk_surfaces_vNN.tf          ExoMars2016 TGO Surface definitions for
+                                        Digital Shape Kernels.
+
+      em16_tgo_relay_locations_vNN.tf   ExoMars2016 TGO spacecraft relay
+                                        locations frames for selected Rovers
+                                        and Landers.
 
    where
 
@@ -775,36 +817,6 @@ DSK Files
                            hga for High Gain Antenna
                            samz for -Z Solar Array
                            sapz for +Z Solar Array
-
-        NN              version number (required; e.g. 01)
-
-
-   The naming scheme for the Natural Bodies DSKs is:
-
-      BODY_RRRR_PRO[_ID][_DESC]_vNN.bds
-
-   where
-
-        BODY            body:
-
-                           mars for Mars
-                           phobos for Phobos
-                           deimos for Deimos
-
-        RRRR            number of plates:
-
-                           Knnn for nnn thousand plates
-                           Mnnn for nnn million plates
-
-        PRO             producer:
-
-                           esa for European Space Agency
-                           dlr for Deutsches Zentrum fur Luft- und
-                               Raumfahrt e.V.
-                           gas for Gaskell, R.W.
-                           tho for Thomas, P.
-                           mol for Mars Global Surveyor MOLA data.
-
 
         NN              version number (required; e.g. 01)
 
