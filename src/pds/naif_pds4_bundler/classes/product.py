@@ -1912,7 +1912,7 @@ class OrbnumFileProduct(Product):
                 else:
                     break
 
-        return header_length + 1
+        return header_length
 
     def get_sample_record(self):
         """Read an orbnum file and return one record sample.
