@@ -497,6 +497,50 @@ def test_pds4_orbnum_generated_list(self):
     main(config, faucet=self.faucet, silent=self.silent, log=True)
 
 
+def test_pds4_orbnum_header_length_table_offset(self):
+    """Test header length and table offset of XML label for ORBNUM.
+
+    """
+    post_setup(self)
+    config = "../config/maven.xml"
+    updated_config = "working/maven.xml"
+    plan = "working/maven_orbnum.plan"
+
+    with open(config, "r") as c:
+        with open(updated_config, "w") as n:
+            for line in c:
+                if (
+                    '<kernel cutoff="True">../data/kernels/spk/'
+                    "maven_orb_rec_210101_210401_v2.bsp</kernel>" in line
+                ):
+                    n.write(
+                        '<kernel cutoff="True">kernels/spk/'
+                        "maven_orb_rec_140922_150101_v1.bsp</kernel>"
+                    )
+                else:
+                    n.write(line)
+
+    with open(plan, "w") as p:
+        p.write("maven_orb_rec_140922_150101_v1.orb")
+
+    main(updated_config, plan, faucet="bundle", silent=self.silent)
+
+    line_check = '<object_length unit="byte">268</object_length>'
+    if not string_in_file(
+        "maven/maven_spice/miscellaneous/orbnum/maven_orb_rec_140922_150101_v1.xml",
+        line_check,
+        1,
+    ):
+        raise BaseException
+    line_check = '<offset unit="byte">268</offset>'
+    if not string_in_file(
+        "maven/maven_spice/miscellaneous/orbnum/maven_orb_rec_140922_150101_v1.xml",
+        line_check,
+        1,
+    ):
+        raise BaseException
+
+
 def test_pds4_orbnum_multiple_files(self):
     """Test ORBNUM coverage for multiple files.
 

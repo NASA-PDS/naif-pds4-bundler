@@ -1902,7 +1902,7 @@ class OrbnumFileProduct(Product):
         :rtype: str
         """
         header_length = 0
-        with open(self.path, "r") as o:
+        with open(self.path, "r", newline='') as o:
             lines = 0
             header_start = int(self._orbnum_type["header_start_line"])
             for line in o:
