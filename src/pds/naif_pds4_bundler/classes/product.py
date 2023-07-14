@@ -1762,6 +1762,11 @@ class OrbnumFileProduct(Product):
             self.targets = targets
             self.observers = observers
 
+            if 'observer' in self._orbnum_type:
+                self.observers = [self._orbnum_type['observer']]
+            if 'target' in self._orbnum_type:
+                self.targets = [self._orbnum_type['target']]
+
         Product.__init__(self)
 
         #
