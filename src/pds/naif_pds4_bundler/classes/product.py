@@ -361,7 +361,7 @@ class SpiceKernelProduct(Product):
                     get_token = True
                 if get_token and "DESCRIPTION" in line:
                     description = line.split("=")[-1].strip()
-                    get_token = False
+                    break
 
         if not description:
             error_message(

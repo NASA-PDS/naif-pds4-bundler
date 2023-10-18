@@ -96,10 +96,7 @@ Errata
    2. C-Matrix Kernels generated from housekeeping telemetry contain several
       gaps for different known reasons. Some of the gaps might be restored in
       future versions of the bundle. Note that for S/C attitude those gaps
-      are covered by predicted CK files. For High Gain Antenna, Medium Gain
-      Antenna, Solar Arrays, and instruments with movable components the user
-      can load the CK files that provide canonical (zero) orientation. Note
-      that these last files are not included in the archive.
+      are covered by predicted CK files.
 
 <a href="#Table of Contents" style="float: right;">Back to Table of Contents</a>
 <a name="Archive Contents"></a>
@@ -281,7 +278,7 @@ SPK Files
 
    Naming Scheme for BepiColombo spacecraft SPKs:
 
-     The naming scheme for the BepiColombo spacecraft SPKs is:
+     The naming scheme for the BepiColombo spacecraft trajectory SPKs is:
 
            bc_SC_TYPE[_ID][_DESC]_YYYYMMDD_YYYYMMDD_vNN.bsp
 
@@ -428,6 +425,16 @@ SPK Files
 
            YYMMDD       product creation time (required);
 
+   Naming Scheme for JAXA ground stations SPKs
+
+     The naming scheme for JAXA ground stations SPKs is:
+
+           earthstns_jaxa_YYYYMMDD.bsp
+
+     where
+
+           YYYYMMDD       product creation time (required);
+
    Naming Scheme for BepiColombo science frames origins SPKs
 
      The naming scheme for BepiColombo science frames origins SPKs is:
@@ -456,6 +463,20 @@ PCK Files
      where
 
            NNNNN    version number (required)(e.g. 00010);
+
+                    If multiple versions of a generic PCK Kernel file are
+                    provided, always use the latest version (unless an
+                    earlier version is needed for some special reasons.)
+
+     The naming scheme for mission-specific PCKs is:
+
+           pckNNNNN_bc_vNN.tpc
+
+     where
+
+           NNNNN    PCK version number (required)(e.g. 00011);
+
+           NN       version number, starting from 01 (required; e.g. 01);
 
                     If multiple versions of a generic PCK Kernel file are
                     provided, always use the latest version (unless an
@@ -517,6 +538,7 @@ IK Files
 
                           mppe       for MPPE
                           msasi      for MSASI
+                          ssas       for SSAS
                           aux        for Auxiliary
                           bela       for BELA
                           mertis     for MERTIS
@@ -540,8 +562,7 @@ IK Files
 CK Files
 
    This directory contains the SPICE C-Kernel files for the BepiColombo
-   (MPO, MMO, MTM, MCS) spacecrafts, their structures, and science
-   instruments.
+   (MPO, MMO, MTM) spacecrafts, their structures, and science instruments.
 
    BepiColombo spacecraft CK:
 
@@ -555,7 +576,7 @@ CK Files
 
                        mpo: for the Mercury Planetary Orbiter (MPO)
                             spacecraft;
-                       mmo: for the Mercury Magnetospheric Orbiter (MPO)
+                       mmo: for the Mercury Magnetospheric Orbiter (MMO)
                             spacecraft;
                        mtm: for the Mercury Transfer Module (MTM)
                             spacecraft
@@ -744,11 +765,10 @@ FK Files
         bc_dsk_surfaces_vNN.tf       BepiColombo spacecraft Surface definitions
                                      for Digital Shape Kernels.
 
-        earthfixeditrf93.tf          Makes the ITRF93 frame coincide with
-                                     the Earth fixed reference frame.
-
         earth_topo_YYMMDD.tf         NASA DSN Ground Stations topocentric
                                      frames.
+
+        earthstns_jaxa_YYYYMMDD.tf   JAXA Ground Stations topocentric frames.
 
         rssd0002.tf                  Cross-mission frames kernel that defines
                                      frames of interest not ``built'' in the
@@ -760,7 +780,7 @@ FK Files
 
                           mpo: for the Mercury Planetary Orbiter (MPO)
                                spacecraft;
-                          mmo: for the Mercury Magnetospheric Orbiter (MPO)
+                          mmo: for the Mercury Magnetospheric Orbiter (MMO)
                                spacecraft;
                           mtm: for the Mercury Transfer Module (MTM)
                                spacecraft
@@ -793,7 +813,7 @@ DSK Files
 
                        mpo: for the Mercury Planetary Orbiter (MPO)
                             spacecraft;
-                       mmo: for the Mercury Magnetospheric Orbiter (MPO)
+                       mmo: for the Mercury Magnetospheric Orbiter (MMO)
                             spacecraft;
                        mtm: for the Mercury Transfer Module (MTM)
                             spacecraft
