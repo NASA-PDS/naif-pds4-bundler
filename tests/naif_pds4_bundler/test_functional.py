@@ -305,6 +305,9 @@ class TestFunctional(TestCase):
     def test_bc_multiple_obs_tar(self):
         bc.test_bc_multiple_obs_tar(self)
 
+    def test_bc_orbit_number_multiple_obs_tar(self):
+        bc.test_bc_orbit_number_multiple_obs_tar(self)
+
     #
     # MRO functional tests.
     #
