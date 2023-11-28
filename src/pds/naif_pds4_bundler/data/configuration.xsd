@@ -320,6 +320,8 @@
                       </xs:complexType>
                     </xs:element>
                     <xs:element name="author" type="xs:string" minOccurs="0"/>
+                    <xs:element name="observer" type="xs:string" minOccurs="0"/>
+                    <xs:element name="target" type="xs:string" minOccurs="0"/>
                   </xs:sequence>
                   <xs:assert test="not(event_detection_frame) or header_start_line" />
                   <xs:assert test="not(event_detection_frame) or pck" />

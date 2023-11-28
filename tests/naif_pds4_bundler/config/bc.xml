@@ -87,6 +87,7 @@
         <kernels_directory>kernels</kernels_directory>
         <staging_directory>staging</staging_directory>
         <bundle_directory>bc</bundle_directory>
+        <orbnum_directory>misc/orbnum</orbnum_directory>
     </directories>
 
     <!-- =========================== -->
@@ -683,4 +684,36 @@
             </metadata>
         </mk>
     </meta-kernel>
+    <!-- =========================== -->
+    <!-- Orbit number file           -->
+    <!-- =========================== -->
+    <orbit_number_file>
+        <orbnum>
+            <pattern>bc_mpo_mlt_[0-9]{5}_[0-9]{8}_[0-9]{8}_v[0-9]{2}.orb</pattern>
+            <event_detection_frame>
+                <spice_name>IAU_MERCURY</spice_name>
+                <description>Mercury body-fixed frame</description>
+            </event_detection_frame>
+            <header_start_line>1</header_start_line >
+            <pck>
+                <kernel_name>pck0011.tpc</kernel_name>
+                <description>December 27, 2022</description>
+            </pck>
+            <author>ESA SPICE Service</author>
+        </orbnum>
+        <orbnum>
+            <pattern>bc_mmo_mlt_[0-9]{5}_[0-9]{8}_[0-9]{8}_v[0-9]{2}.orb</pattern>
+            <event_detection_frame>
+                <spice_name>IAU_MERCURY</spice_name>
+                <description>Mercury body-fixed frame</description>
+            </event_detection_frame>
+            <header_start_line>1</header_start_line >
+            <pck>
+                <kernel_name>pck0011.tpc</kernel_name>
+                <description>December 27, 2022</description>
+            </pck>
+            <author>ESA SPICE Service</author>
+            <observer>MMO</observer>
+        </orbnum>
+    </orbit_number_file>
 </naif-pds4-bundler_configuration>

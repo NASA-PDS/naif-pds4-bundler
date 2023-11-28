@@ -361,7 +361,7 @@ class SpiceKernelProduct(Product):
                     get_token = True
                 if get_token and "DESCRIPTION" in line:
                     description = line.split("=")[-1].strip()
-                    get_token = False
+                    break
 
         if not description:
             error_message(
@@ -1761,6 +1761,11 @@ class OrbnumFileProduct(Product):
 
             self.targets = targets
             self.observers = observers
+
+            if 'observer' in self._orbnum_type:
+                self.observers = [self._orbnum_type['observer']]
+            if 'target' in self._orbnum_type:
+                self.targets = [self._orbnum_type['target']]
 
         Product.__init__(self)
 

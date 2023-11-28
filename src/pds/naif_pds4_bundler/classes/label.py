@@ -978,28 +978,14 @@ class MetaKernelPDS4Label(PDSLabel):
                 self.setup.logical_identifier, kernel_type, kernel.lower()
             )
 
-            #
-            # In fact this is a special case for ExoMars2016 as implemented
-            # by the ESA SPICE Service.
-            #
-            if tab == 4:
-                kernel_list_for_label += (
+            kernel_list_for_label += (
                     f"{' ' * 2 * tab}<Internal_Reference>{eol}"
-                    + f"{' ' * 3 * tab}<lid_reference>{kernel_lid}{eol}"
-                    f"{' ' * 3 * tab}</lid_reference>{eol}"
+                    + f"{' ' * 3 * tab}<lid_reference>{kernel_lid}"
+                      f"</lid_reference>{eol}"
                     + f"{' ' * 3 * tab}<reference_type>data_to_associate"
-                    f"</reference_type>{eol}"
+                      f"</reference_type>{eol}"
                     + f"{' ' * 2 * tab}</Internal_Reference>{eol}"
-                )
-            else:
-                kernel_list_for_label += (
-                    f"{' ' * 2*tab}<Internal_Reference>{eol}"
-                    + f"{' ' * 3*tab}<lid_reference>{kernel_lid}"
-                    f"</lid_reference>{eol}"
-                    + f"{' ' * 3*tab}<reference_type>data_to_associate"
-                    f"</reference_type>{eol}"
-                    + f"{' ' * 2*tab}</Internal_Reference>{eol}"
-                )
+            )
 
         kernel_list_for_label = kernel_list_for_label.rstrip() + eol
 
