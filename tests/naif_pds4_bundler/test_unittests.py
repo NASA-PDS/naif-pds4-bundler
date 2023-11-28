@@ -346,6 +346,9 @@ class TestUnitTests(TestCase):
     def test_pds4_orbnum_generated_list(self):
         orbnum.test_pds4_orbnum_generated_list(self)
 
+    def test_pds4_orbnum_header_length_table_offset(self):
+        orbnum.test_pds4_orbnum_header_length_table_offset(self)
+
     def test_pds4_orbnum_multiple_files(self):
         orbnum.test_pds4_orbnum_multiple_files(self)
 

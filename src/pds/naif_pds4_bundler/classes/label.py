@@ -1037,7 +1037,7 @@ class OrbnumFilePDS4Label(PDSLabel):
         #
         # The orbnum table data starts one byte after the header section.
         #
-        self.TABLE_OFFSET = str(product.header_length + 1)
+        self.TABLE_OFFSET = str(product.header_length)
         self.TABLE_RECORDS = str(product.records)
 
         #

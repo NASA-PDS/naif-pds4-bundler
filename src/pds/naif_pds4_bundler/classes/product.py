@@ -1902,7 +1902,7 @@ class OrbnumFileProduct(Product):
         :rtype: str
         """
         header_length = 0
-        with open(self.path, "r") as o:
+        with open(self.path, "r", newline='') as o:
             lines = 0
             header_start = int(self._orbnum_type["header_start_line"])
             for line in o:
@@ -1912,7 +1912,7 @@ class OrbnumFileProduct(Product):
                 else:
                     break
 
-        return header_length + 1
+        return header_length
 
     def get_sample_record(self):
         """Read an orbnum file and return one record sample.
