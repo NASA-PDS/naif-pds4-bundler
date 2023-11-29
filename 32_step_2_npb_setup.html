@@ -4,19 +4,16 @@
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Step 2: Preparing the NAIF PDS4 Bundler Setup &mdash; NAIF PDS4 Bundler 1.5.0
+  <title>Step 2: Preparing the NAIF PDS4 Bundler Setup &mdash; NAIF PDS4 Bundler 1.6.0
  documentation</title>
   
 
   
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
 
   
   
@@ -30,11 +27,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -66,7 +62,7 @@
             
             
               <div class="version">
-                1.5
+                1.6
               </div>
             
           
@@ -188,8 +184,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <section id="step-2-preparing-the-naif-pds4-bundler-setup">
-<h1>Step 2: Preparing the NAIF PDS4 Bundler Setup<a class="headerlink" href="#step-2-preparing-the-naif-pds4-bundler-setup" title="Permalink to this heading">¶</a></h1>
+  <div class="section" id="step-2-preparing-the-naif-pds4-bundler-setup">
+<h1>Step 2: Preparing the NAIF PDS4 Bundler Setup<a class="headerlink" href="#step-2-preparing-the-naif-pds4-bundler-setup" title="Permalink to this headline">¶</a></h1>
 <p>After having gathered, prepared, and listed the kernels to archive the next
 step is to get ready to run the NAIF PDS4 Bundler (NPB). You need to
 take the following steps:</p>
@@ -201,8 +197,8 @@ take the following steps:</p>
 <li><p>write and/or update the NPB configuration file</p></li>
 </ul>
 </div></blockquote>
-<section id="workspace-setup">
-<h2>Workspace Setup<a class="headerlink" href="#workspace-setup" title="Permalink to this heading">¶</a></h2>
+<div class="section" id="workspace-setup">
+<h2>Workspace Setup<a class="headerlink" href="#workspace-setup" title="Permalink to this headline">¶</a></h2>
 <p>NPB requires a directory layout but without a rigid or particular structure
 since each directory is specified in the configuration file. Although
 this is discussed later under the configuration file section, NPB needs to
@@ -215,8 +211,8 @@ generation logs and by-products (<strong>working</strong> directory).</p>
 <p>If you are providing your own templates to NPB then you will also need to
 specify a directory for them (<strong>templates</strong> directory.)</p>
 <p>The working, staging, and bundle directories cannot be the same.</p>
-<section id="working-directory">
-<h3>Working Directory<a class="headerlink" href="#working-directory" title="Permalink to this heading">¶</a></h3>
+<div class="section" id="working-directory">
+<h3>Working Directory<a class="headerlink" href="#working-directory" title="Permalink to this headline">¶</a></h3>
 <p>NPB requires a directory to generate the execution by-products that include but
 are not limited to (depending on the execution arguments): an execution log,
 a  kernel list, diff report files, and the file list. These files are described
@@ -225,9 +221,9 @@ in detail in the section <a class="reference internal" href="43_using_npb.html#e
 permanent directory to store the files used and generated for each archive
 release: configuration file, validation report, release plan, etc. This allows
 you to have a history of all the releases of an archive.</p>
-</section>
-<section id="kernels-directory">
-<h3>Kernels Directory<a class="headerlink" href="#kernels-directory" title="Permalink to this heading">¶</a></h3>
+</div>
+<div class="section" id="kernels-directory">
+<h3>Kernels Directory<a class="headerlink" href="#kernels-directory" title="Permalink to this headline">¶</a></h3>
 <p>NPB needs to know where it will get the input kernels from. You can define as
 many kernel directories as you want via configuration: NPB will search all of
 them –and their eventual sub-directories– looking for the kernels specified
@@ -260,24 +256,24 @@ kernels:</p>
 <p>Alternatively all the kernels could simply be under <code class="docutils literal notranslate"><span class="pre">kernels</span></code> or you could
 have the complete operational SPICE kernels sub-directory structrue as in
 the <a class="reference external" href="https://naif.jpl.nasa.gov/pub/naif/INSIGHT/kernels/">INSIGHT operational kernels at NAIF</a>.</p>
-</section>
-<section id="orbnum-directory">
-<h3>ORBNUM Directory<a class="headerlink" href="#orbnum-directory" title="Permalink to this heading">¶</a></h3>
+</div>
+<div class="section" id="orbnum-directory">
+<h3>ORBNUM Directory<a class="headerlink" href="#orbnum-directory" title="Permalink to this headline">¶</a></h3>
 <p>ORBNUM files are not stored in the <strong>kernels</strong> directory, therefore
 NPB requires you to specify where the ORBNUM files are located. For some
 missions these files are under the <code class="docutils literal notranslate"><span class="pre">kernels/spk</span></code> directory, for others they
 are under <code class="docutils literal notranslate"><span class="pre">misc/orbnum</span></code>, and for others they are generated for the occasion
 and could be anywhere.</p>
-</section>
-<section id="staging-directory">
-<h3>Staging Directory<a class="headerlink" href="#staging-directory" title="Permalink to this heading">¶</a></h3>
+</div>
+<div class="section" id="staging-directory">
+<h3>Staging Directory<a class="headerlink" href="#staging-directory" title="Permalink to this headline">¶</a></h3>
 <p>The staging directory is used by NPB to copy the input files to, and to generate
 the archive increment. This directory could be empty for every NPB run or could
 contain the files of the previous increment.</p>
 <p>NAIF recommends you clear this directory for every archive release.</p>
-</section>
-<section id="bundle-directory">
-<h3>Bundle Directory<a class="headerlink" href="#bundle-directory" title="Permalink to this heading">¶</a></h3>
+</div>
+<div class="section" id="bundle-directory">
+<h3>Bundle Directory<a class="headerlink" href="#bundle-directory" title="Permalink to this headline">¶</a></h3>
 <p>The bundle directory points to the complete archive. This directory could be
 the final, public destination of the archive or not (NAIF recommends
 against it being the final destination). In any case this directory must contain
@@ -285,16 +281,16 @@ the complete archive.</p>
 <p>NPB will copy the resulting files of the run (in the staging area) to this
 bundle directory, unless indicated otherwise, as you will be able to learn in
 <a class="reference internal" href="43_using_npb.html#optional-arguments-description"><span class="std std-ref">Optional Arguments Description</span></a>.</p>
-</section>
-</section>
-<section id="determination-of-the-archive-release-version">
-<h2>Determination of the Archive Release Version<a class="headerlink" href="#determination-of-the-archive-release-version" title="Permalink to this heading">¶</a></h2>
+</div>
+</div>
+<div class="section" id="determination-of-the-archive-release-version">
+<h2>Determination of the Archive Release Version<a class="headerlink" href="#determination-of-the-archive-release-version" title="Permalink to this headline">¶</a></h2>
 <p>NPB will determine the archive release version by accessing the existing bundle
 label from the bundle directory. If no bundle is present NPB will default the
 version to <code class="docutils literal notranslate"><span class="pre">01</span></code>.</p>
-</section>
-<section id="spice-kernel-descriptions-across-the-archive">
-<h2>SPICE Kernel descriptions across the archive<a class="headerlink" href="#spice-kernel-descriptions-across-the-archive" title="Permalink to this heading">¶</a></h2>
+</div>
+<div class="section" id="spice-kernel-descriptions-across-the-archive">
+<h2>SPICE Kernel descriptions across the archive<a class="headerlink" href="#spice-kernel-descriptions-across-the-archive" title="Permalink to this headline">¶</a></h2>
 <p>Spending the effort to prepare adequate descriptions of the data is
 essential to guarantee that the data can be used correctly and efficiently
 by future users. NAIF requires that SPICE archives provide kernel data
@@ -323,9 +319,9 @@ original name, and their producer.</p>
 <p>Descriptions that are expected to be included in the SPICEDS file and in
 labels are described in greater detail in the next few sub-sections of this
 document.</p>
-</section>
-<section id="spice-data-set-catalog-file">
-<h2>SPICE Data Set Catalog File<a class="headerlink" href="#spice-data-set-catalog-file" title="Permalink to this heading">¶</a></h2>
+</div>
+<div class="section" id="spice-data-set-catalog-file">
+<h2>SPICE Data Set Catalog File<a class="headerlink" href="#spice-data-set-catalog-file" title="Permalink to this headline">¶</a></h2>
 <p>The SPICE Archive Description file (SPICEDS) provides a high level overview of
 SPICE, Kernel types, and the archive; covering briefly the type of information
 provided in, the source of, and the accuracy of each kind of kernel included in
@@ -470,9 +466,9 @@ old mission acronyms, new and old kernels, and so on.</p>
 <p>Finally, we recommend lines in a SPICEDS document be no longer than 78
 characters with the only exception for lines containing HTML references that
 can extend beyond the 78 character limit.</p>
-</section>
-<section id="install-and-or-update-the-naif-pds4-bundler">
-<h2>Install and/or update the NAIF PDS4 Bundler<a class="headerlink" href="#install-and-or-update-the-naif-pds4-bundler" title="Permalink to this heading">¶</a></h2>
+</div>
+<div class="section" id="install-and-or-update-the-naif-pds4-bundler">
+<h2>Install and/or update the NAIF PDS4 Bundler<a class="headerlink" href="#install-and-or-update-the-naif-pds4-bundler" title="Permalink to this headline">¶</a></h2>
 <p>Once the kernels are ready, the kernel list is ready, the meta-kernels have been
 identified or have been written, the workspace is in place, and the SPICEDS file
 has been generated or updated, it is time for the NAIF PDS4 Bundler (NPB) to
@@ -486,73 +482,9 @@ here.</p>
 </pre></div>
 </div>
 <p>You should see a result similar to the following one:</p>
-<span class="target" id="module-pds.naif_pds4_bundler.__main__"></span><p><strong>NAIF PDS4 Bundler Main Module</strong>.</p>
-<p>usage: naif-pds4-bundler [-h] [-p PLAN] [-f FAUCET] [-l] [-s] [-v] [-d DIFF] [-c CLEAR] [-k KERLIST] CONFIG [CONFIG …]</p>
-<p><strong>naif-pds4-bundler-0.13.1, NAIF PDS4 SPICE archive generation pipeline</strong></p>
-<p>naif-pds4-bundler is a command-line utility program that generates PDS4
-bundles for SPICE kernel archives.</p>
-<dl>
-<dt>positional arguments:</dt><dd><p>CONFIG                XML Configuration file</p>
-</dd>
-<dt>optional arguments:</dt><dd><dl class="option-list">
-<dt><kbd><span class="option">-h</span>, <span class="option">--help</span></kbd></dt>
-<dd><p>show this help message and exit</p>
-</dd>
-<dt><kbd><span class="option">-p <var>PLAN</var></span>, <span class="option">--plan <var>PLAN</var></span></kbd></dt>
-<dd><p>Release plan file listing the kernels and/or ORBNUM
-files to be archived. If this argument is not
-provided, all the kernels found in the kernels
-directory specified in the configuration file
-in addition to new meta-kernels will be included
-in the increment. If the <code class="docutils literal notranslate"><span class="pre">-x</span> <span class="pre">--xml</span></code> argument
-is used this argument can be the name of a
-kernel or the path to a release plan file
-(ORBNUM files will be ignored.)</p>
-</dd>
-<dt><kbd><span class="option">-f <var>FAUCET</var></span>, <span class="option">--faucet <var>FAUCET</var></span></kbd></dt>
-<dd><p>Optional indication for end point of the pipeline.
-Allowed values are: <code class="docutils literal notranslate"><span class="pre">clear</span></code>, <code class="docutils literal notranslate"><span class="pre">plan</span></code>, <code class="docutils literal notranslate"><span class="pre">list</span></code>,
-<code class="docutils literal notranslate"><span class="pre">checks</span></code>, <code class="docutils literal notranslate"><span class="pre">staging</span></code>, <code class="docutils literal notranslate"><span class="pre">bundle</span></code>, and <code class="docutils literal notranslate"><span class="pre">labels</span></code>.</p>
-</dd>
-<dt><kbd><span class="option">-l</span>, <span class="option">--log</span></kbd></dt>
-<dd><p>Write log in file</p>
-</dd>
-<dt><kbd><span class="option">-s</span>, <span class="option">--silent</span></kbd></dt>
-<dd><p>Log will not be prompted on the terminal during
-execution.</p>
-</dd>
-<dt><kbd><span class="option">-v</span>, <span class="option">--verbose</span></kbd></dt>
-<dd><p>Full log will be prompted on the terminal during
-execution. If the argument is provided the
-<code class="docutils literal notranslate"><span class="pre">-s,</span> <span class="pre">--silent</span></code> argument is omitted.</p>
-</dd>
-<dt><kbd><span class="option">-d <var>DIFF</var></span>, <span class="option">--diff <var>DIFF</var></span></kbd></dt>
-<dd><p>Optional generation of diff reports for products.
-Allowed values are: <code class="docutils literal notranslate"><span class="pre">files</span></code>, <code class="docutils literal notranslate"><span class="pre">log</span></code>, and <code class="docutils literal notranslate"><span class="pre">all</span></code>.</p>
-</dd>
-<dt><kbd><span class="option">-c <var>CLEAR</var></span>, <span class="option">--clear <var>CLEAR</var></span></kbd></dt>
-<dd><p>Clears the files listed in the input file from the
-staging and bundle directories and the kernel list
-from the working directory. The input file should be
-as generated by a prior execution with a <code class="docutils literal notranslate"><span class="pre">*.file_list</span></code>
-extension. If this argument is provided it
-overwrites the faucet argument to <code class="docutils literal notranslate"><span class="pre">clear</span></code> and
-therefore the pipeline is not executed. If you
-provide the adequate <code class="docutils literal notranslate"><span class="pre">-f,</span> <span class="pre">--faucet</span></code> argument, the
-pipeline will be executed until indicated.</p>
-</dd>
-<dt><kbd><span class="option">-k <var>KERLIST</var></span>, <span class="option">--kerlist <var>KERLIST</var></span></kbd></dt>
-<dd><p>Release plan file listing the kernels to be archived
-along with some parameters required for the run.
-If this argument is provided the release plan is
-not generated.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</section>
-<section id="write-and-or-update-the-npb-configuration-file">
-<h2>Write and/or update the NPB Configuration File<a class="headerlink" href="#write-and-or-update-the-npb-configuration-file" title="Permalink to this heading">¶</a></h2>
+</div>
+<div class="section" id="write-and-or-update-the-npb-configuration-file">
+<h2>Write and/or update the NPB Configuration File<a class="headerlink" href="#write-and-or-update-the-npb-configuration-file" title="Permalink to this headline">¶</a></h2>
 <p>Writing and/or updating the NPB Configuration File is the most important and
 “challenging” step of the archive generation, second only to the collection and
 preparation of the data. It requires a considerable effort, especially for the
@@ -574,8 +506,8 @@ version. The MAVEN release 26 configuration file will be:</p>
 </pre></div>
 </div>
 <p>We recommend that you move and keep this file in your <strong>working</strong> directory.</p>
-</section>
-</section>
+</div>
+</div>
 
 
            </div>

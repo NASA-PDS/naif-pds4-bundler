@@ -4,19 +4,16 @@
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Step 1: Preparing Data &mdash; NAIF PDS4 Bundler 1.5.0
+  <title>Step 1: Preparing Data &mdash; NAIF PDS4 Bundler 1.6.0
  documentation</title>
   
 
   
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
 
   
   
@@ -30,11 +27,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -66,7 +62,7 @@
             
             
               <div class="version">
-                1.5
+                1.6
               </div>
             
           
@@ -200,8 +196,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <section id="step-1-preparing-data">
-<h1>Step 1: Preparing Data<a class="headerlink" href="#step-1-preparing-data" title="Permalink to this heading">¶</a></h1>
+  <div class="section" id="step-1-preparing-data">
+<h1>Step 1: Preparing Data<a class="headerlink" href="#step-1-preparing-data" title="Permalink to this headline">¶</a></h1>
 <p>Ideally a SPICE kernel archive for a mission should include a comprehensive
 set of kernels allowing a scientist to compute geometry for any of the
 mission instruments in regards to any of the mission targets at all
@@ -218,8 +214,8 @@ included in the archive.</p>
 archived, if all data are present in a given directory structure or in a
 release plan, you might as well jump to
 <a class="reference internal" href="32_step_2_npb_setup.html#step-2-preparing-the-naif-pds4-bundler-setup"><span class="std std-ref">Step 2: Preparing the NAIF PDS4 Bundler Setup</span></a>.</p>
-<section id="identifying-data">
-<h2>Identifying Data<a class="headerlink" href="#identifying-data" title="Permalink to this heading">¶</a></h2>
+<div class="section" id="identifying-data">
+<h2>Identifying Data<a class="headerlink" href="#identifying-data" title="Permalink to this headline">¶</a></h2>
 <p>Usually identifying data that should go into the archive is not very
 difficult, especially when SPICE kernels were produced and used by the
 project during operations. In such cases the following kernels used
@@ -454,9 +450,9 @@ version of the meta-kernel(s) should be created including this kernel
 file instead of the kernel file(s) that it supersedes.</p></li>
 </ul>
 </div></blockquote>
-</section>
-<section id="collecting-and-preparing-data">
-<h2>Collecting and Preparing Data<a class="headerlink" href="#collecting-and-preparing-data" title="Permalink to this heading">¶</a></h2>
+</div>
+<div class="section" id="collecting-and-preparing-data">
+<h2>Collecting and Preparing Data<a class="headerlink" href="#collecting-and-preparing-data" title="Permalink to this headline">¶</a></h2>
 <p>Once the data files have been identified it makes sense to collect them
 in a single area (the <code class="docutils literal notranslate"><span class="pre">kernels_directory</span></code>) because frequently the kernels
 need to be pre-processed before they can go into the archive. Such
@@ -486,8 +482,8 @@ the following:</p>
 </ul>
 </div></blockquote>
 <p>Some rationale for each of these modifications are provided hereunder.</p>
-<section id="merging-files">
-<h3>Merging Files<a class="headerlink" href="#merging-files" title="Permalink to this heading">¶</a></h3>
+<div class="section" id="merging-files">
+<h3>Merging Files<a class="headerlink" href="#merging-files" title="Permalink to this headline">¶</a></h3>
 <p>The data from two or more files may need to be merged together
 for a number of reasons: to reduce the number of files included
 in the archive, to eliminate gaps in coverage at the file
@@ -544,9 +540,9 @@ generic Toolkit can be used to merge SPK files. <code class="docutils literal no
 merge CK files. In some cases NAIF puts together scripts
 wrapped around these merge utilities to facilitate file merge
 tasks that have to be repeated for each archive release.</p>
-</section>
-<section id="sub-setting-files">
-<h3>Sub-setting Files<a class="headerlink" href="#sub-setting-files" title="Permalink to this heading">¶</a></h3>
+</div>
+<div class="section" id="sub-setting-files">
+<h3>Sub-setting Files<a class="headerlink" href="#sub-setting-files" title="Permalink to this headline">¶</a></h3>
 <p>Sub-setting source files to produce archival files with reduced
 scope or coverage is needed very rarely. In general it is
 better to include data files with coverage that extends beyond
@@ -558,9 +554,9 @@ the generic Toolkit) can be used to subset SPK files and the
 <code class="docutils literal notranslate"><span class="pre">CKSLICER</span></code> utility (available on the
 <a class="reference external" href="http://naif.jpl.nasa.gov/naif/utilities.html">NAIF server</a> ) can be used to
 subset CK files.</p>
-</section>
-<section id="augmenting-files-with-comments">
-<h3>Augmenting Files with Comments<a class="headerlink" href="#augmenting-files-with-comments" title="Permalink to this heading">¶</a></h3>
+</div>
+<div class="section" id="augmenting-files-with-comments">
+<h3>Augmenting Files with Comments<a class="headerlink" href="#augmenting-files-with-comments" title="Permalink to this headline">¶</a></h3>
 <p>It is absolutely crucial that every kernel included in the
 archive contains comprehensive internal comments describing its
 contents, source(s) of the data, applicability of the data,
@@ -631,11 +627,11 @@ files are guaranteed to have this ID word, but the ASCII text
 kernels: FK, IK, LSK, PCK, SCLK, are not. For completeness,
 the appropriate ID words are listed hereunder, so that they may be
 inserted into the ASCII text kernel files if necessary.</p>
-<table class="docutils align-default" id="id4">
+<table class="colwidths-given docutils align-default" id="id4">
 <caption><span class="caption-text">NAIF File ID Words</span><a class="headerlink" href="#id4" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col style="width: 50.0%" />
-<col style="width: 50.0%" />
+<col style="width: 50%" />
+<col style="width: 50%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>ASCII Text File Type</p></th>
@@ -670,9 +666,9 @@ done by the person who puts the archive together by hand or by
 certainly possible to automate generating comments for a string
 of files of a certain type using a template and inserting these
 comments into the files.</p>
-</section>
-<section id="renaming-files">
-<h3>Renaming Files<a class="headerlink" href="#renaming-files" title="Permalink to this heading">¶</a></h3>
+</div>
+<div class="section" id="renaming-files">
+<h3>Renaming Files<a class="headerlink" href="#renaming-files" title="Permalink to this headline">¶</a></h3>
 <p>The names of the files to be included in the archive must comply with the PDS4
 file name rules. Rules for forming file and directory names are given in the
 PDS4 Standards Reference <a class="reference internal" href="12_bugs_contact_references.html#pds4std" id="id2"><span>[PDS4STD]</span></a>. Here are a few things to keep in mind:</p>
@@ -705,11 +701,11 @@ periods other than the final one to be part of the base name.</p></li>
 <p>The requirement that NAIF imposes in addition to these general PDS requirements
 is that the extensions of the kernel files must follow the established
 convention for SPICE kernels:</p>
-<table class="docutils align-default" id="id5">
+<table class="colwidths-given docutils align-default" id="id5">
 <caption><span class="caption-text">SPICE kernels extensions</span><a class="headerlink" href="#id5" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col style="width: 50.0%" />
-<col style="width: 50.0%" />
+<col style="width: 50%" />
+<col style="width: 50%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Kernel type</p></th>
@@ -801,10 +797,10 @@ kernel internal comments (See section <a class="reference internal" href="42_npb
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">maven_202210101_20220101_v01</span><span class="o">.</span><span class="n">bsp</span>
 </pre></div>
 </div>
-</section>
-</section>
-<section id="validating-data">
-<h2>Validating Data<a class="headerlink" href="#validating-data" title="Permalink to this heading">¶</a></h2>
+</div>
+</div>
+<div class="section" id="validating-data">
+<h2>Validating Data<a class="headerlink" href="#validating-data" title="Permalink to this headline">¶</a></h2>
 <p>Although the majority of the source kernels (both those that go into the
 archive “as is” and those that have been used to make the merged
 archive files) have been used in operations and have been validated by
@@ -864,9 +860,9 @@ a time and effort consuming activity. Still, the person preparing the
 archive should try to give their best effort to make sure that each
 archive release contains the complete set of files (in terms of scope
 and coverage) that are well documented with internal comments.</p>
-</section>
-<section id="binary-kernels-endianness">
-<h2>Binary Kernels Endianness<a class="headerlink" href="#binary-kernels-endianness" title="Permalink to this heading">¶</a></h2>
+</div>
+<div class="section" id="binary-kernels-endianness">
+<h2>Binary Kernels Endianness<a class="headerlink" href="#binary-kernels-endianness" title="Permalink to this headline">¶</a></h2>
 <p>As specified in <a class="reference internal" href="21_naif_approach.html#naif-s-approach-to-spice-kernel-archive-preparation"><span class="std std-ref">NAIF’s Approach to SPICE Kernel Archive Preparation</span></a>,
 NAIF requires all binary kernels to be in <code class="docutils literal notranslate"><span class="pre">LTL-IEEE</span></code> (little-endian, also
 known as IEEE LSB) binary format. By default NPB will enforce binary kernels to
@@ -891,9 +887,9 @@ LTL-IEEE
 </div>
 <p>The endianness of the binary kernels of the archive should be indicated in the
 <strong>File Formats</strong> section of the SPICEDS file.</p>
-</section>
-<section id="preparing-meta-kernels">
-<h2>Preparing Meta-kernels<a class="headerlink" href="#preparing-meta-kernels" title="Permalink to this heading">¶</a></h2>
+</div>
+<div class="section" id="preparing-meta-kernels">
+<h2>Preparing Meta-kernels<a class="headerlink" href="#preparing-meta-kernels" title="Permalink to this headline">¶</a></h2>
 <p>Meta-kernel files (MKs, a.k.a “furnsh” files) provide a list of the
 kernels included in the archive suitable for loading
 into a SPICE-based application via the high level SPICE data
@@ -931,8 +927,8 @@ release of a given year the added MKs are:</p>
 </div>
 <p>MKs can either be manually generated by the archive producer (or by the
 operations team) or can be automatically generated (or assisted) by NPB.</p>
-<section id="generating-mks-manually">
-<h3>Generating MKs Manually<a class="headerlink" href="#generating-mks-manually" title="Permalink to this heading">¶</a></h3>
+<div class="section" id="generating-mks-manually">
+<h3>Generating MKs Manually<a class="headerlink" href="#generating-mks-manually" title="Permalink to this headline">¶</a></h3>
 <p>If you chose to generate MKs manually, we recommend that as a starting point
 you use a MK from a similar archive or if you are incrementing an already
 existing archive to use the latest archived MK.</p>
@@ -942,9 +938,9 @@ alternatively you can place the MK in the MK subdirectory of your input
 kernels directory and then include it in the release plan as indicated in
 <a class="reference internal" href="#meta-kernels-in-the-release-plan"><span class="std std-ref">Meta-kernels in the release plan</span></a>.</p>
 <p>More information on how to generate adequate MKs is available at <a class="reference internal" href="12_bugs_contact_references.html#kernels" id="id3"><span>[KERNELS]</span></a>.</p>
-</section>
-<section id="generating-mks-automatically">
-<h3>Generating MKs Automatically<a class="headerlink" href="#generating-mks-automatically" title="Permalink to this heading">¶</a></h3>
+</div>
+<div class="section" id="generating-mks-automatically">
+<h3>Generating MKs Automatically<a class="headerlink" href="#generating-mks-automatically" title="Permalink to this headline">¶</a></h3>
 <p>The generation of MKs can be automatized by providing to the NPB configuration
 file the appropriate parameters. This is described in detail in
 <a class="reference internal" href="42_npb_configuration_file.html#automatic-generation-of-meta-kernels"><span class="std std-ref">Automatic generation of Meta-kernels</span></a>.</p>
@@ -957,9 +953,9 @@ possibilities of a human error. We know by experience that introducing errors
 in manually generated MKs is very common.</p>
 <p>Regardless of the method that you chose to generate MKs be especially careful
 when reviewing and validating them.</p>
-</section>
-<section id="bundle-coverage-and-mks">
-<h3>Bundle coverage and MKs<a class="headerlink" href="#bundle-coverage-and-mks" title="Permalink to this heading">¶</a></h3>
+</div>
+<div class="section" id="bundle-coverage-and-mks">
+<h3>Bundle coverage and MKs<a class="headerlink" href="#bundle-coverage-and-mks" title="Permalink to this headline">¶</a></h3>
 <p>In general, MKs will determine the archive increment start and finish times as
 described in section <a class="reference internal" href="22_pds4_spice_archive.html#product-coverage-assignment-rules"><span class="std std-ref">Product Coverage Assignment Rules</span></a>.</p>
 <p>The coverage will be determined by either a CK or a SPK kernel as specified
@@ -971,9 +967,9 @@ dates required by the archive, e.g.: a lander mission with a fixed
 position provided by an SPK with extended coverage –this is the case for
 InSight–. This configuration parameter is explained in section
 <a class="reference internal" href="42_npb_configuration_file.html#increment-start-and-finish-times"><span class="std std-ref">Increment Start and Finish Times</span></a>.</p>
-</section>
-<section id="releases-without-mks">
-<h3>Releases without MKs<a class="headerlink" href="#releases-without-mks" title="Permalink to this heading">¶</a></h3>
+</div>
+<div class="section" id="releases-without-mks">
+<h3>Releases without MKs<a class="headerlink" href="#releases-without-mks" title="Permalink to this headline">¶</a></h3>
 <p>But what if the release does not have any MK? This is perfectly fine, but
 NPB will lose the ability to compute the increment coverage from the MK and if
 the increment coverage is not provided via configuration as explained in section
@@ -981,10 +977,10 @@ the increment coverage is not provided via configuration as explained in section
 the increment times will be set to the mission start and finish times specified
 in the configuration file as described in section
 <a class="reference internal" href="42_npb_configuration_file.html#mission-parameters"><span class="std std-ref">Mission Parameters</span></a>.</p>
-</section>
-</section>
-<section id="a-word-on-orbit-number-files">
-<h2>A Word on Orbit Number Files<a class="headerlink" href="#a-word-on-orbit-number-files" title="Permalink to this heading">¶</a></h2>
+</div>
+</div>
+<div class="section" id="a-word-on-orbit-number-files">
+<h2>A Word on Orbit Number Files<a class="headerlink" href="#a-word-on-orbit-number-files" title="Permalink to this headline">¶</a></h2>
 <p>For some of the orbiter-style missions NAIF has created a derived geometry
 product known as an Orbit Number File (ORBNUM). The primary purpose of such a
 file is to provide SPICE users a means to determine the time boundaries for
@@ -1019,9 +1015,9 @@ frame.</p>
 included in the archive.</p>
 <p>NPB includes several examples of ORBNUM files that can be found at
 <code class="docutils literal notranslate"><span class="pre">naif-pds4-bundler/tests/naif_pds4_bundler/data/misc/orbnum</span></code></p>
-</section>
-<section id="a-word-on-other-files">
-<h2>A Word on Other Files<a class="headerlink" href="#a-word-on-other-files" title="Permalink to this heading">¶</a></h2>
+</div>
+<div class="section" id="a-word-on-other-files">
+<h2>A Word on Other Files<a class="headerlink" href="#a-word-on-other-files" title="Permalink to this headline">¶</a></h2>
 <p>If the project produces other value-added files closely related to
 kernels and “insists” on archiving them, these files can also be added
 to the archive’s Miscellaneous collection, but will require a deviation from
@@ -1031,9 +1027,9 @@ reconstructed and C-smithed CK files. CASSINI requests these plots be
 included in the archive.</p>
 <p>NAIF neither objects to nor recommends practices like this. If this is required
 we recommend you contact NAIF.</p>
-</section>
-<section id="obtaining-a-doi">
-<h2>Obtaining a DOI<a class="headerlink" href="#obtaining-a-doi" title="Permalink to this heading">¶</a></h2>
+</div>
+<div class="section" id="obtaining-a-doi">
+<h2>Obtaining a DOI<a class="headerlink" href="#obtaining-a-doi" title="Permalink to this headline">¶</a></h2>
 <p>DOIs are not mandatory for SPICE kernel archives but are desirable.
 The DOI is provided in the NPB configuration file.</p>
 <p>If the archive uses IM 1.5.0.0, it will not be able to include the DOI tag in
@@ -1044,12 +1040,12 @@ If you are producing a NASA SPICE Kernel bundle see the
 <a class="reference external" href="https://pds.jpl.nasa.gov/datastandards/citing/">PDS Citation indications</a>.
 Note that a DOI will need a landing page, Below are a couple of examples
 of DOIs and landing pages:</p>
-<table class="docutils align-default" id="id6">
+<table class="colwidths-given docutils align-default" id="id6">
 <caption><span class="caption-text">DOI Examples</span><a class="headerlink" href="#id6" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col style="width: 25.0%" />
-<col style="width: 15.0%" />
-<col style="width: 60.0%" />
+<col style="width: 25%" />
+<col style="width: 15%" />
+<col style="width: 60%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Archive</p></th>
@@ -1070,9 +1066,9 @@ of DOIs and landing pages:</p>
 </table>
 <p>Again coordinate with your archiving authority. To resolve a DOI to its Landing
 Page you can use the <a class="reference external" href="https://dx.doi.org/">DOI resolution resource</a>.</p>
-</section>
-<section id="writing-the-release-plan">
-<h2>Writing the Release Plan<a class="headerlink" href="#writing-the-release-plan" title="Permalink to this heading">¶</a></h2>
+</div>
+<div class="section" id="writing-the-release-plan">
+<h2>Writing the Release Plan<a class="headerlink" href="#writing-the-release-plan" title="Permalink to this headline">¶</a></h2>
 <p>After having gathered all the SPICE kernels and ORBNUM files (if applicable),
 you can (and probably must) write an Archive <strong>Release Plan</strong>, this release
 plan is a text file that will list all the kernels to be included in the archive
@@ -1120,22 +1116,22 @@ version. The MAVEN release 24 plan will be:</p>
 <p>For archive increments after the first or second release, we recommend that
 you use the previous release plan as the starting point or the release plan
 (copy the previous one and update it.)</p>
-<section id="using-no-release-plan">
-<h3>Using no Release Plan<a class="headerlink" href="#using-no-release-plan" title="Permalink to this heading">¶</a></h3>
+<div class="section" id="using-no-release-plan">
+<h3>Using no Release Plan<a class="headerlink" href="#using-no-release-plan" title="Permalink to this headline">¶</a></h3>
 <p>Please note you can run NPB without providing a release plan. If you choose to
 do so, NPB will take as inputs all the kernel files that it finds in the
 kernels directory(ies) and will generate a release plan for you. This option is
 useful when the kernel directory(ies) are generated ad-hoc for each release
 or for first releases of small archives.</p>
-</section>
-<section id="meta-kernels-in-the-release-plan">
-<h3>Meta-kernels in the release plan<a class="headerlink" href="#meta-kernels-in-the-release-plan" title="Permalink to this heading">¶</a></h3>
+</div>
+<div class="section" id="meta-kernels-in-the-release-plan">
+<h3>Meta-kernels in the release plan<a class="headerlink" href="#meta-kernels-in-the-release-plan" title="Permalink to this headline">¶</a></h3>
 <p>The inclusion of Meta-kernels in the release plan is optional if you have
 already specified their location via configuration
 (see <a class="reference internal" href="42_npb_configuration_file.html#meta-kernel"><span class="std std-ref">Meta-kernel</span></a>).</p>
-</section>
-</section>
-</section>
+</div>
+</div>
+</div>
 
 
            </div>

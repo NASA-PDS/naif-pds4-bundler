@@ -4,19 +4,16 @@
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>The Configuration File &mdash; NAIF PDS4 Bundler 1.5.0
+  <title>The Configuration File &mdash; NAIF PDS4 Bundler 1.6.0
  documentation</title>
   
 
   
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
 
   
   
@@ -30,11 +27,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -66,7 +62,7 @@
             
             
               <div class="version">
-                1.5
+                1.6
               </div>
             
           
@@ -213,8 +209,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <section id="the-configuration-file">
-<h1>The Configuration File<a class="headerlink" href="#the-configuration-file" title="Permalink to this heading">¶</a></h1>
+  <div class="section" id="the-configuration-file">
+<h1>The Configuration File<a class="headerlink" href="#the-configuration-file" title="Permalink to this headline">¶</a></h1>
 <p>The NAIF PDS4 Bundler needs a configuration file to be executed.
 This configuration file is bundle-specific and it can also be release-specific.
 It is a rather long file and setting it up for the first time for a given bundle
@@ -228,8 +224,8 @@ you to first read the chapter
 <a class="reference internal" href="20_spice_kernel_archive_description.html#spice-kernel-archive-description"><span class="std std-ref">SPICE Kernel Archive Description</span></a>
 in such a way that you get familiar with some concepts that are discussed in the
 following sections.</p>
-<section id="configuration-file-format">
-<h2>Configuration File Format<a class="headerlink" href="#configuration-file-format" title="Permalink to this heading">¶</a></h2>
+<div class="section" id="configuration-file-format">
+<h2>Configuration File Format<a class="headerlink" href="#configuration-file-format" title="Permalink to this headline">¶</a></h2>
 <p>The NPB configuration file is an XML (eXtensible Markup Language) file.
 The extension of the file should be .xml, although this is not strictly
 necessary.</p>
@@ -642,18 +638,18 @@ parameter.:</p>
 &lt;/naif-pds4-bundler_configuration&gt;
 </pre></div>
 </div>
-</section>
-<section id="pds-parameters">
-<h2>PDS Parameters<a class="headerlink" href="#pds-parameters" title="Permalink to this heading">¶</a></h2>
+</div>
+<div class="section" id="pds-parameters">
+<h2>PDS Parameters<a class="headerlink" href="#pds-parameters" title="Permalink to this headline">¶</a></h2>
 <p>PDS Parameters are mission-level and bundle-level agnostic and are only related
 to the PDS version, information model (IM), and available registered context
 products. The table below provides a summary of the parameters:</p>
-<table class="docutils align-default" id="id3">
+<table class="colwidths-given docutils align-default" id="id3">
 <caption><span class="caption-text">PDS Parameters</span><a class="headerlink" href="#id3" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col style="width: 25.0%" />
-<col style="width: 60.0%" />
-<col style="width: 15.0%" />
+<col style="width: 25%" />
+<col style="width: 60%" />
+<col style="width: 15%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Element</p></th>
@@ -694,8 +690,8 @@ the registered context products. More information below.</p></td>
 </tr>
 </tbody>
 </table>
-<section id="the-information-model">
-<h3>The Information Model<a class="headerlink" href="#the-information-model" title="Permalink to this heading">¶</a></h3>
+<div class="section" id="the-information-model">
+<h3>The Information Model<a class="headerlink" href="#the-information-model" title="Permalink to this headline">¶</a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">information_model</span></code> parameter will determine the PDS4 artifacts templates
 that will be used for the bundle generation. NPB provides different templates
 depending on the specified IM. The available templates are located under
@@ -714,9 +710,9 @@ version.</p>
 and of the archive generation such as some contents of the SPICEDS file and
 the templates used for the generation of PDS artifacts. These impacts are
 described in the appropriate sections.</p>
-</section>
-<section id="context-products">
-<h3>Context Products<a class="headerlink" href="#context-products" title="Permalink to this heading">¶</a></h3>
+</div>
+<div class="section" id="context-products">
+<h3>Context Products<a class="headerlink" href="#context-products" title="Permalink to this headline">¶</a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">context_products</span></code> parameter provides the location of a JSON file that
 contains additional context un-registered context products. This file is
 required if the primary and/or secondary observer(s) and/or target(s) of the
@@ -769,19 +765,19 @@ per product:</p>
 <p>In addition, contact your archiving authority contact to ensure that the
 context product information is correct. If your archiving authority is the PDS
 you will need to consult with the leading node of the mission archive.</p>
-</section>
-</section>
-<section id="bundle-parameters">
-<h2>Bundle Parameters<a class="headerlink" href="#bundle-parameters" title="Permalink to this heading">¶</a></h2>
+</div>
+</div>
+<div class="section" id="bundle-parameters">
+<h2>Bundle Parameters<a class="headerlink" href="#bundle-parameters" title="Permalink to this headline">¶</a></h2>
 <p>Bundle Parameters provide bundle level information required for the PDS4
 artifacts and are SPICE Kernel collection-agnostic. The table below provides a
 summary of the parameters:</p>
-<table class="docutils align-default" id="id4">
+<table class="colwidths-given docutils align-default" id="id4">
 <caption><span class="caption-text">Bundle Parameters</span><a class="headerlink" href="#id4" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col style="width: 25.0%" />
-<col style="width: 60.0%" />
-<col style="width: 15.0%" />
+<col style="width: 25%" />
+<col style="width: 60%" />
+<col style="width: 15%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Element</p></th>
@@ -880,15 +876,15 @@ information is provided in
 </tr>
 </tbody>
 </table>
-<section id="spiceds">
-<h3>SPICEDS<a class="headerlink" href="#spiceds" title="Permalink to this heading">¶</a></h3>
+<div class="section" id="spiceds">
+<h3>SPICEDS<a class="headerlink" href="#spiceds" title="Permalink to this headline">¶</a></h3>
 <p>In addition to the NPB Configuration File -if the meta-kernel is generated
 automatically - the SPICEDS file is the only bundle product that requires manual
 intervention. More details on SPICEDS are provided in the section
 <a class="reference internal" href="32_step_2_npb_setup.html#spice-data-set-catalog-file"><span class="std std-ref">SPICE Data Set Catalog File</span></a>.</p>
-</section>
-<section id="readme-file">
-<h3>Readme File<a class="headerlink" href="#readme-file" title="Permalink to this heading">¶</a></h3>
+</div>
+<div class="section" id="readme-file">
+<h3>Readme File<a class="headerlink" href="#readme-file" title="Permalink to this headline">¶</a></h3>
 <p>The readme file configuration provides either the parameters required to
 generate the readme file by NPB or the path to an input readme file.</p>
 <p>If the readme file is generated by NPB, the readme file template will be used
@@ -912,9 +908,9 @@ needs to be included in the configuration:</p>
 already exists in a bundle its generation will be ignored.</p>
 <p>More information on the readme file is provided in section
 <a class="reference internal" href="22_pds4_spice_archive.html#bundle-products-construction-rules"><span class="std std-ref">Bundle Products Construction Rules</span></a>.</p>
-</section>
-<section id="increment-start-and-finish-times">
-<h3>Increment Start and Finish Times<a class="headerlink" href="#increment-start-and-finish-times" title="Permalink to this heading">¶</a></h3>
+</div>
+<div class="section" id="increment-start-and-finish-times">
+<h3>Increment Start and Finish Times<a class="headerlink" href="#increment-start-and-finish-times" title="Permalink to this headline">¶</a></h3>
 <p>These configuration elements, if present, set the archive increment start and
 stop times regardless of the coverage times provided by the MK(s) –if any–.</p>
 <p>NPB will set the MK(s) start and finish times to this elements –each
@@ -925,9 +921,9 @@ update the start or finish times for the MKs that correspond either to the
 start or finish year.</p>
 <p>Note that these configuration elements should be used with care and
 understanding their implications on the bundle coverage.</p>
-</section>
-<section id="date-format">
-<h3>Date Format<a class="headerlink" href="#date-format" title="Permalink to this heading">¶</a></h3>
+</div>
+<div class="section" id="date-format">
+<h3>Date Format<a class="headerlink" href="#date-format" title="Permalink to this headline">¶</a></h3>
 <p>There two possible strategies for date time string format across the archive:
 <code class="docutils literal notranslate"><span class="pre">maklabel</span></code> and <code class="docutils literal notranslate"><span class="pre">infomod2</span></code>.</p>
 <p><code class="docutils literal notranslate"><span class="pre">infomod2</span></code> stands for “PDS Information Model 2.0.0.0”. This format sets the
@@ -980,19 +976,19 @@ after the PDS IM 2.0.0.0 is released. NAIF recommends using the
 <code class="docutils literal notranslate"><span class="pre">infomod2</span></code> format, especially for new archives.</p>
 <p>More details on the determination of coverage for different files in the archives
 are provided in section <a class="reference internal" href="22_pds4_spice_archive.html#product-coverage-assignment-rules"><span class="std std-ref">Product Coverage Assignment Rules</span></a>.</p>
-</section>
-</section>
-<section id="mission-parameters">
-<h2>Mission Parameters<a class="headerlink" href="#mission-parameters" title="Permalink to this heading">¶</a></h2>
+</div>
+</div>
+<div class="section" id="mission-parameters">
+<h2>Mission Parameters<a class="headerlink" href="#mission-parameters" title="Permalink to this headline">¶</a></h2>
 <p>Mission parameters provide mission-specific information such as: mission
 name, acronym, observers, and targets. The table below provides a
 summary of the parameters:</p>
-<table class="docutils align-default" id="id5">
+<table class="colwidths-given docutils align-default" id="id5">
 <caption><span class="caption-text">Mission Parameters</span><a class="headerlink" href="#id5" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col style="width: 25.0%" />
-<col style="width: 60.0%" />
-<col style="width: 15.0%" />
+<col style="width: 25%" />
+<col style="width: 60%" />
+<col style="width: 15%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Element</p></th>
@@ -1057,8 +1053,8 @@ correspond to the names provided by the registered context products
 </tr>
 </tbody>
 </table>
-<section id="on-names-and-acronyms">
-<h3>On Names and Acronyms<a class="headerlink" href="#on-names-and-acronyms" title="Permalink to this heading">¶</a></h3>
+<div class="section" id="on-names-and-acronyms">
+<h3>On Names and Acronyms<a class="headerlink" href="#on-names-and-acronyms" title="Permalink to this headline">¶</a></h3>
 <p>Distinction in between <code class="docutils literal notranslate"><span class="pre">mission_acronym</span></code>, <code class="docutils literal notranslate"><span class="pre">mission_name</span></code>,
 observer, and the Bundle parameter <code class="docutils literal notranslate"><span class="pre">spice_name</span></code> can be rather confusing. A
 good example to distinguish in between the parameters is the Mars 2020 SPICE
@@ -1109,9 +1105,9 @@ example of the entries for secondary s/c and targets for DART:</p>
 <span class="o">&lt;/</span><span class="n">secondary_targets</span><span class="o">&gt;</span>
 </pre></div>
 </div>
-</section>
-<section id="kernels-to-load">
-<h3>Kernels To Load<a class="headerlink" href="#kernels-to-load" title="Permalink to this heading">¶</a></h3>
+</div>
+<div class="section" id="kernels-to-load">
+<h3>Kernels To Load<a class="headerlink" href="#kernels-to-load" title="Permalink to this headline">¶</a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">kernels_to_load</span></code> mission parameter lists the SPICE kernels that are
 required to run NPB. At least a LSK, a SCLK, and a FK kernel will be required;
 if there are multiple observers most likely more FKs and SCLKs will be required.
@@ -1142,9 +1138,9 @@ example:</p>
 specified in the next section of the Configuration File “Directories” to search
 for the latest version of these kernels (if provided by patterns) or to the
 kernel specified (if the kernel name does not contain patterns.)</p>
-</section>
-<section id="kernel-patterns">
-<h3>Kernel patterns<a class="headerlink" href="#kernel-patterns" title="Permalink to this heading">¶</a></h3>
+</div>
+<div class="section" id="kernel-patterns">
+<h3>Kernel patterns<a class="headerlink" href="#kernel-patterns" title="Permalink to this headline">¶</a></h3>
 <p>Throughout the configuration you will find multiple occurrences of kernels that
 are specified with a pattern. The usage of patterns allows NPB to know that it
 must scan a directory or a list of directories, for a specific version of the
@@ -1173,18 +1169,18 @@ year. Use cases are provided later in the document.</p></li>
 </div></blockquote>
 <p>Therefore the following FK kernel pattern: <code class="docutils literal notranslate"><span class="pre">maven_v[0-9][0-9].tf</span></code>, would
 be matched by any version of the MAVEN FK, for example <code class="docutils literal notranslate"><span class="pre">maven_v09.tf</span></code>.</p>
-</section>
-</section>
-<section id="directories">
-<h2>Directories<a class="headerlink" href="#directories" title="Permalink to this heading">¶</a></h2>
+</div>
+</div>
+<div class="section" id="directories">
+<h2>Directories<a class="headerlink" href="#directories" title="Permalink to this headline">¶</a></h2>
 <p>They specify the directories used to run NPB. The table below provides a summary
 of the required and optional directories:</p>
-<table class="docutils align-default" id="id6">
+<table class="colwidths-given docutils align-default" id="id6">
 <caption><span class="caption-text">Directories</span><a class="headerlink" href="#id6" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col style="width: 25.0%" />
-<col style="width: 60.0%" />
-<col style="width: 15.0%" />
+<col style="width: 25%" />
+<col style="width: 60%" />
+<col style="width: 15%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Element</p></th>
@@ -1232,8 +1228,8 @@ are present.</p></td>
 <p>The working, staging, and bundle directories cannot be the same. More
 information on the setup of the NPB directories is provided in
 <a class="reference internal" href="32_step_2_npb_setup.html#workspace-setup"><span class="std std-ref">Workspace Setup</span></a>.</p>
-<section id="templates-directory">
-<h3>Templates Directory<a class="headerlink" href="#templates-directory" title="Permalink to this heading">¶</a></h3>
+<div class="section" id="templates-directory">
+<h3>Templates Directory<a class="headerlink" href="#templates-directory" title="Permalink to this headline">¶</a></h3>
 <p>This entry is optional and specifies the directory where your own templates
 reside. These templates need to follow the specifications of the
 templates provided with NPB. An example of user provided templates is available
@@ -1244,10 +1240,10 @@ templates. These keywords start with <code class="docutils literal notranslate">
 to make sure that the resulting PDS4 products are correct by running the PDS
 validate tool against them. It is also recommended to provide them to NAIF for
 review.</p>
-</section>
-</section>
-<section id="kernel-list">
-<h2>Kernel List<a class="headerlink" href="#kernel-list" title="Permalink to this heading">¶</a></h2>
+</div>
+</div>
+<div class="section" id="kernel-list">
+<h2>Kernel List<a class="headerlink" href="#kernel-list" title="Permalink to this headline">¶</a></h2>
 <p>The Kernel List is an NPB execution by-product (more information on NPB
 execution by-products is provided in
 <a class="reference internal" href="43_using_npb.html#execution-by-products"><span class="std std-ref">Execution by-products</span></a>) that is used for two main
@@ -1310,8 +1306,8 @@ element of the kernel list. The following example should be self-explanatory:</p
 <span class="o">&lt;/</span><span class="n">targets</span><span class="o">&gt;</span>
 </pre></div>
 </div>
-<section id="kernel-descriptions">
-<h3>Kernel Descriptions<a class="headerlink" href="#kernel-descriptions" title="Permalink to this heading">¶</a></h3>
+<div class="section" id="kernel-descriptions">
+<h3>Kernel Descriptions<a class="headerlink" href="#kernel-descriptions" title="Permalink to this headline">¶</a></h3>
 <p>The fourth (or second) nested element is the kernel description. This is a very
 important configuration parameter and its content must describe synthetically
 and precisely the SPICE kernel. The recommended structure of the description
@@ -1351,8 +1347,8 @@ with its value. NPB maps the patterns with one of the following methods:</p>
 </ul>
 </div></blockquote>
 <p>These are described in the following subsections.</p>
-<section id="match-by-value">
-<h4>Match by value<a class="headerlink" href="#match-by-value" title="Permalink to this heading">¶</a></h4>
+<div class="section" id="match-by-value">
+<h4>Match by value<a class="headerlink" href="#match-by-value" title="Permalink to this headline">¶</a></h4>
 <p>The first method to identify patterns in the kernel pattern attribute value is
 by value. In order to do so, the kernel pattern attribute value is set to
 <code class="docutils literal notranslate"><span class="pre">value</span></code> and its value corresponds to the actual name of the kernel, without
@@ -1397,9 +1393,9 @@ examples are provided hereunder:</p>
 matching.</p>
 <p>The limitation of this method is that each individual kernel type requires an
 element entry in the configuration file.</p>
-</section>
-<section id="match-by-pattern">
-<h4>Match by pattern<a class="headerlink" href="#match-by-pattern" title="Permalink to this heading">¶</a></h4>
+</div>
+<div class="section" id="match-by-pattern">
+<h4>Match by pattern<a class="headerlink" href="#match-by-pattern" title="Permalink to this headline">¶</a></h4>
 <p>This method uses parts of the kernel name pattern to identify patterns required
 by the kernel description. Another way to describe it, using XML terminology:
 this method uses the pattern attribute value of the kernel element to map one
@@ -1445,9 +1441,9 @@ file schema. They are currently limited to:</p>
 <p>These names are meant to help the archive producers to understand the pattern
 matching. Any of these names can be used regardless of the pattern. If you
 need to add additional elements please contact the NAIF NPB developer.</p>
-</section>
-<section id="match-from-comment">
-<h4>Match from Comment<a class="headerlink" href="#match-from-comment" title="Permalink to this heading">¶</a></h4>
+</div>
+<div class="section" id="match-from-comment">
+<h4>Match from Comment<a class="headerlink" href="#match-from-comment" title="Permalink to this headline">¶</a></h4>
 <p>Sometimes the original name of the kernel that must be included in the
 description is only present in the comment area of the binary kernel (SPK, CK,
 DSK or binary PCK), if so the comment must be extracted from the kernel. The
@@ -1491,10 +1487,10 @@ extracted and the description will then be:</p>
 <p>This method has been implemented for the MRO PDS3 SPICE kernel data set
 generation. NAIF does not recommend to record the original name of the kernel
 in the comment area kernels.</p>
-</section>
-</section>
-<section id="mapping-kernels">
-<h3>Mapping kernels<a class="headerlink" href="#mapping-kernels" title="Permalink to this heading">¶</a></h3>
+</div>
+</div>
+<div class="section" id="mapping-kernels">
+<h3>Mapping kernels<a class="headerlink" href="#mapping-kernels" title="Permalink to this headline">¶</a></h3>
 <p>Sometimes the name of the archived kernel is modified with respect to the
 original kernel - sometimes present in the kernels operational area - this
 happens for kernels that have long names, mixed case, fields that are
@@ -1559,10 +1555,10 @@ elements.</p>
 <p>When no release plan is provided as an input, the mapping of kernels does not
 occur and the kernels present in the kernels directories need to have their
 final names as described in the first approach.</p>
-</section>
-</section>
-<section id="meta-kernel">
-<h2>Meta-kernel<a class="headerlink" href="#meta-kernel" title="Permalink to this heading">¶</a></h2>
+</div>
+</div>
+<div class="section" id="meta-kernel">
+<h2>Meta-kernel<a class="headerlink" href="#meta-kernel" title="Permalink to this headline">¶</a></h2>
 <p>The next section of the configuration file is the one that defines the
 generation of the meta-kernels (MKs). NPB is capable to either generate MKs
 automatically or to assist you in their generation.</p>
@@ -1574,12 +1570,12 @@ More information is provided in
 <p>Alternatively you can provide MKs that you have generated manually or
 by any other mean to NPB via configuration as well. The elements of the MK
 section of the configuration file are the following:</p>
-<table class="docutils align-default" id="id7">
+<table class="colwidths-given docutils align-default" id="id7">
 <caption><span class="caption-text">Meta-kernels</span><a class="headerlink" href="#id7" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col style="width: 25.0%" />
-<col style="width: 60.0%" />
-<col style="width: 15.0%" />
+<col style="width: 25%" />
+<col style="width: 60%" />
+<col style="width: 15%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Element</p></th>
@@ -1604,8 +1600,8 @@ automatically generate a MK.</p></td>
 <code class="docutils literal notranslate"><span class="pre">interrupt_to_update</span></code>, <code class="docutils literal notranslate"><span class="pre">grammar</span></code>, and <code class="docutils literal notranslate"><span class="pre">metadata</span></code> - that at the same time
 consists of the <code class="docutils literal notranslate"><span class="pre">description</span></code>, <code class="docutils literal notranslate"><span class="pre">keyword</span></code> and <code class="docutils literal notranslate"><span class="pre">data</span></code> elements. There can be as many mk
 elements as needed. This element is described in detail below.</p>
-<section id="automatic-generation-of-meta-kernels">
-<h3>Automatic generation of Meta-kernels<a class="headerlink" href="#automatic-generation-of-meta-kernels" title="Permalink to this heading">¶</a></h3>
+<div class="section" id="automatic-generation-of-meta-kernels">
+<h3>Automatic generation of Meta-kernels<a class="headerlink" href="#automatic-generation-of-meta-kernels" title="Permalink to this headline">¶</a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">&lt;mk&gt;</span></code> element of the configuration provides the parameters required
 to automatically generate MKs. The first nested element of <code class="docutils literal notranslate"><span class="pre">&lt;mk&gt;</span></code> is the
 <code class="docutils literal notranslate"><span class="pre">&lt;name&gt;</span></code> element, that provides a mapping to the patterns in the name by
@@ -1628,8 +1624,8 @@ contiguous, the following is not permitted: <code class="docutils literal notran
 after kernel generation and before the kernel label generation NPB must be
 paused to provide the option to manually edit the generated MK. It must be set
 to either <code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
-<section id="meta-kernel-grammar">
-<h4>Meta-kernel grammar<a class="headerlink" href="#meta-kernel-grammar" title="Permalink to this heading">¶</a></h4>
+<div class="section" id="meta-kernel-grammar">
+<h4>Meta-kernel grammar<a class="headerlink" href="#meta-kernel-grammar" title="Permalink to this headline">¶</a></h4>
 <p>The next element is <code class="docutils literal notranslate"><span class="pre">&lt;grammar&gt;</span></code>. The kernel grammar provides an ordered list of
 kernel names with patterns that will populate the MK. For example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;grammar&gt;
@@ -1699,9 +1695,9 @@ prefix in the pattern, NPB will include the following kernels:</p>
 <p>NPB will combine search these kernels in the <code class="docutils literal notranslate"><span class="pre">staging_directory</span></code>,
 the <code class="docutils literal notranslate"><span class="pre">bundle_directory</span></code>, and as a last resort kernels present in
 other MKs.</p>
-</section>
-<section id="kernel-entries-left-padding">
-<h4>Kernel entries left padding<a class="headerlink" href="#kernel-entries-left-padding" title="Permalink to this heading">¶</a></h4>
+</div>
+<div class="section" id="kernel-entries-left-padding">
+<h4>Kernel entries left padding<a class="headerlink" href="#kernel-entries-left-padding" title="Permalink to this headline">¶</a></h4>
 <p>In addition the <code class="docutils literal notranslate"><span class="pre">&lt;grammar&gt;</span></code> element can include an optional <code class="docutils literal notranslate"><span class="pre">&lt;padding&gt;</span></code> element.
 This element indicates whether if the kernels listed in the meta-kernel should
 have the usual 26 blank spaces left padding or not. Usually these blank spaces
@@ -1756,9 +1752,9 @@ better to remove this left padding. This can be done by setting the element
                        <span class="s1">&#39;$KERNELS/pck/gm_de431.tpc&#39;</span>
 </pre></div>
 </div>
-</section>
-<section id="meta-kernel-metadata">
-<h4>Meta-kernel metadata<a class="headerlink" href="#meta-kernel-metadata" title="Permalink to this heading">¶</a></h4>
+</div>
+<div class="section" id="meta-kernel-metadata">
+<h4>Meta-kernel metadata<a class="headerlink" href="#meta-kernel-metadata" title="Permalink to this headline">¶</a></h4>
 <p>The MK metadata are all the other elements of the MK that
 are not kernels to be included in the NPB MK template, several templates
 are available in the different IM template directories e.g.:
@@ -1790,10 +1786,10 @@ are available in the different IM template directories e.g.:
 &lt;/metadata&gt;
 </pre></div>
 </div>
-</section>
-</section>
-<section id="manual-input">
-<h3>Manual Input<a class="headerlink" href="#manual-input" title="Permalink to this heading">¶</a></h3>
+</div>
+</div>
+<div class="section" id="manual-input">
+<h3>Manual Input<a class="headerlink" href="#manual-input" title="Permalink to this headline">¶</a></h3>
 <p>If you choose to provide a manually generated MK, an alternative to specify the
 MK in the release plan or in the kernel list is to provide it in the MK section
 of the configuration file: you can provide the location of the MK(s) using the
@@ -1814,9 +1810,9 @@ as:</p>
 </div>
 <p>If the MKs specified by this list are not found the pipeline will stop its
 execution.</p>
-</section>
-<section id="coverage-determination">
-<h3>Coverage determination<a class="headerlink" href="#coverage-determination" title="Permalink to this heading">¶</a></h3>
+</div>
+<div class="section" id="coverage-determination">
+<h3>Coverage determination<a class="headerlink" href="#coverage-determination" title="Permalink to this headline">¶</a></h3>
 <p>Whether if you generate the MKs automatically or provide them as inputs, NPB
 needs to know how to determine their coverage. The <code class="docutils literal notranslate"><span class="pre">&lt;coverage_kernel&gt;</span></code>
 element is optional and indicates the kernels that will determine the coverage
@@ -1845,8 +1841,8 @@ of MKs for which kernels have been provided to determine their coverage will
 be used to determine the coverage of the SPICE Kernels and Miscellaneous
 Collections and the Bundle coverage. More details are provided in the section
 <a class="reference internal" href="22_pds4_spice_archive.html#product-coverage-assignment-rules"><span class="std std-ref">Product Coverage Assignment Rules</span></a>.</p>
-<section id="final-remarks">
-<h4>Final remarks<a class="headerlink" href="#final-remarks" title="Permalink to this heading">¶</a></h4>
+<div class="section" id="final-remarks">
+<h4>Final remarks<a class="headerlink" href="#final-remarks" title="Permalink to this headline">¶</a></h4>
 <p>Regardless of the content of the Meta-Kernel section of the configuration file,
 MKs must have entries in the Kernel List section in order to be considered by
 NPB as an input.</p>
@@ -1860,11 +1856,11 @@ and before the MK is labeled for the operator to update the automatically
 generated MK at will.</p>
 <p>When starting a new archive, NAIF recommends that you follow the style provided by
 NPB.</p>
-</section>
-</section>
-</section>
-<section id="orbit-number-file">
-<h2>Orbit number file<a class="headerlink" href="#orbit-number-file" title="Permalink to this heading">¶</a></h2>
+</div>
+</div>
+</div>
+<div class="section" id="orbit-number-file">
+<h2>Orbit number file<a class="headerlink" href="#orbit-number-file" title="Permalink to this headline">¶</a></h2>
 <p>The last element of the Configuration File is the Orbit number (ORBNUM) file
 configuration. ORBNUM files, if present, are included in the miscellaneous
 collection since they are not SPICE kernels. The generation of their labels
@@ -1902,12 +1898,12 @@ orbit number file section of the configuration file for MAVEN:</p>
 <code class="docutils literal notranslate"><span class="pre">&lt;orbit_number_file&gt;</span></code> per ORBNUM file type to be archived. Each of these
 <code class="docutils literal notranslate"><span class="pre">orbnum</span></code> elements will have a number of elements to facilitate the generation
 of the ORBNUM label:</p>
-<table class="docutils align-default" id="id8">
+<table class="colwidths-given docutils align-default" id="id8">
 <caption><span class="caption-text">orbnum (nested from orbit_number_file)</span><a class="headerlink" href="#id8" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col style="width: 25.0%" />
-<col style="width: 60.0%" />
-<col style="width: 15.0%" />
+<col style="width: 25%" />
+<col style="width: 60%" />
+<col style="width: 15%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Element</p></th>
@@ -1948,8 +1944,8 @@ This element is described in detail in the next subsection.</p></td>
 </tr>
 </tbody>
 </table>
-<section id="orbnum-coverage-determination">
-<h3>ORBNUM Coverage determination<a class="headerlink" href="#orbnum-coverage-determination" title="Permalink to this heading">¶</a></h3>
+<div class="section" id="orbnum-coverage-determination">
+<h3>ORBNUM Coverage determination<a class="headerlink" href="#orbnum-coverage-determination" title="Permalink to this headline">¶</a></h3>
 <p>The coverage of an ORBNUM file can be determined in four different ways:</p>
 <blockquote>
 <div><ul>
@@ -2007,10 +2003,10 @@ time of the first orbit and the opposite event time of the last orbit.
 This will generate a warning because it is likely to be incorrect.</p></li>
 </ul>
 </div></blockquote>
-</section>
-</section>
-<section id="summary">
-<h2>Summary<a class="headerlink" href="#summary" title="Permalink to this heading">¶</a></h2>
+</div>
+</div>
+<div class="section" id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h2>
 <p>After going through the detailed description of every section of the
 Configuration File we hope that the MAVEN example provided at the beginning of
 this chapter is better understood.</p>
@@ -2034,8 +2030,8 @@ releases. Changes will probably be limited to:</p>
 <li><p>new archive producer.</p></li>
 </ul>
 </div></blockquote>
-</section>
-</section>
+</div>
+</div>
 
 
            </div>

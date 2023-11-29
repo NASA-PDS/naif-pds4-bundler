@@ -4,19 +4,16 @@
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>NAIF PDS4 Bundler Documentation &mdash; NAIF PDS4 Bundler 1.5.0
+  <title>NAIF PDS4 Bundler Documentation &mdash; NAIF PDS4 Bundler 1.6.0
  documentation</title>
   
 
   
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
 
   
   
@@ -30,11 +27,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -65,7 +61,7 @@
             
             
               <div class="version">
-                1.5
+                1.6
               </div>
             
           
@@ -162,8 +158,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <section id="naif-pds4-bundler-documentation">
-<h1>NAIF PDS4 Bundler Documentation<a class="headerlink" href="#naif-pds4-bundler-documentation" title="Permalink to this heading">¶</a></h1>
+  <div class="section" id="naif-pds4-bundler-documentation">
+<h1>NAIF PDS4 Bundler Documentation<a class="headerlink" href="#naif-pds4-bundler-documentation" title="Permalink to this headline">¶</a></h1>
 <p>This documentation is a piece of the NAIF PDS4 Bundler package (NPB).
 NPB enables SPICE archive producers to understand, design,
 and generate Planetary Data System (PDS) SPICE archives from end
@@ -402,15 +398,15 @@ to end using the applicable PDS4 standards.</p>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="43_using_npb.html#checks-performed-by-npb">Checks performed by NPB</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="43_using_npb.html#module-pds.naif_pds4_bundler.classes.list.KernelList.validate">Kernel List Validation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="43_using_npb.html#module-pds.naif_pds4_bundler.classes.list.KernelList.validate_complete">Complete Kernel List Validation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="43_using_npb.html#module-pds.naif_pds4_bundler.classes.list.KernelList.check_products">Product in Kernel List Checks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="43_using_npb.html#kernel-list-validation">Kernel List Validation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="43_using_npb.html#complete-kernel-list-validation">Complete Kernel List Validation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="43_using_npb.html#product-in-kernel-list-checks">Product in Kernel List Checks</a></li>
 <li class="toctree-l4"><a class="reference internal" href="43_using_npb.html#spice-kernel-integrity-check">SPICE Kernel Integrity Check</a></li>
-<li class="toctree-l4"><a class="reference internal" href="43_using_npb.html#module-pds.naif_pds4_bundler.classes.product.MetaKernelProduct.validate">Meta-kernel Validation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="43_using_npb.html#module-pds.naif_pds4_bundler.classes.collection.SpiceKernelsCollection.validate">SPICE Kernel Collection Validation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="43_using_npb.html#module-pds.naif_pds4_bundler.classes.product.InventoryProduct.validate_pds4">Inventory Product Validation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="43_using_npb.html#module-pds.naif_pds4_bundler.classes.bundle.Bundle.validate_history">Checksum Validation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="43_using_npb.html#module-pds.naif_pds4_bundler.classes.label.PDSLabel.compare">Product Comparison</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="43_using_npb.html#meta-kernel-validation">Meta-kernel Validation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="43_using_npb.html#spice-kernel-collection-validation">SPICE Kernel Collection Validation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="43_using_npb.html#inventory-product-validation">Inventory Product Validation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="43_using_npb.html#checksum-validation">Checksum Validation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="43_using_npb.html#product-comparison">Product Comparison</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="43_using_npb.html#comparison-output">Comparison output</a></li>
 </ul>
 </li>
@@ -434,28 +430,28 @@ to end using the applicable PDS4 standards.</p>
 <li class="toctree-l5"><a class="reference internal" href="pds.naif_pds4_bundler.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l6"><a class="reference internal" href="pds.naif_pds4_bundler.classes.html">pds.naif_pds4_bundler.classes package</a><ul>
 <li class="toctree-l7"><a class="reference internal" href="pds.naif_pds4_bundler.classes.html#submodules">Submodules</a></li>
-<li class="toctree-l7"><a class="reference internal" href="pds.naif_pds4_bundler.classes.html#module-pds.naif_pds4_bundler.classes.bundle">pds.naif_pds4_bundler.classes.bundle module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="pds.naif_pds4_bundler.classes.html#module-pds.naif_pds4_bundler.classes.collection">pds.naif_pds4_bundler.classes.collection module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="pds.naif_pds4_bundler.classes.html#module-pds.naif_pds4_bundler.classes.label">pds.naif_pds4_bundler.classes.label module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="pds.naif_pds4_bundler.classes.html#module-pds.naif_pds4_bundler.classes.list">pds.naif_pds4_bundler.classes.list module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="pds.naif_pds4_bundler.classes.html#module-pds.naif_pds4_bundler.classes.log">pds.naif_pds4_bundler.classes.log module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="pds.naif_pds4_bundler.classes.html#module-pds.naif_pds4_bundler.classes.object">pds.naif_pds4_bundler.classes.object module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="pds.naif_pds4_bundler.classes.html#module-pds.naif_pds4_bundler.classes.product">pds.naif_pds4_bundler.classes.product module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="pds.naif_pds4_bundler.classes.html#module-pds.naif_pds4_bundler.classes.setup">pds.naif_pds4_bundler.classes.setup module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="pds.naif_pds4_bundler.classes.html#module-pds.naif_pds4_bundler.classes">Module contents</a></li>
+<li class="toctree-l7"><a class="reference internal" href="pds.naif_pds4_bundler.classes.html#pds-naif-pds4-bundler-classes-bundle-module">pds.naif_pds4_bundler.classes.bundle module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="pds.naif_pds4_bundler.classes.html#pds-naif-pds4-bundler-classes-collection-module">pds.naif_pds4_bundler.classes.collection module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="pds.naif_pds4_bundler.classes.html#pds-naif-pds4-bundler-classes-label-module">pds.naif_pds4_bundler.classes.label module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="pds.naif_pds4_bundler.classes.html#pds-naif-pds4-bundler-classes-list-module">pds.naif_pds4_bundler.classes.list module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="pds.naif_pds4_bundler.classes.html#pds-naif-pds4-bundler-classes-log-module">pds.naif_pds4_bundler.classes.log module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="pds.naif_pds4_bundler.classes.html#pds-naif-pds4-bundler-classes-object-module">pds.naif_pds4_bundler.classes.object module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="pds.naif_pds4_bundler.classes.html#pds-naif-pds4-bundler-classes-product-module">pds.naif_pds4_bundler.classes.product module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="pds.naif_pds4_bundler.classes.html#pds-naif-pds4-bundler-classes-setup-module">pds.naif_pds4_bundler.classes.setup module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="pds.naif_pds4_bundler.classes.html#module-contents">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l6"><a class="reference internal" href="pds.naif_pds4_bundler.utils.html">pds.naif_pds4_bundler.utils package</a><ul>
 <li class="toctree-l7"><a class="reference internal" href="pds.naif_pds4_bundler.utils.html#submodules">Submodules</a></li>
-<li class="toctree-l7"><a class="reference internal" href="pds.naif_pds4_bundler.utils.html#module-pds.naif_pds4_bundler.utils.decorators">pds.naif_pds4_bundler.utils.decorators module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="pds.naif_pds4_bundler.utils.html#module-pds.naif_pds4_bundler.utils.files">pds.naif_pds4_bundler.utils.files module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="pds.naif_pds4_bundler.utils.html#module-pds.naif_pds4_bundler.utils.time">pds.naif_pds4_bundler.utils.time module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="pds.naif_pds4_bundler.utils.html#module-pds.naif_pds4_bundler.utils">Module contents</a></li>
+<li class="toctree-l7"><a class="reference internal" href="pds.naif_pds4_bundler.utils.html#pds-naif-pds4-bundler-utils-decorators-module">pds.naif_pds4_bundler.utils.decorators module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="pds.naif_pds4_bundler.utils.html#pds-naif-pds4-bundler-utils-files-module">pds.naif_pds4_bundler.utils.files module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="pds.naif_pds4_bundler.utils.html#pds-naif-pds4-bundler-utils-time-module">pds.naif_pds4_bundler.utils.time module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="pds.naif_pds4_bundler.utils.html#module-contents">Module contents</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l5"><a class="reference internal" href="pds.naif_pds4_bundler.html#module-pds.naif_pds4_bundler">Module contents</a></li>
+<li class="toctree-l5"><a class="reference internal" href="pds.naif_pds4_bundler.html#module-contents">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -519,7 +515,7 @@ to end using the applicable PDS4 standards.</p>
 </li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="tests.html#module-tests">Module contents</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tests.html#module-contents">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -535,15 +531,15 @@ to end using the applicable PDS4 standards.</p>
 </li>
 </ul>
 </div>
-</section>
-<section id="indices-and-tables">
-<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this heading">¶</a></h1>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
 <li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
 <li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
 <li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
 </ul>
-</section>
+</div>
 
 
            </div>

@@ -4,19 +4,16 @@
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Working Example &mdash; NAIF PDS4 Bundler 1.5.0
+  <title>Working Example &mdash; NAIF PDS4 Bundler 1.6.0
  documentation</title>
   
 
   
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
 
   
   
@@ -30,11 +27,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -66,7 +62,7 @@
             
             
               <div class="version">
-                1.5
+                1.6
               </div>
             
           
@@ -178,16 +174,16 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <section id="working-example">
-<h1>Working Example<a class="headerlink" href="#working-example" title="Permalink to this heading">¶</a></h1>
+  <div class="section" id="working-example">
+<h1>Working Example<a class="headerlink" href="#working-example" title="Permalink to this headline">¶</a></h1>
 <p>This section provides a working example for the user to be able to exercise
 NPB’s execution before using it to generate an actual archive. This section
 assumes that NPB is properly installed as indicated in <a class="reference internal" href="41_npb_installation.html#npb-installation"><span class="std std-ref">NPB Installation</span></a>
 and that you have the package available in the user’s computer. We will assume that
 its location is <code class="docutils literal notranslate"><span class="pre">~/naif-pds4-bundler/</span></code> and that NPB can executed with the
 command <code class="docutils literal notranslate"><span class="pre">naif-pds4-bundler</span></code>.</p>
-<section id="setup-the-workspace">
-<h2>Setup the workspace<a class="headerlink" href="#setup-the-workspace" title="Permalink to this heading">¶</a></h2>
+<div class="section" id="setup-the-workspace">
+<h2>Setup the workspace<a class="headerlink" href="#setup-the-workspace" title="Permalink to this headline">¶</a></h2>
 <p>We will generate an increment of the INSIGHT archive. The first step is to
 define our workspace, we will do so by creating the adequate directory
 structure as follows:</p>
@@ -225,9 +221,9 @@ point will be the configuration file provided for INSIGHT in the NPB test data:<
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cp</span> <span class="n">naif</span><span class="o">-</span><span class="n">pds4</span><span class="o">-</span><span class="n">bundler</span><span class="o">/</span><span class="n">tests</span><span class="o">/</span><span class="n">naif_pds4_bundler</span><span class="o">/</span><span class="n">config</span><span class="o">/</span><span class="n">insight</span><span class="o">.</span><span class="n">xml</span> <span class="n">insight</span><span class="o">/</span><span class="n">working</span><span class="o">/</span><span class="n">insight_release_v08</span><span class="o">.</span><span class="n">xml</span>
 </pre></div>
 </div>
-</section>
-<section id="prepare-the-configuration-file">
-<h2>Prepare the Configuration File<a class="headerlink" href="#prepare-the-configuration-file" title="Permalink to this heading">¶</a></h2>
+</div>
+<div class="section" id="prepare-the-configuration-file">
+<h2>Prepare the Configuration File<a class="headerlink" href="#prepare-the-configuration-file" title="Permalink to this headline">¶</a></h2>
 <p>We will now need to modify the configuration file to adapt it to our workspace.
 In order to do so open the file with a text editor and do the replacements
 indicated hereunder:</p>
@@ -266,9 +262,9 @@ file with the update name.</p>
 </div>
 <p>This will prevent NPB from pausing the process to update the automatically
 generated meta-kernel.</p>
-</section>
-<section id="run-npb">
-<h2>Run NPB<a class="headerlink" href="#run-npb" title="Permalink to this heading">¶</a></h2>
+</div>
+<div class="section" id="run-npb">
+<h2>Run NPB<a class="headerlink" href="#run-npb" title="Permalink to this headline">¶</a></h2>
 <p>We are ready to run NPB and to generate the archive increment. To do so change
 the directory to <code class="docutils literal notranslate"><span class="pre">insight</span></code> and then run NPB:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">insight</span>
@@ -338,9 +334,9 @@ happen due to the usage of different versions of NPB):</p>
 <span class="n">Execution</span> <span class="n">finished</span> <span class="n">at</span> <span class="mi">2022</span><span class="o">-</span><span class="mi">05</span><span class="o">-</span><span class="mi">13</span> <span class="mi">16</span><span class="p">:</span><span class="mi">17</span><span class="p">:</span><span class="mi">40</span>
 </pre></div>
 </div>
-</section>
-<section id="checking-the-results">
-<h2>Checking the Results<a class="headerlink" href="#checking-the-results" title="Permalink to this heading">¶</a></h2>
+</div>
+<div class="section" id="checking-the-results">
+<h2>Checking the Results<a class="headerlink" href="#checking-the-results" title="Permalink to this headline">¶</a></h2>
 <p>NPB has been executed successfully. The result can be checked by inspecting the
 run by-products that are under the <code class="docutils literal notranslate"><span class="pre">working</span></code> directory:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">PDS4_PDS_1500</span><span class="o">.</span><span class="n">sch</span>
@@ -352,8 +348,8 @@ run by-products that are under the <code class="docutils literal notranslate"><s
 <span class="n">insight_release_08</span><span class="o">.</span><span class="n">validate_config</span>
 </pre></div>
 </div>
-</section>
-</section>
+</div>
+</div>
 
 
            </div>

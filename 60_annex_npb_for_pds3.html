@@ -4,19 +4,16 @@
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Appendix: NPB for PDS3 Archives &mdash; NAIF PDS4 Bundler 1.5.0
+  <title>Appendix: NPB for PDS3 Archives &mdash; NAIF PDS4 Bundler 1.6.0
  documentation</title>
   
 
   
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
 
   
   
@@ -30,11 +27,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -65,7 +61,7 @@
             
             
               <div class="version">
-                1.5
+                1.6
               </div>
             
           
@@ -170,8 +166,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <section id="appendix-npb-for-pds3-archives">
-<h1>Appendix: NPB for PDS3 Archives<a class="headerlink" href="#appendix-npb-for-pds3-archives" title="Permalink to this heading">¶</a></h1>
+  <div class="section" id="appendix-npb-for-pds3-archives">
+<h1>Appendix: NPB for PDS3 Archives<a class="headerlink" href="#appendix-npb-for-pds3-archives" title="Permalink to this headline">¶</a></h1>
 <p>NPB is capable to generate PDS3 SPICE kernels data sets increments. This
 capability is not intended for people external to NAIF and is only adept
 for PDS3 data sets archived by or for NAIF.</p>
@@ -182,8 +178,8 @@ under: <code class="docutils literal notranslate"><span class="pre">naif-pds4-bu
 you might not know or understand, if so please take a look at the documents
 that describe the PDS3 standards. These documents are available at the
 <a class="reference external" href="https://pds.nasa.gov/datastandards/pds3/">PDS3 Data Standards page</a>.</p>
-<section id="configuration-file-particulars">
-<h2>Configuration File Particulars<a class="headerlink" href="#configuration-file-particulars" title="Permalink to this heading">¶</a></h2>
+<div class="section" id="configuration-file-particulars">
+<h2>Configuration File Particulars<a class="headerlink" href="#configuration-file-particulars" title="Permalink to this headline">¶</a></h2>
 <p>PDS3 archives require several modifications to the NPB configuration file
 that are not documented in section <a class="reference internal" href="42_npb_configuration_file.html#the-configuration-file"><span class="std std-ref">The Configuration File</span></a>.</p>
 <p>Use the MSL, the MRO or the JUNO configuration file examples as references. They
@@ -194,15 +190,15 @@ used to generate PDS3 labels with the NAIF utility <code class="docutils literal
 <p>Finally, another particularity is that the meta-kernels and ORBNUM files must
 have an entry in the Kernel List section. The value of the <code class="docutils literal notranslate"><span class="pre">mklabel_options</span></code>
 and <code class="docutils literal notranslate"><span class="pre">descriptions</span></code> elements is irrelevant, you can use <code class="docutils literal notranslate"><span class="pre">N/A</span></code>.</p>
-</section>
-<section id="using-npb-for-pds3-archives">
-<h2>Using NPB for PDS3 Archives<a class="headerlink" href="#using-npb-for-pds3-archives" title="Permalink to this heading">¶</a></h2>
+</div>
+<div class="section" id="using-npb-for-pds3-archives">
+<h2>Using NPB for PDS3 Archives<a class="headerlink" href="#using-npb-for-pds3-archives" title="Permalink to this headline">¶</a></h2>
 <p>You can use NPB for PDS3 archives exactly in the same way that you would for a
 PDS4 archive. The only differences being present in the content of NPB’s
 logging. Please refer to section
 <a class="reference internal" href="43_using_npb.html#using-npb"><span class="std std-ref">Using NPB</span></a>, for more information.</p>
-<section id="binary-kernels-endianness-in-pds3-archives">
-<h3>Binary kernels endianness in PDS3 archives<a class="headerlink" href="#binary-kernels-endianness-in-pds3-archives" title="Permalink to this heading">¶</a></h3>
+<div class="section" id="binary-kernels-endianness-in-pds3-archives">
+<h3>Binary kernels endianness in PDS3 archives<a class="headerlink" href="#binary-kernels-endianness-in-pds3-archives" title="Permalink to this headline">¶</a></h3>
 <p>NAIF requires all their PDS3 archives to have <code class="docutils literal notranslate"><span class="pre">BIG-IEEE</span></code> binary kernels. The
 same applies to “old” archives from other agencies (ESA, JAXA) such as
 Mars Express (<code class="docutils literal notranslate"><span class="pre">mex-e_m-spice-6-v1.0</span></code>), Venus Express (<code class="docutils literal notranslate"><span class="pre">vex-e_v-spice-6-v1.0</span></code>),
@@ -212,10 +208,10 @@ Rosetta (<code class="docutils literal notranslate"><span class="pre">ros-e_m_a_
 <p>For “recent”, PDS3 ESA archives (<code class="docutils literal notranslate"><span class="pre">vex-e_v-spice-6-v2.0</span></code>, <code class="docutils literal notranslate"><span class="pre">mex-e_m-spice-6-v2.0</span></code>,
 and <code class="docutils literal notranslate"><span class="pre">ro_rl-e_m_a_c-spice-6-v1.0</span></code>) and for JAXA’s Venus Climate Orbiter Akatsuki
 (<code class="docutils literal notranslate"><span class="pre">co-v-spice-6-v1.0</span></code>) archive endianness is set to <code class="docutils literal notranslate"><span class="pre">LTL-IEEE</span></code>.</p>
-</section>
-</section>
-<section id="known-differences-from-archives-generated-with-naif-s-pds3-archiving-approach">
-<h2>Known differences from archives generated with NAIF’s PDS3 archiving approach<a class="headerlink" href="#known-differences-from-archives-generated-with-naif-s-pds3-archiving-approach" title="Permalink to this heading">¶</a></h2>
+</div>
+</div>
+<div class="section" id="known-differences-from-archives-generated-with-naif-s-pds3-archiving-approach">
+<h2>Known differences from archives generated with NAIF’s PDS3 archiving approach<a class="headerlink" href="#known-differences-from-archives-generated-with-naif-s-pds3-archiving-approach" title="Permalink to this headline">¶</a></h2>
 <p>When generating a PDS3 data set increment with NPB compared to following the
 <em>NAIF’s PDS3 archiving approach</em> -which implies using the NAIF utility
 <code class="docutils literal notranslate"><span class="pre">MAKLABEL</span></code> and several Perl scripts such as <code class="docutils literal notranslate"><span class="pre">label_them_all.pl</span></code>,
@@ -230,8 +226,8 @@ with NPB.</p></li>
 file label is alphabetical with NPB but somewhat “random” with <code class="docutils literal notranslate"><span class="pre">xfer_index.pl</span></code>.</p></li>
 </ul>
 </div></blockquote>
-</section>
-</section>
+</div>
+</div>
 
 
            </div>

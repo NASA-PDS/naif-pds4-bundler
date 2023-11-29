@@ -4,19 +4,16 @@
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Step 3: Running NAIF PDS4 Bundler &mdash; NAIF PDS4 Bundler 1.5.0
+  <title>Step 3: Running NAIF PDS4 Bundler &mdash; NAIF PDS4 Bundler 1.6.0
  documentation</title>
   
 
   
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
 
   
   
@@ -30,11 +27,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -66,7 +62,7 @@
             
             
               <div class="version">
-                1.5
+                1.6
               </div>
             
           
@@ -181,12 +177,12 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <section id="step-3-running-naif-pds4-bundler">
-<h1>Step 3: Running NAIF PDS4 Bundler<a class="headerlink" href="#step-3-running-naif-pds4-bundler" title="Permalink to this heading">¶</a></h1>
+  <div class="section" id="step-3-running-naif-pds4-bundler">
+<h1>Step 3: Running NAIF PDS4 Bundler<a class="headerlink" href="#step-3-running-naif-pds4-bundler" title="Permalink to this headline">¶</a></h1>
 <p>Once you have reached this step, the hard work is done. From here onwards the
 process should take full advantage of NPB and should be mostly automatic.</p>
-<section id="run-npb-from-the-command-line">
-<h2>Run NPB from the command line<a class="headerlink" href="#run-npb-from-the-command-line" title="Permalink to this heading">¶</a></h2>
+<div class="section" id="run-npb-from-the-command-line">
+<h2>Run NPB from the command line<a class="headerlink" href="#run-npb-from-the-command-line" title="Permalink to this headline">¶</a></h2>
 <p>If you are in a hurry run NPB as follows: open your favorite
 terminal application and with coherence with respect to the workspace that you
 have defined for NPB, execute the following command:</p>
@@ -223,9 +219,9 @@ staging area before pushing them to the bundle area (<code class="docutils liter
 to use a kernel list as your input (instead of a release plan with
 <code class="docutils literal notranslate"><span class="pre">-kerlist</span> <span class="pre">KERLIST</span></code>) or to run NPB silently (<code class="docutils literal notranslate"><span class="pre">-s</span></code>), unless you are
 experienced with its usage and you have a strong reason to do so.</p>
-</section>
-<section id="interactive-step-for-meta-kernels">
-<h2>Interactive step for Meta-kernels<a class="headerlink" href="#interactive-step-for-meta-kernels" title="Permalink to this heading">¶</a></h2>
+</div>
+<div class="section" id="interactive-step-for-meta-kernels">
+<h2>Interactive step for Meta-kernels<a class="headerlink" href="#interactive-step-for-meta-kernels" title="Permalink to this headline">¶</a></h2>
 <p>If the Meta-kernel(s) are being generated automatically, which means that
 you have provided a a <code class="docutils literal notranslate"><span class="pre">&lt;mk&gt;</span></code> section in the configuration file and that you
 have set the nested element <code class="docutils literal notranslate"><span class="pre">&lt;interrupt_to_update&gt;</span></code> to <code class="docutils literal notranslate"><span class="pre">True</span></code>, NPB will pause
@@ -244,9 +240,9 @@ message that you will see is similar to:</p>
 </div>
 <p>More information is provided in <a class="reference internal" href="31_step_1_preparing_data.html#preparing-meta-kernels"><span class="std std-ref">Preparing Meta-kernels</span></a>
 and <a class="reference internal" href="42_npb_configuration_file.html#meta-kernel"><span class="std std-ref">Meta-kernel</span></a>.</p>
-</section>
-<section id="understanding-npb-prompting-and-logging">
-<h2>Understanding NPB prompting and logging<a class="headerlink" href="#understanding-npb-prompting-and-logging" title="Permalink to this heading">¶</a></h2>
+</div>
+<div class="section" id="understanding-npb-prompting-and-logging">
+<h2>Understanding NPB prompting and logging<a class="headerlink" href="#understanding-npb-prompting-and-logging" title="Permalink to this headline">¶</a></h2>
 <p>We have recommended you to run NPB in verbose mode (<code class="docutils literal notranslate"><span class="pre">-v</span> <span class="pre">--verbose</span></code>) and to
 generate the run log (<code class="docutils literal notranslate"><span class="pre">-l</span> <span class="pre">--log</span></code>). If you do so, NPB will provide you either
 on the screen or in the log a structured and comprehensive step-by-step
@@ -266,9 +262,9 @@ something fishy about your input data or your configuration file.</p>
 <span class="n">INFO</span>    <span class="p">:</span> <span class="o">--</span> <span class="n">SCLK</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="n">loaded</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;/kernels/sclk/NSY_SCLKSCET.00019.tsc&#39;</span><span class="p">]</span>
 </pre></div>
 </div>
-</section>
-<section id="what-if-something-goes-wrong">
-<h2>What if something goes wrong?<a class="headerlink" href="#what-if-something-goes-wrong" title="Permalink to this heading">¶</a></h2>
+</div>
+<div class="section" id="what-if-something-goes-wrong">
+<h2>What if something goes wrong?<a class="headerlink" href="#what-if-something-goes-wrong" title="Permalink to this headline">¶</a></h2>
 <p>You’re covered. NPB has an argument: <code class="docutils literal notranslate"><span class="pre">-c</span> <span class="pre">CLEAR</span> <span class="pre">--clear</span> <span class="pre">CLEAR</span></code>, that allows you
 to clear the resulting products of a run from your workspace.</p>
 <p>After you run NPB (successfully or not) one of the by-products that NPB
@@ -279,9 +275,9 @@ this argument. For example:</p>
 </div>
 <p>By default, using this argument will stop the execution when the workspace
 has been cleared.</p>
-</section>
-<section id="processing-large-binary-kernels">
-<h2>Processing large binary kernels<a class="headerlink" href="#processing-large-binary-kernels" title="Permalink to this heading">¶</a></h2>
+</div>
+<div class="section" id="processing-large-binary-kernels">
+<h2>Processing large binary kernels<a class="headerlink" href="#processing-large-binary-kernels" title="Permalink to this headline">¶</a></h2>
 <p>When working with large binary kernels (CKs, SPKs, DSKs or PCKs) obtaining
 the md5 sum hash (checksum, required by the products’ labels) of each file can
 take a large amount of time. In order to avoid re-calculating
@@ -299,9 +295,9 @@ checksum from them.</p>
 the same time it must be managed carefully and you must always be aware
 whether if the checksum registry files in the working directory and/or the
 labeled products in the staging area are adequate.</p>
-</section>
-<section id="until-you-get-it-right">
-<h2>Until you get it right<a class="headerlink" href="#until-you-get-it-right" title="Permalink to this heading">¶</a></h2>
+</div>
+<div class="section" id="until-you-get-it-right">
+<h2>Until you get it right<a class="headerlink" href="#until-you-get-it-right" title="Permalink to this headline">¶</a></h2>
 <p>It is hard to get NPB to work on the first try, especially for the first
 release of the archive or after a major update of the configuration file. Most
 likely you will need to try several times before you get it right. That is why
@@ -313,8 +309,8 @@ from the staging directory to the bundle directory. You can do so by setting
 the argument: <code class="docutils literal notranslate"><span class="pre">-f</span> <span class="pre">FAUCET</span> <span class="pre">--faucet</span> <span class="pre">FAUCET</span></code> to <code class="docutils literal notranslate"><span class="pre">staging</span></code>. More information
 about this argument is provided in the section
 <a class="reference internal" href="43_using_npb.html#optional-arguments-description"><span class="std std-ref">Optional Arguments Description</span></a>.</p>
-</section>
-</section>
+</div>
+</div>
 
 
            </div>
