@@ -6,7 +6,7 @@
   <Identification_Area>
     <logical_identifier>$BUNDLE_LID</logical_identifier>
     <version_id>$BUNDLE_VID</version_id>
-    <title>$MISSION_NAME SPICE Kernel Archive Bundle</title>
+    <title>$PDS4_MISSION_NAME SPICE Kernel Archive Bundle</title>
     <information_model_version>$INFORMATION_MODEL_VERSION</information_model_version>
     <product_class>Product_Bundle</product_class>
     <Citation_Information>
@@ -14,7 +14,7 @@
       <publication_year>$PRODUCT_CREATION_YEAR</publication_year>
       <doi>$DOI</doi>
       <keyword>Observation Geometry</keyword>
-      <description>This bundle contains $MISSION_NAME SPICE kernels and related documentation.</description>
+      <description>This bundle contains $PDS4_MISSION_NAME SPICE kernels and related documentation.</description>
     </Citation_Information>
   </Identification_Area>
   <Context_Area>
@@ -26,14 +26,7 @@
       <purpose>Observation Geometry</purpose>
       <processing_level>Derived</processing_level>
     </Primary_Result_Summary>
-    <Investigation_Area>
-      <name>$MISSION_NAME</name>
-      <type>Mission</type>
-      <Internal_Reference>
-        <lid_reference>$PDS4_MISSION_LID</lid_reference>
-        <reference_type>bundle_to_investigation</reference_type>
-      </Internal_Reference>
-    </Investigation_Area>
+$MISSIONS
     <Observing_System>
 $OBSERVERS
     </Observing_System>
@@ -47,7 +40,7 @@ $TARGETS
   </Reference_List>
   <Bundle>
     <bundle_type>Archive</bundle_type>
-    <description>This bundle contains $MISSION_NAME SPICE kernels and related documentation.</description>
+    <description>This bundle contains $PDS4_MISSION_NAME SPICE kernels and related documentation.</description>
   </Bundle>
   <File_Area_Text>
     <File>

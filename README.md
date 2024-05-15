@@ -10,6 +10,7 @@ archives from end-to-end using the applicable PDS4 standards.
 ## 🛠️️ Prerequisites
 
    * A computer based on a 64-bit Unix operating system: Linux or Mac
+   * If using a Windows machine, NPB can be installed using 'Windows Subsystem for Linux' (WSL).
    * Python 3.8 (or higher)
    * A NAIF supported C compiler [(see link)](https://naif.jpl.nasa.gov/naif/toolkit_C.html)
 

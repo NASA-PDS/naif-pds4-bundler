@@ -12,9 +12,17 @@
         </schema_location>
         <logical_identifier>urn:kari:kpds:kplo.spice</logical_identifier>
         <context_products>
+            <product name="Korea Pathfinder Lunar Orbiter">
+                <type>Mission</type>
+                <lidvid>urn:kari:kpds:context:investigation:mission.kplo::1.2</lidvid>
+            </product>
             <product name="Korea Pathfinder Lunar Orbiter Spacecraft">
                 <type>Spacecraft</type>
                 <lidvid>urn:kari:kpds:context:instrument_host:spacecraft.kplo::1.0</lidvid>
+            </product>
+            <product name="MOON">
+                <type>Satellite</type>
+                <lidvid>urn:nasa:pds:context:target:satellite.earth.moon::1.1</lidvid>
             </product>
         </context_products>
     </pds_parameters>

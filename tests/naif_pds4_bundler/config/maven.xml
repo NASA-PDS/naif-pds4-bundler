@@ -11,15 +11,19 @@
         <schema_location>http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd
         </schema_location>
         <logical_identifier>urn:nasa:pds:maven.spice</logical_identifier>
-
-        <!-- Optional Parameters -->
-        <!-- Context Products that are not present in the registered context
-             products JSON file -->
         <context_products>
             <!-- The product name, type, and lidvid needs to be provided -->
             <product name="MAVEN">
+                <type>Mission</type>
+                <lidvid>urn:nasa:pds:context:investigation:mission.maven::1.0</lidvid>
+            </product>
+            <product name="MAVEN">
                 <type>Spacecraft</type>
-                <lidvid>urn:nasa:pds:context:instrument_host:spacecraft.maven::1.0</lidvid>
+                <lidvid>urn:nasa:pds:context:instrument_host:spacecraft.maven::1.1</lidvid>
+            </product>
+            <product name="MARS">
+                <type>Planet</type>
+                <lidvid>urn:nasa:pds:context:target:planet.mars::1.2</lidvid>
             </product>
         </context_products>
     </pds_parameters>

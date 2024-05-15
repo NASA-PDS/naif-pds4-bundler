@@ -11,8 +11,11 @@
         <schema_location>http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1B00.xsd
         </schema_location>
         <logical_identifier>urn:nasa:pds:phoenix.spice</logical_identifier>
-        <!-- Optional parameters -->
         <context_products>
+            <product name="PHOENIX">
+                <type>Mission</type>
+                <lidvid>urn:nasa:pds:context:investigation:mission.phoenix::1.0</lidvid>
+            </product>
             <product name="PHOENIX">
                 <type>Spacecraft</type>
                 <lidvid>urn:nasa:pds:context:instrument_host:spacecraft.phoenix::1.0</lidvid>

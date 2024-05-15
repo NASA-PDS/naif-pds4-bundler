@@ -440,7 +440,7 @@ Product Reference and Collection Inventory Construction Rules
 
 This set of rules applies to all the archive products:
 
-    * all products' ``Context_Area`` includes only Mission (``*_to_investigation``),
+    * all products' ``Context_Area`` includes only Mission(s) (``*_to_investigation``),
       Spacecraft(s) (``is_instrument_host``), and Target(s) (``*_to_target``) LID
       references. These LIDs should be obtained from your archiving authority
       (the PDS coordinating node for NASA missions, PSA for ESA missions,
@@ -558,15 +558,16 @@ of the archive -- just take all the files listed in particular checksum plus
 the checksum itself and its label.
 
 
-Bundles with multiple observers and/or targets
-----------------------------------------------
+Bundles with multiple missions and/or observers and/or targets
+--------------------------------------------------------------
 
-Multiple spacecrafts and mutliple targets. NPB incorporates the possibility to
-have mutliple spacecrafts and targets in a Bundle. This is provided via
-configuration. If so, the default spacecraft will be the primary spacecraft
-which is specified in the configuration file. Otherwise it needs to be
+Multiple missions, spacecrafts, and mutliple targets. NPB incorporates the
+possibility to have mutliple missions, spacecrafts, and targets in a Bundle.
+This is provided via configuration. If so, the default mission will be the
+primary mission and the default spacecraft will be the primary spacecraft
+which is specified in the configuration file. Otherwise they need to be
 specified in the Kernel List section of the configuration file. The non-kernels
-bundle products will include all the targets and all the spacecrafts in the
+bundle products will include all the missions, spacecrafts, and targets in the
 labels.
 
 

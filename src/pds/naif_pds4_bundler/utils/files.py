@@ -1,4 +1,5 @@
 """File and Text Management Functions to support NPB Classes."""
+
 import difflib
 import errno
 import glob
@@ -332,7 +333,7 @@ def get_context_products(setup):
                         updated_product = True
                         context_products[index]["type"] = [product["type"]]
                         context_products[index]["lidvid"] = product["lidvid"]
-                    index += 1
+                    # index += 1
                 if not updated_product:
                     appended_products.append(
                         {
@@ -350,7 +351,15 @@ def get_context_products(setup):
     # Return the context products used in the bundle.
     #
     bundle_context_products = []
-    config_context_products = [setup.observer, setup.target]
+    config_context_products = [setup.mission_name, setup.observer, setup.target]
+
+    #
+    # Check the secondary missions and if present add them to the
+    # Configuration for context products.3
+    #
+    if hasattr(setup, "secondary_missions"):
+        for mis in setup.secondary_missions:
+            config_context_products.append(mis)
 
     #
     # Check the secondary s/c and if present add them to the

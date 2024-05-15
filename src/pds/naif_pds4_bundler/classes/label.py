@@ -1,4 +1,5 @@
 """PDS Label Class and Child Classes Implementation."""
+
 import glob
 import logging
 import os
@@ -43,12 +44,32 @@ class PDSLabel(object):
         #
         self.root_dir = setup.root_dir
         self.mission_acronym = setup.mission_acronym
-        self.MISSION_NAME = setup.mission_name
+        # self.MISSION_NAME = setup.mission_name #OUTDATED
 
         if setup.pds_version == "4":
             self.XML_MODEL = setup.xml_model
             self.SCHEMA_LOCATION = setup.schema_location
             self.INFORMATION_MODEL_VERSION = setup.information_model
+
+            #
+            # Needs to be built for several Missions.
+            #
+            if hasattr(setup, "secondary_missions"):
+                if len(setup.secondary_missions) == 1:
+                    missions_text = (
+                        f"{setup.mission_name} and {setup.secondary_missions[0]}"
+                    )
+                else:
+                    missions_text = f"{setup.mission_name}, "
+                    for i in range(len(setup.secondary_missions)):
+                        if i == len(setup.secondary_missions) - 1:
+                            missions_text += f"and {setup.secondary_missions[i]}"
+                        else:
+                            missions_text += f"{setup.secondary_missions[i]}, "
+
+                self.PDS4_MISSION_NAME = f"{missions_text}"
+            else:
+                self.PDS4_MISSION_NAME = f"{setup.mission_name}"
 
             #
             # Needs to be built for several observers.
@@ -83,10 +104,11 @@ class PDSLabel(object):
 
             self.BUNDLE_DESCRIPTION_LID = f"{setup.logical_identifier}:document:spiceds"
 
-            try:
-                self.PDS4_MISSION_LID = product.collection.bundle.lid_reference
-            except BaseException:
-                self.PDS4_MISSION_LID = product.bundle.lid_reference
+            # OUTDATED - when only 1 Mission was 'allowed'
+            # try:
+            #     self.PDS4_MISSION_LID = product.collection.bundle.lid_reference
+            # except BaseException:
+            #     self.PDS4_MISSION_LID = product.bundle.lid_reference
 
         if hasattr(self.setup, "creation_date_time"):
             creation_dt = self.setup.creation_date_time
@@ -102,14 +124,28 @@ class PDSLabel(object):
         self.FILE_CHECKSUM = product.checksum
 
         #
-        # For labels that need to include all observers and targets of the
-        # setup.
+        # For labels that need to include all missions, observers and targets
+        # of the setup.
         #
         if (
             type(self).__name__ != "SpiceKernelPDS4Label"
             and type(self).__name__ != "MetaKernelPDS4Label"
             and type(self).__name__ != "OrbnumFilePDS4Label"
         ):
+            #
+            # Obtain all Missions
+            #
+            mis = [self.setup.mission_name]
+
+            if hasattr(self.setup, "secondary_missions"):
+                sec_mis = self.setup.secondary_missions
+                if not isinstance(sec_mis, list):
+                    sec_mis = [sec_mis]
+            else:
+                sec_mis = []
+
+            self.missions = mis + sec_mis
+
             #
             # Obtain all observers.
             #
@@ -138,12 +174,95 @@ class PDSLabel(object):
 
             self.targets = tar + sec_tar
         else:
+            self.missions = product.missions
             self.observers = product.observers
             self.targets = product.targets
 
         if setup.pds_version == "4":
+            self.MISSIONS = self.get_missions()
             self.OBSERVERS = self.get_observers()
             self.TARGETS = self.get_targets()
+
+    def get_missions(self):
+        """Get the label mission from the context products.
+
+        :return: List of missions to be included in the label
+        :rtype: list
+        """
+        miss = self.missions
+
+        if not isinstance(miss, list):
+            miss = [miss]
+
+        mis_list_for_label = ""
+
+        try:
+            context_products = self.product.collection.bundle.context_products
+        except BaseException:
+            context_products = self.product.bundle.context_products
+
+        eol = self.setup.eol_pds4
+        tab = self.setup.xml_tab
+        for mis in miss:
+            if mis:
+                mis_name = mis
+                for product in context_products:
+                    if product["name"][0] == mis_name and (
+                        product["type"][0] == "Mission"
+                        or product["type"][0] == "Other Investigation"
+                    ):
+                        mission_lid = product["lidvid"].split("::")[0]
+                        mission_type = product["type"][0]
+
+                if not mission_lid:
+                    error_message(
+                        f"LID has not been obtained for mission {mis}.",
+                        setup=self.setup,
+                    )
+
+                mis_list_for_label += (
+                    f"{' ' * 2*tab}<Investigation_Area>{eol}"
+                    + f"{' ' * 3 * tab}<name>{mis_name}</name>{eol}"
+                    + f"{' ' * 3 * tab}<type>{mission_type}</type>{eol}"
+                    + f"{' ' * 3 * tab}<Internal_Reference>{eol}"
+                    + f"{' ' * 4  *  tab}<lid_reference>{mission_lid}"
+                    f"</lid_reference>{eol}" + f"{' ' * 4  *  tab}<reference_type>"
+                    f"{self.get_mission_reference_type()}"
+                    f"</reference_type>{eol}"
+                    + f"{' ' * 3 * tab}</Internal_Reference>{eol}"
+                    + f"{' ' * 2*tab}</Investigation_Area>{eol}"
+                )
+        if not mis_list_for_label:
+            error_message(
+                f"{self.product.name} missions not defined.", setup=self.setup
+            )
+        mis_list_for_label = mis_list_for_label.rstrip() + eol
+
+        return mis_list_for_label
+
+    def get_mission_reference_type(self):
+        """Get the mission reference type.
+
+        :return: Mission_Reference_Type value for PDS4 label
+        :rtype: str
+        """
+        if self.__class__.__name__ == "ChecksumPDS4Label":
+            type = "ancillary_to_investigation"
+        elif self.__class__.__name__ == "BundlePDS4Label":
+            type = "bundle_to_investigation"
+        elif self.__class__.__name__ == "DocumentPDS4Label":
+            type = "document_to_investigation"
+        elif self.__class__.__name__ == "InventoryPDS4Label":
+            type = "collection_to_investigation"
+        elif self.__class__.__name__ == "OrbnumFilePDS4Label":
+            if self.setup.information_model_float >= 1014000000.0:
+                type = "ancillary_to_investigation"
+            else:
+                type = "data_to_investigation"
+        else:
+            type = "data_to_investigation"
+
+        return type
 
     def get_observers(self):
         """Get the label observers from the context products.
@@ -601,6 +720,14 @@ class BundlePDS4Label(PDSLabel):
 
         self.write_label()
 
+    def get_mission_reference_type(self):
+        """Get mission reference type.
+
+        :return: Literally ``bundle_to_investigation``
+        :rtype: str
+        """
+        return "bundle_to_investigation"
+
     def get_target_reference_type(self):
         """Get target reference type.
 
@@ -979,12 +1106,11 @@ class MetaKernelPDS4Label(PDSLabel):
             )
 
             kernel_list_for_label += (
-                    f"{' ' * 2 * tab}<Internal_Reference>{eol}"
-                    + f"{' ' * 3 * tab}<lid_reference>{kernel_lid}"
-                      f"</lid_reference>{eol}"
-                    + f"{' ' * 3 * tab}<reference_type>data_to_associate"
-                      f"</reference_type>{eol}"
-                    + f"{' ' * 2 * tab}</Internal_Reference>{eol}"
+                f"{' ' * 2 * tab}<Internal_Reference>{eol}"
+                + f"{' ' * 3 * tab}<lid_reference>{kernel_lid}"
+                f"</lid_reference>{eol}"
+                + f"{' ' * 3 * tab}<reference_type>data_to_associate"
+                f"</reference_type>{eol}" + f"{' ' * 2 * tab}</Internal_Reference>{eol}"
             )
 
         kernel_list_for_label = kernel_list_for_label.rstrip() + eol
@@ -1202,6 +1328,14 @@ class InventoryPDS4Label(PDSLabel):
 
         self.name = collection.name.split(".")[0] + ".xml"
         self.write_label()
+
+    def get_mission_reference_type(self):
+        """Get mission reference type.
+
+        :return: Literally ``collection_to_investigation``
+        :rtype: str
+        """
+        return "collection_to_investigation"
 
     def get_target_reference_type(self):
         """Get target reference type.

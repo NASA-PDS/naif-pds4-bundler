@@ -12,9 +12,37 @@
         </schema_location>
         <logical_identifier>urn:jaxa:darts:vco_spice</logical_identifier>
         <context_products>
-            <product name="VCO">
+            <product name="Venus Climate Orbiter Akatsuki">
                 <type>Host</type>
                 <lidvid>urn:jaxa:darts:context:instrument_host:spacecraft.vco::1.0</lidvid>
+            </product>
+            <product name="Venus Climate Orbiter Akatsuki Mission">
+                <type>Mission</type>
+                <lidvid>urn:jaxa:darts:context:investigation:mission.vco::1.0</lidvid>
+            </product>
+            <product name="Ultraviolet Imager">
+                <type>Instrument</type>
+                <lidvid>urn:jaxa:darts:context:instrument:vco.uvi::1.1</lidvid>
+            </product>
+            <product name="1-micron Camera">
+                <type>Instrument</type>
+                <lidvid>urn:jaxa:darts:context:instrument:vco.ir1::1.1</lidvid>
+            </product>
+            <product name="2-micron Camera">
+                <type>Instrument</type>
+                <lidvid>urn:jaxa:darts:context:instrument:vco.ir2::1.1</lidvid>
+            </product>
+            <product name="Longwave Infrared Camera">
+                <type>Instrument</type>
+                <lidvid>urn:jaxa:darts:context:instrument:vco.lir::1.1</lidvid>
+            </product>
+            <product name="Lightning and Airglow Camera">
+                <type>Instrument</type>
+                <lidvid>urn:jaxa:darts:context:instrument:vco.lac::1.1</lidvid>
+            </product>
+            <product name="Radio Science Subsystem for Venus Climate Orbiter Akatsuki">
+                <type>Instrument</type>
+                <lidvid>urn:jaxa:darts:context:instrument:vco.rss::1.1</lidvid>
             </product>
         </context_products>
     </pds_parameters>

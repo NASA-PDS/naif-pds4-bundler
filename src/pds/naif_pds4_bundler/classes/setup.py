@@ -1,4 +1,5 @@
 """Setup Class Implementation."""
+
 import datetime
 import glob
 import logging
@@ -65,8 +66,15 @@ class Setup(object):
         self.__dict__.update(config["directories"])
 
         #
-        # Re-arrange secondary spacecrafts and secondary targets parameters.
+        # Re-arrange secondary missions, spacecrafts, and targets parameters.
         #
+
+        if hasattr(self, "secondary_missions"):
+            if not isinstance(self.secondary_missions["mission_name"], list):
+                self.secondary_missions = [self.secondary_missions["mission_name"]]
+            else:
+                self.secondary_missions = self.secondary_missions["mission_name"]
+
         if hasattr(self, "secondary_observers"):
             if not isinstance(self.secondary_observers["observer"], list):
                 self.secondary_observers = [self.secondary_observers["observer"]]

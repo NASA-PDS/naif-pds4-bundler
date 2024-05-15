@@ -121,7 +121,7 @@ parentheses is briefly explained below:
           miscellaneous/collection_miscellaneous_inventory_v???.tab   miscellaneous inventory tables
           miscellaneous/*/*.xml                                       XML labels, 1 per checksum and ORBNUM
           spice_kernels/collection_spice_kernels_v???.xml             SPICE kernels collection labels
-          spice_kernels/collection_spice_kernels_inventory_v???.tab   SOUCE kernels inventory tables
+          spice_kernels/collection_spice_kernels_inventory_v???.tab   SPICE kernels inventory tables
           spice_kernels/*/*.xml                                       XML labels, 1 per kernel
 
        where the ``<sc>`` part is formed as described above (for example, for

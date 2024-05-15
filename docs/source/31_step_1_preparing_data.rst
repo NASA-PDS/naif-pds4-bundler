@@ -479,8 +479,8 @@ inserted into the ASCII text kernel files if necessary.
      - KPL/IK
    * - LSK
      - KPL/LSK
-   * - PCL
-     - KPL/PCL
+   * - PCK
+     - KPL/PCK
    * - SCLK
      - KPL/SCLK
    * - FRAMES

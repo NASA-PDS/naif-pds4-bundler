@@ -12,6 +12,14 @@
         </schema_location>
         <logical_identifier>urn:nasa:pds:orex.spice</logical_identifier>
         <context_products>
+            <product name="OSIRIS-REx">
+                <type>Mission</type>
+                <lidvid>urn:nasa:pds:context:investigation:mission.orex::1.1</lidvid>
+            </product>
+            <product name="OSIRIS-REx">
+                <type>Spacecraft</type>
+                <lidvid>urn:nasa:pds:context:instrument_host:spacecraft.orex::1.2</lidvid>
+            </product>
             <product name="(101955) Bennu">
                 <type>Asteroid</type>
                 <lidvid>urn:nasa:pds:context:target:asteroid.101955_bennu::1.1</lidvid>

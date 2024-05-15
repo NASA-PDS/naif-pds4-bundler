@@ -7,7 +7,7 @@ It is a rather long file and setting it up for the first time for a given bundle
 might take some effort.
 
 Once the configuration file is generated for the bundle and is adapted to the
-user's environment using NPB becomes an trivial task.
+user's environment, using NPB becomes an trivial task.
 
 The following sections provide a detailed description and recommendations
 to facilitate the task of writing the NPB configuration file.
@@ -50,7 +50,7 @@ The NPB Configuration File includes all the elements described above.
 This document refers to configuration elements as parameters interchangeably.
 
 NPB includes a Configuration File XML Schema
-``src/naif_pds4_bundler/templates/configuration.xsd`` that is used to validate
+``src/naif_pds4_bundler/data/configuration.xsd`` that is used to validate
 configuration files. This validation is performed to confirm that the file is
 well-formed and also "valid" according to the structure defined in the Schema.
 
@@ -90,12 +90,11 @@ parameter.::
             <schema_location>http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd
             </schema_location>
             <logical_identifier>urn:nasa:pds:maven.spice</logical_identifier>
-
-            <!-- Optional Parameters -->
-            <!-- Context Products that are not present in the registered context
-                 products JSON file -->
             <context_products>
-                <!-- The product name, type, and lidvid needs to be provided -->
+                <product name="MAVEN">
+                    <type>Mission</type>
+                    <lidvid>urn:nasa:pds:context:investigation:mission.maven::1.0</lidvid>
+                </product>
                 <product name="MAVEN">
                     <type>Spacecraft</type>
                     <lidvid>urn:nasa:pds:context:instrument_host:spacecraft.maven::1.0</lidvid>
@@ -470,9 +469,10 @@ products. The table below provides a summary of the parameters:
      - Logical identifier for the bundle.
      - Yes
    * - context_products
-     - Provides the location of a file that lists required context products that are not available in
-       the registered context products. More information below.
-     - No
+     - Provides the location of a file that lists required context products for Mission and
+       Spacecrafts and targets that are not available in the registered context products.
+       More information below.
+     - Yes
 
 
 The Information Model
@@ -483,13 +483,13 @@ that will be used for the bundle generation. NPB provides different templates
 depending on the specified IM. The available templates are located under
 ``naif-pds4-bundler/src/pds/naif_pds4_bundler/templates``.
 
-NAIF currently uses IM 1.5.0.0 for all its archives, but it is recommended to
+NAIF currently uses IM 1.5.0.0 for all archives, but it is recommended to
 use IM 1.16.0.0 or higher especially if you need to include a DOI in the bundle
 label and have Line Feed (LF) as line endings for all the products. NPB will
-choose the templates that apply to the version you specify: if the IM is equal
-or higher than one of the available version templates, these templates will be
-used. You can also specify a directory with your own templates, see
-section :ref:`42_npb_configuration_file:Templates Directory`.
+choose the templates that apply to the version you specify: if the IM is higher
+than one of the available version templates, the latest version templates
+available will be used. You can also specify a directory with your own
+templates, see section :ref:`42_npb_configuration_file:Templates Directory`.
 
 The choice of the IM will determine the ``xml_model`` and ``schema_location``
 values. The only element value that will change is the one that specifies the IM
@@ -504,31 +504,24 @@ Context Products
 ^^^^^^^^^^^^^^^^
 
 The ``context_products`` parameter provides the location of a JSON file that
-contains additional context un-registered context products. This file is
-required if the primary and/or secondary observer(s) and/or target(s) of the
-bundle are not registered. The registered products are available in the
-following file:
-``src/naif_pds4_bundler/templates/registered_context_products.json``.
-This list of registered context products is generated based on the registered
-context products obtained with the PDS Validate tool with minor modifications,
-and is maintained by the NAIF NPB developer.
-
-The management of context products requires a bit of attention. Although NPB
-will raise a run time error if any of the observers or targets is not
-registered, we recommend that you search these items in the registered context
-products. If you cannot find them, you need to provide them in the configuration
-file. In order to do so, you will need to include the following elements
-per product:
+contains context products. This file is required for the Mission(s), Observer(s),
+and Target(s). You need to provide them in the configuration file.
+In order to do so, you will need to include the following elements per product:
 
    * Product Name e.g.: DART, InSight Mars Lander Spacecraft
-   * Product Type e.g.: Spacecraft, Planet, Asteroid, Satellite
-   * Product LIDIV e.g.:
+   * Product Type e.g.: Mission, Spacecraft, Planet, Asteroid, Satellite
+   * Product LIDVID e.g.:
+     ``urn:nasa:pds:context:investigation:mission.dart::1.0``
      ``urn:nasa:pds:context:instrument_host:spacecraft.dart::1.0``
      ``urn:nasa:pds:context:instrument_host:spacecraft.insight::2.0``
 
 Here's an example for the DART mission::
 
         <context_products>
+            <product name="DART">
+                <type>Mission</type>
+                <lidvid>urn:nasa:pds:context:investigation:mission.dart::1.0</lidvid>
+            </product>
             <product name="DART">
                 <type>Spacecraft</type>
                 <lidvid>urn:nasa:pds:context:instrument_host:spacecraft.dart::1.0</lidvid>
@@ -553,7 +546,7 @@ Here's an example for the DART mission::
 
 In addition, contact your archiving authority contact to ensure that the
 context product information is correct. If your archiving authority is the PDS
-you will need to consult with the leading node of the mission archive.
+you will need to consult with the lead node of the mission archive.
 
 
 Bundle Parameters
@@ -781,17 +774,17 @@ summary of the parameters:
    * - mission_name
      - Specifies the mission name that is used in several product labels. This
        name must correspond to the name provided by the registered context
-       products (including the ones provided via configuration.)
+       products provided via configuration.
      - Yes
    * - observer
      - The observer is the main spacecraft of the data and the SPICE kernels,
        this name must correspond to the name provided by the registered context
-       products (including the ones provided via configuration.)
+       products provided via configuration.
      - Yes
    * - target
      - The target is the mission's primary target (investigated natural body),
        this name must correspond to the name provided by the registered context
-       products including the ones provided via configuration.)
+       products provided via configuration.
      - Yes
    * - kernels_to_load
      - Lists the SPICE kernels that are required to run NPB. More information
@@ -807,17 +800,23 @@ summary of the parameters:
        The date is provided with a UTC calendar format string. The syntax of
        the string is determined by the ``date_format`` used.
      - Yes
+   * - secondary_missions
+     - Provides a list of the secondary missions present in the SPICE
+       kernels. Each name entry must use the mission tag. These names must
+       correspond to the names provided by the registered context products
+       provided via configuration.
+     - No
    * - secondary_observers
      - Provides a list of the secondary spacecrafts present in the SPICE
        kernels. Each name entry must use the observer tag. These names must
        correspond to the names provided by the registered context products
-       (including the ones provided via configuration.)
+       provided via configuration.
      - No
    * - secondary_targets
      - Provides a list of the secondary targets present in the SPICE
        kernels. Each name entry must use the target tag. These names must
        correspond to the names provided by the registered context products
-       (including the ones provided via configuration.)
+       provided via configuration.
      - No
 
 
@@ -1052,14 +1051,16 @@ Then the two entries specified hereunder can be provided in the kernel list: ::
       <kernel pattern="msl_76_sclkscet_refit_[a-z][0-9].tsc">       (...)
       <kernel pattern="msl_76_sclkscet_refit_[a-z][0-9][0-9].tsc">  (...)
 
-The second and third element patterns are optional and provide the observers and
-targets required by the kernels. By default, the kernel label will set its
-observer and target elements to the ``<observer>`` and ``<target>`` provided in
-the Mission Parameters section of the configuration file. But what happens if
-the kernel data for one of the secondary observers/targets or
-for several of them? Since there is no way to fully automatize the
-identification of all possible cases this is indicated in this
-element of the kernel list. The following example should be self-explanatory::
+The second, third, and fourth element patterns are optional and provide the
+missions, observers and targets required by the kernels. By default, the kernel
+label will set its mission, observer, and target elements to the ``<mission>``,
+``<observer>``, and ``<target>`` provided in the Mission Parameters section of
+the configuration file. But what happens if the kernel data for one of the
+secondary missions/observers/targets or for several of them? Since there is no
+way to fully automatize the identification of all possible cases this is
+indicated in this element of the kernel list.
+The following example shows how you would assign multiple obsevers and targets
+to a kernel::
 
             <observers>
                 <observer>DART</observer>
@@ -1074,7 +1075,7 @@ element of the kernel list. The following example should be self-explanatory::
 Kernel Descriptions
 ^^^^^^^^^^^^^^^^^^^
 
-The fourth (or second) nested element is the kernel description. This is a very
+The fifth (or second) nested element is the kernel description. This is a very
 important configuration parameter and its content must describe synthetically
 and precisely the SPICE kernel. The recommended structure of the description
 is::
@@ -1639,7 +1640,7 @@ NPB as an input.
 Generating MKs is not a trivial task. NPB's automated MK generation is designed
 to support you on the task.
 
-There is an infinite number of combinations in which a MK can be organised.
+There is an infinite number of combinations in which a MK can be organized.
 This is a problem for already existing archives that start using NPB and the
 MK style of which does not match with the one provided by NPB. For such cases
 NPB can still be helpful since it can be set to pause after the MK generation

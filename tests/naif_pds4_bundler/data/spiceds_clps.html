@@ -1,0 +1,710 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+ <head>
+   <title>The CLPS SPICE Data Archive</title>
+ </head>
+ <body>
+
+  <pre>
+The CLPS SPICE Data Archive
+========================================================================
+
+   Last update: March 05, 2024
+
+<a NAME="Introduction"></a>
+Introduction
+============
+
+   This document describes the CLPS SPICE archive, containing
+   observation geometry and other ancillary data in the form of SPICE
+   System kernel files for the CLPS spacecraft and its instruments and
+   structures. It describes the archive directory structure, kernels
+   included in the archive, their naming conventions, and provides
+   pointers to the SPICE software and documentation.
+
+<a NAME="Table of Contents"></a>
+Table of Contents
+=================
+
+   <a HREF="#Introduction">Introduction</a>
+   <a HREF="#Table of Contents">Table of Contents</a>
+   <a HREF="#Overview">Overview</a>
+   <a HREF="#Errata">Errata</a>
+   <a HREF="#Archive Contents">Archive Contents</a>
+   <a HREF="#Kernel Types">Kernel Types</a>
+   <a HREF="#Archived Kernel Details">Archived Kernel Details</a>
+      <a HREF="#SPK Files">SPK Files</a>
+      <a HREF="#PCK Files">PCK Files</a>
+      <a HREF="#IK Files">IK Files</a>
+      <a HREF="#CK Files">CK Files</a>
+      <a HREF="#LSK Files">LSK Files</a>
+      <a HREF="#SCLK Files">SCLK Files</a>
+      <a HREF="#FK Files">FK Files</a>
+      <a HREF="#MK Files">MK Files</a>
+   <a HREF="#Miscellaneous Files">Miscellaneous Files</a>
+      <a HREF="#Checksum Files">Checksum Files</a>
+   <a HREF="#File Formats">File Formats</a>
+   <a HREF="#SPICE Software and Documentation">SPICE Software and Documentation</a>
+   <a HREF="#Contact Information">Contact Information</a>
+   <a HREF="#Cognizant Persons">Cognizant Persons</a>
+
+
+<a NAME="Overview"></a>
+Overview
+========
+
+   This archive includes the complete set of CLPS, SPICE data files
+   (kernel files), which can be accessed using SPICE software. The
+   SPICE data contain geometric and other ancillary information needed
+   to recover the full value of science instrument data. In particular
+   SPICE kernels provide spacecraft and planetary ephemerides, spacecraft
+   and instrument orientation, instrument mounting alignments, and data
+   needed for relevant time conversions. Data in the SPICE kernel files
+   must be accessed using the software called the SPICE Toolkit produced
+   and distributed by the Navigation and Ancillary Information Facility
+   (NAIF) Node of the Planetary Data System.
+
+   This archive includes data covering from CLPS launch, 2022-08-04,
+   through the end time of the latest spacecraft orientation file
+   supplied in the archive. Until the end of the spacecraft lifespan
+   this archive will be accumulating with new data added according to
+   the project archiving plan.
+
+
+<p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
+<A NAME="Errata"></a>
+Errata
+======
+
+   1. This document is a simple HTML document. Providing documents in a
+      simple mark-up format was allowed by earlier versions of the PDS4
+      Standards but became prohibited in later versions starting summer
+      2015. Since using HTML documents was compliant at the time when a
+      similar document was first provided in the MAVEN PDS4 archive and
+      since NAIF strives to make bundle description document format and
+      style consistent across all archives, this document continues
+      to exist in this archive as an HTML document.
+
+   2. A ShadowCam IK has inot been included in the present version of the
+      bundle. This file will be present in a future release.
+
+   3. This archive is a total disaster and should be ignored ....
+
+   4. The CLPS Mission in the labels refers to the overarching mission
+      and should be taken into account when using kernels from this
+      archive.
+
+
+<p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
+<a NAME="Archive Contents"></a>
+Archive Contents
+===============
+
+   Files in this archive are organized into a set of subdirectories
+   below the top-level directory. The following diagram shows the
+   structure and content of these directories. The directory names are
+   enclosed in square brackets ([]).
+
+
+   <a href="../">[top-level-directory]</a>
+   |
+   |- bundle_clps_spice_v*.xml           Bundle PDS4 label, one or more versions.
+   |- <a href="../readme.txt">readme.txt</a>                         Bundle top-level readme file.
+   |
+   |-<a href="../spice_kernels/">[spice_kernels]</a>                     Directory containing SPICE kernels.
+   | |
+   | |- collection_spice_kernels_v*.xml  PDS4 labels for Spice Kernels collections.
+   | |- collection_spice_kernels_inventory_v*.tab
+   | |                                   Spice Kernels collections' inventories.
+   | |
+   | |-<a href="../spice_kernels/ck/">[ck]</a>                              Directory containing CK files.
+   | | |
+   | | |-- *.bc                          Binary CK files.
+   | | +-- *.xml                         PDS4 labels for CK files.
+   | |
+   | |-<a href="../spice_kernels/fk/">[fk]</a>                              Directory containing FK files.
+   | | |
+   | | |-- *.tf                          Text FK files.
+   | | +-- *.xml                         PDS4 labels for FK files.
+   | |
+   | |-<a href="../spice_kernels/ik/">[ik]</a>                              Directory containing IK files.
+   | | |
+   | | |-- *.ti                          Text IK files.
+   | | +-- *.xml                         PDS4 labels for IK files.
+   | |
+   | |-<a href="../spice_kernels/lsk/">[lsk]</a>                             Directory containing LSK files.
+   | | |
+   | | |-- *.tls                         Text LSK files.
+   | | +-- *.xml                         PDS4 labels for LSK files.
+   | |
+   | |-<a href="../spice_kernels/mk/">[mk]</a>                             Directory containing MK files.
+   | | |
+   | | |-- *.tm                          Text Meta-kernel files.
+   | | +-- *.xml                         PDS4 labels for MK files.
+   | |
+   | |-<a href="../spice_kernels/pck/">[pck]</a>                             Directory containing PCK files.
+   | | |
+   | | |-- *.tpc                         Text and binary PCK files.
+   | | +-- *.xml                         PDS4 labels for PCK files.
+   | |
+   | |-<a href="../spice_kernels/sclk/">[sclk]</a>                            Directory containing SCLK files.
+   | | |
+   | | |-- *.tsc                         Text SCLK files.
+   | | +-- *.xml                         PDS4 labels for SCLK files.
+   | |
+   | +-<a href="../spice_kernels/spk/">[spk]</a>                             Directory containing SPK files.
+   |   |
+   |   |-- *.bsp                         Binary SPK files.
+   |   +-- *.xml                         PDS4 labels for SPK files.
+   |
+   |-<a href="../miscellaneous/">[miscellaneous]</a>                   Directory miscellaneous files.
+   | |
+   | |- collection_miscellaneous_v*.xml  PDS4 labels for miscellaneous collections.
+   | |- collection_miscellaneous_inventory_v*.tab
+   | |                                   Miscellaneous collections' inventories.
+   | |
+   | +-<a href="../miscellaneous/checksum/">[checksum]</a>                        Directory containing checksum files.
+   |   |
+   |   |-- *.tab                         Text checksum files.
+   |   +-- *.xml                         PDS4 labels for checksum files.
+   |
+   +-<a href="../document/">[document]</a>                          Directory containing documents.
+     |
+     |- collection_document_v*.xml       PDS4 labels for document collections.
+     |- collection_document_inventory_v*.tab
+     |                                   Document collections' inventories.
+     |
+     |- spiceds_v*.html                  This file and its earlier versions.
+     +- spiceds_v*.xml                   PDS4 labels for this file and its earlier versions.
+
+<p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
+<a NAME="Kernel Types"></a>
+Kernel Types
+============
+
+   Different SPICE kernel types are used to store different kinds of
+   ancillary data.
+
+   SPK (Spacecraft Planet Kernel) files contain ephemerides (position
+   and velocity) for spacecraft, planets, satellites, comets and
+   asteroids as well as for moving or fixed spacecraft and instrument
+   structures. SPK files are located under the <a href="../spice_kernels/spk/">spice_kernels/spk</a>
+   directory of this archive.
+
+   PCK (Planetary Constants Kernel) files contain certain physical,
+   dynamical and cartographic constants for target bodies, such as size
+   and shape specifications, and orientation of the spin axis and prime
+   meridian. PCK files are located under the <a href="../spice_kernels/pck/">spice_kernels/pck</a>
+   directory of this archive.
+
+   IK (Instrument Kernel) files contain instrument parameters relevant
+   for computing an instrument's geometry such as field-of-view
+   definitions, CCD and optical distortion characteristics, and internal
+   timing parameters. IK files are located under the <a href="../spice_kernels/ik/">spice_kernels/ik</a>
+   directory of this archive.
+
+   CK (C-matrix Kernel) files contain time varying orientations for
+   spacecraft, spacecraft structures, and articulating science
+   instruments. CK files are located under the <a href="../spice_kernels/ck/">spice_kernels/ck</a>
+   directory of this archive.
+
+   LSK (Leapseconds Kernel) files contain the leapseconds and the
+   values of other constants required to perform a transformation
+   between Universal Time Coordinated (UTC) and Ephemeris time (ET),
+   which is also known as Barycentric Dynamical Time (TDB). LSK
+   files are located under the <a href="../spice_kernels/lsk/">spice_kernels/lsk</a> directory of
+   this archive.
+
+   SCLK (Spacecraft Clock Kernel) files contain on-board clock
+   calibration data required to perform a transformation between
+   Ephemeris time (ET) and spacecraft on-board time (SCLK). SCLK files
+   are located under the <a href="../spice_kernels/sclk/">spice_kernels/sclk</a> directory of this
+   archive.
+
+   FK (Frame definitions Kernel) files contain information required to
+   define reference frames, sources of frame orientation data and
+   connections between these frames and other frames supported within
+   the SPICE system. The science instrument frame definitions provided
+   in the FK files include mounting alignment information for the
+   instruments. FK files are located under the <a href="../spice_kernels/fk/">spice_kernels/fk</a>
+   directory of this archive.
+
+   MK (Meta-Kernel) files list sets of related SPICE kernels that
+   should be used together, providing an easy way to make data from
+   these kernel sets available to a SPICE-based application by loading
+   meta-kernels into the program using the high level SPICE data loader
+   routine FURNSH. MK files are located the <a href="../spice_kernels/mk/">spice_kernels/mk</a>
+   directory of this archive.
+
+<p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
+<a NAME="Archived Kernel Details"></a>
+Archived Kernel Details
+=======================
+
+   The subsections below provide details, such as file naming
+   conventions and specific details, for each of the kernel types
+   included in this archive.
+
+
+<p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
+<a name="SPK Files"/>
+SPK Files
+
+   SPK (Spacecraft Planet Kernel) files contain ephemerides (position
+   and velocity) for spacecraft, planets, satellites, comets, and
+   asteroids as well as for moving or fixed spacecraft and instrument
+   structures.
+
+   This archive includes binary SPK files containing the following
+   kinds of ephemeris data:
+
+      -  planetary ephemeris SPKs
+
+            These SPKs contain ephemeris data for the Solar System
+            planet barycenters, and Sun, Mercury, Venus, Earth, and
+            Moon, determined by the JPL Solar System Dynamics group and
+            are named DEXXX, e.g. DE430.
+
+
+      - definitive spacecraft trajectory SPKs
+
+
+
+   This archive includes binary SPK files under the <a href="../spice_kernels/spk/">spice_kernels/spk</a>
+   directory and are named according to the following scheme:
+
+      -  planetary ephemeris SPKs
+
+               deVVVs.bsp
+
+            where
+
+               VVV       is the ephemeris version.
+
+               s         (optional) indicates that the original file
+                         coverage was shortened to reduce the file
+                         size.
+
+
+      - smithed spacecraft trajectory SPKs
+
+               clps_dm_START_END_vVV.bsp
+
+            where
+
+               START    is the file coverage start in YYYYMMDD format
+
+               END      is the file coverage end YYYYMMDD format
+
+               VV       is the ephemeris version.
+
+
+
+   The most detailed description of the data in each SPK file is
+   provided in metadata included inside the comment area of the file.
+   This information can be viewed using the utility program COMMNT
+   included in the NAIF Toolkit.
+
+
+<p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
+<a name="PCK Files"></a>
+
+   PCK (Planetary Constants Kernel) files contain certain physical,
+   dynamical, and cartographic constants for target bodies, such as
+   size and shape specifications, and orientation of the spin axis and
+   prime meridian.
+
+   This archive includes generic text PCK files produced by NAIF,
+   containing data from the reports of the IAU Working Group on
+   Cartographic Coordinates and Rotational Elements. The generic text
+   PCK version 00010 contains data from the 2009 report.
+
+   This archive includes generic binary PCK files produced by NAIF,
+   containing data from the JPL Solar System Dynamics Group's planetary
+   ephemeris DE-421. The generic binary PCK version de421 must be loaded
+   with the NAIF lunar frame kernel moon_080317.tf.
+
+
+   The PCK files are provided under the <a href="../spice_kernels/pck">spice_kernels/pck</a>
+   directory and are named according to the following scheme:
+
+
+
+      -  generic text PCKs
+
+               pckVVVVV.tpc
+
+            where
+
+               VVVVV     is the version; the file with the largest
+                         number is the latest, but the user of PCK
+                         data must decide if the latest version,
+                         or an earlier version, is appropriate
+                         for his/her analysis task.
+
+      -  generic binary PCKs
+
+               moon_pa_deVVV_1900-2050.bpc
+
+            where
+
+               VVVVV     is the version; the file with the largest
+                         number is the latest, but the user of PCK
+                         data must decide if the latest version,
+                         or an earlier version, is appropriate
+                         for his/her analysis task.
+
+
+
+               earth_START_END_EPOCH.bpc
+
+            where
+
+               START    is the file coverage start in YYYYMMDD format
+
+               END      is the file coverage end in YYYYMMDD format
+
+               EPOCH    is the UTC Epoch of last datum in YYYYMMDD format
+
+
+   The most detailed description of the data in a text PCK file is
+   provided in metadata included inside the description area of the
+   file. This information can be viewed using any text editor program.
+
+
+<p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
+<a name="IK Files"></a>
+
+   IK (Instrument Kernel) files contain instrument parameters relevant
+   for computing an instrument's observation geometry such field-of-view
+   definitions, CCD and optical distortion characteristics, and internal
+   timing parameters.
+
+   This archive includes text IK files for CLPS instruments, for
+   which common instrument geometric parameters normally stored in IKs
+   are applicable.
+
+   The IK files are provided under the <a href="../spice_kernels/ik">spice_kernels/ik</a>
+   directory and are named according to the following scheme:
+
+      -  instruments IK files
+
+               clps_NAME_vVV.ti
+
+            where
+
+               NAME      is the instrument acronym:
+
+                           kgrs - Gamma Ray Spectrometer
+                           polcam - Polarimetric Camera
+                           luti - Lunar Terrain Imager
+
+
+               VV        is the version; the file with the latest
+                         version supersedes all similarly named
+                         files with earlier versions.
+
+   The most detailed description of the data in a text IK file is
+   provided in metadata included inside the description area of the
+   file. This information can be viewed using any text editor program.
+
+<p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
+<a name="CK Files"/>
+CK Files
+
+   CK (C-matrix Kernel) files contain time varying orientations for
+   spacecraft, articulating spacecraft structures, and articulating
+   science instruments.
+
+   This archive includes binary CK files containing the following kinds
+   of orientation data:
+
+      -  reconstructed spacecraft orientation CKs
+
+            These CKs contain the reconstructed orientation and angular
+            velocity data for the Commercial Lunar Payload Services (CLPS)
+            spacecraft frame.
+
+   This archive includes binary CK files under th <a href="../spice_kernels/ck/">spice_kernels/ck</a>
+   directory and are named according to the following scheme:
+
+      -  reconstructed spacecraft orientation CKs
+
+               clps_sc_START_END_vVV.bc
+
+            where
+
+               START    is the file coverage start in YYYYMMDD format
+
+               END      is the file coverage end YYYYMMDD format
+
+               VV       is the ephemeris version.
+
+   The most detailed description of the data in each CK file is
+   provided in metadata included inside the comment area of the file.
+   This information can be viewed using the utility program COMMNT
+   included in the NAIF Toolkit.
+
+<p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
+<a name="LSK Files"/>
+LSK Files
+
+   LSK (Leapseconds Kernel) files contain the leapseconds and the
+   values of other constants required to perform a transformation
+   between Universal Time Coordinated (UTC) and Ephemeris time (ET),
+   also known as Barycentric Dynamical Time (TDB).
+
+   This archive includes generic text LSK files produced by NAIF,
+   containing leapsecond information based on the IERS announcements.
+   The generic text LSK version 0012 contains leap second data up to
+   and including the January 1, 2017 leapsecond.
+
+   The LSK files are provided under the <a href="../spice_kernels/lsk/">spice_kernels/lsk</a>
+   directory and are named according to the following scheme:
+
+      -  generic text LSKs
+
+               naifVVVV.tls
+
+            where
+
+               VVVV      is the version; the file with the latest
+                         version supersedes all similarly named
+                         files with earlier versions.
+
+   The most detailed description of the data in a text LSK file is
+   provided in metadata included inside the description area of the
+   file. This information can be viewed using any text editor program.
+
+<p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
+<a name="SCLK Files"/>
+SCLK Files
+
+   SCLK (Spacecraft Clock Kernel) files contain on-board clock
+   calibration data required to perform a mapping between Ephemeris
+   time (ET) and spacecraft on-board time (SCLK).
+
+      - CLPS on-board clock correlation SCLKs
+
+            These SCLKs contain a tabulation of data needed for converting
+            time measurements between the Commercial Lunar Payload Services (CLPS)
+            spacecraft on-board clock (aka OBT) and UTC.
+
+   The SCLK files are provided under the <a href="../spice_kernels/sclk">spice_kernels/sclk</a>
+   directory and are named according to the following scheme:
+
+      - CLPS on-board clock correlation SCLKs
+
+               clps_sclkscet_vVVV.tsc
+
+            where
+
+               VVV       is the version; the file with the latest
+                         version supersedes all similarly named
+                         files with earlier versions.
+
+
+   The most detailed description of the data in a text SCLK file is
+   provided in metadata included inside the description area of the
+   file. This information can be viewed using any text editor program.
+
+
+<p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
+<a name="FK Files"/>
+FK Files
+
+   FK (Frame definitions Kernel) files contain information required to
+   define reference frames, sources of frame orientation data and
+   connections between these frames and other frames supported within
+   the SPICE system. The science instrument frame definitions provided
+   in the FK files include mounting alignment information for the
+   instruments.
+
+      -  CLPS mission FK files
+            Text FK files defining reference frames for the Commercial Lunar
+            Payload Services (CLPS), its structures, and science instruments.
+
+
+   The FK files are provided under the <a href="../spice_kernels/fk">spice_kernels/fk</a>
+   directory and are named according to the following scheme:
+
+      -  CLPS mission FK files
+
+               clps_vVV.tf
+
+            where
+
+               VV        is the version; the file with the latest
+                         version supersedes all similarly named
+                         files with earlier versions.
+
+
+
+   The most detailed description of the data in a text FK file is
+   provided in metadata included inside the description area of the
+   file. This information can be viewed using any text editor program.
+
+<p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
+<a name="MK Files" />
+MK Files
+
+   Meta-kernel (MK) files (a.k.a. 'furnsh' files) provide lists of the
+   archived kernels included in this archive suitable for loading into
+   a SPICE-based application via the high level SPICE data loader
+   routine FURNSH. Using meta-kernels makes it easy to load with
+   one call a comprehensive SPICE data collection.
+
+   This archive includes following types of MK files:
+
+     - CLPS MK
+
+        Contains the full coverage data for the entire mission.
+
+   The text MK files are provided under the <a href="../spice_kernels/mk">spice_kernels/mk</a>
+   directory and are named according to the following scheme:
+
+      -  CLPS MK
+
+               clps_YEAR_vVV.tm
+
+            where
+
+               YEAR      is the corresponding year of the archived kernels
+
+               VV        is the version; the file with the latest
+                         version supersedes all similarly named
+                         files with earlier versions.
+
+   Although the meta-kernels were created such that on a UNIX
+   workstation they can be loaded into a SPICE-based application
+   directly from the directory in which they reside -- because the
+   PATH_VALUES keyword is set to '..' and '/' is used as the path
+   delimiter -- it is recommended that users make local copies of these
+   files and update the PATH_VALUES keyword in each of them to point to
+   the actual location of the archive's 'spice_kernels' directory on
+   their system. Additional changes including replacing '/' and '\' in
+   all path specifications and converting UNIX line terminators to
+   terminators native to the user's system may be required to use these
+   meta-kernels on non-UNIX workstation.
+
+   The following guidelines were followed to pick and set priority --
+   determined by the order in which the kernel files are listed, with
+   the latest one taking precedence -- for the kernel files included in
+   the clps_vVV.tm meta-kernels:
+
+      -  the latest archived versions of LSK, PCK, and each kind of
+         SCLKs, IKs, FKs, SPKs, and CKs were included
+
+   Additional description of the kernels sets listed in a text MK file is
+   provided in metadata included inside the description area of the
+   file. This information can be viewed using any text editor program.
+
+
+<p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
+<a NAME="Miscellaneous Files"></a>
+Miscellaneous Files
+===================
+
+   Miscellaneous files provide value added elements that are outside the
+   scope of the PDS archive requirements. Miscellaneous files included in
+   this archive are currently limited to checksum files.
+
+   The subsection below provides details for these files.
+
+<p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
+<a NAME="Checksum Files"></a>
+Checksum Files
+
+   A checksum file provides a table of MD5 checksums for all files in the
+   archive as of a particular archive (bundle) version, including
+   checksums for all previous checksums files and their labels but
+   excluding the checksum for the checksum file itself and its label.
+
+   The checksum files are provided under the <a href="../miscellaneous/checksum/">miscellaneous/checksum</a>
+   directory and are named according to the following scheme:
+
+      -  CLPS checksum files
+
+               checksum_vVVV.tab
+
+            where
+
+               VVV       is the version; the file with the latest
+                         version supersedes all similarly named
+                         files with earlier versions and can be
+                         used to validate the archive in its
+                         entirety.
+
+<p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
+<A NAME="File Formats"></A>
+File Formats
+============
+
+   All text documents, checksum files, and other meta information files
+   such as descriptions, detached PDS4 labels, and inventory tables, are
+   stream format files, with a carriage return (ASCII 13) and a line feed
+   character (ASCII 10) at the end of the records. This allows the files
+   to be read by most operating systems.
+
+   The text kernel files in this archive -- LSKs, PCKs, SCLKs, IKs, FKs,
+   and MKs -- are UNIX text files, with a line feed character (ASCII 10)
+   at the end of the line, and binary kernel files -- SPKs and CKs -- are
+   IEEE LSB binary files. While data files in this archive can be used
+   'as is' with SPICE toolkits for the majority of supported environments,
+   converting the files to the binary or text format native to the user's
+   computer may be required for use of the data with FORTRAN toolkits on
+   incompatible environments. Refer to the documentation provided with the
+   SPICE Toolkit to find out whether conversion is needed in each specific
+   case.
+
+   NAIF provides a tool (BINGO) that can convert either binary or text
+   kernels from one format to another. This means that text files can
+   have their line terminator changed and binary files can be converted
+   to the native format of the platform of interest. BINGO is available
+   from the utilities page at the NAIF Node of the PDS:
+
+      <a href="https://naif.jpl.nasa.gov/naif/utilities.html">https://naif.jpl.nasa.gov/naif/utilities.html</a>
+
+<p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
+<a NAME="SPICE Software and Documentation"></a>
+SPICE Software and Documentation
+================================
+
+   The latest SPICE Toolkit for a variety of computer platforms,
+   additional utility programs, documentation, tutorials, and hands-on
+   lessons are available at the NAIF Node of the PDS:
+
+      <a href="https://naif.jpl.nasa.gov">https://naif.jpl.nasa.gov</a>
+
+   specifically:
+
+      Toolkit:   <a href="https://naif.jpl.nasa.gov/naif/toolkit.html">https://naif.jpl.nasa.gov/naif/toolkit.html</a>
+
+      Utilities: <a href="https://naif.jpl.nasa.gov/naif/utilities.html">https://naif.jpl.nasa.gov/naif/utilities.html</a>
+
+      Tutorials: <a href="https://naif.jpl.nasa.gov/naif/tutorials.html">https://naif.jpl.nasa.gov/naif/tutorials.html</a>
+
+      Lessons:   <a href="https://naif.jpl.nasa.gov/naif/lessons.html">https://naif.jpl.nasa.gov/naif/lessons.html</a>
+
+<p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
+<a NAME="Contact Information"></a>
+Contact Information
+===============================
+
+   TBD.
+
+<p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
+<a NAME="Cognizant Persons"></a>
+Cognizant Persons
+=================
+
+   This test placeholder archive was produced by Alyssa Bailey, NAIF/JPL.
+
+
+End of CLPS SPICE archive description.
+<p align="right"><a href="#Table of Contents">Back to Table of Contents</a></p>
+</pre>
+
+</body>
+
+</html>

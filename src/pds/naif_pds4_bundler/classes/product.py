@@ -1,4 +1,5 @@
 """Product Class and Child Classes Implementation."""
+
 import datetime
 import difflib
 import filecmp
@@ -109,12 +110,14 @@ class Product(object):
             self.setup.add_file(self.path.split(archive_dir)[-1])
             self.setup.add_checksum(self.path, checksum)
 
-    def get_observer_and_target(self):
-        """Read the configuration to extract the observers and the targets.
+    def get_mission_and_observer_and_target(self):
+        """Read the configuration to extract the missions, observers and the
+        targets.
 
-        :return: observers and targets
+        :return: missions and observers and targets
         :rtype: tuple
         """
+        missions = []
         observers = []
         targets = []
 
@@ -128,6 +131,18 @@ class Product(object):
             if re.match(pattern["@pattern"], self.name):
 
                 ker_config = self.setup.kernel_list_config[pattern["@pattern"]]
+
+                #
+                # Check if the kernel has specified missions.
+                #
+                if "missions" in ker_config:
+                    missions = ker_config["missions"]["mission_name"]
+                #
+                # If the kernel has no other missions then the primary mission
+                # is used.
+                #
+                else:
+                    missions = [self.setup.mission_name]
 
                 #
                 # Check if the kernel has specified targets.
@@ -160,10 +175,11 @@ class Product(object):
             # file), then use the mission observers and targets.
             #
             else:
+                missions = [self.setup.mission_name]
                 observers = [self.setup.observer]
                 targets = [self.setup.target]
 
-        return (observers, targets)
+        return (missions, observers, targets)
 
 
 class SpiceKernelProduct(Product):
@@ -299,8 +315,9 @@ class SpiceKernelProduct(Product):
         # Extract the required information from the kernel list read from
         # configuration for the product.
         #
-        (observers, targets) = self.get_observer_and_target()
+        (missions, observers, targets) = self.get_mission_and_observer_and_target()
 
+        self.missions = missions
         self.targets = targets
         self.observers = observers
 
@@ -611,7 +628,22 @@ class MetaKernelProduct(Product):
             self.KERNELPATH = ".."
 
         self.AUTHOR = self.setup.producer_name
-        self.MISSION_NAME = self.setup.mission_name
+        # self.MISSION_NAME = self.setup.mission_name #OUTDATED
+
+        if hasattr(self.setup, "secondary_missions"):
+            if len(self.setup.secondary_missions) == 1:
+                missions_text = f"{self.setup.mission_name} and {self.setup.secondary_missions[0]}"  # changed to self.setup.mission_name from setup.mission_name
+            else:
+                missions_text = f"{self.setup.mission_name}, "  # changed to self.setup.mission_name from setup.mission_name
+                for i in range(len(self.setup.secondary_missions)):
+                    if i == len(self.setup.secondary_missions) - 1:
+                        missions_text += f"and {self.setup.secondary_missions[i]}"
+                    else:
+                        missions_text += f"{self.setup.secondary_missions[i]}, "
+
+            self.PDS4_MISSION_NAME = f"{missions_text}"
+        else:
+            self.PDS4_MISSION_NAME = f"{self.setup.mission_name}"  # changed to self.setup.mission_name from setup.mission_name
 
         if hasattr(self.setup, "creation_date_time"):
             self.MK_CREATION_DATE = current_date(date=self.setup.creation_date_time)
@@ -702,8 +734,9 @@ class MetaKernelProduct(Product):
             # Extract the required information from the kernel list read from
             # configuration for the product.
             #
-            (observers, targets) = self.get_observer_and_target()
+            (missions, observers, targets) = self.get_mission_and_observer_and_target()
 
+            self.missions = missions
             self.targets = targets
             self.observers = observers
 
@@ -1757,15 +1790,18 @@ class OrbnumFileProduct(Product):
             # Extract the required information from the kernel list read from
             # configuration for the product.
             #
-            (observers, targets) = self.get_observer_and_target()
+            (missions, observers, targets) = self.get_mission_and_observer_and_target()
 
+            self.missions = missions
             self.targets = targets
             self.observers = observers
 
-            if 'observer' in self._orbnum_type:
-                self.observers = [self._orbnum_type['observer']]
-            if 'target' in self._orbnum_type:
-                self.targets = [self._orbnum_type['target']]
+            if "mission_name" in self._orbnum_type:
+                self.missions = [self._orbnum_type["mission_name"]]
+            if "observer" in self._orbnum_type:
+                self.observers = [self._orbnum_type["observer"]]
+            if "target" in self._orbnum_type:
+                self.targets = [self._orbnum_type["target"]]
 
         Product.__init__(self)
 
@@ -1907,7 +1943,7 @@ class OrbnumFileProduct(Product):
         :rtype: str
         """
         header_length = 0
-        with open(self.path, "r", newline='') as o:
+        with open(self.path, "r", newline="") as o:
             lines = 0
             header_start = int(self._orbnum_type["header_start_line"])
             for line in o:
@@ -3899,14 +3935,14 @@ class ChecksumProduct(Product):
                     label_current = self.path_current.replace(".tab", ".lbl")
 
                 md5_current = md5(self.path_current)
-                self.md5_dict[
-                    checksum_dir + self.path_current.split(os.sep)[-1]
-                ] = md5_current
+                self.md5_dict[checksum_dir + self.path_current.split(os.sep)[-1]] = (
+                    md5_current
+                )
 
                 md5_label = md5(label_current)
-                self.md5_dict[
-                    checksum_dir + label_current.split(os.sep)[-1]
-                ] = md5_label
+                self.md5_dict[checksum_dir + label_current.split(os.sep)[-1]] = (
+                    md5_label
+                )
 
         self.new_product = True
 
@@ -3984,9 +4020,9 @@ class ChecksumProduct(Product):
                     #
                     if hasattr(product, "label"):
                         label_checksum = md5(product.label.name)
-                        self.md5_dict[
-                            product.label.name.split(archive_dir)[-1]
-                        ] = label_checksum
+                        self.md5_dict[product.label.name.split(archive_dir)[-1]] = (
+                            label_checksum
+                        )
 
                     else:
                         logging.warning(f"-- {product_name} does not have a label.")

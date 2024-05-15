@@ -11,6 +11,16 @@
         <schema_location>http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1E00.xsd
         </schema_location>
         <logical_identifier>urn:nasa:pds:uranus_occ_u137_hst_fos</logical_identifier>
+        <context_products>
+            <product name="Hubble Space Telescope Mission">
+                <type>Mission</type>
+                <lidvid>urn:nasa:pds:context:investigation:mission.hst::1.0</lidvid>
+            </product>
+            <product name="Hubble Space Telescope">
+                <type>Spacecraft</type>
+                <lidvid>urn:nasa:pds:context:instrument_host:spacecraft.hst::1.0</lidvid>
+            </product>
+        </context_products>
     </pds_parameters>
 
     <!-- =========================== -->

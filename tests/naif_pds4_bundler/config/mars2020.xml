@@ -12,6 +12,10 @@
         </schema_location>
         <logical_identifier>urn:nasa:pds:mars2020.spice</logical_identifier>
         <context_products>
+            <product name="Mars 2020 Perseverance Rover Mission">
+                <type>Mission</type>
+                <lidvid>urn:nasa:pds:context:investigation:mission.mars2020::1.0</lidvid>
+            </product>
             <product name="Mars 2020 Perseverance Rover">
                 <type>Spacecraft</type>
                 <lidvid>urn:nasa:pds:context:instrument_host:spacecraft.mars2020::1.0</lidvid>

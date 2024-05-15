@@ -26,14 +26,7 @@
             <purpose>Observation Geometry</purpose>
             <processing_level>Derived</processing_level>
         </Primary_Result_Summary>
-        <Investigation_Area>
-            <name>$MISSION_NAME</name>
-            <type>Mission</type>
-            <Internal_Reference>
-                <lid_reference>$PDS4_MISSION_LID</lid_reference>
-                <reference_type>ancillary_to_investigation</reference_type>
-            </Internal_Reference>
-        </Investigation_Area>
+$MISSIONS
         <Observing_System>
 $OBSERVERS
         </Observing_System>

@@ -1,0 +1,23 @@
+DATE = 2024-03-20
+SPACECRAFT = Astrobotic Peregrine Lunar Lander
+NAIFER = Alyssa M. Bailey
+DATASETID = N/A
+VOLUMEID = N/A
+RELEASE_ID = 0002
+RELEASE_DATE = 2024-03-20
+$EOH
+FILE             = spice_kernels/fk/clps_to_2im_v01.tf
+MAKLABEL_OPTIONS =
+DESCRIPTION      = SPICE FK file defining reference frames the CLPS Odysseus spacecraft, its structures, and science instruments, created by .
+FILE             = spice_kernels/ik/clps_to_2im_ncll_v01.ti
+MAKLABEL_OPTIONS =
+DESCRIPTION      = SPICE IK file defining clps_to_2im instruments, created by .
+FILE             = spice_kernels/sclk/clps_to_2im_sclkscet_v001.tsc
+MAKLABEL_OPTIONS =
+DESCRIPTION      = SPICE SCLK file containing time correlation data for the main CLPS Odysseus on-board clock, created by.
+FILE             = spice_kernels/mk/clps_to_2im_v01.tm
+MAKLABEL_OPTIONS =
+DESCRIPTION      = SPICE MK file listing kernels for the whole mission created by .
+FILE             = spice_kernels/mk/clps_v02.tm
+MAKLABEL_OPTIONS =
+DESCRIPTION      = SPICE MK file listing kernels for the whole mission created by .

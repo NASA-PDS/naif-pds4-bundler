@@ -11,6 +11,10 @@
         <schema_location>http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd</schema_location>
         <logical_identifier>urn:nasa:pds:insight.spice</logical_identifier>
         <context_products>
+            <product name="InSight Mars Lander Mission">
+                <type>Mission</type>
+                <lidvid>urn:nasa:pds:context:investigation:mission.insight::1.0</lidvid>
+            </product>
             <product name="InSight Mars Lander Spacecraft">
                 <type>Spacecraft</type>
                 <lidvid>urn:nasa:pds:context:instrument_host:spacecraft.insight::2.0</lidvid>

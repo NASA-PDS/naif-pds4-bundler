@@ -1,4 +1,5 @@
 """Bundle Class Implementation."""
+
 import filecmp
 import logging
 import os
@@ -78,10 +79,12 @@ class Bundle(object):
             self.set_bundle_vid()
             self.set_bundle_lid()
 
-            self.lid_reference = "{}:context:investigation:mission.{}".format(
-                ":".join(setup.logical_identifier.split(":")[0:-1]),
-                setup.mission_acronym,
-            )
+            # Outdated - Needed when only 1 Mission was 'allowed'
+
+            # self.lid_reference = "{}:context:investigation:mission.{}".format(
+            #     ":".join(setup.logical_identifier.split(":")[0:-1]),
+            #     setup.mission_acronym,
+            # )
 
             #
             #  Get the context products.

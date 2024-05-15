@@ -13,6 +13,10 @@
         <logical_identifier>urn:nasa:pds:dart.spice</logical_identifier>
         <context_products>
             <product name="DART">
+                <type>Mission</type>
+                <lidvid>urn:nasa:pds:context:investigation:mission.dart::1.0</lidvid>
+            </product>
+            <product name="DART">
                 <type>Spacecraft</type>
                 <lidvid>urn:nasa:pds:context:instrument_host:spacecraft.dart::1.0</lidvid>
             </product>

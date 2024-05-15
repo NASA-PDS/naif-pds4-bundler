@@ -27,12 +27,12 @@
           <processing_level>Derived</processing_level>
         </Primary_Result_Summary>
         <Investigation_Area>
-          <name>ExoMars 2016</name>
-          <type>Mission</type>
-          <Internal_Reference>
-            <lid_reference>urn:esa:psa:context:investigation:mission.em16</lid_reference>
-            <reference_type>collection_to_investigation</reference_type>
-          </Internal_Reference>
+            <name>ExoMars 2016</name>
+            <type>Mission</type>
+            <Internal_Reference>
+                <lid_reference>urn:esa:psa:context:investigation:mission.em16</lid_reference>
+                <reference_type>collection_to_investigation</reference_type>
+            </Internal_Reference>
         </Investigation_Area>
         <Observing_System>
             <Observing_System_Component>

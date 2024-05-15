@@ -11,6 +11,20 @@
         <schema_location>http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd
         </schema_location>
         <logical_identifier>urn:nasa:pds:ladee.spice</logical_identifier>
+        <context_products>
+            <product name="LADEE">
+                <type>Mission</type>
+                <lidvid>urn:nasa:pds:context:investigation:mission.ladee::1.3</lidvid>
+            </product>
+            <product name="LADEE">
+                <type>Spacecraft</type>
+                <lidvid>urn:nasa:pds:context:instrument_host:spacecraft.ladee::1.2</lidvid>
+            </product>
+            <product name="MOON">
+                <type>Satellite</type>
+                <lidvid>urn:nasa:pds:context:target:satellite.earth.moon::1.1</lidvid>
+            </product>
+        </context_products>
     </pds_parameters>
 
     <!-- =========================== -->

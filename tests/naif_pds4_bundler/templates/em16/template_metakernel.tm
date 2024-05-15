@@ -1,18 +1,18 @@
 KPL/MK
 
-Meta-kernel for $MISSION_NAME Archived Kernels
+Meta-kernel for $PDS4_MISSION_NAME Archived Kernels
 ==========================================================================
 
-   This meta-kernel lists the $MISSION_NAME Archived SPICE kernels
+   This meta-kernel lists the $PDS4_MISSION_NAME Archived SPICE kernels
    providing information for the full mission. All of the kernels listed
-   below are archived in the PSA $MISSION_NAME SPICE kernel archive.
+   below are archived in the PSA $PDS4_MISSION_NAME SPICE kernel archive.
 
    This set of files and the order in which they are listed were picked to
    provide the best available data and the most complete coverage for the
    specified year based on the information about the kernels available at
    the time this meta-kernel was made. For detailed information about the
    kernels listed below refer to the internal comments included in the
-   kernels and the documentation accompanying the $MISSION_NAME
+   kernels and the documentation accompanying the $PDS4_MISSION_NAME
    SPICE kernel archive.
 
 
@@ -31,7 +31,7 @@ Implementation Notes
 
    It is recommended that users make a local copy of this file and
    modify the value of the PATH_VALUES keyword to point to the actual
-   location of the $MISSION_NAME SPICE data set's ``data'' directory
+   location of the $PDS4_MISSION_NAME SPICE data set's ``data'' directory
    on their system. Replacing ``/'' with ``\'' and converting line
    terminators to the format native to the user's system may also be
    required if this meta-kernel is to be used on a non-UNIX workstation.
