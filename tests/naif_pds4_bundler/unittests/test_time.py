@@ -2,6 +2,7 @@
 import spiceypy
 from pds.naif_pds4_bundler.utils import dsk_coverage
 from pds.naif_pds4_bundler.utils import spk_coverage
+from pds.naif_pds4_bundler.utils.time import parse_date
 
 
 def test_dsk_coverage(self):
@@ -30,4 +31,17 @@ def test_spk_coverage(self):
     self.assertEqual(
         (start_time_cal, stop_time_cal),
         ("2021-02-18T21:52:40.482Z", "2021-05-21T15:47:07.765Z"),
+    )
+
+
+def test_parse_dates(self):
+    """Test parse_dates function."""
+    
+    isoc_str = "2021-02-18T21:52:40"
+    date_str  = "2021-FEB-18-21:52:40"
+
+    isoc_date = parse_date(isoc_str)
+    date = parse_date(date_str)
+    self.assertEqual(
+        isoc_date, date
     )

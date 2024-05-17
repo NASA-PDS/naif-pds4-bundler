@@ -15,6 +15,7 @@ from datetime import date
 import numpy as np
 import spiceypy
 
+from ..utils.time import parse_date
 from ..utils import add_carriage_return
 from ..utils import add_crs_to_file
 from ..utils import check_eol
@@ -2867,7 +2868,7 @@ class OrbnumFileProduct(Product):
             # time-tags of the orbnum file.
             #
             start_time = self._sample_record.split()[1]
-            start = datetime.datetime.strptime(start_time, "%Y-%b-%d-%H:%M:%S")
+            start = parse_date(start_time)
             start_time = start.strftime("%Y-%m-%dT%H:%M:%SZ")
 
             #
@@ -2896,7 +2897,7 @@ class OrbnumFileProduct(Product):
                 stop_time = last_line.split()[3]
 
             try:
-                stop = datetime.datetime.strptime(stop_time, "%Y-%b-%d-%H:%M:%S")
+                stop = parse_date(stop_time)
                 stop_time = stop.strftime("%Y-%m-%dT%H:%M:%SZ")
             except BaseException:
                 #

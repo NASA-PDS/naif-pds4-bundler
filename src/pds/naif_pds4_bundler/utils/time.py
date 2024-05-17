@@ -424,3 +424,21 @@ def get_years(start_time, stop_time):
         year += 1
 
     return years
+
+
+def parse_date(date_str):
+    """Parses a date string using the following formats:
+        * %Y-%b-%d-%H:%M:%S
+        * %Y-%m-%dT%H:%M:%S
+
+    :param date_str: Stop time to determine list of years
+    :type date_str: str
+    :return: date corresponding to the input str
+    :rtype: datetime
+    """
+    try:
+        date = datetime.datetime.strptime(date_str, "%Y-%b-%d-%H:%M:%S")
+    except ValueError:
+        date = datetime.datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%S")
+
+    return date
