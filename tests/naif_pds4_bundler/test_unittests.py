@@ -397,6 +397,8 @@ class TestUnitTests(TestCase):
     def test_spk_coverage(self):
         time.test_spk_coverage(self)
 
+    def test_parse_date(self):
+        time.test_parse_dates(self)
 
 if __name__ == "__main__":
     unittest.main()
