@@ -137,6 +137,7 @@ class Product(object):
 
                 #
                 # Check if the kernel has specified missions.
+                # Note the 'primary' mission will not be used in this case.
                 #
                 if "missions" in ker_config:
                     missions = ker_config["missions"]["mission_name"]
