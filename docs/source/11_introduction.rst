@@ -49,7 +49,7 @@ archive preparer can do.
 How to Read This Document?
 ==========================
 
-We are glad that you got this far, but you’ve got a ways to go.
+We are glad that you got this far, but you’ve got a ways to go!
 You might not have to look into each section of this document.
 If you already know about SPICE you can skip the rest of this chapter. If
 you are very familiar with PDS SPICE kernel archives you can skip the
