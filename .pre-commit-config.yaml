@@ -12,11 +12,6 @@ repos:
     -   id: check-yaml
         files: .*\.(yaml|yml)$
 
--   repo: https://github.com/pycqa/isort
-    rev: 5.13.2
-    hooks:
-      - id: isort
-
 -   repo: https://github.com/psf/black
     rev: 24.4.2
     hooks:
@@ -26,7 +21,7 @@ repos:
     rev: 7.0.0
     hooks:
     -   id: flake8
-        args: ['--extend-ignore=W503,E203']
+        args: ['--extend-ignore=W503,E203,E721']
 
 -   repo: local
     hooks:
