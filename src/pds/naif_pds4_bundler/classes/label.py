@@ -6,14 +6,16 @@ import os
 
 import spiceypy
 
-from ..utils import add_carriage_return
-from ..utils import ck_coverage
-from ..utils import compare_files
-from ..utils import extension_to_type
-from ..utils import extract_comment
-from ..utils import format_multiple_values
-from ..utils import spice_exception_handler
-from ..utils import type_to_pds3_type
+from ..utils import (
+    add_carriage_return,
+    ck_coverage,
+    compare_files,
+    extension_to_type,
+    extract_comment,
+    format_multiple_values,
+    spice_exception_handler,
+    type_to_pds3_type,
+)
 from .log import error_message
 
 
@@ -44,7 +46,6 @@ class PDSLabel(object):
         #
         self.root_dir = setup.root_dir
         self.mission_acronym = setup.mission_acronym
-        # self.MISSION_NAME = setup.mission_name #OUTDATED
 
         if setup.pds_version == "4":
             self.XML_MODEL = setup.xml_model
@@ -103,12 +104,6 @@ class PDSLabel(object):
                 )
 
             self.BUNDLE_DESCRIPTION_LID = f"{setup.logical_identifier}:document:spiceds"
-
-            # OUTDATED - when only 1 Mission was 'allowed'
-            # try:
-            #     self.PDS4_MISSION_LID = product.collection.bundle.lid_reference
-            # except BaseException:
-            #     self.PDS4_MISSION_LID = product.bundle.lid_reference
 
         if hasattr(self.setup, "creation_date_time"):
             creation_dt = self.setup.creation_date_time
@@ -1024,7 +1019,7 @@ class SpiceKernelPDS3Label(PDSLabel):
 
         if "\\endlabel" in commnt:
             index = commnt.index("\\endlabel")
-            commnt = commnt[index + 1 :]
+            commnt = commnt[index + 1:]
 
         new_commnt += commnt
 
