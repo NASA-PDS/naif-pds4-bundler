@@ -11,11 +11,13 @@ from xml.etree import cElementTree
 
 import spiceypy
 
-from ..utils import check_list_duplicates
-from ..utils import etree_to_dict
-from ..utils import get_context_products
-from ..utils import safe_make_directory
-from ..utils import spice_exception_handler
+from ..utils import (
+    check_list_duplicates,
+    etree_to_dict,
+    get_context_products,
+    safe_make_directory,
+    spice_exception_handler,
+)
 from .log import error_message
 from .product import ReadmeProduct
 
