@@ -1019,7 +1019,7 @@ class SpiceKernelPDS3Label(PDSLabel):
 
         if "\\endlabel" in commnt:
             index = commnt.index("\\endlabel")
-            commnt = commnt[index + 1:]
+            commnt = commnt[index + 1 :]
 
         new_commnt += commnt
 

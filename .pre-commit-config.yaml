@@ -12,11 +12,16 @@ repos:
     -   id: check-yaml
         files: .*\.(yaml|yml)$
 
+-   repo: https://github.com/psf/black
+    rev: 24.4.2
+    hooks:
+    -   id: black
+
 -   repo: https://github.com/PyCQA/flake8
     rev: 7.0.0
     hooks:
     -   id: flake8
-        args: [--extend-ignore=W503]
+        args: ['--extend-ignore=W503,E203']
 
 -   repo: local
     hooks:
