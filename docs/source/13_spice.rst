@@ -1,7 +1,7 @@
 A Very Brief Introduction to SPICE
 ==================================
 
-The SPICE (Spacecraft Planets Instrument C- Matrix Events) information
+The SPICE (Spacecraft, Planet, Instrument, C-Matrix, Events) information
 system uses ancillary data to provide solar system geometry information
 to scientists and engineers for planetary missions in order to plan and
 analyze scientific observations from space-born instruments.
@@ -33,7 +33,7 @@ SPICE kernels in a SPICE archive are grouped into a set of subdirectories.
 Each subdirectory contains one specific kernel type; those types are briefly
 described here.
 
- * **spk/** (Spacecraft Planet Kernel) files contain ephemerides (position
+ * **spk/** (Spacecraft Ephemeris Kernel) files contain ephemerides (position
    and velocity) for spacecraft, planets, satellites, comets and
    asteroids as well as for moving or fixed spacecraft and instrument
    structures.
@@ -54,14 +54,15 @@ described here.
 
  * **lsk/** (Leapseconds Kernel) files contain the leapseconds and the
    values of other constants required to perform a transformation
-   between Universal Time Coordinated (UTC) and Ephemeris time (ET),
+   between Coordinated Universal Time (UTC) and Ephemeris time (ET),
    which is also known as Barycentric Dynamical Time (TDB).
 
  * **sclk/** (Spacecraft Clock Kernel) files contain on-board clock
    calibration data required to perform a transformation between
-   Ephemeris time (ET) and spacecraft on-board time (SCLK).
+   spacecraft on-board time (SCLK) and Ephemeris time (ET) or
+   Coordinated Universal Time (UTC).
 
- * **fk/** (Frame definitions Kernel) files contain information required to
+ * **fk/** (Frames Kernel) files contain information required to
    define reference frames, sources of frame orientation data and
    connections between these frames and other frames supported within
    the SPICE system. The science instrument frame definitions provided

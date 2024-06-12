@@ -23,8 +23,7 @@ Configuration File Format
 -------------------------
 
 The NPB configuration file is an XML (eXtensible Markup Language) file.
-The extension of the file should be .xml, although this is not strictly
-necessary.
+The extension of the file should be '.xml'.
 
 XML files (or documents), contain XML elements; these
 elements can contain:
@@ -114,7 +113,7 @@ parameter.::
             <author_list>Semenov B. V.; Costa Sitja M.</author_list>
             <institution>NAIF/JPL</institution>
             <doi>10.17189/1520434</doi>
-            <!-- Location fo the SPICE archive description HTML file to be
+            <!-- Location for the SPICE archive description HTML file to be
                  included -->
             <spiceds>../data/spiceds_maven.html</spiceds>
             <spice_name>MAVEN</spice_name>
@@ -843,7 +842,7 @@ Contrarily for other archives, such as MAVEN, is as follows:
 A note on secondary observers and targets: although secondary s/c and/or targets
 might be present in the SPICE kernels, **they do not have to be present in the
 Configuration File, nor in the bundle PDS4 labels**. It is perfectly
-fine to use the primary s/c and target for all kernels.
+fine to use the primary s/c and target for all kernels when appropriate.
 
 This is the case for the InSight SPICE kernel bundle: the secondary s/c MARCO-A
 and MARCO-B use InSight in their labels as observer. If this simplified approach
@@ -854,7 +853,7 @@ description document (SPICEDS) as follows::
         are labeled as being associate the INSIGHT instrument host.
 
 This simplified approach is especially convenient for missions that have
-a main prime s/c or target. For other missions such as BepiColombo where the
+a main s/c or target. For other missions such as BepiColombo where the
 Mercury Planet Orbiter (MPO) and the Mercury Magnetospheric Orbiter (MMO or MIO)
 have a comparable relevance, the bundle must include a secondary s/c. Here's an
 example of the entries for secondary s/c and targets for DART::
@@ -1071,6 +1070,18 @@ to a kernel::
                 <target>Dimorphos</target>
             </targets>
 
+The following example shows how you would assign multiple missions and obsevers
+to a kernel::
+
+            <missions>
+                <mission_name>Commercial Lunar Payload Services Initiative</mission_name>
+                <mission_name>Peregrine Mission 1</mission_name>
+                <mission_name>Intuitive Machines Mission 1</mission_name>
+            </missions>
+            <observers>
+                <observer>Peregrine Lunar Lander</observer>
+                <observer>Nova-C Lunar Lander</observer>
+            </observers>
 
 Kernel Descriptions
 ^^^^^^^^^^^^^^^^^^^

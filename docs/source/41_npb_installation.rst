@@ -114,11 +114,12 @@ Known Installation Issues
 Certain versions of Python might report an installation error triggered by
 the installation of the NumPy package that is required by SpiceyPy. The error
 should point to a missing or invalid Cython package. In order to fix this error
-please update Python SetupTools and Cython packages by running the following
-commands::
+please update Python SetupTools, Cython, and Requests packages by running the
+following commands::
 
    python -m pip install -U setuptools
    python -m pip install cython
+   python -m pip install requests
 
 Then you can run the installation as usual::
 

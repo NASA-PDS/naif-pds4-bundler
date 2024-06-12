@@ -30,8 +30,8 @@ at the
 References
 ==========
 
-.. [PDS4STD] Planetary Data System Standards Reference, Version 1.16.0
-             April 21, 2021, Jet Propulsion Laboratory, California Institute of
+.. [PDS4STD] Planetary Data System Standards Reference, Version 1.22.0
+             March 31, 2024, Jet Propulsion Laboratory, California Institute of
              Technology Pasadena, California
 
 .. [PDS3GUIDE] PDS Navigation and Ancillary Information Facility (NAIF)

@@ -31,7 +31,7 @@ A SPICE kernel archive bundle consists of three collections: the
 *spice_kernels* collection, the *miscellaneous* collection, and the
 *document* collection.
 
-Note that every collection will have a number of Inventory File CVS
+Note that every collection will have a number of Inventory File CSV
 (Comma Separated Value) files and Collection XML labels.
 
 
@@ -80,7 +80,7 @@ LIDs, VIDs, LIDVIDs, and File naming
 Critical elements of PDS4 archives are the products' Logical Identifiers
 (LID) and the products' Version Identifiers (VID).
 
-A LID is a unique logical identifier that is assigned to each product,
+A LID is a unique logical identifier string that is assigned to each product,
 collection, and bundle. The nicety is that the LID is not bound to the data
 location and therefore is able to reference data uniquely. VIDs provides the
 capability to version the data identified by a LID; LIDVID combines the LID and
@@ -498,7 +498,7 @@ must be followed:
     *  for whole mission meta-kernels ``start_date_time`` and ``stop_date_time``
        are set to the coverage provided by spacecraft SPK, CKs, or to other
        dates at the discretion of the archive producer. These other dates might
-       be required for missions whose SPks and CKs do not explicitly cover the
+       be required for missions whose SPKs and CKs do not explicitly cover the
        dates required by the archive, e.g.: a lander mission with a fixed
        position provided by an SPK with extended coverage
 
@@ -524,7 +524,7 @@ Bundle Creation Date Time
 The creation time of the current version of the bundle is provided in the
 bundle label under the ``File_Area_Text`` area. Although this should
 correspond to the creation date of the readme file, its ``creation_date_time``
-element is used because is the only way to embed the creation date within
+element is used because it is the only way to embed the creation date within
 the bundle label.
 
 There is no need to mention this in the errata section of the
@@ -551,22 +551,23 @@ is not a SPICE kernel.)
 Checksum files
 --------------
 
-It is highly recommended, not to say a policy, that archived files are ever
-altered in any way. This was not possible in PDS3 but it is in PDS4. Thanks to
-this, Checksum files provide the ability to revert to an earlier version
-of the archive -- just take all the files listed in particular checksum plus
-the checksum itself and its label.
+It is highly recommended that archived files are never altered in any way.
+This was not possible in PDS3 but it is in PDS4. Thanks to this, Checksum files
+provide the ability to revert to an earlier version of the archive -- just take
+all the files listed in particular checksum plus the checksum itself and its
+label.
 
 
 Bundles with multiple missions and/or observers and/or targets
 --------------------------------------------------------------
 
-Multiple missions, spacecrafts, and mutliple targets. NPB incorporates the
-possibility to have mutliple missions, spacecrafts, and targets in a Bundle.
-This is provided via configuration. If so, the default mission will be the
-primary mission and the default spacecraft will be the primary spacecraft
-which is specified in the configuration file. Otherwise they need to be
-specified in the Kernel List section of the configuration file. The non-kernels
+NPB incorporates the possibility to have mutliple missions, spacecrafts, and
+targets in a Bundle. This is provided via configuration. If so, the default
+mission will be the primary mission, the default spacecraft will be the
+primary spacecraft, and the default target will be the primary target which is
+specified in the configuration file. Otherwise they need to be specified in the
+Kernel List section of the configuration file to choose which mission(s),
+spacecraft(s), and target(s) are included in the kernel label. The non-kernels
 bundle products will include all the missions, spacecrafts, and targets in the
 labels.
 
@@ -603,17 +604,16 @@ archives or in other holdings where these objects had ``LF``.
 Because of these reasons NAIF recommends to use IM 1.16.0.0 for new archives.
 
 
-Digital Objects Identifiers
+Digital Object Identifiers
 ---------------------------
 
 A Digital Object Identifier (DOI) is a unique alphanumeric string assigned by a
 registration agency (the International DOI Foundation) to identify content and
-provide a persistent link to its location on the internet. DOIs can be used for
-example to cite the SPICE kernel archive in published articles.
+provide a persistent link to its location on the internet. DOIs can be used,
+for example, to cite the SPICE kernel archive in published articles.
 
-DOIs are not mandatory for SPICE kernel archives, but are desirable. A SPICE
-kernel archive should only have one DOI associated with the bundle and if
-applicable recorded in the bundle label under the ``Identification_Area`` as
+A SPICE kernel archive should only have one DOI associated with the bundle and
+if applicable recorded in the bundle label under the ``Identification_Area`` as
 follows::
 
     <Citation_Information>
@@ -796,7 +796,7 @@ guidelines when generating a new archive:
      PDS Information Model (IM v1.11.0.0).
    * `BepiColombo PDS4 SPICE kernel archive <https://naif.jpl.nasa.gov/pub/naif/pds/pds4/bc/bc_spice>`_:
      Double Mercury orbiter mission, an example of a Planetary Science Archive bundle that uses a different
-     PDS Information Model (IM v1.11.0.0) and with multiple hosts (spacecrafts).
+     PDS Information Model (IM v1.15.0.0) and with multiple hosts (spacecrafts).
 
 
 A note on SPICE Kernels dissemination

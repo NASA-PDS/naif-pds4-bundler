@@ -109,8 +109,9 @@ choose the adequate IM version and download the ``PDS4_PDS_????.xsd``
 and ``PDS4_PDS_????.sch`` or the ``PDS4_PDS_????.zip`` files. NAIF recommends to
 put these files in the NPB working directory.
 
-If you have included context products in the configuration file the Validate
-Tool might provide you the following error messages::
+If you have included context products in the configuration file that have yet
+to be registered, the Validate Tool might provide you the following error
+messages::
 
      FAIL: file:/Users/mcosta/workspace/em16/em16_003/em16_spice/bundle_em16_spice_v003.xml
       ERROR  [error.label.context_ref_not_found]   line 34: 'Context product not found: urn:esa:psa:context:investigation:mission.em16
@@ -181,8 +182,8 @@ releases for each PDS IM, therefore the details provided in this section
 might differ from the version of the Validate Tool you use. The results
 provided here are obtained using Validate Tool's::
 
-   Version 2.0.6
-   Release Date: 2021-05-25 12:08:21
+   Version 3.5.1
+   Release Date: 2024-05-25
 
 
 Deploying to the Final Archive Area

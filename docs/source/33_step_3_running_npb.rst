@@ -7,9 +7,9 @@ process should take full advantage of NPB and should be mostly automatic.
 Run NPB from the command line
 -----------------------------
 
-If you are in a hurry run NPB as follows: open your favorite
-terminal application and with coherence with respect to the workspace that you
-have defined for NPB, execute the following command::
+If you are in a hurry run NPB as follows: open your favorite terminal
+application and with coherence to the workspace that you have defined
+for NPB, execute the following command::
 
    $ naif-pds4-bundler <path_to_file>/<sc>_release_??.xml -p <path_to_file>/<sc>_release_??.plan -l -v
 
@@ -131,7 +131,7 @@ checksum from them.
 
 We know from experience that this feature can save you a lot of time, but at
 the same time it must be managed carefully and you must always be aware
-whether if the checksum registry files in the working directory and/or the
+whether the checksum registry files in the working directory and/or the
 labeled products in the staging area are adequate.
 
 
@@ -143,7 +143,7 @@ release of the archive or after a major update of the configuration file. Most
 likely you will need to try several times before you get it right. That is why
 we do not recommend you to set the ``bundle_directory`` to the final destination
 of the archive but rather an intermediate destination before pushing the
-incremented archive to the public (or to the relevant organisation.)
+incremented archive to the public (or to the relevant organization.)
 
 A good idea is to stop NPB's execution before the generated files are copied
 from the staging directory to the bundle directory. You can do so by setting

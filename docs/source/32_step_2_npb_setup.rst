@@ -197,7 +197,7 @@ recommendations on how to adapt them to your archive:
   * **Overview** provides a high-level description of the archive and a
     paragraph that gives its approximate time coverage. The coverage is usually
     determined by the launch date and a pointer to the kernel that sets
-    the end time of the of the archive. The determination of the archive
+    the end time of the archive. The determination of the archive
     coverage is discussed in section :ref:`22_pds4_spice_archive:Product Coverage Assignment Rules`.
 
   * **Errata** contains an enumerated list of errata items. These items are
@@ -214,9 +214,8 @@ recommendations on how to adapt them to your archive:
         version was released, it will continue to exist in the archive
         as an HTML document.
 
-    If you are using a PDS Information Model (IM) older than version 1.14.0.0
-    (in fact NAIF recommends that you use IM version 1.5.0.0), then this item
-    must be present as well::
+    If you are using a PDS Information Model (IM) older than version 1.14.0.0,
+    then this item must be present as well::
 
         The XML labels of the ancillary products have the reference_type
         attribute of the Internal_Reference association within the
@@ -302,7 +301,7 @@ recommendations on how to adapt them to your archive:
 
 A well written SPICEDS put together for the first release may not need to be
 modified for future releases unless new kinds of kernels not reflected in it
-get added to the archive, or the errata section items need to be added, updated
+get added to the archive, or errata section items need to be added, updated
 or removed.
 
 NPB does a number of checks on the archive and its data but it does not do
@@ -358,8 +357,8 @@ point with no effort.
 Follow the instructions provided in
 :ref:`42_npb_configuration_file:The Configuration File`
 to write or update the Configuration File. This process might require a
-**considerable** effort. Once you've got the configuration
-file in place, we recommend you name it as follows::
+**considerable** amount of effort. Once you've got the configuration file
+in place, we recommend you name it as follows::
 
    <sc>_release_??.xml
 
