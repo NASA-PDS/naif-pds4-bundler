@@ -84,7 +84,7 @@ Running Validate manually
 
 After installing ``validate`` and generating the bundle you can run it as follows::
 
-   validate -t <path_to_archive> -R pds4.bundle -x <pds_im_schema> -S <pds_im_schematron> --strict-field-checks -r <path_to_working_dir>/<sc>_release_??.validate
+   validate -t <path_to_archive> -R pds4.bundle -x <pds_im_schema> -S <pds_im_schematron> -r <path_to_working_dir>/<sc>_release_??.validate
 
 where
 
@@ -155,7 +155,7 @@ containing the missing context products as follows::
 
 Then you can run ``validate`` as follows::
 
-   validate -t em16/em16_spice --add-context-products registered_context_products.json -R pds4.bundle -x working/PDS4_PDS_1B00.xsd -S working/PDS4_PDS_1B00.sch --strict-field-checks -r working/em16_release_03.validate
+   validate -t em16/em16_spice --add-context-products registered_context_products.json -R pds4.bundle -x working/PDS4_PDS_1B00.xsd -S working/PDS4_PDS_1B00.sch -r working/em16_release_03.validate
 
 
 Following the inclusion of this argument, you will still get the following
@@ -175,7 +175,7 @@ NAIF recommends to set severity level of the Validation Tool reporting to
 ``Info`` (``-v 1 --verbose 1``). This will mainly help to find issues in the
 context products. The resulting recommended way to run Validate is::
 
-   validate -v 1 -t em16/em16_spice --skip-context-validation -R pds4.bundle -x working/PDS4_PDS_1B00.xsd -S working/PDS4_PDS_1B00.sch --strict-field-checks -r working/em16_release_03.validate
+   validate -v 1 -t em16/em16_spice --skip-context-validation -R pds4.bundle -x working/PDS4_PDS_1B00.xsd -S working/PDS4_PDS_1B00.sch -r working/em16_release_03.validate
 
 Please note that the Validate Tool is in continuous development with new
 releases for each PDS IM, therefore the details provided in this section
