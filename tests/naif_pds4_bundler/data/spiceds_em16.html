@@ -16,7 +16,7 @@
 +-----------------------------------------------------------------------------+
 The ExoMars 2016 Mission Archived SPICE Kernel Data set
 
-   Last update: 2023-10-10T18:00:00
+   Last update: 2025-01-23T18:00:00
 
 <a name="Introduction"></a>
 Introduction
@@ -51,6 +51,7 @@ Table of Contents
       <a href="#MK Files">MK Files</a>
    <A href="#Miscellaneous Files">Miscellaneous Files</A>
       <A href="#Checksum Files">Checksum Files</A>
+      <A HREF="#Orbit Number Files">Orbit Number Files</A>
    <a href="#File Formats">File Formats</a>
    <a href="#SPICE Software and Documentation">SPICE Software and Documentation</a>
    <a href="#Contact Information">Contact Information</a>
@@ -213,9 +214,13 @@ Archive Contents
    | |                                   Miscellaneous collections' inventories.
    | |
    | +-<a href="../miscellaneous/checksum/">[checksum]</a>                        Directory containing checksum files.
+   | | |
+   | | |-- *.tab                         Text checksum files.
+   | | +-- *.xml                         PDS4 labels for checksum files.
+   | +-<a href="../miscellaneous/orbnum/">[orbnum]</a>                          Directory containing orbnum files.
    |   |
-   |   |-- *.tab                         Text checksum files.
-   |   +-- *.xml                         PDS4 labels for checksum files.
+   |   |-- *.orb                         Text orbnum files.
+   |   +-- *.xml                         PDS4 labels for orbnum files.
    |
    +-<a href="../document/">[document]</a>                          Directory containing documents.
      |
@@ -902,7 +907,7 @@ Miscellaneous Files
 
    Miscellaneous files provide value added elements that are outside the
    scope of the PDS archive requirements. Miscellaneous files included in
-   this archive are currently limited to checksum files.
+   this archive are currently limited to checksum and orbit number files.
 
    The subsection below provides details for these files.
 
@@ -931,15 +936,81 @@ Checksum Files
                          entirety.
 
 <a href="#Table of Contents" style="float: right;">Back to Table of Contents</a>
+<a NAME="Orbit Number Files"></a>
+Orbit Number Files
+
+   An orbit number (ORBNUM) file provides a table of records ordered
+   by an increasing orbit numbering scheme. The orbit number changes
+   at every ascending node crossing event and the information contained
+   for each record includes the orbit number ("No."), ascending node 
+   crossing UTC time ("Event UTC A-NODE") and SCLK time ("Event SCLK A-NODE"),
+   descending node crossing UTC time ("OP-Event UTC D-NODE"). It also 
+   includes a few additional items computed at the time of ascending node
+   crossing event such as planetocentric subsolar longitude and latitude
+   ("SolLon" and "SolLat") in the Mars body-fixed frame based on the 
+   IAU 2000 Mars rotation model, planetocentric subspacecraft longitude
+   and latitude ("SC Lon" and "SC Lat") in the Mars body-fixed frame based
+   on the IAU 2000 Mars rotation model, spacecraft altitude above Mars
+   ("Alt") relative to the IAU 2000 Mars ellipsoid, and Sun-Mars distance
+   ("Sol Dist").
+
+   The ORBNUM files have been generated during the mission using the
+   NAIF's ORBNUM utility program for consolidated spacecraft trajectory
+   SPK files for the orbital phases of the mission.
+
+   ExoMars 2016 orbit number files have the same names as the corresponding
+   SPK files but with the extension ".bsp" replaced by ".orb".
+
+   The ORBNUM files are provided under the <a href="../miscellaneous/orbnum/">miscellaneous/orbnum</a>
+   directory and are named according to the following scheme:
+
+      -  ExoMars 2016 orbit number files
+
+               em16_tgo_[TYPE]_[ID]_merged.orb
+
+            where
+
+            TYPE     Data type, where a reference to the originator of the
+                     data, the type of data and the and the reference period
+                     is provided. This is a three letter acronym. The first
+                     letter defines the file originator:
+
+                        s: Science Operations Center;
+                        m: Mission Analysis;
+                        f: Flight Dynamics;
+                        i: Instrument Team;
+
+                     the second letter defines the reference period of the
+                     data:
+
+                        c: Cruise phase reference;
+                        p: Pre-aerobraking phase reference;
+                        a: Aerobraking phase reference;
+                        l: Science phase Long term reference;
+                        m: Science phase Medium term reference;
+                        s: Science phase Short term reference;
+                        o: Undefined reference;
+
+                     the third letter indicates the type of data
+
+                        p: Predicted data;
+                        m: Measured data;
+                        r: Reconstructed data;
+                        t: Test data;
+
+            ID       mapping to the original file product IDs as defined per
+                     an ICD document (optional)
+
+<a href="#Table of Contents" style="float: right;">Back to Table of Contents</a>
 <a name="File Formats"></a>
 File Formats
 ============
 
-   All text documents, checksum files, and other meta information files
-   such as descriptions, detached PDS4 labels, and inventory tables are
-   stream format files, with a carriage return (ASCII 13) and a line feed
-   character (ASCII 10) at the end of the records. This allows the
-   files to be read by most operating systems.
+   All text documents, checksum files, ORBNUM files, and other meta
+   information files such as descriptions, detached PDS4 labels, and
+   inventory tables are stream format files, with a carriage return
+   (ASCII 13) and a line feed character (ASCII 10) at the end of
+   the records. This allows the files to be read by most operating systems.
 
    The text kernel files in this archive -- LSKs, PCKs, SCLKs, IKs, FKs,
    and MKs -- are UNIX text files, with a line feed character (ASCII 10) at
