@@ -1,4 +1,5 @@
 """Setup Class Implementation."""
+
 import datetime
 import glob
 import logging
@@ -1262,7 +1263,7 @@ class Setup(object):
 
            $ validate -v 1 -t em16/em16_spice –-skip-context-validation \
            -R pds4.bundle -x working/PDS4_PDS_1B00.xsd -S working/PDS4_PDS_1B00.sch \
-           -–strict-field-checks -r working/em16_release_03.validate
+           -r working/em16_release_03.validate
 
         Would be equivalent to the following resulting Validate configuration
         file::
@@ -1275,7 +1276,6 @@ class Setup(object):
            validate.rule = pds4.bundle
            validate.schema = working/PDS4_PDS_1B00.xsd
            validate.schematron = working/PDS4_PDS_1B00.sch
-           validate.strictFieldChecks = true
            validate.report = working/em16_release_03.validate_report
 
         If there is an issue during the generation of this file --e.g.: no
@@ -1324,7 +1324,6 @@ class Setup(object):
             l.write(f"validate.verbose = 1\n")
             l.write(f"validate.skipContextValidation = true\n")
             l.write(f"validate.rule = pds4.bundle\n")
-            l.write(f"validate.strictFieldChecks = true\n")
 
         logging.info("-- PDS Validate Tool configuration file written in working area:")
         logging.info(f"   {self.working_directory}/{filename}.validate_config")
