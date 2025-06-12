@@ -16,7 +16,7 @@
 +-----------------------------------------------------------------------------+
 The ExoMars 2016 Mission Archived SPICE Kernel Data set
 
-   Last update: 2025-01-23T18:00:00
+   Last update: 2025-06-10T12:00:00
 
 <a name="Introduction"></a>
 Introduction
@@ -143,6 +143,12 @@ Errata
        spacecraft's aerobraking phase. During this time, the complexity of
        establishing a unique set of events for orbit number definition led to
        the decision to exclude them to prevent user confusion.
+
+   11. The first orbit number file archived in this bundle does not include
+       a REGEX version pattern in its filename - em16_tgo_fsp_369_merged.orb -
+       as it is not required by PDS. However seeking archive consistency, the
+       newer orbit number files starting with increment 014 implement the
+       REGEX version pattern - em16_tgo_fsp_386_merged_v01.orb - .
 
 <a href="#Table of Contents" style="float: right;">Back to Table of Contents</a>
 <a name="Archive Contents"></a>
@@ -968,7 +974,7 @@ Orbit Number Files
 
       -  ExoMars 2016 orbit number files
 
-               em16_tgo_[TYPE]_[ID]_merged.orb
+               em16_tgo_[TYPE]_[ID]_merged_vNN.orb
 
             where
 
@@ -1002,6 +1008,15 @@ Orbit Number Files
 
             ID       mapping to the original file product IDs as defined per
                      an ICD document (optional)
+
+            NN       version number -- 2 digits (required; e.g. 01).
+
+   DISCLAIMER: The first orbit number file archived in this bundle does
+   not include a REGEX version pattern in its filename
+   - em16_tgo_fsp_369_merged.orb - as it is not required by PDS. However
+   seeking archive consistency, the newer orbit number files starting with
+   increment 014 implement the REGEX version pattern
+   - em16_tgo_fsp_386_merged_v01.orb - .
 
 <a href="#Table of Contents" style="float: right;">Back to Table of Contents</a>
 <a name="File Formats"></a>
