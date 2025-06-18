@@ -15,46 +15,43 @@ from datetime import date
 import numpy as np
 import spiceypy
 
-from ..utils import (
-    add_carriage_return,
-    add_crs_to_file,
-    check_eol,
-    check_line_length,
-    checksum_from_label,
-    checksum_from_registry,
-    ck_coverage,
-    compare_files,
-    creation_time,
-    current_date,
-    dsk_coverage,
-    et_to_date,
-    extension_to_type,
-    get_latest_kernel,
-    match_patterns,
-    md5,
-    mk_to_list,
-    pck_coverage,
-    product_mapping,
-    replace_string_in_file,
-    safe_make_directory,
-    spice_exception_handler,
-    spk_coverage,
-    string_in_file,
-    type_to_extension,
-    utf8len,
-)
-from .label import (
-    BundlePDS4Label,
-    ChecksumPDS3Label,
-    ChecksumPDS4Label,
-    DocumentPDS4Label,
-    InventoryPDS3Label,
-    InventoryPDS4Label,
-    MetaKernelPDS4Label,
-    OrbnumFilePDS4Label,
-    SpiceKernelPDS3Label,
-    SpiceKernelPDS4Label,
-)
+from ..utils.time import parse_date
+from ..utils import add_carriage_return
+from ..utils import add_crs_to_file
+from ..utils import check_eol
+from ..utils import check_line_length
+from ..utils import checksum_from_label
+from ..utils import checksum_from_registry
+from ..utils import ck_coverage
+from ..utils import compare_files
+from ..utils import creation_time
+from ..utils import current_date
+from ..utils import dsk_coverage
+from ..utils import et_to_date
+from ..utils import extension_to_type
+from ..utils import get_latest_kernel
+from ..utils import match_patterns
+from ..utils import md5
+from ..utils import mk_to_list
+from ..utils import pck_coverage
+from ..utils import product_mapping
+from ..utils import replace_string_in_file
+from ..utils import safe_make_directory
+from ..utils import spice_exception_handler
+from ..utils import spk_coverage
+from ..utils import string_in_file
+from ..utils import type_to_extension
+from ..utils import utf8len
+from .label import BundlePDS4Label
+from .label import ChecksumPDS3Label
+from .label import ChecksumPDS4Label
+from .label import DocumentPDS4Label
+from .label import InventoryPDS3Label
+from .label import InventoryPDS4Label
+from .label import MetaKernelPDS4Label
+from .label import OrbnumFilePDS4Label
+from .label import SpiceKernelPDS3Label
+from .label import SpiceKernelPDS4Label
 from .log import error_message
 from .object import Object
 from .setup import Setup
@@ -2908,7 +2905,7 @@ class OrbnumFileProduct(Product):
             # time-tags of the orbnum file.
             #
             start_time = self._sample_record.split()[1]
-            start = datetime.datetime.strptime(start_time, "%Y-%b-%d-%H:%M:%S")
+            start = parse_date(start_time)
             start_time = start.strftime("%Y-%m-%dT%H:%M:%SZ")
 
             #
@@ -2937,7 +2934,7 @@ class OrbnumFileProduct(Product):
                 stop_time = last_line.split()[3]
 
             try:
-                stop = datetime.datetime.strptime(stop_time, "%Y-%b-%d-%H:%M:%S")
+                stop = parse_date(stop_time)
                 stop_time = stop.strftime("%Y-%m-%dT%H:%M:%SZ")
             except BaseException:
                 #

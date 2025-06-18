@@ -3,7 +3,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<title>The BepiColombo SPICE Data Archive</title>
+<title>The JUICE SPICE Data Archive</title>
 </head>
 <body>
 
@@ -14,22 +14,20 @@
 | \__, .__/ \__/    .__/ |    | \__, |___    .__/ |___ |  \  \/  | \__, |___  |
 |                                                                             |
 +-----------------------------------------------------------------------------+
-The BepiColombo Mission Archived SPICE Kernel Data Set
+The JUICE Mission Archived SPICE Kernel Data Set
 
-   Last update: 2024-11-06T17:30:00
+   Last update: 2024-03-15T18:30:00
 
 <a name="Introduction"></a>
 Introduction
 ============
 
-   This document describes the BepiColombo SPICE kernel data set (SKD)
+   This document describes the JUICE SPICE kernel data set (SKD)
    containing observation geometry and other ancillary data in the form of
-   SPICE System kernel files for the Mercury Planetary Orbiter (MPO),
-   Mercury Magnetospheric Orbiter (MMO or MIO), and Mercury Transfer
-   Module (MTM) spacecrafts their instruments, and targets. It describes the
-   data set directory structure, kernels included in the data set, their
-   naming conventions, and provides pointers to the SPICE software and
-   documentation.
+   SPICE System kernel files for the JUpiter ICy moons Explorer (JUICE),
+   spacecraft its instruments, and targets. It describes the data set
+   directory structure, kernels included in the data set, their naming
+   conventions, and provides pointers to the SPICE software and documentation.
 
 <a name="Table of Contents"></a>
 Table of Contents
@@ -62,7 +60,7 @@ Table of Contents
 Overview
 ========
 
-   This archive includes the complete set of BepiColombo SPICE data files
+   This archive includes the complete set of JUICE SPICE data files
    (kernel files), which can be accessed using SPICE software. The
    SPICE data contain geometric and other ancillary information needed
    to recover the full value of science instrument data. In particular
@@ -74,7 +72,7 @@ Overview
    Ancillary Information Facility (NAIF) Node of the Planetary Data
    System.
 
-   This archive includes data covering from BepiColombo launch,
+   This archive includes data covering from JUICE launch,
    through the end time of the latest spacecraft orientation file
    supplied in the archive. Until the end of the spacecraft lifespan
    this archive will be accumulating with new data added according to
@@ -98,33 +96,6 @@ Errata
       future versions of the bundle. Note that for S/C attitude those gaps
       are covered by predicted CK files.
 
-   3. C-Matrix Kernels generated from housekeeping telemetry measured
-      quaternions included periods with fake identity quaternions until
-      release 04, therefore, the corresponding CKs below from release 05
-      have coverage gaps at the periods where the fake identity quaternions
-      occurred:
-       - bc_mpo_sc_scm_20181020_20190101_s20240615_v01.bc
-       - bc_mpo_sc_scm_20190101_20200101_s20240615_v01.bc
-       - bc_mpo_sc_scm_20200101_20210101_s20240615_v01.bc
-       - bc_mpo_sc_scm_20210101_20220101_s20240615_v01.bc
-       - bc_mpo_sc_scm_20220101_20230101_s20240615_v01.bc
-
-   4. C-Matrix Kernels from MGA housekeeping telemetry measured angles were
-      generated using a wrong convention in their component's signs until
-      release 05, therefore, the corresponding CKs below, previous to release
-      06, have this generation problem:
-        - bc_mpo_mga_scm_20181020_20190101_s20200109_v02.bc
-        - bc_mpo_mga_scm_20190101_20200101_s20200109_v02.bc
-        - bc_mpo_mga_scm_20190101_20200101_s20230309_v01.bc
-        - bc_mpo_mga_scm_20200101_20210101_s20210618_v02.bc
-        - bc_mpo_mga_scm_20200101_20210101_s20230309_v01.bc
-        - bc_mpo_mga_scm_20210101_20220101_s20220106_v01.bc
-        - bc_mpo_mga_scm_20210101_20220101_s20230309_v01.bc
-        - bc_mpo_mga_scm_20220101_20230101_s20221229_v01.bc
-        - bc_mpo_mga_scm_20230101_20230621_s20230617_v01.bc
-        - bc_mpo_mga_scm_20230101_20240101_s20240104_v01.bc
-        - bc_mpo_mga_scm_20240101_20240617_s20240615_v01.bc
-
 <a href="#Table of Contents" style="float: right;">Back to Table of Contents</a>
 <a name="Archive Contents"></a>
 Archive Contents
@@ -138,7 +109,7 @@ Archive Contents
 
   <a href="../">[top-level-directory]</a>
    |
-   |- bundle_bc_spice_v*.xml             Bundle PDS4 label, one or more versions.
+   |- bundle_juice_spice_v*.xml             Bundle PDS4 label, one or more versions.
    |- <a href="../readme.txt">readme.txt</a>                         Bundle top-level readme file.
    |
    |-<a href="../spice_kernels/">[spice_kernels]</a>                     Directory containing SPICE kernels.
@@ -298,77 +269,44 @@ Archived Kernel Details
 <a name="SPK Files"></a>
 SPK Files
 
-   This directory contains the SPICE SP-Kernel files for the BepiColombo
+   This directory contains the SPICE SP-Kernel files for the JUICE
    mission, including mission analysis, nominal and operational spacecraft
    trajectory SPKs, generic planetary and satellite ephemeris SPKs.
 
 
-   Naming Scheme for BepiColombo spacecraft SPKs:
+   Naming Scheme for JUICE spacecraft SPKs:
 
-     The naming scheme for the BepiColombo spacecraft trajectory SPKs is:
+      The naming scheme for the JUICE spacecraft SPKs is:
 
-           bc_SC_TYPE[_ID][_DESC]_YYYYMMDD_YYYYMMDD_vNN.bsp
+            juice_TYPE[_DESC][_ID][_YYMMDD_YYMMDD]_vNN.bsp
 
-     where
+      where
 
-           SC        acronym of the spacecraft:
-
-                          mpo: for the Mercury Planetary Orbiter (MPO)
-                               spacecraft;
-                          mmo: for the Mercury Magnetospheric Orbiter (MMO)
-                               spacecraft;
-                          mtm: for the Mercury Transfer Module (MTM)
-                               spacecraft
-
-           TYPE      Data type, where a reference to the originator of the
+            TYPE     Data type, where a reference to the originator of the
                      data, the type of data and the and the reference period
-                     is provided. This is a three letter acronym. The first
-                     letter defines the file originator:
+                     is provided. The different types are:
 
-                          s: Science Operations Center;
-                          m: Mission Analysis;
-                          f: Flight Dynamics;
+                        orbc      S/C reconstructed and predicted cruise orbit
+                                  from Flight Dynamics.
 
-                     the second letter defines the reference period of the
-                     data:
+                        orbm      S/C reconstructed and predicted cruise orbit
+                                  to which ATTM CKs are consistent to, from
+                                  Flight Dynamics.
 
-                          c: Cruise phase;
-                          l: Science phase Long term;
-                          m: Science phase Medium term;
-                          s: Science phase Short term;
-                          o: Undefined;
+            DESC     description of the original reference file (optional);
 
-                     the third letter indicates the type of data
+            ID       Mapping to the original file product IDs as defined
+                     per an ICD document ([2] and [3]) (optional);
 
-                          p: Predicted data;
-                          r: Reconstructed data;
-                          t: Test data;
+            YYMMDD   coverage start and stop times in TDB (optional);
 
-           ID        mapping to the original file product IDs as defined
-                     per an ICD document (optional);
+            NN       version number, starting from 01 (required; e.g. 01);
 
-           DESC      description of the original reference file of any
-                     particular of the original file (optional);
+      The naming scheme for the JUICE spacecraft center-of-gravity SPKs is:
 
-           YYYYMMDD  coverage start and stop times in TDB (required);
+            juice_cog[_ID][_YYYYMMDD_YYYYMMDD]_vNN.bsp
 
-           NN        version number, starting from 01 (required; e.g. 01);
-
-     The naming scheme for the BepiColombo spacecraft center-of-gravity
-     SPKs is:
-
-            bc_SC_cog[_ID][_YYYYMMDD_YYYYMMDD]_vNN.bsp
-
-     where
-
-           SC        acronym of the spacecraft:
-
-                          mpo: for the Mercury Planetary Orbiter (MPO)
-                               spacecraft;
-                          mmo: for the Mercury Magnetospheric Orbiter (MMO)
-                               spacecraft;
-                          mtm: for the Mercury Transfer Module (MTM)
-                               spacecraft
+      where
 
            ID        mapping to the original file product IDs as defined
                      per an ICD document (optional);
@@ -377,98 +315,119 @@ SPK Files
 
            NN        version number, starting from 01 (required; e.g. 01);
 
-     The naming scheme for the BepiColombo spacecraft structures SPKs is:
+      The naming scheme for the JUICE spacecraft structures SPKs is:
 
-           bc_SC_struct_vNN.bsp
+           juice_struct_vNN.bsp
 
-     where
-
-           SC        acronym of the spacecraft:
-
-                          mpo: for the Mercury Planetary Orbiter (MPO)
-                               spacecraft;
-                          mmo: for the Mercury Magnetospheric Orbiter (MMO)
-                               spacecraft;
-                          mtm: for the Mercury Transfer Module (MTM)
-                               spacecraft
+      where
 
            NN        version number, starting from 01 (required; e.g. 01);
 
-     The naming scheme for the BepiColombo spacecraft cruise SPKs is:
-
-           bc_SC_cruise_vNN.bsp
-
-     where
-
-           SC        acronym of the spacecraft:
-
-                          mmo: for the Mercury Magnetospheric Orbiter (MMO)
-                               spacecraft;
-                          mtm: for the Mercury Transfer Module (MTM)
-                               spacecraft
-
-           NN        version number, starting from 01 (required; e.g. 01);
-
-     The naming scheme for the BepiColombo spacecraft prelaunch SPKs is:
-
-           bc_SC_prelaunch_vNN.bsp
-
-     where
-
-           SC        acronym of the spacecraft:
-
-                          mpo: for the Mercury Planetary Orbiter (MPO)
-                               spacecraft
-
-           NN        version number, starting from 01 (required; e.g. 01);
 
    Naming Scheme for Generic Planetary Ephemeris SPKs
 
-     The naming scheme for generic planetary SPKs is:
+      The naming scheme for generic planetary SPKs is:
 
-           deNNN.bsp
+            deNNN.bsp
 
-     where
+      where
 
-           NNN       DE version (required; e.g. 421);
+            NNN      DE version (required; e.g. 421);
+
+
+   Naming Scheme for Generic Satellite Ephemeris SPKs
+
+      The naming scheme for generic satellite SPKs is:
+
+            jupNNN[_EXTRA].bsp
+
+      where
+
+            NNN      satellite ephemeris number (required; e.g. 230);
+
+            EXTRA    additional information token (optional; e.g. _minor);
+
+
+   Naming Scheme for INPOP19a Planetary Ephemeris SPKs
+
+      The naming scheme for INPOP19a Planetary Ephemeris SPKs is:
+
+            inpop19a[_YYYYMMDD_YYYYMMDD].bsp
+
+      where
+
+            YYYYMMDD  coverage start and stop times in TDB (required);
+
+
+   Naming Scheme for IMCCE Satellite Ephemeris SPKs
+
+      The naming scheme for IMCCE-produced satellite SPKs is:
+
+            noe[-ID][-EXTRA][_YYYYMMDD_YYYYMMDD].bsp
+
+      where
+
+            ID        satellite ephemeris number (required; e.g. 5-2017);
+
+            EXTRA     additional information token (optional; e.g.
+                      gal-a-reduced);
+
+            YYYYMMDD  coverage start and stop times in TDB (required);
+
+
+   Naming Scheme for Generic Mars Satellite Ephemeris SPKs
+
+      The naming scheme for generic mars satellite SPKs is:
+
+           marNNN[_EXTRA].bsp
+
+      where
+
+           NNN       satellite ephemeris number (required; e.g. 083);
+
+           EXTRA     additional information token (optional);
+
 
    Naming Scheme for ESA ESTRACK ground stations SPKs
 
-     The naming scheme for ESA ESTRACK ground stations SPKs is:
+      The naming scheme for ESA ESTRACK ground stations SPKs is:
 
            estrack_vNN.bsp
 
-     where
+      where
 
            NN       version (required; e.g. 01);
 
+
    Naming Scheme for NASA DSN ground stations SPKs
 
-     The naming scheme for NASA DSN ground stations SPKs is:
+      The naming scheme for NASA DSN ground stations SPKs is:
 
-           earthstns_itrf93_YYMMDD.bsp
+           earthstns_fx_YYMMDD.bsp
 
-     where
+      where
 
            YYMMDD       product creation time (required);
 
-   Naming Scheme for JAXA ground stations SPKs
 
-     The naming scheme for JAXA ground stations SPKs is:
+   Naming Scheme for JUICE mission ground stations SPKs
 
-           earthstns_jaxa_YYYYMMDD.bsp
+      The naming scheme for JUICE mission specific ground stations SPKs is:
 
-     where
+           juice_earthstns_vNN.bsp
 
-           YYYYMMDD       product creation time (required);
+      where
 
-   Naming Scheme for BepiColombo science frames origins SPKs
+           NN       version (required; e.g. 01);
 
-     The naming scheme for BepiColombo science frames origins SPKs is:
 
-           bc_sci_vNN.bsp
+   Naming Scheme for JUICE science frames origins SPKs
 
-     where
+      The naming scheme for JUICE science frames origins SPKs is:
+
+           juice_sci_vNN.bsp
+
+      where
 
            NN       version (required; e.g. 01);
 
@@ -477,44 +436,30 @@ SPK Files
 PCK Files
 
    This directory contains generic and mission-specific SPICE Planetary
-   Constants Kernel files for the BepiColombo mission. The data in these
+   Constants Kernel files for the JUICE mission. The data in these
    kernels correspond to the best knowledge of the orientation, size and
-   shape of Mercury, Venus and the Earth.
+   shape of Jupiter, Venus and the Earth.
 
    Naming Scheme for Generic PCKs
 
-     The naming scheme for generic PCKs is:
+      The naming scheme for generic PCKs is:
 
            pckNNNNN.tpc
 
-     where
+      where
 
-           NNNNN    version number (required)(e.g. 00010);
-
-                    If multiple versions of a generic PCK Kernel file are
-                    provided, always use the latest version (unless an
-                    earlier version is needed for some special reasons.)
-
-     The naming scheme for mission-specific PCKs is:
-
-           pckNNNNN_bc_vNN.tpc
-
-     where
-
-           NNNNN    PCK version number (required)(e.g. 00011);
-
-           NN       version number, starting from 01 (required; e.g. 01);
+           NNNNN    version number (required)(e.g. 00011);
 
                     If multiple versions of a generic PCK Kernel file are
                     provided, always use the latest version (unless an
                     earlier version is needed for some special reasons.)
 
-     The naming scheme for generic PCK containing masses for Solar System
-     bodies is:
+      The naming scheme for generic PCK containing masses for Solar System
+      bodies is:
 
            gm_deNNN.tpc
 
-     where
+      where
 
            NNN      planetary ephemeris version number (required; e.g. 403);
 
@@ -522,13 +467,14 @@ PCK Files
                     provided, always use the latest version (unless an
                     earlier version is needed for some special reasons).
 
+
    Naming Scheme for Earth high-precision PCKs
 
-     The naming scheme for the Earth high-precision PCKs is:
+      The naming scheme for the Earth high-precision PCKs is:
 
            earth_SDAT_EDAT_PDAT.bpc
 
-     where
+      where
 
            SDAT     is the file's coverage start time in YYMMDD format;
 
@@ -538,45 +484,84 @@ PCK Files
                     in the file corresponds to predicted data. Any data
                     prior to this date corresponds to actual measurements.
 
+
+   Naming Scheme for JUICE mission-specific PCKs
+
+      The naming scheme for JUICE mission-specific PCKs is:
+
+         juice_jupNNN.tpc
+
+      where
+
+         NNN      version number (required) (e.g. 000);
+
+                  If multiple versions of a JUICE mission-specific PCK
+                  Kernel file are provided, always use the latest version
+                  (unless an earlier version is needed for some special
+                  reasons.)
+
+
+   Naming Scheme for JUICE Regions of Interest (ROI) PCKs
+
+      The naming scheme for JUICE Regions of Interest (ROI) PCKs is:
+
+         juice_roi_vNN.tpc
+
+      where
+
+         NN       version number, starting from 01 (required; e.g. 01);
+
+                  If multiple versions of a JUICE mission-specific PCK
+                  Kernel file are provided, always use the latest version
+                  (unless an earlier version is needed for some special
+                  reasons.)
+
+
+   Naming Scheme for Moon INPOP19a high-precision PCKs
+
+      The naming scheme for the Moon INPOP19a high-precision PCKs is:
+
+           inpop19a_moon_pa_vNN.bpc
+
+      where
+
+           NN     version number, starting from 01 (required; e.g. 01);
+
+                  If multiple versions of a JUICE mission-specific PCK
+                  Kernel file are provided, always use the latest version
+                  (unless an earlier version is needed for some special
+                  reasons.)
+
 <a href="#Table of Contents" style="float: right;">Back to Table of Contents</a>
 <a name="IK Files"></a>
 IK Files
 
    This directory contains the SPICE Instrument Kernel files for the
-   BepiColombo remote sensing and in-situ measurement/plasma science
+   JUICE remote sensing and in-situ measurement/plasma science
    instruments.
 
-     The naming scheme for BepiColombo IKs is:
+     The naming scheme for JUICE IKs is:
 
-           bc_SC_INST_vNN.ti
+           juice_INST_vNN.ti
 
      where
 
-           SC       acronym of the spacecraft:
-
-                          mpo: for the Mercury Planetary Orbiter (MPO)
-                               spacecraft;
-                          mmo: for the Mercury Magnetospheric Orbiter (MMO)
-                               spacecraft;
-                          mtm: for the Mercury Transfer Module (MTM)
-                               spacecraft
-
            INST     instrument identifier (required):
 
-                          mppe       for MPPE
-                          msasi      for MSASI
-                          ssas       for SSAS
                           aux        for Auxiliary
-                          bela       for BELA
-                          mertis     for MERTIS
-                          mgns       for MGNS
-                          mixs       for MIXS
-                          phebus     for PHEBUS
-                          serena     for SERENA
-                          simbio-sys for SIMBIO-SYS
-                          sixs       for SIXS
+                          gala       for GALA
+                          janus      for JANUS
+                          jmag       for Magnetometer
+                          jmc        for JMCs
+                          majis      for MAJIS
+                          navcam     for NAVCAM
+                          pep        for PEP
+                          radem      for RADEM
+                          rime       for RIME
+                          rpwi       for RPWI
                           str        for STRs
-                          mcam       for MCAMs
+                          swi        for SWI
+                          uvs        for UVS
 
            NN       version number (required);
 
@@ -588,115 +573,72 @@ IK Files
 <a name="CK Files"></a>
 CK Files
 
-   This directory contains the SPICE C-Kernel files for the BepiColombo
-   (MPO, MMO, MTM) spacecrafts, their structures, and science instruments.
+   This directory contains the SPICE C-Kernel files for the JUICE
+   spacecraft, their structures, and science instruments.
 
-   BepiColombo spacecraft CK:
+   JUICE spacecraft CK:
 
-      The naming scheme for the BepiColombo spacecrafts CKs is:
+      The naming scheme for the JUICE spacecraft CK is:
 
-           bc_SC_INST_TYPE[_ID][_DESC]_YYYYMMDD_YYYYMMDD_SCLK_vNN.bc
-
-      where
-
-           SC        acronym of the spacecraft:
-
-                       mpo: for the Mercury Planetary Orbiter (MPO)
-                            spacecraft;
-                       mmo: for the Mercury Magnetospheric Orbiter (MMO)
-                            spacecraft;
-                       mtm: for the Mercury Transfer Module (MTM)
-                            spacecraft
-
-           INST     instrument/structure/sensor identifier (required):
-
-                       sc:      for the MPO/MMO/MTM spacecraft frame;
-                       hga:     for the MPO High Gain Antenna frames;
-                       mga:     for the MPO Medium Gain Antenna frames;
-                       sa:      for the MPO/MTM Solar Arrays frames;
-                       magboom: for the Magnetometer Boom frames;
-                       mertis:  for the MERTIS flip mirror frame;
-                       phebus:  for the PHEBUS scanner frames;
-                       serena:  for the SERENA Strofio flip mirror frame;
-                       sep:     for the MTM Solar Electric Propulsion frames.
-
-           TYPE      Data type, where a reference to the originator of the
-                     data, the type of data and the and the reference period
-                     is provided. This is a three letter acronym. The first
-                     letter defines the file originator:
-
-                       s: Science Operations Center;
-                       m: Mission Analysis;
-                       f: Flight Dynamics;
-
-                     the second letter defines the reference period of the
-                     data:
-
-                       c: Cruise phase reference;
-                       l: Science phase Long term reference;
-                       m: Science phase Medium term reference;
-                       s: Science phase Short term reference;
-                       o: Undefined reference;
-
-                     the third letter indicates the type of data
-
-                       p: Predicted data;
-                       r: Reconstructed data;
-                       t: Test data;
-                       c: Commanded data (from Housekeeping Telemetry)
-                       m: Measured data (from Housekeeping Telemetry)
-
-           ID        mapping to the original file product IDs as defined per
-                     an ICD document (optional);
-
-           DESC      description of the original reference file of any
-                     particular of the original file (optional);
-
-           YYYYMMDD  coverage start and stop times in TDB (required);
-
-           SCLK      reference to SCLK used to created the CK (required):
-
-                      sYYMMDD: SCLK version YYMMDD for type ``step''
-                      tYYMMDD: SCLK version YYMMDD for type ``stretch''
-                      fYYMMDD: SCLK version YYMMDD for type ``fictional''
-
-           NN        CK version number -- 2 digits (required).
-
-      The naming scheme for the BepiColombo spacecraft cruise CKs is:
-
-           bc_SC_INST_cruise_vNN.bc
+         juice_INST_TYPE[_DESC][_ID]_[YYMMDD_YYMMDD]_[SCLK]_vNN.bc
 
       where
 
-           SC        acronym of the spacecraft:
+         INST      instrument/structure/sensor identifier (required):
 
-                          mmo: for the Mercury Magnetospheric Orbiter (MMO)
-                               spacecraft;
-                          mtm: for the Mercury Transfer Module (MTM)
-                               spacecraft
+                      sc          for the JUICE spacecraft planning or
+                                  measured frame;
 
-           INST      instrument/structure/sensor identifier (required):
+                      mga         for the JUICE medium gain antenna
+                                  planning or measured frame;
 
-                          sc:      for the MMO/MTM spacecraft frame
+                      sa          for the JUICE solar arrays planning
+                                  or measured frame;
 
-           NN        version number, starting from 01 (required; e.g. 01);
+                      lpbooms     for the JUICE Langmuir Probes' booms;
 
-      The naming scheme for the BepiColombo spacecraft prelaunch CKs is:
+                      magboom     for the JUICE magnetometer boom;
 
-           bc_SC_INST_prelaunch_vNN.bsp
+                      majis_scan  for the MAJIS scan mirror;
 
-      where
+                      swi_scan    for the SWI telescope scanner;
 
-           SC        acronym of the spacecraft:
+         TYPE      Data type, where a reference to the originator of the
+                   data, the type of data and the and the reference period
+                   is provided. The different types are:
 
-                          mpo: for the Mercury Planetary Orbiter (MPO)
-                               spacecraft
+                      attc  S/C predicted attitude during cruise covering
+                            until end of a commanding cycle from Flight
+                            Dynamics.
 
-           INST      instrument/structure/sensor identifier (required):
+                      attm  MTP S/C predicted attitude covering special
+                            activities during GAMs or instrument checkouts
+                            from Flight Dynamics.
 
-                          sc:      for the MPO spacecraft frame
+                      meas  S/C measured as-flown attitude from the
+                            housekeeping telemetry.
 
-           NN        version number, starting from 01 (required; e.g. 01);
+                      cmmd  S/C measured commanded attitude from the
+                            housekeeping telemetry.
+
+                      plan  S/C predicted attitude covering special
+                            planning activities from the uplink group of
+                            the Science Operations Center.
+
+         DESC      description of the original reference file (optional);
+
+         ID        Mapping to the original file product IDs as defined
+                   per an ICD document ([7] and [8]) (optional);
+
+         YYMMDD    coverage start and stop times in TDB (optional);
+
+         SCLK      reference to the SCLK used to created the CK (optional):
+
+                       sYYMMDD: SCLK version YYMMDD for type ``step''
+                       tYYMMDD: SCLK version YYMMDD for type ``stretch''
+                       fYYMMDD: SCLK version YYMMDD for type ``fictional''
+
+         NN        CK version number -- 2 digits (required).
 
 
    If multiple versions of a C-Kernel file are provided, always use the latest
@@ -707,7 +649,7 @@ CK Files
 LSK Files
 
    This directory contains the generic SPICE Leapseconds Kernel files for
-   the BepiColombo mission.
+   the JUICE mission.
 
      The naming scheme for generic LSKs is:
 
@@ -726,20 +668,13 @@ LSK Files
 SCLK Files
 
    This directory contains the SPICE Spacecraft Clock-Kernel files for the
-   BepiColombo spacecraft on-board clock.
+   JUICE spacecraft on-board clock.
 
-     The naming scheme for BepiColombo SCLKs is:
+     The naming scheme for JUICE SCLKs is:
 
-          bc_SC_TYPE[_DESC]_YYYYMMDD.tsc
+          juice_TYPE[_DESC]_YYMMDD.tsc
 
      where
-
-          SC       acronym of the spacecraft:
-
-                   mpo: for the Mercury Planetary Orbiter (MPO)
-                        spacecraft;
-                   mmo: for the Mercury Magnetospheric Orbiter (MMO)
-                        spacecraft;
 
           TYPE     SCLK data type contained within the file:
 
@@ -763,7 +698,7 @@ SCLK Files
                    data which are not used for science planning purposes,
                    i.e. real telemetry data from a test campaign (optional);
 
-          YYYYMMDD start time of applicability, i.e. either release date for
+          YYMMDD   start time of applicability, i.e. either release date for
                    fictional SCLKs or date of the last TCP used to generate
                    the SCLK in stretch/step mode.
 
@@ -772,7 +707,7 @@ SCLK Files
 FK Files
 
    This directory contains the SPICE Frames Definition Kernel files for the
-   BepiColombo spacecraft, its structures, and science instruments, as well
+   JUICE spacecraft, its structures, and science instruments, as well
    as for the Ground Earth Stations. Moreover, it contains frame definitions
    for science operations and for data analysis and scientific
    investigations.
@@ -784,33 +719,30 @@ FK Files
         ---------------------------  -----------------------------------------
         estrack_vNN.tf               ESA Ground Stations topocentric frames.
 
-        bc_sci_vNN.tf                BepiColombo science support frames.
+        juice_sci_vNN.tf             JUICE science support frames.
 
-        bc_SC_vNN.tf                 BepiColombo spacecraft, structures,
+        juice_ops_vNN.tf             JUICE science operations frames.
+
+        juice_roi_vNN.tf             JUICE Regions of Interest topocentric
+                                     frames.
+
+        juice_vNN.tf              JUICE spacecraft, structures,
                                      instruments and sensors frames.
 
-        bc_dsk_surfaces_vNN.tf       BepiColombo spacecraft Surface definitions
+        juice_dsk_surfaces_vNN.tf    JUICE spacecraft Surface definitions
                                      for Digital Shape Kernels.
 
         earth_topo_YYMMDD.tf         NASA DSN Ground Stations topocentric
                                      frames.
 
-        earthstns_jaxa_YYYYMMDD.tf   JAXA Ground Stations topocentric frames.
+        juice_earthstns_v01.tf       JUICE specific Ground Stations
+                                     topocentric frames.
 
         rssd0002.tf                  Cross-mission frames kernel that defines
                                      frames of interest not ``built'' in the
                                      SPICE toolkit.
 
      where
-
-         SC             acronym of the spacecraft:
-
-                          mpo: for the Mercury Planetary Orbiter (MPO)
-                               spacecraft;
-                          mmo: for the Mercury Magnetospheric Orbiter (MMO)
-                               spacecraft;
-                          mtm: for the Mercury Transfer Module (MTM)
-                               spacecraft
 
          YYMMDD         product creation time (required);
 
@@ -825,41 +757,82 @@ FK Files
 <a name="DSK Files"></a>
 DSK Files
 
-   This directory contains the SPICE DS-Kernel files for the MPO, MMO and
-   MTM spacecrafts, its structures, and science instruments.
+   This directory contains the SPICE DS-Kernel files for the JUICE
+   spacecraft, its structures, science instruments and targets.
 
-   BepiColombo spacecraft DSK:
+   JUICE mission DSK:
 
-      The naming scheme for the BepiColombo spacecraft DSK is:
+      The naming scheme for the JUICE spacecraft DSKs is:
 
-           bc_SC_BODY_[STRUC]_vNN.bds
+         juice_BODY_[STRUC]_vNN.bds
 
       where
 
-           SC      acronym of the spacecraft:
+         BODY    type of body:
 
-                       mpo: for the Mercury Planetary Orbiter (MPO)
-                            spacecraft;
-                       mmo: for the Mercury Magnetospheric Orbiter (MMO)
-                            spacecraft;
-                       mtm: for the Mercury Transfer Module (MTM)
-                            spacecraft
+                     sc:      for spacecraft
+                     jup:     for Jupiter
+                     europa:  for Europa
+                     io:      for Io
 
-           BODY    type of body:
+         STRUC   instrument/structure/sensor identifier (optional):
 
-                       sc: for satellite
+                     bus:       for the spacecraft bus;
+                     gala:      for GALA instrument;
+                     janus:     for JANUS instrument;
+                     jmc1:      for JMC 1;
+                     jmc2:      for JMC 2;
+                     lpb1:      for Langmuir Probe 1;
+                     lpb2:      for Langmuir Probe 2;
+                     lpb3:      for Langmuir Probe 3;
+                     lpb4:      for Langmuir Probe 4;
+                     mag:       for the Magnetometer boom;
+                     majis:     for MAJIS instrument;
+                     mga_apm:   for the medium gain antenna pointing mechanism;
+                     mga_dish:  for the medium gain antenna dish;
+                     navcam1:   for NAVCAM 1;
+                     navcam2:   for NAVCAM 2;
+                     pep_jdc:   for PEP JDC instrument;
+                     pep_jei:   for PEP JEI instrument;
+                     pep_jeni:  for PEP JENI instrument;
+                     pep_jna:   for PEP JNA instrument;
+                     pep_nim:   for PEP NIM instrument;
+                     rimemx:    for the -X RIME antenna;
+                     rimepx:    for the +X RIME antenna;
+                     rwi:       for RWI instrument;
+                     samy:      for the -Y Solar Array;
+                     sapy:      for the +Y Solar Array;
+                     scm:       for SCM instrument;
+                     str1:      for Star Tracker 1;
+                     str2:      for Star Tracker 2;
+                     str3:      for Star Tracker 3;
+                     swi:       for SWI instrument;
+                     uvs:       for UVS instrument;
 
-           STRUC   instrument/structure/sensor identifier (optional):
+         NN      DSK version number -- 2 digits (required).
 
-                       bus:   for the spacecraft bus;
-                       sa:    for the MPO solar array;
-                       sapx:  for the MTM +X Solar Array;
-                       samx:  for the MTM -X Solar Array;
-                       hga:   for the high gain antenna;
-                       mga:   for the medium gain antenna;
-                       mosif: for the MMO sunshield
+      The naming scheme for the JUICE targets DSKs is:
 
-           NN      DSK version number -- 2 digits (required).
+         juice_BODY_[STRUC]_vNN.bds
+
+      where
+
+         BODY    type of body:
+
+                     jup:     for Jupiter
+                     europa:  for Europa
+                     io:      for Io
+
+         STRUC   instrument/structure/sensor identifier (optional):
+
+                     plasma_torus:  for the Jupiter-moon plasma torus;
+                     ama_gos_ring:  for Jupiter Amalthea Gossamer ring;
+                     halo_ring:     for Jupiter Halo ring;
+                     main_ring:     for Jupiter Main ring;
+                     the_gos_ring:  for Jupiter Thebe Gossamer ring;
+                     the_ring_ext:  for Jupiter Thebe Gossamer ring extension;
+
+         NN      DSK version number -- 2 digits (required).
 
    If multiple versions of a DS-Kernel file are provided, always use the latest
    version (unless earlier version is needed for some special reasons.)
@@ -877,9 +850,9 @@ MK Files
    The text MK files are provided under the <a href="../spice_kernels/mk/">spice_kernels/mk</a>
    directory and are named according to the following scheme:
 
-      -  BepiColombo MK files
+      -  JUICE MK files
 
-               bc_vVVV.tm
+               juice_vVVV.tm
 
             where
 
@@ -945,7 +918,7 @@ Checksum Files
    The checksum files are provided under the <a href="../miscellaneous/checksum/">miscellaneous/checksum</a>
    directory and are named according to the following scheme:
 
-      -  BepiColombo checksum files
+      -  JUICE checksum files
 
                checksum_vVVV.tab
 
@@ -1018,7 +991,7 @@ Contact Information
 
              Alfredo Escalante Lopez
              (+34) 91 813 14 29
-             spice@cosmos.esa.int
+             spice@sciops.esa.int
 
    or NAIF at JPL:
 
@@ -1031,14 +1004,14 @@ Contact Information
 Cognisant Persons
 ===============================
 
-   This archive was produced by Alfredo Escalante, Ricardo Valles, and
-   Marc Costa Sitja, Archives and SPICE Software Development and Operations
-   Work Area, Data and Engineering Division (SCI-OP), Directorate of Science
-   (D/SCI), European Space Astronomy Centre (ESAC), European Space Agency
-   (ESA), Villanueva de la Canada, Spain.
+   This archive was produced by Alfredo Escalante, Ricardo Valles, Rafael
+   Andres and Marc Costa Sitja, Archives and SPICE Software Development and
+   Operations Work Area, Data and Engineering Division (SCI-OP), Directorate
+   of Science (D/SCI), European Space Astronomy Centre (ESAC), European Space
+   Agency (ESA), Villanueva de la Canada, Spain.
 
 
-End of BepiColombo SPICE archive description.
+End of JUICE SPICE archive description.
 <a href="#Table of Contents" style="float: right;">Back to Table of Contents</a>
 </pre>
 
