@@ -49,11 +49,6 @@ jobs:
         if: github.actor != 'pdsen-ci'
         runs-on: ubuntu-latest
         steps:
-            - name: Update CA certificates
-              run: |
-                  sudo apt-get update
-                  sudo apt-get install --reinstall ca-certificates
-                  sudo update-ca-certificates
             -
                 name: 💳 Checkout
                 uses: actions/checkout@v3
@@ -77,6 +72,7 @@ jobs:
                 uses: NASA-PDS/roundup-action@stable
                 with:
                     assembly: unstable
+                    packages: ca-certificates
                 env:
                     pypi_username: ${{secrets.TEST_PYPI_USERNAME}}
                     pypi_password: ${{secrets.TEST_PYPI_PASSWORD}}
