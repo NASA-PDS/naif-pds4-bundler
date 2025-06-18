@@ -46,6 +46,11 @@ jobs:
         name: 🐴 Stable Assembly
         runs-on: ubuntu-latest
         steps:
+            - name: Update CA certificates
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install --reinstall ca-certificates
+                  sudo update-ca-certificates
             -
                 name: 💳 Checkout
                 uses: actions/checkout@v3
