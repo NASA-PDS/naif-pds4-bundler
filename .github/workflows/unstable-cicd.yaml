@@ -35,6 +35,8 @@ on:
         paths-ignore:
             - 'CHANGELOG.md'
             - 'docs/requirements/**'
+    workflow_dispatch:
+
 concurrency: roundup
 
 
