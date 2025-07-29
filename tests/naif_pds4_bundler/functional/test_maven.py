@@ -1,4 +1,5 @@
 """Functional Test Family for MAVEN Archive Generation."""
+
 import os
 import shutil
 
@@ -307,7 +308,7 @@ def test_maven_increment_times_from_yearly_mks(self):
     """
     post_setup(self)
     config = "../config/maven.xml"
-    updated_config = "working/maven.xml"
+    # updated_config = "working/maven.xml"
     plan = "working/maven.plan"
     faucet = "staging"
 
@@ -317,9 +318,9 @@ def test_maven_increment_times_from_yearly_mks(self):
         p.write("maven_2020_v06.tm\n")
         p.write("maven_2021_v02.tm")
 
-    with open(config, "r") as r:
-        with open(updated_config, "w") as w:
-            pass
+    # with open(config, "r") as r:
+    #    with open(updated_config, "w") as w:
+    #        pass
 
     #
     # This first combination provides times from start to end of the

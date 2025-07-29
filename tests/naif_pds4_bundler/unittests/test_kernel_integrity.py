@@ -3,8 +3,10 @@
 Kernel integrity tests verify if the kernel type and architecture
 is as expected from the kernel header.
 """
+
 import shutil
-import unittest
+
+# import unittest
 
 from pds.naif_pds4_bundler.utils import check_kernel_integrity
 

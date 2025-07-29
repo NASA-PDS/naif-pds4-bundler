@@ -1,4 +1,5 @@
 """Unit tests for ORBNUM label generation."""
+
 import os
 import shutil
 
@@ -306,8 +307,10 @@ def test_pds4_orbnum_blank_records(self):
     Afterwards the ORBNUM file version is incremented, because a new file
     has just been created. The NPB log will display the following warnings::
 
-        WARNING : -- Orbit number 13071 record has an incorrect length, the record will be expanded to cover the adequate fixed length.
-        WARNING : -- Orbit number 13073 record has an incorrect length, the record will be expanded to cover the adequate fixed length.
+        WARNING : -- Orbit number 13071 record has an incorrect length,
+                  the record will be expanded to cover the adequate fixed length.
+        WARNING : -- Orbit number 13073 record has an incorrect length,
+                  the record will be expanded to cover the adequate fixed length.
         WARNING : -- Orbit number 13073 record is followed by 13075.
         WARNING : -- Orbnum name updated to: maven_orb_rec_210101_210401_v4.orb
     """
@@ -343,8 +346,10 @@ def test_pds4_orbnum_blank_records_no_former(self):
     provided in the release plan, because a new file has just been created.
     The NPB log will display the following warnings::
 
-        WARNING : -- Orbit number 13071 record has an incorrect length, the record will be expanded to cover the adequate fixed length.
-        WARNING : -- Orbit number 13073 record has an incorrect length, the record will be expanded to cover the adequate fixed length.
+        WARNING : -- Orbit number 13071 record has an incorrect length,
+                  the record will be expanded to cover the adequate fixed length.
+        WARNING : -- Orbit number 13073 record has an incorrect length,
+                  the record will be expanded to cover the adequate fixed length.
         WARNING : -- Orbit number 13073 record is followed by 13075.
         WARNING : -- Orbnum name updated to: maven_orb_rec_210101_210401_v4.orb
     """
@@ -369,8 +374,10 @@ def test_pds4_orbnum_blank_records_no_version(self):
     provided in the release plan, because a new file has just been created.
     The NPB log will display the following warnings::
 
-        WARNING : -- Orbit number 13071 record has an incorrect length, the record will be expanded to cover the adequate fixed length.
-        WARNING : -- Orbit number 13073 record has an incorrect length, the record will be expanded to cover the adequate fixed length.
+        WARNING : -- Orbit number 13071 record has an incorrect length,
+                  the record will be expanded to cover the adequate fixed length.
+        WARNING : -- Orbit number 13073 record has an incorrect length,
+                  the record will be expanded to cover the adequate fixed length.
         WARNING : -- Orbit number 13073 record is followed by 13075.
         WARNING : -- Orbnum name updated to: maven_orb_rec_210101_210401_v2.orb
     """
@@ -498,9 +505,7 @@ def test_pds4_orbnum_generated_list(self):
 
 
 def test_pds4_orbnum_header_length_table_offset(self):
-    """Test header length and table offset of XML label for ORBNUM.
-
-    """
+    """Test header length and table offset of XML label for ORBNUM."""
     post_setup(self)
     config = "../config/maven.xml"
     updated_config = "working/maven.xml"

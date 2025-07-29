@@ -1,7 +1,8 @@
 """Unit tests for the files utilities."""
-import unittest
 
-import spiceypy
+# import unittest
+
+# import spiceypy
 from pds.naif_pds4_bundler.utils import check_line_length
 from pds.naif_pds4_bundler.utils import mk_to_list
 

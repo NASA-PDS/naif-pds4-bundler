@@ -1,4 +1,5 @@
-"""Private utility to slice INSIGHT data for the tests."""
+"""Private utility to slice EM16 data for the tests."""
+
 from pds.naif_pds4_bundler.utils.zz_slicer import slice_kernels
 
 
@@ -21,17 +22,19 @@ def slice_em16_release_04():
     #    start_time = f"2016 MAY 08 20:10:00"
     #    stop_time = f"2016 MAY 08 21:20:00"
     #
-    #    slice_kernels(kernels_dir, out_kernels_dir, lsk_file, sclk_file, start_time, stop_time, timetype='UTC', log=True)
+    #    slice_kernels(kernels_dir, out_kernels_dir, lsk_file,
+    # sclk_file, start_time, stop_time, timetype='UTC', log=True)
     #
     #    out_kernels_dir = f"spice_kernels_2021"
     #    start_time = f"2021 MAY 08 20:10:00"
     #    stop_time = f"2021 MAY 08 21:20:00"
     #
-    #    slice_kernels(kernels_dir, out_kernels_dir, lsk_file, sclk_file, start_time, stop_time, timetype='UTC', log=True)
+    #    slice_kernels(kernels_dir, out_kernels_dir, lsk_file,
+    # sclk_file, start_time, stop_time, timetype='UTC', log=True)
 
-    out_kernels_dir = f"spice_kernels_2019"
-    start_time = f"2019 MAY 08 20:10:00"
-    stop_time = f"2019 MAY 08 21:20:00"
+    out_kernels_dir = "spice_kernels_2019"
+    start_time = "2019 MAY 08 20:10:00"
+    stop_time = "2019 MAY 08 21:20:00"
 
     slice_kernels(
         kernels_dir,
@@ -63,7 +66,8 @@ def slice_em16_release_04():
 #        start_time = f"20{yr} DEC 08 20:10:00"
 #        stop_time = f"20{yr} DEC 08 21:20:00"
 #
-#        slice_kernels(kernels_dir, out_kernels_dir, lsk_file, sclk_file, start_time, stop_time, timetype='UTC', log=True)
+#        slice_kernels(kernels_dir, out_kernels_dir, lsk_file, sclk_file,
+# start_time, stop_time, timetype='UTC', log=True)
 
 
 slice_em16_release_04()
