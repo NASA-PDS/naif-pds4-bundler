@@ -216,16 +216,16 @@ class PDSLabel(object):
                     )
 
                 mis_list_for_label += (
-                    f"{' ' * 2*tab}<Investigation_Area>{eol}"
+                    f"{' ' * 2 * tab}<Investigation_Area>{eol}"
                     + f"{' ' * 3 * tab}<name>{mis_name}</name>{eol}"
                     + f"{' ' * 3 * tab}<type>{mission_type}</type>{eol}"
                     + f"{' ' * 3 * tab}<Internal_Reference>{eol}"
-                    + f"{' ' * 4  *  tab}<lid_reference>{mission_lid}"
-                    f"</lid_reference>{eol}" + f"{' ' * 4  *  tab}<reference_type>"
+                    + f"{' ' * 4 * tab}<lid_reference>{mission_lid}"
+                    f"</lid_reference>{eol}" + f"{' ' * 4 * tab}<reference_type>"
                     f"{self.get_mission_reference_type()}"
                     f"</reference_type>{eol}"
                     + f"{' ' * 3 * tab}</Internal_Reference>{eol}"
-                    + f"{' ' * 2*tab}</Investigation_Area>{eol}"
+                    + f"{' ' * 2 * tab}</Investigation_Area>{eol}"
                 )
         if not mis_list_for_label:
             error_message(
@@ -300,16 +300,16 @@ class PDSLabel(object):
                     )
 
                 obs_list_for_label += (
-                    f"{' ' * 3*tab}<Observing_System_Component>{eol}"
-                    + f"{' ' * (3+1)*tab}<name>{ob_name}</name>{eol}"
-                    + f"{' ' * (3+1)*tab}<type>{ob_type}</type>{eol}"
-                    + f"{' ' * (3+1)*tab}<Internal_Reference>{eol}"
-                    + f"{' ' * (3 + 2)*tab}<lid_reference>{ob_lid}"
+                    f"{' ' * 3 * tab}<Observing_System_Component>{eol}"
+                    + f"{' ' * (3+1) * tab}<name>{ob_name}</name>{eol}"
+                    + f"{' ' * (3+1) * tab}<type>{ob_type}</type>{eol}"
+                    + f"{' ' * (3+1) * tab}<Internal_Reference>{eol}"
+                    + f"{' ' * (3 + 2) * tab}<lid_reference>{ob_lid}"
                     f"</lid_reference>{eol}"
-                    + f"{' ' * (3 + 2)*tab}<reference_type>is_instrument_host"
+                    + f"{' ' * (3 + 2) * tab}<reference_type>is_instrument_host"
                     f"</reference_type>{eol}"
-                    + f"{' ' * (3+1)*tab}</Internal_Reference>{eol}"
-                    + f"{' ' * 3*tab}</Observing_System_Component>{eol}"
+                    + f"{' ' * (3+1) * tab}</Internal_Reference>{eol}"
+                    + f"{' ' * 3 * tab}</Observing_System_Component>{eol}"
                 )
 
         if not obs_list_for_label:
@@ -349,16 +349,16 @@ class PDSLabel(object):
                         target_type = product["type"][0].capitalize()
 
                 tar_list_for_label += (
-                    f"{' ' * 2*tab}<Target_Identification>{eol}"
+                    f"{' ' * 2 * tab}<Target_Identification>{eol}"
                     + f"{' ' * 3 * tab}<name>{target_name}</name>{eol}"
                     + f"{' ' * 3 * tab}<type>{target_type}</type>{eol}"
                     + f"{' ' * 3 * tab}<Internal_Reference>{eol}"
-                    + f"{' ' * 4  *  tab}<lid_reference>{target_lid}"
-                    f"</lid_reference>{eol}" + f"{' ' * 4  *  tab}<reference_type>"
+                    + f"{' ' * 4 * tab}<lid_reference>{target_lid}"
+                    f"</lid_reference>{eol}" + f"{' ' * 4 * tab}<reference_type>"
                     f"{self.get_target_reference_type()}"
                     f"</reference_type>{eol}"
                     + f"{' ' * 3 * tab}</Internal_Reference>{eol}"
-                    + f"{' ' * 2*tab}</Target_Identification>{eol}"
+                    + f"{' ' * 2 * tab}</Target_Identification>{eol}"
                 )
 
         if not tar_list_for_label:
@@ -703,11 +703,11 @@ class BundlePDS4Label(PDSLabel):
 
             self.BUNDLE_MEMBER_ENTRIES += (
                 f"{' ' * tab}<Bundle_Member_Entry>{eol}"
-                f"{' ' * 2*tab}<lidvid_reference>"
+                f"{' ' * 2 * tab}<lidvid_reference>"
                 f"{self.COLL_LIDVID}</lidvid_reference>{eol}"
-                f"{' ' * 2*tab}<member_status>"
+                f"{' ' * 2 * tab}<member_status>"
                 f"{self.COLL_STATUS}</member_status>{eol}"
-                f"{' ' * 2*tab}<reference_type>"
+                f"{' ' * 2 * tab}<reference_type>"
                 f"bundle_has_{self.COLL_NAME}_collection"
                 f"</reference_type>{eol}"
                 f"{' ' * tab}</Bundle_Member_Entry>{eol}"
@@ -1197,7 +1197,7 @@ class OrbnumFilePDS4Label(PDSLabel):
         :rytpe: str
         """
         description = (
-            f"{self.setup.eol_pds4}{' ' * 6*self.setup.xml_tab}<description>"
+            f"{self.setup.eol_pds4}{' ' * 6 * self.setup.xml_tab}<description>"
             f"{self.product.table_char_description}"
             f"</description>{self.setup.eol_pds4}"
         )
@@ -1234,27 +1234,29 @@ class OrbnumFilePDS4Label(PDSLabel):
         tab = self.setup.xml_tab
 
         field = (
-            f'{" " * (4*tab)}<Field_Character>{eol}'
-            f'{" " * (4*tab + 1*tab)}<name>{name}</name>{eol}'
-            f'{" " * (4*tab + 1*tab)}<field_number>{number}</field_number>{eol}'
-            f'{" " * (4*tab + 1*tab)}<field_location unit="byte">{location}'
+            f'{" " * (4 * tab)}<Field_Character>{eol}'
+            f'{" " * (4 * tab + 1 * tab)}<name>{name}</name>{eol}'
+            f'{" " * (4 * tab + 1 * tab)}<field_number>{number}</field_number>{eol}'
+            f'{" " * (4 * tab + 1 * tab)}<field_location unit="byte">{location}'
             f"</field_location>{eol}"
-            f'{" " * (4*tab + 1*tab)}<data_type>{type}</data_type>{eol}'
-            f'{" " * (4*tab + 1*tab)}<field_length unit="byte">{length}'
+            f'{" " * (4 * tab + 1 * tab)}<data_type>{type}</data_type>{eol}'
+            f'{" " * (4 * tab + 1 * tab)}<field_length unit="byte">{length}'
             f"</field_length>{eol}"
-            f'{" " * (4*tab + 1*tab)}<field_format>{format}</field_format>{eol}'
+            f'{" " * (4 * tab + 1 * tab)}<field_format>{format}</field_format>{eol}'
         )
         if unit:
-            field += f'{" " * (4*tab + 1*tab)}<unit>{unit}</unit>{eol}'
-        field += f'{" " * (4*tab + 1*tab)}<description>{description}</description>{eol}'
+            field += f'{" " * (4 * tab + 1 * tab)}<unit>{unit}</unit>{eol}'
+        field += (
+            f'{" " * (4 * tab + 1 * tab)}<description>{description}</description>{eol}'
+        )
         if blanks and name != "No.":
             field += (
-                f'{" " * (4*tab + 1*tab)}<Special_Constants>{eol}'
-                f'{" " * (4*tab+ 2 * tab)}<missing_constant>blank space'
+                f'{" " * (4 * tab + 1 * tab)}<Special_Constants>{eol}'
+                f'{" " * (4 * tab + 2 * tab)}<missing_constant>blank space'
                 f"</missing_constant>{eol}"
-                f'{" " * (4*tab + 1*tab)}</Special_Constants>{eol}'
+                f'{" " * (4 * tab + 1 * tab)}</Special_Constants>{eol}'
             )
-        field += f'{" " * (4*tab)}</Field_Character>{eol}'
+        field += f'{" " * (4 * tab)}</Field_Character>{eol}'
 
         return field
 
@@ -1371,9 +1373,9 @@ class InventoryPDS3Label(PDSLabel):
         for i, bytes in enumerate(self.product.column_bytes):
 
             setattr(
-                self, f"START_BYTE_{i+1:02d}", str(self.product.column_start_bytes[i])
+                self, f"START_BYTE_{i + 1:02d}", str(self.product.column_start_bytes[i])
             )
-            setattr(self, f"BYTES_{i+1:02d}", str(bytes))
+            setattr(self, f"BYTES_{i + 1:02d}", str(bytes))
 
         file_types = self.product.file_types
         if len(file_types) == 1:
@@ -1382,7 +1384,9 @@ class InventoryPDS3Label(PDSLabel):
             file_types.sort()
             indexed_file_name = "{" + self.setup.eol_pds3
             for file_type in file_types:
-                indexed_file_name += f'{29*" "}  "*.{file_type}",{self.setup.eol_pds3}'
+                indexed_file_name += (
+                    f'{29 * " "}  "*.{file_type}",{self.setup.eol_pds3}'
+                )
 
             indexed_file_name = (
                 indexed_file_name[:-3] + self.setup.eol_pds3 + 29 * " " + "}\n"

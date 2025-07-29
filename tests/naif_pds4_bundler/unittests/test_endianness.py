@@ -4,9 +4,11 @@ Binary kernel endianness of binary kernels needs to be the one specified via
 configuration and must be compatible with the machine being used. These tests
 ensure that this is the case.
 """
+
 import os
 import shutil
-import sys
+
+# import sys
 
 from pds.naif_pds4_bundler.__main__ import main
 from pds.naif_pds4_bundler.utils.files import string_in_file

@@ -1,9 +1,12 @@
 """Unit tests for kernel list generation."""
-import os
+
+# import os
 import shutil
-import unittest
+
+# import unittest
 from pathlib import Path
-from unittest import TestCase
+
+# from unittest import TestCase
 from xml.etree import cElementTree
 
 from pds.naif_pds4_bundler.__main__ import main
