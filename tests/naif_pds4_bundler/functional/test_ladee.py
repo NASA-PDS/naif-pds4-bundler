@@ -1,5 +1,6 @@
 """Functional Test Family for LADEE Archive Generation."""
-import os
+
+# import os
 import shutil
 import unittest
 
