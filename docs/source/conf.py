@@ -106,18 +106,16 @@ html_theme = 'sphinx_rtd_theme'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = ['../_static']
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'NAIFPDS4BundlerDoc'
 
 #html_logo = '_static/images/PDS_Planets.png'
-#
-#html_context = {
-#    'css_files': [
-#        '_static/theme_overrides.css',  # override wide tables in RTD theme
-#        ],
-#      }
+
+# File containing CSS overlays.
+html_css_files = [ 'theme_overrides.css' ]
+
 
 # -- Options for LaTeX output ---------------------------------------------
 
