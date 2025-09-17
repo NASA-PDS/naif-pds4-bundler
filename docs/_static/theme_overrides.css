@@ -10,4 +10,8 @@
    .wy-table-responsive {
       overflow: visible !important;
    }
+
+   .wy-table-responsive code.literal {
+       white-space: nowrap !important;
+   }
 }
