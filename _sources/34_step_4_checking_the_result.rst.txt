@@ -84,7 +84,7 @@ Running Validate manually
 
 After installing ``validate`` and generating the bundle you can run it as follows::
 
-   validate -t <path_to_archive> -R pds4.bundle -x <pds_im_schema> -S <pds_im_schematron> --strict-field-checks -r <path_to_working_dir>/<sc>_release_??.validate
+   validate -t <path_to_archive> -R pds4.bundle -x <pds_im_schema> -S <pds_im_schematron> -r <path_to_working_dir>/<sc>_release_??.validate
 
 where
 
@@ -109,8 +109,9 @@ choose the adequate IM version and download the ``PDS4_PDS_????.xsd``
 and ``PDS4_PDS_????.sch`` or the ``PDS4_PDS_????.zip`` files. NAIF recommends to
 put these files in the NPB working directory.
 
-If you have included context products in the configuration file the Validate
-Tool might provide you the following error messages::
+If you have included context products in the configuration file that have yet
+to be registered, the Validate Tool might provide you the following error
+messages::
 
      FAIL: file:/Users/mcosta/workspace/em16/em16_003/em16_spice/bundle_em16_spice_v003.xml
       ERROR  [error.label.context_ref_not_found]   line 34: 'Context product not found: urn:esa:psa:context:investigation:mission.em16
@@ -154,7 +155,7 @@ containing the missing context products as follows::
 
 Then you can run ``validate`` as follows::
 
-   validate -t em16/em16_spice --add-context-products registered_context_products.json -R pds4.bundle -x working/PDS4_PDS_1B00.xsd -S working/PDS4_PDS_1B00.sch --strict-field-checks -r working/em16_release_03.validate
+   validate -t em16/em16_spice --add-context-products registered_context_products.json -R pds4.bundle -x working/PDS4_PDS_1B00.xsd -S working/PDS4_PDS_1B00.sch -r working/em16_release_03.validate
 
 
 Following the inclusion of this argument, you will still get the following
@@ -174,15 +175,15 @@ NAIF recommends to set severity level of the Validation Tool reporting to
 ``Info`` (``-v 1 --verbose 1``). This will mainly help to find issues in the
 context products. The resulting recommended way to run Validate is::
 
-   validate -v 1 -t em16/em16_spice --skip-context-validation -R pds4.bundle -x working/PDS4_PDS_1B00.xsd -S working/PDS4_PDS_1B00.sch --strict-field-checks -r working/em16_release_03.validate
+   validate -v 1 -t em16/em16_spice --skip-context-validation -R pds4.bundle -x working/PDS4_PDS_1B00.xsd -S working/PDS4_PDS_1B00.sch -r working/em16_release_03.validate
 
 Please note that the Validate Tool is in continuous development with new
 releases for each PDS IM, therefore the details provided in this section
 might differ from the version of the Validate Tool you use. The results
 provided here are obtained using Validate Tool's::
 
-   Version 2.0.6
-   Release Date: 2021-05-25 12:08:21
+   Version 3.5.1
+   Release Date: 2024-05-25
 
 
 Deploying to the Final Archive Area

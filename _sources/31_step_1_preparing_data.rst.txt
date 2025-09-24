@@ -6,14 +6,14 @@ set of kernels allowing a scientist to compute geometry for any of the
 mission instruments in regards to any of the mission targets at all
 applicable times during the mission.
 
-To achieve this the archive would normally include all types of kernels
-needed to provide ephemerides (SPKs), orientation (PCK) and shape (PCK
-or DSK) of targets, trajectory (SPK) and orientation (CK) of the
+To achieve this, the archive would normally include all types of kernels
+needed to provide ephemerides (SPKs), planetary constants (PCK) and
+shape (PCK or DSK) of targets, trajectory (SPK) and orientation (CK) of the
 spacecraft, orientation (CK) and geometric parameters (IK) of the
 instruments, definitions of the spacecraft and instrument frames (FK),
 and data for various time conversions (LSK and SCLK). If the project
 produced Event Kernel (EK) files of any kind, they should also be
-included in the archive.
+included in the archive *not applicable for new missions*.
 
 If as a SPICE kernel archive producer you have been provided the data to be
 archived, if all data are present in a given directory structure or in a
@@ -27,7 +27,7 @@ Identifying Data
 Usually identifying data that should go into the archive is not very
 difficult, especially when SPICE kernels were produced and used by the
 project during operations. In such cases the following kernels used
-during operations -- independent of whether if they were produced by the
+during operations -- independent of whether they were produced by the
 project teams or obtained from NAIF or other sources -- should be
 included in the archive:
 
@@ -48,7 +48,7 @@ included in the archive:
           by science team(s) (for example Gravity or Radio
           science); if any
 
-       *  latest ground stations locations SPK file(s); if any
+       *  latest ground station locations SPK file(s); if any
 
        *  latest structures/instrument locations SPK file(s); if
           any
@@ -157,7 +157,7 @@ included in the archive:
           produced) for the mission s/c(s); if any
 
 
-  * EK (Note: the EK subsystem is rarely used on modern missions.)
+  * EK (Note: the EK subsystem is not used on modern missions.)
 
        *  PEF2EK-type sequence and command dictionary EK files
           (see SDU, Deep Impact for examples); if any
@@ -170,7 +170,7 @@ included in the archive:
        *  ENB EK files (see MGS, SDU for examples); if any
 
 While no mission produces all kernels from the list above, most missions
-produce kernels of all types (maybe except EKs and DSKs) and most of these
+produce kernels of all types (except EKs and maybe DSKs) and most of these
 kernels are needed to compute observation geometry for the mission
 instruments and, therefore, should be included in the archive.
 
@@ -181,7 +181,7 @@ these points may help to make this selection:
 
   * For the kernel types that don't cover specific time intervals,
     cover the whole mission and/or change rarely during the mission
-    -- such as planetary, satellite, structures SPKs, DSK, LSK,
+    -- such as planetary, satellite, structures SPK, DSK, LSK,
     PCK, FK, IK, and SCLK -- the latest version of each file at the
     time of archive preparation should be included.
 
@@ -352,7 +352,7 @@ merged file should be one of the factors to consider. While
 SPICE does not impose a "hard" limit of a number of megabytes
 under which this size should be kept -- except, of course, for
 the 2.1 GB which is the limit for 4-byte integer address space,
--- is it probably wise to keep the file size under 200-300 MB.
+-- it is best to keep the file size under 200-300 MB.
 
 NAIF distributes a few utility programs that can be used to
 merge various types of kernels. ``SPKMERGE`` provided in the
@@ -479,8 +479,8 @@ inserted into the ASCII text kernel files if necessary.
      - KPL/IK
    * - LSK
      - KPL/LSK
-   * - PCL
-     - KPL/PCL
+   * - PCK
+     - KPL/PCK
    * - SCLK
      - KPL/SCLK
    * - FRAMES
@@ -546,11 +546,11 @@ convention for SPICE kernels:
      - ``.bds``
    * - Binary CKs
      - ``.bc``
-   * - Binary Sequence EKs
+   * - Binary Sequence EKs*
      - ``.bes``
-   * - Binary Database EKs
+   * - Binary Database EKs*
      - ``.bdb``
-   * - Binary Plan EKs
+   * - Binary Plan EKs*
      - ``.bep``
    * - Text PCKs
      - ``.tpc``
@@ -562,10 +562,12 @@ convention for SPICE kernels:
      - ``.tls``
    * - Text SCLKs
      - ``.tsc``
-   * - Text Notebook EKs
+   * - Text Notebook EKs*
      - ``.ten``
    * - Text Meta-kernels
      - ``.tm``
+
+All Kenel Types with * next to them are not applicable for new archives.
 
 ORBNUM files must have either a ``.orb`` or ``.nrb`` extension.
 
@@ -776,8 +778,8 @@ More information on how to generate adequate MKs is available at [KERNELS]_.
 Generating MKs Automatically
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The generation of MKs can be automatized by providing to the NPB configuration
-file the appropriate parameters. This is described in detail in
+The generation of MKs can be automatized by providing the appropriate
+parameters in the NPB configuration file. This is described in detail in
 :ref:`42_npb_configuration_file:Automatic generation of Meta-kernels`.
 
 Please note that depending on the complexity and particulars of the MK(s) you
@@ -886,7 +888,7 @@ we recommend you contact NAIF.
 Obtaining a DOI
 ---------------
 
-DOIs are not mandatory for SPICE kernel archives but are desirable.
+SPICE archives have one DOI for the bundle.
 The DOI is provided in the NPB configuration file.
 
 If the archive uses IM 1.5.0.0, it will not be able to include the DOI tag in
@@ -962,7 +964,7 @@ Here's three different extracts of release plan samples::
    No Cruise CKs in this release.
 
 
-We recommend one follows this file name scheme for release plan files::
+We recommend following this file name scheme for release plan files::
 
    <sc>_release_??.plan
 
@@ -972,8 +974,8 @@ version. The MAVEN release 24 plan will be::
    maven_release_24.plan
 
 For archive increments after the first or second release, we recommend that
-you use the previous release plan as the starting point or the release plan
-(copy the previous one and update it.)
+you use the previous release plan as the starting point for the next release
+plan (copy the previous one and update it.)
 
 
 Using no Release Plan

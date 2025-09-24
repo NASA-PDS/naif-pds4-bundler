@@ -55,7 +55,7 @@ parentheses is briefly explained below:
        usually covering the next period of time; for past missions the
        data that is being added usually provides a better trajectory
        solution, a better attitude estimate, an instrument parameters
-       update, or fixes liens. New additions are called releases or
+       update, or fixes from liens. New additions are called releases or
        increments. SPICE bundles do not have a specific file to record
        releases, nevertheless the version of the bundle label is equivalent
        to the bundle release. Checksum files in the Miscellaneous collection
@@ -97,7 +97,8 @@ parentheses is briefly explained below:
 
        where the ``<sc>`` part is formed as described above (for
        example, for MAVEN it is ``maven_spice``). Elements with ``*`` are
-       present if needed.
+       present if needed. For new PDS4 SPICE archives DKBs and EKs will not
+       be used, these may be present in older archives.
 
        The ``miscellaneous`` directory may contain additional subdirectories
        to store additional value-added, non-kernel files such as
@@ -121,7 +122,7 @@ parentheses is briefly explained below:
           miscellaneous/collection_miscellaneous_inventory_v???.tab   miscellaneous inventory tables
           miscellaneous/*/*.xml                                       XML labels, 1 per checksum and ORBNUM
           spice_kernels/collection_spice_kernels_v???.xml             SPICE kernels collection labels
-          spice_kernels/collection_spice_kernels_inventory_v???.tab   SOUCE kernels inventory tables
+          spice_kernels/collection_spice_kernels_inventory_v???.tab   SPICE kernels inventory tables
           spice_kernels/*/*.xml                                       XML labels, 1 per kernel
 
        where the ``<sc>`` part is formed as described above (for example, for

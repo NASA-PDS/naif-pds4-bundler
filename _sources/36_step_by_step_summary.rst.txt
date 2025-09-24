@@ -29,7 +29,7 @@ Steps for Creating a New Archive
 
    * Obtain a DOI for the archive
 
-   * if needed, create the release plan for new release
+   * create the release plan for new release
 
    * write SPICEDS file, using files from an existing SPICE archive as
      the starting point
@@ -64,7 +64,7 @@ Steps for Adding Data To an Existing Archive
 
    * add or modify extra files -- Meta-kernels, ORBNUM files, etc.
 
-   * if needed, create the release plan for new release
+   * create the release plan for new release
 
    * check and, if needed, update the SPICEDS file
 

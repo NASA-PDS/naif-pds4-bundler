@@ -31,7 +31,7 @@ the inline comments of the ``naif-pds4-bundler/src/pds/naif_pds4_bundler/__main_
 
     * The log will always be displayed on screen unless the silent
       option is chosen.
-    * The log file will be written in the working directory
+    * The log file will be written in the working directory ``-l, --log``
 
   * Check the existence of a previous archive version.
 
@@ -94,10 +94,9 @@ the inline comments of the ``naif-pds4-bundler/src/pds/naif_pds4_bundler/__main_
   * Generate the Miscellaneous collection. The Checksum product
     is initialized in such a way that its name can be obtained.
 
-  * The first thing that is checked is whether if the current
-    Bundle has checksums; if not, all the checksums are generated,
-    including for the corresponding Miscellaneous Collection Inventories
-    and labels.
+  * The first thing that is checked is whether the current Bundle
+    has checksums; if not, all the checksums are generated, including
+    for the corresponding Miscellaneous Collection Inventories and labels.
 
   * Set the Miscellaneous collection VID.
 
@@ -272,7 +271,7 @@ generation, especially when the archive producer is not fully confident with
 the state of the files in the plan or with the state of the configuration file.
 
 You might also want to use the ``bundle`` option to prevent the checks from
-being performed if you are confident with you reason to do so (e.g. use of a
+being performed if you are confident with your reason to do so (e.g. use of a
 meta-kernel not following NAIF's convention.)
 
 
@@ -499,7 +498,7 @@ via argument parameters. These files are:
    * Kernel List: ``<sc>_release_??.kernel_list``
    * Execution Log: ``<sc>_release_??.log``
    * Execution File List: ``<sc>_release_??.file_list``
-   * Checksum registry:``<sc>_release_??.checksum``
+   * Checksum registry: ``<sc>_release_??.checksum``
    * Product Diff files: ``diff_<new_file>_<old_file>.html``
    * PDS Validate Tool Configuration files: ``<sc>_release_??.setup.validate``
 
@@ -773,6 +772,12 @@ Would be equivalent to the following resulting ``validate`` configuration file::
    validate.schematron = working/PDS4_PDS_1B00.sch
    validate.strictFieldChecks = true
    validate.report = working/em16_release_03.validate
+
+We recommend running validate and pointing to the validate_config file NPB
+generates for you. The following ``validate`` example command for InSight::
+   $ validate insight/insight_spice \
+   -c working/insight_release_01.validate_config -R pds4.bundle \
+   -r working/insight_release_01.validate
 
 If there is an issue during the generation of this file --e.g.: no internet
 connection-- the process will silently fail but the NPB run will be successful.

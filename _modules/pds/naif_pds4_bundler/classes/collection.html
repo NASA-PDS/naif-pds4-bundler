@@ -1,0 +1,832 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pds.naif_pds4_bundler.classes.collection &mdash; NAIF PDS4 Bundler 1.7.0
+ documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/theme_overrides.css?v=8a44a683" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=030dc6f6"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            NAIF PDS4 Bundler
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../10_overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../20_spice_kernel_archive_description.html">SPICE Kernel Archive Description</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../30_spice_kernel_archive_preparation_guide.html">SPICE Kernel Archive Preparation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../40_naif_pds4_bundler_user_guide.html">NAIF PDS4 Bundler User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../50_api_docs.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../60_annex_npb_for_pds3.html">Appendix: NPB for PDS3 Archives</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">NAIF PDS4 Bundler</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pds.naif_pds4_bundler.classes.collection</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pds.naif_pds4_bundler.classes.collection</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Collection Class amd Child Classes Implementation.&quot;&quot;&quot;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">glob</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">spiceypy</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">..utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">et_to_date</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">extension_to_type</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.log</span><span class="w"> </span><span class="kn">import</span> <span class="n">error_message</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.product</span><span class="w"> </span><span class="kn">import</span> <span class="n">PDS3DocumentProduct</span>
+
+
+<div class="viewcode-block" id="Collection">
+<a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.collection.Collection">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Collection</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Class to generate a PDS4 Collection.</span>
+
+<span class="sd">    :param type: Collection type: kernels, documents or miscellaneous</span>
+<span class="sd">    :type type: str</span>
+<span class="sd">    :param setup: Setup Object</span>
+<span class="sd">    :type setup: object</span>
+<span class="sd">    :param bundle: Bundle Object to which the Collection belongs to</span>
+<span class="sd">    :type bundle: object</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">setup</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">bundle</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Constructor.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">product</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="nb">type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup</span> <span class="o">=</span> <span class="n">setup</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bundle</span> <span class="o">=</span> <span class="n">bundle</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># To know whether if the collection has been updated or not.</span>
+        <span class="c1">#</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">updated</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_collection_lid</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Collection.add">
+<a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.collection.Collection.add">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a Product to the Collection.</span>
+
+<span class="sd">        :param element: Product to add to Collection</span>
+<span class="sd">        :type element: object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># If an element has been added to the collection then, the collection</span>
+        <span class="c1"># must be updated.</span>
+        <span class="c1">#</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">updated</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="Collection.set_collection_lid">
+<a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.collection.Collection.set_collection_lid">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_collection_lid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the Bundle LID.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">!=</span> <span class="s2">&quot;3&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lid</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">logical_identifier</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2">&quot;</span></div>
+
+
+<div class="viewcode-block" id="Collection.set_collection_vid">
+<a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.collection.Collection.set_collection_vid">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_collection_vid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the Bundle VID.</span>
+
+<span class="sd">        In general Collection versions are not equal to the release number.</span>
+<span class="sd">        If the collection has been updated we obtain the increased</span>
+<span class="sd">        version, but if it has not been updated we use the previous</span>
+<span class="sd">        version.</span>
+
+<span class="sd">        Given the case thatt he version cannot be determined: if it is the</span>
+<span class="sd">        SPICE kernels collection assume is the same version as the bundle,</span>
+<span class="sd">        otherwise we set it to 1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">increment</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">versions</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">bundle_directory</span><span class="si">}</span><span class="s2">/&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_spice/&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">/*</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">*&quot;</span>
+                <span class="p">)</span>
+                <span class="n">versions</span> <span class="o">+=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">staging_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">/*</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">*&quot;</span>
+                <span class="p">)</span>
+
+                <span class="n">versions</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">updated</span><span class="p">:</span>
+                    <span class="n">version</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">versions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;v&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">version</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">versions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;v&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+
+                <span class="n">vid</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">.0&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">version</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;-- Collection of </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2"> version set to &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">version</span><span class="si">}</span><span class="s2">, derived from:&quot;</span>
+                <span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   </span><span class="si">{</span><span class="n">versions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+            <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;spice_kernel&quot;</span><span class="p">:</span>
+                    <span class="n">ver</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">release</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">ver</span> <span class="o">=</span> <span class="mi">1</span>
+
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;-- No </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2"> collection available in previous increment.&quot;</span>
+                <span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-- Collection of </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2"> version set to: </span><span class="si">{</span><span class="n">ver</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+                <span class="n">vid</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">.0&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ver</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;-- Collection of </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2"> version set &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;to: </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">release</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+            <span class="n">vid</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">.0&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">release</span><span class="p">))</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">vid</span> <span class="o">=</span> <span class="n">vid</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="SpiceKernelsCollection">
+<a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.collection.SpiceKernelsCollection">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SpiceKernelsCollection</span><span class="p">(</span><span class="n">Collection</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Collection child class to generate a PDS4 SPICE Kernels Collection.</span>
+
+<span class="sd">    :param setup: NPB execution setup object</span>
+<span class="sd">    :type setup: object</span>
+<span class="sd">    :param bundle: Bundle object</span>
+<span class="sd">    :type bundle: object</span>
+<span class="sd">    :param list: Kernel List object</span>
+<span class="sd">    :type list: object</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setup</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">bundle</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="nb">list</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Constructor.&quot;&quot;&quot;</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Step </span><span class="si">{</span><span class="n">setup</span><span class="o">.</span><span class="n">step</span><span class="si">}</span><span class="s2"> - SPICE kernel collection/data processing&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">))</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">setup</span><span class="o">.</span><span class="n">step</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">setup</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">silent</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">setup</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-- &quot;</span> <span class="o">+</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; - &quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bundle</span> <span class="o">=</span> <span class="n">bundle</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">list</span> <span class="o">=</span> <span class="nb">list</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s2">&quot;spice_kernels&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Collection type (`str`).&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span> <span class="o">=</span> <span class="n">setup</span><span class="o">.</span><span class="n">mission_start</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stop_time</span> <span class="o">=</span> <span class="n">setup</span><span class="o">.</span><span class="n">mission_finish</span>
+
+        <span class="n">Collection</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">setup</span><span class="p">,</span> <span class="n">bundle</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SpiceKernelsCollection.determine_meta_kernels">
+<a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.collection.SpiceKernelsCollection.determine_meta_kernels">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">determine_meta_kernels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Determine the name of the Meta-kernel(s) to be generated.</span>
+
+<span class="sd">        :return: Dictionary of meta-kernels to be generated. The keys list the</span>
+<span class="sd">                 meta-kernels and the values whether if they are provided by the</span>
+<span class="sd">                 user or not.</span>
+<span class="sd">        :rtype: dictionary.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Step </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">step</span><span class="si">}</span><span class="s2"> - Generation of meta-kernel(s)&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">))</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">step</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">silent</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-- &quot;</span> <span class="o">+</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; - &quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span><span class="p">)</span>
+
+        <span class="n">meta_kernels</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c1">#</span>
+        <span class="c1"># First check if a meta-kernel has been provided via configuration by</span>
+        <span class="c1"># the user. If so, only the provided meta-kernels will be taken into</span>
+        <span class="c1"># account (there is no hybrid possibility but NPB provides a warning</span>
+        <span class="c1"># message if more meta-kernels are expected).</span>
+        <span class="c1">#</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">,</span> <span class="s2">&quot;mk_inputs&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">faucet</span> <span class="o">!=</span> <span class="s2">&quot;labels&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="s2">&quot;file&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mk_inputs</span><span class="p">:</span>
+                <span class="n">mks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mk_inputs</span><span class="p">[</span><span class="s2">&quot;file&quot;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mks</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                    <span class="n">mks</span> <span class="o">=</span> <span class="p">[</span><span class="n">mks</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">mk</span> <span class="ow">in</span> <span class="n">mks</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">mk</span><span class="p">):</span>
+                        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+                        <span class="n">error_message</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;Meta-kernel provided via&quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot; configuration&quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot; does not exist: </span><span class="si">{</span><span class="n">mk</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">meta_kernels</span><span class="p">[</span><span class="n">mk</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;-- Configuration item mk_inputs is empty.&quot;</span><span class="p">)</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># Second we check if meta-kernels are indicated with the kernel list.</span>
+        <span class="c1"># Note that if kernels are provided as input, the ones present in the</span>
+        <span class="c1"># kernel list are ignored.</span>
+        <span class="c1">#</span>
+        <span class="c1"># It is assumed that these kernels will be in the kernels_directory,</span>
+        <span class="c1"># under the mk subdirectory.</span>
+        <span class="c1">#</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">meta_kernels</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">kernel</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="o">.</span><span class="n">kernel_list</span><span class="p">:</span>
+                <span class="n">kernel_present</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">if</span> <span class="s2">&quot;.tm&quot;</span> <span class="ow">in</span> <span class="n">kernel</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">kernel_dir</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">kernels_directory</span><span class="p">:</span>
+                        <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">kernel_dir</span><span class="si">}</span><span class="s2">/mk/</span><span class="si">{</span><span class="n">kernel</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+                            <span class="n">meta_kernels</span><span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                            <span class="n">kernel_present</span> <span class="o">=</span> <span class="kc">True</span>
+                            <span class="k">break</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">kernel_present</span><span class="p">:</span>
+                        <span class="c1">#</span>
+                        <span class="c1"># If the kernel is not present we don&#39;t provide the path.</span>
+                        <span class="c1">#</span>
+                        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;-- </span><span class="si">{</span><span class="n">kernel</span><span class="si">}</span><span class="s2"> not provided as input in kernels directory.&quot;</span>
+                        <span class="p">)</span>
+                        <span class="n">meta_kernels</span><span class="p">[</span><span class="n">kernel</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># If no meta-kernels are provided as inputs or in the kernel list,</span>
+        <span class="c1">#</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">meta_kernels</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">faucet</span> <span class="o">==</span> <span class="s2">&quot;labels&quot;</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="s2">&quot;-- No meta-kernel provided as input in the plan in labeling mode.&quot;</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="s2">&quot;-- No meta-kernel provided in the kernel list or via configuration.&quot;</span>
+                <span class="p">)</span>
+
+            <span class="c1">#</span>
+            <span class="c1"># NPB will try to determine if a meta-kernel can be generated</span>
+            <span class="c1"># only using the information from the configuration file.</span>
+            <span class="c1"># This will only work if the bundle only includes one meta-kernel</span>
+            <span class="c1"># and the only pattern in the filename is the VERSION.</span>
+            <span class="c1">#</span>
+            <span class="c1"># This will happen only if there are kernels in the collection.</span>
+            <span class="c1">#</span>
+            <span class="c1"># If the kernel already exists, it will not be generated.</span>
+            <span class="c1">#</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="p">(</span><span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">,</span> <span class="s2">&quot;mk&quot;</span><span class="p">))</span>
+                <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">)</span>
+                <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">faucet</span> <span class="o">!=</span> <span class="s2">&quot;labels&quot;</span><span class="p">)</span>
+            <span class="p">):</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mk</span><span class="o">.</span><span class="fm">__len__</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span>
+                    <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mk</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">]</span><span class="o">.</span><span class="fm">__len__</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span>
+                    <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mk</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="fm">__len__</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span>
+                    <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mk</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;pattern&quot;</span><span class="p">]</span><span class="o">.</span><span class="fm">__len__</span><span class="p">()</span> <span class="o">==</span> <span class="mi">2</span>
+                    <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mk</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;pattern&quot;</span><span class="p">],</span> <span class="nb">list</span><span class="p">)</span>
+                <span class="p">):</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mk</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;pattern&quot;</span><span class="p">][</span><span class="s2">&quot;#text&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;VERSION&quot;</span><span class="p">:</span>
+                        <span class="n">version_length</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mk</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;pattern&quot;</span><span class="p">][</span><span class="s2">&quot;@length&quot;</span><span class="p">]</span>
+                        <span class="p">)</span>
+
+                        <span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span>
+                        <span class="n">meta_kernel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mk</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;@name&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+                            <span class="s2">&quot;$VERSION&quot;</span><span class="p">,</span> <span class="n">version</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="n">version_length</span><span class="p">)</span>
+                        <span class="p">)</span>
+                        <span class="n">existing_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">bundle_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_spice/spice_kernels/mk/</span><span class="si">{</span><span class="n">meta_kernel</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">existing_path</span><span class="p">):</span>
+                            <span class="n">meta_kernels</span><span class="p">[</span><span class="n">meta_kernel</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">meta_kernels</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;-- No Meta-kernel will be generated.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1">#</span>
+            <span class="c1"># Check that the meta-kernels are not present. If a meta-kernel is</span>
+            <span class="c1"># present stop the execution.</span>
+            <span class="c1">#</span>
+            <span class="k">for</span> <span class="n">meta_kernel</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">meta_kernels</span><span class="p">):</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span><span class="p">:</span>
+                    <span class="n">existing_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">bundle_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">_spice/spice_kernels/mk/</span><span class="si">{</span><span class="n">meta_kernel</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">existing_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">bundle_directory</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">volume_id</span><span class="si">}</span><span class="s2">/extras/mk/</span><span class="si">{</span><span class="n">meta_kernel</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">existing_path</span><span class="p">):</span>
+                    <span class="n">error_message</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;MK already exists in the archive: </span><span class="si">{</span><span class="n">existing_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">meta_kernels</span></div>
+
+
+<div class="viewcode-block" id="SpiceKernelsCollection.set_increment_times">
+<a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.collection.SpiceKernelsCollection.set_increment_times">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_increment_times</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Determine the archive increment start and finish times.</span>
+
+<span class="sd">        This is done based on the identification of the coverage of a given</span>
+<span class="sd">        SPK or CK kernel. Alternatively it can be provided as a parameter of the</span>
+<span class="sd">        execution.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Step </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">step</span><span class="si">}</span><span class="s2"> - Determine archive increment &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;start and finish times&quot;</span>
+        <span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">))</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">step</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">silent</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-- &quot;</span> <span class="o">+</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; - &quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span><span class="p">)</span>
+
+        <span class="n">increment_start</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">increment_finish</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="c1">#</span>
+        <span class="c1"># The increment start and finish times are to be set with the MK.</span>
+        <span class="c1"># This is the first step taken.</span>
+        <span class="c1">#</span>
+        <span class="c1"># Match the pattern with the kernels in the meta-kernel.</span>
+        <span class="c1">#</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">increment_starts</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">increment_finishs</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">prod</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">prod</span><span class="p">,</span> <span class="s2">&quot;mk_sets_coverage&quot;</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">prod</span><span class="o">.</span><span class="n">mk_sets_coverage</span><span class="p">:</span>
+                        <span class="n">increment_starts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prod</span><span class="o">.</span><span class="n">start_time</span><span class="p">)</span>
+                        <span class="n">increment_finishs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prod</span><span class="o">.</span><span class="n">stop_time</span><span class="p">)</span>
+                        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;-- Using MK: </span><span class="si">{</span><span class="n">prod</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> to determine &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;increment coverage.&quot;</span>
+                        <span class="p">)</span>
+
+            <span class="n">increment_start</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">increment_starts</span><span class="p">)</span>
+            <span class="n">increment_finish</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">increment_finishs</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="c1">#</span>
+            <span class="c1"># If no MKs are provided in the increment. First check if an</span>
+            <span class="c1"># increment stop time has been provided as an input</span>
+            <span class="c1"># parameter.</span>
+            <span class="c1">#</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;-- No Meta-kernels found to determine increment &quot;</span> <span class="s2">&quot;times.&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">,</span> <span class="s2">&quot;increment_start&quot;</span><span class="p">):</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;   Increment stop time set to: &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">increment_start</span><span class="si">}</span><span class="s2"> &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;as provided from configuration file&quot;</span>
+                <span class="p">)</span>
+                <span class="n">increment_start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">increment_start</span>
+
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">,</span> <span class="s2">&quot;increment_finish&quot;</span><span class="p">):</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;   Increment finish time set to: &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">increment_finish</span><span class="si">}</span><span class="s2"> &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;as provided from configuration file&quot;</span>
+                <span class="p">)</span>
+                <span class="n">increment_finish</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">increment_finish</span>
+
+            <span class="c1">#</span>
+            <span class="c1"># The alternative is to set the increment stop time to the</span>
+            <span class="c1"># end time of the mission.</span>
+            <span class="c1">#</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">increment_start</span><span class="p">:</span>
+                <span class="n">increment_start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_start</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s2">&quot;-- No increment start time provided via configuration. &quot;</span>
+                    <span class="s2">&quot;Mission start time will be used:&quot;</span>
+                <span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   </span><span class="si">{</span><span class="n">increment_start</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">increment_finish</span><span class="p">:</span>
+                <span class="n">increment_finish</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_finish</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s2">&quot;-- No increment finish time provided via configuration. &quot;</span>
+                    <span class="s2">&quot;Mission stop time will be used:&quot;</span>
+                <span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   </span><span class="si">{</span><span class="n">increment_finish</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># We check the coverage with the previous increment.</span>
+        <span class="c1">#</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1">#</span>
+            <span class="c1"># The first alternative option is to set the time to the time of</span>
+            <span class="c1"># the previous increment since we might be generating an increment</span>
+            <span class="c1"># that does not extend the coverage.</span>
+            <span class="c1">#</span>
+            <span class="n">bundles</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">bundle_directory</span>
+                <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span>
+                <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span>
+                <span class="o">+</span> <span class="s2">&quot;_spice&quot;</span>
+                <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span>
+                <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;bundle_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_acronym</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;_spice_v*&quot;</span>
+            <span class="p">)</span>
+            <span class="n">bundles</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">bundles</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">b</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">b</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s2">&quot;&lt;start_date_time&gt;&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                        <span class="n">prev_increment_start</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;&gt;&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;&lt;&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="s2">&quot;&lt;stop_date_time&gt;&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                        <span class="n">prev_increment_finish</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;&gt;&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;&lt;&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="c1">#</span>
+            <span class="c1"># Provide different logging level depending on the times</span>
+            <span class="c1"># combination.</span>
+            <span class="c1">#</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- Previous bundle increment interval is:&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   </span><span class="si">{</span><span class="n">prev_increment_start</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">prev_increment_finish</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="c1">#</span>
+            <span class="c1"># Correct the increment interval with previous interval if</span>
+            <span class="c1"># required.</span>
+            <span class="c1">#</span>
+            <span class="k">if</span> <span class="n">prev_increment_start</span> <span class="o">&lt;</span> <span class="n">increment_start</span><span class="p">:</span>
+                <span class="n">increment_start</span> <span class="o">=</span> <span class="n">prev_increment_start</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- Increment start corrected from previous bundle.&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">prev_increment_start</span> <span class="o">&gt;</span> <span class="n">increment_start</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;-- Increment start from previous bundle not used.&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">prev_increment_finish</span> <span class="o">&gt;</span> <span class="n">increment_finish</span><span class="p">:</span>
+                <span class="n">increment_finish</span> <span class="o">=</span> <span class="n">prev_increment_finish</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;-- Increment finish corrected form previous bundle.&quot;</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;-- Previous bundle not found.&quot;</span><span class="p">)</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># Check the format of the previous bundle and correct it. The &#39;Z&#39; is</span>
+        <span class="c1"># removed from the UTC string since it is not supported until the</span>
+        <span class="c1"># SPICE Toolkit N0067.</span>
+        <span class="c1">#</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="p">(</span><span class="n">increment_start</span><span class="p">,</span> <span class="n">increment_finish</span><span class="p">)</span> <span class="o">=</span> <span class="n">et_to_date</span><span class="p">(</span>
+                <span class="n">spiceypy</span><span class="o">.</span><span class="n">utc2et</span><span class="p">(</span><span class="n">increment_start</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span>
+                <span class="n">spiceypy</span><span class="o">.</span><span class="n">utc2et</span><span class="p">(</span><span class="n">increment_finish</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">date_format</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s2">&quot;-- A leapseconds kernel (LSK) has not been loaded. &quot;</span>
+                <span class="s2">&quot;Increment start/finish times will not be corrected.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- Increment interval for collection and bundle set to:&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   </span><span class="si">{</span><span class="n">increment_start</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">increment_finish</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">increment_finish</span> <span class="o">=</span> <span class="n">increment_finish</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">increment_start</span> <span class="o">=</span> <span class="n">increment_start</span></div>
+
+
+<div class="viewcode-block" id="SpiceKernelsCollection.validate">
+<a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.collection.SpiceKernelsCollection.validate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate the SPICE Kernels collection.</span>
+
+<span class="sd">        The SPICE Kernels collection validation performs the following checks:</span>
+
+<span class="sd">           * check that all the kernels from the kernel list are present</span>
+<span class="sd">           * check that all the kernels have been labeled</span>
+<span class="sd">           * display the key elements of the labels for the user to do a visual</span>
+<span class="sd">             inspection. The key elements are: ``logical_identifier``, ``version_id``,</span>
+<span class="sd">             ``title``, ``description``, ``start_date_time``, ``stop_date_time``,</span>
+<span class="sd">             ``file_name``, ``file_size``, ``md5_checksum``, ``object_length``,</span>
+<span class="sd">             ``kernel_type``, and ``encoding_type``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Step </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">step</span><span class="si">}</span><span class="s2"> - Validate SPICE kernel collection generation&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">))</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">step</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">silent</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-- &quot;</span> <span class="o">+</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; - &quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span><span class="p">)</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># Check that all the kernels from the list are present</span>
+        <span class="c1">#</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- Checking that all the kernels from list are present...&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;3&quot;</span><span class="p">:</span>
+            <span class="n">ker_dir</span> <span class="o">=</span> <span class="s2">&quot;/data/&quot;</span>
+            <span class="n">orbnum_dir</span> <span class="o">=</span> <span class="s2">&quot;/extras/orbnum/&quot;</span>
+            <span class="n">mk_dir</span> <span class="o">=</span> <span class="s2">&quot;/extras/mk/&quot;</span>
+            <span class="n">lbl_ext</span> <span class="o">=</span> <span class="s2">&quot;.lbl&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ker_dir</span> <span class="o">=</span> <span class="s2">&quot;/spice_kernels/&quot;</span>
+            <span class="n">orbnum_dir</span> <span class="o">=</span> <span class="s2">&quot;/miscellaneous/orbnum/&quot;</span>
+            <span class="n">mk_dir</span> <span class="o">=</span> <span class="s2">&quot;/spice_kernels/mk/&quot;</span>
+            <span class="n">lbl_ext</span> <span class="o">=</span> <span class="s2">&quot;.xml&quot;</span>
+
+        <span class="n">non_present_products</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">product</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="o">.</span><span class="n">kernel_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">staging_directory</span>
+                    <span class="o">+</span> <span class="n">ker_dir</span>
+                    <span class="o">+</span> <span class="n">extension_to_type</span><span class="p">(</span><span class="n">product</span><span class="p">)</span>
+                    <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span>
+                    <span class="o">+</span> <span class="n">product</span>
+                <span class="p">)</span>
+                <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">staging_directory</span> <span class="o">+</span> <span class="n">orbnum_dir</span> <span class="o">+</span> <span class="n">product</span>
+                <span class="p">)</span>
+                <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">staging_directory</span> <span class="o">+</span> <span class="n">mk_dir</span> <span class="o">+</span> <span class="n">product</span><span class="p">)</span>
+            <span class="p">):</span>
+                <span class="n">non_present_products</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">product</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">non_present_products</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;-- The following products from the list are not present:&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">product</span> <span class="ow">in</span> <span class="n">non_present_products</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   </span><span class="si">{</span><span class="n">product</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">error_message</span><span class="p">(</span>
+                    <span class="s2">&quot;Some products from the list are not present.&quot;</span><span class="p">,</span>
+                    <span class="n">setup</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">,</span>
+                <span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;   OK&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># Check that all the kernels have been labeled.</span>
+        <span class="c1">#</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- Checking that all the kernels have been labeled...&quot;</span><span class="p">)</span>
+
+        <span class="n">non_labeled_products</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">product</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">staging_directory</span>
+                <span class="o">+</span> <span class="n">ker_dir</span>
+                <span class="o">+</span> <span class="n">product</span><span class="o">.</span><span class="n">type</span>
+                <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span>
+                <span class="o">+</span> <span class="n">product</span><span class="o">.</span><span class="n">name</span>
+            <span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">staging_directory</span>
+                <span class="o">+</span> <span class="n">ker_dir</span>
+                <span class="o">+</span> <span class="n">product</span><span class="o">.</span><span class="n">type</span>
+                <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span>
+                <span class="o">+</span> <span class="n">product</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="o">+</span> <span class="n">lbl_ext</span>
+            <span class="p">):</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;3&quot;</span> <span class="ow">and</span> <span class="s2">&quot;.tm&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">product</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+                    <span class="n">non_labeled_products</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">product</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">non_labeled_products</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;-- The following products have not been labeled:&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">product</span> <span class="ow">in</span> <span class="n">non_labeled_products</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   </span><span class="si">{</span><span class="n">product</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="c1"># TODO: This IF statement goes after implementing PDS3 labeling.</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span><span class="p">:</span>
+                    <span class="n">error_message</span><span class="p">(</span>
+                        <span class="s2">&quot;Some products have not been labeled.&quot;</span><span class="p">,</span> <span class="n">setup</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span>
+                    <span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;   OK&quot;</span><span class="p">)</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># Exit the method if no products are present in collection</span>
+        <span class="c1">#</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># Display the key elements of the labels for the user to do a visual</span>
+        <span class="c1"># check. The key elements are: logical_identifier, version_id, title,</span>
+        <span class="c1"># description, start_date_time, stop_date_time, file_name, file_size,</span>
+        <span class="c1"># md5_checksum, object_length, kernel_type, and encoding_type.</span>
+        <span class="c1">#</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span><span class="p">:</span>
+            <span class="n">elements</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="s2">&quot;logical_identifier&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;version_id&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;title&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;description&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;start_date_time&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;stop_date_time&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;file_name&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;file_size&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;md5_checksum&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;object_length&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;kernel_type&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;encoding_type&quot;</span><span class="p">,</span>
+            <span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">elements</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="s2">&quot;RECORD_TYPE&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;RECORD_BYTES&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;SPICE_KERNEL&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;DESCRIPTION&quot;</span><span class="p">,</span>
+            <span class="p">]</span>
+
+        <span class="n">elements_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">elements</span><span class="p">)</span>
+
+        <span class="n">products</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">product</span>
+        <span class="k">for</span> <span class="n">product</span> <span class="ow">in</span> <span class="n">products</span><span class="p">:</span>
+            <span class="n">label_name</span> <span class="o">=</span> <span class="n">product</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">name</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">label_name</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">p</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="ow">not</span> <span class="n">elements_dict</span><span class="p">[</span><span class="n">element</span><span class="p">]:</span>
+                                <span class="n">elements_dict</span><span class="p">[</span><span class="n">element</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">elements_dict</span><span class="p">[</span><span class="n">element</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-- Providing relevant fields of labels for visual inspection.&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">elements_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">elements_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   </span><span class="si">{</span><span class="n">element</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="kc">None</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="DocumentCollection">
+<a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.collection.DocumentCollection">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DocumentCollection</span><span class="p">(</span><span class="n">Collection</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Collection child class to generate a PDS3 or PDS4 Document Collection.</span>
+
+<span class="sd">    :param setup: NPB execution setup object</span>
+<span class="sd">    :type setup: object</span>
+<span class="sd">    :param bundle: Bundle object</span>
+<span class="sd">    :type bundle: object</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setup</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">bundle</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Constructor.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;3&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s2">&quot;DOCUMENT&quot;</span>
+        <span class="k">elif</span> <span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s2">&quot;document&quot;</span>
+
+        <span class="n">Collection</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">setup</span><span class="p">,</span> <span class="n">bundle</span><span class="p">)</span>
+
+<div class="viewcode-block" id="DocumentCollection.get_pds3_documents">
+<a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.collection.DocumentCollection.get_pds3_documents">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_pds3_documents</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Collects the updated PDS3 documents for the increment.&quot;&quot;&quot;</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Step </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">step</span><span class="si">}</span><span class="s2"> - Generation of PDS3 products&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">step</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">silent</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-- &quot;</span> <span class="o">+</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; - &quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">staging_directory</span><span class="si">}</span><span class="s2">/**/*[.]*&quot;</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">):</span>
+            <span class="k">if</span> <span class="s2">&quot;.txt&quot;</span> <span class="ow">in</span> <span class="n">file</span> <span class="ow">or</span> <span class="s2">&quot;.cat&quot;</span> <span class="ow">in</span> <span class="n">file</span> <span class="ow">or</span> <span class="s2">&quot;aareadme.&quot;</span> <span class="ow">in</span> <span class="n">file</span><span class="p">:</span>
+                <span class="n">document</span> <span class="o">=</span> <span class="n">PDS3DocumentProduct</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">document</span><span class="o">.</span><span class="n">new_product</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">document</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="MiscellaneousCollection">
+<a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.collection.MiscellaneousCollection">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MiscellaneousCollection</span><span class="p">(</span><span class="n">Collection</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Collection child class to generate a PDS4 Document Collection.</span>
+
+<span class="sd">    :param setup: NPB execution setup object</span>
+<span class="sd">    :type setup: object</span>
+<span class="sd">    :param bundle: Bundle object</span>
+<span class="sd">    :type bundle: object</span>
+<span class="sd">    :param list: Kernel List object</span>
+<span class="sd">    :type list: object</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setup</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">bundle</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="nb">list</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Constructor.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">setup</span><span class="o">.</span><span class="n">pds_version</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s2">&quot;miscellaneous&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s2">&quot;extras&quot;</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># Included for ORBNUM files observers and targets.</span>
+        <span class="c1">#</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">list</span> <span class="o">=</span> <span class="nb">list</span>
+
+        <span class="n">Collection</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">setup</span><span class="p">,</span> <span class="n">bundle</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MiscellaneousCollection.report">
+<a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.collection.MiscellaneousCollection.report">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">report</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Report the Collection generation step.&quot;&quot;&quot;</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Step </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">step</span><span class="si">}</span><span class="s2"> - Generation of </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2"> collection&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">))</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">step</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">silent</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-- &quot;</span> <span class="o">+</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; - &quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Caltech/JPL/NASA.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -14,11 +14,12 @@ Motivation
 NAIF's approach to creating SPICE kernel archives can be summarized by this
 statement:
 
-**All SPICE data for a given mission are archived as UNIX text and binary
-files in a single, accumulating archive on a single virtual volume having
-the same directory structure, the same set of meta information files, data
-file labels with the same structure, and archive documents with the same
-structure as all SPICE archives produced by NAIF.**
+**All SPICE data for a given mission are archived as UNIX text files and
+little-endian binary files in a single, accumulating PDS4 archive bundle
+for that mission, having the same directory structure, the same set of meta
+information files, data file labels with the same structure, and archive
+documents with the same structure as all PDS4 SPICE archive bundles
+produced by NAIF.**
 
 Each time that an accumulating archive is released we either refer this to
 a release of the archive or to an archive increment. In this document you
@@ -48,7 +49,7 @@ archive preparer can do.
 How to Read This Document?
 ==========================
 
-We are glad that you got this far, but you’ve got a ways to go.
+We are glad that you got this far, but you’ve got a ways to go!
 You might not have to look into each section of this document.
 If you already know about SPICE you can skip the rest of this chapter. If
 you are very familiar with PDS SPICE kernel archives you can skip the
