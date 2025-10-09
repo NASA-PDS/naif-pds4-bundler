@@ -103,6 +103,12 @@ todo_include_todos = True
 #
 html_theme = 'sphinx_rtd_theme'
 
+# Theme options for sphinx_rtd_theme
+html_theme_options = {
+    'analytics_id': 'G-Q1K210DS5W',  # Google Analytics 4 tracking ID
+    'analytics_anonymize_ip': False,
+}
+
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
