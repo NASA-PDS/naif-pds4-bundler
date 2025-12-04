@@ -124,6 +124,8 @@ following commands::
 Then you can run the installation as usual::
 
    python -m pip install .
+or
+   python -m pip install path/to/project
 
 
 Development and Contribution
