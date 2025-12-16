@@ -64,8 +64,7 @@ in the ``naif-pds4-bundler`` top level directory. To uninstall run::
 
 Example process for setting up NPB to be used in a virtual environment:
 
-   1. Setup a virtual environemnt
-   If installing for the first time, create and activate Python 3 venv:
+   1. Setup a virtual environemnt::
 
     mkdir virtenvs
 
