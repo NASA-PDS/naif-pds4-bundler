@@ -55,17 +55,17 @@ If you wish to install NPB from source first download or clone the project
 from the `NPB GitHub repository <https://github.com/NASA-PDS/naif-pds4-bundler>`_.
 Then run::
 
-   python setup.py install
+   python -m pip install .
 
 in the ``naif-pds4-bundler`` top level directory. To uninstall run::
 
    pip uninstall naif-pds4-bundler
 
 
-To setup NPB in a virtual environment you could do the following:
-1. Setup a virtual environemnt
-   If installing for the first time, create and activate Python 3 venv:
- ex.
+Example process for setting up NPB to be used in a virtual environment:
+
+   1. Setup a virtual environemnt::
+
     mkdir virtenvs
 
     cd virtenvs
@@ -74,36 +74,35 @@ To setup NPB in a virtual environment you could do the following:
 
     cd npb/
 
-2. download the source code (tar.gz) and save under ~/virtenvs/npb/
-   Open the tar.gz package
-  ex.
+   2. download the source code (tar.gz) and save under ~/virtenvs/npb/, Open the tar.gz package::
+
     tar -xvf naif-pds4-bundler-#.#.#.tar.gz
 
-    cd naif-pds4-bundler-1.6.2
+    cd naif-pds4-bundler-#.#.#
 
-3. Drop into the virtual environment
-  ex.
+   3. Drop into the virtual environment::
+
     source virtenvs/npb/bin/activate
 
-3. Run the setup script
+   4. Run the setup script::
 
-    python3 setup.py install
+    python -m pip install .
 
   Note - if the setup is not successful you may need to check all dependencies are met.
          see `Known Instalation Issues` below for more information.
   Successful installation will output "Finished processing dependencies"...
 
-4. To make sure it is working & shows the correct version
+   5. To make sure it is working & shows the correct version::
 
     naif-pds4-bundler -h
 
-5. To do an NPB functional test -  If tests fail stop the process and please contact NAIF
+   6. To do an NPB functional test -  If tests fail stop the process and please contact NAIF::
 
     cd tests/naif_pds4_bundler
 
     python3 -m unittest
 
-6. To exit NPB virtual environment
+   7. To exit NPB virtual environment::
 
     deactivate
 
@@ -123,7 +122,9 @@ following commands::
 
 Then you can run the installation as usual::
 
-   python setup.py install
+   python -m pip install .
+or
+   python -m pip install path/to/project
 
 
 Development and Contribution
@@ -141,6 +142,9 @@ You can install NPB in editable mode and with extra developer dependencies into
 your virtual environment of choice by running::
 
     pip install --editable '.[dev]'
+or 
+    python -m pip install --editable .
+
 
 in the ``naif-pds4-bundler`` top level directory. You can configure
 the ``pre-commit`` hooks::
@@ -170,6 +174,8 @@ Dependencies for development are specified as the ``dev`` ``extras_require``
 in ``setup.cfg``; they are installed into the virtual environment as follows::
 
     pip install --editable '.[dev]'
+or 
+    python -m pip install --editable .
 
 All the source code is in ``naif_pds4_bundler`` under ``src``.
 
@@ -182,16 +188,18 @@ Example setup for developers using git clone and a venv-
    cd naif-pds4-bundler/
 
    2. create the virtual environemnet
-   python3 -m venv venv
+   python -m venv venv
 
    3. source the virtual environemnt
    source venv/bin/activate
 
    4. run the setup script
-   python3 setup.py install
+   python -m pip install .
 
    5. install in editable mode
    pip install --editable '.[dev]'
+   or 
+   python -m pip install --editable .
 
    6. configure the ``pre-commit`` hooks
    pre-commit install && pre-commit install -t pre-push

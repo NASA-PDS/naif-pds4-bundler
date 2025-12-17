@@ -1268,8 +1268,8 @@ class Setup(object):
         NPB will write a PDS validate tool configuration file for convenience
         of the user. The following validate example command for ExoMars2016::
 
-           $ validate -v 1 -t em16/em16_spice –-skip-context-validation \
-           -R pds4.bundle -x working/PDS4_PDS_1B00.xsd -S working/PDS4_PDS_1B00.sch \
+           $ validate -v 1 -t em16/em16_spice -R pds4.bundle -x \
+            working/PDS4_PDS_1B00.xsd -S working/PDS4_PDS_1B00.sch \
            -–strict-field-checks -r working/em16_release_03.validate
 
         Would be equivalent to the following resulting Validate configuration
@@ -1279,7 +1279,6 @@ class Setup(object):
            # $ validate -c working/em16_release_03.config.validate
            validate.target = em16/em16_spice
            validate.verbose = 1
-           validate.skip-context-validation = true
            validate.rule = pds4.bundle
            validate.schema = working/PDS4_PDS_1B00.xsd
            validate.schematron = working/PDS4_PDS_1B00.sch
@@ -1330,7 +1329,6 @@ class Setup(object):
                 f"validate.schematron = {self.working_directory}/{pds_schematron}\n"
             )
             l.write(f"validate.verbose = 1\n")
-            l.write(f"validate.skipContextValidation = true\n")
             l.write(f"validate.rule = pds4.bundle\n")
             l.write(f"validate.strictFieldChecks = true\n")
 
