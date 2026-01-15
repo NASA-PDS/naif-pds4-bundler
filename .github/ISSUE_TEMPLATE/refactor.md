@@ -4,7 +4,7 @@ about: Improvements to code/test cases that do not alter functionality
 title: <What needs refactoring?><Why?/What will it improve?> 
 labels: Refactor, needs:triage
 assignees: alyssambailey
-
+type: Theme
 ---
 
 ## 🔧 Describe the refactoring
