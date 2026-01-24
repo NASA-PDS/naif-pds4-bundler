@@ -1,8 +1,20 @@
 # Changelog
 
-## [release/1.7.1](https://github.com/NASA-PDS/naif-pds4-bundler/tree/release/1.7.1) (2025-10-09)
+## [«unknown»](https://github.com/NASA-PDS/naif-pds4-bundler/tree/«unknown») (2026-01-24)
 
-[Full Changelog](https://github.com/NASA-PDS/naif-pds4-bundler/compare/v1.7.0...release/1.7.1)
+[Full Changelog](https://github.com/NASA-PDS/naif-pds4-bundler/compare/v1.7.2...«unknown»)
+
+**Requirements:**
+
+- Add infrastructure \(labels + templates\) for "Refactor" issues [\#45](https://github.com/NASA-PDS/naif-pds4-bundler/issues/45)
+
+## [v1.7.2](https://github.com/NASA-PDS/naif-pds4-bundler/tree/v1.7.2) (2026-01-06)
+
+[Full Changelog](https://github.com/NASA-PDS/naif-pds4-bundler/compare/v1.7.1...v1.7.2)
+
+## [v1.7.1](https://github.com/NASA-PDS/naif-pds4-bundler/tree/v1.7.1) (2025-10-09)
+
+[Full Changelog](https://github.com/NASA-PDS/naif-pds4-bundler/compare/v1.7.0...v1.7.1)
 
 ## [v1.7.0](https://github.com/NASA-PDS/naif-pds4-bundler/tree/v1.7.0) (2025-09-24)
 
