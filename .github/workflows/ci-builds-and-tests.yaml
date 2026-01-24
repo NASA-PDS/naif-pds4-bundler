@@ -1,4 +1,6 @@
 name: Testing NPB 🪐
+permissions:
+  contents: read
 
 on:
   push:
