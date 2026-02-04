@@ -1,0 +1,28 @@
+# Ignore test data and non-code assets from language stats
+tests/** linguist-documentation
+tests/** linguist-vendored
+
+# Ignore GitHub workflows and CI config
+.github/** linguist-documentation
+
+# Ignore docs content
+docs/** linguist-documentation
+*.md linguist-documentation
+
+# Ignore configuration files
+*.yml linguist-documentation
+*.yaml linguist-documentation
+*.json linguist-documentation
+*.toml linguist-documentation
+*.ini linguist-documentation
+
+# Ignore packaging metadata
+LICENSE.txt linguist-documentation
+NOTICE.txt linguist-documentation
+CHANGELOG.md linguist-documentation
+
+# Shell and make files are not counted
+*.sh linguist-documentation
+
+# Ignore Sphinx build output, if present
+docs/_build/** linguist-generated
