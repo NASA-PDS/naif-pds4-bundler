@@ -1,4 +1,5 @@
 """Unit tests for the pds.naif_pds4_bundler.utils.time module."""
+from datetime import datetime
 from pathlib import Path
 
 import pytest
@@ -48,13 +49,14 @@ def test_spk_coverage(lsk, m2020_fk):
     )
 
 
-def test_parse_dates():
-    """Test parse_dates function."""
-    
-    isoc_str = "2021-02-18T21:52:40"
-    date_str  = "2021-FEB-18-21:52:40"
+@pytest.mark.parametrize("date_input, expected", [
+    ("2021-02-18T21:52:40", datetime(2021, 2, 18, 21, 52, 40)),
+    ("2021-FEB-18-21:52:40", datetime(2021, 2, 18, 21, 52, 40)),
+])
+def test_parse_date(date_input, expected):
+    """Test that different formats of date strings are parsed to the correct
+    datetime object."""
+    result = time.parse_date(date_input)
 
-    isoc_date = time.parse_date(isoc_str)
-    date = time.parse_date(date_str)
-
-    assert isoc_date == date
+    assert isinstance(result, datetime)
+    assert result == expected
