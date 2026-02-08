@@ -1,47 +1,60 @@
-"""Unit tests for the time utilities."""
+"""Unit tests for the pds.naif_pds4_bundler.utils.time module."""
+from pathlib import Path
+
+import pytest
 import spiceypy
-from pds.naif_pds4_bundler.utils import dsk_coverage
-from pds.naif_pds4_bundler.utils import spk_coverage
-from pds.naif_pds4_bundler.utils.time import parse_date
 
+from pds.naif_pds4_bundler.utils import time
 
-def test_dsk_coverage(self):
-    """Test DKS coverage function."""
-    lsk_file = "../data/kernels/lsk/naif0012.tls"
+# Get the directory where the data is located.
+KERNELS = Path(__file__).parent.parent / "naif_pds4_bundler" / "data" / "kernels"
+
+@pytest.fixture
+def lsk():
+    """Provides the standard LSK."""
+    lsk_file = str(KERNELS / "lsk" / "naif0012.tls")
     spiceypy.furnsh(lsk_file)
-    dsk_file = "../data/kernels/dsk/DEIMOS_K005_THO_V01.BDS"
+    yield
+    spiceypy.unload(lsk_file) # Cleanup after the test finishes
 
-    [start_time_cal, stop_time_cal] = dsk_coverage(dsk_file)
+@pytest.fixture
+def m2020_fk():
+    """Provides the M2020 Frame Kernel."""
+    kernel = str(KERNELS / "fk" / "m2020_v04.tf")
+    spiceypy.furnsh(kernel)
+    yield kernel
+    spiceypy.unload(kernel)
 
-    self.assertEqual(
-        (start_time_cal, stop_time_cal),
-        ("1950-01-01T00:00:00.000Z", "2049-12-31T23:59:59.000Z"),
+def test_dsk_coverage(lsk):
+    """Test DSK coverage function using pytest."""
+    dsk_file = str( KERNELS/ "dsk" / "DEIMOS_K005_THO_V01.BDS")
+
+    start_time_cal, stop_time_cal = time.dsk_coverage(dsk_file)
+
+    assert (start_time_cal, stop_time_cal) == (
+        "1950-01-01T00:00:00.000Z",
+        "2049-12-31T23:59:59.000Z"
     )
 
 
-def test_spk_coverage(self):
+def test_spk_coverage(lsk, m2020_fk):
     """Test SPK coverage function."""
-    lsk_file = "../data/kernels/lsk/naif0012.tls"
-    spiceypy.furnsh(lsk_file)
+    spk_file = str( KERNELS/ "spk" / "m2020_surf_rover_loc_0000_0089_v1.bsp")
+    [start_time_cal, stop_time_cal] = time.spk_coverage(spk_file, main_name="M2020")
 
-    spk_file = "../data/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp"
-    spiceypy.furnsh("../data/kernels/fk/m2020_v04.tf")
-    [start_time_cal, stop_time_cal] = spk_coverage(spk_file, main_name="M2020")
-
-    self.assertEqual(
-        (start_time_cal, stop_time_cal),
-        ("2021-02-18T21:52:40.482Z", "2021-05-21T15:47:07.765Z"),
+    assert (start_time_cal, stop_time_cal) == (
+        "2021-02-18T21:52:40.482Z",
+        "2021-05-21T15:47:07.765Z"
     )
 
 
-def test_parse_dates(self):
+def test_parse_dates():
     """Test parse_dates function."""
     
     isoc_str = "2021-02-18T21:52:40"
     date_str  = "2021-FEB-18-21:52:40"
 
-    isoc_date = parse_date(isoc_str)
-    date = parse_date(date_str)
-    self.assertEqual(
-        isoc_date, date
-    )
+    isoc_date = time.parse_date(isoc_str)
+    date = time.parse_date(date_str)
+
+    assert isoc_date == date
