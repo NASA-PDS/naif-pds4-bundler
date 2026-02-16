@@ -1,8 +1,26 @@
 """Unit tests for the pds.naif_pds4_bundler.utils.files module."""
+from pathlib import Path
+
 import pytest
 
 from pds.naif_pds4_bundler.utils import files
 
+
+# Get the directory where the data is located.
+KERNELS = Path(__file__).parent.parent / "naif_pds4_bundler" / "data" / "kernels"
+
+
+# ----------------------------------------------------------------------------
+# files.extract_comment tests
+# ----------------------------------------------------------------------------
+def test_extract_comment_ck():
+    """Test comment extraction from kernel."""
+    comment = files.extract_comment(str(KERNELS / "ck" / "insight_ida_enc_200829_201220_v1.bc"))
+    comment_line = (
+        " This CK file was created using CKSLICER Utility Ver. 1.3.0, October 28, 2011"
+    )
+
+    assert comment_line == comment[3]
 
 # ----------------------------------------------------------------------------
 # files.match_patterns tests
