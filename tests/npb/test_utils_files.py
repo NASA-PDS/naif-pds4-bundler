@@ -1,5 +1,6 @@
 """Unit tests for the pds.naif_pds4_bundler.utils.files module."""
 from pathlib import Path
+import shutil
 
 import pytest
 
@@ -11,8 +12,71 @@ KERNELS = Path(__file__).parent.parent / "naif_pds4_bundler" / "data" / "kernels
 
 
 # ----------------------------------------------------------------------------
+# files.check_kernel_integrity tests
+# ----------------------------------------------------------------------------
+
+def test_check_kernel_integrity_binary_kernel(tmp_path):
+    """Test binary kernel integrity."""
+
+    src_kernel = str(KERNELS / "ck" / "insight_ida_enc_200829_201220_v1.bc")
+
+    # Subcase 1: Correct binary kernel architecture
+    error = files.check_kernel_integrity(src_kernel)
+    assert not error
+
+    # Subcase 2: Incorrect kernel type (wrong extension)
+    wrong_ext = tmp_path / "insight_ida_enc_200829_201220_v1.bsp"
+    shutil.copy(src_kernel, wrong_ext)
+    error = files.check_kernel_integrity(str(wrong_ext))
+    assert error
+
+    # Subcase 3: Incorrect file name → should raise KeyError
+    bad_name = str(KERNELS / "ck" / "insight_ida_enc_200829_201220_v1.xc")
+    with pytest.raises(KeyError):
+        files.check_kernel_integrity(bad_name)
+
+    # Subcase 4: Incorrect architecture (copy bad file into .bc)
+    bad_arch_copy = tmp_path / "insight_ida_enc_200829_201220_v1.bc"
+    shutil.copy(bad_name, bad_arch_copy)
+    error = files.check_kernel_integrity(str(bad_arch_copy))
+    assert error
+
+
+def test_check_kernel_integrity_text_kernel(tmp_path):
+    """Test text kernel integrity."""
+
+    kernel_path = tmp_path / "test.tf"
+
+    # Subcase 1: Correct text kernel architecture
+    kernel_path.write_text("KPL/FK\n")
+    error = files.check_kernel_integrity(str(kernel_path))
+    assert not error
+
+    # Subcase 2: Non-existing kernel architecture
+    kernel_path.write_text("KPLO/FK\n")
+    error = files.check_kernel_integrity(str(kernel_path))
+    assert error
+
+    # Subcase 3: Incorrect text kernel architecture
+    kernel_path.write_text("DAF/FK\n")
+    error = files.check_kernel_integrity(str(kernel_path))
+    assert error
+
+    # Subcase 4: Mismatch text kernel type (extension vs content)
+    ti_path = tmp_path / "test.ti"
+    ti_path.write_text("KPL/FK\n")
+    error = files.check_kernel_integrity(str(kernel_path))
+    assert error
+
+    # Subcase 5: Non-existing text kernel type
+    kernel_path.write_text("KPL/SLC\n")
+    error = files.check_kernel_integrity(str(kernel_path))
+    assert error
+
+# ----------------------------------------------------------------------------
 # files.extract_comment tests
 # ----------------------------------------------------------------------------
+
 def test_extract_comment_ck():
     """Test comment extraction from kernel."""
     comment = files.extract_comment(str(KERNELS / "ck" / "insight_ida_enc_200829_201220_v1.bc"))
