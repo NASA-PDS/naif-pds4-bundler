@@ -74,6 +74,45 @@ def test_check_kernel_integrity_text_kernel(tmp_path):
     assert error
 
 # ----------------------------------------------------------------------------
+# files.check_kernel_integrity tests
+# ----------------------------------------------------------------------------
+
+def test_check_line_length():
+    """Test line length check."""
+
+    mk = str(KERNELS / "mk" / "bc_v001.tm")
+
+    expected = [
+        "Line 97 is longer than 80 characters",
+        "Line 100 is longer than 80 characters",
+        "Line 103 is longer than 80 characters",
+        "Line 104 is longer than 80 characters",
+        "Line 105 is longer than 80 characters",
+        "Line 106 is longer than 80 characters",
+        "Line 107 is longer than 80 characters",
+        "Line 108 is longer than 80 characters",
+        "Line 109 is longer than 80 characters",
+        "Line 110 is longer than 80 characters",
+        "Line 111 is longer than 80 characters",
+        "Line 112 is longer than 80 characters",
+        "Line 113 is longer than 80 characters",
+        "Line 114 is longer than 80 characters",
+        "Line 115 is longer than 80 characters",
+        "Line 116 is longer than 80 characters",
+        "Line 117 is longer than 80 characters",
+        "Line 118 is longer than 80 characters",
+        "Line 121 is longer than 80 characters",
+        "Line 123 is longer than 80 characters",
+        "Line 124 is longer than 80 characters",
+        "Line 125 is longer than 80 characters",
+        "Line 126 is longer than 80 characters",
+        "Line 127 is longer than 80 characters",
+    ]
+
+    errors = files.check_line_length(mk)
+    assert errors == expected
+
+# ----------------------------------------------------------------------------
 # files.extract_comment tests
 # ----------------------------------------------------------------------------
 
@@ -148,3 +187,14 @@ def test_match_patterns_wrong_length():
 
     with pytest.raises(RuntimeError):
         files.match_patterns(name, name_w_pattern, patterns)
+
+# ----------------------------------------------------------------------------
+# files.mk_to_list tests
+# ----------------------------------------------------------------------------
+
+@pytest.mark.parametrize("mk", [
+    KERNELS / "mk" / "vco_v01.tm",
+    KERNELS / "mk" / "msl_v29.tm",
+])
+def test_mk_to_list(mk):
+    assert files.mk_to_list(str(mk), False)
