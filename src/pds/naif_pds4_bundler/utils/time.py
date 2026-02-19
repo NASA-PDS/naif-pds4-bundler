@@ -400,30 +400,20 @@ def pds3_label_gen_date(file):
     return generation_date
 
 
-def get_years(start_time, stop_time):
+def get_years(start_time: str, stop_time: str) -> list[str]:
     """Get years contained in a time period.
 
     Returns the list of years contained in between the provided
     start time and the stop time.
 
     :param start_time: Start time to determine list of years
-    :type start_time: str
     :param stop_time: Stop time to determine list of years
-    :type stop_time: str
-    :return: Creation date
-    :rtype: list of str
+    :return: List of years
     """
-    years = []
-
     start_year = start_time.split("-")[0]
     finish_year = stop_time.split("-")[0]
 
-    year = int(start_year)
-    while year <= int(finish_year):
-        years.append(str(year))
-        year += 1
-
-    return years
+    return [str(y) for y in range(int(start_year), int(finish_year) + 1)]
 
 
 def parse_date(date_str):
@@ -436,9 +426,17 @@ def parse_date(date_str):
     :return: date corresponding to the input str
     :rtype: datetime
     """
-    try:
-        date = datetime.datetime.strptime(date_str, "%Y-%b-%d-%H:%M:%S")
-    except ValueError:
-        date = datetime.datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%S")
+    # try:
+    #     date = datetime.datetime.strptime(date_str, "%Y-%b-%d-%H:%M:%S")
+    # except ValueError:
+    #     date = datetime.datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%S")
 
-    return date
+    #return date
+
+    format = ["%Y-%b-%d-%H:%M:%S", "%Y-%m-%dT%H:%M:%S"]
+    for f in format:
+        try:
+            return datetime.datetime.strptime(date_str, f)
+        except ValueError:
+            continue
+    return None

@@ -40,6 +40,16 @@ def test_dsk_coverage(lsk):
     )
 
 
+@pytest.mark.parametrize("start_time, stop_time, expected", [
+    ("2026-02-11T12:00:00", "2026-02-12T12:00:00", ["2026"]),
+    ("2023-05-12T12:00:00", "2025-05-12T12:00:00", ["2023", "2024", "2025"]),
+    ("2025-05-12T12:00:00", "2023-05-12T12:00:00", []),
+])
+def test_get_years(start_time, stop_time, expected):
+    result = time.get_years(start_time, stop_time)
+    assert result == expected
+
+
 @pytest.mark.parametrize("date_input, expected", [
     ("2021-02-18T21:52:40", datetime(2021, 2, 18, 21, 52, 40)),
     ("2021-FEB-18-21:52:40", datetime(2021, 2, 18, 21, 52, 40)),
