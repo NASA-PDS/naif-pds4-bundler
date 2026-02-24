@@ -45,7 +45,9 @@ def test_creation_time(monkeypatch, creation_format, expected):
 
 
 @pytest.mark.parametrize("date_input, expected", [
-    ("2015-11-23T12:10:18", "November 23, 2015"),
+    ("2015-12-23T12:10:23", "December 23, 2015"),
+    ("", "November 23, 2015"),
+    ("2016-10-02T10:10:10", "October 2, 2016"),
 ])
 def test_current_date(monkeypatch, date_input, expected):
     """Test current date function using pytest.
