@@ -27,6 +27,55 @@ def m2020_fk():
     yield kernel
     spiceypy.unload(kernel)
 
+@pytest.mark.parametrize("creation_format, expected", [
+    ("maklabel", "2024-08-31T12:10:18"),
+    ("infomod2", "2024-08-31T12:10:18.214Z"),
+])
+def test_creation_time(monkeypatch, creation_format, expected):
+    """Test creation time function using pytest.
+    Uses monkeypatch to make a fake creation_time to test expected output."""
+    class MockDatetime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return datetime(2024, 8, 31, 12, 10, 18, 214000)
+    monkeypatch.setattr(time.datetime, "datetime", MockDatetime)
+
+    result = time.creation_time(creation_format)
+    assert result == expected
+
+
+@pytest.mark.parametrize("date_input, expected", [
+    ("2015-11-23T12:10:18", "November 23, 2015"),
+])
+def test_current_date(monkeypatch, date_input, expected):
+    """Test current date function using pytest.
+        Uses monkeypatch to make a fake current_date to test expected output."""
+    class MockDatetime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return datetime(2015, 11, 23, 12, 10, 18, 214000)
+    monkeypatch.setattr(time.datetime, "datetime", MockDatetime)
+
+    result = time.current_date(date_input)
+    assert result == expected
+
+
+@pytest.mark.parametrize("time_format, expected", [
+    ("maklabel", "2010-04-19T12:07:50"),
+    ("infomod2", "2010-04-19T12:07:50.244Z"),
+])
+def test_current_time(monkeypatch, time_format, expected):
+    """Test current time function using pytest.
+    Uses monkeypatch to make a fake current_time to test expected output."""
+    class MockDatetime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return datetime(2010, 4, 19, 12, 7 , 50 , 244000)
+    monkeypatch.setattr(time.datetime, "datetime", MockDatetime) #module, class, new class
+
+    result = time.current_time(time_format)
+    assert result == expected
+
 
 def test_dsk_coverage(lsk):
     """Test DSK coverage function using pytest."""
