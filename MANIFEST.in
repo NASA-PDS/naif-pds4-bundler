@@ -2,6 +2,7 @@ graft src
 include versioneer.py
 include src/pds/naif_pds4_bundler/_version.py
 global-exclude *.py[cod]
+recursive-include src/pds/naif_pds4_bundler VERSION.txt
 
 # Include package-level files and directories here; e.g.:
 #
