@@ -2,6 +2,7 @@
 from datetime import datetime
 from pathlib import Path
 
+import io
 import pytest
 import spiceypy
 
@@ -91,6 +92,25 @@ def test_dsk_coverage(lsk):
     )
 
 
+@pytest.mark.parametrize("input_format, beget, endet, expected", [
+    ("maklabel", "2461149.5432804353","2461150.0084750415", ["2026-04-19T01:01:10", "2026-04-19T12:11:03"]),
+    ("infomod2", "2461149.5432804353", "2461150.0084750415", ["2026-04-19T01:01:10", "2026-04-19T12:11:03"]),
+])
+def test_et_to_date(monkeypatch, input_format, beget, endet, expected):
+    lsk_file = str(KERNELS / "lsk" / "naif0012.tls") #not sure what to do with this
+
+
+    def mock_timout(): #This seems incomplete - do I add the conversion step in this function?
+        return datetime(2026, 4, 19, 1, 1, 10, 244000)
+
+    monkeypatch.setattr(time.datetime, "datetime", mock_timout)
+
+    #I know I need to do time conversion and feed it lsk but not sure how
+
+    result = time.et_to_date(float(beget), float(endet), input_format)
+    assert result == expected
+
+
 @pytest.mark.parametrize("start_time, stop_time, expected", [
     ("2026-02-11T12:00:00", "2026-02-12T12:00:00", ["2026"]),
     ("2023-05-12T12:00:00", "2025-05-12T12:00:00", ["2023", "2024", "2025"]),
@@ -111,6 +131,21 @@ def test_parse_date(date_input, expected):
     result = time.parse_date(date_input)
 
     assert isinstance(result, datetime)
+    assert result == expected
+
+
+@pytest.mark.parametrize("inputs, expected", [
+    ("PRODUCT_CREATION_TIME        = 2026-03-10T11:08:04", "2026-03-10T11:08:04"),
+ ])
+def test_pds3_label_gen_date(monkeypatch, inputs, expected):
+    inputs = "PRODUCT_CREATION_TIME        = 2026-03-10T11:08:04"
+
+    def mock_open(*args, **kwargs):
+        return io.StringIO(inputs)
+
+    monkeypatch.setattr("builtins.open", mock_open)
+
+    result = time.pds3_label_gen_date(str(inputs))
     assert result == expected
 
 
