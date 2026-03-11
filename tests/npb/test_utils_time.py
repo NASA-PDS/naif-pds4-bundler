@@ -143,7 +143,7 @@ def test_pds3_label_gen_date(monkeypatch, inputs, expected):
     """Test pds3 label generation date function."""
     inputs = "PRODUCT_CREATION_TIME        = 2026-03-10T11:08:04"
 
-    def mock_open(*args): #tried without *args and it doesn't work, not sure what should go here
+    def mock_open(*args):
         return io.StringIO(inputs)
 
     monkeypatch.setattr("builtins.open", mock_open)
