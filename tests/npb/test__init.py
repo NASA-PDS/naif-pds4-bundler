@@ -11,9 +11,9 @@ def test_pds_namespace_import():
 
 
 def test_version_string_loaded():
-     import pds.naif_pds4_bundler
+    import pds.naif_pds4_bundler
 
-     version = pds.naif_pds4_bundler.__version__
+    version = pds.naif_pds4_bundler.__version__
 
-     assert isinstance(version, str)
-     assert len(version) > 0
+    assert isinstance(version, str)
+    assert len(version) > 0
