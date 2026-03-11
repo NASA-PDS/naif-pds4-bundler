@@ -97,6 +97,7 @@ def test_dsk_coverage(lsk):
     ("infomod2", "2461149.5432804353", "2461150.0084750415", ["2026-04-19T01:01:10", "2026-04-19T12:11:03"]),
 ])
 def test_et_to_date(monkeypatch, input_format, beget, endet, expected):
+    """Test ET to date function using pytest."""
     lsk_file = str(KERNELS / "lsk" / "naif0012.tls") #not sure what to do with this
 
 
@@ -117,6 +118,7 @@ def test_et_to_date(monkeypatch, input_format, beget, endet, expected):
     ("2025-05-12T12:00:00", "2023-05-12T12:00:00", []),
 ])
 def test_get_years(start_time, stop_time, expected):
+    """Test get_years function using pytest."""
     result = time.get_years(start_time, stop_time)
     assert result == expected
 
@@ -138,6 +140,7 @@ def test_parse_date(date_input, expected):
     ("PRODUCT_CREATION_TIME        = 2026-03-10T11:08:04", "2026-03-10T11:08:04"),
  ])
 def test_pds3_label_gen_date(monkeypatch, inputs, expected):
+    """Test pds3 label generation date function."""
     inputs = "PRODUCT_CREATION_TIME        = 2026-03-10T11:08:04"
 
     def mock_open(*args): #tried without *args and it doesn't work, not sure what should go here
