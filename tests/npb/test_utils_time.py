@@ -101,7 +101,7 @@ def test_et_to_date(monkeypatch, input_format, beget, endet, expected):
     lsk_file = str(KERNELS / "lsk" / "naif0012.tls") #not sure what to do with this
 
 
-    def mock_timout(): #This seems incomplete - do I add the conversion step in this function?
+    def mock_timout(): #I made this to mock the conversion step but I am not sure what to do
         return datetime(2026, 4, 19, 1, 1, 10, 244000)
 
     monkeypatch.setattr(time.datetime, "datetime", mock_timout)
