@@ -2,7 +2,6 @@
 from datetime import datetime
 from pathlib import Path
 
-import io
 import pytest
 import spiceypy
 
@@ -93,22 +92,13 @@ def test_dsk_coverage(lsk):
 
 
 @pytest.mark.parametrize("input_format, beget, endet, expected", [
-    ("maklabel", "2461149.5432804353","2461150.0084750415", ["2026-04-19T01:01:10", "2026-04-19T12:11:03"]),
-    ("infomod2", "2461149.5432804353", "2461150.0084750415", ["2026-04-19T01:01:10", "2026-04-19T12:11:03"]),
+    ("maklabel", 829832539.429603, 829872732.429599, ["2026-04-19T01:01:10Z", "2026-04-19T12:11:03Z"]),
+    ("infomod2", 829832539.429603, 829872732.429599, ["2026-04-19T01:01:10.245Z", "2026-04-19T12:11:03.243Z"]),
 ])
-def test_et_to_date(monkeypatch, input_format, beget, endet, expected):
+def test_et_to_date(lsk, input_format, beget, endet, kernel_type, system, expected):
     """Test ET to date function using pytest."""
-    lsk_file = str(KERNELS / "lsk" / "naif0012.tls") #not sure what to do with this
 
-
-    def mock_timout(): #I made this to mock the conversion step but I am not sure what to do
-        return datetime(2026, 4, 19, 1, 1, 10, 244000)
-
-    monkeypatch.setattr(time.datetime, "datetime", mock_timout)
-
-    #I know I need to do time conversion and feed it lsk but not sure how
-
-    result = time.et_to_date(float(beget), float(endet), input_format)
+    result = time.et_to_date(beget, endet, input_format, kernel_type, system)
     assert result == expected
 
 
@@ -139,16 +129,12 @@ def test_parse_date(date_input, expected):
 @pytest.mark.parametrize("inputs, expected", [
     ("PRODUCT_CREATION_TIME        = 2026-03-10T11:08:04", "2026-03-10T11:08:04"),
  ])
-def test_pds3_label_gen_date(monkeypatch, inputs, expected):
+def test_pds3_label_gen_date(mocker, inputs, expected):
     """Test pds3 label generation date function."""
-    inputs = "PRODUCT_CREATION_TIME        = 2026-03-10T11:08:04"
+    mock_file = mocker.mock_open(read_data=inputs)
+    mocker.patch("builtins.open", mock_file)
 
-    def mock_open(*args):
-        return io.StringIO(inputs)
-
-    monkeypatch.setattr("builtins.open", mock_open)
-
-    result = time.pds3_label_gen_date(str(inputs))
+    result = time.pds3_label_gen_date(inputs)
     assert result == expected
 
 
