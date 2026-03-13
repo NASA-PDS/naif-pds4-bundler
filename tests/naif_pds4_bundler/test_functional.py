@@ -4,7 +4,6 @@ import os
 import shutil
 import tempfile
 import unittest
-from pathlib import Path
 from unittest import TestCase
 
 import functional.test_bc as bc
@@ -108,8 +107,10 @@ class TestFunctional(TestCase):
         This method will be executed after each test function.
         """
         os.chdir(self.tests_dir)
-        for subdir in Path('.').glob('*'):
-            shutil.rmtree(subdir)
+        test_dir = os.path.join(self.tmp_dir.name, "naif_pds4_bundler", "functional")
+        dirs = next(os.walk(test_dir))[1]
+        for subdir in dirs:
+            shutil.rmtree(os.path.join(test_dir, subdir))
 
     #
     # InSight functional tests.
