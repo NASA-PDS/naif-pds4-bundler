@@ -156,6 +156,10 @@ class Log(object):
         logging.info(stop_message)
         logging.info("")
         logging.info("End of log.")
+
+        # Close the logging handler(s).
+        logging.shutdown()
+
         if not self.setup.args.silent and not self.setup.args.verbose:
             print(stop_message)
             print("")
