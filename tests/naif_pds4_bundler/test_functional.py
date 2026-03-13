@@ -4,6 +4,7 @@ import os
 import shutil
 import tempfile
 import unittest
+from pathlib import Path
 from unittest import TestCase
 
 import functional.test_bc as bc
@@ -29,25 +30,26 @@ class TestFunctional(TestCase):
         """
         print(f"NPB - Functional Tests - {cls.__name__}")
 
-        cls.test_dir = os.path.dirname(__file__)
+        cls.cwd = os.getcwd()
         cls.silent = True
         cls.verbose = False
         cls.log = True
         cls.tmp_dir = tempfile.TemporaryDirectory()
 
+        test_dir = os.path.dirname(__file__)
         shutil.copytree(
-            os.sep.join(cls.test_dir.split(os.sep)),
+            os.sep.join(test_dir.split(os.sep)),
             cls.tmp_dir.name + "/naif_pds4_bundler",
         )
         shutil.copytree(
-            os.sep.join(cls.test_dir.split(os.sep)[:-2])
+            os.sep.join(test_dir.split(os.sep)[:-2])
             + "/src/pds/naif_pds4_bundler/templates/1.5.0.0",
             cls.tmp_dir.name + "/naif_pds4_bundler/templates/1.5.0.0",
         )
 
-        tests_dir = cls.tmp_dir.name + "/naif_pds4_bundler/functional/"
+        cls.tests_dir = os.path.join(cls.tmp_dir.name, "naif_pds4_bundler", "functional")
+
         print(f"      Tests data on: {cls.tmp_dir.name}")
-        os.chdir(tests_dir)
 
         #
         # The ORBNUM files that are supposed to have CRLF are updated here.
@@ -55,10 +57,10 @@ class TestFunctional(TestCase):
         # repository only contains files with LF line endings.
         #
         files = [
-            f"{tests_dir}../data/misc/orbnum/maven_orb_rec_210101_210401.orb",
-            f"{tests_dir}../data/misc/orbnum/maven_orb_rec_210101_210401_v1.orb",
-            f"{tests_dir}../data/misc/orbnum/maven_orb_rec_210101_210401_v2.orb",
-            f"{tests_dir}../data/misc/orbnum/maven_orb_rec_210101_210401_v3.orb",
+            f"{cls.tests_dir}../data/misc/orbnum/maven_orb_rec_210101_210401.orb",
+            f"{cls.tests_dir}../data/misc/orbnum/maven_orb_rec_210101_210401_v1.orb",
+            f"{cls.tests_dir}../data/misc/orbnum/maven_orb_rec_210101_210401_v2.orb",
+            f"{cls.tests_dir}../data/misc/orbnum/maven_orb_rec_210101_210401_v3.orb",
         ]
         for file in files:
             add_crs_to_file(file, "\r\n")
@@ -72,6 +74,7 @@ class TestFunctional(TestCase):
 
         Clears up the functional test directory.
         """
+        os.chdir(cls.cwd)
         cls.tmp_dir.cleanup()
 
     def setUp(self):
@@ -79,6 +82,8 @@ class TestFunctional(TestCase):
 
         This method will be executed before each test function.
         """
+        os.chdir(self.tests_dir)
+
         unittest.TestCase.setUp(self)
         print(f"    * {self._testMethodName}")
 
@@ -93,22 +98,17 @@ class TestFunctional(TestCase):
             "bc",
             "clps",
         ]
-        for dir in dirs:
-            try:
-                os.makedirs(dir, exist_ok=True)
-            except BaseException:
-                pass
+        for subdir in dirs:
+            os.makedirs(subdir, exist_ok=True)
 
     def tearDown(self):
         """Clean-up Test.
 
         This method will be executed after each test function.
         """
-        unittest.TestCase.tearDown(self)
-        test_dir = self.tmp_dir.name + "/naif_pds4_bundler/functional/"
-        dirs = next(os.walk(test_dir))[1]
-        for dir in dirs:
-            shutil.rmtree(test_dir + dir)
+        os.chdir(self.tests_dir)
+        for subdir in Path('.').glob('*'):
+            shutil.rmtree(subdir)
 
     #
     # InSight functional tests.
