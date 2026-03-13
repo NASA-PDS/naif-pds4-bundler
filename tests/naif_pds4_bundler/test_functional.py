@@ -57,13 +57,14 @@ class TestFunctional(TestCase):
         # repository only contains files with LF line endings.
         #
         files = [
-            f"{cls.tests_dir}../data/misc/orbnum/maven_orb_rec_210101_210401.orb",
-            f"{cls.tests_dir}../data/misc/orbnum/maven_orb_rec_210101_210401_v1.orb",
-            f"{cls.tests_dir}../data/misc/orbnum/maven_orb_rec_210101_210401_v2.orb",
-            f"{cls.tests_dir}../data/misc/orbnum/maven_orb_rec_210101_210401_v3.orb",
+            "maven_orb_rec_210101_210401.orb",
+            "maven_orb_rec_210101_210401_v1.orb",
+            "maven_orb_rec_210101_210401_v2.orb",
+            "maven_orb_rec_210101_210401_v3.orb",
         ]
+        path = os.path.join(cls.tmp_dir.name, "naif_pds4_bundler", "data", "misc", "orbnum")
         for file in files:
-            add_crs_to_file(file, "\r\n")
+            add_crs_to_file(os.path.join(path, file), eol="\r\n")
 
     @classmethod
     def tearDownClass(cls):
