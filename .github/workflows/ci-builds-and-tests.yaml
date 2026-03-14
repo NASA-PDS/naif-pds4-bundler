@@ -10,12 +10,13 @@ on:
   workflow_dispatch: # Allows manual triggering from any branch
 
 jobs:
-  test:
+  unix-tests:
+    name: Unix Test (${{ matrix.os }}, Python ${{ matrix.python-version }})
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest]
-        python-version: ['3.10']
+        os: [ubuntu-latest]
+        python-version: ['3.8']
 
     steps:
     - name: Checkout repository
@@ -33,3 +34,43 @@ jobs:
   
     - name: Run tests
       run: python -m unittest discover tests/naif_pds4_bundler
+
+  windows-wsl-tests:
+    name: Windows/WSL Test (Python ${{ matrix.python-version }})
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Testing across the range of supported Python versions
+        python-version: ["3.9"]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6
+
+      - name: Setup WSL
+        uses: Vampire/setup-wsl@v3
+        with:
+          distribution: Ubuntu-24.04
+          additional-packages: software-properties-common build-essential python3-pip
+
+      - name: Install Python ${{ matrix.python-version }} in WSL
+        shell: wsl-bash {0}
+        run: |
+          sudo add-apt-repository ppa:deadsnakes/ppa -y
+          sudo apt update
+          sudo apt install python${{ matrix.python-version }} python${{ matrix.python-version }}-venv -y
+
+      - name: Run NPB Tests in WSL
+        shell: wsl-bash {0}
+        run: |
+          # Create and activate virtual env inside the Linux layer
+          python${{ matrix.python-version }} -m venv venv
+          source venv/bin/activate
+          
+          # Install the package and dependencies
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+          
+          # Run the test suite
+          python -m unittest discover tests/naif_pds4_bundler
