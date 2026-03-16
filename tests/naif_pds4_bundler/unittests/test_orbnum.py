@@ -674,14 +674,15 @@ def test_pds4_orbnum_new_im(self):
     is generated appropriately.
 
     The value ``bundle_has_member_collection`` is used for
-    Product_Bundle/Bundle_Member_Entry/reference_type but it became
+    Product_Bundle/Bundle_Member_Entry/reference_type, but it became
     deprecated from the IM version 1.11.1.0 and the value
     ``bundle_has_miscellaneous_collection`` became appropriate for the later
     versions.
 
-    From PDS4 IM 1.7.0.0 the ``field_format`` has to respect the pattern
-    ``%[\+,-]?[0-9]+(\.([0-9]+))?[doxfeEs]``, this tests checks that the pattern
-    is implemented.
+    From PDS4 Information Model (IM) specification, Version 1.7.0.0 the
+    ``field_format`` has to respect the pattern
+    ``%[\\+,-]?[0-9]+(\\.([0-9]+))?[doxfeEs]``, this tests checks that the
+    pattern is implemented.
     """
     post_setup(self)
     config = "../config/maven.xml"
