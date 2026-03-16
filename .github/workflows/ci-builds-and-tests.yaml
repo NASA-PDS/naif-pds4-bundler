@@ -45,32 +45,30 @@ jobs:
         python-version: ["3.9"]
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v6
-
-      - name: Setup WSL
-        uses: Vampire/setup-wsl@v3
-        with:
-          distribution: Ubuntu-24.04
-          additional-packages: software-properties-common build-essential python3-pip
-
-      - name: Install Python ${{ matrix.python-version }} in WSL
-        shell: wsl-bash {0}
+      - name: Install WSL (Ubuntu-24.04)
+        shell: pwsh
         run: |
-          sudo add-apt-repository ppa:deadsnakes/ppa -y
-          sudo apt update
-          sudo apt install python${{ matrix.python-version }} python${{ matrix.python-version }}-venv -y
+          # Use --web-download to ensure reliability in CI
+          wsl --install -d Ubuntu-24.04 --web-download --no-launch
+          wsl --status
 
-      - name: Run NPB Tests in WSL
-        shell: wsl-bash {0}
+      - name: Install Python ${{ matrix.python-version }}
+        shell: pwsh
         run: |
-          # Create and activate virtual env inside the Linux layer
-          python${{ matrix.python-version }} -m venv venv
-          source venv/bin/activate
-          
-          # Install the package and dependencies
-          python -m pip install --upgrade pip
-          python -m pip install -e .
-          
-          # Run the test suite
-          python -m unittest discover tests/naif_pds4_bundler
+          # Use 'wsl -u root' to avoid sudo password prompts during install
+          wsl -u root -- bash -c "apt update && apt install -y software-properties-common && add-apt-repository ppa:deadsnakes/ppa -y && apt update && apt install -y python${{ matrix.python-version }} python${{ matrix.python-version }}-venv"
+
+      - name: Checkout repository inside WSL
+        shell: pwsh
+        run: |
+          wsl -- bash -l -c "git clone https://github.com/${{ github.repository }}.git ~/project && cd ~/project && git checkout ${{ github.sha }}"
+
+      - name: Install package
+        shell: pwsh
+        run: |
+          wsl -- bash -l -c "cd ~/project && python${{ matrix.python-version }} -m venv venv && source venv/bin/activate && python -m pip install --upgrade pip && python -m pip install -e ."
+
+      - name: Run tests
+        shell: pwsh
+        run: |
+          wsl -- bash -l -c "cd ~/project && source venv/bin/activate && python -m unittest discover tests/naif_pds4_bundler"
