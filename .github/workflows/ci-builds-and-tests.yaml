@@ -60,7 +60,11 @@ jobs:
       - name: Checkout repository inside WSL
         shell: pwsh
         run: |
-          wsl -- bash -l -c "git clone https://github.com/${{ github.repository }}.git ~/project && cd ~/project && git checkout ${{ github.sha }}"
+          wsl -- bash -l -c "                                                       \
+             git clone https://github.com/${{ github.repository }}.git ~/project && \
+             cd ~/project &&                                                        \
+             git fetch origin ${{ github.ref }} &&                                  \
+             git checkout FETCH_HEAD"
 
       - name: Install package
         shell: pwsh
