@@ -1,6 +1,4 @@
 name: Testing NPB 🪐
-permissions:
-  contents: read
 
 on:
   push:
@@ -13,6 +11,10 @@ jobs:
   unix-tests:
     name: Unix Test (${{ matrix.os }}, Python ${{ matrix.python-version }})
     runs-on: ${{ matrix.os }}
+
+    permissions:
+      contents: read
+
     strategy:
       matrix:
         os: [ubuntu-latest, macos-15-intel, macos-15]
@@ -38,6 +40,10 @@ jobs:
   windows-wsl-tests:
     name: Windows/WSL Test (Python ${{ matrix.python-version }})
     runs-on: windows-latest
+
+    permissions:
+      contents: read
+
     strategy:
       fail-fast: false
       matrix:
@@ -60,11 +66,7 @@ jobs:
       - name: Checkout repository inside WSL
         shell: pwsh
         run: |
-          wsl -- bash -l -c "                                                       \
-             git clone https://github.com/${{ github.repository }}.git ~/project && \
-             cd ~/project &&                                                        \
-             git fetch origin ${{ github.ref }} &&                                  \
-             git checkout FETCH_HEAD"
+          wsl -- bash -l -c "git clone https://github.com/${{ github.repository }}.git ~/project && cd ~/project && git fetch origin ${{ github.ref }} && git checkout FETCH_HEAD"
 
       - name: Install package
         shell: pwsh
