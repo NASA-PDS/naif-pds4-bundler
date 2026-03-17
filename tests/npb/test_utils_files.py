@@ -19,6 +19,11 @@ KERNELS = Path(__file__).parent.parent / "naif_pds4_bundler" / "data" / "kernels
     (Path('ck', 'mro_sc_psp_210706_210712.big.bc'),
      "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
     (Path('dsk', 'DEIMOS_K005_THO_V01.BDS'), ''),
+    (Path('dsk', 'deimos_k005_tho_v01.big.bds'),
+     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
+    (Path('pck', 'lunar_de403s_pa_v0.bpc'), ''),
+    (Path('pck', 'lunar_de403s_pa_v0.big.bpc'),
+     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
     (Path('spk', 'm2020_cruise_od138_v1.bsp'), ''),
     (Path('spk', 'mro_psp60.big.bsp'),
      "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file.")
