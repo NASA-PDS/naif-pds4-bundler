@@ -12,6 +12,11 @@ import shutil
 import stat
 from collections import defaultdict
 
+try:
+    from importlib.resources import files
+except ImportError:  # Python 3.8
+    from importlib_resources import files
+
 import spiceypy
 
 from ..classes.log import error_message
@@ -308,10 +313,10 @@ def get_context_products(setup):
     #
     # Load the default context products
     #
-    registered_context_products_file = (
-        f"{setup.root_dir}data/registered_context_products.json"
+    registered_context_products_file = str(
+        files('pds.naif_pds4_bundler.data').joinpath('registered_context_products.json')
     )
-    with open(registered_context_products_file, "r") as f:
+    with open(registered_context_products_file, "rt") as f:
         context_products = json.load(f)["Product_Context"]
 
     #
