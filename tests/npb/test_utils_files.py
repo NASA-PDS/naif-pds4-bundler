@@ -12,6 +12,23 @@ KERNELS = Path(__file__).parent.parent / "naif_pds4_bundler" / "data" / "kernels
 
 
 # ----------------------------------------------------------------------------
+# files.check_binary_endianness tests
+# ----------------------------------------------------------------------------
+@pytest.mark.parametrize("kernel, expected_error",[
+    (Path('ck', 'insight_ida_enc_200829_201220_v1.bc'), ''),
+    (Path('ck', 'mro_sc_psp_210706_210712.big.bc'),
+     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
+    (Path('dsk', 'DEIMOS_K005_THO_V01.BDS'), ''),
+    (Path('spk', 'm2020_cruise_od138_v1.bsp'), ''),
+    (Path('spk', 'mro_psp60.big.bsp'),
+     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file.")
+])
+def test_check_binary_endianness(kernel, expected_error) -> None:
+    """Test checking binary file format."""
+    error = files.check_binary_endianness(str(KERNELS / kernel))
+    assert error == expected_error
+
+# ----------------------------------------------------------------------------
 # files.check_kernel_integrity tests
 # ----------------------------------------------------------------------------
 
