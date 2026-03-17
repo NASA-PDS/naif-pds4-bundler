@@ -13,6 +13,8 @@ import stat
 from collections import defaultdict
 
 import spiceypy
+from spiceypy.utils.exceptions import SpiceUNSUPPORTEDBFF
+
 
 from ..classes.log import error_message
 
@@ -1063,7 +1065,7 @@ def check_binary_endianness(path):
         else:
             error = "The binary kernel does not have the a DAF or DAS architecture."
 
-    except BaseException:
+    except SpiceUNSUPPORTEDBFF:
         error = "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."
 
     return error
