@@ -1,4 +1,5 @@
 """Unit tests for the pds.naif_pds4_bundler.utils.files module."""
+from dataclasses import dataclass
 from pathlib import Path
 import shutil
 
@@ -124,6 +125,42 @@ def test_extract_comment_ck():
     )
 
     assert comment_line == comment[3]
+
+
+# ----------------------------------------------------------------------------
+# files.get_context_products tests
+# ----------------------------------------------------------------------------
+
+@pytest.mark.parametrize("mission, observer, target, expected_bcp",[
+    ('NEOWISE', 'PAYLOAD', 'TARGET',
+     [{'name': ['NEOWISE'],
+       'type': ['Mission'],
+       'lidvid': 'urn:nasa:pds:context:investigation:mission.neowise::1.0'}]),
+    ('INSIGHT', 'InSight', 'TARGET',
+     [{'name': ['InSight'],
+       'type': ['Lander'],
+       'lidvid': 'urn:nasa:pds:context:instrument_host:spacecraft.insight::2.0'},
+      {'name': ['INSIGHT'],
+       'type': ['Mission'],
+       'lidvid': 'urn:nasa:pds:context:investigation:mission.insight::2.0'}])
+])
+def test_get_context_products_no_optional_info_in_config_file(
+        mission, observer, target, expected_bcp
+):
+    """Test getting context products, assuming a configuration file that
+    does not have `context_products`, `secondary_missions`,
+    `secondary_observers` or `secondary_targets`"""
+
+    # Create a mockup of the NPB setup, as required for this test.
+    @dataclass
+    class Config:
+        mission_name: str
+        observer: str
+        target: str
+
+    result = files.get_context_products(Config(mission, observer, target))
+    assert result == expected_bcp
+
 
 # ----------------------------------------------------------------------------
 # files.match_patterns tests
