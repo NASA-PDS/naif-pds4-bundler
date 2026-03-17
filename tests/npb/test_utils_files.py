@@ -26,7 +26,11 @@ KERNELS = Path(__file__).parent.parent / "naif_pds4_bundler" / "data" / "kernels
      "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
     (Path('spk', 'm2020_cruise_od138_v1.bsp'), ''),
     (Path('spk', 'mro_psp60.big.bsp'),
-     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file.")
+     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
+    (Path('ck', 'insight_ida_enc_200829_201220_v1.xc'),
+     'The binary kernel does not have a DAF or DAS architecture.'),
+    (Path('pck', 'pck00010.tpc'),
+     'The binary kernel does not have a DAF or DAS architecture.')
 ])
 def test_check_binary_endianness(kernel, expected_error) -> None:
     """Test checking binary file format."""
