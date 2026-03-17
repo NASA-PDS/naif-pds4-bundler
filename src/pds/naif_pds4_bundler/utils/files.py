@@ -11,6 +11,7 @@ import re
 import shutil
 import stat
 from collections import defaultdict
+from typing import Optional
 
 import spiceypy
 from spiceypy.utils.exceptions import SpiceUNSUPPORTEDBFF
@@ -1035,7 +1036,7 @@ def check_kernel_integrity(path):
     return error
 
 
-def check_binary_endianness(path: str) -> str:
+def check_binary_endianness(path: str) -> Optional[str]:
     """Check if the SPICE Kernel has the adequate architecture.
 
     PDS4 Bundles require LTL-IEEE binary kernels and PDS3 data sets require
@@ -1047,8 +1048,6 @@ def check_binary_endianness(path: str) -> str:
     :param path: Binary SPICE kernel path
     :return: Error message if error present
     """
-    error = ""
-
     # Check the file architecture of the SPICE kernel. If the kernel is not
     # based on DAF or DAS architecture, report the error.
     arch, _ = spiceypy.getfat(path)
@@ -1074,7 +1073,7 @@ def check_binary_endianness(path: str) -> str:
         return ("The kernel cannot be loaded because of its endianness. "
                 "Use NAIF's utility BINGO to convert the file.")
 
-    return error
+    return None
 
 
 def check_badchar(file):
