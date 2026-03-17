@@ -10,6 +10,7 @@ import os
 import re
 import shutil
 import stat
+import sys
 from collections import defaultdict
 from typing import Optional
 
@@ -1036,7 +1037,7 @@ def check_kernel_integrity(path):
     return error
 
 
-def check_binary_endianness(path: str) -> Optional[str]:
+def check_binary_endianness(path: str, endianness: str) -> Optional[str]:
     """Check if the SPICE Kernel has the adequate architecture.
 
     PDS4 Bundles require LTL-IEEE binary kernels and PDS3 data sets require
@@ -1045,8 +1046,10 @@ def check_binary_endianness(path: str) -> Optional[str]:
     This method ensures that the endianness of binary kernels is the
     appropriate one according to the configuration.
 
-    :param path: Binary SPICE kernel path
-    :return: Error message if error present
+    :param path:       Binary SPICE kernel path
+    :param endianness: Required endianness of the binary SPICE kernel file.
+
+    :return: Error message, if error present. Otherwise, None.
     """
     # Check the file architecture of the SPICE kernel. If the kernel is not
     # based on DAF or DAS architecture, report the error.
@@ -1067,9 +1070,21 @@ def check_binary_endianness(path: str) -> Optional[str]:
             handle = spiceypy.dasopw(path)
             spiceypy.dascls(handle)
 
+        # Getting to this point means that the file and the platform in
+        # which NPB is executed have the same architecture.
+        equal_endianness = True
+
     except SpiceUNSUPPORTEDBFF:
         # There is no need to call the SPICE API to close the binary SPICE
-        # kernel, since the open process did not complete.
+        # kernel, since the open process did not complete. The open call
+        # retuning with SPICE(UNSUPPORTEDBFF) indicates that the file and
+        # the platform in which NPB is executed have different architecture.
+        equal_endianness = False
+
+    # By comparing the result of comparing the platform byte order to the
+    # expected file endianness, and the result of the previous analysis,
+    # we can find out if the file has the expected endianness.
+    if (endianness == sys.byteorder) != equal_endianness:
         return ("The kernel cannot be loaded because of its endianness. "
                 "Use NAIF's utility BINGO to convert the file.")
 
