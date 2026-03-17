@@ -348,40 +348,22 @@ def get_context_products(setup):
                         }
                     )
 
-    if appended_products:
-        for product in appended_products:
-            context_products.append(product)
+    context_products.extend(appended_products)
 
-    #
-    # Return the context products used in the bundle.
-    #
-    bundle_context_products = []
+    # Define the basic context products used in the bundle.
     config_context_products = [setup.mission_name, setup.observer, setup.target]
 
-    #
-    # Check the secondary missions and if present add them to the
-    # Configuration for context products.3
-    #
-    if hasattr(setup, "secondary_missions"):
-        for mis in setup.secondary_missions:
-            config_context_products.append(mis)
+    # If the NPB configuration file has information about
+    #    - secondary missions
+    #    - secondary observers (spacecraft)
+    #    - secondary targets
+    # add them to the configuration for context products.
+    config_context_products.extend(getattr(setup, "secondary_missions", []))
+    config_context_products.extend(getattr(setup, "secondary_observers", []))
+    config_context_products.extend(getattr(setup, "secondary_targets", []))
 
-    #
-    # Check the secondary s/c and if present add them to the
-    # Configuration for context products.3
-    #
-    if hasattr(setup, "secondary_observers"):
-        for sc in setup.secondary_observers:
-            config_context_products.append(sc)
-
-    #
-    # Check the secondary targets and if present add them to the
-    # Configuration for context products.3
-    #
-    if hasattr(setup, "secondary_targets"):
-        for tar in setup.secondary_targets:
-            config_context_products.append(tar)
-
+    # Return the context products used in the bundle.
+    bundle_context_products = []
     for context_product in context_products:
         for config_product in config_context_products:
             #
