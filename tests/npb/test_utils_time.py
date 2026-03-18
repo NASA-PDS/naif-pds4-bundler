@@ -27,6 +27,27 @@ def m2020_fk():
     yield kernel
     spiceypy.unload(kernel)
 
+@pytest.fixture
+def m2020_sclk():
+    """Provides the M2020 SCLK Kernel."""
+    kernel = str( KERNELS/ "sclk" / "m2020_168_sclkscet_refit_v03.tsc")
+    spiceypy.furnsh(kernel)
+    yield kernel
+    spiceypy.unload(kernel)
+
+
+def test_ck_coverage(lsk, m2020_sclk):
+    """Test CK coverage function using pytest."""
+    ck_file = str( KERNELS/ "ck" / "m2020_surf_rsm_tlmres_0299_0419_v1.big.bc")
+
+    start_time_cal, stop_time_cal = time.ck_coverage(ck_file)
+
+    assert (start_time_cal, stop_time_cal) == (
+        "2021-12-22T09:40:54.205Z",
+        "2022-04-25T17:30:58.909Z"
+    )
+
+
 @pytest.mark.parametrize("creation_format, expected", [
     ("maklabel", "2024-08-31T12:10:18"),
     ("infomod2", "2024-08-31T12:10:18.214Z"),
@@ -91,9 +112,10 @@ def test_dsk_coverage(lsk):
     )
 
 
-@pytest.mark.parametrize("input_format, beget, endet, expected", [
-    ("maklabel", 829832539.429603, 829872732.429599, ["2026-04-19T01:01:10Z", "2026-04-19T12:11:03Z"]),
-    ("infomod2", 829832539.429603, 829872732.429599, ["2026-04-19T01:01:10.245Z", "2026-04-19T12:11:03.243Z"]),
+@pytest.mark.parametrize("input_format, beget, endet, kernel_type, system, expected", [
+    ("maklabel", 829832539.429603, 829872732.429599, "text", "UTC", ["2026-04-19T01:01:10Z", "2026-04-19T12:11:03Z"]),
+    ("maklabel", 829832539.429603, 829872732.429599, "CK", "UTC", ["2026-04-19T01:01:10.245Z", "2026-04-19T12:11:03.244Z"]),
+    ("infomod2", 829832539.429603, 829872732.429599, "text", "UTC", ["2026-04-19T01:01:10.245Z", "2026-04-19T12:11:03.243Z"]),
 ])
 def test_et_to_date(lsk, input_format, beget, endet, kernel_type, system, expected):
     """Test ET to date function using pytest."""
@@ -124,6 +146,18 @@ def test_parse_date(date_input, expected):
 
     assert isinstance(result, datetime)
     assert result == expected
+
+
+def test_pck_coverage(lsk):
+    """Test PCK coverage function using pytest."""
+    pck_file = str( KERNELS/ "pck" / "earth_000101_260613_260317.bpc")
+
+    [start_time_cal, stop_time_cal] = time.pck_coverage(pck_file)
+
+    assert (start_time_cal, stop_time_cal) == (
+        "2000-01-01T00:00:00.000Z",
+        "2026-06-13T00:00:00.000Z"
+    )
 
 
 @pytest.mark.parametrize("inputs, expected", [
