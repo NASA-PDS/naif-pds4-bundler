@@ -6,7 +6,7 @@ import os
 
 import spiceypy
 
-from ..utils import (
+from ...utils import (
     add_carriage_return,
     ck_coverage,
     compare_files,
@@ -16,7 +16,7 @@ from ..utils import (
     spice_exception_handler,
     type_to_pds3_type,
 )
-from .log import error_message
+from ..log import error_message
 
 
 class PDSLabel(object):
