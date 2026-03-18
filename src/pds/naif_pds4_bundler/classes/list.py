@@ -24,29 +24,7 @@ from ..utils import spice_exception_handler
 from .log import error_message
 
 
-class List(object):
-    """Class to generate the List.
-
-    :param setup: NPB execution setup object
-    :type setup: object
-    """
-
-    def __init__(self, setup: object) -> object:
-        """Constructor."""
-        self.files = []
-        self.name = type
-        self.setup = setup
-
-    def add(self, element):
-        """Add file to the list.
-
-        :param element: SPICE Kernel product or ORBNUM product to be added to the list
-        :type element: str
-        """
-        self.files.append(element)
-
-
-class KernelList(List):
+class KernelList:
     """List child class to generate the Kernel List.
 
     :param setup: NPB execution setup object
@@ -64,7 +42,8 @@ class KernelList(List):
         if not setup.args.silent and not setup.args.verbose:
             print("-- " + line.split(" - ")[-1] + ".")
 
-        List.__init__(self, setup)
+        self.files = []
+        self.setup = setup
 
         #
         # Object attributes to be replaced in template
@@ -91,13 +70,12 @@ class KernelList(List):
         self.template = f"{setup.templates_directory}/template_kernel_list.txt"
         self.read_config()
 
-    def add(self, kernel):
-        """Add SPICE kernel or ORBNUM file to the list.
+    def add(self, kernel: str) -> None:
+        """Add SPICE kernel or OrbNum file to the list.
 
-        :param kernel: SPICE kernel or ORBNUM file added to the list
-        :type kernel: str
+        :param kernel: SPICE kernel or OrbNum file added to the list
         """
-        List.add(self, kernel)
+        self.files.append(kernel)
 
     def read_config(self):
         """Extract the Kernel List information from the configuration file."""
