@@ -16,6 +16,9 @@ class InventoryPDS3Label(PDSLabel):
         super().__init__(setup, inventory)
 
         self.collection = collection
+
+        # TODO: Check why this template path is not following the approach of all
+        #       other labels.
         self.template = (
             self.root_dir
             + "/templates/pds3/template_collection_{}.lbl".format(collection.type)

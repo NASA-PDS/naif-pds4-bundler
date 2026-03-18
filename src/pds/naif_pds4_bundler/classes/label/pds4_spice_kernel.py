@@ -1,5 +1,7 @@
 """Implementation of the PDS4 version of a label for SPICE kernel files.
 """
+from pathlib import Path
+
 from .label import PDSLabel
 
 
@@ -14,9 +16,8 @@ class SpiceKernelPDS4Label(PDSLabel):
         """Constructor."""
         super().__init__(setup, product)
 
-        self.template = (
-            f"{self.setup.templates_directory}/template_product_spice_kernel.xml"
-        )
+        self.template = str(Path(setup.templates_directory)
+                            / "template_product_spice_kernel.xml")
 
         #
         # Fields from Kernels

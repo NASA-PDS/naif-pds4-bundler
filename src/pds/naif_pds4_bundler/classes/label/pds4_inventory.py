@@ -1,6 +1,8 @@
 """Implementation of the PDS4 version of a label for Collection Inventory
 files.
 """
+from pathlib import Path
+
 from .label import PDSLabel
 
 
@@ -17,9 +19,9 @@ class InventoryPDS4Label(PDSLabel):
         super().__init__(setup, inventory)
 
         self.collection = collection
-        self.template = (
-            f"{setup.templates_directory}/template_collection_{collection.type}.xml"
-        )
+
+        self.template = str(Path(setup.templates_directory)
+                            / f"template_collection_{collection.type}.xml")
 
         self.COLLECTION_LID = self.collection.lid
         self.COLLECTION_VID = self.collection.vid

@@ -1,5 +1,7 @@
 """Implementation of the PDS4 version of a label for Checksum files.
 """
+from pathlib import Path
+
 from .label import PDSLabel
 
 
@@ -14,9 +16,8 @@ class ChecksumPDS4Label(PDSLabel):
         """Constructor."""
         super().__init__(setup, product)
 
-        self.template = (
-            f"{setup.templates_directory}/template_product_checksum_table.xml"
-        )
+        self.template = str(Path(setup.templates_directory)
+                            / "template_product_checksum_table.xml")
 
         self.FILE_NAME = product.name
         self.PRODUCT_LID = self.product.lid

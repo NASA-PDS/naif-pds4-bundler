@@ -1,6 +1,7 @@
 """Implementation of the PDS3 version of a label for SPICE kernel files.
 """
 import logging
+from pathlib import Path
 
 import spiceypy
 
@@ -23,9 +24,8 @@ class SpiceKernelPDS3Label(PDSLabel):
         """Constructor."""
         super().__init__(mission, product)
 
-        self.template = (
-            f"{self.setup.templates_directory}/template_product_spice_kernel.lbl"
-        )
+        self.template = str(Path(self.setup.templates_directory)
+                            / "template_product_spice_kernel.lbl")
 
         self.FILE_NAME = f'"{product.name}"'
         self.INTERCHANGE_FORMAT = product.file_format

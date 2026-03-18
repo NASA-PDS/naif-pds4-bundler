@@ -1,5 +1,7 @@
 """Implementation of the PDS4 version of a label for Bundles.
 """
+from pathlib import Path
+
 from .label import PDSLabel
 
 
@@ -14,7 +16,8 @@ class BundlePDS4Label(PDSLabel):
         """Constructor."""
         super().__init__(setup, readme)
 
-        self.template = f"{setup.templates_directory}/template_bundle.xml"
+        self.template = str(Path(setup.templates_directory)
+                            / "template_bundle.xml")
 
         self.BUNDLE_LID = self.product.bundle.lid
         self.BUNDLE_VID = self.product.bundle.vid
