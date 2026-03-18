@@ -362,17 +362,15 @@ def get_context_products(setup):
     config_context_products.extend(getattr(setup, "secondary_observers", []))
     config_context_products.extend(getattr(setup, "secondary_targets", []))
 
-    # Return the context products used in the bundle.
-    bundle_context_products = []
-    for context_product in context_products:
-        for config_product in config_context_products:
-            #
-            # For the conditional statement we need to put both names lower case.
-            #
-            if context_product["name"][0].lower() == config_product.lower():
-                bundle_context_products.append(context_product)
+    # We will return all existing context products independently of the
+    # product name case. Since we are not considering the case, reduce the
+    # number of configured context products to a set of "unique strings, not
+    # considering string case."
+    config_context_products = {p.lower() for p in config_context_products}
 
-    return bundle_context_products
+    # Return the list of context products used in the bundle.
+    return [cp for cp in context_products
+            if cp["name"][0].lower() in config_context_products]
 
 
 def mk_to_list(mk, setup):

@@ -132,14 +132,21 @@ def test_extract_comment_ck():
 # ----------------------------------------------------------------------------
 
 @pytest.mark.parametrize("mission, observer, target, expected_bcp",[
-    ('NEOWISE', 'PAYLOAD', 'TARGET',
+    ('NEOWISE', 'SPACECRAFT', 'TARGET',
      [{'name': ['NEOWISE'],
        'type': ['Mission'],
        'lidvid': 'urn:nasa:pds:context:investigation:mission.neowise::1.0'}]),
     ('MISSION', 'Insight Deployment Camera', 'TARGET',
      [{'name': ['INSIGHT DEPLOYMENT CAMERA'],
        'type': ['IMAGER'],
-       'lidvid': 'urn:nasa:pds:context:instrument:idc.insight::1.0'}])
+       'lidvid': 'urn:nasa:pds:context:instrument:idc.insight::1.0'}]),
+    ('INSIGHT', 'InSight', 'TARGET',
+    [{'name': ['InSight'],
+      'type': ['Lander'],
+      'lidvid': 'urn:nasa:pds:context:instrument_host:spacecraft.insight::2.0'},
+     {'name': ['INSIGHT'],
+      'type': ['Mission'],
+      'lidvid': 'urn:nasa:pds:context:investigation:mission.insight::2.0'}])
 ])
 def test_get_context_products_no_optional_info_in_config_file(
         mission, observer, target, expected_bcp
