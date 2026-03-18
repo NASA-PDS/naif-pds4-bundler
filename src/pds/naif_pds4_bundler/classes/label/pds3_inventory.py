@@ -6,19 +6,14 @@ from .label import PDSLabel
 class InventoryPDS3Label(PDSLabel):
     """PDS Label child class to generate a PDS3 Index Label.
 
-    :param setup: NPB execution Setup object
-    :type setup: object
+    :param setup:      NPB execution Setup object
     :param collection: Index Collection
-    :type product: object
-    :param inventory: Index Product
-    :type inventory: object
+    :param inventory:  Index Product
     """
 
-    def __init__(
-        self, mission: object, collection: object, inventory: object
-    ) -> object:
+    def __init__(self, setup, collection, inventory) -> None:
         """Constructor."""
-        PDSLabel.__init__(self, mission, inventory)
+        super().__init__(setup, inventory)
 
         self.collection = collection
         self.template = (

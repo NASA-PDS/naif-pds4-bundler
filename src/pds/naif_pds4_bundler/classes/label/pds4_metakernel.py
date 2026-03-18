@@ -5,17 +5,15 @@ from ...utils import extension_to_type
 
 
 class MetaKernelPDS4Label(PDSLabel):
-    """PDS Label child class to generate a PDS4 SPICE Kernel MK Label.
+    """Class to generate a PDS4 SPICE Kernel MK Label.
 
-    :param setup: NPB execution Setup object
-    :type setup: object
+    :param setup:   NPB execution Setup object
     :param product: MK product to label
-    :type product: object
     """
 
-    def __init__(self, setup: object, product: object) -> object:
+    def __init__(self, setup, product) -> None:
         """Constructor."""
-        PDSLabel.__init__(self, setup, product)
+        super().__init__(setup, product)
 
         self.template = (
             f"{setup.templates_directory}/template_product_spice_kernel_mk.xml"

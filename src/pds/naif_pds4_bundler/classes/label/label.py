@@ -8,16 +8,14 @@ from ..log import error_message
 from ...utils import add_carriage_return, compare_files
 
 
-class PDSLabel(object):
+class PDSLabel:
     """Class to generate a PDS Label.
 
-    :param setup: NPB execution Setup object
-    :type setup: object
+    :param setup:   NPB execution Setup object
     :param product: Product to be labeled
-    :type product: object
     """
 
-    def __init__(self, setup: object, product: object) -> object:
+    def __init__(self, setup, product) -> None:
         """Constructor."""
         if setup.pds_version == "4":
             try:

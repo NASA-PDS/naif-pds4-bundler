@@ -16,11 +16,12 @@ from ...utils import (
 
 
 class SpiceKernelPDS3Label(PDSLabel):
-    """PDS Label child class to generate a PDS3 SPICE Kernel Label."""
+    """Class to generate a PDS3 SPICE Kernel Label.
+    """
 
-    def __init__(self, mission, product):
+    def __init__(self, mission, product) -> None:
         """Constructor."""
-        PDSLabel.__init__(self, mission, product)
+        super().__init__(mission, product)
 
         self.template = (
             f"{self.setup.templates_directory}/template_product_spice_kernel.lbl"

@@ -5,19 +5,16 @@ from .label import PDSLabel
 
 
 class InventoryPDS4Label(PDSLabel):
-    """PDS Label child class to generate a PDS4 Collection Inventory Label.
+    """Class to generate a PDS4 Collection Inventory Label.
 
-    :param setup: NPB execution Setup object
-    :type setup: object
+    :param setup:      NPB execution Setup object
     :param collection: Collection to label
-    :type product: object
-    :param inventory: Inventory Product of the Collection
-    :type inventory: object
+    :param inventory:  Inventory Product of the Collection
     """
 
-    def __init__(self, setup: object, collection: object, inventory: object) -> object:
+    def __init__(self, setup, collection, inventory) -> None:
         """Constructor."""
-        PDSLabel.__init__(self, setup, inventory)
+        super().__init__(setup, inventory)
 
         self.collection = collection
         self.template = (

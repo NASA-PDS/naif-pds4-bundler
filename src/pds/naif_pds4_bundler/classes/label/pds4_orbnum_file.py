@@ -5,17 +5,15 @@ from .label import PDSLabel
 
 
 class OrbnumFilePDS4Label(PDSLabel):
-    """PDS Label child class to generate a PDS4 Orbit Number File Label.
+    """Class to generate a PDS4 Orbit Number File Label.
 
-    :param setup: NPB execution Setup object
-    :type setup: object
-    :param product: ORBNUM product to label
-    :type product: object
+    :param setup:   NPB execution Setup object
+    :param product: OrbNum product to label
     """
 
-    def __init__(self, setup: object, product: object) -> object:
+    def __init__(self, setup, product) -> None:
         """Constructor."""
-        PDSLabel.__init__(self, setup, product)
+        super().__init__(setup, product)
 
         self.template = f"{setup.templates_directory}/template_product_orbnum_table.xml"
 

@@ -4,17 +4,15 @@ from .label import PDSLabel
 
 
 class ChecksumPDS3Label(PDSLabel):
-    """PDS Label child class to generate a PDS3 Checksum Label.
+    """PDS Label child class to a PDS3 Checksum Label.
 
-    :param setup: NPB  execution Setup object
-    :type setup: object
+    :param setup:   NPB  execution Setup object
     :param product: Checksum product to label
-    :type product: object
     """
 
-    def __init__(self, setup, product):
+    def __init__(self, setup, product) -> None:
         """Constructor."""
-        PDSLabel.__init__(self, setup, product)
+        super().__init__(setup, product)
 
         self.template = (
             f"{setup.templates_directory}/template_product_checksum_table.lbl"

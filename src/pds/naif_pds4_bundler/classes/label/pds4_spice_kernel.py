@@ -4,17 +4,15 @@ from .label import PDSLabel
 
 
 class SpiceKernelPDS4Label(PDSLabel):
-    """PDS Label child class to generate a non-MK PDS4 SPICE Kernel Label.
+    """Class to generate a non-MK PDS4 SPICE Kernel Label.
 
-    :param setup: NPB execution Setup object
-    :type setup: object
+    :param setup:   NPB execution Setup object
     :param product: SPICE Kernel product to be labeled
-    :type product: object
     """
 
-    def __init__(self, setup: object, product: object) -> object:
+    def __init__(self, setup, product) -> None:
         """Constructor."""
-        PDSLabel.__init__(self, setup, product)
+        super().__init__(setup, product)
 
         self.template = (
             f"{self.setup.templates_directory}/template_product_spice_kernel.xml"

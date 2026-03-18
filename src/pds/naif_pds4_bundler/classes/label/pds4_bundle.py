@@ -4,15 +4,15 @@ from .label import PDSLabel
 
 
 class BundlePDS4Label(PDSLabel):
-    """PDS Label child class to generate a PDS4 Bundle Label.
+    """Class to generate a PDS4 Bundle Label.
 
-    :param setup: NPB execution Setup object
+    :param setup:  NPB execution Setup object
     :param readme: Readme product
     """
 
-    def __init__(self, setup: object, readme: object) -> object:
+    def __init__(self, setup, readme) -> None:
         """Constructor."""
-        PDSLabel.__init__(self, setup, readme)
+        super().__init__(setup, readme)
 
         self.template = f"{setup.templates_directory}/template_bundle.xml"
 
