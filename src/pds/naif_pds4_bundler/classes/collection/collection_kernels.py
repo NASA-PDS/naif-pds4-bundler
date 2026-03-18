@@ -12,17 +12,14 @@ from ...utils import extension_to_type
 
 
 class SpiceKernelsCollection(Collection):
-    """Collection child class to generate a PDS4 SPICE Kernels Collection.
+    """Class to generate a PDS4 SPICE Kernels Collection.
 
-    :param setup: NPB execution setup object
-    :type setup: object
-    :param bundle: Bundle object
-    :type bundle: object
-    :param list: Kernel List object
-    :type list: object
+    :param setup:   NPB execution setup object
+    :param bundle:  Bundle object
+    :param kernels: Kernel List object
     """
 
-    def __init__(self, setup: object, bundle: object, list: object) -> object:
+    def __init__(self, setup, bundle, kernels) -> None:
         """Constructor."""
         line = f"Step {setup.step} - SPICE kernel collection/data processing"
         logging.info("")
@@ -34,7 +31,7 @@ class SpiceKernelsCollection(Collection):
             print("-- " + line.split(" - ")[-1] + ".")
 
         self.bundle = bundle
-        self.list = list
+        self.list = kernels
         self.type = "spice_kernels"
         """Collection type (`str`)."""
 
@@ -42,7 +39,7 @@ class SpiceKernelsCollection(Collection):
             self.start_time = setup.mission_start
             self.stop_time = setup.mission_finish
 
-        Collection.__init__(self, self.type, setup, bundle)
+        super().__init__(self.type, setup, bundle)
 
     def determine_meta_kernels(self):
         """Determine the name of the Meta-kernel(s) to be generated.
@@ -294,7 +291,7 @@ class SpiceKernelsCollection(Collection):
                         prev_increment_finish = line.split(">")[-2].split("<")[0]
 
             #
-            # Provide different logging level depending on the times
+            # Provide different logging level depending on the times'
             # combination.
             #
             logging.info("-- Previous bundle increment interval is:")

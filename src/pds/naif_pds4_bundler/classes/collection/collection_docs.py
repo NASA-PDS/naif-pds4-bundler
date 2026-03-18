@@ -7,22 +7,20 @@ from ..product import PDS3DocumentProduct
 
 
 class DocumentCollection(Collection):
-    """Collection child class to generate a PDS3 or PDS4 Document Collection.
+    """Class to generate a PDS3 or PDS4 Document Collection.
 
     :param setup: NPB execution setup object
-    :type setup: object
     :param bundle: Bundle object
-    :type bundle: object
     """
 
-    def __init__(self, setup: object, bundle: object) -> object:
+    def __init__(self, setup, bundle) -> None:
         """Constructor."""
         if setup.pds_version == "3":
             self.type = "DOCUMENT"
         elif setup.pds_version == "4":
             self.type = "document"
 
-        Collection.__init__(self, self.type, setup, bundle)
+        super().__init__(self.type, setup, bundle)
 
     def get_pds3_documents(self):
         """Collects the updated PDS3 documents for the increment."""

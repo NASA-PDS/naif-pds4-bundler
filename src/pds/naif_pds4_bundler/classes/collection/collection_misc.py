@@ -5,17 +5,14 @@ from .collection import Collection
 
 
 class MiscellaneousCollection(Collection):
-    """Collection child class to generate a PDS4 Document Collection.
+    """Class to generate a PDS4 or PDS3 Document Collection.
 
-    :param setup: NPB execution setup object
-    :type setup: object
-    :param bundle: Bundle object
-    :type bundle: object
-    :param list: Kernel List object
-    :type list: object
+    :param setup:   NPB execution setup object
+    :param bundle:  Bundle object
+    :param kernels: Kernel List object
     """
 
-    def __init__(self, setup: object, bundle: object, list: object) -> object:
+    def __init__(self, setup, bundle, kernels) -> None:
         """Constructor."""
         if setup.pds_version == "4":
             self.type = "miscellaneous"
@@ -23,11 +20,11 @@ class MiscellaneousCollection(Collection):
             self.type = "extras"
 
         #
-        # Included for ORBNUM files observers and targets.
+        # Included for OrbNum files observers and targets.
         #
-        self.list = list
+        self.list = kernels
 
-        Collection.__init__(self, self.type, setup, bundle)
+        super().__init__(self.type, setup, bundle)
 
     def report(self):
         """Report the Collection generation step."""

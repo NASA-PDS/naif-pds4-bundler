@@ -3,18 +3,15 @@ import glob
 import logging
 
 
-class Collection(object):
+class Collection:
     """Class to generate a PDS4 Collection.
 
-    :param type: Collection type: kernels, documents or miscellaneous
-    :type type: str
-    :param setup: Setup Object
-    :type setup: object
+    :param type:   Collection type: kernels, documents or miscellaneous
+    :param setup:  Setup Object
     :param bundle: Bundle Object to which the Collection belongs to
-    :type bundle: object
     """
 
-    def __init__(self, type: str, setup: object, bundle: object) -> object:
+    def __init__(self, type: str, setup, bundle) -> None:
         """Constructor."""
         self.product = []
         self.name = type
