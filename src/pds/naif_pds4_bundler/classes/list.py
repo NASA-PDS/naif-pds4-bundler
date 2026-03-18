@@ -1,4 +1,5 @@
-"""List Class and Child Class Implementation."""
+"""Implementation of the Kernel List class.
+"""
 import datetime
 import glob
 import json
@@ -25,13 +26,12 @@ from .log import error_message
 
 
 class KernelList:
-    """List child class to generate the Kernel List.
+    """Class to generate a Kernel List.
 
     :param setup: NPB execution setup object
-    :type setup: object
     """
 
-    def __init__(self, setup: object) -> object:
+    def __init__(self, setup) -> None:
         """Constructor."""
         line = f"Step {setup.step} - Kernel List generation"
         logging.info("")
@@ -77,7 +77,7 @@ class KernelList:
         """
         self.files.append(kernel)
 
-    def read_config(self):
+    def read_config(self) -> None:
         """Extract the Kernel List information from the configuration file."""
         json_config = self.setup.kernel_list_config
 
