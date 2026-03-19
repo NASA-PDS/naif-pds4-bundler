@@ -7,7 +7,7 @@ Prerequisites
 In order to run the NAIF PDS4 Bundler (NPB), the following software must be
 present on the users's computer:
 
-   * Python 3.8 (or higher)
+   * Python 3.10 (or higher)
    * A NAIF supported C compiler (`See link to NAIF CSPICE page <https://naif.jpl.nasa.gov/naif/toolkit_C.html>`_)
 
 .. warning::
@@ -62,29 +62,30 @@ in the ``naif-pds4-bundler`` top level directory. To uninstall run::
    pip uninstall naif-pds4-bundler
 
 
-Example process for setting up NPB to be used in a virtual environment:
+Example: Setting up NPB in a virtual environment:
+-------------------------------------------------
 
-   1. Setup a virtual environemnt::
+1. Setup a virtual environemnt::
 
     mkdir virtenvs
 
     cd virtenvs
 
-    python3 -m venv npb
+    python -m venv npb
 
     cd npb/
 
-   2. download the source code (tar.gz) and save under ~/virtenvs/npb/, Open the tar.gz package::
+2. download the source code (tar.gz) and save under ~/virtenvs/npb/, Open the tar.gz package::
 
     tar -xvf naif-pds4-bundler-#.#.#.tar.gz
 
     cd naif-pds4-bundler-#.#.#
 
-   3. Drop into the virtual environment::
+3. Drop into the virtual environment::
 
     source virtenvs/npb/bin/activate
 
-   4. Run the setup script::
+4. Run the setup script::
 
     python -m pip install .
 
@@ -92,17 +93,17 @@ Example process for setting up NPB to be used in a virtual environment:
          see `Known Instalation Issues` below for more information.
   Successful installation will output "Finished processing dependencies"...
 
-   5. To make sure it is working & shows the correct version::
+5. To make sure it is working & shows the correct version::
 
     naif-pds4-bundler -h
 
-   6. To do an NPB functional test -  If tests fail stop the process and please contact NAIF::
+6. To do an NPB functional test -  If tests fail stop the process and please contact NAIF::
 
     cd tests/naif_pds4_bundler
 
-    python3 -m unittest
+    python -m unittest
 
-   7. To exit NPB virtual environment::
+7. To exit NPB virtual environment::
 
     deactivate
 
