@@ -1,4 +1,4 @@
-"""Product Class and Child Classes Implementation."""
+"""Implementation of the OrbNum file product class."""
 import datetime
 import logging
 import os
@@ -18,25 +18,16 @@ from ..log import error_message
 
 
 class OrbnumFileProduct(Product):
-    """Product child class ORBNUM File.
+    """Class that represents an OrbNum file.
 
-    :param setup: NPB execution setup object
-    :type setup: object
-    :param name: ORBNUM file path
-    :type name: str
-    :param collection: Miscellaneous Collection that contains the ORBNUM product
-    :type collection: object
+    :param setup:                    NPB execution setup object
+    :param name:                     OrbNum file path
+    :param collection:               Miscellaneous Collection that contains the
+                                     OrbNum file product
     :param spice_kernels_collection: SPICE Kernel Collection
-    :type spice_kernels_collection: object
     """
 
-    def __init__(
-        self,
-        setup: object,
-        name: object,
-        collection: object,
-        spice_kernels_collection: object,
-    ) -> object:
+    def __init__(self, setup, name: str, collection, spice_kernels_collection) -> None:
         """Constructor."""
         self.collection = collection
         self.kernels_collection = spice_kernels_collection
@@ -146,7 +137,7 @@ class OrbnumFileProduct(Product):
             if "target" in self._orbnum_type:
                 self.targets = [self._orbnum_type["target"]]
 
-        Product.__init__(self)
+        super().__init__()
 
         #
         # The kernel is labeled.
@@ -155,17 +146,17 @@ class OrbnumFileProduct(Product):
             logging.info(f"-- Labeling {self.name}...")
             self.label = OrbnumFilePDS4Label(setup, self)
 
-    def set_product_lid(self):
+    def set_product_lid(self) -> None:
         """Set the Product LID."""
         self.lid = "{}:miscellaneous:orbnum_{}".format(
             self.setup.logical_identifier, self.name
         ).lower()
 
-    def set_product_vid(self):
+    def set_product_vid(self) -> None:
         """Set the Product VID."""
         self.vid = "1.0"
 
-    def set_previous_orbnum(self):
+    def set_previous_orbnum(self) -> None:
         """Determine the previous version of the ORBNUM file.
 
         For some cases, more than one orbit number file
@@ -236,7 +227,7 @@ class OrbnumFileProduct(Product):
 
             self._previous_version = "1"
 
-    def read_header(self):
+    def read_header(self) -> None:
         """Read and process an ORBNUM file header.
 
         Defines the record_fixed_length attribute that provides the length of
@@ -279,11 +270,10 @@ class OrbnumFileProduct(Product):
 
         return header
 
-    def get_header_length(self):
-        """Read an ORBNUM file and return the length of the header in bytes.
+    def get_header_length(self) -> str:
+        """Read an OrbNum file and return the length of the header in bytes.
 
-        :return: ORBNUM file header length
-        :rtype: str
+        :return: OrbNum file header length
         """
         header_length = 0
         with open(self.path, "r", newline="") as o:
@@ -298,15 +288,14 @@ class OrbnumFileProduct(Product):
 
         return header_length
 
-    def get_sample_record(self):
-        """Read an orbnum file and return one record sample.
+    def get_sample_record(self) -> str:
+        """Read an OrbNum file and return one record sample.
 
         This sample (one data line) will be used to determine the format of
-        each parameter of the orbnum file. The sample is re-processed in such a
+        each parameter of the OrbNum file. The sample is re-processed in such a
         way that it contains no spaces for the UTC dates.
 
         :return: sample record line
-        :rtype: str
         """
         sample_record = ""
         with open(self.path, "r") as o:
@@ -336,16 +325,15 @@ class OrbnumFileProduct(Product):
 
         return sample_record
 
-    def utc_blanks_to_dashes(self, sample_record):
-        """Reformat UTC strings in the ORBNUM file.
+    @staticmethod
+    def utc_blanks_to_dashes(sample_record: str) -> str:
+        """Reformat UTC strings in the OrbNum file.
 
-        Re-process the UTC string fields of an ORBNUM sample row
+        Re-process the UTC string fields of an OrbNum sample row
         to remove blank spaces.
 
         :param sample_record: sample row with UTC string with blank spaces
-        :type sample_record: str
         :return: sample row with UTC string with dashes
-        :rtype: str
         """
         utc_pattern = r"[0-9]{4}[ ][A-Z]{3}[ ][0-9]{2}[ ][0-9]{2}[:][0-9]{2}[:][0-9]{2}"
 
@@ -360,15 +348,14 @@ class OrbnumFileProduct(Product):
 
         return sample_record
 
-    def read_records(self):
-        """Read and interpret the records of an ORBNUM file.
+    def read_records(self) -> str:
+        """Read and interpret the records of an OrbNum file.
 
-        Read an orbnum file and set the number of records attribute,
+        Read an OrbNum file and set the number of records attribute,
         the length of the records attribute, determine which lines have blank
         records and, perform simple checks of the records.
 
-        :return: number of records of ORBNUM file
-        :rtype: str
+        :return: number of records of OrbNum file
         """
         blank_records = []
 
@@ -507,8 +494,8 @@ class OrbnumFileProduct(Product):
 
         return records
 
-    def set_event_detection_key(self, header):
-        """Obtain the ORBNUM event detection key.
+    def set_event_detection_key(self, header: list[str]) -> None:
+        """Obtain the OrbNum event detection key.
 
         The event detection key is a string identifying which geometric event
         signifies the start of an orbit. The possible events are:
@@ -535,8 +522,7 @@ class OrbnumFileProduct(Product):
            ``MAXZ``   signals a search for the time of the
            maximum value of the Z (Cartesian) coordinate
 
-        :param header: ORBNUM file header line
-        :type header: list
+        :param header: OrbNum file header line
         """
         events = ["APO", "PERI", "A-NODE", "D-NODE", "MINLAT", "MAXLAT", "MINZ", "MAXZ"]
         for event in events:
@@ -567,13 +553,13 @@ class OrbnumFileProduct(Product):
         if not hasattr(self, "_event_detection_key"):
             error_message("orbnum event detection key is incorrect.", setup=self.setup)
 
-    def event_mapping(self, event):
+    # TODO: Is this method really needed?
+    @staticmethod
+    def event_mapping(event: str) -> str:
         """Maps the event keyword to the event name/description.
 
-        :param event: ORBNUM event key
-        :type event: str
-        :return: ORBNUM event description
-        :rtype: str
+        :param event: OrbNum event key
+        :return:      OrbNum event description
         """
         event_dict = {
             "APO": "apocenter",
@@ -588,13 +574,13 @@ class OrbnumFileProduct(Product):
 
         return event_dict[event]
 
-    def opposite_event_mapping(self, event):
+    # TODO: Is this method really needed?
+    @staticmethod
+    def opposite_event_mapping(event: str) -> str:
         """Maps the event keyword to the opposite event keyword.
 
-        :param event: ORBNUM event key
-        :type event: str
-        :return: ORBNUM opposite event keyword
-        :rtype: str
+        :param event: OrbNum event key
+        :return:      OrbNum opposite event keyword
         """
         opp_event_dict = {
             "APO": "PERI",
@@ -609,8 +595,8 @@ class OrbnumFileProduct(Product):
 
         return opp_event_dict[event]
 
-    def get_params(self, header):
-        """Obtain the parameters present in the ORBNUM file.
+    def get_params(self, header: list[str]) -> None:
+        """Obtain the parameters present in the OrbNum file.
 
         Currently, there are 11 orbital parameters available:
 
@@ -654,7 +640,6 @@ class OrbnumFileProduct(Product):
            event time (KM).
 
         :param header: ORBNUM file header line
-        :type header: list
         """
         parameters = []
         params = [
@@ -683,18 +668,17 @@ class OrbnumFileProduct(Product):
 
         self._params = parameters
 
-    def set_params(self, header):
+    def set_params(self, header: list[str]) -> None:
         """Define the parameters' template dictionary.
 
-        :param header: ORBNUM file header line
-        :type header: list
+        :param header: OrbNum file header line
         """
         # The orbit number, UTC date and angular parameters have fixed
         # lengths, which are provided in the parameters' template.
         # The length of the rest of the parameters depends on each orbnum
-        # file and are obtained from the ORBNUM file itself.
+        # file and are obtained from the OrbNum file itself.
         #
-        # For ORBNUM files using IM previous to v1.7.0.0 the ``field_format``
+        # For OrbNum files using IM previous to v1.7.0.0 the ``field_format``
         # values are:
         #
         #    Parameter      IM < 1.7.0.0  IM >= 1.7.0.0
@@ -977,14 +961,13 @@ class OrbnumFileProduct(Product):
 
         self.params = params_dict
 
-    def get_description(self):
-        """Write the ORBNUM table character description.
+    def get_description(self) -> str:
+        """Write the OrbNum table character description.
 
-        Write the ORBNUM product description information based on the orbit
+        Write the OrbNum product description information based on the orbit
         determination event and the PCK kernel used.
 
-        :return: ORBNUM file description for label.
-        :rtype: str
+        :return: OrbNum file description for label.
         """
         event_mapping = {
             "PERI": "periapsis",
@@ -1020,10 +1003,10 @@ class OrbnumFileProduct(Product):
 
         return description
 
-    def table_character_description(self):
-        """Write the ORBNUM table character description.
+    def table_character_description(self) -> str:
+        """Write the OrbNum table character description.
 
-        Write the orbnum table character description information
+        Write the OrbNum table character description information
         determination event and the PCK kernel used.
         """
         description = ""
@@ -1046,10 +1029,10 @@ class OrbnumFileProduct(Product):
 
         return description
 
-    def coverage(self):
-        """Determine the coverage of the ORNBUM file.
+    def coverage(self) -> None:
+        """Determine the coverage of the OrbNum file.
 
-        The coverage of the ORBNUM file can be determined in three different
+        The coverage of the OrbNum file can be determined in three different
         ways:
 
            *  If there is a one to one correspondence with an SPK

@@ -1,5 +1,4 @@
-"""Product Class and Child Classes Implementation."""
-
+"""Implementation of the Checksum product class."""
 import glob
 import logging
 import os
@@ -18,20 +17,17 @@ from ..log import error_message
 
 
 class ChecksumProduct(Product):
-    """Product child class to generate a Checksum Product.
+    """Class to generate a Checksum Product.
 
-    :param setup: NPB execution setup object
-    :type setup: object
-    :param collection: Miscellaneous Collection
-    :type collection: object
+    :param setup:                 NPB execution setup object
+    :param collection:            Miscellaneous Collection
     :param add_previous_checksum: True if there is a previous checksum file to
                                   be added, False otherwise
-    :type add_previous_checksum: bool
     """
 
-    def __init__(
-        self, setup: object, collection: object, add_previous_checksum: bool = True
-    ) -> object:
+    # TODO: if there's no call to parent init... does it need to be derived
+    #       from Product?
+    def __init__(self, setup, collection, add_previous_checksum: bool = True) -> None:
         """Constructor."""
         #
         # The initialisation of the checksum class is lighter than the
@@ -79,7 +75,7 @@ class ChecksumProduct(Product):
             self.set_product_lid()
             self.set_product_vid()
 
-    def set_coverage(self):
+    def set_coverage(self) -> None:
         """Determine the coverage of the Checksum file."""
         #
         # The coverage is set by generating the checksum file but without
@@ -87,12 +83,11 @@ class ChecksumProduct(Product):
         #
         self.write_product(history=False, set_coverage=True)
 
-    def generate(self, history=False):
+    def generate(self, history: bool = False) -> None:
         """Write and label the Checksum file.
 
         :param history: True if the checksum will be generated with the archive
                         history, False otherwise
-        :type history: bool
         """
         #
         # This acts as the second part of the Checksum product initialization.
@@ -115,7 +110,7 @@ class ChecksumProduct(Product):
         else:
             self.label = ChecksumPDS3Label(self.setup, self)
 
-    def read_current_product(self, add_previous_checksum=True):
+    def read_current_product(self, add_previous_checksum: bool = True) -> None:
         """Reads the current checksum file.
 
         Reads the current checksum file, determines the version of the
@@ -258,29 +253,26 @@ class ChecksumProduct(Product):
 
         self.new_product = True
 
-    def set_product_lid(self):
+    def set_product_lid(self) -> None:
         """Set Product LID."""
         self.lid = (
             f"{self.setup.logical_identifier}:miscellaneous:checksum_checksum".lower()
         )
 
-    def set_product_vid(self):
+    def set_product_vid(self) -> None:
         """Set Product VID."""
         self.vid = "{}.0".format(int(self.version))
 
-    def write_product(self, history=False, set_coverage=False):
+    def write_product(self, history: bool=False, set_coverage: bool=False) -> None:
         """Write the Checksum file and determine its start and stop time.
 
         This method can also be used to determine the start and stop time of
         the checksum file, necessary to determine these times for the
         miscellaneous collection before the checksum is actually written.
 
-        :param history: Archive History
-        :type history: dict
+        :param history:      Archive History
         :param set_coverage: Determines the start and stop of the checksum file
                              if set to True, False otherwise
-        :type set_coverage: bool
-        :return:
         """
         msn_acr = self.setup.mission_acronym
 
@@ -565,7 +557,7 @@ class ChecksumProduct(Product):
                 logging.info("-- Comparing checksum with previous version...")
                 self.compare()
 
-    def compare(self):
+    def compare(self) -> None:
         """**Compare the Checksum with the previous Checksum file**.
 
         The Checksum file is compared with the previous version.

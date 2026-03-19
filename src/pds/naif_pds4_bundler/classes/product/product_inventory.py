@@ -1,4 +1,4 @@
-"""Product Class and Child Classes Implementation."""
+"""Implementation of the Inventory product class."""
 import glob
 import logging
 import os
@@ -17,15 +17,13 @@ from ..log import error_message
 
 
 class InventoryProduct(Product):
-    """Product child Class that defines a Collection Inventory product.
+    """Class that defines a Collection Inventory product.
 
-    :param setup: NPB execution setup object
-    :type setup: object
+    :param setup:      NPB execution setup object
     :param collection: Collection that the inventory product belongs to
-    :type collection: object
     """
 
-    def __init__(self, setup: object, collection: object) -> object:
+    def __init__(self, setup, collection) -> None:
         """Constructor."""
         if collection.name != "miscellaneous":
             line = f"Step {setup.step} - Generation of {collection.name} collection"
@@ -135,15 +133,15 @@ class InventoryProduct(Product):
                 self.setup,
             )
 
-    def set_product_lid(self):
+    def set_product_lid(self) -> None:
         """Set the Product LID."""
         self.lid = f"{self.setup.logical_identifier}:document:spiceds"
 
-    def set_product_vid(self):
+    def set_product_vid(self) -> None:
         """Set the Product VID."""
         self.vid = "{}.0".format(int(self.version))
 
-    def write_product(self):
+    def write_product(self) -> None:
         """Write and validate the Collection inventory."""
         if self.setup.pds_version == "4":
             self.write_pds4_collection_product()
@@ -164,7 +162,7 @@ class InventoryProduct(Product):
         if self.setup.diff:
             self.compare()
 
-    def write_pds4_collection_product(self):
+    def write_pds4_collection_product(self) -> None:
         """Write the PDS4 Collection product."""
         #
         # If there is an existing version we need to add the items from
@@ -199,7 +197,7 @@ class InventoryProduct(Product):
                         )
                         f.write(line)
 
-    def write_pds3_index_product(self):
+    def write_pds3_index_product(self) -> None:
         """This method uses the previous index file to generate the new one.
 
         There is a NAIF Perl script that will generate an index file from a
@@ -330,7 +328,7 @@ class InventoryProduct(Product):
         self.row_bytes = len(line)
         self.rows = rows
 
-    def validate_pds4(self):
+    def validate_pds4(self) -> None:
         """Validate the PDS4 Inventory Product.
 
         The Inventory is validated by checking that all the products listed
@@ -359,7 +357,7 @@ class InventoryProduct(Product):
         logging.info("      OK")
         logging.info("")
 
-    def validate_pds3(self):
+    def validate_pds3(self) -> None:
         """Validate the PDS3 Index.
 
         The Inventory is validated by checking that all the products listed
@@ -368,7 +366,7 @@ class InventoryProduct(Product):
         """
         logging.info(f"-- Validating {self.name}...")
 
-    def compare(self):
+    def compare(self) -> None:
         """**Compare the Inventory Product with another Inventory**.
 
         The Inventory Product is compared with the previous

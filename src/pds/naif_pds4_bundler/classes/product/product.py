@@ -1,5 +1,4 @@
-"""Product Class and Child Classes Implementation."""
-
+"""Implementation of the Product base class."""
 import os
 import re
 
@@ -10,13 +9,13 @@ from ...utils import md5
 
 
 class Product(object):
-    """Parent Class that defines a generic archive product (or file).
+    """Class that defines a generic archive product (or file).
 
     Assigns value to the common attributes for all Products: file size,
     creation time and date, and file extension.
     """
 
-    def __init__(self) -> object:
+    def __init__(self) -> None:
         """Constructor."""
         stat_info = os.stat(self.path)
         self.size = str(stat_info.st_size)
@@ -62,7 +61,7 @@ class Product(object):
             self.setup.add_file(self.path.split(archive_dir)[-1])
             self.setup.add_checksum(self.path, checksum)
 
-    def get_mission_and_observer_and_target(self):
+    def get_mission_and_observer_and_target(self) -> tuple[str, str, str]:
         """Read the configuration to extract the missions, observers and the
         targets.
 
@@ -132,4 +131,4 @@ class Product(object):
                 observers = [self.setup.observer]
                 targets = [self.setup.target]
 
-        return (missions, observers, targets)
+        return missions, observers, targets

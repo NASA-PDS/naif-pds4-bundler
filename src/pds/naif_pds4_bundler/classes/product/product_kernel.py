@@ -1,4 +1,4 @@
-"""Product Class and Child Classes Implementation."""
+"""Implementation of the SPICE kernel file product class."""
 import logging
 import os
 import shutil
@@ -16,23 +16,18 @@ from ...utils import spk_coverage
 from ..label import SpiceKernelPDS3Label
 from ..label import SpiceKernelPDS4Label
 from ..log import error_message
-from ..object import Object
-from ..setup import Setup
 
 
 class SpiceKernelProduct(Product):
-    """Product child Class that defines a SPICE Kernel file archive product.
+    """Class that defines a SPICE Kernel file archive product.
 
     :param setup: NPB run Setup Object
-    :type setup: object
     :param name: SPICE Kernel filename
-    :type name: str
     :param collection: SPICE Kernel collection that will be a container of
                        the SPICE Kernel Product Object
-    :type collection: Object
     """
 
-    def __init__(self, setup: Setup, name: str, collection: object) -> object:
+    def __init__(self, setup, name: str, collection) -> None:
         """Constructor."""
         self.collection = collection
         self.setup = setup
@@ -169,11 +164,10 @@ class SpiceKernelProduct(Product):
             self.maklabel_options = self.read_maklabel_options()
             self.label = SpiceKernelPDS3Label(setup, self)
 
-    def product_lid(self):
+    def product_lid(self) -> str:
         """Determine product logical identifier (LID).
 
         :return: product LID
-        :rtype: str
         """
         product_lid = "{}:spice_kernels:{}_{}".format(
             self.setup.logical_identifier, self.type, self.name
@@ -181,24 +175,23 @@ class SpiceKernelProduct(Product):
 
         return product_lid
 
-    def product_vid(self):
+    @staticmethod
+    def product_vid() -> str:
         """Determine product logical identifier (VID).
 
         :return: product VID
-        :rtype: str
         """
         product_vid = "1.0"
 
         return product_vid
 
-    def read_description(self):
+    def read_description(self) -> str:
         """Read the kernel list to return the description.
 
         The generated kernel list file must be used because it contains the
         description.
 
         :return: Kernel Description from the Kernel List
-        :rtype: str
         """
         kernel_list_file = (
             self.setup.working_directory
@@ -226,14 +219,13 @@ class SpiceKernelProduct(Product):
 
         return description
 
-    def read_maklabel_options(self):
+    def read_maklabel_options(self) -> str:
         """Read the kernel list to return the ``MAKLABEL_OPTIONS``.
 
         The generated kernel list file must be used because it contains the
         ``MAKLABEL_OPTIONS``.
 
         :return: ``MAKLABEL_OPTIONS`` from kernel list
-        :rtype: str
         """
         kernel_list_file = (
             self.setup.working_directory
@@ -261,7 +253,7 @@ class SpiceKernelProduct(Product):
 
         return maklabel_options
 
-    def coverage(self):
+    def coverage(self) -> None:
         """Determine the product coverage."""
         system = "UTC"
         #
@@ -329,11 +321,10 @@ class SpiceKernelProduct(Product):
         self.start_time = coverage[0]
         self.stop_time = coverage[-1]
 
-    def ck_kernel_ids(self):
+    def ck_kernel_ids(self) -> str:
         """Extract IDs from CK.
 
         :return: List of IDs present in the CK
-        :rtype: list
         """
         ids = spiceypy.ckobj(f"{self.path}")
 
@@ -345,7 +336,7 @@ class SpiceKernelProduct(Product):
 
         return ",".join(id_list)
 
-    def ik_kernel_ids(self):
+    def ik_kernel_ids(self) -> str:
         """Extract IDs from IK.
 
         :return: List of IDs present in the IK

@@ -1,4 +1,4 @@
-"""Product Class and Child Classes Implementation."""
+"""Implementation of the Metakernel file product class."""
 import glob
 import logging
 import os
@@ -28,25 +28,22 @@ from ..log import error_message
 
 
 class MetaKernelProduct(Product):
-    """Product child class Meta-Kernel.
+    """Class that represents a Metakernel file.
 
-    :param setup: NPB execution setup object
-    :type setup: object
-    :param kernel: Meta-kernel path
-    :type kernel: str
+    :param setup:                    NPB execution setup object
+    :param kernel:                   Metakernel path
     :param spice_kernels_collection: SPICE Kernel Collection
-    :type spice_kernels_collection: object
-    :param user_input: Indicates whether if the meta-kernel is provided by the user
-    :type user_input: bool
+    :param user_input:               Indicates whether if the metakernel is
+                                     provided by the user
     """
 
     def __init__(
         self,
-        setup: object,
-        kernel: object,
-        spice_kernels_collection: object,
-        user_input: object = False,
-    ) -> object:
+        setup,
+        kernel: str,
+        spice_kernels_collection,
+        user_input: bool = False,
+    ) -> None:
         """Constructor."""
         if user_input:
             logging.info(f"-- Copy meta-kernel: {kernel}")
@@ -232,14 +229,14 @@ class MetaKernelProduct(Product):
             self.targets = targets
             self.observers = observers
 
-        Product.__init__(self)
+        super().__init__()
 
         if self.setup.pds_version == "4":
             logging.info("")
             logging.info(f"-- Labeling meta-kernel: {self.name}...")
             self.label = MetaKernelPDS4Label(setup, self)
 
-    def check_version(self):
+    def check_version(self) -> None:
         """Check if the provided Meta-kernel version is correct."""
         #
         # Distinguish in between the different kernels we can find in the
@@ -293,7 +290,7 @@ class MetaKernelProduct(Product):
             logging.warning("-- Meta-kernel from previous increment is not available.")
             logging.warning(f"   Version will be set to: {self.version}.")
 
-    def set_product_lid(self):
+    def set_product_lid(self) -> None:
         """Set the Meta-kernel LID."""
         if self.type == "mk":
             name = self.name.split("_v")[0]
@@ -306,7 +303,7 @@ class MetaKernelProduct(Product):
 
         self.lid = product_lid
 
-    def set_product_vid(self):
+    def set_product_vid(self) -> None:
         """Set the Meta-kernel VID.
 
         If the meta-kernel has been automatically generated as indicated in
@@ -338,7 +335,7 @@ class MetaKernelProduct(Product):
 
         self.vid = product_vid
 
-    def get_description(self):
+    def get_description(self) -> str:
         """Obtain the kernel product description information."""
         description = ""
         self.json_config = self.setup.kernel_list_config
@@ -473,7 +470,7 @@ class MetaKernelProduct(Product):
 
         return description
 
-    def write_product(self):
+    def write_product(self) -> None:
         """Write the Meta-kernel."""
         #
         # Obtain meta-kernel grammar from configuration.
@@ -766,9 +763,8 @@ class MetaKernelProduct(Product):
                                 print("Vi text editor is not available.")
                                 input(">> Press Enter to continue... ")
 
-        return
 
-    def compare(self):
+    def compare(self) -> None:
         """**Compare the Meta-kernel with the previous version**.
 
         The MK is compared with a previous version of the MK. If no prior
@@ -824,7 +820,7 @@ class MetaKernelProduct(Product):
         )
         compare_files(fromfile, tofile, dir, self.setup.diff)
 
-    def validate(self):
+    def validate(self) -> None:
         """Perform a basic validation of the Meta-kernel.
 
         The validation consists of:
@@ -892,7 +888,7 @@ class MetaKernelProduct(Product):
         os.chdir(cwd)
 
     @spice_exception_handler
-    def coverage(self):
+    def coverage(self) -> None:
         """Determine Meta-kernel coverage.
 
         Meta-kernel coverage is determined by:

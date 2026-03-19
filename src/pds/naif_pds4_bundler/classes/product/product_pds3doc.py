@@ -1,4 +1,4 @@
-"""Product Class and Child Classes Implementation."""
+"""Implementation of the PDS3 Document product class."""
 import logging
 import os
 
@@ -8,15 +8,13 @@ from ...utils import string_in_file
 
 
 class PDS3DocumentProduct(Product):
-    """Product child class that represents a PDS3 Document Product.
+    """Class that represents a PDS3 Document Product.
 
     :param setup: NPB execution setup object
-    :type setup: object
-    :param path: PDS3 Document path
-    :type path: str
+    :param path:  PDS3 Document path
     """
 
-    def __init__(self, setup: object, path: str) -> object:
+    def __init__(self, setup, path: str) -> None:
         """Constructor."""
         self.path = path
         self.setup = setup
@@ -43,9 +41,9 @@ class PDS3DocumentProduct(Product):
 
             self.validate()
 
-        Product.__init__(self)
+        super().__init__()
 
-    def validate(self):
+    def validate(self) -> None:
         """Try to validate the PDS3 document.
 
         The outcome of the validation is an INFO or a WARNING log message.

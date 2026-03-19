@@ -1,4 +1,4 @@
-"""Product Class and Child Classes Implementation."""
+"""Implementation of the readme file product class."""
 import logging
 import os
 import shutil
@@ -12,15 +12,13 @@ from ..object import Object
 
 
 class ReadmeProduct(Product):
-    """Product child class to generate the Readme Product.
+    """Class to generate the Readme Product.
 
-    :param setup: NPB execution setup object
-    :type setup: object
+    :param setup:  NPB execution setup object
     :param bundle: Bundle that contains the Readme Product
-    :type bundle: object
     """
 
-    def __init__(self, setup: object, bundle: object) -> object:
+    def __init__(self, setup, bundle) -> None:
         """Constructor."""
         line = f"Step {setup.step} - Generation of bundle products"
         logging.info("")
@@ -59,7 +57,7 @@ class ReadmeProduct(Product):
             #
             self.bundle.checksum = md5(self.path)
 
-        Product.__init__(self)
+        super().__init__()
 
         logging.info("")
 
@@ -71,13 +69,13 @@ class ReadmeProduct(Product):
         logging.info("-- Generating bundle label...")
         self.label = BundlePDS4Label(setup, self)
 
-    def write_product(self):
+    def write_product(self) -> None:
         """Write the Readme product."""
         line_length = 0
 
         #
         # If the readme file is provided via configuration copy it, otherwise
-        # generate it with the tempalte.
+        # generate it with the template.
         #
         if (not os.path.isfile(self.path)) and ("input" in self.setup.readme):
             if os.path.exists(self.setup.readme["input"]):

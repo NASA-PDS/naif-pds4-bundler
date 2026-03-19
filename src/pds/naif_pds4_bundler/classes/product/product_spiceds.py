@@ -1,4 +1,4 @@
-"""Product Class and Child Classes Implementation."""
+"""Implementation of the SPICE DS file product class."""
 import difflib
 import filecmp
 import glob
@@ -15,15 +15,13 @@ from ..log import error_message
 
 
 class SpicedsProduct(Product):
-    """Product child class to process the SPICEDS file.
+    """Class to process the SPICEDS file.
 
-    :param setup: NPB execution setup object
-    :type setup: object
+    :param setup:      NPB execution setup object
     :param collection: Collection that the inventory product belongs to
-    :type collection: object
     """
 
-    def __init__(self, setup: object, collection: object) -> object:
+    def __init__(self, setup, collection) -> None:
         """Constructor."""
         self.setup = setup
         self.collection = collection
@@ -126,7 +124,7 @@ class SpicedsProduct(Product):
         # Kernels are already generated products but Inventories are not.
         #
         self.new_product = True
-        Product.__init__(self)
+        super().__init__()
 
         #
         # Check if the spiceds has not changed.
@@ -142,15 +140,15 @@ class SpicedsProduct(Product):
 
             self.label = DocumentPDS4Label(setup, collection, self)
 
-    def set_product_lid(self):
+    def set_product_lid(self) -> None:
         """Set the Product LID."""
         self.lid = f"{self.setup.logical_identifier}:document:spiceds".lower()
 
-    def set_product_vid(self):
+    def set_product_vid(self) -> None:
         """Set the Product VID."""
         self.vid = "{}.0".format(int(self.version))
 
-    def check_cr(self):
+    def check_cr(self) -> None:
         """Determine whether if ``<CR>`` has to be added to the SPICEDS."""
         #
         # We add the date to the temporary file to have a unique name.
@@ -177,11 +175,10 @@ class SpicedsProduct(Product):
                 "-- Carriage Return has been added to lines in the spiceds file."
             )
 
-    def check_product(self):
+    def check_product(self) -> bool:
         """Check if the SPICEDS product needs to be generated.
 
         :return: True if the SPICEDS products needs to be generated, False otherwise
-        :rtype: bool
         """
         #
         # If the previous spiceds document is the same then it does not
@@ -214,7 +211,7 @@ class SpicedsProduct(Product):
 
         return generate_spiceds
 
-    def compare(self):
+    def compare(self) -> None:
         """**Compare the SPICEDS Product with another SPICEDS**.
 
         The SPICEDS Product is compared with the previous
