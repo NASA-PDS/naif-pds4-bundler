@@ -1203,7 +1203,10 @@ class KernelList(List):
             # Check binary kernel endianness.
             #
             if product.split(".")[-1].strip()[0].lower() == "b":
-                error = check_binary_endianness(origin_path)
+                # This step currently works only for PDS4 archives, and
+                # disregards the configuration file's binary_endianness input
+                # value.
+                error = check_binary_endianness(origin_path, endianness='little')
                 if error:
                     product_errors[product].append(error)
 

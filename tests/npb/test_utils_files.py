@@ -13,6 +13,52 @@ KERNELS = Path(__file__).parent.parent / "naif_pds4_bundler" / "data" / "kernels
 
 
 # ----------------------------------------------------------------------------
+# files.check_binary_endianness tests
+# ----------------------------------------------------------------------------
+@pytest.mark.parametrize("kernel, endianness, expected_error",[
+    # Tests for "required little endian kernels."
+    (Path('ck', 'insight_ida_enc_200829_201220_v1.bc'), 'little', None),
+    (Path('ck', 'mro_sc_psp_210706_210712.big.bc'), 'little',
+     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
+    (Path('dsk', 'DEIMOS_K005_THO_V01.BDS'), 'little', None),
+    (Path('dsk', 'deimos_k005_tho_v01.big.bds'), 'little',
+     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
+    (Path('pck', 'lunar_de403s_pa_v0.bpc'), 'little', None),
+    (Path('pck', 'lunar_de403s_pa_v0.big.bpc'), 'little',
+     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
+    (Path('spk', 'm2020_cruise_od138_v1.bsp'), 'little', None),
+    (Path('spk', 'mro_psp60.big.bsp'), 'little',
+     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
+    # Tests for "required big endian kernels."
+    (Path('ck', 'insight_ida_enc_200829_201220_v1.bc'), 'big',
+     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
+    (Path('ck', 'mro_sc_psp_210706_210712.big.bc'), 'big', None),
+    (Path('dsk', 'DEIMOS_K005_THO_V01.BDS'), 'big',
+     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
+    (Path('dsk', 'deimos_k005_tho_v01.big.bds'), 'big', None),
+    (Path('pck', 'lunar_de403s_pa_v0.bpc'), 'big',
+     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
+    (Path('pck', 'lunar_de403s_pa_v0.big.bpc'), 'big', None),
+    (Path('spk', 'm2020_cruise_od138_v1.bsp'), 'big',
+     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
+    (Path('spk', 'mro_psp60.big.bsp'), 'big', None),
+    # Tests for "invalid SPICE kernel architecture."
+    (Path('ck', 'insight_ida_enc_200829_201220_v1.xc'), 'little',
+     'The binary kernel does not have a DAF or DAS architecture.'),
+    (Path('pck', 'pck00010.tpc'), 'little',
+     'The binary kernel does not have a DAF or DAS architecture.'),
+    (Path('ck', 'insight_ida_enc_200829_201220_v1.xc'), 'big',
+     'The binary kernel does not have a DAF or DAS architecture.'),
+    (Path('pck', 'pck00010.tpc'), 'big',
+     'The binary kernel does not have a DAF or DAS architecture.'),
+    # TODO: Add tests for EKs (.bdb and .bes)
+])
+def test_check_binary_endianness(kernel, endianness, expected_error) -> None:
+    """Test checking binary file format."""
+    error = files.check_binary_endianness(str(KERNELS / kernel), endianness=endianness)
+    assert error == expected_error
+
+# ----------------------------------------------------------------------------
 # files.check_kernel_integrity tests
 # ----------------------------------------------------------------------------
 

@@ -11,8 +11,12 @@ import os
 import re
 import shutil
 import stat
+import sys
+from typing import Optional
 
 import spiceypy
+from spiceypy.utils.exceptions import SpiceUNSUPPORTEDBFF
+
 
 from ..classes.log import error_message
 
@@ -1013,7 +1017,7 @@ def check_kernel_integrity(path):
     return error
 
 
-def check_binary_endianness(path):
+def check_binary_endianness(path: str, endianness: str) -> Optional[str]:
     """Check if the SPICE Kernel has the adequate architecture.
 
     PDS4 Bundles require LTL-IEEE binary kernels and PDS3 data sets require
@@ -1022,31 +1026,49 @@ def check_binary_endianness(path):
     This method ensures that the endianness of binary kernels is the
     appropriate one according to the configuration.
 
-    :param path: Binary SPICE kernel path
-    :type path: str
-    :return: Error message if error present
-    :rtype: list
-    """
-    error = ""
+    :param path:       Binary SPICE kernel path
+    :param endianness: Required endianness of the binary SPICE kernel file.
 
-    if path.split(".")[-1].lower() == "bds":
-        arch = "das"
-    else:
-        arch = "daf"
+    :return: Error message, if error present. Otherwise, None.
+    """
+    # Check the file architecture of the SPICE kernel. If the kernel is not
+    # based on DAF or DAS architecture, report the error.
+    arch, _ = spiceypy.getfat(path)
+    if arch not in ['DAF', 'DAS']:
+        return 'The binary kernel does not have a DAF or DAS architecture.'
+
+    # At this point, we can check the endianness of the binary SPICE kernel.
+    # Since there is no SPICE API to perform this check, we will try to open
+    # the file for writing and immediately after, close it. SPICE will produce
+    # a SPICE(UNSUPPORTEDBFF) error if the endianness of the file does not
+    # correspond to the endianness of the platform in which NPB is executed.
     try:
-        if arch == "daf":
+        if arch == "DAF":
             handle = spiceypy.dafopw(path)
             spiceypy.dafcls(handle)
-        elif arch == "das":
+        else: # DAS architecture
             handle = spiceypy.dasopw(path)
             spiceypy.dascls(handle)
-        else:
-            error = "The binary kernel does not have the a DAF or DAS architecture."
 
-    except BaseException:
-        error = "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."
+        # Getting to this point means that the file and the platform in
+        # which NPB is executed have the same architecture.
+        equal_endianness = True
 
-    return error
+    except SpiceUNSUPPORTEDBFF:
+        # There is no need to call the SPICE API to close the binary SPICE
+        # kernel, since the open process did not complete. The open call
+        # retuning with SPICE(UNSUPPORTEDBFF) indicates that the file and
+        # the platform in which NPB is executed have different architecture.
+        equal_endianness = False
+
+    # By comparing the result of comparing the platform byte order to the
+    # expected file endianness, and the result of the previous analysis,
+    # we can find out if the file has the expected endianness.
+    if (endianness == sys.byteorder) != equal_endianness:
+        return ("The kernel cannot be loaded because of its endianness. "
+                "Use NAIF's utility BINGO to convert the file.")
+
+    return None
 
 
 def check_badchar(file):

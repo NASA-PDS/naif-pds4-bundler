@@ -1,135 +1,25 @@
-"""Collection Class amd Child Classes Implementation."""
+"""Implementation of the PDS4 SPICE Kernels Collection Class."""
 import glob
 import logging
 import os
 
 import spiceypy
 
-from ..utils import et_to_date
-from ..utils import extension_to_type
-from .log import error_message
-from .product import PDS3DocumentProduct
-
-
-class Collection(object):
-    """Class to generate a PDS4 Collection.
-
-    :param type: Collection type: kernels, documents or miscellaneous
-    :type type: str
-    :param setup: Setup Object
-    :type setup: object
-    :param bundle: Bundle Object to which the Collection belongs to
-    :type bundle: object
-    """
-
-    def __init__(self, type: str, setup: object, bundle: object) -> object:
-        """Constructor."""
-        self.product = []
-        self.name = type
-        self.setup = setup
-        self.bundle = bundle
-
-        #
-        # To know whether if the collection has been updated or not.
-        #
-        self.updated = False
-
-        if setup.pds_version == "4":
-            self.set_collection_lid()
-
-    def add(self, element):
-        """Add a Product to the Collection.
-
-        :param element: Product to add to Collection
-        :type element: object
-        """
-        self.product.append(element)
-
-        #
-        # If an element has been added to the collection then, the collection
-        # must be updated.
-        #
-        self.updated = True
-
-    def set_collection_lid(self):
-        """Set the Bundle LID."""
-        if self.setup.pds_version != "3":
-            self.lid = f"{self.setup.logical_identifier}:{self.type}"
-
-    def set_collection_vid(self):
-        """Set the Bundle VID.
-
-        In general Collection versions are not equal to the release number.
-        If the collection has been updated we obtain the increased
-        version, but if it has not been updated we use the previous
-        version.
-
-        Given the case thatt he version cannot be determined: if it is the
-        SPICE kernels collection assume is the same version as the bundle,
-        otherwise we set it to 1.
-        """
-        if self.setup.increment:
-            try:
-                versions = glob.glob(
-                    f"{self.setup.bundle_directory}/"
-                    f"{self.setup.mission_acronym}_spice/"
-                    f"{self.name}/*{self.name}*"
-                )
-                versions += glob.glob(
-                    f"{self.setup.staging_directory}/{self.name}/*{self.name}*"
-                )
-
-                versions.sort()
-
-                if self.updated:
-                    version = int(versions[-1].split("v")[-1].split(".")[0]) + 1
-                else:
-                    version = int(versions[-1].split("v")[-1].split(".")[0])
-
-                vid = "{}.0".format(version)
-                logging.info(
-                    f"-- Collection of {self.type} version set to "
-                    f"{version}, derived from:"
-                )
-                logging.info(f"   {versions[-1]}")
-                logging.info("")
-
-            except BaseException:
-                if self.name == "spice_kernel":
-                    ver = int(self.setup.release)
-                else:
-                    ver = 1
-
-                logging.warning(
-                    f"-- No {self.type} collection available in previous increment."
-                )
-                logging.warning(f"-- Collection of {self.type} version set to: {ver}.")
-                vid = "{}.0".format(ver)
-                logging.info("")
-
-        else:
-            logging.warning(
-                f"-- Collection of {self.type} version set "
-                f"to: {int(self.setup.release)}."
-            )
-            vid = "{}.0".format(int(self.setup.release))
-            logging.info("")
-
-        self.vid = vid
+from .collection import Collection
+from ..log import error_message
+from ...utils import et_to_date
+from ...utils import extension_to_type
 
 
 class SpiceKernelsCollection(Collection):
-    """Collection child class to generate a PDS4 SPICE Kernels Collection.
+    """Class to generate a PDS4 SPICE Kernels Collection.
 
-    :param setup: NPB execution setup object
-    :type setup: object
-    :param bundle: Bundle object
-    :type bundle: object
-    :param list: Kernel List object
-    :type list: object
+    :param setup:   NPB execution setup object
+    :param bundle:  Bundle object
+    :param kernels: Kernel List object
     """
 
-    def __init__(self, setup: object, bundle: object, list: object) -> object:
+    def __init__(self, setup, bundle, kernels) -> None:
         """Constructor."""
         line = f"Step {setup.step} - SPICE kernel collection/data processing"
         logging.info("")
@@ -141,7 +31,7 @@ class SpiceKernelsCollection(Collection):
             print("-- " + line.split(" - ")[-1] + ".")
 
         self.bundle = bundle
-        self.list = list
+        self.list = kernels
         self.type = "spice_kernels"
         """Collection type (`str`)."""
 
@@ -149,7 +39,7 @@ class SpiceKernelsCollection(Collection):
             self.start_time = setup.mission_start
             self.stop_time = setup.mission_finish
 
-        Collection.__init__(self, self.type, setup, bundle)
+        super().__init__(self.type, setup, bundle)
 
     def determine_meta_kernels(self):
         """Determine the name of the Meta-kernel(s) to be generated.
@@ -401,7 +291,7 @@ class SpiceKernelsCollection(Collection):
                         prev_increment_finish = line.split(">")[-2].split("<")[0]
 
             #
-            # Provide different logging level depending on the times
+            # Provide different logging level depending on the times'
             # combination.
             #
             logging.info("-- Previous bundle increment interval is:")
@@ -612,78 +502,3 @@ class SpiceKernelsCollection(Collection):
         logging.info("")
 
         return None
-
-
-class DocumentCollection(Collection):
-    """Collection child class to generate a PDS3 or PDS4 Document Collection.
-
-    :param setup: NPB execution setup object
-    :type setup: object
-    :param bundle: Bundle object
-    :type bundle: object
-    """
-
-    def __init__(self, setup: object, bundle: object) -> object:
-        """Constructor."""
-        if setup.pds_version == "3":
-            self.type = "DOCUMENT"
-        elif setup.pds_version == "4":
-            self.type = "document"
-
-        Collection.__init__(self, self.type, setup, bundle)
-
-    def get_pds3_documents(self):
-        """Collects the updated PDS3 documents for the increment."""
-        line = f"Step {self.setup.step} - Generation of PDS3 products"
-        logging.info("")
-        logging.info(line)
-        logging.info("-" * len(line))
-        self.setup.step += 1
-        if not self.setup.args.silent and not self.setup.args.verbose:
-            print("-- " + line.split(" - ")[-1] + ".")
-
-        for file in glob.glob(
-            f"{self.setup.staging_directory}/**/*[.]*", recursive=True
-        ):
-            if ".txt" in file or ".cat" in file or "aareadme." in file:
-                document = PDS3DocumentProduct(self.setup, file)
-
-                if document.new_product:
-                    self.add(document)
-
-
-class MiscellaneousCollection(Collection):
-    """Collection child class to generate a PDS4 Document Collection.
-
-    :param setup: NPB execution setup object
-    :type setup: object
-    :param bundle: Bundle object
-    :type bundle: object
-    :param list: Kernel List object
-    :type list: object
-    """
-
-    def __init__(self, setup: object, bundle: object, list: object) -> object:
-        """Constructor."""
-        if setup.pds_version == "4":
-            self.type = "miscellaneous"
-        else:
-            self.type = "extras"
-
-        #
-        # Included for ORBNUM files observers and targets.
-        #
-        self.list = list
-
-        Collection.__init__(self, self.type, setup, bundle)
-
-    def report(self):
-        """Report the Collection generation step."""
-        line = f"Step {self.setup.step} - Generation of {self.type} collection"
-        logging.info("")
-        logging.info(line)
-        logging.info("-" * len(line))
-        logging.info("")
-        self.setup.step += 1
-        if not self.setup.args.silent and not self.setup.args.verbose:
-            print("-- " + line.split(" - ")[-1] + ".")
