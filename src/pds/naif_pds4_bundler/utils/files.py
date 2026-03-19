@@ -1,21 +1,16 @@
 """File and Text Management Functions to support NPB Classes."""
-
+from collections import defaultdict
 import difflib
 import errno
 import glob
 import hashlib
+from importlib.resources import files
 import json
 import logging
 import os
 import re
 import shutil
 import stat
-from collections import defaultdict
-
-try:
-    from importlib.resources import files
-except ImportError:  # Python 3.8
-    from importlib_resources import files
 
 import spiceypy
 
