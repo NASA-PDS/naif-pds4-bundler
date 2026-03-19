@@ -146,6 +146,18 @@ def main(
     # Pass the structured arguments to the pipeline orchestrator
     npb.run_pipeline(args)
 
+    # TODO: Add try/except block; include specific exception within the
+    #       pipeline for "fatal" errors, and add a fallback option for
+    #       all other exceptions:
+    # try:
+    #     args = cli_npb.parse_arguments()
+    #     npb.run_pipeline(args)
+    # except NPBException:
+    #     return 1
+    # except Exception:
+    #     print(f"An unexpected error occurred:\n\n{e}\n\n"
+    #            "Please report it via [add url]", file=sys.stderr)
+    #     return 1
 
 if __name__ == "__main__":
     main()
