@@ -4,15 +4,12 @@ import logging
 import os
 import shutil
 
-import numpy as np
-
 from .product import Product
 from ...utils import add_carriage_return
 from ...utils import compare_files
 from ...utils import replace_string_in_file
 from ...utils import type_to_extension
-from ..label import InventoryPDS3Label
-from ..label import InventoryPDS4Label
+from ..label import InventoryPDS3Label, InventoryPDS4Label
 from ..log import error_message
 
 
@@ -205,7 +202,7 @@ class InventoryProduct(Product):
         script.
         """
         current_index = list()
-        column_length = np.zeros(10)
+        column_length = [0] * 10
 
         if self.setup.increment:
             existing_index = (
@@ -275,9 +272,9 @@ class InventoryProduct(Product):
                     if i < 2 or i == 4 or i == 6:
                         if col == "N/A":
                             col = '"N/A"'
-                        line += f'{col}{" " * (int(column_length[i]) - len(col))}'
+                        line += f'{col}{" " * (column_length[i] - len(col))}'
                     else:
-                        line += f'"{col}{" " * (int(column_length[i]) - len(col) - 2)}"'
+                        line += f'"{col}{" " * (column_length[i] - len(col) - 2)}"'
                         line_for_length = line
                     if i != 9:
                         line += ","
