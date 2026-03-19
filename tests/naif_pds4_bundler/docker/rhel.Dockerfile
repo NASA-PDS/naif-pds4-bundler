@@ -43,7 +43,6 @@ RUN python3.9 -m pip install beautifulsoup4
 RUN python3.9 -m pip install nose
 RUN python3.9 -m pip install pytest
 RUN python3.9 -m pip install xmlschema
-RUN python3.9 -m pip install numpy
 RUN python3.9 -m pip install soupsieve
 RUN python3.9 -m pip install elementpath
 RUN python3.9 -m pip install coverage
