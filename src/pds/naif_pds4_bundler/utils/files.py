@@ -1,9 +1,10 @@
 """File and Text Management Functions to support NPB Classes."""
-
+from collections import defaultdict
 import difflib
 import errno
 import glob
 import hashlib
+from importlib.resources import files
 import json
 import logging
 import os
@@ -11,7 +12,6 @@ import re
 import shutil
 import stat
 import sys
-from collections import defaultdict
 from typing import Optional
 
 import spiceypy
@@ -312,10 +312,10 @@ def get_context_products(setup):
     #
     # Load the default context products
     #
-    registered_context_products_file = (
-        f"{setup.root_dir}data/registered_context_products.json"
+    registered_context_products_file = str(
+        files('pds.naif_pds4_bundler.data').joinpath('registered_context_products.json')
     )
-    with open(registered_context_products_file, "r") as f:
+    with open(registered_context_products_file, "rt") as f:
         context_products = json.load(f)["Product_Context"]
 
     #
@@ -347,49 +347,29 @@ def get_context_products(setup):
                         }
                     )
 
-    if appended_products:
-        for product in appended_products:
-            context_products.append(product)
+    context_products.extend(appended_products)
 
-    #
-    # Return the context products used in the bundle.
-    #
-    bundle_context_products = []
+    # Define the basic context products used in the bundle.
     config_context_products = [setup.mission_name, setup.observer, setup.target]
 
-    #
-    # Check the secondary missions and if present add them to the
-    # Configuration for context products.3
-    #
-    if hasattr(setup, "secondary_missions"):
-        for mis in setup.secondary_missions:
-            config_context_products.append(mis)
+    # If the NPB configuration file has information about
+    #    - secondary missions
+    #    - secondary observers (spacecraft)
+    #    - secondary targets
+    # add them to the configuration for context products.
+    config_context_products.extend(getattr(setup, "secondary_missions", []))
+    config_context_products.extend(getattr(setup, "secondary_observers", []))
+    config_context_products.extend(getattr(setup, "secondary_targets", []))
 
-    #
-    # Check the secondary s/c and if present add them to the
-    # Configuration for context products.3
-    #
-    if hasattr(setup, "secondary_observers"):
-        for sc in setup.secondary_observers:
-            config_context_products.append(sc)
+    # We will return all existing context products independently of the
+    # product name case. Since we are not considering the case, reduce the
+    # number of configured context products to a set of "unique strings, not
+    # considering string case."
+    config_context_products = {p.lower() for p in config_context_products}
 
-    #
-    # Check the secondary targets and if present add them to the
-    # Configuration for context products.3
-    #
-    if hasattr(setup, "secondary_targets"):
-        for tar in setup.secondary_targets:
-            config_context_products.append(tar)
-
-    for context_product in context_products:
-        for config_product in config_context_products:
-            #
-            # For the conditional statement we need to put both names lower case.
-            #
-            if context_product["name"][0].lower() == config_product.lower():
-                bundle_context_products.append(context_product)
-
-    return bundle_context_products
+    # Return the list of context products used in the bundle.
+    return [cp for cp in context_products
+            if cp["name"][0].lower() in config_context_products]
 
 
 def mk_to_list(mk, setup):
