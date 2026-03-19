@@ -4,6 +4,7 @@ import logging
 import os
 import re
 import shutil
+from typing import List
 
 from .product import Product
 from ...utils.time import parse_date
@@ -494,7 +495,7 @@ class OrbnumFileProduct(Product):
 
         return records
 
-    def set_event_detection_key(self, header: list[str]) -> None:
+    def set_event_detection_key(self, header: List[str]) -> None:
         """Obtain the OrbNum event detection key.
 
         The event detection key is a string identifying which geometric event
@@ -595,7 +596,7 @@ class OrbnumFileProduct(Product):
 
         return opp_event_dict[event]
 
-    def get_params(self, header: list[str]) -> None:
+    def get_params(self, header: List[str]) -> None:
         """Obtain the parameters present in the OrbNum file.
 
         Currently, there are 11 orbital parameters available:
@@ -668,7 +669,7 @@ class OrbnumFileProduct(Product):
 
         self._params = parameters
 
-    def set_params(self, header: list[str]) -> None:
+    def set_params(self, header: List[str]) -> None:
         """Define the parameters' template dictionary.
 
         :param header: OrbNum file header line

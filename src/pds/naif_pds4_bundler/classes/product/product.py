@@ -1,6 +1,7 @@
 """Implementation of the Product base class."""
 import os
 import re
+from typing import Tuple
 
 from ...utils import checksum_from_label
 from ...utils import checksum_from_registry
@@ -61,7 +62,7 @@ class Product(object):
             self.setup.add_file(self.path.split(archive_dir)[-1])
             self.setup.add_checksum(self.path, checksum)
 
-    def get_mission_and_observer_and_target(self) -> tuple[str, str, str]:
+    def get_mission_and_observer_and_target(self) -> Tuple[str, str, str]:
         """Read the configuration to extract the missions, observers and the
         targets.
 

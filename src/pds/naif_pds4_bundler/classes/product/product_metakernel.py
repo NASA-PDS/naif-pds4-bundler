@@ -763,7 +763,6 @@ class MetaKernelProduct(Product):
                                 print("Vi text editor is not available.")
                                 input(">> Press Enter to continue... ")
 
-
     def compare(self) -> None:
         """**Compare the Meta-kernel with the previous version**.
 
