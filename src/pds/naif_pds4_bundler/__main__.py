@@ -51,12 +51,12 @@ optional arguments:
 
 """
 from .cli import cli_npb
-from .classes.object import Object
 from .pipeline import npb
+from .utils.types.datatypes import PipelineArgs
 
 
 def main(
-    config=False,
+    config="",
     plan=False,
     faucet="",
     log=False,
@@ -130,18 +130,18 @@ def main(
     # main function argument list.
     #
     else:
-        args = Object()
-        args.config = config
-        args.plan = plan
-        args.faucet = faucet
-        args.log = log
-        args.silent = silent
-        args.verbose = verbose
-        args.diff = diff
-        args.debug = debug
-        args.clear = clear
-        args.kerlist = kerlist
-        args.checksum = checksum
+        args = PipelineArgs(
+            config=config,
+            plan=plan,
+            faucet=faucet,
+            log=log,
+            silent=silent,
+            verbose=verbose,
+            diff=diff,
+            debug=debug,
+            clear=clear,
+            kerlist=kerlist,
+            checksum=checksum)
 
     # Pass the structured arguments to the pipeline orchestrator
     npb.run_pipeline(args)

@@ -16,9 +16,10 @@ from ..classes.product import OrbnumFileProduct
 from ..classes.product import SpicedsProduct
 from ..classes.product import SpiceKernelProduct
 from ..classes.setup import Setup
+from ..utils.types.datatypes import PipelineArgs
 
 
-def run_pipeline(args):
+def run_pipeline(args: PipelineArgs) -> None:
     """NAIF PDS4 Bundler pipeline for the archive generation.
 
     :param args: Command line arguments, with the following attributes:
