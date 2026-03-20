@@ -34,6 +34,7 @@ class ReadmeProduct(Product):
         self.path = setup.staging_directory + os.sep + self.name
         self.setup = setup
         self.vid = bundle.vid
+        # TODO: Remove Object from the following lines.
         self.collection = Object()
         self.collection.name = ""
 

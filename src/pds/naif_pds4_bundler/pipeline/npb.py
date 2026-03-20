@@ -107,9 +107,9 @@ def run_pipeline(args: PipelineArgs) -> None:
     setup.set_release()
 
     #
-    # * If the pipeline is running to clean-up a previous run, remove all the
+    # * If the pipeline is running to clean up a previous run, remove all the
     #   files in the bundle and staging area indicated by the file list and
-    #   clean-up the kernel list and log from the previous run.
+    #   clean up the kernel list and log from the previous run.
     #
     if args.clear:
         setup.clear_run()
@@ -129,7 +129,7 @@ def run_pipeline(args: PipelineArgs) -> None:
 
     #
     #    * If a plan file is provided it is processed otherwise a plan is
-    #      generated from the kernels directory.
+    #      generated from the kernels' directory.
     #
     #    * If NPB is run in label generation mode and no input products are
     #      found, stop the execution.
@@ -187,12 +187,12 @@ def run_pipeline(args: PipelineArgs) -> None:
     setup.load_kernels()
 
     #
-    # * Initialise the SPICE Kernels Collection.
+    # * Initialize the SPICE Kernels Collection.
     #
     spice_kernels_collection = SpiceKernelsCollection(setup, bundle, list)
 
     #
-    # * Initialise the Miscellaneous Collection.
+    # * Initialize the Miscellaneous Collection.
     #
     miscellaneous_collection = MiscellaneousCollection(setup, bundle, list)
 
@@ -268,9 +268,9 @@ def run_pipeline(args: PipelineArgs) -> None:
     #
     # * Validate the SPICE Kernels collection:
     #    * Note the validation of products is performed after writing the
-    #      product itself and therefore it is not explicitly executed
+    #      product itself and, therefore, it is not explicitly executed
     #      from at object initialization.
-    #    * Check that there is a XML label for each file under spice_kernels.
+    #    * Check if there is an XML label for each file under spice_kernels.
     #
     spice_kernels_collection.validate()
 
@@ -311,14 +311,14 @@ def run_pipeline(args: PipelineArgs) -> None:
 
         #
         # * Add the SPICE Kernels Collection to the Bundle.
-        #   Note that the Collections are provided to the Bundle Object
+        #   Note that the Collections are provided to the Bundle object
         #   in a given order.
         #
         bundle.add(spice_kernels_collection)
 
         #
         # * Generate the Miscellaneous collection. The Checksum product
-        #   is initialised in such a way that its name can be obtained.
+        #   is initialized in such a way that its name can be obtained.
         #
         # * The first thing that is checked is whether if the current
         #   Bundle has checksums, if not, all the checksums are generated,
@@ -340,7 +340,7 @@ def run_pipeline(args: PipelineArgs) -> None:
                     release_checksum.generate(history=release)
 
                     #
-                    # Initialise a miscellaneous collection for this previous
+                    # Initialize a miscellaneous collection for this previous
                     # release.
                     #
                     release_miscellaneous_collection = MiscellaneousCollection(

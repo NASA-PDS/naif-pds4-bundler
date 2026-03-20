@@ -383,8 +383,7 @@ def mk_to_list(mk, setup):
 
     :param mk: Meta-kernel path from which the list of kernels is generated
     :type mk: str
-    :param setup: NPB run Setup Object
-    :type setup: object
+    :param setup: NPB run Setup object
     :return: List of kernels present in the meta-kernel
     :rtype: list
     """
@@ -863,8 +862,7 @@ def replace_string_in_file(file, old_string, new_string, setup):
     :type old_string: str
     :param new_string: String to be replaced
     :type new_string: str
-    :param setup: NPB run Setup Object
-    :type setup: object
+    :param setup: NPB run Setup object
     """
     reading_file = open(file, "r")
 
