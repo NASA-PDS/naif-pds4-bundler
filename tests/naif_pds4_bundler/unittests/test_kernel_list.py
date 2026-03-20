@@ -1,20 +1,16 @@
 """Unit tests for kernel list generation."""
-
-# import os
 import shutil
 
-# import unittest
 from pathlib import Path
 
-# from unittest import TestCase
 from xml.etree import cElementTree
 
 from pds.naif_pds4_bundler.__main__ import main
 from pds.naif_pds4_bundler.classes.list import KernelList
-from pds.naif_pds4_bundler.classes.object import Object
 from pds.naif_pds4_bundler.classes.setup import Setup
 from pds.naif_pds4_bundler.utils import etree_to_dict
 from pds.naif_pds4_bundler.utils.files import string_in_file
+from pds.naif_pds4_bundler.utils.types.datatypes import PipelineArgs
 
 
 def test_pds3_msl_list(self):
@@ -360,15 +356,15 @@ def test_xml_reader(self):
     # Dummy initialization values for Setup class
     #
     version = "X.Y.Z"
-    args = Object()
-
-    args.config = "../config/insight.xml"
-    args.plan = False
-    args.faucet = ""
-    args.diff = ""
-    args.silent = False
-    args.verbose = True
-    args.debug = False
+    args = PipelineArgs(
+        config = "../config/insight.xml",
+        plan = None,
+        faucet = "",
+        diff = "",
+        silent = False,
+        verbose = True,
+        debug = False
+    )
 
     setup = Setup(args, version)
     setup.templates_directory = "../templates/1.5.0.0"
