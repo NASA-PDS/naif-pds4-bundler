@@ -67,47 +67,6 @@ def run_pipeline(args: PipelineArgs) -> None:
         checksum: bool
     """
     #
-    # Turn lowercase or uppercase arguments that need it.
-    #
-    args.faucet = args.faucet.lower()
-    args.diff = args.diff.lower()
-
-    #
-    # Set silent to False if verbose is set to True.
-    #
-    if args.verbose:
-        args.silent = False
-
-    #
-    # Force logging if Diff files are provided with the log.
-    #
-    if args.diff == "log" or args.diff == "all":
-        args.log = True
-
-    #
-    # Set faucet to plan if clear is provided.
-    #
-    if args.clear and not args.faucet:
-        args.faucet = "clear"
-
-    #
-    # Check if string optional parameters are correct.
-    #
-    if args.diff not in ["all", "log", "files", ""]:
-        raise Exception("-d, --diff argument has incorrect value.")
-    if args.faucet not in [
-        "clear",
-        "plan",
-        "list",
-        "checks",
-        "staging",
-        "bundle",
-        "labels",
-        "",
-    ]:
-        raise Exception("-f, --faucet argument has incorrect value.")
-
-    #
     # The pipeline execution per se starts now.
     #
     # * Generate the Setup object

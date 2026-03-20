@@ -19,7 +19,6 @@ from ..utils import etree_to_dict
 from ..utils import kernel_name
 from ..utils import spice_exception_handler
 from .log import error_message
-from .object import Object
 
 
 class Setup(object):
@@ -31,7 +30,7 @@ class Setup(object):
     :type version: str
     """
 
-    def __init__(self, args: Object, version: str) -> object:
+    def __init__(self, args, version: str) -> object:
         """Constructor."""
         try:
             #
