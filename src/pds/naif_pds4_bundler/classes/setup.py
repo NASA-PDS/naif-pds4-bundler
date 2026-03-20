@@ -171,8 +171,8 @@ class Setup(object):
         self.step = 1
         self.version = version
         self.args = args
-        self.faucet = args.faucet.lower()
-        self.diff = args.diff.lower()
+        self.faucet = args.faucet
+        self.diff = args.diff
         self.today = datetime.date.today().strftime("%Y%m%d")
         self.file_list = []
         self.checksum_registry = []
