@@ -6,8 +6,9 @@ import os
 import shutil
 import unittest
 
-from pds.naif_pds4_bundler.__main__ import main
+from pds.naif_pds4_bundler.pipeline.npb import run_pipeline
 from pds.naif_pds4_bundler.utils import extract_comment
+from pds.naif_pds4_bundler.utils.types.datatypes import PipelineArgs
 
 
 def compare(self):
@@ -109,5 +110,5 @@ def test_msl(self):
 
     shutil.copytree("../data/msl/mslsp_1000", f"{self.pds3_dir}/{self.volid}")
 
-    main(updated_config, plan, silent=True, log=self.log)
+    run_pipeline(PipelineArgs(config=updated_config, plan=plan, silent=True, log=self.log))
     compare(self)
