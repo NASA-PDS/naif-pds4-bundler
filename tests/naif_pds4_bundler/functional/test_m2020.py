@@ -3,9 +3,11 @@ import os
 import shutil
 
 import spiceypy
-from pds.naif_pds4_bundler.__main__ import main
+
+from pds.naif_pds4_bundler.pipeline.npb import run_pipeline
 from pds.naif_pds4_bundler.utils import add_crs_to_file
 from pds.naif_pds4_bundler.utils.files import string_in_file
+from pds.naif_pds4_bundler.utils.types.datatypes import PipelineArgs
 
 
 def post_setup(self):
@@ -41,7 +43,8 @@ def test_m2020_mks_inputs_coverage(self):
     config = "../config/mars2020.xml"
     plan = "../data/mars2020_release_00.plan"
 
-    main(config, plan=plan, silent=self.silent, log=self.log)
+    run_pipeline(PipelineArgs(config=config, plan=plan, silent=self.silent,
+                              log=self.log))
 
 
 def test_m2020_kernel_list(self):
@@ -55,7 +58,8 @@ def test_m2020_kernel_list(self):
     config = "../config/mars2020.xml"
     kerlist = "../data/mars2020_release_00.kernel_list"
 
-    main(config, kerlist=kerlist, silent=self.silent, log=self.log)
+    run_pipeline(PipelineArgs(config=config, kerlist=kerlist, silent=self.silent,
+                              log=self.log))
 
 
 def test_m2020_kernel_list_dir(self):
@@ -76,11 +80,13 @@ def test_m2020_kernel_list_dir(self):
     kerlist = "working/mars2020_release_00.kernel_list"
 
     with self.assertRaises(FileNotFoundError):
-        main(config, kerlist=kerlist, silent=self.silent, log=self.log)
+        run_pipeline(PipelineArgs(config=config, kerlist=kerlist, silent=self.silent,
+                                  log=self.log))
 
     kerlist = "working/mars2020_release_01.kernel_list"
 
-    main(config, kerlist=kerlist, silent=self.silent, log=self.log)
+    run_pipeline(PipelineArgs(config=config, kerlist=kerlist, silent=self.silent,
+                              log=self.log))
 
 
 def test_m2020_duplicated_kernel(self):
@@ -114,7 +120,7 @@ def test_m2020_duplicated_kernel(self):
     config = "../config/mars2020.xml"
     plan = "../data/mars2020_release_01.plan"
 
-    main(config, plan=plan, silent=self.silent)
+    run_pipeline(PipelineArgs(config=config, plan=plan, silent=self.silent))
 
     updated_config = "working/mars2020_release_02.xml"
 
@@ -129,7 +135,7 @@ def test_m2020_duplicated_kernel(self):
                     n.write(line)
 
     plan = "../data/mars2020_release_02.plan"
-    main(updated_config, plan=plan, silent=self.silent)
+    run_pipeline(PipelineArgs(config=updated_config, plan=plan, silent=self.silent))
 
     updated_config = "working/mars2020_release_03.xml"
     mk_inputs = False
@@ -149,7 +155,8 @@ def test_m2020_duplicated_kernel(self):
         "kernels/sclk/m2020_168_sclkscet_refit_v03.tsc",
     )
 
-    main(updated_config, plan=plan, silent=self.silent, log=self.log, debug=False)
+    run_pipeline(PipelineArgs(config=updated_config, plan=plan, silent=self.silent,
+                              log=self.log, debug=False))
 
     line_check = "e95003d6b0ff5fae6c2813c483108b6e"
     if not string_in_file("working/mars2020_release_03.log", line_check, 3):
@@ -167,7 +174,8 @@ def test_m2020_spk_with_unrelated_id(self):
         os.remove(spk)
 
     handle = spiceypy.spkopn(spk, "test spk file", 5000)
-    spiceypy.spk14b(handle, 1, 999, 0, "J2000", 666952140.1852001, 666952240.1852001, 2)
+    spiceypy.spk14b(handle, 1, 999, 0, "J2000",
+                    666952140.1852001, 666952240.1852001, 2)
 
     data = [
         150.0,
@@ -196,7 +204,7 @@ def test_m2020_spk_with_unrelated_id(self):
     spiceypy.spk14e(handle)
     spiceypy.spkcls(handle)
 
-    main(config, plan=plan, silent=self.silent, log=self.log)
+    run_pipeline(PipelineArgs(config=config, plan=plan, silent=self.silent, log=self.log))
 
 
 def test_m2020_incorrect_mission_times(self):
@@ -215,7 +223,8 @@ def test_m2020_incorrect_mission_times(self):
                     n.write(line)
 
     with self.assertRaises(RuntimeError):
-        main(updated_config, plan=plan, silent=self.silent, log=self.log, debug=False)
+        run_pipeline(PipelineArgs(config=updated_config, plan=plan, silent=self.silent,
+                                  log=self.log, debug=False))
 
 
 def test_m2020_incorrect_start_time(self):
@@ -235,7 +244,8 @@ def test_m2020_incorrect_start_time(self):
                     n.write(line)
 
     with self.assertRaises(RuntimeError):
-        main(updated_config, plan=plan, silent=self.silent, log=self.log)
+        run_pipeline(PipelineArgs(config=updated_config, plan=plan, silent=self.silent,
+                                  log=self.log))
 
 
 def test_m2020_increment_start_time(self):
@@ -254,7 +264,8 @@ def test_m2020_increment_start_time(self):
                 else:
                     n.write(line)
 
-    main(updated_config, plan=plan, silent=self.silent, log=self.log)
+    run_pipeline(PipelineArgs(config=updated_config, plan=plan, silent=self.silent,
+                              log=self.log))
 
     line_check = (
         "Coverage start time corrected with increment start from "
@@ -288,7 +299,8 @@ def test_m2020_increment_finish_time(self):
                 else:
                     n.write(line)
 
-    main(updated_config, plan=plan, silent=self.silent, log=self.log)
+    run_pipeline(PipelineArgs(config=updated_config, plan=plan, silent=self.silent,
+                              log=self.log))
 
     line_check = (
         "Coverage finish time corrected with increment finish "
@@ -305,9 +317,9 @@ def test_m2020_increment_finish_time(self):
 
 
 def test_m2020_mks_incorrect_path(self):
-    """Test when a MK has an incorrect path.
+    """Test when an MK has an incorrect path.
 
-    Test when a MK has an incorrect path, the NPB execution should not be
+    Test when an MK has an incorrect path, the NPB execution should not be
     stopped because this can be intentional (VCO's MKs.)
 
     Test is successful if NPB is executed without errors.
@@ -325,7 +337,8 @@ def test_m2020_mks_incorrect_path(self):
                 else:
                     n.write(line)
 
-    main(config, plan=plan, silent=self.silent, log=self.log)
+    run_pipeline(PipelineArgs(config=config, plan=plan, silent=self.silent,
+                              log=self.log))
 
     line_check = "The MK could not be loaded with the SPICE API FURNSH."
     if not string_in_file("working/mars2020_release_01.log", line_check, 1):
@@ -346,7 +359,7 @@ def test_m2020_empty_spk(self):
         pass
 
     with self.assertRaises(BaseException):
-        main(config, plan=plan, silent=True, log=True)
+        run_pipeline(PipelineArgs(config=config, plan=plan, silent=True, log=True))
 
 
 def test_m2020_kernel_list_checks(self):
@@ -419,9 +432,8 @@ def test_m2020_kernel_list_checks(self):
     # errors.
     #
     with self.assertRaises(RuntimeError):
-        main(
-            updated_config, plan=plan, silent=self.silent, log=self.log, faucet="checks"
-        )
+        run_pipeline(PipelineArgs(config=updated_config, plan=plan, silent=self.silent,
+                                  log=self.log, faucet="checks"))
 
     line_checks = [
         "Product present in multiple directories:",
@@ -480,7 +492,8 @@ def test_m2020_multiple_kernel_directories(self):
     shutil.move("kernels/fk/m2020_v04.tf", "more_kernels/fk/m2020_v04.tf")
     shutil.rmtree("kernels/mk")
 
-    main(updated_config, plan=plan, silent=self.silent, log=self.log)
+    run_pipeline(PipelineArgs(config=updated_config, plan=plan, silent=self.silent,
+                              log=self.log))
 
     shutil.move("more_kernels/fk/m2020_v04.tf", "kernels/fk/m2020_v04.tf")
     shutil.rmtree("more_kernels")
@@ -508,7 +521,8 @@ def test_m2020_endianness_log(self):
     )
 
     with self.assertRaises(RuntimeError):
-        main(config, plan=updated_plan, silent=self.silent, log=self.log)
+        run_pipeline(PipelineArgs(config=config, plan=updated_plan, silent=self.silent,
+                                  log=self.log))
 
     line_checks = [
         "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."
@@ -542,7 +556,8 @@ def test_m2020_permissions(self):
     os.chmod("kernels/ck/m2020_surf_rsm_tlmres_0299_0419_v1.bc", 444)
 
     with self.assertRaises(RuntimeError):
-        main(config, plan=updated_plan, silent=self.silent, log=self.log)
+        run_pipeline(PipelineArgs(config=config, plan=updated_plan, silent=self.silent,
+                                  log=self.log))
 
     line_checks = [
         "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."

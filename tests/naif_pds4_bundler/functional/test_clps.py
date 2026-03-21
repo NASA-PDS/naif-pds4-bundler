@@ -1,9 +1,9 @@
 """Functional Test Family for CLPS Archive Generation."""
-
 import shutil
 
-from pds.naif_pds4_bundler.__main__ import main
+from pds.naif_pds4_bundler.pipeline.npb import run_pipeline
 from pds.naif_pds4_bundler.utils.files import string_in_file
+from pds.naif_pds4_bundler.utils.types.datatypes import PipelineArgs
 
 
 def test_clps_multiple_missions(self):
@@ -20,7 +20,8 @@ def test_clps_multiple_missions(self):
     shutil.copytree("../data/kernels", "kernels")
     shutil.copy("../data/readme_clps.txt", "working/readme.txt")
 
-    main(config, plan=False, faucet="bundle", silent=self.silent, log=self.log)
+    run_pipeline(PipelineArgs(config=config, plan=None, faucet="bundle",
+                              silent=self.silent, log=self.log))
 
     line_checks = [
         "<description>This collection contains SPICE kernels for the Peregrine Lunar Lander and Nova-C Lunar Lander spacecraft and their instruments.</description>",
@@ -56,7 +57,8 @@ def test_clps_host_type(self):
 
     o.close()
 
-    main(updated_config, plan=False, faucet="bundle", silent=self.silent, log=self.log)
+    run_pipeline(PipelineArgs(config=updated_config, plan=None, faucet="bundle",
+                              silent=self.silent, log=self.log))
 
     file = "clps/clps_spice/bundle_clps_spice_v001.xml"
     repetitions = 2

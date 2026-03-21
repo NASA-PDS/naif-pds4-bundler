@@ -1,11 +1,11 @@
 """Functional Test Family for LADEE Archive Generation."""
-
-# import os
 import shutil
 import unittest
 
-from pds.naif_pds4_bundler.__main__ import main
 from xmlschema.validators.exceptions import XMLSchemaValidationError
+
+from pds.naif_pds4_bundler.pipeline.npb import run_pipeline
+from pds.naif_pds4_bundler.utils.types.datatypes import PipelineArgs
 
 
 def tearDown(self):
@@ -46,7 +46,8 @@ def test_ladee_update_input_mk_name(self):
                 else:
                     n.write(line)
 
-    main(updated_config, plan=False, silent=self.silent, log=self.log)
+    run_pipeline(PipelineArgs(config=updated_config, plan=None, silent=self.silent,
+                              log=self.log))
 
 
 def test_ladee_checksum_registry(self):
@@ -64,7 +65,8 @@ def test_ladee_checksum_registry(self):
 
     shutil.copy2("../data/ladee_release_01.checksum", "working/")
 
-    main(config, plan=False, silent=self.silent, log=self.log)
+    run_pipeline(PipelineArgs(config=config, plan=None, silent=self.silent,
+                              log=self.log))
 
 
 def test_ladee_date_format(self):
@@ -97,7 +99,8 @@ def test_ladee_date_format(self):
                     n.write(line)
 
     with self.assertRaises(XMLSchemaValidationError):
-        main(updated_config, plan=False, silent=self.silent, log=self.log)
+        run_pipeline(PipelineArgs(config=updated_config, plan=None, silent=self.silent,
+                                  log=self.log))
 
     with open(config, "r") as c:
         with open(updated_config, "w") as n:
@@ -107,7 +110,8 @@ def test_ladee_date_format(self):
                 else:
                     n.write(line)
 
-    main(updated_config, plan=False, silent=self.silent, log=self.log)
+    run_pipeline(PipelineArgs(config=updated_config, plan=None, silent=self.silent,
+                              log=self.log))
 
 
 def test_ladee_label_mode(self):
@@ -127,15 +131,16 @@ def test_ladee_label_mode(self):
 
     config = "../config/ladee.xml"
 
-    main(config, plan=False, faucet="labels", silent=True, log=self.log)
+    run_pipeline(PipelineArgs(config=config, plan=None, faucet="labels",
+                              silent=True, log=self.log))
 
-    main(
-        config,
-        plan=False,
+    run_pipeline(PipelineArgs(
+        config=config,
+        plan=None,
         clear="working/ladee_labels_01.file_list",
         silent=True,
         log=self.log,
-    )
+    ))
 
 
 def test_ladee_label_mode_ker_input(self):
@@ -154,45 +159,45 @@ def test_ladee_label_mode_ker_input(self):
 
     config = "../config/ladee.xml"
 
-    main(
-        config,
+    run_pipeline(PipelineArgs(
+        config=config,
         plan="kernels/ck/ladee_14030_14108_v04.bc",
         faucet="labels",
         silent=True,
         log=self.log,
-    )
+    ))
 
-    main(
-        config,
-        plan=False,
+    run_pipeline(PipelineArgs(
+        config=config,
+        plan=None,
         clear="working/ladee_labels_01.file_list",
         silent=True,
         log=self.log,
-    )
+    ))
 
-    main(
-        config,
+    run_pipeline(PipelineArgs(
+        config=config,
         plan="ladee_14030_14108_v04.bc",
         faucet="labels",
         silent=True,
         log=self.log,
-    )
+    ))
 
-    main(
-        config,
-        plan=False,
+    run_pipeline(PipelineArgs(
+        config=config,
+        plan=None,
         clear="working/ladee_labels_01.file_list",
         silent=True,
         log=self.log,
-    )
+    ))
 
-    main(
-        config,
+    run_pipeline(PipelineArgs(
+        config=config,
         plan="ladee_14030_14108_v04.bsp",
         faucet="labels",
         silent=True,
         log=self.log,
-    )
+    ))
 
 
 def test_ladee_label_mode_plan_input(self):
@@ -214,31 +219,31 @@ def test_ladee_label_mode_plan_input(self):
     with open("working/ladee_labels_01.plan", "w") as n:
         n.write("ladee_14030_14108_v04.bc\n" "ladee_ldex_v01.ti\n" "ladee_uvs_v00.ti")
 
-    main(
-        config,
+    run_pipeline(PipelineArgs(
+        config=config,
         plan="working/ladee_labels_01.plan",
         faucet="labels",
         silent=True,
         log=self.log,
-    )
+    ))
 
-    main(
-        config,
-        plan=False,
+    run_pipeline(PipelineArgs(
+        config=config,
+        plan=None,
         clear="working/ladee_labels_01.file_list",
         silent=True,
         log=self.log,
-    )
+    ))
 
     shutil.move("working/ladee_labels_01.plan", "working/ladee_labels_01.txt")
 
-    main(
-        config,
+    run_pipeline(PipelineArgs(
+        config=config,
         plan="working/ladee_labels_01.txt",
         faucet="labels",
         silent=True,
         log=self.log,
-    )
+    ))
 
 
 def test_ladee_label_mode_ker_bun_dir(self):
@@ -267,29 +272,29 @@ def test_ladee_label_mode_ker_bun_dir(self):
                 else:
                     n.write(line)
 
-    main(
-        updated_config,
+    run_pipeline(PipelineArgs(
+        config=updated_config,
         plan="ladee_14030_14108_v04.bc",
         faucet="labels",
         silent=True,
         log=self.log,
-    )
+    ))
 
-    main(
-        config,
-        plan=False,
+    run_pipeline(PipelineArgs(
+        config=config,
+        plan=None,
         clear="working/ladee_labels_01.file_list",
         silent=True,
         log=self.log,
-    )
+    ))
 
     with open("working/ladee_labels_01.plan", "w") as n:
         n.write("ladee_14030_14108_v04.bc\n" "ladee_ldex_v01.ti\n" "ladee_uvs_v00.ti")
 
-    main(
-        updated_config,
+    run_pipeline(PipelineArgs(
+        config=updated_config,
         plan="working/ladee_labels_01.plan",
         faucet="labels",
         silent=True,
         log=self.log,
-    )
+    ))
