@@ -65,8 +65,9 @@ def main() -> int:
 
     :returns: a code providing the execution result: 0 if the execution was
               successful, 1 if the execution found a know issue with the
-              configuration or input data, and 2 if an unexpected error
-              occurred.
+              configuration or input data, 2 if the command line parser finds
+              an issue with the command line arguments provided by the user,
+              and 3 if an unexpected error occurred.
     """
     try:
         # Run the command line and get the arguments provided by the user.
@@ -82,6 +83,13 @@ def main() -> int:
         # except NBPError:
         #     return 1
 
+    # Handle command line parsing errors.
+    #
+    # Note: parse_arguments is based on argparse (if an issue is found, it
+    #       raises a SystemExit error (with a return code 2).
+    except SystemExit:
+        return 2
+
     # Handle all other unexpected errors (Return code 2).
     #
     # Note: Since we want to make sure that if the pipeline crashes, we can
@@ -92,7 +100,7 @@ def main() -> int:
         #       is implemented.
         #     print(f"An unexpected error occurred:\n\n{e}\n\n"
         #            "Please report it via [add url]", file=sys.stderr)
-        return 2
+        return 3
 
 
 if __name__ == "__main__":
