@@ -17,7 +17,7 @@ class PipelineArgs:
     config: str
     plan: Optional[str] = None
     kerlist: Optional[str] = None
-    faucet: str = ""
+    faucet: Optional[str] = ""
 
     # Logging & Output
     log: bool = False
