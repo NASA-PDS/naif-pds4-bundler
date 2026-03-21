@@ -2,7 +2,8 @@
 import os
 import shutil
 
-from pds.naif_pds4_bundler.__main__ import main
+from pds.naif_pds4_bundler.pipeline.npb import run_pipeline
+from pds.naif_pds4_bundler.utils.types.datatypes import PipelineArgs
 
 
 def post_setup(self):
@@ -51,7 +52,7 @@ def test_pds4_insight_plan(self):
         "working/insight_release_07.kernel_list",
     )
 
-    main(config, plan, faucet, silent=True, log=True)
+    run_pipeline(PipelineArgs(config=config, plan=plan, faucet=faucet, silent=True, log=True))
 
     new_file = ""
     with open("working/insight_release_08.plan", "r") as f:
@@ -94,7 +95,8 @@ def test_pds4_mars2020_no_plan(self):
                     pass
                 last_filename = filename
 
-    main(config, faucet=faucet, silent=True, log=True)
+
+    run_pipeline(PipelineArgs(config=config, faucet=faucet, silent=True, log=True))
 
     new_file = ""
     with open("working/mars2020_release_01.plan", "r") as f:

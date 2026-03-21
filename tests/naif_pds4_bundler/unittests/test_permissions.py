@@ -6,7 +6,8 @@ the group that NPB belongs to.
 import os
 import shutil
 
-from pds.naif_pds4_bundler.__main__ import main
+from pds.naif_pds4_bundler.pipeline.npb import run_pipeline
+from pds.naif_pds4_bundler.utils.types.datatypes import PipelineArgs
 
 
 def post_setup(self):
@@ -38,7 +39,7 @@ def test_binary_permissions(self):
     os.chmod("kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp", 330)
 
     with self.assertRaises(RuntimeError) as cm:
-        main(config, silent=True, log=True, faucet="Bundle")
+        run_pipeline(PipelineArgs(config=config, silent=True, log=True, faucet="Bundle"))
     if (
         "/naif_pds4_bundler/unittests/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp "
         "is not readable by the account that runs NPB. Update permissions."

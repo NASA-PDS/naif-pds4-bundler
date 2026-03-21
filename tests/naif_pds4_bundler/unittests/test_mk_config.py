@@ -1,7 +1,8 @@
 """Unit tests for the MK configuration."""
 import shutil
 
-from pds.naif_pds4_bundler.__main__ import main
+from pds.naif_pds4_bundler.pipeline.npb import run_pipeline
+from pds.naif_pds4_bundler.utils.types.datatypes import PipelineArgs
 
 
 def test_insight_mk_error_extra_pattern(self):
@@ -24,7 +25,8 @@ def test_insight_mk_error_extra_pattern(self):
                     n.write(line)
 
     with self.assertRaises(RuntimeError):
-        main(updated_config, plan, faucet="staging", silent=self.silent, log=True)
+        run_pipeline(PipelineArgs(
+            config=updated_config, plan=plan, faucet="staging", silent=self.silent, log=True))
 
 
 def test_insight_mk_error_wrong_name(self):
@@ -47,7 +49,9 @@ def test_insight_mk_error_wrong_name(self):
                     n.write(line)
 
     with self.assertRaises(RuntimeError):
-        main(updated_config, plan, self.faucet, silent=self.silent, log=True)
+        run_pipeline(PipelineArgs(config=updated_config, plan=plan,
+                                  faucet=self.faucet, silent=self.silent,
+                                  log=True))
 
 
 def test_insight_mk_double_keyword_in_pattern(self):
@@ -80,7 +84,9 @@ def test_insight_mk_double_keyword_in_pattern(self):
                 else:
                     n.write(line)
 
-    main(updated_config, updated_plan, self.faucet, silent=self.silent, log=True)
+    run_pipeline(PipelineArgs(config=updated_config, plan=updated_plan,
+                              faucet=self.faucet, silent=self.silent,
+                              log=True))
 
 
 def test_insight_mk_double_keyword_in_pattern_no_gen(self):
@@ -106,7 +112,9 @@ def test_insight_mk_double_keyword_in_pattern_no_gen(self):
                 else:
                     n.write(line)
 
-    main(updated_config, plan, self.faucet, silent=self.silent, log=True)
+    run_pipeline(PipelineArgs(config=updated_config, plan=plan,
+                              faucet=self.faucet, silent=self.silent,
+                              log=True))
 
 
 def zz_test_orex_mk_multiple_mks(self):
@@ -114,7 +122,8 @@ def zz_test_orex_mk_multiple_mks(self):
     config = "../config/orex.xml"
     plan = "../data/orex_release_10.plan"
 
-    main(config, plan, self.faucet, silent=self.silent, log=True)
+    run_pipeline(PipelineArgs(config=config, plan=plan, faucet=self.faucet,
+                              silent=self.silent, log=True))
 
 
 def zz_test_orex_mk_multiple_mks_version_three_digits(self):
@@ -146,11 +155,11 @@ def zz_test_orex_mk_multiple_mks_version_three_digits(self):
         c.write("orx_2020_v003.tm\n")
         c.write("orx_noola_2020_v003.tm\n")
 
-    main(updated_config, plan, faucet="staging", silent=self.silent, log=True)
-
+    run_pipeline(PipelineArgs(config=updated_config, plan=plan, faucet="staging",
+                              silent=self.silent, log=True))
 
 def zz_test_orex_mk_multiple_mks_version_one_digit(self):
-    """Test MKs with 1 digits in the version."""
+    """Test MKs with 1 digit in the version."""
     config = "../config/orex.xml"
     updated_config = "working/orex.xml"
     plan = "working/orex_release_10.plan"
@@ -178,4 +187,6 @@ def zz_test_orex_mk_multiple_mks_version_one_digit(self):
         c.write("orx_2020_v3.tm\n")
         c.write("orx_noola_2020_v3.tm\n")
 
-    main(updated_config, plan, faucet="staging", silent=self.silent, log=True)
+    run_pipeline(PipelineArgs(config=updated_config, plan=plan,
+                              faucet="staging", silent=self.silent,
+                              log=True))

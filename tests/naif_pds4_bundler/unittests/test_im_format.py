@@ -7,7 +7,8 @@ changes are as expected.
 import os
 import shutil
 
-from pds.naif_pds4_bundler.__main__ import main
+from pds.naif_pds4_bundler.pipeline.npb import run_pipeline
+from pds.naif_pds4_bundler.utils.types.datatypes import PipelineArgs
 
 
 def post_setup(self):
@@ -43,7 +44,7 @@ def test_im_format(self):
                     n.write(line)
 
     with self.assertRaises(RuntimeError):
-        main(self.updated_config, faucet=self.faucet, silent=True)
+        run_pipeline(PipelineArgs(config=self.updated_config, faucet=self.faucet, silent=True))
 
 
 def test_im_xml_incoherent(self):
@@ -66,7 +67,7 @@ def test_im_xml_incoherent(self):
                     n.write(line)
 
     with self.assertRaises(RuntimeError):
-        main(self.updated_config, faucet=self.faucet, silent=True)
+        run_pipeline(PipelineArgs(config=self.updated_config, faucet=self.faucet, silent=True))
 
 
 def test_im_schema_incoherent(self):
@@ -97,7 +98,7 @@ def test_im_schema_incoherent(self):
                     n.write(line)
 
     with self.assertRaises(RuntimeError):
-        main(self.updated_config, faucet=self.faucet, silent=True)
+        run_pipeline(PipelineArgs(config=self.updated_config, faucet=self.faucet, silent=True))
 
 
 def test_im_version_ascii(self):
@@ -133,7 +134,7 @@ def test_im_version_ascii(self):
                 else:
                     n.write(line)
 
-    main(self.updated_config, faucet=self.faucet, silent=True)
+    run_pipeline(PipelineArgs(config=self.updated_config, faucet=self.faucet, silent=True))
 
 
 def test_im_version_ascii_incorrect(self):
@@ -174,7 +175,7 @@ def test_im_version_ascii_incorrect(self):
                     n.write(line)
 
     with self.assertRaises(RuntimeError):
-        main(self.updated_config, faucet=self.faucet, silent=True)
+        run_pipeline(PipelineArgs(config=self.updated_config, faucet=self.faucet, silent=True))
 
 
 def test_im_templates_16(self):
@@ -206,7 +207,7 @@ def test_im_templates_16(self):
                 else:
                     n.write(line)
 
-    main(self.updated_config, faucet=self.faucet, silent=True, log=True)
+    run_pipeline(PipelineArgs(config=self.updated_config, faucet=self.faucet, silent=True, log=True))
 
     line_in_log = False
     with open("working/insight_release_01.log", "r") as log:
@@ -249,7 +250,7 @@ def test_im_templates_14(self):
                 else:
                     n.write(line)
 
-    main(self.updated_config, faucet=self.faucet, silent=True, log=True)
+    run_pipeline(PipelineArgs(config=self.updated_config, faucet=self.faucet, silent=True, log=True))
 
     line_in_log = False
     with open("working/insight_release_01.log", "r") as log:
@@ -292,7 +293,7 @@ def test_im_templates_11(self):
                 else:
                     n.write(line)
 
-    main(self.updated_config, faucet=self.faucet, silent=True, log=True)
+    run_pipeline(PipelineArgs(config=self.updated_config, faucet=self.faucet, silent=True, log=True))
 
     line_in_log = False
     with open("working/insight_release_01.log", "r") as log:
@@ -335,7 +336,7 @@ def test_im_templates(self):
                 else:
                     n.write(line)
 
-    main(self.updated_config, faucet=self.faucet, silent=True, log=True)
+    run_pipeline(PipelineArgs(config=self.updated_config, faucet=self.faucet, silent=True, log=True))
 
     line_in_log = False
     with open("working/insight_release_01.log", "r") as log:
@@ -362,4 +363,4 @@ def test_im_schema_resolution(self):
                 else:
                     n.write(line)
 
-    main(self.updated_config, faucet=self.faucet, silent=True, log=True)
+    run_pipeline(PipelineArgs(config=self.updated_config, faucet=self.faucet, silent=True, log=True))

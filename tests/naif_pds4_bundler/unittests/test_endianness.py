@@ -4,14 +4,12 @@ Binary kernel endianness of binary kernels needs to be the one specified via
 configuration and must be compatible with the machine being used. These tests
 ensure that this is the case.
 """
-
 import os
 import shutil
 
-# import sys
-
-from pds.naif_pds4_bundler.__main__ import main
+from pds.naif_pds4_bundler.pipeline.npb import run_pipeline
 from pds.naif_pds4_bundler.utils.files import string_in_file
+from pds.naif_pds4_bundler.utils.types.datatypes import PipelineArgs
 
 
 def post_setup(self):
@@ -20,8 +18,8 @@ def post_setup(self):
     This method will be executed before each test function.
     """
     dirs = ["kernels/fk", "kernels/lsk", "kernels/spk", "kernels/mk"]
-    for dir in dirs:
-        os.mkdir(dir)
+    for path in dirs:
+        os.mkdir(path)
 
     shutil.copy2("../data/kernels/lsk/naif0012.tls", "kernels/lsk/")
     shutil.copy2("../data/kernels/mk/m2020_v01.tm", "kernels/mk/")
@@ -34,7 +32,7 @@ def post_setup(self):
 def test_pds4_big_endianness(self):
     """Test BIG-IEEE basic.
 
-    The test has a different logic depending on whether if the host machine is
+    The test has a different logic depending on whether the host machine is
     LTL-IEEE or BIG-IEEE.
     """
     post_setup(self)
@@ -47,7 +45,7 @@ def test_pds4_big_endianness(self):
     )
 
     with self.assertRaises(RuntimeError):
-        main(config, silent=True, log=True, faucet="Bundle")
+        run_pipeline(PipelineArgs(config=config, silent=True, log=True, faucet="Bundle"))
 
 
 def test_pds4_big_endianness_config(self):
@@ -71,7 +69,7 @@ def test_pds4_big_endianness_config(self):
     )
 
     with self.assertRaises(RuntimeError):
-        main(config, silent=True, log=True, faucet="Bundle")
+        run_pipeline(PipelineArgs(config=config, silent=True, log=True, faucet="Bundle"))
 
 
 def test_pds4_ltl_endianness(self):
@@ -88,7 +86,7 @@ def test_pds4_ltl_endianness(self):
         "../data/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp", "kernels/spk/"
     )
 
-    main(config, silent=True, log=True)
+    run_pipeline(PipelineArgs(config=config, silent=True, log=True))
 
     line_check = (
         "Binary SPICE kernels expected to have LTL-IEEE (little endian) binary format"
@@ -116,7 +114,7 @@ def test_pds4_ltl_endianness_config(self):
         "../data/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp", "kernels/spk/"
     )
 
-    main(updated_config, silent=True, log=True, faucet="Bundle")
+    run_pipeline(PipelineArgs(config=updated_config, silent=True, log=True, faucet="Bundle"))
 
     line_check = (
         "Binary SPICE kernels expected to have LTL-IEEE (little endian) binary format"
@@ -139,7 +137,7 @@ def test_pds3_ltl_endianness(self):
     shutil.copytree("../data/mro", "bundle")
 
     try:
-        main(config, silent=True, log=True, faucet="Bundle")
+        run_pipeline(PipelineArgs(config=config, silent=True, log=True, faucet="Bundle"))
     except BaseException:
         line_check = "The binary kernel is little endian; this endianness is not the one specified via configuration"
         if not string_in_file("working/mro_release_temp.log", line_check, 1):
@@ -168,7 +166,8 @@ def test_pds3_ltl_endianness_config(self):
                 else:
                     n.write(line)
 
-    main(updated_config, silent=True, log=True, faucet="Bundle")
+    run_pipeline(PipelineArgs(config=updated_config, silent=True, log=True,
+                              faucet="Bundle"))
 
 
 def test_pds3_big_endianness(self):
@@ -185,4 +184,4 @@ def test_pds3_big_endianness(self):
     shutil.copytree("../data/mro", "bundle")
 
     with self.assertRaises(RuntimeError):
-        main(config, silent=True, log=True, faucet="Bundle")
+        run_pipeline(PipelineArgs(config=config, silent=True, log=True, faucet="Bundle"))

@@ -2,7 +2,8 @@
 import os
 import shutil
 
-from pds.naif_pds4_bundler.__main__ import main
+from pds.naif_pds4_bundler.pipeline.npb import run_pipeline
+from pds.naif_pds4_bundler.utils.types.datatypes import PipelineArgs
 
 
 def test_insight_basic(self):
@@ -10,10 +11,6 @@ def test_insight_basic(self):
 
     This method will be executed after each test function.
     """
-    config = "../config/insight.xml"
-    plan = "../data/insight_release_08.plan"
-    faucet = "bundle"
-
     shutil.copy2(
         "../data/insight_release_basic.kernel_list",
         "working/insight_release_07.kernel_list",
@@ -28,36 +25,41 @@ def test_insight_basic(self):
             with open(f"insight/insight_spice/{line[0:-1]}", "w"):
                 pass
 
-    main(config, plan, faucet, silent=self.silent, log=self.log)
+    config = "../config/insight.xml"
+    plan = "../data/insight_release_08.plan"
+    faucet = "bundle"
+    run_pipeline(PipelineArgs(config=config, plan=plan, faucet=faucet,
+                              silent=self.silent, log=self.log))
 
     #
     # Remove the files from the prior run.
     #
-    main(
-        config,
-        plan,
-        "plan",
+    run_pipeline(PipelineArgs(
+        config=config,
+        plan=plan,
+        faucet="plan",
         silent=self.silent,
         log=self.log,
         clear="working/insight_release_08.file_list",
-    )
+    ))
 
     #
     # Run the pipeline again.
     #
-    main(config, plan, faucet, silent=self.silent, log=self.log)
+    run_pipeline(PipelineArgs(config=config, plan=plan, faucet=faucet,
+                              silent=self.silent, log=self.log))
 
     #
     # Remove the files from the prior run and run the pipeline again.
     #
-    main(
-        config,
-        plan,
-        faucet,
+    run_pipeline(PipelineArgs(
+        config=config,
+        plan=plan,
+        faucet=faucet,
         silent=self.silent,
         log=self.log,
         clear="working/insight_release_08.file_list",
-    )
+    ))
 
 
 def test_insight_error(self):
@@ -82,25 +84,26 @@ def test_insight_error(self):
     # Error validating the meta-kernel
     #
     with self.assertRaises(BaseException):
-        main(config, silent=self.silent, log=self.log)
+        run_pipeline(PipelineArgs(config=config, silent=self.silent, log=self.log))
 
     os.chdir(cwd)
     #
     # Remove the files from the prior run.
     #
-    main(
-        config,
-        plan,
-        "plan",
+    run_pipeline(PipelineArgs(
+        config=config,
+        plan=plan,
+        faucet="plan",
         silent=self.silent,
         log=self.log,
         clear="working/insight_release_08.file_list",
-    )
+    ))
 
     #
     # Run the pipeline again.
     #
-    main(config, plan, "bundle", silent=self.silent, log=self.log)
+    run_pipeline(PipelineArgs(config=config, plan=plan, faucet="bundle",
+                              silent=self.silent, log=self.log))
 
 
 def test_clear_label_mode(self):
@@ -120,12 +123,13 @@ def test_clear_label_mode(self):
 
     config = "../config/ladee.xml"
 
-    main(config, plan=False, faucet="labels", silent=True, log=self.log)
+    run_pipeline(PipelineArgs(config=config, plan=None, faucet="labels",
+                              silent=True, log=self.log))
 
-    main(
-        config,
+    run_pipeline(PipelineArgs(
+        config=config,
         plan="working/ladee_labels_01.plan",
         clear="working/ladee_labels_01.file_list",
         silent=True,
         log=self.log,
-    )
+    ))
