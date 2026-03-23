@@ -328,7 +328,7 @@ class SpiceKernelProduct(Product):
         """
         ids = spiceypy.ckobj(f"{self.path}")
 
-        id_list = list()
+        id_list = []
         for id in ids:
             id_list.append(str(id))
 
@@ -344,7 +344,7 @@ class SpiceKernelProduct(Product):
         """
         with open(f"{self.path}", "r") as f:
 
-            id_list = list()
+            id_list = []
             parse_bool = False
 
             for line in f:

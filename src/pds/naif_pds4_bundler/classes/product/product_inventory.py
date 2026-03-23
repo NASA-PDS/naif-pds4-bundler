@@ -201,7 +201,7 @@ class InventoryProduct(Product):
         kernel list file. Please contact the NAIF if you are interested in such
         script.
         """
-        current_index = list()
+        current_index = []
         column_length = [0] * 10
 
         if self.setup.increment:

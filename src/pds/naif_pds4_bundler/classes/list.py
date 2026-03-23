@@ -1069,8 +1069,8 @@ class KernelList:
 
         for product in product_list:
 
-            product_errors[product] = list()
-            product_warnings[product] = list()
+            product_errors[product] = []
+            product_warnings[product] = []
 
             #
             # Check if a product is present in multiple directories

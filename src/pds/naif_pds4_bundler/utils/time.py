@@ -94,8 +94,8 @@ def spk_coverage(path, main_name="", date_format="infomod2", system="UTC"):
 
     coverage = spiceypy.support_types.SPICEDOUBLE_CELL(winsiz)
 
-    start_points_list = list()
-    end_points_list = list()
+    start_points_list = []
+    end_points_list = []
 
     #
     # If one of the IDs of the kernel is the ID that corresponds to the SPICE
@@ -157,8 +157,8 @@ def ck_coverage(path, timsys="TDB", date_format="infomod2", system="UTC"):
     :return: start and finish coverage
     :rtype: list of str
     """
-    start_points_list = list()
-    end_points_list = list()
+    start_points_list = []
+    end_points_list = []
 
     maxiv = 10000
     winsiz = 2 * maxiv
@@ -235,8 +235,8 @@ def pck_coverage(path, date_format="infomod2", system="UTC"):
 
     coverage = spiceypy.support_types.SPICEDOUBLE_CELL(winsiz)
 
-    start_points_list = list()
-    end_points_list = list()
+    start_points_list = []
+    end_points_list = []
 
     for id in ids:
 
