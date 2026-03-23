@@ -8,5 +8,3 @@ class Object:
         """Constructor."""
         self.kernels_directory = None
         self.working_directory = None
-
-    pass

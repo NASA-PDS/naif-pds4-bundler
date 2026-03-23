@@ -145,7 +145,7 @@ class Bundle:
         #
         # Include the bundle products if not running in label mode.
         #
-        if self.setup.pds_version == "4" and not self.setup.faucet == "labels":
+        if self.setup.pds_version == "4" and self.setup.faucet != "labels":
             new_files.append(self.setup.staging_directory + os.sep + self.name)
             if hasattr(self, "readme") and self.readme.new_product:
                 new_files.append(
@@ -701,10 +701,10 @@ class Bundle:
         et_msn_stop = spiceypy.str2et(str_msn_stop)
 
         if (
-            not (et_msn_strt <= et_inc_strt)
-            or not (et_inc_strt <= et_inc_stop)
-            or not (et_inc_stop <= et_msn_stop)
-            or not (et_msn_strt < et_msn_stop)
+            (et_msn_strt > et_inc_strt)
+            or (et_inc_strt > et_inc_stop)
+            or (et_inc_stop > et_msn_stop)
+            or (et_msn_strt >= et_msn_stop)
         ):
             error_message(
                 "The resulting Mission and Increment start and finish dates "
@@ -788,7 +788,7 @@ class Bundle:
             products_in_checksum.sort()
             products_in_history.sort()
 
-            if not products_in_checksum == products_in_history:
+            if products_in_checksum != products_in_history:
 
                 logging.error("")
                 logging.error(
