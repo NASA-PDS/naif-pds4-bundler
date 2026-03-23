@@ -186,7 +186,7 @@ class InventoryProduct(Product):
                 # are added to the collection before generating the inventory
                 # product itself.
                 #
-                if type(product) != InventoryProduct:
+                if not isinstance(product, InventoryProduct):
                     if product.new_product:
                         line = f"P,{product.lid}::{product.vid}\r\n"
                         line = add_carriage_return(
