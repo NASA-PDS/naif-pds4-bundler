@@ -294,7 +294,7 @@ class KernelList:
                     for pattern in patterns:
                         mk_name = mks_in_dir[-1]
                         if re.match(pattern, mk_name):
-                            version = re.findall(r"_v[0-9]+", mk_name)[0]
+                            version = re.findall(r"_v\d+", mk_name)[0]
                             new_version = "_v" + str(int(version[2:]) + 1).zfill(
                                 len(version) - 2
                             )

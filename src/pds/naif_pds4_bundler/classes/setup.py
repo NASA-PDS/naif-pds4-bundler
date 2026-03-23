@@ -184,7 +184,7 @@ class Setup:
         if not hasattr(self, "release_date"):
             self.release_date = datetime.date.today().strftime("%Y-%m-%d")
         else:
-            pattern = re.compile("[0-9]{4}-[0-9]{2}-[0-9]{2}")
+            pattern = re.compile("\d{4}-\d{2}-\d{2}")
             if not pattern.match(self.release_date):
                 error_message(
                     "release_date parameter does not match "
@@ -304,7 +304,7 @@ class Setup:
             # Set the time format for the Date format selected.
             #
             pattern = re.compile(
-                "[0-9]{4}-[0-9]{2}-[0-9]{2}T" "[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}Z"
+                "\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z"
             )
             format = "YYYY-MM-DDThh:mm:ss.sssZ"
         elif self.date_format == "maklabel":
@@ -325,7 +325,7 @@ class Setup:
             # Set the time format for the Date format selected.
             #
             pattern = re.compile(
-                "[0-9]{4}-[0-9]{2}-[0-9]{2}T" "[0-9]{2}:[0-9]{2}:[0-9]{2}Z"
+                "\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z"
             )
             format = "YYYY-MM-DDThh:mm:ssZ"
 
@@ -508,7 +508,7 @@ class Setup:
         # checked by the PDS Validate tool.
         #
         if hasattr(self, "information_model"):
-            if re.match(r"[0-9]+[.][0-9]+[.][0-9]+[.][0-9]+", self.information_model):
+            if re.match(r"\d+[.]\d+[.]\d+[.]\d+", self.information_model):
 
                 major = int(self.information_model.split(".")[0])
                 minor = int(self.information_model.split(".")[1])

@@ -189,8 +189,7 @@ class OrbnumFileProduct(Product):
 
         if previous_orbnum:
 
-            version_pattern = r"_[vV][0-9]*[\.]"
-            version_match = re.search(version_pattern, previous_orbnum[0])
+            version_match = re.search(r"_v\d*\.", previous_orbnum[0], flags=re.I)
             version = re.findall(r"\d+", version_match.group(0))
             version = "".join(version)
 
@@ -199,7 +198,7 @@ class OrbnumFileProduct(Product):
 
         #
         # If a previous orbnum file is not found, it might be due to the
-        # fact that the file does not have a version explicitely indicated
+        # fact that the file does not have a version explicitly indicated
         # by the filename.
         #
         else:
@@ -207,7 +206,7 @@ class OrbnumFileProduct(Product):
             #
             # Try to remove the version part of the filename pattern. For
             # the time being this implementation is limited to NAIF
-            # orbnum files with this characteristics.
+            # orbnum files with these characteristics.
             #
             try:
                 version_pattern = r"_[vV]\[0\-9\]*[\.]"
@@ -336,9 +335,10 @@ class OrbnumFileProduct(Product):
         :param sample_record: sample row with UTC string with blank spaces
         :return: sample row with UTC string with dashes
         """
-        utc_pattern = r"[0-9]{4}[ ][A-Z]{3}[ ][0-9]{2}[ ][0-9]{2}[:][0-9]{2}[:][0-9]{2}"
+        matches = re.finditer(
+            r"\d{4} [A-Z]{3} \d{2} \d{2}:\d{2}:\d{2}",
+            sample_record)
 
-        matches = re.finditer(utc_pattern, sample_record)
         for match in matches:
             #
             # Turn the string to a list to modify it.
@@ -416,7 +416,7 @@ class OrbnumFileProduct(Product):
             # Generate the name for the new orbnum file. This is the only
             # place where the version of the previous orbnum file is used.
             #
-            matches = re.search(r"_[vV][0-9]*[\.]", self.name)
+            matches = re.search(r"_v\d*\.", self.name, flags=re.I)
 
             if not matches:
 

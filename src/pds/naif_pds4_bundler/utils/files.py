@@ -533,8 +533,8 @@ def get_latest_kernel(
         for kernel in kernels:
             if (
                 previous_kernel
-                and re.split("_V[0-9]*", previous_kernel.upper())[0]
-                == re.split("_V[0-9]*", kernel.upper())[0]
+                and re.split(r"_[vV]\d*", previous_kernel)[0]
+                == re.split(r"_[vV]\d*", kernel)[0]
             ):
                 kernels_date.remove(previous_kernel)
 
