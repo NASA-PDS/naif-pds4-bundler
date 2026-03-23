@@ -1037,7 +1037,7 @@ class Setup(object):
                         lsks.append(lsk_pattern[-1])
                         break
         if not lsks:
-            logging.error(f"-- LSK not found.")
+            logging.error('-- LSK not found.')
         else:
             logging.info(f"-- LSK     loaded: {lsks}")
         if len(lsks) > 1:
@@ -1062,7 +1062,7 @@ class Setup(object):
                         pcks.append(pcks_pattern[-1])
                         break
         if not pcks:
-            logging.info(f"-- PCK not found.")
+            logging.info('-- PCK not found.')
         else:
             logging.info(f"-- PCK(s)   loaded: {pcks}")
 
@@ -1086,7 +1086,7 @@ class Setup(object):
                         fks.append(fks_pattern[-1])
                         break
         if not fks:
-            logging.warning(f"-- FK not found.")
+            logging.warning('-- FK not found.')
         else:
             logging.info(f"-- FK(s)   loaded: {fks}")
 
@@ -1109,7 +1109,7 @@ class Setup(object):
                         sclks.append(sclks_pattern[-1])
                         break
         if not sclks:
-            logging.error(f"-- SCLK not found.")
+            logging.error('-- SCLK not found.')
         else:
             logging.info(f"-- SCLK(s) loaded: {sclks}")
 
@@ -1136,7 +1136,7 @@ class Setup(object):
         """
         if debug:
             logging.warning(
-                f"-- Running in DEBUG mode, by-product files are not cleaned up."
+                '-- Running in DEBUG mode, by-product files are not cleaned up.'
             )
 
         if os.path.isfile(self.args.clear):
@@ -1204,11 +1204,11 @@ class Setup(object):
 
         else:
             error_message(
-                f'The file provided with the "clear" argument does '
-                f"not exist or is not readable. Make sure that the "
-                f"file follows the name pattern: "
+                 'The file provided with the "clear" argument does '
+                 'not exist or is not readable. Make sure that the '
+                 'file follows the name pattern: '
                 f"{self.mission_acronym}_{self.run_type}_NN.file_list."
-                f" where NN is the release number."
+                 ' where NN is the release number.'
             )
 
     def add_file(self, file):
@@ -1328,9 +1328,9 @@ class Setup(object):
             l.write(
                 f"validate.schematron = {self.working_directory}/{pds_schematron}\n"
             )
-            l.write(f"validate.verbose = 1\n")
-            l.write(f"validate.rule = pds4.bundle\n")
-            l.write(f"validate.strictFieldChecks = true\n")
+            l.write('validate.verbose = 1\n')
+            l.write('validate.rule = pds4.bundle\n')
+            l.write('validate.strictFieldChecks = true\n')
 
         logging.info("-- PDS Validate Tool configuration file written in working area:")
         logging.info(f"   {self.working_directory}/{filename}.validate_config")
