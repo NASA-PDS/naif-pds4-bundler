@@ -85,13 +85,13 @@ def test_pds4_mars2020_no_plan(self):
                 filename += f'/{line.split("=")[-1].strip()}'
                 with open(f"{filename}", "w") as fp:
                     fp.flush()
-                    pass
+
             if "FILE             = spice_kernels" in line:
                 filename = f"kernels/{line.split('= spice_kernels/')[-1]}"
                 filename = filename[:-1]
                 with open(f"{filename}", "w") as fp:
                     fp.flush()
-                    pass
+
                 last_filename = filename
 
     main(config, faucet=faucet, silent=True, log=True)
