@@ -630,7 +630,7 @@ def match_patterns(name, name_w_pattern, patterns):
     Given a SPICE kernel name, a SPICE Kernel name with patterns, and the
     possible patterns, provide a dictionary with the patterns as keys and
     the patterns values as value after matching it between the SPICE Kernel
-    name with patterns and without patterns.
+    name with and without patterns.
 
     For example, given the following arguments:
 
@@ -665,14 +665,10 @@ def match_patterns(name, name_w_pattern, patterns):
         )
 
     #
-    # Convert the pattern_name_order_dictionary into an ordered lis
+    # Convert the pattern_name_order dictionary into an ordered list using
+    # the values of the original dictionary as "sorting key."
     #
-    pattern_name_order = list(
-        {
-            k: v
-            for k, v in sorted(pattern_name_order.items(), key=lambda item: item[1])
-        }.keys()
-    )
+    pattern_name_order = sorted(pattern_name_order, key=pattern_name_order.get)
 
     #
     # Generate a list of values extracted from the comparison of the
