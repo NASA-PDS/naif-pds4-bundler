@@ -64,12 +64,13 @@ def md5(fname):
     :return: Checksum value of the file
     :rtype: str
     """
-    hash_md5 = hashlib.md5('md5'.encode('utf-8'), usedforsecurity=False)
+    #hash_md5 = hashlib.md5('md5'.encode('utf-8'), usedforsecurity=False)
+    h = hashlib.md5(usedforsecurity=False)
     with open(fname, "rb") as f:
         for chunk in iter(lambda: f.read(4096), b""):
-            hash_md5.update(chunk)
+            h.update(chunk)
 
-    return hash_md5.hexdigest()
+    return h.hexdigest()
 
 
 def copy(src, dest):
