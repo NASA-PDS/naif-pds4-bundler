@@ -771,7 +771,7 @@ class Setup:
 
                 for pattern in patterns:
                     name_pattern = pattern["#text"]
-                    if not name_pattern in metak_name_check:
+                    if name_pattern not in metak_name_check:
                         error_message(
                             f"The meta-kernel pattern "
                             f"{name_pattern} is not provided."

@@ -1167,7 +1167,7 @@ class KernelList:
             #
             # Check Kernel architecture.
             #
-            if not (".nrb" in product.lower()) and not (".orb" in product.lower()):
+            if ".nrb" not in product.lower() and ".orb" not in product.lower():
                 error = check_kernel_integrity(origin_path)
                 if error:
                     product_errors[product].append(error)

@@ -86,7 +86,7 @@ def slice_kernels(
                         stop_time,
                         log=log,
                     )
-                elif not extension == ".lbl":
+                elif extension != ".lbl":
                     #
                     # Copy kernel to destination
                     #
