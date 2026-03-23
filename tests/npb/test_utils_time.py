@@ -124,6 +124,14 @@ def test_et_to_date(lsk, input_format, beget, endet, kernel_type, system, expect
     assert result == expected
 
 
+def test_et_to_date_date_format_error():
+    """Test that ET to date function produces a ValueError if the date format is not
+    supported."""
+    with pytest.raises(ValueError, match="date_format argument is incorrect."):
+        # NOTE: `beget` and `endet` are not relevant for this test.
+        time.et_to_date(beget=0, endet=0, date_format="unknown")
+
+
 @pytest.mark.parametrize("start_time, stop_time, expected", [
     ("2026-02-11T12:00:00", "2026-02-12T12:00:00", ["2026"]),
     ("2023-05-12T12:00:00", "2025-05-12T12:00:00", ["2023", "2024", "2025"]),
@@ -146,6 +154,14 @@ def test_parse_date(date_input, expected):
 
     assert isinstance(result, datetime)
     assert result == expected
+
+
+def test_parse_date_wrong_date_format():
+    """Test that parse_date function produces a ValueError if the input time string
+    does not conform to any of the supported formats."""
+    with pytest.raises(ValueError, match="The input string does not conform to any "
+                                         "of the supported formats."):
+        time.parse_date("FEB-18-2025")
 
 
 def test_pck_coverage(lsk):

@@ -416,27 +416,24 @@ def get_years(start_time: str, stop_time: str) -> list[str]:
     return [str(y) for y in range(int(start_year), int(finish_year) + 1)]
 
 
-def parse_date(date_str):
-    """Parses a date string using the following formats:
-        * %Y-%b-%d-%H:%M:%S
-        * %Y-%m-%dT%H:%M:%S
+def parse_date(date_str: str) -> datetime.datetime:
+    """Parses a date string into a datetime object.
+
+    The supported formats for the input date string are:
+       - %Y-%b-%d-%H:%M:%S
+       - %Y-%m-%dT%H:%M:%S
 
     :param date_str: Stop time to determine list of years
-    :type date_str: str
-    :return: date corresponding to the input str
-    :rtype: datetime
+
+    :raises ValueError: If the input string does not conform to any of the
+                        supported formats.
+
+    :returns: date corresponding to the input str
     """
-    # try:
-    #     date = datetime.datetime.strptime(date_str, "%Y-%b-%d-%H:%M:%S")
-    # except ValueError:
-    #     date = datetime.datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%S")
-
-    #return date
-
-    format = ["%Y-%b-%d-%H:%M:%S", "%Y-%m-%dT%H:%M:%S"]
-    for f in format:
+    formats = ["%Y-%b-%d-%H:%M:%S", "%Y-%m-%dT%H:%M:%S"]
+    for fmt in formats:
         try:
-            return datetime.datetime.strptime(date_str, f)
+            return datetime.datetime.strptime(date_str, fmt)
         except ValueError:
             continue
-    return None
+    raise ValueError("The input string does not conform to any of the supported formats.")
