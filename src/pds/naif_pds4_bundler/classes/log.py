@@ -16,9 +16,8 @@ from ..utils.types.datatypes import PipelineArgs
 class Log:
     """Log class to write and output NPB's log.
 
-    :param args: Parameter arguments from NPB's main function.
-    :param version: NPB version.
-    :type version: str
+    :param setup: Setup object from NPB's main function.
+    :param args:  Command line arguments from NPB's main function.
     """
 
     def __init__(self, setup: Setup, args: PipelineArgs) -> None:
@@ -120,7 +119,15 @@ class Log:
         logging.info("")
 
     def stop(self) -> None:
-        """Write log, file list, and checksum registry files when NPB stops."""
+        """Write log, file list, and checksum registry files when NPB stops.
+
+        Side effects:
+            - Removes template files
+            - Writes the run-by product file list and checksum record
+            - Writes a PDS validate tool configuration file, if applicable
+            - Clears SPICE kernel pool
+            - Renames the temporary log file
+        """
         # Remove the templates. Make sure they exist before attempting the
         # deletion.
         for template in self.setup.template_files:
@@ -174,13 +181,18 @@ class Log:
 
 # TODO: This function does not belong into the logging module. Move it elsewhere.
 def error_message(message: str, setup: Optional[Setup] = None) -> None:
-    """Function to signal a NPB error message.
+    """Signal a NPB error and write run artifacts.
 
-    The File List and Checksum Registry files are also written.
+    Side effects:
+        - Writes file list and checksum registry if setup is provided
+        - Removes template files
+        - Clears SPICE kernel pool
+        - Raises RuntimeError
 
     :param message: Error message
-    :type message: str
-    :param setup: Setup object, if provided a file will be written
+    :param setup:   Optional Setup object for writing artifacts
+
+    :raises RuntimeError: always, with the provided error message.
     """
     error = f"{message}"
     logging.error(f"-- {message}")
