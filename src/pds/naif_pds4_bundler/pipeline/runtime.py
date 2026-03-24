@@ -5,7 +5,7 @@ from typing import Optional
 import spiceypy
 
 
-def error_message(message: str, setup: Optional["Setup"] = None) -> None:
+def handle_npb_error(message: str, setup: Optional["Setup"] = None) -> None:
     """Signal a NPB error and write run artifacts.
 
     Side effects:
@@ -21,12 +21,10 @@ def error_message(message: str, setup: Optional["Setup"] = None) -> None:
     """
     logging.error(f"-- {message}")
 
-    #
-    # If files have been generated in the staging are and/or transferred
+    # If files have been generated in the staging area and/or transferred
     # to the final area, generate the file list for the pipeline execution.
     #
     # In addition, generate the checksum registry file
-    #
     if setup:
         setup.write_file_list()
         setup.write_checksum_registry()

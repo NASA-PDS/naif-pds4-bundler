@@ -11,7 +11,7 @@ from xml.etree import cElementTree
 
 import spiceypy
 
-from ..pipeline.runtime import error_message
+from ..pipeline.runtime import handle_npb_error
 from ..utils import (
     check_list_duplicates,
     etree_to_dict,
@@ -486,7 +486,7 @@ class Bundle:
                                                                 f"v{mk_ver:03d}.tm"
                                                             )
                                                         else:
-                                                            error_message(
+                                                            handle_npb_error(
                                                                 f"Meta-kernel version "
                                                                 f"length of {version_length}"
                                                                 f"digits is incorrect."
@@ -704,7 +704,7 @@ class Bundle:
             or (et_inc_stop > et_msn_stop)
             or (et_msn_strt >= et_msn_stop)
         ):
-            error_message(
+            handle_npb_error(
                 "The resulting Mission and Increment start and finish dates "
                 "are incoherent."
             )
@@ -802,12 +802,12 @@ class Bundle:
                     incorrect_output += f"{product}\n"
                     logging.error(f"      {product}")
                 if not self.setup.args.log:
-                    error_message(
+                    handle_npb_error(
                         f"Products in {checksum_file} do not correspond "
                         f"to the bundle release history: \n {incorrect_output}",
                         setup=self.setup,
                     )
                 else:
-                    error_message("Check generation of Checksum files.", self.setup)
+                    handle_npb_error("Check generation of Checksum files.", self.setup)
 
         logging.info("")

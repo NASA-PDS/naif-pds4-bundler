@@ -2,7 +2,7 @@
 import traceback
 from functools import wraps
 
-from ..pipeline.runtime import error_message
+from ..pipeline.runtime import handle_npb_error
 
 
 def spice_exception_handler(func):
@@ -20,8 +20,8 @@ def spice_exception_handler(func):
             func(*args, **kwargs)
         except Exception:
             if hasattr(args[0], "setup"):
-                error_message(traceback.format_exc(), setup=args[0].setup)
+                handle_npb_error(traceback.format_exc(), setup=args[0].setup)
             else:
-                error_message(traceback.format_exc())
+                handle_npb_error(traceback.format_exc())
 
     return inner_function

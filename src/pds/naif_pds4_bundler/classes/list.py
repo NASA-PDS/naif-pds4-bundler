@@ -8,7 +8,7 @@ import os
 import re
 import shutil
 
-from ..pipeline.runtime import error_message
+from ..pipeline.runtime import handle_npb_error
 from ..utils import check_badchar
 from ..utils import check_binary_endianness
 from ..utils import check_consecutive
@@ -129,7 +129,7 @@ class KernelList:
             with open(plan, "w") as pl:
                 pl.write(plan.split(os.sep)[-1])
         elif plan.split(".")[-1] != "plan":
-            error_message(
+            handle_npb_error(
                 "Release plan requires *.plan extension. Single "
                 "kernels are only allowed in labeling mode."
             )
@@ -258,7 +258,7 @@ class KernelList:
                 if os.path.isfile(mk_path):
                     kernels.append(mk_new_name)
                 else:
-                    error_message(
+                    handle_npb_error(
                         f"Meta-kernel provided via configuration "
                         f"{mk_new_name} does not exist."
                     )
@@ -468,7 +468,7 @@ class KernelList:
                                             if patterns[el]["@pattern"].isupper():
                                                 value = value.upper()
                                         else:
-                                            error_message(
+                                            handle_npb_error(
                                                 f"Kernel pattern for {kernel} not adept to write description. Remember a "
                                                 "metacharacter cannot start or finish a kernel pattern."
                                             )
@@ -499,7 +499,7 @@ class KernelList:
                                                 break
 
                                         if not isinstance(value, str):
-                                            error_message(
+                                            handle_npb_error(
                                                 f"Kernel pattern not found in comment area of {kernel}."
                                             )
 
@@ -524,7 +524,7 @@ class KernelList:
                                                 if val["@value"] in kernel:
                                                     value = val["#text"]
                                             except KeyError:
-                                                error_message(
+                                                handle_npb_error(
                                                     f"Error generating kernel list with {kernel}. "
                                                     f"Consider reviewing your NPB setup."
                                                 )
@@ -532,7 +532,7 @@ class KernelList:
                                         if isinstance(value, list) or isinstance(
                                             value, dict
                                         ):
-                                            error_message(
+                                            handle_npb_error(
                                                 f"-- Kernel {kernel} description could not be updated with "
                                                 f"pattern."
                                             )
@@ -759,13 +759,13 @@ class KernelList:
             #
             for ker in ker_in_list:
                 if ker not in self.kernel_list:
-                    error_message(f"   {ker} not in list.")
+                    handle_npb_error(f"   {ker} not in list.")
 
             #
             # Check list for duplicate entries.
             #
             if check_list_duplicates(ker_in_list):
-                error_message("List contains duplicates.")
+                handle_npb_error("List contains duplicates.")
 
             #
             # Check that all files listed are available in OPS area;
@@ -853,7 +853,7 @@ class KernelList:
                         logging.info(f"     {option} is present.")
                     else:
                         if option != "N/A":
-                            error_message(f"{option} not in configuration.")
+                            handle_npb_error(f"{option} not in configuration.")
 
                 logging.info("")
 
@@ -886,7 +886,7 @@ class KernelList:
                             ker_in_list.append(line.split("/")[-1].strip())
 
             if check_list_duplicates(ker_in_list):
-                error_message("List contains duplicates.")
+                handle_npb_error("List contains duplicates.")
             else:
                 logging.info("     List contains no duplicates.")
             logging.info("")
@@ -988,7 +988,7 @@ class KernelList:
             #
             logging.info("-- Checking for duplicates in kernel list:")
             if check_list_duplicates(ker_in_list):
-                error_message("List contains duplicates.")
+                handle_npb_error("List contains duplicates.")
             else:
                 logging.info("     List contains no duplicates.")
             logging.info("")
@@ -1027,7 +1027,7 @@ class KernelList:
                     if present:
                         logging.info(f"     {option} is present.")
                     else:
-                        error_message(f"{option} not in template.")
+                        handle_npb_error(f"{option} not in template.")
 
                 logging.info("")
 
@@ -1233,7 +1233,7 @@ class KernelList:
             if not self.setup.args.silent and not self.setup.args.verbose:
                 print("-- Products listed above require work.")
             logging.error("")
-            error_message("Products listed above require work.", self.setup)
+            handle_npb_error("Products listed above require work.", self.setup)
         elif not warning_flag:
             logging.info("-- All products checks have succeeded.")
             logging.info("")

@@ -6,7 +6,7 @@ from pathlib import Path
 import spiceypy
 
 from .label import PDSLabel
-from ...pipeline.runtime import error_message
+from ...pipeline.runtime import handle_npb_error
 from ...utils import (
     ck_coverage,
     extract_comment,
@@ -169,7 +169,7 @@ class SpiceKernelPDS3Label(PDSLabel):
             if "KPL/" in kernel_lines[0]:
                 kernel.write(kernel_lines[0])
             else:
-                error_message(
+                handle_npb_error(
                     f"Kernel {self.product.name} does not have "
                     f"architecture spec as first line."
                 )

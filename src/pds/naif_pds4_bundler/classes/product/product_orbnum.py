@@ -7,7 +7,7 @@ import shutil
 from typing import List
 
 from .product import Product
-from ...pipeline.runtime import error_message
+from ...pipeline.runtime import handle_npb_error
 from ...utils.time import parse_date
 from ...utils import add_crs_to_file
 from ...utils import check_eol
@@ -54,7 +54,7 @@ class OrbnumFileProduct(Product):
                 self._pattern = orbnum_type["pattern"]
 
         if not hasattr(self, "_orbnum_type"):
-            error_message(
+            handle_npb_error(
                 "The orbnum file does not match any type "
                 "described in the configuration.",
                 setup=self.setup,
@@ -252,13 +252,13 @@ class OrbnumFileProduct(Product):
         # for Descending and Ascending node events (Odyssey).
         #
         if ("Event" not in header[0]) and ("Node" not in header[0]):
-            error_message(
+            handle_npb_error(
                 f"The header of the orbnum file {self.name} is not as expected.",
                 setup=self.setup,
             )
 
         if "===" not in header[1]:
-            error_message(
+            handle_npb_error(
                 f"The header of the orbnum file {self.name} is not as expected.",
                 setup=self.setup,
             )
@@ -319,7 +319,7 @@ class OrbnumFileProduct(Product):
                         break
 
         if not sample_record:
-            error_message("The orbnum file has no records.", setup=self.setup)
+            handle_npb_error("The orbnum file has no records.", setup=self.setup)
 
         sample_record = self.utc_blanks_to_dashes(sample_record)
 
@@ -384,7 +384,7 @@ class OrbnumFileProduct(Product):
                                 f"is followed by {orbit_number}."
                             )
                         if not line.strip():
-                            error_message(
+                            handle_npb_error(
                                 f"Orbnum record number {line} is blank.",
                                 setup=self.setup,
                             )
@@ -552,7 +552,7 @@ class OrbnumFileProduct(Product):
                     self._event_detection_key = "D-NODE"
 
         if not hasattr(self, "_event_detection_key"):
-            error_message("orbnum event detection key is incorrect.", setup=self.setup)
+            handle_npb_error("orbnum event detection key is incorrect.", setup=self.setup)
 
     # TODO: Is this method really needed?
     @staticmethod
@@ -885,7 +885,7 @@ class OrbnumFileProduct(Product):
                 elif "ASCII_Integer" in params_template[param]["type"]:
                     format += "d"
                 else:
-                    error_message("Parameter type for ORBNUM file is incorrect.")
+                    handle_npb_error("Parameter type for ORBNUM file is incorrect.")
             else:
                 if "ASCII_Real" in params_template[param]["type"]:
                     format = "F" + length + "." + param_length
@@ -894,7 +894,7 @@ class OrbnumFileProduct(Product):
                 elif "ASCII_Integer" in params_template[param]["type"]:
                     format = "I" + length
                 else:
-                    error_message("Parameter type for ORBNUM file is incorrect.")
+                    handle_npb_error("Parameter type for ORBNUM file is incorrect.")
 
             #
             # Parameter number (column number)
