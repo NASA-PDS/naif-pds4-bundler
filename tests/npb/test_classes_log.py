@@ -1,12 +1,13 @@
 import logging
+import shutil
 from pathlib import Path
-from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
 from _pytest.logging import LogCaptureHandler
 
 from pds.naif_pds4_bundler.classes.log import Log
+from pds.naif_pds4_bundler.utils.types.datatypes import PipelineArgs
 
 
 class DummySetup:
@@ -29,7 +30,8 @@ class DummySetup:
 
 @pytest.fixture
 def args():
-    return SimpleNamespace(
+    return PipelineArgs(
+        config="config.xml",
         debug=False,
         silent=False,
         verbose=False,
@@ -96,8 +98,9 @@ def test_init_without_log_file(tmp_path, args, cleanup_root_logger):
     assert len(stream_handlers) == 1
 
 
-def test_init_with_log_file_creates_file_handler(tmp_path, args, cleanup_root_logger):
-    args.log = True
+def test_init_with_log_file_creates_file_handler(tmp_path, cleanup_root_logger):
+    args = PipelineArgs(config="config.xml", log=True, faucet="bundle")
+
     setup = DummySetup(tmp_path, args)
 
     log = Log(setup, args)
@@ -112,8 +115,9 @@ def test_init_with_log_file_creates_file_handler(tmp_path, args, cleanup_root_lo
     assert Path(file_handlers[0].baseFilename) == expected
 
 
-def test_init_with_log_file_removes_existing_temp_log(tmp_path, args, cleanup_root_logger):
-    args.log = True
+def test_init_with_log_file_removes_existing_temp_log(tmp_path, cleanup_root_logger):
+    args = PipelineArgs(config="config.xml", log=True, faucet="bundle")
+
     existing = tmp_path / "TM_archive_temp.log"
     existing.write_text("old content")
 
@@ -147,8 +151,8 @@ def test_start_logs_banner_and_runtime_info(tmp_path, args, cleanup_root_logger,
     assert "bundle" in text
 
 
-def test_start_logs_labeling_mode_message(tmp_path, args, cleanup_root_logger, caplog):
-    args.faucet = "labels"
+def test_start_logs_labeling_mode_message(tmp_path, cleanup_root_logger, caplog):
+    args = PipelineArgs(config="config.xml", faucet="labels")
     setup = DummySetup(tmp_path, args)
     log = Log(setup, args)
 
@@ -219,9 +223,10 @@ def test_stop_removes_templates_and_writes_outputs_without_templates(
 
 
 def test_stop_skips_validate_config_for_clear_runs(
-    tmp_path, args, cleanup_root_logger, monkeypatch
+    tmp_path, cleanup_root_logger, monkeypatch
 ):
-    args.faucet = "clear"
+    args = PipelineArgs(config="config.xml", faucet="clear")
+
     setup = DummySetup(tmp_path, args)
     monkeypatch.setattr("spiceypy.kclear", MagicMock())
 
@@ -249,9 +254,10 @@ def test_stop_skips_validate_config_for_non_pds4(
 
 
 def test_stop_renames_log_file_with_release_number(
-    tmp_path, args, cleanup_root_logger, monkeypatch
+    tmp_path, cleanup_root_logger, monkeypatch
 ):
-    args.log = True
+    args = PipelineArgs(config="config.xml", log=True, faucet="bundle")
+
     setup = DummySetup(tmp_path, args)
     setup.release = "7"
 
@@ -272,3 +278,48 @@ def test_stop_renames_log_file_with_release_number(
     assert moved["src"].endswith("TM_archive_temp.log")
     assert moved["dst"].endswith("TM_archive_07.log")
     kclear.assert_called_once()
+
+
+@pytest.mark.parametrize("release, expected_path", [
+    ("9", "TM_archive_09.log"),
+    ("12", "TM_archive_12.log")
+])
+def test__rename_log_file_with_release_number(
+        tmp_path, cleanup_root_logger, monkeypatch, release, expected_path
+):
+    """Verifies that the temp log is renamed using a zero-padded release version."""
+    args = PipelineArgs(config="config.xml", log=True, faucet="bundle")
+
+    setup = DummySetup(tmp_path, args)
+    setup.release = release
+
+    # Mock shutil.move to prevent actual file system movement during the test
+    mock_move = MagicMock()
+    monkeypatch.setattr(shutil, "move", mock_move)
+
+    log = Log(setup, args)
+    # Manually set the temp log path as if __init__ just created it
+    temp_path = str(tmp_path / "TM_archive_temp.log")
+    log.log_file = temp_path
+
+    # Execute
+    log._rename_log_file()
+
+    # Verify
+    expected_path = str(tmp_path / expected_path )
+    mock_move.assert_called_once_with(temp_path, expected_path)
+
+
+def test__rename_log_file_skips_if_no_file(tmp_path, args, cleanup_root_logger, monkeypatch):
+    """Verifies that shutil.move is not called if log_file is empty."""
+    setup = DummySetup(tmp_path, args)
+
+    mock_move = MagicMock()
+    monkeypatch.setattr(shutil, "move", mock_move)
+
+    log = Log(setup, args)
+    log.log_file = ""  # Ensure it's empty
+
+    log._rename_log_file()
+
+    mock_move.assert_not_called()

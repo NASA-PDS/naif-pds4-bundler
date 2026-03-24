@@ -168,9 +168,11 @@ class Log:
             print(stop_message)
             print("")
 
-        #
         # Rename the log file according to the version.
-        #
+        self._rename_log_file()
+
+    def _rename_log_file(self) -> None:
+        """Rename temporary log file according to release version."""
         if self.log_file:
             shutil.move(
                 self.log_file,
