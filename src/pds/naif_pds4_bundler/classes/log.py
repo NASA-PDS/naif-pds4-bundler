@@ -9,16 +9,15 @@ import socket
 import spiceypy
 
 
-class Log(object):
+class Log:
     """Log class to write and output NPB's log.
 
     :param args: Parameter arguments from NPB's main function.
-    :type args: object
     :param version: NPB version.
     :type version: str
     """
 
-    def __init__(self, setup: object, args: object) -> object:
+    def __init__(self, setup, args) -> object:
         """Constructor."""
         self.setup = setup
         self.args = args
@@ -178,7 +177,6 @@ def error_message(message, setup=False):
     :param message: Error message
     :type message: str
     :param setup: Setup object, if provided a file will be written
-    :type setup: object
     """
     error = f"{message}"
     logging.error(f"-- {message}")

@@ -443,7 +443,6 @@ def test_insight_mks_input(self):
             diff="all",
         ))
 
-    pass
 
 
 def test_insight_mks_inputs_coverage(self):

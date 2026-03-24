@@ -64,7 +64,7 @@ def md5(fname):
     :return: Checksum value of the file
     :rtype: str
     """
-    hash_md5 = hashlib.md5()
+    hash_md5 = hashlib.md5(usedforsecurity=False)
     with open(fname, "rb") as f:
         for chunk in iter(lambda: f.read(4096), b""):
             hash_md5.update(chunk)
@@ -278,7 +278,6 @@ def fill_template(object, product_file, product_dictionary):
     """Fill a template with uppercase keywords preceded with ``$``.
 
     :param object: List object
-    :type object: object
     :param product_file: Resulting file
     :type product_file: str
     :param product_dictionary: Dictionary of keys to replace
@@ -383,7 +382,7 @@ def mk_to_list(mk, setup):
 
     :param mk: Meta-kernel path from which the list of kernels is generated
     :type mk: str
-    :param setup: NPB run Setup object
+    :param setup: NPB run Setup
     :return: List of kernels present in the meta-kernel
     :rtype: list
     """
@@ -532,8 +531,8 @@ def get_latest_kernel(
         for kernel in kernels:
             if (
                 previous_kernel
-                and re.split("_V[0-9]*", previous_kernel.upper())[0]
-                == re.split("_V[0-9]*", kernel.upper())[0]
+                and re.split(r"_[vV]\d*", previous_kernel)[0]
+                == re.split(r"_[vV]\d*", kernel)[0]
             ):
                 kernels_date.remove(previous_kernel)
 
@@ -629,7 +628,7 @@ def match_patterns(name, name_w_pattern, patterns):
     Given a SPICE kernel name, a SPICE Kernel name with patterns, and the
     possible patterns, provide a dictionary with the patterns as keys and
     the patterns values as value after matching it between the SPICE Kernel
-    name with patterns and without patterns.
+    name with and without patterns.
 
     For example, given the following arguments:
 
@@ -664,14 +663,10 @@ def match_patterns(name, name_w_pattern, patterns):
         )
 
     #
-    # Convert the pattern_name_order_dictionary into an ordered lis
+    # Convert the pattern_name_order dictionary into an ordered list using
+    # the values of the original dictionary as "sorting key."
     #
-    pattern_name_order = list(
-        {
-            k: v
-            for k, v in sorted(pattern_name_order.items(), key=lambda item: item[1])
-        }.keys()
-    )
+    pattern_name_order = sorted(pattern_name_order, key=pattern_name_order.get)
 
     #
     # Generate a list of values extracted from the comparison of the
@@ -803,7 +798,7 @@ def extract_comment(path, handle=False):
     linlen = 1001
     buffsz = 100000
 
-    (lincmt, commnt, done) = spiceypy.dafec(handle, buffsz, linlen)
+    (lincmt, commnt, _) = spiceypy.dafec(handle, buffsz, linlen)
     if lincmt > buffsz:
         spiceypy.dafcls(handle)
         error_message(f"Comment from {path} is longer than buffer size.")
@@ -862,7 +857,7 @@ def replace_string_in_file(file, old_string, new_string, setup):
     :type old_string: str
     :param new_string: String to be replaced
     :type new_string: str
-    :param setup: NPB run Setup object
+    :param setup: NPB run Setup
     """
     reading_file = open(file, "r")
 

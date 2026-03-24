@@ -65,7 +65,6 @@ def compare(self):
     dirs = ["working", "staging", "kernels", mis]
     for dir in dirs:
         shutil.move(dir, f"{dir}_old")
-        pass
 
 
 def test_msl(self):

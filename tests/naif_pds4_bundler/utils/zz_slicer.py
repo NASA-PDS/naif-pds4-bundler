@@ -37,7 +37,6 @@ def slice_kernels(
     :param start_time:
     :param stop_time:
     :param timetype:
-    :return:
     """
     #
     # Remove out_kernels_dir if exist, and create it again
@@ -87,13 +86,11 @@ def slice_kernels(
                         stop_time,
                         log=log,
                     )
-                elif not extension == ".lbl":
+                elif extension != ".lbl":
                     #
                     # Copy kernel to destination
                     #
                     shutil.copyfile(filename, output_filename)
-
-    return
 
 
 def ckslicer(

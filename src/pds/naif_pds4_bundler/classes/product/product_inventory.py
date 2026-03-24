@@ -186,7 +186,7 @@ class InventoryProduct(Product):
                 # are added to the collection before generating the inventory
                 # product itself.
                 #
-                if type(product) != InventoryProduct:
+                if not isinstance(product, InventoryProduct):
                     if product.new_product:
                         line = f"P,{product.lid}::{product.vid}\r\n"
                         line = add_carriage_return(
@@ -201,7 +201,7 @@ class InventoryProduct(Product):
         kernel list file. Please contact the NAIF if you are interested in such
         script.
         """
-        current_index = list()
+        current_index = []
         column_length = [0] * 10
 
         if self.setup.increment:

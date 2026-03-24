@@ -21,11 +21,10 @@ from ..utils import spice_exception_handler
 from .log import error_message
 
 
-class Setup(object):
+class Setup:
     """Class that parses and processes the NPB XML configuration file.
 
     :param args: Parameters arguments from NPB main function
-    :type args: object
     :param version: NPB version
     :type version: str
     """
@@ -183,7 +182,7 @@ class Setup(object):
         if not hasattr(self, "release_date"):
             self.release_date = datetime.date.today().strftime("%Y-%m-%d")
         else:
-            pattern = re.compile("[0-9]{4}-[0-9]{2}-[0-9]{2}")
+            pattern = re.compile("\d{4}-\d{2}-\d{2}")
             if not pattern.match(self.release_date):
                 error_message(
                     "release_date parameter does not match "
@@ -303,7 +302,7 @@ class Setup(object):
             # Set the time format for the Date format selected.
             #
             pattern = re.compile(
-                "[0-9]{4}-[0-9]{2}-[0-9]{2}T" "[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}Z"
+                "\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z"
             )
             format = "YYYY-MM-DDThh:mm:ss.sssZ"
         elif self.date_format == "maklabel":
@@ -324,7 +323,7 @@ class Setup(object):
             # Set the time format for the Date format selected.
             #
             pattern = re.compile(
-                "[0-9]{4}-[0-9]{2}-[0-9]{2}T" "[0-9]{2}:[0-9]{2}:[0-9]{2}Z"
+                "\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z"
             )
             format = "YYYY-MM-DDThh:mm:ssZ"
 
@@ -507,7 +506,7 @@ class Setup(object):
         # checked by the PDS Validate tool.
         #
         if hasattr(self, "information_model"):
-            if re.match(r"[0-9]+[.][0-9]+[.][0-9]+[.][0-9]+", self.information_model):
+            if re.match(r"\d+[.]\d+[.]\d+[.]\d+", self.information_model):
 
                 major = int(self.information_model.split(".")[0])
                 minor = int(self.information_model.split(".")[1])
@@ -770,7 +769,7 @@ class Setup(object):
 
                 for pattern in patterns:
                     name_pattern = pattern["#text"]
-                    if not name_pattern in metak_name_check:
+                    if name_pattern not in metak_name_check:
                         error_message(
                             f"The meta-kernel pattern "
                             f"{name_pattern} is not provided."
@@ -1036,7 +1035,7 @@ class Setup(object):
                         lsks.append(lsk_pattern[-1])
                         break
         if not lsks:
-            logging.error(f"-- LSK not found.")
+            logging.error('-- LSK not found.')
         else:
             logging.info(f"-- LSK     loaded: {lsks}")
         if len(lsks) > 1:
@@ -1061,7 +1060,7 @@ class Setup(object):
                         pcks.append(pcks_pattern[-1])
                         break
         if not pcks:
-            logging.info(f"-- PCK not found.")
+            logging.info('-- PCK not found.')
         else:
             logging.info(f"-- PCK(s)   loaded: {pcks}")
 
@@ -1085,7 +1084,7 @@ class Setup(object):
                         fks.append(fks_pattern[-1])
                         break
         if not fks:
-            logging.warning(f"-- FK not found.")
+            logging.warning('-- FK not found.')
         else:
             logging.info(f"-- FK(s)   loaded: {fks}")
 
@@ -1108,7 +1107,7 @@ class Setup(object):
                         sclks.append(sclks_pattern[-1])
                         break
         if not sclks:
-            logging.error(f"-- SCLK not found.")
+            logging.error('-- SCLK not found.')
         else:
             logging.info(f"-- SCLK(s) loaded: {sclks}")
 
@@ -1135,7 +1134,7 @@ class Setup(object):
         """
         if debug:
             logging.warning(
-                f"-- Running in DEBUG mode, by-product files are not cleaned up."
+                '-- Running in DEBUG mode, by-product files are not cleaned up.'
             )
 
         if os.path.isfile(self.args.clear):
@@ -1203,11 +1202,11 @@ class Setup(object):
 
         else:
             error_message(
-                f'The file provided with the "clear" argument does '
-                f"not exist or is not readable. Make sure that the "
-                f"file follows the name pattern: "
+                 'The file provided with the "clear" argument does '
+                 'not exist or is not readable. Make sure that the '
+                 'file follows the name pattern: '
                 f"{self.mission_acronym}_{self.run_type}_NN.file_list."
-                f" where NN is the release number."
+                 ' where NN is the release number.'
             )
 
     def add_file(self, file):
@@ -1327,9 +1326,9 @@ class Setup(object):
             l.write(
                 f"validate.schematron = {self.working_directory}/{pds_schematron}\n"
             )
-            l.write(f"validate.verbose = 1\n")
-            l.write(f"validate.rule = pds4.bundle\n")
-            l.write(f"validate.strictFieldChecks = true\n")
+            l.write('validate.verbose = 1\n')
+            l.write('validate.rule = pds4.bundle\n')
+            l.write('validate.strictFieldChecks = true\n')
 
         logging.info("-- PDS Validate Tool configuration file written in working area:")
         logging.info(f"   {self.working_directory}/{filename}.validate_config")

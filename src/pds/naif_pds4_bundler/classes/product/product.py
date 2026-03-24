@@ -9,7 +9,7 @@ from ...utils import creation_time
 from ...utils import md5
 
 
-class Product(object):
+class Product:
     """Class that defines a generic archive product (or file).
 
     Assigns value to the common attributes for all Products: file size,

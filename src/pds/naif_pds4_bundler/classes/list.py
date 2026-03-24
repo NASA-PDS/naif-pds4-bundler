@@ -294,7 +294,7 @@ class KernelList:
                     for pattern in patterns:
                         mk_name = mks_in_dir[-1]
                         if re.match(pattern, mk_name):
-                            version = re.findall(r"_v[0-9]+", mk_name)[0]
+                            version = re.findall(r"_v\d+", mk_name)[0]
                             new_version = "_v" + str(int(version[2:]) + 1).zfill(
                                 len(version) - 2
                             )
@@ -1069,8 +1069,8 @@ class KernelList:
 
         for product in product_list:
 
-            product_errors[product] = list()
-            product_warnings[product] = list()
+            product_errors[product] = []
+            product_warnings[product] = []
 
             #
             # Check if a product is present in multiple directories
@@ -1167,7 +1167,7 @@ class KernelList:
             #
             # Check Kernel architecture.
             #
-            if not (".nrb" in product.lower()) and not (".orb" in product.lower()):
+            if ".nrb" not in product.lower() and ".orb" not in product.lower():
                 error = check_kernel_integrity(origin_path)
                 if error:
                     product_errors[product].append(error)

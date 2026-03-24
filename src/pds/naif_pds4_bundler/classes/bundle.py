@@ -22,17 +22,16 @@ from .log import error_message
 from .product import ReadmeProduct
 
 
-class Bundle(object):
+class Bundle:
     """Class to generate the PDS4 Bundle structure.
 
     The class construction will generate the top level directory structure for
     a PDS4 bundle or a PDS3 data set.
 
-    :param setup: NPB execution Setup object
-    :type setup: object
+    :param setup: NPB execution Setup
     """
 
-    def __init__(self, setup: object) -> object:
+    def __init__(self, setup) -> object:
         """Constructor."""
         line = (
             f"Step {setup.step} - Bundle/data set structure generation "
@@ -145,7 +144,7 @@ class Bundle(object):
         #
         # Include the bundle products if not running in label mode.
         #
-        if self.setup.pds_version == "4" and not self.setup.faucet == "labels":
+        if self.setup.pds_version == "4" and self.setup.faucet != "labels":
             new_files.append(self.setup.staging_directory + os.sep + self.name)
             if hasattr(self, "readme") and self.readme.new_product:
                 new_files.append(
@@ -288,7 +287,6 @@ class Bundle(object):
         The method checks whether if there is any duplicated element.
 
         :param object: optional Bundle object for tests
-        :type object: object
         :return: Archive history dictionary
         :rtype: dict
         """
@@ -701,10 +699,10 @@ class Bundle(object):
         et_msn_stop = spiceypy.str2et(str_msn_stop)
 
         if (
-            not (et_msn_strt <= et_inc_strt)
-            or not (et_inc_strt <= et_inc_stop)
-            or not (et_inc_stop <= et_msn_stop)
-            or not (et_msn_strt < et_msn_stop)
+            (et_msn_strt > et_inc_strt)
+            or (et_inc_strt > et_inc_stop)
+            or (et_inc_stop > et_msn_stop)
+            or (et_msn_strt >= et_msn_stop)
         ):
             error_message(
                 "The resulting Mission and Increment start and finish dates "
@@ -788,7 +786,7 @@ class Bundle(object):
             products_in_checksum.sort()
             products_in_history.sort()
 
-            if not products_in_checksum == products_in_history:
+            if products_in_checksum != products_in_history:
 
                 logging.error("")
                 logging.error(
