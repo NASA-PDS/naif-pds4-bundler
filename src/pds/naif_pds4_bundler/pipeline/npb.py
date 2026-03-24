@@ -8,7 +8,7 @@ from ..classes.collection import DocumentCollection
 from ..classes.collection import MiscellaneousCollection
 from ..classes.collection import SpiceKernelsCollection
 from ..classes.list import KernelList
-from ..classes.log import Log
+from ..classes.log import Log, finish_execution
 from ..classes.product import ChecksumProduct
 from ..classes.product import InventoryProduct
 from ..classes.product import MetaKernelProduct
@@ -119,7 +119,7 @@ def run_pipeline(args: PipelineArgs) -> None:
     #      by setting ``-f, --faucet`` to ``clear``.
     #
     if setup.faucet == "clear":
-        log.stop()
+        finish_execution(setup, log)
         return
 
     #
@@ -146,7 +146,7 @@ def run_pipeline(args: PipelineArgs) -> None:
     #      plan by setting ``-f, --faucet`` to ``plan``.
     #
     if setup.faucet == "plan":
-        log.stop()
+        finish_execution(setup, log)
         return
 
     if not args.kerlist:
@@ -159,7 +159,7 @@ def run_pipeline(args: PipelineArgs) -> None:
     #      list plan by setting ``-f, --faucet`` to ``list``.
     #
     if setup.faucet == "list":
-        log.stop()
+        finish_execution(setup, log)
         return
 
     #
@@ -172,7 +172,7 @@ def run_pipeline(args: PipelineArgs) -> None:
     #      list by setting ``-f, --faucet`` to ``checks``.
     #
     if setup.faucet == "checks":
-        log.stop()
+        finish_execution(setup, log)
         return
 
     #
@@ -255,7 +255,7 @@ def run_pipeline(args: PipelineArgs) -> None:
         #
         bundle.copy_to_bundle()
 
-        log.stop()
+        finish_execution(setup, log)
         return
 
     #
@@ -450,7 +450,7 @@ def run_pipeline(args: PipelineArgs) -> None:
     #   to ``staging``.
     #
     if setup.faucet == "staging":
-        log.stop()
+        finish_execution(setup, log)
         return
 
     #
@@ -472,7 +472,7 @@ def run_pipeline(args: PipelineArgs) -> None:
     #   to ``bundle``.
     #
     if setup.faucet == "bundle":
-        log.stop()
+        finish_execution(setup, log)
         return
 
     #
@@ -490,4 +490,4 @@ def run_pipeline(args: PipelineArgs) -> None:
         if type(kernel) == MetaKernelProduct:
             kernel.validate()
 
-    log.stop()
+    finish_execution(setup, log)

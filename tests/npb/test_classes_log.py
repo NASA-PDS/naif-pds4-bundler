@@ -6,11 +6,11 @@ from unittest.mock import MagicMock
 import pytest
 from _pytest.logging import LogCaptureHandler
 
-from pds.naif_pds4_bundler.classes.log import Log
+from pds.naif_pds4_bundler.classes.log import Log, finish_execution
 from pds.naif_pds4_bundler.utils.types.datatypes import PipelineArgs
 
 
-class DummySetup:
+class DummySetup():
     def __init__(self, tmp_path, args):
         self.args = args
         self.version = "1.2.3"
@@ -179,7 +179,7 @@ def test_stop_removes_templates_and_writes_outputs_with_templates(
     log = Log(setup, args)
 
     with caplog.at_level(logging.INFO):
-        log.stop()
+        finish_execution(setup, log)
 
     assert not template1.exists()
     assert not template2.exists()
@@ -207,7 +207,7 @@ def test_stop_removes_templates_and_writes_outputs_without_templates(
     log = Log(setup, args)
 
     with caplog.at_level(logging.INFO):
-        log.stop()
+        finish_execution(setup, log)
 
     assert not template1.exists()
     assert not template2.exists()
@@ -231,7 +231,7 @@ def test_stop_skips_validate_config_for_clear_runs(
     monkeypatch.setattr("spiceypy.kclear", MagicMock())
 
     log = Log(setup, args)
-    log.stop()
+    finish_execution(setup, log)
 
     setup.write_file_list.assert_called_once()
     setup.write_checksum_registry.assert_called_once()
@@ -246,7 +246,7 @@ def test_stop_skips_validate_config_for_non_pds4(
     monkeypatch.setattr("spiceypy.kclear", MagicMock())
 
     log = Log(setup, args)
-    log.stop()
+    finish_execution(setup, log)
 
     setup.write_file_list.assert_called_once()
     setup.write_checksum_registry.assert_called_once()
@@ -273,7 +273,7 @@ def test_stop_renames_log_file_with_release_number(
     monkeypatch.setattr("shutil.move", fake_move)
 
     log = Log(setup, args)
-    log.stop()
+    finish_execution(setup, log)
 
     assert moved["src"].endswith("TM_archive_temp.log")
     assert moved["dst"].endswith("TM_archive_07.log")

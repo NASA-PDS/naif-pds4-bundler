@@ -1,14 +1,18 @@
 """Log Class Implementation."""
+from __future__ import annotations
 import datetime
 import logging
 import os
 import platform
 import shutil
 import socket
+from typing import TYPE_CHECKING
 
 import spiceypy
 
-from ..utils.types.datatypes import PipelineArgs
+if TYPE_CHECKING:
+    from .setup import Setup
+    from ..utils.types.datatypes import PipelineArgs
 
 
 class Log:
@@ -18,15 +22,22 @@ class Log:
     :param args:  Command line arguments from NPB's main function.
     """
 
-    def __init__(self, setup: "Setup", args: PipelineArgs) -> None:
+    def __init__(self, setup: Setup, args: PipelineArgs) -> None:
         """Constructor."""
         self.setup = setup
         self.args = args
 
+        self.log_file = ""
+        self._handlers: list[logging.Handler] = []
+
+        self._configure_logger()
+
+    def _configure_logger(self) -> None:
+
         logger = logging.getLogger()
         logger.setLevel(logging.INFO)
 
-        if args.debug:
+        if self.args.debug:
             log_format = (
                 "%(module)-12s %(funcName)-23s || " "%(levelname)-8s: %(message)s"
             )
@@ -35,7 +46,7 @@ class Log:
 
         ch = logging.StreamHandler()
 
-        if not args.silent and args.verbose:
+        if not self.args.silent and self.args.verbose:
             ch.setLevel(logging.INFO)
         else:
             ch.setLevel(logging.CRITICAL)
@@ -43,13 +54,14 @@ class Log:
         formatter = logging.Formatter(log_format)
         ch.setFormatter(formatter)
         logger.addHandler(ch)
+        self._handlers.append(ch)
 
-        if args.log:
+        if self.args.log:
 
             log_file = (
-                setup.working_directory
+                self.setup.working_directory
                 + os.sep
-                + f"{setup.mission_acronym}_{setup.run_type}_temp.log"
+                + f"{self.setup.mission_acronym}_{self.setup.run_type}_temp.log"
             )
 
             if os.path.exists(log_file):
@@ -59,10 +71,8 @@ class Log:
             fh.setLevel(logging.INFO)
             fh.setFormatter(formatter)
             logger.addHandler(fh)
-
+            self._handlers.append(fh)
             self.log_file = log_file
-        else:
-            self.log_file = ""
 
     def start(self) -> None:
         """Start the generation of the log for the execution."""
@@ -78,7 +88,7 @@ class Log:
         logging.info(start_message)
         logging.info("=" * len(start_message))
         logging.info("")
-        if not self.setup.args.silent and not self.setup.args.verbose:
+        if not self.args.silent and not self.args.verbose:
             print("")
             print(start_message + "\n" + "=" * len(start_message))
             print(exec_message)
@@ -126,39 +136,6 @@ class Log:
             - Clears SPICE kernel pool
             - Renames the temporary log file
         """
-        # Remove the templates. Make sure they exist before attempting the
-        # deletion.
-        for template in self.setup.template_files:
-            if os.path.exists(template):
-                os.remove(template)
-
-        #
-        # Generate the file list, the checksum registry, and the PDS validate
-        # configuration file.
-        #
-        step_message = f"Step {self.setup.step} - Generate run by-product files"
-        logging.info("")
-        logging.info(step_message)
-        logging.info("-" * len(step_message))
-        logging.info("")
-        self.setup.step += 1
-        if not self.setup.args.silent and not self.setup.args.verbose:
-            print("-- " + step_message.split(" - ")[-1] + ".")
-
-        self.setup.write_file_list()
-        self.setup.write_checksum_registry()
-
-        #
-        # The validate file is not generated for an NPB clear run.
-        #
-        if self.setup.pds_version == "4" and self.setup.args.faucet != "clear":
-            self.setup.write_validate_config()
-
-        #
-        # Clear the kernel pool
-        #
-        spiceypy.kclear()
-
         stop_message = f"Execution finished at {str(datetime.datetime.now())[:-7]}"
         logging.info("")
         logging.info(stop_message)
@@ -168,8 +145,18 @@ class Log:
             print(stop_message)
             print("")
 
-        # Rename the log file according to the version.
+        # Close and remove loging handlers to prevent resource leaks,
+        # and rename the log file according to the version.
+        self._close()
         self._rename_log_file()
+
+    def _close(self) -> None:
+        """Explicitly close and remove handlers to prevent resource leaks."""
+        logger = logging.getLogger()
+        for handler in self._handlers:
+            handler.close()
+            logger.removeHandler(handler)
+        self._handlers.clear()
 
     def _rename_log_file(self) -> None:
         """Rename temporary log file according to release version."""
@@ -178,3 +165,38 @@ class Log:
                 self.log_file,
                 self.log_file.replace("temp", f"{int(self.setup.release):02d}"),
             )
+
+
+def finish_execution(setup: Setup, log_manager: Log) -> None:
+    """Coordinator function for the 'stop' sequence."""
+
+    # Business Logic: Cleanup Templates
+    for template in setup.template_files:
+        if os.path.exists(template):
+            os.remove(template)
+
+    logging.info(f"Step {setup.step} - Generating artifacts...")
+    step_message = f"Step {setup.step} - Generate run by-product files"
+    logging.info("")
+    logging.info(step_message)
+    logging.info("-" * len(step_message))
+    logging.info("")
+    setup.step += 1
+    if not setup.args.silent and not setup.args.verbose:
+        print("-- " + step_message.split(" - ")[-1] + ".")
+
+    # Business Logic: Generate Artifacts
+    #
+    # Write the run-by product file list and checksum record
+    setup.write_file_list()
+    setup.write_checksum_registry()
+
+    # The validate file is not generated for an NPB clear run.
+    if setup.pds_version == "4" and setup.args.faucet != "clear":
+        setup.write_validate_config()
+
+    # Clear the kernel pool
+    spiceypy.kclear()
+
+    # Logging Finalization
+    log_manager.stop()
