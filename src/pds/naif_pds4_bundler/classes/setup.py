@@ -182,7 +182,7 @@ class Setup:
         if not hasattr(self, "release_date"):
             self.release_date = datetime.date.today().strftime("%Y-%m-%d")
         else:
-            pattern = re.compile("\d{4}-\d{2}-\d{2}")
+            pattern = re.compile(r"\d{4}-\d{2}-\d{2}")
             if not pattern.match(self.release_date):
                 error_message(
                     "release_date parameter does not match "
@@ -302,7 +302,7 @@ class Setup:
             # Set the time format for the Date format selected.
             #
             pattern = re.compile(
-                "\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z"
+                r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z"
             )
             format = "YYYY-MM-DDThh:mm:ss.sssZ"
         elif self.date_format == "maklabel":
@@ -323,7 +323,7 @@ class Setup:
             # Set the time format for the Date format selected.
             #
             pattern = re.compile(
-                "\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z"
+                r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z"
             )
             format = "YYYY-MM-DDThh:mm:ssZ"
 
