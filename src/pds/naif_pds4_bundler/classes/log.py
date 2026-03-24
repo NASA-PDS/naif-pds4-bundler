@@ -5,8 +5,12 @@ import os
 import platform
 import shutil
 import socket
+from typing import Optional
 
 import spiceypy
+
+from .setup import Setup
+from ..utils.types.datatypes import PipelineArgs
 
 
 class Log:
@@ -17,7 +21,7 @@ class Log:
     :type version: str
     """
 
-    def __init__(self, setup, args) -> object:
+    def __init__(self, setup: Setup, args: PipelineArgs) -> None:
         """Constructor."""
         self.setup = setup
         self.args = args
@@ -63,7 +67,7 @@ class Log:
         else:
             self.log_file = ""
 
-    def start(self):
+    def start(self) -> None:
         """Start the generation of the log for the execution."""
         start_message = (
             f"naif-pds4-bundler-{self.setup.version} for {self.setup.mission_name}"
@@ -115,7 +119,7 @@ class Log:
 
         logging.info("")
 
-    def stop(self):
+    def stop(self) -> None:
         """Write log, file list, and checksum registry files when NPB stops."""
         # Remove the templates. Make sure they exist before attempting the
         # deletion.
@@ -169,7 +173,7 @@ class Log:
             )
 
 # TODO: This function does not belong into the logging module. Move it elsewhere.
-def error_message(message, setup=False):
+def error_message(message: str, setup: Optional[Setup] = None) -> None:
     """Function to signal a NPB error message.
 
     The File List and Checksum Registry files are also written.
