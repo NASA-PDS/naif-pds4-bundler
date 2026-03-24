@@ -1,20 +1,14 @@
 """Unit tests for kernel list generation."""
-
-# import os
 import shutil
-
-# import unittest
 from pathlib import Path
-
-# from unittest import TestCase
 from xml.etree import cElementTree
 
-from pds.naif_pds4_bundler.__main__ import main
 from pds.naif_pds4_bundler.classes.list import KernelList
-from pds.naif_pds4_bundler.classes.object import Object
 from pds.naif_pds4_bundler.classes.setup import Setup
+from pds.naif_pds4_bundler.pipeline.npb import run_pipeline
 from pds.naif_pds4_bundler.utils import etree_to_dict
 from pds.naif_pds4_bundler.utils.files import string_in_file
+from pds.naif_pds4_bundler.utils.types.datatypes import PipelineArgs
 
 
 def test_pds3_msl_list(self):
@@ -31,7 +25,7 @@ def test_pds3_msl_list(self):
         "../data/msl_release_28.kernel_list", "working/msl_release_28.kernel_list"
     )
 
-    main(config, plan, faucet, silent=self.silent)
+    run_pipeline(PipelineArgs(config=config, plan=plan, faucet=faucet, silent=self.silent))
 
     new_file = ""
     with open("working/msl_release_29.kernel_list", "r") as f:
@@ -67,7 +61,7 @@ def test_pds3_m01_list(self):
         "../data/m01_release_74.kernel_list", "working/m01_release_74.kernel_list"
     )
 
-    main(config, plan, faucet, silent=self.silent)
+    run_pipeline(PipelineArgs(config=config, plan=plan, faucet=faucet, silent=self.silent))
 
     new_file = ""
     with open("../data/m01_release_75.kernel_list", "r") as f:
@@ -98,7 +92,7 @@ def test_pds3_mro_list(self):
 
     shutil.copytree("../data/kernels/ck", "kernels/ck")
 
-    main(config, plan, faucet, silent=self.silent)
+    run_pipeline(PipelineArgs(config=config, plan=plan, faucet=faucet, silent=self.silent))
 
     new_file = ""
     with open("working/mro_release_59.kernel_list", "r") as f:
@@ -130,7 +124,7 @@ def test_pds4_insight_list(self):
         "working/insight_release_07.kernel_list",
     )
 
-    main(config, plan, faucet, silent=self.silent)
+    run_pipeline(PipelineArgs(config=config, plan=plan, faucet=faucet, silent=self.silent))
 
     new_file = ""
     with open("working/insight_release_08.kernel_list", "r") as f:
@@ -155,7 +149,7 @@ def test_pds4_maven_list(self):
     plan = "../data/maven_release_24.plan"
     faucet = "list"
 
-    main(config, plan, faucet, silent=self.silent)
+    run_pipeline(PipelineArgs(config=config, plan=plan, faucet=faucet, silent=self.silent))
 
     new_file = ""
     with open("working/maven_release_01.kernel_list", "r") as f:
@@ -183,7 +177,8 @@ def test_pds4_mars2020_list(self):
     plan = "../data/mars2020_release_10.plan"
     faucet = "list"
 
-    main(config, plan, faucet=faucet, silent=True, log=True)
+    run_pipeline(PipelineArgs(config=config, plan=plan, faucet=faucet,
+                              silent=True, log=True))
 
     new_file = ""
     with open("working/mars2020_release_01.kernel_list", "r") as f:
@@ -208,7 +203,7 @@ def test_pds4_orex_list(self):
     plan = "../data/orex_release_12.plan"
     faucet = "list"
 
-    main(config, plan, faucet=faucet, silent=True)
+    run_pipeline(PipelineArgs(config, plan, faucet=faucet, silent=True))
 
     new_file = ""
     with open("working/orex_release_01.kernel_list", "r") as f:
@@ -237,7 +232,7 @@ def test_pds3_juno_list(self):
         "../data/juno_release_17.kernel_list", "working/juno_release_17.kernel_list"
     )
 
-    main(config, plan, faucet, silent=self.silent)
+    run_pipeline(PipelineArgs(config=config, plan=plan, faucet=faucet, silent=self.silent))
 
     new_file = ""
     with open("working/juno_release_18.kernel_list", "r") as f:
@@ -264,7 +259,8 @@ def test_pds4_vco_list(self):
     plan = "../data/vco_release_01.plan"
     faucet = "list"
 
-    main(config, plan, faucet, silent=self.silent, log=True)
+    run_pipeline(PipelineArgs(config=config, plan=plan, faucet=faucet,
+                              silent=self.silent, log=True))
 
     new_file = ""
     with open("working/vco_release_01.kernel_list", "r") as f:
@@ -302,7 +298,8 @@ def test_pds4_vco_list_badchar(self):
                 else:
                     u.write(line)
 
-    main(updated_config, plan, faucet, silent=self.silent, log=True)
+    run_pipeline(PipelineArgs(config=updated_config, plan=plan, faucet=faucet,
+                              silent=self.silent, log=True))
 
     line_checks = ["NON-ASCII character(s) in line"]
     for line in line_checks:
@@ -321,7 +318,8 @@ def test_pds4_hyb2_list(self):
     plan = "../data/hyb2_release_01.plan"
     faucet = "list"
 
-    main(config, plan, faucet, silent=self.silent, log=True)
+    run_pipeline(PipelineArgs(config=config, plan=plan, faucet=faucet,
+                              silent=self.silent, log=True))
 
     new_file = ""
     with open("working/hyb2_release_01.kernel_list", "r") as f:
@@ -360,15 +358,15 @@ def test_xml_reader(self):
     # Dummy initialization values for Setup class
     #
     version = "X.Y.Z"
-    args = Object()
-
-    args.config = "../config/insight.xml"
-    args.plan = False
-    args.faucet = ""
-    args.diff = ""
-    args.silent = False
-    args.verbose = True
-    args.debug = False
+    args = PipelineArgs(
+        config = "../config/insight.xml",
+        plan = None,
+        faucet = "",
+        diff = "",
+        silent = False,
+        verbose = True,
+        debug = False
+    )
 
     setup = Setup(args, version)
     setup.templates_directory = "../templates/1.5.0.0"

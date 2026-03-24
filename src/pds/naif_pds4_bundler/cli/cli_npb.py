@@ -3,9 +3,16 @@
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 
 from .. import __version__
+from ..utils.types.datatypes import PipelineArgs
 
 
-def parse_arguments():
+# TODO: - Remove from "config" argument nargs: only one configuration file
+#         can be provided.
+#       - Add actions to those arguments that are supposed to be files. The
+#         output of those actions should be a PathLike object.
+#       - Convert those arguments that are "lists" (faucet, diff) of options
+#         to "choices" type.
+def parse_arguments() -> PipelineArgs:
     """
     """
     # Build the argument parser.
@@ -119,15 +126,9 @@ def parse_arguments():
         action="store_true",
     )
 
-    #
-    # Store the arguments in the args object.
-    #
+    # Parse the command line arguments into the pipeline arguments data type.
+    # Set debug mode to False (no debugging when executed from the command line.
     args = parser.parse_args()
     args.config = args.config[0]
 
-    #
-    # When executing from the command line, debug mode is not available.
-    #
-    args.debug = False
-
-    return args
+    return PipelineArgs(**vars(args), debug=False)

@@ -1,10 +1,10 @@
 """Unit tests for ORBNUM label generation."""
-
 import os
 import shutil
 
-from pds.naif_pds4_bundler.__main__ import main
+from pds.naif_pds4_bundler.pipeline.npb import run_pipeline
 from pds.naif_pds4_bundler.utils.files import string_in_file
+from pds.naif_pds4_bundler.utils.types.datatypes import PipelineArgs
 
 
 def post_setup(self):
@@ -42,7 +42,8 @@ def test_pds4_orbnum_coverage_user_spk(self):
         p.write("maven_orb_rec_210101_210401_v1.orb")
         p.write("\nmaven_orb_rec_210101_210401_v1.nrb")
 
-    main(config, plan, faucet="bundle", silent=self.silent)
+    run_pipeline(PipelineArgs(config=config, plan=plan,
+                              faucet="bundle", silent=self.silent))
 
     line_check = "<field_format>I5</field_format>"
     if not string_in_file(
@@ -112,7 +113,8 @@ def test_pds4_orbnum_coverage_increment_spk(self):
                 else:
                     n.write(line)
 
-    main(updated_config, plan, self.faucet, silent=self.silent)
+    run_pipeline(PipelineArgs(config=updated_config, plan=plan,
+                              faucet=self.faucet, silent=self.silent))
 
 
 def test_pds4_orbnum_coverage_archived_spk(self):
@@ -144,7 +146,8 @@ def test_pds4_orbnum_coverage_archived_spk(self):
         "maven/maven_spice/spice_kernels/spk/",
     )
 
-    main(updated_config, plan, self.faucet, silent=self.silent)
+    run_pipeline(PipelineArgs(config=updated_config, plan=plan,
+                              faucet=self.faucet, silent=self.silent))
 
 
 def test_pds4_orbnum_coverage_lookup_table(self):
@@ -176,7 +179,8 @@ def test_pds4_orbnum_coverage_lookup_table(self):
                 else:
                     n.write(line)
 
-    main(updated_config, plan, self.faucet, silent=self.silent)
+    run_pipeline(PipelineArgs(config=updated_config, plan=plan,
+                              faucet=self.faucet, silent=self.silent))
 
 
 def test_pds4_orbnum_coverage_lookup_table_multiple(self):
@@ -219,7 +223,8 @@ def test_pds4_orbnum_coverage_lookup_table_multiple(self):
                 else:
                     n.write(line)
 
-    main(updated_config, plan, self.faucet, silent=self.silent)
+    run_pipeline(PipelineArgs(config=updated_config, plan=plan,
+                              faucet=self.faucet, silent=self.silent))
 
 
 def test_pds4_orbnum_coverage_estimate(self):
@@ -243,7 +248,8 @@ def test_pds4_orbnum_coverage_estimate(self):
     with open(plan, "w") as p:
         p.write("maven_orb_rec_210101_210401_v1.orb")
 
-    main(updated_config, plan, self.faucet, log=True, silent=self.silent)
+    run_pipeline(PipelineArgs(config=updated_config, plan=plan, faucet=self.faucet,
+                              log=True, silent=self.silent))
 
 
 def test_pds4_orbnum_with_former_version(self):
@@ -270,7 +276,8 @@ def test_pds4_orbnum_with_former_version(self):
     ):
         pass
 
-    main(config, plan, self.faucet, log=True, silent=self.silent)
+    run_pipeline(PipelineArgs(config=config, plan=plan, faucet=self.faucet,
+                              log=True, silent=self.silent))
 
 
 def test_pds4_orbnum_with_former(self):
@@ -294,7 +301,8 @@ def test_pds4_orbnum_with_former(self):
     ):
         pass
 
-    main(config, plan, self.faucet, silent=self.silent, log=True)
+    run_pipeline(PipelineArgs(config=config, plan=plan, faucet=self.faucet,
+                              silent=self.silent, log=True))
 
 
 def test_pds4_orbnum_blank_records(self):
@@ -332,7 +340,8 @@ def test_pds4_orbnum_blank_records(self):
     ):
         pass
 
-    main(config, plan, self.faucet, silent=self.silent, log=True)
+    run_pipeline(PipelineArgs(config=config, plan=plan, faucet=self.faucet,
+                              silent=self.silent, log=True))
 
 
 def test_pds4_orbnum_blank_records_no_former(self):
@@ -360,7 +369,8 @@ def test_pds4_orbnum_blank_records_no_former(self):
     with open(plan, "w") as p:
         p.write("maven_orb_rec_210101_210401_v3.orb")
 
-    main(config, plan, self.faucet, silent=self.silent, log=True)
+    run_pipeline(PipelineArgs(config=config, plan=plan, faucet=self.faucet,
+                              silent=self.silent, log=True))
 
 
 def test_pds4_orbnum_blank_records_no_version(self):
@@ -397,7 +407,8 @@ def test_pds4_orbnum_blank_records_no_version(self):
     with open(plan, "w") as p:
         p.write("maven_orb_rec_210101_210401.orb")
 
-    main(updated_config, plan, self.faucet, silent=self.silent, log=True)
+    run_pipeline(PipelineArgs(config=updated_config, plan=plan, faucet=self.faucet,
+                              silent=self.silent, log=True))
 
 
 def test_pds3_orbnum_files(self):
@@ -459,7 +470,8 @@ def test_pds3_orbnum_files(self):
                 else:
                     n.write(line)
 
-    main(updated_config, plan, self.faucet, silent=self.silent, log=True)
+    run_pipeline(PipelineArgs(config=updated_config, plan=plan, faucet=self.faucet,
+                              silent=self.silent, log=True))
 
 
 def test_pds4_orbnum_eol_line_feed(self):
@@ -485,7 +497,8 @@ def test_pds4_orbnum_eol_line_feed(self):
     with open(plan, "w") as p:
         p.write("maven_orb_rec_210101_210401_v1.orb")
 
-    main(updated_config, plan, self.faucet, log=True, silent=self.silent)
+    run_pipeline(PipelineArgs(config=updated_config, plan=plan, faucet=self.faucet,
+                              log=True, silent=self.silent))
 
 
 def test_pds4_orbnum_generated_list(self):
@@ -501,7 +514,8 @@ def test_pds4_orbnum_generated_list(self):
         "../data/misc/orbnum/maven_orb_rec_210101_210401_v1.orb", "misc/orbnum/"
     )
 
-    main(config, faucet=self.faucet, silent=self.silent, log=True)
+    run_pipeline(PipelineArgs(config=config, faucet=self.faucet,
+                              silent=self.silent, log=True))
 
 
 def test_pds4_orbnum_header_length_table_offset(self):
@@ -528,7 +542,8 @@ def test_pds4_orbnum_header_length_table_offset(self):
     with open(plan, "w") as p:
         p.write("maven_orb_rec_140922_150101_v1.orb")
 
-    main(updated_config, plan, faucet="bundle", silent=self.silent)
+    run_pipeline(PipelineArgs(config=updated_config, plan=plan, faucet="bundle",
+                              silent=self.silent))
 
     line_check = '<object_length unit="byte">268</object_length>'
     if not string_in_file(
@@ -586,7 +601,8 @@ def test_pds4_orbnum_multiple_files(self):
         "misc/orbnum/maven_orb_rec_210101_210402_v1.orb",
     )
 
-    main(updated_config, plan=plan, faucet="bundle", log=True, silent=self.silent)
+    run_pipeline(PipelineArgs(config=updated_config, plan=plan, faucet="bundle",
+                              log=True, silent=self.silent))
 
 
 def test_pds4_orbnum_multiple_files_incorrect_spk(self):
@@ -615,7 +631,8 @@ def test_pds4_orbnum_multiple_files_incorrect_spk(self):
         "misc/orbnum/maven_orb_rec_210101_210402_v1.orb",
     )
 
-    main(config, plan=plan, faucet="bundle", log=True, silent=self.silent)
+    run_pipeline(PipelineArgs(config=config, plan=plan, faucet="bundle",
+                              log=True, silent=self.silent))
 
 
 def test_pds4_orbnum_multiple_files_in_spk_dir(self):
@@ -663,7 +680,8 @@ def test_pds4_orbnum_multiple_files_in_spk_dir(self):
         "kernels/spk/maven_orb_rec_210101_210401_v1.orb",
     )
 
-    main(updated_config, plan=plan, faucet="bundle", silent=self.silent, log=True)
+    run_pipeline(PipelineArgs(config=updated_config, plan=plan, faucet="bundle",
+                              silent=self.silent, log=True))
 
 
 def test_pds4_orbnum_new_im(self):
@@ -718,7 +736,8 @@ def test_pds4_orbnum_new_im(self):
         p.write("maven_orb_rec_210101_210401_v1.orb")
         p.write("\nmaven_orb_rec_210101_210401_v1.nrb")
 
-    main(updated_config, plan, faucet="bundle", silent=self.silent)
+    run_pipeline(PipelineArgs(config=updated_config, plan=plan,
+                              faucet="bundle", silent=self.silent))
 
     line_check = "<reference_type>bundle_has_miscellaneous_collection</reference_type>"
     if not string_in_file("maven/maven_spice/bundle_maven_spice_v001.xml", line_check):

@@ -3,7 +3,8 @@ import glob
 import shutil
 import sys
 
-from pds.naif_pds4_bundler.__main__ import main
+from pds.naif_pds4_bundler.pipeline.npb import run_pipeline
+from pds.naif_pds4_bundler.utils.types.datatypes import PipelineArgs
 
 
 def post_setup(self):
@@ -55,4 +56,5 @@ def test_mro_basic(self):
 
     post_setup(self)
 
-    main(self.config, plan, faucet, log=True, silent=True)
+    run_pipeline(PipelineArgs(config=self.config, plan=plan, faucet=faucet,
+                              log=True, silent=True))

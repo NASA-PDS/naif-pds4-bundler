@@ -1,8 +1,9 @@
 """Functional Test Family for DART Archive Generation."""
 import shutil
 
-from pds.naif_pds4_bundler.__main__ import main
+from pds.naif_pds4_bundler.pipeline.npb import run_pipeline
 from pds.naif_pds4_bundler.utils.files import string_in_file
+from pds.naif_pds4_bundler.utils.types.datatypes import PipelineArgs
 
 
 def test_dart_multiple_obs_tar(self):
@@ -18,7 +19,8 @@ def test_dart_multiple_obs_tar(self):
     config = "../config/dart.xml"
     shutil.copytree("../data/kernels", "kernels")
 
-    main(config, plan=False, faucet="bundle", silent=self.silent, log=self.log)
+    run_pipeline(PipelineArgs(config=config, plan=None, faucet="bundle",
+                              silent=self.silent, log=self.log))
 
     line_checks = [
         "<description>This collection contains SPICE kernels for the DART and LICIA "
@@ -53,7 +55,8 @@ def test_dart_host_type(self):
                 else:
                     o.write(line)
 
-    main(updated_config, plan=False, faucet="bundle", silent=self.silent, log=self.log)
+    run_pipeline(PipelineArgs(config=updated_config, plan=None, faucet="bundle",
+                              silent=self.silent, log=self.log))
 
     file = "dart/dart_spice/bundle_dart_spice_v001.xml"
     repetitions = 2

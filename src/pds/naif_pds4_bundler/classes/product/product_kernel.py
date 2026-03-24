@@ -21,10 +21,10 @@ from ..log import error_message
 class SpiceKernelProduct(Product):
     """Class that defines a SPICE Kernel file archive product.
 
-    :param setup: NPB run Setup Object
-    :param name: SPICE Kernel filename
+    :param setup:      NPB run Setup object
+    :param name:       SPICE Kernel filename
     :param collection: SPICE Kernel collection that will be a container of
-                       the SPICE Kernel Product Object
+                       the SPICE Kernel Product object
     """
 
     def __init__(self, setup, name: str, collection) -> None:

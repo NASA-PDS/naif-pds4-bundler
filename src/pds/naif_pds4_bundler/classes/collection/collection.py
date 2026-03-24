@@ -7,8 +7,7 @@ class Collection:
     """Class to generate a PDS4 Collection.
 
     :param type:   Collection type: kernels, documents or miscellaneous
-    :param setup:  Setup Object
-    :param bundle: Bundle Object to which the Collection belongs to
+    :param setup:  Setup object
     """
 
     def __init__(self, type: str, setup, bundle) -> None:

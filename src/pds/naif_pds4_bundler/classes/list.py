@@ -46,7 +46,7 @@ class KernelList:
         self.setup = setup
 
         #
-        # Object attributes to be replaced in template
+        # Entity attributes to be replaced in template
         #
         self.CURRENTDATE = str(datetime.datetime.now())[:10]
         self.OBS = setup.observer

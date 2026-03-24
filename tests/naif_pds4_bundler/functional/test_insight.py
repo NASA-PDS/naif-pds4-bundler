@@ -3,7 +3,8 @@ import glob
 import os
 import shutil
 
-from pds.naif_pds4_bundler.__main__ import main
+from pds.naif_pds4_bundler.pipeline.npb import run_pipeline
+from pds.naif_pds4_bundler.utils.types.datatypes import PipelineArgs
 
 
 def test_insight_basic(self):
@@ -13,10 +14,6 @@ def test_insight_basic(self):
 
     Test is successful if NPB is executed without errors.
     """
-    config = "../config/insight.xml"
-    plan = "../data/insight_release_26.plan"
-    faucet = "bundle"
-
     shutil.copy2(
         "../data/insight_release_basic.kernel_list",
         "working/insight_release_07.kernel_list",
@@ -29,7 +26,11 @@ def test_insight_basic(self):
             with open(f"insight/insight_spice/{line[0:-1]}", "w"):
                 pass
 
-    main(config, plan, faucet, silent=self.silent, log=self.log)
+    config = "../config/insight.xml"
+    plan = "../data/insight_release_26.plan"
+    faucet = "bundle"
+    run_pipeline(PipelineArgs(config=config, plan=plan, faucet=faucet,
+                              silent=self.silent, log=self.log))
 
 
 def test_insight_diff_previous_none(self):
@@ -51,7 +52,8 @@ def test_insight_diff_previous_none(self):
         shutil.copy2(file, "working")
     shutil.copytree("../data/insight", "insight")
 
-    main(config, plan, faucet, silent=self.silent, log=self.log, diff="")
+    run_pipeline(PipelineArgs(config=config, plan=plan, faucet=faucet,
+                              silent=self.silent, log=self.log))
 
 
 def test_insight_diff_previous_all(self):
@@ -73,7 +75,8 @@ def test_insight_diff_previous_all(self):
         shutil.copy2(file, "working")
     shutil.copytree("../data/insight", "insight")
 
-    main(config, plan, faucet, silent=self.silent, log=self.log, diff="all")
+    run_pipeline(PipelineArgs(config=config, plan=plan, faucet=faucet,
+                              silent=self.silent, log=self.log, diff="all"))
 
 
 def test_insight_diff_previous_files(self):
@@ -94,7 +97,8 @@ def test_insight_diff_previous_files(self):
         shutil.copy2(file, "working")
     shutil.copytree("../data/insight", "insight")
 
-    main(config, plan, faucet, silent=self.silent, log=self.log, diff="files")
+    run_pipeline(PipelineArgs(config=config, plan=plan, faucet=faucet,
+                              silent=self.silent, log=self.log, diff="files"))
 
 
 def test_insight_diff_previous_log(self):
@@ -116,7 +120,8 @@ def test_insight_diff_previous_log(self):
 
     shutil.copytree("../data/insight", "insight")
 
-    main(config, plan, faucet, silent=self.silent, log=self.log, diff="log")
+    run_pipeline(PipelineArgs(config=config, plan=plan, faucet=faucet, 
+                              silent=self.silent, log=self.log, diff="log"))
 
 
 def test_insight_diff_templates(self):
@@ -146,7 +151,8 @@ def test_insight_diff_templates(self):
     with open("insight/insight_spice/spice_kernels/sclk/marcob_fake_v01.tsc", "w"):
         pass
 
-    main(config, plan, faucet, silent=self.silent, log=self.log, diff="all")
+    run_pipeline(PipelineArgs(config=config, plan=plan, faucet=faucet,
+                              silent=self.silent, log=self.log, diff="all"))
 
 
 def test_insight_files_in_staging(self):
@@ -162,10 +168,6 @@ def test_insight_files_in_staging(self):
 
     Test is successful if NPB is executed without errors.
     """
-    config = "../config/insight.xml"
-    plan = "../data/insight_release_08.plan"
-    faucet = "staging"
-
     shutil.copytree("../data/kernels", "kernels")
     for file in glob.glob("../data/insight_release_0[0-7].kernel_list"):
         shutil.copy2(file, "working")
@@ -212,7 +214,11 @@ def test_insight_files_in_staging(self):
         "staging/insight_spice/spice_kernels/mk/",
     )
 
-    main(config, plan, faucet, silent=self.silent, log=self.log)
+    config = "../config/insight.xml"
+    plan = "../data/insight_release_08.plan"
+    faucet = "staging"
+    run_pipeline(PipelineArgs(config=config, plan=plan, faucet=faucet,
+                              silent=self.silent, log=self.log))
 
 
 def test_insight_previous_spiceds(self):
@@ -242,7 +248,8 @@ def test_insight_previous_spiceds(self):
     for file in glob.glob("../data/insight_release_0[0-7].kernel_list"):
         shutil.copy2(file, "working")
 
-    main(updated_config, plan, faucet, silent=self.silent, log=self.log, diff="all")
+    run_pipeline(PipelineArgs(config=updated_config, plan=plan, faucet=faucet, 
+                              silent=self.silent, log=self.log, diff="all"))
 
 
 def test_insight_start_finish(self):
@@ -276,7 +283,8 @@ def test_insight_start_finish(self):
                 else:
                     n.write(line)
 
-    main(updated_config, plan, faucet, silent=self.silent, log=self.log, diff="")
+    run_pipeline(PipelineArgs(config=updated_config, plan=plan, faucet=faucet,
+                              silent=self.silent, log=self.log, diff=""))
 
 
 def test_insight_incorrect_times(self):
@@ -308,7 +316,8 @@ def test_insight_incorrect_times(self):
                     n.write(line)
 
     with self.assertRaises(RuntimeError):
-        main(updated_config, plan, faucet, silent=self.silent, log=self.log, diff="")
+        run_pipeline(PipelineArgs(config=updated_config, plan=plan, faucet=faucet,
+                                  silent=self.silent, log=self.log, diff=None))
 
     with open(config, "r") as c:
         with open(updated_config, "w") as n:
@@ -322,7 +331,8 @@ def test_insight_incorrect_times(self):
                     n.write(line)
 
     with self.assertRaises(RuntimeError):
-        main(updated_config, plan, faucet, silent=self.silent, log=self.log, diff="")
+        run_pipeline(PipelineArgs(config=updated_config, plan=plan, faucet=faucet,
+                                  silent=self.silent, log=self.log, diff=None))
 
 
 def test_insight_mk_input(self):
@@ -364,7 +374,8 @@ def test_insight_mk_input(self):
                 else:
                     n.write(line)
 
-    main(updated_config, plan, faucet, silent=self.silent, log=self.log, diff="all")
+    run_pipeline(PipelineArgs(config=updated_config, plan=plan, faucet=faucet,
+                              silent=self.silent, log=self.log, diff="all"))
 
 
 def test_insight_mks_input(self):
@@ -423,14 +434,14 @@ def test_insight_mks_input(self):
         shutil.copy2(file, "working")
 
     with self.assertRaises(BaseException):
-        main(
-            updated_config,
-            plan,
-            faucet,
+        run_pipeline(PipelineArgs(
+            config=updated_config,
+            plan=plan,
+            faucet=faucet,
             silent=self.silent,
             log=self.log,
             diff="all",
-        )
+        ))
 
 
 
@@ -475,7 +486,8 @@ def test_insight_mks_inputs_coverage(self):
                 else:
                     n.write(line)
 
-    main(updated_config, plan, faucet, silent=self.silent, log=self.log)
+    run_pipeline(PipelineArgs(config=updated_config, plan=plan, faucet=faucet,
+                              silent=self.silent, log=self.log))
 
 
 def test_insight_mks_coverage_in_final(self):
@@ -535,7 +547,8 @@ def test_insight_mks_coverage_in_final(self):
                 else:
                     n.write(line)
 
-    main(updated_config, plan, faucet, silent=self.silent, log=self.log)
+    run_pipeline(PipelineArgs(config=updated_config, plan=plan, faucet=faucet,
+                              silent=self.silent, log=self.log))
 
 
 def test_insight_generate_mk(self):
@@ -553,7 +566,8 @@ def test_insight_generate_mk(self):
     with open(plan, "w") as p:
         p.write("nsy_sclkscet_00019.tsc")
 
-    main(config, plan=plan, faucet=faucet, silent=self.silent, log=self.log)
+    run_pipeline(PipelineArgs(config=config, plan=plan, faucet=faucet,
+                              silent=self.silent, log=self.log))
 
 
 def test_insight_no_spiceds_in_conf(self):
@@ -590,7 +604,8 @@ def test_insight_no_spiceds_in_conf(self):
     for file in glob.glob("../data/insight_release_0[0-7].kernel_list"):
         shutil.copy2(file, "working")
 
-    main(updated_config, plan, faucet, silent=self.silent, log=self.log)
+    run_pipeline(PipelineArgs(config=updated_config, plan=plan, faucet=faucet,
+                              silent=self.silent, log=self.log))
 
     with open(config, "r") as c:
         with open(updated_config, "w") as n:
@@ -603,14 +618,14 @@ def test_insight_no_spiceds_in_conf(self):
     for file in glob.glob("../data/insight_release_0[0-7].kernel_list"):
         shutil.copy2(file, "working")
 
-    main(
-        updated_config,
-        plan,
-        faucet,
+    run_pipeline(PipelineArgs(
+        config=updated_config,
+        plan=plan,
+        faucet=faucet,
         silent=self.silent,
         log=self.log,
         diff="all",
-    )
+    ))
 
 
 def test_insight_no_spiceds(self):
@@ -643,7 +658,8 @@ def test_insight_no_spiceds(self):
         shutil.copy2(file, "working")
 
     with self.assertRaises(RuntimeError):
-        main(updated_config, plan, faucet, silent=self.silent, log=self.log)
+        run_pipeline(PipelineArgs(config=updated_config, plan=plan, faucet=faucet,
+                                  silent=self.silent, log=self.log))
 
 
 def test_insight_no_readme(self):
@@ -661,18 +677,19 @@ def test_insight_no_readme(self):
     for file in glob.glob("../data/insight_release_0[0-7].kernel_list"):
         shutil.copy2(file, "working")
 
-    main(config, plan, faucet, silent=self.silent, log=self.log)
+    run_pipeline(PipelineArgs(config=config, plan=plan, faucet=faucet,
+                              silent=self.silent, log=self.log))
 
 
 def test_insight_no_readme_in_config(self):
     """Test when the readme file is not provided via configuration.
 
-    The first run raises an the following error::
+    The first run raises any the following error::
 
         RuntimeError: readme file not present in configuration.
 
     because the readme file is not present in the ``bundle_directory``.
-    The second run includes the readme file in the bundle directory and
+    The second run includes the readme file in the bundle directory, and
     therefore it does not raise an error.
 
     The test is successful if the conditions specified above are met.
@@ -697,7 +714,8 @@ def test_insight_no_readme_in_config(self):
                     write_config = True
 
     with self.assertRaises(RuntimeError):
-        main(updated_config, plan, faucet, silent=self.silent, log=self.log)
+        run_pipeline(PipelineArgs(config=updated_config, plan=plan, faucet=faucet,
+                                  silent=self.silent, log=self.log))
 
 
 def test_insight_readme_incomplete_in_config(self):
@@ -732,7 +750,8 @@ def test_insight_readme_incomplete_in_config(self):
                     write_config = True
 
     with self.assertRaises(KeyError):
-        main(updated_config, plan, faucet, silent=self.silent, log=self.log)
+        run_pipeline(PipelineArgs(config=updated_config, plan=plan, faucet=faucet,
+                                  silent=self.silent, log=self.log))
 
 
 def test_insight_no_kernels(self):
@@ -753,7 +772,8 @@ def test_insight_no_kernels(self):
     for file in glob.glob("../data/insight_release_0[0-7].kernel_list"):
         shutil.copy2(file, "working")
 
-    main(config, plan=False, faucet=faucet, silent=self.silent, log=self.log)
+    run_pipeline(PipelineArgs(config=config, plan=None, faucet=faucet,
+                              silent=self.silent, log=self.log))
 
 
 def test_insight_no_kernels_with_bundle(self):
@@ -774,7 +794,8 @@ def test_insight_no_kernels_with_bundle(self):
     os.makedirs("kernels", exist_ok=True)
     shutil.copytree("../data/insight", "insight")
 
-    main(config, plan=False, faucet=faucet, silent=self.silent, log=self.log)
+    run_pipeline(PipelineArgs(config=config, plan=None, faucet=faucet,
+                              silent=self.silent, log=self.log))
 
 
 def test_insight_only_checksums(self):
@@ -802,7 +823,8 @@ def test_insight_only_checksums(self):
                 else:
                     n.write(line)
 
-    main(updated_config, plan=False, faucet=faucet, silent=self.silent, log=self.log)
+    run_pipeline(PipelineArgs(config=updated_config, plan=None, faucet=faucet,
+                              silent=self.silent, log=self.log))
 
 
 def test_insight_extra_mk_pattern(self):
@@ -852,9 +874,8 @@ def test_insight_extra_mk_pattern(self):
     #
     os.remove("kernels/mk/insight_v08.tm")
 
-    main(
-        updated_config, updated_plan, faucet="bundle", silent=self.silent, log=self.log
-    )
+    run_pipeline(PipelineArgs(config=updated_config, plan=updated_plan, faucet="bundle",
+                              silent=self.silent, log=self.log))
 
 
 def test_insight_increment_with_misc(self):
@@ -888,7 +909,8 @@ def test_insight_increment_with_misc(self):
 
     shutil.copy2("../data/kernels/mk/insight_v08.tm", "kernels/mk/insight_2021_v08.tm")
 
-    main(updated_config, plan, faucet="bundle", silent=self.silent, log=self.log)
+    run_pipeline(PipelineArgs(config=updated_config, plan=plan, faucet="bundle",
+                              silent=self.silent, log=self.log))
 
 
 def test_insight_missing_bundle_directory(self):
@@ -908,16 +930,12 @@ def test_insight_missing_bundle_directory(self):
     shutil.copytree("../data/kernels", "kernels")
 
     with self.assertRaises(RuntimeError):
-        main(config, plan, faucet, silent=self.silent, log=self.log)
+        run_pipeline(PipelineArgs(config=config, plan=plan, faucet=faucet,
+                                  silent=self.silent, log=self.log))
 
 
 def test_insight_missing_staging_directory_nok(self):
     """Test for missing staging directory."""
-    config = "../config/insight.xml"
-    updated_config = "insight.xml"
-    plan = "../data/insight_release_26.plan"
-    faucet = "list"
-
     shutil.copytree("../data/insight", "insight")
     shutil.copytree("../data/kernels", "kernels")
 
@@ -926,6 +944,10 @@ def test_insight_missing_staging_directory_nok(self):
             with open(f"insight/insight_spice/{line[0:-1]}", "w"):
                 pass
 
+    config = "../config/insight.xml"
+    updated_config = "insight.xml"
+    plan = "../data/insight_release_26.plan"
+    faucet = "list"
     with open(config, "r") as c:
         with open(updated_config, "w") as n:
             for line in c:
@@ -935,7 +957,8 @@ def test_insight_missing_staging_directory_nok(self):
                     n.write(line)
 
     with self.assertRaises(RuntimeError):
-        main(updated_config, plan, faucet, silent=self.silent, log=self.log)
+        run_pipeline(PipelineArgs(config=updated_config, plan=plan, faucet=faucet,
+                                  silent=self.silent, log=self.log))
 
     with open(config, "r") as c:
         with open(updated_config, "w") as n:
@@ -946,18 +969,15 @@ def test_insight_missing_staging_directory_nok(self):
                     n.write(line)
 
     with self.assertRaises(RuntimeError):
-        main(updated_config, plan, faucet, silent=self.silent, log=self.log)
+        run_pipeline(PipelineArgs(config=updated_config, plan=plan, faucet=faucet,
+                                  silent=self.silent, log=self.log))
 
 
 def test_insight_flat_kernel_directory(self):
     """Test that kernels are obtained from a flat kernel directory.
 
-    No sub-directories present in the kernel directory structure expt for FKs.
+    No subdirectories present in the kernel directory structure expt for FKs.
     """
-    config = "../config/insight.xml"
-    plan = "../data/insight_release_26.plan"
-    faucet = "bundle"
-
     shutil.copy2(
         "../data/insight_release_basic.kernel_list",
         "working/insight_release_07.kernel_list",
@@ -977,4 +997,8 @@ def test_insight_flat_kernel_directory(self):
             with open(f"insight/insight_spice/{line[0:-1]}", "w"):
                 pass
 
-    main(config, plan, faucet, silent=self.silent, log=self.log)
+    config = "../config/insight.xml"
+    plan = "../data/insight_release_26.plan"
+    faucet = "bundle"
+    run_pipeline(PipelineArgs(config=config, plan=plan, faucet=faucet,
+                              silent=self.silent, log=self.log))

@@ -16,9 +16,10 @@ from ..classes.product import OrbnumFileProduct
 from ..classes.product import SpicedsProduct
 from ..classes.product import SpiceKernelProduct
 from ..classes.setup import Setup
+from ..utils.types.datatypes import PipelineArgs
 
 
-def run_pipeline(args):
+def run_pipeline(args: PipelineArgs) -> None:
     """NAIF PDS4 Bundler pipeline for the archive generation.
 
     :param args: Command line arguments, with the following attributes:
@@ -66,47 +67,6 @@ def run_pipeline(args):
         checksum: bool
     """
     #
-    # Turn lowercase or uppercase arguments that need it.
-    #
-    args.faucet = args.faucet.lower()
-    args.diff = args.diff.lower()
-
-    #
-    # Set silent to False if verbose is set to True.
-    #
-    if args.verbose:
-        args.silent = False
-
-    #
-    # Force logging if Diff files are provided with the log.
-    #
-    if args.diff == "log" or args.diff == "all":
-        args.log = True
-
-    #
-    # Set faucet to plan if clear is provided.
-    #
-    if args.clear and not args.faucet:
-        args.faucet = "clear"
-
-    #
-    # Check if string optional parameters are correct.
-    #
-    if args.diff not in ["all", "log", "files", ""]:
-        raise Exception("-d, --diff argument has incorrect value.")
-    if args.faucet not in [
-        "clear",
-        "plan",
-        "list",
-        "checks",
-        "staging",
-        "bundle",
-        "labels",
-        "",
-    ]:
-        raise Exception("-f, --faucet argument has incorrect value.")
-
-    #
     # The pipeline execution per se starts now.
     #
     # * Generate the Setup object
@@ -147,9 +107,9 @@ def run_pipeline(args):
     setup.set_release()
 
     #
-    # * If the pipeline is running to clean-up a previous run, remove all the
+    # * If the pipeline is running to clean up a previous run, remove all the
     #   files in the bundle and staging area indicated by the file list and
-    #   clean-up the kernel list and log from the previous run.
+    #   clean up the kernel list and log from the previous run.
     #
     if args.clear:
         setup.clear_run()
@@ -169,7 +129,7 @@ def run_pipeline(args):
 
     #
     #    * If a plan file is provided it is processed otherwise a plan is
-    #      generated from the kernels directory.
+    #      generated from the kernels' directory.
     #
     #    * If NPB is run in label generation mode and no input products are
     #      found, stop the execution.
@@ -227,12 +187,12 @@ def run_pipeline(args):
     setup.load_kernels()
 
     #
-    # * Initialise the SPICE Kernels Collection.
+    # * Initialize the SPICE Kernels Collection.
     #
     spice_kernels_collection = SpiceKernelsCollection(setup, bundle, list)
 
     #
-    # * Initialise the Miscellaneous Collection.
+    # * Initialize the Miscellaneous Collection.
     #
     miscellaneous_collection = MiscellaneousCollection(setup, bundle, list)
 
@@ -308,9 +268,9 @@ def run_pipeline(args):
     #
     # * Validate the SPICE Kernels collection:
     #    * Note the validation of products is performed after writing the
-    #      product itself and therefore it is not explicitly executed
+    #      product itself and, therefore, it is not explicitly executed
     #      from at object initialization.
-    #    * Check that there is a XML label for each file under spice_kernels.
+    #    * Check if there is an XML label for each file under spice_kernels.
     #
     spice_kernels_collection.validate()
 
@@ -351,14 +311,14 @@ def run_pipeline(args):
 
         #
         # * Add the SPICE Kernels Collection to the Bundle.
-        #   Note that the Collections are provided to the Bundle Object
+        #   Note that the Collections are provided to the Bundle object
         #   in a given order.
         #
         bundle.add(spice_kernels_collection)
 
         #
         # * Generate the Miscellaneous collection. The Checksum product
-        #   is initialised in such a way that its name can be obtained.
+        #   is initialized in such a way that its name can be obtained.
         #
         # * The first thing that is checked is whether if the current
         #   Bundle has checksums, if not, all the checksums are generated,
@@ -380,7 +340,7 @@ def run_pipeline(args):
                     release_checksum.generate(history=release)
 
                     #
-                    # Initialise a miscellaneous collection for this previous
+                    # Initialize a miscellaneous collection for this previous
                     # release.
                     #
                     release_miscellaneous_collection = MiscellaneousCollection(

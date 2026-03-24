@@ -3,7 +3,8 @@ import glob
 import os
 import shutil
 
-from pds.naif_pds4_bundler.__main__ import main
+from pds.naif_pds4_bundler.pipeline.npb import run_pipeline
+from pds.naif_pds4_bundler.utils.types.datatypes import PipelineArgs
 
 
 def compare(self):
@@ -98,7 +99,8 @@ def test_insight(self):
     #
     os.remove("kernels/mk/insight_v08.tm")
 
-    main(self.updated_config, plan, silent=self.silent, log=self.log)
+    run_pipeline(PipelineArgs(config=self.updated_config, plan=plan,
+                              silent=self.silent, log=self.log))
     compare(self)
 
 
@@ -115,7 +117,7 @@ def test_ladee(self):
         dirs_exist_ok=True,
     )
 
-    main(self.updated_config, silent=self.silent, log=self.log)
+    run_pipeline(PipelineArgs(config=self.updated_config, silent=self.silent, log=self.log))
     compare(self)
 
 
@@ -132,7 +134,7 @@ def test_kplo(self):
         dirs_exist_ok=True,
     )
 
-    main(self.updated_config, silent=self.silent, log=self.log)
+    run_pipeline(PipelineArgs(config=self.updated_config, silent=self.silent, log=self.log))
     compare(self)
 
 
@@ -157,7 +159,8 @@ def test_m2020(self):
 
     plan = "../data/mars2020_release_01.plan"
 
-    main(self.updated_config, plan=plan, silent=self.silent, log=self.log)
+    run_pipeline(PipelineArgs(config=self.updated_config, plan=plan,
+                              silent=self.silent, log=self.log))
 
     updated_config = "working/mars2020_release_02.xml"
 
@@ -172,7 +175,8 @@ def test_m2020(self):
                     n.write(line)
 
     plan = "../data/mars2020_release_02.plan"
-    main(updated_config, plan=plan, silent=self.silent, log=self.log)
+    run_pipeline(PipelineArgs(config=updated_config, plan=plan, silent=self.silent,
+                              log=self.log))
 
     updated_config = "working/mars2020_release_03.xml"
     mk_inputs = False
@@ -191,7 +195,8 @@ def test_m2020(self):
         "../data/kernels/sclk/m2020_168_sclkscet_refit_v03.tsc",
         "kernels/sclk/m2020_168_sclkscet_refit_v03.tsc",
     )
-    main(updated_config, plan=plan, silent=self.silent, log=self.log)
+    run_pipeline(PipelineArgs(config=updated_config, plan=plan, silent=self.silent,
+                              log=self.log))
     compare(self)
 
 
@@ -209,5 +214,6 @@ def test_em16(self):
 
     plan = "../data/em16_release_04.plan"
 
-    main(self.updated_config, plan=plan, silent=self.silent, log=self.log)
+    run_pipeline(PipelineArgs(config=self.updated_config, plan=plan,
+                              silent=self.silent, log=self.log))
     compare(self)

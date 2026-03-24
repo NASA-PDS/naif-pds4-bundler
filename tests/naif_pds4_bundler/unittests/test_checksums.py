@@ -1,13 +1,10 @@
 """Functional Test Family for Product Checksum Generation."""
-
 import os
 import shutil
 
-# import unittest
-# from unittest import TestCase
-
-from pds.naif_pds4_bundler.__main__ import main
+from pds.naif_pds4_bundler.pipeline.npb import run_pipeline
 from pds.naif_pds4_bundler.utils.files import string_in_file
+from pds.naif_pds4_bundler.utils.types.datatypes import PipelineArgs
 
 
 def post_setup(self):
@@ -40,17 +37,17 @@ def test_checksum_from_record(self):
     config = "../config/mars2020.xml"
     plan = "../data/mars2020_release_00.plan"
 
-    main(config, plan=plan, silent=self.silent, log=self.log)
+    run_pipeline(PipelineArgs(config=config, plan=plan, silent=self.silent, log=self.log))
 
-    main(
-        config,
+    run_pipeline(PipelineArgs(
+        config=config,
         plan=plan,
         clear="working/mars2020_release_01.file_list",
         silent=self.silent,
-        log=self.log,
-    )
+        log=self.log))
 
-    main(config, plan=plan, silent=self.silent, log=self.log, checksum=True)
+    run_pipeline(PipelineArgs(
+        config=config, plan=plan, silent=self.silent, log=self.log, checksum=True))
 
     line_check = "Checksum obtained from Checksum Registry file:"
 
@@ -64,18 +61,18 @@ def test_checksum_from_labels(self):
     config = "../config/mars2020.xml"
     plan = "../data/mars2020_release_00.plan"
 
-    main(config, plan=plan, silent=self.silent, log=self.log)
+    run_pipeline(PipelineArgs(config=config, plan=plan, silent=self.silent, log=self.log))
 
     dirs = ["working", "mars2020"]
-    for dir in dirs:
-        shutil.move(dir, f"{dir}_old")
+    for path in dirs:
+        shutil.move(path, f"{path}_old")
     try:
         os.mkdir("working")
         os.mkdir("mars2020")
     except BaseException:
         pass
 
-    main(config, plan=plan, silent=self.silent, log=self.log, checksum=True)
+    run_pipeline(PipelineArgs(config=config, plan=plan, silent=self.silent, log=self.log, checksum=True))
 
     line_check = "Checksum obtained from existing label:"
 

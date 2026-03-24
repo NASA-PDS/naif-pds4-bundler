@@ -1,10 +1,10 @@
 """Functional Test Family for MAVEN Archive Generation."""
-
 import os
 import shutil
 
-from pds.naif_pds4_bundler.__main__ import main
+from pds.naif_pds4_bundler.pipeline.npb import run_pipeline
 from pds.naif_pds4_bundler.utils.files import string_in_file
+from pds.naif_pds4_bundler.utils.types.datatypes import PipelineArgs
 
 
 def post_setup(self):
@@ -80,31 +80,31 @@ def test_maven_mks_input(self):
         p.write("mvn_sclkscet_00088.tsc")
 
     with self.assertRaises(RuntimeError):
-        main(
-            updated_config,
+        run_pipeline(PipelineArgs(
+            config=updated_config,
             plan=plan,
             silent=self.silent,
             verbose=self.verbose,
             log=self.log,
-        )
+        ))
 
-    main(
-        updated_config,
+    run_pipeline(PipelineArgs(
+        config=updated_config,
         clear="working/maven_release_25.file_list",
         silent=self.silent,
         verbose=self.verbose,
         log=self.log,
-    )
+    ))
 
     generate_mks(self)
 
-    main(
-        updated_config,
+    run_pipeline(PipelineArgs(
+        config=updated_config,
         plan=plan,
         silent=self.silent,
         verbose=self.verbose,
         log=self.log,
-    )
+    ))
 
 
 def test_maven_mks_list(self):
@@ -122,14 +122,14 @@ def test_maven_mks_list(self):
         p.write("maven_2015_v09.tm\n")
         p.write("maven_2020_v06.tm")
 
-    main(
-        config,
+    run_pipeline(PipelineArgs(
+        config=config,
         plan=plan,
         faucet=faucet,
         silent=self.silent,
         verbose=self.verbose,
         log=self.log,
-    )
+    ))
 
 
 def test_maven_mks_list_in_kernels(self):
@@ -152,14 +152,14 @@ def test_maven_mks_list_in_kernels(self):
 
     generate_mks(self, directory="kernels/mk")
 
-    main(
-        config,
+    run_pipeline(PipelineArgs(
+        config=config,
         plan=plan,
         faucet=faucet,
         silent=self.silent,
         verbose=self.verbose,
         log=self.log,
-    )
+    ))
 
 
 def test_maven_mks_list_config_in_kernels(self):
@@ -195,14 +195,14 @@ def test_maven_mks_list_config_in_kernels(self):
     generate_mks(self, directory="kernels/mk")
 
     with self.assertRaises(RuntimeError):
-        main(
-            updated_config,
+        run_pipeline(PipelineArgs(
+            config=updated_config,
             plan=plan,
             faucet=faucet,
             silent=self.silent,
             verbose=self.verbose,
             log=self.log,
-        )
+        ))
 
 
 def test_maven_mks_list_config_in_kernels_and_config(self):
@@ -240,14 +240,14 @@ def test_maven_mks_list_config_in_kernels_and_config(self):
     generate_mks(self)
     generate_mks(self, directory="kernels/mk")
 
-    main(
-        updated_config,
+    run_pipeline(PipelineArgs(
+        config=updated_config,
         plan=plan,
         faucet=faucet,
         silent=self.silent,
         verbose=self.verbose,
         log=self.log,
-    )
+    ))
 
 
 def test_maven_no_mk(self):
@@ -266,14 +266,14 @@ def test_maven_no_mk(self):
     with open("working/maven.plan", "w") as p:
         p.write("mvn_sclkscet_00088.tsc")
 
-    main(
-        config,
+    run_pipeline(PipelineArgs(
+        config=config,
         plan=plan,
         faucet=faucet,
         silent=self.silent,
         verbose=self.verbose,
         log=self.log,
-    )
+    ))
 
 
 def test_maven_generate_mk(self):
@@ -290,14 +290,14 @@ def test_maven_generate_mk(self):
         p.write("mvn_sclkscet_00088.tsc")
         p.write("maven_2021_v99.tm")
 
-    main(
-        config,
+    run_pipeline(PipelineArgs(
+        config=config,
         plan=plan,
         faucet=faucet,
         silent=self.silent,
         verbose=self.verbose,
         log=self.log,
-    )
+    ))
 
 
 def test_maven_increment_times_from_yearly_mks(self):
@@ -331,14 +331,14 @@ def test_maven_increment_times_from_yearly_mks(self):
     #
     # precisely because of the yearly MKs.
     #
-    main(
-        config,
+    run_pipeline(PipelineArgs(
+        config=config,
         plan=plan,
         faucet=faucet,
         silent=self.silent,
         verbose=self.verbose,
         log=self.log,
-    )
+    ))
 
     line_check = (
         "No kernel(s) found to determine MK coverage. Times from "
@@ -416,7 +416,8 @@ def test_maven_load_kernels(self):
         "kernels/sclk/zzarchive/MVN_SCLKSCET.00000.tsc",
     )
 
-    main(config, plan, faucet=faucet, silent=self.silent, log=True)
+    run_pipeline(PipelineArgs(config=config, plan=plan, faucet=faucet,
+                              silent=self.silent, log=True))
 
     log_line = "naif_pds4_bundler/functional/kernels/sclk/MVN_SCLKSCET.00088.tsc'"
 
