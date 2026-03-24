@@ -117,11 +117,11 @@ class Log:
 
     def stop(self):
         """Write log, file list, and checksum registry files when NPB stops."""
-        #
-        # Remove the templates.
-        #
+        # Remove the templates. Make sure they exist before attempting the
+        # deletion.
         for template in self.setup.template_files:
-            os.remove(template)
+            if os.path.exists(template):
+                os.remove(template)
 
         #
         # Generate the file list, the checksum registry, and the PDS validate
@@ -190,9 +190,14 @@ def error_message(message, setup=False):
     if setup:
         setup.write_file_list()
         setup.write_checksum_registry()
-        for template in setup.template_files:
-            os.remove(template)
 
+        # Remove the templates. Make sure they exist before attempting the
+        # deletion.
+        for template in setup.template_files:
+            if os.path.exists(template):
+                os.remove(template)
+
+    # Clear the kernel pool.
     spiceypy.kclear()
 
     raise RuntimeError(error)
