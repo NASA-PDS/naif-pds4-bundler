@@ -8,10 +8,10 @@ import shutil
 from datetime import date
 
 from .product import Product
+from ...pipeline.runtime import error_message
 from ...utils import add_carriage_return
 from ...utils import compare_files
 from ..label import DocumentPDS4Label
-from ..log import error_message
 
 
 class SpicedsProduct(Product):

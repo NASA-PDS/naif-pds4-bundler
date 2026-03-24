@@ -8,6 +8,7 @@ import os
 import re
 import shutil
 
+from ..pipeline.runtime import error_message
 from ..utils import check_badchar
 from ..utils import check_binary_endianness
 from ..utils import check_consecutive
@@ -22,7 +23,6 @@ from ..utils import extract_comment
 from ..utils import fill_template
 from ..utils import product_mapping
 from ..utils import spice_exception_handler
-from .log import error_message
 
 
 class KernelList:

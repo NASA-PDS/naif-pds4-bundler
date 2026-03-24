@@ -15,10 +15,10 @@ import requests
 import spiceypy
 import xmlschema
 
+from ..pipeline.runtime import error_message
 from ..utils import etree_to_dict
 from ..utils import kernel_name
 from ..utils import spice_exception_handler
-from .log import error_message
 
 
 class Setup:

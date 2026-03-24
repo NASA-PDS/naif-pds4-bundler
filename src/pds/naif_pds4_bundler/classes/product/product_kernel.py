@@ -6,6 +6,7 @@ import shutil
 import spiceypy
 
 from .product import Product
+from ...pipeline.runtime import error_message
 from ...utils import ck_coverage
 from ...utils import dsk_coverage
 from ...utils import extension_to_type
@@ -15,7 +16,6 @@ from ...utils import safe_make_directory
 from ...utils import spk_coverage
 from ..label import SpiceKernelPDS3Label
 from ..label import SpiceKernelPDS4Label
-from ..log import error_message
 
 
 class SpiceKernelProduct(Product):

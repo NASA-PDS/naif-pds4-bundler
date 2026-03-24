@@ -10,6 +10,7 @@ from collections import OrderedDict
 import spiceypy
 
 from .product import Product
+from ...pipeline.runtime import error_message
 from ...utils import check_line_length
 from ...utils import ck_coverage
 from ...utils import compare_files
@@ -24,7 +25,6 @@ from ...utils import spice_exception_handler
 from ...utils import spk_coverage
 from ...utils import type_to_extension
 from ..label import MetaKernelPDS4Label
-from ..log import error_message
 
 
 class MetaKernelProduct(Product):

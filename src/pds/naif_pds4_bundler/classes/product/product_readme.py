@@ -7,7 +7,7 @@ from .product import Product
 from ...utils import add_carriage_return
 from ...utils import md5
 from ..label import BundlePDS4Label
-from ..log import error_message
+from ...pipeline.runtime import error_message
 from ..object import Object
 
 

@@ -6,7 +6,7 @@ import os
 import spiceypy
 
 from .collection import Collection
-from ..log import error_message
+from ...pipeline.runtime import error_message
 from ...utils import et_to_date
 from ...utils import extension_to_type
 

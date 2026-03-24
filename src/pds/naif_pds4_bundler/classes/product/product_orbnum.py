@@ -7,6 +7,7 @@ import shutil
 from typing import List
 
 from .product import Product
+from ...pipeline.runtime import error_message
 from ...utils.time import parse_date
 from ...utils import add_crs_to_file
 from ...utils import check_eol
@@ -15,7 +16,6 @@ from ...utils import safe_make_directory
 from ...utils import spk_coverage
 from ...utils import utf8len
 from ..label import OrbnumFilePDS4Label
-from ..log import error_message
 
 
 class OrbnumFileProduct(Product):

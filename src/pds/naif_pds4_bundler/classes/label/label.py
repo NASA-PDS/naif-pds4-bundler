@@ -4,7 +4,7 @@ import glob
 import logging
 import os
 
-from ..log import error_message
+from ...pipeline.runtime import error_message
 from ...utils import add_carriage_return, compare_files
 
 

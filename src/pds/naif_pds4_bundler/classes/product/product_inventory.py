@@ -5,12 +5,12 @@ import os
 import shutil
 
 from .product import Product
+from ...pipeline.runtime import error_message
 from ...utils import add_carriage_return
 from ...utils import compare_files
 from ...utils import replace_string_in_file
 from ...utils import type_to_extension
 from ..label import InventoryPDS3Label, InventoryPDS4Label
-from ..log import error_message
 
 
 class InventoryProduct(Product):

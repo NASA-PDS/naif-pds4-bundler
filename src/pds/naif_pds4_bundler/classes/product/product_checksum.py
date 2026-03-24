@@ -5,15 +5,15 @@ import os
 from collections import defaultdict
 
 from .product import Product
+from ..label import ChecksumPDS3Label
+from ..label import ChecksumPDS4Label
+from ...pipeline.runtime import error_message
 from ...utils import add_carriage_return
 from ...utils import checksum_from_label
 from ...utils import checksum_from_registry
 from ...utils import compare_files
 from ...utils import md5
 from ...utils import safe_make_directory
-from ..label import ChecksumPDS3Label
-from ..label import ChecksumPDS4Label
-from ..log import error_message
 
 
 class ChecksumProduct(Product):

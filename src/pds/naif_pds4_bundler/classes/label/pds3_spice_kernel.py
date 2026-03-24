@@ -6,7 +6,7 @@ from pathlib import Path
 import spiceypy
 
 from .label import PDSLabel
-from ..log import error_message
+from ...pipeline.runtime import error_message
 from ...utils import (
     ck_coverage,
     extract_comment,

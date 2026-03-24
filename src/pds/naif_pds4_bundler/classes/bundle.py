@@ -11,6 +11,7 @@ from xml.etree import cElementTree
 
 import spiceypy
 
+from ..pipeline.runtime import error_message
 from ..utils import (
     check_list_duplicates,
     etree_to_dict,
@@ -18,7 +19,6 @@ from ..utils import (
     safe_make_directory,
     spice_exception_handler,
 )
-from .log import error_message
 from .product import ReadmeProduct
 
 

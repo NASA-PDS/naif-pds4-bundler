@@ -17,8 +17,7 @@ from typing import Optional
 import spiceypy
 from spiceypy.utils.exceptions import SpiceUNSUPPORTEDBFF
 
-
-from ..classes.log import error_message
+from ..pipeline.runtime import error_message
 
 
 def etree_to_dict(etree):

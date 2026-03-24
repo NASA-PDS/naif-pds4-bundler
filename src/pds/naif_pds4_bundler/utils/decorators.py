@@ -2,7 +2,7 @@
 import traceback
 from functools import wraps
 
-from ..classes.log import error_message
+from ..pipeline.runtime import error_message
 
 
 def spice_exception_handler(func):
