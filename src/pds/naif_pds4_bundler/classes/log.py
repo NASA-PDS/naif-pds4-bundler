@@ -9,7 +9,6 @@ from typing import Optional
 
 import spiceypy
 
-from .setup import Setup
 from ..utils.types.datatypes import PipelineArgs
 
 
@@ -20,7 +19,7 @@ class Log:
     :param args:  Command line arguments from NPB's main function.
     """
 
-    def __init__(self, setup: Setup, args: PipelineArgs) -> None:
+    def __init__(self, setup: "Setup", args: PipelineArgs) -> None:
         """Constructor."""
         self.setup = setup
         self.args = args
@@ -138,14 +137,14 @@ class Log:
         # Generate the file list, the checksum registry, and the PDS validate
         # configuration file.
         #
-        line = f"Step {self.setup.step} - Generate run by-product files"
+        step_message = f"Step {self.setup.step} - Generate run by-product files"
         logging.info("")
-        logging.info(line)
-        logging.info("-" * len(line))
+        logging.info(step_message)
+        logging.info("-" * len(step_message))
         logging.info("")
         self.setup.step += 1
         if not self.setup.args.silent and not self.setup.args.verbose:
-            print("-- " + line.split(" - ")[-1] + ".")
+            print("-- " + step_message.split(" - ")[-1] + ".")
 
         self.setup.write_file_list()
         self.setup.write_checksum_registry()
@@ -180,7 +179,7 @@ class Log:
             )
 
 # TODO: This function does not belong into the logging module. Move it elsewhere.
-def error_message(message: str, setup: Optional[Setup] = None) -> None:
+def error_message(message: str, setup: Optional["Setup"] = None) -> None:
     """Signal a NPB error and write run artifacts.
 
     Side effects:
@@ -194,7 +193,6 @@ def error_message(message: str, setup: Optional[Setup] = None) -> None:
 
     :raises RuntimeError: always, with the provided error message.
     """
-    error = f"{message}"
     logging.error(f"-- {message}")
 
     #
@@ -216,4 +214,4 @@ def error_message(message: str, setup: Optional[Setup] = None) -> None:
     # Clear the kernel pool.
     spiceypy.kclear()
 
-    raise RuntimeError(error)
+    raise RuntimeError(message)
