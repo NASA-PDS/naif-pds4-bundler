@@ -168,7 +168,7 @@ class Log:
                 self.log_file.replace("temp", f"{int(self.setup.release):02d}"),
             )
 
-
+# TODO: This function does not belong into the logging module. Move it elsewhere.
 def error_message(message, setup=False):
     """Function to signal a NPB error message.
 
