@@ -28,11 +28,10 @@ class Bundle:
     The class construction will generate the top level directory structure for
     a PDS4 bundle or a PDS3 data set.
 
-    :param setup: NPB execution Setup object
-    :type setup: object
+    :param setup: NPB execution Setup
     """
 
-    def __init__(self, setup: object) -> object:
+    def __init__(self, setup) -> object:
         """Constructor."""
         line = (
             f"Step {setup.step} - Bundle/data set structure generation "
@@ -288,7 +287,6 @@ class Bundle:
         The method checks whether if there is any duplicated element.
 
         :param object: optional Bundle object for tests
-        :type object: object
         :return: Archive history dictionary
         :rtype: dict
         """

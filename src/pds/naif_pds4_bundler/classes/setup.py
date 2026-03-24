@@ -19,19 +19,17 @@ from ..utils import etree_to_dict
 from ..utils import kernel_name
 from ..utils import spice_exception_handler
 from .log import error_message
-from .object import Object
 
 
 class Setup:
     """Class that parses and processes the NPB XML configuration file.
 
     :param args: Parameters arguments from NPB main function
-    :type args: object
     :param version: NPB version
     :type version: str
     """
 
-    def __init__(self, args: Object, version: str) -> object:
+    def __init__(self, args, version: str) -> object:
         """Constructor."""
         try:
             #

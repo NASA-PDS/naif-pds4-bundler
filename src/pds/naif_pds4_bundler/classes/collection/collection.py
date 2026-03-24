@@ -30,7 +30,6 @@ class Collection:
         """Add a Product to the Collection.
 
         :param element: Product to add to Collection
-        :type element: object
         """
         self.product.append(element)
 

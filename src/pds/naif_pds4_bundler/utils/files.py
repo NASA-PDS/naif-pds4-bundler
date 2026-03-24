@@ -278,7 +278,6 @@ def fill_template(object, product_file, product_dictionary):
     """Fill a template with uppercase keywords preceded with ``$``.
 
     :param object: List object
-    :type object: object
     :param product_file: Resulting file
     :type product_file: str
     :param product_dictionary: Dictionary of keys to replace
@@ -383,8 +382,7 @@ def mk_to_list(mk, setup):
 
     :param mk: Meta-kernel path from which the list of kernels is generated
     :type mk: str
-    :param setup: NPB run Setup Object
-    :type setup: object
+    :param setup: NPB run Setup
     :return: List of kernels present in the meta-kernel
     :rtype: list
     """
@@ -859,8 +857,7 @@ def replace_string_in_file(file, old_string, new_string, setup):
     :type old_string: str
     :param new_string: String to be replaced
     :type new_string: str
-    :param setup: NPB run Setup Object
-    :type setup: object
+    :param setup: NPB run Setup
     """
     reading_file = open(file, "r")
 
