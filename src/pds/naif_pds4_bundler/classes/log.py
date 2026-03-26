@@ -139,7 +139,7 @@ class Log:
         logging.info(stop_message)
         logging.info("")
         logging.info("End of log.")
-        if not self.setup.args.silent and not self.setup.args.verbose:
+        if not self.args.silent and not self.args.verbose:
             print(stop_message)
             print("")
 

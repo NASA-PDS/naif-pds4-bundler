@@ -18,7 +18,6 @@ def finish_execution(setup: Setup, log_manager: Log) -> None:
         if os.path.exists(template):
             os.remove(template)
 
-    logging.info(f"Step {setup.step} - Generating artifacts...")
     step_message = f"Step {setup.step} - Generate run by-product files"
     logging.info("")
     logging.info(step_message)
