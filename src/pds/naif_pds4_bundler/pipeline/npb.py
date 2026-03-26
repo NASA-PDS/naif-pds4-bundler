@@ -2,13 +2,14 @@
 """
 from os.path import isdir
 
+from .runtime import finish_execution
 from .. import __version__
 from ..classes.bundle import Bundle
 from ..classes.collection import DocumentCollection
 from ..classes.collection import MiscellaneousCollection
 from ..classes.collection import SpiceKernelsCollection
 from ..classes.list import KernelList
-from ..classes.log import Log, finish_execution
+from ..classes.log import Log
 from ..classes.product import ChecksumProduct
 from ..classes.product import InventoryProduct
 from ..classes.product import MetaKernelProduct

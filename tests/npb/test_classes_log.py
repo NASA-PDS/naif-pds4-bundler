@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 import pytest
 from _pytest.logging import LogCaptureHandler
 
-from pds.naif_pds4_bundler.classes.log import Log, finish_execution
+from pds.naif_pds4_bundler.classes.log import Log
 from pds.naif_pds4_bundler.utils.types.datatypes import PipelineArgs
 
 
@@ -160,124 +160,6 @@ def test_start_logs_labeling_mode_message(tmp_path, cleanup_root_logger, caplog)
         log.start()
 
     assert "Running in labeling mode. Only label products are generated." in caplog.text
-
-
-def test_stop_removes_templates_and_writes_outputs_with_templates(
-    tmp_path, args, cleanup_root_logger, monkeypatch, caplog
-):
-    setup = DummySetup(tmp_path, args)
-
-    template1 = tmp_path / "template1.xml"
-    template2 = tmp_path / "template2.xml"
-    template1.write_text("a")
-    template2.write_text("b")
-    setup.template_files = [str(template1), str(template2)]
-
-    kclear = MagicMock()
-    monkeypatch.setattr("spiceypy.kclear", kclear)
-
-    log = Log(setup, args)
-
-    with caplog.at_level(logging.INFO):
-        finish_execution(setup, log)
-
-    assert not template1.exists()
-    assert not template2.exists()
-    setup.write_file_list.assert_called_once()
-    setup.write_checksum_registry.assert_called_once()
-    setup.write_validate_config.assert_called_once()
-    kclear.assert_called_once()
-    assert setup.step == 4
-    assert "Step 3 - Generate run by-product files" in caplog.text
-    assert "Execution finished at " in caplog.text
-    assert "End of log." in caplog.text
-
-def test_stop_removes_templates_and_writes_outputs_without_templates(
-    tmp_path, args, cleanup_root_logger, monkeypatch, caplog
-):
-    setup = DummySetup(tmp_path, args)
-
-    template1 = tmp_path / "template1.xml"
-    template2 = tmp_path / "template2.xml"
-    setup.template_files = [str(template1), str(template2)]
-
-    kclear = MagicMock()
-    monkeypatch.setattr("spiceypy.kclear", kclear)
-
-    log = Log(setup, args)
-
-    with caplog.at_level(logging.INFO):
-        finish_execution(setup, log)
-
-    assert not template1.exists()
-    assert not template2.exists()
-    setup.write_file_list.assert_called_once()
-    setup.write_checksum_registry.assert_called_once()
-    setup.write_validate_config.assert_called_once()
-    kclear.assert_called_once()
-    assert setup.step == 4
-    assert "Step 3 - Generate run by-product files" in caplog.text
-    assert "Execution finished at " in caplog.text
-    assert "End of log." in caplog.text
-
-
-
-def test_stop_skips_validate_config_for_clear_runs(
-    tmp_path, cleanup_root_logger, monkeypatch
-):
-    args = PipelineArgs(config="config.xml", faucet="clear")
-
-    setup = DummySetup(tmp_path, args)
-    monkeypatch.setattr("spiceypy.kclear", MagicMock())
-
-    log = Log(setup, args)
-    finish_execution(setup, log)
-
-    setup.write_file_list.assert_called_once()
-    setup.write_checksum_registry.assert_called_once()
-    setup.write_validate_config.assert_not_called()
-
-
-def test_stop_skips_validate_config_for_non_pds4(
-    tmp_path, args, cleanup_root_logger, monkeypatch
-):
-    setup = DummySetup(tmp_path, args)
-    setup.pds_version = "3"
-    monkeypatch.setattr("spiceypy.kclear", MagicMock())
-
-    log = Log(setup, args)
-    finish_execution(setup, log)
-
-    setup.write_file_list.assert_called_once()
-    setup.write_checksum_registry.assert_called_once()
-    setup.write_validate_config.assert_not_called()
-
-
-def test_stop_renames_log_file_with_release_number(
-    tmp_path, cleanup_root_logger, monkeypatch
-):
-    args = PipelineArgs(config="config.xml", log=True, faucet="bundle")
-
-    setup = DummySetup(tmp_path, args)
-    setup.release = "7"
-
-    kclear = MagicMock()
-    monkeypatch.setattr("spiceypy.kclear", kclear)
-
-    moved = {}
-
-    def fake_move(src, dst):
-        moved["src"] = src
-        moved["dst"] = dst
-
-    monkeypatch.setattr("shutil.move", fake_move)
-
-    log = Log(setup, args)
-    finish_execution(setup, log)
-
-    assert moved["src"].endswith("TM_archive_temp.log")
-    assert moved["dst"].endswith("TM_archive_07.log")
-    kclear.assert_called_once()
 
 
 @pytest.mark.parametrize("release, expected_path", [
