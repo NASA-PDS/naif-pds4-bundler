@@ -1,0 +1,101 @@
+naif\_pds4\_bundler.classes.label package
+=========================================
+
+Submodules
+----------
+
+naif\_pds4\_bundler.classes.label.label module
+----------------------------------------------
+
+.. automodule:: naif_pds4_bundler.classes.label.label
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+naif\_pds4\_bundler.classes.label.pds3\_checksum module
+-------------------------------------------------------
+
+.. automodule:: naif_pds4_bundler.classes.label.pds3_checksum
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+naif\_pds4\_bundler.classes.label.pds3\_inventory module
+--------------------------------------------------------
+
+.. automodule:: naif_pds4_bundler.classes.label.pds3_inventory
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+naif\_pds4\_bundler.classes.label.pds3\_spice\_kernel module
+------------------------------------------------------------
+
+.. automodule:: naif_pds4_bundler.classes.label.pds3_spice_kernel
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+naif\_pds4\_bundler.classes.label.pds4\_bundle module
+-----------------------------------------------------
+
+.. automodule:: naif_pds4_bundler.classes.label.pds4_bundle
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+naif\_pds4\_bundler.classes.label.pds4\_checksum module
+-------------------------------------------------------
+
+.. automodule:: naif_pds4_bundler.classes.label.pds4_checksum
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+naif\_pds4\_bundler.classes.label.pds4\_document module
+-------------------------------------------------------
+
+.. automodule:: naif_pds4_bundler.classes.label.pds4_document
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+naif\_pds4\_bundler.classes.label.pds4\_inventory module
+--------------------------------------------------------
+
+.. automodule:: naif_pds4_bundler.classes.label.pds4_inventory
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+naif\_pds4\_bundler.classes.label.pds4\_metakernel module
+---------------------------------------------------------
+
+.. automodule:: naif_pds4_bundler.classes.label.pds4_metakernel
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+naif\_pds4\_bundler.classes.label.pds4\_orbnum\_file module
+-----------------------------------------------------------
+
+.. automodule:: naif_pds4_bundler.classes.label.pds4_orbnum_file
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+naif\_pds4\_bundler.classes.label.pds4\_spice\_kernel module
+------------------------------------------------------------
+
+.. automodule:: naif_pds4_bundler.classes.label.pds4_spice_kernel
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: naif_pds4_bundler.classes.label
+   :members:
+   :show-inheritance:
+   :undoc-members:

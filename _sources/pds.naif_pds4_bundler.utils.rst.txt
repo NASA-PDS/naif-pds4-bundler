@@ -9,29 +9,29 @@ pds.naif\_pds4\_bundler.utils.decorators module
 
 .. automodule:: pds.naif_pds4_bundler.utils.decorators
    :members:
-   :show-inheritance:
    :undoc-members:
+   :show-inheritance:
 
 pds.naif\_pds4\_bundler.utils.files module
 ------------------------------------------
 
 .. automodule:: pds.naif_pds4_bundler.utils.files
    :members:
-   :show-inheritance:
    :undoc-members:
+   :show-inheritance:
 
 pds.naif\_pds4\_bundler.utils.time module
 -----------------------------------------
 
 .. automodule:: pds.naif_pds4_bundler.utils.time
    :members:
-   :show-inheritance:
    :undoc-members:
+   :show-inheritance:
 
 Module contents
 ---------------
 
 .. automodule:: pds.naif_pds4_bundler.utils
    :members:
-   :show-inheritance:
    :undoc-members:
+   :show-inheritance:

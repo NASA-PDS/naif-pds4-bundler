@@ -1,0 +1,45 @@
+naif\_pds4\_bundler.classes.collection package
+==============================================
+
+Submodules
+----------
+
+naif\_pds4\_bundler.classes.collection.collection module
+--------------------------------------------------------
+
+.. automodule:: naif_pds4_bundler.classes.collection.collection
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+naif\_pds4\_bundler.classes.collection.collection\_docs module
+--------------------------------------------------------------
+
+.. automodule:: naif_pds4_bundler.classes.collection.collection_docs
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+naif\_pds4\_bundler.classes.collection.collection\_kernels module
+-----------------------------------------------------------------
+
+.. automodule:: naif_pds4_bundler.classes.collection.collection_kernels
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+naif\_pds4\_bundler.classes.collection.collection\_misc module
+--------------------------------------------------------------
+
+.. automodule:: naif_pds4_bundler.classes.collection.collection_misc
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: naif_pds4_bundler.classes.collection
+   :members:
+   :show-inheritance:
+   :undoc-members:

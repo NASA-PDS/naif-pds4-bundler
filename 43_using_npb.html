@@ -6,18 +6,18 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Using NPB &mdash; NAIF PDS4 Bundler 1.8.0
+  <title>Using NPB &mdash; NAIF PDS4 Bundler 1.7.2
  documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/theme_overrides.css?v=8a44a683" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=b51e6972"></script>
-      <script src="_static/doctools.js?v=9bcbadda"></script>
-      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/documentation_options.js?v=908dc885"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -80,15 +80,15 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#checks-performed-by-npb">Checks performed by NPB</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#kernel-list-validation">Kernel List Validation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#complete-kernel-list-validation">Complete Kernel List Validation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#product-in-kernel-list-checks">Product in Kernel List Checks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-pds.naif_pds4_bundler.classes.list.KernelList.validate">Kernel List Validation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-pds.naif_pds4_bundler.classes.list.KernelList.validate_complete">Complete Kernel List Validation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-pds.naif_pds4_bundler.classes.list.KernelList.check_products">Product in Kernel List Checks</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#spice-kernel-integrity-check">SPICE Kernel Integrity Check</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#meta-kernel-validation">Meta-kernel Validation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#spice-kernel-collection-validation">SPICE Kernel Collection Validation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#inventory-product-validation">Inventory Product Validation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#checksum-validation">Checksum Validation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#product-comparison">Product Comparison</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-pds.naif_pds4_bundler.classes.product.MetaKernelProduct.validate">Meta-kernel Validation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-pds.naif_pds4_bundler.classes.collection.SpiceKernelsCollection.validate">SPICE Kernel Collection Validation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-pds.naif_pds4_bundler.classes.product.InventoryProduct.validate_pds4">Inventory Product Validation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-pds.naif_pds4_bundler.classes.bundle.Bundle.validate_history">Checksum Validation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-pds.naif_pds4_bundler.classes.product.MetaKernelProduct.compare">Product Comparison</a></li>
 </ul>
 </li>
 </ul>
@@ -259,6 +259,73 @@ terminal:</p>
 </pre></div>
 </div>
 <p>You should expect the following result:</p>
+<p id="module-pds.naif_pds4_bundler.__main__"><strong>NAIF PDS4 Bundler Main Module</strong>.</p>
+<dl class="simple">
+<dt>usage: naif-pds4-bundler [-h] [-p PLAN] [-f FAUCET] [-l] [-s] [-v] [-d DIFF]</dt><dd><p>[-c CLEAR] [-k KERLIST] CONFIG [CONFIG …]</p>
+</dd>
+</dl>
+<p><strong>naif-pds4-bundler-0.13.1, NAIF PDS4 SPICE archive generation pipeline</strong></p>
+<p>naif-pds4-bundler is a command-line utility program that generates PDS4
+bundles for SPICE kernel archives.</p>
+<dl>
+<dt>positional arguments:</dt><dd><p>CONFIG                XML Configuration file</p>
+</dd>
+<dt>optional arguments:</dt><dd><dl class="option-list">
+<dt><kbd><span class="option">-h</span>, <span class="option">--help</span></kbd></dt>
+<dd><p>show this help message and exit</p>
+</dd>
+<dt><kbd><span class="option">-p <var>PLAN</var></span>, <span class="option">--plan <var>PLAN</var></span></kbd></dt>
+<dd><p>Release plan file listing the kernels and/or ORBNUM
+files to be archived. If this argument is not
+provided, all the kernels found in the kernels
+directory specified in the configuration file
+in addition to new meta-kernels will be included
+in the increment. If the <code class="docutils literal notranslate"><span class="pre">-x</span> <span class="pre">--xml</span></code> argument
+is used this argument can be the name of a
+kernel or the path to a release plan file
+(ORBNUM files will be ignored.)</p>
+</dd>
+<dt><kbd><span class="option">-f <var>FAUCET</var></span>, <span class="option">--faucet <var>FAUCET</var></span></kbd></dt>
+<dd><p>Optional indication for end point of the pipeline.
+Allowed values are: <code class="docutils literal notranslate"><span class="pre">clear</span></code>, <code class="docutils literal notranslate"><span class="pre">plan</span></code>, <code class="docutils literal notranslate"><span class="pre">list</span></code>,
+<code class="docutils literal notranslate"><span class="pre">checks</span></code>, <code class="docutils literal notranslate"><span class="pre">staging</span></code>, <code class="docutils literal notranslate"><span class="pre">bundle</span></code>, and <code class="docutils literal notranslate"><span class="pre">labels</span></code>.</p>
+</dd>
+<dt><kbd><span class="option">-l</span>, <span class="option">--log</span></kbd></dt>
+<dd><p>Write log in file</p>
+</dd>
+<dt><kbd><span class="option">-s</span>, <span class="option">--silent</span></kbd></dt>
+<dd><p>Log will not be prompted on the terminal during
+execution.</p>
+</dd>
+<dt><kbd><span class="option">-v</span>, <span class="option">--verbose</span></kbd></dt>
+<dd><p>Full log will be prompted on the terminal during
+execution. If the argument is provided the
+<code class="docutils literal notranslate"><span class="pre">-s,</span> <span class="pre">--silent</span></code> argument is omitted.</p>
+</dd>
+<dt><kbd><span class="option">-d <var>DIFF</var></span>, <span class="option">--diff <var>DIFF</var></span></kbd></dt>
+<dd><p>Optional generation of diff reports for products.
+Allowed values are: <code class="docutils literal notranslate"><span class="pre">files</span></code>, <code class="docutils literal notranslate"><span class="pre">log</span></code>, and <code class="docutils literal notranslate"><span class="pre">all</span></code>.</p>
+</dd>
+<dt><kbd><span class="option">-c <var>CLEAR</var></span>, <span class="option">--clear <var>CLEAR</var></span></kbd></dt>
+<dd><p>Clears the files listed in the input file from the
+staging and bundle directories and the kernel list
+from the working directory. The input file should be
+as generated by a prior execution with a <code class="docutils literal notranslate"><span class="pre">*.file_list</span></code>
+extension. If this argument is provided it
+overwrites the faucet argument to <code class="docutils literal notranslate"><span class="pre">clear</span></code> and
+therefore the pipeline is not executed. If you
+provide the adequate <code class="docutils literal notranslate"><span class="pre">-f,</span> <span class="pre">--faucet</span></code> argument, the
+pipeline will be executed until indicated.</p>
+</dd>
+<dt><kbd><span class="option">-k <var>KERLIST</var></span>, <span class="option">--kerlist <var>KERLIST</var></span></kbd></dt>
+<dd><p>Release plan file listing the kernels to be archived
+along with some parameters required for the run.
+If this argument is provided the release plan is
+not generated.</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <p>The execution of NPB has one positional argument, <code class="docutils literal notranslate"><span class="pre">CONFIG</span></code>. This argument
 must provide the path of the Configuration File. More information on the
 Configuration File generation is available in section
@@ -802,32 +869,133 @@ connection– the process will silently fail but the NPB run will be successful.
 <p>NPB performs a series of checks to validate certain parts of its execution and
 provides means for the NPB operator to check the execution results. These
 checks are described hereunder.</p>
-<section id="kernel-list-validation">
-<h3>Kernel List Validation<a class="headerlink" href="#kernel-list-validation" title="Link to this heading"></a></h3>
+<section id="module-pds.naif_pds4_bundler.classes.list.KernelList.validate">
+<span id="kernel-list-validation"></span><h3>Kernel List Validation<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.list.KernelList.validate" title="Link to this heading"></a></h3>
+<p>Validation of the Kernel List.</p>
+<p>The validation of the Kernel List performs the following checks:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>check that the list has the same number of <code class="docutils literal notranslate"><span class="pre">FILE</span></code>, <code class="docutils literal notranslate"><span class="pre">MAKLABEL_OPTIONS</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">DESCRIPTION</span></code> entries.</p></li>
+<li><p>check list against plan</p></li>
+<li><p>check that list for duplicate files</p></li>
+<li><p>check that all files listed in the list are on the <code class="docutils literal notranslate"><span class="pre">kernels_directory</span></code></p></li>
+<li><p>check that the files are not in the <code class="docutils literal notranslate"><span class="pre">bundle_directory</span></code></p></li>
+<li><p>display all the <code class="docutils literal notranslate"><span class="pre">MAKLABL_OPTIONS</span></code> used</p></li>
+<li><p>check that all the <code class="docutils literal notranslate"><span class="pre">MAKLBL_OPTIONS</span></code> are in the template for PDS3</p></li>
+<li><p>check that the list has no duplicates</p></li>
+<li><p>check that the list has no bad characters</p></li>
+<li><p>if the <code class="docutils literal notranslate"><span class="pre">-d</span> <span class="pre">DIFF</span> <span class="pre">--diff</span> <span class="pre">DIFF</span></code> argument is used, compare the kernel
+list with the kernel list of the previous release -if avaialble.</p></li>
+</ul>
+</div></blockquote>
 </section>
-<section id="complete-kernel-list-validation">
-<h3>Complete Kernel List Validation<a class="headerlink" href="#complete-kernel-list-validation" title="Link to this heading"></a></h3>
+<section id="module-pds.naif_pds4_bundler.classes.list.KernelList.validate_complete">
+<span id="complete-kernel-list-validation"></span><h3>Complete Kernel List Validation<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.list.KernelList.validate_complete" title="Link to this heading"></a></h3>
+<p>Validation of the complete Kernel List.</p>
+<p>The complete Kernel List is generated by NPB by merging all the
+available Kernel List files. These kernel list files must be located
+in the <code class="docutils literal notranslate"><span class="pre">working_directory</span></code> as specified by the NPB configuration.</p>
+<p>In principle all the kernels that have ever been added to the archive
+should be present.</p>
+<p>The validation of the complete Kernel List performs the following checks:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>check that the list has the same number of <code class="docutils literal notranslate"><span class="pre">FILE</span></code>, <code class="docutils literal notranslate"><span class="pre">MAKLABEL_OPTIONS</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">DESCRIPTION</span></code> entries</p></li>
+<li><p>check all the <code class="docutils literal notranslate"><span class="pre">MAKLABL_OPTIONS</span></code> used</p></li>
+<li><p>check that the list has no duplicates</p></li>
+</ul>
+</div></blockquote>
 </section>
-<section id="product-in-kernel-list-checks">
-<h3>Product in Kernel List Checks<a class="headerlink" href="#product-in-kernel-list-checks" title="Link to this heading"></a></h3>
+<section id="module-pds.naif_pds4_bundler.classes.list.KernelList.check_products">
+<span id="product-in-kernel-list-checks"></span><h3>Product in Kernel List Checks<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.list.KernelList.check_products" title="Link to this heading"></a></h3>
+<p>Check the SPICE kernel and ORBNUM products from the kernel list.</p>
+<p>The products present in the Kernel List –whether if generated by NPB
+or provided by the user– will be checked and if issues are found they
+will be reported as <code class="docutils literal notranslate"><span class="pre">WARNING</span></code> or <code class="docutils literal notranslate"><span class="pre">ERROR</span></code> messages.</p>
+<p>The checks performed to the products are the following:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>identify if a SPICE kernel is present in multiple kernel directories</p></li>
+<li><p>check End of Line character for text SPICE kernels and ORBNUM files.</p></li>
+<li><p>check text SPICE kernels and ORBNUM files for non-ASCII characters.</p></li>
+<li><p>check if text SPICE kernels have more than 80 characters per line.</p></li>
+<li><p>validate kernel architecture</p></li>
+<li><p>check endianness and permissions of binary kernels</p></li>
+</ul>
+</div></blockquote>
 </section>
 <section id="spice-kernel-integrity-check">
 <h3>SPICE Kernel Integrity Check<a class="headerlink" href="#spice-kernel-integrity-check" title="Link to this heading"></a></h3>
 </section>
-<section id="meta-kernel-validation">
-<h3>Meta-kernel Validation<a class="headerlink" href="#meta-kernel-validation" title="Link to this heading"></a></h3>
+<section id="module-pds.naif_pds4_bundler.classes.product.MetaKernelProduct.validate">
+<span id="meta-kernel-validation"></span><h3>Meta-kernel Validation<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.product.MetaKernelProduct.validate" title="Link to this heading"></a></h3>
+<p>Perform a basic validation of the Meta-kernel.</p>
+<p>The validation consists of:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>load the kernel with the SPICE API <code class="docutils literal notranslate"><span class="pre">FURNSH</span></code></p></li>
+<li><p>count the loaded kernels with SPICE API <code class="docutils literal notranslate"><span class="pre">KTOTAL</span></code></p></li>
+<li><p>compare the number of kernels in the kernel pool with the length
+of the MK collection list attribute</p></li>
+<li><p>check that line lengths are less than 80 characters</p></li>
+</ul>
+</div></blockquote>
 </section>
-<section id="spice-kernel-collection-validation">
-<h3>SPICE Kernel Collection Validation<a class="headerlink" href="#spice-kernel-collection-validation" title="Link to this heading"></a></h3>
+<section id="module-pds.naif_pds4_bundler.classes.collection.SpiceKernelsCollection.validate">
+<span id="spice-kernel-collection-validation"></span><h3>SPICE Kernel Collection Validation<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.collection.SpiceKernelsCollection.validate" title="Link to this heading"></a></h3>
+<p>Validate the SPICE Kernels collection.</p>
+<p>The SPICE Kernels collection validation performs the following checks:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>check that all the kernels from the kernel list are present</p></li>
+<li><p>check that all the kernels have been labeled</p></li>
+<li><p>display the key elements of the labels for the user to do a visual
+inspection. The key elements are: <code class="docutils literal notranslate"><span class="pre">logical_identifier</span></code>, <code class="docutils literal notranslate"><span class="pre">version_id</span></code>,
+<code class="docutils literal notranslate"><span class="pre">title</span></code>, <code class="docutils literal notranslate"><span class="pre">description</span></code>, <code class="docutils literal notranslate"><span class="pre">start_date_time</span></code>, <code class="docutils literal notranslate"><span class="pre">stop_date_time</span></code>,
+<code class="docutils literal notranslate"><span class="pre">file_name</span></code>, <code class="docutils literal notranslate"><span class="pre">file_size</span></code>, <code class="docutils literal notranslate"><span class="pre">md5_checksum</span></code>, <code class="docutils literal notranslate"><span class="pre">object_length</span></code>,
+<code class="docutils literal notranslate"><span class="pre">kernel_type</span></code>, and <code class="docutils literal notranslate"><span class="pre">encoding_type</span></code>.</p></li>
+</ul>
+</div></blockquote>
 </section>
-<section id="inventory-product-validation">
-<h3>Inventory Product Validation<a class="headerlink" href="#inventory-product-validation" title="Link to this heading"></a></h3>
+<section id="module-pds.naif_pds4_bundler.classes.product.InventoryProduct.validate_pds4">
+<span id="inventory-product-validation"></span><h3>Inventory Product Validation<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.product.InventoryProduct.validate_pds4" title="Link to this heading"></a></h3>
+<p>Validate the PDS4 Inventory Product.</p>
+<p>The Inventory is validated by checking that all the products listed
+are present in the archive.</p>
 </section>
-<section id="checksum-validation">
-<h3>Checksum Validation<a class="headerlink" href="#checksum-validation" title="Link to this heading"></a></h3>
+<section id="module-pds.naif_pds4_bundler.classes.bundle.Bundle.validate_history">
+<span id="checksum-validation"></span><h3>Checksum Validation<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.bundle.Bundle.validate_history" title="Link to this heading"></a></h3>
+<p>Validate the bundle updated history with the checksum files.</p>
+<p>This method validates all the archive Checksum files with the “Archive
+History”. The “Archive history” is obtained by extracting the
+previous releases and the Collections that correspond to each release
+from the Bundle labels. The other products’ information is extracted
+from the collection inventories.</p>
+<p>The archive history is then provided as a dictionary with releases
+as keys and each key contains a list of files for that release.</p>
+<p>The validation is performed by comparing each release entry of the
+dictionary with the release checksum file <code class="docutils literal notranslate"><span class="pre">checksum_v???.tab</span></code>.</p>
+<p>In parallel the method writes in the execution log the complete bundle
+release history, providing an ordered list of files released for each
+release number.</p>
 </section>
-<section id="product-comparison">
-<h3>Product Comparison<a class="headerlink" href="#product-comparison" title="Link to this heading"></a></h3>
+<section id="module-pds.naif_pds4_bundler.classes.product.MetaKernelProduct.compare">
+<span id="product-comparison"></span><h3>Product Comparison<a class="headerlink" href="#module-pds.naif_pds4_bundler.classes.product.MetaKernelProduct.compare" title="Link to this heading"></a></h3>
+<p><strong>Compare the Meta-kernel with the previous version</strong>.</p>
+<p>The MK is compared with a previous version of the MK. If no prior
+MK is found, the new MK is compared to NPB’s MK template.</p>
+<p id="module-pds.naif_pds4_bundler.classes.product.InventoryProduct.compare"><strong>Compare the Inventory Product with another Inventory</strong>.</p>
+<p>The Inventory Product is compared with the previous
+version and if it does not exist with the sample INSIGHT inventory
+product.</p>
+<p id="module-pds.naif_pds4_bundler.classes.product.SpicedsProduct.compare"><strong>Compare the SPICEDS Product with another SPICEDS</strong>.</p>
+<p>The SPICEDS Product is compared with the previous
+version and if it does not exist with the sample INSIGHT SPICEDS
+product.</p>
+<p id="module-pds.naif_pds4_bundler.classes.product.ChecksumProduct.compare"><strong>Compare the Checksum with the previous Checksum file</strong>.</p>
+<p>The Checksum file is compared with the previous version.</p>
 <section id="comparison-output">
 <h4>Comparison output<a class="headerlink" href="#comparison-output" title="Link to this heading"></a></h4>
 <p>Depending on the parameter provided to NPB with the argument

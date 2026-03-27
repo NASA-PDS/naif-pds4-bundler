@@ -5,18 +5,18 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pds.naif_pds4_bundler.utils.time &mdash; NAIF PDS4 Bundler 1.8.0
+  <title>pds.naif_pds4_bundler.utils.time &mdash; NAIF PDS4 Bundler 1.7.2
  documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../../../_static/theme_overrides.css?v=8a44a683" />
 
   
       <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../../../_static/documentation_options.js?v=b51e6972"></script>
-      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../../_static/documentation_options.js?v=908dc885"></script>
+      <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" /> 
@@ -182,8 +182,8 @@
 
     <span class="n">coverage</span> <span class="o">=</span> <span class="n">spiceypy</span><span class="o">.</span><span class="n">support_types</span><span class="o">.</span><span class="n">SPICEDOUBLE_CELL</span><span class="p">(</span><span class="n">winsiz</span><span class="p">)</span>
 
-    <span class="n">start_points_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
-    <span class="n">end_points_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+    <span class="n">start_points_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">end_points_list</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="c1">#</span>
     <span class="c1"># If one of the IDs of the kernel is the ID that corresponds to the SPICE</span>
@@ -248,8 +248,8 @@
 <span class="sd">    :return: start and finish coverage</span>
 <span class="sd">    :rtype: list of str</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">start_points_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
-    <span class="n">end_points_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+    <span class="n">start_points_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">end_points_list</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="n">maxiv</span> <span class="o">=</span> <span class="mi">10000</span>
     <span class="n">winsiz</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">maxiv</span>
@@ -329,8 +329,8 @@
 
     <span class="n">coverage</span> <span class="o">=</span> <span class="n">spiceypy</span><span class="o">.</span><span class="n">support_types</span><span class="o">.</span><span class="n">SPICEDOUBLE_CELL</span><span class="p">(</span><span class="n">winsiz</span><span class="p">)</span>
 
-    <span class="n">start_points_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
-    <span class="n">end_points_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+    <span class="n">start_points_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">end_points_list</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">for</span> <span class="nb">id</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">:</span>
 

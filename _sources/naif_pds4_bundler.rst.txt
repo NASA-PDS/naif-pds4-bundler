@@ -1,0 +1,22 @@
+naif\_pds4\_bundler package
+===========================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   naif_pds4_bundler.classes
+   naif_pds4_bundler.cli
+   naif_pds4_bundler.data
+   naif_pds4_bundler.pipeline
+   naif_pds4_bundler.utils
+
+Module contents
+---------------
+
+.. automodule:: naif_pds4_bundler
+   :members:
+   :show-inheritance:
+   :undoc-members:

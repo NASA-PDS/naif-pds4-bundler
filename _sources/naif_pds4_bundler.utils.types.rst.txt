@@ -1,0 +1,21 @@
+naif\_pds4\_bundler.utils.types package
+=======================================
+
+Submodules
+----------
+
+naif\_pds4\_bundler.utils.types.datatypes module
+------------------------------------------------
+
+.. automodule:: naif_pds4_bundler.utils.types.datatypes
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: naif_pds4_bundler.utils.types
+   :members:
+   :show-inheritance:
+   :undoc-members:

@@ -1,0 +1,85 @@
+naif\_pds4\_bundler.classes.product package
+===========================================
+
+Submodules
+----------
+
+naif\_pds4\_bundler.classes.product.product module
+--------------------------------------------------
+
+.. automodule:: naif_pds4_bundler.classes.product.product
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+naif\_pds4\_bundler.classes.product.product\_checksum module
+------------------------------------------------------------
+
+.. automodule:: naif_pds4_bundler.classes.product.product_checksum
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+naif\_pds4\_bundler.classes.product.product\_inventory module
+-------------------------------------------------------------
+
+.. automodule:: naif_pds4_bundler.classes.product.product_inventory
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+naif\_pds4\_bundler.classes.product.product\_kernel module
+----------------------------------------------------------
+
+.. automodule:: naif_pds4_bundler.classes.product.product_kernel
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+naif\_pds4\_bundler.classes.product.product\_metakernel module
+--------------------------------------------------------------
+
+.. automodule:: naif_pds4_bundler.classes.product.product_metakernel
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+naif\_pds4\_bundler.classes.product.product\_orbnum module
+----------------------------------------------------------
+
+.. automodule:: naif_pds4_bundler.classes.product.product_orbnum
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+naif\_pds4\_bundler.classes.product.product\_pds3doc module
+-----------------------------------------------------------
+
+.. automodule:: naif_pds4_bundler.classes.product.product_pds3doc
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+naif\_pds4\_bundler.classes.product.product\_readme module
+----------------------------------------------------------
+
+.. automodule:: naif_pds4_bundler.classes.product.product_readme
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+naif\_pds4\_bundler.classes.product.product\_spiceds module
+-----------------------------------------------------------
+
+.. automodule:: naif_pds4_bundler.classes.product.product_spiceds
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: naif_pds4_bundler.classes.product
+   :members:
+   :show-inheritance:
+   :undoc-members:

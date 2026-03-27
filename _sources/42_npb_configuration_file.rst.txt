@@ -795,7 +795,7 @@ summary of the parameters:
        the string is determined by the ``date_format`` used.
      - Yes
    * - mission_finish
-     - Mission finish time; typically is the start time of the post-launch SPK.
+     - Mission finish time; typically is the end time of the latest CK or SPK.
        The date is provided with a UTC calendar format string. The syntax of
        the string is determined by the ``date_format`` used.
      - Yes

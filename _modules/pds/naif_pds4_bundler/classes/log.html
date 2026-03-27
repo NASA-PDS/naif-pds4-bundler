@@ -5,18 +5,18 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pds.naif_pds4_bundler.classes.log &mdash; NAIF PDS4 Bundler 1.8.0
+  <title>pds.naif_pds4_bundler.classes.log &mdash; NAIF PDS4 Bundler 1.7.2
  documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../../../_static/theme_overrides.css?v=8a44a683" />
 
   
       <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../../../_static/documentation_options.js?v=b51e6972"></script>
-      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../../_static/documentation_options.js?v=908dc885"></script>
+      <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" /> 
@@ -82,22 +82,23 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">platform</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">socket</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">spiceypy</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">..utils.types.datatypes</span><span class="w"> </span><span class="kn">import</span> <span class="n">PipelineArgs</span>
 
 
 <div class="viewcode-block" id="Log">
 <a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.log.Log">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">Log</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Log</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Log class to write and output NPB&#39;s log.</span>
 
-<span class="sd">    :param args: Parameter arguments from NPB&#39;s main function.</span>
-<span class="sd">    :type args: object</span>
-<span class="sd">    :param version: NPB version.</span>
-<span class="sd">    :type version: str</span>
+<span class="sd">    :param setup: Setup object from NPB&#39;s main function.</span>
+<span class="sd">    :param args:  Command line arguments from NPB&#39;s main function.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setup</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setup</span><span class="p">:</span> <span class="s2">&quot;Setup&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="n">PipelineArgs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Constructor.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">setup</span> <span class="o">=</span> <span class="n">setup</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="n">args</span>
@@ -145,7 +146,7 @@
 
 <div class="viewcode-block" id="Log.start">
 <a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.log.Log.start">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Start the generation of the log for the execution.&quot;&quot;&quot;</span>
         <span class="n">start_message</span> <span class="o">=</span> <span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;naif-pds4-bundler-</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2"> for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">mission_name</span><span class="si">}</span><span class="s2">&quot;</span>
@@ -200,26 +201,34 @@
 
 <div class="viewcode-block" id="Log.stop">
 <a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.log.Log.stop">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Write log, file list, and checksum registry files when NPB stops.&quot;&quot;&quot;</span>
-        <span class="c1">#</span>
-        <span class="c1"># Remove the templates.</span>
-        <span class="c1">#</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Write log, file list, and checksum registry files when NPB stops.</span>
+
+<span class="sd">        Side effects:</span>
+<span class="sd">            - Removes template files</span>
+<span class="sd">            - Writes the run-by product file list and checksum record</span>
+<span class="sd">            - Writes a PDS validate tool configuration file, if applicable</span>
+<span class="sd">            - Clears SPICE kernel pool</span>
+<span class="sd">            - Renames the temporary log file</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Remove the templates. Make sure they exist before attempting the</span>
+        <span class="c1"># deletion.</span>
         <span class="k">for</span> <span class="n">template</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">template_files</span><span class="p">:</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">template</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">template</span><span class="p">):</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">template</span><span class="p">)</span>
 
         <span class="c1">#</span>
         <span class="c1"># Generate the file list, the checksum registry, and the PDS validate</span>
         <span class="c1"># configuration file.</span>
         <span class="c1">#</span>
-        <span class="n">line</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Step </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">step</span><span class="si">}</span><span class="s2"> - Generate run by-product files&quot;</span>
+        <span class="n">step_message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Step </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">step</span><span class="si">}</span><span class="s2"> - Generate run by-product files&quot;</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">))</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">step_message</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">step_message</span><span class="p">))</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">step</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">silent</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-- &quot;</span> <span class="o">+</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; - &quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-- &quot;</span> <span class="o">+</span> <span class="n">step_message</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; - &quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">write_file_list</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">write_checksum_registry</span><span class="p">()</span>
@@ -255,20 +264,23 @@
 </div>
 
 
-
+<span class="c1"># TODO: This function does not belong into the logging module. Move it elsewhere.</span>
 <div class="viewcode-block" id="error_message">
 <a class="viewcode-back" href="../../../../pds.naif_pds4_bundler.classes.html#pds.naif_pds4_bundler.classes.log.error_message">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">error_message</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">setup</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Function to signal a NPB error message.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">error_message</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">setup</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;Setup&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Signal a NPB error and write run artifacts.</span>
 
-<span class="sd">    The File List and Checksum Registry files are also written.</span>
+<span class="sd">    Side effects:</span>
+<span class="sd">        - Writes file list and checksum registry if setup is provided</span>
+<span class="sd">        - Removes template files</span>
+<span class="sd">        - Clears SPICE kernel pool</span>
+<span class="sd">        - Raises RuntimeError</span>
 
 <span class="sd">    :param message: Error message</span>
-<span class="sd">    :type message: str</span>
-<span class="sd">    :param setup: Setup object, if provided a file will be written</span>
-<span class="sd">    :type setup: object</span>
+<span class="sd">    :param setup:   Optional Setup object for writing artifacts</span>
+
+<span class="sd">    :raises RuntimeError: always, with the provided error message.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">error</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-- </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="c1">#</span>
@@ -280,12 +292,17 @@
     <span class="k">if</span> <span class="n">setup</span><span class="p">:</span>
         <span class="n">setup</span><span class="o">.</span><span class="n">write_file_list</span><span class="p">()</span>
         <span class="n">setup</span><span class="o">.</span><span class="n">write_checksum_registry</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">template</span> <span class="ow">in</span> <span class="n">setup</span><span class="o">.</span><span class="n">template_files</span><span class="p">:</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">template</span><span class="p">)</span>
 
+        <span class="c1"># Remove the templates. Make sure they exist before attempting the</span>
+        <span class="c1"># deletion.</span>
+        <span class="k">for</span> <span class="n">template</span> <span class="ow">in</span> <span class="n">setup</span><span class="o">.</span><span class="n">template_files</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">template</span><span class="p">):</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">template</span><span class="p">)</span>
+
+    <span class="c1"># Clear the kernel pool.</span>
     <span class="n">spiceypy</span><span class="o">.</span><span class="n">kclear</span><span class="p">()</span>
 
-    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">error</span><span class="p">)</span></div>
+    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">message</span><span class="p">)</span></div>
 
 </pre></div>
 

@@ -1,0 +1,63 @@
+naif\_pds4\_bundler.classes package
+===================================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   naif_pds4_bundler.classes.collection
+   naif_pds4_bundler.classes.label
+   naif_pds4_bundler.classes.product
+
+Submodules
+----------
+
+naif\_pds4\_bundler.classes.bundle module
+-----------------------------------------
+
+.. automodule:: naif_pds4_bundler.classes.bundle
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+naif\_pds4\_bundler.classes.list module
+---------------------------------------
+
+.. automodule:: naif_pds4_bundler.classes.list
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+naif\_pds4\_bundler.classes.log module
+--------------------------------------
+
+.. automodule:: naif_pds4_bundler.classes.log
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+naif\_pds4\_bundler.classes.object module
+-----------------------------------------
+
+.. automodule:: naif_pds4_bundler.classes.object
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+naif\_pds4\_bundler.classes.setup module
+----------------------------------------
+
+.. automodule:: naif_pds4_bundler.classes.setup
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: naif_pds4_bundler.classes
+   :members:
+   :show-inheritance:
+   :undoc-members:

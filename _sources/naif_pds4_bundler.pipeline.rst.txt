@@ -1,0 +1,21 @@
+naif\_pds4\_bundler.pipeline package
+====================================
+
+Submodules
+----------
+
+naif\_pds4\_bundler.pipeline.npb module
+---------------------------------------
+
+.. automodule:: naif_pds4_bundler.pipeline.npb
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: naif_pds4_bundler.pipeline
+   :members:
+   :show-inheritance:
+   :undoc-members:
