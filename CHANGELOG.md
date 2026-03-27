@@ -1,12 +1,33 @@
 # Changelog
 
-## [«unknown»](https://github.com/NASA-PDS/naif-pds4-bundler/tree/«unknown») (2026-01-24)
+## [release/1.7.3](https://github.com/NASA-PDS/naif-pds4-bundler/tree/release/1.7.3) (2026-03-24)
 
-[Full Changelog](https://github.com/NASA-PDS/naif-pds4-bundler/compare/v1.7.2...«unknown»)
+[Full Changelog](https://github.com/NASA-PDS/naif-pds4-bundler/compare/v1.7.2...release/1.7.3)
 
 **Requirements:**
 
 - Add infrastructure \(labels + templates\) for "Refactor" issues [\#45](https://github.com/NASA-PDS/naif-pds4-bundler/issues/45)
+
+**Defects:**
+
+- NPB does not work on RedHat 8 due to FIPS error [\#76](https://github.com/NASA-PDS/naif-pds4-bundler/issues/76)
+- Unstable integration & delivery fails when run on Python 3.13 [\#49](https://github.com/NASA-PDS/naif-pds4-bundler/issues/49)
+- NPB does not show as a Python package in the NASA-PDS repositories [\#48](https://github.com/NASA-PDS/naif-pds4-bundler/issues/48)
+
+**Other closed issues:**
+
+- Method/function parameter type is defined as `object`. [\#93](https://github.com/NASA-PDS/naif-pds4-bundler/issues/93)
+- Some variables are not used, [\#91](https://github.com/NASA-PDS/naif-pds4-bundler/issues/91)
+- A class inheritance from the `object` - not required in Python 3.X. [\#88](https://github.com/NASA-PDS/naif-pds4-bundler/issues/88)
+- Migrate to pytest all utils.files tests [\#72](https://github.com/NASA-PDS/naif-pds4-bundler/issues/72)
+- Stale & merged branches' cleanup [\#67](https://github.com/NASA-PDS/naif-pds4-bundler/issues/67)
+- Core Pytest Configuration [\#62](https://github.com/NASA-PDS/naif-pds4-bundler/issues/62)
+- Remove support for Python3.8 and 3.9 [\#59](https://github.com/NASA-PDS/naif-pds4-bundler/issues/59)
+- Extend testing environment to Windows [\#57](https://github.com/NASA-PDS/naif-pds4-bundler/issues/57)
+- Extend testing environments to Intel and ARM MacOS and Windows [\#56](https://github.com/NASA-PDS/naif-pds4-bundler/issues/56)
+- Update VERSION.txt resource loading approach in NPB [\#54](https://github.com/NASA-PDS/naif-pds4-bundler/issues/54)
+- Migrate pds Namespace to PEP 420 [\#53](https://github.com/NASA-PDS/naif-pds4-bundler/issues/53)
+- Remove deprecated API pkg\_resources from NPB [\#52](https://github.com/NASA-PDS/naif-pds4-bundler/issues/52)
 
 ## [v1.7.2](https://github.com/NASA-PDS/naif-pds4-bundler/tree/v1.7.2) (2026-01-06)
 
