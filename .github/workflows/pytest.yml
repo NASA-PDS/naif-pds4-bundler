@@ -35,5 +35,5 @@ jobs:
         python -m pip install -e .
   
     - name: Run tests
-      run: pytest 
+      run: pytest --cov-fail-under= 
 
