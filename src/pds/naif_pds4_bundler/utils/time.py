@@ -400,45 +400,40 @@ def pds3_label_gen_date(file):
     return generation_date
 
 
-def get_years(start_time, stop_time):
+def get_years(start_time: str, stop_time: str) -> list[str]:
     """Get years contained in a time period.
 
     Returns the list of years contained in between the provided
     start time and the stop time.
 
     :param start_time: Start time to determine list of years
-    :type start_time: str
     :param stop_time: Stop time to determine list of years
-    :type stop_time: str
-    :return: Creation date
-    :rtype: list of str
+    :return: List of years
     """
-    years = []
-
     start_year = start_time.split("-")[0]
     finish_year = stop_time.split("-")[0]
 
-    year = int(start_year)
-    while year <= int(finish_year):
-        years.append(str(year))
-        year += 1
-
-    return years
+    return [str(y) for y in range(int(start_year), int(finish_year) + 1)]
 
 
-def parse_date(date_str):
-    """Parses a date string using the following formats:
-        * %Y-%b-%d-%H:%M:%S
-        * %Y-%m-%dT%H:%M:%S
+def parse_date(date_str: str) -> datetime.datetime:
+    """Parses a date string into a datetime object.
+
+    The supported formats for the input date string are:
+       - %Y-%b-%d-%H:%M:%S
+       - %Y-%m-%dT%H:%M:%S
 
     :param date_str: Stop time to determine list of years
-    :type date_str: str
-    :return: date corresponding to the input str
-    :rtype: datetime
-    """
-    try:
-        date = datetime.datetime.strptime(date_str, "%Y-%b-%d-%H:%M:%S")
-    except ValueError:
-        date = datetime.datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%S")
 
-    return date
+    :raises ValueError: If the input string does not conform to any of the
+                        supported formats.
+
+    :returns: date corresponding to the input str
+    """
+    formats = ["%Y-%b-%d-%H:%M:%S", "%Y-%m-%dT%H:%M:%S"]
+    for fmt in formats:
+        try:
+            return datetime.datetime.strptime(date_str, fmt)
+        except ValueError:
+            continue
+    raise ValueError("The input string does not conform to any of the supported formats.")
