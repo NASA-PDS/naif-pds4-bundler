@@ -1,7 +1,5 @@
 """Implementation of the Product base class."""
 import os
-import re
-from typing import Tuple
 
 from ...utils import checksum_from_label
 from ...utils import checksum_from_registry
@@ -61,75 +59,3 @@ class Product:
         if self.new_product:
             self.setup.add_file(self.path.split(archive_dir)[-1])
             self.setup.add_checksum(self.path, checksum)
-
-    def get_mission_and_observer_and_target(self, name: str) -> Tuple[str, str, str]:
-        """Read the configuration to extract the missions, observers and the
-        targets.
-
-        :param name: The name of the kernel or OrbNum file.
-        :return: missions and observers and targets
-        """
-        missions = []
-        observers = []
-        targets = []
-
-        for pattern in self.collection.list.json_config.values():
-
-            #
-            # If the pattern is matched for the kernel name, extract
-            # the target and observer from the kernel list
-            # configuration.
-            #
-            if re.match(pattern["@pattern"], name):
-
-                ker_config = self.setup.kernel_list_config[pattern["@pattern"]]
-
-                #
-                # Check if the kernel has specified missions.
-                # Note the 'primary' mission will not be used in this case.
-                #
-                if "missions" in ker_config:
-                    missions = ker_config["missions"]["mission_name"]
-                #
-                # If the kernel has no other missions then the primary mission
-                # is used.
-                #
-                else:
-                    missions = [self.setup.mission_name]
-
-                #
-                # Check if the kernel has specified targets.
-                # Note that the mission target will not be used in this case.
-                #
-                if "targets" in ker_config:
-                    targets = ker_config["targets"]["target"]
-                #
-                # If the kernel has no targets then the mission target is used.
-                #
-                else:
-                    targets = [self.setup.target]
-
-                #
-                # Check if the kernel has specified observers.
-                # Note that the mission observer will not be used in this case.
-                #
-                if "observers" in ker_config:
-                    observers = ker_config["observers"]["observer"]
-                #
-                # If the kernel has no observers then the mission observer is
-                # used.
-                #
-                else:
-                    observers = [self.setup.observer]
-
-                break
-            #
-            # If the product is not in the kernel list (such as the orbnum
-            # file), then use the mission observers and targets.
-            #
-            else:
-                missions = [self.setup.mission_name]
-                observers = [self.setup.observer]
-                targets = [self.setup.target]
-
-        return missions, observers, targets
