@@ -62,12 +62,12 @@ class Product:
             self.setup.add_file(self.path.split(archive_dir)[-1])
             self.setup.add_checksum(self.path, checksum)
 
-    def get_mission_and_observer_and_target(self) -> Tuple[str, str, str]:
+    def get_mission_and_observer_and_target(self, name: str) -> Tuple[str, str, str]:
         """Read the configuration to extract the missions, observers and the
         targets.
 
+        :param name: The name of the kernel or OrbNum file.
         :return: missions and observers and targets
-        :rtype: tuple
         """
         missions = []
         observers = []
@@ -80,7 +80,7 @@ class Product:
             # the target and observer from the kernel list
             # configuration.
             #
-            if re.match(pattern["@pattern"], self.name):
+            if re.match(pattern["@pattern"], name):
 
                 ker_config = self.setup.kernel_list_config[pattern["@pattern"]]
 
