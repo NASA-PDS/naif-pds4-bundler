@@ -17,7 +17,7 @@ class Product:
     def __init__(self) -> None:
         """Constructor."""
         stat_info = os.stat(self.path)
-        self.size = str(stat_info.st_size)
+        self._size = str(stat_info.st_size)
 
         #
         # If specified via configuration, try to obtain the checksum from a
@@ -59,3 +59,8 @@ class Product:
         if self.new_product:
             self.setup.add_file(self.path.split(archive_dir)[-1])
             self.setup.add_checksum(self.path, checksum)
+
+    @property
+    def size(self) -> str:
+        """Returns the size of the product."""
+        return self._size
