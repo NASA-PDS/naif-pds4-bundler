@@ -6,7 +6,7 @@ import os
 import spiceypy
 
 from .collection import Collection
-from ..log import error_message
+from ...pipeline.runtime import handle_npb_error
 from ...utils import et_to_date
 from ...utils import extension_to_type
 
@@ -73,7 +73,7 @@ class SpiceKernelsCollection(Collection):
                 for mk in mks:
                     if not os.path.exists(mk):
                         logging.info("")
-                        error_message(
+                        handle_npb_error(
                             f"Meta-kernel provided via"
                             f" configuration"
                             f" does not exist: {mk}"
@@ -172,7 +172,7 @@ class SpiceKernelsCollection(Collection):
                 else:
                     existing_path = f"{self.setup.bundle_directory}/{self.setup.volume_id}/extras/mk/{meta_kernel}"
                 if os.path.exists(existing_path):
-                    error_message(f"MK already exists in the archive: {existing_path}")
+                    handle_npb_error(f"MK already exists in the archive: {existing_path}")
 
         return meta_kernels
 
@@ -397,7 +397,7 @@ class SpiceKernelsCollection(Collection):
             logging.error("-- The following products from the list are not present:")
             for product in non_present_products:
                 logging.error(f"   {product}")
-                error_message(
+                handle_npb_error(
                     "Some products from the list are not present.",
                     setup=self.setup,
                 )
@@ -436,7 +436,7 @@ class SpiceKernelsCollection(Collection):
                 logging.error(f"   {product}")
                 # TODO: This IF statement goes after implementing PDS3 labeling.
                 if self.setup.pds_version == "4":
-                    error_message(
+                    handle_npb_error(
                         "Some products have not been labeled.", setup=self.setup
                     )
 

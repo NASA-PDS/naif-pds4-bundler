@@ -4,7 +4,7 @@ import glob
 import logging
 import os
 
-from ..log import error_message
+from ...pipeline.runtime import handle_npb_error
 from ...utils import add_carriage_return, compare_files
 
 
@@ -85,7 +85,7 @@ class PDSLabel:
             elif setup.end_of_line == "LF":
                 self.END_OF_LINE = "Line-Feed"
             else:
-                error_message(
+                handle_npb_error(
                     "End of Line provided via configuration is not CRLF nor LF.",
                     setup=self.setup,
                 )
@@ -197,7 +197,7 @@ class PDSLabel:
                         mission_type = product["type"][0]
 
                 if not mission_lid:
-                    error_message(
+                    handle_npb_error(
                         f"LID has not been obtained for mission {mis}.",
                         setup=self.setup,
                     )
@@ -215,7 +215,7 @@ class PDSLabel:
                     + f"{' ' * 2 * tab}</Investigation_Area>{eol}"
                 )
         if not mis_list_for_label:
-            error_message(
+            handle_npb_error(
                 f"{self.product.name} missions not defined.", setup=self.setup
             )
         mis_list_for_label = mis_list_for_label.rstrip() + eol
@@ -281,7 +281,7 @@ class PDSLabel:
                         ob_type = product["type"][0]
 
                 if not ob_lid:
-                    error_message(
+                    handle_npb_error(
                         f"LID has not been obtained for observer {ob}.",
                         setup=self.setup,
                     )
@@ -300,7 +300,7 @@ class PDSLabel:
                 )
 
         if not obs_list_for_label:
-            error_message(
+            handle_npb_error(
                 f"{self.product.name} observers not defined.", setup=self.setup
             )
         obs_list_for_label = obs_list_for_label.rstrip() + eol
@@ -349,7 +349,7 @@ class PDSLabel:
                 )
 
         if not tar_list_for_label:
-            error_message(f"{self.product.name} targets not defined.", setup=self.setup)
+            handle_npb_error(f"{self.product.name} targets not defined.", setup=self.setup)
         tar_list_for_label = tar_list_for_label.rstrip() + eol
 
         return tar_list_for_label

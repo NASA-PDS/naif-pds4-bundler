@@ -8,10 +8,10 @@ import shutil
 from datetime import date
 
 from .product import Product
+from ...pipeline.runtime import handle_npb_error
 from ...utils import add_carriage_return
 from ...utils import compare_files
 from ..label import DocumentPDS4Label
-from ..log import error_message
 
 
 class SpicedsProduct(Product):
@@ -72,7 +72,7 @@ class SpicedsProduct(Product):
             except BaseException:
                 logging.warning("-- No previous version of spiceds_v*.html file found.")
                 if not spiceds:
-                    error_message(
+                    handle_npb_error(
                         "spiceds not provided and not available "
                         "from previous releases.",
                         setup=self.setup,
@@ -83,7 +83,7 @@ class SpicedsProduct(Product):
             self.version = 1
             self.latest_spiceds = ""
             if not spiceds:
-                error_message(
+                handle_npb_error(
                     "spiceds not provided and not available from previous releases.",
                     setup=self.setup,
                 )

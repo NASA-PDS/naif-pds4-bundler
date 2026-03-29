@@ -10,6 +10,7 @@ from collections import OrderedDict
 import spiceypy
 
 from .product import Product
+from ...pipeline.runtime import handle_npb_error
 from ...utils import check_line_length
 from ...utils import ck_coverage
 from ...utils import compare_files
@@ -24,7 +25,6 @@ from ...utils import spice_exception_handler
 from ...utils import spk_coverage
 from ...utils import type_to_extension
 from ..label import MetaKernelPDS4Label
-from ..log import error_message
 
 
 class MetaKernelProduct(Product):
@@ -97,7 +97,7 @@ class MetaKernelProduct(Product):
                 pass
 
         if not hasattr(self, "mk_setup"):
-            error_message(
+            handle_npb_error(
                 f"Meta-kernel {self.name} has not been matched " f"in configuration.",
                 setup=self.setup,
             )
@@ -327,7 +327,7 @@ class MetaKernelProduct(Product):
             # Implement this exceptional check for first releases of an archive.
             #
             if "01" not in self.name:
-                error_message(
+                handle_npb_error(
                     f"{self.name} version does not correspond to VID "
                     f"1.0. Rename the MK accordingly.",
                     setup=self.setup,
@@ -423,7 +423,7 @@ class MetaKernelProduct(Product):
                                         #
                                         patterns[el]["&value"] = value
                                 else:
-                                    error_message(
+                                    handle_npb_error(
                                         f"Kernel pattern {patt_ker} "
                                         f"not adept to write "
                                         f"description. Remember a "
@@ -449,7 +449,7 @@ class MetaKernelProduct(Product):
                                         patterns[el]["&value"] = value
 
                                 if isinstance(value, list):
-                                    error_message(
+                                    handle_npb_error(
                                         f"-- Kernel description "
                                         f"could not be updated with "
                                         f"pattern: {value}.",
@@ -463,7 +463,7 @@ class MetaKernelProduct(Product):
             description = description.replace("  ", " ")
 
         if not description:
-            error_message(
+            handle_npb_error(
                 f"{self.name} does not have a description on configuration file.",
                 setup=self.setup,
             )
@@ -476,7 +476,7 @@ class MetaKernelProduct(Product):
         # Obtain meta-kernel grammar from configuration.
         #
         if "grammar" not in self.mk_setup:
-            error_message(
+            handle_npb_error(
                 f"Meta-kernel grammar not defined in configuration for {self.name}"
             )
         kernel_grammar_list = self.mk_setup["grammar"]["pattern"]
@@ -977,7 +977,7 @@ class MetaKernelProduct(Product):
                             elif extension_to_type(kernel) == "ck":
                                 (start_time, stop_time) = ck_coverage(path)
                             else:
-                                error_message(
+                                handle_npb_error(
                                     "Kernel used to determine "
                                     "coverage is not a SPK or CK "
                                     "kernel.",

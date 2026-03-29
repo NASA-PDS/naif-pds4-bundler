@@ -7,7 +7,7 @@ from .product import Product
 from ...utils import add_carriage_return
 from ...utils import md5
 from ..label import BundlePDS4Label
-from ..log import error_message
+from ...pipeline.runtime import handle_npb_error
 from ..object import Object
 
 
@@ -82,7 +82,7 @@ class ReadmeProduct(Product):
             if os.path.exists(self.setup.readme["input"]):
                 shutil.copy(self.setup.readme["input"], self.path)
             else:
-                error_message("Readme file provided via configuration does not exist.")
+                handle_npb_error("Readme file provided via configuration does not exist.")
         elif not os.path.isfile(self.path):
             with open(self.path, "w+") as f:
                 with open(

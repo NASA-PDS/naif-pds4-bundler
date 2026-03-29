@@ -5,12 +5,12 @@ import os
 import shutil
 
 from .product import Product
+from ...pipeline.runtime import handle_npb_error
 from ...utils import add_carriage_return
 from ...utils import compare_files
 from ...utils import replace_string_in_file
 from ...utils import type_to_extension
 from ..label import InventoryPDS3Label, InventoryPDS4Label
-from ..log import error_message
 
 
 class InventoryProduct(Product):
@@ -289,7 +289,7 @@ class InventoryProduct(Product):
             # Bytes of each column is necessary to write the index label.
             #
             if not line_for_length:
-                error_message(
+                handle_npb_error(
                     "The index file is incomplete since no binary "
                     "kernel is present in the archive."
                 )
