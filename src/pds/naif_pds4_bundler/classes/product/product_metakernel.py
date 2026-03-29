@@ -223,7 +223,7 @@ class MetaKernelProduct(Product):
             # Extract the required information from the kernel list read from
             # configuration for the product.
             #
-            (missions, observers, targets) = self.get_mission_and_observer_and_target(self.name)
+            (missions, observers, targets) = self.collection.get_mission_and_observer_and_target(self.name)
 
             self.missions = missions
             self.targets = targets
