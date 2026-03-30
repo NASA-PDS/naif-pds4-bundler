@@ -86,6 +86,7 @@ def test_current_date(monkeypatch, date_input, expected):
 @pytest.mark.parametrize("time_format, expected", [
     ("maklabel", "2010-04-19T12:07:50"),
     ("infomod2", "2010-04-19T12:07:50.244Z"),
+    ("","2010-04-19T12:07:50.244000")
 ])
 def test_current_time(monkeypatch, time_format, expected):
     """Test current time function using pytest.
