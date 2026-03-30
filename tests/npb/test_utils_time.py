@@ -196,12 +196,19 @@ def test_pds3_label_gen_date(mocker, inputs, expected):
     assert result == expected
 
 
-def test_spk_coverage(lsk, m2020_fk):
+@pytest.mark.parametrize("inputs, date_format, expected", [
+    ("", "infomod2",  ["2000-12-31T23:58:55.817Z", "2099-12-31T23:58:50.815Z"]),
+    ("", "maklabel", ["2000-12-31T23:58:55.817Z", "2099-12-31T23:58:50.815Z"]),
+    ("M2020","infomod2",["2021-02-18T21:52:40.482Z", "2021-05-21T15:47:07.765Z"]),
+    ("M2020","maklabel", ["2021-02-18T21:52:40.482Z", "2021-05-21T15:47:07.765Z"]),
+    ("MARS 2020", "maklabel", ["2021-02-18T21:52:40.482Z", "2021-05-21T15:47:07.765Z"]),
+    ("PERSEVERANCE", "infomod2", ["2021-02-18T21:52:40.482Z", "2021-05-21T15:47:07.765Z"]),
+    ("MAVEN", "infomod2", ["2000-12-31T23:58:55.817Z", "2099-12-31T23:58:50.815Z"]),
+    ("MAVEN", "maklabel", ["2000-12-31T23:58:55.817Z", "2099-12-31T23:58:50.815Z"]),
+ ])
+def test_spk_coverage(lsk, m2020_fk, inputs, date_format, expected):
     """Test SPK coverage function."""
     spk_file = str( KERNELS/ "spk" / "m2020_surf_rover_loc_0000_0089_v1.bsp")
-    [start_time_cal, stop_time_cal] = time.spk_coverage(spk_file, main_name="M2020")
 
-    assert (start_time_cal, stop_time_cal) == (
-        "2021-02-18T21:52:40.482Z",
-        "2021-05-21T15:47:07.765Z"
-    )
+    result = time.spk_coverage(spk_file, main_name=inputs)
+    assert result == expected
