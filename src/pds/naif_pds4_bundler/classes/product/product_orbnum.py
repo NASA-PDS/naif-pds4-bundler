@@ -848,7 +848,7 @@ class OrbnumFileProduct(Product):
                 blankspaces = blankspaces_loc[1] - blankspaces_loc[0] + 1
                 location += int(length) + blankspaces
 
-            type = params_template[param]["type"]
+            p_type = params_template[param]["type"]
 
             if "length" in params_template[param]:
                 length = params_template[param]["length"]
@@ -953,7 +953,7 @@ class OrbnumFileProduct(Product):
                 "name": name,
                 "number": number,
                 "location": location,
-                "type": type,
+                "type": p_type,
                 "length": length,
                 "format": format,
                 "description": description,
