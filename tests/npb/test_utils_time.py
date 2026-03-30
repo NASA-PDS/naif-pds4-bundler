@@ -171,16 +171,18 @@ def test_parse_date_wrong_date_format():
         time.parse_date("FEB-18-2025")
 
 
-def test_pck_coverage(lsk):
+@pytest.mark.parametrize("date_format, system, expected", [
+    ("infomod2", "UTC", ["2000-01-01T00:00:00.000Z", "2026-06-13T00:00:00.000Z"]),
+    ("maklabel", "UTC", ["2000-01-01T00:00:00Z", "2026-06-13T00:00:00Z"]),
+    ("infomod2", "TDB", ["2000-01-01T00:01:04.185Z", "2026-06-13T00:01:09.184Z"]),
+    ("maklabel", "TDB", ["2000-01-01T00:01:04Z", "2026-06-13T00:01:09Z"]),
+ ])
+def test_pck_coverage(lsk, date_format, system, expected):
     """Test PCK coverage function using pytest."""
     pck_file = str( KERNELS/ "pck" / "earth_000101_260613_260317.bpc")
 
-    [start_time_cal, stop_time_cal] = time.pck_coverage(pck_file)
-
-    assert (start_time_cal, stop_time_cal) == (
-        "2000-01-01T00:00:00.000Z",
-        "2026-06-13T00:00:00.000Z"
-    )
+    result = time.pck_coverage(pck_file, date_format, system)
+    assert result == expected
 
 
 @pytest.mark.parametrize("inputs, expected", [
