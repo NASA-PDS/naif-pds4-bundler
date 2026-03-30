@@ -229,22 +229,22 @@ class PDSLabel:
         :rtype: str
         """
         if self.__class__.__name__ == "ChecksumPDS4Label":
-            type = "ancillary_to_investigation"
+            ref_type = "ancillary_to_investigation"
         elif self.__class__.__name__ == "BundlePDS4Label":
-            type = "bundle_to_investigation"
+            ref_type = "bundle_to_investigation"
         elif self.__class__.__name__ == "DocumentPDS4Label":
-            type = "document_to_investigation"
+            ref_type = "document_to_investigation"
         elif self.__class__.__name__ == "InventoryPDS4Label":
-            type = "collection_to_investigation"
+            ref_type = "collection_to_investigation"
         elif self.__class__.__name__ == "OrbnumFilePDS4Label":
             if self.setup.information_model_float >= 1014000000.0:
-                type = "ancillary_to_investigation"
+                ref_type = "ancillary_to_investigation"
             else:
-                type = "data_to_investigation"
+                ref_type = "data_to_investigation"
         else:
-            type = "data_to_investigation"
+            ref_type = "data_to_investigation"
 
-        return type
+        return ref_type
 
     def get_observers(self):
         """Get the label observers from the context products.
