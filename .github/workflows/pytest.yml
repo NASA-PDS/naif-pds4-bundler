@@ -7,6 +7,10 @@ on:
     branches: [ main ]
   workflow_dispatch: # Allows manual triggering from any branch
 
+# Set permissions for the GITHUB_TOKEN
+permissions:
+  contents: read
+
 jobs:
   unix-tests:
     name: Unix Test (${{ matrix.os }}, Python ${{ matrix.python-version }})
