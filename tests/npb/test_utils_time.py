@@ -185,6 +185,7 @@ def test_pck_coverage(lsk):
 
 @pytest.mark.parametrize("inputs, expected", [
     ("PRODUCT_CREATION_TIME        = 2026-03-10T11:08:04", "2026-03-10T11:08:04"),
+    ("","N/A"),
  ])
 def test_pds3_label_gen_date(mocker, inputs, expected):
     """Test pds3 label generation date function."""
