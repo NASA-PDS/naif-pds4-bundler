@@ -39,6 +39,8 @@ def m2020_sclk():
 @pytest.mark.parametrize("time_sys, input_format, end_sys, expected", [
     ("SCLK", "infomod2", "UTC" , ( 45445136693259.0 , 46149106045023.0 )),
     ("TDB", "infomod2", "UTC" , ["2021-12-22T09:40:54.206Z", "2022-04-25T17:30:58.909Z"]),
+    ("SCLK", "maklabel", "UTC" , ( 45445136693259.0 , 46149106045023.0 )),
+    ("TDB", "maklabel", "UTC" , ["2021-12-22T09:40:54.205Z", "2022-04-25T17:30:58.910Z"]),
 ])
 def test_ck_coverage(lsk, m2020_sclk, time_sys, input_format , end_sys , expected ):
     """Test CK coverage function using pytest."""
