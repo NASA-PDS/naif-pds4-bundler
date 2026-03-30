@@ -304,7 +304,7 @@ class Setup:
             pattern = re.compile(
                 r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z"
             )
-            format = "YYYY-MM-DDThh:mm:ss.sssZ"
+            time_format = "YYYY-MM-DDThh:mm:ss.sssZ"
         elif self.date_format == "maklabel":
 
             #
@@ -325,7 +325,7 @@ class Setup:
             pattern = re.compile(
                 r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z"
             )
-            format = "YYYY-MM-DDThh:mm:ssZ"
+            time_format = "YYYY-MM-DDThh:mm:ssZ"
 
         #
         # Check binary kernels endianness.
@@ -380,24 +380,24 @@ class Setup:
             if not pattern.match(self.mission_start):
                 handle_npb_error(
                     f"mission_start parameter does not match the "
-                    f"required format: {format}."
+                    f"required format: {time_format}."
                 )
         if hasattr(self, "mission_finish") and self.mission_finish:
             if not pattern.match(self.mission_finish):
                 handle_npb_error(
-                    f"mission_finish does not match the required format: {format}."
+                    f"mission_finish does not match the required format: {time_format}."
                 )
         if hasattr(self, "increment_start") and self.increment_start:
             if not pattern.match(self.increment_start):
                 handle_npb_error(
                     f"increment_start parameter does not match the "
-                    f"required format: {format}."
+                    f"required format: {time_format}."
                 )
         if hasattr(self, "increment_finish") and self.increment_finish:
             if not pattern.match(self.increment_finish):
                 handle_npb_error(
                     f"increment_finish does not match the required "
-                    f"format: {format}."
+                    f"format: {time_format}."
                 )
         if hasattr(self, "increment_start") and hasattr(self, "increment_finish"):
             if ((not self.increment_start) and (self.increment_finish)) or (
