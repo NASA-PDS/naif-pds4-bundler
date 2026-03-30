@@ -66,7 +66,7 @@ def file_list_with_byproducts(dirs):
     return str(path)
 
 # ---------------------------------------------------------------------------
-# Setup.clean_run tests
+# runtime.clean_run tests
 #
 # Strategy
 # --------
@@ -109,11 +109,11 @@ def test_clear_run_nonexistent_file_list_calls_error_message(dirs):
         'mars2020_release_NN.file_list. where NN is the release number.')
 
     with patch(
-            "pds.naif_pds4_bundler.classes.setup.handle_npb_error"
+            "pds.naif_pds4_bundler.pipeline.runtime.handle_npb_error"
     ) as mock_err:
         mock_err.side_effect = RuntimeError("handle_npb_error called")
         with pytest.raises(RuntimeError):
-            setup.clear_run()
+            runtime.clear_run(setup)
 
     mock_err.assert_called_once()
     assert expected_error == mock_err.call_args[0][0]
@@ -138,7 +138,7 @@ def test_clear_run_files_removed_from_staging_area(dirs, file_list):
         working_directory=dirs.working,
         args=_make_args(clear=file_list),
     )
-    setup.clear_run()
+    runtime.clear_run(setup)
 
     assert not os.path.exists(ck_file), "CK file should have been removed"
     assert not os.path.exists(spk_file), "SPK file should have been removed"
@@ -162,7 +162,7 @@ def test_clear_run_missing_file_logs_warning(
         '     File spice_kernels/spk/mars2020_cruise_od138_v1.bsp not found.']
 
     with caplog.at_level(logging.WARNING):
-        setup.clear_run()  # files do not exist — must not raise
+        runtime.clear_run(setup)  # files do not exist — must not raise
 
     messages = [r.message.replace(str(dirs.tmp), 'p') for r in caplog.records]
     assert expected_warnings == messages
@@ -195,7 +195,7 @@ def test_clear_run_plan_lines_skipped_in_staging_and_bundle(dirs, file_list_with
             pass
 
     with patch("os.remove", side_effect=capturing_remove):
-        setup.clear_run()
+        runtime.clear_run(setup)
 
     assert not any(extension in p for p in removed), message
 
@@ -219,7 +219,7 @@ def test_clear_run_files_removed_from_bundle_final_area(dirs, file_list):
         working_directory=dirs.working,
         args=_make_args(clear=file_list),
     )
-    setup.clear_run()
+    runtime.clear_run(setup)
 
     assert not os.path.exists(ck_file), "CK should have been removed from bundle"
     assert not os.path.exists(spk_file), "SPK should have been removed from bundle"
@@ -250,7 +250,7 @@ def test_clear_run_label_mode_uses_alternative_path(dirs):
         run_type="labels",
         args=_make_args(clear=label_fl),
     )
-    setup.clear_run()
+    runtime.clear_run(setup)
 
     assert not os.path.exists(target_file), (
         "Label-mode path construction must remove the correct file"
@@ -278,7 +278,7 @@ def test_clear_run_label_mode_missing_file_logs_warning(dirs, caplog):
         '     File spice_kernels/ck/mars2020_surf_rover_tlm_0000_0089_v1.bc not found.']
 
     with caplog.at_level(logging.WARNING):
-        setup.clear_run()
+        runtime.clear_run(setup)
 
     messages = [r.message.replace(str(dirs.tmp), 'p') for r in caplog.records]
     assert expected_warnings == messages
@@ -297,7 +297,7 @@ def test_clear_run_plan_file_removed_when_kerlist_flag_set(dirs, file_list):
         working_directory=dirs.working,
         args=_make_args(clear=file_list, kerlist='mars2020_release_00.kernel_list'),
     )
-    setup.clear_run()
+    runtime.clear_run(setup)
 
     assert not os.path.exists(plan_file), ".plan file should have been removed"
 
@@ -314,7 +314,7 @@ def test_clear_run_plan_file_not_removed_when_kerlist_flag_unset(dirs, file_list
         working_directory=dirs.working,
         args=_make_args(clear=file_list, kerlist=None),
     )
-    setup.clear_run()
+    runtime.clear_run(setup)
 
     assert os.path.exists(plan_file), ".plan must survive when kerlist not provided"
 
@@ -331,7 +331,7 @@ def test_clear_run_kernel_list_removed_when_plan_flag_set(dirs, file_list):
         working_directory=dirs.working,
         args=_make_args(clear=file_list, plan='mars2020_release_01.plan'),
     )
-    setup.clear_run()
+    runtime.clear_run(setup)
 
     assert not os.path.exists(kl_file), ".kernel_list should have been removed"
 
@@ -348,7 +348,7 @@ def test_clear_run_kernel_list_not_removed_when_plan_flag_unset(dirs, file_list)
         working_directory=dirs.working,
         args=_make_args(clear=file_list, plan=None),
     )
-    setup.clear_run()
+    runtime.clear_run(setup)
 
     assert os.path.exists(kl_file), ".kernel_list must survive when plan is not provided"
 
@@ -363,7 +363,7 @@ def test_clear_run_missing_plan_byproduct_logs_warning_not_raises(dirs, file_lis
     )
 
     with caplog.at_level(logging.WARNING):
-        setup.clear_run()  # .plan does not exist — must not raise
+        runtime.clear_run(setup)  # .plan does not exist — must not raise
 
     messages = [r.message.replace(str(dirs.tmp), 'p') for r in caplog.records]
     assert '     File p/mars2020_release_01.plan not found.' in messages
@@ -379,7 +379,7 @@ def test_clear_run_missing_kernel_list_byproduct_logs_warning_not_raises(dirs, f
     )
 
     with caplog.at_level(logging.WARNING):
-        setup.clear_run()
+        runtime.clear_run(setup)
 
     messages = [r.message.replace(str(dirs.tmp), 'p') for r in caplog.records]
     print(messages)
@@ -400,7 +400,7 @@ def test_clear_run_empty_file_list_removes_nothing(dirs, tmp_path):
         working_directory=dirs.working,
         args=_make_args(clear=str(fl)),
     )
-    setup.clear_run()
+    runtime.clear_run(setup)
 
     assert os.path.exists(sentinel), "Unrelated files must not be touched"
 
@@ -495,19 +495,13 @@ def _make_setup(
         mission_acronym: str = "mars2020",
         run_type: str = "release",
         args: SimpleNamespace | None = None,
-) -> object:
-    """Construct a Setup-like object without invoking __init__.
-
-    Imports Setup lazily so that the test module can be collected even
-    when the wider package is not installed (e.g. in CI before install).
+) -> MagicMock:
+    """Construct a mockup of the Setup object.
     """
-    from pds.naif_pds4_bundler.classes.setup import Setup
-
-    obj = object.__new__(Setup)
-    obj.staging_directory = staging_directory
-    obj.bundle_directory = bundle_directory
-    obj.working_directory = working_directory
-    obj.mission_acronym = mission_acronym
-    obj.run_type = run_type
-    obj.args = args or _make_args(clear="")
-    return obj
+    return MagicMock(
+        staging_directory=staging_directory,
+        bundle_directory=bundle_directory,
+        working_directory=working_directory,
+        mission_acronym=mission_acronym,
+        run_type=run_type,
+        args=args or _make_args(clear=""))

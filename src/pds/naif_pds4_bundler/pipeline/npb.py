@@ -2,7 +2,7 @@
 """
 from os.path import isdir
 
-from .runtime import finish_execution
+from .runtime import clear_run, finish_execution
 from .. import __version__
 from ..classes.bundle import Bundle
 from ..classes.collection import DocumentCollection
@@ -113,7 +113,7 @@ def run_pipeline(args: PipelineArgs) -> None:
     #   clean up the kernel list and log from the previous run.
     #
     if args.clear:
-        setup.clear_run()
+        clear_run(setup)
 
     #
     #    * The pipeline can be stopped after cleaning up the previous run
