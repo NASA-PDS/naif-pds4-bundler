@@ -107,16 +107,18 @@ def test_current_time(monkeypatch, time_format, expected):
     assert result == expected
 
 
-def test_dsk_coverage(lsk):
+@pytest.mark.parametrize("date_format, system, expected", [
+    ("infomod2", "UTC",  ["1950-01-01T00:00:00.000Z", "2049-12-31T23:59:59.000Z"]),
+    ("maklabel", "UTC", ["1950-01-01T00:00:00Z", "2049-12-31T23:59:59Z"]),
+    ("infomod2", "TDB", ["1950-01-01T00:00:41.185Z", "2050-01-01T00:01:08.183Z"]),
+    ("maklabel", "TDB", ["1950-01-01T00:00:41Z", "2050-01-01T00:01:08Z"]),
+ ])
+def test_dsk_coverage(lsk, date_format, system, expected):
     """Test DSK coverage function using pytest."""
     dsk_file = str( KERNELS/ "dsk" / "DEIMOS_K005_THO_V01.BDS")
 
-    start_time_cal, stop_time_cal = time.dsk_coverage(dsk_file)
-
-    assert (start_time_cal, stop_time_cal) == (
-        "1950-01-01T00:00:00.000Z",
-        "2049-12-31T23:59:59.000Z"
-    )
+    result = time.dsk_coverage(dsk_file, date_format, system)
+    assert result == expected
 
 
 @pytest.mark.parametrize("input_format, beget, endet, kernel_type, system, expected", [
