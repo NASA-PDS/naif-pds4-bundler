@@ -198,19 +198,27 @@ def test_pds3_label_gen_date(mocker, inputs, expected):
     assert result == expected
 
 
-@pytest.mark.parametrize("inputs, date_format, expected", [
-    ("", "infomod2",  ["2000-12-31T23:58:55.817Z", "2099-12-31T23:58:50.815Z"]),
-    ("", "maklabel", ["2000-12-31T23:58:55.817Z", "2099-12-31T23:58:50.815Z"]),
-    ("M2020","infomod2",["2021-02-18T21:52:40.482Z", "2021-05-21T15:47:07.765Z"]),
-    ("M2020","maklabel", ["2021-02-18T21:52:40.482Z", "2021-05-21T15:47:07.765Z"]),
-    ("MARS 2020", "maklabel", ["2021-02-18T21:52:40.482Z", "2021-05-21T15:47:07.765Z"]),
-    ("PERSEVERANCE", "infomod2", ["2021-02-18T21:52:40.482Z", "2021-05-21T15:47:07.765Z"]),
-    ("MAVEN", "infomod2", ["2000-12-31T23:58:55.817Z", "2099-12-31T23:58:50.815Z"]),
-    ("MAVEN", "maklabel", ["2000-12-31T23:58:55.817Z", "2099-12-31T23:58:50.815Z"]),
+@pytest.mark.parametrize("inputs, date_format, system, expected", [
+    ("", "infomod2", "UTC",  ["2000-12-31T23:58:55.817Z", "2099-12-31T23:58:50.815Z"]),
+    ("", "maklabel", "UTC", ["2000-12-31T23:58:56Z", "2099-12-31T23:58:51Z"]),
+    ("M2020","infomod2", "UTC", ["2021-02-18T21:52:40.482Z", "2021-05-21T15:47:07.765Z"]),
+    ("M2020","maklabel", "UTC", ["2021-02-18T21:52:40Z", "2021-05-21T15:47:08Z"]),
+    ("MARS 2020", "maklabel", "UTC", ["2021-02-18T21:52:40Z", "2021-05-21T15:47:08Z"]),
+    ("PERSEVERANCE", "infomod2", "UTC", ["2021-02-18T21:52:40.482Z", "2021-05-21T15:47:07.765Z"]),
+    ("MAVEN", "infomod2", "UTC", ["2000-12-31T23:58:55.817Z", "2099-12-31T23:58:50.815Z"]),
+    ("MAVEN", "maklabel", "UTC", ["2000-12-31T23:58:56Z", "2099-12-31T23:58:51Z"]),
+    ("", "infomod2", "TDB", ["2001-01-01T00:00:00.000Z", "2100-01-01T00:00:00.000Z"]),
+    ("", "maklabel", "TDB", ["2001-01-01T00:00:00Z", "2100-01-01T00:00:00Z"]),
+    ("M2020", "infomod2", "TDB", ["2021-02-18T21:53:49.667Z", "2021-05-21T15:48:16.950Z"]),
+    ("M2020", "maklabel", "TDB", ["2021-02-18T21:53:50Z", "2021-05-21T15:48:17Z"]),
+    ("MARS 2020", "maklabel", "TDB", ["2021-02-18T21:53:50Z", "2021-05-21T15:48:17Z"]),
+    ("PERSEVERANCE", "infomod2", "TDB", ["2021-02-18T21:53:49.667Z", "2021-05-21T15:48:16.950Z"]),
+    ("MAVEN", "infomod2", "TDB", ["2001-01-01T00:00:00.000Z", "2100-01-01T00:00:00.000Z"]),
+    ("MAVEN", "maklabel", "TDB", ["2001-01-01T00:00:00Z", "2100-01-01T00:00:00Z"]),
  ])
-def test_spk_coverage(lsk, m2020_fk, inputs, date_format, expected):
+def test_spk_coverage(lsk, m2020_fk, inputs, date_format, system, expected):
     """Test SPK coverage function."""
     spk_file = str( KERNELS/ "spk" / "m2020_surf_rover_loc_0000_0089_v1.bsp")
 
-    result = time.spk_coverage(spk_file, main_name=inputs)
+    result = time.spk_coverage(spk_file, inputs, date_format, system)
     assert result == expected
