@@ -773,20 +773,20 @@ class KernelList:
             #
             logging.info("-- Checking that kernels are present in: ")
 
-            for dir in self.setup.kernels_directory:
-                logging.info(f"   {dir}")
+            for work_dir in self.setup.kernels_directory:
+                logging.info(f"   {work_dir}")
 
             present = False
             all_present = True
             for ker in ker_in_list:
-                for dir in self.setup.kernels_directory:
+                for work_dir in self.setup.kernels_directory:
                     #
                     # We cannot assume that the file is under a certain
                     # directory, it can be in any sub-directory.
                     #
                     file = [
                         os.path.join(root, name)
-                        for root, dirs, files in os.walk(dir)
+                        for root, dirs, files in os.walk(work_dir)
                         for name in files
                         if name == ker
                     ]
@@ -901,8 +901,8 @@ class KernelList:
             fromfile = kernel_lists[-1]
             try:
                 tofile = kernel_lists[-2]
-                dir = self.setup.working_directory
-                compare_files(fromfile, tofile, dir, self.setup.diff)
+                work_dir = self.setup.working_directory
+                compare_files(fromfile, tofile, work_dir, self.setup.diff)
             except BaseException:
                 logging.error("-- Previous list not available.")
 

@@ -624,6 +624,6 @@ class PDSLabel:
             logging.info("")
             fromfile = val_label
             tofile = self.name
-            dir = self.setup.working_directory
+            work_dir = self.setup.working_directory
 
-            compare_files(fromfile, tofile, dir, self.setup.diff)
+            compare_files(fromfile, tofile, work_dir, self.setup.diff)

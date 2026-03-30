@@ -810,14 +810,14 @@ class MetaKernelProduct(Product):
 
         fromfile = self.path
         tofile = val_mk
-        dir = self.setup.working_directory
+        work_dir = self.setup.working_directory
 
         logging.info(
             f"-- Comparing "
             f'{self.name.split(f"{self.setup.mission_acronym}_spice/")[-1]}'
             f"..."
         )
-        compare_files(fromfile, tofile, dir, self.setup.diff)
+        compare_files(fromfile, tofile, work_dir, self.setup.diff)
 
     def validate(self) -> None:
         """Perform a basic validation of the Meta-kernel.
