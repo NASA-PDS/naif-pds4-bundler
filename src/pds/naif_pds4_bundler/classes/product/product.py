@@ -12,10 +12,42 @@ class Product:
 
     Assigns value to the common attributes for all Products: file size,
     creation time and date, and file extension.
+
+    Subclasses must call ``register()`` once the product file exists on disk.
     """
 
+    # TODO: update this method to have path and setup as input arguments.
+    #
+    #   def __init__(self, path: str, setup) -> None:
+    #       """Constructor. Initialises attributes derivable without I/O.
+    #
+    #       :param path:  Absolute path to the product file
+    #       :param setup: NPB execution setup object
+    #       """
     def __init__(self) -> None:
         """Constructor."""
+        if hasattr(self.setup, "creation_date_time"):
+            self.creation_time = self.setup.creation_date_time
+        else:
+            self.creation_time = creation_time(time_format=self.setup.date_format)
+
+        self.creation_date = self.creation_time.split("T")[0]
+        self.extension = self.path.split(os.sep)[-1].split(".")[-1]
+
+        # These attributes will be assigned (computed) by the register method.
+        self.checksum = None
+        self._size = None
+
+        # TODO: remove this call. It should be done by the subclasses instead.
+        self.register()
+
+    def register(self) -> None:
+        """Finalize file-derived attributes and register the product.
+
+        Must be called once the product file exists on disk. Reads file size,
+        resolves or computes the checksum, and registers the file and checksum
+        with the pipeline.
+        """
         stat_info = os.stat(self.path)
         self._size = str(stat_info.st_size)
 
@@ -43,20 +75,13 @@ class Product:
 
         self.checksum = checksum
 
-        if self.setup.pds_version == "4":
-            archive_dir = f"{self.setup.mission_acronym}_spice/"
-        else:
-            archive_dir = f"{self.setup.volume_id}/"
-
-        if hasattr(self.setup, "creation_date_time"):
-            self.creation_time = self.setup.creation_date_time
-        else:
-            self.creation_time = creation_time(time_format=self.setup.date_format)
-
-        self.creation_date = self.creation_time.split("T")[0]
-        self.extension = self.path.split(os.sep)[-1].split(".")[-1]
-
         if self.new_product:
+
+            if self.setup.pds_version == "4":
+                archive_dir = f"{self.setup.mission_acronym}_spice/"
+            else:
+                archive_dir = f"{self.setup.volume_id}/"
+
             self.setup.add_file(self.path.split(archive_dir)[-1])
             self.setup.add_checksum(self.path, checksum)
 
