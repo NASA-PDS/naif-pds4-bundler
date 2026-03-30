@@ -1,12 +1,15 @@
+from datetime import datetime
 import logging
+import shutil
 from pathlib import Path
-from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
 from _pytest.logging import LogCaptureHandler
 
 from pds.naif_pds4_bundler.classes.log import Log
+from pds.naif_pds4_bundler.classes.log import datetime as log_datetime
+from pds.naif_pds4_bundler.utils.types.datatypes import PipelineArgs
 
 
 class DummySetup:
@@ -29,7 +32,8 @@ class DummySetup:
 
 @pytest.fixture
 def args():
-    return SimpleNamespace(
+    return PipelineArgs(
+        config="config.xml",
         debug=False,
         silent=False,
         verbose=False,
@@ -96,8 +100,9 @@ def test_init_without_log_file(tmp_path, args, cleanup_root_logger):
     assert len(stream_handlers) == 1
 
 
-def test_init_with_log_file_creates_file_handler(tmp_path, args, cleanup_root_logger):
-    args.log = True
+def test_init_with_log_file_creates_file_handler(tmp_path, cleanup_root_logger):
+    args = PipelineArgs(config="config.xml", log=True, faucet="bundle")
+
     setup = DummySetup(tmp_path, args)
 
     log = Log(setup, args)
@@ -112,8 +117,9 @@ def test_init_with_log_file_creates_file_handler(tmp_path, args, cleanup_root_lo
     assert Path(file_handlers[0].baseFilename) == expected
 
 
-def test_init_with_log_file_removes_existing_temp_log(tmp_path, args, cleanup_root_logger):
-    args.log = True
+def test_init_with_log_file_removes_existing_temp_log(tmp_path, cleanup_root_logger):
+    args = PipelineArgs(config="config.xml", log=True, faucet="bundle")
+
     existing = tmp_path / "TM_archive_temp.log"
     existing.write_text("old content")
 
@@ -147,8 +153,8 @@ def test_start_logs_banner_and_runtime_info(tmp_path, args, cleanup_root_logger,
     assert "bundle" in text
 
 
-def test_start_logs_labeling_mode_message(tmp_path, args, cleanup_root_logger, caplog):
-    args.faucet = "labels"
+def test_start_logs_labeling_mode_message(tmp_path, cleanup_root_logger, caplog):
+    args = PipelineArgs(config="config.xml", faucet="labels")
     setup = DummySetup(tmp_path, args)
     log = Log(setup, args)
 
@@ -158,117 +164,186 @@ def test_start_logs_labeling_mode_message(tmp_path, args, cleanup_root_logger, c
     assert "Running in labeling mode. Only label products are generated." in caplog.text
 
 
-def test_stop_removes_templates_and_writes_outputs_with_templates(
-    tmp_path, args, cleanup_root_logger, monkeypatch, caplog
+def test_stop_calls_internal_methods_with_mocks(tmp_path, cleanup_root_logger):
+    """Verifies that stop calls all the required supporting methods once,
+    using mocks."""
+    args = PipelineArgs(config="config.xml", log=True, faucet="bundle")
+    setup = DummySetup(tmp_path, args)
+    log = Log(setup, args)
+
+    log._close = MagicMock()
+    log._rename_log_file = MagicMock()
+
+    log.stop()
+
+    log._close.assert_called_once()
+    log._rename_log_file.assert_called_once()
+
+
+def test_stop_with_real_close_and_rename(tmp_path, cleanup_root_logger):
+    """Verifies that stop performs as expected in terms of behavior (not logging
+    or reporting on stdout)."""
+    args = PipelineArgs(config="config.xml", log=True, faucet="bundle")
+    setup = DummySetup(tmp_path, args)
+    log = Log(setup, args)
+
+    # Ensure log file exists before stop()
+    assert Path(log.log_file).exists()
+
+    logger = logging.getLogger()
+    initial_handlers = list(log._handlers)
+
+    # Run the method.
+    log.stop()
+
+    # Handlers are removed from logger?
+    for handler in initial_handlers:
+        assert handler not in logger.handlers
+
+    # Internal handler list is cleared?
+    assert log._handlers == []
+
+    # Log file was renamed correctly?
+    expected_log_file = log.log_file.replace("temp", "01")
+    assert Path(expected_log_file).exists()
+
+    # Original temp file no longer exists?
+    assert not Path(log.log_file).exists()
+
+
+@pytest.mark.parametrize("silent, verbose, expected_stdout", [
+    (False, False, "Execution finished at 2026-03-26 21:48:00\n\n"),
+    (True, False, ""),
+    (False, True, "")
+])
+def test_stop_stdout_and_logging(
+        tmp_path, cleanup_root_logger, monkeypatch, capsys, caplog,
+        silent, verbose, expected_stdout
 ):
+    """Verifies the interactions of the stop method with stdout and logging.
+    """
+    args = PipelineArgs(config="config.xml", log=True, faucet="bundle",
+                        silent=silent, verbose=verbose)
     setup = DummySetup(tmp_path, args)
 
-    template1 = tmp_path / "template1.xml"
-    template2 = tmp_path / "template2.xml"
-    template1.write_text("a")
-    template2.write_text("b")
-    setup.template_files = [str(template1), str(template2)]
-
-    kclear = MagicMock()
-    monkeypatch.setattr("spiceypy.kclear", kclear)
-
     log = Log(setup, args)
+
+    # Use monkeypatch to make a fake "now" to test the expected output.
+    class MockDatetime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return datetime(2026, 3, 26, 21, 48, 00, 3456)
+
+    monkeypatch.setattr(log_datetime, "datetime", MockDatetime)
+
+    log._close = MagicMock()
+    log._rename_log_file = MagicMock()
 
     with caplog.at_level(logging.INFO):
         log.stop()
 
-    assert not template1.exists()
-    assert not template2.exists()
-    setup.write_file_list.assert_called_once()
-    setup.write_checksum_registry.assert_called_once()
-    setup.write_validate_config.assert_called_once()
-    kclear.assert_called_once()
-    assert setup.step == 4
-    assert "Step 3 - Generate run by-product files" in caplog.text
-    assert "Execution finished at " in caplog.text
-    assert "End of log." in caplog.text
+    # Verify what "stop" method prints to the standard output.
+    captured = capsys.readouterr()
+    assert captured.out == expected_stdout
 
-def test_stop_removes_templates_and_writes_outputs_without_templates(
-    tmp_path, args, cleanup_root_logger, monkeypatch, caplog
-):
+    # Verify what "stop" method logs.
+    # Convert log records to messages
+    messages = [record.message for record in caplog.records]
+    assert messages == ["", "Execution finished at 2026-03-26 21:48:00", "", "End of log."]
+
+
+def test__close_with_no_handlers(tmp_path, cleanup_root_logger):
+    """Verifies that the _close method does not raise any exception when there
+    are no log handlers."""
+    args = PipelineArgs(config="config.xml", log=True, faucet="bundle")
     setup = DummySetup(tmp_path, args)
 
-    template1 = tmp_path / "template1.xml"
-    template2 = tmp_path / "template2.xml"
-    setup.template_files = [str(template1), str(template2)]
-
-    kclear = MagicMock()
-    monkeypatch.setattr("spiceypy.kclear", kclear)
-
     log = Log(setup, args)
+    log._handlers = []
 
-    with caplog.at_level(logging.INFO):
-        log.stop()
+    # Should not raise any exception
+    log._close()
 
-    assert not template1.exists()
-    assert not template2.exists()
-    setup.write_file_list.assert_called_once()
-    setup.write_checksum_registry.assert_called_once()
-    setup.write_validate_config.assert_called_once()
-    kclear.assert_called_once()
-    assert setup.step == 4
-    assert "Step 3 - Generate run by-product files" in caplog.text
-    assert "Execution finished at " in caplog.text
-    assert "End of log." in caplog.text
+    assert log._handlers == []
 
 
-
-def test_stop_skips_validate_config_for_clear_runs(
-    tmp_path, args, cleanup_root_logger, monkeypatch
-):
-    args.faucet = "clear"
+def test_close_removes_and_closes_handlers(tmp_path, cleanup_root_logger):
+    """Verifies that all handlers are closed and removed from the logger, and
+    the internal attribute _handlers is cleared."""
+    args = PipelineArgs(config="config.xml", log=True, faucet="bundle")
     setup = DummySetup(tmp_path, args)
-    monkeypatch.setattr("spiceypy.kclear", MagicMock())
 
+    # Create a new log class.
     log = Log(setup, args)
-    log.stop()
 
-    setup.write_file_list.assert_called_once()
-    setup.write_checksum_registry.assert_called_once()
-    setup.write_validate_config.assert_not_called()
+    # Setup two handlers, using mocks, to see if they're actually cleared from
+    # the system.
+    logger = logging.getLogger()
+
+    # Create mock handlers
+    handler1 = MagicMock(spec=logging.Handler)
+    handler2 = MagicMock(spec=logging.Handler)
+
+    # Add them to logger and log._handlers
+    logger.addHandler(handler1)
+    logger.addHandler(handler2)
+    log._handlers = [handler1, handler2]
+
+    # Call method under test
+    log._close()
+
+    # Assert handlers were closed
+    handler1.close.assert_called_once()
+    handler2.close.assert_called_once()
+
+    # ssert handlers removed from logger
+    assert handler1 not in logger.handlers
+    assert handler2 not in logger.handlers
+
+    # Assert internal handler list cleared
+    assert log._handlers == []
 
 
-def test_stop_skips_validate_config_for_non_pds4(
-    tmp_path, args, cleanup_root_logger, monkeypatch
+@pytest.mark.parametrize("release, expected_path", [
+    ("9", "TM_archive_09.log"),
+    ("12", "TM_archive_12.log")
+])
+def test__rename_log_file_with_release_number(
+        tmp_path, cleanup_root_logger, monkeypatch, release, expected_path
 ):
+    """Verifies that the temp log is renamed using a zero-padded release version."""
+    args = PipelineArgs(config="config.xml", log=True, faucet="bundle")
+
     setup = DummySetup(tmp_path, args)
-    setup.pds_version = "3"
-    monkeypatch.setattr("spiceypy.kclear", MagicMock())
+    setup.release = release
+
+    # Mock shutil.move to prevent actual file system movement during the test
+    mock_move = MagicMock()
+    monkeypatch.setattr(shutil, "move", mock_move)
 
     log = Log(setup, args)
-    log.stop()
+    # Manually set the temp log path as if __init__ just created it
+    temp_path = str(tmp_path / "TM_archive_temp.log")
+    log.log_file = temp_path
 
-    setup.write_file_list.assert_called_once()
-    setup.write_checksum_registry.assert_called_once()
-    setup.write_validate_config.assert_not_called()
+    # Execute
+    log._rename_log_file()
+
+    # Verify
+    expected_path = str(tmp_path / expected_path )
+    mock_move.assert_called_once_with(temp_path, expected_path)
 
 
-def test_stop_renames_log_file_with_release_number(
-    tmp_path, args, cleanup_root_logger, monkeypatch
-):
-    args.log = True
+def test__rename_log_file_skips_if_no_file(tmp_path, args, cleanup_root_logger, monkeypatch):
+    """Verifies that shutil.move is not called if log_file is empty."""
     setup = DummySetup(tmp_path, args)
-    setup.release = "7"
 
-    kclear = MagicMock()
-    monkeypatch.setattr("spiceypy.kclear", kclear)
-
-    moved = {}
-
-    def fake_move(src, dst):
-        moved["src"] = src
-        moved["dst"] = dst
-
-    monkeypatch.setattr("shutil.move", fake_move)
+    mock_move = MagicMock()
+    monkeypatch.setattr(shutil, "move", mock_move)
 
     log = Log(setup, args)
-    log.stop()
+    log.log_file = ""  # Ensure it's empty
 
-    assert moved["src"].endswith("TM_archive_temp.log")
-    assert moved["dst"].endswith("TM_archive_07.log")
-    kclear.assert_called_once()
+    log._rename_log_file()
+
+    mock_move.assert_not_called()

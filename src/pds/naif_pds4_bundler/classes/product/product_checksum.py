@@ -5,15 +5,15 @@ import os
 from collections import defaultdict
 
 from .product import Product
+from ..label import ChecksumPDS3Label
+from ..label import ChecksumPDS4Label
+from ...pipeline.runtime import handle_npb_error
 from ...utils import add_carriage_return
 from ...utils import checksum_from_label
 from ...utils import checksum_from_registry
 from ...utils import compare_files
 from ...utils import md5
 from ...utils import safe_make_directory
-from ..label import ChecksumPDS3Label
-from ..label import ChecksumPDS4Label
-from ..log import error_message
 
 
 class ChecksumProduct(Product):
@@ -213,7 +213,7 @@ class ChecksumProduct(Product):
                     try:
                         (md5_file, filename) = line.split()
                     except BaseException:
-                        error_message(
+                        handle_npb_error(
                             f"Checksum file {self.path_current} is corrupted.",
                             setup=self.setup,
                         )
@@ -221,7 +221,7 @@ class ChecksumProduct(Product):
                     if len(md5_file) == 32:
                         self.md5_dict[filename] = md5_file
                     else:
-                        error_message(
+                        handle_npb_error(
                             f"Checksum file {self.path_current} "
                             f"corrupted entry: {line}.",
                             setup=self.setup,
@@ -309,7 +309,7 @@ class ChecksumProduct(Product):
                                 f"the product {product_name} might be a duplicate."
                             )
                             if not self.setup.args.debug:
-                                error_message(msg)
+                                handle_npb_error(msg)
                             else:
                                 logging.debug(msg)
                         self.md5_dict[product_name] = product.checksum

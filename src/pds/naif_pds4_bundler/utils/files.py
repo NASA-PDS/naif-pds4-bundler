@@ -17,8 +17,7 @@ from typing import Optional
 import spiceypy
 from spiceypy.utils.exceptions import SpiceUNSUPPORTEDBFF
 
-
-from ..classes.log import error_message
+from ..pipeline.runtime import handle_npb_error
 
 
 def etree_to_dict(etree):
@@ -224,14 +223,14 @@ def add_carriage_return(line, eol, setup=False):
         if "\r\n" not in line:
             line += "\r\n"
         else:
-            error_message(f"File has incorrect CR at line: {line}.", setup=setup)
+            handle_npb_error(f"File has incorrect CR at line: {line}.", setup=setup)
     if eol == "\n" and "\r\n" in line:
         line = line.replace("\r\n", "\n")
     elif eol == "\n" and "\n" not in line:
         line += "\n"
     else:
         if "\n" not in line:
-            error_message(f"File has incorrect CR at line: {line}.", setup=setup)
+            handle_npb_error(f"File has incorrect CR at line: {line}.", setup=setup)
 
     return line
 
@@ -255,7 +254,7 @@ def add_crs_to_file(file, eol, setup=False):
         shutil.move(file_crs, file)
 
     except BaseException:
-        error_message(f"Carriage return adding error for {file}.", setup)
+        handle_npb_error(f"Carriage return adding error for {file}.", setup)
 
 
 def check_list_duplicates(list_of_elements):
@@ -423,7 +422,7 @@ def mk_to_list(mk, setup):
                     pass
 
     if not ker_mk_list:
-        error_message(
+        handle_npb_error(
             f"No kernels present in {mk}. " f"Please review MK generation.", setup=setup
         )
 
@@ -801,7 +800,7 @@ def extract_comment(path, handle=False):
     (lincmt, commnt, _) = spiceypy.dafec(handle, buffsz, linlen)
     if lincmt > buffsz:
         spiceypy.dafcls(handle)
-        error_message(f"Comment from {path} is longer than buffer size.")
+        handle_npb_error(f"Comment from {path} is longer than buffer size.")
 
     #
     # Remove empty lines at the end of the comment.
@@ -925,7 +924,7 @@ def product_mapping(name, setup, cleanup=True):
     # does not have to be reported.
     #
     if not mapping and cleanup:
-        error_message(
+        handle_npb_error(
             f"{name} does not have mapping on {kernel_list_file}.",
             setup=setup,
         )
@@ -1116,7 +1115,7 @@ def check_eol(file, eol):
         if content.count(b"\r\n") != content.count(b"\n"):
             error = "Incorrect EOL in file, CRLF (\\r\\n) expected."
     else:
-        error_message(f"Incorrect EOL in configuration: {eol}")
+        handle_npb_error(f"Incorrect EOL in configuration: {eol}")
 
     return error
 
@@ -1159,7 +1158,7 @@ def check_permissions(path):
     # The first two digits must be at least 4.
     #
     if int(permissions[0]) < 4 or int(permissions[1]) < 4:
-        error_message(
+        handle_npb_error(
             f"File {path} is not readable by the account that runs NPB. "
             f"Update permissions."
         )
