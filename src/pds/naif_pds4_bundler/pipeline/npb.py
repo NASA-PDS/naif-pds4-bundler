@@ -126,7 +126,7 @@ def run_pipeline(args: PipelineArgs) -> None:
     #
     # * Generate the Kernel List object.
     #
-    list = KernelList(setup)
+    k_list = KernelList(setup)
 
     #
     #    * If a plan file is provided it is processed otherwise a plan is
@@ -137,10 +137,10 @@ def run_pipeline(args: PipelineArgs) -> None:
     #
     if not args.kerlist:
         if not args.plan or (".plan" not in args.plan):
-            if not list.write_plan() and (args.faucet == "labels"):
+            if not k_list.write_plan() and (args.faucet == "labels"):
                 return
         else:
-            list.read_plan(args.plan)
+            k_list.read_plan(args.plan)
 
     #
     #    * The pipeline can be stopped after generating or reading the release
@@ -151,9 +151,9 @@ def run_pipeline(args: PipelineArgs) -> None:
         return
 
     if not args.kerlist:
-        list.write_list()
+        k_list.write_list()
     else:
-        list.read_list(args.kerlist)
+        k_list.read_list(args.kerlist)
 
     #
     #    * The pipeline can be stopped after generating or reading the kernel
@@ -166,7 +166,7 @@ def run_pipeline(args: PipelineArgs) -> None:
     #
     #    * Check the products present in the list (SPICE kernels and ORBNUM
     #      files)
-    list.check_products()
+    k_list.check_products()
 
     #
     #    * The pipeline can be stopped after checking the kernel
@@ -190,19 +190,19 @@ def run_pipeline(args: PipelineArgs) -> None:
     #
     # * Initialize the SPICE Kernels Collection.
     #
-    spice_kernels_collection = SpiceKernelsCollection(setup, bundle, list)
+    spice_kernels_collection = SpiceKernelsCollection(setup, bundle, k_list)
 
     #
     # * Initialize the Miscellaneous Collection.
     #
-    miscellaneous_collection = MiscellaneousCollection(setup, bundle, list)
+    miscellaneous_collection = MiscellaneousCollection(setup, bundle, k_list)
 
     #
     # * Generate the labels for each SPICE kernel or ORBNUM product and
     #   populate the SPICE kernels collection or the Miscellaneous collection
     #   accordingly.
     #
-    for kernel in list.kernel_list:
+    for kernel in k_list.kernel_list:
         #
         # * Each label is validated after generation.
         #
@@ -345,7 +345,7 @@ def run_pipeline(args: PipelineArgs) -> None:
                     # release.
                     #
                     release_miscellaneous_collection = MiscellaneousCollection(
-                        setup, bundle, list
+                        setup, bundle, k_list
                     )
 
                     #
