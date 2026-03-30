@@ -40,6 +40,14 @@ on:
 concurrency: roundup
 
 
+# Set permissions
+# ---------------
+#
+
+permissions:
+  contents: read
+
+
 # What to Do
 # ----------
 #
