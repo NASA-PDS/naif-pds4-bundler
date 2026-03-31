@@ -329,8 +329,8 @@ class SpiceKernelProduct(Product):
         ids = spiceypy.ckobj(f"{self.path}")
 
         id_list = []
-        for id in ids:
-            id_list.append(str(id))
+        for i in ids:
+            id_list.append(str(i))
 
         id_list = sorted(id_list, reverse=True)
 

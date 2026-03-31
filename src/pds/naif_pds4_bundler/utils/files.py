@@ -95,15 +95,15 @@ def copy(src, dest):
             )
 
 
-def safe_make_directory(dir):
+def safe_make_directory(make_dir):
     """Creates a directory if not present.
 
-    :param dir: Directory path.
-    :type dir: str
+    :param make_dir: Directory path.
+    :type make_dir: str
     """
     try:
-        os.mkdir(dir)
-        logging.info(f"-- Generated directory: {dir}  ")
+        os.mkdir(make_dir)
+        logging.info(f"-- Generated directory: {make_dir}  ")
         logging.info("")
     except BaseException:
         pass
@@ -273,10 +273,10 @@ def check_list_duplicates(list_of_elements):
     return False
 
 
-def fill_template(object, product_file, product_dictionary):
+def fill_template(list_object, product_file, product_dictionary):
     """Fill a template with uppercase keywords preceded with ``$``.
 
-    :param object: List object
+    :param list_object: List object
     :param product_file: Resulting file
     :type product_file: str
     :param product_dictionary: Dictionary of keys to replace
@@ -284,7 +284,7 @@ def fill_template(object, product_file, product_dictionary):
     """
     with open(product_file, "w") as f:
 
-        with open(object.template, "r") as t:
+        with open(list_object.template, "r") as t:
             for line in t:
                 line = line.rstrip()
                 for key, value in product_dictionary.items():
@@ -555,7 +555,7 @@ def check_consecutive(lst):
     return sorted(lst) == list(range(1, max(lst) + 1))
 
 
-def compare_files(fromfile, tofile, dir, display):
+def compare_files(fromfile, tofile, dest_dir, display):
     """Compare two files.
 
     Compares two files and provides the logic to determine whether if the
@@ -574,8 +574,8 @@ def compare_files(fromfile, tofile, dir, display):
     :type fromfile: str
     :param tofile: Path of second file to be compared
     :type tofile: str
-    :param dir: Resulting diff files destination directory
-    :type dir: str
+    :param dest_dir: Resulting diff files destination directory
+    :type dest_dir: str
     :param display: Indication if the fie will only be written in log or
                     if a specific diff file will be generated
     :type display: str
@@ -609,7 +609,7 @@ def compare_files(fromfile, tofile, dir, display):
         )
 
         diff_html = open(
-            dir + f"/diff_"
+            dest_dir + f"/diff_"
             f"{fromfile.split(os.sep)[-1].replace('.', '_')}_"
             f"{tofile.split(os.sep)[-1].replace('.', '_')}"
             f".html",
@@ -975,7 +975,7 @@ def check_kernel_integrity(path):
     # file ID word as the first "word" on the first line of the
     # file. Check if it is the case.
     #
-    (arch, type) = spiceypy.getfat(path)
+    (arch, f_type) = spiceypy.getfat(path)
 
     if file_format == "Binary":
 
@@ -1003,8 +1003,8 @@ def check_kernel_integrity(path):
         if arch != "KPL":
             error = f"Kernel {name} architecture {arch} is invalid."
 
-    if type != type_file:
-        error = f"Kernel {name} type {type_file} is not the one expected: {type}."
+    if f_type != type_file:
+        error = f"Kernel {name} type {type_file} is not the one expected: {f_type}."
 
     return error
 

@@ -207,12 +207,12 @@ class KernelList:
             kernels_in_dir = [self.setup.args.plan]
         else:
             logging.info("-- Generate archiving plan from kernel directory(ies):")
-            for dir in self.setup.kernels_directory:
-                logging.info(f"   {dir}")
+            for k_dir in self.setup.kernels_directory:
+                logging.info(f"   {k_dir}")
 
             kernels_in_dir = []
-            for dir in self.setup.kernels_directory:
-                kernels_in_dir += glob.glob(f"{dir}/**/*.*", recursive=True)
+            for k_dir in self.setup.kernels_directory:
+                kernels_in_dir += glob.glob(f"{k_dir}/**/*.*", recursive=True)
             #
             # Filter out the meta-kernels from the automatically generated
             # list.

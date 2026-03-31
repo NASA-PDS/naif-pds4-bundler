@@ -53,7 +53,7 @@ class Product:
         if hasattr(self.setup, "creation_date_time"):
             self.creation_time = self.setup.creation_date_time
         else:
-            self.creation_time = creation_time(format=self.setup.date_format)
+            self.creation_time = creation_time(time_format=self.setup.date_format)
 
         self.creation_date = self.creation_time.split("T")[0]
         self.extension = self.path.split(os.sep)[-1].split(".")[-1]
