@@ -40,5 +40,5 @@ jobs:
         python -m pip install pytest pytest-xdist
   
     - name: Run tests
-      run: pytest --cov-fail-under=15 -n auto
+      run: pytest --cov-fail-under=18 -n auto
 
