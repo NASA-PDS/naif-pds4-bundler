@@ -95,15 +95,15 @@ def copy(src, dest):
             )
 
 
-def safe_make_directory(make_dir):
+def safe_make_directory(path):
     """Creates a directory if not present.
 
-    :param make_dir: Directory path.
-    :type make_dir: str
+    :param path: Directory path.
+    :type path: str
     """
     try:
-        os.mkdir(make_dir)
-        logging.info(f"-- Generated directory: {make_dir}  ")
+        os.mkdir(path)
+        logging.info(f"-- Generated directory: {path}  ")
         logging.info("")
     except BaseException:
         pass
