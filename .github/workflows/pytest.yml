@@ -36,9 +36,10 @@ jobs:
     - name: Install package
       run: |
         python -m pip install --upgrade pip
-        python -m pip install -e .
+        python -m pip install -e ".[dev]"
         python -m pip install pytest pytest-xdist
-  
+        python -m pip install pytest pytest-mock
+
     - name: Run tests
       run: pytest --cov-fail-under=18 -n auto
 
