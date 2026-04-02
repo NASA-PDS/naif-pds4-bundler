@@ -987,27 +987,27 @@ class Setup:
         else:
             directories.append(self.bundle_directory + f"{self.volume_id}/data")
 
-        for type in self.kernels_to_load:
-            if "fk" in type:
-                fks = self.kernels_to_load[type]
+        for kernel in self.kernels_to_load:
+            if "fk" in kernel:
+                fks = self.kernels_to_load[kernel]
                 if not isinstance(fks, list):
                     fks = [fks]
                 for fk in fks:
                     fk_patterns.append(fk)
-            elif "sclk" in type:
-                sclks = self.kernels_to_load[type]
+            elif "sclk" in kernel:
+                sclks = self.kernels_to_load[kernel]
                 if not isinstance(sclks, list):
                     sclks = [sclks]
                 for sclk in sclks:
                     sclk_patterns.append(sclk)
-            elif "pck" in type:
-                pcks = self.kernels_to_load[type]
+            elif "pck" in kernel:
+                pcks = self.kernels_to_load[kernel]
                 if not isinstance(pcks, list):
                     pcks = [pcks]
                 for pck in pcks:
                     pck_patterns.append(pck)
-            elif "lsk" in type:
-                lsks = self.kernels_to_load[type]
+            elif "lsk" in kernel:
+                lsks = self.kernels_to_load[kernel]
                 if not isinstance(lsks, list):
                     lsks = [lsks]
                 for lsk in lsks:
@@ -1022,10 +1022,10 @@ class Setup:
                 lsks.append(pattern)
                 spiceypy.furnsh(pattern)
             else:
-                for dir in directories:
+                for path in directories:
                     lsk_pattern = [
                         os.path.join(root, name)
-                        for root, dirs, files in os.walk(dir)
+                        for root, dirs, files in os.walk(path)
                         for name in files
                         if re.fullmatch(pattern, name)
                     ]
@@ -1047,10 +1047,10 @@ class Setup:
                 pcks.append(pattern)
                 spiceypy.furnsh(pattern)
             else:
-                for dir in directories:
+                for path in directories:
                     pcks_pattern = [
                         os.path.join(root, name)
-                        for root, dirs, files in os.walk(dir)
+                        for root, dirs, files in os.walk(path)
                         for name in files
                         if re.fullmatch(pattern, name)
                     ]
@@ -1070,10 +1070,10 @@ class Setup:
                 fks.append(pattern)
                 spiceypy.furnsh(pattern)
             else:
-                for dir in directories:
+                for path in directories:
                     fks_pattern = [
                         os.path.join(root, name)
-                        for root, dirs, files in os.walk(dir)
+                        for root, dirs, files in os.walk(path)
                         for name in files
                         if re.fullmatch(pattern, name)
                     ]
@@ -1094,10 +1094,10 @@ class Setup:
                 sclks.append(pattern)
                 spiceypy.furnsh(pattern)
             else:
-                for dir in directories:
+                for path in directories:
                     sclks_pattern = [
                         os.path.join(root, name)
-                        for root, dirs, files in os.walk(dir)
+                        for root, dirs, files in os.walk(path)
                         for name in files
                         if re.fullmatch(pattern, name)
                     ]
