@@ -98,7 +98,7 @@ class OrbnumFilePDS4Label(PDSLabel):
         return description
 
     def field_template(
-        self, name, number, location, type, length, format, description, unit, blanks
+        self, name, number, location, type_field, length, format_field, description, unit, blanks
     ):
         """For a label provide all the parameters required for an ORBNUM field character.
 
@@ -108,12 +108,12 @@ class OrbnumFilePDS4Label(PDSLabel):
         :type number: str
         :param location: Location field
         :type location: str
-        :param type: Type field
-        :type type: str
+        :param type_field: Type field
+        :type type_field: str
         :param length: Length field
         :type length: str
-        :param format: Format field
-        :type format: str
+        :param format_field: Format field
+        :type format_field: str
         :param description: Description field
         :type description: str
         :param unit: Unit field
@@ -132,10 +132,10 @@ class OrbnumFilePDS4Label(PDSLabel):
             f'{" " * (4 * tab + 1 * tab)}<field_number>{number}</field_number>{eol}'
             f'{" " * (4 * tab + 1 * tab)}<field_location unit="byte">{location}'
             f"</field_location>{eol}"
-            f'{" " * (4 * tab + 1 * tab)}<data_type>{type}</data_type>{eol}'
+            f'{" " * (4 * tab + 1 * tab)}<data_type>{type_field}</data_type>{eol}'
             f'{" " * (4 * tab + 1 * tab)}<field_length unit="byte">{length}'
             f"</field_length>{eol}"
-            f'{" " * (4 * tab + 1 * tab)}<field_format>{format}</field_format>{eol}'
+            f'{" " * (4 * tab + 1 * tab)}<field_format>{format_field}</field_format>{eol}'
         )
         if unit:
             field += f'{" " * (4 * tab + 1 * tab)}<unit>{unit}</unit>{eol}'

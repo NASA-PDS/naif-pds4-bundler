@@ -28,12 +28,12 @@ class InventoryPDS3Label(PDSLabel):
         self.ROW_BYTES = str(self.product.row_bytes)
         self.ROWS = str(self.product.rows)
 
-        for i, bytes in enumerate(self.product.column_bytes):
+        for i, byt in enumerate(self.product.column_bytes):
 
             setattr(
                 self, f"START_BYTE_{i + 1:02d}", str(self.product.column_start_bytes[i])
             )
-            setattr(self, f"BYTES_{i + 1:02d}", str(bytes))
+            setattr(self, f"BYTES_{i + 1:02d}", str(byt))
 
         file_types = self.product.file_types
         if len(file_types) == 1:

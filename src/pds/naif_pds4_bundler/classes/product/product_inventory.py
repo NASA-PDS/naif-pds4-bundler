@@ -385,9 +385,9 @@ class InventoryProduct(Product):
 
             fromfile = self.path_current
             tofile = self.path
-            dir = self.setup.working_directory
+            work_dir = self.setup.working_directory
 
-            compare_files(fromfile, tofile, dir, self.setup.diff)
+            compare_files(fromfile, tofile, work_dir, self.setup.diff)
 
         else:
 
@@ -399,8 +399,8 @@ class InventoryProduct(Product):
             fromfiles.sort()
             fromfile = fromfiles[-1]
             tofile = self.path
-            dir = self.setup.working_directory
+            work_dir = self.setup.working_directory
 
-            compare_files(fromfile, tofile, dir, self.setup.diff)
+            compare_files(fromfile, tofile, work_dir, self.setup.diff)
 
         logging.info("")

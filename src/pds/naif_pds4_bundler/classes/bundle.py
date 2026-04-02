@@ -273,7 +273,7 @@ class Bundle:
             logging.warning(line)
         logging.info("")
 
-    def get_history(self, object):
+    def get_history(self, bundle_object):
         """This method builds the "Archive History".
 
         The "Archive history" is obtained by extracting the
@@ -286,7 +286,7 @@ class Bundle:
 
         The method checks whether if there is any duplicated element.
 
-        :param object: optional Bundle object for tests
+        :param bundle_object: optional Bundle object for tests
         :return: Archive history dictionary
         :rtype: dict
         """
@@ -297,13 +297,13 @@ class Bundle:
         # of Bundle labels. That information is already known as it is
         # specified by the bundle vid.
         #
-        number_of_releases = int(object.vid.split(".")[0])
+        number_of_releases = int(bundle_object.vid.split(".")[0])
 
         #
         # If the pipeline has not yet been executed, the current
         # version is subtracted.
         #
-        if not object.collections:
+        if not bundle_object.collections:
             number_of_releases -= 1
 
         ker_col_ver = 0
@@ -332,11 +332,11 @@ class Bundle:
             if rel == 1:
                 history[rel].append("readme.txt")
 
-            bundle_label = f"{object.name[:-7]}{rel:03d}.xml"
+            bundle_label = f"{bundle_object.name[:-7]}{rel:03d}.xml"
             bundle_label_path = (
-                object.setup.bundle_directory
-                + f"/{object.setup.mission_acronym}_spice/"
-                + bundle_label
+                    bundle_object.setup.bundle_directory
+                    + f"/{bundle_object.setup.mission_acronym}_spice/"
+                    + bundle_label
             )
 
             #
@@ -349,7 +349,7 @@ class Bundle:
                     "to generate Bundle history"
                 )
                 logging.warning(f"-- {line}.")
-                if not object.setup.args.silent and not object.setup.args.verbose:
+                if not bundle_object.setup.args.silent and not bundle_object.setup.args.verbose:
                     print("-- " + "WARNING: " + line + ".")
                 return {}
 
@@ -425,9 +425,9 @@ class Bundle:
                         history[rel].append(ker_collection_lbl)
 
                         with open(
-                            object.setup.bundle_directory
-                            + f"/{object.setup.mission_acronym}_spice/"
-                            + ker_collection,
+                                bundle_object.setup.bundle_directory
+                                + f"/{bundle_object.setup.mission_acronym}_spice/"
+                                + ker_collection,
                             "r",
                         ) as c:
                             for line in c:
@@ -560,9 +560,9 @@ class Bundle:
                         )
 
                         if os.path.exists(
-                            object.setup.bundle_directory
-                            + f"/{object.setup.mission_acronym}_spice/"
-                            + mis_collection
+                                bundle_object.setup.bundle_directory
+                                + f"/{bundle_object.setup.mission_acronym}_spice/"
+                                + mis_collection
                         ):
                             history[rel].append(mis_collection)
 
@@ -573,9 +573,9 @@ class Bundle:
                             history[rel].append(mis_collection_lbl)
 
                             with open(
-                                object.setup.bundle_directory
-                                + f"/{object.setup.mission_acronym}_spice/"
-                                + mis_collection,
+                                    bundle_object.setup.bundle_directory
+                                    + f"/{bundle_object.setup.mission_acronym}_spice/"
+                                    + mis_collection,
                                 "r",
                             ) as c:
                                 for line in c:
@@ -625,9 +625,9 @@ class Bundle:
                         history[rel].append(doc_collection_lbl)
 
                         with open(
-                            object.setup.bundle_directory
-                            + f"/{object.setup.mission_acronym}_spice/"
-                            + doc_collection,
+                                bundle_object.setup.bundle_directory
+                                + f"/{bundle_object.setup.mission_acronym}_spice/"
+                                + doc_collection,
                             "r",
                         ) as c:
                             for line in c:

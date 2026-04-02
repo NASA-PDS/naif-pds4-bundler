@@ -6,14 +6,14 @@ import logging
 class Collection:
     """Class to generate a PDS4 Collection.
 
-    :param type:   Collection type: kernels, documents or miscellaneous
+    :param c_type:   Collection type: kernels, documents or miscellaneous
     :param setup:  Setup object
     """
 
-    def __init__(self, type: str, setup, bundle) -> None:
+    def __init__(self, c_type: str, setup, bundle) -> None:
         """Constructor."""
         self.product = []
-        self.name = type
+        self.name = c_type
         self.setup = setup
         self.bundle = bundle
 

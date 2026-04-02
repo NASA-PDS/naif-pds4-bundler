@@ -848,7 +848,7 @@ class OrbnumFileProduct(Product):
                 blankspaces = blankspaces_loc[1] - blankspaces_loc[0] + 1
                 location += int(length) + blankspaces
 
-            type = params_template[param]["type"]
+            p_type = params_template[param]["type"]
 
             if "length" in params_template[param]:
                 length = params_template[param]["length"]
@@ -877,22 +877,22 @@ class OrbnumFileProduct(Product):
             # Write the format
             #
             if self.setup.information_model_float >= 1007000000.0:
-                format = "%" + length
+                ascii_format = "%" + length
                 if "ASCII_Real" in params_template[param]["type"]:
-                    format += "." + param_length + "f"
+                    ascii_format += "." + param_length + "f"
                 elif "ASCII_String" in params_template[param]["type"]:
-                    format += "s"
+                    ascii_format += "s"
                 elif "ASCII_Integer" in params_template[param]["type"]:
-                    format += "d"
+                    ascii_format += "d"
                 else:
                     handle_npb_error("Parameter type for ORBNUM file is incorrect.")
             else:
                 if "ASCII_Real" in params_template[param]["type"]:
-                    format = "F" + length + "." + param_length
+                    ascii_format = "F" + length + "." + param_length
                 elif "ASCII_String" in params_template[param]["type"]:
-                    format = "A" + length
+                    ascii_format = "A" + length
                 elif "ASCII_Integer" in params_template[param]["type"]:
-                    format = "I" + length
+                    ascii_format = "I" + length
                 else:
                     handle_npb_error("Parameter type for ORBNUM file is incorrect.")
 
@@ -953,9 +953,9 @@ class OrbnumFileProduct(Product):
                 "name": name,
                 "number": number,
                 "location": location,
-                "type": type,
+                "type": p_type,
                 "length": length,
-                "format": format,
+                "format": ascii_format,
                 "description": description,
                 "unit": unit,
             }
