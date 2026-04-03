@@ -65,6 +65,10 @@ class Log:
             if os.path.exists(log_file):
                 os.remove(log_file)
 
+            # Make sure that the working directory exists, otherwise the logger
+            # will not be able to create the log file.
+            os.makedirs(self.setup.working_directory, exist_ok=True)
+
             fh = logging.FileHandler(log_file)
             fh.setLevel(logging.INFO)
             fh.setFormatter(formatter)

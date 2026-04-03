@@ -311,4 +311,4 @@ class ReleasePlan:
         """
         plan_path = Path(self.setup.working_directory) / plan_name
         with open(plan_path, "wt", encoding='utf-8') as handle:
-            handle.write('\n'.join(kernels))
+            handle.write('\n'.join(kernels) + '\n')
