@@ -1,8 +1,8 @@
-"""Tests for KernelList.write_plan.
+"""Tests for ReleasePlan.write_plan.
 
 Each test class covers one logical branch or behavior of the method.
 A shared ``make_setup`` factory builds the minimum viable mock of the
-``setup`` object that ``KernelList.__init__`` and ``write_plan`` require,
+``setup`` object that ``ReleasePlan.__init__`` and ``write_plan`` require,
 so individual tests only override what is relevant to them.
 """
 import logging
@@ -12,7 +12,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from pds.naif_pds4_bundler.classes.list import KernelList
+from pds.naif_pds4_bundler.classes.plan import ReleasePlan
 
 
 # ---------------------------------------------------------------------------
@@ -26,7 +26,7 @@ def test_returns_true_when_kernels_found(tmp_path):
     (ker_dir / "maven_sc_rec_200101_200201_v01.bsp").touch()
 
     setup = make_setup(tmp_path, kernels_directory=[str(ker_dir)])
-    kl = make_kernel_list(setup)
+    kl = make_release_plan(setup)
 
     result = kl.write_plan()
 
@@ -39,7 +39,7 @@ def test_plan_file_is_created(tmp_path):
     (ker_dir / "maven_sc_rec_200101_200201_v01.bsp").touch()
 
     setup = make_setup(tmp_path, kernels_directory=[str(ker_dir)])
-    kl = make_kernel_list(setup)
+    kl = make_release_plan(setup)
     kl.write_plan()
 
     assert plan_path(setup).exists()
@@ -55,7 +55,7 @@ def test_plan_contains_matched_kernel(tmp_path):
     (ker_dir / "maven_sc_rec_200101_200201_v01.bsp").touch()
 
     setup = make_setup(tmp_path, kernels_directory=[str(ker_dir)])
-    kl = make_kernel_list(setup)
+    kl = make_release_plan(setup)
     kl.write_plan()
 
     assert "maven_sc_rec_200101_200201_v01.bsp" in plan_contents(setup)
@@ -73,7 +73,7 @@ def test_unmatched_kernel_not_in_plan(tmp_path):
     (ker_dir / "some_unrelated_file.txt").touch()
 
     setup = make_setup(tmp_path, kernels_directory=[str(ker_dir)])
-    kl = make_kernel_list(setup)
+    kl = make_release_plan(setup)
     kl.write_plan()
 
     assert "some_unrelated_file.txt" not in plan_contents(setup)
@@ -87,7 +87,7 @@ def test_meta_kernels_excluded_from_directory_scan(tmp_path):
     (ker_dir / "maven_v01.tm").touch()
 
     setup = make_setup(tmp_path, kernels_directory=[str(ker_dir)])
-    kl = make_kernel_list(setup)
+    kl = make_release_plan(setup)
     kl.write_plan()
 
     assert "maven_v01.tm" not in plan_contents(setup)
@@ -105,7 +105,7 @@ def test_multiple_kernel_directories_all_scanned(tmp_path):
         tmp_path,
         kernels_directory=[str(ker_dir1), str(ker_dir2)],
     )
-    kl = make_kernel_list(setup)
+    kl = make_release_plan(setup)
     kl.write_plan()
 
     contents = plan_contents(setup)
@@ -121,7 +121,7 @@ def test_kernels_in_subdirectories_are_found(tmp_path):
     (sub / "maven_sc_rec_200101_200201_v01.bsp").touch()
 
     setup = make_setup(tmp_path, kernels_directory=[str(ker_dir)])
-    kl = make_kernel_list(setup)
+    kl = make_release_plan(setup)
     kl.write_plan()
 
     assert "maven_sc_rec_200101_200201_v01.bsp" in plan_contents(setup)
@@ -133,7 +133,7 @@ def test_kernels_in_subdirectories_are_found(tmp_path):
 
 def test_returns_false_when_no_kernels(tmp_path):
     setup = make_setup(tmp_path)
-    kl = make_kernel_list(setup)
+    kl = make_release_plan(setup)
 
     result = kl.write_plan()
 
@@ -142,7 +142,7 @@ def test_returns_false_when_no_kernels(tmp_path):
 
 def test_kernel_list_is_empty_list(tmp_path):
     setup = make_setup(tmp_path)
-    kl = make_kernel_list(setup)
+    kl = make_release_plan(setup)
     kl.write_plan()
 
     assert kl.kernel_list == []
@@ -150,7 +150,7 @@ def test_kernel_list_is_empty_list(tmp_path):
 
 def test_add_file_not_called_when_empty(tmp_path):
     setup = make_setup(tmp_path)
-    kl = make_kernel_list(setup)
+    kl = make_release_plan(setup)
     kl.write_plan()
 
     setup.add_file.assert_not_called()
@@ -166,7 +166,7 @@ def test_plan_file_not_written_when_empty(tmp_path):
     and flags the bug.
     """
     setup = make_setup(tmp_path)
-    kl = make_kernel_list(setup)
+    kl = make_release_plan(setup)
     kl.write_plan()
 
     assert not plan_path(setup).exists()
@@ -193,7 +193,7 @@ def test_mapped_kernel_included(tmp_path):
         kernels_directory=[str(ker_dir)],
         json_config=json_config,
     )
-    kl = make_kernel_list(setup)
+    kl = make_release_plan(setup)
     kl.write_plan()
 
     assert "maven_sc_rec_200101_200201_v01_mapped.bsp" in plan_contents(setup)
@@ -216,7 +216,7 @@ def test_mk_from_config_added_to_plan(tmp_path):
         kernels_directory=[str(ker_dir)],
         mk_inputs={"file": str(mk_file)},
     )
-    kl = make_kernel_list(setup)
+    kl = make_release_plan(setup)
     kl.write_plan()
 
     assert "maven_v01.tm" in plan_contents(setup)
@@ -237,7 +237,7 @@ def test_mk_as_list_all_added(tmp_path):
         kernels_directory=[str(ker_dir)],
         mk_inputs={"file": [str(mk1), str(mk2)]},
     )
-    kl = make_kernel_list(setup)
+    kl = make_release_plan(setup)
     kl.write_plan()
 
     contents = plan_contents(setup)
@@ -258,7 +258,7 @@ def test_missing_mk_raises_error(tmp_path):
         kernels_directory=[str(ker_dir)],
         mk_inputs={"file": missing_mk},
     )
-    kl = make_kernel_list(setup)
+    kl = make_release_plan(setup)
 
     with pytest.raises(RuntimeError, match="Meta-kernel provided via configuration "
                                            "nonexistent.tm does not exist."):
@@ -283,7 +283,7 @@ def test_mk_not_added_in_labeling_mode(tmp_path):
     # In labeling mode a single kernel file is the plan input
     (ker_dir / "maven_sc_rec_200101_200201_v01.bsp").touch()
 
-    kl = make_kernel_list(setup)
+    kl = make_release_plan(setup)
     kl.write_plan()
 
     assert "maven_v01.tm" not in plan_contents(setup)
@@ -312,7 +312,7 @@ def test_next_version_mk_inferred(tmp_path):
     )
     setup.bundle_directory = str(bundle)
 
-    kl = make_kernel_list(setup)
+    kl = make_release_plan(setup)
     kl.write_plan()
 
     assert "maven_v02.tm" in plan_contents(setup)
@@ -327,7 +327,7 @@ def test_no_former_mk_produces_warning(tmp_path, caplog):
     # bundle directory exists but has no mk/ subdirectory
     setup = make_setup(tmp_path, kernels_directory=[str(ker_dir)])
 
-    kl = make_kernel_list(setup)
+    kl = make_release_plan(setup)
     with caplog.at_level(logging.WARNING):
         kl.write_plan()
 
@@ -352,7 +352,7 @@ def test_inferred_mk_not_added_in_labeling_mode(tmp_path):
     )
     setup.bundle_directory = str(bundle)
 
-    kl = make_kernel_list(setup)
+    kl = make_release_plan(setup)
     kl.write_plan()
 
     contents = plan_contents(setup)
@@ -379,7 +379,7 @@ def test_mk_version_incremented_correctly(tmp_path):
     )
     setup.bundle_directory = str(bundle)
 
-    kl = make_kernel_list(setup)
+    kl = make_release_plan(setup)
     kl.write_plan()
 
     # v009 -> v010, zero-padded to same width
@@ -414,7 +414,7 @@ def test_no_duplicate_mk_appended(tmp_path):
     )
     setup.bundle_directory = str(bundle)
 
-    kl = make_kernel_list(setup)
+    kl = make_release_plan(setup)
     kl.write_plan()
 
     mk_lines = [ln for ln in plan_contents(setup) if ".tm" in ln]
@@ -443,7 +443,7 @@ def test_no_mk_inferred_when_no_kernels(tmp_path, caplog):
     )
     setup.bundle_directory = str(bundle)
 
-    kl = make_kernel_list(setup)
+    kl = make_release_plan(setup)
 
     with caplog.at_level(logging.ERROR):
         result = kl.write_plan()
@@ -472,7 +472,7 @@ def test_orb_num_file_included(tmp_path):
         orbnum_directory=str(orb_dir),
         orbnum=[{"pattern": r"maven_orb_rec_\d{6}_\d{6}_v\d+\.orb"}],
     )
-    kl = make_kernel_list(setup)
+    kl = make_release_plan(setup)
     kl.write_plan()
 
     assert "maven_orb_rec_200101_200201_v01.orb" in plan_contents(setup)
@@ -496,7 +496,7 @@ def test_orb_num_not_included_in_labeling_mode(tmp_path):
         orbnum_directory=str(orb_dir),
         orbnum=[{"pattern": r"maven_orb_rec_\d{6}_\d{6}_v\d+\.orb"}],
     )
-    kl = make_kernel_list(setup)
+    kl = make_release_plan(setup)
     kl.write_plan()
 
     assert "maven_orb_rec_200101_200201_v01.orb" not in plan_contents(setup)
@@ -517,7 +517,7 @@ def test_unmatched_orb_num_not_included(tmp_path):
         orbnum_directory=str(orb_dir),
         orbnum=[{"pattern": r"maven_orb_rec_\d{6}_\d{6}_v\d+\.orb"}],
     )
-    kl = make_kernel_list(setup)
+    kl = make_release_plan(setup)
     kl.write_plan()
 
     assert "something_unrelated.orb" not in plan_contents(setup)
@@ -539,7 +539,7 @@ def test_single_kernel_becomes_plan(tmp_path):
         plan=str(kernel),
         kernels_directory=[str(ker_dir)],
     )
-    kl = make_kernel_list(setup)
+    kl = make_release_plan(setup)
     kl.write_plan()
 
     assert "maven_sc_rec_200101_200201_v01.bsp" in plan_contents(setup)
@@ -559,7 +559,7 @@ def test_other_kernels_in_dir_not_included(tmp_path):
         plan=str(kernel),
         kernels_directory=[str(ker_dir)],
     )
-    kl = make_kernel_list(setup)
+    kl = make_release_plan(setup)
     kl.write_plan()
 
     contents = plan_contents(setup)
@@ -576,7 +576,7 @@ def test_plan_file_name_follows_convention(tmp_path):
     (ker_dir / "maven_sc_rec_200101_200201_v01.bsp").touch()
 
     setup = make_setup(tmp_path, kernels_directory=[str(ker_dir)], release=3)
-    kl = make_kernel_list(setup)
+    kl = make_release_plan(setup)
     kl.write_plan()
 
     expected = Path(setup.working_directory) / "maven_release_03.plan"
@@ -590,7 +590,7 @@ def test_each_kernel_on_its_own_line(tmp_path):
     (ker_dir / "maven_sc_rec_200201_200301_v01.bsp").touch()
 
     setup = make_setup(tmp_path, kernels_directory=[str(ker_dir)])
-    kl = make_kernel_list(setup)
+    kl = make_release_plan(setup)
     kl.write_plan()
 
     contents = plan_contents(setup)
@@ -618,7 +618,7 @@ def test_no_duplicate_kernels_in_plan(tmp_path):
         kernels_directory=[str(ker_dir)],
         json_config=json_config,
     )
-    kl = make_kernel_list(setup)
+    kl = make_release_plan(setup)
     kl.write_plan()
 
     contents = plan_contents(setup)
@@ -645,7 +645,7 @@ def test_release_number_formatting(tmp_path, release, expected_suffix):
         kernels_directory=[str(ker_dir)],
         release=release,
     )
-    kl = make_kernel_list(setup)
+    kl = make_release_plan(setup)
     kl.write_plan()
 
     expected = (
@@ -674,11 +674,11 @@ def make_bundle_structure(bundle_dir, mk_name):
     (mk_dir / mk_name).touch()
 
 
-def make_kernel_list(setup):
-    """Instantiate KernelList while suppressing the read_config I/O."""
+def make_release_plan(setup):
+    """Instantiate ReleasePlan while suppressing the read_config I/O."""
     # read_config only reads from setup.kernel_list_config (already a dict)
     # and writes to self.re_config / self.json_config — no filesystem access.
-    return KernelList(setup)
+    return ReleasePlan(setup)
 
 
 def make_setup(
@@ -696,7 +696,7 @@ def make_setup(
 ):
     """
     Return a SimpleNamespace that satisfies every attribute read by
-    KernelList.__init__ and write_plan.
+    ReleasePlan.__init__ and write_plan.
 
     Parameters that vary per scenario are keyword-only so callers can be
     explicit about what they are changing.
