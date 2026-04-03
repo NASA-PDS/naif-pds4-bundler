@@ -3,6 +3,7 @@
 import glob
 import logging
 import os
+from pathlib import Path
 import re
 
 from pds.naif_pds4_bundler.pipeline.runtime import handle_npb_error
@@ -28,6 +29,10 @@ class ReleasePlan:
         if not setup.args.silent and not setup.args.verbose:
             print("-- " + line.split(" - ")[-1] + ".")
 
+    # ------------------------------------------------------------------
+    # Public interface
+    # ------------------------------------------------------------------
+
     @property
     def kernel_list(self) -> list:
         return self._kernel_list
@@ -40,24 +45,15 @@ class ReleasePlan:
         """
         kernels = []
 
-        #
         # Add mapping kernel patterns in list.
-        #
-        patterns = []
-        for pattern in self.json_config:
-            patterns.append(pattern)
-            if "mapping" in self.json_config[pattern]:
-                patterns.append(self.json_config[pattern]["mapping"])
+        patterns = self._get_patterns()
 
         #
         # If NPB runs in labeling mode, a single file can be specified
         # as a release plan. If so, a plan is generated.
         #
         if (plan.split(".")[-1] != "plan") and (self.setup.args.faucet == "labels"):
-            plan_name = (
-                f"{self.setup.mission_acronym}_{self.setup.run_type}_"
-                f"{int(self.setup.release):02d}.plan"
-            )
+            plan_name = self._plan_name()
             plan = self.setup.working_directory + os.sep + plan_name
             with open(plan, "w") as pl:
                 pl.write(plan.split(os.sep)[-1])
@@ -103,16 +99,8 @@ class ReleasePlan:
                         )
                         logging.warning(f"   {line.rstrip()}")
 
-        #
-        # Report the kernels that will be included in the Kernel List
-        #
-        logging.info("-- Reporting the products in Plan:")
-
-        for kernel in kernels:
-            logging.info(f"     {kernel}")
-
-        logging.info("")
-
+        # Report the kernels that are included in the release plan.
+        self._log_kernels_in_release_plan(kernels)
         self._kernel_list = kernels
 
     def write_plan(self):
@@ -122,12 +110,7 @@ class ReleasePlan:
                  been provided as input
         :rtype: bool
         """
-        kernels = []
-
-        plan_name = (
-            f"{self.setup.mission_acronym}_{self.setup.run_type}_"
-            f"{int(self.setup.release):02d}.plan"
-        )
+        plan_name = self._plan_name()
 
         #
         # The release plan is generated from the kernel directory unless
@@ -153,17 +136,11 @@ class ReleasePlan:
             kernels_in_dir = [item for item in kernels_in_dir if ".tm" not in item]
             kernels_in_dir.sort()
 
-        #
         # Filter the kernels with the patterns in the kernel list from the
-        # configuration. The patterns are present in the `json_config`
-        # attribute dictionary.
-        #
-        patterns = []
-        for pattern in self.json_config:
-            patterns.append(pattern)
-            if "mapping" in self.json_config[pattern]:
-                patterns.append(self.json_config[pattern]["mapping"])
+        # configuration.
+        patterns = self._get_patterns()
 
+        kernels = []
         for kernel in kernels_in_dir:
             for pattern in patterns:
                 if re.match(pattern, kernel.split(os.sep)[-1]):
@@ -247,24 +224,12 @@ class ReleasePlan:
         else:
             logging.info("-- Meta-kernels not generated in labeling mode.")
 
-        #
         # Add possible orbnum files if not running in label generation
         # mode.
-        #
-        if self.setup.orbnum_directory and (self.setup.args.faucet != "labels"):
-            orbnums_in_dir = glob.glob(f"{self.setup.orbnum_directory}/*")
-            for orbnum_in_dir in orbnums_in_dir:
-                for orbnum in self.setup.orbnum:
-                    if re.match(orbnum["pattern"], orbnum_in_dir.split(os.sep)[-1]):
-                        logging.warning(f"-- Plan will include {orbnum_in_dir}")
-                        kernels.append(orbnum_in_dir.split(os.sep)[-1])
+        kernels.extend(self._collect_orbnum_files())
 
-        #
         # The kernel list is complete.
-        #
-        with open(self.setup.working_directory + os.sep + plan_name, "w") as p:
-            for kernel in kernels:
-                p.write(f"{kernel}\n")
+        self._write_plan_file(plan_name, kernels)
 
         if not kernels:
 
@@ -274,26 +239,86 @@ class ReleasePlan:
             if not self.setup.args.silent and not self.setup.args.verbose:
                 print("-- " + line.split(" - ")[-1] + ".")
 
-            self._kernel_list = kernels
-
             return False
 
-        logging.info("")
-        logging.info("-- Reporting the products in Plan:")
-
-        #
-        # Report the kernels that will be included in the Kernel List
-        #
-        for kernel in kernels:
-            logging.info(f"     {kernel}")
-
-        logging.info("")
-
+        # Report the kernels that are included in the release plan.
+        self._log_kernels_in_release_plan(kernels)
         self._kernel_list = kernels
 
-        #
         # Add plan to the list of generated files.
-        #
         self.setup.add_file(f"{self.setup.working_directory}/{plan_name}")
 
         return True
+
+    # ------------------------------------------------------------------
+    # Private helpers shared by read_plan and write_plan
+    # ------------------------------------------------------------------
+
+    def _get_patterns(self) -> list:
+        """Return a flat list of all config patterns, including mapping patterns.
+
+        Both primary patterns and their associated mapping patterns are
+        included so that either form of a kernel name can be matched.
+
+        :return: List of regex pattern strings.
+        """
+        patterns = []
+        for pattern in self.json_config:
+            patterns.append(pattern)
+            if "mapping" in self.json_config[pattern]:
+                patterns.append(self.json_config[pattern]["mapping"])
+        return patterns
+
+    def _plan_name(self) -> str:
+        """Return the canonical .plan filename for the current release.
+
+        :return: Filename of the form ``<mission>_<run_type>_NN.plan``.
+        """
+        return (f"{self.setup.mission_acronym}_{self.setup.run_type}_"
+                f"{int(self.setup.release):02d}.plan")
+
+    @staticmethod
+    def _log_kernels_in_release_plan(kernels: list) -> None:
+        """Log the kernels that are included in the release plan.
+
+        :param kernels: List of kernel filenames to report.
+        """
+        logging.info("")
+        logging.info("-- Reporting the products in Plan:")
+        for kernel in kernels:
+            logging.info(f"     {kernel}")
+        logging.info("")
+
+    # ------------------------------------------------------------------
+    # Private helpers for write_plan
+    # ------------------------------------------------------------------
+
+    def _collect_orbnum_files(self) -> list:
+        """Collect orbnum files from the orbnum directory.
+
+        Skipped entirely in labeling mode or when ``orbnum_directory``
+        is not set.
+
+        :return: List of matched orbnum filenames to append to the plan.
+        """
+        if not self.setup.orbnum_directory or self.setup.args.faucet == "labels":
+            return []
+
+        result = []
+        for orbnum_path in glob.glob(f"{self.setup.orbnum_directory}/*"):
+            for orbnum in self.setup.orbnum:
+                if re.match(orbnum["pattern"], orbnum_path.split(os.sep)[-1]):
+                    logging.warning(f"-- Plan will include {orbnum_path}")
+                    result.append(orbnum_path.split(os.sep)[-1])
+
+        return result
+
+    def _write_plan_file(self, plan_name: str, kernels: list) -> None:
+        """Write kernel names to the .plan file, one per line.
+
+        :param plan_name: Filename (not full path) of the plan file.
+        :param kernels:   Ordered list of kernel filenames to write.
+        """
+        plan_path = Path(self.setup.working_directory) / plan_name
+        with open(plan_path, "wt", encoding='utf-8') as handle:
+            handle.write('\n'.join(kernels))
