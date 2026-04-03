@@ -32,6 +32,89 @@ class ReleasePlan:
     def kernel_list(self) -> list:
         return self._kernel_list
 
+    def read_plan(self, plan):
+        """Read Release Plan from the main module input.
+
+        :param plan: Release Plan name
+        :type plan: str
+        """
+        kernels = []
+
+        #
+        # Add mapping kernel patterns in list.
+        #
+        patterns = []
+        for pattern in self.json_config:
+            patterns.append(pattern)
+            if "mapping" in self.json_config[pattern]:
+                patterns.append(self.json_config[pattern]["mapping"])
+
+        #
+        # If NPB runs in labeling mode, a single file can be specified
+        # as a release plan. If so, a plan is generated.
+        #
+        if (plan.split(".")[-1] != "plan") and (self.setup.args.faucet == "labels"):
+            plan_name = (
+                f"{self.setup.mission_acronym}_{self.setup.run_type}_"
+                f"{int(self.setup.release):02d}.plan"
+            )
+            plan = self.setup.working_directory + os.sep + plan_name
+            with open(plan, "w") as pl:
+                pl.write(plan.split(os.sep)[-1])
+        elif plan.split(".")[-1] != "plan":
+            handle_npb_error(
+                "Release plan requires *.plan extension. Single "
+                "kernels are only allowed in labeling mode."
+            )
+
+        with open(plan, "r") as f:
+            for line in f:
+                ker_matched = False
+                for pattern in patterns:
+                    if re.search(pattern, line):
+                        ker_line = re.search(pattern, line)
+
+                        #
+                        # The kernel is not matched if there is a comment character in front.
+                        #
+                        if line.lstrip()[0] != "#":
+                            kernels.append(ker_line.group(0))
+                            ker_matched = True
+
+                if not ker_matched:
+                    #
+                    # Add the ORBNUM files that need to be added.
+                    # Match the pattern with the file.
+                    #
+                    if hasattr(self.setup, "orbnum"):
+                        for orb in self.setup.orbnum:
+                            pattern = orb["pattern"]
+                            if re.search(pattern, line):
+                                ker_line = re.search(pattern, line)
+                                kernels.append(ker_line.group(0))
+                                ker_matched = True
+                    #
+                    # Display the lines that have not been matched unless
+                    # they only contain blank spaces.
+                    #
+                    if not ker_matched and line.strip():
+                        logging.warning(
+                            "-- The following release plan line has not been matched:"
+                        )
+                        logging.warning(f"   {line.rstrip()}")
+
+        #
+        # Report the kernels that will be included in the Kernel List
+        #
+        logging.info("-- Reporting the products in Plan:")
+
+        for kernel in kernels:
+            logging.info(f"     {kernel}")
+
+        logging.info("")
+
+        self._kernel_list = kernels
+
     def write_plan(self):
         """Write the Release Plan if not provided.
 
