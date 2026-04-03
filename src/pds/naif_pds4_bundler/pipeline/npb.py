@@ -1,6 +1,7 @@
 """Implementation of the NAIF PDS4 Bundler pipeline.
 """
 from os.path import isdir
+from pathlib import Path
 
 from .runtime import clear_run, finish_execution
 from .. import __version__
@@ -144,7 +145,7 @@ def run_pipeline(args: PipelineArgs) -> None:
             if not release_plan.write_plan() and (args.faucet == "labels"):
                 return
         else:
-            release_plan.read_plan(args.plan)
+            release_plan.read_plan(Path(args.plan))
 
     #
     #    * The pipeline can be stopped after generating or reading the release

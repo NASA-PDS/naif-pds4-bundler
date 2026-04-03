@@ -31,7 +31,7 @@ def test_read_plan_valid_plan_extension_accepted(tmp_path):
 
     rp = make_release_plan(setup)
     # Should not raise
-    rp.read_plan(str(plan))
+    rp.read_plan(plan)
 
 
 def test_read_plan_non_plan_extension_outside_labeling_mode_raises(tmp_path):
@@ -45,7 +45,7 @@ def test_read_plan_non_plan_extension_outside_labeling_mode_raises(tmp_path):
 
     with pytest.raises(RuntimeError, match=r'Release plan requires \*\.plan extension. '
                                            'Single kernels are only allowed in labeling mode.'):
-        rp.read_plan(str(kernel_file))
+        rp.read_plan(kernel_file)
 
 
 def test_read_plan_non_plan_extension_in_labeling_mode_accepted(tmp_path):
@@ -57,7 +57,7 @@ def test_read_plan_non_plan_extension_in_labeling_mode_accepted(tmp_path):
     setup = make_setup(tmp_path, faucet="labels")
     rp = make_release_plan(setup)
     # Should not raise
-    rp.read_plan(str(kernel_file))
+    rp.read_plan(kernel_file)
 
 
 def test_read_plan_txt_extension_outside_labeling_mode_raises(tmp_path):
@@ -70,7 +70,7 @@ def test_read_plan_txt_extension_outside_labeling_mode_raises(tmp_path):
 
     with pytest.raises(RuntimeError, match=r'Release plan requires \*\.plan extension. '
                                            'Single kernels are only allowed in labeling mode.'):
-        rp.read_plan(str(bad_file))
+        rp.read_plan(bad_file)
 
 # ---------------------------------------------------------------------------
 # 2. Synthetic plan generation (labeling mode)
@@ -86,7 +86,7 @@ def test_read_plan_synthetic_plan_file_is_created(tmp_path):
     kernel_file.touch()
 
     rp = make_release_plan(setup)
-    rp.read_plan(str(kernel_file))
+    rp.read_plan(kernel_file)
 
     expected_plan = working / "maven_release_01.plan"
     assert expected_plan.exists()
@@ -100,7 +100,7 @@ def test_read_plan_synthetic_plan_contains_kernel_filename(tmp_path):
     kernel_file.touch()
 
     rp = make_release_plan(setup)
-    rp.read_plan(str(kernel_file))
+    rp.read_plan(kernel_file)
 
     expected_plan = working / "maven_release_01.plan"
     content = expected_plan.read_text()
@@ -115,7 +115,7 @@ def test_read_plan_synthetic_plan_name_uses_release_number(tmp_path):
     kernel_file.touch()
 
     rp = make_release_plan(setup)
-    rp.read_plan(str(kernel_file))
+    rp.read_plan(kernel_file)
 
     expected_plan = working / "maven_release_05.plan"
     assert expected_plan.exists()
@@ -131,7 +131,7 @@ def test_read_plan_matched_kernel_in_kernel_list(tmp_path):
     write_plan_file(plan, ["maven_sc_rec_200101_200201_v01.bsp"])
 
     rp = make_release_plan(setup)
-    rp.read_plan(str(plan))
+    rp.read_plan(plan)
 
     assert "maven_sc_rec_200101_200201_v01.bsp" in rp.kernel_list
 
@@ -145,7 +145,7 @@ def test_read_plan_multiple_matched_kernels_all_collected(tmp_path):
     ])
 
     rp = make_release_plan(setup)
-    rp.read_plan(str(plan))
+    rp.read_plan(plan)
 
     assert "maven_sc_rec_200101_200201_v01.bsp" in rp.kernel_list
     assert "maven_sc_rec_200201_200301_v01.bsp" in rp.kernel_list
@@ -157,7 +157,7 @@ def test_read_plan_kernel_list_attribute_set_on_instance(tmp_path):
     write_plan_file(plan, ["maven_sc_rec_200101_200201_v01.bsp"])
 
     rp = make_release_plan(setup)
-    rp.read_plan(str(plan))
+    rp.read_plan(plan)
 
     assert hasattr(rp, "kernel_list")
     assert isinstance(rp.kernel_list, list)
@@ -169,7 +169,7 @@ def test_read_plan_kernel_list_empty_when_no_lines_match(tmp_path):
     write_plan_file(plan, ["totally_unrelated_file.txt"])
 
     rp = make_release_plan(setup)
-    rp.read_plan(str(plan))
+    rp.read_plan(plan)
 
     assert rp.kernel_list == []
 
@@ -189,7 +189,7 @@ def test_read_plan_kernel_matched_via_mapping_pattern(tmp_path):
     write_plan_file(plan, ["maven_sc_rec_200101_200201_v01_mapped.bsp"])
 
     rp = make_release_plan(setup)
-    rp.read_plan(str(plan))
+    rp.read_plan(plan)
 
     assert "maven_sc_rec_200101_200201_v01_mapped.bsp" in rp.kernel_list
 
@@ -204,7 +204,7 @@ def test_read_plan_commented_kernel_not_collected(tmp_path):
     write_plan_file(plan, ["# maven_sc_rec_200101_200201_v01.bsp"])
 
     rp = make_release_plan(setup)
-    rp.read_plan(str(plan))
+    rp.read_plan(plan)
 
     assert rp.kernel_list == []
 
@@ -216,7 +216,7 @@ def test_read_plan_commented_kernel_with_leading_spaces_not_collected(tmp_path):
     write_plan_file(plan, ["   # maven_sc_rec_200101_200201_v01.bsp"])
 
     rp = make_release_plan(setup)
-    rp.read_plan(str(plan))
+    rp.read_plan(plan)
 
     assert rp.kernel_list == []
 
@@ -230,7 +230,7 @@ def test_read_plan_mix_of_commented_and_active_lines(tmp_path):
     ])
 
     rp = make_release_plan(setup)
-    rp.read_plan(str(plan))
+    rp.read_plan(plan)
 
     assert "maven_sc_rec_200101_200201_v01.bsp" not in rp.kernel_list
     assert "maven_sc_rec_200201_200301_v01.bsp" in rp.kernel_list
@@ -250,7 +250,7 @@ def test_read_plan_orbnum_line_collected(tmp_path):
     write_plan_file(plan, ["maven_orb_rec_200101_200201_v01.orb"])
 
     rp = make_release_plan(setup)
-    rp.read_plan(str(plan))
+    rp.read_plan(plan)
 
     assert "maven_orb_rec_200101_200201_v01.orb" in rp.kernel_list
 
@@ -268,7 +268,7 @@ def test_read_plan_orbnum_not_collected_when_config_pattern_matches_first(tmp_pa
     write_plan_file(plan, ["maven_sc_rec_200101_200201_v01.bsp"])
 
     rp = make_release_plan(setup)
-    rp.read_plan(str(plan))
+    rp.read_plan(plan)
 
     # Kernel present exactly once — not duplicated by orbnum path
     assert rp.kernel_list.count("maven_sc_rec_200101_200201_v01.bsp") == 1
@@ -283,7 +283,7 @@ def test_read_plan_orbnum_not_matched_when_pattern_does_not_match(tmp_path):
     write_plan_file(plan, ["something_unrelated.txt"])
 
     rp = make_release_plan(setup)
-    rp.read_plan(str(plan))
+    rp.read_plan(plan)
 
     assert rp.kernel_list == []
 
@@ -300,7 +300,7 @@ def test_read_plan_orbnum_not_collected_when_setup_has_no_orbnum_attribute(tmp_p
 
 
     rp = make_release_plan(setup)
-    rp.read_plan(str(plan))  # must not raise
+    rp.read_plan(plan)  # must not raise
 
     assert rp.kernel_list == []
 
@@ -317,7 +317,7 @@ def test_read_plan_unmatched_non_blank_line_logs_warning(tmp_path, caplog):
     rp = make_release_plan(setup)
 
     with caplog.at_level(logging.WARNING):
-        rp.read_plan(str(plan))
+        rp.read_plan(plan)
 
     assert any(
         "release plan line has not been matched" in m
@@ -334,7 +334,7 @@ def test_read_plan_blank_line_does_not_log_warning(tmp_path, caplog):
     rp = make_release_plan(setup)
 
     with caplog.at_level(logging.WARNING):
-        rp.read_plan(str(plan))
+        rp.read_plan(plan)
 
     assert not any(
         "release plan line has not been matched" in m
@@ -350,7 +350,7 @@ def test_read_plan_whitespace_only_line_does_not_log_warning(tmp_path, caplog):
     rp = make_release_plan(setup)
 
     with caplog.at_level(logging.WARNING):
-        rp.read_plan(str(plan))
+        rp.read_plan(plan)
 
     assert not any(
         "release plan line has not been matched" in m
@@ -366,7 +366,7 @@ def test_read_plan_matched_line_does_not_log_warning(tmp_path, caplog):
     rp = make_release_plan(setup)
 
     with caplog.at_level(logging.WARNING):
-        rp.read_plan(str(plan))
+        rp.read_plan(plan)
 
     assert not any(
         "release plan line has not been matched" in m
@@ -385,7 +385,7 @@ def test_read_plan_commented_line_does_not_log_warning(tmp_path, caplog):
     rp = make_release_plan(setup)
 
     with caplog.at_level(logging.WARNING):
-        rp.read_plan(str(plan))
+        rp.read_plan(plan)
 
     # NOTE: This test will FAIL against the current code because a
     # commented line falls through to the unmatched-line warning block.
@@ -418,7 +418,7 @@ def test_read_plan_realistic_plan_collects_only_valid_kernels(tmp_path):
     ])
 
     rp = make_release_plan(setup)
-    rp.read_plan(str(plan))
+    rp.read_plan(plan)
 
     assert "maven_sc_rec_200101_200201_v01.bsp" in rp.kernel_list
     assert "maven_sc_rec_200201_200301_v01.bsp" not in rp.kernel_list
@@ -432,7 +432,7 @@ def test_read_plan_empty_plan_file_yields_empty_kernel_list(tmp_path):
     plan.write_text("")
 
     rp = make_release_plan(setup)
-    rp.read_plan(str(plan))
+    rp.read_plan(plan)
 
     assert rp.kernel_list == []
 
@@ -773,7 +773,7 @@ def test_write_plan_inferred_mk_not_added_in_labeling_mode(tmp_path):
     setup = make_setup(
         tmp_path,
         faucet="labels",
-        plan=str(kernel_file),
+        plan=kernel_file,
         kernels_directory=[str(ker_dir)],
     )
     setup.bundle_directory = str(bundle)
@@ -917,7 +917,7 @@ def test_write_plan_orb_num_not_included_in_labeling_mode(tmp_path):
     setup = make_setup(
         tmp_path,
         faucet="labels",
-        plan=str(kernel_file),
+        plan=kernel_file,
         kernels_directory=[str(ker_dir)],
         orbnum_directory=str(orb_dir),
         orbnum=[{"pattern": r"maven_orb_rec_\d{6}_\d{6}_v\d+\.orb"}],
@@ -1147,7 +1147,7 @@ def make_setup(
     setup = SimpleNamespace(
         # pipeline state
         step=1,
-        args=make_args(faucet=faucet, plan=plan),
+        args=make_args(faucet=faucet, plan=str(plan)),
         # identity
         mission_acronym="maven",
         mission_name="MAVEN",

@@ -37,27 +37,24 @@ class ReleasePlan:
     def kernel_list(self) -> list:
         return self._kernel_list
 
-    def read_plan(self, plan):
+    def read_plan(self, plan: Path) -> None:
         """Read Release Plan from the main module input.
 
         :param plan: Release Plan name
-        :type plan: str
         """
         kernels = []
 
         # Add mapping kernel patterns in list.
         patterns = self._get_patterns()
 
-        #
         # If NPB runs in labeling mode, a single file can be specified
         # as a release plan. If so, a plan is generated.
-        #
-        if (plan.split(".")[-1] != "plan") and (self.setup.args.faucet == "labels"):
-            plan_name = self._plan_name()
-            plan = self.setup.working_directory + os.sep + plan_name
+        if plan.suffix != ".plan" and self.setup.args.faucet == "labels":
+            plan = os.path.join(self.setup.working_directory, self._plan_name())
             with open(plan, "w") as pl:
                 pl.write(plan.split(os.sep)[-1])
-        elif plan.split(".")[-1] != "plan":
+
+        elif plan.suffix != ".plan":
             handle_npb_error(
                 "Release plan requires *.plan extension. Single "
                 "kernels are only allowed in labeling mode."
@@ -67,12 +64,9 @@ class ReleasePlan:
             for line in f:
                 ker_matched = False
                 for pattern in patterns:
-                    if re.search(pattern, line):
-                        ker_line = re.search(pattern, line)
+                    if ker_line := re.search(pattern, line):
 
-                        #
                         # The kernel is not matched if there is a comment character in front.
-                        #
                         if line.lstrip()[0] != "#":
                             kernels.append(ker_line.group(0))
                             ker_matched = True
@@ -85,8 +79,7 @@ class ReleasePlan:
                     if hasattr(self.setup, "orbnum"):
                         for orb in self.setup.orbnum:
                             pattern = orb["pattern"]
-                            if re.search(pattern, line):
-                                ker_line = re.search(pattern, line)
+                            if ker_line := re.search(pattern, line):
                                 kernels.append(ker_line.group(0))
                                 ker_matched = True
                     #
@@ -110,13 +103,9 @@ class ReleasePlan:
                  been provided as input
         :rtype: bool
         """
-        plan_name = self._plan_name()
-
-        #
         # The release plan is generated from the kernel directory unless
         # the parameter ``labels`` is provided by the ``-f --faucet`` argument.
         # In such case only the input file is provided in the release plan.
-        #
         if self.setup.args.faucet == "labels" and self.setup.args.plan:
             logging.info("-- Generate archiving plan from input kernel:")
             logging.info(f"   {self.setup.args.plan}")
@@ -229,6 +218,7 @@ class ReleasePlan:
         kernels.extend(self._collect_orbnum_files())
 
         # The kernel list is complete.
+        plan_name = self._plan_name()
         self._write_plan_file(plan_name, kernels)
 
         if not kernels:
