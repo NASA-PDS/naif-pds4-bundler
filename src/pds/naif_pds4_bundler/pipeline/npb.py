@@ -1,6 +1,7 @@
 """Implementation of the NAIF PDS4 Bundler pipeline.
 """
 from os.path import isdir
+from pathlib import Path
 
 from .runtime import clear_run, finish_execution
 from .. import __version__
@@ -10,6 +11,7 @@ from ..classes.collection import MiscellaneousCollection
 from ..classes.collection import SpiceKernelsCollection
 from ..classes.list import KernelList
 from ..classes.log import Log
+from ..classes.plan import ReleasePlan
 from ..classes.product import ChecksumProduct
 from ..classes.product import InventoryProduct
 from ..classes.product import MetaKernelProduct
@@ -124,9 +126,9 @@ def run_pipeline(args: PipelineArgs) -> None:
         return
 
     #
-    # * Generate the Kernel List object.
+    # * Generate the Release Plan object.
     #
-    k_list = KernelList(setup)
+    release_plan = ReleasePlan(setup)
 
     #
     #    * If a plan file is provided it is processed otherwise a plan is
@@ -137,10 +139,13 @@ def run_pipeline(args: PipelineArgs) -> None:
     #
     if not args.kerlist:
         if not args.plan or (".plan" not in args.plan):
-            if not k_list.write_plan() and (args.faucet == "labels"):
+
+            # Stop the execution if we cannot write a release plan when we are
+            # running on "labels" mode.
+            if not release_plan.write_plan() and (args.faucet == "labels"):
                 return
         else:
-            k_list.read_plan(args.plan)
+            release_plan.read_plan(Path(args.plan))
 
     #
     #    * The pipeline can be stopped after generating or reading the release
@@ -149,6 +154,16 @@ def run_pipeline(args: PipelineArgs) -> None:
     if setup.faucet == "plan":
         finish_execution(setup, log)
         return
+
+    #
+    # * Generate the Kernel List object.
+    #
+    #   If a release plan was either generated or loaded during the previous
+    #   step, load the obtained kernel_list into the KernelList object.
+    #
+    # TODO: Add kernel_list argument to the KernelList constructor.
+    k_list = KernelList(setup)
+    k_list.kernel_list = release_plan.kernel_list
 
     if not args.kerlist:
         k_list.write_list()
