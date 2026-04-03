@@ -1,8 +1,6 @@
 """Implementation of the Release Plan class.
 """
-import datetime
 import glob
-import json
 import logging
 import os
 import re
@@ -17,6 +15,8 @@ class ReleasePlan:
     """
     def __init__(self, setup):
         """Constructor."""
+        self.setup = setup
+        self.json_config = self.setup.kernel_list_config
         self.kernel_list = []
 
         line = f"Step {setup.step} - Kernel List generation"
@@ -27,34 +27,6 @@ class ReleasePlan:
         setup.step += 1
         if not setup.args.silent and not setup.args.verbose:
             print("-- " + line.split(" - ")[-1] + ".")
-
-        self.files = []
-        self.setup = setup
-
-        #
-        # Entity attributes to be replaced in template
-        #
-        self.CURRENTDATE = str(datetime.datetime.now())[:10]
-        self.OBS = setup.observer
-        self.AUTHOR = setup.producer_name
-
-        if self.setup.pds_version == "3":
-            if '"' in setup.pds3_mission_template["DATA_SET_ID"]:
-                self.DATA_SET_ID = (
-                    setup.pds3_mission_template["DATA_SET_ID"].split('"')[1].upper()
-                )
-            else:
-                self.DATA_SET_ID = setup.pds3_mission_template["DATA_SET_ID"].upper()
-            self.VOLID = setup.volume_id.lower()
-        else:
-            self.DATA_SET_ID = "N/A"
-            self.VOLID = "N/A"
-
-        self.RELID = f"{int(setup.release):04d}"
-        self.RELDATE = setup.release_date
-
-        self.template = f"{setup.templates_directory}/template_kernel_list.txt"
-        self._read_config()
 
     def write_plan(self):
         """Write the Release Plan if not provided.
@@ -238,25 +210,3 @@ class ReleasePlan:
         self.setup.add_file(f"{self.setup.working_directory}/{plan_name}")
 
         return True
-
-    def _read_config(self) -> None:
-        """Extract the Kernel List information from the configuration file."""
-        json_config = self.setup.kernel_list_config
-
-        #
-        # Build a list of computed regular expressions from the JSON config
-        #
-        re_config = []
-        for pattern in json_config:
-            re_config.append(re.compile(pattern))
-
-        self.re_config = re_config
-        #
-        # Also store it in setup for later use in meta-kernel description
-        # generation.
-        #
-        self.setup.re_config = re_config
-        self.json_config = json_config
-
-        json_formatted_str = json.dumps(self.json_config, indent=2)
-        self.json_formatted_lst = json_formatted_str.split("\n")
