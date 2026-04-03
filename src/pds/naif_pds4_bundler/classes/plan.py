@@ -17,7 +17,7 @@ class ReleasePlan:
         """Constructor."""
         self.setup = setup
         self.json_config = self.setup.kernel_list_config
-        self.kernel_list = []
+        self._kernel_list = []
 
         line = f"Step {setup.step} - Kernel List generation"
         logging.info("")
@@ -27,6 +27,10 @@ class ReleasePlan:
         setup.step += 1
         if not setup.args.silent and not setup.args.verbose:
             print("-- " + line.split(" - ")[-1] + ".")
+
+    @property
+    def kernel_list(self) -> list:
+        return self._kernel_list
 
     def write_plan(self):
         """Write the Release Plan if not provided.
@@ -68,7 +72,7 @@ class ReleasePlan:
 
         #
         # Filter the kernels with the patterns in the kernel list from the
-        # configuration. The patterns are present in the json_config
+        # configuration. The patterns are present in the `json_config`
         # attribute dictionary.
         #
         patterns = []
@@ -187,7 +191,7 @@ class ReleasePlan:
             if not self.setup.args.silent and not self.setup.args.verbose:
                 print("-- " + line.split(" - ")[-1] + ".")
 
-            self.kernel_list = kernels
+            self._kernel_list = kernels
 
             return False
 
@@ -202,7 +206,7 @@ class ReleasePlan:
 
         logging.info("")
 
-        self.kernel_list = kernels
+        self._kernel_list = kernels
 
         #
         # Add plan to the list of generated files.

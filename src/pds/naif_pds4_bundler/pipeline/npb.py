@@ -10,6 +10,7 @@ from ..classes.collection import MiscellaneousCollection
 from ..classes.collection import SpiceKernelsCollection
 from ..classes.list import KernelList
 from ..classes.log import Log
+from ..classes.plan import ReleasePlan
 from ..classes.product import ChecksumProduct
 from ..classes.product import InventoryProduct
 from ..classes.product import MetaKernelProduct
@@ -124,8 +125,9 @@ def run_pipeline(args: PipelineArgs) -> None:
         return
 
     #
-    # * Generate the Kernel List object.
+    # * Generate the Release Plan and Kernel List objects.
     #
+    release_plan = ReleasePlan(setup)
     k_list = KernelList(setup)
 
     #
@@ -137,8 +139,16 @@ def run_pipeline(args: PipelineArgs) -> None:
     #
     if not args.kerlist:
         if not args.plan or (".plan" not in args.plan):
-            if not k_list.write_plan() and (args.faucet == "labels"):
+
+            # Stop the execution if we cannot write a release plan when we are
+            # running on "labels" mode.
+            if not release_plan.write_plan() and (args.faucet == "labels"):
                 return
+
+            # Reaching this point means that, a) a release plan was generated, or
+            # b) we are not running on "labels" mode. If the plan was not generated,
+            # the plan's kernel_list is an empty list.
+            k_list.kernel_list = release_plan.kernel_list
         else:
             k_list.read_plan(args.plan)
 
