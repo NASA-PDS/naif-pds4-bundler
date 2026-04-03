@@ -125,10 +125,9 @@ def run_pipeline(args: PipelineArgs) -> None:
         return
 
     #
-    # * Generate the Release Plan and Kernel List objects.
+    # * Generate the Release Plan object.
     #
     release_plan = ReleasePlan(setup)
-    k_list = KernelList(setup)
 
     #
     #    * If a plan file is provided it is processed otherwise a plan is
@@ -144,13 +143,8 @@ def run_pipeline(args: PipelineArgs) -> None:
             # running on "labels" mode.
             if not release_plan.write_plan() and (args.faucet == "labels"):
                 return
-
-            # Reaching this point means that, a) a release plan was generated, or
-            # b) we are not running on "labels" mode. If the plan was not generated,
-            # the plan's kernel_list is an empty list.
-            k_list.kernel_list = release_plan.kernel_list
         else:
-            k_list.read_plan(args.plan)
+            release_plan.read_plan(args.plan)
 
     #
     #    * The pipeline can be stopped after generating or reading the release
@@ -159,6 +153,16 @@ def run_pipeline(args: PipelineArgs) -> None:
     if setup.faucet == "plan":
         finish_execution(setup, log)
         return
+
+    #
+    # * Generate the Kernel List object.
+    #
+    #   If a release plan was either generated or loaded during the previous
+    #   step, load the obtained kernel_list into the KernelList object.
+    #
+    # TODO: Add kernel_list argument to the KernelList constructor.
+    k_list = KernelList(setup)
+    k_list.kernel_list = release_plan.kernel_list
 
     if not args.kerlist:
         k_list.write_list()
