@@ -49,7 +49,7 @@ class ReadmeProduct(Product):
             self.new_product = False
         else:
             logging.info("-- Generating readme file...")
-            self.write_product()
+            self._write_product()
             self.new_product = True
 
             #
@@ -70,7 +70,7 @@ class ReadmeProduct(Product):
         logging.info("-- Generating bundle label...")
         self.label = BundlePDS4Label(setup, self)
 
-    def write_product(self) -> None:
+    def _write_product(self) -> None:
         """Write the Readme product."""
         line_length = 0
 

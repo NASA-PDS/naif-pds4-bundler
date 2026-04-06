@@ -118,7 +118,7 @@ class SpicedsProduct(Product):
         # added and the file timestamp is updated. Note that if the file
         # already had CRs the original timestamp is preserved.
         #
-        self.check_cr()
+        self._check_cr()
 
         #
         # Kernels are already generated products but Inventories are not.
@@ -129,14 +129,14 @@ class SpicedsProduct(Product):
         #
         # Check if the spiceds has not changed.
         #
-        self.generated = self.check_product()
+        self.generated = self._check_product()
 
         #
         # Validate the product by comparing it and then generate the label.
         #
         if self.generated:
             if self.setup.diff:
-                self.compare()
+                self._compare()
 
             self.label = DocumentPDS4Label(setup, collection, self)
 
@@ -148,7 +148,7 @@ class SpicedsProduct(Product):
         """Set the Product VID."""
         self.vid = "{}.0".format(int(self.version))
 
-    def check_cr(self) -> None:
+    def _check_cr(self) -> None:
         """Determine whether if ``<CR>`` has to be added to the SPICEDS."""
         #
         # We add the date to the temporary file to have a unique name.
@@ -175,7 +175,7 @@ class SpicedsProduct(Product):
                 "-- Carriage Return has been added to lines in the spiceds file."
             )
 
-    def check_product(self) -> bool:
+    def _check_product(self) -> bool:
         """Check if the SPICEDS product needs to be generated.
 
         :return: True if the SPICEDS products needs to be generated, False otherwise
@@ -211,7 +211,7 @@ class SpicedsProduct(Product):
 
         return generate_spiceds
 
-    def compare(self) -> None:
+    def _compare(self) -> None:
         """**Compare the SPICEDS Product with another SPICEDS**.
 
         The SPICEDS Product is compared with the previous
