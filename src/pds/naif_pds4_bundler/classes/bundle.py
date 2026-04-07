@@ -7,8 +7,8 @@ from pathlib import Path
 import pprint
 import shutil
 import time
-from typing import TYPE_CHECKING
-from xml.etree import cElementTree
+from typing import Optional, TYPE_CHECKING
+from xml.etree import ElementTree
 
 import spiceypy
 
@@ -83,7 +83,6 @@ class Bundle:
         if setup.pds_version == "4":
 
             # Assign the Bundle LID and VID and the Internal Reference LID
-            # TODO: Is the self._lid attribute required?
             self._lid = self.setup.logical_identifier
             self._vid = f"{int(self.setup.release)}.0"
 
@@ -100,6 +99,34 @@ class Bundle:
     # ------------------------------------------------------------------
     # Public interface
     # ------------------------------------------------------------------
+
+    @property
+    def lid(self) -> str:
+        """Bundle Logical Identifier (LID).
+
+        The Bundle LID is a unique character string that identifies a bundle
+        across the entire PDS archive. It stays constant regardless of how
+        many times the bundle is updated.
+        """
+        return self._lid
+
+    @property
+    def readme(self) -> Optional[ReadmeProduct]:
+        """Bundle Readme Product.
+
+        The readme product (typically a readme.txt file) is an optional,
+        human-readable file that provides a general overview of a bundle's
+        contents and organization.
+        """
+        return self._readme
+
+    @property
+    def vid(self) -> str:
+        """Bundle Version Identifier (VID).
+
+        The Bundle VID identifies the specific version of the bundle.
+        """
+        return self._vid
 
     def add(self, element):
         """Add a Collection to the Bundle."""
@@ -345,7 +372,7 @@ class Bundle:
         # of Bundle labels. That information is already known as it is
         # specified by the bundle vid.
         #
-        number_of_releases = int(bundle_object._vid.split(".")[0])
+        number_of_releases = int(bundle_object.vid.split(".")[0])
 
         #
         # If the pipeline has not yet been executed, the current
@@ -414,7 +441,7 @@ class Bundle:
             # attributes for the object.
             #
             bundle_lbl = Path(bundle_label_path).read_text()
-            entries = etree_to_dict(cElementTree.XML(bundle_lbl))
+            entries = etree_to_dict(ElementTree.XML(bundle_lbl))
 
             #
             # The resulting dictionary element names are prefixed with:

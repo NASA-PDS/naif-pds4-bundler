@@ -29,10 +29,8 @@ def etree_to_dict(etree):
 
     https://www.xml.com/pub/a/2006/05/31/converting-between-xml-and-json.html
 
-    :param etree: Element Tree read from XML file
-    :type etree: dict
-    :return: XML File converted into a JSON file
-    :rtype: dict
+    :param etree: Element Tree read from an XML file.
+    :returns: The XML File converted into a JSON file
     """
     jtree = {etree.tag: {} if etree.attrib else None}
     children = list(etree)
