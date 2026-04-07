@@ -81,11 +81,11 @@ class Bundle:
         self.setup = setup
 
         if setup.pds_version == "4":
-            #
+
             # Assign the Bundle LID and VID and the Internal Reference LID
-            #
-            self.set_bundle_vid()
-            self.set_bundle_lid()
+            # TODO: Is the self._lid attribute required?
+            self._lid = self.setup.logical_identifier
+            self._vid = f"{int(self.setup.release)}.0"
 
             #
             #  Get the context products.
@@ -108,14 +108,6 @@ class Bundle:
     def add_readme(self, readme: ReadmeProduct):
         """Adds the readme product if it does not exist."""
         self._readme = readme
-
-    def set_bundle_lid(self):
-        """Set the Bundle LID."""
-        self.lid = self.setup.logical_identifier
-
-    def set_bundle_vid(self):
-        """Set the Bundle VID."""
-        self.vid = f"{int(self.setup.release)}.0"
 
     def files_in_staging(self):
         """Lists all the files in the staging area."""
@@ -353,7 +345,7 @@ class Bundle:
         # of Bundle labels. That information is already known as it is
         # specified by the bundle vid.
         #
-        number_of_releases = int(bundle_object.vid.split(".")[0])
+        number_of_releases = int(bundle_object._vid.split(".")[0])
 
         #
         # If the pipeline has not yet been executed, the current
