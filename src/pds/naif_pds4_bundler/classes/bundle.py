@@ -37,6 +37,7 @@ class Bundle:
 
     def __init__(self, setup) -> None:
         """Constructor."""
+        self._new_files = []
         self._readme = None
 
         line = (
@@ -140,12 +141,11 @@ class Bundle:
         # A list of the new files as extracted form the products in the
         # collections is generated next.
         #
-        new_files = []
         for collection in self.collections:
             for product in collection.product:
-                new_files.append(product.path)
+                self._new_files.append(product.path)
                 if hasattr(product, "label"):
-                    new_files.append(product.label.name)
+                    self._new_files.append(product.label.name)
                 else:
                     logging.info(
                         f"-- Product {product.name} has no label in staging area."
@@ -155,20 +155,18 @@ class Bundle:
         # Include the bundle products if not running in label mode.
         #
         if self.setup.pds_version == "4" and self.setup.faucet != "labels":
-            new_files.append(self.setup.staging_directory + os.sep + self.name)
+            self._new_files.append(self.setup.staging_directory + os.sep + self.name)
             if self._readme and self._readme.new_product:
-                new_files.append(
+                self._new_files.append(
                     os.path.join(self.setup.staging_directory, self._readme.name))
 
-        self.new_files = new_files
-
         #
-        # dsindex files are added to the new_files list. These are the only
+        # dsindex files are added to the `_new_files` list. These are the only
         # files that are explicitly added.
         #
         if self.setup.pds_version == "3":
-            self.new_files.append(self.setup.staging_directory + "/../dsindex.tab")
-            self.new_files.append(self.setup.staging_directory + "/../dsindex.lbl")
+            self._new_files.append(self.setup.staging_directory + "/../dsindex.tab")
+            self._new_files.append(self.setup.staging_directory + "/../dsindex.lbl")
 
         logging.info("-- The following files are present in the staging area:")
         for file in staging_files:
@@ -188,7 +186,7 @@ class Bundle:
             print("-- " + line.split(" - ")[-1] + ".")
 
         copied_files = []
-        for file in self.new_files:
+        for file in self._new_files:
             src = file
 
             if self.setup.pds_version == "4":
@@ -369,7 +367,7 @@ class Bundle:
         mis_col_ver = 0
 
         #
-        # The version extracted from the labels is initialised because the
+        # The version extracted from the labels is initialized because the
         # collections might not be present or might be present multiple times.
         #
         rel_ker_col_ver = []
@@ -377,7 +375,7 @@ class Bundle:
         rel_mis_col_ver = []
 
         #
-        # Initialise the history dictionary.
+        # Initialize the history dictionary.
         #
         history = {}
 
