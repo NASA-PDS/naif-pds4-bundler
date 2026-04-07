@@ -90,6 +90,10 @@ class Bundle:
             #
             self.history = self._get_history(self)
 
+    # ------------------------------------------------------------------
+    # Public interface
+    # ------------------------------------------------------------------
+
     def add(self, element):
         """Add a Collection to the Bundle."""
         self.collections.append(element)
@@ -273,7 +277,55 @@ class Bundle:
             logging.warning(line)
         logging.info("")
 
-    # TODO: Move this method to the right place in the class.
+    def validate(self):
+        """Validate the Bundle.
+
+        The two implemented steps are to check checksum files against the
+        updated bundle history and checking the bundle times.
+        """
+        self._check_times()
+        self._validate_history()
+
+    # ------------------------------------------------------------------
+    # Private helpers
+    # ------------------------------------------------------------------
+
+    @spice_exception_handler
+    def _check_times(self):
+        """Check the correctness of the bundle times."""
+        str_msn_strt = self.setup.mission_start
+        str_inc_strt = self.setup.increment_start
+        str_inc_stop = self.setup.increment_finish
+        str_msn_stop = self.setup.mission_finish
+
+        #
+        # Remove 'Z' due to a bug in CSPICE N0066. See Header of TPARTV.
+        #
+        if "Z" in str_msn_strt:
+            str_msn_strt = str_msn_strt[:-1]
+        if "Z" in str_inc_strt:
+            str_inc_strt = str_inc_strt[:-1]
+        if "Z" in str_inc_stop:
+            str_inc_stop = str_inc_stop[:-1]
+        if "Z" in str_msn_stop:
+            str_msn_stop = str_msn_stop[:-1]
+
+        et_msn_strt = spiceypy.str2et(str_msn_strt)
+        et_inc_strt = spiceypy.str2et(str_inc_strt)
+        et_inc_stop = spiceypy.str2et(str_inc_stop)
+        et_msn_stop = spiceypy.str2et(str_msn_stop)
+
+        if (
+            (et_msn_strt > et_inc_strt)
+            or (et_inc_strt > et_inc_stop)
+            or (et_inc_stop > et_msn_stop)
+            or (et_msn_strt >= et_msn_stop)
+        ):
+            handle_npb_error(
+                "The resulting Mission and Increment start and finish dates "
+                "are incoherent."
+            )
+
     def _get_history(self, bundle_object):
         """This method builds the "Archive History".
 
@@ -664,55 +716,6 @@ class Bundle:
             logging.warning("-- Bundle History contains duplicates.")
 
         return history
-
-    def validate(self):
-        """Validate the Bundle.
-
-        The two implemented steps are to check checksum files against the
-        updated bundle history and checking the bundle times.
-        """
-        self._check_times()
-        self._validate_history()
-
-    # ------------------------------------------------------------------
-    # Private helpers
-    # ------------------------------------------------------------------
-
-    @spice_exception_handler
-    def _check_times(self):
-        """Check the correctness of the bundle times."""
-        str_msn_strt = self.setup.mission_start
-        str_inc_strt = self.setup.increment_start
-        str_inc_stop = self.setup.increment_finish
-        str_msn_stop = self.setup.mission_finish
-
-        #
-        # Remove 'Z' due to a bug in CSPICE N0066. See Header of TPARTV.
-        #
-        if "Z" in str_msn_strt:
-            str_msn_strt = str_msn_strt[:-1]
-        if "Z" in str_inc_strt:
-            str_inc_strt = str_inc_strt[:-1]
-        if "Z" in str_inc_stop:
-            str_inc_stop = str_inc_stop[:-1]
-        if "Z" in str_msn_stop:
-            str_msn_stop = str_msn_stop[:-1]
-
-        et_msn_strt = spiceypy.str2et(str_msn_strt)
-        et_inc_strt = spiceypy.str2et(str_inc_strt)
-        et_inc_stop = spiceypy.str2et(str_inc_stop)
-        et_msn_stop = spiceypy.str2et(str_msn_stop)
-
-        if (
-            (et_msn_strt > et_inc_strt)
-            or (et_inc_strt > et_inc_stop)
-            or (et_inc_stop > et_msn_stop)
-            or (et_msn_strt >= et_msn_stop)
-        ):
-            handle_npb_error(
-                "The resulting Mission and Increment start and finish dates "
-                "are incoherent."
-            )
 
     def _validate_history(self):
         """Validate the bundle updated history with the checksum files.
