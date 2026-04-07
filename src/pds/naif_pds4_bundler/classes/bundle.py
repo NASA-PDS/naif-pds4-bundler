@@ -88,7 +88,7 @@ class Bundle:
             #
             # Generate the bundle history
             #
-            self.history = self.get_history(self)
+            self.history = self._get_history(self)
 
     def add(self, element):
         """Add a Collection to the Bundle."""
@@ -273,7 +273,8 @@ class Bundle:
             logging.warning(line)
         logging.info("")
 
-    def get_history(self, bundle_object):
+    # TODO: Move this method to the right place in the class.
+    def _get_history(self, bundle_object):
         """This method builds the "Archive History".
 
         The "Archive history" is obtained by extracting the
@@ -670,11 +671,15 @@ class Bundle:
         The two implemented steps are to check checksum files against the
         updated bundle history and checking the bundle times.
         """
-        self.check_times()
-        self.validate_history()
+        self._check_times()
+        self._validate_history()
+
+    # ------------------------------------------------------------------
+    # Private helpers
+    # ------------------------------------------------------------------
 
     @spice_exception_handler
-    def check_times(self):
+    def _check_times(self):
         """Check the correctness of the bundle times."""
         str_msn_strt = self.setup.mission_start
         str_inc_strt = self.setup.increment_start
@@ -709,7 +714,7 @@ class Bundle:
                 "are incoherent."
             )
 
-    def validate_history(self):
+    def _validate_history(self):
         """Validate the bundle updated history with the checksum files.
 
         This method validates all the archive Checksum files with the "Archive
@@ -741,7 +746,7 @@ class Bundle:
         logging.info("-- Display the list of files that belong to each release.")
         logging.info("")
 
-        history = self.get_history(self)
+        history = self._get_history(self)
         if history:
             history_string = pprint.pformat(history, indent=2)
             for line in history_string.split("\n"):
