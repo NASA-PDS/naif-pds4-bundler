@@ -13,7 +13,7 @@ from ..classes.collection import SpiceKernelsCollection
 from ..classes.list import KernelList
 from ..classes.log import Log
 from ..classes.plan import ReleasePlan
-from ..classes.product import ChecksumProduct
+from ..classes.product import ChecksumProduct, ReadmeProduct
 from ..classes.product import InventoryProduct
 from ..classes.product import MetaKernelProduct
 from ..classes.product import OrbnumFileProduct
@@ -439,7 +439,8 @@ def run_pipeline(args: PipelineArgs) -> None:
         #
         # * Generate the Bundle label and if necessary the readme file.
         #
-        bundle.write_readme()
+        readme = ReadmeProduct(setup, bundle)
+        bundle.add_readme(readme)
 
         #
         # * Generate the Checksum product a posteriori in such a way

@@ -1,12 +1,13 @@
 """Bundle Class Implementation."""
-
+from __future__ import annotations
 import filecmp
 import logging
 import os
+from pathlib import Path
 import pprint
 import shutil
 import time
-from pathlib import Path
+from typing import TYPE_CHECKING
 from xml.etree import cElementTree
 
 import spiceypy
@@ -19,7 +20,10 @@ from ..utils import (
     safe_make_directory,
     spice_exception_handler,
 )
-from .product import ReadmeProduct
+
+# The following imports are only required for type checking.
+if TYPE_CHECKING:
+    from .product import ReadmeProduct
 
 
 class Bundle:
@@ -33,6 +37,8 @@ class Bundle:
 
     def __init__(self, setup) -> None:
         """Constructor."""
+        self._readme = None
+
         line = (
             f"Step {setup.step} - Bundle/data set structure generation "
             f"at staging area"
@@ -98,9 +104,9 @@ class Bundle:
         """Add a Collection to the Bundle."""
         self.collections.append(element)
 
-    def write_readme(self):
-        """Write the readme product if it does not exist."""
-        self.readme = ReadmeProduct(self.setup, self)
+    def add_readme(self, readme: ReadmeProduct):
+        """Adds the readme product if it does not exist."""
+        self._readme = readme
 
     def set_bundle_lid(self):
         """Set the Bundle LID."""
@@ -150,10 +156,9 @@ class Bundle:
         #
         if self.setup.pds_version == "4" and self.setup.faucet != "labels":
             new_files.append(self.setup.staging_directory + os.sep + self.name)
-            if hasattr(self, "readme") and self.readme.new_product:
+            if self._readme and self._readme.new_product:
                 new_files.append(
-                    self.setup.staging_directory + os.sep + self.readme.name
-                )
+                    os.path.join(self.setup.staging_directory, self._readme.name))
 
         self.new_files = new_files
 
