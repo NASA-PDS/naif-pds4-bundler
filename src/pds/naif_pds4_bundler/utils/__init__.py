@@ -88,6 +88,7 @@ __all__ = [
     'product_mapping',
     'replace_string_in_file',
     'safe_make_directory',
+    'spice_exception_handler',
     'spk_coverage',
     'string_in_file',
     'type_to_extension',

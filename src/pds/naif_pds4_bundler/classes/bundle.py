@@ -770,7 +770,7 @@ class Bundle:
             #
             # The last checksum and its label have to be added to the products
             # in the checksum list, unless it is the first time that the
-            # miscellaneous collection is being generated and it is not the
+            # miscellaneous collection is being generated, and it is not the
             # first release.
             #
             # The checksum is added if it is not the last release and the
