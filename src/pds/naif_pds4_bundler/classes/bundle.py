@@ -612,60 +612,11 @@ class Bundle:
             # --- Miscellaneous collection -------------------------------------
             # The Miscellaneous collection, if present, should have the same
             # number of files.
-            #
-            for rel_misc in versions['miscellaneous']:
-                if rel_misc != mis_col_ver:
-                    ver = rel_misc
-
-                    mis_collection = (
-                        f"miscellaneous/"
-                        f"collection_miscellaneous_inventory_v{rel_misc:03d}.csv"
+            for ver in versions['miscellaneous']:
+                if ver != mis_col_ver:
+                    history[rel].extend(
+                        self._get_misc_collection_products(ver)
                     )
-
-                    if os.path.exists(
-                            self.setup.bundle_directory
-                            + f"/{self.setup.mission_acronym}_spice/"
-                            + mis_collection
-                    ):
-                        history[rel].append(mis_collection)
-
-                        mis_collection_lbl = (
-                            f"miscellaneous/"
-                            f"collection_miscellaneous_v{rel_misc:03d}.xml"
-                        )
-                        history[rel].append(mis_collection_lbl)
-
-                        with open(
-                                self.setup.bundle_directory
-                                + f"/{self.setup.mission_acronym}_spice/"
-                                + mis_collection,
-                            "r",
-                        ) as c:
-                            for line in c:
-                                if ("P" in line) and (":checksum_" not in line):
-                                    product = (
-                                        f"miscellaneous/"
-                                        f'{line.split(":")[5].replace("_", "/", 1)}'
-                                    )
-                                    history[rel].append(product)
-                                    orbnum_extension = f'.{product.split(".")[-1]}'
-                                    history[rel].append(
-                                        product.replace(orbnum_extension, ".xml")
-                                    )
-
-                                elif ("P" in line) and (":checksum_" in line):
-                                    product_name = line.split(":")[5].replace(
-                                        "_", "/", 1
-                                    )
-                                    product = (
-                                        f"miscellaneous/"
-                                        f"{product_name}_v{rel_misc:03d}.tab"
-                                    )
-                                    history[rel].append(product)
-                                    history[rel].append(
-                                        product.replace(".tab", ".xml")
-                                    )
-
                     mis_col_ver = ver
 
             # --- Document collection -----------------------------------------
@@ -685,6 +636,55 @@ class Bundle:
             logging.warning("-- Bundle History contains duplicates.")
 
         return history
+
+    def _get_misc_collection_products(self, ver: int) -> list[str]:
+        """Return all product paths belonging to a miscellaneous collection.
+
+        Reads the collection inventory CSV present within the ``miscellaneous``
+        subdirectory of the bundle's root path and returns the relative paths
+        for every primary OrbNum or Checksum product and its XML label, plus
+        the collection inventory CSV and label files.
+
+        Note: OrbNum products and checksum products are handled separately
+        because their filename conventions differ:
+
+        * OrbNum products keep their original extension.
+        * Checksum products are versioned with the collection release number.
+
+        :param ver: collection version number
+        :returns: list of relative product path strings, or an empty list if
+                  the collection inventory CSV file does not exist on disk.
+        """
+        csv_path = self._bundle_root / 'miscellaneous' / f"collection_miscellaneous_inventory_v{ver:03d}.csv"
+        if not csv_path.exists():
+            return []
+
+        products = [
+            f"miscellaneous/collection_miscellaneous_inventory_v{ver:03d}.csv",
+            f"miscellaneous/collection_miscellaneous_v{ver:03d}.xml"
+        ]
+
+        with csv_path.open("rt") as handle:
+            for line in handle:
+                if 'P' not in line:
+                    continue
+
+                product_name = line.split(":")[5].replace("_", "/", 1)
+
+                if ":checksum_" not in line:
+                    # OrbNums: preserve original extension
+                    product = f"miscellaneous/{product_name}"
+                    ext = product.split(".")[-1]
+                    products.append(product)
+                    products.append(product.replace(f".{ext}", ".xml"))
+
+                elif ":checksum_" in line:
+                    # Checksum: versioned .tab + label
+                    product = f"miscellaneous/{product_name}_v{ver:03d}.tab"
+                    products.append(product)
+                    products.append(product.replace(".tab", ".xml"))
+
+        return products
 
     def _read_bundle_label(self, rel: int) -> dict | None:
         """Parse a single bundle label XML file into a dict.
