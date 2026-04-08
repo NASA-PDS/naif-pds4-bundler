@@ -7,7 +7,7 @@ from pathlib import Path
 import pprint
 import shutil
 import time
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 from xml.etree import ElementTree
 
 import spiceypy
@@ -37,11 +37,6 @@ class Bundle:
 
     def __init__(self, setup) -> None:
         """Constructor."""
-        self._bundle_root = Path(setup.bundle_directory,
-                                 f"{setup.mission_acronym}_spice")
-        self._new_files = []
-        self._readme = None
-
         line = (
             f"Step {setup.step} - Bundle/data set structure generation "
             f"at staging area"
@@ -58,6 +53,9 @@ class Bundle:
         logging.info("")
 
         self.collections = []
+        self._new_files = []
+        self._readme = None
+        self.setup = setup
 
         #
         # Generate the bundle or data set structure
@@ -72,17 +70,16 @@ class Bundle:
             safe_make_directory(setup.staging_directory + os.sep + "index")
 
         elif setup.pds_version == "4":
-
+            # Bundle root is only consumed by the history helpers (which are
+            # PDS4-only)
+            self._bundle_root = Path(setup.bundle_directory,
+                                     f"{setup.mission_acronym}_spice")
             self.name = f"bundle_{setup.mission_acronym}_spice_v{setup.release}.xml"
 
             safe_make_directory(setup.staging_directory)
             safe_make_directory(setup.staging_directory + os.sep + "spice_kernels")
             safe_make_directory(setup.staging_directory + os.sep + "document")
             safe_make_directory(setup.staging_directory + os.sep + "miscellaneous")
-
-        self.setup = setup
-
-        if setup.pds_version == "4":
 
             # Assign the Bundle LID and VID and the Internal Reference LID
             self._lid = self.setup.logical_identifier
@@ -111,7 +108,7 @@ class Bundle:
         return self._lid
 
     @property
-    def readme(self) -> Optional[ReadmeProduct]:
+    def readme(self) -> ReadmeProduct | None:
         """Bundle Readme Product.
 
         The readme product (typically a readme.txt file) is an optional,
@@ -132,8 +129,9 @@ class Bundle:
         """Add a Collection to the Bundle."""
         self.collections.append(element)
 
+    # TODO: Create a setter for the readme property.
     def add_readme(self, readme: ReadmeProduct):
-        """Adds the readme product if it does not exist."""
+        """Adds a readme product to the Bundle."""
         self._readme = readme
 
     def files_in_staging(self):
@@ -401,7 +399,7 @@ class Bundle:
             f"document/collection_document_v{ver:03d}.xml",
         ]
 
-        # The relative path of the collection's inventory CVS file is the first
+        # The relative path of the collection's inventory CSV file is the first
         # product in the products' list. Read it, and extract all primary
         # document products.
         with (self._bundle_root / products[0]).open("rt") as handle:
@@ -523,7 +521,7 @@ class Bundle:
             f"spice_kernels/collection_spice_kernels_v{ver:03d}.xml"
         ]
 
-        # The relative path of the collection's inventory CVS file is the first
+        # The relative path of the collection's inventory CSV file is the first
         # product in the products' list. Read it, and extract all primary
         # document products.
         with (self._bundle_root / products[0]).open("rt") as handle:
@@ -540,7 +538,7 @@ class Bundle:
                     products.append(product)
                     products.append(product.replace(f".{ext}", ".xml"))
 
-                elif ":mk_" in line:
+                else:
                     # Meta-kernel: version formatting is configuration-dependent
                     mk_ver = int(line.split("::")[-1].split(".")[0])
 
@@ -612,7 +610,7 @@ class Bundle:
                         #       Maybe it is worth using a "derived" attribute similar to
                         #       "version_length".
                         handle_npb_error(
-                            f"Meta-kernel version length of {version_length}"
+                            f"Meta-kernel version length of {version_length} "
                             "digits is incorrect.")
 
         # Default to two digits.
@@ -628,13 +626,12 @@ class Bundle:
                   ``["spice_kernels/mk/insight_v01.tm"]``)
         """
         mk_names = self.setup.mk_inputs
-        if isinstance(self.setup.mk_inputs, dict):
+        if isinstance(mk_names, dict):
             mk_names = mk_names["file"]
         if not isinstance(mk_names, list):
             mk_names = [mk_names]
 
-        return [f"spice_kernels/mk/{product.split(os.sep)[-1]}"
-                for product in mk_names]
+        return [f"spice_kernels/mk/{Path(mk).name}" for mk in mk_names]
 
     def _get_misc_collection_products(self, ver: int) -> list[str]:
         """Return all product paths belonging to a miscellaneous collection.
@@ -677,7 +674,7 @@ class Bundle:
                     products.append(product)
                     products.append(product.replace(f".{ext}", ".xml"))
 
-                elif ":checksum_" in line:
+                else:
                     # Checksum: versioned .tab + label
                     product = f"miscellaneous/{product_name}_v{ver:03d}.tab"
                     products.append(product)

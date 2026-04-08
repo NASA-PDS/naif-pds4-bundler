@@ -977,20 +977,8 @@ class TestDuplicateDetection:
 
 
 class TestUninitializedVer:
-    """Documents the known bug (issue #4 in the code review) where `ver` can
-    be referenced before assignment when all collection versions in
-    rel_ker_col_ver equal ker_col_ver.
 
-    These tests are expected to FAIL until the bug is fixed, and are marked
-    accordingly with xfail so that the suite stays green.
-    """
-
-    @pytest.mark.skip(
-        reason="Bug: ver uninitialized when all rel_ker match ker_col_ver",
-    )
     def test_no_version_change_does_not_raise_name_error(self, fake_setup):
-        """If every kernel collection version in a release equals the previous
-        one, the code currently raises NameError on `ker_col_ver = ver`."""
         # Two releases both pointing to collection v001 (no version change)
         for rel in (1, 2):
             _write_bundle_label(fake_setup, rel, [
