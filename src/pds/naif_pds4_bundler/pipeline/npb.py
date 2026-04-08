@@ -1,5 +1,6 @@
 """Implementation of the NAIF PDS4 Bundler pipeline.
 """
+import logging
 from os.path import isdir
 
 from .runtime import clear_run, finish_execution
@@ -326,7 +327,16 @@ def run_pipeline(args: PipelineArgs) -> None:
         #   including the corresponding Miscellaneous Collection Inventories
         #   and labels.
         #
-        miscellaneous_collection.report()
+
+        # Report the Collection generation step.
+        line = f"Step {setup.step} - Generation of {miscellaneous_collection.kind} collection"
+        logging.info("")
+        logging.info(line)
+        logging.info("-" * len(line))
+        logging.info("")
+        setup.step += 1
+        if not setup.args.silent and not setup.args.verbose:
+            print("-- " + line.split(" - ")[-1] + ".")
 
         if setup.increment:
             checksum_dir = (
