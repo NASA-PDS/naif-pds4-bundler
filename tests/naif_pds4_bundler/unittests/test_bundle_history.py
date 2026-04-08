@@ -13,4 +13,4 @@ def test_insight_history(self):
                        name="bundle_insight_spice_v008.xml",
                        setup=setup,
                        collections = None)
-    Bundle._get_history(bundle, bundle)
+    Bundle._get_history(bundle)

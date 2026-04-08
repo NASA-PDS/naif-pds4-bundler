@@ -91,10 +91,8 @@ class Bundle:
             #
             self.context_products = get_context_products(self.setup)
 
-            #
             # Generate the bundle history
-            #
-            self.history = self._get_history(self)
+            self.history = self._get_history()
 
     # ------------------------------------------------------------------
     # Public interface
@@ -348,7 +346,7 @@ class Bundle:
                 "are incoherent."
             )
 
-    def _get_history(self, bundle_object):
+    def _get_history(self) -> dict:
         """This method builds the "Archive History".
 
         The "Archive history" is obtained by extracting the
@@ -360,10 +358,6 @@ class Bundle:
         as keys and each key contains a list of files for that release.
 
         The method checks whether if there is any duplicated element.
-
-        :param bundle_object: optional Bundle object for tests
-        :return: Archive history dictionary
-        :rtype: dict
         """
         #
         # Determine the number of previous releases.
@@ -372,13 +366,13 @@ class Bundle:
         # of Bundle labels. That information is already known as it is
         # specified by the bundle vid.
         #
-        number_of_releases = int(bundle_object.vid.split(".")[0])
+        number_of_releases = int(self._vid.split(".")[0])
 
         #
         # If the pipeline has not yet been executed, the current
         # version is subtracted.
         #
-        if not bundle_object.collections:
+        if not self.collections:
             number_of_releases -= 1
 
         ker_col_ver = 0
@@ -407,10 +401,10 @@ class Bundle:
             if rel == 1:
                 history[rel].append("readme.txt")
 
-            bundle_label = f"{bundle_object.name[:-7]}{rel:03d}.xml"
+            bundle_label = f"{self.name[:-7]}{rel:03d}.xml"
             bundle_label_path = (
-                    bundle_object.setup.bundle_directory
-                    + f"/{bundle_object.setup.mission_acronym}_spice/"
+                    self.setup.bundle_directory
+                    + f"/{self.setup.mission_acronym}_spice/"
                     + bundle_label
             )
 
@@ -424,7 +418,7 @@ class Bundle:
                     "to generate Bundle history"
                 )
                 logging.warning(f"-- {line}.")
-                if not bundle_object.setup.args.silent and not bundle_object.setup.args.verbose:
+                if not self.setup.args.silent and not self.setup.args.verbose:
                     print("-- " + "WARNING: " + line + ".")
                 return {}
 
@@ -500,8 +494,8 @@ class Bundle:
                         history[rel].append(ker_collection_lbl)
 
                         with open(
-                                bundle_object.setup.bundle_directory
-                                + f"/{bundle_object.setup.mission_acronym}_spice/"
+                                self.setup.bundle_directory
+                                + f"/{self.setup.mission_acronym}_spice/"
                                 + ker_collection,
                             "r",
                         ) as c:
@@ -635,8 +629,8 @@ class Bundle:
                         )
 
                         if os.path.exists(
-                                bundle_object.setup.bundle_directory
-                                + f"/{bundle_object.setup.mission_acronym}_spice/"
+                                self.setup.bundle_directory
+                                + f"/{self.setup.mission_acronym}_spice/"
                                 + mis_collection
                         ):
                             history[rel].append(mis_collection)
@@ -648,8 +642,8 @@ class Bundle:
                             history[rel].append(mis_collection_lbl)
 
                             with open(
-                                    bundle_object.setup.bundle_directory
-                                    + f"/{bundle_object.setup.mission_acronym}_spice/"
+                                    self.setup.bundle_directory
+                                    + f"/{self.setup.mission_acronym}_spice/"
                                     + mis_collection,
                                 "r",
                             ) as c:
@@ -700,8 +694,8 @@ class Bundle:
                         history[rel].append(doc_collection_lbl)
 
                         with open(
-                                bundle_object.setup.bundle_directory
-                                + f"/{bundle_object.setup.mission_acronym}_spice/"
+                                self.setup.bundle_directory
+                                + f"/{self.setup.mission_acronym}_spice/"
                                 + doc_collection,
                             "r",
                         ) as c:
@@ -771,7 +765,7 @@ class Bundle:
         logging.info("-- Display the list of files that belong to each release.")
         logging.info("")
 
-        history = self._get_history(self)
+        history = self._get_history()
         if history:
             history_string = pprint.pformat(history, indent=2)
             for line in history_string.split("\n"):
