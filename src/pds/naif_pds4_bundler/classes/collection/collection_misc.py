@@ -26,6 +26,12 @@ class MiscellaneousCollection(Collection):
 
         super().__init__(self.type, setup, bundle)
 
+    @property
+    def kind(self) -> str:
+        """Type of PDS Miscellaneous Collection.
+        """
+        return self.type
+
     def report(self):
         """Report the Collection generation step."""
         line = f"Step {self.setup.step} - Generation of {self.type} collection"
