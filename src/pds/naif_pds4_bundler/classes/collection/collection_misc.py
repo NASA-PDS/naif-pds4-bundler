@@ -1,6 +1,4 @@
 """Implementation of the PDS4 Miscellaneous Collection Class."""
-import logging
-
 from .collection import Collection
 
 
@@ -31,14 +29,3 @@ class MiscellaneousCollection(Collection):
         """Type of PDS Miscellaneous Collection.
         """
         return self.type
-
-    def report(self):
-        """Report the Collection generation step."""
-        line = f"Step {self.setup.step} - Generation of {self.type} collection"
-        logging.info("")
-        logging.info(line)
-        logging.info("-" * len(line))
-        logging.info("")
-        self.setup.step += 1
-        if not self.setup.args.silent and not self.setup.args.verbose:
-            print("-- " + line.split(" - ")[-1] + ".")
