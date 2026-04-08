@@ -385,6 +385,37 @@ class Bundle:
 
         return versions
 
+    def _get_document_collection_products(self, ver: int) -> list[str]:
+        """Return all product paths belonging to a document collection.
+
+        Reads the collection inventory CSV present within the ``document``
+        subdirectory of the bundle's root path and returns the relative paths
+        for every primary document product (versioned .html) and its XML label,
+        plus the collection inventory CSV and label files.
+
+        :param ver: collection version number
+        :returns: list of relative product path strings
+        """
+        products = [
+            f"document/collection_document_inventory_v{ver:03d}.csv",
+            f"document/collection_document_v{ver:03d}.xml",
+        ]
+
+        # The relative path of the collection's inventory CVS file is the first
+        # product in the products' list. Read it, and extract all primary
+        # document products.
+        with Path(self._bundle_root, products[0]).open("rt") as handle:
+            for line in handle:
+                if "P" in line:
+                    product = (
+                        f'document/{line.split(":")[5].replace("_", "/", 1)}_'
+                        f'v{ver:03d}.html'
+                    )
+                    products.append(product)
+                    products.append(product.replace(".html", ".xml"))
+
+        return products
+
     def _get_history(self) -> dict:
         """This method builds the "Archive History".
 
@@ -639,40 +670,13 @@ class Bundle:
 
             # --- Document collection -----------------------------------------
             # The document collection to be included in the release needs to be
-            # sorted out by from the bundle label, that indicates the
-            # version of the document selection.
-            #
-            for rel_doc in versions['document']:
-                if rel_doc != doc_col_ver:
-                    ver = rel_doc
-                    doc_collection = (
-                        f"document/collection_document_inventory_v{ver:03d}.csv"
+            # sorted out from the bundle label, that indicates the version of
+            # the document selection.
+            for ver in versions['document']:
+                if ver != doc_col_ver:
+                    history[rel].extend(
+                        self._get_document_collection_products(ver)
                     )
-                    history[rel].append(doc_collection)
-
-                    doc_collection_lbl = (
-                        f"document/collection_document_v{ver:03d}.xml"
-                    )
-                    history[rel].append(doc_collection_lbl)
-
-                    with open(
-                            self.setup.bundle_directory
-                            + f"/{self.setup.mission_acronym}_spice/"
-                            + doc_collection,
-                        "r",
-                    ) as c:
-                        for line in c:
-                            if "P" in line:
-                                product = (
-                                    f"document/"
-                                    f'{line.split(":")[5].replace("_", "/", 1)}_'
-                                    f"v{ver:03d}.html"
-                                )
-                                history[rel].append(product)
-                                history[rel].append(
-                                    product.replace(".html", ".xml")
-                                )
-
                     doc_col_ver = ver
 
         # Perform a simple check of duplicate elements.
