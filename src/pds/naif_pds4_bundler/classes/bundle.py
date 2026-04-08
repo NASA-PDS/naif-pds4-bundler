@@ -348,6 +348,43 @@ class Bundle:
                 "are incoherent."
             )
 
+    @staticmethod
+    def _get_collection_versions_from_label(label: dict) -> dict[str, list[int]]:
+        """Extract per-collection version numbers from a parsed bundle label.
+
+        :param label: dict returned by :meth:`_read_bundle_label`
+
+        :returns:  a dict with three keys — ``"kernels"``, ``"document"``,
+                   ``"miscellaneous"`` — each mapping to a (possibly empty)
+                   list of integer version numbers found among the Primary
+                   ``Bundle_Member_Entry`` items in ``label``:
+
+                   ``{"kernels": [...], "document": [...], "miscellaneous": [...]}``
+        """
+        prefix = label["prefix"]
+        versions = {
+            "kernels": [],
+            "document": [],
+            "miscellaneous": [],
+        }
+
+        for member in label["members"]:
+            if member[f"{prefix}member_status"] != "Primary":
+                continue
+            lidvid = member[f"{prefix}lidvid_reference"]
+
+            if "spice:spice_kernels::" in lidvid:
+                ver = int(lidvid.split("spice:spice_kernels::")[-1].split(".0")[0])
+                versions["kernels"].append(ver)
+            elif "spice:document::" in lidvid:
+                ver = int(lidvid.split("spice:document::")[-1].split(".0")[0])
+                versions["document"].append(ver)
+            elif "spice:miscellaneous::" in lidvid:
+                ver = int(lidvid.split("spice:miscellaneous::")[-1].split(".0")[0])
+                versions["miscellaneous"].append(ver)
+
+        return versions
+
     def _get_history(self) -> dict:
         """This method builds the "Archive History".
 
@@ -373,23 +410,13 @@ class Bundle:
         if not self.collections:
             number_of_releases -= 1
 
+        # Track the most recently seen version of each collection so we can
+        # detect when a new version is introduced in a later release.
         ker_col_ver = 0
         doc_col_ver = 0
         mis_col_ver = 0
 
-        #
-        # The version extracted from the labels is initialized because the
-        # collections might not be present or might be present multiple times.
-        #
-        rel_ker_col_ver = []
-        rel_doc_col_ver = []
-        rel_mis_col_ver = []
-
-        #
-        # Initialize the history dictionary.
-        #
         history = {}
-
         for rel in range(1, number_of_releases + 1):
             history[rel] = []
 
@@ -404,29 +431,11 @@ class Bundle:
 
             history[rel].append(label['filename'])
 
-            # Extract spice_kernels, miscellaneous, and document collection
-            # of the release.
-            for member in label['members']:
-                if member[f"{label['prefix']}member_status"] == "Primary":
-                    lidvid = member[f"{label['prefix']}lidvid_reference"]
-                    if "spice:spice_kernels::" in lidvid:
-                        rel_ker_col_ver.append(
-                            int(
-                                lidvid.split("spice:spice_kernels::")[-1].split(".0")[0]
-                            )
-                        )
-                    elif "spice:document::" in lidvid:
-                        rel_doc_col_ver.append(
-                            int(lidvid.split("spice:document::")[-1].split(".0")[0])
-                        )
-                    elif "spice:miscellaneous::" in lidvid:
-                        rel_mis_col_ver.append(
-                            int(
-                                lidvid.split("spice:miscellaneous::")[-1].split(".0")[0]
-                            )
-                        )
+            # Extract the version for the spice_kernels, miscellaneous, and
+            # document collection of the release.
+            versions = self._get_collection_versions_from_label(label)
 
-            #
+            # --- Kernel collection -------------------------------------------
             # The SPICE Kernels collection inventory should have the same number
             # of files; the kernels that correspond to each release will be
             # determined from the inventories.
@@ -434,247 +443,237 @@ class Bundle:
             # If the kernel collection version is not equal to the one in
             # the release, then we add the kernels of the collection.
             #
-            if rel_ker_col_ver:
-                for rel_ker in rel_ker_col_ver:
-                    if rel_ker != ker_col_ver:
-                        ver = rel_ker
-                        ker_collection = (
-                            f"spice_kernels/"
-                            f"collection_spice_kernels_inventory_v{ver:03d}.csv"
-                        )
-                        history[rel].append(ker_collection)
+            for rel_ker in versions['kernels']:
+                if rel_ker != ker_col_ver:
+                    ver = rel_ker
+                    ker_collection = (
+                        f"spice_kernels/"
+                        f"collection_spice_kernels_inventory_v{ver:03d}.csv"
+                    )
+                    history[rel].append(ker_collection)
 
-                        ker_collection_lbl = (
-                            f"spice_kernels/collection_spice_kernels_v{ver:03d}.xml"
+                    ker_collection_lbl = (
+                        f"spice_kernels/collection_spice_kernels_v{ver:03d}.xml"
+                    )
+                    history[rel].append(ker_collection_lbl)
+
+                    with open(
+                            self.setup.bundle_directory
+                            + f"/{self.setup.mission_acronym}_spice/"
+                            + ker_collection,
+                        "r",
+                    ) as c:
+                        for line in c:
+
+                            if ("P" in line) and (":mk_" not in line):
+                                product = (
+                                    f"spice_kernels/"
+                                    f'{line.split(":")[5].replace("_", "/", 1)}'
+                                )
+                                history[rel].append(product)
+
+                                ext = product.split(".")[-1]
+                                lbl = product.replace("." + ext, ".xml")
+
+                                history[rel].append(lbl)
+
+                            elif ("P" in line) and (":mk_" in line):
+                                mk_ver = line.split("::")[-1]
+                                mk_ver = int(mk_ver.split(".")[0])
+
+                                #
+                                # The meta-kernel version scheme can consist of 2 or
+                                # 3 digits. It needs to be determined from
+                                # configuration. All meta-kernels must have the same
+                                # number of digits in the version field.
+                                #
+                                if hasattr(self.setup, "mk"):
+                                    for pattern in self.setup.mk[0]["name"]:
+                                        if not isinstance(pattern, list):
+                                            pattern = [pattern]
+                                        for pattern_word in pattern:
+                                            pattern_key = pattern_word["pattern"]
+                                            if not isinstance(pattern_key, list):
+                                                pattern_key = [pattern_key]
+                                            for key in pattern_key:
+                                                if key["#text"] == "VERSION":
+                                                    version_length = int(
+                                                        key["@length"]
+                                                    )
+                                                    if version_length == 1:
+                                                        product = (
+                                                            f"spice_kernels/"
+                                                            f'{line.split(":")[5].replace("_", "/", 1)}_'
+                                                            f"v{mk_ver:01d}.tm"
+                                                        )
+                                                    elif version_length == 2:
+                                                        product = (
+                                                            f"spice_kernels/"
+                                                            f'{line.split(":")[5].replace("_", "/", 1)}_'
+                                                            f"v{mk_ver:02d}.tm"
+                                                        )
+                                                    elif version_length == 3:
+                                                        product = (
+                                                            f"spice_kernels/"
+                                                            f'{line.split(":")[5].replace("_", "/", 1)}_'
+                                                            f"v{mk_ver:03d}.tm"
+                                                        )
+                                                    else:
+                                                        handle_npb_error(
+                                                            f"Meta-kernel version "
+                                                            f"length of {version_length}"
+                                                            f"digits is incorrect."
+                                                        )
+
+                                                    history[rel].append(product)
+                                                    history[rel].append(
+                                                        product.replace(
+                                                            ".tm", ".xml"
+                                                        )
+                                                    )
+
+                                                    break
+
+                                elif hasattr(self.setup, "mk_inputs"):
+                                    #
+                                    # Try to derive the digits from the MK input.
+                                    #
+                                    if isinstance(self.setup.mk_inputs, dict):
+                                        mk_names = self.setup.mk_inputs["file"]
+                                    if not isinstance(mk_names, list):
+                                        mk_names = [mk_names]
+
+                                    for mk in mk_names:
+                                        product = mk
+
+                                        product = product.split(os.sep)[-1]
+                                        product = f"spice_kernels/mk/{product}"
+
+                                        if product not in history[rel]:
+                                            history[rel].append(product)
+                                            history[rel].append(
+                                                product.replace(".tm", ".xml")
+                                            )
+                                else:
+                                    #
+                                    # Default to 2. Might trigger an error.
+                                    #
+                                    logging.warning(
+                                        "MK version for history defaulted to version with 2 digits. Might raise an "
+                                        "exception."
+                                    )
+
+                                    #
+                                    # Only three version formats are implemented.
+                                    #
+                                    product = (
+                                        f"spice_kernels/"
+                                        f'{line.split(":")[5].replace("_", "/", 1)}_'
+                                        f"v{mk_ver:02d}.tm"
+                                    )
+                                    history[rel].append(product)
+                                    history[rel].append(
+                                        product.replace(".tm", ".xml")
+                                    )
+
+                    ker_col_ver = ver
+
+            # --- Miscellaneous collection -------------------------------------
+            # The Miscellaneous collection, if present, should have the same
+            # number of files.
+            #
+            for rel_misc in versions['miscellaneous']:
+                if rel_misc != mis_col_ver:
+                    ver = rel_misc
+
+                    mis_collection = (
+                        f"miscellaneous/"
+                        f"collection_miscellaneous_inventory_v{rel_misc:03d}.csv"
+                    )
+
+                    if os.path.exists(
+                            self.setup.bundle_directory
+                            + f"/{self.setup.mission_acronym}_spice/"
+                            + mis_collection
+                    ):
+                        history[rel].append(mis_collection)
+
+                        mis_collection_lbl = (
+                            f"miscellaneous/"
+                            f"collection_miscellaneous_v{rel_misc:03d}.xml"
                         )
-                        history[rel].append(ker_collection_lbl)
+                        history[rel].append(mis_collection_lbl)
 
                         with open(
                                 self.setup.bundle_directory
                                 + f"/{self.setup.mission_acronym}_spice/"
-                                + ker_collection,
+                                + mis_collection,
                             "r",
                         ) as c:
                             for line in c:
-
-                                if ("P" in line) and (":mk_" not in line):
+                                if ("P" in line) and (":checksum_" not in line):
                                     product = (
-                                        f"spice_kernels/"
+                                        f"miscellaneous/"
                                         f'{line.split(":")[5].replace("_", "/", 1)}'
                                     )
                                     history[rel].append(product)
+                                    orbnum_extension = f'.{product.split(".")[-1]}'
+                                    history[rel].append(
+                                        product.replace(orbnum_extension, ".xml")
+                                    )
 
-                                    ext = product.split(".")[-1]
-                                    lbl = product.replace("." + ext, ".xml")
+                                elif ("P" in line) and (":checksum_" in line):
+                                    product_name = line.split(":")[5].replace(
+                                        "_", "/", 1
+                                    )
+                                    product = (
+                                        f"miscellaneous/"
+                                        f"{product_name}_v{rel_misc:03d}.tab"
+                                    )
+                                    history[rel].append(product)
+                                    history[rel].append(
+                                        product.replace(".tab", ".xml")
+                                    )
 
-                                    history[rel].append(lbl)
+                    mis_col_ver = ver
 
-                                elif ("P" in line) and (":mk_" in line):
-                                    mk_ver = line.split("::")[-1]
-                                    mk_ver = int(mk_ver.split(".")[0])
-
-                                    #
-                                    # The meta-kernel version scheme can consist of 2 or
-                                    # 3 digits. It needs to be determined from
-                                    # configuration. All meta-kernels must have the same
-                                    # number of digits in the version field.
-                                    #
-                                    if hasattr(self.setup, "mk"):
-                                        for pattern in self.setup.mk[0]["name"]:
-                                            if not isinstance(pattern, list):
-                                                pattern = [pattern]
-                                            for pattern_word in pattern:
-                                                pattern_key = pattern_word["pattern"]
-                                                if not isinstance(pattern_key, list):
-                                                    pattern_key = [pattern_key]
-                                                for key in pattern_key:
-                                                    if key["#text"] == "VERSION":
-                                                        version_length = int(
-                                                            key["@length"]
-                                                        )
-                                                        if version_length == 1:
-                                                            product = (
-                                                                f"spice_kernels/"
-                                                                f'{line.split(":")[5].replace("_", "/", 1)}_'
-                                                                f"v{mk_ver:01d}.tm"
-                                                            )
-                                                        elif version_length == 2:
-                                                            product = (
-                                                                f"spice_kernels/"
-                                                                f'{line.split(":")[5].replace("_", "/", 1)}_'
-                                                                f"v{mk_ver:02d}.tm"
-                                                            )
-                                                        elif version_length == 3:
-                                                            product = (
-                                                                f"spice_kernels/"
-                                                                f'{line.split(":")[5].replace("_", "/", 1)}_'
-                                                                f"v{mk_ver:03d}.tm"
-                                                            )
-                                                        else:
-                                                            handle_npb_error(
-                                                                f"Meta-kernel version "
-                                                                f"length of {version_length}"
-                                                                f"digits is incorrect."
-                                                            )
-
-                                                        history[rel].append(product)
-                                                        history[rel].append(
-                                                            product.replace(
-                                                                ".tm", ".xml"
-                                                            )
-                                                        )
-
-                                                        break
-
-                                    elif hasattr(self.setup, "mk_inputs"):
-                                        #
-                                        # Try to derive the digits from the MK input.
-                                        #
-                                        if isinstance(self.setup.mk_inputs, dict):
-                                            mk_names = self.setup.mk_inputs["file"]
-                                        if not isinstance(mk_names, list):
-                                            mk_names = [mk_names]
-
-                                        for mk in mk_names:
-                                            product = mk
-
-                                            product = product.split(os.sep)[-1]
-                                            product = f"spice_kernels/mk/{product}"
-
-                                            if product not in history[rel]:
-                                                history[rel].append(product)
-                                                history[rel].append(
-                                                    product.replace(".tm", ".xml")
-                                                )
-                                    else:
-                                        #
-                                        # Default to 2. Might trigger an error.
-                                        #
-                                        logging.warning(
-                                            "MK version for history defaulted to version with 2 digits. Might raise an "
-                                            "exception."
-                                        )
-
-                                        #
-                                        # Only three version formats are implemented.
-                                        #
-                                        product = (
-                                            f"spice_kernels/"
-                                            f'{line.split(":")[5].replace("_", "/", 1)}_'
-                                            f"v{mk_ver:02d}.tm"
-                                        )
-                                        history[rel].append(product)
-                                        history[rel].append(
-                                            product.replace(".tm", ".xml")
-                                        )
-
-                        ker_col_ver = ver
-
-            #
-            # The Miscellaneous collection, if present, should have the same
-            # number of files.
-            #
-            if rel_mis_col_ver:
-                for rel_misc in rel_mis_col_ver:
-                    if rel_misc != mis_col_ver:
-                        ver = rel_misc
-
-                        mis_collection = (
-                            f"miscellaneous/"
-                            f"collection_miscellaneous_inventory_v{rel_misc:03d}.csv"
-                        )
-
-                        if os.path.exists(
-                                self.setup.bundle_directory
-                                + f"/{self.setup.mission_acronym}_spice/"
-                                + mis_collection
-                        ):
-                            history[rel].append(mis_collection)
-
-                            mis_collection_lbl = (
-                                f"miscellaneous/"
-                                f"collection_miscellaneous_v{rel_misc:03d}.xml"
-                            )
-                            history[rel].append(mis_collection_lbl)
-
-                            with open(
-                                    self.setup.bundle_directory
-                                    + f"/{self.setup.mission_acronym}_spice/"
-                                    + mis_collection,
-                                "r",
-                            ) as c:
-                                for line in c:
-                                    if ("P" in line) and (":checksum_" not in line):
-                                        product = (
-                                            f"miscellaneous/"
-                                            f'{line.split(":")[5].replace("_", "/", 1)}'
-                                        )
-                                        history[rel].append(product)
-                                        orbnum_extension = f'.{product.split(".")[-1]}'
-                                        history[rel].append(
-                                            product.replace(orbnum_extension, ".xml")
-                                        )
-
-                                    elif ("P" in line) and (":checksum_" in line):
-                                        product_name = line.split(":")[5].replace(
-                                            "_", "/", 1
-                                        )
-                                        product = (
-                                            f"miscellaneous/"
-                                            f"{product_name}_v{rel_misc:03d}.tab"
-                                        )
-                                        history[rel].append(product)
-                                        history[rel].append(
-                                            product.replace(".tab", ".xml")
-                                        )
-
-                        mis_col_ver = ver
-
-            #
+            # --- Document collection -----------------------------------------
             # The document collection to be included in the release needs to be
             # sorted out by from the bundle label, that indicates the
             # version of the document selection.
             #
-            if rel_doc_col_ver:
-                for rel_doc in rel_doc_col_ver:
-                    if rel_doc != doc_col_ver:
-                        ver = rel_doc
-                        doc_collection = (
-                            f"document/collection_document_inventory_v{ver:03d}.csv"
-                        )
-                        history[rel].append(doc_collection)
+            for rel_doc in versions['document']:
+                if rel_doc != doc_col_ver:
+                    ver = rel_doc
+                    doc_collection = (
+                        f"document/collection_document_inventory_v{ver:03d}.csv"
+                    )
+                    history[rel].append(doc_collection)
 
-                        doc_collection_lbl = (
-                            f"document/collection_document_v{ver:03d}.xml"
-                        )
-                        history[rel].append(doc_collection_lbl)
+                    doc_collection_lbl = (
+                        f"document/collection_document_v{ver:03d}.xml"
+                    )
+                    history[rel].append(doc_collection_lbl)
 
-                        with open(
-                                self.setup.bundle_directory
-                                + f"/{self.setup.mission_acronym}_spice/"
-                                + doc_collection,
-                            "r",
-                        ) as c:
-                            for line in c:
-                                if "P" in line:
-                                    product = (
-                                        f"document/"
-                                        f'{line.split(":")[5].replace("_", "/", 1)}_'
-                                        f"v{ver:03d}.html"
-                                    )
-                                    history[rel].append(product)
-                                    history[rel].append(
-                                        product.replace(".html", ".xml")
-                                    )
+                    with open(
+                            self.setup.bundle_directory
+                            + f"/{self.setup.mission_acronym}_spice/"
+                            + doc_collection,
+                        "r",
+                    ) as c:
+                        for line in c:
+                            if "P" in line:
+                                product = (
+                                    f"document/"
+                                    f'{line.split(":")[5].replace("_", "/", 1)}_'
+                                    f"v{ver:03d}.html"
+                                )
+                                history[rel].append(product)
+                                history[rel].append(
+                                    product.replace(".html", ".xml")
+                                )
 
-                        doc_col_ver = ver
-
-            #
-            # Reset the list after each iteration.
-            #
-            rel_ker_col_ver = []
-            rel_doc_col_ver = []
-            rel_mis_col_ver = []
+                    doc_col_ver = ver
 
         # Perform a simple check of duplicate elements.
         all_products = [f for release in history.values() for f in release]
