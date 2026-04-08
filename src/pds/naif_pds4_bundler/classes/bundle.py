@@ -544,12 +544,10 @@ class Bundle:
                     # Meta-kernel: version formatting is configuration-dependent
                     mk_ver = int(line.split("::")[-1].split(".")[0])
 
-                    #
-                    # The meta-kernel version scheme can consist of 2 or
-                    # 3 digits. It needs to be determined from
-                    # configuration. All meta-kernels must have the same
-                    # number of digits in the version field.
-                    #
+                    # The meta-kernel version scheme can consist of 2 or 3
+                    # digits. It needs to be determined from configuration. All
+                    # meta-kernels must have the same number of digits in the
+                    # version field.
                     if hasattr(self.setup, "mk"):
                         for pattern in self.setup.mk[0]["name"]:
                             if not isinstance(pattern, list):
@@ -597,48 +595,47 @@ class Bundle:
                                         break
 
                     elif hasattr(self.setup, "mk_inputs"):
-                        #
                         # Try to derive the digits from the MK input.
-                        #
-                        if isinstance(self.setup.mk_inputs, dict):
-                            mk_names = self.setup.mk_inputs["file"]
-                        if not isinstance(mk_names, list):
-                            mk_names = [mk_names]
-
-                        for mk in mk_names:
-                            product = mk
-
-                            product = product.split(os.sep)[-1]
-                            product = f"spice_kernels/mk/{product}"
-
+                        for product in self._get_metakernel_products_from_inputs():
                             if product not in products:
                                 products.append(product)
-                                products.append(
-                                    product.replace(".tm", ".xml")
-                                )
+                                products.append(product.replace(".tm", ".xml"))
+
                     else:
-                        #
+                        # Only three version formats are implemented.
+                        product = (
+                            f'spice_kernels/{line.split(":")[5].replace("_", "/", 1)}_'
+                            f"v{mk_ver:02d}.tm"
+                        )
+                        products.append(product)
+                        products.append(product.replace(".tm", ".xml"))
+
                         # Default to 2. Might trigger an error.
-                        #
                         logging.warning(
                             "MK version for history defaulted to version with 2 digits. Might raise an "
                             "exception."
                         )
 
-                        #
-                        # Only three version formats are implemented.
-                        #
-                        product = (
-                            f"spice_kernels/"
-                            f'{line.split(":")[5].replace("_", "/", 1)}_'
-                            f"v{mk_ver:02d}.tm"
-                        )
-                        products.append(product)
-                        products.append(
-                            product.replace(".tm", ".xml")
-                        )
-
         return products
+
+    def _get_metakernel_products_from_inputs(self) -> list[str]:
+        """Return MetaKernel product paths derived from ``setup.mk_inputs``.
+
+        Used as a fallback when ``setup.mk`` is not available and the MK
+        version digits must be inferred from the input file list instead.
+
+        :returns: list of relative product paths (e.g.
+                  ``["spice_kernels/mk/insight_v01.tm"]``)
+        """
+        mk_names = self.setup.mk_inputs
+        if isinstance(self.setup.mk_inputs, dict):
+            mk_names = mk_names["file"]
+        if not isinstance(mk_names, list):
+            mk_names = [mk_names]
+
+        return [f"spice_kernels/mk/{product.split(os.sep)[-1]}"
+                for product in mk_names]
+
 
     def _get_misc_collection_products(self, ver: int) -> list[str]:
         """Return all product paths belonging to a miscellaneous collection.
