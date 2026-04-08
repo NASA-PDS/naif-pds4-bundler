@@ -140,6 +140,8 @@ def _make_bundle(setup, vid: str, name: str, collections=None) -> Bundle:
     bundle.collections = collections if collections is not None else []
     bundle._new_files = []
     bundle._readme = None
+    bundle._bundle_root = Path(setup.bundle_directory) / f"{setup.mission_acronym}_spice"
+
     return bundle
 
 

@@ -37,6 +37,8 @@ class Bundle:
 
     def __init__(self, setup) -> None:
         """Constructor."""
+        self._bundle_root = Path(setup.bundle_directory,
+                                 f"{setup.mission_acronym}_spice")
         self._new_files = []
         self._readme = None
 
@@ -359,19 +361,15 @@ class Bundle:
 
         The method checks whether if there is any duplicated element.
         """
-        #
         # Determine the number of previous releases.
         #
         # The number of previous releases is obtained from the number/version
         # of Bundle labels. That information is already known as it is
         # specified by the bundle vid.
-        #
         number_of_releases = int(self._vid.split(".")[0])
 
-        #
-        # If the pipeline has not yet been executed, the current
-        # version is subtracted.
-        #
+        # When the pipeline has not yet run, the in-progress release does not
+        # yet have a label on disk, so we only reconstruct completed releases.
         if not self.collections:
             number_of_releases -= 1
 
@@ -399,60 +397,18 @@ class Bundle:
             # Append the readme file in the first release.
             #
             if rel == 1:
-                history[rel].append("readme.txt")
+                history[rel].append('readme.txt')
 
-            bundle_label = f"{self.name[:-7]}{rel:03d}.xml"
-            bundle_label_path = (
-                    self.setup.bundle_directory
-                    + f"/{self.setup.mission_acronym}_spice/"
-                    + bundle_label
-            )
-
-            #
-            # Check if the bundle label for the release exists, if not, signal
-            # a warning but do not throw an exception.
-            #
-            if not os.path.isfile(bundle_label_path):
-                line = (
-                    "Files from previous releases not available "
-                    "to generate Bundle history"
-                )
-                logging.warning(f"-- {line}.")
-                if not self.setup.args.silent and not self.setup.args.verbose:
-                    print("-- " + "WARNING: " + line + ".")
+            if not (label := self._read_bundle_label(rel)):
                 return {}
 
-            history[rel].append(bundle_label)
+            history[rel].append(label['filename'])
 
-            #
-            # Reading XML label file into a dictionary.
-            #
-            # The bundle label provides the version of the collections present
-            # in the bundle and if they have been updated/generated for
-            # the current release.
-            #
-            # Converting XML setup file into a dictionary and then into
-            # attributes for the object.
-            #
-            bundle_lbl = Path(bundle_label_path).read_text()
-            entries = etree_to_dict(ElementTree.XML(bundle_lbl))
-
-            #
-            # The resulting dictionary element names are prefixed with:
-            # 'http://pds.nasa.gov/pds4/pds/v1http://pds.nasa.gov/pds4/pds/v1',
-            # which is the URL of the XML model.
-            #
-            prefix = "{" + "/".join(self.setup.xml_model.split("/")[0:-1]) + "}"
-
-            members = entries[f"{prefix}Product_Bundle"][f"{prefix}Bundle_Member_Entry"]
-
-            #
             # Extract spice_kernels, miscellaneous, and document collection
             # of the release.
-            #
-            for member in members:
-                if member[f"{prefix}member_status"] == "Primary":
-                    lidvid = member[f"{prefix}lidvid_reference"]
+            for member in label['members']:
+                if member[f"{label['prefix']}member_status"] == "Primary":
+                    lidvid = member[f"{label['prefix']}lidvid_reference"]
                     if "spice:spice_kernels::" in lidvid:
                         rel_ker_col_ver.append(
                             int(
@@ -720,18 +676,59 @@ class Bundle:
             rel_doc_col_ver = []
             rel_mis_col_ver = []
 
-        #
         # Perform a simple check of duplicate elements.
-        #
-        all_products = []
-        for release in history.values():
-            all_products += release
-        duplicates = check_list_duplicates(all_products)
-
-        if duplicates:
+        all_products = [f for release in history.values() for f in release]
+        if check_list_duplicates(all_products):
             logging.warning("-- Bundle History contains duplicates.")
 
         return history
+
+    def _read_bundle_label(self, rel: int) -> dict | None:
+        """Parse a single bundle label XML file into a dict.
+
+        A ``WARNING`` is logged and, unless running in silent/verbose mode,
+        printed to stdout when the file is absent.
+
+        :param rel: integer release number (1-based)
+        :returns: parsed label dict, or ``None`` when the label file
+                  for release ``rel`` does not exist on disk.
+        """
+        bundle_label = f"{self.name[:-7]}{rel:03d}.xml"
+        bundle_label_path = self._bundle_root / bundle_label
+
+        if not bundle_label_path.is_file():
+            msg = "Files from previous releases not available to generate Bundle history."
+            logging.warning(f"-- {msg}")
+            if not self.setup.args.silent and not self.setup.args.verbose:
+                print(f"-- WARNING: {msg}")
+            return None
+
+        # Read the XML label file into a dictionary.
+        #
+        # The bundle label provides the version of the collections present
+        # in the bundle and if they have been updated/generated for
+        # the current release.
+        entries = etree_to_dict(ElementTree.XML(bundle_label_path.read_text()))
+
+        # The resulting dictionary element names are prefixed with
+        # the URL of the XML model, e.g.
+        #    'http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1',
+        prefix = "{" + "/".join(self.setup.xml_model.split("/")[0:-1]) + "}"
+
+        members = entries[f"{prefix}Product_Bundle"][f"{prefix}Bundle_Member_Entry"]
+
+        # TODO: Would this actually simplify the code afterwards.
+        # etree_to_dict returns a plain dict when there is only one
+        # Bundle_Member_Entry child and a list when there are multiple.
+        # Normalize to a list so callers never need to handle both cases.
+        # if isinstance(members_raw, dict):
+        #     members_raw = [members_raw]
+
+        return {
+            "filename": bundle_label,
+            "prefix": prefix,
+            "members": members
+        }
 
     def _validate_history(self):
         """Validate the bundle updated history with the checksum files.
