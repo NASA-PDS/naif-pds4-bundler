@@ -549,50 +549,9 @@ class Bundle:
                     # meta-kernels must have the same number of digits in the
                     # version field.
                     if hasattr(self.setup, "mk"):
-                        for pattern in self.setup.mk[0]["name"]:
-                            if not isinstance(pattern, list):
-                                pattern = [pattern]
-                            for pattern_word in pattern:
-                                pattern_key = pattern_word["pattern"]
-                                if not isinstance(pattern_key, list):
-                                    pattern_key = [pattern_key]
-                                for key in pattern_key:
-                                    if key["#text"] == "VERSION":
-                                        version_length = int(
-                                            key["@length"]
-                                        )
-                                        if version_length == 1:
-                                            product = (
-                                                f"spice_kernels/"
-                                                f'{line.split(":")[5].replace("_", "/", 1)}_'
-                                                f"v{mk_ver:01d}.tm"
-                                            )
-                                        elif version_length == 2:
-                                            product = (
-                                                f"spice_kernels/"
-                                                f'{line.split(":")[5].replace("_", "/", 1)}_'
-                                                f"v{mk_ver:02d}.tm"
-                                            )
-                                        elif version_length == 3:
-                                            product = (
-                                                f"spice_kernels/"
-                                                f'{line.split(":")[5].replace("_", "/", 1)}_'
-                                                f"v{mk_ver:03d}.tm"
-                                            )
-                                        else:
-                                            handle_npb_error(
-                                                f"Meta-kernel version "
-                                                f"length of {version_length}"
-                                                f"digits is incorrect."
-                                            )
-
-                                        products.append(product)
-                                        products.append(
-                                            product.replace(
-                                                ".tm", ".xml"
-                                            )
-                                        )
-                                        break
+                        product = self._get_metakernel_product_from_config(mk_ver, line)
+                        products.append(product)
+                        products.append(product.replace(".tm", ".xml"))
 
                     elif hasattr(self.setup, "mk_inputs"):
                         # Try to derive the digits from the MK input.
@@ -618,6 +577,47 @@ class Bundle:
 
         return products
 
+    def _get_metakernel_product_from_config(self, ver: int, line: str) -> str:
+        """Construct the meta-kernel product path for a given MK version number
+        using the information provided in the XML configuration file.
+
+        The version field in MK filenames may be 1, 2, or 3 digits wide. The
+        width is resolved in priority order, using the data provided in the
+        ``setup.mk`` configuration — reads ``VERSION/@length`` from the
+        name-pattern definition.
+
+        :param ver:  integer version number parsed from the inventory LIDVID
+        :param line: the raw CSV inventory line (used to extract the base
+                     product name)
+        :returns: relative product path string, e.g.
+                 ``"spice_kernels/mk/insight_v01.tm"``
+        """
+        base = f"spice_kernels/{line.split(':')[5].replace('_', '/', 1)}_"
+
+        for pattern in self.setup.mk[0]["name"]:
+            if not isinstance(pattern, list):
+                pattern = [pattern]
+            for pattern_word in pattern:
+                pattern_key = pattern_word["pattern"]
+                if not isinstance(pattern_key, list):
+                    pattern_key = [pattern_key]
+                for key in pattern_key:
+                    if key["#text"] == "VERSION":
+                        version_length = int(key["@length"])
+                        if version_length in (1,2,3):
+                            return f'{base}v{ver:0{version_length}d}.tm'
+
+                        # At this point, we have an issue with the setup configuration.
+                        # TODO: Perform these checks elsewhere, probably at setup loading.
+                        #       Maybe it is worth using a "derived" attribute similar to
+                        #       "version_length".
+                        handle_npb_error(
+                            f"Meta-kernel version length of {version_length}"
+                            "digits is incorrect.")
+
+        # Default to two digits.
+        return f"{base}v{ver:02d}.tm"
+
     def _get_metakernel_products_from_inputs(self) -> list[str]:
         """Return MetaKernel product paths derived from ``setup.mk_inputs``.
 
@@ -635,7 +635,6 @@ class Bundle:
 
         return [f"spice_kernels/mk/{product.split(os.sep)[-1]}"
                 for product in mk_names]
-
 
     def _get_misc_collection_products(self, ver: int) -> list[str]:
         """Return all product paths belonging to a miscellaneous collection.
