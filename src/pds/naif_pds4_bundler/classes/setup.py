@@ -29,7 +29,7 @@ class Setup:
     :type version: str
     """
 
-    def __init__(self, args, version: str) -> object:
+    def __init__(self, args, version: str) -> None:
         """Constructor."""
         try:
             #
