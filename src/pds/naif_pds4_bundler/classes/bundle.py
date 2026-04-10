@@ -31,7 +31,7 @@ class Bundle:
     :param setup: NPB execution Setup
     """
 
-    def __init__(self, setup) -> object:
+    def __init__(self, setup) -> None:
         """Constructor."""
         line = (
             f"Step {setup.step} - Bundle/data set structure generation "
