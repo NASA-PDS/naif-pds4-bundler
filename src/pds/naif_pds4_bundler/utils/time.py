@@ -288,42 +288,36 @@ def dsk_coverage(path, date_format="infomod2", system="UTC"):
     :return: start and finish coverage
     :rtype: list of str
     """
-    found = True
     beget = []
     endet = []
 
-    #
     # Open the DSK file.
-    #
     handle = spiceypy.dasopr(path)
 
-    #
-    # Search the first segment in the file, obtain the segment's DLA
-    # descriptor
-    #
-    nxtdsc = spiceypy.dlabfs(handle)
-    dladsc = nxtdsc
+    try:
+        # Search the first segment in the file, obtain the segment's DLA
+        # descriptor.
+        dladsc = spiceypy.dlabfs(handle)
 
-    #
-    #  Loop through segments to get the earliest starting epoch and the
-    #  latest ending epoch.
-    #
-    while found:
-        dskdsc = spiceypy.dskgd(handle, dladsc)
+        #  Loop through segments to get the earliest starting epoch and the
+        #  latest ending epoch.
+        while True:
+            dskdsc = spiceypy.dskgd(handle, dladsc)
 
-        beget.append(dskdsc.start)
-        endet.append(dskdsc.stop)
+            beget.append(dskdsc.start)
+            endet.append(dskdsc.stop)
 
-        currnt = dladsc
-        try:
-            (dladsc, found) = spiceypy.dlafns(handle, currnt)
-        except BaseException:
-            #
-            # Close the DSK file
-            #
-            spiceypy.dascls(handle)
+            try:
+                (dladsc, _) = spiceypy.dlafns(handle, dladsc)
 
-            break
+            # SpiceyPy's dlafns raises a NotFoundError, if it cannot find a
+            # segment following a specified segment in a DLA file. That
+            # means that we are at the end of the file.
+            except spiceypy.exceptions.NotFoundError:
+                break
+    finally:
+        # Close the DSK file
+        spiceypy.dascls(handle)
 
     start_time = min(beget)
     stop_time = max(endet)
