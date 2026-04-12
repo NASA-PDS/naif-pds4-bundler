@@ -116,7 +116,8 @@ def spk_coverage(path, main_name="", date_format="infomod2", system="UTC"):
 
     for i in ids:
 
-        spiceypy.scard, 0, coverage
+        # Initialize the coverage SPICE window, setting its cardinality to zero.
+        spiceypy.scard(incard=0, cell=coverage)
         spiceypy.spkcov(spk=path, idcode=i, cover=coverage)
 
         num_inter = spiceypy.wncard(coverage)
@@ -169,7 +170,10 @@ def ck_coverage(path, timsys="TDB", date_format="infomod2", system="UTC"):
 
     for i in ids:
         coverage = spiceypy.support_types.SPICEDOUBLE_CELL(winsiz)
-        spiceypy.scard, 0, coverage
+
+        # Initialize the coverage SPICE window, setting its cardinality to zero.
+        spiceypy.scard(incard=0, cell=coverage)
+
         coverage = spiceypy.ckcov(
             ck=path,
             idcode=i,
@@ -240,7 +244,8 @@ def pck_coverage(path, date_format="infomod2", system="UTC"):
 
     for i in ids:
 
-        spiceypy.scard, 0, coverage
+        # Initialize the coverage SPICE window, setting its cardinality to zero.
+        spiceypy.scard(incard=0, cell=coverage)
         spiceypy.pckcov(pck=path, idcode=i, cover=coverage)
 
         num_inter = spiceypy.wncard(coverage)
