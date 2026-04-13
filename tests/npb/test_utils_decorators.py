@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+import pytest
 import spiceypy.utils.exceptions as spice_exc
 
 from pds.naif_pds4_bundler.utils.decorators import spice_exception_handler
@@ -78,3 +79,13 @@ def test_successful_execution_with_return_not_None():
         return a + b
 
     assert success_func(1, 2) == 3
+
+def test_function_raises_a_non_SpiceyPyError_exception():
+    """Ensure the decorator doesn't interfere with non-SpiceyPyError."""
+
+    @spice_exception_handler
+    def raise_value_error():
+        raise ValueError("Invalid value")
+
+    with pytest.raises(ValueError):
+        raise_value_error()
