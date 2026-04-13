@@ -43,9 +43,7 @@ def compare(self):
                     and ("object_length" not in item)
                 ]
 
-            if fromlines != tolines:
-                print(f"Assertion False for: {product}")
-                self.assertTrue(False)
+            self.assertEqual(fromlines, tolines, msg=f"Assertion False for: {product}")
 
 
 def post_setup(self):
