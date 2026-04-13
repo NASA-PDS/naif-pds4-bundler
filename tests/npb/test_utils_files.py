@@ -275,6 +275,18 @@ def test_match_patterns_wrong_length():
     with pytest.raises(RuntimeError):
         files.match_patterns(name, name_w_pattern, patterns)
 
+
+@pytest.mark.parametrize("fname,expected", [
+    ( KERNELS / "ck" / "insight_ida_enc_200829_201220_v1.bc" , "22f9acc1931c8a626fac2a844fc5cee3"),
+
+])
+def test_md5(fname, expected):
+    """Test md5 function using pytest."""
+    result = files.md5(str(fname))
+    assert result == expected
+
+
+
 # ----------------------------------------------------------------------------
 # files.mk_to_list tests
 # ----------------------------------------------------------------------------
