@@ -439,8 +439,7 @@ def run_pipeline(args: PipelineArgs) -> None:
         #
         # * Generate the Bundle label and if necessary the readme file.
         #
-        readme = ReadmeProduct(setup, bundle)
-        bundle.add_readme(readme)
+        bundle.readme = ReadmeProduct(setup, bundle)
 
         #
         # * Generate the Checksum product a posteriori in such a way

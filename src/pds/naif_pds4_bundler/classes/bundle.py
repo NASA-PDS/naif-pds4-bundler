@@ -117,6 +117,12 @@ class Bundle:
         """
         return self._readme
 
+    @readme.setter
+    def readme(self, value: ReadmeProduct | None) -> None:
+        """Set or update the readme product associated with this bundle.
+        """
+        self._readme = value
+
     @property
     def vid(self) -> str:
         """Bundle Version Identifier (VID).
@@ -128,11 +134,6 @@ class Bundle:
     def add(self, element):
         """Add a Collection to the Bundle."""
         self.collections.append(element)
-
-    # TODO: Create a setter for the readme property.
-    def add_readme(self, readme: ReadmeProduct):
-        """Adds a readme product to the Bundle."""
-        self._readme = readme
 
     def files_in_staging(self):
         """Lists all the files in the staging area."""
