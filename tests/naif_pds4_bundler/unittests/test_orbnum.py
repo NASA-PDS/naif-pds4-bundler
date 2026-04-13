@@ -266,12 +266,12 @@ def test_pds4_orbnum_with_former_version(self):
         p.write("maven_orb_rec_210101_210401_v2.orb")
 
     with open(
-        "maven/maven_spice/miscellaneous/orbnum/" "maven_orb_rec_210101_210401_v1.orb",
+        "maven/maven_spice/miscellaneous/orbnum/maven_orb_rec_210101_210401_v1.orb",
         "w",
     ):
         pass
     with open(
-        "maven/maven_spice/miscellaneous/orbnum/" "maven_orb_rec_210101_2105401_v2.orb",
+        "maven/maven_spice/miscellaneous/orbnum/maven_orb_rec_210101_2105401_v2.orb",
         "w",
     ):
         pass
@@ -296,7 +296,7 @@ def test_pds4_orbnum_with_former(self):
         p.write("maven_orb_rec_210101_210401_v1.orb")
 
     with open(
-        "maven/maven_spice/miscellaneous/orbnum/" "maven_orb_rec_210101_210401.orb",
+        "maven/maven_spice/miscellaneous/orbnum/maven_orb_rec_210101_210401.orb",
         "w",
     ):
         pass
@@ -330,12 +330,12 @@ def test_pds4_orbnum_blank_records(self):
         p.write("maven_orb_rec_210101_210401_v3.orb")
 
     with open(
-        "maven/maven_spice/miscellaneous/orbnum/" "maven_orb_rec_210101_210401_v1.orb",
+        "maven/maven_spice/miscellaneous/orbnum/maven_orb_rec_210101_210401_v1.orb",
         "w",
     ):
         pass
     with open(
-        "maven/maven_spice/miscellaneous/orbnum/" "maven_orb_rec_210101_2105401_v2.orb",
+        "maven/maven_spice/miscellaneous/orbnum/maven_orb_rec_210101_2105401_v2.orb",
         "w",
     ):
         pass
@@ -644,7 +644,7 @@ def test_pds4_orbnum_multiple_files_in_spk_dir(self):
     with open(config, "r") as c:
         with open(updated_config, "w") as n:
             for line in c:
-                if "<orbnum_directory>misc/orbnum" "</orbnum_directory>" in line:
+                if "<orbnum_directory>misc/orbnum</orbnum_directory>" in line:
                     n.write("<orbnum_directory>kernels/spk</orbnum_directory>")
                 elif (
                     '<kernel cutoff="True">../data/kernels/spk/'

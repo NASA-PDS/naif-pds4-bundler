@@ -37,7 +37,7 @@ class Log:
 
         if self.args.debug:
             log_format = (
-                "%(module)-12s %(funcName)-23s || " "%(levelname)-8s: %(message)s"
+                "%(module)-12s %(funcName)-23s || %(levelname)-8s: %(message)s"
             )
         else:
             log_format = "%(levelname)-8s: %(message)s"

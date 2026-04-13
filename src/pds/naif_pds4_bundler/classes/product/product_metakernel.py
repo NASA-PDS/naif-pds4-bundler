@@ -98,7 +98,7 @@ class MetaKernelProduct(Product):
 
         if not hasattr(self, "mk_setup"):
             handle_npb_error(
-                f"Meta-kernel {self.name} has not been matched " f"in configuration.",
+                f"Meta-kernel {self.name} has not been matched in configuration.",
                 setup=self.setup,
             )
 
@@ -1018,7 +1018,7 @@ class MetaKernelProduct(Product):
 
         if self.mk_sets_coverage:
             logging.info(
-                "-- Meta-kernel will be used to determine SPICE " "Collection coverage."
+                "-- Meta-kernel will be used to determine SPICE Collection coverage."
             )
         else:
             logging.warning(

@@ -423,7 +423,7 @@ def mk_to_list(mk, setup):
 
     if not ker_mk_list:
         handle_npb_error(
-            f"No kernels present in {mk}. " f"Please review MK generation.", setup=setup
+            f"No kernels present in {mk}. Please review MK generation.", setup=setup
         )
 
     return ker_mk_list
@@ -518,7 +518,7 @@ def get_latest_kernel(
             return kernels.pop()
         except BaseException:
             logging.warning(
-                "        No kernels found with pattern " "{}".format(pattern)
+                "        No kernels found with pattern {}".format(pattern)
             )
             return []
     else:

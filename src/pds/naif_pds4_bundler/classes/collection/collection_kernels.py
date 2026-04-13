@@ -225,7 +225,7 @@ class SpiceKernelsCollection(Collection):
             # increment stop time has been provided as an input
             # parameter.
             #
-            logging.warning("-- No Meta-kernels found to determine increment " "times.")
+            logging.warning("-- No Meta-kernels found to determine increment times.")
 
             if hasattr(self.setup, "increment_start"):
                 logging.info(

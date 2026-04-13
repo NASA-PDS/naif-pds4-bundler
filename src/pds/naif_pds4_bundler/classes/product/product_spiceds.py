@@ -206,7 +206,7 @@ class SpicedsProduct(Product):
 
             if not generate_spiceds:
                 os.remove(self.path)
-                logging.warning("-- spiceds document does not need to be " "updated.")
+                logging.warning("-- spiceds document does not need to be updated.")
                 logging.warning("")
 
         return generate_spiceds

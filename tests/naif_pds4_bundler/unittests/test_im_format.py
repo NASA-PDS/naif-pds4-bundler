@@ -39,7 +39,7 @@ def test_im_format(self):
         with open(self.updated_config, "w") as n:
             for line in c:
                 if "<information_model>1.5.0.0</information_model>" in line:
-                    n.write("<information_model>1.A.0.0" "</information_model>\n")
+                    n.write("<information_model>1.A.0.0</information_model>\n")
                 else:
                     n.write(line)
 
@@ -112,7 +112,7 @@ def test_im_version_ascii(self):
         with open(self.updated_config, "w") as n:
             for line in c:
                 if "<information_model>1.5.0.0</information_model>" in line:
-                    n.write("<information_model>1.16.0.0" "</information_model>\n")
+                    n.write("<information_model>1.16.0.0</information_model>\n")
                 elif (
                     "<xml_model>http://pds.nasa.gov/pds4/pds/v1/"
                     "PDS4_PDS_1500.sch</xml_model>\n" in line
@@ -152,7 +152,7 @@ def test_im_version_ascii_incorrect(self):
         with open(self.updated_config, "w") as n:
             for line in c:
                 if "<information_model>1.5.0.0</information_model>" in line:
-                    n.write("<information_model>10.16.11.20" "</information_model>\n")
+                    n.write("<information_model>10.16.11.20</information_model>\n")
                 elif (
                     "<xml_model>http://pds.nasa.gov/pds4/pds/v1/"
                     "PDS4_PDS_1500.sch</xml_model>\n" in line
