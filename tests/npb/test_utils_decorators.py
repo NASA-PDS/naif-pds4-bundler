@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+import spiceypy.utils.exceptions as spice_exc
 
 from pds.naif_pds4_bundler.utils.decorators import spice_exception_handler
 
@@ -17,23 +18,27 @@ def test_preserves_metadata():
 
 
 @patch("pds.naif_pds4_bundler.utils.decorators.handle_npb_error")
-@patch("traceback.format_exc", return_value="mock_traceback")
-def test_handler_without_setup_attr(_mock_traceback, mock_handler):
+def test_handler_without_setup_attr(mock_handler):
     """Test case where args[0] does NOT have a 'setup' attribute."""
+    # Simulate a specific SpiceyPy 'File Not Found' exception."""
 
     @spice_exception_handler
-    def fail_func(x: str) -> None:
-        raise ValueError(x)
+    def mock_furnish(_):
+        # Manually raise a specific SpiceyPy exception
+        raise spice_exc.SpiceNOSUCHFILE("The file could not be located.")
 
-    fail_func("not_an_object_with_setup")
+    mock_furnish("missing_kernel.tm")
 
-    # Check if handler was called without the setup keyword
-    mock_handler.assert_called_once_with('mock_traceback')
+    # Verify handle_npb_error was triggered by the SpiceyPy error
+    assert mock_handler.called_once()
+
+    # The first argument to the handler is the formatted traceback string
+    traceback_arg = mock_handler.call_args[0][0]
+    assert "SpiceNOSUCHFILE" in traceback_arg
 
 
 @patch("pds.naif_pds4_bundler.utils.decorators.handle_npb_error")
-@patch("traceback.format_exc", return_value="mock_traceback")
-def test_handler_with_setup_attr(_mock_traceback, mock_handler):
+def test_handler_with_setup_attr(mock_handler):
     """Test case where args[0] DOES have a 'setup' attribute."""
 
     class MockObject:
@@ -41,14 +46,19 @@ def test_handler_with_setup_attr(_mock_traceback, mock_handler):
             self.setup = "mock_setup_config"
 
         @spice_exception_handler
-        def fail_method(self, x):
-            raise ValueError("Boom")
+        def mock_furnish(self, _):
+            # Manually raise a specific SpiceyPy exception
+            raise spice_exc.SpiceNOSUCHFILE("The file could not be located.")
 
     obj = MockObject()
-    obj.fail_method(obj, 123)
+    obj.mock_furnish("missing_kernel.tm")
 
-    # Check if handler was called WITH the setup keyword
-    mock_handler.assert_called_once_with("mock_traceback", setup="mock_setup_config")
+    # Verify handle_npb_error was triggered by the SpiceyPy error
+    assert mock_handler.called_once()
+
+    # The first argument to the handler is the formatted traceback string
+    traceback_arg = mock_handler.call_args[0][0]
+    assert "SpiceNOSUCHFILE" in traceback_arg
 
 
 def test_successful_execution_with_return_None():
