@@ -62,16 +62,16 @@ def test_handler_with_setup_attr(mock_handler):
     assert "SpiceNOSUCHFILE" in traceback_arg
 
 
-def test_successful_execution_with_return_None():
+def test_successful_execution_with_return_none():
     """Ensure the decorator doesn't interfere with successful calls."""
 
     @spice_exception_handler
     def success_func(a, b):
-        a + b
+        print(a + b)
 
     assert success_func(1, 2) is None
 
-def test_successful_execution_with_return_not_None():
+def test_successful_execution_with_return_not_none():
     """Ensure the decorator doesn't interfere with successful calls."""
 
     @spice_exception_handler
@@ -80,7 +80,7 @@ def test_successful_execution_with_return_not_None():
 
     assert success_func(1, 2) == 3
 
-def test_function_raises_a_non_SpiceyPyError_exception():
+def test_function_raises_a_non_spiceypy_error_exception():
     """Ensure the decorator doesn't interfere with non-SpiceyPyError."""
 
     @spice_exception_handler
