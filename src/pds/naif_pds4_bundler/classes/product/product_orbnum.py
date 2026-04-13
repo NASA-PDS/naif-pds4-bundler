@@ -227,7 +227,7 @@ class OrbnumFileProduct(Product):
 
             self._previous_version = "1"
 
-    def read_header(self) -> str:
+    def read_header(self) -> list[str]:
         """Read and process an ORBNUM file header.
 
         Defines the record_fixed_length attribute that provides the length of
@@ -269,7 +269,7 @@ class OrbnumFileProduct(Product):
 
         return header
 
-    def get_header_length(self) -> str:
+    def get_header_length(self) -> int:
         """Read an OrbNum file and return the length of the header in bytes.
 
         :return: OrbNum file header length
@@ -348,7 +348,7 @@ class OrbnumFileProduct(Product):
 
         return sample_record
 
-    def read_records(self) -> str:
+    def read_records(self) -> int:
         """Read and interpret the records of an OrbNum file.
 
         Read an OrbNum file and set the number of records attribute,
