@@ -17,7 +17,7 @@ def spice_exception_handler(func):
     @wraps(func)
     def inner_function(*args, **kwargs):
         try:
-            func(*args, **kwargs)
+            return func(*args, **kwargs)
         except Exception:
             if hasattr(args[0], "setup"):
                 handle_npb_error(traceback.format_exc(), setup=args[0].setup)
