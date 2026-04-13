@@ -25,8 +25,6 @@ class ChecksumProduct(Product):
                                   be added, False otherwise
     """
 
-    # TODO: if there's no call to parent init... does it need to be derived
-    #       from Product?
     def __init__(self, setup, collection, add_previous_checksum: bool = True) -> None:
         """Constructor."""
         #
@@ -488,8 +486,7 @@ class ChecksumProduct(Product):
             #
             for product in md5_list:
                 if ("spice_kernels/collection_spice_kernels_v" in product) or (
-                    ("miscellaneous/orbnum/" in product) and ((".xml" in product))
-                ):
+                    "miscellaneous/orbnum/" in product and ".xml" in product):
                     coverage_list.append(product.split()[-1])
 
             start_times = []
