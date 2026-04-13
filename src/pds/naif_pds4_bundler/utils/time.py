@@ -5,23 +5,29 @@ import datetime
 import spiceypy
 
 
-def current_time(time_format="infomod2"):
-    """Returns the current date and time in ``%Y-%m-%dT%H:%M:%S`` format.
+def current_time(fmt:str = "infomod2") -> str:
+    """Generates a timestamp string in ISO 8601 format (YYYY-MM-DDTHH:MM:SS).
 
-    :param time_format: Time format from configuration.
-    :type time_format: string
-    :return: Current date and time
-    :rtype: str
+    The precision of the output is determined by the fmt argument: "maklabel"
+    provides second-level resolution, while "infomod2" provides millisecond
+    resolution with a "Z" suffix. If no recognized format is provided, the
+    function defaults to microsecond precision.
+
+    :param fmt: The desired output configuration ("maklabel" or "infomod2").
+    :returns: A formatted string representing the current system time.
     """
-    time = str(datetime.datetime.now())
-    time = time.replace(" ", "T")
+    now = datetime.datetime.now()
 
-    if time_format == "maklabel":
-        time = time.split(".")[0]
-    elif time_format == "infomod2":
-        time = time[:-3] + "Z"
+    if fmt == "maklabel":
+        # Returns: YYYY-MM-DDTHH:MM:SS (Drops microseconds entirely)
+        return now.isoformat(timespec='seconds')
 
-    return time
+    if fmt == "infomod2":
+        # Returns: YYYY-MM-DDTHH:MM:SS.mmmZ (Truncates to milliseconds)
+        return now.isoformat(timespec='milliseconds') + "Z"
+
+    # Fallback behavior
+    return now.isoformat()
 
 
 def current_date(date=""):
