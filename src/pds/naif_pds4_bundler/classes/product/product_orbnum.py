@@ -227,14 +227,13 @@ class OrbnumFileProduct(Product):
 
             self._previous_version = "1"
 
-    def read_header(self) -> None:
+    def read_header(self) -> str:
         """Read and process an ORBNUM file header.
 
         Defines the record_fixed_length attribute that provides the length of
         a record.
 
         :return: ORBNUM header line
-        :rtype: str
         """
         header = []
         with open(self.path, "r") as o:
