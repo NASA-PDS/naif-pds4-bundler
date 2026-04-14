@@ -63,7 +63,7 @@ def test_check_binary_endianness(kernel, endianness, expected_error) -> None:
     assert error == expected_error
 
 # ----------------------------------------------------------------------------
-# files.check_consecutive tests
+# files.check_consecutive test
 # ----------------------------------------------------------------------------
 
 @pytest.mark.parametrize( "lst, cc_bool", [
@@ -72,7 +72,7 @@ def test_check_binary_endianness(kernel, endianness, expected_error) -> None:
     ([1, 2, 3, 4, 7, 5], False),
 ])
 def test_check_consecutive(lst, cc_bool):
-
+    """Test check_consecutive function with pytest."""
     assert files.check_consecutive(list(lst)) is cc_bool
 
 # ----------------------------------------------------------------------------
@@ -287,6 +287,24 @@ def test_get_context_products_no_optional_info_in_config_file(
     result = files.get_context_products(Config(mission, observer, target))
     assert result == expected_bcp
 
+# ----------------------------------------------------------------------------
+# files.kernel_name test
+# ----------------------------------------------------------------------------
+
+@pytest.mark.parametrize( "path, expected", [
+    (Path('ck', 'insight_ida_enc_200829_201220_v1.bc'), 'insight_ida_enc_200829_201220_v1.bc'),
+    (Path('ck', 'mro_sc_psp_210706_210712.big.bc'), 'mro_sc_psp_210706_210712.big.bc'),
+    (Path('dsk', 'DEIMOS_K005_THO_V01.BDS'), 'DEIMOS_K005_THO_V01.BDS'),
+    (Path('dsk', 'deimos_k005_tho_v01.big.bds'), 'deimos_k005_tho_v01.big.bds'),
+    (Path('pck', 'lunar_de403s_pa_v0.bpc'), 'lunar_de403s_pa_v0.bpc'),
+    (Path('pck', 'lunar_de403s_pa_v0.big.bpc'), 'lunar_de403s_pa_v0.big.bpc'),
+    (Path('spk', 'm2020_cruise_od138_v1.bsp'), 'm2020_cruise_od138_v1.bsp'),
+    (Path('amb', 'alyssa.txt'), 'alyssa.txt'),
+    (Path('noodle_party.t'), 'noodle_party.t'),
+])
+def test_kernel_name(path, expected):
+    """Test kernel_name function with pytest."""
+    assert files.kernel_name(str(path)) == expected
 
 # ----------------------------------------------------------------------------
 # files.match_patterns tests
@@ -390,3 +408,17 @@ def test_safe_make_directory(tmp_path):
     assert path.is_dir()
 
 #Need to add logging.info in here somehow
+
+# ----------------------------------------------------------------------------
+# files.utf8len test
+# ----------------------------------------------------------------------------
+
+@pytest.mark.parametrize( "strn, length", [
+    ("I_am_happy_today", "16"),
+    ("lunar_de403s_pa_v0.big.bpc", "26"),
+    ("NPB is Great", "12"),
+    ("kernels/pck/pck00010.tpc", "24")
+])
+def test_utf8len(strn, length):
+    """Test utf8len function with pytest."""
+    assert files.utf8len(str(strn)) == int(length)
