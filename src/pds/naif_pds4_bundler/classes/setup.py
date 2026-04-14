@@ -867,16 +867,6 @@ class Setup:
 
     def set_release(self):
         """Determine the Bundle release number."""
-        line = f"Step {self.step} - Setup the archive generation"
-        logging.info("")
-        logging.info("")
-        logging.info(line)
-        logging.info("-" * len(line))
-        logging.info("")
-        self.step += 1
-        if not self.args.silent and not self.args.verbose:
-            print("-- " + line.split(" - ")[-1] + ".")
-
         #
         # PDS4 release increment (implies inventory and meta-kernel).
         #

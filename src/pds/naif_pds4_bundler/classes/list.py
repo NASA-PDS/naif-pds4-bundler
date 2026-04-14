@@ -33,18 +33,6 @@ class KernelList:
 
     def __init__(self, setup) -> None:
         """Constructor."""
-        # TODO: Remove this commented out code or uncomment it. The decision will
-        #       depend on whether we want to have a "step" for the generation of
-        #       the release plan or not.
-        # line = f"Step {setup.step} - Kernel List generation"
-        # logging.info("")
-        # logging.info(line)
-        # logging.info("-" * len(line))
-        # logging.info("")
-        # setup.step += 1
-        # if not setup.args.silent and not setup.args.verbose:
-        #     print("-- " + line.split(" - ")[-1] + ".")
-
         self.complete_list = ''
         self.files = []
         self.kernel_list = []

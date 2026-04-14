@@ -107,6 +107,7 @@ def run_pipeline(args: PipelineArgs) -> None:
     #
     # * Check the existence of a previous archive version.
     #
+    log_step(setup, title='Setup the archive generation')
     setup.set_release()
 
     #
@@ -127,7 +128,8 @@ def run_pipeline(args: PipelineArgs) -> None:
 
     #
     # * Generate the Release Plan object.
-    #
+    # TODO: Should this one be renamed to 'Release Plan generation'?
+    log_step(setup, title='Kernel List generation')
     release_plan = ReleasePlan(setup)
 
     #
@@ -160,8 +162,11 @@ def run_pipeline(args: PipelineArgs) -> None:
     #
     #   If a release plan was either generated or loaded during the previous
     #   step, load the obtained kernel_list into the KernelList object.
-    #
     # TODO: Add kernel_list argument to the KernelList constructor.
+    # TODO: Remove this commented out code or uncomment it. The decision will
+    #       depend on whether we want to have a "step" for the generation of
+    #       the release plan or not.
+    # log_step(setup, title='Kernel List generation')
     k_list = KernelList(setup)
     k_list.kernel_list = release_plan.kernel_list
 
