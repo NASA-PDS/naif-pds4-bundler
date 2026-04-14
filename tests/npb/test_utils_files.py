@@ -1,9 +1,13 @@
 """Unit tests for the pds.naif_pds4_bundler.utils.files module."""
 from dataclasses import dataclass
+from errno import ENOTDIR
 from pathlib import Path
 import shutil
 
 import pytest
+
+# import os
+# from unittest import mock
 
 from pds.naif_pds4_bundler.utils import files
 
@@ -159,6 +163,65 @@ def test_check_line_length():
     errors = files.check_line_length(mk)
     assert errors == expected
 
+
+# ----------------------------------------------------------------------------
+# files.copy test
+# ----------------------------------------------------------------------------
+
+def test_copy_success(tmp_path):
+    """Test copy function using pytest.
+    This is for a successful case"""
+    src = tmp_path / "source"
+    src.mkdir()
+    dest = tmp_path / "destination"
+    files.copy(str(src), str(dest))
+
+    assert dest.exists()
+
+# def check_directory_exists(path):
+#     return os.path.exists(path)
+#
+# def test_copy_dir_already_exists(tmp_path):
+#     """Test copy function using pytest.
+#     This is for a case where the source directory does not exist"""
+#     path = tmp_path / "source"
+#
+#     with mock.patch("os.path.exists") as mock_exists:
+#         mock_exists.return_value = False
+#
+#         result = check_directory_exists(path)
+#
+#         assert result is False
+#         mock_exists.assert_called_with(path)
+
+
+def test_copy_error_not_dir(monkeypatch, tmp_path, caplog):
+    """Test copy function using pytest.
+    This is for a case when the source was not a directory"""
+    src = ""
+    dest = tmp_path / "destination"
+
+    def mock_copytree(*args):
+        # Not such file or directory Error (errno 2)
+        raise OSError(files.errno.ENOENT, "No such file or directory")
+
+    monkeypatch.setattr(shutil, "copytree", mock_copytree)
+
+    with caplog.at_level(files.logging.WARNING):
+        files.copy(str(src), str(dest))
+
+    assert "WARNING  root:files.py:91 -- Directory  not copied, probably because the increment directory exists.\n Error: [Errno 2] No such file or directory" in caplog.text
+
+
+# ----------------------------------------------------------------------------
+# files.etree_to_dict test
+# ----------------------------------------------------------------------------
+
+#def test_etree_to_dict():
+
+
+
+
 # ----------------------------------------------------------------------------
 # files.extract_comment tests
 # ----------------------------------------------------------------------------
@@ -276,6 +339,10 @@ def test_match_patterns_wrong_length():
         files.match_patterns(name, name_w_pattern, patterns)
 
 
+# ----------------------------------------------------------------------------
+# files.md5 test
+# ----------------------------------------------------------------------------
+
 @pytest.mark.parametrize("fname,expected", [
     ( KERNELS / "ck" / "insight_ida_enc_200829_201220_v1.bc" , "22f9acc1931c8a626fac2a844fc5cee3"),
 
@@ -284,8 +351,6 @@ def test_md5(fname, expected):
     """Test md5 function using pytest."""
     result = files.md5(str(fname))
     assert result == expected
-
-
 
 # ----------------------------------------------------------------------------
 # files.mk_to_list tests
@@ -297,3 +362,18 @@ def test_md5(fname, expected):
 ])
 def test_mk_to_list(mk):
     assert files.mk_to_list(str(mk), False)
+
+# ----------------------------------------------------------------------------
+# files.safe_make_directory test
+# ----------------------------------------------------------------------------
+
+def test_safe_make_directory(tmp_path):
+    """Test safe_make_directory function using pytest.
+    This is for a successful case"""
+    path = tmp_path / "dir_path"
+    path.mkdir()
+    files.safe_make_directory(str(path))
+
+    assert path.exists()
+    assert path.is_dir()
+
