@@ -273,6 +273,7 @@ def run_pipeline(args: PipelineArgs) -> None:
         #
         # * List the files present in the staging area.
         #
+        log_step(setup, title='Recap files in staging area')
         bundle.files_in_staging()
 
         #
@@ -474,6 +475,7 @@ def run_pipeline(args: PipelineArgs) -> None:
     #
     # * List the files present in the staging area.
     #
+    log_step(setup, title='Recap files in staging area')
     bundle.files_in_staging()
 
     #

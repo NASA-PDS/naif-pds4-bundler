@@ -125,15 +125,6 @@ class Bundle:
 
     def files_in_staging(self):
         """Lists all the files in the staging area."""
-        line = f"Step {self.setup.step} - Recap files in staging area"
-        logging.info("")
-        logging.info(line)
-        logging.info("-" * len(line))
-        logging.info("")
-        self.setup.step += 1
-        if not self.setup.args.silent and not self.setup.args.verbose:
-            print("-- " + line.split(" - ")[-1] + ".")
-
         #
         # A list of the new files in the staging area is generated first.
         #
