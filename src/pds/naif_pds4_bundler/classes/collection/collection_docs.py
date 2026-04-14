@@ -1,6 +1,5 @@
 """Implementation of the Document Collection Class."""
 import glob
-import logging
 
 from .collection import Collection
 from ..product import PDS3DocumentProduct

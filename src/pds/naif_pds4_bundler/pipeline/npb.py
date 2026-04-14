@@ -279,6 +279,7 @@ def run_pipeline(args: PipelineArgs) -> None:
         #
         # * Copy files to the bundle area.
         #
+        log_step(setup, title='Copy files to the bundle area')
         bundle.copy_to_bundle()
 
         finish_execution(setup, log)
@@ -498,6 +499,7 @@ def run_pipeline(args: PipelineArgs) -> None:
     #
     # * Copy files to the bundle area.
     #
+    log_step(setup, title='Copy files to the bundle area')
     bundle.copy_to_bundle()
 
     #

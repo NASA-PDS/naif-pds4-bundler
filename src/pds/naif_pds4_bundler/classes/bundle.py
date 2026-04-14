@@ -173,15 +173,6 @@ class Bundle:
 
     def copy_to_bundle(self):
         """Copy files from ``staging_directory`` to the ``bundle_directory``."""
-        line = f"Step {self.setup.step} - Copy files to the bundle area"
-        logging.info("")
-        logging.info(line)
-        logging.info("-" * len(line))
-        logging.info("")
-        self.setup.step += 1
-        if not self.setup.args.silent and not self.setup.args.verbose:
-            print("-- " + line.split(" - ")[-1] + ".")
-
         copied_files = []
         for file in self._new_files:
             src = file
