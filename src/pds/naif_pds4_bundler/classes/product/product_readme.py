@@ -2,13 +2,13 @@
 import logging
 import os
 import shutil
+from types import SimpleNamespace
 
 from .product import Product
 from ...utils import add_carriage_return
 from ...utils import md5
 from ..label import BundlePDS4Label
 from ...pipeline.runtime import handle_npb_error
-from ..object import Object
 
 
 class ReadmeProduct(Product):
@@ -34,9 +34,9 @@ class ReadmeProduct(Product):
         self.path = setup.staging_directory + os.sep + self.name
         self.setup = setup
         self.vid = bundle.vid
-        # TODO: Remove Object from the following lines.
-        self.collection = Object()
-        self.collection.name = ""
+        # TODO: Verify if this attribute is required.
+        # Create an attribute named "collection", with an attribute "name".
+        self.collection = SimpleNamespace(name="")
 
         path = (
             self.setup.bundle_directory
