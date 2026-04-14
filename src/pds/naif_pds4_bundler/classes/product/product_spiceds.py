@@ -31,15 +31,6 @@ class SpicedsProduct(Product):
         except BaseException:
             spiceds = ""
 
-        line = f"Step {self.setup.step} - Processing spiceds file"
-        logging.info("")
-        logging.info(line)
-        logging.info("-" * len(line))
-        logging.info("")
-        self.setup.step += 1
-        if not self.setup.args.silent and not self.setup.args.verbose:
-            print("-- " + line.split(" - ")[-1] + ".")
-
         if not spiceds:
             logging.info("-- No spiceds file provided.")
 

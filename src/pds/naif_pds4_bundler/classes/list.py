@@ -775,16 +775,6 @@ class KernelList:
          * validate kernel architecture
          * check endianness and permissions of binary kernels
         """
-        line = f"Step {self.setup.step} - Check kernel list products"
-        logging.info("")
-        logging.info(line)
-        logging.info("-" * len(line))
-        logging.info("")
-        self.setup.step += 1
-        if not self.setup.args.silent and not self.setup.args.verbose:
-            print("-- " + line.split(" - ")[-1] + ".")
-
-        #
         # A products errors list and a warnings list will be created these
         # will be stored in a product dictionary. The error list will stop
         # the execution while the warnings list will only display warning

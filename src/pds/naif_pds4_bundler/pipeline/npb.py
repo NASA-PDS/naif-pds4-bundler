@@ -184,8 +184,9 @@ def run_pipeline(args: PipelineArgs) -> None:
         return
 
     #
-    #    * Check the products present in the list (SPICE kernels and ORBNUM
+    #    * Check the products present in the list (SPICE kernels and OrbNum
     #      files)
+    log_step(setup, title='Check kernel list products')
     k_list.check_products()
 
     #
@@ -199,17 +200,19 @@ def run_pipeline(args: PipelineArgs) -> None:
     #
     # * Generate the PDS4 Bundle structure.
     #
+    log_step(setup, title='Bundle/data set structure generation at staging area')
     bundle = Bundle(setup)
 
     #
     # * Load LSK, FK and SCLK kernels for time conversions and coverage
     #   computations.
     #
+    log_step(setup, title='Load LSK, PCK, FK and SCLK kernels')
     setup.load_kernels()
 
     #
     # * Initialize the SPICE Kernels Collection.
-    #
+    log_step(setup, title='SPICE kernel collection/data processing')
     spice_kernels_collection = SpiceKernelsCollection(setup, bundle, k_list)
 
     #
@@ -245,6 +248,7 @@ def run_pipeline(args: PipelineArgs) -> None:
     #
     # * Generate the Meta-kernel(s).
     #
+    log_step(setup, title='Generation of meta-kernel(s)')
     meta_kernels = spice_kernels_collection.determine_meta_kernels()
     if meta_kernels:
         for mk in sorted(meta_kernels):
@@ -283,6 +287,7 @@ def run_pipeline(args: PipelineArgs) -> None:
     # * Determine the SPICE kernels Collection increment times and VID.
     #
     if setup.pds_version == "4":
+        log_step(setup, title='Determine archive increment start and finish times')
         spice_kernels_collection.set_increment_times()
         spice_kernels_collection.set_collection_vid()
 
@@ -293,6 +298,7 @@ def run_pipeline(args: PipelineArgs) -> None:
     #      from at object initialization.
     #    * Check if there is an XML label for each file under spice_kernels.
     #
+    log_step(setup, title='Validate SPICE kernel collection generation')
     spice_kernels_collection.validate()
 
     #
@@ -317,6 +323,7 @@ def run_pipeline(args: PipelineArgs) -> None:
         #
         # * Generate of SPICEDS document.
         #
+        log_step(setup, title='Processing spiceds file')
         spiceds = SpicedsProduct(setup, document_collection)
 
         #
@@ -450,6 +457,8 @@ def run_pipeline(args: PipelineArgs) -> None:
     elif setup.pds_version == "3":
 
         document_collection = DocumentCollection(setup, bundle)
+
+        log_step(setup, title='Generation of PDS3 products')
         document_collection.get_pds3_documents()
 
         bundle.add(spice_kernels_collection)

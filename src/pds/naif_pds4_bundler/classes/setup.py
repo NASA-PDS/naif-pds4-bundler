@@ -966,15 +966,6 @@ class Setup:
         required memory is not much, we stay on the safe side by loading
         additional kernels.
         """
-        line = f"Step {self.step} - Load LSK, PCK, FK and SCLK kernels"
-        logging.info("")
-        logging.info(line)
-        logging.info("-" * len(line))
-        logging.info("")
-        self.step += 1
-        if not self.args.silent and not self.args.verbose:
-            print("-- " + line.split(" - ")[-1] + ".")
-
         #
         # To get the appropriate kernels, use the kernel list config.
         # First extract the patterns for each kernel type of interest.

@@ -37,18 +37,6 @@ class Bundle:
 
     def __init__(self, setup) -> None:
         """Constructor."""
-        line = (
-            f"Step {setup.step} - Bundle/data set structure generation "
-            f"at staging area"
-        )
-        logging.info("")
-        logging.info(line)
-        logging.info("-" * len(line))
-        logging.info("")
-        setup.step += 1
-        if not setup.args.silent and not setup.args.verbose:
-            print("-- " + line.split(" - ")[-1] + ".")
-
         logging.info("-- Directory structure generation occurs if reported.")
         logging.info("")
 

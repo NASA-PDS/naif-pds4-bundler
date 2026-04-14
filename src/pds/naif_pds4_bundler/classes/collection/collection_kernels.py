@@ -21,15 +21,6 @@ class SpiceKernelsCollection(Collection):
 
     def __init__(self, setup, bundle, kernels) -> None:
         """Constructor."""
-        line = f"Step {setup.step} - SPICE kernel collection/data processing"
-        logging.info("")
-        logging.info(line)
-        logging.info("-" * len(line))
-        logging.info("")
-        setup.step += 1
-        if not setup.args.silent and not setup.args.verbose:
-            print("-- " + line.split(" - ")[-1] + ".")
-
         self.bundle = bundle
         self.list = kernels
         self.type = "spice_kernels"
@@ -49,15 +40,6 @@ class SpiceKernelsCollection(Collection):
                  user or not.
         :rtype: dictionary.
         """
-        line = f"Step {self.setup.step} - Generation of meta-kernel(s)"
-        logging.info("")
-        logging.info(line)
-        logging.info("-" * len(line))
-        logging.info("")
-        self.setup.step += 1
-        if not self.setup.args.silent and not self.setup.args.verbose:
-            print("-- " + line.split(" - ")[-1] + ".")
-
         meta_kernels = {}
         #
         # First check if a meta-kernel has been provided via configuration by
@@ -183,18 +165,6 @@ class SpiceKernelsCollection(Collection):
         SPK or CK kernel. Alternatively it can be provided as a parameter of the
         execution.
         """
-        line = (
-            f"Step {self.setup.step} - Determine archive increment "
-            f"start and finish times"
-        )
-        logging.info("")
-        logging.info(line)
-        logging.info("-" * len(line))
-        logging.info("")
-        self.setup.step += 1
-        if not self.setup.args.silent and not self.setup.args.verbose:
-            print("-- " + line.split(" - ")[-1] + ".")
-
         increment_start = ""
         increment_finish = ""
         #
@@ -351,15 +321,6 @@ class SpiceKernelsCollection(Collection):
              ``file_name``, ``file_size``, ``md5_checksum``, ``object_length``,
              ``kernel_type``, and ``encoding_type``.
         """
-        line = f"Step {self.setup.step} - Validate SPICE kernel collection generation"
-        logging.info("")
-        logging.info(line)
-        logging.info("-" * len(line))
-        logging.info("")
-        self.setup.step += 1
-        if not self.setup.args.silent and not self.setup.args.verbose:
-            print("-- " + line.split(" - ")[-1] + ".")
-
         #
         # Check that all the kernels from the list are present
         #
