@@ -65,6 +65,10 @@ def file_list_with_byproducts(dirs):
     path.write_text(content)
     return str(path)
 
+@pytest.fixture
+def mock_setup():
+    return Setup(step=1)
+
 # ---------------------------------------------------------------------------
 # runtime.clean_run tests
 #
@@ -464,6 +468,48 @@ def test_handle_error_handles_missing_templates(monkeypatch):
     with pytest.raises(RuntimeError):
         runtime.handle_npb_error("Error with missing template", setup=mock_setup)
 
+# ---------------------------------------------------------------------------
+# runtime.log_step tests
+# ---------------------------------------------------------------------------
+
+@patch("logging.info")
+def test_log_step_increments_counter(_mock_log, mock_setup):
+    """Verify that the step counter increments every time the function is called."""
+    initial_step = mock_setup.step
+    runtime.log_step(mock_setup, title="Test Title")
+    assert mock_setup.step == initial_step + 1
+
+
+def test_log_step_formatting(caplog, mock_setup):
+    """Verify the formatting of the logs and that they include the title."""
+    # Set level to INFO since caplog defaults to WARNING
+    caplog.set_level(logging.INFO)
+
+    title = "Initialize Database"
+    expected_header = "Step 1 - Initialize Database"
+    expected_separator =  "----------------------------"
+
+    runtime.log_step(mock_setup, title)
+
+    assert caplog.messages == ["", expected_header, expected_separator, ""]
+
+
+@pytest.mark.parametrize("silent, verbose, stdout", [
+    (False, False, '-- Conditional Print Test.\n'),  # Standard mode: should print
+    (True, False, ''),  # Silent mode: should not print
+    (False, True, ''),  # Verbose mode: should not print
+    (True, True, ''),  # Both: should not print
+])
+@patch("logging.info")
+def test_log_step_print_conditions(_mock_log, silent, verbose, stdout, capsys):
+    """Test the logic that determines if 'print' is called based on args."""
+    setup = Setup(step=5, silent=silent, verbose=verbose)
+    title = "Conditional Print Test"
+
+    runtime.log_step(setup, title)
+
+    captured = capsys.readouterr()
+    assert stdout == captured.out
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -504,3 +550,10 @@ def _make_setup(
         mission_acronym=mission_acronym,
         run_type=run_type,
         args=args or _make_args(clear=""))
+
+
+class Setup:
+    """Mock of the Setup class, for testing the `log_step` method."""
+    def __init__(self, step=1, silent=False, verbose=False):
+        self.step = step
+        self.args = MagicMock(silent=silent, verbose=verbose)

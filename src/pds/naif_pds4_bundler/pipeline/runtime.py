@@ -144,6 +144,23 @@ def handle_npb_error(message: str, setup: Optional[Setup] = None) -> None:
     raise RuntimeError(message)
 
 
+def log_step(setup: Setup, title: str) -> None:
+    """Logs the current execution step and increments the counter.
+
+    :param setup: NPB configuration.
+    :param title: Step title
+    """
+    message = f"Step {setup.step} - {title}"
+    logging.info("")
+    logging.info(message)
+    logging.info("-" * len(message))
+    logging.info("")
+
+    if not setup.args.silent and not setup.args.verbose:
+        print(f"-- {title}.")
+
+    setup.step += 1
+
 # ---------------------------------------------------------------------------
 # runtime utility functions
 # ---------------------------------------------------------------------------
