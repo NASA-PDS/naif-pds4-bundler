@@ -63,6 +63,19 @@ def test_check_binary_endianness(kernel, endianness, expected_error) -> None:
     assert error == expected_error
 
 # ----------------------------------------------------------------------------
+# files.check_consecutive tests
+# ----------------------------------------------------------------------------
+
+@pytest.mark.parametrize( "lst, cc_bool", [
+    ([1, 2, 3, 4, 5], True),
+    ([1, 2, 3, 4, 5, 5, 5], False),
+    ([1, 2, 3, 4, 7, 5], False),
+])
+def test_check_consecutive(lst, cc_bool):
+
+    assert files.check_consecutive(list(lst)) is cc_bool
+
+# ----------------------------------------------------------------------------
 # files.check_kernel_integrity tests
 # ----------------------------------------------------------------------------
 
@@ -345,7 +358,6 @@ def test_match_patterns_wrong_length():
 
 @pytest.mark.parametrize("fname,expected", [
     ( KERNELS / "ck" / "insight_ida_enc_200829_201220_v1.bc" , "22f9acc1931c8a626fac2a844fc5cee3"),
-
 ])
 def test_md5(fname, expected):
     """Test md5 function using pytest."""
@@ -377,3 +389,4 @@ def test_safe_make_directory(tmp_path):
     assert path.exists()
     assert path.is_dir()
 
+#Need to add logging.info in here somehow
