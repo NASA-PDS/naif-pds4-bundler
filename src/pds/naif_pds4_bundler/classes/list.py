@@ -359,15 +359,6 @@ class KernelList:
 
     def write_complete_list(self):
         """Write the complete Kernel List using the former ones."""
-        line = f"Step {self.setup.step} - Generation of complete kernel list"
-        logging.info("")
-        logging.info(line)
-        logging.info("-" * len(line))
-        logging.info("")
-        self.setup.step += 1
-        if not self.setup.args.silent and not self.setup.args.verbose:
-            print("-- " + line.split(" - ")[-1] + ".")
-
         kernel_lists = glob.glob(
             self.setup.working_directory
             + os.sep

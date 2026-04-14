@@ -493,6 +493,7 @@ def run_pipeline(args: PipelineArgs) -> None:
     # kernel list.
     #
     # OnlyFor PDS3
+    # log_step(setup, title='Generation of complete kernel list')
     # list.write_complete_list()
     # spice_kernels_collection_inventory.write_index()
 
