@@ -39,11 +39,11 @@ class PDS3DocumentProduct(Product):
         else:
             self.new_product = True
 
-            self.validate()
+            self._validate()
 
         super().__init__()
 
-    def validate(self) -> None:
+    def _validate(self) -> None:
         """Try to validate the PDS3 document.
 
         The outcome of the validation is an INFO or a WARNING log message.
