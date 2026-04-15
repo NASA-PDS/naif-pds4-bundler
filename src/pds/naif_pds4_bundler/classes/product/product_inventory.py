@@ -32,8 +32,13 @@ class InventoryProduct(Product):
             if not setup.args.silent and not setup.args.verbose:
                 print("-- " + line.split(" - ")[-1] + ".")
 
-        self.setup = setup
         self.collection = collection
+        self.column_bytes = []
+        self.column_start_bytes = []
+        self.file_types = []
+        self.rows = 0
+        self.row_bytes = 0
+        self.setup = setup
 
         if setup.pds_version == "3":
             self.path = f"{setup.staging_directory}/index/index.tab"
