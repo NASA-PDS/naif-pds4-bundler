@@ -42,7 +42,8 @@ class Setup:
         self.sclks = None
         self.staging_directory = ''
         self.template_files = []
-        self.working_directory = ''
+        self.templates_directory = None
+        self.working_directory = None
         self.xml_model = ''
         self.xml_tab = 0
 
@@ -661,7 +662,7 @@ class Setup:
             templates_directory = f"{self.root_dir}templates/pds3/"
 
         template_files = []
-        if not hasattr(self, "templates_directory") and self.pds_version == "4":
+        if not self.templates_directory and self.pds_version == "4":
 
             self.templates_directory = self.working_directory
 
