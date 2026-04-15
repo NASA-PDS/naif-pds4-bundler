@@ -82,14 +82,7 @@ def finish_execution(setup: Setup, log_manager: Log) -> None:
         if os.path.exists(template):
             os.remove(template)
 
-    step_message = f"Step {setup.step} - Generate run by-product files"
-    logging.info("")
-    logging.info(step_message)
-    logging.info("-" * len(step_message))
-    logging.info("")
-    setup.step += 1
-    if not setup.args.silent and not setup.args.verbose:
-        print("-- " + step_message.split(" - ")[-1] + ".")
+    log_step(setup, title='Generate run by-product files')
 
     # Business Logic: Generate Artifacts
     #
