@@ -43,6 +43,7 @@ class Setup:
         self.staging_directory = ''
         self.template_files = []
         self.working_directory = ''
+        self.xml_model = ''
         self.xml_tab = 0
 
         try:
@@ -542,7 +543,7 @@ class Setup:
                 # Check if xml_model is provided via configuration, if so check
                 # its validity and if not generate it.
                 #
-                if hasattr(self, "xml_model"):
+                if hasattr(self, "xml_model") and self.xml_model:
                     xml_model_version = self.xml_model.split("PDS4_PDS_")[-1]
                     xml_model_version = xml_model_version.split(".sch")[0]
 
