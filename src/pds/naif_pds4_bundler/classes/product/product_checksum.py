@@ -42,6 +42,7 @@ class ChecksumProduct(Product):
             self.setup.staging_directory + os.sep + "miscellaneous" + os.sep
         )
         self.file_records = 0
+        self.label = None
         self.new_product = True
         self.record_bytes = 0
         self.start_time = ''
@@ -326,7 +327,7 @@ class ChecksumProduct(Product):
                     #
                     # Generate the MD5 checksum of the label.
                     #
-                    if hasattr(product, "label"):
+                    if hasattr(product, "label") and product.label is not None:
                         label_checksum = md5(product.label.name)
                         self.md5_dict[product.label.name.split(archive_dir)[-1]] = (
                             label_checksum
