@@ -240,6 +240,10 @@ def test_copy_error_not_dir(monkeypatch, tmp_path, caplog):
     assert "WARNING  root:files.py:91 -- Directory  not copied, probably because the increment directory exists.\n Error: [Errno 2] No such file or directory" in caplog.text
 
 
+# src = "file.txt"
+# Make new like this --
+
+
 # ----------------------------------------------------------------------------
 # files.etree_to_dict test
 # ----------------------------------------------------------------------------
