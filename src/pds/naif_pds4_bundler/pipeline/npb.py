@@ -533,6 +533,7 @@ def run_pipeline(args: PipelineArgs) -> None:
     #   Bundle history and checking the bundle times.
     #
     if setup.pds_version == "4":
+        log_step(setup, title='Validate bundle history with checksum files')
         bundle.validate()
 
     #

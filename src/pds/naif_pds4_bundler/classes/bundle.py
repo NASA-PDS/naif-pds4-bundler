@@ -720,15 +720,6 @@ class Bundle:
         release number.
         """
         logging.info("")
-        line = f"Step {self.setup.step} - Validate bundle history with checksum files"
-        logging.info("")
-        logging.info(line)
-        logging.info("-" * len(line))
-        self.setup.step += 1
-        if not self.setup.args.silent and not self.setup.args.verbose:
-            print("-- " + line.split(" - ")[-1] + ".")
-
-        logging.info("")
         logging.info("-- Display the list of files that belong to each release.")
         logging.info("")
 
