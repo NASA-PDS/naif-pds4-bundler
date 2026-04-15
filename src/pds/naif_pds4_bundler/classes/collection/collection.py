@@ -15,10 +15,11 @@ class Collection:
 
     def __init__(self, c_type: str, setup, bundle) -> None:
         """Constructor."""
-        self.product = []
-        self.name = c_type
-        self.setup = setup
         self.bundle = bundle
+        self.name = c_type
+        self.product = []
+        self.setup = setup
+        self.vid = ''
 
         #
         # To know whether if the collection has been updated or not.
