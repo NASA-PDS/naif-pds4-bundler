@@ -22,15 +22,6 @@ class InventoryProduct(Product):
 
     def __init__(self, setup, collection) -> None:
         """Constructor."""
-        if collection.name != "miscellaneous":
-            line = f"Step {setup.step} - Generation of {collection.name} collection"
-            logging.info("")
-            logging.info(line)
-            logging.info("-" * len(line))
-            logging.info("")
-            setup.step += 1
-            if not setup.args.silent and not setup.args.verbose:
-                print("-- " + line.split(" - ")[-1] + ".")
 
         self.collection = collection
         self.column_bytes = []

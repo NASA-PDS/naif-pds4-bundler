@@ -20,15 +20,6 @@ class ReadmeProduct(Product):
 
     def __init__(self, setup, bundle) -> None:
         """Constructor."""
-        line = f"Step {setup.step} - Generation of bundle products"
-        logging.info("")
-        logging.info(line)
-        logging.info("-" * len(line))
-        logging.info("")
-        setup.step += 1
-        if not setup.args.silent and not setup.args.verbose:
-            print("-- " + line.split(" - ")[-1] + ".")
-
         self.name = "readme.txt"
         self.bundle = bundle
         self.path = setup.staging_directory + os.sep + self.name

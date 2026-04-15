@@ -33,18 +33,6 @@ class KernelList:
 
     def __init__(self, setup) -> None:
         """Constructor."""
-        # TODO: Remove this commented out code or uncomment it. The decision will
-        #       depend on whether we want to have a "step" for the generation of
-        #       the release plan or not.
-        # line = f"Step {setup.step} - Kernel List generation"
-        # logging.info("")
-        # logging.info(line)
-        # logging.info("-" * len(line))
-        # logging.info("")
-        # setup.step += 1
-        # if not setup.args.silent and not setup.args.verbose:
-        #     print("-- " + line.split(" - ")[-1] + ".")
-
         self.complete_list = ''
         self.files = []
         self.kernel_list = []
@@ -371,15 +359,6 @@ class KernelList:
 
     def write_complete_list(self):
         """Write the complete Kernel List using the former ones."""
-        line = f"Step {self.setup.step} - Generation of complete kernel list"
-        logging.info("")
-        logging.info(line)
-        logging.info("-" * len(line))
-        logging.info("")
-        self.setup.step += 1
-        if not self.setup.args.silent and not self.setup.args.verbose:
-            print("-- " + line.split(" - ")[-1] + ".")
-
         kernel_lists = glob.glob(
             self.setup.working_directory
             + os.sep
@@ -787,16 +766,6 @@ class KernelList:
          * validate kernel architecture
          * check endianness and permissions of binary kernels
         """
-        line = f"Step {self.setup.step} - Check kernel list products"
-        logging.info("")
-        logging.info(line)
-        logging.info("-" * len(line))
-        logging.info("")
-        self.setup.step += 1
-        if not self.setup.args.silent and not self.setup.args.verbose:
-            print("-- " + line.split(" - ")[-1] + ".")
-
-        #
         # A products errors list and a warnings list will be created these
         # will be stored in a product dictionary. The error list will stop
         # the execution while the warnings list will only display warning

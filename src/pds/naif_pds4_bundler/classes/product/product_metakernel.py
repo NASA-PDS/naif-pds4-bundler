@@ -830,15 +830,6 @@ class MetaKernelProduct(Product):
              of the MK collection list attribute
            * check that line lengths are less than 80 characters
         """
-        line = f"Step {self.setup.step} - Meta-kernel {self.name} validation"
-        logging.info("")
-        logging.info(line)
-        logging.info("-" * len(line))
-        logging.info("")
-        self.setup.step += 1
-        if not self.setup.args.silent and not self.setup.args.verbose:
-            print("-- " + line.split(" - ")[-1] + ".")
-
         rel_path = self.path.split(f"/{self.setup.mission_acronym}_spice/")[-1]
         path = (
             self.setup.bundle_directory.split(f"{self.setup.mission_acronym}_spice")[0]

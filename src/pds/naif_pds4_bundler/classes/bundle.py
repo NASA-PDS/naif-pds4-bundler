@@ -37,18 +37,6 @@ class Bundle:
 
     def __init__(self, setup) -> None:
         """Constructor."""
-        line = (
-            f"Step {setup.step} - Bundle/data set structure generation "
-            f"at staging area"
-        )
-        logging.info("")
-        logging.info(line)
-        logging.info("-" * len(line))
-        logging.info("")
-        setup.step += 1
-        if not setup.args.silent and not setup.args.verbose:
-            print("-- " + line.split(" - ")[-1] + ".")
-
         logging.info("-- Directory structure generation occurs if reported.")
         logging.info("")
 
@@ -137,15 +125,6 @@ class Bundle:
 
     def files_in_staging(self):
         """Lists all the files in the staging area."""
-        line = f"Step {self.setup.step} - Recap files in staging area"
-        logging.info("")
-        logging.info(line)
-        logging.info("-" * len(line))
-        logging.info("")
-        self.setup.step += 1
-        if not self.setup.args.silent and not self.setup.args.verbose:
-            print("-- " + line.split(" - ")[-1] + ".")
-
         #
         # A list of the new files in the staging area is generated first.
         #
@@ -194,15 +173,6 @@ class Bundle:
 
     def copy_to_bundle(self):
         """Copy files from ``staging_directory`` to the ``bundle_directory``."""
-        line = f"Step {self.setup.step} - Copy files to the bundle area"
-        logging.info("")
-        logging.info(line)
-        logging.info("-" * len(line))
-        logging.info("")
-        self.setup.step += 1
-        if not self.setup.args.silent and not self.setup.args.verbose:
-            print("-- " + line.split(" - ")[-1] + ".")
-
         copied_files = []
         for file in self._new_files:
             src = file
@@ -749,15 +719,6 @@ class Bundle:
         release history, providing an ordered list of files released for each
         release number.
         """
-        logging.info("")
-        line = f"Step {self.setup.step} - Validate bundle history with checksum files"
-        logging.info("")
-        logging.info(line)
-        logging.info("-" * len(line))
-        self.setup.step += 1
-        if not self.setup.args.silent and not self.setup.args.verbose:
-            print("-- " + line.split(" - ")[-1] + ".")
-
         logging.info("")
         logging.info("-- Display the list of files that belong to each release.")
         logging.info("")

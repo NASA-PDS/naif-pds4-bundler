@@ -82,14 +82,7 @@ def finish_execution(setup: Setup, log_manager: Log) -> None:
         if os.path.exists(template):
             os.remove(template)
 
-    step_message = f"Step {setup.step} - Generate run by-product files"
-    logging.info("")
-    logging.info(step_message)
-    logging.info("-" * len(step_message))
-    logging.info("")
-    setup.step += 1
-    if not setup.args.silent and not setup.args.verbose:
-        print("-- " + step_message.split(" - ")[-1] + ".")
+    log_step(setup, title='Generate run by-product files')
 
     # Business Logic: Generate Artifacts
     #
@@ -143,6 +136,23 @@ def handle_npb_error(message: str, setup: Optional[Setup] = None) -> NoReturn:
 
     raise RuntimeError(message)
 
+
+def log_step(setup: Setup, title: str) -> None:
+    """Logs the current execution step and increments the counter.
+
+    :param setup: NPB configuration.
+    :param title: Step title
+    """
+    message = f"Step {setup.step} - {title}"
+    logging.info("")
+    logging.info(message)
+    logging.info("-" * len(message))
+    logging.info("")
+
+    if not setup.args.silent and not setup.args.verbose:
+        print(f"-- {title}.")
+
+    setup.step += 1
 
 # ---------------------------------------------------------------------------
 # runtime utility functions
