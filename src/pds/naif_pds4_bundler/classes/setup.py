@@ -31,6 +31,19 @@ class Setup:
 
     def __init__(self, args, version: str) -> None:
         """Constructor."""
+        self.bundle_directory = ''
+        self.current_release = 0
+        self.fks = None
+        self.increment = True
+        self.information_model_float = None
+        self.lsk = None
+        self.release = None
+        self.sclks = None
+        self.staging_directory = ''
+        self.template_files = []
+        self.working_directory = ''
+        self.xml_tab = 0
+
         try:
             #
             # Check that the configuration file validates with its schema
