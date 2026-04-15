@@ -25,6 +25,7 @@ class PDSLabel:
             except BaseException:
                 context_products = product.bundle.context_products
 
+        self.name = ''
         self.product = product
         self.setup = setup
 
