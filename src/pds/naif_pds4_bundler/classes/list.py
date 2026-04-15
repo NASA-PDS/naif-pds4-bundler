@@ -45,8 +45,10 @@ class KernelList:
         # if not setup.args.silent and not setup.args.verbose:
         #     print("-- " + line.split(" - ")[-1] + ".")
 
+        self.complete_list = ''
         self.files = []
         self.kernel_list = []
+        self.list_name = ''
         self.setup = setup
 
         #
