@@ -544,6 +544,7 @@ class Setup:
                 # Check if xml_model is provided via configuration, if so check
                 # its validity and if not generate it.
                 #
+                # TODO: hasattr(self, "xml_model") will need to be removed.
                 if hasattr(self, "xml_model") and self.xml_model:
                     xml_model_version = self.xml_model.split("PDS4_PDS_")[-1]
                     xml_model_version = xml_model_version.split(".sch")[0]
@@ -568,6 +569,7 @@ class Setup:
                 # Check if schema_location is provided via configuration, if so check
                 # its validity and if not generate it.
                 #
+                # TODO: hasattr(self, "schema_location") will need to be removed.
                 if hasattr(self, "schema_location") and self.schema_location:
                     schema_loc_version = self.schema_location.split("/PDS4_PDS_")[-1]
                     schema_loc_version = schema_loc_version.split(".xsd")[0]

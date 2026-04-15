@@ -327,6 +327,7 @@ class ChecksumProduct(Product):
                     #
                     # Generate the MD5 checksum of the label.
                     #
+                    # TODO: hasattr(product, "label") will need to be removed.
                     if hasattr(product, "label") and product.label is not None:
                         label_checksum = md5(product.label.name)
                         self.md5_dict[product.label.name.split(archive_dir)[-1]] = (
