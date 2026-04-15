@@ -5,7 +5,6 @@ build-backend = "setuptools.build_meta"
 [tool.pytest.ini_options]
 # Specify the directories where pytest will look for tests
 testpaths = ["tests/npb"]
-
 addopts = "-n auto --cov=pds --import-mode=importlib"
 
 # Ensure pytest recognizes your unittest-style tests
