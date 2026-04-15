@@ -424,7 +424,7 @@ def run_pipeline(args: PipelineArgs) -> None:
         # we need to specify that is not a new product.
         #
         for product in miscellaneous_collection.product:
-            if type(product) == ChecksumProduct:
+            if isinstance(product, ChecksumProduct):
                 product.new_product = False
 
         miscellaneous_collection.add(checksum)
@@ -513,7 +513,7 @@ def run_pipeline(args: PipelineArgs) -> None:
     #   This is the last step since it unloads all kernels.
     #
     for kernel in spice_kernels_collection.product:
-        if type(kernel) == MetaKernelProduct:
+        if isinstance(kernel, MetaKernelProduct):
             kernel.validate()
 
     finish_execution(setup, log)
