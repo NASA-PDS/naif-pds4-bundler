@@ -38,6 +38,7 @@ class Setup:
         self.information_model_float = None
         self.lsk = None
         self.release = None
+        self.schema_location = ''
         self.sclks = None
         self.staging_directory = ''
         self.template_files = []
@@ -565,7 +566,7 @@ class Setup:
                 # Check if schema_location is provided via configuration, if so check
                 # its validity and if not generate it.
                 #
-                if hasattr(self, "schema_location"):
+                if hasattr(self, "schema_location") and self.schema_location:
                     schema_loc_version = self.schema_location.split("/PDS4_PDS_")[-1]
                     schema_loc_version = schema_loc_version.split(".xsd")[0]
 
