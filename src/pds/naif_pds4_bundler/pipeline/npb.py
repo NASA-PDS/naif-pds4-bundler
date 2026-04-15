@@ -459,6 +459,7 @@ def run_pipeline(args: PipelineArgs) -> None:
         #
         # * Generate the Bundle label and if necessary the readme file.
         #
+        log_step(setup, title='Generation of bundle products')
         bundle.readme = ReadmeProduct(setup, bundle)
 
         #
