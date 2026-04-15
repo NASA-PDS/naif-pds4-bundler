@@ -2,7 +2,7 @@ from __future__ import annotations
 import logging
 import os
 from pathlib import Path
-from typing import Optional, TYPE_CHECKING
+from typing import NoReturn, Optional, TYPE_CHECKING
 
 import spiceypy
 
@@ -108,7 +108,7 @@ def finish_execution(setup: Setup, log_manager: Log) -> None:
     log_manager.stop()
 
 
-def handle_npb_error(message: str, setup: Optional[Setup] = None) -> None:
+def handle_npb_error(message: str, setup: Optional[Setup] = None) -> NoReturn:
     """Signal a NPB error and write run artifacts.
 
     Side effects:
