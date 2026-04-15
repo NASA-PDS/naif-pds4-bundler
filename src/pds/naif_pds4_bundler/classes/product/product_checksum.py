@@ -35,11 +35,18 @@ class ChecksumProduct(Product):
         # inventory file; the checksum file needs to be included in the
         # inventory file before the actual checksum file is generated.
         #
+        self.bytes = 0
         self.setup = setup
         self.collection = collection
         self.collection_path = (
             self.setup.staging_directory + os.sep + "miscellaneous" + os.sep
         )
+        self.file_records = 0
+        self.label = None
+        self.new_product = True
+        self.record_bytes = 0
+        self.start_time = ''
+        self.stop_time = ''
 
         line = f"Step {self.setup.step} - Generate checksum file"
         logging.info("")
@@ -320,7 +327,8 @@ class ChecksumProduct(Product):
                     #
                     # Generate the MD5 checksum of the label.
                     #
-                    if hasattr(product, "label"):
+                    # TODO: hasattr(product, "label") will need to be removed.
+                    if hasattr(product, "label") and product.label is not None:
                         label_checksum = md5(product.label.name)
                         self.md5_dict[product.label.name.split(archive_dir)[-1]] = (
                             label_checksum

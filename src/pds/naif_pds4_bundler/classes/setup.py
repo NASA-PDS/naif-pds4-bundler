@@ -31,6 +31,22 @@ class Setup:
 
     def __init__(self, args, version: str) -> None:
         """Constructor."""
+        self.bundle_directory = ''
+        self.current_release = 0
+        self.fks = None
+        self.increment = True
+        self.information_model_float = None
+        self.lsk = None
+        self.release = None
+        self.schema_location = ''
+        self.sclks = None
+        self.staging_directory = ''
+        self.template_files = []
+        self.templates_directory = None
+        self.working_directory = None
+        self.xml_model = ''
+        self.xml_tab = 0
+
         try:
             #
             # Check that the configuration file validates with its schema
@@ -528,7 +544,8 @@ class Setup:
                 # Check if xml_model is provided via configuration, if so check
                 # its validity and if not generate it.
                 #
-                if hasattr(self, "xml_model"):
+                # TODO: hasattr(self, "xml_model") will need to be removed.
+                if hasattr(self, "xml_model") and self.xml_model:
                     xml_model_version = self.xml_model.split("PDS4_PDS_")[-1]
                     xml_model_version = xml_model_version.split(".sch")[0]
 
@@ -552,7 +569,8 @@ class Setup:
                 # Check if schema_location is provided via configuration, if so check
                 # its validity and if not generate it.
                 #
-                if hasattr(self, "schema_location"):
+                # TODO: hasattr(self, "schema_location") will need to be removed.
+                if hasattr(self, "schema_location") and self.schema_location:
                     schema_loc_version = self.schema_location.split("/PDS4_PDS_")[-1]
                     schema_loc_version = schema_loc_version.split(".xsd")[0]
 
@@ -646,7 +664,7 @@ class Setup:
             templates_directory = f"{self.root_dir}templates/pds3/"
 
         template_files = []
-        if not hasattr(self, "templates_directory") and self.pds_version == "4":
+        if not self.templates_directory and self.pds_version == "4":
 
             self.templates_directory = self.working_directory
 
