@@ -48,15 +48,6 @@ class ChecksumProduct(Product):
         self.start_time = ''
         self.stop_time = ''
 
-        line = f"Step {self.setup.step} - Generate checksum file"
-        logging.info("")
-        logging.info(line)
-        logging.info("-" * len(line))
-        logging.info("")
-        self.setup.step += 1
-        if not self.setup.args.silent and not self.setup.args.verbose:
-            print("-- " + line.split(" - ")[-1] + ".")
-
         #
         # We generate the kernel directory if not present
         #

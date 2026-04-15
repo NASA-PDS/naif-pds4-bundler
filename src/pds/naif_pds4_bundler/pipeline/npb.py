@@ -366,6 +366,7 @@ def run_pipeline(args: PipelineArgs) -> None:
             )
             if not isdir(checksum_dir):
                 for release in bundle.history.items():
+                    log_step(setup, title='Generate checksum file')
                     release_checksum = ChecksumProduct(
                         setup, miscellaneous_collection, add_previous_checksum=False
                     )
@@ -423,6 +424,7 @@ def run_pipeline(args: PipelineArgs) -> None:
         #    * The miscellaneous collection is the one to be guaranteed to be
         #      updated.
         #
+        log_step(setup, title='Generate checksum file')
         checksum = ChecksumProduct(setup, miscellaneous_collection)
 
         #
@@ -467,6 +469,7 @@ def run_pipeline(args: PipelineArgs) -> None:
         bundle.add(document_collection)
         bundle.add(miscellaneous_collection)
 
+        log_step(setup, title='Generate checksum file')
         checksum = ChecksumProduct(
             setup, miscellaneous_collection, add_previous_checksum=False
         )
