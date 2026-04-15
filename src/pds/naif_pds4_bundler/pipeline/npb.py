@@ -542,6 +542,7 @@ def run_pipeline(args: PipelineArgs) -> None:
     #
     for kernel in spice_kernels_collection.product:
         if isinstance(kernel, MetaKernelProduct):
+            log_step(setup, title=f'Meta-kernel {kernel.name} validation')
             kernel.validate()
 
     finish_execution(setup, log)
