@@ -310,6 +310,8 @@ def run_pipeline(args: PipelineArgs) -> None:
     if spice_kernels_collection.updated:
         if setup.pds_version == "4":
             spice_kernels_collection.set_collection_vid()
+
+        log_step(setup, title=f'Generation of {spice_kernels_collection.name} collection')
         spice_kernels_collection_inventory = InventoryProduct(
             setup, spice_kernels_collection
         )
@@ -336,6 +338,8 @@ def run_pipeline(args: PipelineArgs) -> None:
             document_collection.add(spiceds)
 
             document_collection.set_collection_vid()
+
+            log_step(setup, title=f'Generation of {document_collection.name} collection')
             document_collection_inventory = InventoryProduct(setup, document_collection)
             document_collection.add(document_collection_inventory)
 
@@ -391,6 +395,10 @@ def run_pipeline(args: PipelineArgs) -> None:
                     miscellaneous_collection.add(release_checksum)
 
                     release_miscellaneous_collection.set_collection_vid()
+
+                    # The release_miscellaneous_collection name is "miscellaneous"
+                    # (PDS4 branch), therefore, we do not log the step, as we do
+                    # every other time we generate an InventoryProduct.
                     release_miscellaneous_collection_inventory = InventoryProduct(
                         setup, release_miscellaneous_collection
                     )
@@ -439,6 +447,10 @@ def run_pipeline(args: PipelineArgs) -> None:
         miscellaneous_collection.set_collection_vid()
 
         checksum.set_coverage()
+
+        # The miscellaneous_collection name is "miscellaneous" (PDS4 branch),
+        # therefore, we do not log the step, as we do every other time we
+        # generate an InventoryProduct.
         miscellaneous_collection_inventory = InventoryProduct(
             setup, miscellaneous_collection
         )
