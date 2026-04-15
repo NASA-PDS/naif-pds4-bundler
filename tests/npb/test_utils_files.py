@@ -176,6 +176,20 @@ def test_check_line_length():
     errors = files.check_line_length(mk)
     assert errors == expected
 
+# ----------------------------------------------------------------------------
+# files.check_permissions test
+# ----------------------------------------------------------------------------
+
+@pytest.mark.parametrize( "path, rtype", [
+    (Path(KERNELS/'ck'/'insight_ida_enc_200829_201220_v1.bc'), None),
+    (Path(KERNELS/'dsk'/'DEIMOS_K005_THO_V01.BDS'), None),
+    #(Path(KERNELS/'spk'/'m2020_surf_rover_tlm_1619_1739_v1.bsp'), f"RuntimeError: File {path} is not readable by the account that runs NPB. Update permissions."),
+])
+def test_check_permissions(path, rtype):
+    """Test check_permissions function using pytest."""
+    assert files.check_permissions(str(path)) == rtype
+
+# Probably could make a file with bad permissions with mock_file... struggling to get this right
 
 # ----------------------------------------------------------------------------
 # files.copy test
