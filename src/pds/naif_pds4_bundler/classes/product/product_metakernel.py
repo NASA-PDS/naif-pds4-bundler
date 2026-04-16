@@ -848,7 +848,7 @@ class MetaKernelProduct(Product):
             # we need to subtract 1 kernel.
             #
             ker_num_fr = spiceypy.ktotal("ALL") - 1
-            ker_num_mk = self.collection_metakernel.__len__()
+            ker_num_mk = len(self.collection_metakernel)
 
             logging.info(f"-- Kernels loaded with FURNSH: {ker_num_fr}")
             logging.info(f"-- Kernels present in {self.name}: {ker_num_mk}")
