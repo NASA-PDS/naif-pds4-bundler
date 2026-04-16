@@ -218,7 +218,7 @@ class ReleasePlan:
             logging.warning(f"-- {line}.")
             logging.info("")
             if not self.setup.args.silent and not self.setup.args.verbose:
-                print("-- " + line.split(" - ")[-1] + ".")
+                print("-- " + line.split(" - ", maxsplit=1)[-1] + ".")
 
             return False
 

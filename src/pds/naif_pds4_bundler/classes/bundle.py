@@ -403,7 +403,7 @@ class Bundle:
         # The number of previous releases is obtained from the number/version
         # of Bundle labels. That information is already known as it is
         # specified by the bundle vid.
-        number_of_releases = int(self._vid.split(".")[0])
+        number_of_releases = int(self._vid.split(".", maxsplit=1)[0])
 
         # When the pipeline has not yet run, the in-progress release does not
         # yet have a label on disk, so we only reconstruct completed releases.
@@ -505,7 +505,7 @@ class Bundle:
                     product = (
                         f"spice_kernels/{line.split(':')[5].replace('_', '/', 1)}"
                     )
-                    ext = product.split(".")[-1]
+                    ext = product.split(".", maxsplit=1)[-1]
                     products.append(product)
                     products.append(product.replace(f".{ext}", ".xml"))
 
@@ -641,7 +641,7 @@ class Bundle:
                 if ":checksum_" not in line:
                     # OrbNums: preserve original extension
                     product = f"miscellaneous/{product_name}"
-                    ext = product.split(".")[-1]
+                    ext = product.split(".", maxsplit=1)[-1]
                     products.append(product)
                     products.append(product.replace(f".{ext}", ".xml"))
 
