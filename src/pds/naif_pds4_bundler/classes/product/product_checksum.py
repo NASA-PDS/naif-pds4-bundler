@@ -257,7 +257,7 @@ class ChecksumProduct(Product):
 
     def set_product_vid(self) -> None:
         """Set Product VID."""
-        self.vid = "{}.0".format(int(self.version))
+        self.vid = f'{int(self.version)}.0'
 
     def write_product(self, history: bool=False, set_coverage: bool=False) -> None:
         """Write the Checksum file and determine its start and stop time.

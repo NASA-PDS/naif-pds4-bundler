@@ -515,9 +515,7 @@ def get_latest_kernel(
         try:
             return kernels.pop()
         except BaseException:
-            logging.warning(
-                "        No kernels found with pattern {}".format(pattern)
-            )
+            logging.warning("        No kernels found with pattern %s", pattern)
             return []
     else:
         #

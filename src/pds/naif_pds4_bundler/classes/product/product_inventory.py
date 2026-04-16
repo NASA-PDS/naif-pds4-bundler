@@ -132,7 +132,7 @@ class InventoryProduct(Product):
 
     def set_product_vid(self) -> None:
         """Set the Product VID."""
-        self.vid = "{}.0".format(int(self.version))
+        self.vid = f'{int(self.version)}.0'
 
     def write_product(self) -> None:
         """Write and validate the Collection inventory."""

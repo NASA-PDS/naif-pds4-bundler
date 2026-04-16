@@ -157,7 +157,7 @@ class Collection:
                 else:
                     version = int(versions[-1].split("v")[-1].split(".")[0])
 
-                vid = "{}.0".format(version)
+                vid = f'{version}.0'
                 logging.info(
                     f"-- Collection of {self.type} version set to "
                     f"{version}, derived from:"
@@ -175,7 +175,7 @@ class Collection:
                     f"-- No {self.type} collection available in previous increment."
                 )
                 logging.warning(f"-- Collection of {self.type} version set to: {ver}.")
-                vid = "{}.0".format(ver)
+                vid = f'{ver}.0'
                 logging.info("")
 
         else:
@@ -183,7 +183,7 @@ class Collection:
                 f"-- Collection of {self.type} version set "
                 f"to: {int(self.setup.release)}."
             )
-            vid = "{}.0".format(int(self.setup.release))
+            vid = f'{int(self.setup.release)}.0'
             logging.info("")
 
         self.vid = vid

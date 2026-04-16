@@ -169,9 +169,7 @@ class SpiceKernelProduct(Product):
 
         :return: product LID
         """
-        product_lid = "{}:spice_kernels:{}_{}".format(
-            self.setup.logical_identifier, self.type, self.name
-        ).lower()
+        product_lid = f'{self.setup.logical_identifier}:spice_kernels:{self.type}_{self.name}'.lower()
 
         return product_lid
 

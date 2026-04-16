@@ -58,9 +58,7 @@ class MetaKernelPDS4Label(PDSLabel):
             # merely a list of strings.
             #
             kernel_type = extension_to_type(kernel)
-            kernel_lid = "{}:spice_kernels:{}_{}".format(
-                self.setup.logical_identifier, kernel_type, kernel.lower()
-            )
+            kernel_lid = f'{self.setup.logical_identifier}:spice_kernels:{kernel_type}_{kernel.lower()}'
 
             kernel_list_for_label += (
                 f"{' ' * 2 * tab}<Internal_Reference>{eol}"

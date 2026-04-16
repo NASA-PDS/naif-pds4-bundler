@@ -84,7 +84,7 @@ class SpicedsProduct(Product):
         # not remove a previously provided SPICEDS file from the configuration
         # file, if so, the user must be warned.
         #
-        self.name = "spiceds_v{0:0=3d}.html".format(self.version)
+        self.name = f'spiceds_v{self.version:0=3d}.html'
         self.path = (
             setup.staging_directory + os.sep + collection.name + os.sep + self.name
         )
@@ -137,7 +137,7 @@ class SpicedsProduct(Product):
 
     def set_product_vid(self) -> None:
         """Set the Product VID."""
-        self.vid = "{}.0".format(int(self.version))
+        self.vid = f'{int(self.version)}.0'
 
     def _check_cr(self) -> None:
         """Determine whether if ``<CR>`` has to be added to the SPICEDS."""

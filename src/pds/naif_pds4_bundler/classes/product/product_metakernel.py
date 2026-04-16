@@ -297,9 +297,7 @@ class MetaKernelProduct(Product):
         else:
             name = self.name
 
-        product_lid = "{}:spice_kernels:{}_{}".format(
-            self.setup.logical_identifier, self.type, name
-        ).lower()
+        product_lid = f"{self.setup.logical_identifier}:spice_kernels:{self.type}_{name}".lower()
 
         self.lid = product_lid
 
