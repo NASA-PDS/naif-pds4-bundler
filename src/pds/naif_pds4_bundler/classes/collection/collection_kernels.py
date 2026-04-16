@@ -121,10 +121,10 @@ class SpiceKernelsCollection(Collection):
                 and (self.setup.args.faucet != "labels")
             ):
                 if (
-                    self.setup.mk.__len__() == 1
-                    and self.setup.mk[0]["name"].__len__() == 1
-                    and self.setup.mk[0]["name"][0].__len__() == 1
-                    and self.setup.mk[0]["name"][0]["pattern"].__len__() == 2
+                    len(self.setup.mk) == 1
+                    and len(self.setup.mk[0]["name"]) == 1
+                    and len(self.setup.mk[0]["name"][0]) == 1
+                    and len(self.setup.mk[0]["name"][0]["pattern"]) == 2
                     and not isinstance(self.setup.mk[0]["name"][0]["pattern"], list)
                 ):
                     if self.setup.mk[0]["name"][0]["pattern"]["#text"] == "VERSION":

@@ -841,7 +841,7 @@ class OrbnumFileProduct(Product):
             # To find blank spaces we use a regular expression iterator.
             #
             if number > 0:
-                blankspaces_loc = blankspace_iter.__next__().regs[0]
+                blankspaces_loc = next(blankspace_iter).regs[0]
                 blankspaces = blankspaces_loc[1] - blankspaces_loc[0] + 1
                 location += int(length) + blankspaces
 
