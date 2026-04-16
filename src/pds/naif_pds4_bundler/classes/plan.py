@@ -157,13 +157,12 @@ class ReleasePlan:
             # If no meta-kernel was provided via configuration, try to
             # infer the on that needs to be generated.
             #
-            kernels_in_dir = glob.glob(
-                f"{self.setup.bundle_directory}/**/*", recursive=True
-            )
-            mks_in_dir = []
-            for mk in kernels_in_dir:
-                if "/mk/" in mk and ".tm" in mk.lower():
-                    mks_in_dir.append(mk.split(os.sep)[-1])
+            kernels_in_dir = Path(self.setup.bundle_directory).rglob("*")
+            mks_in_dir = [
+                p.name
+                for p in kernels_in_dir
+                if "mk" in p.parts and p.suffix.lower() == ".tm"
+            ]
 
             mks_in_dir.sort()
 
@@ -227,7 +226,7 @@ class ReleasePlan:
         self._kernel_list = kernels
 
         # Add plan to the list of generated files.
-        self.setup.add_file(f"{self.setup.working_directory}/{plan_name}")
+        self.setup.add_file(f"{Path(self.setup.working_directory, plan_name)}")
 
         return True
 
