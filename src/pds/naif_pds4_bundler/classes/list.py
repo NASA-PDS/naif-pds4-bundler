@@ -257,9 +257,7 @@ class KernelList:
                                                     f"Consider reviewing your NPB setup."
                                                 )
 
-                                        if isinstance(value, list) or isinstance(
-                                            value, dict
-                                        ):
+                                        if isinstance(value, (list, dict)):
                                             handle_npb_error(
                                                 f"-- Kernel {kernel} description could not be updated with "
                                                 f"pattern."
