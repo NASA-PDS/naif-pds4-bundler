@@ -132,7 +132,7 @@ class PDSLabel:
             #
             # Obtain all observers.
             #
-            obs = ["{}".format(self.setup.observer)]
+            obs = [f'{self.setup.observer}']
 
             if hasattr(self.setup, "secondary_observers"):
                 sec_obs = self.setup.secondary_observers

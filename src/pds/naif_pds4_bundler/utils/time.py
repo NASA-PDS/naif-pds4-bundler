@@ -63,7 +63,7 @@ def creation_time(time_format="infomod2"):
     """
     t = datetime.datetime.now()
     dt, micro = datetime.datetime.strftime(t, "%Y-%m-%dT%H:%M:%S.%f").split(".")
-    creation_time = "%s.%03d" % (dt, int(micro) / 1000) + "Z"
+    creation_time = f'{dt}.{int(micro) // 1000:03d}Z'
 
     if time_format == "maklabel":
         creation_time = creation_time[:-5]

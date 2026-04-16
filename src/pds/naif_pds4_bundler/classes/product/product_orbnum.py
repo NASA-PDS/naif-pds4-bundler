@@ -149,9 +149,7 @@ class OrbnumFileProduct(Product):
 
     def set_product_lid(self) -> None:
         """Set the Product LID."""
-        self.lid = "{}:miscellaneous:orbnum_{}".format(
-            self.setup.logical_identifier, self.name
-        ).lower()
+        self.lid = f'{self.setup.logical_identifier}:miscellaneous:orbnum_{self.name}'.lower()
 
     def set_product_vid(self) -> None:
         """Set the Product VID."""
