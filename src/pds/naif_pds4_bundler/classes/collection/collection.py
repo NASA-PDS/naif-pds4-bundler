@@ -115,10 +115,9 @@ class Collection:
             # If the product is not in the kernel list (such as the orbnum
             # file), then use the mission observers and targets.
             #
-            else:
-                missions = [self.setup.mission_name]
-                observers = [self.setup.observer]
-                targets = [self.setup.target]
+            missions = [self.setup.mission_name]
+            observers = [self.setup.observer]
+            targets = [self.setup.target]
 
         return missions, observers, targets
 
