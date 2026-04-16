@@ -86,11 +86,9 @@ def copy(src, dest):
         if e.errno == errno.ENOTDIR:
             shutil.copy(src, dest)
         else:
-            logging.warning(
-                f"-- Directory {src.split(os.sep)[-1]} not "
-                f"copied, probably because the increment "
-                "directory exists.\n Error: %s" % e
-            )
+            logging.warning("-- Directory %s not copied, probably because the "
+                            "increment directory exists.\n"
+                            "Error: %s", src.split(os.sep)[-1], e)
 
 
 def safe_make_directory(path):
