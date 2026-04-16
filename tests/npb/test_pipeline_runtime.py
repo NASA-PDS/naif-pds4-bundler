@@ -1,5 +1,6 @@
 import logging
 import os
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
@@ -159,10 +160,10 @@ def test_clear_run_missing_file_logs_warning(
     )
 
     expected_warnings = [
-        '     File p/staging/mars2020_spice/spice_kernels/ck/mars2020_surf_rover_tlm_0000_0089_v1.bc not found.',
-        '     File p/staging/mars2020_spice/spice_kernels/spk/mars2020_cruise_od138_v1.bsp not found.',
-        '     File p/bundle/mars2020_spice/spice_kernels/ck/mars2020_surf_rover_tlm_0000_0089_v1.bc not found.',
-        '     File p/bundle/mars2020_spice/spice_kernels/spk/mars2020_cruise_od138_v1.bsp not found.']
+        f'     File {Path("p/staging/mars2020_spice/spice_kernels/ck/mars2020_surf_rover_tlm_0000_0089_v1.bc")} not found.',
+        f'     File {Path("p/staging/mars2020_spice/spice_kernels/spk/mars2020_cruise_od138_v1.bsp")} not found.',
+        f'     File {Path("p/bundle/mars2020_spice/spice_kernels/ck/mars2020_surf_rover_tlm_0000_0089_v1.bc")} not found.',
+        f'     File {Path("p/bundle/mars2020_spice/spice_kernels/spk/mars2020_cruise_od138_v1.bsp")} not found.']
 
     with caplog.at_level(logging.WARNING):
         runtime.clear_run(setup)  # files do not exist — must not raise
@@ -277,8 +278,8 @@ def test_clear_run_label_mode_missing_file_logs_warning(dirs, caplog):
     )
 
     expected_warnings = [
-        '     File p/staging/mars2020_spice/spice_kernels/ck/mars2020_surf_rover_tlm_0000_0089_v1.bc not found.',
-        '     File p/bundle/ck/mars2020_surf_rover_tlm_0000_0089_v1.bc not found.']
+        f'     File {Path("p/staging/mars2020_spice/spice_kernels/ck/mars2020_surf_rover_tlm_0000_0089_v1.bc")} not found.',
+        f'     File {Path("p/bundle/ck/mars2020_surf_rover_tlm_0000_0089_v1.bc")} not found.']
 
     with caplog.at_level(logging.WARNING):
         runtime.clear_run(setup)
@@ -369,7 +370,7 @@ def test_clear_run_missing_plan_byproduct_logs_warning_not_raises(dirs, file_lis
         runtime.clear_run(setup)  # .plan does not exist — must not raise
 
     messages = [r.message.replace(str(dirs.tmp), 'p') for r in caplog.records]
-    assert '     File p/working/mars2020_release_01.plan not found.' in messages
+    assert f'     File {Path("p/working/mars2020_release_01.plan")} not found.' in messages
 
 
 def test_clear_run_missing_kernel_list_byproduct_logs_warning_not_raises(dirs, file_list, caplog):
@@ -386,7 +387,7 @@ def test_clear_run_missing_kernel_list_byproduct_logs_warning_not_raises(dirs, f
 
     messages = [r.message.replace(str(dirs.tmp), 'p') for r in caplog.records]
     print(messages)
-    assert '     File p/working/mars2020_release_01.kernel_list not found.' in messages
+    assert f'     File {Path("p/working/mars2020_release_01.kernel_list")} not found.' in messages
 
 
 def test_clear_run_empty_file_list_removes_nothing(dirs, tmp_path):

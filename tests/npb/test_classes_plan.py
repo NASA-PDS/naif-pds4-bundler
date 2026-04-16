@@ -488,7 +488,7 @@ def test_write_plan_plan_contains_matched_kernel(tmp_path):
     assert "maven_sc_rec_200101_200201_v01.bsp" in rp.kernel_list
     setup.add_file.assert_called_once()
     args = [a.replace(str(tmp_path), 'p') for a in setup.add_file.call_args_list[0].args]
-    assert  args == ['p/working/maven_release_01.plan']
+    assert  args == [f'{Path("p/working/maven_release_01.plan")}']
     assert setup.add_file.call_args_list[0].kwargs == {}
 
 
