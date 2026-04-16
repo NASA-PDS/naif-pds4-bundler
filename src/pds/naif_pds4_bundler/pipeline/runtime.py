@@ -1,3 +1,54 @@
+"""
+pipeline.runtime
+================
+Runtime coordination utilities for the NPB (NAIF PDS Bundle) pipeline.
+
+This module provides the lifecycle management functions that control how an
+NPB pipeline execution terminates — whether it ends successfully  or must
+abort with an error. It also exposes thin helpers used throughout the pipeline
+for structured logging and safe filesystem cleanup.
+
+Public API
+----------
+clear_run(setup)
+    Removes files produced by a previous pipeline run from the staging and
+    final (bundle) areas, using a kernel-list file as the manifest of targets.
+    Handles both standard bundle-layout runs and label-only runs transparently.
+
+finish_execution(setup, log_manager)
+    Coordinates the orderly shutdown of a successful run: removes temporary
+    templates, writes the file-list and checksum-registry by-products,
+    optionally emits a PDS4 validate configuration, clears the SPICE kernel
+    pool, and closes the log.
+
+handle_npb_error(message, setup=None)
+    Centralised error handler. Logs the error, flushes any partially-generated
+    by-products, removes templates, clears the kernel pool, and raises a
+    ``RuntimeError``. This function never returns (return type: ``NoReturn``).
+
+log_step(setup, title)
+    Records a numbered pipeline step to the log (and optionally to stdout)
+    and increments the step counter on *setup*.
+
+Notes
+-----
+**Refactoring notice:** this module is expected to undergo structural changes.
+Several functions currently housed here may be relocated to more specialized
+modules (e.g. a dedicated teardown, artifact-generation, or filesystem-utility
+layer) as the codebase is reorganized. Callers should depend on the public
+names via the package's top-level imports rather than importing directly from
+``pipeline.runtime`` to remain insulated from those moves.
+
+Dependencies
+------------
+- ``spiceypy`` — used to clear the SPICE kernel pool (``kclear``) on both
+  normal and error exits, ensuring no kernel handles are leaked between runs.
+- ``pathlib``, ``os``, ``logging`` — standard-library facilities for
+  filesystem operations and structured log output.
+- ``pipeline.classes.setup.Setup`` — carries all run-time configuration,
+  directory paths, and the mutable step counter.
+- ``pipeline.classes.log.Log`` — owns the log lifecycle (``stop()``).
+"""
 from __future__ import annotations
 import logging
 import os
