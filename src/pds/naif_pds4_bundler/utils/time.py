@@ -40,14 +40,12 @@ def current_date(date=""):
     :rtype: str
     """
     if date:
-        time = datetime.datetime.strptime(date, "%Y-%m-%dT%H:%M:%S")
+        t = datetime.datetime.strptime(date, "%Y-%m-%dT%H:%M:%S")
     else:
-        time = datetime.datetime.now()
+        t = datetime.datetime.now()
 
-    date = datetime.datetime.strftime(time, "%m %-d, %Y")
-    date = calendar.month_name[int(date[0:2])] + date[2:]
-
-    return date
+    month = calendar.month_name[t.month]
+    return f"{month} {t.day}, {t.year}"
 
 
 def creation_time(time_format="infomod2"):
