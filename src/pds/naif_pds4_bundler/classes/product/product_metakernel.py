@@ -1067,24 +1067,24 @@ class MetaKernelProduct(Product):
                 self.stop_time = stop_time
 
                 return
+
+            if hasattr(self.setup, "increment_start"):
+                start_time = self.setup.increment_start
             else:
-                if hasattr(self.setup, "increment_start"):
-                    start_time = self.setup.increment_start
-                else:
-                    start_time = self.setup.mission_start
+                start_time = self.setup.mission_start
 
-                if hasattr(self.setup, "increment_finish"):
-                    stop_time = self.setup.increment_finish
-                else:
-                    stop_time = self.setup.mission_finish
+            if hasattr(self.setup, "increment_finish"):
+                stop_time = self.setup.increment_finish
+            else:
+                stop_time = self.setup.mission_finish
 
-                logging.warning(
-                    f"-- No kernel(s) found to determine MK coverage. "
-                    f"Times from configuration will be used: {start_time} - {stop_time}"
-                )
+            logging.warning(
+                f"-- No kernel(s) found to determine MK coverage. "
+                f"Times from configuration will be used: {start_time} - {stop_time}"
+            )
 
-                self.start_time = start_time
-                self.stop_time = stop_time
+            self.start_time = start_time
+            self.stop_time = stop_time
 
         else:
 
