@@ -696,9 +696,9 @@ class KernelList:
                 logging.error("")
 
                 raise Exception(error)
-            else:
-                logging.info(f"     PASS with total of {num_file} entries.")
-                logging.info("")
+
+            logging.info(f"     PASS with total of {num_file} entries.")
+            logging.info("")
 
             #
             # Check list for duplicate entries
