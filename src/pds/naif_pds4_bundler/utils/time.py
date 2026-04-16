@@ -202,15 +202,10 @@ def ck_coverage(path, timsys="TDB", date_format="infomod2", system="UTC"):
     stop_time = max(end_points_list)
 
     if timsys == "SCLK":
-        return (start_time, stop_time)
-    else:
-        return et_to_date(
-            start_time,
-            stop_time,
-            date_format=date_format,
-            kernel_type="ck",
-            system=system,
-        )
+        return start_time, stop_time
+
+    return et_to_date(start_time, stop_time, date_format=date_format,
+                      kernel_type="ck", system=system)
 
 
 def pck_coverage(path, date_format="infomod2", system="UTC"):
