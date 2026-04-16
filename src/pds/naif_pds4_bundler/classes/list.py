@@ -820,12 +820,14 @@ class KernelList:
                     "Product not present in any kernel directory(ies)"
                 )
                 continue
-            elif not origin_paths and ".tm" in product.lower():
+
+            if not origin_paths and ".tm" in product.lower():
                 product_warnings[product].append(
                     "Meta-kernel will be generated during this run."
                 )
                 continue
-            elif len(origin_paths) > 1:
+
+            if len(origin_paths) > 1:
                 product_warnings[product].append(
                     "Product present in multiple directories:"
                 )
