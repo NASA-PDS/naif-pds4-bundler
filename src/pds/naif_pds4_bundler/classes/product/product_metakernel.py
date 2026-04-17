@@ -364,7 +364,7 @@ class MetaKernelProduct(Product):
                 #
                 if patterns:
                     for el in patterns:
-                        if ("$" + el) in description:
+                        if f'${el}' in description:
                             value = patterns[el]
 
                             #
