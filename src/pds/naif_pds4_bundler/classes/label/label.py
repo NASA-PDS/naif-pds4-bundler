@@ -50,7 +50,7 @@ class PDSLabel:
                     )
                 else:
                     missions_text = f"{setup.mission_name}, "
-                    for i in range(len(setup.secondary_missions)):
+                    for i, _ in enumerate(setup.secondary_missions):
                         if i == len(setup.secondary_missions) - 1:
                             missions_text += f"and {setup.secondary_missions[i]}"
                         else:
@@ -70,7 +70,7 @@ class PDSLabel:
                     )
                 else:
                     observers_text = f"{setup.observer}, "
-                    for i in range(len(setup.secondary_observers)):
+                    for i, _ in enumerate(setup.secondary_observers):
                         if i == len(setup.secondary_observers) - 1:
                             observers_text += f"and {setup.secondary_observers[i]}"
                         else:
