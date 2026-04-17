@@ -929,7 +929,7 @@ class OrbnumFileProduct(Product):
             #
             # Add event type in names.
             #
-            if (name == "Event UTC") or (name == "Event SCLK"):
+            if name in ('Event UTC', 'Event SCLK'):
                 name += " " + self._event_detection_key
             if name == "OP-Event UTC":
                 name += " " + oppevent

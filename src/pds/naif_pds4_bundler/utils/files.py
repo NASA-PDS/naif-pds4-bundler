@@ -982,7 +982,7 @@ def check_kernel_integrity(path):
         #
         # But for an archive only DAF is acceptable.
         #
-        if (arch != "DAF") and (arch != "DAS"):
+        if arch not in ('DAF', 'DAS'):
             error = f"Kernel {name} architecture {arch} is invalid."
         else:
             pass

@@ -110,11 +110,7 @@ class PDSLabel:
         # For labels that need to include all missions, observers and targets
         # of the setup.
         #
-        if (
-            type(self).__name__ != "SpiceKernelPDS4Label"
-            and type(self).__name__ != "MetaKernelPDS4Label"
-            and type(self).__name__ != "OrbnumFilePDS4Label"
-        ):
+        if type(self).__name__ not in ('SpiceKernelPDS4Label', 'MetaKernelPDS4Label', 'OrbnumFilePDS4Label'):
             #
             # Obtain all Missions
             #
