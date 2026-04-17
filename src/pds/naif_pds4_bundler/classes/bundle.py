@@ -741,7 +741,7 @@ class Bundle:
                 f"/miscellaneous"
                 f"/checksum/checksum_v{rel:03d}.tab"
             )
-            with open(checksum_file) as c:
+            with open(checksum_file, encoding='utf-8') as c:
                 for line in c:
                     #
                     # Need to convert the file names to lower case because this
