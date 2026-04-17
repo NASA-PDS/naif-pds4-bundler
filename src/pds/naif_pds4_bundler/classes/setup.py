@@ -144,9 +144,9 @@ class Setup:
         # dictionaries.
         #
         if hasattr(self, "mk"):
-            for i, mk_name in enumerate(self.mk):
-                if isinstance(mk_name["name"], dict):
-                    mk_name["name"] = [mk_name["name"]]
+            for i, mk in enumerate(self.mk):
+                if isinstance(mk["name"], dict):
+                    self.mk[i]["name"] = [mk["name"]]
 
         #
         # Meta-kernel configuration; if there is one coverage kernel, convert
