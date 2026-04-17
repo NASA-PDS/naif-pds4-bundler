@@ -253,7 +253,7 @@ class SpiceKernelsCollection(Collection):
             )
             bundles.sort()
 
-            with open(bundles[-1], "r") as b:
+            with open(bundles[-1], "r", encoding='utf-8') as b:
                 for line in b:
                     if "<start_date_time>" in line:
                         prev_increment_start = line.split(">")[-2].split("<")[0]
@@ -444,7 +444,7 @@ class SpiceKernelsCollection(Collection):
         products = self.product
         for product in products:
             label_name = product.label.name
-            with open(label_name, "r") as p:
+            with open(label_name, "r", encoding='utf-8') as p:
                 for line in p:
                     for element in elements:
                         if element in line:
