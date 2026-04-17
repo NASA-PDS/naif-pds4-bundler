@@ -201,7 +201,7 @@ class SpiceKernelProduct(Product):
         get_token = False
         description = False
 
-        with open(kernel_list_file, "r") as lst:
+        with open(kernel_list_file, "r", encoding='utf-8') as lst:
             for line in lst:
                 if self.name in line:
                     get_token = True
@@ -235,7 +235,7 @@ class SpiceKernelProduct(Product):
         get_token = False
         maklabel_options = False
 
-        with open(kernel_list_file, "r") as lst:
+        with open(kernel_list_file, "r", encoding='utf-8') as lst:
             for line in lst:
                 if self.name in line:
                     get_token = True
@@ -261,7 +261,7 @@ class SpiceKernelProduct(Product):
         coverage = []
         product_label = self.path.split(".")[0] + ".xml"
         if os.path.exists(product_label):
-            with open(product_label, "r") as lbl:
+            with open(product_label, "r", encoding='utf-8') as lbl:
                 start = ""
                 stop = ""
                 for line in lbl:
@@ -340,7 +340,7 @@ class SpiceKernelProduct(Product):
         :return: List of IDs present in the IK
         :rtype: list
         """
-        with open(f"{self.path}", "r") as f:
+        with open(f"{self.path}", "r", encoding='utf-8') as f:
 
             id_list = []
             parse_bool = False
