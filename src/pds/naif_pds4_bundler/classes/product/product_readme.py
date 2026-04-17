@@ -75,9 +75,9 @@ class ReadmeProduct(Product):
             else:
                 handle_npb_error("Readme file provided via configuration does not exist.")
         elif not os.path.isfile(self.path):
-            with open(self.path, "w+") as f:
+            with open(self.path, "w+", encoding='utf-8') as f:
                 with open(
-                    self.setup.templates_directory + "/template_readme.txt", "r"
+                    self.setup.templates_directory + "/template_readme.txt", "r", encoding='utf-8'
                 ) as t:
                     for line in t:
                         if "$SPICE_NAME" in line:
