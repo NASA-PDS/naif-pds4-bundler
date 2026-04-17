@@ -669,17 +669,17 @@ def match_patterns(name, name_w_pattern, patterns):
     value = ""
     value_bool = False
 
-    for i, _ in enumerate(name_check):
-        if (name_check[i] == name[i]) and (not value_bool):
+    for i, n in enumerate(name_check):
+        if (n == name[i]) and (not value_bool):
             continue
-        if (name_check[i] == name[i]) and value_bool:
+        if (n == name[i]) and value_bool:
             value_bool = False
             values_list.append(value)
             value = ""
-        elif (name_check[i] == "$") and (not value_bool):
+        elif (n == "$") and (not value_bool):
             value_bool = True
             value += name[i]
-        elif (name_check[i] == "$") and value_bool:
+        elif (n == "$") and value_bool:
             value += name[i]
         else:
             raise
