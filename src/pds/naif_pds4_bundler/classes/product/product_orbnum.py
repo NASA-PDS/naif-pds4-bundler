@@ -234,7 +234,7 @@ class OrbnumFileProduct(Product):
         :return: ORBNUM header line
         """
         header = []
-        with open(self.path, "r") as o:
+        with open(self.path, "r", encoding='utf-8') as o:
 
             if int(self._orbnum_type["header_start_line"]) > 1:
                 for _i in range(int(self._orbnum_type["header_start_line"]) - 1):
@@ -273,7 +273,7 @@ class OrbnumFileProduct(Product):
         :return: OrbNum file header length
         """
         header_length = 0
-        with open(self.path, "r", newline="") as o:
+        with open(self.path, "r", encoding='utf-8', newline="") as o:
             lines = 0
             header_start = int(self._orbnum_type["header_start_line"])
             for line in o:
@@ -295,7 +295,7 @@ class OrbnumFileProduct(Product):
         :return: sample record line
         """
         sample_record = ""
-        with open(self.path, "r") as o:
+        with open(self.path, "r", encoding='utf-8') as o:
             lines = 0
             header_start = int(self._orbnum_type["header_start_line"])
             for line in o:
@@ -357,7 +357,7 @@ class OrbnumFileProduct(Product):
         """
         blank_records = []
 
-        with open(self.path, "r") as o:
+        with open(self.path, "r", encoding='utf-8') as o:
             previous_orbit_number = None
             records = 0
             lines = 0
@@ -460,8 +460,8 @@ class OrbnumFileProduct(Product):
             # Following the name, write the new file and remove the
             # provided orbnum file.
             #
-            with open(self.path, "r") as o:
-                with open(path, "w") as n:
+            with open(self.path, "r", encoding='utf-8') as o:
+                with open(path, "w", encoding='utf-8') as n:
                     i = 1
                     for line in o:
                         if i > int(header_start) + 1:
