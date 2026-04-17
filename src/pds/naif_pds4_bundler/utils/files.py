@@ -669,7 +669,7 @@ def match_patterns(name, name_w_pattern, patterns):
     value = ""
     value_bool = False
 
-    for i in range(len(name_check)):
+    for i, _ in enumerate(name_check):
         if (name_check[i] == name[i]) and (not value_bool):
             continue
         if (name_check[i] == name[i]) and value_bool:
@@ -689,7 +689,7 @@ def match_patterns(name, name_w_pattern, patterns):
     # patterns.
     #
     values = {}
-    for i in range(len(values_list)):
+    for i, _ in enumerate(values_list):
         values[pattern_name_order[i]] = values_list[i]
 
     return values
