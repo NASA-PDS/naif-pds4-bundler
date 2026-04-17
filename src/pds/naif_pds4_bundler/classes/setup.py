@@ -65,7 +65,7 @@ class Setup:
         # Converting XML setup file into a dictionary and then into
         # attributes for the object.
         #
-        config = Path(args.config).read_text()
+        config = Path(args.config).read_text(encoding='utf-8')
         entries = etree_to_dict(ET.XML(config))
 
         #
@@ -745,7 +745,7 @@ class Setup:
             try:
                 xml_tag = "<Identification_Area>"
                 with open(
-                    self.templates_directory + os.sep + "template_bundle.xml", "r"
+                    self.templates_directory + os.sep + "template_bundle.xml", "r", encoding='utf-8'
                 ) as t:
                     for line in t:
                         if xml_tag in line:
@@ -1150,7 +1150,7 @@ class Setup:
                 + os.sep
                 + f"{self.mission_acronym}_{self.run_type}_"
                 f"{int(self.release):02d}.file_list",
-                "w",
+                "w", encoding='utf-8'
             ) as l:
                 for file in self.file_list:
                     l.write(file + "\n")
@@ -1164,7 +1164,7 @@ class Setup:
                 + os.sep
                 + f"{self.mission_acronym}_{self.run_type}_"
                 f"{int(self.release):02d}.checksum",
-                "w",
+                "w", encoding='utf-8'
             ) as l:
                 for element in self.checksum_registry:
                     l.write(element + "\n")
@@ -1223,7 +1223,7 @@ class Setup:
 
         filename = f"{self.mission_acronym}_{self.run_type}_{int(self.release):02d}"
 
-        with open(f"{self.working_directory}/{filename}.validate_config", "w") as l:
+        with open(f"{self.working_directory}/{filename}.validate_config", "w", encoding='utf-8') as l:
             l.write(
                 "# Run the PDS validate tool where the NPB working directory resides:\n"
             )

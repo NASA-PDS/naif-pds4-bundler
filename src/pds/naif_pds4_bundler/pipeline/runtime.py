@@ -24,7 +24,7 @@ def clear_run(setup: Setup) -> None:
     if os.path.isfile(setup.args.clear):
 
         # Read the kernel list file provided in the "clear" argument.
-        with open(setup.args.clear, "r") as handle:
+        with open(setup.args.clear, "r", encoding='utf-8') as handle:
             lines = handle.readlines()
 
         # Remove files from the staging area.

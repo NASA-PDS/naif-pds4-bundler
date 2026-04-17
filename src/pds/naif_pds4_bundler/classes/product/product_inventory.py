@@ -161,9 +161,9 @@ class InventoryProduct(Product):
         # If there is an existing version we need to add the items from
         # the previous version as SECONDARY members
         #
-        with open(self.path, "w+") as f:
+        with open(self.path, "w+", encoding='utf-8') as f:
             if self.path_current:
-                with open(self.path_current, "r") as r:
+                with open(self.path_current, "r", encoding='utf-8') as r:
                     for line in r:
                         if "P,urn" in line:
                             #
@@ -205,7 +205,7 @@ class InventoryProduct(Product):
                 f"{self.setup.bundle_directory}/{self.setup.volume_id}/index/index.tab"
             )
 
-            with open(existing_index, "r") as f:
+            with open(existing_index, "r", encoding='utf-8') as f:
                 for line in f:
                     if line.strip() != "":
                         index_row = line.split(",")
@@ -260,7 +260,7 @@ class InventoryProduct(Product):
         file_types = []
 
         line_for_length = ""
-        with open(self.path, "w+") as f:
+        with open(self.path, "w+", encoding='utf-8') as f:
             for row in index:
                 rows += 1
                 line = ""
@@ -337,7 +337,7 @@ class InventoryProduct(Product):
         for product in self.collection.product:
             if type(product).__name__ != "InventoryProduct":
                 product_found = False
-                with open(self.path, "r") as c:
+                with open(self.path, "r", encoding='utf-8') as c:
                     for line in c:
                         if product.lid in line:
                             product_found = True

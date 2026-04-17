@@ -201,7 +201,7 @@ class ChecksumProduct(Product):
         # the miscellaneous collection was present in the release.
         #
         if self.path_current:
-            with open(self.path_current, "r") as c:
+            with open(self.path_current, "r", encoding='utf-8') as c:
                 for line in c:
                     #
                     # Check the format of the current checksum file.
@@ -507,7 +507,7 @@ class ChecksumProduct(Product):
                         )
 
                 if os.path.isfile(path):
-                    with open(path, "r") as lbl:
+                    with open(path, "r", encoding='utf-8') as lbl:
                         for line in lbl:
                             if "<start_date_time>" in line:
                                 start_time = line.split("<start_date_time>")[-1].split(
@@ -544,7 +544,7 @@ class ChecksumProduct(Product):
             #
             # Write the checksum file.
             #
-            with open(self.path, "w") as c:
+            with open(self.path, "w", encoding='utf-8') as c:
                 for entry in md5_list:
                     entry = add_carriage_return(entry, self.setup.eol, self.setup)
                     c.write(entry)

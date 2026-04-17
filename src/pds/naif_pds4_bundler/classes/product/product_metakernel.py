@@ -704,8 +704,8 @@ class MetaKernelProduct(Product):
 
         metakernel_dictionary = vars(self)
 
-        with open(self.path, "w+") as f:
-            with open(self.template, "r") as t:
+        with open(self.path, "w+", encoding='utf-8') as f:
+            with open(self.template, "r", encoding='utf-8') as t:
                 for line in t:
                     line = line.rstrip()
                     for key, value in metakernel_dictionary.items():

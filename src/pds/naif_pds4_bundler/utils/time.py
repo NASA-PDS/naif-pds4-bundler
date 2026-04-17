@@ -389,7 +389,7 @@ def pds3_label_gen_date(file):
     """
     generation_date = "N/A"
 
-    with open(file, "r") as f:
+    with open(file, "r", encoding='utf-8') as f:
 
         for line in f:
             if "PRODUCT_CREATION_TIME" in line:

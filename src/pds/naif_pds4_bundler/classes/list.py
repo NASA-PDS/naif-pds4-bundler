@@ -111,7 +111,7 @@ class KernelList:
             self, self.setup.working_directory + os.sep + list_name, list_dictionary
         )
 
-        with open(self.setup.working_directory + os.sep + list_name, "a+") as f:
+        with open(self.setup.working_directory + os.sep + list_name, "a+", encoding='utf-8') as f:
 
             for kernel in self.kernel_list:
                 ker_added_to_list = False
@@ -346,7 +346,7 @@ class KernelList:
         # Generate the kernel list attribute, necessary for the validation.
         #
         kernels = []
-        with open(kernel_list, "r") as lst:
+        with open(kernel_list, "r", encoding='utf-8') as lst:
             for line in lst:
                 if "FILE             =" in line:
                     kernels.append(line.split(os.sep)[-1][:-1])
@@ -373,11 +373,11 @@ class KernelList:
         complete_list = f"{self.setup.mission_acronym}_complete.kernel_list"
 
         release_list = []
-        with open(self.setup.working_directory + os.sep + complete_list, "w+") as c:
+        with open(self.setup.working_directory + os.sep + complete_list, "w+", encoding='utf-8') as c:
             for kernel_list in kernel_lists:
                 logging.info(f"-- Adding {kernel_list}")
                 release_list.append(int(kernel_list.replace("_", ".").split(".")[-3]))
-                with open(kernel_list, "r") as lst:
+                with open(kernel_list, "r", encoding='utf-8') as lst:
                     for line in lst:
                         c.write(line)
 
@@ -424,7 +424,7 @@ class KernelList:
             for err in errors:
                 logging.error(f"   {err}")
 
-        with open(list_path, "r") as lst:
+        with open(list_path, "r", encoding='utf-8') as lst:
 
             #
             # Check that the list has the same number of FILE,
@@ -590,7 +590,7 @@ class KernelList:
             ker_in_list = []
             for kernel_list in kernel_lists:
 
-                with open(kernel_list, "r") as lst:
+                with open(kernel_list, "r", encoding='utf-8') as lst:
 
                     #
                     # Check that the list has the same number of FILE,
@@ -648,7 +648,7 @@ class KernelList:
         opt_in_list = []
 
         with open(
-            self.setup.working_directory + os.sep + self.complete_list, "r"
+            self.setup.working_directory + os.sep + self.complete_list, "r", encoding='utf-8'
         ) as lst:
 
             #
@@ -733,7 +733,7 @@ class KernelList:
                     self.setup.root_dir + f"/config/{self.setup.mission_acronym}"
                     f"_mission_template.pds"
                 )
-                with open(template, "r") as o:
+                with open(template, "r", encoding='utf-8') as o:
                     template_lines = o.readlines()
 
                 for option in opt_in_list:

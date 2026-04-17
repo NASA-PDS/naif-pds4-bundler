@@ -42,7 +42,7 @@ class ReleasePlan:
         # as a release plan. If so, a plan is generated.
         if plan.suffix != ".plan" and self.setup.args.faucet == "labels":
             plan = os.path.join(self.setup.working_directory, self._plan_name())
-            with open(plan, "w") as pl:
+            with open(plan, "w", encoding='utf-8') as pl:
                 pl.write(plan.split(os.sep)[-1])
 
         elif plan.suffix != ".plan":
@@ -51,7 +51,7 @@ class ReleasePlan:
                 "kernels are only allowed in labeling mode."
             )
 
-        with open(plan, "r") as f:
+        with open(plan, "r", encoding='utf-8') as f:
             for line in f:
                 ker_matched = False
                 for pattern in patterns:
