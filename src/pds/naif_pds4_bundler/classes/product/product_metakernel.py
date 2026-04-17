@@ -124,7 +124,7 @@ class MetaKernelProduct(Product):
                 )
             else:
                 missions_text = f"{self.setup.mission_name}, "
-                for i in range(len(self.setup.secondary_missions)):
+                for i, _ in enumerate(self.setup.secondary_missions):
                     if i == len(self.setup.secondary_missions) - 1:
                         missions_text += f"and {self.setup.secondary_missions[i]}"
                     else:
