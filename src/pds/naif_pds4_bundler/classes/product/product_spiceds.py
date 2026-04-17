@@ -148,8 +148,8 @@ class SpicedsProduct(Product):
         time_string = today.strftime("%Y-%m-%dT%H:%M:%S.%f")
         temporary_file = f"{self.path}.{time_string}"
 
-        with open(self.path, "r") as s:
-            with open(temporary_file, "w+") as t:
+        with open(self.path, "r", encoding='utf-8') as s:
+            with open(temporary_file, "w+", encoding='utf-8') as t:
                 for line in s:
                     line = add_carriage_return(line, self.setup.eol_pds4, self.setup)
                     t.write(line)
@@ -177,9 +177,9 @@ class SpicedsProduct(Product):
         #
         generate_spiceds = True
         if self.latest_spiceds:
-            with open(self.path) as f:
+            with open(self.path, encoding='utf-8') as f:
                 spiceds_current = f.readlines()
-            with open(self.latest_spiceds) as f:
+            with open(self.latest_spiceds, encoding='utf-8') as f:
                 spiceds_latest = f.readlines()
 
             differ = difflib.Differ(charjunk=difflib.IS_CHARACTER_JUNK)
