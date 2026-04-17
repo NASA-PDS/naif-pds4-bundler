@@ -689,8 +689,8 @@ def match_patterns(name, name_w_pattern, patterns):
     # patterns.
     #
     values = {}
-    for i, _ in enumerate(values_list):
-        values[pattern_name_order[i]] = values_list[i]
+    for i, name in enumerate(values_list):
+        values[pattern_name_order[i]] = name
 
     return values
 
