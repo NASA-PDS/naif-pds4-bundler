@@ -144,7 +144,7 @@ class Setup:
         # dictionaries.
         #
         if hasattr(self, "mk"):
-            for i in range(len(self.mk)):
+            for i, _ in enumerate(self.mk):
                 if isinstance(self.mk[i]["name"], dict):
                     self.mk[i]["name"] = [self.mk[i]["name"]]
 
@@ -509,7 +509,7 @@ class Setup:
         #
         # There might be more than one kernel directory
         #
-        for i in range(len(self.kernels_directory)):
+        for i, _ in enumerate(self.kernels_directory):
             if os.path.isdir(cwd + os.sep + self.kernels_directory[i]):
                 self.kernels_directory[i] = cwd + os.sep + self.kernels_directory[i]
             if not os.path.isdir(self.kernels_directory[i]):
