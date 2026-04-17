@@ -124,11 +124,11 @@ class MetaKernelProduct(Product):
                 )
             else:
                 missions_text = f"{self.setup.mission_name}, "
-                for i, _ in enumerate(self.setup.secondary_missions):
-                    if i == len(self.setup.secondary_missions) - 1:
-                        missions_text += f"and {self.setup.secondary_missions[i]}"
+                for i, sm_name in enumerate(self.setup.secondary_missions):
+                    if i == len(sm_name) - 1:
+                        missions_text += f"and {sm_name}"
                     else:
-                        missions_text += f"{self.setup.secondary_missions[i]}, "
+                        missions_text += f"{sm_name}, "
 
             self.PDS4_MISSION_NAME = f"{missions_text}"
         else:
