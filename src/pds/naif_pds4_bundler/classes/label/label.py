@@ -50,11 +50,11 @@ class PDSLabel:
                     )
                 else:
                     missions_text = f"{setup.mission_name}, "
-                    for i in range(len(setup.secondary_missions)):
+                    for i, sm_name in enumerate(setup.secondary_missions):
                         if i == len(setup.secondary_missions) - 1:
-                            missions_text += f"and {setup.secondary_missions[i]}"
+                            missions_text += f"and {sm_name}"
                         else:
-                            missions_text += f"{setup.secondary_missions[i]}, "
+                            missions_text += f"{sm_name}, "
 
                 self.PDS4_MISSION_NAME = f"{missions_text}"
             else:
@@ -70,11 +70,11 @@ class PDSLabel:
                     )
                 else:
                     observers_text = f"{setup.observer}, "
-                    for i in range(len(setup.secondary_observers)):
+                    for i, so_name in enumerate(setup.secondary_observers):
                         if i == len(setup.secondary_observers) - 1:
-                            observers_text += f"and {setup.secondary_observers[i]}"
+                            observers_text += f"and {so_name}"
                         else:
-                            observers_text += f"{setup.secondary_observers[i]}, "
+                            observers_text += f"{so_name}, "
 
                 self.PDS4_OBSERVER_NAME = f"{observers_text} spacecraft and their"
             else:

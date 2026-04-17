@@ -144,9 +144,9 @@ class Setup:
         # dictionaries.
         #
         if hasattr(self, "mk"):
-            for i in range(len(self.mk)):
-                if isinstance(self.mk[i]["name"], dict):
-                    self.mk[i]["name"] = [self.mk[i]["name"]]
+            for i, mk_name in enumerate(self.mk):
+                if isinstance(mk_name["name"], dict):
+                    mk_name["name"] = [mk_name["name"]]
 
         #
         # Meta-kernel configuration; if there is one coverage kernel, convert
@@ -509,11 +509,11 @@ class Setup:
         #
         # There might be more than one kernel directory
         #
-        for i in range(len(self.kernels_directory)):
-            if os.path.isdir(cwd + os.sep + self.kernels_directory[i]):
-                self.kernels_directory[i] = cwd + os.sep + self.kernels_directory[i]
+        for i, kd_name in enumerate(self.kernels_directory):
+            if os.path.isdir(cwd + os.sep + kd_name):
+                self.kernels_directory[i] = cwd + os.sep + kd_name
             if not os.path.isdir(self.kernels_directory[i]):
-                handle_npb_error(f"Directory does not exist: {self.kernels_directory[i]}.")
+                handle_npb_error(f"Directory does not exist: {kd_name}.")
 
         os.chdir(cwd)
 
