@@ -147,7 +147,7 @@ class KernelList:
                         #
                         if patterns:
                             for el in patterns:
-                                if ("$" + el) in description or ("$" + el) in mapping:
+                                if "$" + el in description or "$" + el in mapping:
                                     value = patterns[el]
 
                                     #
@@ -267,7 +267,7 @@ class KernelList:
 
                         if options:
                             for option in options.split():
-                                if ("$" + "PHASES") in option:
+                                if "$" + "PHASES" in option:
                                     if hasattr(self.setup, "phases"):
                                         if list(self.setup.phases.keys())[0]:
                                             phases = self.setup.phases["phase"]["@name"]
