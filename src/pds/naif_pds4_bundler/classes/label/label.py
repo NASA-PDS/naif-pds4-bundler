@@ -403,8 +403,8 @@ class PDSLabel:
         if "inventory" in label_name:
             label_name = label_name.replace("inventory_", "")
 
-        with open(label_name, "w+") as f:
-            with open(self.template, "r") as t:
+        with open(label_name, "w+", encoding='utf-8') as f:
+            with open(self.template, "r", encoding='utf-8') as t:
                 for line in t:
                     line = line.rstrip()
                     for key, value in label_dictionary.items():
