@@ -242,8 +242,8 @@ def add_crs_to_file(file, eol, setup=False):
     """
     try:
         file_crs = file.split(".")[0] + "crs_tmp"
-        with open(file, "r") as r:
-            with open(file_crs, "w+") as f:
+        with open(file, "r", encoding='utf-8') as r:
+            with open(file_crs, "w+", encoding='utf-8') as f:
                 for line in r:
                     line = add_carriage_return(line, eol, setup)
                     f.write(line)
@@ -278,9 +278,9 @@ def fill_template(list_object, product_file, product_dictionary):
     :param product_dictionary: Dictionary of keys to replace
     :type product_dictionary: dict
     """
-    with open(product_file, "w") as f:
+    with open(product_file, "w", encoding='utf-8') as f:
 
-        with open(list_object.template, "r") as t:
+        with open(list_object.template, "r", encoding='utf-8') as t:
             for line in t:
                 line = line.rstrip()
                 for key, value in product_dictionary.items():
@@ -309,7 +309,7 @@ def get_context_products(setup):
     registered_context_products_file = str(
         files('pds.naif_pds4_bundler.data').joinpath('registered_context_products.json')
     )
-    with open(registered_context_products_file, "rt") as f:
+    with open(registered_context_products_file, "rt", encoding='utf-8') as f:
         context_products = json.load(f)["Product_Context"]
 
     #
@@ -384,7 +384,7 @@ def mk_to_list(mk, setup):
     path_symbol = ""
     get_symbol = False
     ker_mk_list = []
-    with open(mk, "r") as f:
+    with open(mk, "r", encoding='utf-8') as f:
         for line in f:
             if path_symbol:
                 if path_symbol in line:
@@ -478,7 +478,7 @@ def get_latest_kernel(
 
     if mks:
         for mk in mks:
-            with open(mk, "r") as m:
+            with open(mk, "r", encoding='utf-8') as m:
                 for line in m:
                     if re.findall(pattern, line):
                         kernels_with_path.append(line.strip())
@@ -576,9 +576,9 @@ def compare_files(fromfile, tofile, dest_dir, display):
     :return: True if the files are different, False if they are the same.
     :rtype: bool
     """
-    with open(fromfile) as ff:
+    with open(fromfile, encoding='utf-8') as ff:
         fromlines = ff.readlines()
-    with open(tofile) as tf:
+    with open(tofile, encoding='utf-8') as tf:
         tolines = tf.readlines()
 
     if fromlines == tolines:
@@ -607,7 +607,7 @@ def compare_files(fromfile, tofile, dest_dir, display):
             f"{fromfile.split(os.sep)[-1].replace('.', '_')}_"
             f"{tofile.split(os.sep)[-1].replace('.', '_')}"
             f".html",
-            "w",
+            "w", encoding='utf-8'
         )
         diff_html.writelines(diff)
         diff_html.close()
@@ -735,7 +735,7 @@ def checksum_from_registry(path, working_directory):
 
     for checksum_registry in checksum_registries:
         if not checksum_found:
-            with open(checksum_registry, "r") as lbl:
+            with open(checksum_registry, "r", encoding='utf-8') as lbl:
                 for line in lbl:
                     if path in line:
                         checksum = line.split()[-1]
@@ -760,7 +760,7 @@ def checksum_from_label(path):
     checksum = ""
     product_label = path.split(".")[0] + ".xml"
     if os.path.exists(product_label):
-        with open(product_label, "r") as lbl:
+        with open(product_label, "r", encoding='utf-8') as lbl:
             for line in lbl:
                 if "<md5_checksum>" in line:
                     checksum = line.split("<md5_checksum>")[-1]
@@ -830,7 +830,7 @@ def string_in_file(file, str_to_check, repetitions=1):
     :rtype: bool
     """
     lines_with_string = 0
-    with open(file, "r") as r:
+    with open(file, "r", encoding='utf-8') as r:
         for line in r:
             if str_to_check in line:
                 lines_with_string += 1
@@ -852,7 +852,7 @@ def replace_string_in_file(file, old_string, new_string, setup):
     :type new_string: str
     :param setup: NPB run Setup
     """
-    reading_file = open(file, "r")
+    reading_file = open(file, "r", encoding='utf-8')
 
     new_file_content = ""
     for line in reading_file:
@@ -860,7 +860,7 @@ def replace_string_in_file(file, old_string, new_string, setup):
         new_file_content += add_carriage_return(new_line, setup.eol_pds3, setup)
     reading_file.close()
 
-    writing_file = open("temp.file", "w")
+    writing_file = open("temp.file", "w", encoding='utf-8')
     writing_file.write(new_file_content)
     writing_file.close()
 
@@ -902,7 +902,7 @@ def product_mapping(name, setup, cleanup=True):
     get_map = False
     mapping = False
 
-    with open(kernel_list_file, "r") as lst:
+    with open(kernel_list_file, "r", encoding='utf-8') as lst:
         for line in lst:
             if name in line:
                 get_map = True
@@ -1066,7 +1066,7 @@ def check_badchar(file):
     """
     error = []
     line_num = 1
-    with open(file, "r") as f:
+    with open(file, "r", encoding='utf-8') as f:
         for line in f:
             if not line.isascii():
                 char_count = 0
@@ -1123,7 +1123,7 @@ def check_line_length(file):
     """
     error = []
     line_num = 1
-    with open(file, "r") as f:
+    with open(file, "r", encoding='utf-8') as f:
         for line in f:
             if len(line) > 80:
                 error.append(f"Line {line_num} is longer than 80 characters")
