@@ -3,6 +3,7 @@
 import glob
 import logging
 import os
+from pathlib import Path
 
 from ...pipeline.runtime import handle_npb_error
 from ...utils import add_carriage_return, compare_files
@@ -420,15 +421,17 @@ class PDSLabel:
 
         self.name = label_name
 
-        stag_dir = self.setup.staging_directory
-        logging.info(f'-- Created {label_name.split(f"{stag_dir}{os.sep}")[-1]}')
+        created_file = Path(label_name).relative_to(self.setup.staging_directory)
+
+        logging.info('-- Created %s', created_file)
+
         if not self.setup.args.silent and not self.setup.args.verbose:
-            print(f'   * Created {label_name.split(f"{stag_dir}{os.sep}")[-1]}.')
+            print(f'   * Created {created_file}.')
 
         #
         # Add label to the list of generated files.
         #
-        self.setup.add_file(label_name.split(f"{stag_dir}{os.sep}")[-1])
+        self.setup.add_file(str(created_file))
 
         #
         # Wrap lines for PDS3 labels.
