@@ -100,8 +100,10 @@ def safe_make_directory(path):
     """
     try:
         os.mkdir(path)
-        logging.info(f"-- Generated directory: {path}  ")
-        logging.info("")
+
+        logging.info('-- Generated directory: %s  ', path)
+        logging.info('')
+
     except BaseException:
         pass
 
@@ -583,9 +585,11 @@ def compare_files(fromfile, tofile, dest_dir, display):
         tolines = tf.readlines()
 
     if fromlines == tolines:
-        logging.info("-- The following files have the same content:")
-        logging.info(f"   {fromfile}")
-        logging.info(f"   {tofile}")
+
+        logging.info(
+            '-- The following files have the same content:\n   %s   %s',
+            fromfile, tofile)
+
         if md5(fromfile) == md5(tofile):
             logging.info("   And have the same MD5Sum.")
             return False
@@ -735,10 +739,11 @@ def checksum_from_registry(path, working_directory):
                 for line in lbl:
                     if path in line:
                         checksum = line.split()[-1]
+
                         logging.warning(
-                            f"-- Checksum obtained from Checksum "
-                            f"Registry file: {checksum_registry}"
-                        )
+                            '-- Checksum obtained from Checksum '
+                            'Registry file: %s', checksum_registry)
+
                         checksum_found = True
                         break
 
@@ -761,10 +766,11 @@ def checksum_from_label(path):
                 if "<md5_checksum>" in line:
                     checksum = line.split("<md5_checksum>")[-1]
                     checksum = checksum.split("</md5_check")[0]
+
                     logging.warning(
-                        f"-- Checksum obtained from existing label:"
-                        f" {product_label.split(os.sep)[-1]}"
-                    )
+                        '-- Checksum obtained from existing label: %s',
+                        Path(product_label).name)
+
                     break
 
     return checksum
