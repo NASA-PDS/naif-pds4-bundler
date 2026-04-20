@@ -29,7 +29,7 @@ def clear_run(setup: Setup) -> None:
 
         # Remove files from the staging area.
         path = Path(setup.staging_directory)
-        logging.info(f"-- Removing files from staging area: {path}.")
+        logging.info('-- Removing files from staging area: %s.', path)
 
         for line in lines:
             if ".plan" not in line and ".kernel_list" not in line:
@@ -37,7 +37,7 @@ def clear_run(setup: Setup) -> None:
 
         # Remove files from the final (bundle) area.
         path = Path(setup.bundle_directory, f'{setup.mission_acronym}_spice')
-        logging.info(f"-- Removing files from final area: {path}.")
+        logging.info('-- Removing files from final area: %s.', path)
 
         executed_in_label_mode = not path.exists()
         for line in lines:
@@ -56,12 +56,12 @@ def clear_run(setup: Setup) -> None:
         path = Path(setup.working_directory)
         if setup.args.kerlist:
             byproduct = Path(setup.args.clear).with_suffix(".plan")
-            logging.info(f"-- Removing previous run by-product: {byproduct}.")
+            logging.info('-- Removing previous run by-product: %s.', byproduct)
             _unlink_with_warning(path=path / byproduct.name)
 
         if setup.args.plan:
             byproduct = Path(setup.args.clear).with_suffix(".kernel_list")
-            logging.info(f"-- Removing previous run by-product: {byproduct}.")
+            logging.info('-- Removing previous run by-product: %s.', byproduct)
             _unlink_with_warning(path=path / byproduct.name)
 
     else:
@@ -115,7 +115,7 @@ def handle_npb_error(message: str, setup: Optional[Setup] = None) -> NoReturn:
 
     :raises RuntimeError: always, with the provided error message.
     """
-    logging.error(f"-- {message}")
+    logging.error('-- %s', message)
 
     # If files have been generated in the staging area and/or transferred
     # to the final area, generate the file list for the pipeline execution.
@@ -162,4 +162,4 @@ def _unlink_with_warning(path: Path) -> None:
     try:
         path.unlink(missing_ok=False)
     except FileNotFoundError:
-        logging.warning(f"     File {path} not found.")
+        logging.warning('     File %s not found.', path)
