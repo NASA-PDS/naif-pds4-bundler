@@ -177,14 +177,15 @@ def _write_collection_csv(setup, relative_path: str, rows: list[str]):
 # ---------------------------------------------------------------------------
 
 class TestBundleInit:
-    """Tests for ``Bundle.__init__`` and the public properties it initialises.
+    """Tests for ``Bundle.__init__`` and the public properties it initializes.
 
     Properties are exercised here because they are trivial wrappers around
     instance attributes set exclusively in ``__init__``; testing them
     separately would not add meaningful coverage.
     """
 
-    def _pds3_setup(self, tmp_path):
+    @staticmethod
+    def _pds3_setup(tmp_path):
         staging = tmp_path / "staging"
         staging.mkdir()
         return SimpleNamespace(
@@ -193,7 +194,8 @@ class TestBundleInit:
             args=SimpleNamespace(silent=True, verbose=False),
         )
 
-    def _pds4_setup(self, tmp_path):
+    @staticmethod
+    def _pds4_setup(tmp_path):
         staging = tmp_path / "staging"
         bundle = tmp_path / "bundle"
         staging.mkdir()
@@ -330,7 +332,8 @@ class TestBundleCopyToBundle:
     # PDS4 helpers
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-    def _pds4_setup(self, tmp_path):
+    @staticmethod
+    def _pds4_setup(tmp_path):
         """Return (setup, staging_root, bundle_dir) for a PDS4 bundle."""
         # The staging directory must contain the mission segment so that
         # file.split(os.sep + MISSION + "_spice" + os.sep) works correctly.
@@ -348,7 +351,8 @@ class TestBundleCopyToBundle:
         )
         return setup, staging, bundle_dir
 
-    def _pds4_bundle(self, setup):
+    @staticmethod
+    def _pds4_bundle(setup):
         return _make_bundle(setup, vid="1.0",
                             name=f"bundle_{MISSION}_spice_v001.xml")
 
@@ -375,7 +379,8 @@ class TestBundleCopyToBundle:
         )
         return setup, staging, bundle_dir
 
-    def _pds3_bundle(self, setup):
+    @staticmethod
+    def _pds3_bundle(setup):
         bundle = object.__new__(Bundle)
         bundle.setup = setup
         bundle._new_files = []
@@ -593,7 +598,8 @@ class TestBundleFilesInStaging:
     # Helper method for the TestBundleFilesInStaging class.
     # ::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-    def _staging_setup(self, tmp_path):
+    @staticmethod
+    def _staging_setup(tmp_path):
         staging = tmp_path / "staging" / f"{MISSION}_spice"
         staging.mkdir(parents=True)
         bundle_dir = tmp_path / "bundle"
@@ -744,9 +750,10 @@ class TestBundleValidate:
 # Bundle._get_collection_versions_from_label
 # ---------------------------------------------------------------------------
 
-class TestBundle_GetCollectionVersionsFromLabel:
+class TestBundlePGetCollectionVersionsFromLabel:
 
-    def _make_label(self, members: list[dict]) -> dict:
+    @staticmethod
+    def _make_label(members: list[dict]) -> dict:
         """Build the label dict that _get_collection_versions_from_label expects."""
         prefix = "{" + NS + "}"
         member_dicts = [
@@ -823,7 +830,7 @@ class TestBundle_GetCollectionVersionsFromLabel:
 # Bundle._get_document_collection_products
 # ---------------------------------------------------------------------------
 
-class TestBundle_GetDocumentCollectionProducts:
+class TestBundlePGetDocumentCollectionProducts:
 
     def test_csv_and_label_always_present(self, fake_setup):
         """Collection inventory CSV and label are always the first two entries."""
@@ -891,7 +898,7 @@ class TestBundle_GetDocumentCollectionProducts:
 # Bundle._get_history
 # ---------------------------------------------------------------------------
 
-class TestBunel_GetHistory:
+class TestBunelPGetHistory:
 
     def test_returns_dict(self, fake_setup):
         """_get_history always returns a dict."""
@@ -1280,7 +1287,7 @@ class TestBunel_GetHistory:
 # Bundle._get_kernel_collection_products
 # ---------------------------------------------------------------------------
 
-class TestBundle_GetKernelCollectionProducts:
+class TestBundlePGetKernelCollectionProducts:
 
     def test_csv_and_label_always_present(self, fake_setup):
         """Collection inventory CSV and label are always present."""
@@ -1437,23 +1444,25 @@ class TestBundle_GetKernelCollectionProducts:
 # Bundle._get_metakernel_product_from_config
 # ---------------------------------------------------------------------------
 
-class TestBundle_GetMetakernelProductFromConfig:
+class TestBundlePGetMetakernelProductFromConfig:
 
-    def _mk_setup(self, fake_setup, version_length: int):
+    @staticmethod
+    def _mk_setup(fake_setup, version_length: int):
         fake_setup.mk = [{"name": [{"pattern": [{"#text": "VERSION",
                                                  "@length": str(version_length)}]}]}]
         return fake_setup
 
-    def _csv_line(self):
+    @staticmethod
+    def _csv_line():
         return f"P,urn:nasa:pds:{MISSION}.spice:spice_kernels:mk_insight::1.0"
 
-    @pytest.mark.parametrize("lenght, expected", [
+    @pytest.mark.parametrize("length, expected", [
         (1, 'spice_kernels/mk/insight_v1.tm'),
         (2, 'spice_kernels/mk/insight_v01.tm'),
         (3, 'spice_kernels/mk/insight_v001.tm'),
     ])
-    def test_version_length(self, fake_setup, lenght, expected):
-        setup = self._mk_setup(fake_setup, lenght)
+    def test_version_length(self, fake_setup, length, expected):
+        setup = self._mk_setup(fake_setup, length)
         bundle = _make_bundle(setup, vid="1.0",
                               name=f"bundle_{MISSION}_spice_v001.xml")
         result = bundle._get_metakernel_product_from_config(1, self._csv_line())
@@ -1480,7 +1489,7 @@ class TestBundle_GetMetakernelProductFromConfig:
 # Bundle._get_metakernel_products_from_inputs
 # ---------------------------------------------------------------------------
 
-class TestBundle_GetMetakernelProductsFromInputs:
+class TestBundlePGetMetakernelProductsFromInputs:
 
     def test_mk_inputs_as_dict_with_single_file(self, fake_setup):
         """``mk_inputs`` dict with a single file string is handled."""
@@ -1536,7 +1545,7 @@ class TestBundle_GetMetakernelProductsFromInputs:
 # Bundle._get_misc_collection_products
 # ---------------------------------------------------------------------------
 
-class TestBundle_GetMiscCollectionProducts:
+class TestBundlePGetMiscCollectionProducts:
 
     def test_returns_empty_list_when_csv_missing(self, fake_setup):
         """Returns ``[]`` when the inventory CSV does not exist on disk."""
@@ -1580,7 +1589,7 @@ class TestBundle_GetMiscCollectionProducts:
 # Bundle._read_bundle_label
 # ---------------------------------------------------------------------------
 
-class TestBundle_ReadBundleLabel:
+class TestBundlePReadBundleLabel:
 
     def test_returns_none_when_label_missing(self, fake_setup, caplog):
         """Returns ``None`` and logs a warning when the label file is absent."""
