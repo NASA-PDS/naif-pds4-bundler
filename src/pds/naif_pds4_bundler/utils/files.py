@@ -12,6 +12,7 @@ import re
 import shutil
 import stat
 import sys
+from pathlib import Path
 from typing import Optional
 
 import spiceypy
@@ -602,15 +603,10 @@ def compare_files(fromfile, tofile, dest_dir, display):
             fromlines, tolines, fromfile, tofile, context=False, numlines=False
         )
 
-        diff_html = open(
-            dest_dir + f"/diff_"
-            f"{fromfile.split(os.sep)[-1].replace('.', '_')}_"
-            f"{tofile.split(os.sep)[-1].replace('.', '_')}"
-            f".html",
-            "w", encoding='utf-8'
-        )
-        diff_html.writelines(diff)
-        diff_html.close()
+        with open(f'{dest_dir}/diff_{Path(fromfile).name.replace(".", "_")}_'
+                  f'{Path(tofile).name.replace(".", "_")}.html',
+                  'w', encoding='utf-8') as diff_html:
+            diff_html.writelines(diff)
 
     return True
 
@@ -852,19 +848,17 @@ def replace_string_in_file(file, old_string, new_string, setup):
     :type new_string: str
     :param setup: NPB run Setup
     """
-    reading_file = open(file, "r", encoding='utf-8')
+    with open(file, 'r', encoding='utf-8') as f:
 
-    new_file_content = ""
-    for line in reading_file:
-        new_line = line.replace(old_string, new_string)
-        new_file_content += add_carriage_return(new_line, setup.eol_pds3, setup)
-    reading_file.close()
+        new_file_content = ''
+        for line in f:
+            new_line = line.replace(old_string, new_string)
+            new_file_content += add_carriage_return(new_line, setup.eol_pds3, setup)
 
-    writing_file = open("temp.file", "w", encoding='utf-8')
-    writing_file.write(new_file_content)
-    writing_file.close()
+    with open('temp.file', 'w', encoding='utf-8') as writing_file:
+        writing_file.write(new_file_content)
 
-    shutil.move("temp.file", file)
+    shutil.move('temp.file', file)
 
 
 def format_multiple_values(value):
