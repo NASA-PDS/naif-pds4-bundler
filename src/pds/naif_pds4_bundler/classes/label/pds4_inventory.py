@@ -61,9 +61,8 @@ class InventoryPDS4Label(PDSLabel):
         #
         # Count number of lines in the inventory file
         #
-        f = open(self.product.path, encoding='utf-8')
-        self.N_RECORDS = str(len(f.readlines()))
-        f.close()
+        with open(self.product.path, 'r', encoding='utf-8') as f:
+            self.N_RECORDS = str(len(f.readlines()))
 
         self.name = collection.name.split(".")[0] + ".xml"
         self.write_label()
