@@ -81,7 +81,7 @@ class ReleasePlan:
                         logging.warning(
                             "-- The following release plan line has not been matched:"
                         )
-                        logging.warning(f"   {line.rstrip()}")
+                        logging.warning('   %s', line.rstrip())
 
         # Report the kernels that are included in the release plan.
         self._log_kernels_in_release_plan(kernels)
@@ -98,13 +98,16 @@ class ReleasePlan:
         # the parameter ``labels`` is provided by the ``-f --faucet`` argument.
         # In such case only the input file is provided in the release plan.
         if self.setup.args.faucet == "labels" and self.setup.args.plan:
-            logging.info("-- Generate archiving plan from input kernel:")
-            logging.info(f"   {self.setup.args.plan}")
+
+            logging.info('-- Generate archiving plan from input kernel:')
+            logging.info('   %s', self.setup.args.plan)
+
             kernels_in_dir = [self.setup.args.plan]
         else:
-            logging.info("-- Generate archiving plan from kernel directory(ies):")
+            logging.info('-- Generate archiving plan from kernel directory(ies):')
+
             for k_dir in self.setup.kernels_directory:
-                logging.info(f"   {k_dir}")
+                logging.info('   %s', k_dir)
 
             kernels_in_dir = []
             for k_dir in self.setup.kernels_directory:
@@ -192,7 +195,8 @@ class ReleasePlan:
                                 f"{new_version}{mk_name.split(version)[-1]}"
                             )
 
-                            logging.warning(f"-- Plan will include {mk_new_name}")
+                            logging.warning('-- Plan will include %s', mk_new_name)
+
                             kernels.append(mk_new_name)
 
                 if not mk_new_name:
@@ -214,8 +218,10 @@ class ReleasePlan:
         if not kernels:
 
             line = "Inputs for the release not found"
-            logging.warning(f"-- {line}.")
-            logging.info("")
+
+            logging.warning('-- %s.', line)
+            logging.info('')
+
             if not self.setup.args.silent and not self.setup.args.verbose:
                 print("-- " + line.split(" - ", maxsplit=1)[-1] + ".")
 
@@ -263,11 +269,13 @@ class ReleasePlan:
 
         :param kernels: List of kernel filenames to report.
         """
-        logging.info("")
-        logging.info("-- Reporting the products in Plan:")
+        logging.info('')
+        logging.info('-- Reporting the products in Plan:')
+
         for kernel in kernels:
-            logging.info(f"     {kernel}")
-        logging.info("")
+            logging.info('     %s', kernel)
+
+        logging.info('')
 
     # ------------------------------------------------------------------
     # Private helpers for write_plan
@@ -287,8 +295,11 @@ class ReleasePlan:
         result = []
         for orbnum_path in glob.glob(f"{self.setup.orbnum_directory}/*"):
             for orbnum in self.setup.orbnum:
+
                 if re.match(orbnum["pattern"], orbnum_path.split(os.sep)[-1]):
-                    logging.warning(f"-- Plan will include {orbnum_path}")
+
+                    logging.warning('-- Plan will include %s', orbnum_path)
+
                     result.append(orbnum_path.split(os.sep)[-1])
 
         return result
