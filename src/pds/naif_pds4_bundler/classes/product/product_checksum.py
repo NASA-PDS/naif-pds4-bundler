@@ -151,7 +151,7 @@ class ChecksumProduct(Product):
                     self.version = int(latest_version) + 1
 
                     logging.info('-- Previous checksum file is: %s', latest_file)
-                    logging.info('-- Generate version %s.', self.version)
+                    logging.info('-- Generate version %d.', self.version)
                     logging.info('')
 
                 except BaseException:
@@ -159,14 +159,14 @@ class ChecksumProduct(Product):
                     self.path_current = ""
 
                     logging.warning('-- Previous checksum file not found.')
-                    logging.warning('-- Default to version %s.', self.version)
+                    logging.warning('-- Default to version %d.', self.version)
                     logging.warning('-- The version of this file might be incorrect.')
 
             else:
                 self.version = 1
                 self.path_current = ""
 
-                logging.warning('-- Default to version %s.', self.version)
+                logging.warning('-- Default to version %d.', self.version)
                 logging.warning(
                     '-- Make sure this is the first release of the archive.')
                 logging.warning('')
