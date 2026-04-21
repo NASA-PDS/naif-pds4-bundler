@@ -684,15 +684,9 @@ def match_patterns(name, name_w_pattern, patterns):
         else:
             raise
 
-    #
     # Correlate the values with their position in the file name with
     # patterns.
-    #
-    values = {}
-    for i, name in enumerate(values_list):
-        values[pattern_name_order[i]] = name
-
-    return values
+    return dict(zip(pattern_name_order, values_list))
 
 
 def utf8len(strn):
