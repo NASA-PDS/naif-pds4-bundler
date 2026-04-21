@@ -3,6 +3,7 @@ import glob
 import logging
 import os
 import shutil
+from pathlib import Path
 
 from .product import Product
 from ...pipeline.runtime import handle_npb_error
@@ -69,25 +70,24 @@ class InventoryProduct(Product):
                     latest_version = latest_file.split("_v")[-1].split(".")[0]
                     self.version = int(latest_version) + 1
 
-                    logging.info(f"-- Previous inventory file is: {latest_file}")
-                    logging.info(f"-- Generate version {self.version}.")
+                    logging.info('-- Previous inventory file is: %s', latest_file)
+                    logging.info('-- Generate version %s.', self.version)
 
                 except BaseException:
                     self.version = 1
                     self.path_current = ""
 
-                    logging.warning("-- Previous inventory file not found.")
-                    logging.warning(f"-- Default to version {self.version}.")
-                    logging.warning("-- The version of this file might be incorrect.")
+                    logging.warning('-- Previous inventory file not found.')
+                    logging.warning('-- Default to version %s.', self.version)
+                    logging.warning('-- The version of this file might be incorrect.')
 
             else:
                 self.version = 1
                 self.path_current = ""
 
-                logging.warning(f"-- Default to version {self.version}.")
+                logging.warning('-- Default to version %s.', self.version)
                 logging.warning(
-                    "-- Make sure this is the first release of the archive."
-                )
+                    '-- Make sure this is the first release of the archive.')
 
             self.name = f"collection_{collection.name}_inventory_v{self.version:03}.csv"
             self.path = (
@@ -142,10 +142,10 @@ class InventoryProduct(Product):
             self.write_pds3_index_product()
 
         logging.info(
-            f"-- Generated {self.path.split(self.setup.staging_directory)[-1]}"
-        )
+            '-- Generated %s', Path(self.path).relative_to(self.setup.staging_directory).name)
+
         if not self.setup.args.silent and not self.setup.args.verbose:
-            print(f"   * Created {self.path.split(self.setup.staging_directory)[-1]}.")
+            print('   * Created %s.', Path(self.path).relative_to(self.setup.staging_directory).name)
 
         if self.setup.pds_version == "4":
             self.validate_pds4()
@@ -327,7 +327,7 @@ class InventoryProduct(Product):
         The Inventory is validated by checking that all the products listed
         are present in the archive.
         """
-        logging.info(f"-- Validating {self.name}...")
+        logging.info('-- Validating %s...', self.name)
 
         #
         # Check that all the products are listed in the collection product.
@@ -343,9 +343,8 @@ class InventoryProduct(Product):
                             product_found = True
                     if not product_found:
                         logging.error(
-                            f"      Product {product.lid} not found. "
-                            f"Consider increment re-generation."
-                        )
+                            '      Product %s not found. '
+                            'Consider increment re-generation.', product.lid)
 
         logging.info("      OK")
         logging.info("")
@@ -357,7 +356,7 @@ class InventoryProduct(Product):
         are present in the archive and comparing the index file with the
         previous one.
         """
-        logging.info(f"-- Validating {self.name}...")
+        logging.info('-- Validating %s...', self.name)
 
     def compare(self) -> None:
         """**Compare the Inventory Product with another Inventory**.
@@ -368,10 +367,8 @@ class InventoryProduct(Product):
         """
         mission_acronym = self.setup.mission_acronym
         logging.info(
-            f"-- Comparing "
-            f'{self.name.split(f"{mission_acronym}_spice/")[-1]}'
-            f"..."
-        )
+            '-- Comparing %s...',
+            self.name.split(f'{mission_acronym}_spice/')[-1])
 
         #
         # Use the prior version of the same product, if it does not
