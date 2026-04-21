@@ -1259,4 +1259,4 @@ class Setup:
             l.write('validate.strictFieldChecks = true\n')
 
         logging.info('-- PDS Validate Tool configuration file written in working area:')
-        logging.info('   %s/%s.validate_config', self.working_directory, filename)
+        logging.info('   %s', Path(self.working_directory) / f'{filename}.validate_config')
