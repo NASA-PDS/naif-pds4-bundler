@@ -275,13 +275,13 @@ class MetaKernelProduct(Product):
             if version == int(self.version):
                 logging.info(
                     '-- Version from kernel list and from previous increment '
-                    'agree: %s.', version)
+                    'agree: %d.', version)
             else:
                 logging.warning(
                     '-- The meta-kernel version is not as expected from previous '
                     'increment.')
                 logging.warning(
-                    '   Version set to: %d, whereas it is expected to be: %s.',
+                    '   Version set to: %d, whereas it is expected to be: %d.',
                     int(self.version), version)
                 logging.warning(
                     '   It is recommended to stop the execution and fix the issue.')

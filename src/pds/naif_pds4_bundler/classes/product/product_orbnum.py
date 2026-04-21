@@ -379,7 +379,7 @@ class OrbnumFileProduct(Product):
                             orbit_number - previous_orbit_number != 1
                         ):
                             logging.warning(
-                                '-- Orbit number %s record is followed by %d.',
+                                '-- Orbit number %d record is followed by %d.',
                                 previous_orbit_number, orbit_number)
 
                         if not line.strip():
