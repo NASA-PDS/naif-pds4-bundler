@@ -281,7 +281,7 @@ class MetaKernelProduct(Product):
                     '-- The meta-kernel version is not as expected from previous '
                     'increment.')
                 logging.warning(
-                    f'   Version set to: %s, whereas it is expected to be: %s.',
+                    '   Version set to: %d, whereas it is expected to be: %s.',
                     int(self.version), version)
                 logging.warning(
                     '   It is recommended to stop the execution and fix the issue.')
@@ -630,12 +630,12 @@ class MetaKernelProduct(Product):
         num_ker_mk = len(collection_metakernel)
 
         if num_ker_total != num_ker_mk:
-            logging.warning('-- Archived kernels:           %s', num_ker_total)
-            logging.warning('-- Kernels in meta-kernel:     %s', num_ker_mk)
+            logging.warning('-- Archived kernels:           %d', num_ker_total)
+            logging.warning('-- Kernels in meta-kernel:     %d', num_ker_mk)
 
         else:
-            logging.info('-- Archived kernels:           %s', num_ker_total)
-            logging.info('-- Kernels in meta-kernel:     %s', num_ker_mk)
+            logging.info('-- Archived kernels:           %d', num_ker_total)
+            logging.info('-- Kernels in meta-kernel:     %d', num_ker_mk)
 
         #
         # The kernel list for the new mk is formatted accordingly
@@ -813,7 +813,7 @@ class MetaKernelProduct(Product):
         tofile = val_mk
         work_dir = self.setup.working_directory
 
-        logging.info(f'-- Comparing %s...',
+        logging.info('-- Comparing %s...',
                      self.name.split(f"{self.setup.mission_acronym}_spice/")[-1])
 
         compare_files(fromfile, tofile, work_dir, self.setup.diff)
@@ -851,8 +851,8 @@ class MetaKernelProduct(Product):
             ker_num_fr = spiceypy.ktotal("ALL") - 1
             ker_num_mk = len(self.collection_metakernel)
 
-            logging.info('-- Kernels loaded with FURNSH: %s', ker_num_fr)
-            logging.info('-- Kernels present in %s: %s', self.name, ker_num_mk)
+            logging.info('-- Kernels loaded with FURNSH: %d', ker_num_fr)
+            logging.info('-- Kernels present in %s: %d', self.name, ker_num_mk)
 
             if ker_num_fr != ker_num_mk:
                 spiceypy.kclear()
@@ -1057,9 +1057,9 @@ class MetaKernelProduct(Product):
                     stop_time = f"{int(self.year) + 1}-01-01T00:00:00Z"
 
                 logging.warning(
-                    f'-- No kernel(s) found to determine MK coverage. '
-                    f'Times from configuration in accordance to yearly MK will '
-                    f'be used: %s - %s', start_time, stop_time)
+                    '-- No kernel(s) found to determine MK coverage. '
+                    'Times from configuration in accordance to yearly MK will '
+                    'be used: %s - %s', start_time, stop_time)
 
                 self.start_time = start_time
                 self.stop_time = stop_time
