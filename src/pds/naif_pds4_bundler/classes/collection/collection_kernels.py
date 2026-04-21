@@ -225,7 +225,7 @@ class SpiceKernelsCollection(Collection):
                 logging.warning(
                     '-- No increment start time provided via configuration. '
                     'Mission start time will be used:')
-                logging.warning(f'   %s', increment_start)
+                logging.warning('   %s', increment_start)
 
             if not increment_finish:
                 increment_finish = self.setup.mission_finish
