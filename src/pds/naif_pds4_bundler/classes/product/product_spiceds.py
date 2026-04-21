@@ -56,7 +56,9 @@ class SpicedsProduct(Product):
                 self.version = int(latest_version) + 1
 
                 if not spiceds:
-                    logging.info(f"-- Previous spiceds found: {latest_spiceds}")
+
+                    logging.info('-- Previous spiceds found: %s', latest_spiceds)
+
                     self.generated = False
                     return
 
@@ -94,9 +96,8 @@ class SpicedsProduct(Product):
         self.set_product_vid()
 
         logging.info(
-            f"-- spiceds file provided as input moved to staging "
-            f"area as {self.name}"
-        )
+            '-- spiceds file provided as input moved to staging area as %s',
+            self.name)
 
         #
         # The provided spiceds file is moved to the staging area.
@@ -229,8 +230,8 @@ class SpicedsProduct(Product):
             # If previous increment does not work, compare with InSight
             # example.
             #
-            logging.warning(f"-- No other version of {self.name} has been found.")
-            logging.warning("-- Comparing with default InSight example.")
+            logging.warning('-- No other version of %s has been found.', self.name)
+            logging.warning('-- Comparing with default InSight example.')
 
             val_spd = (
                 f"{self.setup.root_dir}/data/insight_spice/document/spiceds_v002.html"

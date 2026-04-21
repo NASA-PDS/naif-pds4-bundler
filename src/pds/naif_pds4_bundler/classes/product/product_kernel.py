@@ -76,7 +76,8 @@ class SpiceKernelProduct(Product):
         # We copy the kernel to the staging directory. If multiple directories
         # are provided, the first one is used.
         #
-        logging.info(f"-- Copy {self.name} to staging directory.")
+        logging.info('-- Copy %s to staging directory.', self.name)
+
         if not os.path.isfile(product_path + self.name):
             origin_path = ""
             for directory in self.setup.kernels_directory:
@@ -111,10 +112,11 @@ class SpiceKernelProduct(Product):
                     if file:
                         origin_path = file[0]
                         self.new_product = True
+
                         logging.info(
-                            f"-- Mapping {product_mapping(self.name, self.setup)} "
-                            f"with {self.name}"
-                        )
+                            '-- Mapping %s with %s',
+                            product_mapping(self.name, self.setup), self.name)
+
                         break
 
             #
@@ -126,7 +128,7 @@ class SpiceKernelProduct(Product):
             shutil.copy2(origin_path, product_path + os.sep + self.name)
 
         else:
-            logging.warning(f"     {self.name} already present in staging directory.")
+            logging.warning('     %s already present in staging directory.', self.name)
 
             #
             # Even though it is not a 'new' product, the file is present in
@@ -157,7 +159,8 @@ class SpiceKernelProduct(Product):
         #
         # The kernel is labeled.
         #
-        logging.info(f"-- Labeling {self.name}...")
+        logging.info('-- Labeling %s...', self.name)
+
         if setup.pds_version == "4":
             self.label = SpiceKernelPDS4Label(setup, self)
         else:
@@ -273,11 +276,11 @@ class SpiceKernelProduct(Product):
                         stop = stop.split("</stop_date_time>")[0]
                     if start and stop:
                         coverage = [start, stop]
+
                         logging.warning(
-                            f"-- Coverage obtained from existing "
-                            f"label: "
-                            f"{product_label.split(os.sep)[-1]}"
-                        )
+                            '-- Coverage obtained from existing label: %s',
+                            product_label.split(os.sep)[-1])
+
                         break
 
         if not coverage:

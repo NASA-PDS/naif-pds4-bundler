@@ -46,10 +46,12 @@ class MetaKernelProduct(Product):
     ) -> None:
         """Constructor."""
         if user_input:
-            logging.info(f"-- Copy meta-kernel: {kernel}")
+            logging.info('-- Copy meta-kernel: %s', kernel)
+
             self.path = kernel
         else:
-            logging.info(f"-- Generate meta-kernel: {kernel}")
+            logging.info('-- Generate meta-kernel: %s', kernel)
+
             self.template = f"{setup.templates_directory}/template_metakernel.tm"
             self.path = self.template
 
@@ -183,7 +185,7 @@ class MetaKernelProduct(Product):
         #
         if not user_input:
             if os.path.exists(self.path):
-                logging.warning(f"-- Meta-kernel already exists: {self.path}")
+                logging.warning('-- Meta-kernel already exists: %s', self.path)
                 logging.warning(
                     "-- The meta-kernel will be generated and the one "
                     "present in the staging are will be overwritten."
@@ -232,8 +234,10 @@ class MetaKernelProduct(Product):
         super().__init__()
 
         if self.setup.pds_version == "4":
-            logging.info("")
-            logging.info(f"-- Labeling meta-kernel: {self.name}...")
+
+            logging.info('')
+            logging.info('-- Labeling meta-kernel: %s...', self.name)
+
             self.label = MetaKernelPDS4Label(setup, self)
 
     def check_version(self) -> None:
@@ -270,25 +274,21 @@ class MetaKernelProduct(Product):
 
             if version == int(self.version):
                 logging.info(
-                    f"-- Version from kernel list and from previous "
-                    f"increment agree: {version}."
-                )
+                    '-- Version from kernel list and from previous increment '
+                    'agree: %d.', version)
             else:
                 logging.warning(
-                    "-- The meta-kernel version is not as expected "
-                    "from previous increment."
-                )
+                    '-- The meta-kernel version is not as expected from previous '
+                    'increment.')
                 logging.warning(
-                    f"   Version set to: {int(self.version)}, whereas "
-                    f"it is expected to be: {version}."
-                )
+                    '   Version set to: %d, whereas it is expected to be: %d.',
+                    int(self.version), version)
                 logging.warning(
-                    "   It is recommended to stop the execution and fix the issue."
-                )
+                    '   It is recommended to stop the execution and fix the issue.')
 
         except BaseException:
-            logging.warning("-- Meta-kernel from previous increment is not available.")
-            logging.warning(f"   Version will be set to: {self.version}.")
+            logging.warning('-- Meta-kernel from previous increment is not available.')
+            logging.warning('   Version will be set to: %s.', self.version)
 
     def set_product_lid(self) -> None:
         """Set the Meta-kernel LID."""
@@ -312,12 +312,11 @@ class MetaKernelProduct(Product):
             product_vid = str(self.version).lstrip("0") + ".0"
         except BaseException:
             logging.warning(
-                f"-- {self.name} No VID explicit in kernel name: set to 1.0"
-            )
+                '-- %s No VID explicit in kernel name: set to 1.0', self.name)
             logging.warning(
-                "-- Make sure that the MK pattern in the "
-                "configuration file is correct, if manually provided make sure "
-                "you provided the appropriate name."
+                '-- Make sure that the MK pattern in the configuration file is '
+                'correct, if manually provided make sure you provided the '
+                'appropriate name.'
             )
             product_vid = "1.0"
 
@@ -487,18 +486,16 @@ class MetaKernelProduct(Product):
             kernel_grammar_padding = self.mk_setup["grammar"]["padding"]
             if kernel_grammar_padding.lower() == "true":
                 padding = " "
-                logging.info("-- Left padding applied to kernels entries in MK.")
+                logging.info('-- Left padding applied to kernels entries in MK.')
             elif kernel_grammar_padding.lower() == "false":
                 padding = ""
-                logging.info("-- No left padding applied to kernels entries in MK.")
+                logging.info('-- No left padding applied to kernels entries in MK.')
             else:
                 logging.warning(
-                    f"-- Padding value in NPB configuration file MK grammar is "
-                    f"{kernel_grammar_padding}"
-                )
+                    '-- Padding value in NPB configuration file MK grammar is %s',
+                    kernel_grammar_padding)
                 logging.warning(
-                    "   The value should be 'True' or 'False'. Case is not relevant. "
-                )
+                    '   The value should be "True" or "False". Case is not relevant.')
         else:
             padding = " "
 
@@ -528,8 +525,9 @@ class MetaKernelProduct(Product):
                     excluded_kernels.append(kernel_grammar.split("exclude:")[-1])
 
             logging.info(
-                f"     Matching {kernel_type.upper()}(s) with meta-kernel grammar."
-            )
+                '     Matching %s(s) with meta-kernel grammar.',
+                kernel_type.upper())
+
             for kernel_grammar in kernel_grammar_list:
 
                 if "date:" in kernel_grammar:
@@ -586,7 +584,8 @@ class MetaKernelProduct(Product):
                             mks=mks,
                         )
                     except Exception as e:
-                        logging.warning(f"-- Exception: {e}")
+                        logging.warning('-- Exception: %s', e)
+
                         latest_kernel = []
 
                     if latest_kernel:
@@ -594,7 +593,8 @@ class MetaKernelProduct(Product):
                             latest_kernel = [latest_kernel]
 
                         for kernel in latest_kernel:
-                            logging.info(f"        Matched: {kernel}")
+                            logging.info('        Matched: %s', kernel)
+
                             mkgen_kernels.append(kernel_type + "/" + kernel)
 
         #
@@ -618,21 +618,24 @@ class MetaKernelProduct(Product):
         #
         # Report kernels present in meta-kernel
         #
-        logging.info("")
-        logging.info("-- Archived kernels present in meta-kernel")
+        logging.info('')
+        logging.info('-- Archived kernels present in meta-kernel')
+
         for kernel in collection_metakernel:
-            logging.info(f"     {kernel.name}")
-        logging.info("")
+            logging.info('     %s', kernel.name)
+
+        logging.info('')
 
         num_ker_total = len(self.collection.product)
         num_ker_mk = len(collection_metakernel)
 
         if num_ker_total != num_ker_mk:
-            logging.warning(f"-- Archived kernels:           {num_ker_total}")
-            logging.warning(f"-- Kernels in meta-kernel:     {num_ker_mk}")
+            logging.warning('-- Archived kernels:           %d', num_ker_total)
+            logging.warning('-- Kernels in meta-kernel:     %d', num_ker_mk)
+
         else:
-            logging.info(f"-- Archived kernels:           {num_ker_total}")
-            logging.info(f"-- Kernels in meta-kernel:     {num_ker_mk}")
+            logging.info('-- Archived kernels:           %d', num_ker_total)
+            logging.info('-- Kernels in meta-kernel:     %d', num_ker_mk)
 
         #
         # The kernel list for the new mk is formatted accordingly
@@ -801,8 +804,8 @@ class MetaKernelProduct(Product):
             # If previous increment does not work, compare with the MK
             # template.
             #
-            logging.warning(f"-- No other version of {self.name} has been found.")
-            logging.warning("-- Comparing with meta-kernel template.")
+            logging.warning('-- No other version of %s has been found.', self.name)
+            logging.warning('-- Comparing with meta-kernel template.')
 
             val_mk = f"{self.setup.templates_directory}/template_metakernel.tm"
 
@@ -810,11 +813,9 @@ class MetaKernelProduct(Product):
         tofile = val_mk
         work_dir = self.setup.working_directory
 
-        logging.info(
-            f"-- Comparing "
-            f'{self.name.split(f"{self.setup.mission_acronym}_spice/")[-1]}'
-            f"..."
-        )
+        logging.info('-- Comparing %s...',
+                     self.name.split(f"{self.setup.mission_acronym}_spice/")[-1])
+
         compare_files(fromfile, tofile, work_dir, self.setup.diff)
 
     def validate(self) -> None:
@@ -850,8 +851,8 @@ class MetaKernelProduct(Product):
             ker_num_fr = spiceypy.ktotal("ALL") - 1
             ker_num_mk = len(self.collection_metakernel)
 
-            logging.info(f"-- Kernels loaded with FURNSH: {ker_num_fr}")
-            logging.info(f"-- Kernels present in {self.name}: {ker_num_mk}")
+            logging.info('-- Kernels loaded with FURNSH: %d', ker_num_fr)
+            logging.info('-- Kernels present in %s: %d', self.name, ker_num_mk)
 
             if ker_num_fr != ker_num_mk:
                 spiceypy.kclear()
@@ -871,7 +872,7 @@ class MetaKernelProduct(Product):
                 "-- The MK has lines with length longer than 80 characters:"
             )
             for line in line_length_errors:
-                logging.warning(f"   {line}")
+                logging.warning('   %s', line)
 
         os.chdir(cwd)
 
@@ -953,11 +954,10 @@ class MetaKernelProduct(Product):
                         #
                         if not os.path.exists(path) or os.path.getsize(path) == 0:
                             logging.warning(
-                                f"-- File not present in final area: {path}."
-                            )
+                                '-- File not present in final area: %s.', path)
                             logging.warning(
-                                "   It will not be used to determine the coverage."
-                            )
+                                '   It will not be used to determine the coverage.')
+
                         else:
                             if extension_to_type(kernel) == "spk":
                                 (start_time, stop_time) = spk_coverage(
@@ -977,8 +977,7 @@ class MetaKernelProduct(Product):
                             finish_times.append(spiceypy.utc2et(stop_time[:-1]))
 
                             logging.info(
-                                f"-- File {kernel} used to determine coverage."
-                            )
+                                '-- File %s used to determine coverage.', kernel)
 
         #
         # If it is a yearly meta-kernel; we need to handle it separately.
@@ -1021,7 +1020,7 @@ class MetaKernelProduct(Product):
 
             start_time = spiceypy.et2utc(min(start_times), "ISOC", 3, 80) + "Z"
             stop_time = spiceypy.et2utc(max(finish_times), "ISOC", 3, 80) + "Z"
-            logging.info(f"-- Meta-kernel coverage: {start_time} - {stop_time}")
+            logging.info('-- Meta-kernel coverage: %s - %s', start_time, stop_time)
 
         except BaseException:
             #
@@ -1058,10 +1057,9 @@ class MetaKernelProduct(Product):
                     stop_time = f"{int(self.year) + 1}-01-01T00:00:00Z"
 
                 logging.warning(
-                    f"-- No kernel(s) found to determine MK coverage. "
-                    f"Times from configuration in accordance to yearly MK "
-                    f"will be used: {start_time} - {stop_time}"
-                )
+                    '-- No kernel(s) found to determine MK coverage. '
+                    'Times from configuration in accordance to yearly MK will '
+                    'be used: %s - %s', start_time, stop_time)
 
                 self.start_time = start_time
                 self.stop_time = stop_time
@@ -1078,10 +1076,9 @@ class MetaKernelProduct(Product):
             else:
                 stop_time = self.setup.mission_finish
 
-            logging.warning(
-                f"-- No kernel(s) found to determine MK coverage. "
-                f"Times from configuration will be used: {start_time} - {stop_time}"
-            )
+            logging.warning('-- No kernel(s) found to determine MK coverage. '
+                            'Times from configuration will be used: %s - %s',
+                            start_time, stop_time)
 
             self.start_time = start_time
             self.stop_time = stop_time
@@ -1102,15 +1099,14 @@ class MetaKernelProduct(Product):
                     if self.setup.increment_start[0:4] == start_time[0:4]:
                         start_time = self.setup.increment_start
                         logging.warning(
-                            f"-- Coverage start time corrected with "
-                            f"increment start from configuration file to: {start_time}"
-                        )
+                            '-- Coverage start time corrected with increment '
+                            'start from configuration file to: %s', start_time)
+
                 else:
                     start_time = self.setup.increment_start
                     logging.warning(
-                        f"-- Coverage start time corrected with "
-                        f"increment start from configuration file to: {start_time}"
-                    )
+                        '-- Coverage start time corrected with increment start'
+                        ' from configuration file to: %s', start_time)
 
             if hasattr(self.setup, "increment_finish"):
                 if hasattr(self, "year"):
@@ -1120,16 +1116,17 @@ class MetaKernelProduct(Product):
                     #
                     if self.setup.increment_finish[0:4] == stop_time[0:4]:
                         stop_time = self.setup.increment_finish
+
                         logging.warning(
-                            f"-- Coverage finish time corrected with "
-                            f"increment finish from configuration file to: {stop_time}"
-                        )
+                            '-- Coverage finish time corrected with increment '
+                            'finish from configuration file to: %s', stop_time)
+
                 else:
                     stop_time = self.setup.increment_finish
+
                     logging.warning(
-                        f"-- Coverage finish time corrected with "
-                        f"increment finish from configuration file to: {stop_time}"
-                    )
+                        '-- Coverage finish time corrected with increment finish '
+                        'from configuration file to: %s', stop_time)
 
             #
             # Re-format the time accordingly. The 'Z' is removed from the UTC

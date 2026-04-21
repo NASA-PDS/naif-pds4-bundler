@@ -88,8 +88,9 @@ class SpiceKernelsCollection(Collection):
                         # If the kernel is not present we don't provide the path.
                         #
                         logging.info(
-                            f"-- {kernel} not provided as input in kernels directory."
-                        )
+                            '-- %s not provided as input in kernels directory.',
+                            kernel)
+
                         meta_kernels[kernel] = False
 
         #
@@ -181,10 +182,10 @@ class SpiceKernelsCollection(Collection):
                     if prod.mk_sets_coverage:
                         increment_starts.append(prod.start_time)
                         increment_finishs.append(prod.stop_time)
+
                         logging.info(
-                            f"-- Using MK: {prod.name} to determine "
-                            f"increment coverage."
-                        )
+                            '-- Using MK: %s to determine increment coverage.',
+                            prod.name)
 
             increment_start = min(increment_starts)
             increment_finish = max(increment_finishs)
@@ -198,19 +199,20 @@ class SpiceKernelsCollection(Collection):
             logging.warning("-- No Meta-kernels found to determine increment times.")
 
             if hasattr(self.setup, "increment_start"):
+
                 logging.info(
-                    f"   Increment stop time set to: "
-                    f"{self.setup.increment_start} "
-                    f"as provided from configuration file"
-                )
+                    '   Increment stop time set to: %s as provided from '
+                    'configuration file', self.setup.increment_start)
+
                 increment_start = self.setup.increment_start
 
             if hasattr(self.setup, "increment_finish"):
+
                 logging.info(
-                    f"   Increment finish time set to: "
-                    f"{self.setup.increment_finish} "
-                    f"as provided from configuration file"
+                    '   Increment finish time set to: %s as provided from '
+                    'configuration file', self.setup.increment_finish
                 )
+
                 increment_finish = self.setup.increment_finish
 
             #
@@ -219,19 +221,19 @@ class SpiceKernelsCollection(Collection):
             #
             if not increment_start:
                 increment_start = self.setup.mission_start
+
                 logging.warning(
-                    "-- No increment start time provided via configuration. "
-                    "Mission start time will be used:"
-                )
-                logging.warning(f"   {increment_start}")
+                    '-- No increment start time provided via configuration. '
+                    'Mission start time will be used:')
+                logging.warning('   %s', increment_start)
 
             if not increment_finish:
                 increment_finish = self.setup.mission_finish
+
                 logging.warning(
-                    "-- No increment finish time provided via configuration. "
-                    "Mission stop time will be used:"
-                )
-                logging.warning(f"   {increment_finish}")
+                    '-- No increment finish time provided via configuration. '
+                    'Mission stop time will be used:')
+                logging.warning('   %s', increment_finish)
 
         #
         # We check the coverage with the previous increment.
@@ -264,8 +266,8 @@ class SpiceKernelsCollection(Collection):
             # Provide different logging level depending on the times'
             # combination.
             #
-            logging.info("-- Previous bundle increment interval is:")
-            logging.info(f"   {prev_increment_start} - {prev_increment_finish}")
+            logging.info('-- Previous bundle increment interval is:')
+            logging.info('   %s - %s', prev_increment_start, prev_increment_finish)
 
             #
             # Correct the increment interval with previous interval if
@@ -301,9 +303,9 @@ class SpiceKernelsCollection(Collection):
                 "Increment start/finish times will not be corrected."
             )
 
-        logging.info("-- Increment interval for collection and bundle set to:")
-        logging.info(f"   {increment_start} - {increment_finish}")
-        logging.info("")
+        logging.info('-- Increment interval for collection and bundle set to:')
+        logging.info('   %s - %s', increment_start, increment_finish)
+        logging.info('')
 
         self.setup.increment_finish = increment_finish
         self.setup.increment_start = increment_start
@@ -357,7 +359,9 @@ class SpiceKernelsCollection(Collection):
         if non_present_products:
             logging.error("-- The following products from the list are not present:")
             for product in non_present_products:
-                logging.error(f"   {product}")
+
+                logging.error('   %s', product)
+
                 handle_npb_error(
                     "Some products from the list are not present.",
                     setup=self.setup,
@@ -394,7 +398,9 @@ class SpiceKernelsCollection(Collection):
         if non_labeled_products:
             logging.error("-- The following products have not been labeled:")
             for product in non_labeled_products:
-                logging.error(f"   {product}")
+
+                logging.error('   %s', product)
+
                 # TODO: This IF statement goes after implementing PDS3 labeling.
                 if self.setup.pds_version == "4":
                     handle_npb_error(
@@ -458,8 +464,8 @@ class SpiceKernelsCollection(Collection):
         logging.info("")
         for key in elements_dict.keys():
             for element in elements_dict[key]:
-                logging.info(f"   {element}")
-            logging.info("")
-        logging.info("")
+                logging.info('   %s', element)
+            logging.info('')
+        logging.info('')
 
         return None

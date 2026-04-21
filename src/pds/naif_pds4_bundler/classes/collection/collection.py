@@ -157,12 +157,12 @@ class Collection:
                     version = int(versions[-1].split("v")[-1].split(".")[0])
 
                 vid = f'{version}.0'
+
                 logging.info(
-                    f"-- Collection of {self.type} version set to "
-                    f"{version}, derived from:"
-                )
-                logging.info(f"   {versions[-1]}")
-                logging.info("")
+                    '-- Collection of %s version set to %s, derived from:',
+                    self.type, version)
+                logging.info('   %s', versions[-1])
+                logging.info('')
 
             except BaseException:
                 if self.name == "spice_kernel":
@@ -171,18 +171,19 @@ class Collection:
                     ver = 1
 
                 logging.warning(
-                    f"-- No {self.type} collection available in previous increment."
-                )
-                logging.warning(f"-- Collection of {self.type} version set to: {ver}.")
+                    '-- No %s collection available in previous increment.',
+                    self.type)
+                logging.warning('-- Collection of %s version set to: %d.',
+                                self.type, ver)
+
                 vid = f'{ver}.0'
                 logging.info("")
 
         else:
-            logging.warning(
-                f"-- Collection of {self.type} version set "
-                f"to: {int(self.setup.release)}."
-            )
+            logging.warning('-- Collection of %s version set to: %d.',
+                            self.type, int(self.setup.release))
+
             vid = f'{int(self.setup.release)}.0'
-            logging.info("")
+            logging.info('')
 
         self.vid = vid

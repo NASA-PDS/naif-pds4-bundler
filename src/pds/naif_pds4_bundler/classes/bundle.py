@@ -144,9 +144,8 @@ class Bundle:
                 if hasattr(product, "label"):
                     self._new_files.append(product.label.name)
                 else:
-                    logging.info(
-                        f"-- Product {product.name} has no label in staging area."
-                    )
+                    logging.info('-- Product %s has no label in staging area.',
+                                 product.name)
 
         #
         # Include the bundle products if not running in label mode.
@@ -168,8 +167,10 @@ class Bundle:
         logging.info("-- The following files are present in the staging area:")
         for file in staging_files:
             relative_path = f"{os.sep}{self.setup.mission_acronym}_spice{os.sep}"
-            logging.info(f"     {file.split(relative_path)[-1]}")
-        logging.info("")
+
+            logging.info('     %s', file.split(relative_path)[-1])
+
+        logging.info('')
 
     def copy_to_bundle(self):
         """Copy files from ``staging_directory`` to the ``bundle_directory``."""
@@ -219,7 +220,8 @@ class Bundle:
                 shutil.copy(src, dst)
                 os.chmod(dst, 0o664)
 
-                logging.info(f"-- Copied: {dst.split(os.sep)[-1]}")
+                logging.info('-- Copied: %s', Path(dst).name)
+
             else:
 
                 #
@@ -229,16 +231,12 @@ class Bundle:
                 if src.split(".")[-1][0] != "b":
 
                     if not filecmp.cmp(src, dst):
-                        logging.warning(
-                            f"-- File already exists but content is "
-                            f"different: "
-                            f"{dst.split(os.sep)[-1]}"
-                        )
+                        logging.warning('-- File already exists but content is'
+                                        ' different: %s', Path(dst).name)
 
                 logging.warning(
-                    f"-- File already exists and has not been "
-                    f"copied: {dst.split(os.sep)[-1]}"
-                )
+                    '-- File already exists and has not been copied: %s',
+                    Path(dst).name)
 
         #
         # Cross-check that files with the latest timestamp in final correspond
@@ -668,7 +666,9 @@ class Bundle:
 
         if not bundle_label_path.is_file():
             msg = "Files from previous releases not available to generate Bundle history."
-            logging.warning(f"-- {msg}")
+
+            logging.warning('-- %s', msg)
+
             if not self.setup.args.silent and not self.setup.args.verbose:
                 print(f"-- WARNING: {msg}")
             return None
@@ -726,8 +726,9 @@ class Bundle:
         history = self._get_history()
         if history:
             history_string = pprint.pformat(history, indent=2)
+
             for line in history_string.split("\n"):
-                logging.info(f"    {line}")
+                logging.info('    %s', line)
 
         products_in_history = []
         for rel in history:
@@ -770,11 +771,10 @@ class Bundle:
 
             if products_in_checksum != products_in_history:
 
-                logging.error("")
-                logging.error(
-                    f"-- Products in {checksum_file} do not "
-                    f"correspond to the bundle release history."
-                )
+                logging.error('')
+                logging.error('-- Products in %s do not correspond to the bundle'
+                              ' release history.', checksum_file)
+
                 incorrect_products = set(products_in_checksum) ^ set(
                     products_in_history
                 )
@@ -782,7 +782,9 @@ class Bundle:
                 incorrect_output = ""
                 for product in incorrect_products:
                     incorrect_output += f"{product}\n"
-                    logging.error(f"      {product}")
+
+                    logging.error('      %s', product)
+
                 if not self.setup.args.log:
                     handle_npb_error(
                         f"Products in {checksum_file} do not correspond "

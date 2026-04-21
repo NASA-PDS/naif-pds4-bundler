@@ -72,14 +72,16 @@ class OrbnumFileProduct(Product):
         #
         # We copy the file to the staging directory.
         #
-        logging.info(f"-- Copy {self.name} to staging directory.")
+        logging.info('-- Copy %s to staging directory.', self.name)
+
         if not os.path.isfile(product_path + self.name):
             shutil.copy2(
                 self.path + os.sep + self.name, product_path + os.sep + self.name
             )
             self.new_product = True
         else:
-            logging.warning(f"     {self.name} already present in staging directory.")
+            logging.warning('     %s already present in staging directory.',
+                            self.name)
 
             self.new_product = False
 
@@ -144,7 +146,8 @@ class OrbnumFileProduct(Product):
         # The kernel is labeled.
         #
         if self.setup.pds_version == "4":
-            logging.info(f"-- Labeling {self.name}...")
+            logging.info('-- Labeling %s...', self.name)
+
             self.label = OrbnumFilePDS4Label(setup, self)
 
     def set_product_lid(self) -> None:
@@ -376,10 +379,9 @@ class OrbnumFileProduct(Product):
                             orbit_number - previous_orbit_number != 1
                         ):
                             logging.warning(
-                                f"-- Orbit number "
-                                f"{previous_orbit_number} record "
-                                f"is followed by {orbit_number}."
-                            )
+                                '-- Orbit number %d record is followed by %d.',
+                                previous_orbit_number, orbit_number)
+
                         if not line.strip():
                             handle_npb_error(
                                 f"Orbnum record number {line} is blank.",
@@ -389,12 +391,9 @@ class OrbnumFileProduct(Product):
                             line.strip() and records_length != self.record_fixed_length
                         ):
                             logging.warning(
-                                f"-- Orbit number {orbit_number} "
-                                f"record has an incorrect length,"
-                                f" the record will be expanded "
-                                f"to cover the adequate fixed "
-                                f"length."
-                            )
+                                '-- Orbit number %d record has an incorrect '
+                                'length, the record will be expanded to cover '
+                                'the adequate fixed length.', orbit_number)
 
                             blank_records.append(str(orbit_number))
 
@@ -425,10 +424,8 @@ class OrbnumFileProduct(Product):
                 name = self.name.split(".")[0] + "_v2." + self.name.split(".")[-1]
                 path = f"{os.sep}".join(self.path.split(os.sep)[:-1]) + os.sep + name
 
-                logging.warning(
-                    f"-- ORBNUM file name updated with explicit "
-                    f"version number to: {name}"
-                )
+                logging.warning('-- ORBNUM file name updated with explicit '
+                                'version number to: %s', name)
 
             else:
                 version = re.findall(r"\d+", matches.group(0))
@@ -446,7 +443,7 @@ class OrbnumFileProduct(Product):
                 name = self.name.replace(matches.group(0), new_version)
                 path = self.path.replace(matches.group(0), new_version)
 
-                logging.warning(f"-- Orbnum name updated to: {name}")
+                logging.warning('-- Orbnum name updated to: %s', name)
 
             #
             # The updated name needs to be propagated to the kernel
@@ -1152,7 +1149,10 @@ class OrbnumFileProduct(Product):
                 #
                 if len(cov_kers) == 1 and coverage_found:
                     coverage_kernel = cov_path + os.sep + cov_kers[0]
-                    logging.info(f"-- Coverage determined by {coverage_kernel}.")
+
+                    logging.info(
+                        '-- Coverage determined by %s.', coverage_kernel)
+
                 #
                 # If there are more, the only possibility is that the orbnum
                 # filename and the SPK filename, both without extensions, match.
@@ -1162,9 +1162,9 @@ class OrbnumFileProduct(Product):
                         kername = kernel.split(os.sep)[-1]
                         if kername.split(".")[0] == self.name.split(".")[0]:
                             coverage_kernel = cov_path + os.sep + kernel
+
                             logging.info(
-                                f"-- Coverage determined by {coverage_kernel}."
-                            )
+                                '-- Coverage determined by %s.', coverage_kernel)
 
                 if os.path.isfile(coverage_kernel):
                     #
@@ -1213,10 +1213,11 @@ class OrbnumFileProduct(Product):
                         start_time = file["start"]
                         stop_time = file["finish"]
                         coverage_found = True
+
                         logging.info(
-                            f"-- Coverage determined by "
-                            f'{file["@name"]} from lookup table.'
-                        )
+                            '-- Coverage determined by %s from lookup table.',
+                            file["@name"])
+
                         break
             else:
                 coverage_found = False

@@ -309,10 +309,9 @@ class Setup:
             #
             if self.end_of_line != "LF":
                 logging.warning(
-                    f"-- NAIF recommends to use `LF' End-of-Line while using"
-                    f" the `{self.date_format}' parameter instead of "
-                    f"`{self.end_of_line}'."
-                )
+                    "-- NAIF recommends to use `LF' End-of-Line while using the"
+                    " `%s' parameter instead of `%s'.",
+                    self.date_format, self.end_of_line)
 
             #
             # Set the time format for the Date format selected.
@@ -330,10 +329,9 @@ class Setup:
             #
             if self.end_of_line != "CRLF":
                 logging.warning(
-                    f"-- NAIF recommends to use `CRLF' End-of-Line while using"
-                    f" the `{self.date_format}' parameter instead of "
-                    f"`{self.end_of_line}'."
-                )
+                    "-- NAIF recommends to use `CRLF' End-of-Line while using"
+                    " the `%s' parameter instead of `%s'.",
+                    self.date_format, self.end_of_line)
 
             #
             # Set the time format for the Date format selected.
@@ -433,12 +431,12 @@ class Setup:
             or (self.bundle_directory == self.staging_directory)
             or (self.bundle_directory == self.working_directory)
         ):
-            logging.error(
-                "--The working, staging, and bundle directories must be different:"
-            )
-            logging.error(f"  working: {self.working_directory}")
-            logging.error(f"  staging: {self.staging_directory}")
-            logging.error(f"  bundle:  {self.bundle_directory}")
+            logging.error('--The working, staging, and bundle directories must '
+                          'be different:')
+            logging.error('  working: %s', self.working_directory)
+            logging.error('  staging: %s', self.staging_directory)
+            logging.error('  bundle:  %s', self.bundle_directory)
+
             handle_npb_error("Update working, staging, or bundle directory.")
 
         #
@@ -466,10 +464,12 @@ class Setup:
             self.staging_directory = (
                 cwd + os.sep + self.staging_directory + f"/{mission_dir}"
             )
+
         elif not os.path.isdir(self.staging_directory):
             logging.warning(
-                f"-- Creating staging directory: {self.staging_directory}/{mission_dir}."
-            )
+                '-- Creating staging directory: %s/%s.',
+                self.staging_directory, mission_dir)
+
             #
             # If the faucet is set to plan, kerlist, or checks, this is just
             # fine. Otherwise the non-existence must trigger an error.
@@ -477,10 +477,11 @@ class Setup:
             try:
                 os.mkdir(cwd + os.sep + self.staging_directory)
             except BaseException:
+
                 if self.faucet in ["plan", "list", "checks"]:
-                    logging.warning(
-                        f"-- Staging directory cannot be created but is not used with {self.faucet} faucet."
-                    )
+                    logging.warning('-- Staging directory cannot be created but'
+                                    ' is not used with %s faucet.', self.faucet)
+
                 else:
                     handle_npb_error(
                         f"Staging directory cannot be created: {self.staging_directory}."
@@ -497,10 +498,11 @@ class Setup:
         # fine. Otherwise the non-existence must trigger an error.
         #
         if not os.path.isdir(self.bundle_directory):
+
             if self.faucet in ["plan", "list", "checks"]:
-                logging.warning(
-                    f"-- Bundle directory does not exist but is not used with {self.faucet} faucet."
-                )
+                logging.warning("-- Bundle directory does not exist but is not"
+                                " used with %s faucet.", self.faucet)
+
             else:
                 handle_npb_error(
                     f"Bundle directory does not exist: {self.bundle_directory}."
@@ -560,10 +562,10 @@ class Setup:
                     self.xml_model = (
                         f"http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_{short_version}.sch"
                     )
-                    logging.info(
-                        "-- Schema XML Model (xml_model) not provided with configuration file. Set to:"
-                    )
-                    logging.info(f"   {self.xml_model}")
+
+                    logging.info('-- Schema XML Model (xml_model) not provided '
+                                 'with configuration file. Set to:')
+                    logging.info('   %s', self.xml_model)
 
                 #
                 # Check if schema_location is provided via configuration, if so check
@@ -586,10 +588,10 @@ class Setup:
                         f"http://pds.nasa.gov/pds4/pds/v1 "
                         f"http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_{short_version}.xsd"
                     )
-                    logging.info(
-                        "-- Schema Location (schema_location) not provided with configuration file. Set to:"
-                    )
-                    logging.info(f"   {self.schema_location}")
+
+                    logging.info('-- Schema Location (schema_location) not '
+                                 'provided with configuration file. Set to:')
+                    logging.info('   %s', self.schema_location)
 
             else:
                 handle_npb_error(
@@ -677,15 +679,13 @@ class Setup:
                 template_files.append(self.working_directory + os.sep + template)
 
             if config_schema in schemas_eval:
-                logging.info(
-                    f"-- Label templates will use the ones from "
-                    f"information model {schema}."
-                )
+                logging.info('-- Label templates will use the ones from '
+                             'information model %s.', schema)
+
             else:
-                logging.warning(
-                    f"-- Label templates will use the ones from "
-                    f"information model {schema}."
-                )
+                logging.warning('-- Label templates will use the ones from'
+                                ' information model %s.', schema)
+
         elif self.pds_version == "4":
             if not os.path.isdir(self.templates_directory):
                 handle_npb_error("Path provided/derived for templates is not available.")
@@ -702,12 +702,13 @@ class Setup:
             # Copy the templates to the working directory.
             #
             for label in labels_check:
+
                 if label not in labels:
-                    logging.warning(
-                        f"-- Template {label} has not been provided. "
-                        f"Using label from: "
-                    )
-                    logging.warning(f"   {templates_directory}")
+
+                    logging.warning('-- Template %s has not been provided. '
+                                    'Using label from: ', label)
+                    logging.warning('   %s', templates_directory)
+
                     shutil.copy(
                         templates_directory + os.sep + label, self.working_directory
                     )
@@ -731,7 +732,8 @@ class Setup:
                 )
                 template_files.append(self.working_directory + os.sep + template)
 
-        logging.info(f"-- Label templates directory: {self.templates_directory}")
+        logging.info('-- Label templates directory: %s',
+                     self.templates_directory)
 
         self.templates_directory = self.working_directory
         self.template_files = template_files
@@ -860,10 +862,10 @@ class Setup:
                 "-- Kernel list configuration has entries with uppercase letters:"
             )
             for kernel_pattern in kernel_pattern_upper:
-                logging.warning(f"      {kernel_pattern}")
+                logging.warning('      %s', kernel_pattern)
+
             logging.warning(
-                "   Uppercase letters in kernel names are HIGHLY discouraged. "
-            )
+                '   Uppercase letters in kernel names are HIGHLY discouraged. ')
 
     def set_release(self):
         """Determine the Bundle release number."""
@@ -880,10 +882,10 @@ class Setup:
 
             release = f"{release:03}"
             current_release = f"{current_release:03}"
-            logging.info(
-                f"-- Generating release {release} as obtained from "
-                f"file list from previous run: {self.args.clear}"
-            )
+
+            logging.info('-- Generating release %s as obtained from file list '
+                         'from previous run: %s', release, self.args.clear)
+
             increment = True
 
         else:
@@ -902,7 +904,7 @@ class Setup:
                 release = int(current_release) + 1
                 release = f"{release:03}"
 
-                logging.info(f"-- Generating release {release}.")
+                logging.info('-- Generating release %s.', release)
 
                 increment = True
 
@@ -938,9 +940,10 @@ class Setup:
                     release = int(current_release) + 1
                     release = f"{release:03}"
 
-                    logging.info(f"-- Generating release {release}")
+                    logging.info('-- Generating release %s', release)
 
                     increment = True
+
                 except:
 
                     logging.warning("-- This is the first release.")
@@ -1035,8 +1038,10 @@ class Setup:
                         break
         if not lsks:
             logging.error('-- LSK not found.')
+
         else:
-            logging.info(f"-- LSK     loaded: {lsks}")
+            logging.info('-- LSK     loaded: %s', lsks)
+
         if len(lsks) > 1:
             handle_npb_error("Only one LSK should be obtained.")
 
@@ -1060,8 +1065,9 @@ class Setup:
                         break
         if not pcks:
             logging.info('-- PCK not found.')
+
         else:
-            logging.info(f"-- PCK(s)   loaded: {pcks}")
+            logging.info('-- PCK(s)   loaded: %s', pcks)
 
         fks = []
         for pattern in fk_patterns:
@@ -1084,8 +1090,9 @@ class Setup:
                         break
         if not fks:
             logging.warning('-- FK not found.')
+
         else:
-            logging.info(f"-- FK(s)   loaded: {fks}")
+            logging.info('-- FK(s)   loaded: %s', fks)
 
         sclks = []
         for pattern in sclk_patterns:
@@ -1107,10 +1114,11 @@ class Setup:
                         break
         if not sclks:
             logging.error('-- SCLK not found.')
-        else:
-            logging.info(f"-- SCLK(s) loaded: {sclks}")
 
-        logging.info("")
+        else:
+            logging.info('-- SCLK(s) loaded: %s', sclks)
+
+        logging.info('')
 
         self.fks = fks
         self.sclks = sclks
@@ -1201,10 +1209,16 @@ class Setup:
         pds_schematron = pds_schematron_location.split("/")[-1]
         try:
             r = requests.get(pds_schematron_location, allow_redirects=True)
+
         except BaseException:
-            logging.warning("-- PDS Validate Tool configuration file not written.")
-            logging.warning(f"   PDS Schematron not reachable: {pds_schematron}")
+
+            logging.warning(
+                '-- PDS Validate Tool configuration file not written.')
+            logging.warning('   PDS Schematron not reachable: %s',
+                            pds_schematron)
+
             return
+
         with open(f"{self.working_directory}/{pds_schematron}", "wb") as f:
             f.write(r.content)
 
@@ -1212,12 +1226,16 @@ class Setup:
         pds_schema = pds_schema_location.split("/")[-1]
         try:
             r = requests.get(pds_schema_location, allow_redirects=True)
+
         except BaseException:
-            logging.warning("-- PDS Validate Tool configuration file not written.")
+
             logging.warning(
-                f"   PDS Schema location not reachable: {pds_schema_location}"
-            )
+                '-- PDS Validate Tool configuration file not written.')
+            logging.warning(
+                '   PDS Schema location not reachable: %s', pds_schema_location)
+
             return
+
         with open(f"{self.working_directory}/{pds_schema}", "wb") as f:
             f.write(r.content)
 
@@ -1240,5 +1258,5 @@ class Setup:
             l.write('validate.rule = pds4.bundle\n')
             l.write('validate.strictFieldChecks = true\n')
 
-        logging.info("-- PDS Validate Tool configuration file written in working area:")
-        logging.info(f"   {self.working_directory}/{filename}.validate_config")
+        logging.info('-- PDS Validate Tool configuration file written in working area:')
+        logging.info('   %s', Path(self.working_directory) / f'{filename}.validate_config')
