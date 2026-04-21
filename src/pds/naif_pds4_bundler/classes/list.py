@@ -305,7 +305,8 @@ class KernelList:
 
                         if mapping:
 
-                            logging.info(f"-- Mapping {kernel} with {mapping}")
+                            logging.info('-- Mapping %s with %s', kernel, mapping)
+
                             f.write(f"MAPPING          = {mapping}\n")
 
                         ker_added_to_list = True
@@ -375,14 +376,16 @@ class KernelList:
         release_list = []
         with open(self.setup.working_directory + os.sep + complete_list, "w+", encoding='utf-8') as c:
             for kernel_list in kernel_lists:
-                logging.info(f"-- Adding {kernel_list}")
+
+                logging.info('-- Adding %s', kernel_list)
+
                 release_list.append(int(kernel_list.replace("_", ".").split(".")[-3]))
                 with open(kernel_list, "r", encoding='utf-8') as lst:
                     for line in lst:
                         c.write(line)
 
         if not check_consecutive(release_list):
-            logging.warning(f"-- Incomplete Kernel lists available: {release_list}")
+            logging.warning('-- Incomplete Kernel lists available: %s', release_list)
 
         self.complete_list = complete_list
 
@@ -421,8 +424,9 @@ class KernelList:
         #
         errors = check_badchar(list_path)
         if errors:
+
             for err in errors:
-                logging.error(f"   {err}")
+                logging.error('   %s', err)
 
         with open(list_path, "r", encoding='utf-8') as lst:
 
@@ -454,17 +458,19 @@ class KernelList:
                     num_desc += 1
 
             if (num_file != num_opti) or (num_opti != num_desc):
+
                 error = "List does not have the same number of entries"
-                logging.error(f"{error} for:")
-                logging.error(f"   FILE             ({num_file})")
-                logging.error(f"   MAKLABEL_OPTIONS ({num_opti})")
-                logging.error(f"   DESCRIPTION      ({num_desc})")
-                logging.error("")
+
+                logging.error('%s for:', error)
+                logging.error('   FILE             (%s)', num_file)
+                logging.error('   MAKLABEL_OPTIONS (%s)', num_opti)
+                logging.error('   DESCRIPTION      (%s)', num_desc)
+                logging.error('')
 
                 logging.error(
-                    f"-- Display {self.setup.mission_name} kernel list "
-                    f"configuration file to double-check."
-                )
+                    '-- Display %s kernel list configuration file to'
+                    ' double-check.', self.setup.mission_name)
+
                 for line in self.json_formatted_lst:
                     logging.info(line)
                 logging.error("")
@@ -491,7 +497,7 @@ class KernelList:
             logging.info("-- Checking that kernels are present in: ")
 
             for work_dir in self.setup.kernels_directory:
-                logging.info(f"   {work_dir}")
+                logging.info('   %s', work_dir)
 
             present = False
             all_present = True
@@ -511,11 +517,12 @@ class KernelList:
                         present = True
                 if not present:
                     if ".tm" in ker:
-                        logging.info(f"     {ker} not present as expected.")
+                        logging.info('     %s not present as expected.', ker)
+
                     else:
                         logging.warning(
-                            f"     {ker} not present. Kernel might be mapped."
-                        )
+                            '     %s not present. Kernel might be mapped.', ker)
+
                         all_present = False
             if all_present:
                 logging.info("     All kernels present.")
@@ -525,10 +532,10 @@ class KernelList:
             # Check that no file is in the final area.
             #
             present = False
-            logging.info(
-                f"-- Checking that kernels are present in "
-                f"{self.setup.bundle_directory}:"
-            )
+
+            logging.info('-- Checking that kernels are present in %s: ',
+                         self.setup.bundle_directory)
+
             for ker in ker_in_list:
                 if os.path.isfile(
                     self.setup.bundle_directory
@@ -536,7 +543,9 @@ class KernelList:
                     f"spice_kernels/" + extension_to_type(ker) + os.sep + ker
                 ):
                     present = True
-                    logging.warning(f"     {ker} present.")
+
+                    logging.warning('     %s present.', ker)
+
             if not present:
                 logging.info("     No kernels present in final area.")
             logging.info("")
@@ -549,9 +558,11 @@ class KernelList:
                 opt_in_list = list(dict.fromkeys(opt_in_list))
                 opt_in_list.sort()
                 logging.info("-- Display all the MAKLABEL_OPTIONS:")
+
                 for option in opt_in_list:
-                    logging.info(f"     {option}")
-                logging.info("")
+                    logging.info('     %s', option)
+
+                logging.info('')
 
             #
             # The PDS Mission Template file is not required for PDS4
@@ -566,13 +577,15 @@ class KernelList:
                 ].keys()
 
                 for option in opt_in_list:
+
                     if option in maklabel_options:
-                        logging.info(f"     {option} is present.")
+                        logging.info('     %s is present.', option)
+
                     else:
                         if option != "N/A":
                             handle_npb_error(f"{option} not in configuration.")
 
-                logging.info("")
+                logging.info('')
 
             #
             # Check complete list for duplicate entries
@@ -596,7 +609,7 @@ class KernelList:
                     # Check that the list has the same number of FILE,
                     # MAKLABEL_OPTIONS, and DESCRIPTION entries
                     #
-                    logging.info(f"     Adding {kernel_list} in check.")
+                    logging.info('     Adding %s in check.', kernel_list)
 
                     for line in lst:
                         if ("FILE" in line) and (line.split("=")[-1].strip()):
@@ -681,24 +694,24 @@ class KernelList:
 
             if (num_file != num_opti) or (num_opti != num_desc):
                 error = "List does not have the same number of entries"
-                logging.error(f"{error} for:")
-                logging.error(f"   FILE             ({num_file})")
-                logging.error(f"   MAKLABEL_OPTIONS ({num_opti})")
-                logging.error(f"   DESCRIPTION      ({num_desc})")
-                logging.error("")
 
-                logging.error(
-                    f"-- Display {self.setup.mission_name} kernel list "
-                    f"configuration file to double-check."
-                )
+                logging.error('%s for:', error)
+                logging.error('   FILE             (%s)', num_file)
+                logging.error('   MAKLABEL_OPTIONS (%s)', num_opti)
+                logging.error('   DESCRIPTION      (%s)', num_desc)
+                logging.error('')
+
+                logging.error('-- Display %s kernel list configuration file to'
+                              ' double-check.', self.setup.mission_name)
+
                 for line in self.json_formatted_lst:
                     logging.info(line)
                 logging.error("")
 
                 raise Exception(error)
 
-            logging.info(f"     PASS with total of {num_file} entries.")
-            logging.info("")
+            logging.info('     PASS with total of %s entries.', num_file)
+            logging.info('')
 
             #
             # Check list for duplicate entries
@@ -717,9 +730,11 @@ class KernelList:
                 opt_in_list = list(dict.fromkeys(opt_in_list))
                 opt_in_list.sort()
                 logging.info("-- Display all the MAKLABEL_OPTIONS:")
+
                 for option in opt_in_list:
-                    logging.info(f"     {option}")
-                logging.info("")
+                    logging.info('     %s', option)
+
+                logging.info('')
 
             #
             # The PDS Mission Template file is not required for PDS4
@@ -742,11 +757,12 @@ class KernelList:
                         if "--" + option in line:
                             present = True
                     if present:
-                        logging.info(f"     {option} is present.")
+                        logging.info('     %s is present.', option)
+
                     else:
                         handle_npb_error(f"{option} not in template.")
 
-                logging.info("")
+                logging.info('')
 
     def check_products(self):
         """Check the SPICE kernel and ORBNUM products from the kernel list.
@@ -912,15 +928,20 @@ class KernelList:
         warning_flag = False
         for product in product_list:
             if product_errors[product] or product_warnings[product]:
-                logging.warning(f"-- {product}")
+                logging.warning('-- %s', product)
+
                 warning_flag = True
+
                 if product_warnings[product]:
+
                     for line in product_warnings[product]:
-                        logging.warning(f"     {line}")
+                        logging.warning('     %s', line)
+
                 if product_errors[product]:
                     error_flag = True
+
                     for line in product_errors[product]:
-                        logging.error(f"     {line}")
+                        logging.error('     %s', line)
 
         #
         # Report in standard output if necessary.
