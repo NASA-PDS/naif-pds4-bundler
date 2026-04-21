@@ -99,11 +99,9 @@ class Log:
         # Display execution platform and time.
         #
         logging.info(exec_message)
-        logging.info(f"-- Platform: {platform.platform()}")
-        logging.info(
-            f"-- Python version: {platform.python_version()} "
-            f"(Build: {platform.python_build()[1]})"
-        )
+        logging.info('-- Platform: %s', platform.platform())
+        logging.info('-- Python version: %s (Build: %s)',
+                     platform.python_version(), platform.python_build()[1])
 
         #
         # Display the arguments
@@ -114,12 +112,11 @@ class Log:
         whitespaces = len(max(argument_dict.keys(), key=len))
 
         for attribute in argument_dict:
+
             if argument_dict[attribute]:
-                logging.info(
-                    f"     {attribute}: "
-                    f'{" " * (whitespaces - len(attribute))}'
-                    f"{argument_dict[attribute]}"
-                )
+                logging.info('     %s:\n %s %s',
+                             attribute, f'{" " * (whitespaces - len(attribute))}',
+                             argument_dict[attribute])
 
         if self.args.faucet == "labels":
             logging.info(
