@@ -379,7 +379,7 @@ class OrbnumFileProduct(Product):
                             orbit_number - previous_orbit_number != 1
                         ):
                             logging.warning(
-                                f'-- Orbit number %s record is followed by %s.',
+                                '-- Orbit number %s record is followed by %d.',
                                 previous_orbit_number, orbit_number)
 
                         if not line.strip():
@@ -391,7 +391,7 @@ class OrbnumFileProduct(Product):
                             line.strip() and records_length != self.record_fixed_length
                         ):
                             logging.warning(
-                                '-- Orbit number %s record has an incorrect '
+                                '-- Orbit number %d record has an incorrect '
                                 'length, the record will be expanded to cover '
                                 'the adequate fixed length.', orbit_number)
 
