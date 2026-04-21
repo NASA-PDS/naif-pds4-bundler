@@ -586,9 +586,9 @@ def compare_files(fromfile, tofile, dest_dir, display):
 
     if fromlines == tolines:
 
-        logging.info(
-            '-- The following files have the same content:\n   %s   %s',
-            fromfile, tofile)
+        logging.info('-- The following files have the same content:')
+        logging.info('   %s', fromfile)
+        logging.info('   %s', tofile)
 
         if md5(fromfile) == md5(tofile):
             logging.info("   And have the same MD5Sum.")
