@@ -114,9 +114,9 @@ class Log:
         for attribute in argument_dict:
 
             if argument_dict[attribute]:
-                logging.info('     %s:\n %s %s',
-                             attribute, f'{" " * (whitespaces - len(attribute))}',
-                             argument_dict[attribute])
+                logging.info(
+                    '     %-*s  %s',
+                    whitespaces, attribute + ":", argument_dict[attribute])
 
         if self.args.faucet == "labels":
             logging.info(
