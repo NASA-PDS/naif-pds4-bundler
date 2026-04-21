@@ -100,7 +100,8 @@ class ChecksumProduct(Product):
         #
         # The checksum is labeled.
         #
-        logging.info(f"-- Labeling {self.name}...")
+        logging.info('-- Labeling %s...', self.name)
+
         if self.setup.pds_version == "4":
             self.label = ChecksumPDS4Label(self.setup, self)
         else:
@@ -149,27 +150,26 @@ class ChecksumProduct(Product):
                     latest_version = latest_file.split("_v")[-1].split(".")[0]
                     self.version = int(latest_version) + 1
 
-                    logging.info(f"-- Previous checksum file is: {latest_file}")
-                    logging.info(f"-- Generate version {self.version}.")
-                    logging.info("")
+                    logging.info('-- Previous checksum file is: %s', latest_file)
+                    logging.info('-- Generate version %s.', self.version)
+                    logging.info('')
 
                 except BaseException:
                     self.version = 1
                     self.path_current = ""
 
-                    logging.warning("-- Previous checksum file not found.")
-                    logging.warning(f"-- Default to version {self.version}.")
-                    logging.warning("-- The version of this file might be incorrect.")
+                    logging.warning('-- Previous checksum file not found.')
+                    logging.warning('-- Default to version %s.', self.version)
+                    logging.warning('-- The version of this file might be incorrect.')
 
             else:
                 self.version = 1
                 self.path_current = ""
 
-                logging.warning(f"-- Default to version {self.version}.")
+                logging.warning('-- Default to version %s.', self.version)
                 logging.warning(
-                    "-- Make sure this is the first release of the archive."
-                )
-                logging.warning("")
+                    '-- Make sure this is the first release of the archive.')
+                logging.warning('')
 
             self.name = f"checksum_v{self.version:03}.tab"
             self.path = (
@@ -326,8 +326,8 @@ class ChecksumProduct(Product):
                         )
 
                     else:
-                        logging.warning(f"-- {product_name} does not have a label.")
-                        logging.info("")
+                        logging.warning('-- %s does not have a label.', product_name)
+                        logging.info('')
 
             #
             # Include the readme file checksum if it has been generated in
@@ -395,11 +395,13 @@ class ChecksumProduct(Product):
         md5_check_dict = {k: v for k, v in md5_check_dict.items() if len(v) > 1}
 
         if md5_check_dict:
-            logging.warning("-- The following products have the same MD5 sum:")
+            logging.warning('-- The following products have the same MD5 sum:')
+
             for k, v in md5_check_dict.items():
-                logging.warning(f"   {k}")
+                logging.warning('   %s', k)
+
                 for file in v:
-                    logging.warning(f"      {file}")
+                    logging.warning('      %s', file)
 
         #
         # The resulting dictionary needs to be transformed into a list
@@ -468,7 +470,9 @@ class ChecksumProduct(Product):
             for file in files:
                 if file.endswith(".DS_Store"):
                     path = os.path.join(root, file)
-                    logging.info(f"-- Removing {file}")
+
+                    logging.info('-- Removing %s', file)
+
                     os.remove(path)
 
         #
@@ -502,9 +506,8 @@ class ChecksumProduct(Product):
                     path = f"{self.setup.staging_directory}/" + product
                     if not os.path.isfile(path):
                         logging.error(
-                            f"-- Product required to determine "
-                            f"{self.name} coverage: {product} not found."
-                        )
+                            '-- Product required to determine %s coverage: %s not found.',
+                            self.name, product)
 
                 if os.path.isfile(path):
                     with open(path, "r", encoding='utf-8') as lbl:
@@ -521,17 +524,16 @@ class ChecksumProduct(Product):
                                 stop_times.append(stop_time)
 
             if not start_times:
-                logging.warning(
-                    f"-- Start time set to "
-                    f"mission start time: {self.setup.mission_start}"
-                )
+
+                logging.warning('-- Start time set to mission start time: %s',
+                                self.setup.mission_start)
+
                 start_times.append(self.setup.mission_start)
 
             if not stop_times:
-                logging.warning(
-                    f"-- Stop time set to "
-                    f"mission finish time: {self.setup.mission_finish}"
-                )
+                logging.warning('-- Stop time set to mission finish time: %s',
+                                self.setup.mission_finish)
+
                 stop_times.append(self.setup.mission_finish)
 
             start_times.sort()
