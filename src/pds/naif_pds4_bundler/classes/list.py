@@ -462,9 +462,9 @@ class KernelList:
                 error = "List does not have the same number of entries"
 
                 logging.error('%s for:', error)
-                logging.error('   FILE             (%s)', num_file)
-                logging.error('   MAKLABEL_OPTIONS (%s)', num_opti)
-                logging.error('   DESCRIPTION      (%s)', num_desc)
+                logging.error('   FILE             (%d)', num_file)
+                logging.error('   MAKLABEL_OPTIONS (%d)', num_opti)
+                logging.error('   DESCRIPTION      (%d)', num_desc)
                 logging.error('')
 
                 logging.error(
@@ -696,9 +696,9 @@ class KernelList:
                 error = "List does not have the same number of entries"
 
                 logging.error('%s for:', error)
-                logging.error('   FILE             (%s)', num_file)
-                logging.error('   MAKLABEL_OPTIONS (%s)', num_opti)
-                logging.error('   DESCRIPTION      (%s)', num_desc)
+                logging.error('   FILE             (%d)', num_file)
+                logging.error('   MAKLABEL_OPTIONS (%d)', num_opti)
+                logging.error('   DESCRIPTION      (%d)', num_desc)
                 logging.error('')
 
                 logging.error('-- Display %s kernel list configuration file to'
@@ -710,7 +710,7 @@ class KernelList:
 
                 raise Exception(error)
 
-            logging.info('     PASS with total of %s entries.', num_file)
+            logging.info('     PASS with total of %d entries.', num_file)
             logging.info('')
 
             #
