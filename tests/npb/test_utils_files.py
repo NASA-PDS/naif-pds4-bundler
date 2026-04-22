@@ -6,8 +6,8 @@ import shutil
 
 import pytest
 
-# import os
-# from unittest import mock
+import os
+from unittest import mock
 
 from pds.naif_pds4_bundler.utils import files
 
@@ -205,22 +205,6 @@ def test_copy_success(tmp_path):
 
     assert dest.exists()
 
-# def check_directory_exists(path):
-#     return os.path.exists(path)
-#
-# def test_copy_dir_already_exists(tmp_path):
-#     """Test copy function using pytest.
-#     This is for a case where the source directory does not exist"""
-#     path = tmp_path / "source"
-#
-#     with mock.patch("os.path.exists") as mock_exists:
-#         mock_exists.return_value = False
-#
-#         result = check_directory_exists(path)
-#
-#         assert result is False
-#         mock_exists.assert_called_with(path)
-
 
 def test_copy_error_not_dir(monkeypatch, tmp_path, caplog):
     """Test copy function using pytest.
@@ -240,9 +224,22 @@ def test_copy_error_not_dir(monkeypatch, tmp_path, caplog):
     assert "WARNING  root:files.py:91 -- Directory  not copied, probably because the increment directory exists.\n Error: [Errno 2] No such file or directory" in caplog.text
 
 
-# src = "file.txt"
-# Make new like this --
+def test_copy_error_file(monkeypatch, tmp_path, caplog):
+    """Test copy function using pytest.
+    This is for a case when the source was a file"""
+    src = "file.txt"
+    dest = tmp_path / "destination"
 
+    def mock_copytree(*args):
+        # Not such file or directory Error (errno 2)
+        raise OSError(files.errno.ENOENT, "No such file or directory")
+
+    monkeypatch.setattr(shutil, "copytree", mock_copytree)
+
+    with caplog.at_level(files.logging.WARNING):
+        files.copy(str(src), str(dest))
+
+    assert "WARNING  root:files.py:91 -- Directory file.txt not copied, probably because the increment directory exists.\n Error: [Errno 2] No such file or directory" in caplog.text
 
 # ----------------------------------------------------------------------------
 # files.etree_to_dict test
@@ -420,12 +417,44 @@ def test_safe_make_directory(tmp_path):
     This is for a successful case"""
     path = tmp_path / "dir_path"
     path.mkdir()
+
     files.safe_make_directory(str(path))
+    #logg = files.logging.info()
 
     assert path.exists()
     assert path.is_dir()
 
-#Need to add logging.info in here somehow
+
+#Need to add logging.info in here somehow.... no clue
+
+def test_safe_make_directory_logging(tmp_path, caplog):
+    """Test safe_make_directory function using pytest.
+    This is for reporting in logging"""
+    path = tmp_path / "dir_path"
+    path.mkdir()
+
+    #files.logging.getLogger().info(f"-- Generated directory: '{path}'  ")
+    #files.logging.getLogger().info("")
+
+    #assert f"-- Generated directory: '{path}'  " in caplog.text
+    #assert "" in caplog.text
+
+    # Reset the list of log records.
+    caplog.clear()
+
+    with caplog.at_level(files.logging.INFO):
+        files.safe_make_directory(str(path))
+
+    #assert f"-- Generated directory: '{path}'  " in caplog.text
+    assert caplog.messages == []
+
+
+
+# def test_safe_make_directory_logging_invalid():
+#     """Test safe_make_directory function using pytest.
+#     This is for an invalid path."""
+#     files.safe_make_directory("")
+
 
 # ----------------------------------------------------------------------------
 # files.utf8len test
