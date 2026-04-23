@@ -89,29 +89,45 @@ class TestSetupWriteFileList:
         # Check that the register is empty.
         assert "-- Run File List file written in working area." not in caplog.messages
 
-    @pytest.mark.parametrize(("file_entry", "expected_line"), [
-        pytest.param("bundle_psyche_spice_v001.xml", "bundle_psyche_spice_v001.xml\n",
-                     id="entry-without-path"),
-        pytest.param(PurePosixPath("spice_kernels", "ck",
-                                   "psyche_ep_rec_250630_250706.bc").as_posix(),
-                     "spice_kernels/ck/psyche_ep_rec_250630_250706.bc\n",
+    @pytest.mark.parametrize(('path_to_file_list', 'content'), [
+        pytest.param('bundle_psyche_spice_v001.xml', ['bundle_psyche_spice_v001.xml'],
+                     id='entry-without-path'),
+        pytest.param('spice_kernels/ck/psyche_ep_rec_250630_250706.bc',
+                     ['spice_kernels/ck/psyche_ep_rec_250630_250706.bc',
+                      'spice_kernels/ck/psyche_ep_rec_250630_250706.xml',
+                      'spice_kernels/mk/psyche_2025_v01.xml',
+                      'spice_kernels/collection_spice_kernels_inventory_v001.csv',
+                      'spice_kernels/collection_spice_kernels_v001.xml',
+                      'document/spiceds_v001.html',
+                      'document/spiceds_v001.xml',
+                      'document/collection_document_inventory_v001.csv',
+                      'document/collection_document_v001.xml',
+                      'miscellaneous/collection_miscellaneous_inventory_v001.csv',
+                      'miscellaneous/collection_miscellaneous_v001.xml',
+                      'readme.txt',
+                      'bundle_psyche_spice_v001.xml',
+                      'miscellaneous/checksum/checksum_v001.tab',
+                      'miscellaneous/checksum/checksum_v001.xml'],
                      id="entry-with-posix-path")])
     # TODO: If the data type within the file list is changed to path, the file
     #       contents must be POSIX-compliant
     def test_writes_file_list_entries_in_posix_format(self, tmp_path,
-                                                      file_entry: str, expected_line: str) -> None:
-        # Verify the .file_list format expected by the issue comment:
+                                                      path_to_file_list: str, content: list) -> None:
+
+        # Verify the format of the .file_list file is as expected:
         #   - one entry without path
         #   - one entry with Unix/POSIX path separators
         # and keep the trailing newline at EOF.
 
-        setup = make_setup(tmp_path, file_list=[file_entry])
+        setup = make_setup(tmp_path, file_list=content)
 
         setup.write_file_list()
 
-        # Check the content.
-        expected_path = tmp_path / "maven_release_03.file_list"
-        assert expected_path.read_text(encoding="utf-8") == expected_line
+        # Check that the file has been created in the correct location.
+        expected_path = tmp_path / 'maven_release_03.file_list'
 
-        # Check the path is POSIX.
-        assert "\\" not in expected_path.read_text(encoding="utf-8")
+        # Check that the contents of the file are correct.
+        assert expected_path.read_text(encoding='utf-8') == '\n'.join(content) + '\n'
+
+        # Check that the expected path to file list entry exists in the content.
+        assert path_to_file_list in content
