@@ -10,7 +10,7 @@ Available labels:
 - :class:`~.pds3_checksum.ChecksumPDS3Label`        -- PDS3 checksum label
 - :class:`~.pds4_checksum.ChecksumPDS4Label`        -- PDS4 checksum label
 - :class:`~.pds4_document.DocumentPDS4Label`        -- PDS4 document label
-- :class:`~.pds3_inventory.InventoryPDS3Label`      -- PDS3 collection inventory label
+- :class:`~.pds3_inventory.InventoryPDS3Label`      -- PDS3 index label
 - :class:`~.pds4_inventory.InventoryPDS4Label`      -- PDS4 collection inventory label
 - :class:`~.pds4_metakernel.MetaKernelPDS4Label`    -- PDS4 SPICE meta-kernel label
 - :class:`~.pds4_orbnum_file.OrbnumFilePDS4Label`   -- PDS4 orbit number file label
