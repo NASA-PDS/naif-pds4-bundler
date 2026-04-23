@@ -1,6 +1,5 @@
 """Unit tests for the pds.naif_pds4_bundler.classes.setup module"""
 import logging
-from pathlib import Path, PurePosixPath
 from unittest.mock import mock_open
 
 import pytest
@@ -21,7 +20,22 @@ def make_setup(tmp_path, file_list: list[str], mission_acronym: str = "maven",
 
 
 class TestSetupWriteFileList:
-    def test_creates_expected_file_with_expected_content(self, tmp_path) -> None:
+
+    @pytest.mark.parametrize('file_list, expected_contents', [
+        (['bundle_maven_spice_v001.xml',
+          'collection_spice_kernels.csv'],
+         'bundle_maven_spice_v001.xml\n'
+         'collection_spice_kernels.csv\n'),
+        (['miscellaneous/collection_miscellaneous_inventory_v001.csv',
+          'miscellaneous/collection_miscellaneous_v001.xml',
+          'readme.txt'],
+         'miscellaneous/collection_miscellaneous_inventory_v001.csv\n'
+         'miscellaneous/collection_miscellaneous_v001.xml\n'
+         'readme.txt\n')])
+    # TODO: Update the file_list inputs to be PathLike when code gets updated.
+    def test_creates_expected_file_with_expected_content(self, tmp_path,
+                                                         file_list, expected_contents) -> None:
+
         # Test how the method behaves when the 'file_list' file exists.
         #   - Creates the correct file.
         #   - In the correct path.
@@ -29,7 +43,7 @@ class TestSetupWriteFileList:
 
         setup = make_setup(
             tmp_path,
-            file_list=["bundle_maven_spice_v001.xml", "collection_spice_kernels.csv"])
+            file_list=file_list)
 
         setup.write_file_list()
 
@@ -40,10 +54,7 @@ class TestSetupWriteFileList:
         assert list(tmp_path.iterdir()) == [expected_path]
 
         # Check that the contents of the file are correct.
-        assert expected_path.read_text(encoding="utf-8") == (
-            "bundle_maven_spice_v001.xml\n"
-            "collection_spice_kernels.csv\n"
-        )
+        assert expected_path.read_text(encoding="utf-8") == expected_contents
 
     def test_creates_no_file_when_file_list_is_empty(self, tmp_path) -> None:
         # Test how the method behaves when the 'file_list' file not exists.
@@ -88,46 +99,3 @@ class TestSetupWriteFileList:
 
         # Check that the register is empty.
         assert "-- Run File List file written in working area." not in caplog.messages
-
-    @pytest.mark.parametrize(('path_to_file_list', 'content'), [
-        pytest.param('bundle_psyche_spice_v001.xml', ['bundle_psyche_spice_v001.xml'],
-                     id='entry-without-path'),
-        pytest.param('spice_kernels/ck/psyche_ep_rec_250630_250706.bc',
-                     ['spice_kernels/ck/psyche_ep_rec_250630_250706.bc',
-                      'spice_kernels/ck/psyche_ep_rec_250630_250706.xml',
-                      'spice_kernels/mk/psyche_2025_v01.xml',
-                      'spice_kernels/collection_spice_kernels_inventory_v001.csv',
-                      'spice_kernels/collection_spice_kernels_v001.xml',
-                      'document/spiceds_v001.html',
-                      'document/spiceds_v001.xml',
-                      'document/collection_document_inventory_v001.csv',
-                      'document/collection_document_v001.xml',
-                      'miscellaneous/collection_miscellaneous_inventory_v001.csv',
-                      'miscellaneous/collection_miscellaneous_v001.xml',
-                      'readme.txt',
-                      'bundle_psyche_spice_v001.xml',
-                      'miscellaneous/checksum/checksum_v001.tab',
-                      'miscellaneous/checksum/checksum_v001.xml'],
-                     id="entry-with-posix-path")])
-    # TODO: If the data type within the file list is changed to path, the file
-    #       contents must be POSIX-compliant
-    def test_writes_file_list_entries_in_posix_format(self, tmp_path,
-                                                      path_to_file_list: str, content: list) -> None:
-
-        # Verify the format of the .file_list file is as expected:
-        #   - one entry without path
-        #   - one entry with Unix/POSIX path separators
-        # and keep the trailing newline at EOF.
-
-        setup = make_setup(tmp_path, file_list=content)
-
-        setup.write_file_list()
-
-        # Check that the file has been created in the correct location.
-        expected_path = tmp_path / 'maven_release_03.file_list'
-
-        # Check that the contents of the file are correct.
-        assert expected_path.read_text(encoding='utf-8') == '\n'.join(content) + '\n'
-
-        # Check that the expected path to file list entry exists in the content.
-        assert path_to_file_list in content
