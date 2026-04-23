@@ -1,14 +1,13 @@
 """Unit tests for the pds.naif_pds4_bundler.classes.setup module"""
 import logging
-from pathlib import Path
 from unittest.mock import mock_open
 
+import pytest
 from pds.naif_pds4_bundler.classes.setup import Setup
 
 
-def make_setup(tmp_path: Path, *, file_list: list[str], mission_acronym: str = "maven",
+def make_setup(tmp_path, file_list: list[str], mission_acronym: str = "maven",
                run_type: str = "release", release: str = "3") -> Setup:
-
     # Create a minimal instance of Setup without calling Setup.__init__.
     setup = object.__new__(Setup)
     setup.file_list = file_list
@@ -21,7 +20,21 @@ def make_setup(tmp_path: Path, *, file_list: list[str], mission_acronym: str = "
 
 
 class TestSetupWriteFileList:
-    def test_creates_expected_file_with_expected_content(self, tmp_path: Path) -> None:
+
+    @pytest.mark.parametrize('file_list, expected_contents', [
+        (['bundle_maven_spice_v001.xml',
+          'collection_spice_kernels.csv'],
+         'bundle_maven_spice_v001.xml\n'
+         'collection_spice_kernels.csv\n'),
+        (['miscellaneous/collection_miscellaneous_inventory_v001.csv',
+          'miscellaneous/collection_miscellaneous_v001.xml',
+          'readme.txt'],
+         'miscellaneous/collection_miscellaneous_inventory_v001.csv\n'
+         'miscellaneous/collection_miscellaneous_v001.xml\n'
+         'readme.txt\n')])
+    # TODO: Update the file_list inputs to be PathLike when code gets updated.
+    def test_creates_expected_file_with_expected_content(self, tmp_path,
+                                                         file_list, expected_contents) -> None:
 
         # Test how the method behaves when the 'file_list' file exists.
         #   - Creates the correct file.
@@ -30,7 +43,7 @@ class TestSetupWriteFileList:
 
         setup = make_setup(
             tmp_path,
-            file_list=["bundle_maven_spice_v001.xml", "collection_spice_kernels.csv"])
+            file_list=file_list)
 
         setup.write_file_list()
 
@@ -41,13 +54,9 @@ class TestSetupWriteFileList:
         assert list(tmp_path.iterdir()) == [expected_path]
 
         # Check that the contents of the file are correct.
-        assert expected_path.read_text(encoding="utf-8") == (
-            "bundle_maven_spice_v001.xml\n"
-            "collection_spice_kernels.csv\n"
-        )
+        assert expected_path.read_text(encoding="utf-8") == expected_contents
 
-    def test_creates_no_file_when_file_list_is_empty(self, tmp_path: Path) -> None:
-
+    def test_creates_no_file_when_file_list_is_empty(self, tmp_path) -> None:
         # Test how the method behaves when the 'file_list' file not exists.
         #    - No file is created.
 
@@ -57,9 +66,8 @@ class TestSetupWriteFileList:
 
         assert list(tmp_path.iterdir()) == []
 
-    def test_logs_success_message_when_file_is_written(self, tmp_path: Path,
+    def test_logs_success_message_when_file_is_written(self, tmp_path,
                                                        monkeypatch, caplog) -> None:
-
         # When the 'file_list' exist, check the logging message is correct.
 
         setup = make_setup(tmp_path, file_list=["bundle_maven_spice_v001.xml"])
@@ -75,9 +83,8 @@ class TestSetupWriteFileList:
         # Check the log message.
         assert caplog.messages == ["-- Run File List file written in working area."]
 
-    def test_does_not_log_success_message_when_file_list_is_empty(self, tmp_path: Path,
+    def test_does_not_log_success_message_when_file_list_is_empty(self, tmp_path,
                                                                   monkeypatch, caplog) -> None:
-
         # When the 'file_list' does not exist, check that no log messages are recorded.
 
         setup = make_setup(tmp_path, file_list=[])
