@@ -26,6 +26,11 @@ class ReleasePlan:
 
     @property
     def kernel_list(self) -> list:
+        """List of kernel filenames included in the release plan.
+
+        Populated by :meth:`read_plan` or :meth:`write_plan` once the plan
+        has been processed.
+        """
         return self._kernel_list
 
     def read_plan(self, plan: Path) -> None:

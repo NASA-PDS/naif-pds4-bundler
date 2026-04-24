@@ -13,6 +13,39 @@ from typing import Optional
 #       - Remove "" from the list of supported values for "diff" and "faucet"
 @dataclass(frozen=True)
 class PipelineArgs:
+    """Immutable argument container for an NPB pipeline run.
+
+    All fields are set at construction time and cannot be modified
+    afterward. :meth:`__post_init__` validates and normalizes the
+    values of :attr:`faucet` and :attr:`diff`, enforces consistency
+    between related flags, and raises :exc:`ValueError` for any
+    out-of-range value.
+
+    :param config:   Path to the NPB XML configuration file.
+    :param plan:     Path to the release ``.plan`` file. Optional.
+    :param kerlist:  Path to an explicit kernel list file. Optional.
+    :param faucet:   Pipeline stop-point. One of ``"clear"``, ``"plan"``,
+                     ``"list"``, ``"checks"``, ``"staging"``, ``"bundle"``,
+                     ``"labels"``, or ``None`` / ``""`` to run to completion.
+                     Defaults to ``""``.
+    :param log:      Write a log file when ``True``. Defaults to ``False``.
+    :param silent:   Suppress all console output when ``True``.
+                     Automatically set to ``False`` when :attr:`verbose` is
+                     ``True``. Defaults to ``False``.
+    :param verbose:  Enable verbose console output when ``True``.
+                     Defaults to ``False``.
+    :param debug:    Enable debug-level logging when ``True``.
+                     Defaults to ``True`` for library usage.
+    :param diff:     Diff comparison scope. One of ``"all"``, ``"log"``,
+                     ``"files"``, or ``None`` / ``""`` to skip diffing. Setting
+                     ``"log"`` or ``"all"`` implicitly enables :attr:`log`.
+                     Defaults to ``None``.
+    :param clear:    Path to a directory to clear before the run. When set
+                     and :attr:`faucet` is empty, :attr:`faucet` is
+                     automatically set to ``"clear"``. Optional.
+    :param checksum: Recompute checksums when ``True``. Defaults to
+                     ``False``.
+    """
     # Core Logic Flags
     config: str
     plan: Optional[str] = None

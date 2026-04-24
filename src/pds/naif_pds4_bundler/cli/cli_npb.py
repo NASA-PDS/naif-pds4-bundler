@@ -13,7 +13,15 @@ from ..utils.types.datatypes import PipelineArgs
 #       - Convert those arguments that are "lists" (faucet, diff) of options
 #         to "choices" type.
 def parse_arguments() -> PipelineArgs:
-    """
+    """Parse command-line arguments and return a validated pipeline argument
+    container.
+
+    Builds an :class:`~argparse.ArgumentParser` with all NPB CLI arguments,
+    parses ``sys.argv``, and packages the result into a frozen
+    :class:`~.datatypes.PipelineArgs` instance with ``debug`` set to
+    ``False`` (debugging is disabled when running from the command line).
+
+    :returns: Validated and normalized pipeline arguments.
     """
     # Build the argument parser.
     parser = ArgumentParser(
