@@ -160,7 +160,7 @@ class TestCollectionGetMissionAndObserverAndTarget:
     ])
     def test_match_with_keys(self, config, expected_missions, expected_targets, expected_obs):
         """Pattern matches, all optional keys present"""
-        col, setup = self._make_col_with_list(ker_config_overrides=config)
+        col, _ = self._make_col_with_list(ker_config_overrides=config)
         missions, obs, targets = col.get_mission_and_observer_and_target("test_kernel_001.bc")
         assert missions == expected_missions
         assert targets == expected_targets
@@ -168,7 +168,7 @@ class TestCollectionGetMissionAndObserverAndTarget:
 
     def test_empty_json_config_returns_empty_lists(self):
         """Empty JSON config → loop body never executes"""
-        col, setup = make_collection()
+        col, _ = make_collection()
         mock_list = MagicMock()
         mock_list.json_config = {}
         col.list = mock_list
@@ -192,7 +192,7 @@ class TestCollectionSetCollectionLid:
         assert col.lid == expected
 
     def test_lid_not_set_when_pds3(self):
-        col, setup = make_collection(pds_version="3")
+        col, _ = make_collection(pds_version="3")
         col.set_collection_lid()
         assert not hasattr(col, "lid")
 
@@ -214,7 +214,7 @@ class TestCollectionSetCollectionVid:
 
     def test_no_increment_uses_release(self, caplog):
         """Increment is False."""
-        col, setup = self._collection(increment=False, release="5")
+        col, _ = self._collection(increment=False, release="5")
         col.set_collection_vid()
         assert col.vid == "5.0"
 
@@ -244,7 +244,7 @@ class TestCollectionSetCollectionVid:
         ('document', '1.0')
     ])
     def test_increment_glob_fails(self, c_type, vid, caplog):
-        col, setup = self._collection(c_type=c_type, increment=True, release="7")
+        col, _ = self._collection(c_type=c_type, increment=True, release="7")
         col.updated = True
         # glob returns empty → IndexError on [-1] → triggers except block
         with patch("pds.naif_pds4_bundler.classes.collection.collection.glob.glob",
@@ -259,7 +259,7 @@ class TestCollectionSetCollectionVid:
     ])
     def test_increment_glob_raises_exception(self, c_type, vid, caplog):
         """Ensure any BaseException (not just IndexError) triggers fallback."""
-        col, setup = self._collection(c_type=c_type, increment=True, release="2")
+        col, _ = self._collection(c_type=c_type, increment=True, release="2")
         col.updated = False
         with patch("pds.naif_pds4_bundler.classes.collection.collection.glob.glob",
                    side_effect=OSError("disk error")):
