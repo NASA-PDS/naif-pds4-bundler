@@ -12,14 +12,6 @@ from pds.naif_pds4_bundler.utils import time
 KERNELS = Path(__file__).parent.parent / "naif_pds4_bundler" / "data" / "kernels"
 
 @pytest.fixture
-def lsk():
-    """Provides the standard LSK."""
-    lsk_file = str(KERNELS / "lsk" / "naif0012.tls")
-    spiceypy.furnsh(lsk_file)
-    yield
-    spiceypy.unload(lsk_file) # Cleanup after the test finishes
-
-@pytest.fixture
 def m2020_fk():
     """Provides the M2020 Frame Kernel."""
     kernel = str(KERNELS / "fk" / "m2020_v04.tf")
