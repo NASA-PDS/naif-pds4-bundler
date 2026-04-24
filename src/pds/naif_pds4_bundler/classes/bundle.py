@@ -230,7 +230,7 @@ class Bundle:
                 #
                 if src.split(".")[-1][0] != "b":
 
-                    if not filecmp.cmp(src, dst):
+                    if not filecmp.cmp(src, dst, shallow=False):
                         logging.warning('-- File already exists but content is'
                                         ' different: %s', Path(dst).name)
 

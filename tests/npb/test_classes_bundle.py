@@ -21,6 +21,7 @@ from __future__ import annotations
 import logging
 import os
 from pathlib import Path
+import re
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
@@ -698,8 +699,8 @@ class TestBundleFilesInStaging:
         bundle.collections = []
         bundle.files_in_staging()
         expected = [
-            f'{Path("p/staging/../dsindex.tab")}',
-            f'{Path("p/staging/../dsindex.lbl")}']
+            f'{Path("p/staging")}/../dsindex.tab',
+            f'{Path("p/staging")}/../dsindex.lbl']
         files = [f.replace(str(tmp_path), 'p') for f in bundle._new_files]
         assert expected == files
 
@@ -2192,10 +2193,10 @@ class TestPValidateHistory:
 
         expected = [
             '',
-            f'-- Products in {tmp_path}/bundle/insight_spice/miscellaneous/checksum/checksum_v001.tab '
+            f'-- Products in {tmp_path / "bundle"}/insight_spice/miscellaneous/checksum/checksum_v001.tab '
             f'do not correspond to the bundle release history.',
             '      readme.txt',
-            f'-- Products in {tmp_path}/bundle/insight_spice/miscellaneous/checksum/checksum_v001.tab '
+            f'-- Products in {tmp_path / "bundle"}/insight_spice/miscellaneous/checksum/checksum_v001.tab '
             f'do not correspond to the bundle release history: \n'
             f' readme.txt\n']
         assert caplog.messages == expected
@@ -2218,7 +2219,7 @@ class TestPValidateHistory:
         setup.write_checksum_registry = MagicMock()
 
         expected_error = (
-            f'Products in {tmp_path}/bundle/insight_spice/miscellaneous/checksum/checksum_v001.tab '
+            f'Products in {re.escape(str(tmp_path / "bundle" ))}/insight_spice/miscellaneous/checksum/checksum_v001.tab '
             'do not correspond to the bundle release history: \n readme.txt\n')
         with pytest.raises(Exception, match=expected_error):
             bundle._validate_history()
@@ -2269,10 +2270,10 @@ class TestPValidateHistory:
 
         expected = [
             '',
-            f'-- Products in {tmp_path}/bundle/insight_spice/miscellaneous/checksum/checksum_v001.tab '
+            f'-- Products in {tmp_path / "bundle"}/insight_spice/miscellaneous/checksum/checksum_v001.tab '
             'do not correspond to the bundle release history.',
             '      spice_kernels/ck/nonexistent_v01.bc',
-            f'-- Products in {tmp_path}/bundle/insight_spice/miscellaneous/checksum/checksum_v001.tab '
+            f'-- Products in {tmp_path / "bundle"}/insight_spice/miscellaneous/checksum/checksum_v001.tab '
             'do not correspond to the bundle release history: \n'
             ' spice_kernels/ck/nonexistent_v01.bc\n']
         assert caplog.messages == expected
@@ -2310,10 +2311,10 @@ class TestPValidateHistory:
 
         expected = [
             '',
-            f'-- Products in {tmp_path}/bundle/insight_spice/miscellaneous/checksum/checksum_v002.tab '
+            f'-- Products in {tmp_path / "bundle"}/insight_spice/miscellaneous/checksum/checksum_v002.tab '
             'do not correspond to the bundle release history.',
             '      bundle_insight_spice_v002.xml',
-            f'-- Products in {tmp_path}/bundle/insight_spice/miscellaneous/checksum/checksum_v002.tab '
+            f'-- Products in {tmp_path / "bundle"}/insight_spice/miscellaneous/checksum/checksum_v002.tab '
             'do not correspond to the bundle release history: \n'
             ' bundle_insight_spice_v002.xml\n']
         assert caplog.messages == expected
@@ -2358,11 +2359,11 @@ class TestPValidateHistory:
             (logging.INFO, "           'spice_kernels/collection_spice_kernels_inventory_v002.csv',"),
             (logging.INFO, "           'spice_kernels/collection_spice_kernels_v002.xml']}"),
             (logging.ERROR, ''),
-            (logging.ERROR, f'-- Products in {tmp_path}/bundle/insight_spice/miscellaneous/checksum/checksum_v002.tab '
+            (logging.ERROR, f'-- Products in {tmp_path / "bundle"}/insight_spice/miscellaneous/checksum/checksum_v002.tab '
                             'do not correspond to the bundle release history.'),
             (logging.ERROR, '      bundle_insight_spice_v002.xml'),
             (logging.ERROR, '      spice_kernels/collection_spice_kernels_v002.xml'),
-            (logging.ERROR, f'-- Products in {tmp_path}/bundle/insight_spice/miscellaneous/checksum/checksum_v002.tab '
+            (logging.ERROR, f'-- Products in {tmp_path / "bundle"}/insight_spice/miscellaneous/checksum/checksum_v002.tab '
                             f'do not correspond to the bundle release history: \n'
                             f' bundle_insight_spice_v002.xml\n'
                             f'spice_kernels/collection_spice_kernels_v002.xml\n')]
