@@ -115,7 +115,7 @@ class TestSetupWriteValidateConfig:
         setup.bundle_directory = '/bundle'
         setup.xml_model = 'https://example.com/PDS4_PDS_1B00.sch'
         setup.schema_location = (
-            'http://pds.nasa.gov/pds4/pds/v1 '
+            'https://pds.nasa.gov/pds4/pds/v1 '
             'https://example.com/PDS4_PDS_1B00.xsd'
         )
         return setup
