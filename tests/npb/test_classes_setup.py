@@ -1,5 +1,6 @@
 """Unit tests for the pds.naif_pds4_bundler.classes.setup module"""
 import logging
+from types import SimpleNamespace
 from unittest.mock import mock_open, Mock
 
 import pytest
@@ -18,6 +19,268 @@ def make_setup(tmp_path, mission_acronym: str = "maven",
     setup.release = release
 
     return setup
+
+
+class TestSetupSetRelease:
+    @staticmethod
+    def make_release_setup(tmp_path, clear=None, kerlist=None, pds_version="4") -> Setup:
+        setup = make_setup(tmp_path)
+
+        setup.file_list = []
+        setup.bundle_directory = '/bundle'
+        setup.pds_version = pds_version
+        setup.args = SimpleNamespace(clear=clear, kerlist=kerlist)
+
+        return setup
+
+    def test_sets_expected_release_when_clear_argument_is_provided(self,
+                                                                   tmp_path) -> None:
+        # Check the behaviour when a previous '.file_list' is provided
+        # using args.clear.
+        #   - Gets the release from the file name.
+        #   - Sets the previous release correctly.
+        #   - Marks the execution as an increment.
+
+        # Build a setup object with a valid args.clear.
+        setup = self.make_release_setup(tmp_path,
+                                        clear='maven_release_003.file_list')
+
+        setup.set_release()
+
+        # The method gets the release by split it from the .file_list.
+        assert setup.release == '003'
+
+        # The method calculate the 'current_release' as 'release - 1'.
+        assert setup.current_release == '002'
+
+        # Check that the increment values is set as True.
+        assert setup.increment is True
+
+    def test_sets_expected_release_from_previous_bundle_label(self, tmp_path,
+                                                              monkeypatch) -> None:
+        # Check the behaviour when a previous bundle label exists.
+        #   - Gets the highest previous release from the bundle directory.
+        #   - Increments it.
+        #   - Stores the previous release correctly.
+
+        # Build a default setup object.
+        setup = self.make_release_setup(tmp_path)
+
+        # Mock the glob.glob() call and the return values as a list with two
+        # bundle labels.
+        monkeypatch.setattr('pds.naif_pds4_bundler.classes.setup.glob.glob',
+                            Mock(return_value=[
+                                '/bundle/maven_spice/bundle_maven_spice_v002.xml',
+                                '/bundle/maven_spice/bundle_maven_spice_v010.xml']))
+
+        setup.set_release()
+
+        # The method retrieves the last item from the sorted list, so it sets
+        # the current value to 010.
+        assert setup.release == '011'
+        assert setup.current_release == '010'
+        assert setup.increment is True
+
+    @pytest.mark.parametrize('bundle_matches', [
+        [],
+        ['/bundle/maven_spice/bundle_maven_spice_vbad.xml']])
+    def test_sets_expected_release_from_previous_kernel_list_when_bundle_lookup_fails(
+            self, tmp_path, monkeypatch, bundle_matches) -> None:
+        # Check the behaviour when the bundle lookup fails.
+        #   - Falls back to the previous kernel list.
+        #   - Gets the highest previous release from the kernel list files.
+        #   - Increments it.
+        #
+        # The realistic exceptions in the first try block are:
+        #   - IndexError: no bundle labels found.
+        #   - ValueError: malformed bundle label release number.
+
+        # Build a setup object with pds4.
+        setup = self.make_release_setup(tmp_path, pds_version='4')
+
+        # Mock the glob.glob() call twice:
+        #   - First, look for bundle labels (when it fails, raise an IndexError)
+        #   - Second, look for kernel list (when it fails, raise a ValueError)
+        monkeypatch.setattr('pds.naif_pds4_bundler.classes.setup.glob.glob',
+                            Mock(side_effect=[bundle_matches, [
+                                f'{tmp_path}/maven_release_003.kernel_list',
+                                f'{tmp_path}/maven_release_011.kernel_list']]))
+
+        setup.set_release()
+
+        # The highest kernel_list value is 011, so the new one is 012.
+        assert setup.release == '012'
+        assert setup.current_release == '011'
+        assert setup.increment is True
+
+    def test_sets_first_release_when_kernel_list_is_provided_as_argument(
+            self, tmp_path, monkeypatch) -> None:
+        # Check the behaviour when args.kerlist is provided.
+        #   - Does not deduce the release from previous kernel list files.
+        #   - Sets the execution as the first release.
+        #   - Does not mark the execution as an increment.
+
+        # Build a setup object with an 'existing' kernel_list.
+        setup = self.make_release_setup(tmp_path, pds_version='4',
+                                        kerlist='input.kernel_list')
+
+        # Mock the  glob.glob() with an empty return value so that the first
+        # 'except' statement is triggered and the second 'try' statement is
+        # reached.
+        monkeypatch.setattr('pds.naif_pds4_bundler.classes.setup.glob.glob',
+                            Mock(return_value=[]))
+
+        setup.set_release()
+
+        # As no previous usable release could be identified, this is the first
+        # one.
+        assert setup.release == '001'
+        assert setup.current_release == ''
+        assert setup.increment is False
+
+    @pytest.mark.parametrize('kernel_list_matches', [
+        [],
+        ['maven_release_bad.kernel_list']])
+    def test_sets_first_release_when_kernel_list_lookup_fails(
+            self, tmp_path, monkeypatch, kernel_list_matches) -> None:
+        # Check the behaviour when neither the bundle lookup nor them kernel
+        # list lookup provide a valid previous release.
+        #   - Sets the execution as the first release.
+        #   - Leaves the previous release empty.
+        #
+        # The realistic exceptions in the second try block are:
+        #   - IndexError: no kernel list files found.
+        #   - ValueError: malformed kernel list release number.
+
+        # Build a setup object with pds4.
+        setup = self.make_release_setup(tmp_path, pds_version='4')
+
+        if kernel_list_matches:
+            kernel_list_matches = [f'{tmp_path}/{kernel_list_matches[0]}']
+
+        # Mock the glob.glob() call:
+        #   - First, empty bundle
+        #   - Second, empty or incorrect kernel_list
+        monkeypatch.setattr('pds.naif_pds4_bundler.classes.setup.glob.glob',
+                            Mock(side_effect=[[], kernel_list_matches]))
+
+        setup.set_release()
+
+        # As no previous usable release could be identified, this is the first
+        # one.
+        assert setup.release == '001'
+        assert setup.current_release == ''
+        assert setup.increment is False
+
+    def test_logs_expected_messages_when_clear_argument_is_provided(
+            self, tmp_path, caplog) -> None:
+        # When args.clear is provided, check the logging messages are correct.
+
+        # Build a setup object with a valid args.clear.
+        setup = self.make_release_setup(tmp_path, clear='maven_release_003.file_list')
+
+        with caplog.at_level(logging.INFO):
+            setup.set_release()
+
+        assert caplog.messages == [
+            '-- Checking existence of previous release.',
+            '-- Generating release 003 as obtained from file list from previous run: '
+            'maven_release_003.file_list',
+            '']
+
+    def test_logs_expected_messages_when_previous_bundle_label_exists(
+            self, tmp_path, monkeypatch, caplog) -> None:
+        # When a previous bundle label exists, check the logging messages are
+        # correct.
+
+        # Build a default setup object.
+        setup = self.make_release_setup(tmp_path)
+
+        # Mock the glob.glob() call and the return values as a list with two
+        # bundle labels.
+        monkeypatch.setattr('pds.naif_pds4_bundler.classes.setup.glob.glob',
+                            Mock(return_value=[
+                                '/bundle/maven_spice/bundle_maven_spice_v002.xml',
+                                '/bundle/maven_spice/bundle_maven_spice_v010.xml']))
+
+        with caplog.at_level(logging.INFO):
+            setup.set_release()
+
+        assert caplog.messages == ['-- Checking existence of previous release.',
+                                   '-- Generating release 011.',
+                                   '']
+
+    @pytest.mark.parametrize('bundle_matches', [
+        [],
+        ['/bundle/maven_spice/bundle_maven_spice_vbad.xml']])
+    def test_logs_expected_messages_when_bundle_lookup_fails_but_kernel_list_succeeds(
+            self, tmp_path, monkeypatch, caplog, bundle_matches) -> None:
+        # When the bundle lookup fails but the kernel list lookup succeeds,
+        # check the logging messages are correct.
+
+        setup = self.make_release_setup(tmp_path, pds_version='4')
+
+        # Mock the glob.glob() call:
+        #   - First, fail because an empty bundle
+        #   - Second, valid kernel_list
+        monkeypatch.setattr('pds.naif_pds4_bundler.classes.setup.glob.glob',
+                            Mock(side_effect=[bundle_matches,
+                                              [f'{tmp_path}/maven_release_003.kernel_list',
+                                               f'{tmp_path}/maven_release_011.kernel_list']]))
+
+        with caplog.at_level(logging.INFO):
+            setup.set_release()
+
+        assert caplog.messages == ['-- Checking existence of previous release.',
+                                   '-- Bundle label not found. Checking previous kernel list.',
+                                   '-- Generating release 012',
+                                   '']
+
+    def test_logs_expected_messages_when_kernel_list_is_provided_as_argument(
+            self, tmp_path, monkeypatch, caplog) -> None:
+        # When args.kerlist is provided, check the logging messages are
+        # correct.
+
+        setup = self.make_release_setup(tmp_path, pds_version='4',
+                                        kerlist='input.kernel_list')
+
+        # Mock the glob.glob() call to reach the second 'try' (the first search fail).
+        monkeypatch.setattr('pds.naif_pds4_bundler.classes.setup.glob.glob',
+                            Mock(return_value=[]))
+
+        with caplog.at_level(logging.WARNING):
+            setup.set_release()
+
+        assert caplog.messages == [
+            '-- Bundle label not found. Checking previous kernel list.',
+            '-- Kernel list provided as input. Release number cannot be obtained.',
+            '-- This is the first release.']
+
+    @pytest.mark.parametrize('kernel_list_matches', [
+        [],
+        ['maven_release_bad.kernel_list']])
+    def test_logs_only_first_release_warning_for_pds3_when_kernel_list_lookup_fails(
+            self, tmp_path, monkeypatch, caplog, kernel_list_matches) -> None:
+        # When the run is PDS3 and no valid previous release can be obtained,
+        # check that only the first-release warning is logged.
+
+        # Build a setup object with pds3.
+        setup = self.make_release_setup(tmp_path, pds_version='3')
+
+        if kernel_list_matches:
+            kernel_list_matches = [f'{tmp_path}/{kernel_list_matches[0]}']
+
+        # Mock the glob.glob() call:
+        #   - First, empty bundle
+        #   - Second, empty or incorrect kernel_list
+        monkeypatch.setattr('pds.naif_pds4_bundler.classes.setup.glob.glob',
+                            Mock(side_effect=[[], kernel_list_matches]))
+
+        with caplog.at_level(logging.WARNING):
+            setup.set_release()
+
+        # When the setting is set to pds3, only a warning is issued.
+        assert caplog.messages == ['-- This is the first release.']
 
 
 class TestSetupWriteFileList:
