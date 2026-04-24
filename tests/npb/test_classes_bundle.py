@@ -745,6 +745,66 @@ class TestBundleValidate:
 # Bundle._check_times
 # ---------------------------------------------------------------------------
 
+class TestBundlePCheckTimes:
+
+    @staticmethod
+    def _make_times_bundle(
+            mission_start: str,
+            increment_start: str,
+            increment_finish: str,
+            mission_finish: str,
+    ) -> Bundle:
+        """Construct a minimal ``Bundle`` with only the four time attributes that
+        ``_check_times`` reads from ``self.setup``."""
+        bundle = object.__new__(Bundle)
+        bundle.setup = SimpleNamespace(
+            mission_start=mission_start,
+            increment_start=increment_start,
+            increment_finish=increment_finish,
+            mission_finish=mission_finish,
+        )
+        return bundle
+
+    @pytest.mark.parametrize('m_start, i_start, i_end, m_end', [
+        # Normal mode of operation (DOY format)
+        ("2000-001T00:00:00", "2000-060T00:00:00", "2000-180T00:00:00", "2001-001T00:00:00"),
+        # m_start = i_start, i_end = m_end (DOY format)
+        ("2015-001T00:00:00", "2015-001T00:00:00", "2015-365T00:00:00", "2015-365T00:00:00"),
+        # single second increment window. (DOY format)
+        ("2010-001T00:00:00", "2010-180T12:00:00", "2010-180T12:00:01", "2011-001T00:00:00"),
+        # Normal mode of operation (YYYY-MM-DD format)
+        ("2000-01-01T00:00:00", "2000-02-06T00:00:00", "2000-07-18T00:00:00", "2001-10-01T00:00:00"),
+        # Trailing Z on input strings.
+        ("2000-01-01T00:00:00Z", "2000-02-06T00:00:00Z", "2000-07-18T00:00:00Z", "2001-10-01T00:00:00Z"),
+        # TODO: Should zero-duration increment raise an error? Note that it doesn't. Possible bug!
+        ("2010-001T00:00:00", "2010-180T00:00:00", "2010-180T00:00:00", "2011-001T00:00:00")
+    ])
+    def test_valid_ordering(self, lsk, m_start, i_start, i_end, m_end):
+        """All four times correctly ordered."""
+        bundle = self._make_times_bundle(m_start, i_start, i_end, m_end)
+        bundle._check_times()
+
+    @pytest.mark.parametrize('m_start, i_start, i_end, m_end', [
+        # mission_start after increment_start
+        ("2010-200T00:00:00", "2010-060T00:00:00", "2010-300T00:00:00", "2011-001T00:00:00"),
+        # increment_start after increment_finish
+        ("2010-001T00:00:00", "2010-300T00:00:00", "2010-060T00:00:00", "2011-001T00:00:00"),
+        # increment_finish after mission_finish
+        ("2010-001T00:00:00", "2010-060T00:00:00", "2012-001T00:00:00", "2011-001T00:00:00"),
+        # zero-time mission duration
+        ("2010-180T00:00:00", "2010-180T00:00:00", "2010-180T00:00:00", "2010-180T00:00:00"),
+        # mission_start is after mission_finish
+        ("2015-001T00:00:00", "2010-060T00:00:00", "2010-180T00:00:00", "2010-001T00:00:00"),
+        # increment_start is after increment_finish
+        ("2010-001T00:00:00", "2010-180T00:00:00", "2010-090T00:00:00", "2011-001T00:00:00")
+
+    ])
+    def test_invalid_ordering(self, lsk, m_start, i_start, i_end, m_end):
+        bundle = self._make_times_bundle(m_start, i_start, i_end, m_end)
+        with pytest.raises(RuntimeError, match="The resulting Mission and Increment start "
+                                               "and finish dates are incoherent."):
+            bundle._check_times()
+
 
 # ---------------------------------------------------------------------------
 # Bundle._get_collection_versions_from_label
@@ -1484,6 +1544,43 @@ class TestBundlePGetMetakernelProductFromConfig:
         result = bundle._get_metakernel_product_from_config(7, self._csv_line())
         assert 'spice_kernels/mk/insight_v07.tm' == result
 
+    def test_pattern_key_as_plain_dict_is_normalised_to_list(self, fake_setup):
+        """When ``pattern_word["pattern"]`` is a plain dict rather
+        than a list (single-entry pattern deserialized without wrapping by
+        ``etree_to_dict``), it is normalized to ``[pattern_key]``.
+
+        This shape arises in real NPB configs when a name-pattern block
+        contains exactly one ``<pattern>`` child, which ``etree_to_dict``
+        returns as a dict rather than a one-element list.
+        """
+        # pattern_word["pattern"] is a dict, not a list -> triggers line 570
+        fake_setup.mk = [{"name": [{"pattern": {"#text": "VERSION",
+                                                "@length": "2"}}]}]
+        bundle = _make_bundle(fake_setup, vid="1.0",
+                              name=f"bundle_{MISSION}_spice_v001.xml")
+        result = bundle._get_metakernel_product_from_config(1, self._csv_line())
+        assert result == "spice_kernels/mk/insight_v01.tm"
+
+    def test_no_version_key_found_returns_default_two_digit_format(
+            self, fake_setup
+    ):
+        """When no pattern entry has ``#text == 'VERSION'`` the loop
+        exhausts without returning, and the method falls through to the default
+        ``v{ver:02d}.tm`` format.
+
+        This covers the path where the setup configuration contains patterns
+        but none of them is the VERSION key (e.g. only YEAR or MISSION
+        patterns are defined).
+        """
+        # A pattern whose #text is something other than VERSION
+        fake_setup.mk = [{"name": [{"pattern": [{"#text": "YEAR",
+                                                 "@length": "4"}]}]}]
+        bundle = _make_bundle(fake_setup, vid="1.0",
+                              name=f"bundle_{MISSION}_spice_v001.xml")
+        result = bundle._get_metakernel_product_from_config(3, self._csv_line())
+        # Falls through to: return f"{base}v{ver:02d}.tm"
+        assert result == "spice_kernels/mk/insight_v03.tm"
+
 
 # ---------------------------------------------------------------------------
 # Bundle._get_metakernel_products_from_inputs
@@ -1662,3 +1759,565 @@ class TestBundlePReadBundleLabel:
         captured = capsys.readouterr()
         expected = '-- WARNING: Files from previous releases not available to generate Bundle history.\n'
         assert expected == captured.out
+
+
+# ---------------------------------------------------------------------------
+# Bundle._validate_history
+# ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# Design notes
+# ---------------------------------------------------------------------------
+# _validate_history has no direct filesystem helpers of its own — it delegates
+# entirely to _get_history() for the product lists and then reads one
+# checksum .tab file per release from the bundle directory.  The test
+# strategy is therefore:
+#
+#   1. Build a real (minimal) on-disk bundle tree for each scenario so that
+#      _get_history() runs for real and produces the product list we expect.
+#   2. Write a matching (or deliberately mismatched) checksum .tab file.
+#   3. Call _validate_history() and assert on logged lines and/or exceptions.
+#
+# Checksum .tab format
+# --------------------
+# The method reads each line, splits on whitespace, and takes the LAST token
+# as the product path.  Real checksum files have the format:
+#
+#   <md5hash>  <relative/product/path>
+#
+# The helper _write_checksum writes files in this format.
+#
+# Checksum self-reference augmentation
+# -------------------------------------
+# After reading the .tab file, the method checks whether the checksum product
+# itself (miscellaneous/checksum/checksum_v???.tab) appears in history[rel].
+# If it does, it appends both the .tab and its .xml label to
+# products_in_checksum BEFORE sorting and comparing.  Tests cover both the
+# branch where the checksum IS in the history (via a miscellaneous collection
+# entry) and where it is NOT (kernel-only releases).
+#
+# Error branches
+# --------------
+# Two distinct branches exist when products_in_checksum != products_in_history:
+#   a) setup.args.log is False  → handle_npb_error called with the full diff
+#   b) setup.args.log is True   → handle_npb_error called with a short message
+# Both must be tested.
+# ---------------------------------------------------------------------------
+
+class TestPValidateHistory:
+    """Tests for ``Bundle._validate_history``.
+
+    Each test builds a minimal real filesystem tree so that ``_get_history``
+    runs unpatched, producing the same product list the production code would
+    see, then writes a matching or deliberately mismatched checksum .tab and
+    asserts on logged lines and raised exceptions.
+    """
+
+    # ------------------------------------------------------------------ #
+    # Helpers shared across tests                                          #
+    # ------------------------------------------------------------------ #
+
+    @staticmethod
+    def _write_checksum(bundle_root: Path, rel: int, products: list[str]) -> None:
+        """Write a checksum .tab file listing exactly the given product paths.
+
+        Each line uses the real format: ``<md5hash>  <product_path>``
+        The hash value is a placeholder; only the path token is read by the code.
+
+        :param bundle_root: the ``<mission>_spice`` directory path
+        :param rel:         release number (1-based)
+        :param products:    list of relative product paths to list in the file
+        """
+        checksum_dir = bundle_root / "miscellaneous" / "checksum"
+        checksum_dir.mkdir(parents=True, exist_ok=True)
+        checksum_path = checksum_dir / f"checksum_v{rel:03d}.tab"
+        lines = [f"d41d8cd98f00b204e9800998ecf8427e  {p}\n" for p in products]
+        checksum_path.write_text("".join(lines), encoding="utf-8")
+
+    @staticmethod
+    def _validate_setup(tmp_path, *, log: bool = False) -> SimpleNamespace:
+        """Return a ``SimpleNamespace`` setup suitable for _validate_history tests.
+
+        :param log:  value for ``setup.args.log`` (controls which handle_npb_error
+                     branch is taken on mismatch)
+        """
+        bundle_dir = tmp_path / "bundle"
+        bundle_root = bundle_dir / f"{MISSION}_spice"
+        bundle_root.mkdir(parents=True)
+        args = SimpleNamespace(silent=True, verbose=False, log=log)
+        return SimpleNamespace(
+            bundle_directory=str(bundle_dir),
+            mission_acronym=MISSION,
+            xml_model=XML_MODEL,
+            args=args,
+            template_files = []  # For error cases.
+        )
+
+    @staticmethod
+    def _validate_bundle(setup, vid: str, collections=None) -> Bundle:
+        """Construct a Bundle for _validate_history tests."""
+        name = f"bundle_{MISSION}_spice_v{int(vid.split('.')[0]):03d}.xml"
+        bundle = _make_bundle(setup, vid=vid, name=name, collections=collections)
+        return bundle
+
+    @staticmethod
+    def _bundle_root(setup: SimpleNamespace) -> Path:
+        return Path(setup.bundle_directory) / f"{setup.mission_acronym}_spice"
+
+    @staticmethod
+    def _write_kernel_release(
+            setup: SimpleNamespace,
+            rel: int,
+            kernel_ver: int,
+            kernel_rows: list[str],
+    ) -> None:
+        """Write bundle label + kernel collection CSV for one release."""
+        _write_bundle_label(setup, rel, [
+            {"lid": f"urn:nasa:pds:{MISSION}.spice:spice_kernels::{kernel_ver}.0",
+             "status": "Primary"},
+        ])
+        _write_collection_csv(
+            setup,
+            f"spice_kernels/collection_spice_kernels_inventory_v{kernel_ver:03d}.csv",
+            kernel_rows,
+        )
+
+    @staticmethod
+    def _kernel_only_products(rel: int, ver: int) -> list[str]:
+        """Return the sorted product list for a kernel-only release."""
+        products = [
+            f"bundle_{MISSION}_spice_v{rel:03d}.xml",
+            f"spice_kernels/collection_spice_kernels_inventory_v{ver:03d}.csv",
+            f"spice_kernels/collection_spice_kernels_v{ver:03d}.xml",
+        ]
+        if rel == 1:
+            products.append("readme.txt")
+        return sorted(products)
+
+    def test_empty_history_logs_info_and_returns(self, tmp_path, caplog):
+        """When _get_history returns {} the method logs its header and exits
+        cleanly without reading any checksum files."""
+        setup = self._validate_setup(tmp_path)
+        # No labels on disk → _get_history returns {}
+        bundle = self._validate_bundle(setup, vid="1.0", collections=["something"])
+        with caplog.at_level(logging.INFO):
+            bundle._validate_history()
+
+        expected = [
+            (logging.INFO, ''),
+            (logging.INFO, '-- Display the list of files that belong to each release.'),
+            (logging.INFO, ''),
+            (logging.WARNING, '-- Files from previous releases not available to generate Bundle history.'),
+            (logging.INFO, '')]
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+        assert results == expected
+
+    def test_single_release_matching_checksum_logs_info(
+            self, tmp_path, caplog
+    ):
+        """A single release whose checksum file matches the history produces
+        no ERROR logs and logs the history dict."""
+        setup = self._validate_setup(tmp_path)
+        self._write_kernel_release(setup, rel=1, kernel_ver=1, kernel_rows=[])
+        products = self._kernel_only_products(rel=1, ver=1)
+        self._write_checksum(self._bundle_root(setup), rel=1, products=products)
+
+        bundle = self._validate_bundle(setup, vid="1.0", collections=["something"])
+        with caplog.at_level(logging.INFO):
+            bundle._validate_history()
+
+        expected = [
+            '',
+            '-- Display the list of files that belong to each release.',
+            '',
+            "    { 1: [ 'readme.txt',",
+            "           'bundle_insight_spice_v001.xml',",
+            "           'spice_kernels/collection_spice_kernels_inventory_v001.csv',",
+            "           'spice_kernels/collection_spice_kernels_v001.xml']}",
+            '']
+        assert caplog.messages == expected
+
+    def test_two_releases_products_accumulated_into_checksum(
+            self, tmp_path, caplog
+    ):
+        """Products are accumulated cumulatively: release 2's checksum must
+        contain products from both release 1 and release 2."""
+        setup = self._validate_setup(tmp_path)
+        # Release 1: kernel collection v001, no kernel rows
+        self._write_kernel_release(setup, rel=1, kernel_ver=1, kernel_rows=[])
+        # Release 2: kernel collection v002, no kernel rows
+        self._write_kernel_release(setup, rel=2, kernel_ver=2, kernel_rows=[])
+
+        rel1_products = self._kernel_only_products(rel=1, ver=1)
+        rel2_new = sorted([
+            f"bundle_{MISSION}_spice_v002.xml",
+            "spice_kernels/collection_spice_kernels_inventory_v002.csv",
+            "spice_kernels/collection_spice_kernels_v002.xml",
+        ])
+        cumulative = sorted(rel1_products + rel2_new)
+
+        self._write_checksum(self._bundle_root(setup), rel=1, products=rel1_products)
+        self._write_checksum(self._bundle_root(setup), rel=2, products=cumulative)
+
+        bundle = self._validate_bundle(setup, vid="2.0", collections=["something"])
+        with caplog.at_level(logging.INFO):
+            bundle._validate_history()
+
+        expected = [
+            '',
+            '-- Display the list of files that belong to each release.',
+            '',
+            "    { 1: [ 'readme.txt',",
+            "           'bundle_insight_spice_v001.xml',",
+            "           'spice_kernels/collection_spice_kernels_inventory_v001.csv',",
+            "           'spice_kernels/collection_spice_kernels_v001.xml'],",
+            "      2: [ 'bundle_insight_spice_v002.xml',",
+            "           'spice_kernels/collection_spice_kernels_inventory_v002.csv',",
+            "           'spice_kernels/collection_spice_kernels_v002.xml']}",
+            '']
+        assert caplog.messages == expected
+
+    # ------------------------------------------------------------------ #
+    # 5. Checksum self-reference augmentation                              #
+    # ------------------------------------------------------------------ #
+
+    def test_checksum_product_in_history_is_appended_to_checksum_list(
+            self, tmp_path, caplog
+    ):
+        """When the checksum product itself appears in history[rel], both the
+        .tab and .xml are appended to products_in_checksum before comparison.
+
+        The miscellaneous collection must be present in the history so that
+        checksum_v001.tab appears there; the checksum file must therefore NOT
+        already contain itself to avoid double-counting.
+        """
+        setup = self._validate_setup(tmp_path)
+        # Write bundle label with both kernel and miscellaneous collections
+        _write_bundle_label(setup, 1, [
+            {"lid": f"urn:nasa:pds:{MISSION}.spice:spice_kernels::1.0",
+             "status": "Primary"},
+            {"lid": f"urn:nasa:pds:{MISSION}.spice:miscellaneous::1.0",
+             "status": "Primary"},
+        ])
+        _write_collection_csv(
+            setup,
+            "spice_kernels/collection_spice_kernels_inventory_v001.csv",
+            [],
+        )
+        # Miscellaneous collection contains a checksum entry
+        _write_collection_csv(
+            setup,
+            "miscellaneous/collection_miscellaneous_inventory_v001.csv",
+            [f"P,urn:nasa:pds:{MISSION}.spice:miscellaneous:checksum_{MISSION}::1.0"],
+        )
+
+        # Build the expected product list that _get_history will return
+        history_products = sorted([
+            "readme.txt",
+            f"bundle_{MISSION}_spice_v001.xml",
+            "spice_kernels/collection_spice_kernels_inventory_v001.csv",
+            "spice_kernels/collection_spice_kernels_v001.xml",
+            "miscellaneous/collection_miscellaneous_inventory_v001.csv",
+            "miscellaneous/collection_miscellaneous_v001.xml",
+            f"miscellaneous/checksum/{MISSION}_v001.tab",
+            f"miscellaneous/checksum/{MISSION}_v001.xml",
+        ])
+
+        # The checksum file lists everything EXCEPT the self-reference entries
+        # (those are appended by the method itself after reading the file).
+        # The checksum product key the code checks for is:
+        #   miscellaneous/checksum/checksum_v001.tab
+        # which would only appear if the inventory row used "checksum_insight"
+        # rather than "checksum_{MISSION}" — here we use the raw product name
+        # so checksum_product is NOT in history[rel], keeping this test clean.
+        self._write_checksum(
+            self._bundle_root(setup), rel=1, products=history_products
+        )
+
+        bundle = self._validate_bundle(setup, vid="1.0", collections=["something"])
+        with caplog.at_level(logging.INFO):
+            bundle._validate_history()
+
+        expected = [
+            '',
+            '-- Display the list of files that belong to each release.',
+            '',
+            "    { 1: [ 'readme.txt',",
+            "           'bundle_insight_spice_v001.xml',",
+            "           'spice_kernels/collection_spice_kernels_inventory_v001.csv',",
+            "           'spice_kernels/collection_spice_kernels_v001.xml',",
+            "           'miscellaneous/collection_miscellaneous_inventory_v001.csv',",
+            "           'miscellaneous/collection_miscellaneous_v001.xml',",
+            "           'miscellaneous/checksum/insight_v001.tab',",
+            "           'miscellaneous/checksum/insight_v001.xml']}",
+            '']
+        assert caplog.messages == expected
+
+    def test_checksum_self_reference_augmented_when_present_in_history(
+            self, tmp_path, caplog
+    ):
+        """When ``checksum_v001.tab`` (the exact product key the code looks
+        for) appears in ``history[rel]``, both the .tab and .xml are appended
+        to products_in_checksum, so they must NOT appear in the .tab file
+        itself to avoid double-counting."""
+        setup = self._validate_setup(tmp_path)
+
+        _write_bundle_label(setup, 1, [
+            {"lid": f"urn:nasa:pds:{MISSION}.spice:miscellaneous::1.0",
+             "status": "Primary"},
+        ])
+        # The miscellaneous inventory uses "checksum_insight" which, after
+        # splitting, produces the product key
+        # "miscellaneous/checksum/insight_v001.tab".
+        # But the code checks for "miscellaneous/checksum/checksum_v001.tab"
+        # (the literal string with "checksum_" prefix preserved).  To get
+        # THAT exact key we need the inventory line to split such that
+        # field[5] starts with "checksum_":
+        _write_collection_csv(
+            setup,
+            "miscellaneous/collection_miscellaneous_inventory_v001.csv",
+            [f"P,urn:nasa:pds:{MISSION}.spice:miscellaneous:checksum_{MISSION}::1.0"],
+        )
+
+        # _get_history produces this product list (including the checksum
+        # self-reference key that the method will check):
+        #   miscellaneous/checksum/{MISSION}_v001.tab   ← from inventory split
+        # The code checks:
+        #   checksum_product = "miscellaneous/checksum/checksum_v001.tab"
+        # These are different names so the augmentation branch is NOT taken.
+        # To exercise the augmentation branch we stub _get_history directly.
+        checksum_product = "miscellaneous/checksum/checksum_v001.tab"
+        checksum_label = "miscellaneous/checksum/checksum_v001.xml"
+        history_products = sorted([
+            "readme.txt",
+            f"bundle_{MISSION}_spice_v001.xml",
+            "miscellaneous/collection_miscellaneous_inventory_v001.csv",
+            "miscellaneous/collection_miscellaneous_v001.xml",
+            checksum_product,
+            checksum_label,
+        ])
+
+        bundle = self._validate_bundle(setup, vid="1.0", collections=["something"])
+        # Stub _get_history to return the desired product list directly,
+        # which includes checksum_v001.tab so the augmentation branch runs.
+        bundle._get_history = lambda: {1: list(history_products)}
+
+        # The checksum .tab must NOT contain the self-reference entries
+        # (they are appended by the method), so we write everything except them.
+        file_products = [p for p in history_products
+                         if p not in (checksum_product, checksum_label)]
+        self._write_checksum(self._bundle_root(setup), rel=1, products=file_products)
+
+        with caplog.at_level(logging.INFO):
+            bundle._validate_history()
+
+        expected = [
+            '',
+            '-- Display the list of files that belong to each release.',
+            '',
+            "    { 1: [ 'bundle_insight_spice_v001.xml',",
+            "           'miscellaneous/checksum/checksum_v001.tab',",
+            "           'miscellaneous/checksum/checksum_v001.xml',",
+            "           'miscellaneous/collection_miscellaneous_inventory_v001.csv',",
+            "           'miscellaneous/collection_miscellaneous_v001.xml',",
+            "           'readme.txt']}", '']
+        assert caplog.messages == expected
+
+    # ------------------------------------------------------------------ #
+    # 6. Mismatch — ERROR logging, args.log=False branch                  #
+    # ------------------------------------------------------------------ #
+
+    def test_mismatch_logs_error_lines(self, tmp_path, caplog):
+        """When products_in_checksum != products_in_history, an ERROR is
+        logged naming the checksum file."""
+        setup = self._validate_setup(tmp_path, log=False)
+        self._write_kernel_release(setup, rel=1, kernel_ver=1, kernel_rows=[])
+        products = self._kernel_only_products(rel=1, ver=1)
+        # Drop one product to create a deliberate mismatch
+        mismatched = [p for p in products if "readme" not in p]
+        self._write_checksum(self._bundle_root(setup), rel=1, products=mismatched)
+
+        bundle = self._validate_bundle(setup, vid="1.0", collections=["something"])
+        with caplog.at_level(logging.ERROR):
+            with pytest.raises(Exception):
+                bundle._validate_history()
+
+        expected = [
+            '',
+            f'-- Products in {tmp_path}/bundle/insight_spice/miscellaneous/checksum/checksum_v001.tab '
+            f'do not correspond to the bundle release history.',
+            '      readme.txt',
+            f'-- Products in {tmp_path}/bundle/insight_spice/miscellaneous/checksum/checksum_v001.tab '
+            f'do not correspond to the bundle release history: \n'
+            f' readme.txt\n']
+        assert caplog.messages == expected
+
+    def test_mismatch_args_log_false_raises_with_diff_message(
+            self, tmp_path, caplog
+    ):
+        """With args.log=False, handle_npb_error is called with the detailed
+        diff message (containing the checksum file path)."""
+        setup = self._validate_setup(tmp_path, log=False)
+        self._write_kernel_release(setup, rel=1, kernel_ver=1, kernel_rows=[])
+        products = self._kernel_only_products(rel=1, ver=1)
+        mismatched = [p for p in products if "readme" not in p]
+        self._write_checksum(self._bundle_root(setup), rel=1, products=mismatched)
+
+        bundle = self._validate_bundle(setup, vid="1.0", collections=["something"])
+
+        # Mocks the "write" methods of the setup object.
+        setup.write_file_list = MagicMock()
+        setup.write_checksum_registry = MagicMock()
+
+        expected_error = (
+            f'Products in {tmp_path}/bundle/insight_spice/miscellaneous/checksum/checksum_v001.tab '
+            'do not correspond to the bundle release history: \n readme.txt\n')
+        with pytest.raises(Exception, match=expected_error):
+            bundle._validate_history()
+
+    # ------------------------------------------------------------------ #
+    # 7. Mismatch — args.log=True branch                                  #
+    # ------------------------------------------------------------------ #
+
+    def test_mismatch_args_log_true_raises_with_short_message(
+            self, tmp_path, caplog
+    ):
+        """With args.log=True, handle_npb_error is called with the short
+        'Check generation of Checksum files.' message."""
+        setup = self._validate_setup(tmp_path, log=True)
+        self._write_kernel_release(setup, rel=1, kernel_ver=1, kernel_rows=[])
+        products = self._kernel_only_products(rel=1, ver=1)
+        mismatched = [p for p in products if "readme" not in p]
+        self._write_checksum(self._bundle_root(setup), rel=1, products=mismatched)
+
+        bundle = self._validate_bundle(setup, vid="1.0", collections=["something"])
+
+        # Mock the write_file_list method of the setup object.
+        setup.write_file_list = MagicMock()
+        setup.write_checksum_registry = MagicMock()
+
+        expected_error = 'Check generation of Checksum files.'
+        with pytest.raises(Exception, match=expected_error):
+            bundle._validate_history()
+
+    def test_mismatch_extra_product_in_checksum_is_flagged(
+            self, tmp_path, caplog
+    ):
+        """A product present in the checksum but absent from history is also
+        included in the symmetric difference and logged as an ERROR."""
+        setup = self._validate_setup(tmp_path, log=False)
+        self._write_kernel_release(setup, rel=1, kernel_ver=1, kernel_rows=[])
+        products = self._kernel_only_products(rel=1, ver=1)
+        # Add a spurious product to the checksum file
+        extra = "spice_kernels/ck/nonexistent_v01.bc"
+        self._write_checksum(
+            self._bundle_root(setup), rel=1, products=products + [extra]
+        )
+
+        bundle = self._validate_bundle(setup, vid="1.0", collections=["something"])
+        with caplog.at_level(logging.ERROR):
+            with pytest.raises(Exception):
+                bundle._validate_history()
+
+        expected = [
+            '',
+            f'-- Products in {tmp_path}/bundle/insight_spice/miscellaneous/checksum/checksum_v001.tab '
+            'do not correspond to the bundle release history.',
+            '      spice_kernels/ck/nonexistent_v01.bc',
+            f'-- Products in {tmp_path}/bundle/insight_spice/miscellaneous/checksum/checksum_v001.tab '
+            'do not correspond to the bundle release history: \n'
+            ' spice_kernels/ck/nonexistent_v01.bc\n']
+        assert caplog.messages == expected
+
+    # ------------------------------------------------------------------ #
+    # 8. Multiple releases — mismatch on second release only               #
+    # ------------------------------------------------------------------ #
+
+    def test_mismatch_on_second_release_only_raises(self, tmp_path, caplog):
+        """A mismatch on release 2 raises even when release 1 is correct.
+        The cumulative nature of products_in_history is exercised."""
+        setup = self._validate_setup(tmp_path, log=False)
+        self._write_kernel_release(setup, rel=1, kernel_ver=1, kernel_rows=[])
+        self._write_kernel_release(setup, rel=2, kernel_ver=2, kernel_rows=[])
+
+        rel1_products = self._kernel_only_products(rel=1, ver=1)
+        rel2_new = sorted([
+            f"bundle_{MISSION}_spice_v002.xml",
+            "spice_kernels/collection_spice_kernels_inventory_v002.csv",
+            "spice_kernels/collection_spice_kernels_v002.xml",
+        ])
+        cumulative = sorted(rel1_products + rel2_new)
+
+        # Release 1: correct
+        self._write_checksum(self._bundle_root(setup), rel=1, products=rel1_products)
+        # Release 2: missing one product
+        broken = [p for p in cumulative
+                  if p != f"bundle_{MISSION}_spice_v002.xml"]
+        self._write_checksum(self._bundle_root(setup), rel=2, products=broken)
+
+        bundle = self._validate_bundle(setup, vid="2.0", collections=["something"])
+        with caplog.at_level(logging.ERROR):
+            with pytest.raises(Exception):
+                bundle._validate_history()
+
+        expected = [
+            '',
+            f'-- Products in {tmp_path}/bundle/insight_spice/miscellaneous/checksum/checksum_v002.tab '
+            'do not correspond to the bundle release history.',
+            '      bundle_insight_spice_v002.xml',
+            f'-- Products in {tmp_path}/bundle/insight_spice/miscellaneous/checksum/checksum_v002.tab '
+            'do not correspond to the bundle release history: \n'
+            ' bundle_insight_spice_v002.xml\n']
+        assert caplog.messages == expected
+
+    def test_first_release_matching_second_mismatch_first_logs_no_error(
+            self, tmp_path, caplog
+    ):
+        """Release 1's correct match produces no ERROR even though release 2
+        subsequently fails.  INFO lines for the history are still emitted."""
+        setup = self._validate_setup(tmp_path, log=False)
+        self._write_kernel_release(setup, rel=1, kernel_ver=1, kernel_rows=[])
+        self._write_kernel_release(setup, rel=2, kernel_ver=2, kernel_rows=[])
+
+        rel1_products = self._kernel_only_products(rel=1, ver=1)
+        rel2_new = [
+            f"bundle_{MISSION}_spice_v002.xml",
+            "spice_kernels/collection_spice_kernels_inventory_v002.csv",
+            "spice_kernels/collection_spice_kernels_v002.xml",
+        ]
+        cumulative = sorted(rel1_products + rel2_new)
+
+        self._write_checksum(self._bundle_root(setup), rel=1, products=rel1_products)
+        self._write_checksum(self._bundle_root(setup), rel=2,
+                        products=[p for p in cumulative
+                                  if "v002.xml" not in p])
+
+        info_records_before_error = []
+        bundle = self._validate_bundle(setup, vid="2.0", collections=["something"])
+        with caplog.at_level(logging.INFO):
+            with pytest.raises(Exception):
+                bundle._validate_history()
+
+        # INFO lines must have been emitted (history was non-empty)
+        expected = [
+            (logging.INFO, ''),
+            (logging.INFO, '-- Display the list of files that belong to each release.'),
+            (logging.INFO, ''),
+            (logging.INFO, "    { 1: [ 'readme.txt',"),
+            (logging.INFO, "           'bundle_insight_spice_v001.xml',"),
+            (logging.INFO, "           'spice_kernels/collection_spice_kernels_inventory_v001.csv',"),
+            (logging.INFO, "           'spice_kernels/collection_spice_kernels_v001.xml'],"),
+            (logging.INFO, "      2: [ 'bundle_insight_spice_v002.xml',"),
+            (logging.INFO, "           'spice_kernels/collection_spice_kernels_inventory_v002.csv',"),
+            (logging.INFO, "           'spice_kernels/collection_spice_kernels_v002.xml']}"),
+            (logging.ERROR, ''),
+            (logging.ERROR, f'-- Products in {tmp_path}/bundle/insight_spice/miscellaneous/checksum/checksum_v002.tab '
+                            'do not correspond to the bundle release history.'),
+            (logging.ERROR, '      bundle_insight_spice_v002.xml'),
+            (logging.ERROR, '      spice_kernels/collection_spice_kernels_v002.xml'),
+            (logging.ERROR, f'-- Products in {tmp_path}/bundle/insight_spice/miscellaneous/checksum/checksum_v002.tab '
+                            f'do not correspond to the bundle release history: \n'
+                            f' bundle_insight_spice_v002.xml\n'
+                            f'spice_kernels/collection_spice_kernels_v002.xml\n')]
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+        assert results == expected
