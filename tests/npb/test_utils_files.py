@@ -241,6 +241,51 @@ def test_copy_error_file(monkeypatch, tmp_path, caplog):
 
     assert "WARNING  root:files.py:91 -- Directory file.txt not copied, probably because the increment directory exists.\n Error: [Errno 2] No such file or directory" in caplog.text
 
+
+# ----------------------------------------------------------------------------
+# files.add_crs_to_file tests
+# ----------------------------------------------------------------------------
+
+@pytest.mark.parametrize("inputs, outputs", [
+    ( "Chatty\nkitty\n", "Chatty<CR>\nkitty<CR>\n"),
+    ("Kitty\n", "Kitty<CR>\n"),
+    ("Meow \n", "Meow<CR>\n"),
+    ("\n", "<CR>\n"),
+    ("", ""),
+])
+def test_add_crs_to_file_success(monkeypatch, tmp_path, inputs, outputs):
+    """Test add_crs_to_file function using pytest.
+    This is for a successful case"""
+    fake_file = tmp_path / "file.txt"
+    fake_file.write_text(inputs)
+
+    def mock_add_cr(line, eol, setup):
+        return line.strip() + "<CR>\n"
+
+    monkeypatch.setattr(files, "add_carriage_return", mock_add_cr)
+
+    files.add_crs_to_file(str(fake_file), eol="\n", setup=False)
+
+    expected = outputs
+    assert fake_file.read_text() == expected
+
+
+def test_add_crs_to_file_logging_error(monkeypatch, caplog):
+    """Test add_crs_to_file function using pytest.
+    This is to test logging errors"""
+
+    def mock_handle_error(msg, setup):
+        files.logging.getLogger("files").error(msg)
+
+    monkeypatch.setattr(files, "handle_npb_error", mock_handle_error)
+    bad_path = "/bad/path/file.txt"
+
+    with caplog.at_level(files.logging.ERROR):
+        files.add_crs_to_file(bad_path, eol="\n")
+
+    assert f"Carriage return adding error for {bad_path}" in caplog.text
+
+
 # ----------------------------------------------------------------------------
 # files.etree_to_dict test
 # ----------------------------------------------------------------------------
@@ -447,7 +492,6 @@ def test_safe_make_directory_logging(tmp_path, caplog):
 
     #assert f"-- Generated directory: '{path}'  " in caplog.text
     assert caplog.messages == []
-
 
 
 # def test_safe_make_directory_logging_invalid():
