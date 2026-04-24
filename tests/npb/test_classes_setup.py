@@ -8,11 +8,10 @@ import requests
 from pds.naif_pds4_bundler.classes.setup import Setup
 
 
-def make_setup(tmp_path, file_list: list[str] = None, mission_acronym: str = "maven",
+def make_setup(tmp_path, mission_acronym: str = "maven",
                run_type: str = "release", release: str = "3") -> Setup:
     # Create a minimal instance of Setup without calling Setup.__init__.
     setup = object.__new__(Setup)
-    setup.file_list = file_list
     setup.working_directory = str(tmp_path)
     setup.mission_acronym = mission_acronym
     setup.run_type = run_type
@@ -24,8 +23,11 @@ def make_setup(tmp_path, file_list: list[str] = None, mission_acronym: str = "ma
 class TestSetupWriteFileList:
     @staticmethod
     def make_minimal_setup(tmp_path, file_list) -> Setup:
+        setup = make_setup(tmp_path)
 
-        return make_setup(tmp_path, file_list=file_list)
+        setup.file_list = file_list
+
+        return setup
 
     @pytest.mark.parametrize('file_list, expected_contents', [
         (['bundle_maven_spice_v001.xml',
@@ -109,8 +111,7 @@ class TestSetupWriteValidateConfig:
     @staticmethod
     def make_validate_setup(tmp_path) -> Setup:
 
-        setup = make_setup(tmp_path, mission_acronym='maven', run_type='release',
-                           release='3')
+        setup = make_setup(tmp_path)
 
         setup.working_directory = str(tmp_path)
         setup.bundle_directory = '/bundle'
