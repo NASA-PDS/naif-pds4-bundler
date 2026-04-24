@@ -57,7 +57,7 @@ class Bundle:
             safe_make_directory(setup.staging_directory + os.sep + "extras")
             safe_make_directory(setup.staging_directory + os.sep + "index")
 
-        elif setup.pds_version == "4":
+        else:  # setup.pds_version == "4":
             # Bundle root is only consumed by the history helpers (which are
             # PDS4-only)
             self._bundle_root = Path(setup.bundle_directory,
@@ -780,7 +780,7 @@ class Bundle:
                 )
 
                 incorrect_output = ""
-                for product in incorrect_products:
+                for product in sorted(incorrect_products):
                     incorrect_output += f"{product}\n"
 
                     logging.error('      %s', product)

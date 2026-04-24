@@ -215,8 +215,7 @@ class TestBundleInit:
     def test_pds3_creates_expected_subdirectories(self, mock_mkdir, tmp_path):
         """PDS3 init calls safe_make_directory for each expected subdirectory."""
         setup = self._pds3_setup(tmp_path)
-        bundle = object.__new__(Bundle)
-        bundle.__init__(setup)
+        Bundle(setup=setup)
 
         created = [str(c.args[0]).replace(str(tmp_path), 'p')
                    for c in mock_mkdir.call_args_list]
@@ -234,8 +233,7 @@ class TestBundleInit:
     def test_pds4_creates_expected_subdirectories(self, mock_mkdir, _mock_ctx, tmp_path):
         """PDS4 init calls safe_make_directory for each expected subdirectory."""
         setup = self._pds4_setup(tmp_path)
-        bundle = object.__new__(Bundle)
-        bundle.__init__(setup)
+        Bundle(setup=setup)
 
         created = [str(c.args[0]).replace(str(tmp_path), 'p')
                    for c in mock_mkdir.call_args_list]
@@ -455,6 +453,26 @@ class TestBundleCopyToBundle:
             '-- Found 1 new file(s), copied 0 file(s) from staging directory.']
         assert caplog.messages == expected
 
+    def test_pds4_existing_non_binary_file_with_same_content_warns(
+            self, tmp_path, caplog
+    ):
+        """PDS4: an existing non-binary, non-label file whose content did not
+        change logs only the skip warning."""
+        setup, staging, bundle_dir = self._pds4_setup(tmp_path)
+        src = staging / "kernel.tsc"
+        src.write_text("same content")
+        dst_dir = bundle_dir / f"{MISSION}_spice"
+        dst_dir.mkdir(parents=True, exist_ok=True)
+        (dst_dir / "kernel.tsc").write_text("same content")
+        bundle = self._pds4_bundle(setup)
+        bundle._new_files = [str(src)]
+        with caplog.at_level(logging.WARNING):
+            bundle.copy_to_bundle()
+        expected = [
+            '-- File already exists and has not been copied: kernel.tsc',
+            '-- Found 1 new file(s), copied 0 file(s) from staging directory.']
+        assert caplog.messages == expected
+
     def test_pds4_existing_binary_file_skips_content_comparison(
             self, tmp_path, caplog
     ):
@@ -493,7 +511,29 @@ class TestBundleCopyToBundle:
     def test_pds4_counts_match_logs_info(self, tmp_path, caplog):
         """PDS4: when the number of copied files equals the number of files
         newer than one day, an INFO-level summary is logged."""
+        setup, staging, _ = self._pds4_setup(tmp_path)
+        src = staging / "fresh.xml"
+        src.write_text("<x/>")
+        bundle = self._pds4_bundle(setup)
+        bundle._new_files = [str(src)]
+        with caplog.at_level(logging.INFO):
+            bundle.copy_to_bundle()
+        expected = [
+            '-- Copied: fresh.xml',
+            '',
+            '-- Found 1 new file(s), copied 1 file(s) from staging directory.',
+            '']
+        assert caplog.messages == expected
+
+    def test_pds4_files_older_than_xtime_not_listed(self, tmp_path, caplog):
+        """PDS4: when the number of copied files equals the number of files
+        newer than one day, an INFO-level summary is logged."""
         setup, staging, bundle_dir = self._pds4_setup(tmp_path)
+        src = bundle_dir / "old.xml"
+        src.write_text("<x/>")
+        # Set the access and modification times of the "old" file to April 24, 2024.
+        os.utime(src, times=(1713962400.0, 1713962400.0))
+
         src = staging / "fresh.xml"
         src.write_text("<x/>")
         bundle = self._pds4_bundle(setup)
@@ -624,7 +664,7 @@ class TestBundleFilesInStaging:
 
     def test_pds4_bundle_label_added_to_new_files(self, tmp_path):
         """PDS4 mode: the bundle label XML is appended to ``_new_files``."""
-        bundle, staging = self._staging_setup(tmp_path)
+        bundle, _ = self._staging_setup(tmp_path)
         bundle.files_in_staging()
         expected = os.path.join(
             bundle.setup.staging_directory, bundle.name
@@ -633,7 +673,7 @@ class TestBundleFilesInStaging:
 
     def test_pds4_label_mode_skips_bundle_label(self, tmp_path):
         """In label mode the bundle label XML is not added to ``_new_files``."""
-        bundle, staging = self._staging_setup(tmp_path)
+        bundle, _ = self._staging_setup(tmp_path)
         bundle.setup.faucet = "labels"
         bundle.files_in_staging()
         expected = os.path.join(
@@ -665,7 +705,7 @@ class TestBundleFilesInStaging:
 
     def test_readme_new_product_added_when_present(self, tmp_path):
         """A new readme product is appended when ``_readme.new_product`` is True."""
-        bundle, staging = self._staging_setup(tmp_path)
+        bundle, _ = self._staging_setup(tmp_path)
         bundle._readme = SimpleNamespace(
             new_product=True,
             name="readme.txt",
@@ -676,13 +716,22 @@ class TestBundleFilesInStaging:
 
     def test_readme_existing_product_not_added(self, tmp_path):
         """An existing (non-new) readme product is not appended."""
-        bundle, staging = self._staging_setup(tmp_path)
+        bundle, _ = self._staging_setup(tmp_path)
         bundle._readme = SimpleNamespace(
             new_product=False,
             name="readme.txt",
         )
         bundle.files_in_staging()
         assert not any("readme.txt" in f for f in bundle._new_files)
+
+    def test_hidden_files_not_added(self, tmp_path):
+        """Any hidden files are not appended."""
+        bundle, staging = self._staging_setup(tmp_path)
+        # Create a fake file in staging so the product path exists
+        fake_file = staging / ".DS_Store"
+        fake_file.write_text("hidden file")
+        bundle.files_in_staging()
+        assert not any(".DS_Store" in f for f in bundle._new_files)
 
     def test_collection_products_added(self, tmp_path):
         """Products from collections are appended to ``_new_files``."""
@@ -722,7 +771,6 @@ class TestBundleFilesInStaging:
             '     test.bc',
             '']
         assert expected == caplog.messages
-
 
 # ---------------------------------------------------------------------------
 # Bundle.validate method.
@@ -958,7 +1006,7 @@ class TestBundlePGetDocumentCollectionProducts:
 # Bundle._get_history
 # ---------------------------------------------------------------------------
 
-class TestBunelPGetHistory:
+class TestBundelPGetHistory:
 
     def test_returns_dict(self, fake_setup):
         """_get_history always returns a dict."""
@@ -2292,7 +2340,6 @@ class TestPValidateHistory:
                         products=[p for p in cumulative
                                   if "v002.xml" not in p])
 
-        info_records_before_error = []
         bundle = self._validate_bundle(setup, vid="2.0", collections=["something"])
         with caplog.at_level(logging.INFO):
             with pytest.raises(Exception):
