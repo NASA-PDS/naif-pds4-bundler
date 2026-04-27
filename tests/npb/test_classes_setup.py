@@ -231,10 +231,16 @@ class TestSetupSetRelease:
         with caplog.at_level(logging.INFO):
             setup.set_release()
 
-        assert caplog.messages == ['-- Checking existence of previous release.',
-                                   '-- Bundle label not found. Checking previous kernel list.',
-                                   '-- Generating release 012',
-                                   '']
+        # Check the logging level and logging messages.
+        expected = [
+            (logging.INFO, '-- Checking existence of previous release.'),
+            (logging.WARNING, '-- Bundle label not found. Checking previous kernel list.'),
+            (logging.INFO, '-- Generating release 012'),
+            (logging.INFO, '')]
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+        assert results == expected
 
     def test_logs_expected_messages_when_kernel_list_is_provided_as_argument(
             self, tmp_path, monkeypatch, caplog) -> None:
@@ -248,13 +254,19 @@ class TestSetupSetRelease:
         monkeypatch.setattr('pds.naif_pds4_bundler.classes.setup.glob.glob',
                             Mock(return_value=[]))
 
-        with caplog.at_level(logging.WARNING):
+        with caplog.at_level(logging.INFO):
             setup.set_release()
 
-        assert caplog.messages == [
-            '-- Bundle label not found. Checking previous kernel list.',
-            '-- Kernel list provided as input. Release number cannot be obtained.',
-            '-- This is the first release.']
+        # Check the logging level and logging messages.
+        expected = [(logging.INFO, '-- Checking existence of previous release.'),
+                    (logging.WARNING, '-- Bundle label not found. Checking previous kernel list.'),
+                    (logging.WARNING, '-- Kernel list provided as input. Release number cannot be obtained.'),
+                    (logging.WARNING, '-- This is the first release.'),
+                    (logging.INFO, '')]
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+        assert results == expected
 
     @pytest.mark.parametrize('kernel_list_matches', [
         [],
@@ -276,11 +288,17 @@ class TestSetupSetRelease:
         monkeypatch.setattr('pds.naif_pds4_bundler.classes.setup.glob.glob',
                             Mock(side_effect=[[], kernel_list_matches]))
 
-        with caplog.at_level(logging.WARNING):
+        # Check the logging level and logging messages.
+        with caplog.at_level(logging.INFO):
             setup.set_release()
 
-        # When the setting is set to pds3, only a warning is issued.
-        assert caplog.messages == ['-- This is the first release.']
+        expected = [(logging.INFO, '-- Checking existence of previous release.'),
+                    (logging.WARNING, '-- This is the first release.'),
+                    (logging.INFO, '')]
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+        assert results == expected
 
 
 class TestSetupWriteFileList:
