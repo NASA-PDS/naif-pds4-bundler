@@ -5,6 +5,7 @@ from pathlib import Path
 import shutil
 
 import pytest
+import xml.etree.ElementTree as tree
 
 import os
 from unittest import mock
@@ -224,6 +225,22 @@ def test_copy_error_not_dir(monkeypatch, tmp_path, caplog):
     assert "WARNING  root:files.py:91 -- Directory  not copied, probably because the increment directory exists.\n Error: [Errno 2] No such file or directory" in caplog.text
 
 
+def test_copy_enotdir(tmp_path):
+    """Test copy function using pytest.
+    This tests ENOTDIR.
+    """
+    src = tmp_path / "source.txt"
+    src.write_text("Happy Kitty")
+    dest = tmp_path / "destination.txt"
+
+    # This will naturally raise ENOTDIR inside copytree
+    files.copy(str(src), str(dest))
+
+    # Assert the file was successfully copied via the fallback shutil.copy
+    assert dest.exists()
+    assert dest.read_text() == "Happy Kitty"
+
+
 def test_copy_error_file(monkeypatch, tmp_path, caplog):
     """Test copy function using pytest.
     This is for a case when the source was a file"""
@@ -239,8 +256,7 @@ def test_copy_error_file(monkeypatch, tmp_path, caplog):
     with caplog.at_level(files.logging.WARNING):
         files.copy(str(src), str(dest))
 
-    assert "WARNING  root:files.py:91 -- Directory file.txt not copied, probably because the increment directory exists.\n Error: [Errno 2] No such file or directory" in caplog.text
-
+    assert caplog.messages == ["-- Directory file.txt not copied, probably because the increment directory exists.\n Error: [Errno 2] No such file or directory"]
 
 # ----------------------------------------------------------------------------
 # files.add_crs_to_file tests
@@ -285,14 +301,55 @@ def test_add_crs_to_file_logging_error(monkeypatch, caplog):
 
     assert f"Carriage return adding error for {bad_path}" in caplog.text
 
-
 # ----------------------------------------------------------------------------
 # files.etree_to_dict test
 # ----------------------------------------------------------------------------
 
-#def test_etree_to_dict():
+
+# def test_etree_to_dict_basic():
+#     """Test etree_to_dict function using pytest."""
+#     xml = "<root>howdy</root>"
+#     eltree = tree.fromstring(xml)
+#
+#     result = files.etree_to_dict(eltree)
+#     assert result == {"root": "howdy"}
 
 
+@pytest.mark.parametrize("xml, outputs", [
+    ( "<root>howdy</root>", {"root": "howdy"}),
+    ("<empty></empty>",{"empty": None}),
+    ("<version_id>2.0</version_id>", {"version_id": "2.0"}),
+    ("<purpose>Observation Geometry</purpose>", {"purpose": "Observation Geometry"}),
+    ("<lidvid_reference>urn:nasa:pds:psyche.spice:document::1.0</lidvid_reference>", {"lidvid_reference": "urn:nasa:pds:psyche.spice:document::1.0"}),
+    ("""
+        <Internal_Reference>
+          <lid_reference>urn:nasa:pds:psyche.spice:document:spiceds</lid_reference>
+        </Internal_Reference>
+      """ , {"Internal_Reference": {"lid_reference": "urn:nasa:pds:psyche.spice:document:spiceds"}}),
+    ("""
+        <Target_Identification>
+          <Internal_Reference>
+            <lid_reference>urn:nasa:pds:context:target:asteroid.16_psyche</lid_reference>
+            <reference_type>bundle_to_target</reference_type>
+          </Internal_Reference>
+        </Target_Identification>""", {"Target_Identification": {'Internal_Reference': {'lid_reference': 'urn:nasa:pds:context:target:asteroid.16_psyche', 'reference_type': 'bundle_to_target'}}}),
+("""    
+<Investigation_Area>
+      <name>Psyche Mission</name>
+      <type>Mission</type>
+      <Internal_Reference>
+        <lid_reference>urn:nasa:pds:context:investigation:mission.psyche</lid_reference>
+        <reference_type>data_to_investigation</reference_type>
+      </Internal_Reference>
+    </Investigation_Area>""" , {"Investigation_Area": {'name': 'Psyche Mission', 'type': 'Mission','Internal_Reference': {'lid_reference': 'urn:nasa:pds:context:investigation:mission.psyche', 'reference_type': 'data_to_investigation'}}}),
+])
+def test_etree_to_dict(xml, outputs):
+    """Test etree_to_dict function using pytest."""
+    #xml = "<root>howdy</root>"
+    eltree = tree.fromstring(xml)
+
+    result = files.etree_to_dict(eltree)
+    assert result == outputs
 
 
 # ----------------------------------------------------------------------------
@@ -464,40 +521,23 @@ def test_safe_make_directory(tmp_path):
     path.mkdir()
 
     files.safe_make_directory(str(path))
-    #logg = files.logging.info()
 
     assert path.exists()
     assert path.is_dir()
 
 
-#Need to add logging.info in here somehow.... no clue
-
-def test_safe_make_directory_logging(tmp_path, caplog):
+def test_safe_make_directory_logging(mocker, tmp_path):
     """Test safe_make_directory function using pytest.
     This is for reporting in logging"""
+    mock_mkdir = mocker.patch("os.mkdir")
+    mock_info = mocker.patch("logging.info")
     path = tmp_path / "dir_path"
-    path.mkdir()
 
-    #files.logging.getLogger().info(f"-- Generated directory: '{path}'  ")
-    #files.logging.getLogger().info("")
+    files.safe_make_directory(str(path))
+    mock_mkdir.assert_called_once_with(str(path))
 
-    #assert f"-- Generated directory: '{path}'  " in caplog.text
-    #assert "" in caplog.text
-
-    # Reset the list of log records.
-    caplog.clear()
-
-    with caplog.at_level(files.logging.INFO):
-        files.safe_make_directory(str(path))
-
-    #assert f"-- Generated directory: '{path}'  " in caplog.text
-    assert caplog.messages == []
-
-
-# def test_safe_make_directory_logging_invalid():
-#     """Test safe_make_directory function using pytest.
-#     This is for an invalid path."""
-#     files.safe_make_directory("")
+    assert mock_info.call_count == 2
+    mock_info.assert_any_call(f"-- Generated directory: {path}  ")
 
 
 # ----------------------------------------------------------------------------
