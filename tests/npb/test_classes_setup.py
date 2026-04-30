@@ -258,7 +258,7 @@ class TestSetupCheckConfiguration:
                     (logging.WARNING, '-- Staging directory cannot be created but is not used with plan faucet.'),
                     (logging.WARNING, '-- Bundle directory does not exist but is not used with plan faucet.'),
                     (logging.INFO, '-- Label templates will use the ones from information model 10.11.12.13.'),
-                    (logging.INFO, f'-- Label templates directory: {str(tmp_path)}/work'),
+                    (logging.INFO, f'-- Label templates directory: {setup.working_directory}'),
                     (logging.WARNING, 'Input readme file not present. File will be generated from configuration.')]
 
         results = [(r[1], r[2]) for r in caplog.record_tuples]
@@ -589,7 +589,7 @@ class TestSetupCheckConfiguration:
         expected = [
             (logging.INFO, '-- Binary SPICE kernels expected to have LTL-IEEE (little endian) binary format.'),
             (logging.INFO, '-- Label templates will use the ones from information model 1.5.0.0.'),
-            (logging.INFO, f'-- Label templates directory: {str(tmp_path)}/work'),
+            (logging.INFO, f'-- Label templates directory: {setup.working_directory}'),
             (logging.WARNING, '-- XML Template not found to determine XML Tab. It has been set to 2.')]
 
         results = [(r[1], r[2]) for r in caplog.record_tuples]
@@ -618,7 +618,7 @@ class TestSetupCheckConfiguration:
         expected = [
             (logging.INFO, '-- Binary SPICE kernels expected to have LTL-IEEE (little endian) binary format.'),
             (logging.INFO, '-- Label templates will use the ones from information model 1.5.0.0.'),
-            (logging.INFO, f'-- Label templates directory: {str(tmp_path)}/work'),
+            (logging.INFO, f'-- Label templates directory: {setup.working_directory}'),
             (logging.WARNING, '-- XML Template not useful to determine XML Tab. It has been set to 2.')]
 
         results = [(r[1], r[2]) for r in caplog.record_tuples]
