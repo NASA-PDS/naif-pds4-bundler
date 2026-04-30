@@ -555,7 +555,7 @@ class TestSetupCheckConfiguration:
         expected = [
             (logging.INFO, '-- Binary SPICE kernels expected to have LTL-IEEE (little endian) binary format.'),
             (logging.WARNING, '-- Template template_collection.xml has not been provided. Using label from: '),
-            (logging.WARNING, f'   {root_dir}templates/1.5.0.0/'),
+            (logging.WARNING, f'   {root_dir}templates/{im_version(1, 5, 0, 0)}/'),
             (logging.INFO, f'-- Label templates directory: {custom_templates}')]
 
         results = [(r[1], r[2]) for r in caplog.record_tuples]
