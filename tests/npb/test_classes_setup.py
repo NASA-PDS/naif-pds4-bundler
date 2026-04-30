@@ -452,7 +452,7 @@ class TestSetupCheckConfiguration:
          'version: https://example.com/PDS4_PDS_9999.sch.'),
         ('schema_location', 'https://pds.nasa.gov/pds4/pds/v1 https://example.com/PDS4_PDS_9999.xsd',
          'PDS4 Information Model ABCD is incoherent with the Schema '
-         'location: https://pds.nasa.gov/pds4/pds/v1 ' 'https://example.com/PDS4_PDS_9999.xsd.')])
+         'location: https://pds.nasa.gov/pds4/pds/v1 https://example.com/PDS4_PDS_9999.xsd.')])
     def test_raises_when_information_model_configuration_is_invalid(
             self, tmp_path, attribute, value, expected_message) -> None:
 
