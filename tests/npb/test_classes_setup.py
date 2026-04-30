@@ -1,7 +1,6 @@
 """Unit tests for the pds.naif_pds4_bundler.classes.setup module"""
 import logging
 import os
-from pathlib import Path
 from types import SimpleNamespace
 from typing import Generator
 from unittest.mock import mock_open, Mock
@@ -181,7 +180,7 @@ class TestSetupCheckConfiguration:
         # Check that all paths have been changed from relative to absolute and
         # that the values are of the expected data types.
         assert setup.working_directory == str(tmp_path / 'work')
-        assert setup.staging_directory == str(Path(tmp_path) / 'staging' / 'maven_spice')
+        assert setup.staging_directory == str(tmp_path / 'staging' / 'maven_spice')
         assert setup.bundle_directory == str(tmp_path / 'bundle')
         assert setup.kernels_directory == [str(tmp_path / 'kernels')]
         assert setup.information_model_float == pytest.approx(float('10011012013'))
@@ -205,7 +204,7 @@ class TestSetupCheckConfiguration:
 
         # Check that maven_spice has been added, even if staging is an absolute
         # path.
-        assert setup.staging_directory == str(Path(tmp_path) / 'staging' / 'maven_spice')
+        assert setup.staging_directory == str(tmp_path / 'staging' / 'maven_spice')
 
     def test_creates_missing_staging_directory_when_faucet_uses_it(self, tmp_path,
                                                                    monkeypatch) -> None:
@@ -259,7 +258,7 @@ class TestSetupCheckConfiguration:
                     (logging.WARNING, '-- Staging directory cannot be created but is not used with plan faucet.'),
                     (logging.WARNING, '-- Bundle directory does not exist but is not used with plan faucet.'),
                     (logging.INFO, '-- Label templates will use the ones from information model 10.11.12.13.'),
-                    (logging.INFO, f'-- Label templates directory: {Path(tmp_path) / "work"}'),
+                    (logging.INFO, f'-- Label templates directory: {str(tmp_path)}/work'),
                     (logging.WARNING, 'Input readme file not present. File will be generated from configuration.')]
 
         results = [(r[1], r[2]) for r in caplog.record_tuples]
@@ -590,7 +589,7 @@ class TestSetupCheckConfiguration:
         expected = [
             (logging.INFO, '-- Binary SPICE kernels expected to have LTL-IEEE (little endian) binary format.'),
             (logging.INFO, '-- Label templates will use the ones from information model 1.5.0.0.'),
-            (logging.INFO, f'-- Label templates directory: {Path(tmp_path) / "work"}'),
+            (logging.INFO, f'-- Label templates directory: {str(tmp_path)}/work'),
             (logging.WARNING, '-- XML Template not found to determine XML Tab. It has been set to 2.')]
 
         results = [(r[1], r[2]) for r in caplog.record_tuples]
@@ -619,7 +618,7 @@ class TestSetupCheckConfiguration:
         expected = [
             (logging.INFO, '-- Binary SPICE kernels expected to have LTL-IEEE (little endian) binary format.'),
             (logging.INFO, '-- Label templates will use the ones from information model 1.5.0.0.'),
-            (logging.INFO, f'-- Label templates directory: {Path(tmp_path) / "work"}'),
+            (logging.INFO, f'-- Label templates directory: {str(tmp_path)}/work'),
             (logging.WARNING, '-- XML Template not useful to determine XML Tab. It has been set to 2.')]
 
         results = [(r[1], r[2]) for r in caplog.record_tuples]

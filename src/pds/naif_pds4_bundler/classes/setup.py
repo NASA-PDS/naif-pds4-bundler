@@ -462,7 +462,7 @@ class Setup:
 
         if os.path.isdir(cwd + os.sep + self.staging_directory):
             self.staging_directory = (
-                cwd + os.sep + self.staging_directory + f"/{mission_dir}"
+                cwd + os.sep + self.staging_directory + os.sep + mission_dir
             )
 
         elif not os.path.isdir(self.staging_directory):
@@ -487,8 +487,8 @@ class Setup:
                         f"Staging directory cannot be created: {self.staging_directory}."
                     )
 
-        elif f"/{mission_dir}" not in self.staging_directory:
-            self.staging_directory += f"/{mission_dir}"
+        elif f"{os.sep}{mission_dir}" not in self.staging_directory:
+            self.staging_directory += os.sep + mission_dir
 
         if os.path.isdir(cwd + os.sep + self.bundle_directory):
             self.bundle_directory = cwd + os.sep + self.bundle_directory
