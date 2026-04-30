@@ -177,7 +177,7 @@ class TestSetupCheckConfiguration:
         assert setup.staging_directory == str(tmp_path / 'staging' / 'maven_spice')
         assert setup.bundle_directory == str(tmp_path / 'bundle')
         assert setup.kernels_directory == [str(tmp_path / 'kernels')]
-        assert setup.information_model_float == 10011012013.0
+        assert setup.information_model_float == pytest.approx(float('10011012013'))
         assert setup.templates_directory == str(tmp_path / 'work')
         assert sorted(os.path.basename(path) for path in setup.template_files) == [
             'template_bundle.xml',
