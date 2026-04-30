@@ -2,6 +2,7 @@
 import logging
 import os
 from types import SimpleNamespace
+from typing import Generator
 from unittest.mock import mock_open, Mock
 
 import pytest
@@ -25,7 +26,7 @@ def make_setup(tmp_path, mission_acronym: str = "maven",
 class TestSetupCheckConfiguration:
 
     @pytest.fixture(autouse=True)
-    def patch_handle_npb_error_and_restore_cwd(self, monkeypatch) -> None:
+    def patch_handle_npb_error_and_restore_cwd(self, monkeypatch) -> Generator[None, None, None]:
         """The current directory is saved, as the check_configuration function
         switches between directories and eventually returns to the original
         directory. If a test fails, the working directory is restored to its
