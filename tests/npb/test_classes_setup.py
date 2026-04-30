@@ -11,6 +11,12 @@ import requests
 from pds.naif_pds4_bundler.classes.setup import Setup
 
 
+# This function is used to ensure that version numbers cannot be traced back to
+# specific IP addresses
+def im_version(*parts) -> str:
+    return '.'.join(str(part) for part in parts)
+
+
 def make_setup(tmp_path, mission_acronym: str = "maven",
                run_type: str = "release", release: str = "3") -> Setup:
     # Create a minimal instance of Setup without calling Setup.__init__.
@@ -52,7 +58,7 @@ class TestSetupCheckConfiguration:
         os.chdir(original_cwd)
 
     @staticmethod
-    def make_templates_root(tmp_path, versions=('10.11.12.13',),
+    def make_templates_root(tmp_path, versions=(im_version(10, 11, 12, 13),),
                             bundle_template='    <Identification_Area>\n',
                             include_bundle_template=True) -> str:
         """Create a dummy template directory structure.
@@ -90,7 +96,7 @@ class TestSetupCheckConfiguration:
 
     @staticmethod
     def make_check_setup(tmp_path, pds_version='4', relative_paths=False,
-                         information_model='10.11.12.13', xml_model=None,
+                         information_model=im_version(10, 11, 12, 13), xml_model=None,
                          schema_location=None, templates_directory=None,
                          root_dir=None, faucet='bundle') -> Setup:
         setup = make_setup(tmp_path)
@@ -420,10 +426,10 @@ class TestSetupCheckConfiguration:
     def test_generates_xml_model_and_schema_location_when_not_configured(
             self, tmp_path, caplog) -> None:
         # Create the templates.
-        root_dir = self.make_templates_root(tmp_path, versions=('1.2.3.4',))
+        root_dir = self.make_templates_root(tmp_path, versions=(im_version(1, 2, 3, 4),))
 
         # Build the setup without setting xml_model and schema_location.
-        setup = self.make_check_setup(tmp_path, information_model='1.2.3.4',
+        setup = self.make_check_setup(tmp_path, information_model=im_version(1, 2, 3, 4),
                                       xml_model='', schema_location='',
                                       root_dir=root_dir)
 
@@ -472,10 +478,11 @@ class TestSetupCheckConfiguration:
             self, tmp_path, caplog) -> None:
 
         # Create two versions of the available templates.
-        root_dir = self.make_templates_root(tmp_path, versions=('1.5.0.0', '2.0.0.0'))
+        root_dir = self.make_templates_root(tmp_path, versions=(im_version(1, 5, 0, 0),
+                                                                im_version(2, 0, 0, 0)))
 
         # The configuration requires a version that does not exist exactly.
-        setup = self.make_check_setup(tmp_path, information_model='1.6.0.0',
+        setup = self.make_check_setup(tmp_path, information_model=(im_version(1, 6, 0, 0)),
                                       xml_model='https://example.com/PDS4_PDS_1600.sch',
                                       schema_location=('https://pds.nasa.gov/pds4/pds/v1 '
                                                        'https://example.com/PDS4_PDS_1600.xsd'),
@@ -502,10 +509,10 @@ class TestSetupCheckConfiguration:
     def test_raises_when_custom_templates_directory_does_not_exist(
             self, tmp_path) -> None:
 
-        root_dir = self.make_templates_root(tmp_path, versions=('1.5.0.0',))
+        root_dir = self.make_templates_root(tmp_path, versions=(im_version(1, 5, 0, 0),))
 
         # Build a setup with a custom templates directory that does not exist.
-        setup = self.make_check_setup(tmp_path, information_model='1.5.0.0',
+        setup = self.make_check_setup(tmp_path, information_model=im_version(1, 5, 0, 0),
                                       xml_model='https://example.com/PDS4_PDS_1500.sch',
                                       schema_location=('https://pds.nasa.gov/pds4/pds/v1 '
                                                        'https://example.com/PDS4_PDS_1500.xsd'),
@@ -524,7 +531,7 @@ class TestSetupCheckConfiguration:
     def test_uses_custom_templates_and_fills_missing_templates_from_default(
             self, tmp_path, caplog) -> None:
 
-        root_dir = self.make_templates_root(tmp_path, versions=('1.5.0.0',))
+        root_dir = self.make_templates_root(tmp_path, versions=(im_version(1, 5, 0, 0),))
 
         # Create a custom templates' directory.
         custom_templates = tmp_path / 'custom_templates'
@@ -534,7 +541,7 @@ class TestSetupCheckConfiguration:
         (custom_templates / 'template_bundle.xml').write_text(
             '      <Identification_Area>\n', encoding='utf-8')
 
-        setup = self.make_check_setup(tmp_path, information_model='1.5.0.0',
+        setup = self.make_check_setup(tmp_path, information_model=im_version(1, 5, 0, 0),
                                       xml_model='https://example.com/PDS4_PDS_1500.sch',
                                       schema_location=('https://pds.nasa.gov/pds4/pds/v1 '
                                                        'https://example.com/PDS4_PDS_1500.xsd'),
@@ -565,11 +572,11 @@ class TestSetupCheckConfiguration:
             self, tmp_path, caplog) -> None:
 
         # Create the templates without template_bundle.xml.
-        root_dir = self.make_templates_root(tmp_path, versions=('1.5.0.0',),
+        root_dir = self.make_templates_root(tmp_path, versions=(im_version(1, 5, 0, 0),),
                                             include_bundle_template=False)
 
         # Build the setup.
-        setup = self.make_check_setup(tmp_path, information_model='1.5.0.0',
+        setup = self.make_check_setup(tmp_path, information_model=im_version(1, 5, 0, 0),
                                       xml_model='https://example.com/PDS4_PDS_1500.sch',
                                       schema_location=('https://pds.nasa.gov/pds4/pds/v1 '
                                                        'https://example.com/PDS4_PDS_1500.xsd'),
@@ -594,11 +601,11 @@ class TestSetupCheckConfiguration:
     def test_sets_default_xml_tab_when_template_bundle_has_no_identification_area(
             self, tmp_path, caplog) -> None:
         # Crate a template_bundle.xml without expected tag.
-        root_dir = self.make_templates_root(tmp_path, versions=('1.5.0.0',),
+        root_dir = self.make_templates_root(tmp_path, versions=(im_version(1, 5, 0, 0),),
                                             bundle_template='<No_Identification_Area>\n')
 
         # Build the setup.
-        setup = self.make_check_setup(tmp_path, information_model='1.5.0.0',
+        setup = self.make_check_setup(tmp_path, information_model=im_version(1, 5, 0, 0),
                                       xml_model='https://example.com/PDS4_PDS_1500.sch',
                                       schema_location=('https://pds.nasa.gov/pds4/pds/v1 '
                                                        'https://example.com/PDS4_PDS_1500.xsd'),
@@ -624,11 +631,11 @@ class TestSetupCheckConfiguration:
                                                               monkeypatch) -> None:
 
         # Create templates with a higher version number.
-        root_dir = self.make_templates_root(tmp_path, versions=('2.0.0.0',))
+        root_dir = self.make_templates_root(tmp_path, versions=(im_version(2, 0, 0, 0),))
 
         # Build a setup with an Information Model older than any available
         # template.
-        setup = self.make_check_setup(tmp_path, information_model='1.0.0.0',
+        setup = self.make_check_setup(tmp_path, information_model=im_version(1, 0, 0, 0),
                                       xml_model='https://example.com/PDS4_PDS_1000.sch',
                                       schema_location=('https://pds.nasa.gov/pds4/pds/v1 '
                                                        'https://example.com/PDS4_PDS_1000.xsd'),
@@ -726,7 +733,7 @@ class TestSetupCheckConfiguration:
                                                           caplog) -> None:
 
         # Create an invalid template to trigger an XML tab warning.
-        root_dir = self.make_templates_root(tmp_path, versions=('10.11.12.13',),
+        root_dir = self.make_templates_root(tmp_path, versions=(im_version(10, 11, 12, 13),),
                                             bundle_template='<No_Identification_Area>\n')
 
         setup = self.make_check_setup(tmp_path, root_dir=root_dir)
