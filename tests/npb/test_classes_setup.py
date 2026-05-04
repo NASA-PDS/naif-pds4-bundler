@@ -94,8 +94,7 @@ class TestSetupCheckConfiguration:
 
         return f'{str(root)}{os.sep}'
 
-    @staticmethod
-    def make_check_setup(tmp_path, pds_version='4', relative_paths=False,
+    def make_check_setup(self, tmp_path, pds_version='4', relative_paths=False,
                          information_model=im_version(10, 11, 12, 13), xml_model=None,
                          schema_location=None, templates_directory=None,
                          root_dir=None, faucet='bundle') -> Setup:
@@ -150,8 +149,7 @@ class TestSetupCheckConfiguration:
         setup.templates_directory = templates_directory
 
         # If root_dir is not provided, mocks a template structure.
-        setup.root_dir = (root_dir or
-                          TestSetupCheckConfiguration.make_templates_root(tmp_path))
+        setup.root_dir = (root_dir or self.make_templates_root(tmp_path))
 
         # Build a valid kernel and meta-kernel patterns.
         setup.kernel_list_config = {'fk': {}, 'spk': {}}
