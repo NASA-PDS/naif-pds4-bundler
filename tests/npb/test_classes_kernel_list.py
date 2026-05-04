@@ -29,20 +29,16 @@ def make_kernel_list_setup(tmp_path, pds_version='4',
 class TestKernelListInit:
 
     @pytest.fixture(autouse=True)
-    def patch_datetime_and_read_config(self):
+    def patch_datetime_and_read_config(self, mocker):
         # Helper that runs automatically before each test to mock the calls to
         # datetime.datetime.now() and KernelList.read_config().
 
         # Mock datetime.now to set a static date to run the tests.
-        with patch('pds.naif_pds4_bundler.classes.list.datetime.datetime') as datetime_mock:
+        mock_dt = mocker.patch('pds.naif_pds4_bundler.classes.list.datetime.datetime')
+        mock_dt.now.return_value = real_datetime(2026, 5, 4, 12, 30, 0)
 
-            datetime_mock.now.return_value = real_datetime(2026, 5, 4, 12, 30, 0)
-
-            # Mock the read.config call.
-            with patch.object(KernelList, 'read_config', autospec=True) as read_config_mock:
-                self.read_config_mock = read_config_mock
-
-                yield
+        # Mock KernelList.read_config
+        self.read_config_mock = mocker.patch.object(KernelList, 'read_config', autospec=True)
 
     def test_initializes_common_attributes_and_pds4_defaults(self,
                                                              tmp_path) -> None:
@@ -75,32 +71,17 @@ class TestKernelListInit:
 
         self.read_config_mock.assert_called_once_with(kernel_list)
 
-    def test_initializes_pds3_data_set_id_from_quoted_template(self,
-                                                               tmp_path) -> None:
+    @pytest.mark.parametrize('dataset', [
+        '"maven-spice-kernels-v1.0"', 'maven-spice-kernels-v1.0'])
+    def test_initializes_pds3_data_set_id(self, tmp_path, dataset) -> None:
         # Build a setup for PDS3 with a quoted dataset.
         setup = make_kernel_list_setup(tmp_path, pds_version='3',
-                                       data_set_id='"maven-spice-kernels-v1.0"')
+                                       data_set_id=dataset)
 
         kernel_list = KernelList(setup)
 
         # Check that the text within the quotation marks is extracted from the
         # data_set_id and converted to uppercase.
-        assert kernel_list.DATA_SET_ID == 'MAVEN-SPICE-KERNELS-V1.0'
-
-        # Check that VOLID has the same value as volume_id, but in lower case.
-        assert kernel_list.VOLID == 'maven_1001'
-
-        self.read_config_mock.assert_called_once_with(kernel_list)
-
-    def test_initializes_pds3_data_set_id_from_unquoted_template(self,
-                                                                 tmp_path) -> None:
-        # Build a setup for PDS3 with an unquoted dataset.
-        setup = make_kernel_list_setup(tmp_path, pds_version='3',
-                                       data_set_id='maven-spice-kernels-v1.0')
-
-        kernel_list = KernelList(setup)
-
-        # Check that the entire dataset is used and converts it to uppercase.
         assert kernel_list.DATA_SET_ID == 'MAVEN-SPICE-KERNELS-V1.0'
 
         # Check that VOLID has the same value as volume_id, but in lower case.
