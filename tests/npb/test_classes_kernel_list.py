@@ -1,7 +1,6 @@
 """Tests for KernelList class."""
 from datetime import datetime as real_datetime
 from types import SimpleNamespace
-from unittest.mock import patch
 
 import pytest
 
@@ -10,7 +9,7 @@ from pds.naif_pds4_bundler.classes.list import KernelList
 
 def make_kernel_list_setup(tmp_path, pds_version='4',
                            data_set_id='MAVEN-SPICE-KERNELS-V1.0',
-                           release='3') -> SimpleNamespace:
+                           volid='MAVEN_1001', release='3') -> SimpleNamespace:
     # Create a minimal setup object to instance KernelList.
     setup = SimpleNamespace()
 
@@ -18,7 +17,7 @@ def make_kernel_list_setup(tmp_path, pds_version='4',
     setup.producer_name = 'NAIF'
     setup.pds_version = pds_version
     setup.pds3_mission_template = {'DATA_SET_ID': data_set_id}
-    setup.volume_id = 'MAVEN_1001'
+    setup.volume_id = volid
     setup.release = release
     setup.release_date = '2026-05-04'
     setup.templates_directory = str(tmp_path / 'templates')
@@ -40,16 +39,19 @@ class TestKernelListInit:
         # Mock KernelList.read_config
         self.read_config_mock = mocker.patch.object(KernelList, 'read_config', autospec=True)
 
-    @pytest.mark.parametrize(['pds_version', 'dataset_i', 'dataset_o', 'volid_o'], [
-        ('4', 'MAVEN-SPICE-KERNELS-V1.0', 'N/A', 'N/A'),
-        ('3', '"maven-spice-kernels-v1.0"', 'MAVEN-SPICE-KERNELS-V1.0', 'maven_1001'),
-        ('3', 'maven-spice-kernels-v1.0', 'MAVEN-SPICE-KERNELS-V1.0', 'maven_1001')])
+    @pytest.mark.parametrize(['pds_version', 'dataset_i', 'dataset_o', 'volid_i', 'volid_o'], [
+        ('4', 'MAVEN-SPICE-KERNELS-V1.0', 'N/A', 'N/A', 'N/A'),
+        ('3', '"maven-spice-kernels-v1.0"', 'MAVEN-SPICE-KERNELS-V1.0', 'maven_1001', 'maven_1001'),
+        ('3', 'maven-spice-kernels-v1.0', 'MAVEN-SPICE-KERNELS-V1.0', 'maven_1001', 'maven_1001'),
+        ('3', '"MAVEN-SPICE-KERNELS-V1.0"', 'MAVEN-SPICE-KERNELS-V1.0', 'MAVEN_1001', 'maven_1001'),
+        ('3', 'MAVEN-SPICE-KERNELS-V1.0', 'MAVEN-SPICE-KERNELS-V1.0', 'MAVEN_1001', 'maven_1001')])
     def test__init__(self, tmp_path, pds_version, dataset_i,
-                     dataset_o, volid_o) -> None:
+                     dataset_o, volid_i, volid_o) -> None:
 
         # Build a setup with input values.
         setup = make_kernel_list_setup(tmp_path, pds_version=pds_version,
-                                       data_set_id=dataset_i, release='3')
+                                       data_set_id=dataset_i, volid=volid_i,
+                                       release='3')
 
         kernel_list = KernelList(setup)
 
