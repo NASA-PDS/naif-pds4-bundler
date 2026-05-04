@@ -220,14 +220,15 @@ class TestSetupCheckConfiguration:
         # Check that the staging base directory has been created.
         assert (tmp_path / 'missing_staging').is_dir()
 
+    @pytest.mark.parametrize('faucet', ['plan', 'list', 'checks'])
     def test_keeps_running_when_staging_and_bundle_are_unused_by_faucet(
-            self, tmp_path, monkeypatch, caplog) -> None:
+            self, tmp_path, monkeypatch, caplog, faucet) -> None:
 
         # Move the test to the temporal directory.
         monkeypatch.chdir(tmp_path)
 
-        # Build a setup within 'plan' mode.
-        setup = self.make_check_setup(tmp_path, relative_paths=True, faucet='plan')
+        # Build a setup within faucet modes.
+        setup = self.make_check_setup(tmp_path, relative_paths=True, faucet=faucet)
 
         # Force non-existent routes.
         setup.staging_directory = 'missing_staging'
@@ -253,8 +254,8 @@ class TestSetupCheckConfiguration:
 
         expected = [(logging.INFO, '-- Binary SPICE kernels expected to have LTL-IEEE (little endian) binary format.'),
                     (logging.WARNING, '-- Creating staging directory: missing_staging/maven_spice.'),
-                    (logging.WARNING, '-- Staging directory cannot be created but is not used with plan faucet.'),
-                    (logging.WARNING, '-- Bundle directory does not exist but is not used with plan faucet.'),
+                    (logging.WARNING, f'-- Staging directory cannot be created but is not used with {faucet} faucet.'),
+                    (logging.WARNING, f'-- Bundle directory does not exist but is not used with {faucet} faucet.'),
                     (logging.INFO, '-- Label templates will use the ones from information model 10.11.12.13.'),
                     (logging.INFO, f'-- Label templates directory: {setup.working_directory}'),
                     (logging.WARNING, 'Input readme file not present. File will be generated from configuration.')]
