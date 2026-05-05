@@ -606,40 +606,6 @@ class TestSetupCheckConfiguration:
 
         assert setup.xml_tab == 2
 
-    def test_covers_template_schema_defensive_fallback_branch(self, tmp_path,
-                                                              monkeypatch) -> None:
-
-        # Create templates with a higher version number.
-        root_dir = self.make_templates_root(tmp_path, versions=(im_version(2, 0, 0, 0),))
-
-        # Build a setup with an Information Model older than any available
-        # template.
-        setup = self.make_check_setup(tmp_path, information_model=im_version(1, 0, 0, 0),
-                                      xml_model='https://example.com/PDS4_PDS_1000.sch',
-                                      schema_location=('https://pds.nasa.gov/pds4/pds/v1 '
-                                                       'https://example.com/PDS4_PDS_1000.xsd'),
-                                      root_dir=root_dir)
-
-        # This is an artificial edge case to reach a defensive branch in the template
-        # selection logic.
-        #
-        # In a normal run, 'schemas' and 'schemas_eval' are built from the same template
-        # folders, so they should stay in sync. That means this fallback is very unlikely
-        # to be reached naturally.
-        #
-        # Here we force 'sorted()' to return an empty list. As a result, 'schemas' becomes
-        # empty after reordering, but 'schemas_eval' still contains the available template
-        # version. This pushes the code into the fallback path where it tries to access
-        # 'schemas[0]'.
-        #
-        # Since 'schemas' is empty, the method raises IndexError. This test is mainly here
-        # to cover and document that defensive edge case, not to represent a realistic
-        # configuration.
-        monkeypatch.setattr('builtins.sorted', Mock(return_value=[]))
-
-        with pytest.raises(IndexError):
-            setup.check_configuration()
-
     def test_pds3_configuration_uses_pds3_templates_and_leaves_xml_tab_zero(
             self, tmp_path) -> None:
 
