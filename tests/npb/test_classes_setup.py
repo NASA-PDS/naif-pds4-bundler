@@ -654,7 +654,17 @@ class TestSetupCheckConfiguration:
             (logging.WARNING, '   Your system is LTL-IEEE (little endian): PDS3 '
                               'Labels cannot be attached to binary kernels.'),
             (logging.WARNING, '   If binary kernels are present this will result '
-                              'in an error.')])])
+                              'in an error.')]),
+        ('little', 'little', [
+            (logging.INFO, '-- Binary SPICE kernels expected to have LTL-IEEE '
+                           '(little endian) binary format.'),
+            (logging.WARNING, '-- NAIF strongly recommends to use BIG-IEEE (big '
+                              'endian) for binary kernels in PDS3 archives '),
+            (logging.WARNING, '   and enforces it if the archive is hosted by '
+                              'NAIF.'),]),
+        ('big', 'big', [
+            (logging.INFO, '-- Binary SPICE kernels expected to have BIG-IEEE '
+                           '(big endian) binary format.')])])
     def test_logs_pds3_endianness_recommendations(self, tmp_path, monkeypatch,
                                                   caplog, kernel_endianness,
                                                   system_byteorder, expected) -> None:
