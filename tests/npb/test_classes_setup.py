@@ -191,17 +191,23 @@ class TestSetupCheckConfiguration:
         assert setup.xml_tab == 4
         assert setup.coverage_kernels == [{'pattern': 'maven_*.bc'}]
 
-    def test_appends_mission_directory_to_absolute_staging_directory(self,
-                                                                     tmp_path) -> None:
+    def test_appends_mission_directory_to_absolute_staging_directory(
+            self, tmp_path) -> None:
 
         # Create the configuration using absolute paths.
         setup = self.make_check_setup(tmp_path)
 
+        mission_dir = 'maven_spice'
+        staging_directory = tmp_path / 'staging' / mission_dir
+
+        # The directory is created so that the branch can be fully evaluated.
+        staging_directory.mkdir()
+
+        setup.staging_directory = str(staging_directory)
+
         setup.check_configuration()
 
-        # Check that maven_spice has been added, even if staging is an absolute
-        # path.
-        assert setup.staging_directory == str(tmp_path / 'staging' / 'maven_spice')
+        assert setup.staging_directory == str(staging_directory)
 
     def test_creates_missing_staging_directory_when_faucet_uses_it(self, tmp_path,
                                                                    monkeypatch) -> None:
@@ -661,7 +667,7 @@ class TestSetupCheckConfiguration:
             (logging.WARNING, '-- NAIF strongly recommends to use BIG-IEEE (big '
                               'endian) for binary kernels in PDS3 archives '),
             (logging.WARNING, '   and enforces it if the archive is hosted by '
-                              'NAIF.'),]),
+                              'NAIF.'), ]),
         ('big', 'big', [
             (logging.INFO, '-- Binary SPICE kernels expected to have BIG-IEEE '
                            '(big endian) binary format.')])])
