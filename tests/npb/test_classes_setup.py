@@ -286,7 +286,9 @@ class TestSetupCheckConfiguration:
 
         # This behaviour will be handled by handle_npb_error, which will raise a
         # RuntimeError. Also, checks the returned message.
-        with pytest.raises(RuntimeError, match='Staging directory cannot be created: missing_staging\\.'):
+        with pytest.raises(RuntimeError,
+                           match='Staging directory cannot be created: '
+                                 'missing_staging\\.'):
             setup.check_configuration()
 
     def test_raises_when_bundle_directory_is_missing_for_used_faucet(
@@ -301,13 +303,11 @@ class TestSetupCheckConfiguration:
         setup.bundle_directory = 'missing_bundle'
 
         # This behaviour will be handled by handle_npb_error, which will raise a
-        # RuntimeError.
-        with pytest.raises(RuntimeError) as exc_info:
+        # RuntimeError. Also, checks the returned message.
+        with pytest.raises(RuntimeError,
+                           match='Bundle directory does not exist:'
+                                 ' missing_bundle\\.'):
             setup.check_configuration()
-
-        # Check the message returned by handle_npb_error.
-        assert str(exc_info.value) == ('Bundle directory does not exist:'
-                                       ' missing_bundle.')
 
     def test_raises_when_kernel_directory_is_missing(self, tmp_path) -> None:
 
@@ -318,13 +318,10 @@ class TestSetupCheckConfiguration:
         setup.kernels_directory = [str(tmp_path / 'missing_kernels')]
 
         # This behaviour will be handled by handle_npb_error, which will raise a
-        # RuntimeError.
-        with pytest.raises(RuntimeError) as exc_info:
+        # RuntimeError. Also, checks the returned message.
+        with pytest.raises(RuntimeError, match=f'Directory does not exist: '
+                                               f'{tmp_path / "missing_kernels"}\\.'):
             setup.check_configuration()
-
-        # Check the message returned by handle_npb_error.
-        assert str(exc_info.value) == (f'Directory does not exist: '
-                                       f'{tmp_path / "missing_kernels"}.')
 
     def test_logs_directory_collision_before_raising(self, tmp_path, caplog) -> None:
         # Build a setup.
@@ -333,9 +330,13 @@ class TestSetupCheckConfiguration:
         # Forces that the staging directory is the same as the working directory.
         setup.staging_directory = setup.working_directory
 
-        # Captures the logging and the RuntimeException.
-        with caplog.at_level(logging.INFO), pytest.raises(RuntimeError) as exc_info:
-            setup.check_configuration()
+        # Captures the logging and the RuntimeException. And also check the
+        # message returned by handle_npb_error.
+        with caplog.at_level(logging.INFO):
+            with pytest.raises(RuntimeError,
+                               match='Update working, staging, or bundle '
+                                     'directory\\.'):
+                setup.check_configuration()
 
         # Check the logging level and logging messages.
         expected = [
@@ -349,9 +350,6 @@ class TestSetupCheckConfiguration:
 
         assert results == expected
 
-        # Check the message returned by handle_npb_error.
-        assert str(exc_info.value) == 'Update working, staging, or bundle directory.'
-
     def test_raises_when_working_directory_is_missing(self, tmp_path) -> None:
         # Build a setup.
         setup = self.make_check_setup(tmp_path)
@@ -360,23 +358,20 @@ class TestSetupCheckConfiguration:
         setup.working_directory = str(tmp_path / 'missing_work')
 
         # This behaviour will be handled by handle_npb_error, which will raise a
-        # RuntimeError.
-        with pytest.raises(RuntimeError) as exc_info:
+        # RuntimeError. Also, checks the returned message.
+        with pytest.raises(RuntimeError, match=f'Directory does not exist: '
+                                               f'{tmp_path / "missing_work"}\\.'):
             setup.check_configuration()
-
-        # Check the message returned by handle_npb_error.
-        assert str(exc_info.value) == (f'Directory does not exist: '
-                                       f'{tmp_path / "missing_work"}.')
 
     @pytest.mark.parametrize('date_format, field, value, expected_message', [
         ('maklabel', 'mission_start', '2020-01-01T00:00:00.000Z',
-         'mission_start parameter does not match the required format: YYYY-MM-DDThh:mm:ssZ.'),
+         'mission_start parameter does not match the required format: YYYY-MM-DDThh:mm:ssZ\\.'),
         ('maklabel', 'mission_finish', '2020-01-01',
-         'mission_finish does not match the required format: YYYY-MM-DDThh:mm:ssZ.'),
+         'mission_finish does not match the required format: YYYY-MM-DDThh:mm:ssZ\\.'),
         ('infomod2', 'increment_start', '2020-01-01T00:00:00Z',
-         'increment_start parameter does not match the required format: YYYY-MM-DDThh:mm:ss.sssZ.'),
+         'increment_start parameter does not match the required format: YYYY-MM-DDThh:mm:ss\\.sssZ\\.'),
         ('infomod2', 'increment_finish', '2020-01-01T00:00:00Z',
-         'increment_finish does not match the required format: YYYY-MM-DDThh:mm:ss.sssZ.')])
+         'increment_finish does not match the required format: YYYY-MM-DDThh:mm:ss\\.sssZ\\.')])
     def test_raises_when_configured_times_do_not_match_selected_date_format(
             self, tmp_path, date_format, field, value, expected_message) -> None:
 
@@ -389,12 +384,9 @@ class TestSetupCheckConfiguration:
         setattr(setup, field, value)
 
         # This behaviour will be handled by handle_npb_error, which will raise a
-        # RuntimeError.
-        with pytest.raises(RuntimeError) as exc_info:
+        # RuntimeError. Also, checks the returned message.
+        with pytest.raises(RuntimeError, match=expected_message):
             setup.check_configuration()
-
-        # Check the message returned by handle_npb_error.
-        assert str(exc_info.value) == expected_message
 
     @pytest.mark.parametrize('increment_start, increment_finish', [
         ('', '2020-01-02T00:00:00Z'),
@@ -409,14 +401,12 @@ class TestSetupCheckConfiguration:
         setup.increment_finish = increment_finish
 
         # This behaviour will be handled by handle_npb_error, which will raise a
-        # RuntimeError.
-        with pytest.raises(RuntimeError) as exc_info:
+        # RuntimeError. Also, checks the returned message.
+        with pytest.raises(RuntimeError,
+                           match='If provided via configuration, increment_start '
+                                 'and increment_finish parameters need to be '
+                                 'provided together\\.'):
             setup.check_configuration()
-
-        # Check the message returned by handle_npb_error.
-        assert str(exc_info.value) == (
-            'If provided via configuration, increment_start and '
-            'increment_finish parameters need to be provided together.')
 
     def test_generates_xml_model_and_schema_location_when_not_configured(
             self, tmp_path, caplog) -> None:
@@ -462,12 +452,9 @@ class TestSetupCheckConfiguration:
         setattr(setup, attribute, value)
 
         # This behaviour will be handled by handle_npb_error, which will raise a
-        # RuntimeError.
-        with pytest.raises(RuntimeError) as exc_info:
+        # RuntimeError. Also, checks the returned message.
+        with pytest.raises(RuntimeError, match=expected_message):
             setup.check_configuration()
-
-        # Check the message returned by handle_npb_error.
-        assert str(exc_info.value) == expected_message
 
     def test_uses_closest_available_templates_when_exact_schema_is_unavailable(
             self, tmp_path, caplog) -> None:
@@ -515,13 +502,10 @@ class TestSetupCheckConfiguration:
                                       root_dir=root_dir)
 
         # This behaviour will be handled by handle_npb_error, which will raise a
-        # RuntimeError.
-        with pytest.raises(RuntimeError) as exc_info:
+        # RuntimeError. Also, checks the returned message.
+        with pytest.raises(RuntimeError, match='Path provided/derived for '
+                                               'templates is not available\\.'):
             setup.check_configuration()
-
-        # Check the message returned by handle_npb_error.
-        assert (str(exc_info.value) ==
-                'Path provided/derived for templates is not available.')
 
     def test_uses_custom_templates_and_fills_missing_templates_from_default(
             self, tmp_path, caplog) -> None:
@@ -834,11 +818,11 @@ class TestSetupCheckConfiguration:
     @pytest.mark.parametrize('mk, expected_message', [
         ([{'@name': 'maven_$version.tm',
            'name': [{'pattern': {'#text': 'release'}}]}],
-         'The meta-kernel pattern release is not provided.'),
+         'The meta-kernel pattern release is not provided\\.'),
         ([{'@name': 'maven_$version_$release.tm',
            'name': [{'pattern': {'#text': 'version'}}]}],
-         'The MK patterns maven_$version_$release.tm do not correspond '
-         'to the present MKs.')])
+         'The MK patterns maven_\\$version_\\$release\\.tm do not correspond '
+         'to the present MKs\\.')])
     def test_raises_when_meta_kernel_patterns_are_inconsistent(self, tmp_path,
                                                                mk, expected_message) -> None:
 
@@ -847,12 +831,9 @@ class TestSetupCheckConfiguration:
         setup.mk = mk
 
         # This behaviour will be handled by handle_npb_error, which will raise a
-        # RuntimeError.
-        with pytest.raises(RuntimeError) as exc_info:
+        # RuntimeError. Also, checks the returned message.
+        with pytest.raises(RuntimeError, match=expected_message):
             setup.check_configuration()
-
-        # Check the message returned by handle_npb_error.
-        assert str(exc_info.value) == expected_message
 
     @pytest.mark.parametrize('readme', [
         {'input': 'missing_readme.txt'},
@@ -868,13 +849,10 @@ class TestSetupCheckConfiguration:
         setup.readme = readme
 
         # This behaviour will be handled by handle_npb_error, which will raise a
-        # RuntimeError.
-        with pytest.raises(RuntimeError) as exc_info:
+        # RuntimeError. Also, checks the returned message.
+        with pytest.raises(RuntimeError, match='Readme elements not present in '
+                                               'configuration file\\.'):
             setup.check_configuration()
-
-        # Check the message returned by handle_npb_error.
-        assert str(exc_info.value) == ('Readme elements not present in '
-                                       'configuration file.')
 
     def test_raises_when_readme_section_is_missing(self, tmp_path) -> None:
 
@@ -888,14 +866,10 @@ class TestSetupCheckConfiguration:
             del setup.readme
 
         # This behaviour will be handled by handle_npb_error, which will raise a
-        # RuntimeError.
-        with pytest.raises(RuntimeError) as exc_info:
+        # RuntimeError. Also, checks the returned message.
+        with pytest.raises(RuntimeError, match='Readme elements not present in '
+                                               'configuration file\\.'):
             setup.check_configuration()
-
-        # Check the message returned by handle_npb_error.
-        assert str(exc_info.value) == (
-            'Readme elements not present in configuration file.'
-        )
 
 
 class TestSetupSetRelease:
