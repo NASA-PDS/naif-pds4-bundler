@@ -264,7 +264,7 @@ class TestSetupCheckConfiguration:
 
         assert results == expected
 
-    @pytest.mark.parametrize('faucet', ['bundle', 'labels'])
+    @pytest.mark.parametrize('faucet', ['clear', 'staging', 'bundle', 'labels', None, ''])
     def test_raises_when_missing_staging_directory_cannot_be_created_for_used_faucet(
             self, tmp_path, monkeypatch, faucet) -> None:
 
@@ -285,13 +285,9 @@ class TestSetupCheckConfiguration:
         )
 
         # This behaviour will be handled by handle_npb_error, which will raise a
-        # RuntimeError.
-        with pytest.raises(RuntimeError) as exc_info:
+        # RuntimeError. Also, checks the returned message.
+        with pytest.raises(RuntimeError, match='Staging directory cannot be created: missing_staging\\.'):
             setup.check_configuration()
-
-        # Check the message returned by handle_npb_error.
-        assert str(exc_info.value) == ('Staging directory cannot be created: '
-                                       'missing_staging.')
 
     def test_raises_when_bundle_directory_is_missing_for_used_faucet(
             self, tmp_path, monkeypatch) -> None:
