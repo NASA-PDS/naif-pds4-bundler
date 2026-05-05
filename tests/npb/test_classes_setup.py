@@ -183,10 +183,9 @@ class TestSetupCheckConfiguration:
         assert setup.kernels_directory == [str(tmp_path / 'kernels')]
         assert setup.information_model_float == pytest.approx(float('10011012013'))
         assert setup.templates_directory == str(tmp_path / 'work')
-        assert sorted(os.path.basename(path) for path in setup.template_files) == [
-            'template_bundle.xml',
-            'template_collection.xml',
-        ]
+        assert sorted(path for path in setup.template_files) == sorted([
+            f'{tmp_path / "work" / "template_bundle.xml"}',
+            f'{tmp_path / "work" / "template_collection.xml"}'])
         assert (tmp_path / 'work' / 'template_bundle.xml').exists()
         assert (tmp_path / 'work' / 'template_collection.xml').exists()
         assert setup.xml_tab == 4
@@ -484,9 +483,9 @@ class TestSetupCheckConfiguration:
         assert results == expected
 
         # Check that the expected templates have been used.
-        assert sorted(os.path.basename(path) for path in
-                      setup.template_files) == ['template_bundle.xml',
-                                                'template_collection.xml']
+        assert sorted(path for path in setup.template_files) == sorted([
+            f'{tmp_path / "work" / "template_bundle.xml"}',
+            f'{tmp_path / "work" / "template_collection.xml"}'])
 
     def test_raises_when_custom_templates_directory_does_not_exist(
             self, tmp_path) -> None:
