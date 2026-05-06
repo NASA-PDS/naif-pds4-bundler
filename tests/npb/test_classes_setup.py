@@ -168,9 +168,9 @@ class TestSetupCheckConfiguration:
         return setup
 
     @pytest.mark.parametrize('coverage_kernels, include_coverage_kernels,expected_coverage_kernels', [
-            ({'pattern': 'maven_*.bc'}, True, [{'pattern': 'maven_*.bc'}]),
-            ([{'pattern': 'maven_*.bc'}], True, [{'pattern': 'maven_*.bc'}]),
-            (None, False, None)])
+        ({'pattern': 'maven_*.bc'}, True, [{'pattern': 'maven_*.bc'}]),
+        ([{'pattern': 'maven_*.bc'}], True, [{'pattern': 'maven_*.bc'}]),
+        (None, False, None)])
     def test_applies_expected_side_effects_for_valid_pds4_configuration(
             self, tmp_path, monkeypatch, coverage_kernels, include_coverage_kernels,
             expected_coverage_kernels) -> None:
@@ -385,17 +385,23 @@ class TestSetupCheckConfiguration:
                                                f'{tmp_path / "missing_work"}\\.'):
             setup.check_configuration()
 
-    @pytest.mark.parametrize('date_format, field, value, expected_message', [
-        ('maklabel', 'mission_start', '2020-01-01T00:00:00.000Z',
+    @pytest.mark.parametrize('date_format, values, expected_message', [
+        ('maklabel', {'mission_start': '2020-01-01T00:00:00.000Z'},
          'mission_start parameter does not match the required format: YYYY-MM-DDThh:mm:ssZ\\.'),
-        ('maklabel', 'mission_finish', '2020-01-01',
+        ('maklabel', {'mission_finish': '2020-01-01'},
          'mission_finish does not match the required format: YYYY-MM-DDThh:mm:ssZ\\.'),
-        ('infomod2', 'increment_start', '2020-01-01T00:00:00Z',
+        ('infomod2', {'increment_start': '2020-01-01T00:00:00Z'},
          'increment_start parameter does not match the required format: YYYY-MM-DDThh:mm:ss\\.sssZ\\.'),
-        ('infomod2', 'increment_finish', '2020-01-01T00:00:00Z',
-         'increment_finish does not match the required format: YYYY-MM-DDThh:mm:ss\\.sssZ\\.')])
+        ('infomod2', {'increment_finish': '2020-01-01T00:00:00Z'},
+         'increment_finish does not match the required format: YYYY-MM-DDThh:mm:ss\\.sssZ\\.'),
+        ('maklabel', {'mission_start': '2020-01-01T00:00:00Z', 'mission_finish': '2020-01-01T00:00:00Z',
+                      'increment_start': '2020-01-01T00:00:00Z', 'increment_finish': '2020-01-02T00:00:00Z'},
+         None),
+        ('infomod2', {'mission_start': '2020-01-01T00:00:00.000Z', 'mission_finish': '2020-01-01T00:00:00.000Z',
+                      'increment_start': '2020-01-01T00:00:00.000Z', 'increment_finish': '2020-01-02T00:00:00.000Z'},
+         None)])
     def test_raises_when_configured_times_do_not_match_selected_date_format(
-            self, tmp_path, date_format, field, value, expected_message) -> None:
+            self, tmp_path, date_format, values, expected_message) -> None:
 
         # Build a setup.
         setup = self.make_check_setup(tmp_path)
@@ -403,12 +409,22 @@ class TestSetupCheckConfiguration:
         # Set the format.
         setup.date_format = date_format
         setup.end_of_line = 'LF' if date_format == 'infomod2' else 'CRLF'
-        setattr(setup, field, value)
 
-        # This behaviour will be handled by handle_npb_error, which will raise a
-        # RuntimeError. Also, checks the returned message.
-        with pytest.raises(RuntimeError, match=expected_message):
+        for field, value in values.items():
+            setattr(setup, field, value)
+
+        # In case of invalid dates, this behaviour will be handled by
+        # handle_npb_error, which will raise a RuntimeError. Also, checks the
+        # returned message.
+        if expected_message:
+            with pytest.raises(RuntimeError, match=expected_message):
+                setup.check_configuration()
+
+        # In case of valid dates, check that the method completed successfully
+        # and ran the PDS4 configuration through to the end.
+        else:
             setup.check_configuration()
+            assert setup.xml_tab == 4
 
     @pytest.mark.parametrize('increment_start, increment_finish', [
         ('', '2020-01-02T00:00:00Z'),
@@ -634,7 +650,7 @@ class TestSetupCheckConfiguration:
         assert setup.xml_tab == 2
 
     @pytest.mark.parametrize('has_info_model',
-        [True, False])
+                             [True, False])
     def test_pds3_configuration_uses_pds3_templates_and_leaves_xml_tab_zero(
             self, tmp_path, has_info_model) -> None:
 
