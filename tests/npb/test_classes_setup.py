@@ -461,9 +461,9 @@ class TestSetupCheckConfiguration:
             setup.check_configuration()
 
         # Check template files.
-        assert setup.xml_model == 'http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1234.sch'
-        assert setup.schema_location == ('http://pds.nasa.gov/pds4/pds/v1 '
-                                         'http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1234.xsd')
+        assert setup.xml_model == 'https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1234.sch'
+        assert setup.schema_location == ('https://pds.nasa.gov/pds4/pds/v1 '
+                                         'https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1234.xsd')
 
         expected = [
             (logging.INFO, '-- Binary SPICE kernels expected to have LTL-IEEE (little endian) binary format.'),
