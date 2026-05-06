@@ -651,6 +651,7 @@ class Setup:
                     try:
                         schema = schemas[i - 1]
                     except:
+                        # TODO: Code not reachable due to bug.
                         schema = schemas[0]
                 if config_schema >= schemas_eval[i]:
                     schema = schemas[i]

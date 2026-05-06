@@ -500,18 +500,29 @@ class TestSetupCheckConfiguration:
         with pytest.raises(RuntimeError, match=expected_message):
             setup.check_configuration()
 
+    @pytest.mark.parametrize('information_model, xml_model, schema_location, expected_template_version', [
+        (im_version(1, 6, 0, 0), 'https://example.com/PDS4_PDS_1600.sch',
+         'https://pds.nasa.gov/pds4/pds/v1 https://example.com/PDS4_PDS_1600.xsd',
+         im_version(1, 5, 0, 0)),
+        (im_version(2, 1, 0, 0), 'https://example.com/PDS4_PDS_2100.sch',
+         'https://pds.nasa.gov/pds4/pds/v1 https://example.com/PDS4_PDS_2100.xsd',
+         im_version(2, 0, 0, 0)),
+        pytest.param(im_version(1, 0, 0, 0), 'https://example.com/PDS4_PDS_1000.sch',
+                     'https://pds.nasa.gov/pds4/pds/v1 https://example.com/PDS4_PDS_1000.xsd',
+                     im_version(1, 5, 0, 0),
+                     marks=pytest.mark.skip(reason='Fails due to bug'))])
     def test_uses_closest_available_templates_when_exact_schema_is_unavailable(
-            self, tmp_path, caplog) -> None:
+            self, tmp_path, caplog, information_model, xml_model, schema_location,
+            expected_template_version) -> None:
 
         # Create two versions of the available templates.
         root_dir = self.make_templates_root(tmp_path, versions=(im_version(1, 5, 0, 0),
                                                                 im_version(2, 0, 0, 0)))
 
         # The configuration requires a version that does not exist exactly.
-        setup = self.make_check_setup(tmp_path, information_model=(im_version(1, 6, 0, 0)),
-                                      xml_model='https://example.com/PDS4_PDS_1600.sch',
-                                      schema_location=('https://pds.nasa.gov/pds4/pds/v1 '
-                                                       'https://example.com/PDS4_PDS_1600.xsd'),
+        setup = self.make_check_setup(tmp_path, information_model=information_model,
+                                      xml_model=xml_model,
+                                      schema_location=schema_location,
                                       root_dir=root_dir)
 
         # Check the logging level and logging messages.
@@ -520,7 +531,8 @@ class TestSetupCheckConfiguration:
 
         expected = [
             (logging.INFO, '-- Binary SPICE kernels expected to have LTL-IEEE (little endian) binary format.'),
-            (logging.WARNING, '-- Label templates will use the ones from information model 1.5.0.0.'),
+            (logging.WARNING,
+             f'-- Label templates will use the ones from information model {expected_template_version}.'),
             (logging.INFO, f'-- Label templates directory: {setup.working_directory}')]
 
         results = [(r[1], r[2]) for r in caplog.record_tuples]
