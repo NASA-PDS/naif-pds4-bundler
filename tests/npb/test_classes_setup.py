@@ -208,7 +208,7 @@ class TestSetupCheckConfiguration:
         else:
             assert not hasattr(setup, 'coverage_kernels')
 
-    def test_appends_mission_directory_to_absolute_staging_directory(
+    def test_handles_mission_directory_in_absolute_staging_directory(
             self, tmp_path) -> None:
 
         # Create the configuration using absolute paths.
@@ -400,7 +400,7 @@ class TestSetupCheckConfiguration:
         ('infomod2', {'mission_start': '2020-01-01T00:00:00.000Z', 'mission_finish': '2020-01-01T00:00:00.000Z',
                       'increment_start': '2020-01-01T00:00:00.000Z', 'increment_finish': '2020-01-02T00:00:00.000Z'},
          None)])
-    def test_raises_when_configured_times_do_not_match_selected_date_format(
+    def test_validates_configured_times_according_to_selected_date_format(
             self, tmp_path, date_format, values, expected_message) -> None:
 
         # Build a setup.
