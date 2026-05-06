@@ -857,24 +857,44 @@ class TestSetupCheckConfiguration:
         with pytest.raises(RuntimeError, match=expected_message):
             setup.check_configuration()
 
-    @pytest.mark.parametrize('readme', [
-        {'input': 'missing_readme.txt'},
-        {'input': 'missing_readme.txt', 'cognisant_authority': 'NAIF'}])
-    def test_raises_when_readme_cannot_be_found_or_generated(self, tmp_path,
-                                                             readme) -> None:
+    @pytest.mark.parametrize('readme, create_input_file, expected_message', [
+        ({'input': 'missing_readme.txt'}, False,
+         'Readme elements not present in configuration file\\.'),
+        ({'input': 'missing_readme.txt', 'cognisant_authority': 'NAIF'}, False,
+         'Readme elements not present in configuration file\\.'),
+        ({'cognisant_authority': 'NAIF', 'overview': 'Generated readme'}, False,
+         None),
+        ({'input': 'input_readme.txt'}, True, None)])
+    def test_validates_readme_configuration_when_bundle_readme_is_missing(
+            self, tmp_path, readme, create_input_file, expected_message) -> None:
 
         # Build a setup with two incomplete readmes.
         setup = self.make_check_setup(tmp_path)
 
         # Remove the current readme to activate the validation.
         os.remove(tmp_path / 'bundle' / 'maven_spice' / 'readme.txt')
+
+        if create_input_file:
+            input_readme = tmp_path / readme['input']
+            input_readme.write_text('input readme\n', encoding='utf-8')
+            readme = {'input': str(input_readme)}
+
         setup.readme = readme
 
-        # This behaviour will be handled by handle_npb_error, which will raise a
-        # RuntimeError. Also, checks the returned message.
-        with pytest.raises(RuntimeError, match='Readme elements not present in '
-                                               'configuration file\\.'):
+        # In case of readme cannot be found or generated, this behaviour will be
+        # handled by handle_npb_error, which will raise a RuntimeError. Also,
+        # checks the returned message.
+        if expected_message:
+
+            with pytest.raises(RuntimeError, match='Readme elements not present in '
+                                                   'configuration file\\.'):
+                setup.check_configuration()
+
+        # In case of readme can be created, check that the method completed
+        # successfully.
+        else:
             setup.check_configuration()
+            assert setup.xml_tab == 4
 
     def test_raises_when_readme_section_is_missing(self, tmp_path) -> None:
 
