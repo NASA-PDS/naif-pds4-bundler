@@ -194,7 +194,7 @@ class TestSetupCheckConfiguration:
         assert setup.kernels_directory == [str(tmp_path / 'kernels')]
         assert setup.information_model_float == pytest.approx(float('10011012013'))
         assert setup.templates_directory == str(tmp_path / 'work')
-        assert sorted(path for path in setup.template_files) == sorted([
+        assert sorted(setup.template_files) == sorted([
             f'{tmp_path / "work" / "template_bundle.xml"}',
             f'{tmp_path / "work" / "template_collection.xml"}'])
         assert (tmp_path / 'work' / 'template_bundle.xml').exists()
@@ -527,7 +527,7 @@ class TestSetupCheckConfiguration:
         assert results == expected
 
         # Check that the expected templates have been used.
-        assert sorted(path for path in setup.template_files) == sorted([
+        assert sorted(setup.template_files) == sorted([
             f'{tmp_path / "work" / "template_bundle.xml"}',
             f'{tmp_path / "work" / "template_collection.xml"}'])
 
