@@ -97,7 +97,8 @@ class TestSetupCheckConfiguration:
     def make_check_setup(self, tmp_path, pds_version='4', relative_paths=False,
                          information_model=im_version(10, 11, 12, 13), xml_model=None,
                          schema_location=None, templates_directory=None,
-                         root_dir=None, faucet='bundle') -> Setup:
+                         root_dir=None, faucet='bundle', include_information_model=True,
+                         coverage_kernels=None, include_coverage_kernels=True) -> Setup:
         setup = make_setup(tmp_path)
 
         # Define and create the temporary directories.
@@ -132,7 +133,8 @@ class TestSetupCheckConfiguration:
         setup.bundle_directory = 'bundle' if relative_paths else str(bundle)
         setup.kernels_directory = ['kernels'] if relative_paths else [str(kernels)]
 
-        setup.information_model = information_model
+        if include_information_model:
+            setup.information_model = information_model
 
         # Set a valid xml_model and schema_location if they are not provided.
         if xml_model is None:
@@ -155,23 +157,32 @@ class TestSetupCheckConfiguration:
         setup.kernel_list_config = {'fk': {}, 'spk': {}}
         setup.mk = [{
             '@name': 'maven_$version_$release.tm',
-            'name': [{
-                'pattern': [{'#text': 'version'}, {'#text': 'release'}],
-            }],
-        }]
-        setup.coverage_kernels = {'pattern': 'maven_*.bc'}
+            'name': [{'pattern': [{'#text': 'version'}, {'#text': 'release'}]}]}]
+
+        if coverage_kernels is None:
+            coverage_kernels = {'pattern': 'maven_*.bc'}
+
+        if include_coverage_kernels:
+            setup.coverage_kernels = coverage_kernels
 
         return setup
 
+    @pytest.mark.parametrize('coverage_kernels, include_coverage_kernels,expected_coverage_kernels', [
+            ({'pattern': 'maven_*.bc'}, True, [{'pattern': 'maven_*.bc'}]),
+            ([{'pattern': 'maven_*.bc'}], True, [{'pattern': 'maven_*.bc'}]),
+            (None, False, None)])
     def test_applies_expected_side_effects_for_valid_pds4_configuration(
-            self, tmp_path, monkeypatch) -> None:
+            self, tmp_path, monkeypatch, coverage_kernels, include_coverage_kernels,
+            expected_coverage_kernels) -> None:
 
         # Change the current directory to the temporary directory so that
         # relative paths are resolved within tmp_path.
         monkeypatch.chdir(tmp_path)
 
         # Build the setup.
-        setup = self.make_check_setup(tmp_path, relative_paths=True)
+        setup = self.make_check_setup(tmp_path, relative_paths=True,
+                                      coverage_kernels=coverage_kernels,
+                                      include_coverage_kernels=include_coverage_kernels)
 
         setup.check_configuration()
 
@@ -189,7 +200,13 @@ class TestSetupCheckConfiguration:
         assert (tmp_path / 'work' / 'template_bundle.xml').exists()
         assert (tmp_path / 'work' / 'template_collection.xml').exists()
         assert setup.xml_tab == 4
-        assert setup.coverage_kernels == [{'pattern': 'maven_*.bc'}]
+
+        # Check the final result for both scenarios: attribute present or
+        # attribute absent.
+        if include_coverage_kernels:
+            assert setup.coverage_kernels == expected_coverage_kernels
+        else:
+            assert not hasattr(setup, 'coverage_kernels')
 
     def test_appends_mission_directory_to_absolute_staging_directory(
             self, tmp_path) -> None:
