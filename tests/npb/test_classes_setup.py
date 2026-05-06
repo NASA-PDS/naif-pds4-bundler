@@ -1,6 +1,7 @@
 """Unit tests for the pds.naif_pds4_bundler.classes.setup module"""
 import logging
 import os
+import re
 from types import SimpleNamespace
 from typing import Generator
 from unittest.mock import mock_open, Mock
@@ -341,8 +342,8 @@ class TestSetupCheckConfiguration:
 
         # This behaviour will be handled by handle_npb_error, which will raise a
         # RuntimeError. Also, checks the returned message.
-        with pytest.raises(RuntimeError, match=f'Directory does not exist: '
-                                               f'{tmp_path / "missing_kernels"}\\.'):
+        with pytest.raises(RuntimeError, match=re.escape(f'Directory does not exist: '
+                                                         f'{tmp_path / "missing_kernels"}.')):
             setup.check_configuration()
 
     def test_logs_directory_collision_before_raising(self, tmp_path, caplog) -> None:
@@ -381,8 +382,8 @@ class TestSetupCheckConfiguration:
 
         # This behaviour will be handled by handle_npb_error, which will raise a
         # RuntimeError. Also, checks the returned message.
-        with pytest.raises(RuntimeError, match=f'Directory does not exist: '
-                                               f'{tmp_path / "missing_work"}\\.'):
+        with pytest.raises(RuntimeError, match=re.escape(f'Directory does not exist: '
+                                                         f'{tmp_path / "missing_work"}.')):
             setup.check_configuration()
 
     @pytest.mark.parametrize('date_format, values, expected_message', [
