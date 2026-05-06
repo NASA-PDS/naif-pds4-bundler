@@ -649,20 +649,18 @@ class TestSetupCheckConfiguration:
 
         assert setup.xml_tab == 2
 
-    @pytest.mark.parametrize('has_info_model',
+    @pytest.mark.parametrize('include_information_model',
                              [True, False])
     def test_pds3_configuration_uses_pds3_templates_and_leaves_xml_tab_zero(
-            self, tmp_path, has_info_model) -> None:
+            self, tmp_path, include_information_model) -> None:
 
         # Build a setup with PDS3.
-        setup = self.make_check_setup(tmp_path, pds_version='3')
+        setup = self.make_check_setup(tmp_path, pds_version='3',
+                                      include_information_model=include_information_model)
         setup.bundle_directory = str(tmp_path / 'bundle')
         setup.staging_directory = str(tmp_path / 'staging')
         setup.kernels_directory = [str(tmp_path / 'kernels')]
         setup.volume_id = 'MAVEN_1001'
-
-        if not has_info_model:
-            delattr(setup, 'information_model')
 
         setup.check_configuration()
 
