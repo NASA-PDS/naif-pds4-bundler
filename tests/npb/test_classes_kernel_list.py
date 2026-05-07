@@ -1,5 +1,6 @@
 """Tests for KernelList class."""
 import json
+import re
 from datetime import datetime as real_datetime
 from types import SimpleNamespace
 
@@ -8,24 +9,24 @@ import pytest
 from pds.naif_pds4_bundler.classes.list import KernelList
 
 
-def make_kernel_list_setup(tmp_path, pds_version='4',
-                           data_set_id='MAVEN-SPICE-KERNELS-V1.0',
-                           volid='MAVEN_1001', release='3',
-                           kernel_list_config=None) -> SimpleNamespace:
+def make_kernel_list_setup(tmp_path, **overrides) -> SimpleNamespace:
     # Create a minimal setup object to instance KernelList.
     setup = SimpleNamespace()
 
     setup.observer = 'MAVEN'
     setup.producer_name = 'NAIF'
-    setup.pds_version = pds_version
-    setup.pds3_mission_template = {'DATA_SET_ID': data_set_id}
-    setup.volume_id = volid
-    setup.release = release
+    setup.pds_version = '4'
+    setup.pds3_mission_template = {'DATA_SET_ID': 'MAVEN-SPICE-KERNELS-V1.0'}
+    setup.volume_id = 'MAVEN_1001'
+    setup.release = '3'
     setup.release_date = '2026-05-04'
     setup.templates_directory = str(tmp_path / 'templates')
 
     # Attribute to check a real call, instead of a mock.
-    setup.kernel_list_config = {} if kernel_list_config is None else kernel_list_config
+    setup.kernel_list_config = {}
+
+    for key, value in overrides.items():
+        setattr(setup, key, value)
 
     return setup
 
@@ -51,14 +52,13 @@ class TestKernelListInit:
                      dataset_o, volid_i, volid_o) -> None:
         # Mock KernelList.read_config. It only affects this test, not the whole
         # class.
-        read_config_mock = mocker.patch.object(
-            KernelList, 'read_config', autospec=True
-        )
+        read_config_mock = mocker.patch.object(KernelList, 'read_config',
+                                               autospec=True)
 
         # Build a setup with input values.
         setup = make_kernel_list_setup(tmp_path, pds_version=pds_version,
-                                       data_set_id=dataset_i, volid=volid_i,
-                                       release='3')
+                                       pds3_mission_template={'DATA_SET_ID': dataset_i},
+                                       volume_id=volid_i, release='3')
 
         kernel_list = KernelList(setup)
 
@@ -97,8 +97,7 @@ class TestKernelListInit:
                                 'mklabel_options': 'META'}}
 
         # Build a setup object for a KernelList.
-        setup = make_kernel_list_setup(tmp_path, pds_version='4',
-                                       kernel_list_config=json_config)
+        setup = make_kernel_list_setup(tmp_path, kernel_list_config=json_config)
 
         # We use a spy to monitor the call, but allow the actual method to run.
         # This way, we generate a 'real' workflow using a real read_config call.
@@ -131,3 +130,114 @@ class TestKernelListInit:
         # representation of the JSON.
         assert (kernel_list.json_formatted_lst ==
                 json.dumps(json_config, indent=2).split('\n'))
+
+
+class TestKernelListReadConfig:
+
+    @staticmethod
+    def make_kernel_list_without_init(setup) -> KernelList:
+        # Build a KernelList instance without calling __init__. In this way, we
+        # can create an empty instance to which we will then assign the values
+        # from read_config.
+        kernel_list = KernelList.__new__(KernelList)
+
+        # The setup attribute is assigned manually.
+        kernel_list.setup = setup
+
+        return kernel_list
+
+    @pytest.mark.parametrize('json_config, match_checks', [
+        ({}, []),
+        ({r'.*\.bsp$': {'description': 'SPK kernels'}},
+         [(0, 'maven_001.bsp', True),
+          (0, 'maven_001.tsc', False)]),
+        ({r'.*\.bsp$': {'description': 'SPK kernels'},
+          r'^maven_.*\.tm$': {'description': 'Meta-kernels', 'mklabel_options': 'META'},
+          r'orbnum_[0-9]{5}\.orb$': {'description': 'Orbnum files'}},
+         [(0, 'maven_001.bsp', True),
+          (0, 'maven_001.bc', False),
+          (1, 'maven_release_03.tm', True),
+          (1, 'release_03.tm', False),
+          (2, 'orbnum_00042.orb', True),
+          (2, 'orbnum_42.orb', False)])])
+    def test_read_config_stores_compiled_regexes_and_formatted_json(
+            self, tmp_path, json_config, match_checks) -> None:
+
+        # Build a setup with the parametrized kernel-list configuration.
+        setup = make_kernel_list_setup(tmp_path, kernel_list_config=json_config)
+
+        kernel_list = self.make_kernel_list_without_init(setup)
+
+        kernel_list.read_config()
+
+        # The original JSON config is not copied or transformed.
+        assert kernel_list.json_config is json_config
+
+        # Every key in the JSON config is compiled as a regex, preserving the
+        # insertion order of the configuration.
+        assert len(kernel_list.re_config) == len(json_config)
+
+        assert [pattern.pattern
+                for pattern in kernel_list.re_config] == list(json_config)
+
+        assert all(isinstance(pattern, re.Pattern)
+                   for pattern in kernel_list.re_config)
+
+        # Also exposes the same compiled regex list through setup. This is
+        # important because other code consumes setup.re_config later.
+        assert kernel_list.setup.re_config is kernel_list.re_config
+
+        # The method read_config must create the pretty-printed JSON
+        # representation used later when logging or displaying the kernel list
+        # configuration.
+        assert (kernel_list.json_formatted_lst == json.dumps(json_config,
+                                                             indent=2).split('\n'))
+
+        # Prove that the compiled regexes are functional.
+        for pattern_index, candidate, expected_result in match_checks:
+            assert (bool(kernel_list.re_config[pattern_index].match(candidate))
+                    is expected_result)
+
+    @pytest.mark.parametrize('invalid_pattern', [
+        {'[': {'description': 'Invalid regex'}},
+        {'(?P<kernel>': {'description': 'Invalid regex'}}])
+    def test_read_config_raises_re_error_for_invalid_regex(self, tmp_path,
+                                                           invalid_pattern) -> None:
+
+        # Build a setup object with an invalid regex.
+        setup = make_kernel_list_setup(tmp_path, kernel_list_config=invalid_pattern)
+
+        # Build KernelList without running __init__, so read_config may be
+        # called with an invalid regular expression and cause an error.
+        kernel_list = self.make_kernel_list_without_init(setup)
+
+        # Invalid regex patterns must raise re.error when read_config calls
+        # re.compile(pattern).
+        with pytest.raises(re.error):
+            kernel_list.read_config()
+
+        # The method assigns public state only after compiling all patterns.
+        # Therefore, when compilation fails, no partial state should be exposed.
+        assert not hasattr(kernel_list, 're_config')
+        assert not hasattr(kernel_list.setup, 're_config')
+        assert not hasattr(kernel_list, 'json_config')
+        assert not hasattr(kernel_list, 'json_formatted_lst')
+
+    def test_read_config_raises_attribute_error_when_setup_has_no_config(self) -> None:
+
+        # Build KernelList without running __init__. This means that
+        # read_config is not called automatically
+        kernel_list = KernelList.__new__(KernelList)
+
+        # Assign an empty setup.
+        kernel_list.setup = SimpleNamespace()
+
+        # An error raises when read_config try to access to the empty setup.
+        with pytest.raises(AttributeError):
+            kernel_list.read_config()
+
+        # As an error occurs, no partial state should be exposed.
+        assert not hasattr(kernel_list, 're_config')
+        assert not hasattr(kernel_list.setup, 're_config')
+        assert not hasattr(kernel_list, 'json_config')
+        assert not hasattr(kernel_list, 'json_formatted_lst')
