@@ -771,7 +771,7 @@ def test_get_context_products_overwrite_and_append_2(tmp_path):
     assert obs_prod["lidvid"] == "urn:nasa:pds:context:instrument_host:spacecraft.mars2020::1.0"
 
 # Could probably use a similar setup to test_get_context_products_no_optional_info_in_config_file
-# for these two tests to make it less bulky .... 
+# for these two tests to make it less bulky ....
 
 #default should probably be removed .... requires a json file to be updated and with the use
 #of multi missions I messed up this capability ... I also do not want this capability
@@ -999,10 +999,10 @@ def test_product_mapping(tmp_path, miss_acr,  rel, ker_list, text, expected):
 
     assert result == expected
 
-def test_product_mapping_error_handling(monkeypatch):
+def test_product_mapping_error_handling(monkeypatch, tmp_path):
     """Test product_mapping using pytest. Check error handling is triggered correctly."""
     setup = MagicMock()
-    setup.working_directory = "/tmp"
+    setup.working_directory = str(tmp_path)
     setup.mission_acronym = "NoOne"
     setup.run_type = "Release"
     setup.release = "1"
@@ -1023,10 +1023,10 @@ def test_product_mapping_error_handling(monkeypatch):
     assert "does not have mapping" in called[0]
 
 
-def test_product_mapping_cleanup(monkeypatch):
+def test_product_mapping_cleanup(monkeypatch, tmp_path):
     """Test product_mapping using pytest - check cleanup=False prevents the error handler from running."""
     setup = MagicMock()
-    setup.working_directory = "/tmp"
+    setup.working_directory = str(tmp_path)
     setup.mission_acronym = "NoOne"
     setup.run_type = "Release"
     setup.release = "1"
