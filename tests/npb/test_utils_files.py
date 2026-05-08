@@ -1,4 +1,5 @@
 """Unit tests for the pds.naif_pds4_bundler.utils.files module."""
+import io
 from dataclasses import dataclass
 from pathlib import Path
 import shutil
@@ -116,7 +117,6 @@ def test_check_badchar(tmp_path, contents, expected):
     """"Test check_badchar function using pytest."""
     test_file = tmp_path / "test_chars.txt"
     test_file.write_text(contents, encoding="utf-8")
-
 
     errors = files.check_badchar(str(test_file))
 
@@ -378,6 +378,7 @@ def test_checksum_from_label(prod_path, expected):
 # files.checksum_from_registry test
 # ----------------------------------------------------------------------------
 
+#attempt with real kernels --
 # def test_checksum_from_registry():
 #     """Test checksum_from_registry function."""
 #     chcksm = DOCS/"ladee_release_01.checksum"
@@ -571,6 +572,26 @@ def test_extract_comment_ck():
 #     assert result == expected
 
 
+# def test_extract_comment_error(monkeypatch, tmp_path, caplog):
+#     """Test extract_comment function using pytest. This is to test logging errors"""
+#     file_content = """
+#     This CK file was created using CKSLICER Utility Ver. 1.3.0, October 28, 2011 This comment is going to be incredibly long and hit the error
+#     """
+#     file = tmp_path / "empty_kernels.bc"
+#     file.write_text(file_content) #doesn't work cuz binary...
+#
+#     def mock_handle_error(msg, setup=False):
+#         files.logging.getLogger("files").error(msg)
+#
+#     monkeypatch.setattr(files, "handle_npb_error", mock_handle_error)
+#
+#     with caplog.at_level(files.logging.ERROR):
+#         files.extract_comment(str(file))
+#
+#     assert f"Comment from {file} is longer than buffer size." in caplog.text
+
+#Not sure how to fix these to make them work...
+
 # ----------------------------------------------------------------------------
 # files.fill_template tests
 # ----------------------------------------------------------------------------
@@ -653,7 +674,6 @@ def test_get_context_products_no_optional_info_in_config_file(mission, observer,
     """Test getting context products, assuming a configuration file that
     does not have `context_products`, `secondary_missions`,
     `secondary_observers` or `secondary_targets`"""
-
     # Create a mockup of the NPB setup, as required for this test.
     @dataclass
     class Config:
@@ -666,7 +686,6 @@ def test_get_context_products_no_optional_info_in_config_file(mission, observer,
 
 def test_get_context_products_overwrite_and_append(tmp_path):
     """Test get_context_products using pytest. Update existing products via setup.context_products."""
-
     #default context products
     text = [{"name": ["MARS 2020"],
             "type": ["Mission"],
@@ -709,7 +728,6 @@ def test_get_context_products_overwrite_and_append(tmp_path):
 
 def test_get_context_products_overwrite_and_append_2(tmp_path):
     """Test get_context_products using pytest. Default products match products via setup.context_products."""
-
     # default context products
     text = [{"name": ["MARS 2020"],
             "type": ["Mission"],
@@ -752,8 +770,11 @@ def test_get_context_products_overwrite_and_append_2(tmp_path):
     assert obs_prod["type"] == ["Rover"]
     assert obs_prod["lidvid"] == "urn:nasa:pds:context:instrument_host:spacecraft.mars2020::1.0"
 
+# Could probably use a similar setup to test_get_context_products_no_optional_info_in_config_file
+# for these two tests to make it less bulky .... 
+
 #default should probably be removed .... requires a json file to be updated and with the use
-#of multi missions I messed up this capability ...
+#of multi missions I messed up this capability ... I also do not want this capability
 
 # ----------------------------------------------------------------------------
 # files.get_latest_kernel test
@@ -766,20 +787,6 @@ def test_get_latest_kernel():
 
     result = files.get_latest_kernel("ck", str(pth), pttrn)
     assert result == []
-
-def test_get_latest_kernel_with_mks(tmp_path):
-    """Test get_latest_kernel using pytest. Test meta-kernel files."""
-    pth = tmp_path / "mk"
-    pth.mkdir()
-    (pth / "kitty_v01.tm").write_text("")
-
-    kern = pth / "kitty.tm"
-    kern.write_text(" '$KERNELS/mk/cat_v01.tm' ")
-
-    pttrn = "cat_v[0-9][0-9].tm"
-
-    result = files.get_latest_kernel("mk", str(pth), pttrn, mks=[str(kern)])
-    assert result ==  "cat_v01.tm"
 
 def test_get_latest_kernel_with_dates_logic(tmp_path):
     """Test get_latest_kernel using pytest.
@@ -804,6 +811,20 @@ def test_get_latest_kernel_with_dates_logic(tmp_path):
     assert "mission_20260101_v02.bc" in result
     assert "mission_20260401_v01.bc" in result
     assert "mission_20260101_v01.bc" not in result
+
+def test_get_latest_kernel_with_mks(tmp_path):
+    """Test get_latest_kernel using pytest. Test meta-kernel files."""
+    pth = tmp_path / "mk"
+    pth.mkdir()
+    (pth / "kitty_v01.tm").write_text("")
+
+    kern = pth / "kitty.tm"
+    kern.write_text(" '$KERNELS/mk/cat_v01.tm' ")
+
+    pttrn = "cat_v[0-9][0-9].tm"
+
+    result = files.get_latest_kernel("mk", str(pth), pttrn, mks=[str(kern)])
+    assert result ==  "cat_v01.tm"
 
 def test_get_latest_kernel_excluded_kernels(tmp_path):
     """Test get_latest_kernel using pytest.
@@ -933,16 +954,38 @@ def test_mk_to_list(mk):
     """Test mk_to_list function using pytest."""
     assert files.mk_to_list(str(mk), False)
 
+def test_mk_to_list_error(monkeypatch, tmp_path, caplog):
+    """Test mk_to_list function using pytest. This is to test logging errors"""
+    mk_content = """
+    KPL/MK
+    PATH_SYMBOLS = ( 'KERNELS' )
+    \KERNELS_TO_LOAD = (
+        # This list is intentionally empty
+    )
+    """
+    mk = tmp_path / "empty_kernels.tm"
+    mk.write_text(mk_content)
+
+    def mock_handle_error(msg, setup=False):
+        files.logging.getLogger("files").error(msg)
+
+    monkeypatch.setattr(files, "handle_npb_error", mock_handle_error)
+
+    with caplog.at_level(files.logging.ERROR):
+        files.mk_to_list(str(mk), setup=False)
+
+    assert f"No kernels present in {mk}. " f"Please review MK generation." in caplog.text
+
 # ----------------------------------------------------------------------------
 # files.product_mapping test
 # ----------------------------------------------------------------------------
 
 @pytest.mark.parametrize("miss_acr, rel, ker_list, text, expected", [
     ("VOYAGER", "5" , "VOYAGER_Release_05.kernel_list", "my_kernel\n  MAPPING = success", "success"),
-    #("M2020", "1", "M2020_Release_01.kernel_list", "M2020_168_SCLKSCET.20260419.tsc\n  MAPPING = m2020_168_sclkscet_20260419.tsc", "m2020_168_sclkscet_20260419.tsc" )
+    #("M2020", "1", "M2020_Release_01.kernel_list", "M2020_168_SCLKSCET.20260419.tsc\n  MAPPING = m2020_168_sclkscet_20260419.tsc", "m2020_168_sclkscet_20260419.tsc" ) #not sure how to make a real example work...
 ])
 def test_product_mapping(tmp_path, miss_acr,  rel, ker_list, text, expected):
-    """test product_mapping function using pytest."""
+    """Test product_mapping function using pytest."""
     setup = MagicMock()
     setup.working_directory = str(tmp_path)
     setup.mission_acronym = miss_acr
@@ -956,31 +999,52 @@ def test_product_mapping(tmp_path, miss_acr,  rel, ker_list, text, expected):
 
     assert result == expected
 
-# Need to come back to this.....doesn't work - gives AttributeError: 'bool' object has no attribute 'working_directory'
+def test_product_mapping_error_handling(monkeypatch):
+    """Test product_mapping using pytest. Check error handling is triggered correctly."""
+    setup = MagicMock()
+    setup.working_directory = "/tmp"
+    setup.mission_acronym = "NoOne"
+    setup.run_type = "Release"
+    setup.release = "1"
 
-# def test_product_mapping_logging_error(monkeypatch, tmp_path, caplog):
-#     """Test product_mapping function using pytest.
-#     This is to test logging errors"""
-#     def mock_handle_error(msg, setup):
-#         files.logging.getLogger("files").error(msg)
-#
-#     monkeypatch.setattr(files, "handle_npb_error", mock_handle_error)
-#
-#     setup = MagicMock()
-#     setup.working_directory = str(tmp_path)
-#     setup.mission_acronym = "No One"
-#     setup.run_type = "Release"
-#     setup.release = "1"
-#
-#     name = setup.mission_acronym
-#
-#     kernel_list_file = tmp_path / "None.kernel_list"
-#     kernel_list_file.write_text("")
-#
-#     with caplog.at_level(files.logging.ERROR):
-#         files.product_mapping(name, setup=False)
-#
-#     assert f"{name} does not have mapping on {kernel_list_file}." in caplog.text
+    monkeypatch.setattr("builtins.open", lambda f, read: io.StringIO(""))
+
+    # Track calls to handle_npb_error in list
+    called = []
+
+    def mock_error_handler(msg, setup=None):
+        called.append(msg)
+
+    monkeypatch.setattr(files,"handle_npb_error", mock_error_handler)
+
+    files.product_mapping("NON_EXISTENT", setup, cleanup=True)
+
+    assert len(called) == 1
+    assert "does not have mapping" in called[0]
+
+
+def test_product_mapping_cleanup(monkeypatch):
+    """Test product_mapping using pytest - check cleanup=False prevents the error handler from running."""
+    setup = MagicMock()
+    setup.working_directory = "/tmp"
+    setup.mission_acronym = "NoOne"
+    setup.run_type = "Release"
+    setup.release = "1"
+
+    monkeypatch.setattr("builtins.open", lambda f, read: io.StringIO(""))
+
+    called = False
+
+    def mock_error_handler(msg, setup=None):
+        nonlocal called
+        called = True
+
+    monkeypatch.setattr(files,"handle_npb_error", mock_error_handler)
+
+    result = files.product_mapping("NON_EXISTENT", setup, cleanup=False)
+
+    assert result is False
+    assert called is False
 
 # ----------------------------------------------------------------------------
 # files.replace_string_in_file test
