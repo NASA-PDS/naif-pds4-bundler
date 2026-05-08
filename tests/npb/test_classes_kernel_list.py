@@ -228,6 +228,9 @@ class TestKernelListReadConfig:
         {'(?P<kernel>': {'description': 'Invalid regex'}}])
     def test_read_config_raises_re_error_for_invalid_regex(self, tmp_path,
                                                            invalid_pattern) -> None:
+        # This test highlights a bug in the code, as if read_config receives an
+        # invalid regex, it triggers a re.error, causing the code to crash.
+
         # Build a setup object with an invalid regex.
         setup = make_kernel_list_setup(tmp_path, kernel_list_config=invalid_pattern)
 
