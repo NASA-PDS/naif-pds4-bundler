@@ -36,7 +36,7 @@ def test_binary_permissions(self):
         "../data/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.big.bsp",
         "kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp",
     )
-    os.chmod("kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp", 330)
+    os.chmod("kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp", 0o330)
 
     with self.assertRaises(RuntimeError) as cm:
         run_pipeline(PipelineArgs(config=config, silent=True, log=True, faucet="Bundle"))

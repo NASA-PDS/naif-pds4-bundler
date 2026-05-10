@@ -860,6 +860,11 @@ class KernelList:
             origin_path = origin_paths[0]
 
             #
+            # Check that file has read permissions.
+            #
+            check_permissions(origin_path)
+
+            #
             # Check bad characters and EOL for text kernels and ORBNUM files.
             # Check line length < 80 for text kernels.
             #
@@ -896,11 +901,6 @@ class KernelList:
                 error = check_kernel_integrity(origin_path)
                 if error:
                     product_errors[product].append(error)
-
-            #
-            # Check that file has read permissions.
-            #
-            check_permissions(origin_path)
 
             #
             # Check binary kernel endianness.

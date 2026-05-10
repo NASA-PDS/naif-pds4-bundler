@@ -352,19 +352,26 @@ def test_check_permissions(path, rtype):
 def test_check_permissions_error(monkeypatch, tmp_path, caplog):
     """Test check_permissions function using pytest.
     This is to test logging errors"""
-    def mock_handle_error(msg, setup=False):
-        files.logging.getLogger("files").error(msg)
+    def mock_handle_error(msg):
+        logging.error(msg)
 
-    monkeypatch.setattr(files, "handle_npb_error", mock_handle_error)
+    def raise_permission_error(*args, **kwargs):
+        raise PermissionError()
+
 
     fake_file = tmp_path / "file.txt"
     fake_file.write_text("Secret")
-    os.chmod(str(fake_file), 0o000)
 
-    with caplog.at_level(files.logging.ERROR):
+    monkeypatch.setattr(files, "handle_npb_error", mock_handle_error)
+    monkeypatch.setattr(files.Path, "open", raise_permission_error)
+
+    with caplog.at_level(logging.ERROR):
         files.check_permissions(str(fake_file))
 
-    assert f"File {fake_file} is not readable by the account that runs NPB. Update permissions." in caplog.text
+    assert (
+        f"File {fake_file} is not readable by the account that runs NPB. "
+        "Update permissions." in caplog.text
+    )
 
 # ----------------------------------------------------------------------------
 # files.checksum_from_label test

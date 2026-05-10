@@ -1135,26 +1135,20 @@ def check_line_length(file):
     return error
 
 
-def check_permissions(path):
+def check_permissions(path: str) -> None:
     """Check if the file has read permissions.
-
     This method ensures that the file has the adequate file permissions.
 
     :param path: file path
-    :type path: str
-    :return: Error message if error present
-    :rtype: none
     """
-
-    #
-    # This provides the usual chmod style file permissions.
-    #
-    permissions = oct(os.stat(path)[stat.ST_MODE])[-3:]
-
-    #
-    # The first two digits must be at least 4.
-    #
-    if int(permissions[0]) < 4 or int(permissions[1]) < 4:
+    # Try to open the file for read access. Use binary mode, since the input
+    # file might be either binary or text. If it fails, we don't have
+    # read permissions. This method works both in Unix and Windows. If
+    # the read operation succeeds, don't do anything else.
+    try:
+        with Path(path).open('rb'):
+            pass
+    except PermissionError:
         handle_npb_error(
             f"File {path} is not readable by the account that runs NPB. "
             f"Update permissions."
