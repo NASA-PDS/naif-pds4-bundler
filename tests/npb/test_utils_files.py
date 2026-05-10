@@ -1,5 +1,6 @@
 """Unit tests for the pds.naif_pds4_bundler.utils.files module."""
 import io
+import logging
 from dataclasses import dataclass
 from pathlib import Path
 import shutil
@@ -7,12 +8,11 @@ import shutil
 import pytest
 import xml.etree.ElementTree as tree
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import call, MagicMock, patch
 
 import os
 
 from pds.naif_pds4_bundler.utils import files
-from sphinx.util import display
 
 # Get the directory where the data is located.
 KERNELS = Path(__file__).parent.parent / "naif_pds4_bundler" / "data" / "kernels"
@@ -46,15 +46,21 @@ def test_add_carriage_return_logging_error(monkeypatch, caplog):
     This is to test logging errors"""
 
     def mock_handle_error(msg, setup):
-        files.logging.getLogger("files").error(msg)
+        if not setup:
+            logging.error(msg)
 
     monkeypatch.setattr(files, "handle_npb_error", mock_handle_error)
     wrong_cr = "Mew "
 
+    # Capture and check the logging level and logging messages.
     with caplog.at_level(files.logging.ERROR):
         files.add_carriage_return(wrong_cr, eol="", setup=False)
 
-    assert f"File has incorrect CR at line: {wrong_cr}." in caplog.text
+    expected = [(logging.ERROR, 'File has incorrect CR at line: Mew .')]
+
+    results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+    assert results == expected
 
 #Only covers \n part not \r\n .... not sure how to make this cover both
 
@@ -424,7 +430,7 @@ def test_compare_files(tmp_path, fromfile, tofile, expected):
     """Test compare_files function using pytest."""
     dest = str(tmp_path)
 
-    result = files.compare_files(str(fromfile), str(tofile), dest, str(display))
+    result = files.compare_files(str(fromfile), str(tofile), dest, '')
     assert result == expected
 
 @pytest.mark.parametrize("from_text, to_text, disp, expected, files_created",[
@@ -495,7 +501,7 @@ def test_copy_error_file(monkeypatch, tmp_path, caplog):
     with caplog.at_level(files.logging.WARNING):
         files.copy(str(src), str(dest))
 
-    assert caplog.messages == ["-- Directory file.txt not copied, probably because the increment directory exists.\n Error: [Errno 2] No such file or directory"]
+    assert caplog.messages == ["-- Directory file.txt not copied, probably because the increment directory exists.\nError: [Errno 2] No such file or directory"]
 
 # ----------------------------------------------------------------------------
 # files.etree_to_dict test
@@ -1007,7 +1013,7 @@ def test_product_mapping_error_handling(monkeypatch, tmp_path):
     setup.run_type = "Release"
     setup.release = "1"
 
-    monkeypatch.setattr("builtins.open", lambda f, read: io.StringIO(""))
+    monkeypatch.setattr("builtins.open", lambda f, read, encoding: io.StringIO(""))
 
     # Track calls to handle_npb_error in list
     called = []
@@ -1031,7 +1037,7 @@ def test_product_mapping_cleanup(monkeypatch, tmp_path):
     setup.run_type = "Release"
     setup.release = "1"
 
-    monkeypatch.setattr("builtins.open", lambda f, read: io.StringIO(""))
+    monkeypatch.setattr("builtins.open", lambda f, read, encoding: io.StringIO(""))
 
     called = False
 
@@ -1098,8 +1104,11 @@ def test_safe_make_directory_logging(mocker, tmp_path):
     files.safe_make_directory(str(path))
     mock_mkdir.assert_called_once_with(str(path))
 
-    assert mock_info.call_count == 2
-    mock_info.assert_any_call(f"-- Generated directory: {path}  ")
+    expected_calls = [
+        call('-- Generated directory: %s  ', str(path)),
+        call('')
+    ]
+    assert mock_info.call_args_list == expected_calls
 
 # ----------------------------------------------------------------------------
 # files.string_in_file test
