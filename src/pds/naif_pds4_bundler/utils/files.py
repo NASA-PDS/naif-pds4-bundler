@@ -12,6 +12,7 @@ import re
 import shutil
 import stat
 import sys
+import tempfile
 from typing import Optional
 
 import spiceypy
@@ -858,19 +859,25 @@ def replace_string_in_file(file, old_string, new_string, setup):
     :type new_string: str
     :param setup: NPB run Setup
     """
-    reading_file = open(file, "r")
+    # Get the directory of the target file
+    file_dir = os.path.dirname(os.path.abspath(file))
 
+    # Read the file, replace the old string with the new one, and "force" the
+    # PDS3 carriage return.
     new_file_content = ""
-    for line in reading_file:
-        new_line = line.replace(old_string, new_string)
-        new_file_content += add_carriage_return(new_line, setup.eol_pds3, setup)
-    reading_file.close()
+    with open(file, 'rt') as handle:
+        for line in handle:
+            new_line = line.replace(old_string, new_string)
+            new_file_content += add_carriage_return(new_line, setup.eol_pds3, setup)
 
-    writing_file = open("temp.file", "w")
-    writing_file.write(new_file_content)
-    writing_file.close()
+    # Create unique temp file in the same directory as the source file,
+    # and keep it so that we can replace the original one with the updated
+    # contents.
+    with tempfile.NamedTemporaryFile(
+            mode='wt', dir=file_dir, delete=False, encoding='utf-8') as tmp:
+        tmp.write(new_file_content)
 
-    shutil.move("temp.file", file)
+    shutil.move(tmp.name, file)
 
 
 def format_multiple_values(value):

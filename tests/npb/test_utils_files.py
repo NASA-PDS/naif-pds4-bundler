@@ -959,7 +959,7 @@ def test_mk_to_list_error(monkeypatch, tmp_path, caplog):
     mk_content = """
     KPL/MK
     PATH_SYMBOLS = ( 'KERNELS' )
-    \KERNELS_TO_LOAD = (
+    \\KERNELS_TO_LOAD = (
         # This list is intentionally empty
     )
     """
