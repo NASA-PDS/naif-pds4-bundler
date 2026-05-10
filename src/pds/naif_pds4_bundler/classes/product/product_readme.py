@@ -2,13 +2,13 @@
 import logging
 import os
 import shutil
+from types import SimpleNamespace
 
 from .product import Product
 from ...utils import add_carriage_return
 from ...utils import md5
 from ..label import BundlePDS4Label
 from ...pipeline.runtime import handle_npb_error
-from ..object import Object
 
 
 class ReadmeProduct(Product):
@@ -20,23 +20,14 @@ class ReadmeProduct(Product):
 
     def __init__(self, setup, bundle) -> None:
         """Constructor."""
-        line = f"Step {setup.step} - Generation of bundle products"
-        logging.info("")
-        logging.info(line)
-        logging.info("-" * len(line))
-        logging.info("")
-        setup.step += 1
-        if not setup.args.silent and not setup.args.verbose:
-            print("-- " + line.split(" - ")[-1] + ".")
-
         self.name = "readme.txt"
         self.bundle = bundle
         self.path = setup.staging_directory + os.sep + self.name
         self.setup = setup
         self.vid = bundle.vid
-        # TODO: Remove Object from the following lines.
-        self.collection = Object()
-        self.collection.name = ""
+        # TODO: Verify if this attribute is required.
+        # Create an attribute named "collection", with an attribute "name".
+        self.collection = SimpleNamespace(name="")
 
         path = (
             self.setup.bundle_directory
@@ -49,7 +40,7 @@ class ReadmeProduct(Product):
             self.new_product = False
         else:
             logging.info("-- Generating readme file...")
-            self.write_product()
+            self._write_product()
             self.new_product = True
 
             #
@@ -70,7 +61,7 @@ class ReadmeProduct(Product):
         logging.info("-- Generating bundle label...")
         self.label = BundlePDS4Label(setup, self)
 
-    def write_product(self) -> None:
+    def _write_product(self) -> None:
         """Write the Readme product."""
         line_length = 0
 
@@ -84,9 +75,9 @@ class ReadmeProduct(Product):
             else:
                 handle_npb_error("Readme file provided via configuration does not exist.")
         elif not os.path.isfile(self.path):
-            with open(self.path, "w+") as f:
+            with open(self.path, "w+", encoding='utf-8') as f:
                 with open(
-                    self.setup.templates_directory + "/template_readme.txt", "r"
+                    self.setup.templates_directory + "/template_readme.txt", "r", encoding='utf-8'
                 ) as t:
                     for line in t:
                         if "$SPICE_NAME" in line:

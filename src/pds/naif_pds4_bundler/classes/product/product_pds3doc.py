@@ -39,11 +39,11 @@ class PDS3DocumentProduct(Product):
         else:
             self.new_product = True
 
-            self.validate()
+            self._validate()
 
         super().__init__()
 
-    def validate(self) -> None:
+    def _validate(self) -> None:
         """Try to validate the PDS3 document.
 
         The outcome of the validation is an INFO or a WARNING log message.
@@ -61,12 +61,13 @@ class PDS3DocumentProduct(Product):
             logging.info("")
             present = string_in_file(self.path, string)
             if not present:
-                logging.warning("-- The following string:")
-                logging.warning(f"   {string}")
-                logging.warning(f"   Is not present in: {self.name}")
+                logging.warning('-- The following string:')
+                logging.warning('   %s', string)
+                logging.warning('   Is not present in: %s', self.name)
+
             else:
-                logging.info("-- The following string:")
-                logging.info(f"   {string}")
-                logging.info(f"   Is present in: {self.name}")
+                logging.info('-- The following string:')
+                logging.info('   %s', string)
+                logging.info('   Is present in: %s', self.name)
 
         logging.info("")

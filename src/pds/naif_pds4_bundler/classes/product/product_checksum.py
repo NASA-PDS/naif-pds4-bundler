@@ -25,8 +25,6 @@ class ChecksumProduct(Product):
                                   be added, False otherwise
     """
 
-    # TODO: if there's no call to parent init... does it need to be derived
-    #       from Product?
     def __init__(self, setup, collection, add_previous_checksum: bool = True) -> None:
         """Constructor."""
         #
@@ -37,20 +35,18 @@ class ChecksumProduct(Product):
         # inventory file; the checksum file needs to be included in the
         # inventory file before the actual checksum file is generated.
         #
+        self.bytes = 0
         self.setup = setup
         self.collection = collection
         self.collection_path = (
             self.setup.staging_directory + os.sep + "miscellaneous" + os.sep
         )
-
-        line = f"Step {self.setup.step} - Generate checksum file"
-        logging.info("")
-        logging.info(line)
-        logging.info("-" * len(line))
-        logging.info("")
-        self.setup.step += 1
-        if not self.setup.args.silent and not self.setup.args.verbose:
-            print("-- " + line.split(" - ")[-1] + ".")
+        self.file_records = 0
+        self.label = None
+        self.new_product = True
+        self.record_bytes = 0
+        self.start_time = ''
+        self.stop_time = ''
 
         #
         # We generate the kernel directory if not present
@@ -104,7 +100,8 @@ class ChecksumProduct(Product):
         #
         # The checksum is labeled.
         #
-        logging.info(f"-- Labeling {self.name}...")
+        logging.info('-- Labeling %s...', self.name)
+
         if self.setup.pds_version == "4":
             self.label = ChecksumPDS4Label(self.setup, self)
         else:
@@ -153,27 +150,26 @@ class ChecksumProduct(Product):
                     latest_version = latest_file.split("_v")[-1].split(".")[0]
                     self.version = int(latest_version) + 1
 
-                    logging.info(f"-- Previous checksum file is: {latest_file}")
-                    logging.info(f"-- Generate version {self.version}.")
-                    logging.info("")
+                    logging.info('-- Previous checksum file is: %s', latest_file)
+                    logging.info('-- Generate version %d.', self.version)
+                    logging.info('')
 
                 except BaseException:
                     self.version = 1
                     self.path_current = ""
 
-                    logging.warning("-- Previous checksum file not found.")
-                    logging.warning(f"-- Default to version {self.version}.")
-                    logging.warning("-- The version of this file might be incorrect.")
+                    logging.warning('-- Previous checksum file not found.')
+                    logging.warning('-- Default to version %d.', self.version)
+                    logging.warning('-- The version of this file might be incorrect.')
 
             else:
                 self.version = 1
                 self.path_current = ""
 
-                logging.warning(f"-- Default to version {self.version}.")
+                logging.warning('-- Default to version %d.', self.version)
                 logging.warning(
-                    "-- Make sure this is the first release of the archive."
-                )
-                logging.warning("")
+                    '-- Make sure this is the first release of the archive.')
+                logging.warning('')
 
             self.name = f"checksum_v{self.version:03}.tab"
             self.path = (
@@ -205,7 +201,7 @@ class ChecksumProduct(Product):
         # the miscellaneous collection was present in the release.
         #
         if self.path_current:
-            with open(self.path_current, "r") as c:
+            with open(self.path_current, "r", encoding='utf-8') as c:
                 for line in c:
                     #
                     # Check the format of the current checksum file.
@@ -261,7 +257,7 @@ class ChecksumProduct(Product):
 
     def set_product_vid(self) -> None:
         """Set Product VID."""
-        self.vid = "{}.0".format(int(self.version))
+        self.vid = f'{int(self.version)}.0'
 
     def write_product(self, history: bool=False, set_coverage: bool=False) -> None:
         """Write the Checksum file and determine its start and stop time.
@@ -322,15 +318,16 @@ class ChecksumProduct(Product):
                     #
                     # Generate the MD5 checksum of the label.
                     #
-                    if hasattr(product, "label"):
+                    # TODO: hasattr(product, "label") will need to be removed.
+                    if hasattr(product, "label") and product.label is not None:
                         label_checksum = md5(product.label.name)
                         self.md5_dict[product.label.name.split(archive_dir)[-1]] = (
                             label_checksum
                         )
 
                     else:
-                        logging.warning(f"-- {product_name} does not have a label.")
-                        logging.info("")
+                        logging.warning('-- %s does not have a label.', product_name)
+                        logging.info('')
 
             #
             # Include the readme file checksum if it has been generated in
@@ -398,11 +395,13 @@ class ChecksumProduct(Product):
         md5_check_dict = {k: v for k, v in md5_check_dict.items() if len(v) > 1}
 
         if md5_check_dict:
-            logging.warning("-- The following products have the same MD5 sum:")
+            logging.warning('-- The following products have the same MD5 sum:')
+
             for k, v in md5_check_dict.items():
-                logging.warning(f"   {k}")
+                logging.warning('   %s', k)
+
                 for file in v:
-                    logging.warning(f"      {file}")
+                    logging.warning('      %s', file)
 
         #
         # The resulting dictionary needs to be transformed into a list
@@ -471,7 +470,9 @@ class ChecksumProduct(Product):
             for file in files:
                 if file.endswith(".DS_Store"):
                     path = os.path.join(root, file)
-                    logging.info(f"-- Removing {file}")
+
+                    logging.info('-- Removing %s', file)
+
                     os.remove(path)
 
         #
@@ -488,8 +489,7 @@ class ChecksumProduct(Product):
             #
             for product in md5_list:
                 if ("spice_kernels/collection_spice_kernels_v" in product) or (
-                    ("miscellaneous/orbnum/" in product) and ((".xml" in product))
-                ):
+                    "miscellaneous/orbnum/" in product and ".xml" in product):
                     coverage_list.append(product.split()[-1])
 
             start_times = []
@@ -506,12 +506,11 @@ class ChecksumProduct(Product):
                     path = f"{self.setup.staging_directory}/" + product
                     if not os.path.isfile(path):
                         logging.error(
-                            f"-- Product required to determine "
-                            f"{self.name} coverage: {product} not found."
-                        )
+                            '-- Product required to determine %s coverage: %s not found.',
+                            self.name, product)
 
                 if os.path.isfile(path):
-                    with open(path, "r") as lbl:
+                    with open(path, "r", encoding='utf-8') as lbl:
                         for line in lbl:
                             if "<start_date_time>" in line:
                                 start_time = line.split("<start_date_time>")[-1].split(
@@ -525,17 +524,16 @@ class ChecksumProduct(Product):
                                 stop_times.append(stop_time)
 
             if not start_times:
-                logging.warning(
-                    f"-- Start time set to "
-                    f"mission start time: {self.setup.mission_start}"
-                )
+
+                logging.warning('-- Start time set to mission start time: %s',
+                                self.setup.mission_start)
+
                 start_times.append(self.setup.mission_start)
 
             if not stop_times:
-                logging.warning(
-                    f"-- Stop time set to "
-                    f"mission finish time: {self.setup.mission_finish}"
-                )
+                logging.warning('-- Stop time set to mission finish time: %s',
+                                self.setup.mission_finish)
+
                 stop_times.append(self.setup.mission_finish)
 
             start_times.sort()
@@ -548,7 +546,7 @@ class ChecksumProduct(Product):
             #
             # Write the checksum file.
             #
-            with open(self.path, "w") as c:
+            with open(self.path, "w", encoding='utf-8') as c:
                 for entry in md5_list:
                     entry = add_carriage_return(entry, self.setup.eol, self.setup)
                     c.write(entry)

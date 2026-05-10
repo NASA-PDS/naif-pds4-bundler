@@ -3,6 +3,7 @@
 import glob
 import logging
 import os
+from pathlib import Path
 
 from ...pipeline.runtime import handle_npb_error
 from ...utils import add_carriage_return, compare_files
@@ -25,6 +26,7 @@ class PDSLabel:
             except BaseException:
                 context_products = product.bundle.context_products
 
+        self.name = ''
         self.product = product
         self.setup = setup
 
@@ -49,11 +51,11 @@ class PDSLabel:
                     )
                 else:
                     missions_text = f"{setup.mission_name}, "
-                    for i in range(len(setup.secondary_missions)):
+                    for i, sm_name in enumerate(setup.secondary_missions):
                         if i == len(setup.secondary_missions) - 1:
-                            missions_text += f"and {setup.secondary_missions[i]}"
+                            missions_text += f"and {sm_name}"
                         else:
-                            missions_text += f"{setup.secondary_missions[i]}, "
+                            missions_text += f"{sm_name}, "
 
                 self.PDS4_MISSION_NAME = f"{missions_text}"
             else:
@@ -69,11 +71,11 @@ class PDSLabel:
                     )
                 else:
                     observers_text = f"{setup.observer}, "
-                    for i in range(len(setup.secondary_observers)):
+                    for i, so_name in enumerate(setup.secondary_observers):
                         if i == len(setup.secondary_observers) - 1:
-                            observers_text += f"and {setup.secondary_observers[i]}"
+                            observers_text += f"and {so_name}"
                         else:
-                            observers_text += f"{setup.secondary_observers[i]}, "
+                            observers_text += f"{so_name}, "
 
                 self.PDS4_OBSERVER_NAME = f"{observers_text} spacecraft and their"
             else:
@@ -109,11 +111,7 @@ class PDSLabel:
         # For labels that need to include all missions, observers and targets
         # of the setup.
         #
-        if (
-            type(self).__name__ != "SpiceKernelPDS4Label"
-            and type(self).__name__ != "MetaKernelPDS4Label"
-            and type(self).__name__ != "OrbnumFilePDS4Label"
-        ):
+        if type(self).__name__ not in ('SpiceKernelPDS4Label', 'MetaKernelPDS4Label', 'OrbnumFilePDS4Label'):
             #
             # Obtain all Missions
             #
@@ -131,7 +129,7 @@ class PDSLabel:
             #
             # Obtain all observers.
             #
-            obs = ["{}".format(self.setup.observer)]
+            obs = [f'{self.setup.observer}']
 
             if hasattr(self.setup, "secondary_observers"):
                 sec_obs = self.setup.secondary_observers
@@ -402,8 +400,8 @@ class PDSLabel:
         if "inventory" in label_name:
             label_name = label_name.replace("inventory_", "")
 
-        with open(label_name, "w+") as f:
-            with open(self.template, "r") as t:
+        with open(label_name, "w+", encoding='utf-8') as f:
+            with open(self.template, "r", encoding='utf-8') as t:
                 for line in t:
                     line = line.rstrip()
                     for key, value in label_dictionary.items():
@@ -423,15 +421,17 @@ class PDSLabel:
 
         self.name = label_name
 
-        stag_dir = self.setup.staging_directory
-        logging.info(f'-- Created {label_name.split(f"{stag_dir}{os.sep}")[-1]}')
+        created_file = Path(label_name).relative_to(self.setup.staging_directory)
+
+        logging.info('-- Created %s', created_file)
+
         if not self.setup.args.silent and not self.setup.args.verbose:
-            print(f'   * Created {label_name.split(f"{stag_dir}{os.sep}")[-1]}.')
+            print(f'   * Created {created_file}.')
 
         #
         # Add label to the list of generated files.
         #
-        self.setup.add_file(label_name.split(f"{stag_dir}{os.sep}")[-1])
+        self.setup.add_file(str(created_file))
 
         #
         # Wrap lines for PDS3 labels.

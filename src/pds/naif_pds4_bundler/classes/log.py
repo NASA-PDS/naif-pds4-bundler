@@ -37,7 +37,7 @@ class Log:
 
         if self.args.debug:
             log_format = (
-                "%(module)-12s %(funcName)-23s || " "%(levelname)-8s: %(message)s"
+                "%(module)-12s %(funcName)-23s || %(levelname)-8s: %(message)s"
             )
         else:
             log_format = "%(levelname)-8s: %(message)s"
@@ -64,6 +64,10 @@ class Log:
 
             if os.path.exists(log_file):
                 os.remove(log_file)
+
+            # Make sure that the working directory exists, otherwise the logger
+            # will not be able to create the log file.
+            os.makedirs(self.setup.working_directory, exist_ok=True)
 
             fh = logging.FileHandler(log_file)
             fh.setLevel(logging.INFO)
@@ -95,11 +99,9 @@ class Log:
         # Display execution platform and time.
         #
         logging.info(exec_message)
-        logging.info(f"-- Platform: {platform.platform()}")
-        logging.info(
-            f"-- Python version: {platform.python_version()} "
-            f"(Build: {platform.python_build()[1]})"
-        )
+        logging.info('-- Platform: %s', platform.platform())
+        logging.info('-- Python version: %s (Build: %s)',
+                     platform.python_version(), platform.python_build()[1])
 
         #
         # Display the arguments
@@ -110,12 +112,11 @@ class Log:
         whitespaces = len(max(argument_dict.keys(), key=len))
 
         for attribute in argument_dict:
+
             if argument_dict[attribute]:
                 logging.info(
-                    f"     {attribute}: "
-                    f'{" " * (whitespaces - len(attribute))}'
-                    f"{argument_dict[attribute]}"
-                )
+                    '     %-*s  %s',
+                    whitespaces, attribute + ":", argument_dict[attribute])
 
         if self.args.faucet == "labels":
             logging.info(

@@ -12,14 +12,6 @@ from pds.naif_pds4_bundler.utils import time
 KERNELS = Path(__file__).parent.parent / "naif_pds4_bundler" / "data" / "kernels"
 
 @pytest.fixture
-def lsk():
-    """Provides the standard LSK."""
-    lsk_file = str(KERNELS / "lsk" / "naif0012.tls")
-    spiceypy.furnsh(lsk_file)
-    yield
-    spiceypy.unload(lsk_file) # Cleanup after the test finishes
-
-@pytest.fixture
 def m2020_fk():
     """Provides the M2020 Frame Kernel."""
     kernel = str(KERNELS / "fk" / "m2020_v04.tf")
@@ -190,6 +182,10 @@ def test_pck_coverage(lsk, date_format, system, expected):
 @pytest.mark.parametrize("inputs, expected", [
     ("PRODUCT_CREATION_TIME        = 2026-03-10T11:08:04", "2026-03-10T11:08:04"),
     ("","N/A"),
+    ("PDS_VERSION_ID                = PDS3\n"
+     "RECORD_TYPE                   = FIXED_LENGTH\n"
+     "[..the rest of the label without the product creation time..]"
+     "END", "N/A")
  ])
 def test_pds3_label_gen_date(mocker, inputs, expected):
     """Test pds3 label generation date function."""

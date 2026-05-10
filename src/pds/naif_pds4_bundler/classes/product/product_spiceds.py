@@ -31,15 +31,6 @@ class SpicedsProduct(Product):
         except BaseException:
             spiceds = ""
 
-        line = f"Step {self.setup.step} - Processing spiceds file"
-        logging.info("")
-        logging.info(line)
-        logging.info("-" * len(line))
-        logging.info("")
-        self.setup.step += 1
-        if not self.setup.args.silent and not self.setup.args.verbose:
-            print("-- " + line.split(" - ")[-1] + ".")
-
         if not spiceds:
             logging.info("-- No spiceds file provided.")
 
@@ -65,7 +56,9 @@ class SpicedsProduct(Product):
                 self.version = int(latest_version) + 1
 
                 if not spiceds:
-                    logging.info(f"-- Previous spiceds found: {latest_spiceds}")
+
+                    logging.info('-- Previous spiceds found: %s', latest_spiceds)
+
                     self.generated = False
                     return
 
@@ -93,7 +86,7 @@ class SpicedsProduct(Product):
         # not remove a previously provided SPICEDS file from the configuration
         # file, if so, the user must be warned.
         #
-        self.name = "spiceds_v{0:0=3d}.html".format(self.version)
+        self.name = f'spiceds_v{self.version:0=3d}.html'
         self.path = (
             setup.staging_directory + os.sep + collection.name + os.sep + self.name
         )
@@ -103,9 +96,8 @@ class SpicedsProduct(Product):
         self.set_product_vid()
 
         logging.info(
-            f"-- spiceds file provided as input moved to staging "
-            f"area as {self.name}"
-        )
+            '-- spiceds file provided as input moved to staging area as %s',
+            self.name)
 
         #
         # The provided spiceds file is moved to the staging area.
@@ -118,7 +110,7 @@ class SpicedsProduct(Product):
         # added and the file timestamp is updated. Note that if the file
         # already had CRs the original timestamp is preserved.
         #
-        self.check_cr()
+        self._check_cr()
 
         #
         # Kernels are already generated products but Inventories are not.
@@ -129,14 +121,14 @@ class SpicedsProduct(Product):
         #
         # Check if the spiceds has not changed.
         #
-        self.generated = self.check_product()
+        self.generated = self._check_product()
 
         #
         # Validate the product by comparing it and then generate the label.
         #
         if self.generated:
             if self.setup.diff:
-                self.compare()
+                self._compare()
 
             self.label = DocumentPDS4Label(setup, collection, self)
 
@@ -146,9 +138,9 @@ class SpicedsProduct(Product):
 
     def set_product_vid(self) -> None:
         """Set the Product VID."""
-        self.vid = "{}.0".format(int(self.version))
+        self.vid = f'{int(self.version)}.0'
 
-    def check_cr(self) -> None:
+    def _check_cr(self) -> None:
         """Determine whether if ``<CR>`` has to be added to the SPICEDS."""
         #
         # We add the date to the temporary file to have a unique name.
@@ -157,8 +149,8 @@ class SpicedsProduct(Product):
         time_string = today.strftime("%Y-%m-%dT%H:%M:%S.%f")
         temporary_file = f"{self.path}.{time_string}"
 
-        with open(self.path, "r") as s:
-            with open(temporary_file, "w+") as t:
+        with open(self.path, "r", encoding='utf-8') as s:
+            with open(temporary_file, "w+", encoding='utf-8') as t:
                 for line in s:
                     line = add_carriage_return(line, self.setup.eol_pds4, self.setup)
                     t.write(line)
@@ -175,7 +167,7 @@ class SpicedsProduct(Product):
                 "-- Carriage Return has been added to lines in the spiceds file."
             )
 
-    def check_product(self) -> bool:
+    def _check_product(self) -> bool:
         """Check if the SPICEDS product needs to be generated.
 
         :return: True if the SPICEDS products needs to be generated, False otherwise
@@ -186,9 +178,9 @@ class SpicedsProduct(Product):
         #
         generate_spiceds = True
         if self.latest_spiceds:
-            with open(self.path) as f:
+            with open(self.path, encoding='utf-8') as f:
                 spiceds_current = f.readlines()
-            with open(self.latest_spiceds) as f:
+            with open(self.latest_spiceds, encoding='utf-8') as f:
                 spiceds_latest = f.readlines()
 
             differ = difflib.Differ(charjunk=difflib.IS_CHARACTER_JUNK)
@@ -206,12 +198,12 @@ class SpicedsProduct(Product):
 
             if not generate_spiceds:
                 os.remove(self.path)
-                logging.warning("-- spiceds document does not need to be " "updated.")
+                logging.warning("-- spiceds document does not need to be updated.")
                 logging.warning("")
 
         return generate_spiceds
 
-    def compare(self) -> None:
+    def _compare(self) -> None:
         """**Compare the SPICEDS Product with another SPICEDS**.
 
         The SPICEDS Product is compared with the previous
@@ -238,8 +230,8 @@ class SpicedsProduct(Product):
             # If previous increment does not work, compare with InSight
             # example.
             #
-            logging.warning(f"-- No other version of {self.name} has been found.")
-            logging.warning("-- Comparing with default InSight example.")
+            logging.warning('-- No other version of %s has been found.', self.name)
+            logging.warning('-- Comparing with default InSight example.')
 
             val_spd = (
                 f"{self.setup.root_dir}/data/insight_spice/document/spiceds_v002.html"

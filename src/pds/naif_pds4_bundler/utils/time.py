@@ -5,23 +5,29 @@ import datetime
 import spiceypy
 
 
-def current_time(time_format="infomod2"):
-    """Returns the current date and time in ``%Y-%m-%dT%H:%M:%S`` format.
+def current_time(fmt:str = "infomod2") -> str:
+    """Generates a timestamp string in ISO 8601 format (YYYY-MM-DDTHH:MM:SS).
 
-    :param time_format: Time format from configuration.
-    :type time_format: string
-    :return: Current date and time
-    :rtype: str
+    The precision of the output is determined by the fmt argument: "maklabel"
+    provides second-level resolution, while "infomod2" provides millisecond
+    resolution with a "Z" suffix. If no recognized format is provided, the
+    function defaults to microsecond precision.
+
+    :param fmt: The desired output configuration ("maklabel" or "infomod2").
+    :returns: A formatted string representing the current system time.
     """
-    time = str(datetime.datetime.now())
-    time = time.replace(" ", "T")
+    now = datetime.datetime.now()
 
-    if time_format == "maklabel":
-        time = time.split(".")[0]
-    elif time_format == "infomod2":
-        time = time[:-3] + "Z"
+    if fmt == "maklabel":
+        # Returns: YYYY-MM-DDTHH:MM:SS (Drops microseconds entirely)
+        return now.isoformat(timespec='seconds')
 
-    return time
+    if fmt == "infomod2":
+        # Returns: YYYY-MM-DDTHH:MM:SS.mmmZ (Truncates to milliseconds)
+        return now.isoformat(timespec='milliseconds') + "Z"
+
+    # Fallback behavior
+    return now.isoformat()
 
 
 def current_date(date=""):
@@ -34,14 +40,12 @@ def current_date(date=""):
     :rtype: str
     """
     if date:
-        time = datetime.datetime.strptime(date, "%Y-%m-%dT%H:%M:%S")
+        t = datetime.datetime.strptime(date, "%Y-%m-%dT%H:%M:%S")
     else:
-        time = datetime.datetime.now()
+        t = datetime.datetime.now()
 
-    date = datetime.datetime.strftime(time, "%m %-d, %Y")
-    date = calendar.month_name[int(date[0:2])] + date[2:]
-
-    return date
+    month = calendar.month_name[t.month]
+    return f"{month} {t.day}, {t.year}"
 
 
 def creation_time(time_format="infomod2"):
@@ -57,7 +61,7 @@ def creation_time(time_format="infomod2"):
     """
     t = datetime.datetime.now()
     dt, micro = datetime.datetime.strftime(t, "%Y-%m-%dT%H:%M:%S.%f").split(".")
-    creation_time = "%s.%03d" % (dt, int(micro) / 1000) + "Z"
+    creation_time = f'{dt}.{int(micro) // 1000:03d}Z'
 
     if time_format == "maklabel":
         creation_time = creation_time[:-5]
@@ -116,7 +120,8 @@ def spk_coverage(path, main_name="", date_format="infomod2", system="UTC"):
 
     for i in ids:
 
-        spiceypy.scard, 0, coverage
+        # Initialize the coverage SPICE window, setting its cardinality to zero.
+        spiceypy.scard(incard=0, cell=coverage)
         spiceypy.spkcov(spk=path, idcode=i, cover=coverage)
 
         num_inter = spiceypy.wncard(coverage)
@@ -169,7 +174,10 @@ def ck_coverage(path, timsys="TDB", date_format="infomod2", system="UTC"):
 
     for i in ids:
         coverage = spiceypy.support_types.SPICEDOUBLE_CELL(winsiz)
-        spiceypy.scard, 0, coverage
+
+        # Initialize the coverage SPICE window, setting its cardinality to zero.
+        spiceypy.scard(incard=0, cell=coverage)
+
         coverage = spiceypy.ckcov(
             ck=path,
             idcode=i,
@@ -192,15 +200,10 @@ def ck_coverage(path, timsys="TDB", date_format="infomod2", system="UTC"):
     stop_time = max(end_points_list)
 
     if timsys == "SCLK":
-        return (start_time, stop_time)
-    else:
-        return et_to_date(
-            start_time,
-            stop_time,
-            date_format=date_format,
-            kernel_type="ck",
-            system=system,
-        )
+        return start_time, stop_time
+
+    return et_to_date(start_time, stop_time, date_format=date_format,
+                      kernel_type="ck", system=system)
 
 
 def pck_coverage(path, date_format="infomod2", system="UTC"):
@@ -240,7 +243,8 @@ def pck_coverage(path, date_format="infomod2", system="UTC"):
 
     for i in ids:
 
-        spiceypy.scard, 0, coverage
+        # Initialize the coverage SPICE window, setting its cardinality to zero.
+        spiceypy.scard(incard=0, cell=coverage)
         spiceypy.pckcov(pck=path, idcode=i, cover=coverage)
 
         num_inter = spiceypy.wncard(coverage)
@@ -283,42 +287,36 @@ def dsk_coverage(path, date_format="infomod2", system="UTC"):
     :return: start and finish coverage
     :rtype: list of str
     """
-    found = True
     beget = []
     endet = []
 
-    #
     # Open the DSK file.
-    #
     handle = spiceypy.dasopr(path)
 
-    #
-    # Search the first segment in the file, obtain the segment's DLA
-    # descriptor
-    #
-    nxtdsc = spiceypy.dlabfs(handle)
-    dladsc = nxtdsc
+    try:
+        # Search the first segment in the file, obtain the segment's DLA
+        # descriptor.
+        dladsc = spiceypy.dlabfs(handle)
 
-    #
-    #  Loop through segments to get the earliest starting epoch and the
-    #  latest ending epoch.
-    #
-    while found:
-        dskdsc = spiceypy.dskgd(handle, dladsc)
+        #  Loop through segments to get the earliest starting epoch and the
+        #  latest ending epoch.
+        while True:
+            dskdsc = spiceypy.dskgd(handle, dladsc)
 
-        beget.append(dskdsc.start)
-        endet.append(dskdsc.stop)
+            beget.append(dskdsc.start)
+            endet.append(dskdsc.stop)
 
-        currnt = dladsc
-        try:
-            (dladsc, found) = spiceypy.dlafns(handle, currnt)
-        except BaseException:
-            #
-            # Close the DSK file
-            #
-            spiceypy.dascls(handle)
+            try:
+                (dladsc, _) = spiceypy.dlafns(handle, dladsc)
 
-            break
+            # SpiceyPy's dlafns raises a NotFoundError, if it cannot find a
+            # segment following a specified segment in a DLA file. That
+            # means that we are at the end of the file.
+            except spiceypy.exceptions.NotFoundError:
+                break
+    finally:
+        # Close the DSK file
+        spiceypy.dascls(handle)
 
     start_time = min(beget)
     stop_time = max(endet)
@@ -391,7 +389,7 @@ def pds3_label_gen_date(file):
     """
     generation_date = "N/A"
 
-    with open(file, "r") as f:
+    with open(file, "r", encoding='utf-8') as f:
 
         for line in f:
             if "PRODUCT_CREATION_TIME" in line:

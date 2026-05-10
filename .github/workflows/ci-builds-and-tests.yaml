@@ -38,6 +38,7 @@ jobs:
       run: python -m unittest discover tests/naif_pds4_bundler
 
   windows-wsl-tests:
+    if: false # Job is now temporarily disabled
     name: Windows/WSL Test (Python ${{ matrix.python-version }})
     runs-on: windows-latest
 

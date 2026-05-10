@@ -35,7 +35,8 @@ build/
 .tox/
 venv/
 .coverage
-
+coverage.xml
+htmlcov
 
 # Log file
 *.log

@@ -12,6 +12,7 @@ import re
 import shutil
 import stat
 import sys
+from pathlib import Path
 import tempfile
 from typing import Optional
 
@@ -30,10 +31,8 @@ def etree_to_dict(etree):
 
     https://www.xml.com/pub/a/2006/05/31/converting-between-xml-and-json.html
 
-    :param etree: Element Tree read from XML file
-    :type etree: dict
-    :return: XML File converted into a JSON file
-    :rtype: dict
+    :param etree: Element Tree read from an XML file.
+    :returns: The XML File converted into a JSON file
     """
     jtree = {etree.tag: {} if etree.attrib else None}
     children = list(etree)
@@ -89,11 +88,9 @@ def copy(src, dest):
         if e.errno == errno.ENOTDIR:
             shutil.copy(src, dest)
         else:
-            logging.warning(
-                f"-- Directory {src.split(os.sep)[-1]} not "
-                f"copied, probably because the increment "
-                "directory exists.\n Error: %s" % e
-            )
+            logging.warning("-- Directory %s not copied, probably because the "
+                            "increment directory exists.\n"
+                            "Error: %s", src.split(os.sep)[-1], e)
 
 
 def safe_make_directory(path):
@@ -104,8 +101,10 @@ def safe_make_directory(path):
     """
     try:
         os.mkdir(path)
-        logging.info(f"-- Generated directory: {path}  ")
-        logging.info("")
+
+        logging.info('-- Generated directory: %s  ', path)
+        logging.info('')
+
     except BaseException:
         pass
 
@@ -247,8 +246,8 @@ def add_crs_to_file(file, eol, setup=False):
     """
     try:
         file_crs = file.split(".")[0] + "crs_tmp"
-        with open(file, "r") as r:
-            with open(file_crs, "w+") as f:
+        with open(file, "r", encoding='utf-8') as r:
+            with open(file_crs, "w+", encoding='utf-8') as f:
                 for line in r:
                     line = add_carriage_return(line, eol, setup)
                     f.write(line)
@@ -283,9 +282,9 @@ def fill_template(list_object, product_file, product_dictionary):
     :param product_dictionary: Dictionary of keys to replace
     :type product_dictionary: dict
     """
-    with open(product_file, "w") as f:
+    with open(product_file, "w", encoding='utf-8') as f:
 
-        with open(list_object.template, "r") as t:
+        with open(list_object.template, "r", encoding='utf-8') as t:
             for line in t:
                 line = line.rstrip()
                 for key, value in product_dictionary.items():
@@ -314,7 +313,7 @@ def get_context_products(setup):
     registered_context_products_file = str(
         files('pds.naif_pds4_bundler.data').joinpath('registered_context_products.json')
     )
-    with open(registered_context_products_file, "rt") as f:
+    with open(registered_context_products_file, "rt", encoding='utf-8') as f:
         context_products = json.load(f)["Product_Context"]
 
     #
@@ -389,7 +388,7 @@ def mk_to_list(mk, setup):
     path_symbol = ""
     get_symbol = False
     ker_mk_list = []
-    with open(mk, "r") as f:
+    with open(mk, "r", encoding='utf-8') as f:
         for line in f:
             if path_symbol:
                 if path_symbol in line:
@@ -424,7 +423,7 @@ def mk_to_list(mk, setup):
 
     if not ker_mk_list:
         handle_npb_error(
-            f"No kernels present in {mk}. " f"Please review MK generation.", setup=setup
+            f"No kernels present in {mk}. Please review MK generation.", setup=setup
         )
 
     return ker_mk_list
@@ -483,7 +482,7 @@ def get_latest_kernel(
 
     if mks:
         for mk in mks:
-            with open(mk, "r") as m:
+            with open(mk, "r", encoding='utf-8') as m:
                 for line in m:
                     if re.findall(pattern, line):
                         kernels_with_path.append(line.strip())
@@ -518,9 +517,7 @@ def get_latest_kernel(
         try:
             return kernels.pop()
         except BaseException:
-            logging.warning(
-                "        No kernels found with pattern " "{}".format(pattern)
-            )
+            logging.warning("        No kernels found with pattern %s", pattern)
             return []
     else:
         #
@@ -583,15 +580,17 @@ def compare_files(fromfile, tofile, dest_dir, display):
     :return: True if the files are different, False if they are the same.
     :rtype: bool
     """
-    with open(fromfile) as ff:
+    with open(fromfile, encoding='utf-8') as ff:
         fromlines = ff.readlines()
-    with open(tofile) as tf:
+    with open(tofile, encoding='utf-8') as tf:
         tolines = tf.readlines()
 
     if fromlines == tolines:
-        logging.info("-- The following files have the same content:")
-        logging.info(f"   {fromfile}")
-        logging.info(f"   {tofile}")
+
+        logging.info('-- The following files have the same content:')
+        logging.info('   %s', fromfile)
+        logging.info('   %s', tofile)
+
         if md5(fromfile) == md5(tofile):
             logging.info("   And have the same MD5Sum.")
             return False
@@ -609,15 +608,10 @@ def compare_files(fromfile, tofile, dest_dir, display):
             fromlines, tolines, fromfile, tofile, context=False, numlines=False
         )
 
-        diff_html = open(
-            dest_dir + f"/diff_"
-            f"{fromfile.split(os.sep)[-1].replace('.', '_')}_"
-            f"{tofile.split(os.sep)[-1].replace('.', '_')}"
-            f".html",
-            "w",
-        )
-        diff_html.writelines(diff)
-        diff_html.close()
+        with open(f'{dest_dir}/diff_{Path(fromfile).name.replace(".", "_")}_'
+                  f'{Path(tofile).name.replace(".", "_")}.html',
+                  'w', encoding='utf-8') as diff_html:
+            diff_html.writelines(diff)
 
     return True
 
@@ -676,30 +670,24 @@ def match_patterns(name, name_w_pattern, patterns):
     value = ""
     value_bool = False
 
-    for i in range(len(name_check)):
-        if (name_check[i] == name[i]) and (not value_bool):
+    for i, n in enumerate(name_check):
+        if (n == name[i]) and (not value_bool):
             continue
-        if (name_check[i] == name[i]) and value_bool:
+        if (n == name[i]) and value_bool:
             value_bool = False
             values_list.append(value)
             value = ""
-        elif (name_check[i] == "$") and (not value_bool):
+        elif (n == "$") and (not value_bool):
             value_bool = True
             value += name[i]
-        elif (name_check[i] == "$") and value_bool:
+        elif (n == "$") and value_bool:
             value += name[i]
         else:
             raise
 
-    #
     # Correlate the values with their position in the file name with
     # patterns.
-    #
-    values = {}
-    for i in range(len(values_list)):
-        values[pattern_name_order[i]] = values_list[i]
-
-    return values
+    return dict(zip(pattern_name_order, values_list))
 
 
 def utf8len(strn):
@@ -742,14 +730,15 @@ def checksum_from_registry(path, working_directory):
 
     for checksum_registry in checksum_registries:
         if not checksum_found:
-            with open(checksum_registry, "r") as lbl:
+            with open(checksum_registry, "r", encoding='utf-8') as lbl:
                 for line in lbl:
                     if path in line:
                         checksum = line.split()[-1]
+
                         logging.warning(
-                            f"-- Checksum obtained from Checksum "
-                            f"Registry file: {checksum_registry}"
-                        )
+                            '-- Checksum obtained from Checksum '
+                            'Registry file: %s', checksum_registry)
+
                         checksum_found = True
                         break
 
@@ -767,15 +756,16 @@ def checksum_from_label(path):
     checksum = ""
     product_label = path.split(".")[0] + ".xml"
     if os.path.exists(product_label):
-        with open(product_label, "r") as lbl:
+        with open(product_label, "r", encoding='utf-8') as lbl:
             for line in lbl:
                 if "<md5_checksum>" in line:
                     checksum = line.split("<md5_checksum>")[-1]
                     checksum = checksum.split("</md5_check")[0]
+
                     logging.warning(
-                        f"-- Checksum obtained from existing label:"
-                        f" {product_label.split(os.sep)[-1]}"
-                    )
+                        '-- Checksum obtained from existing label: %s',
+                        Path(product_label).name)
+
                     break
 
     return checksum
@@ -837,7 +827,7 @@ def string_in_file(file, str_to_check, repetitions=1):
     :rtype: bool
     """
     lines_with_string = 0
-    with open(file, "r") as r:
+    with open(file, "r", encoding='utf-8') as r:
         for line in r:
             if str_to_check in line:
                 lines_with_string += 1
@@ -865,7 +855,7 @@ def replace_string_in_file(file, old_string, new_string, setup):
     # Read the file, replace the old string with the new one, and "force" the
     # PDS3 carriage return.
     new_file_content = ""
-    with open(file, 'rt') as handle:
+    with open(file, 'rt', encoding='utf-8') as handle:
         for line in handle:
             new_line = line.replace(old_string, new_string)
             new_file_content += add_carriage_return(new_line, setup.eol_pds3, setup)
@@ -915,7 +905,7 @@ def product_mapping(name, setup, cleanup=True):
     get_map = False
     mapping = False
 
-    with open(kernel_list_file, "r") as lst:
+    with open(kernel_list_file, "r", encoding='utf-8') as lst:
         for line in lst:
             if name in line:
                 get_map = True
@@ -995,7 +985,7 @@ def check_kernel_integrity(path):
         #
         # But for an archive only DAF is acceptable.
         #
-        if (arch != "DAF") and (arch != "DAS"):
+        if arch not in ('DAF', 'DAS'):
             error = f"Kernel {name} architecture {arch} is invalid."
         else:
             pass
@@ -1079,7 +1069,7 @@ def check_badchar(file):
     """
     error = []
     line_num = 1
-    with open(file, "r") as f:
+    with open(file, "r", encoding='utf-8') as f:
         for line in f:
             if not line.isascii():
                 char_count = 0
@@ -1136,7 +1126,7 @@ def check_line_length(file):
     """
     error = []
     line_num = 1
-    with open(file, "r") as f:
+    with open(file, "r", encoding='utf-8') as f:
         for line in f:
             if len(line) > 80:
                 error.append(f"Line {line_num} is longer than 80 characters")

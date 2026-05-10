@@ -158,13 +158,13 @@ class SpiceKernelPDS3Label(PDSLabel):
         kernel architecture specification and removes extra empty lines at the
         end of the kernel file.
         """
-        with open(self.name, "r") as label:
+        with open(self.name, "r", encoding='utf-8') as label:
             label_lines = label.readlines()
 
-        with open(self.product.path, "r+") as kernel:
+        with open(self.product.path, "r+", encoding='utf-8') as kernel:
             kernel_lines = kernel.readlines()
 
-        with open(self.product.path, "w") as kernel:
+        with open(self.product.path, "w", encoding='utf-8') as kernel:
 
             if "KPL/" in kernel_lines[0]:
                 kernel.write(kernel_lines[0])
@@ -234,7 +234,7 @@ class SpiceKernelPDS3Label(PDSLabel):
         The routine inserts the label in the kernel comment.
         """
         label_lines = []
-        with open(self.name, "r") as label:
+        with open(self.name, "r", encoding='utf-8') as label:
             for line in label:
                 if line.strip() != "END":
                     label_lines.append(line.rstrip())

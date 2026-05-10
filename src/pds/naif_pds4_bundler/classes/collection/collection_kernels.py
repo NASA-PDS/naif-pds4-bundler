@@ -21,15 +21,6 @@ class SpiceKernelsCollection(Collection):
 
     def __init__(self, setup, bundle, kernels) -> None:
         """Constructor."""
-        line = f"Step {setup.step} - SPICE kernel collection/data processing"
-        logging.info("")
-        logging.info(line)
-        logging.info("-" * len(line))
-        logging.info("")
-        setup.step += 1
-        if not setup.args.silent and not setup.args.verbose:
-            print("-- " + line.split(" - ")[-1] + ".")
-
         self.bundle = bundle
         self.list = kernels
         self.type = "spice_kernels"
@@ -49,15 +40,6 @@ class SpiceKernelsCollection(Collection):
                  user or not.
         :rtype: dictionary.
         """
-        line = f"Step {self.setup.step} - Generation of meta-kernel(s)"
-        logging.info("")
-        logging.info(line)
-        logging.info("-" * len(line))
-        logging.info("")
-        self.setup.step += 1
-        if not self.setup.args.silent and not self.setup.args.verbose:
-            print("-- " + line.split(" - ")[-1] + ".")
-
         meta_kernels = {}
         #
         # First check if a meta-kernel has been provided via configuration by
@@ -106,8 +88,9 @@ class SpiceKernelsCollection(Collection):
                         # If the kernel is not present we don't provide the path.
                         #
                         logging.info(
-                            f"-- {kernel} not provided as input in kernels directory."
-                        )
+                            '-- %s not provided as input in kernels directory.',
+                            kernel)
+
                         meta_kernels[kernel] = False
 
         #
@@ -139,10 +122,10 @@ class SpiceKernelsCollection(Collection):
                 and (self.setup.args.faucet != "labels")
             ):
                 if (
-                    self.setup.mk.__len__() == 1
-                    and self.setup.mk[0]["name"].__len__() == 1
-                    and self.setup.mk[0]["name"][0].__len__() == 1
-                    and self.setup.mk[0]["name"][0]["pattern"].__len__() == 2
+                    len(self.setup.mk) == 1
+                    and len(self.setup.mk[0]["name"]) == 1
+                    and len(self.setup.mk[0]["name"][0]) == 1
+                    and len(self.setup.mk[0]["name"][0]["pattern"]) == 2
                     and not isinstance(self.setup.mk[0]["name"][0]["pattern"], list)
                 ):
                     if self.setup.mk[0]["name"][0]["pattern"]["#text"] == "VERSION":
@@ -183,18 +166,6 @@ class SpiceKernelsCollection(Collection):
         SPK or CK kernel. Alternatively it can be provided as a parameter of the
         execution.
         """
-        line = (
-            f"Step {self.setup.step} - Determine archive increment "
-            f"start and finish times"
-        )
-        logging.info("")
-        logging.info(line)
-        logging.info("-" * len(line))
-        logging.info("")
-        self.setup.step += 1
-        if not self.setup.args.silent and not self.setup.args.verbose:
-            print("-- " + line.split(" - ")[-1] + ".")
-
         increment_start = ""
         increment_finish = ""
         #
@@ -211,10 +182,10 @@ class SpiceKernelsCollection(Collection):
                     if prod.mk_sets_coverage:
                         increment_starts.append(prod.start_time)
                         increment_finishs.append(prod.stop_time)
+
                         logging.info(
-                            f"-- Using MK: {prod.name} to determine "
-                            f"increment coverage."
-                        )
+                            '-- Using MK: %s to determine increment coverage.',
+                            prod.name)
 
             increment_start = min(increment_starts)
             increment_finish = max(increment_finishs)
@@ -225,22 +196,23 @@ class SpiceKernelsCollection(Collection):
             # increment stop time has been provided as an input
             # parameter.
             #
-            logging.warning("-- No Meta-kernels found to determine increment " "times.")
+            logging.warning("-- No Meta-kernels found to determine increment times.")
 
             if hasattr(self.setup, "increment_start"):
+
                 logging.info(
-                    f"   Increment stop time set to: "
-                    f"{self.setup.increment_start} "
-                    f"as provided from configuration file"
-                )
+                    '   Increment stop time set to: %s as provided from '
+                    'configuration file', self.setup.increment_start)
+
                 increment_start = self.setup.increment_start
 
             if hasattr(self.setup, "increment_finish"):
+
                 logging.info(
-                    f"   Increment finish time set to: "
-                    f"{self.setup.increment_finish} "
-                    f"as provided from configuration file"
+                    '   Increment finish time set to: %s as provided from '
+                    'configuration file', self.setup.increment_finish
                 )
+
                 increment_finish = self.setup.increment_finish
 
             #
@@ -249,19 +221,19 @@ class SpiceKernelsCollection(Collection):
             #
             if not increment_start:
                 increment_start = self.setup.mission_start
+
                 logging.warning(
-                    "-- No increment start time provided via configuration. "
-                    "Mission start time will be used:"
-                )
-                logging.warning(f"   {increment_start}")
+                    '-- No increment start time provided via configuration. '
+                    'Mission start time will be used:')
+                logging.warning('   %s', increment_start)
 
             if not increment_finish:
                 increment_finish = self.setup.mission_finish
+
                 logging.warning(
-                    "-- No increment finish time provided via configuration. "
-                    "Mission stop time will be used:"
-                )
-                logging.warning(f"   {increment_finish}")
+                    '-- No increment finish time provided via configuration. '
+                    'Mission stop time will be used:')
+                logging.warning('   %s', increment_finish)
 
         #
         # We check the coverage with the previous increment.
@@ -283,7 +255,7 @@ class SpiceKernelsCollection(Collection):
             )
             bundles.sort()
 
-            with open(bundles[-1], "r") as b:
+            with open(bundles[-1], "r", encoding='utf-8') as b:
                 for line in b:
                     if "<start_date_time>" in line:
                         prev_increment_start = line.split(">")[-2].split("<")[0]
@@ -294,8 +266,8 @@ class SpiceKernelsCollection(Collection):
             # Provide different logging level depending on the times'
             # combination.
             #
-            logging.info("-- Previous bundle increment interval is:")
-            logging.info(f"   {prev_increment_start} - {prev_increment_finish}")
+            logging.info('-- Previous bundle increment interval is:')
+            logging.info('   %s - %s', prev_increment_start, prev_increment_finish)
 
             #
             # Correct the increment interval with previous interval if
@@ -331,14 +303,14 @@ class SpiceKernelsCollection(Collection):
                 "Increment start/finish times will not be corrected."
             )
 
-        logging.info("-- Increment interval for collection and bundle set to:")
-        logging.info(f"   {increment_start} - {increment_finish}")
-        logging.info("")
+        logging.info('-- Increment interval for collection and bundle set to:')
+        logging.info('   %s - %s', increment_start, increment_finish)
+        logging.info('')
 
         self.setup.increment_finish = increment_finish
         self.setup.increment_start = increment_start
 
-    def validate(self):
+    def validate(self) -> None:
         """Validate the SPICE Kernels collection.
 
         The SPICE Kernels collection validation performs the following checks:
@@ -351,15 +323,6 @@ class SpiceKernelsCollection(Collection):
              ``file_name``, ``file_size``, ``md5_checksum``, ``object_length``,
              ``kernel_type``, and ``encoding_type``.
         """
-        line = f"Step {self.setup.step} - Validate SPICE kernel collection generation"
-        logging.info("")
-        logging.info(line)
-        logging.info("-" * len(line))
-        logging.info("")
-        self.setup.step += 1
-        if not self.setup.args.silent and not self.setup.args.verbose:
-            print("-- " + line.split(" - ")[-1] + ".")
-
         #
         # Check that all the kernels from the list are present
         #
@@ -396,7 +359,11 @@ class SpiceKernelsCollection(Collection):
         if non_present_products:
             logging.error("-- The following products from the list are not present:")
             for product in non_present_products:
-                logging.error(f"   {product}")
+
+                logging.error('   %s', product)
+
+                # TODO: this is a bug. The termination of the pipeline should happen
+                #       once all the "non_present_products" are reported.
                 handle_npb_error(
                     "Some products from the list are not present.",
                     setup=self.setup,
@@ -433,7 +400,9 @@ class SpiceKernelsCollection(Collection):
         if non_labeled_products:
             logging.error("-- The following products have not been labeled:")
             for product in non_labeled_products:
-                logging.error(f"   {product}")
+
+                logging.error('   %s', product)
+
                 # TODO: This IF statement goes after implementing PDS3 labeling.
                 if self.setup.pds_version == "4":
                     handle_npb_error(
@@ -447,7 +416,7 @@ class SpiceKernelsCollection(Collection):
         # Exit the method if no products are present in collection
         #
         if not self.product:
-            return None
+            return
 
         #
         # Display the key elements of the labels for the user to do a visual
@@ -480,10 +449,12 @@ class SpiceKernelsCollection(Collection):
 
         elements_dict = dict.fromkeys(elements)
 
-        products = self.product
-        for product in products:
-            label_name = product.label.name
-            with open(label_name, "r") as p:
+        #TODO: Possible bug: when executed in PDS3 mode, self.product may have (?)
+        #      a metakernel. In PDS3, metakernels are not labeled, but this loop
+        #      will attempt to open the label for reading, causing a
+        #      FileNotFoundError exception.
+        for product in self.product:
+            with open(product.label.name, "r", encoding='utf-8') as p:
                 for line in p:
                     for element in elements:
                         if element in line:
@@ -497,8 +468,6 @@ class SpiceKernelsCollection(Collection):
         logging.info("")
         for key in elements_dict.keys():
             for element in elements_dict[key]:
-                logging.info(f"   {element}")
-            logging.info("")
-        logging.info("")
-
-        return None
+                logging.info('   %s', element)
+            logging.info('')
+        logging.info('')

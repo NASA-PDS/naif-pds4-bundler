@@ -76,7 +76,8 @@ class SpiceKernelProduct(Product):
         # We copy the kernel to the staging directory. If multiple directories
         # are provided, the first one is used.
         #
-        logging.info(f"-- Copy {self.name} to staging directory.")
+        logging.info('-- Copy %s to staging directory.', self.name)
+
         if not os.path.isfile(product_path + self.name):
             origin_path = ""
             for directory in self.setup.kernels_directory:
@@ -111,10 +112,11 @@ class SpiceKernelProduct(Product):
                     if file:
                         origin_path = file[0]
                         self.new_product = True
+
                         logging.info(
-                            f"-- Mapping {product_mapping(self.name, self.setup)} "
-                            f"with {self.name}"
-                        )
+                            '-- Mapping %s with %s',
+                            product_mapping(self.name, self.setup), self.name)
+
                         break
 
             #
@@ -126,7 +128,7 @@ class SpiceKernelProduct(Product):
             shutil.copy2(origin_path, product_path + os.sep + self.name)
 
         else:
-            logging.warning(f"     {self.name} already present in staging directory.")
+            logging.warning('     %s already present in staging directory.', self.name)
 
             #
             # Even though it is not a 'new' product, the file is present in
@@ -148,7 +150,7 @@ class SpiceKernelProduct(Product):
         # Extract the required information from the kernel list read from
         # configuration for the product.
         #
-        (missions, observers, targets) = self.get_mission_and_observer_and_target()
+        (missions, observers, targets) = self.collection.get_mission_and_observer_and_target(self.name)
 
         self.missions = missions
         self.targets = targets
@@ -157,7 +159,8 @@ class SpiceKernelProduct(Product):
         #
         # The kernel is labeled.
         #
-        logging.info(f"-- Labeling {self.name}...")
+        logging.info('-- Labeling %s...', self.name)
+
         if setup.pds_version == "4":
             self.label = SpiceKernelPDS4Label(setup, self)
         else:
@@ -169,9 +172,7 @@ class SpiceKernelProduct(Product):
 
         :return: product LID
         """
-        product_lid = "{}:spice_kernels:{}_{}".format(
-            self.setup.logical_identifier, self.type, self.name
-        ).lower()
+        product_lid = f'{self.setup.logical_identifier}:spice_kernels:{self.type}_{self.name}'.lower()
 
         return product_lid
 
@@ -203,7 +204,7 @@ class SpiceKernelProduct(Product):
         get_token = False
         description = False
 
-        with open(kernel_list_file, "r") as lst:
+        with open(kernel_list_file, "r", encoding='utf-8') as lst:
             for line in lst:
                 if self.name in line:
                     get_token = True
@@ -237,7 +238,7 @@ class SpiceKernelProduct(Product):
         get_token = False
         maklabel_options = False
 
-        with open(kernel_list_file, "r") as lst:
+        with open(kernel_list_file, "r", encoding='utf-8') as lst:
             for line in lst:
                 if self.name in line:
                     get_token = True
@@ -263,7 +264,7 @@ class SpiceKernelProduct(Product):
         coverage = []
         product_label = self.path.split(".")[0] + ".xml"
         if os.path.exists(product_label):
-            with open(product_label, "r") as lbl:
+            with open(product_label, "r", encoding='utf-8') as lbl:
                 start = ""
                 stop = ""
                 for line in lbl:
@@ -275,11 +276,11 @@ class SpiceKernelProduct(Product):
                         stop = stop.split("</stop_date_time>")[0]
                     if start and stop:
                         coverage = [start, stop]
+
                         logging.warning(
-                            f"-- Coverage obtained from existing "
-                            f"label: "
-                            f"{product_label.split(os.sep)[-1]}"
-                        )
+                            '-- Coverage obtained from existing label: %s',
+                            product_label.split(os.sep)[-1])
+
                         break
 
         if not coverage:
@@ -342,7 +343,7 @@ class SpiceKernelProduct(Product):
         :return: List of IDs present in the IK
         :rtype: list
         """
-        with open(f"{self.path}", "r") as f:
+        with open(f"{self.path}", "r", encoding='utf-8') as f:
 
             id_list = []
             parse_bool = False

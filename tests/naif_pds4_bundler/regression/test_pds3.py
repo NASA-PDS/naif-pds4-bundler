@@ -59,9 +59,9 @@ def compare(self):
                 tolines = list(map(str.rstrip, tolines))
                 while "" in tolines:
                     tolines.remove("")
-            if fromlines != tolines:
-                print(f"Assertion False for: {product}")
-                self.assertTrue(False)
+
+            self.assertEqual(fromlines, tolines, msg=f"Assertion False for: {product}")
+
     dirs = ["working", "staging", "kernels", mis]
     for dir in dirs:
         shutil.move(dir, f"{dir}_old")

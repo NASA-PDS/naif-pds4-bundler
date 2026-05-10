@@ -3,6 +3,7 @@ import glob
 import logging
 import os
 import shutil
+from pathlib import Path
 
 from .product import Product
 from ...pipeline.runtime import handle_npb_error
@@ -22,18 +23,14 @@ class InventoryProduct(Product):
 
     def __init__(self, setup, collection) -> None:
         """Constructor."""
-        if collection.name != "miscellaneous":
-            line = f"Step {setup.step} - Generation of {collection.name} collection"
-            logging.info("")
-            logging.info(line)
-            logging.info("-" * len(line))
-            logging.info("")
-            setup.step += 1
-            if not setup.args.silent and not setup.args.verbose:
-                print("-- " + line.split(" - ")[-1] + ".")
 
-        self.setup = setup
         self.collection = collection
+        self.column_bytes = []
+        self.column_start_bytes = []
+        self.file_types = []
+        self.rows = 0
+        self.row_bytes = 0
+        self.setup = setup
 
         if setup.pds_version == "3":
             self.path = f"{setup.staging_directory}/index/index.tab"
@@ -73,25 +70,24 @@ class InventoryProduct(Product):
                     latest_version = latest_file.split("_v")[-1].split(".")[0]
                     self.version = int(latest_version) + 1
 
-                    logging.info(f"-- Previous inventory file is: {latest_file}")
-                    logging.info(f"-- Generate version {self.version}.")
+                    logging.info('-- Previous inventory file is: %s', latest_file)
+                    logging.info('-- Generate version %d.', self.version)
 
                 except BaseException:
                     self.version = 1
                     self.path_current = ""
 
-                    logging.warning("-- Previous inventory file not found.")
-                    logging.warning(f"-- Default to version {self.version}.")
-                    logging.warning("-- The version of this file might be incorrect.")
+                    logging.warning('-- Previous inventory file not found.')
+                    logging.warning('-- Default to version %d.', self.version)
+                    logging.warning('-- The version of this file might be incorrect.')
 
             else:
                 self.version = 1
                 self.path_current = ""
 
-                logging.warning(f"-- Default to version {self.version}.")
+                logging.warning('-- Default to version %d.', self.version)
                 logging.warning(
-                    "-- Make sure this is the first release of the archive."
-                )
+                    '-- Make sure this is the first release of the archive.')
 
             self.name = f"collection_{collection.name}_inventory_v{self.version:03}.csv"
             self.path = (
@@ -136,7 +132,7 @@ class InventoryProduct(Product):
 
     def set_product_vid(self) -> None:
         """Set the Product VID."""
-        self.vid = "{}.0".format(int(self.version))
+        self.vid = f'{int(self.version)}.0'
 
     def write_product(self) -> None:
         """Write and validate the Collection inventory."""
@@ -146,10 +142,10 @@ class InventoryProduct(Product):
             self.write_pds3_index_product()
 
         logging.info(
-            f"-- Generated {self.path.split(self.setup.staging_directory)[-1]}"
-        )
+            '-- Generated %s', Path(self.path).relative_to(self.setup.staging_directory).name)
+
         if not self.setup.args.silent and not self.setup.args.verbose:
-            print(f"   * Created {self.path.split(self.setup.staging_directory)[-1]}.")
+            print('   * Created %s.', Path(self.path).relative_to(self.setup.staging_directory).name)
 
         if self.setup.pds_version == "4":
             self.validate_pds4()
@@ -165,9 +161,9 @@ class InventoryProduct(Product):
         # If there is an existing version we need to add the items from
         # the previous version as SECONDARY members
         #
-        with open(self.path, "w+") as f:
+        with open(self.path, "w+", encoding='utf-8') as f:
             if self.path_current:
-                with open(self.path_current, "r") as r:
+                with open(self.path_current, "r", encoding='utf-8') as r:
                     for line in r:
                         if "P,urn" in line:
                             #
@@ -209,7 +205,7 @@ class InventoryProduct(Product):
                 f"{self.setup.bundle_directory}/{self.setup.volume_id}/index/index.tab"
             )
 
-            with open(existing_index, "r") as f:
+            with open(existing_index, "r", encoding='utf-8') as f:
                 for line in f:
                     if line.strip() != "":
                         index_row = line.split(",")
@@ -264,7 +260,7 @@ class InventoryProduct(Product):
         file_types = []
 
         line_for_length = ""
-        with open(self.path, "w+") as f:
+        with open(self.path, "w+", encoding='utf-8') as f:
             for row in index:
                 rows += 1
                 line = ""
@@ -331,7 +327,7 @@ class InventoryProduct(Product):
         The Inventory is validated by checking that all the products listed
         are present in the archive.
         """
-        logging.info(f"-- Validating {self.name}...")
+        logging.info('-- Validating %s...', self.name)
 
         #
         # Check that all the products are listed in the collection product.
@@ -341,15 +337,14 @@ class InventoryProduct(Product):
         for product in self.collection.product:
             if type(product).__name__ != "InventoryProduct":
                 product_found = False
-                with open(self.path, "r") as c:
+                with open(self.path, "r", encoding='utf-8') as c:
                     for line in c:
                         if product.lid in line:
                             product_found = True
                     if not product_found:
                         logging.error(
-                            f"      Product {product.lid} not found. "
-                            f"Consider increment re-generation."
-                        )
+                            '      Product %s not found. '
+                            'Consider increment re-generation.', product.lid)
 
         logging.info("      OK")
         logging.info("")
@@ -361,7 +356,7 @@ class InventoryProduct(Product):
         are present in the archive and comparing the index file with the
         previous one.
         """
-        logging.info(f"-- Validating {self.name}...")
+        logging.info('-- Validating %s...', self.name)
 
     def compare(self) -> None:
         """**Compare the Inventory Product with another Inventory**.
@@ -372,10 +367,8 @@ class InventoryProduct(Product):
         """
         mission_acronym = self.setup.mission_acronym
         logging.info(
-            f"-- Comparing "
-            f'{self.name.split(f"{mission_acronym}_spice/")[-1]}'
-            f"..."
-        )
+            '-- Comparing %s...',
+            self.name.split(f'{mission_acronym}_spice/')[-1])
 
         #
         # Use the prior version of the same product, if it does not

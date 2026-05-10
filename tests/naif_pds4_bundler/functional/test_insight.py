@@ -370,7 +370,7 @@ def test_insight_mk_input(self):
         with open(updated_config, "w") as n:
             for line in c:
                 if "<file> </file>" in line:
-                    n.write("            <file>../data/insight_v08.tm" "</file>\n")
+                    n.write("            <file>../data/insight_v08.tm</file>\n")
                 else:
                     n.write(line)
 
@@ -819,7 +819,7 @@ def test_insight_only_checksums(self):
         with open(updated_config, "w") as n:
             for line in c:
                 if "<spiceds>../data/spiceds_insight.html</spiceds>" in line:
-                    n.write("            " "<spiceds> </spiceds>\n")
+                    n.write("            <spiceds> </spiceds>\n")
                 else:
                     n.write(line)
 
