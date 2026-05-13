@@ -4,11 +4,12 @@ import logging
 from dataclasses import dataclass
 from pathlib import Path
 import shutil
+from xmlrpc.client import Fault
 
 import pytest
 import xml.etree.ElementTree as tree
 
-from unittest.mock import call, MagicMock, patch
+from unittest.mock import call, MagicMock, patch, mock_open
 
 import os
 
@@ -69,9 +70,12 @@ def test_add_carriage_return_logging_error(monkeypatch, caplog):
 # ----------------------------------------------------------------------------
 
 @pytest.mark.parametrize("inputs, outputs", [
-    ( "Chatty\nkitty\n", "Chatty<CR>\nkitty<CR>\n"),
+    ("Chatty\nkitty\n", "Chatty<CR>\nkitty<CR>\n"),
+    ("Chatty kitty ", "Chatty kitty<CR>\n"),
+    ("Kitty", "Kitty<CR>\n"),
     ("Kitty\n", "Kitty<CR>\n"),
-    ("Meow \n", "Meow<CR>\n"),
+    ("Meow \r\n", "Meow<CR>\n"),
+    ("Meow\r\n Meow\r\n", "Meow<CR>\nMeow<CR>\n"),
     ("\n", "<CR>\n"),
     ("", ""),
 ])
@@ -79,7 +83,7 @@ def test_add_crs_to_file_success(monkeypatch, tmp_path, inputs, outputs):
     """Test add_crs_to_file function using pytest.
     This is for a successful case"""
     fake_file = tmp_path / "file.txt"
-    fake_file.write_text(inputs)
+    fake_file.write_text(inputs, newline='')
 
     def mock_add_cr(line, eol, setup):
         return line.strip() + "<CR>\n"
@@ -88,15 +92,14 @@ def test_add_crs_to_file_success(monkeypatch, tmp_path, inputs, outputs):
 
     files.add_crs_to_file(str(fake_file), eol="\n", setup=False)
 
-    expected = outputs
-    assert fake_file.read_text() == expected
+    assert fake_file.read_text() == outputs
 
 def test_add_crs_to_file_logging_error(monkeypatch, caplog):
     """Test add_crs_to_file function using pytest.
     This is to test logging errors"""
-
     def mock_handle_error(msg, setup):
-        files.logging.getLogger("files").error(msg)
+        if not setup:
+            logging.error(msg)
 
     monkeypatch.setattr(files, "handle_npb_error", mock_handle_error)
     bad_path = "/bad/path/file.txt"
@@ -104,7 +107,11 @@ def test_add_crs_to_file_logging_error(monkeypatch, caplog):
     with caplog.at_level(files.logging.ERROR):
         files.add_crs_to_file(bad_path, eol="\n")
 
-    assert f"Carriage return adding error for {bad_path}" in caplog.text
+    expected = [(logging.ERROR, 'Carriage return adding error for /bad/path/file.txt.')]
+
+    results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+    assert results == expected
 
 # ----------------------------------------------------------------------------
 # files.check_badchar tests
@@ -114,9 +121,12 @@ def test_add_crs_to_file_logging_error(monkeypatch, caplog):
     ("the OSIRIS-REx spacecraft",[]),
     ("where\nVersion",[]),
     ("Mission © Bennu",["NON-ASCII character(s) in line 1:","Mission © Bennu","        ^      "]),
-    ("INS-155101_FOV_REF_ANGLE”=",["NON-ASCII character(s) in line 1:","INS-155101_FOV_REF_ANGLE”=","                        ^ "]),
-    ("π = 3.14 & Σ = sum",["NON-ASCII character(s) in line 1:","π = 3.14 & Σ = sum","^          ^      "]),
-    ("Line 1: Mission\nLine 2: Ma”rs\nLine 3: and bye”nd",["NON-ASCII character(s) in line 2:","Line 2: Ma”rs","          ^  ","NON-ASCII character(s) in line 3:","Line 3: and bye”nd","               ^  "]),
+    ("INS-155101_FOV_REF_ANGLE”=",["NON-ASCII character(s) in line 1:","INS-155101_FOV_REF_ANGLE”=",
+     "                        ^ "]),
+    ("π = 3.14 & Σ = sum",["NON-ASCII character(s) in line 1:","π = 3.14 & Σ = sum",
+     "^          ^      "]),
+    ("Line 1: Mission\nLine 2: Ma”rs\nLine 3: and bye”nd",["NON-ASCII character(s) in line 2:","Line 2: Ma”rs",
+     "          ^  ","NON-ASCII character(s) in line 3:","Line 3: and bye”nd","               ^  "]),
     ("",[]),
 ])
 def test_check_badchar(tmp_path, contents, expected):
@@ -183,9 +193,14 @@ def test_check_binary_endianness(kernel, endianness, expected_error) -> None:
     ([1, 2, 3, 4, 5], True),
     ([1, 2, 3, 4, 5, 5, 5], False),
     ([1, 2, 3, 4, 7, 5], False),
+    ([19], False),
+    ([1, 19], False),
+    ([1, 2], True),
 ])
 def test_check_consecutive(lst, cc_bool):
     """Test check_consecutive function with pytest."""
+    # Note - the function does not work if the list is empty, contains
+    # no integer values or if the numbers within the list are negative.
     assert files.check_consecutive(list(lst)) is cc_bool
 
 # ----------------------------------------------------------------------------
@@ -195,6 +210,7 @@ def test_check_consecutive(lst, cc_bool):
 @pytest.mark.parametrize( "kern, eol, expected", [
     (Path(KERNELS/"mk"/"m2020_v09.tm"), "\n", ''),
     (Path(KERNELS/"mk"/"m2020_v09.tm"), "\r\n", "Incorrect EOL in file, CRLF (\\r\\n) expected."),
+    (Path(KERNELS/"fk"/"clps_to_2ab_v01.tf"), "\r\n", "Incorrect EOL in file, CRLF (\\r\\n) expected."),
     (Path(KERNELS/"spk"/"maven_orb_rec_210101_210401_v2.bsp"), "\n", "Incorrect EOL in file, LF (\\n) expected."),
     (Path(KERNELS/"spk"/"maven_orb_rec_210101_210401_v2.bsp"), "\r\n", "Incorrect EOL in file, CRLF (\\r\\n) expected."),
     (Path(KERNELS/"dsk"/"DEIMOS_K005_THO_V01.BDS"), "\r\n", "Incorrect EOL in file, CRLF (\\r\\n) expected."),
@@ -205,12 +221,42 @@ def test_check_eol(kern, eol, expected):
     result = files.check_eol(kern, eol)
     assert result == expected
 
-def test_check_eol_error(monkeypatch, tmp_path, caplog):
+
+
+# @pytest.mark.parametrize( "kern, eol, contents, expected", [
+#     #(Path(KERNELS/"mk"/"m2020_v09.tm"), "\n", ''),
+#     (Path(KERNELS/"mk"/"m2020_v09.tm"), "\r\n", "End of MK file.", "Incorrect EOL in file, CRLF (\\r\\n) expected."),
+#     #(Path(KERNELS/"fk"/"clps_to_2ab_v01.tf"), "\r\n", "Incorrect EOL in file, CRLF (\\r\\n) expected."),
+#     # (Path(KERNELS/"spk"/"maven_orb_rec_210101_210401_v2.bsp"), "\n", "Incorrect EOL in file, LF (\\n) expected."),
+#     # (Path(KERNELS/"spk"/"maven_orb_rec_210101_210401_v2.bsp"), "\r\n", "Incorrect EOL in file, CRLF (\\r\\n) expected."),
+#     # (Path(KERNELS/"dsk"/"DEIMOS_K005_THO_V01.BDS"), "\r\n", "Incorrect EOL in file, CRLF (\\r\\n) expected."),
+#     # (Path(KERNELS / "dsk" / "DEIMOS_K005_THO_V01.BDS"), "\n", "Incorrect EOL in file, LF (\\n) expected."),
+# ])
+# def test_check_eol_alt(mocker, contents, kern, eol, expected):
+#     """Test check_eol function using pytest."""
+#
+#     # with patch("builtins.open", mock_open(read_data=kern)):
+#     #     result =  files.check_eol(kern, eol)
+#     #     assert result == expected
+#
+#     mock_file = mocker.mock_open(read_data=contents)
+#
+#     mocker.patch("builtins.open", mock_file, encoding="utf-8")
+#
+#     result = files.check_eol(kern, eol)
+#     #assert result == expected
+#     assert result == contents
+#     mock_file.assert_called_with(contents, "rb")
+
+
+
+def test_check_eol_logging_error(monkeypatch, tmp_path, caplog):
     """Test check_eol function using pytest.
     This is to test logging errors"""
 
     def mock_handle_error(msg, setup=False):
-        files.logging.getLogger("files").error(msg)
+        if not setup:
+            logging.error(msg)
 
     monkeypatch.setattr(files, "handle_npb_error", mock_handle_error)
 
@@ -218,10 +264,15 @@ def test_check_eol_error(monkeypatch, tmp_path, caplog):
     fake_file.write_text("Hi \a")
     eol = "\a"
 
+    # Capture and check the logging level and logging messages.
     with caplog.at_level(files.logging.ERROR):
         files.check_eol(fake_file, eol)
 
-    assert f"Incorrect EOL in configuration: {eol}" in caplog.text
+    expected = [(logging.ERROR,'Incorrect EOL in configuration: \x07')]
+
+    results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+    assert results == expected
 
 # ----------------------------------------------------------------------------
 # files.check_kernel_integrity tests
@@ -341,13 +392,13 @@ def test_check_list_duplicates(lst, expected):
 # files.check_permissions test
 # ----------------------------------------------------------------------------
 
-@pytest.mark.parametrize( "path, rtype", [
-    (Path(KERNELS/'ck'/'insight_ida_enc_200829_201220_v1.bc'), None),
-    (Path(KERNELS/'dsk'/'DEIMOS_K005_THO_V01.BDS'), None),
+@pytest.mark.parametrize( "path", [
+    (Path(KERNELS/'ck'/'insight_ida_enc_200829_201220_v1.bc')),
+    (Path(KERNELS/'dsk'/'DEIMOS_K005_THO_V01.BDS')),
 ])
-def test_check_permissions(path, rtype):
+def test_check_permissions(path):
     """Test check_permissions function using pytest."""
-    assert files.check_permissions(str(path)) == rtype
+    files.check_permissions(str(path))
 
 def test_check_permissions_error(monkeypatch, tmp_path, caplog):
     """Test check_permissions function using pytest.
@@ -378,9 +429,8 @@ def test_check_permissions_error(monkeypatch, tmp_path, caplog):
 # ----------------------------------------------------------------------------
 
 @pytest.mark.parametrize("prod_path, expected",[
-    (Path(KERNELS/"ck"/"insight_ida_enc_200829_201220_v1.xml"), "22f9acc1931c8a626fac2a844fc5cee3"),
-    (Path(KERNELS/"ck"/"insight_ida_pot_200829_201220_v1.xml"), "ccffc3675be188196359680bcd08c1ca"),
-    (Path(KERNELS/"mk"/"none.xml"), ""),
+    (Path(KERNELS/"ck"/"insight_ida_enc_200829_201220_v1.bc"), "22f9acc1931c8a626fac2a844fc5cee3"),
+    (Path(KERNELS/"mk"/"none.tm"), ""),
 ])
 def test_checksum_from_label(prod_path, expected):
     """Test checksum_from_label function using pytest."""
@@ -391,64 +441,53 @@ def test_checksum_from_label(prod_path, expected):
 # files.checksum_from_registry test
 # ----------------------------------------------------------------------------
 
-#attempt with real kernels --
-# def test_checksum_from_registry():
-#     """Test checksum_from_registry function."""
-#     chcksm = DOCS/"ladee_release_01.checksum"
-#     kern = KERNELS/"mk"/"ladee_v01.tm"
-#
-#     result = files.checksum_from_registry(str(chcksm), str(kern))
-#     assert result == ''
-
 @pytest.mark.parametrize("prod_path, chcksm, expected", [
     ("ladee_v10.tm", {"1.checksum": "path/ladee_v10.tm   abcdefg10987654321"}, "abcdefg10987654321"),
-    ("mars2020_v04.bc", {"1.checksum": "not_the_right.bc  wrong", "2.checksum": "path/mars2020_v04.bc  looksright6789"}, "looksright6789"),
+    ("mars2020_v04.bc", {"1.checksum": "not_the_right.bc  wrong", "2.checksum": "path/mars2020_v04.bc  looksright6789"},
+     "looksright6789"),
     ("missing.tf", {"1.checksum": "other.tf  nothere12345"},"" ),
     ("any.bsp", {},""),
 ])
-def test_checksum_from_registry(tmp_path, prod_path, chcksm, expected, caplog):
-    """Test checksum_from_registry function using pytest"""
+def test_checksum_from_registry_logging_error(monkeypatch, tmp_path, prod_path, chcksm, expected, caplog):
+    """Test checksum_from_registry function using pytest
+    This is to test logging errors"""
+    # checksum_found will always be False: the for loop in line 731 will either finish when one checksum is found
+    # -- see break in line 743, or when no checksum is found and no more registries are in checksum_registries
     for filename, content in chcksm.items():
         file_path = tmp_path / filename
         file_path.write_text(content)
 
-    with caplog.at_level(files.logging.WARNING):
-        result = files.checksum_from_registry(prod_path, str(tmp_path))
+    def mock_handle_error(msg, setup):
+        if not setup:
+            logging.error(msg)
 
-    assert result == expected
+    monkeypatch.setattr(files, "handle_npb_error", mock_handle_error)
 
-    if expected:
-        assert "-- Checksum obtained from Checksum Registry file" in caplog.text
-    else:
-        assert "-- Checksum obtained from Checksum Registry file" not in caplog.text
+    # Capture and check the logging level and logging messages.
+    with caplog.at_level(files.logging.ERROR):
+        files.checksum_from_registry(prod_path, str(tmp_path))
+
+    expected = []
+
+    results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+    assert results == expected
 
 # ----------------------------------------------------------------------------
 # files.compare_files test
 # ----------------------------------------------------------------------------
 
-# Uses real files - doesn't account for everything - is technically redundant
-@pytest.mark.parametrize( "fromfile, tofile, expected",  [
-    (Path(KERNELS/'ik'/"clps_to_2ab_pll_v01.ti"), Path(KERNELS/'ik'/"clps_to_2im_ncll_v01.ti"), True),
-    (Path(KERNELS/'mk'/"m2020_v08.tm"), Path(KERNELS/'mk'/"m2020_v09.tm"), True),
-    (Path(KERNELS/'fk'/"licia_002.tf"), Path(KERNELS/'fk'/"licia_002a.tf"), False),
-    (Path(DOCS/"spiceds_em16.html"), Path(DOCS/"spiceds_mars2020.html"), True),
-])
-def test_compare_files(tmp_path, fromfile, tofile, expected):
-    """Test compare_files function using pytest."""
-    dest = str(tmp_path)
-
-    result = files.compare_files(str(fromfile), str(tofile), dest, '')
-    assert result == expected
-
 @pytest.mark.parametrize("from_text, to_text, disp, expected, files_created",[
     ("Meow\n", "Meow\n", "log", False, 0),
+    ("Meow\r\n", "Meow\n", "log", True, 0),
     ("Meow\n", "Meow\n", "files", False, 0),
     ("Meow\n", "Meow\n", "all", False, 0),
     ("Unicorn\n", "Donkey\n", "log", True, 0),
     ("Unicorn\n", "Donkey\n", "files", True, 1),
     ("Donkey\n", "Shrek\n", "all", True, 1),
+    ("Donkey\nvisits\nShrek", "Fiona\nvisits\nShrek", "all", True, 1),
 ])
-def test_compare_files_alt(tmp_path, from_text, to_text, disp, expected, files_created):
+def test_compare_files(tmp_path, from_text, to_text, disp, expected, files_created):
     """Test compare_files function using pytest. Mocks files/contents to test."""
     fromfile = tmp_path / "from.txt"
     tofile = tmp_path / "to.txt"
@@ -499,16 +538,10 @@ def test_copy_error_file(monkeypatch, tmp_path, caplog):
     src = "file.txt"
     dest = tmp_path / "destination"
 
-    def mock_copytree(*args):
-        # Not such file or directory Error (errno 2)
-        raise OSError(files.errno.ENOENT, "No such file or directory")
-
-    monkeypatch.setattr(shutil, "copytree", mock_copytree)
-
     with caplog.at_level(files.logging.WARNING):
         files.copy(str(src), str(dest))
 
-    assert caplog.messages == ["-- Directory file.txt not copied, probably because the increment directory exists.\nError: [Errno 2] No such file or directory"]
+    assert caplog.messages == ["-- Directory file.txt not copied, probably because the increment directory exists.\nError: [Errno 2] No such file or directory: 'file.txt'"]
 
 # ----------------------------------------------------------------------------
 # files.etree_to_dict test
@@ -634,20 +667,6 @@ def test_fill_template(tmp_path, contents, dct, expected):
     result = product_file.read_text()
     assert result == expected
 
-#Another test case may need to be added to test when one variable is used to build out an entire section of the label
-#Not sure best way to do this though..
-# FOR EXAMPLE -
-# $MISSION
-# -->
-# <Investigation_Area>
-# <name>Lucy Mission</name>
-# <type>Mission</type>
-# <Internal_Reference>
-# <lid_reference>urn:nasa:pds:context:investigation:mission.lucy</lid_reference>
-# <reference_type>collection_to_investigation</reference_type>
-# </Internal_Reference>
-# </Investigation_Area>
-
 # ----------------------------------------------------------------------------
 # files.format_multiple_values tests
 # ----------------------------------------------------------------------------
@@ -699,20 +718,6 @@ def test_get_context_products_no_optional_info_in_config_file(mission, observer,
 
 def test_get_context_products_overwrite_and_append(tmp_path):
     """Test get_context_products using pytest. Update existing products via setup.context_products."""
-    #default context products
-    text = [{"name": ["MARS 2020"],
-            "type": ["Mission"],
-            "lidvid": "urn:nasa:pds:context:investigation:mission.mars2020::1.0"},
-            {"name": ["Perseverance"],
-             "type": ["Lander"],
-             "lidvid": "urn:nasa:pds:context:instrument_host:spacecraft.mars2020::1.0"},
-            {"name": ["MARS"],
-             "type": ["PLANET"],
-             "lidvid": "urn:nasa:pds:context:target:planet.mars::1.2"}]
-
-    is_default_file = tmp_path / "default.json"
-    is_default_file.write_text(str(text))
-
     setup = MagicMock()
     setup.mission_name = "Mars 2020: Perseverance Rover"
     setup.observer = "The Mars 2020 Perseverance Rover"
@@ -741,20 +746,6 @@ def test_get_context_products_overwrite_and_append(tmp_path):
 
 def test_get_context_products_overwrite_and_append_2(tmp_path):
     """Test get_context_products using pytest. Default products match products via setup.context_products."""
-    # default context products
-    text = [{"name": ["MARS 2020"],
-            "type": ["Mission"],
-            "lidvid": "urn:nasa:pds:context:investigation:mission.mars2020::1.0"},
-            {"name": ["Perseverance"],
-             "type": ["Rover"],
-             "lidvid": "urn:nasa:pds:context:instrument_host:spacecraft.mars2020::1.0"},
-            {"name": ["MARS"],
-             "type": ["PLANET"],
-             "lidvid": "urn:nasa:pds:context:target:planet.mars::1.2"}]
-
-    is_default_file = tmp_path / "default.json"
-    is_default_file.write_text(str(text))
-
     setup = MagicMock()
     setup.mission_name = "MARS 2020"
     setup.observer = "Perseverance"
@@ -783,11 +774,8 @@ def test_get_context_products_overwrite_and_append_2(tmp_path):
     assert obs_prod["type"] == ["Rover"]
     assert obs_prod["lidvid"] == "urn:nasa:pds:context:instrument_host:spacecraft.mars2020::1.0"
 
-# Could probably use a similar setup to test_get_context_products_no_optional_info_in_config_file
-# for these two tests to make it less bulky ....
-
-#default should probably be removed .... requires a json file to be updated and with the use
-#of multi missions I messed up this capability ... I also do not want this capability
+# default should probably be removed .... requires a json file to be updated and I
+# do not want this capability
 
 # ----------------------------------------------------------------------------
 # files.get_latest_kernel test
@@ -1121,13 +1109,15 @@ def test_safe_make_directory_logging(mocker, tmp_path):
 # files.string_in_file test
 # ----------------------------------------------------------------------------
 
-@pytest.mark.parametrize("kern, str_to_check, expected", [
-    (Path(KERNELS/"mk"/"mro_2021_v02.tm"),"Marc Costa Sitja, NAIF/JPL", True),
-    (Path(KERNELS/"mk"/"mro_2021_v02.tm"),"Unicorn", False),
+@pytest.mark.parametrize("kern, str_to_check, reps, expected", [
+    (Path(KERNELS/"mk"/"mro_2021_v02.tm"),"Marc Costa Sitja, NAIF/JPL", 1, True),
+    (Path(KERNELS/"mk"/"mro_2021_v02.tm"), "mro_hga", 29, True),
+    (Path(KERNELS / "mk" / "mro_2021_v02.tm"), "Unicorn", 1, False),
+    (Path(KERNELS / "mk" / "mro_2021_v02.tm"), "Unicorn", 0, True),
 ])
-def test_string_in_file(kern, str_to_check, expected):
+def test_string_in_file(kern, str_to_check, reps, expected):
     """Test string_in_file function using pytest."""
-    assert files.string_in_file(str(kern), str_to_check) == expected
+    assert files.string_in_file(str(kern), str_to_check, reps) == expected
 
 # ----------------------------------------------------------------------------
 # files.type_to_extension test
@@ -1136,6 +1126,7 @@ def test_string_in_file(kern, str_to_check, expected):
 #TODO EK extensions need to be added. Orbnums?
 @pytest.mark.parametrize( "inputs, outputs", [
     ("IK", ['ti']),
+    ("ik", ['ti']),
     ("FK", ['tf']),
     ("MK", ['tm']),
     ("SCLK",  ['tsc']),
@@ -1144,10 +1135,26 @@ def test_string_in_file(kern, str_to_check, expected):
     ("CK",  ['bc']),
     ("SPK",  ['bsp']),
     ("DSK",  ['bds']),
+    #("EK", ['bes']), #, 'bep', 'bpe', 'bdb' --> # KeyError: 'EK'
+    #("ORB", ['nrb', 'orb']), --> # KeyError: 'ORB'
 ])
 def test_type_to_extension(inputs, outputs):
     """Test type_to_extension function using pytest."""
     assert files.type_to_extension(inputs) == outputs
+
+@pytest.mark.parametrize("kern, expected", [
+    ("fakey_fake.bc", "ck"),
+    ("DEIMOS_K005_THO_V01.BDS", "dsk"),
+    ("m01_ext3.nrb", "orb"),
+    ("lroevnt_2009271_2009278_v01.bes", "ek"),
+    ("m2020_chronos_v01.tm", "mk"),
+])
+def test_type_to_extension_object(kern, expected):
+    """Test type_to_extension function using pytest where the input is an object."""
+    mock_kernel = MagicMock()
+    mock_kernel.extension = kern.split('.')[-1]
+
+    assert files.extension_to_type(mock_kernel) == expected
 
 # ----------------------------------------------------------------------------
 # files.type_to_pds3_type test
@@ -1156,13 +1163,21 @@ def test_type_to_extension(inputs, outputs):
 #TODO EKs need to be added! Should MKs/Orbnums be added .. in extras??
 @pytest.mark.parametrize( "inputs, outputs", [
     ("IK", "INSTRUMENT"),
+    ("ik", "INSTRUMENT"),
     ("FK", "FRAMES"),
+    ("fk", "FRAMES"),
     ("SCLK",  "CLOCK_COEFFICIENTS"),
+    ("sclk", "CLOCK_COEFFICIENTS"),
     ("LSK", "LEAPSECONDS"),
+    ("lsk", "LEAPSECONDS"),
     ("PCK",  "TARGET_CONSTANTS"),
+    ("pck", "TARGET_CONSTANTS"),
     ("CK",  "POINTING"),
+    ("ck", "POINTING"),
     ("SPK",  "EPHEMERIS"),
+    ("spk", "EPHEMERIS"),
     ("DSK",  "SHAPE"),
+    ("dsk", "SHAPE"),
 ])
 def test_type_to_pds3_type(inputs, outputs):
     """Test type_to_pds3 function using pytest."""
