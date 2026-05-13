@@ -1,9 +1,10 @@
 """Unit tests for the pds.naif_pds4_bundler.classes.setup module"""
+import datetime
 import logging
 import os
 import re
 from types import SimpleNamespace
-from typing import Generator
+from typing import Generator, cast, Any
 from unittest.mock import mock_open, Mock
 
 import pytest
@@ -30,6 +31,586 @@ def make_setup(tmp_path, mission_acronym: str = "maven",
     return setup
 
 
+@pytest.fixture
+def patch_handle_npb_error(monkeypatch) -> None:
+    """Replace handle_npb_error by an exception so tests can assert errors."""
+
+    def raise_configuration_error(message):
+        raise RuntimeError(message)
+
+    monkeypatch.setattr(
+        'pds.naif_pds4_bundler.classes.setup.handle_npb_error',
+        raise_configuration_error,
+    )
+
+
+class TestSetupInit:
+
+    @staticmethod
+    def make_args(config_path, faucet='bundle', clear='', debug=False,
+                  diff=False) -> SimpleNamespace:
+
+        # Build an object similar to the actual arguments passed to 'Setup' class.
+        return SimpleNamespace(config=str(config_path), faucet=faucet,
+                               clear=clear, debug=debug, diff=diff)
+
+    @staticmethod
+    def make_init_config(pds_parameters=None, bundle_parameters=None,
+                         mission_parameters=None, directories=None,
+                         kernel_list=None, meta_kernel=None,
+                         orbit_number_file=None) -> dict:
+
+        # Constructs, in a controlled manner, the dictionary that
+        # etree_to_dict(...) would normally return after reading the
+        # configuration XML.
+        config = {
+            'pds_parameters': {'pds_version': '4'},
+            'bundle_parameters': {'mission_acronym': 'maven'},
+            'mission_parameters': {},
+            'directories': {'working_directory': 'work',
+                            'staging_directory': 'staging',
+                            'bundle_directory': 'bundle',
+                            'kernels_directory': 'kernels'},
+            'kernel_list': {'kernel': [{'@pattern': 'spk', 'description': 'SPK kernels'},
+                                       {'@pattern': 'fk', 'description': 'FK kernels'}]},
+            'meta-kernel': {}}
+
+        # Update only those parameters that are explicitly passed.
+        for section_name, section_values in [('pds_parameters', pds_parameters),
+                                             ('bundle_parameters', bundle_parameters),
+                                             ('mission_parameters', mission_parameters),
+                                             ('directories', directories),
+                                             ('kernel_list', kernel_list),
+                                             ('meta-kernel', meta_kernel)]:
+
+            if section_values is not None:
+                config[section_name].update(section_values)
+
+        # This section is managed separately because it is not included in the
+        # default settings.
+        if orbit_number_file is not None:
+            config['orbit_number_file'] = orbit_number_file
+
+        # The constructor does not work directly with the config dictionary;
+        # instead, it creates a dictionary with a single entry where the key is
+        # naif-pds4-bundler_configuration and the value is the config dictionary:
+        #
+        # {'naif-pds4-bundler_configuration': {'pds_parameters': ...,
+        #                                      'bundle_parameters': ...,
+        #                                      ...}}
+        return {'naif-pds4-bundler_configuration': config}
+
+    def instantiate_setup(self, tmp_path, monkeypatch, entries, faucet='bundle',
+                          clear='', debug=False, diff=False, version='9.9.9',
+                          system_byteorder='little',
+                          xml_text='<configuration />') -> tuple[Setup, SimpleNamespace, Mock, Mock, Mock]:
+
+        # Creates an actual execution of Setup.__init__ but replacing its
+        # external inputs with controlled objects.
+
+        # Creates a temporal XML file.
+        config_path = tmp_path / 'configuration.xml'
+        config_path.write_text(xml_text, encoding='utf-8')
+
+        schema = Mock()
+        schema_class = Mock(return_value=schema)
+        etree_to_dict = Mock(return_value=entries)
+
+        # Mocks xmlschema.XMLSchema11 so as not to use the actual XSD.
+        monkeypatch.setattr('pds.naif_pds4_bundler.classes.setup.xmlschema.XMLSchema11',
+                            schema_class)
+
+        # Mocks etree_to_dict to control exactly which configuration Setup
+        # receives.
+        monkeypatch.setattr('pds.naif_pds4_bundler.classes.setup.etree_to_dict',
+                            etree_to_dict)
+
+        # Mocks sys.byteorder to allow testing of 'endianness' without relying on
+        # the machine.
+        monkeypatch.setattr('pds.naif_pds4_bundler.classes.setup.sys.byteorder',
+                            system_byteorder)
+
+        # Builds a args object mock.
+        args = self.make_args(config_path, faucet=faucet, clear=clear,
+                              debug=debug, diff=diff)
+
+        # Execute Setup.
+        setup_instance = Setup(args, version)
+
+        return setup_instance, args, schema_class, schema, etree_to_dict
+
+    def test_applies_default_state_and_required_configuration(self, tmp_path,
+                                                              monkeypatch) -> None:
+
+        # Mock the date.today() for the purposes of this test, regardless of
+        # when it is run.
+        date_mock = Mock()
+        date_mock.today.return_value = datetime.date.fromisoformat('2024-02-03')
+
+        # Patch the call to datetime.date in the code so that uses the mock date
+        # assigned earlier.
+        monkeypatch.setattr('pds.naif_pds4_bundler.classes.setup.datetime.date',
+                            date_mock)
+
+        # Create the minimum valid configuration.
+        entries = self.make_init_config()
+
+        # It actually executes the constructor:
+        #
+        #   1. creates a temporary XML file;
+        #   2. mocks XMLSchema11;
+        #   3. mocks etree_to_dict so that it returns entries;
+        #   4. mocks sys.byteorder;
+        #   5. creates args;
+        #   6. instantiates Setup.
+        #
+        # The function returns 5 values, but in this case we are only interested
+        # in the first 2.
+        setup_instance, args, _, _, _ = self.instantiate_setup(
+            tmp_path, monkeypatch, entries, faucet='bundle', diff=True)
+
+        # Is used for attributes created dynamically via configuration.
+        config_setup = cast(Any, setup_instance)
+
+        # Initial constructor state that is not supplied by the configuration.
+        assert setup_instance.current_release == 0
+        assert setup_instance.fks is None
+        assert setup_instance.increment is True
+        assert setup_instance.information_model_float is None
+        assert getattr(setup_instance, 'lsk') is None
+        assert setup_instance.release is None
+        assert setup_instance.schema_location == ''
+        assert setup_instance.sclks is None
+        assert setup_instance.template_files == []
+        assert setup_instance.templates_directory is None
+        assert setup_instance.xml_model == ''
+        assert setup_instance.xml_tab == 0
+
+        # Configuration fields are flattened into attributes.
+        assert config_setup.pds_version == '4'
+        assert config_setup.mission_acronym == 'maven'
+        assert config_setup.working_directory == 'work'
+        assert config_setup.staging_directory == 'staging'
+        assert config_setup.bundle_directory == 'bundle'
+
+        # Defaulted and normalized values.
+        assert setup_instance.kernels_directory == ['kernels']
+        assert setup_instance.orbnum_directory == ''
+        assert setup_instance.run_type == 'release'
+        assert setup_instance.version == '9.9.9'
+        assert setup_instance.args is args
+        assert setup_instance.faucet == 'bundle'
+        assert setup_instance.diff is True
+        assert setup_instance.today == '20240203'
+        assert setup_instance.release_date == '2024-02-03'
+        assert setup_instance.date_format == 'maklabel'
+        assert setup_instance.end_of_line == 'CRLF'
+        assert setup_instance.eol == '\r\n'
+        assert setup_instance.eol_len == 2
+
+        # The following values do not depend on the default configuration, but
+        # are always assigned in the constructor. We therefore check that they
+        # remain exactly as defined in the code.
+        assert setup_instance.end_of_line_pds4 == 'CRLF'
+        assert setup_instance.eol_pds4 == '\r\n'
+        assert setup_instance.eol_pds4_len == 1
+        assert setup_instance.eol_mk == '\n'
+        assert setup_instance.eol_mk_len == 1
+        assert setup_instance.eol_pds3 == '\r\n'
+
+        # This attribute is set to 'little' by default in the instantiate_setup
+        # call.
+        assert setup_instance.kernel_endianness == 'little'
+
+        # The constructor assigns the kernel attribute as a list, but later
+        # converts it into a dictionary.
+        #
+        # That is why we check that the list has been successfully converted
+        # into a dictionary.
+        assert setup_instance.kernel_list_config == {
+            'spk': {'@pattern': 'spk', 'description': 'SPK kernels'},
+            'fk': {'@pattern': 'fk', 'description': 'FK kernels'},
+        }
+        # The side effect is checked: the kernel attribute is removed.
+        assert not hasattr(setup_instance, 'kernel')
+
+        # As we are testing a minimal configuration, the following attributes
+        # should not exist, as they are not defined in the basic configuration.
+        assert not hasattr(setup_instance, 'secondary_missions')
+        assert not hasattr(setup_instance, 'secondary_observers')
+        assert not hasattr(setup_instance, 'secondary_targets')
+        assert not hasattr(setup_instance, 'mk')
+        assert not hasattr(setup_instance, 'coverage_kernels')
+        assert not hasattr(setup_instance, 'orbnum')
+
+        # PDS4-only missing fields are materialized as empty strings.
+        assert setup_instance.producer_phone == ''
+        assert setup_instance.producer_email == ''
+        assert setup_instance.dataset_id == ''
+        assert setup_instance.volume_id == ''
+
+    def test_calls_schema_validation_and_xml_conversion_once(self, tmp_path,
+                                                             monkeypatch) -> None:
+        # This test checks for any side effects that occur during the execution
+        # of the __init__ method when the external dependencies related to the
+        # XML configuration are called correctly.
+
+        # Mocks the etree_to_dict call to create a minimal configuration.
+        entries = self.make_init_config()
+
+        # A Setup object is created, but with controlled dependencies.
+        _, args, schema_class, schema, etree_to_dict = self.instantiate_setup(
+            tmp_path, monkeypatch, entries,
+            xml_text='<configuration><child /></configuration>')
+
+        # Check XMLSchema11 call.
+        #
+        # Check that the XMLSchema11 only is called once.
+        schema_class.assert_called_once()
+
+        # Check that the path value is the one generated dynamically by the
+        # setup.py file.
+        schema_path = schema_class.call_args.args[0]
+
+        # Check that the expected XSD is being used.
+        # The full path is not checked, as this may change; therefore, the
+        # important thing in this case is that the constructor points to the
+        # correct relative XSD.
+        assert schema_path.endswith('/../data/configuration.xsd')
+
+        # Check that the validate calls once and that the configuration path
+        # used is correct.
+        schema.validate.assert_called_once_with(args.config)
+
+        # Check etree_to_dict call.
+        #
+        # Check that the XML to dict runs once.
+        etree_to_dict.assert_called_once()
+
+        # Check that the conversion has been carried out correctly. To do this,
+        # check the root tag and its child elements.
+        parsed_xml = etree_to_dict.call_args.args[0]
+        assert parsed_xml.tag == 'configuration'
+        assert [child.tag for child in parsed_xml] == ['child']
+
+    def test_emits_no_logging_records_for_valid_initialization(
+            self, tmp_path, monkeypatch, caplog) -> None:
+
+        # This test verifies that, during a valid and correct execution, no log
+        # entries are generated.
+
+        # Create a minimum valid configuration.
+        entries = self.make_init_config()
+
+        # Try to capture the logs.
+        with caplog.at_level(logging.INFO):
+            self.instantiate_setup(tmp_path, monkeypatch, entries)
+
+        # As this is a valid and correct execution, no logs should be generated.
+        assert caplog.record_tuples == []
+
+    @pytest.mark.parametrize('debug, expected_stdout', [
+        (False, 'invalid configuration\n'),
+        (True, '')])
+    def test_prints_schema_validation_error_only_when_debug_is_false(
+            self, tmp_path, monkeypatch, capsys, debug, expected_stdout) -> None:
+        # This test verifies that 'Setup.__init__' correctly handles an early
+        # XML validation error, printing it only in non-debug mode and always
+        # re-running the test.
+
+        # Create an invalid XML path.
+        config_path = tmp_path / 'invalid_configuration.xml'
+
+        # Mock the value that the call to xmlschema.XMLSchema11 will return.
+        # This simulates a fail XML validation.
+        schema = Mock()
+        schema.validate.side_effect = ValueError('invalid configuration')
+        schema_class = Mock(return_value=schema)
+
+        # Mock the xmlschema.XMLSchema11 call with an invalid schema to force
+        # an exception.
+        monkeypatch.setattr(
+            'pds.naif_pds4_bundler.classes.setup.xmlschema.XMLSchema11',
+            schema_class)
+
+        # Build a SimpleNamespace with the expected attributes.
+        args = self.make_args(config_path, debug=debug)
+
+        # The constructor is called directly with the mocked attributes so that
+        # we can catch the valueError exception.
+        with pytest.raises(ValueError, match='invalid configuration'):
+            Setup(args, '9.9.9')
+
+        # Check that validate should call once.
+        schema.validate.assert_called_once_with(str(config_path))
+
+        # Check the expected result. If a ValueError occurs, it should display
+        # the message 'invalid configuration'.
+        assert capsys.readouterr().out == expected_stdout
+
+    @pytest.mark.parametrize('mission_parameters, expected', [
+        ({'secondary_missions': {'mission_name': 'exo_mars'},
+          'secondary_observers': {'observer': 'mro'},
+          'secondary_targets': {'target': 'phobos'}},
+         {'secondary_missions': ['exo_mars'],
+          'secondary_observers': ['mro'],
+          'secondary_targets': ['phobos']}),
+        ({'secondary_missions': {'mission_name': ['exo_mars', 'juice']},
+          'secondary_observers': {'observer': ['mro', 'mex']},
+          'secondary_targets': {'target': ['phobos', 'deimos']}},
+         {'secondary_missions': ['exo_mars', 'juice'],
+          'secondary_observers': ['mro', 'mex'],
+          'secondary_targets': ['phobos', 'deimos']}),
+        ({'secondary_missions': {'mission_name': ''},
+          'secondary_observers': {'observer': ''},
+          'secondary_targets': {'target': ''}},
+         {'secondary_missions': [''],
+          'secondary_observers': [''],
+          'secondary_targets': ['']}),
+        ({'secondary_missions': {'mission_name': None},
+          'secondary_observers': {'observer': None},
+          'secondary_targets': {'target': None}},
+         {'secondary_missions': [None],
+          'secondary_observers': [None],
+          'secondary_targets': [None]})])
+    def test_normalizes_secondary_missions_observers_and_targets(
+            self, tmp_path, monkeypatch, mission_parameters, expected) -> None:
+        # This test checks that the optional fields relating to missions,
+        # observers and secondary targets are standardised.
+
+        # Build a minimal valid configuration where the mission_parameters section
+        # contains secondary missions, observers, and targets in the shape produced
+        # by the XML-to-dict conversion.
+        entries = self.make_init_config(mission_parameters=mission_parameters)
+
+        # Instantiate Setup so the constructor loads mission_parameters into
+        # attributes and normalizes single values and lists.
+        setup_instance, _, _, _, _ = self.instantiate_setup(
+            tmp_path, monkeypatch, entries,
+        )
+
+        # This assignment is used to ensure consistency with previous tests; as
+        # these attributes are dynamic, this statement prevents warnings such as
+        # 'Unresolved attribute reference [...]'.
+        config_setup = cast(Any, setup_instance)
+
+        # Single values must be wrapped in lists; existing lists must be preserved.
+        assert config_setup.secondary_missions == expected['secondary_missions']
+        assert config_setup.secondary_observers == expected['secondary_observers']
+        assert config_setup.secondary_targets == expected['secondary_targets']
+
+    @pytest.mark.parametrize('kernels_directory, expected', [
+        ('kernels', ['kernels']),
+        (['kernels/spk', 'kernels/fk'], ['kernels/spk', 'kernels/fk']),
+        ('', ['']),
+        (None, [None])])
+    def test_normalizes_kernels_directory(self, tmp_path, monkeypatch,
+                                          kernels_directory, expected) -> None:
+        # This test verifies that, after building Setup, kernels_directory
+        # always remains in list format, regardless of whether the configuration
+        # specified a single directory or multiple directories.
+
+        # Build a minimal valid configuration.
+        entries = self.make_init_config(
+            directories={'kernels_directory': kernels_directory})
+
+        # Instantiate Setup so the constructor loads the directories section and
+        # applies the kernels_directory normalization.
+        setup_instance, _, _, _, _ = self.instantiate_setup(tmp_path, monkeypatch, entries)
+
+        #  kernels_directory is dynamic because it originates from
+        #  self.__dict__.update(config["directories"]).
+        config_setup = cast(Any, setup_instance)
+
+        # A single directory must be wrapped in a list; an existing list must be
+        # preserved as is.
+        assert config_setup.kernels_directory == expected
+
+    @pytest.mark.parametrize('meta_kernel, orbit_number_file, expected', [
+        ({
+             'mk': {
+                 '@name': 'maven_$release.tm',
+                 'name': {'pattern': {'#text': 'release'}},
+             },
+             'coverage_kernels': {'pattern': 'maven_*.bc'},
+         }, {
+             'orbnum': {'pattern': 'maven_orbnum_*.orb'},
+         }, {
+             'mk': [{
+                 '@name': 'maven_$release.tm',
+                 'name': [{'pattern': {'#text': 'release'}}],
+             }],
+             'coverage_kernels': [{'pattern': 'maven_*.bc'}],
+             'orbnum': [{'pattern': 'maven_orbnum_*.orb'}],
+         }),
+        ({
+             'mk': [{
+                 '@name': 'maven_$release_$version.tm',
+                 'name': [
+                     {'pattern': {'#text': 'release'}},
+                     {'pattern': {'#text': 'version'}},
+                 ],
+             }],
+             'coverage_kernels': [{'pattern': 'maven_*.bc'}],
+         }, {
+             'orbnum': [{'pattern': 'maven_orbnum_*.orb'}],
+         }, {
+             'mk': [{
+                 '@name': 'maven_$release_$version.tm',
+                 'name': [
+                     {'pattern': {'#text': 'release'}},
+                     {'pattern': {'#text': 'version'}},
+                 ],
+             }],
+             'coverage_kernels': [{'pattern': 'maven_*.bc'}],
+             'orbnum': [{'pattern': 'maven_orbnum_*.orb'}],
+         }),
+    ])
+    def test_normalizes_meta_kernel_coverage_and_orbnum_sections(
+            self, tmp_path, monkeypatch, meta_kernel, orbit_number_file,
+            expected) -> None:
+        entries = self.make_init_config(
+            directories={'orbnum_directory': 'orbnum'},
+            meta_kernel=meta_kernel,
+            orbit_number_file=orbit_number_file,
+        )
+
+        setup, _, _, _, _ = self.instantiate_setup(
+            tmp_path, monkeypatch, entries,
+        )
+
+        assert setup.orbnum_directory == 'orbnum'
+        assert setup.mk == expected['mk']
+        assert setup.coverage_kernels == expected['coverage_kernels']
+        assert setup.orbnum == expected['orbnum']
+
+    @pytest.mark.parametrize('faucet, clear, expected_run_type', [
+        ('labels', '', 'labels'),
+        ('clear', 'maven_release_001.file_list', 'release'),
+        ('clear', 'maven_labels_001_labels_001.file_list', 'labels'),
+        ('bundle', 'maven_labels_001_labels_001.file_list', 'release'),
+    ])
+    def test_sets_expected_run_type_from_faucet_arguments(
+            self, tmp_path, monkeypatch, faucet, clear, expected_run_type) -> None:
+        entries = self.make_init_config()
+
+        setup, _, _, _, _ = self.instantiate_setup(
+            tmp_path, monkeypatch, entries, faucet=faucet, clear=clear,
+        )
+
+        assert setup.run_type == expected_run_type
+
+    @pytest.mark.parametrize('end_of_line, expected_eol, expected_eol_len', [
+        ('CRLF', '\r\n', 2),
+        ('LF', '\n', 1),
+    ])
+    def test_applies_configured_end_of_line_values(
+            self, tmp_path, monkeypatch, end_of_line, expected_eol,
+            expected_eol_len) -> None:
+        entries = self.make_init_config(
+            pds_parameters={'end_of_line': end_of_line},
+        )
+
+        setup, _, _, _, _ = self.instantiate_setup(
+            tmp_path, monkeypatch, entries,
+        )
+
+        assert setup.end_of_line == end_of_line
+        assert setup.eol == expected_eol
+        assert setup.eol_len == expected_eol_len
+
+    @pytest.mark.parametrize('binary_endianness, system_byteorder, expected', [
+        ('little', 'little', 'little'),
+        ('LTL-IEEE', 'little', 'little'),
+        ('big', 'big', 'big'),
+        ('BIG-IEEE', 'big', 'big'),
+    ])
+    def test_accepts_supported_binary_endianness_values(
+            self, tmp_path, monkeypatch, binary_endianness, system_byteorder,
+            expected) -> None:
+        entries = self.make_init_config(
+            pds_parameters={'binary_endianness': binary_endianness},
+        )
+
+        setup, _, _, _, _ = self.instantiate_setup(
+            tmp_path, monkeypatch, entries,
+            system_byteorder=system_byteorder,
+        )
+
+        assert setup.binary_endianness == binary_endianness
+        assert setup.kernel_endianness == expected
+
+    def test_preserves_valid_release_date_and_configured_date_format(
+            self, tmp_path, monkeypatch) -> None:
+        entries = self.make_init_config(
+            pds_parameters={
+                'release_date': '2024-01-31',
+                'date_format': 'infomod2',
+            },
+        )
+
+        setup, _, _, _, _ = self.instantiate_setup(
+            tmp_path, monkeypatch, entries,
+        )
+
+        assert setup.release_date == '2024-01-31'
+        assert setup.date_format == 'infomod2'
+
+    def test_does_not_fill_pds4_only_fields_for_pds3(
+            self, tmp_path, monkeypatch) -> None:
+        entries = self.make_init_config(
+            pds_parameters={'pds_version': '3', 'volume_id': 'MAVEN_1001'},
+        )
+
+        setup, _, _, _, _ = self.instantiate_setup(
+            tmp_path, monkeypatch, entries,
+        )
+
+        assert setup.pds_version == '3'
+        assert setup.volume_id == 'MAVEN_1001'
+        assert not hasattr(setup, 'producer_phone')
+        assert not hasattr(setup, 'producer_email')
+        assert not hasattr(setup, 'dataset_id')
+
+    @pytest.mark.parametrize('pds_parameters, expected_message', [
+        ({'release_date': '2024/01/31'},
+         'release_date parameter does not match the required format: YYYY-MM-DD.'),
+        ({'end_of_line': 'CR'},
+         'End of Line provided via configuration is not CRLF nor LF.'),
+        ({'binary_endianness': 'middle'},
+         "binary_endianness configuration parameter value must be 'big', "
+         "'BIG-IEEE', 'little' or 'LTL-IEEE'. Case is not sensitive."),
+    ])
+    def test_raises_when_configured_scalar_parameters_are_invalid(
+            self, tmp_path, monkeypatch, pds_parameters, expected_message) -> None:
+        entries = self.make_init_config(pds_parameters=pds_parameters)
+
+        with pytest.raises(RuntimeError, match=re.escape(expected_message)):
+            self.instantiate_setup(tmp_path, monkeypatch, entries)
+
+    @pytest.mark.parametrize('binary_endianness, system_byteorder', [
+        ('big', 'little'),
+        ('little', 'big'),
+    ])
+    def test_raises_when_binary_endianness_does_not_match_system_byteorder(
+            self, tmp_path, monkeypatch, binary_endianness,
+            system_byteorder) -> None:
+        entries = self.make_init_config(
+            pds_parameters={'binary_endianness': binary_endianness},
+        )
+
+        expected_message = (
+            'binary_endianness configuration parameter value must be '
+            f'the same as your system endianness: {system_byteorder}.'
+        )
+
+        with pytest.raises(RuntimeError, match=re.escape(expected_message)):
+            self.instantiate_setup(
+                tmp_path, monkeypatch, entries,
+                system_byteorder=system_byteorder,
+            )
+
+
 class TestSetupCheckConfiguration:
 
     @pytest.fixture(autouse=True)
@@ -40,18 +621,6 @@ class TestSetupCheckConfiguration:
         original state."""
 
         original_cwd = os.getcwd()
-
-        # Mock the handle_npb_error call.
-        def raise_configuration_error(message):
-            # When the code makes the call, a RuntimeError will be raised with
-            # the same message
-            raise RuntimeError(message)
-
-        # Perform the handle_npb_error call mock.
-        monkeypatch.setattr(
-            'pds.naif_pds4_bundler.classes.setup.handle_npb_error',
-            raise_configuration_error,
-        )
 
         yield
 
