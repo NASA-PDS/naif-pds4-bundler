@@ -418,8 +418,8 @@ class TestSetupInit:
         # applies the kernels_directory normalization.
         setup_instance, _, _, _, _ = self.instantiate_setup(tmp_path, monkeypatch, entries)
 
-        #  kernels_directory is dynamic because it originates from
-        #  self.__dict__.update(config["directories"]).
+        # kernels_directory is dynamic because it originates from
+        # self.__dict__.update(config["directories"]).
         config_setup = cast(Any, setup_instance)
 
         # A single directory must be wrapped in a list; an existing list must be
@@ -427,174 +427,209 @@ class TestSetupInit:
         assert config_setup.kernels_directory == expected
 
     @pytest.mark.parametrize('meta_kernel, orbit_number_file, expected', [
-        ({
-             'mk': {
-                 '@name': 'maven_$release.tm',
-                 'name': {'pattern': {'#text': 'release'}},
-             },
-             'coverage_kernels': {'pattern': 'maven_*.bc'},
-         }, {
-             'orbnum': {'pattern': 'maven_orbnum_*.orb'},
-         }, {
-             'mk': [{
-                 '@name': 'maven_$release.tm',
-                 'name': [{'pattern': {'#text': 'release'}}],
-             }],
-             'coverage_kernels': [{'pattern': 'maven_*.bc'}],
-             'orbnum': [{'pattern': 'maven_orbnum_*.orb'}],
-         }),
-        ({
-             'mk': [{
-                 '@name': 'maven_$release_$version.tm',
-                 'name': [
-                     {'pattern': {'#text': 'release'}},
-                     {'pattern': {'#text': 'version'}},
-                 ],
-             }],
-             'coverage_kernels': [{'pattern': 'maven_*.bc'}],
-         }, {
-             'orbnum': [{'pattern': 'maven_orbnum_*.orb'}],
-         }, {
-             'mk': [{
-                 '@name': 'maven_$release_$version.tm',
-                 'name': [
-                     {'pattern': {'#text': 'release'}},
-                     {'pattern': {'#text': 'version'}},
-                 ],
-             }],
-             'coverage_kernels': [{'pattern': 'maven_*.bc'}],
-             'orbnum': [{'pattern': 'maven_orbnum_*.orb'}],
-         }),
-    ])
+        ({'mk': {'@name': 'maven_$release.tm',
+                 'name': {'pattern': {'#text': 'release'}}},
+          'coverage_kernels': {'pattern': 'maven_*.bc'}},
+         {'orbnum': {'pattern': 'maven_orbnum_*.orb'}},
+         {'mk': [{'@name': 'maven_$release.tm',
+                  'name': [{'pattern': {'#text': 'release'}}]}],
+          'coverage_kernels': [{'pattern': 'maven_*.bc'}],
+          'orbnum': [{'pattern': 'maven_orbnum_*.orb'}]}),
+        ({'mk': [{'@name': 'maven_$release_$version.tm',
+                  'name': [{'pattern': {'#text': 'release'}},
+                           {'pattern': {'#text': 'version'}}]}],
+          'coverage_kernels': [{'pattern': 'maven_*.bc'}]},
+         {'orbnum': [{'pattern': 'maven_orbnum_*.orb'}]},
+         {'mk': [{'@name': 'maven_$release_$version.tm',
+                  'name': [{'pattern': {'#text': 'release'}},
+                           {'pattern': {'#text': 'version'}}]}],
+          'coverage_kernels': [{'pattern': 'maven_*.bc'}],
+          'orbnum': [{'pattern': 'maven_orbnum_*.orb'}]})])
     def test_normalizes_meta_kernel_coverage_and_orbnum_sections(
-            self, tmp_path, monkeypatch, meta_kernel, orbit_number_file,
-            expected) -> None:
-        entries = self.make_init_config(
-            directories={'orbnum_directory': 'orbnum'},
-            meta_kernel=meta_kernel,
-            orbit_number_file=orbit_number_file,
-        )
+            self, tmp_path, monkeypatch, meta_kernel, orbit_number_file, expected) -> None:
 
-        setup, _, _, _, _ = self.instantiate_setup(
-            tmp_path, monkeypatch, entries,
-        )
+        # Build a minimal valid configuration and override the meta-kernel and
+        # orbit number sections with shapes that exercise dictionary-to-list and
+        # list-preservation branches.
+        entries = self.make_init_config(directories={'orbnum_directory': 'orbnum'},
+                                        meta_kernel=meta_kernel,
+                                        orbit_number_file=orbit_number_file)
 
-        assert setup.orbnum_directory == 'orbnum'
-        assert setup.mk == expected['mk']
-        assert setup.coverage_kernels == expected['coverage_kernels']
-        assert setup.orbnum == expected['orbnum']
+        # Instantiate Setup so __init__ loads config["meta-kernel"],
+        # config["orbit_number_file"], and applies structural normalization.
+        setup_instance, _, _, _, _ = self.instantiate_setup(tmp_path, monkeypatch, entries)
+
+        # mk, coverage_kernels, and orbnum are dynamic attributes created from
+        # self.__dict__.update(...).
+        config_setup = cast(Any, setup_instance)
+
+        # orbnum_directory was provided explicitly, so the constructor must
+        # preserve it instead of assigning the default empty string.
+        assert setup_instance.orbnum_directory == 'orbnum'
+        assert config_setup.mk == expected['mk']
+        assert config_setup.coverage_kernels == expected['coverage_kernels']
+        assert config_setup.orbnum == expected['orbnum']
 
     @pytest.mark.parametrize('faucet, clear, expected_run_type', [
         ('labels', '', 'labels'),
+        ('clear', 'maven_labels_001.file_list', 'labels'),
         ('clear', 'maven_release_001.file_list', 'release'),
-        ('clear', 'maven_labels_001_labels_001.file_list', 'labels'),
-        ('bundle', 'maven_labels_001_labels_001.file_list', 'release'),
-    ])
+        ('clear', '', 'release'),
+        ('plan', '', 'release'),
+        ('list', '', 'release'),
+        ('checks', '', 'release'),
+        ('staging', '', 'release'),
+        ('bundle', '', 'release'),
+        ('', '', 'release'),
+        (None, '', 'release'),
+        ('bundle', 'maven_labels_001.file_list', 'release')])
     def test_sets_expected_run_type_from_faucet_arguments(
             self, tmp_path, monkeypatch, faucet, clear, expected_run_type) -> None:
+
+        # This test check that run_type is set to 'labels' only for labels
+        # executions or clear operations over labels file lists; otherwise it is
+        # set to 'release'.
+
+        # Build a minimal valid configuration, needed for run Setup.__init__.
         entries = self.make_init_config()
 
-        setup, _, _, _, _ = self.instantiate_setup(
-            tmp_path, monkeypatch, entries, faucet=faucet, clear=clear,
-        )
+        # Bild a Setup object with the execution arguments: args.faucet and
+        # args.clear.
+        setup_instance, _, _, _, _ = self.instantiate_setup(
+            tmp_path, monkeypatch, entries, faucet=faucet, clear=clear)
 
-        assert setup.run_type == expected_run_type
+        # run_type is 'labels' only for label mode or for clearing a labels file
+        # list. Every other valid faucet value is treated as a release run.
+        assert setup_instance.run_type == expected_run_type
 
     @pytest.mark.parametrize('end_of_line, expected_eol, expected_eol_len', [
-        ('CRLF', '\r\n', 2),
-        ('LF', '\n', 1),
-    ])
-    def test_applies_configured_end_of_line_values(
-            self, tmp_path, monkeypatch, end_of_line, expected_eol,
-            expected_eol_len) -> None:
-        entries = self.make_init_config(
-            pds_parameters={'end_of_line': end_of_line},
-        )
+        ('CRLF', '\r\n', 2), ('LF', '\n', 1)])
+    def test_applies_configured_end_of_line_values(self, tmp_path, monkeypatch,
+                                                   end_of_line, expected_eol,
+                                                   expected_eol_len) -> None:
 
-        setup, _, _, _, _ = self.instantiate_setup(
-            tmp_path, monkeypatch, entries,
-        )
+        # This test checks that translates each valid configured end_of_line
+        # value into the expected newline characters and length.
 
-        assert setup.end_of_line == end_of_line
-        assert setup.eol == expected_eol
-        assert setup.eol_len == expected_eol_len
+        # Build a minimal valid configuration and explicitly provide end_of_line.
+        entries = self.make_init_config(pds_parameters={'end_of_line': end_of_line})
+
+        # Build a Setup object.
+        setup_instance, _, _, _, _ = self.instantiate_setup(tmp_path,
+                                                            monkeypatch, entries)
+
+        # Verify that each valid configured end_of_line value is preserved and
+        # translated into the expected newline characters and character length.
+        assert setup_instance.end_of_line == end_of_line
+        assert setup_instance.eol == expected_eol
+        assert setup_instance.eol_len == expected_eol_len
 
     @pytest.mark.parametrize('binary_endianness, system_byteorder, expected', [
-        ('little', 'little', 'little'),
-        ('LTL-IEEE', 'little', 'little'),
-        ('big', 'big', 'big'),
-        ('BIG-IEEE', 'big', 'big'),
-    ])
+        ('little', 'little', 'little'), ('LTL-IEEE', 'little', 'little'),
+        ('big', 'big', 'big'), ('BIG-IEEE', 'big', 'big')])
     def test_accepts_supported_binary_endianness_values(
             self, tmp_path, monkeypatch, binary_endianness, system_byteorder,
             expected) -> None:
+
+        # This test checks all supported forms of binary_endianness and
+        # normalises them.
+
+        # Build a minimal valid configuration and explicitly provide
+        # binary_endianness.
         entries = self.make_init_config(
-            pds_parameters={'binary_endianness': binary_endianness},
-        )
+            pds_parameters={'binary_endianness': binary_endianness})
 
-        setup, _, _, _, _ = self.instantiate_setup(
-            tmp_path, monkeypatch, entries,
-            system_byteorder=system_byteorder,
-        )
+        # Build a Setup object.
+        setup_instance, _, _, _, _ = self.instantiate_setup(
+            tmp_path, monkeypatch, entries, system_byteorder=system_byteorder)
 
-        assert setup.binary_endianness == binary_endianness
-        assert setup.kernel_endianness == expected
+        # The binary_endianness is created dynamically from the configuration.
+        config_setup = cast(Any, setup_instance)
+
+        # Check that the configured value is retained as an attribute.
+        assert config_setup.binary_endianness == binary_endianness
+
+        # Check that the constructor has converted the configured value into the
+        # expected internal value.
+        assert setup_instance.kernel_endianness == expected
 
     def test_preserves_valid_release_date_and_configured_date_format(
             self, tmp_path, monkeypatch) -> None:
+        # Create a minimum valid configuration for Setup.__init__, but the
+        # release_date and date_format parameters are added explicitly.
         entries = self.make_init_config(
-            pds_parameters={
-                'release_date': '2024-01-31',
-                'date_format': 'infomod2',
-            },
-        )
+            bundle_parameters={'release_date': '2024-01-31',
+                               'date_format': 'infomod2'})
 
-        setup, _, _, _, _ = self.instantiate_setup(
-            tmp_path, monkeypatch, entries,
-        )
+        # Build a Setup object.
+        setup_instance, _, _, _, _ = self.instantiate_setup(
+            tmp_path, monkeypatch, entries)
 
-        assert setup.release_date == '2024-01-31'
-        assert setup.date_format == 'infomod2'
+        # Check that the values remain unchanged.
+        assert setup_instance.release_date == '2024-01-31'
+        assert setup_instance.date_format == 'infomod2'
 
-    def test_does_not_fill_pds4_only_fields_for_pds3(
-            self, tmp_path, monkeypatch) -> None:
-        entries = self.make_init_config(
-            pds_parameters={'pds_version': '3', 'volume_id': 'MAVEN_1001'},
-        )
+    def test_does_not_fill_pds4_only_fields_for_pds3(self, tmp_path,
+                                                     monkeypatch) -> None:
 
-        setup, _, _, _, _ = self.instantiate_setup(
-            tmp_path, monkeypatch, entries,
-        )
+        # Create a minimal configuration for PDS3 and added an explicitly
+        # volume_id.
+        entries = self.make_init_config(pds_parameters={'pds_version': '3'},
+                                        bundle_parameters={'volume_id': 'MAVEN_1001'})
 
-        assert setup.pds_version == '3'
-        assert setup.volume_id == 'MAVEN_1001'
-        assert not hasattr(setup, 'producer_phone')
-        assert not hasattr(setup, 'producer_email')
-        assert not hasattr(setup, 'dataset_id')
+        # Build a Setup object.
+        setup_instance, _, _, _, _ = self.instantiate_setup(tmp_path, monkeypatch,
+                                                            entries)
 
-    @pytest.mark.parametrize('pds_parameters, expected_message', [
+        # pds_version and volume_id are dynamic attributes loaded from the
+        # configuration sections flattened into the Setup instance.
+        config_setup = cast(Any, setup_instance)
+
+        # As we are checking a PSD3 configuration, the pds_version and volume_id
+        # attributes must remain unchanged.
+        assert config_setup.pds_version == '3'
+        assert config_setup.volume_id == 'MAVEN_1001'
+
+        # Furthermore, this configuration must not contain the producer_phone,
+        # producer_email or dataset_id attributes, as these are only created
+        # with PDS4.
+        assert not hasattr(setup_instance, 'producer_phone')
+        assert not hasattr(setup_instance, 'producer_email')
+        assert not hasattr(setup_instance, 'dataset_id')
+
+    @pytest.mark.parametrize('bundle_parameters, expected_message', [
         ({'release_date': '2024/01/31'},
          'release_date parameter does not match the required format: YYYY-MM-DD.'),
         ({'end_of_line': 'CR'},
          'End of Line provided via configuration is not CRLF nor LF.'),
         ({'binary_endianness': 'middle'},
          "binary_endianness configuration parameter value must be 'big', "
-         "'BIG-IEEE', 'little' or 'LTL-IEEE'. Case is not sensitive."),
-    ])
+         "'BIG-IEEE', 'little' or 'LTL-IEEE'. Case is not sensitive.")])
     def test_raises_when_configured_scalar_parameters_are_invalid(
-            self, tmp_path, monkeypatch, pds_parameters, expected_message) -> None:
-        entries = self.make_init_config(pds_parameters=pds_parameters)
+            self, tmp_path, monkeypatch, bundle_parameters, expected_message) -> None:
 
+        # This test checks invalid values for release_date, end_of_line and
+        # binary_endianness. When an invalid value is encountered for these
+        # attributes, handle_npb_error is called, which raises a RuntimeError
+        # exception.
+
+        entries = self.make_init_config(bundle_parameters=bundle_parameters)
+
+        # Capture the exception raised by handle_npb_error call, and check the
+        # provided message.
         with pytest.raises(RuntimeError, match=re.escape(expected_message)):
             self.instantiate_setup(tmp_path, monkeypatch, entries)
 
     @pytest.mark.parametrize('binary_endianness, system_byteorder', [
-        ('big', 'little'),
-        ('little', 'big'),
-    ])
+        ('big', 'little'), ('little', 'big')])
     def test_raises_when_binary_endianness_does_not_match_system_byteorder(
-            self, tmp_path, monkeypatch, binary_endianness,
-            system_byteorder) -> None:
+            self, tmp_path, monkeypatch, binary_endianness, system_byteorder) -> None:
+
+        # This test checks that valid configured endianness values still fail
+        # initialization when they are incompatible with the simulated sys.byteorder.
+
+        # Build a minimal valid configuration with a supported binary_endianness
+        # value.
         entries = self.make_init_config(
             pds_parameters={'binary_endianness': binary_endianness},
         )
@@ -604,11 +639,11 @@ class TestSetupInit:
             f'the same as your system endianness: {system_byteorder}.'
         )
 
+        # Capture the exception raised by handle_npb_error call, and check the
+        # provided message.
         with pytest.raises(RuntimeError, match=re.escape(expected_message)):
-            self.instantiate_setup(
-                tmp_path, monkeypatch, entries,
-                system_byteorder=system_byteorder,
-            )
+            self.instantiate_setup(tmp_path, monkeypatch, entries,
+                                   system_byteorder=system_byteorder)
 
 
 class TestSetupCheckConfiguration:
