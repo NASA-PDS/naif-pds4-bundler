@@ -972,7 +972,7 @@ class TestSetupCheckConfiguration:
             (logging.ERROR, f'  working: {setup.working_directory}'),
             (logging.ERROR, f'  staging: {setup.working_directory}'),
             (logging.ERROR, f'  bundle:  {setup.bundle_directory}'),
-            (logging.ERROR, f'-- Update working, staging, or bundle directory.')]
+            (logging.ERROR, '-- Update working, staging, or bundle directory.')]
 
         results = [(r[1], r[2]) for r in caplog.record_tuples]
 
