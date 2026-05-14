@@ -71,8 +71,23 @@ class TestSetupInit:
                             'staging_directory': 'staging',
                             'bundle_directory': 'bundle',
                             'kernels_directory': 'kernels'},
-            'kernel_list': {'kernel': [{'@pattern': 'spk', 'description': 'SPK kernels'},
-                                       {'@pattern': 'fk', 'description': 'FK kernels'}]},
+            # This shape represents the raw output produced by etree_to_dict.
+            # The XML attribute pattern="..." is stored as "@pattern" inside each
+            # kernel dictionary. Setup.__init__ later builds kernel_list_config using
+            # that "@pattern" value as the dictionary key.
+            'kernel_list': {
+                'kernel': [
+                    {'@pattern': 'naif[0-9][0-9][0-9][0-9].tls',
+                     'description': ('SPICE LSK file incorporating leapseconds up to $DATE, '
+                                     'created by NAIF, JPL.'),
+                     'patterns': {'DATE': [{'@value': 'naif0011.tls',
+                                            '#text': '2015-JAN-01'},
+                                           {'@value': 'naif0012.tls',
+                                            '#text': '2017-JAN-01'}]}},
+                    {'@pattern': 'maven_v[0-9][0-9].tf',
+                     'description': ('SPICE FK file defining reference frames for the MAVEN '
+                                     'spacecraft, its structures, and science instruments, '
+                                     'created by NAIF, JPL.')}]},
             'meta-kernel': {}}
 
         # Update only those parameters that are explicitly passed.
@@ -229,10 +244,25 @@ class TestSetupInit:
         #
         # That is why we check that the list has been successfully converted
         # into a dictionary.
+        #
+        # The raw configuration contains a list under kernel_list["kernel"], where each
+        # kernel stores the XML pattern attribute as "@pattern". Setup.__init__ converts
+        # that list into kernel_list_config, keyed by each kernel's "@pattern" value,
+        # and removes the temporary kernel attribute.
         assert setup_instance.kernel_list_config == {
-            'spk': {'@pattern': 'spk', 'description': 'SPK kernels'},
-            'fk': {'@pattern': 'fk', 'description': 'FK kernels'},
-        }
+            'naif[0-9][0-9][0-9][0-9].tls': {
+                '@pattern': 'naif[0-9][0-9][0-9][0-9].tls',
+                'description': ('SPICE LSK file incorporating leapseconds up to $DATE, '
+                                'created by NAIF, JPL.'),
+                'patterns': {'DATE': [{'@value': 'naif0011.tls',
+                                       '#text': '2015-JAN-01'},
+                                      {'@value': 'naif0012.tls',
+                                       '#text': '2017-JAN-01'}]}},
+            'maven_v[0-9][0-9].tf': {
+                '@pattern': 'maven_v[0-9][0-9].tf',
+                'description': ('SPICE FK file defining reference frames for the MAVEN '
+                                'spacecraft, its structures, and science instruments, '
+                                'created by NAIF, JPL.')}}
         # The side effect is checked: the kernel attribute is removed.
         assert not hasattr(setup_instance, 'kernel')
 
@@ -250,6 +280,47 @@ class TestSetupInit:
         assert setup_instance.producer_email == ''
         assert setup_instance.dataset_id == ''
         assert setup_instance.volume_id == ''
+
+    def test_builds_kernel_list_config_from_kernel_pattern_attribute(
+            self, tmp_path, monkeypatch) -> None:
+
+        # Build a configuration dictionary that matches the raw etree_to_dict
+        # output for kernel_list. At this stage, the XML attribute pattern="..."
+        # is represented as "@pattern" inside each kernel dictionary, not as the
+        # outer dictionary key.
+        entries = self.make_init_config(
+            kernel_list={
+                'kernel': [
+                    {'@pattern': 'naif[0-9][0-9][0-9][0-9].tls',
+                     'description': (
+                         'SPICE LSK file incorporating leapseconds up to $DATE, '
+                         'created by NAIF, JPL.'),
+                     'patterns': {'DATE': [{'@value': 'naif0011.tls',
+                                            '#text': '2015-JAN-01'},
+                                           {'@value': 'naif0012.tls',
+                                            '#text': '2017-JAN-01'}]}}]})
+
+        setup_instance, _, _, _, _ = self.instantiate_setup(
+            tmp_path, monkeypatch, entries,
+        )
+
+        # Setup.__init__ converts the temporary kernel list into
+        # kernel_list_config, using each kernel's "@pattern" value as the final
+        # dictionary key.
+        assert setup_instance.kernel_list_config == {
+            'naif[0-9][0-9][0-9][0-9].tls': {
+                '@pattern': 'naif[0-9][0-9][0-9][0-9].tls',
+                'description': (
+                    'SPICE LSK file incorporating leapseconds up to $DATE, '
+                    'created by NAIF, JPL.'),
+                'patterns': {'DATE': [{'@value': 'naif0011.tls',
+                                       '#text': '2015-JAN-01'},
+                                      {'@value': 'naif0012.tls',
+                                       '#text': '2017-JAN-01'}]}}}
+
+        # The raw 'kernel' attribute is only an intermediate representation and is
+        # removed after kernel_list_config has been built.
+        assert not hasattr(setup_instance, 'kernel')
 
     def test_calls_schema_validation_and_xml_conversion_once(self, tmp_path,
                                                              monkeypatch) -> None:
