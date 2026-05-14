@@ -233,6 +233,8 @@ class Setup:
         else:
             handle_npb_error("End of Line provided via configuration is not CRLF nor LF.")
 
+        # TODO: The EOL setting for PDS4 is CRLF ("\r\n"), so the eol_pds4_len
+        #       variable should be 2 instead of 1. There is a bug.
         self.end_of_line_pds4 = "CRLF"
         self.eol_pds4 = "\r\n"
         self.eol_pds4_len = 1

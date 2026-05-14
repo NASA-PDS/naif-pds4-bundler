@@ -211,6 +211,8 @@ class TestSetupInit:
         # The following values do not depend on the default configuration, but
         # are always assigned in the constructor. We therefore check that they
         # remain exactly as defined in the code.
+        # TODO: This test exposes a bug. The correct value for eol_pds4_len
+        #       should be 2 not 1, as the EOL for PDS4 is CRLF ("\r\n").
         assert setup_instance.end_of_line_pds4 == 'CRLF'
         assert setup_instance.eol_pds4 == '\r\n'
         assert setup_instance.eol_pds4_len == 1
