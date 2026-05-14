@@ -31,7 +31,7 @@ def test_handler_without_setup_attr(mock_handler):
     mock_furnish("missing_kernel.tm")
 
     # Verify handle_npb_error was triggered by the SpiceyPy error
-    assert mock_handler.called_once()
+    mock_handler.assert_called_once()
 
     # The first argument to the handler is the formatted traceback string
     traceback_arg = mock_handler.call_args[0][0]
@@ -55,7 +55,7 @@ def test_handler_with_setup_attr(mock_handler):
     obj.mock_furnish("missing_kernel.tm")
 
     # Verify handle_npb_error was triggered by the SpiceyPy error
-    assert mock_handler.called_once()
+    mock_handler.assert_called_once()
 
     # The first argument to the handler is the formatted traceback string
     traceback_arg = mock_handler.call_args[0][0]
