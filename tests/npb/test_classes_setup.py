@@ -580,8 +580,18 @@ class TestSetupInit:
         assert setup_instance.eol_len == expected_eol_len
 
     @pytest.mark.parametrize('binary_endianness, system_byteorder, expected', [
-        ('little', 'little', 'little'), ('LTL-IEEE', 'little', 'little'),
-        ('big', 'big', 'big'), ('BIG-IEEE', 'big', 'big')])
+        ('little', 'little', 'little'),
+        ('LITTLE', 'little', 'little'),
+        ('Little', 'little', 'little'),
+        ('ltl-ieee', 'little', 'little'),
+        ('LTL-IEEE', 'little', 'little'),
+        ('Ltl-Ieee', 'little', 'little'),
+        ('big', 'big', 'big'),
+        ('BIG', 'big', 'big'),
+        ('Big', 'big', 'big'),
+        ('big-ieee', 'big', 'big'),
+        ('BIG-IEEE', 'big', 'big'),
+        ('Big-Ieee', 'big', 'big')])
     def test_accepts_supported_binary_endianness_values(
             self, tmp_path, monkeypatch, binary_endianness, system_byteorder,
             expected) -> None:
