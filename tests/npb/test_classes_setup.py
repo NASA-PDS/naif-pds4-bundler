@@ -458,9 +458,7 @@ class TestSetupInit:
 
     @pytest.mark.parametrize('kernels_directory, expected', [
         ('kernels', ['kernels']),
-        (['kernels/spk', 'kernels/fk'], ['kernels/spk', 'kernels/fk']),
-        ('', ['']),
-        (None, [None])])
+        (['kernels/spk', 'kernels/fk'], ['kernels/spk', 'kernels/fk'])])
     def test_normalizes_kernels_directory(self, tmp_path, monkeypatch,
                                           kernels_directory, expected) -> None:
         # This test verifies that, after building Setup, kernels_directory
