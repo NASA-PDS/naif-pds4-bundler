@@ -336,20 +336,10 @@ class TestSetupInit:
             tmp_path, monkeypatch, entries,
             xml_text='<configuration><child /></configuration>')
 
-        # Check XMLSchema11 call.
-        #
-        # Check that the XMLSchema11 only is called once.
-        schema_class.assert_called_once()
-
-        # Check that the path value is the one generated dynamically by the
-        # setup.py file.
-        schema_path = schema_class.call_args.args[0]
-
-        # Check that the expected XSD is being used.
-        # The full path is not checked, as this may change; therefore, the
-        # important thing in this case is that the constructor points to the
-        # correct relative XSD.
-        assert schema_path.endswith('/../data/configuration.xsd')
+        # Check XMLSchema11 is called once.
+        schema_class.assert_called_once_with(
+            os.path.dirname(Setup.__init__.__code__.co_filename)
+            + '/../data/configuration.xsd')
 
         # Check that the validate calls once and that the configuration path
         # used is correct.
