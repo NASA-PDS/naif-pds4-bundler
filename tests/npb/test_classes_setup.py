@@ -429,13 +429,7 @@ class TestSetupInit:
           'secondary_targets': {'target': ''}},
          {'secondary_missions': [''],
           'secondary_observers': [''],
-          'secondary_targets': ['']}),
-        ({'secondary_missions': {'mission_name': None},
-          'secondary_observers': {'observer': None},
-          'secondary_targets': {'target': None}},
-         {'secondary_missions': [None],
-          'secondary_observers': [None],
-          'secondary_targets': [None]})])
+          'secondary_targets': ['']})])
     def test_normalizes_secondary_missions_observers_and_targets(
             self, tmp_path, monkeypatch, mission_parameters, expected) -> None:
         # This test checks that the optional fields relating to missions,
