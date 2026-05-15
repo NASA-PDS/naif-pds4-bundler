@@ -42,7 +42,42 @@ def test_add_carriage_return(inputs, eol, outputs):
     result = files.add_carriage_return(inputs, eol)
     assert result == outputs
 
-def test_add_carriage_return_logging_error(monkeypatch, caplog):
+# def test_add_carriage_return_logging_error(monkeypatch, caplog):
+#     """Test add_carriage_return function using pytest.
+#     This is to test logging errors"""
+#
+#     def mock_handle_error(msg, setup):
+#         if not setup:
+#             logging.error(msg)
+#
+#     monkeypatch.setattr(files, "handle_npb_error", mock_handle_error)
+#     wrong_cr = "Mew "
+#
+#     # Capture and check the logging level and logging messages.
+#     with caplog.at_level(files.logging.ERROR):
+#         files.add_carriage_return(wrong_cr, eol="", setup=False)
+#
+#     expected = [(logging.ERROR, 'File has incorrect CR at line: Mew .')]
+#
+#     results = [(r[1], r[2]) for r in caplog.record_tuples]
+#
+#     assert results == expected
+
+#Only covers \n part not \r\n .... not sure how to make this cover both
+
+@pytest.mark.parametrize("inputs, eol, expected", [
+    ("Meww", "", [(40, "File has incorrect CR at line: Meww.")]),
+    ("Meww", "", [(logging.ERROR, "File has incorrect CR at line: Meww.")]),
+    ("Meww", "\n", []),
+    ("Meww", "\r\n", []),
+    ("Meww\n", "", []),
+    ("Meww\r\n", "", []),
+    ("Meww\n", "\r\n", []),
+    ("Meww\r\n", "\n", []),
+    ("Meww\n", "\n", []),
+    ("Meww\r\n", "\r\n", []),
+])
+def test_add_carriage_return_logging_error(monkeypatch, inputs, eol, expected,  caplog):
     """Test add_carriage_return function using pytest.
     This is to test logging errors"""
 
@@ -51,44 +86,36 @@ def test_add_carriage_return_logging_error(monkeypatch, caplog):
             logging.error(msg)
 
     monkeypatch.setattr(files, "handle_npb_error", mock_handle_error)
-    wrong_cr = "Mew "
 
     # Capture and check the logging level and logging messages.
     with caplog.at_level(files.logging.ERROR):
-        files.add_carriage_return(wrong_cr, eol="", setup=False)
-
-    expected = [(logging.ERROR, 'File has incorrect CR at line: Mew .')]
+        files.add_carriage_return(inputs, eol, setup=False)
 
     results = [(r[1], r[2]) for r in caplog.record_tuples]
+    # [1] is log level (logging.ERROR = 40)
+    # [2] is log message
 
     assert results == expected
-
-#Only covers \n part not \r\n .... not sure how to make this cover both
 
 # ----------------------------------------------------------------------------
 # files.add_crs_to_file tests
 # ----------------------------------------------------------------------------
 
 @pytest.mark.parametrize("inputs, outputs", [
-    ("Chatty\nkitty\n", "Chatty<CR>\nkitty<CR>\n"),
-    ("Chatty kitty ", "Chatty kitty<CR>\n"),
-    ("Kitty", "Kitty<CR>\n"),
-    ("Kitty\n", "Kitty<CR>\n"),
-    ("Meow \r\n", "Meow<CR>\n"),
-    ("Meow\r\n Meow\r\n", "Meow<CR>\nMeow<CR>\n"),
-    ("\n", "<CR>\n"),
+    ("Chatty\nkitty\n", "Chatty\nkitty\n"),
+    ("Chatty kitty ", "Chatty kitty \n"),
+    ("Kitty", "Kitty\n"),
+    ("Kitty\n", "Kitty\n"),
+    ("Meow \r\n", "Meow \n"),
+    ("Meow\r\n Meow\r\n", 'Meow\n Meow\n'),
+    ("\n", "\n"),
     ("", ""),
 ])
-def test_add_crs_to_file_success(monkeypatch, tmp_path, inputs, outputs):
+def test_add_crs_to_file_success_alt(tmp_path, inputs, outputs):
     """Test add_crs_to_file function using pytest.
     This is for a successful case"""
     fake_file = tmp_path / "file.txt"
     fake_file.write_text(inputs, newline='')
-
-    def mock_add_cr(line, eol, setup):
-        return line.strip() + "<CR>\n"
-
-    monkeypatch.setattr(files, "add_carriage_return", mock_add_cr)
 
     files.add_crs_to_file(str(fake_file), eol="\n", setup=False)
 
@@ -221,35 +248,6 @@ def test_check_eol(kern, eol, expected):
     result = files.check_eol(kern, eol)
     assert result == expected
 
-
-
-# @pytest.mark.parametrize( "kern, eol, contents, expected", [
-#     #(Path(KERNELS/"mk"/"m2020_v09.tm"), "\n", ''),
-#     (Path(KERNELS/"mk"/"m2020_v09.tm"), "\r\n", "End of MK file.", "Incorrect EOL in file, CRLF (\\r\\n) expected."),
-#     #(Path(KERNELS/"fk"/"clps_to_2ab_v01.tf"), "\r\n", "Incorrect EOL in file, CRLF (\\r\\n) expected."),
-#     # (Path(KERNELS/"spk"/"maven_orb_rec_210101_210401_v2.bsp"), "\n", "Incorrect EOL in file, LF (\\n) expected."),
-#     # (Path(KERNELS/"spk"/"maven_orb_rec_210101_210401_v2.bsp"), "\r\n", "Incorrect EOL in file, CRLF (\\r\\n) expected."),
-#     # (Path(KERNELS/"dsk"/"DEIMOS_K005_THO_V01.BDS"), "\r\n", "Incorrect EOL in file, CRLF (\\r\\n) expected."),
-#     # (Path(KERNELS / "dsk" / "DEIMOS_K005_THO_V01.BDS"), "\n", "Incorrect EOL in file, LF (\\n) expected."),
-# ])
-# def test_check_eol_alt(mocker, contents, kern, eol, expected):
-#     """Test check_eol function using pytest."""
-#
-#     # with patch("builtins.open", mock_open(read_data=kern)):
-#     #     result =  files.check_eol(kern, eol)
-#     #     assert result == expected
-#
-#     mock_file = mocker.mock_open(read_data=contents)
-#
-#     mocker.patch("builtins.open", mock_file, encoding="utf-8")
-#
-#     result = files.check_eol(kern, eol)
-#     #assert result == expected
-#     assert result == contents
-#     mock_file.assert_called_with(contents, "rb")
-
-
-
 def test_check_eol_logging_error(monkeypatch, tmp_path, caplog):
     """Test check_eol function using pytest.
     This is to test logging errors"""
@@ -268,7 +266,7 @@ def test_check_eol_logging_error(monkeypatch, tmp_path, caplog):
     with caplog.at_level(files.logging.ERROR):
         files.check_eol(fake_file, eol)
 
-    expected = [(logging.ERROR,'Incorrect EOL in configuration: \x07')]
+    expected = [(logging.ERROR,'Incorrect EOL in configuration: \a')]
 
     results = [(r[1], r[2]) for r in caplog.record_tuples]
 
@@ -441,14 +439,13 @@ def test_checksum_from_label(prod_path, expected):
 # files.checksum_from_registry test
 # ----------------------------------------------------------------------------
 
-@pytest.mark.parametrize("prod_path, chcksm, expected", [
-    ("ladee_v10.tm", {"1.checksum": "path/ladee_v10.tm   abcdefg10987654321"}, "abcdefg10987654321"),
-    ("mars2020_v04.bc", {"1.checksum": "not_the_right.bc  wrong", "2.checksum": "path/mars2020_v04.bc  looksright6789"},
-     "looksright6789"),
-    ("missing.tf", {"1.checksum": "other.tf  nothere12345"},"" ),
-    ("any.bsp", {},""),
+@pytest.mark.parametrize("prod_path, chcksm", [
+    ("ladee_v10.tm", {"1.checksum": "path/ladee_v10.tm   abcdefg10987654321"}),
+    ("mars2020_v04.bc", {"1.checksum": "not_the_right.bc  wrong", "2.checksum": "path/mars2020_v04.bc  looksright6789"}),
+    ("missing.tf", {"1.checksum": "other.tf  nothere12345"}),
+    ("any.bsp", {}),
 ])
-def test_checksum_from_registry_logging_error(monkeypatch, tmp_path, prod_path, chcksm, expected, caplog):
+def test_checksum_from_registry_logging_error(monkeypatch, tmp_path, prod_path, chcksm, caplog):
     """Test checksum_from_registry function using pytest
     This is to test logging errors"""
     # checksum_found will always be False: the for loop in line 731 will either finish when one checksum is found
@@ -499,8 +496,8 @@ def test_compare_files(tmp_path, from_text, to_text, disp, expected, files_creat
 
     files.md5.side_effect = lambda x: "hash_a" if "line1" in Path(x).read_text() else "hash_b"
 
-    with patch("logging.info") as mock_log:
-        with patch("builtins.open", side_effect=open) as mock_builtin_open:
+    with patch("logging.info"):
+        with patch("builtins.open", side_effect=open):
             result = files.compare_files(str(fromfile), str(tofile), str(dest), disp)
 
     assert result == expected
@@ -975,7 +972,7 @@ def test_mk_to_list_error(monkeypatch, tmp_path, caplog):
     with caplog.at_level(files.logging.ERROR):
         files.mk_to_list(str(mk), setup=False)
 
-    assert f"No kernels present in {mk}. " f"Please review MK generation." in caplog.text
+    assert f"No kernels present in {mk}. ", f"Please review MK generation." in caplog.text
 
 # ----------------------------------------------------------------------------
 # files.product_mapping test
@@ -1123,7 +1120,6 @@ def test_string_in_file(kern, str_to_check, reps, expected):
 # files.type_to_extension test
 # ----------------------------------------------------------------------------
 
-#TODO EK extensions need to be added. Orbnums?
 @pytest.mark.parametrize( "inputs, outputs", [
     ("IK", ['ti']),
     ("ik", ['ti']),
@@ -1135,12 +1131,16 @@ def test_string_in_file(kern, str_to_check, reps, expected):
     ("CK",  ['bc']),
     ("SPK",  ['bsp']),
     ("DSK",  ['bds']),
-    #("EK", ['bes']), #, 'bep', 'bpe', 'bdb' --> # KeyError: 'EK'
-    #("ORB", ['nrb', 'orb']), --> # KeyError: 'ORB'
+    ("EK", ['bes','bpe', 'bep', 'bdb']),
+    ("ORB", ['nrb', 'orb']),
 ])
 def test_type_to_extension(inputs, outputs):
     """Test type_to_extension function using pytest."""
     assert files.type_to_extension(inputs) == outputs
+
+# ----------------------------------------------------------------------------
+# files.extension_to_type test
+# ----------------------------------------------------------------------------
 
 @pytest.mark.parametrize("kern, expected", [
     ("fakey_fake.bc", "ck"),
@@ -1160,7 +1160,8 @@ def test_type_to_extension_object(kern, expected):
 # files.type_to_pds3_type test
 # ----------------------------------------------------------------------------
 
-#TODO EKs need to be added! Should MKs/Orbnums be added .. in extras??
+#TODO Currently no pds3 labels are made for either MKs or ORBNUMs - might
+# need this logic for migration?? Put MK and ORBNUMs in as placeholders...
 @pytest.mark.parametrize( "inputs, outputs", [
     ("IK", "INSTRUMENT"),
     ("ik", "INSTRUMENT"),
@@ -1178,6 +1179,12 @@ def test_type_to_extension_object(kern, expected):
     ("spk", "EPHEMERIS"),
     ("DSK",  "SHAPE"),
     ("dsk", "SHAPE"),
+    ("EK", "EVENTS"),
+    ("ek", "EVENTS"),
+    ("MK", "METAKERNEL"), #no pds3 labels for MK or ORBNUMS
+    ("mk", "METAKERNEL"), #no pds3 labels for MK or ORBNUMS
+    ("ORB", "ORBIT NUMBER"), #no pds3 labels for MK or ORBNUMS
+    ("orb", "ORBIT NUMBER"), #no pds3 labels for MK or ORBNUMS
 ])
 def test_type_to_pds3_type(inputs, outputs):
     """Test type_to_pds3 function using pytest."""

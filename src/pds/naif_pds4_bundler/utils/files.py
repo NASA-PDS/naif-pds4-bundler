@@ -164,6 +164,9 @@ def type_to_pds3_type(kernel):
         "CK": "POINTING",
         "SPK": "EPHEMERIS",
         "DSK": "SHAPE",
+        "EK": "EVENTS",
+        "ORB": "ORBIT NUMBER", #these don't receive pds3 labels...
+        "MK": "METAKERNEL", #these don't receive pds3 labels...
     }
 
     try:
@@ -200,6 +203,8 @@ def type_to_extension(kernel_type):
         "CK": ["bc"],
         "SPK": ["bsp"],
         "DSK": ["bds"],
+        "EK": ["bes", "bpe", "bep", "bdb"],
+        "ORB": ["nrb","orb"],
     }
 
     kernel_extension = kernel_type_map[kernel_type]
