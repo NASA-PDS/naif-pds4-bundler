@@ -8,7 +8,6 @@ from types import SimpleNamespace
 import pytest
 
 from pds.naif_pds4_bundler.classes.list import KernelList
-from pds.naif_pds4_bundler.utils import extension_to_type
 
 
 def make_kernel_list_setup(tmp_path, **overrides) -> SimpleNamespace:
@@ -465,7 +464,7 @@ class TestKernelListWriteList:
 
         # Define the kernel value to test.
         kernel = 'maven_release_03.tm'
-        kernel_type = extension_to_type(kernel)
+        kernel_type = 'mk'
 
         # Preapre the extra attributes for setup.
         setup_overrides = {}
@@ -513,7 +512,7 @@ class TestKernelListWriteList:
         # Configure the needed mocks.
         mocks = self.patch_write_list_file_and_validation_boundaries(mocker)
 
-        kernel_type = extension_to_type(kernel)
+        kernel_type = 'spk'
         escaped_kernel = re.escape(kernel)
 
         config_value = {
@@ -556,8 +555,7 @@ class TestKernelListWriteList:
 
         # Define the kernel to be processed.
         kernel = 'maven_kernel_v01.bc'
-        kernel_type = extension_to_type(kernel)
-        comment_kernel_type = extension_to_type(kernel.split('.')[-1])
+        kernel_type = 'ck'
 
         # Mock the extract_comment call.
         extract_comment_mock = mocker.patch(
@@ -582,7 +580,7 @@ class TestKernelListWriteList:
 
         # Check the extract_comment call.
         extract_comment_mock.assert_called_once_with(
-            f'{setup.kernels_directory[0]}/{comment_kernel_type}/{kernel}')
+            f'{setup.kernels_directory[0]}/{kernel_type}/{kernel}')
 
         # Check file content.
         assert output_path.read_text(encoding='utf-8') == (
@@ -612,7 +610,7 @@ class TestKernelListWriteList:
         mocks = self.patch_write_list_file_and_validation_boundaries(mocker)
 
         # Define the kernel to be processed.
-        kernel_type = extension_to_type(kernel)
+        kernel_type = 'spk'
         escaped_kernel = re.escape(kernel)
 
         kernel_list_config = {fr'^{escaped_kernel}$': {'description': 'Level $LEVEL',
@@ -747,7 +745,7 @@ class TestKernelListWriteList:
 
         # Define a configured kernel.
         kernel = 'maven_orbit_v01.bsp'
-        kernel_type = extension_to_type(kernel)
+        kernel_type = 'spk'
 
         kernel_list_config = {r'^maven_orbit_v01\.bsp$': {'description': 'Orbit kernel',
                                                           'mklabel_options': 'SPK'}}
