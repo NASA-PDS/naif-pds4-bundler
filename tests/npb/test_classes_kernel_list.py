@@ -379,7 +379,7 @@ class TestKernelListWriteList:
 
         # Define the kernel with a correct configuration.
         kernel = 'maven_orbit_v01.bsp'
-        kernel_type = extension_to_type(kernel)
+        kernel_type = 'spk'
 
         kernel_list_config = {
             r'^maven_orbit_v01\.bsp$': {
@@ -426,7 +426,7 @@ class TestKernelListWriteList:
 
         # Define the kernel value to test.
         kernel = 'maven_fk_v01.ti'
-        kernel_type = extension_to_type(kernel)
+        kernel_type = 'fk'
 
         kernel_list_config = {
             r'^maven_fk_v01\.ti$': {'description': 'Frame kernel',
