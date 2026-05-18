@@ -1,8 +1,8 @@
 """Tests for KernelList class."""
-import logging
-import re
 from datetime import datetime as real_datetime
+import logging
 from pathlib import Path
+import re
 from types import SimpleNamespace
 
 import pytest
