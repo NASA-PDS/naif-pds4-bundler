@@ -724,3 +724,51 @@ class TestKernelListWriteList:
         # Check the validate call.
         mocks.validate.assert_not_called()
         assert kernel_list.list_name == ''
+
+    def test_write_list_uses_real_fill_template_to_create_output_file(
+            self, mocker, tmp_path) -> None:
+        # Real template rendering: do not mock fill_template. write_list must
+        # read the template file, create the output file, append kernel entries,
+        # update list_name and call validate.
+
+        # Mock only validate because the test scope requires write_list to
+        # trigger validation, not to execute the full validation workflow.
+        validate_mock = mocker.patch.object(KernelList, 'validate',
+                                            autospec=True)
+
+        # Create the real template file used by KernelList.__init__.
+        templates_directory = tmp_path / 'templates'
+        templates_directory.mkdir()
+        template = templates_directory / 'template_kernel_list.txt'
+        template.write_text('REAL TEMPLATE HEADER\n', encoding='utf-8')
+
+        # Define a configured kernel.
+        kernel = 'maven_orbit_v01.bsp'
+        kernel_type = extension_to_type(kernel)
+
+        kernel_list_config = {r'^maven_orbit_v01\.bsp$': {'description': 'Orbit kernel',
+                                                          'mklabel_options': 'SPK'}}
+
+        # Build a real KernelList pointing to the real template directory.
+        kernel_list, _, output_path = self.make_kernel_list(
+            tmp_path,
+            kernel_list_config=kernel_list_config,
+            kernels=[kernel],
+            templates_directory=str(templates_directory))
+
+        kernel_list.write_list()
+
+        # Check that the real template content is preserved and write_list
+        # appends the kernel-list entry after it.
+        assert output_path.read_text(encoding='utf-8') == (
+            'REAL TEMPLATE HEADER\n'
+            f'FILE             = spice_kernels/{kernel_type}/{kernel}\n'
+            'MAKLABEL_OPTIONS = SPK\n'
+            'DESCRIPTION      = Orbit kernel\n')
+
+        # Check the side effect over the object; write_list should assign
+        # self.list_name = list_name
+        assert kernel_list.list_name == 'maven_release_03.kernel_list'
+
+        # Check the validate call.
+        validate_mock.assert_called_once_with(kernel_list)
