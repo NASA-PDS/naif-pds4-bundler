@@ -426,11 +426,11 @@ class TestKernelListWriteList:
 
         # Define the kernel value to test.
         kernel = 'maven_fk_v01.ti'
-        kernel_type = 'fk'
+        kernel_type = 'ik'
 
         kernel_list_config = {
-            r'^maven_fk_v01\.ti$': {'description': 'Frame kernel',
-                                    'mklabel_options': 'FK'}}
+            r'^maven_fk_v01\.ti$': {'description': 'Instrument kernel',
+                                    'mklabel_options': 'IK'}}
 
         # Build a real instance of KernelList for PDS3.
         kernel_list, _, output_path = self.make_kernel_list(
@@ -445,8 +445,8 @@ class TestKernelListWriteList:
         assert output_path.read_text(encoding='utf-8') == (
             'TEMPLATE HEADER\n'
             f'FILE             = data/{kernel_type}/{kernel}\n'
-            'MAKLABEL_OPTIONS = FK\n'
-            'DESCRIPTION      = Frame kernel\n'
+            'MAKLABEL_OPTIONS = IK\n'
+            'DESCRIPTION      = Instrument kernel\n'
         )
 
         # Check the validate call.
