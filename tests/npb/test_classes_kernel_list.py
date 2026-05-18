@@ -282,14 +282,15 @@ class TestKernelListReadConfig:
 class TestKernelListWriteList:
 
     @staticmethod
-    def patch_write_list_file_and_validation_boundaries(mocker) -> SimpleNamespace:
+    def patch_write_list_file_and_validation_boundaries(
+            mocker, template_content='TEMPLATE HEADER\n') -> SimpleNamespace:
         # Only patch boundaries outside write_list's own logic: template/file
         # creation and the final validation workflow required to be mocked.
         def fake_fill_template(_kernel_list, output_path, _list_dictionary) -> None:
             # Fake fill_template: create the file that write_list will append
             # to. Keep the same signature as the real function.
             with open(output_path, 'w', encoding='utf-8') as out:
-                out.write('TEMPLATE HEADER\n')
+                out.write(template_content)
 
         fill_template_mock = mocker.patch(
             'pds.naif_pds4_bundler.classes.list.fill_template',
@@ -331,8 +332,10 @@ class TestKernelListWriteList:
             self, mocker, tmp_path) -> None:
         # Check the case when kernel_list is empty.
 
-        # Prepare the needed mocks.
-        mocks = self.patch_write_list_file_and_validation_boundaries(mocker)
+        # Prepare the needed mocks. The fake template is intentionally empty to
+        # prove that write_list does not add anything when there are no kernels.
+        mocks = self.patch_write_list_file_and_validation_boundaries(
+            mocker, template_content='')
 
         # Build a real KernelList with an empty kernels attribute.
         kernel_list, _, output_path = self.make_kernel_list(tmp_path,
@@ -349,7 +352,8 @@ class TestKernelListWriteList:
         # This proves two things:
         #   - fill_template created the file.
         #   - write_list did not add any entries because there were no kernels.
-        assert output_path.read_text(encoding='utf-8') == 'TEMPLATE HEADER\n'
+        assert output_path.exists()
+        assert output_path.read_text(encoding='utf-8') == ''
 
         # Check that write_list updates the list_name attribute correctly.
         assert kernel_list.list_name == 'maven_release_03.kernel_list'
@@ -727,9 +731,8 @@ class TestKernelListWriteList:
 
     def test_write_list_uses_real_fill_template_to_create_output_file(
             self, mocker, tmp_path) -> None:
-        # Real template rendering: do not mock fill_template. write_list must
-        # read the template file, create the output file, append kernel entries,
-        # update list_name and call validate.
+        # Verify write_list with real fill_template: template content is written first,
+        # then the configured kernel entry is appended.
 
         # Mock only validate because the test scope requires write_list to
         # trigger validation, not to execute the full validation workflow.
