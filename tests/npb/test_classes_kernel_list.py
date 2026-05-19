@@ -1,6 +1,8 @@
 """Tests for KernelList class."""
-import re
 from datetime import datetime as real_datetime
+import logging
+from pathlib import Path
+import re
 from types import SimpleNamespace
 
 import pytest
@@ -274,3 +276,500 @@ class TestKernelListReadConfig:
         assert not hasattr(kernel_list.setup, 're_config')
         assert not hasattr(kernel_list, 'json_config')
         assert not hasattr(kernel_list, 'json_formatted_lst')
+
+
+class TestKernelListWriteList:
+
+    @staticmethod
+    def patch_write_list_file_and_validation_boundaries(
+            mocker, template_content='TEMPLATE HEADER\n') -> SimpleNamespace:
+        # Only patch boundaries outside write_list's own logic: template/file
+        # creation and the final validation workflow required to be mocked.
+        def fake_fill_template(_kernel_list, output_path, _list_dictionary) -> None:
+            # Fake fill_template: create the file that write_list will append
+            # to. Keep the same signature as the real function.
+            with open(output_path, 'w', encoding='utf-8') as out:
+                out.write(template_content)
+
+        fill_template_mock = mocker.patch(
+            'pds.naif_pds4_bundler.classes.list.fill_template',
+            side_effect=fake_fill_template)
+
+        validate_mock = mocker.patch.object(KernelList, 'validate',
+                                            autospec=True)
+
+        return SimpleNamespace(fill_template=fill_template_mock,
+                               validate=validate_mock)
+
+    @staticmethod
+    def make_kernel_list(tmp_path, kernel_list_config, kernels,
+                         **setup_overrides) -> tuple[KernelList, SimpleNamespace, Path]:
+        # Build a real KernelList with a minimal temporary setup. This keeps
+        # each test focused on write_list while avoiding repeated setup code.
+        working_directory = tmp_path / 'working'
+        kernels_directory = tmp_path / 'kernels'
+
+        working_directory.mkdir(exist_ok=True)
+        kernels_directory.mkdir(exist_ok=True)
+
+        setup = make_kernel_list_setup(tmp_path,
+                                       mission_acronym='maven',
+                                       run_type='release',
+                                       working_directory=str(working_directory),
+                                       kernels_directory=[str(kernels_directory)],
+                                       kernel_list_config=kernel_list_config,
+                                       **setup_overrides)
+
+        kernel_list = KernelList(setup)
+        kernel_list.kernel_list = kernels
+
+        output_path = working_directory / 'maven_release_03.kernel_list'
+
+        return kernel_list, setup, output_path
+
+    def test_write_list_accepts_empty_kernel_list_and_only_writes_template(
+            self, mocker, tmp_path) -> None:
+        # Check the case when kernel_list is empty.
+
+        # Prepare the needed mocks. The fake template is intentionally empty to
+        # prove that write_list does not add anything when there are no kernels.
+        mocks = self.patch_write_list_file_and_validation_boundaries(
+            mocker, template_content='')
+
+        # Build a real KernelList with an empty kernels attribute.
+        kernel_list, _, output_path = self.make_kernel_list(tmp_path,
+                                                            kernel_list_config={},
+                                                            kernels=[])
+
+        kernel_list.write_list()
+
+        # Check the exact contents of the generated file.
+        #
+        # The file should only contain the header written by the fake
+        # fill_template.
+        #
+        # This proves two things:
+        #   - fill_template created the file.
+        #   - write_list did not add any entries because there were no kernels.
+        assert output_path.exists()
+        assert output_path.read_text(encoding='utf-8') == ''
+
+        # Check that write_list updates the list_name attribute correctly.
+        assert kernel_list.list_name == 'maven_release_03.kernel_list'
+
+        # Check that fill_template has been called only once and that the call
+        # was successful.
+        mocks.fill_template.assert_called_once()
+        fill_template_args = mocks.fill_template.call_args.args
+
+        # Check the arguments
+        assert fill_template_args[0] is kernel_list
+        assert fill_template_args[1] == str(output_path)
+        assert fill_template_args[2] is kernel_list.__dict__
+
+        # Check the validate call.
+        mocks.validate.assert_called_once_with(kernel_list)
+
+    def test_write_list_writes_configured_fallback_and_side_effects(
+            self, mocker, tmp_path) -> None:
+
+        # Build the needed mocks (fill_template and validate).
+        mocks = self.patch_write_list_file_and_validation_boundaries(mocker)
+
+        # Define the kernel with a correct configuration.
+        kernel = 'maven_orbit_v01.bsp'
+        kernel_type = 'spk'
+
+        kernel_list_config = {
+            r'^maven_orbit_v01\.bsp$': {
+                'description': '  MAVEN\n orbit    SPK  ',
+                'patterns': {
+                    'UNUSED': {'@value': 'unused',
+                               '#text': 'SHOULD_NOT_APPEAR'}}}}
+
+        # Create a real instance of KernelList with two kernels:
+        #   - One with a corrct configuration.
+        #   - Other: a kernel that does not appear in kernel_list_config
+        #   (processed via fallback branch).
+        kernel_list, _, output_path = self.make_kernel_list(
+            tmp_path,
+            kernel_list_config=kernel_list_config,
+            kernels=['orbn_00001.orb', kernel])
+
+        kernel_list.write_list()
+
+        # Check the file content.
+        assert output_path.read_text(encoding='utf-8') == (
+            'TEMPLATE HEADER\n'
+            'FILE             = miscellaneous/orbnum/orbn_00001.orb\n'
+            'MAKLABEL_OPTIONS = N/A\n'
+            'DESCRIPTION      = N/A\n'
+            f'FILE             = spice_kernels/{kernel_type}/{kernel}\n'
+            'MAKLABEL_OPTIONS =\n'
+            'DESCRIPTION      = MAVEN orbit SPK\n')
+
+        # Check the side effect; after writing the file, write_list must return:
+        #   self.list_name = list_name
+        assert kernel_list.list_name == 'maven_release_03.kernel_list'
+
+        # Check teh validate call.
+        mocks.validate.assert_called_once_with(kernel_list)
+
+    def test_write_list_uses_pds3_data_directory_when_configured(
+            self, mocker, tmp_path) -> None:
+        # This test verify that PDS3 output uses data/<type>/<kernel> for
+        # configured kernels.
+
+        # Configure the needed mocks.
+        mocks = self.patch_write_list_file_and_validation_boundaries(mocker)
+
+        # Define the kernel value to test.
+        kernel = 'maven_fk_v01.ti'
+        kernel_type = 'ik'
+
+        kernel_list_config = {
+            r'^maven_fk_v01\.ti$': {'description': 'Instrument kernel',
+                                    'mklabel_options': 'IK'}}
+
+        # Build a real instance of KernelList for PDS3.
+        kernel_list, _, output_path = self.make_kernel_list(
+            tmp_path,
+            kernel_list_config=kernel_list_config,
+            kernels=[kernel],
+            pds_version='3')
+
+        kernel_list.write_list()
+
+        # Check the file content.
+        assert output_path.read_text(encoding='utf-8') == (
+            'TEMPLATE HEADER\n'
+            f'FILE             = data/{kernel_type}/{kernel}\n'
+            'MAKLABEL_OPTIONS = IK\n'
+            'DESCRIPTION      = Instrument kernel\n'
+        )
+
+        # Check the validate call.
+        mocks.validate.assert_called_once_with(kernel_list)
+
+    @pytest.mark.parametrize('phases, expected_options', [
+        (None, 'PHASE N/A'),
+        ({'phase': {'@name': 'CRUISE'}}, 'PHASE CRUISE'),
+        ({False: {}, 'phase': {'@name': 'IGNORED'}}, 'PHASE N/A')])
+    def test_write_list_replaces_phase_option(
+            self, mocker, tmp_path, phases, expected_options) -> None:
+        # This test, verify all $PHASES substitutions in mklabel_options.
+
+        # Configure the needed mocks.
+        mocks = self.patch_write_list_file_and_validation_boundaries(mocker)
+
+        # Define the kernel value to test.
+        kernel = 'maven_release_03.tm'
+        kernel_type = 'mk'
+
+        # Preapre the extra attributes for setup.
+        setup_overrides = {}
+        if phases is not None:
+            setup_overrides['phases'] = phases
+
+        # Define a kernel configuration.Since it has the value of
+        # mklabel_options, it is included in the $PHASES substitution logic.
+        kernel_list_config = {
+            r'^maven_release_03\.tm$': {'description': 'Meta kernel',
+                                        'mklabel_options': 'PHASE $PHASES'}}
+
+        # Build a real KernelList.
+        kernel_list, _, output_path = self.make_kernel_list(
+            tmp_path,
+            kernel_list_config=kernel_list_config,
+            kernels=[kernel],
+            **setup_overrides)
+
+        kernel_list.write_list()
+
+        # Check the file content.
+        assert output_path.read_text(encoding='utf-8') == (
+            'TEMPLATE HEADER\n'
+            f'FILE             = spice_kernels/{kernel_type}/{kernel}\n'
+            f'MAKLABEL_OPTIONS = {expected_options}\n'
+            'DESCRIPTION      = Meta kernel\n')
+
+        # Check the validate call.
+        mocks.validate.assert_called_once_with(kernel_list)
+
+    @pytest.mark.parametrize('pattern_type, kernel, mapping, expected_value, expected_mapping_line', [
+        ('kernel', 'maven_v01.bsp', '', 'v01', ''),
+        ('KERNEL',
+         'maven_ab12.bsp',
+         'mapped_$VERSION.bc',
+         'AB12',
+         'MAPPING          = mapped_AB12.bc\n')])
+    def test_write_list_replaces_kernel_pattern_from_filename(
+            self, mocker, tmp_path, pattern_type, kernel, mapping,
+            expected_value, expected_mapping_line) -> None:
+        # This test verify $VERSION extraction from the filename and its
+        # replacement in description and optional mapping.
+
+        # Configure the needed mocks.
+        mocks = self.patch_write_list_file_and_validation_boundaries(mocker)
+
+        kernel_type = 'spk'
+        escaped_kernel = re.escape(kernel)
+
+        config_value = {
+            'description': 'Version $VERSION kernel',
+            'mklabel_options': 'SPK',
+            'patterns': {'VERSION': {'@pattern': pattern_type,
+                                     '#text': 'maven_$VERSION.bsp'}}}
+
+        if mapping:
+            config_value['mapping'] = mapping
+
+        kernel_list_config = {fr'^{escaped_kernel}$': config_value}
+
+        # Build a real instance of KernelList.
+        kernel_list, _, output_path = self.make_kernel_list(
+            tmp_path,
+            kernel_list_config=kernel_list_config,
+            kernels=[kernel])
+
+        kernel_list.write_list()
+
+        # Check the file content.
+        assert output_path.read_text(encoding='utf-8') == (
+            'TEMPLATE HEADER\n'
+            f'FILE             = spice_kernels/{kernel_type}/{kernel}\n'
+            'MAKLABEL_OPTIONS = SPK\n'
+            f'DESCRIPTION      = Version {expected_value} kernel\n'
+            f'{expected_mapping_line}')
+
+        # Check the validate call.
+        mocks.validate.assert_called_once_with(kernel_list)
+
+    def test_write_list_replaces_comment_pattern_from_kernel_comment(
+            self, mocker, tmp_path) -> None:
+        # This test, reads the kernel comment through extract_comment and use
+        # the matching line as replacement in description.
+
+        # Build the needed mocks.
+        mocks = self.patch_write_list_file_and_validation_boundaries(mocker)
+
+        # Define the kernel to be processed.
+        kernel = 'maven_kernel_v01.bc'
+        kernel_type = 'ck'
+
+        # Mock the extract_comment call.
+        extract_comment_mock = mocker.patch(
+            'pds.naif_pds4_bundler.classes.list.extract_comment',
+            return_value=['unrelated comment line',
+                          '  ORIGINAL_NAME = maven_old_kernel.bc  '])
+
+        # Kernel configuration.
+        kernel_list_config = {
+            r'^maven_kernel_v01\.bc$': {
+                'description': 'Original kernel: $ORIGINAL',
+                'patterns': {'ORIGINAL': {'@file': 'comment',
+                                          '#text': 'ORIGINAL_NAME'}}}}
+
+        # Build a real KernelList instance.
+        kernel_list, setup, output_path = self.make_kernel_list(
+            tmp_path,
+            kernel_list_config=kernel_list_config,
+            kernels=[kernel])
+
+        kernel_list.write_list()
+
+        # Check the extract_comment call.
+        extract_comment_mock.assert_called_once_with(
+            f'{setup.kernels_directory[0]}/{kernel_type}/{kernel}')
+
+        # Check file content.
+        assert output_path.read_text(encoding='utf-8') == (
+            'TEMPLATE HEADER\n'
+            f'FILE             = spice_kernels/{kernel_type}/{kernel}\n'
+            'MAKLABEL_OPTIONS =\n'
+            'DESCRIPTION      = Original kernel: ORIGINAL_NAME = maven_old_kernel.bc\n')
+
+        # Check validate call.
+        mocks.validate.assert_called_once_with(kernel_list)
+
+    @pytest.mark.parametrize('patterns_el, kernel, expected_description', [
+        ({'@value': 'edr', '#text': 'EDR'},
+         'maven_edr_index.bsp',
+         'Level EDR'),
+        ([{'@value': 'raw', '#text': 'RAW'},
+          {'@value': 'rdr', '#text': 'RDR'}],
+         'maven_rdr_index.bsp',
+         'Level RDR')])
+    def test_write_list_replaces_configured_value_pattern(
+            self, mocker, tmp_path, patterns_el, kernel,
+            expected_description) -> None:
+        # This test, verify that $LEVEL is resolved from @value/#text
+        # configuration rules.
+
+        # Prepare the needed mocks.
+        mocks = self.patch_write_list_file_and_validation_boundaries(mocker)
+
+        # Define the kernel to be processed.
+        kernel_type = 'spk'
+        escaped_kernel = re.escape(kernel)
+
+        kernel_list_config = {fr'^{escaped_kernel}$': {'description': 'Level $LEVEL',
+                                                       'patterns': {'LEVEL': patterns_el}}}
+
+        # Build a KernelList.
+        kernel_list, _, output_path = self.make_kernel_list(
+            tmp_path,
+            kernel_list_config=kernel_list_config,
+            kernels=[kernel])
+
+        kernel_list.write_list()
+
+        # Check file content.
+        assert output_path.read_text(encoding='utf-8') == (
+            'TEMPLATE HEADER\n'
+            f'FILE             = spice_kernels/{kernel_type}/{kernel}\n'
+            'MAKLABEL_OPTIONS =\n'
+            f'DESCRIPTION      = {expected_description}\n')
+
+        # Check validate call.
+        mocks.validate.assert_called_once_with(kernel_list)
+
+    def test_write_list_logs_mapping_separately_from_side_effects(
+            self, mocker, caplog, tmp_path) -> None:
+        # This test intentionally checks logging only. File content side effects
+        # are asserted by the other tests.
+
+        # Build the needed mocks.
+        mocks = self.patch_write_list_file_and_validation_boundaries(mocker)
+
+        # Configure a minimum configuration to force the mapping branch.
+        kernel_list_config = {r'^maven_kernel_v01\.bc$': {'description': 'CK kernel',
+                                                          'mapping': 'mapped_kernel_v01.bc'}}
+
+        # Build a real KernelList instance.
+        kernel_list, _, _ = self.make_kernel_list(
+            tmp_path,
+            kernel_list_config=kernel_list_config,
+            kernels=['maven_kernel_v01.bc'])
+
+        # Check the logging level and logging messages.
+        with caplog.at_level(logging.INFO):
+            kernel_list.write_list()
+
+        expected = [(logging.INFO, '-- Mapping maven_kernel_v01.bc with mapped_kernel_v01.bc')]
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+        assert expected == results
+
+        # Check validate call.
+        mocks.validate.assert_called_once_with(kernel_list)
+
+    @pytest.mark.parametrize('kernel_list_config, kernels, comment_lines, expected_error', [
+        ({r'^maven_v01_v02\.bsp$': {
+            'description': 'Version $VERSION',
+            'patterns': {'VERSION': {'@pattern': 'kernel',
+                                     '#text': 'maven_$VERSION_$VERSION.bsp'}}}},
+         ['maven_v01_v02.bsp'],
+         None,
+         'Kernel pattern for maven_v01_v02.bsp not adept to write description.'),
+        ({r'^maven_kernel_v01\.bc$': {
+            'description': 'Original $ORIGINAL',
+            'patterns': {'ORIGINAL': {'@file': 'comment',
+                                      '#text': 'ORIGINAL_NAME'}}}},
+         ['maven_kernel_v01.bc'],
+         ['comment without the required marker'],
+         'Kernel pattern not found in comment area of maven_kernel_v01.bc.'),
+        ({r'^maven_level\.tab$': {
+            'description': 'Level $LEVEL',
+            'patterns': {'LEVEL': {'#text': 'SCI'}}}},
+         ['maven_level.tab'],
+         None,
+         'Error generating kernel list with maven_level.tab.'),
+        ({r'^maven_level\.tab$': {
+            'description': 'Level $LEVEL',
+            'patterns': {'LEVEL': {'@value': 'not-present-in-kernel-name',
+                                   '#text': 'SCI'}}}},
+         ['maven_level.tab'],
+         None,
+         '-- Kernel maven_level.tab description could not be updated with pattern.'),
+        ({r'^maven_level\.tab$': {
+            'description': 'Level $LEVEL',
+            'patterns': {'LEVEL': [{'@value': 'not-present-in-kernel-name',
+                                    '#text': 'SCI'}]}}},
+         ['maven_level.tab'],
+         None,
+         '-- Kernel maven_level.tab description could not be updated with pattern.')])
+    def test_write_list_reports_invalid_pattern_configurations(
+            self, mocker, tmp_path, kernel_list_config, kernels, comment_lines,
+            expected_error) -> None:
+
+        # Build the needed mocks.
+        mocks = self.patch_write_list_file_and_validation_boundaries(mocker)
+
+        if comment_lines is not None:
+            mocker.patch(
+                'pds.naif_pds4_bundler.classes.list.extract_comment',
+                return_value=comment_lines)
+
+        # Create a real KernelList instance with an invalid configuration.
+        kernel_list, _, _ = self.make_kernel_list(
+            tmp_path,
+            kernel_list_config=kernel_list_config,
+            kernels=kernels)
+
+        # This behaviour will be handled by handle_npb_error, which will raise a
+        # RuntimeError. Also, checks the returned message.
+        with pytest.raises(RuntimeError, match=expected_error):
+            kernel_list.write_list()
+
+        # Check the validate call.
+        mocks.validate.assert_not_called()
+        assert kernel_list.list_name == ''
+
+    def test_write_list_uses_real_fill_template_to_create_output_file(
+            self, mocker, tmp_path) -> None:
+        # Verify write_list with real fill_template: template content is written first,
+        # then the configured kernel entry is appended.
+
+        # Mock only validate because the test scope requires write_list to
+        # trigger validation, not to execute the full validation workflow.
+        validate_mock = mocker.patch.object(KernelList, 'validate',
+                                            autospec=True)
+
+        # Create the real template file used by KernelList.__init__.
+        templates_directory = tmp_path / 'templates'
+        templates_directory.mkdir()
+        template = templates_directory / 'template_kernel_list.txt'
+        template.write_text('REAL TEMPLATE HEADER\n', encoding='utf-8')
+
+        # Define a configured kernel.
+        kernel = 'maven_orbit_v01.bsp'
+        kernel_type = 'spk'
+
+        kernel_list_config = {r'^maven_orbit_v01\.bsp$': {'description': 'Orbit kernel',
+                                                          'mklabel_options': 'SPK'}}
+
+        # Build a real KernelList pointing to the real template directory.
+        kernel_list, _, output_path = self.make_kernel_list(
+            tmp_path,
+            kernel_list_config=kernel_list_config,
+            kernels=[kernel],
+            templates_directory=str(templates_directory))
+
+        kernel_list.write_list()
+
+        # Check that the real template content is preserved and write_list
+        # appends the kernel-list entry after it.
+        assert output_path.read_text(encoding='utf-8') == (
+            'REAL TEMPLATE HEADER\n'
+            f'FILE             = spice_kernels/{kernel_type}/{kernel}\n'
+            'MAKLABEL_OPTIONS = SPK\n'
+            'DESCRIPTION      = Orbit kernel\n')
+
+        # Check the side effect over the object; write_list should assign
+        # self.list_name = list_name
+        assert kernel_list.list_name == 'maven_release_03.kernel_list'
+
+        # Check the validate call.
+        validate_mock.assert_called_once_with(kernel_list)
