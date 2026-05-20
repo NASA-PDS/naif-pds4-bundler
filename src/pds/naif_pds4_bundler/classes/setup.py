@@ -990,6 +990,9 @@ class Setup:
                 self.bundle_directory + f"/{self.mission_acronym}_spice/spice_kernels"
             )
         else:
+            # TODO: There is a bug when constructing the paths for PDS3. There
+            #       is no separator between the bundle_directory and volume_id
+            #       variables.
             directories.append(self.bundle_directory + f"{self.volume_id}/data")
 
         for kernel in self.kernels_to_load:
