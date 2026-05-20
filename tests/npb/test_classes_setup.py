@@ -1990,14 +1990,10 @@ class TestSetupLoadKernels:
         assert getattr(setup_instance, 'sclks') == [str(sclk)]
         assert getattr(setup_instance, 'lsk') == str(lsk)
 
-        expected_archive_dir = (
-                getattr(setup_instance, 'bundle_directory')
-                + f"/{getattr(setup_instance, 'mission_acronym')}_spice/spice_kernels")
-
         # PDS4 archive directory is appended to the search directories.
         assert setup_instance.kernels_directory == [
             str(tmp_path / 'kernels'),
-            expected_archive_dir]
+            str(tmp_path / 'bundle' / 'maven_spice' / 'spice_kernels')]
 
         # Check the logging messages.
         expected = [(logging.INFO, f'-- LSK     loaded: {[str(lsk)]}'),
