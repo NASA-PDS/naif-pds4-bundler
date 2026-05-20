@@ -612,11 +612,18 @@ def test_extract_comment_ck():
 #     comment = (" This CK file was created using CKSLICER Utility Ver. 1.3.0, October 28, 2011")
 #
 #     assert comment == result[int(num)]
-
 #
+# #TODO - need to test the handle_npb_error - struggling to do this
+
+
 # def test_extract_comment_big_buffer():
 #     """Test extract_comment function using pytest - bigger buffer than acceptable."""
-#     files.extract_comment(str(KERNELS /"ck"/"buffer_buster.bc"))
+#
+#     path = KERNELS /"ck"/"buffer_buster.bc"
+#
+#     results = files.extract_comment(str(path))
+#
+#     assert results == f"Comment from {path} is longer than buffer size." #this does not work...
 
 
 # @pytest.mark.parametrize("kern",[
@@ -624,13 +631,6 @@ def test_extract_comment_ck():
 # ])
 # def test_extract_comment_error(monkeypatch, kern, caplog):
 #     """Test extract_comment function using pytest. This is to test logging errors"""
-#     # file_content = """
-#     # This CK file was created using CKSLICER Utility Ver. 1.3.0, October 28, 2011
-#     # """
-#     # file = tmp_path / "empty_kernels.bc"
-#     # file.write_text(file_content) #doesn't work cuz binary...
-#
-#     #comment = (" This CK file was created using CKSLICER Utility Ver. 1.3.0, October 28, 2011")
 #
 #     def mock_handle_error(msg, setup=False):
 #         files.logging.getLogger("files").error(msg)
