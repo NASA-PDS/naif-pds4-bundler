@@ -26,3 +26,12 @@ CHANGELOG.md linguist-documentation
 
 # Ignore Sphinx build output, if present
 docs/_build/** linguist-generated
+
+# In Windows, Git autocrlf may convert LF to CRLF unless autocrlf=false or
+# specifically instructed otherwise here. Set the expected EOL for the files
+# used in tests (npb.test_utils_files)
+tests/naif_pds4_bundler/data/kernels/mk/m2020_v09.tm text eol=lf
+tests/naif_pds4_bundler/data/kernels/fk/clps_to_2ab_v01.tf text eol=lf
+tests/naif_pds4_bundler/data/kernels/spk/*.bsp  binary
+tests/naif_pds4_bundler/data/kernels/dsk/*.bds  binary
+tests/naif_pds4_bundler/data/kernels/dsk/*.BDS  binary
