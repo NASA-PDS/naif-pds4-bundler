@@ -1919,7 +1919,7 @@ class TestSetupLoadKernels:
         else:
 
             # Prepare the PDS3.
-            (tmp_path / f'bundle{setup.volume_id}' / 'data').mkdir(parents=True)
+            (bundle_directory / setup.volume_id / 'data').mkdir(parents=True)
 
         return setup
 
@@ -1991,7 +1991,7 @@ class TestSetupLoadKernels:
         assert getattr(setup_instance, 'lsk') == str(lsk)
 
         # PDS4 archive directory is appended to the search directories.
-        assert setup_instance.kernels_directory == [
+        assert getattr(setup_instance, 'kernels_directory') == [
             str(tmp_path / 'kernels'),
             str(tmp_path / 'bundle' / 'maven_spice' / 'spice_kernels')]
 
