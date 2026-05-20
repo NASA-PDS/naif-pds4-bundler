@@ -987,13 +987,11 @@ class Setup:
         directories = self.kernels_directory
         if self.pds_version == "4":
             directories.append(
-                self.bundle_directory + f"/{self.mission_acronym}_spice/spice_kernels"
+                os.path.join(self.bundle_directory, f'{self.mission_acronym}_spice', 'spice_kernels')
             )
         else:
-            # TODO: There is a bug when constructing the paths for PDS3. There
-            #       is no separator between the bundle_directory and volume_id
-            #       variables.
-            directories.append(self.bundle_directory + f"{self.volume_id}/data")
+
+            directories.append(os.path.join(self.bundle_directory, self.volume_id, 'data'))
 
         for kernel in self.kernels_to_load:
             if "fk" in kernel:
@@ -1126,6 +1124,7 @@ class Setup:
 
         logging.info('')
 
+        # TODO: Probably not necessary.
         self.fks = fks
         self.sclks = sclks
         self.lsk = lsk

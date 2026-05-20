@@ -1909,23 +1909,17 @@ class TestSetupLoadKernels:
         setup.sclks = None
         setup.lsk = None
 
+        setup.bundle_directory = str(bundle_directory)
+
         if pds_version == '4':
 
             # Prepare the PDS4.
-            setup.bundle_directory = str(bundle_directory)
             (bundle_directory / 'maven_spice' / 'spice_kernels').mkdir(parents=True)
+
         else:
 
             # Prepare the PDS3.
-            # TODO: This test highlights a bug; there is no separator between
-            #       bundle_directory and volume_id when constructing paths for
-            #       PDS3.
-            #          e.g.
-            #             The path should be: bundle_directory/volume_id
-            #             but instead, it returns: bundle_directoryvolume_id
-            setup.bundle_directory = str(bundle_directory)
-            pds3_archive_directory = tmp_path / f'bundle{setup.volume_id}' / 'data'
-            pds3_archive_directory.mkdir(parents=True)
+            (tmp_path / f'bundle{setup.volume_id}' / 'data').mkdir(parents=True)
 
         return setup
 
@@ -2062,8 +2056,8 @@ class TestSetupLoadKernels:
         assert getattr(setup_instance, 'lsk') == str(lsk)
 
     @pytest.mark.parametrize('pds_version, expected_archive_parts', [
-        ('4', 'bundle/maven_spice/spice_kernels'),
-        ('3', 'bundleMAVEN_1001/data')])
+        ('4', ['bundle', 'maven_spice', 'spice_kernels']),
+        ('3', ['bundle', 'MAVEN_1001', 'data'])])
     def test_finds_latest_matching_kernels_in_archive_directory_with_mocked_spiceypy(
             self, tmp_path, monkeypatch, caplog, pds_version,
             expected_archive_parts) -> None:
@@ -2076,7 +2070,9 @@ class TestSetupLoadKernels:
         setup_instance = self.make_load_setup(tmp_path, pds_version=pds_version)
 
         # Rebuild the archive directory expected for the current PDS version.
-        archive_directory = tmp_path / expected_archive_parts
+        archive_directory = tmp_path
+        for directory_part in expected_archive_parts:
+            archive_directory = archive_directory / directory_part
 
         # Create old and new versions for each supported kernel family.
         old_lsk = archive_directory / 'lsk' / 'naif0011.tls'
@@ -2130,7 +2126,7 @@ class TestSetupLoadKernels:
         assert getattr(setup_instance, 'lsk') == lsk_pattern
 
         # The archive directory for the selected PDS version must be appended.
-        assert setup_instance.kernels_directory[-1] == str(archive_directory)
+        assert str(setup_instance.kernels_directory[-1]) == str(archive_directory)
 
         # Check the logging messages.
         expected = [(logging.INFO, f'-- LSK     loaded: {[str(new_lsk)]}'),
