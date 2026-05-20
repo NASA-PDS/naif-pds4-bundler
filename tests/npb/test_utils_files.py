@@ -11,6 +11,8 @@ import xml.etree.ElementTree as tree
 
 from unittest.mock import call, MagicMock, patch, mock_open
 
+import spiceypy
+
 import os
 
 from pds.naif_pds4_bundler.utils import files
@@ -592,36 +594,43 @@ def test_etree_to_dict(xml, outputs):
 
 def test_extract_comment_ck():
     """Test extract_comment function using pytest - comment extraction from kernel."""
-    comment = files.extract_comment(str(KERNELS / "ck" / "insight_ida_enc_200829_201220_v1.bc"))
-    comment_line = (
-        " This CK file was created using CKSLICER Utility Ver. 1.3.0, October 28, 2011"
-    )
+    comment = files.extract_comment(str(KERNELS/"ck"/"insight_ida_enc_200829_201220_v1.bc"))
+    comment_line = (" This CK file was created using CKSLICER Utility Ver. 1.3.0, October 28, 2011")
 
     assert comment_line == comment[3]
 
-# def test_extract_comment_remove_empty_lines(tmp_path):
-#     """Test extract_comment function using pytest - remove empty lines."""
+# @pytest.mark.parametrize("kern, num",[
+#     (KERNELS/"ck"/"mro_sa_psp_210705_210717p.bc", "3"),
+#     (KERNELS/"ck"/"one_blank.bc", "8"),
+#     (KERNELS/"ck"/"many_blanks.bc", "8"),
+#     (KERNELS/"ck"/"buffer_buster.bc", "8"),
+# ])
+# def test_extract_comment_ck_2(kern, num):
+#     """Test extract_comment function using pytest.
+#     Extract comments from normal DAF, as well as others"""
+#     result = files.extract_comment(str(kern))
+#     comment = (" This CK file was created using CKSLICER Utility Ver. 1.3.0, October 28, 2011")
 #
-#     fake_file = tmp_path / "fake.bc"
-#     fake_file.write_text(" This CK file was created using CKSLICER Utility Ver. 1.3.0, October 28, 2011 \n"
-#                          "\n"
-#                          "\n"
-#                          "\n"
-#                          "\n")
-#     expected = " This CK file was created using CKSLICER Utility Ver. 1.3.0, October 28, 2011"
+#     assert comment == result[int(num)]
+
 #
-#     result = files.extract_comment(str(fake_file))
-#
-#     assert result == expected
+# def test_extract_comment_big_buffer():
+#     """Test extract_comment function using pytest - bigger buffer than acceptable."""
+#     files.extract_comment(str(KERNELS /"ck"/"buffer_buster.bc"))
 
 
-# def test_extract_comment_error(monkeypatch, tmp_path, caplog):
+# @pytest.mark.parametrize("kern",[
+#     (KERNELS/"ck"/"buffer_buster.bc"),
+# ])
+# def test_extract_comment_error(monkeypatch, kern, caplog):
 #     """Test extract_comment function using pytest. This is to test logging errors"""
-#     file_content = """
-#     This CK file was created using CKSLICER Utility Ver. 1.3.0, October 28, 2011 This comment is going to be incredibly long and hit the error
-#     """
-#     file = tmp_path / "empty_kernels.bc"
-#     file.write_text(file_content) #doesn't work cuz binary...
+#     # file_content = """
+#     # This CK file was created using CKSLICER Utility Ver. 1.3.0, October 28, 2011
+#     # """
+#     # file = tmp_path / "empty_kernels.bc"
+#     # file.write_text(file_content) #doesn't work cuz binary...
+#
+#     #comment = (" This CK file was created using CKSLICER Utility Ver. 1.3.0, October 28, 2011")
 #
 #     def mock_handle_error(msg, setup=False):
 #         files.logging.getLogger("files").error(msg)
@@ -629,9 +638,9 @@ def test_extract_comment_ck():
 #     monkeypatch.setattr(files, "handle_npb_error", mock_handle_error)
 #
 #     with caplog.at_level(files.logging.ERROR):
-#         files.extract_comment(str(file))
+#         files.extract_comment(str(kern))
 #
-#     assert f"Comment from {file} is longer than buffer size." in caplog.text
+#     assert f"Comment from {kern} is longer than buffer size." in caplog.text
 
 #Not sure how to fix these to make them work...
 
