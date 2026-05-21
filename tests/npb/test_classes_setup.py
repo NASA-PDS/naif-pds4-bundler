@@ -2119,6 +2119,9 @@ class TestSetupLoadKernels:
 
         # Current implementation stores the configured LSK pattern, not the resolved
         # LSK file path, because load_kernels ends with "self.lsk = lsk".
+        # TODO: BUG, this line highlights a bug, when the LSK pattern is not
+        #       found, load_kernels currently stores the configured pattern in
+        #       self.lsk instead of None or a resolved filename.
         assert getattr(setup_instance, 'lsk') == lsk_pattern
 
         # The archive directory for the selected PDS version must be appended.
@@ -2181,9 +2184,13 @@ class TestSetupLoadKernels:
         furnsh.assert_called_once_with(str(input_lsk))
 
         # Check the final state.
-        assert getattr(setup_instance, 'lsk') == lsk_pattern
         assert getattr(setup_instance, 'fks') == []
         assert getattr(setup_instance, 'sclks') == []
+
+        # TODO: BUG, this line highlights a bug, when the LSK pattern is not
+        #       found, load_kernels currently stores the configured pattern in
+        #       self.lsk instead of None or a resolved filename.
+        assert getattr(setup_instance, 'lsk') == lsk_pattern
 
     def test_ignores_unsupported_kernel_types_while_loading_supported_lsk(
             self, tmp_path, monkeypatch) -> None:
@@ -2221,88 +2228,76 @@ class TestSetupLoadKernels:
         assert getattr(setup_instance, 'sclks') == []
         assert getattr(setup_instance, 'lsk') == str(lsk)
 
-    def test_logs_missing_optional_kernel_families_without_calling_spiceypy_for_them(
-            self, tmp_path, monkeypatch, caplog) -> None:
-        # This test checks that load_kernels does not fail when optional kernels
-        # are missing, provided there is a valid LSK.
+    @pytest.mark.parametrize(
+        'existing_kernels, kernels_to_load, expected_furnsh, expected_fks, '
+        'expected_sclks, expected_lsk, expected_logs', [
+            (['lsk'], {'lsk': '{lsk}',
+                       'pck': r'missing_pck_[0-9]+\.tpc',
+                       'fk': r'missing_fk_[0-9]+\.tf',
+                       'sclk': r'missing_sclk_[0-9]+\.tsc'},
+             ['lsk'], [], [], 'lsk',
+             [(logging.INFO, '-- LSK     loaded: [{lsk!r}]'),
+              (logging.INFO, '-- PCK not found.'),
+              (logging.WARNING, '-- FK not found.'),
+              (logging.ERROR, '-- SCLK not found.'),
+              (logging.INFO, '')]),
+            (['fk'], {'lsk': r'missing_lsk_[0-9]+\.tls',
+                      'pck': r'missing_pck_[0-9]+\.tpc',
+                      'fk': '{fk}',
+                      'sclk': r'missing_sclk_[0-9]+\.tsc'},
+             ['fk'], ['fk'], [], r'missing_lsk_[0-9]+\.tls',
+             [(logging.ERROR, '-- LSK not found.'),
+              (logging.INFO, '-- PCK not found.'),
+              (logging.INFO, '-- FK(s)   loaded: [{fk!r}]'),
+              (logging.ERROR, '-- SCLK not found.'),
+              (logging.INFO, '')])])
+    def test_logs_missing_kernel_families_without_calling_spiceypy_for_them(
+            self, tmp_path, monkeypatch, caplog, existing_kernels, kernels_to_load, expected_furnsh, expected_fks,
+            expected_sclks, expected_lsk, expected_logs) -> None:
+        # This test verifies the missing-kernel branches of load_kernels.
+        # It checks that missing kernels are not passed to furnsh, existing kernels
+        # are loaded, the final state is updated, and the expected logs are emitted.
 
         setup_instance = self.make_load_setup(tmp_path)
 
-        # Create a valid LSK so load_kernels can complete normally.
-        lsk = tmp_path / 'input' / 'naif0012.tls'
-        lsk.parent.mkdir(parents=True, exist_ok=True)
-        lsk.touch()
+        kernel_paths = {
+            'lsk': os.path.join(str(tmp_path), 'input', 'naif0012.tls'),
+            'fk': os.path.join(str(tmp_path), 'input', 'maven_v02.tf')}
 
-        # Configure one existing LSK and missing regex patterns for optional kernels.
-        setup_instance.kernels_to_load = {'lsk': str(lsk),
-                                          'pck': r'missing_pck_[0-9]+\.tpc',
-                                          'fk': r'missing_fk_[0-9]+\.tf',
-                                          'sclk': r'missing_sclk_[0-9]+\.tsc'}
+        # Create only the files required by the current scenario.
+        for kernel_key in existing_kernels:
+            kernel_path = kernel_paths[kernel_key]
+            os.makedirs(os.path.dirname(kernel_path), exist_ok=True)
+            with open(kernel_path, 'w', encoding='utf-8'):
+                pass
 
-        # Mock the fursh call.
+        setup_instance.kernels_to_load = {
+            kernel_type: kernel_value.format(**kernel_paths)
+            for kernel_type, kernel_value in kernels_to_load.items()}
+
+        # Mock furnsh to verify that only existing kernels are loaded.
         furnsh = Mock()
-        monkeypatch.setattr('pds.naif_pds4_bundler.classes.setup.spiceypy.furnsh',
-                            furnsh)
+        monkeypatch.setattr(
+            'pds.naif_pds4_bundler.classes.setup.spiceypy.furnsh',
+            furnsh)
 
         with caplog.at_level(logging.INFO):
             setup_instance.load_kernels()
 
-        # furnsh is only run once for the existing LSK kernel.
-        furnsh.assert_called_once_with(str(lsk))
+        # Missing kernels must not be passed to furnsh.
+        assert furnsh.call_args_list == [call(kernel_paths[v]) for v in expected_furnsh]
 
         # Check the final state.
-        assert getattr(setup_instance, 'fks') == []
-        assert getattr(setup_instance, 'sclks') == []
-        assert getattr(setup_instance, 'lsk') == str(lsk)
+        assert getattr(setup_instance, 'fks') == [kernel_paths[v] for v in expected_fks]
+        assert getattr(setup_instance, 'sclks') == [kernel_paths[v] for v in expected_sclks]
 
-        # Check the login messages.
-        expected = [(logging.INFO, f'-- LSK     loaded: {[str(lsk)]}'),
-                    (logging.INFO, '-- PCK not found.'),
-                    (logging.WARNING, '-- FK not found.'),
-                    (logging.ERROR, '-- SCLK not found.'),
-                    (logging.INFO, '')]
+        # TODO: BUG, when the LSK pattern is not found, load_kernels currently
+        #       stores the configured pattern in self.lsk instead of None or a
+        #       resolved filename.
+        assert getattr(setup_instance, 'lsk') == kernel_paths.get(expected_lsk, expected_lsk)
 
-        results = [(r[1], r[2]) for r in caplog.record_tuples]
-
-        assert results == expected
-
-    def test_logs_missing_lsk_when_lsk_pattern_is_not_found(
-            self, tmp_path, monkeypatch, caplog) -> None:
-        # This test specifically checks what happens when the LSK configured as
-        # a regex pattern does not exist in any search directory.
-
-        setup_instance = self.make_load_setup(tmp_path)
-
-        # Create a valid FK.
-        fk = tmp_path / 'input' / 'maven_v02.tf'
-        fk.parent.mkdir(parents=True, exist_ok=True)
-        fk.touch()
-
-        # Configure a valid FK and a missing LSK pattern.
-        setup_instance.kernels_to_load = {'fk': str(fk), 'lsk': r'missing_lsk_[0-9]+\.tls'}
-
-        # Mock the fursh call.
-        furnsh = Mock()
-        monkeypatch.setattr('pds.naif_pds4_bundler.classes.setup.spiceypy.furnsh',
-                            furnsh)
-
-        with caplog.at_level(logging.INFO):
-            setup_instance.load_kernels()
-
-        # Only the FK exists, so only the FK must be loaded.
-        furnsh.assert_called_once_with(str(fk))
-
-        # Check the final state.
-        assert getattr(setup_instance, 'fks') == [str(fk)]
-        assert getattr(setup_instance, 'sclks') == []
-        assert getattr(setup_instance, 'lsk') == r'missing_lsk_[0-9]+\.tls'
-
-        # Check the loging messages.
-        expected = [(logging.ERROR, '-- LSK not found.'),
-                    (logging.INFO, '-- PCK not found.'),
-                    (logging.INFO, f'-- FK(s)   loaded: {[str(fk)]}'),
-                    (logging.ERROR, '-- SCLK not found.'),
-                    (logging.INFO, '')]
+        # Check the logging messages.
+        expected = [(level, msg.format(**kernel_paths)) for level, msg in expected_logs]
 
         results = [(r[1], r[2]) for r in caplog.record_tuples]
 

@@ -1127,6 +1127,9 @@ class Setup:
         # TODO: Probably not necessary.
         self.fks = fks
         self.sclks = sclks
+        # TODO: BUG, self.lsk is set from the configured LSK pattern, which may
+        #       not be a real file. It should store the resolved LSK path, or
+        #       None if none was found.
         self.lsk = lsk
 
     def information_model_setup(self):
