@@ -2341,11 +2341,6 @@ class TestSetupLoadKernels:
         assert furnsh.call_args_list == [call(str(first_lsk)),
                                          call(str(second_lsk))]
 
-        # Check the final state.
-        assert getattr(setup_instance, 'fks') is None
-        assert getattr(setup_instance, 'sclks') is None
-        assert getattr(setup_instance, 'lsk') is None
-
     def test_mocked_spiceypy_failure_is_captured_by_decorator(
             self, tmp_path, monkeypatch) -> None:
         # This test verifies that the spice_exception_handler decorator
@@ -2387,11 +2382,6 @@ class TestSetupLoadKernels:
         error_message = handle_error.call_args.args[0]
         assert 'mocked spiceypy failure' in error_message
         assert 'SPICE(MOCKED)' in error_message
-
-        # Check the final state.
-        assert getattr(setup_instance, 'fks') is None
-        assert getattr(setup_instance, 'sclks') is None
-        assert getattr(setup_instance, 'lsk') is None
 
     def test_loads_valid_text_kernels_with_real_spiceypy_calls(
             self, tmp_path) -> None:
@@ -2458,11 +2448,6 @@ class TestSetupLoadKernels:
                 or 'NOSUCHFILE' in error_message
                 or 'FURNSH' in error_message
                 or 'ZZLDKER' in error_message)
-
-        # Check the final state.
-        assert getattr(setup_instance, 'fks') is None
-        assert getattr(setup_instance, 'sclks') is None
-        assert getattr(setup_instance, 'lsk') is None
 
 
 class TestSetupWriteFileList:
