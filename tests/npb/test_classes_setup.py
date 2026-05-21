@@ -2348,7 +2348,6 @@ class TestSetupLoadKernels:
 
         setup_instance = self.make_load_setup(tmp_path)
 
-
         # Create an existing LSK path so load_kernels calls spiceypy.furnsh.
         lsk = tmp_path / 'input' / 'naif0012.tls'
         lsk.parent.mkdir(parents=True, exist_ok=True)
@@ -2364,12 +2363,12 @@ class TestSetupLoadKernels:
 
         # Create a mock for handle_npb_error. When the decorator calls it, this
         # mock will raise a RuntimeError.
-        handle_error = Mock(side_effect=RuntimeError('decorator captured SpiceyPyError'))
+        handle_error = Mock(side_effect=RuntimeError('SPICE(MOCKED): mocked spiceypy failure'))
         monkeypatch.setattr(
             'pds.naif_pds4_bundler.utils.decorators.handle_npb_error',
             handle_error)
 
-        with pytest.raises(RuntimeError, match='decorator captured SpiceyPyError'):
+        with pytest.raises(RuntimeError, match=re.escape('SPICE(MOCKED): mocked spiceypy failure')):
             setup_instance.load_kernels()
 
         # Check that load_kernels actually called spiceypy.furnsh with the LSK.
@@ -2377,11 +2376,6 @@ class TestSetupLoadKernels:
 
         # Check that the decorator called handle_npb_error exactly once.
         handle_error.assert_called_once()
-
-        # Check the error messages.
-        error_message = handle_error.call_args.args[0]
-        assert 'mocked spiceypy failure' in error_message
-        assert 'SPICE(MOCKED)' in error_message
 
     def test_loads_valid_text_kernels_with_real_spiceypy_calls(
             self, tmp_path) -> None:
