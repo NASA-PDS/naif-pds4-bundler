@@ -1882,6 +1882,13 @@ class TestSetupSetRelease:
 
 class TestSetupLoadKernels:
 
+    @pytest.fixture(autouse=True)
+    def clear_spice_kernel_pool(self, request) -> None:
+        """Clear the SPICE kernel pool before and after each test."""
+
+        spiceypy.kclear()
+        request.addfinalizer(spiceypy.kclear)
+
     @staticmethod
     def make_load_setup(tmp_path, pds_version: str = '4') -> Setup:
         # Create a minimal Setup instance without executing Setup.__init__.
@@ -2388,30 +2395,19 @@ class TestSetupLoadKernels:
         # Configure direct paths so load_kernels loads these files without regex.
         setup_instance.kernels_to_load = {'lsk': lsk, 'pck': pck, 'fk': fk, 'sclk': sclk}
 
-        setup_instance.load_kernels()
-
         # The real SPICE kernel pool is global, so the test must start from a clean
         # state before loading kernels.
-        spiceypy.kclear()
         assert spiceypy.ktotal('ALL') == 0
 
-        try:
-            setup_instance.load_kernels()
+        setup_instance.load_kernels()
 
-            # Check that all 4 kernels have been loaded.
-            assert spiceypy.ktotal('ALL') == 4
+        # Check that all 4 kernels have been loaded.
+        assert spiceypy.ktotal('ALL') == 4
 
-            # Check the final state.
-            assert getattr(setup_instance, 'fks') == [fk]
-            assert getattr(setup_instance, 'sclks') == [sclk]
-            assert getattr(setup_instance, 'lsk') == lsk
-
-        finally:
-            # Clear the global SPICE kernel pool immediately after the real furnsh
-            # calls, so this test cannot leak state into later tests.
-            spiceypy.kclear()
-
-        assert spiceypy.ktotal('ALL') == 0
+        # Check the final state.
+        assert getattr(setup_instance, 'fks') == [fk]
+        assert getattr(setup_instance, 'sclks') == [sclk]
+        assert getattr(setup_instance, 'lsk') == lsk
 
     def test_real_spiceypy_failure_is_captured_by_decorator(
             self, tmp_path, monkeypatch) -> None:
@@ -2421,7 +2417,6 @@ class TestSetupLoadKernels:
         setup_instance = self.make_load_setup(tmp_path)
 
         # Start from a clean SPICE kernel pool.
-        spiceypy.kclear()
         assert spiceypy.ktotal('ALL') == 0
 
         # Load one valid kernel first, so the final ktotal(ALL) == 0 assertion proves
