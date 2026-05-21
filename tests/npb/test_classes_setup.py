@@ -2420,6 +2420,17 @@ class TestSetupLoadKernels:
 
         setup_instance = self.make_load_setup(tmp_path)
 
+        # Start from a clean SPICE kernel pool.
+        spiceypy.kclear()
+        assert spiceypy.ktotal('ALL') == 0
+
+        # Load one valid kernel first, so the final ktotal(ALL) == 0 assertion proves
+        # that handle_npb_error cleared the kernel pool after the decorator ran.
+        loaded_lsk = self.write_minimal_text_kernel(
+            tmp_path / 'real' / 'loaded_before_failure.tls', 'LSK')
+        spiceypy.furnsh(loaded_lsk)
+        assert spiceypy.ktotal('ALL') == 1
+
         # Create a meta-kernel that exists but references a missing kernel.
         missing_kernel = 'missing_kernel.bsp'
         broken_meta_kernel = tmp_path / 'real' / 'broken_meta_kernel.tm'
@@ -2432,26 +2443,11 @@ class TestSetupLoadKernels:
         # Configura load_kernels to load the meta-kernel as a direct path.
         setup_instance.kernels_to_load = {'lsk': str(broken_meta_kernel)}
 
-        # Create a mock for handle_npb_error. When the decorator calls it, this
-        # mock will raise a RuntimeError.
-        handle_error = Mock(side_effect=RuntimeError('decorator captured SpiceyPy failure'))
-        monkeypatch.setattr('pds.naif_pds4_bundler.utils.decorators.handle_npb_error',
-                            handle_error)
-
-        with pytest.raises(RuntimeError, match='decorator captured SpiceyPy failure'):
+        with pytest.raises(RuntimeError, match=r'(?s).*missing_kernel\.bsp.*'):
             setup_instance.load_kernels()
 
-        # Check that the decorator called handle_npb_error exactly once.
-        handle_error.assert_called_once()
-
-        # Check error messages.
-        error_message = handle_error.call_args.args[0]
-
-        assert str(broken_meta_kernel) in error_message
-        assert (missing_kernel in error_message
-                or 'NOSUCHFILE' in error_message
-                or 'FURNSH' in error_message
-                or 'ZZLDKER' in error_message)
+        # handle_npb_error must clear the global SPICE kernel pool.
+        assert spiceypy.ktotal('ALL') == 0
 
 
 class TestSetupWriteFileList:
