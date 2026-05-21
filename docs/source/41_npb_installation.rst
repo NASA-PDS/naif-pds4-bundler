@@ -188,10 +188,10 @@ Example setup for developers using git clone and a venv-
    2. change into the naif-pds4-bundler top level directory
    cd naif-pds4-bundler/
 
-   2. create the virtual environemnet
+   2. create the virtual environment
    python -m venv venv
 
-   3. source the virtual environemnt
+   3. source the virtual environment
    source venv/bin/activate
 
    4. run the setup script
