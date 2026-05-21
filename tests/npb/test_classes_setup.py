@@ -2401,13 +2401,28 @@ class TestSetupLoadKernels:
 
         setup_instance.load_kernels()
 
-        # Check that all 4 kernels have been loaded.
-        assert spiceypy.ktotal('ALL') == 4
+        # The real SPICE kernel pool is global, so the test must start from a clean
+        # state before loading kernels.
+        spiceypy.kclear()
+        assert spiceypy.ktotal('ALL') == 0
 
-        # Check the final state.
-        assert getattr(setup_instance, 'fks') == [fk]
-        assert getattr(setup_instance, 'sclks') == [sclk]
-        assert getattr(setup_instance, 'lsk') == lsk
+        try:
+            setup_instance.load_kernels()
+
+            # Check that all 4 kernels have been loaded.
+            assert spiceypy.ktotal('ALL') == 4
+
+            # Check the final state.
+            assert getattr(setup_instance, 'fks') == [fk]
+            assert getattr(setup_instance, 'sclks') == [sclk]
+            assert getattr(setup_instance, 'lsk') == lsk
+
+        finally:
+            # Clear the global SPICE kernel pool immediately after the real furnsh
+            # calls, so this test cannot leak state into later tests.
+            spiceypy.kclear()
+
+        assert spiceypy.ktotal('ALL') == 0
 
     def test_real_spiceypy_failure_is_captured_by_decorator(
             self, tmp_path, monkeypatch) -> None:
