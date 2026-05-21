@@ -2268,8 +2268,8 @@ class TestSetupLoadKernels:
         for kernel_key in existing_kernels:
             kernel_path = kernel_paths[kernel_key]
             os.makedirs(os.path.dirname(kernel_path), exist_ok=True)
-            with open(kernel_path, 'w', encoding='utf-8'):
-                pass
+            with open(kernel_path, 'w', encoding='utf-8') as kernel_file:
+                kernel_file.write('test kernel placeholder\n')
 
         setup_instance.kernels_to_load = {
             kernel_type: kernel_value.format(**kernel_paths)
