@@ -604,50 +604,35 @@ def test_extract_comment_ck():
 
     assert comment_line == comment[3]
 
-# @pytest.mark.parametrize("kern, num",[
-#     (KERNELS/"ck"/"mro_sa_psp_210705_210717p.bc", "3"),
-#     (KERNELS/"ck"/"one_blank.bc", "8"),
-#     (KERNELS/"ck"/"many_blanks.bc", "8"),
-#     (KERNELS/"ck"/"buffer_buster.bc", "8"),
-# ])
-# def test_extract_comment_ck_2(kern, num):
-#     """Test extract_comment function using pytest.
-#     Extract comments from normal DAF, as well as others"""
-#     result = files.extract_comment(str(kern))
-#     comment = (" This CK file was created using CKSLICER Utility Ver. 1.3.0, October 28, 2011")
-#
-#     assert comment == result[int(num)]
-#
-# #TODO - need to test the handle_npb_error - struggling to do this
+@pytest.mark.parametrize("kern, comment, num",[
+    (KERNELS/"ck"/"mro_sa_psp_210705_210717p.bc", " This CK file was created using CKSLICER Utility Ver. 1.3.0, October 28, 2011", "3"),
+    (KERNELS/"ck"/"one_blank.bc", "LSK_FILE_NAME           = 'naif0012.tls'", "8"),
+    (KERNELS/"ck"/"many_blanks.bc", "LSK_FILE_NAME           = 'naif0012.tls'", "8"),
+    #(KERNELS/"ck"/"buffer_buster.bc", "LSK_FILE_NAME           = 'naif0012.tls'", "8"),
+])
+def test_extract_comment_ck_2(kern, comment, num):
+    """Test extract_comment function using pytest.
+    Extract comments from normal DAF, as well as others"""
+    result = files.extract_comment(str(kern))
+    #comment = (" This CK file was created using CKSLICER Utility Ver. 1.3.0, October 28, 2011")
 
+    assert comment == result[int(num)]
 
-# def test_extract_comment_big_buffer():
-#     """Test extract_comment function using pytest - bigger buffer than acceptable."""
-#
-#     path = KERNELS /"ck"/"buffer_buster.bc"
-#
-#     results = files.extract_comment(str(path))
-#
-#     assert results == f"Comment from {path} is longer than buffer size." #this does not work...
+@pytest.mark.parametrize("kern",[
+    (KERNELS/"ck"/"buffer_buster.bc"),
+])
+def test_extract_comment_error(monkeypatch, kern, caplog):
+    """Test extract_comment function using pytest. This is to test logging errors"""
 
+    def mock_handle_error(msg, setup=False):
+        files.logging.getLogger("files").error(msg)
 
-# @pytest.mark.parametrize("kern",[
-#     (KERNELS/"ck"/"buffer_buster.bc"),
-# ])
-# def test_extract_comment_error(monkeypatch, kern, caplog):
-#     """Test extract_comment function using pytest. This is to test logging errors"""
-#
-#     def mock_handle_error(msg, setup=False):
-#         files.logging.getLogger("files").error(msg)
-#
-#     monkeypatch.setattr(files, "handle_npb_error", mock_handle_error)
-#
-#     with caplog.at_level(files.logging.ERROR):
-#         files.extract_comment(str(kern))
-#
-#     assert f"Comment from {kern} is longer than buffer size." in caplog.text
+    monkeypatch.setattr(files, "handle_npb_error", mock_handle_error)
 
-#Not sure how to fix these to make them work...
+    with caplog.at_level(files.logging.ERROR):
+        files.extract_comment(str(kern))
+
+    assert f"Comment from {kern} is longer than buffer size." in caplog.text
 
 # ----------------------------------------------------------------------------
 # files.fill_template tests

@@ -793,8 +793,8 @@ def extract_comment(path, handle=False):
     linlen = 1001
     buffsz = 100000
 
-    (lincmt, commnt, _) = spiceypy.dafec(handle, buffsz, linlen)
-    if lincmt > buffsz:
+    (lincmt, commnt, done) = spiceypy.dafec(handle, buffsz, linlen)
+    if not done:
         spiceypy.dafcls(handle)
         handle_npb_error(f"Comment from {path} is longer than buffer size.")
 
