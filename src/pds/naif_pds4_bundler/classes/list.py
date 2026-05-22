@@ -330,6 +330,9 @@ class KernelList:
         :param kerlist: Kernel List path
         :type kerlist: str
         """
+        # TODO: BUG; The current implementation hardcodes '/', but list_name is
+        #       later derived with os.sep. This can produce platform-dependent
+        #       results on Windows-style paths.
         kernel_list = (
             f"{self.setup.working_directory}/"
             f"{self.setup.mission_acronym}_{self.setup.run_type}_"
@@ -341,6 +344,8 @@ class KernelList:
         except shutil.SameFileError:
             pass
 
+        # TODO: BUG; Splitting by os.sep is fragile when the path contains a
+        #       hardcoded separator different from the current platform separator.
         self.list_name = kernel_list.split(os.sep)[-1]
 
         #
@@ -350,6 +355,8 @@ class KernelList:
         with open(kernel_list, "r", encoding='utf-8') as lst:
             for line in lst:
                 if "FILE             =" in line:
+                    # TODO: BUG; If a FILE line has no trailing EOL, [:-1]
+                    #      truncates the kernel name.
                     kernels.append(line.split(os.sep)[-1][:-1])
 
         self.kernel_list = kernels

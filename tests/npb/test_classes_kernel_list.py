@@ -1,4 +1,5 @@
 """Tests for KernelList class."""
+import os.path
 from datetime import datetime as real_datetime
 import logging
 from pathlib import Path
@@ -773,3 +774,217 @@ class TestKernelListWriteList:
 
         # Check the validate call.
         validate_mock.assert_called_once_with(kernel_list)
+
+
+class TestKernelListReadList:
+
+    # TODO: All routes assigned in the FILE lines are constructed with the first
+    #       separator hard-coded, as specified in the source code. This exposes
+    #       a bug documented in the read_list method of the KernelList class.
+
+    @staticmethod
+    def make_kernel_list(tmp_path, **setup_overrides) -> tuple[KernelList, SimpleNamespace, Path]:
+        # Build a real KernelList instance with the minimum temporary setup required by
+        # read_list. The helper centralizes the working-directory and expected output
+        # path creation so each test can focus only on read_list behaviour.
+
+        # Build the temporary directory that will serve as the setup.working_directory.
+        working_directory = tmp_path / 'working'
+        working_directory.mkdir(exist_ok=True)
+
+        # Build a minimal setup instance.
+        setup = make_kernel_list_setup(tmp_path,
+                                       mission_acronym='maven',
+                                       run_type='release',
+                                       working_directory=str(working_directory),
+                                       kernel_list_config={},
+                                       **setup_overrides)
+
+        # Build a real KernelList instance.
+        kernel_list = KernelList(setup)
+
+        # Calculate the file that we expect read_list() to use internally.
+        output_path = working_directory / 'maven_release_03.kernel_list'
+
+        return kernel_list, setup, output_path
+
+    def test_read_list_copies_source_file_extracts_kernels_and_validates(
+            self, mocker, tmp_path) -> None:
+        # Verify the normal read_list workflow: copy an external kernel list
+        # into the canonical working-directory path, extract only kernel names
+        # from FILE entries, update public state and trigger validation once.
+
+        # Mock the validate call, as that is not the purpose of this test.
+        validate_mock = mocker.patch.object(KernelList, 'validate', autospec=True)
+
+        # Build a real KernelList instance.
+        kernel_list, _, output_path = self.make_kernel_list(tmp_path)
+
+        # Create the path to the input file. This will be the external kernel list passed to read_list().
+        source_path = tmp_path / 'input.kernel_list'
+
+        # Define the file content.
+        content = ('KERNEL LIST HEADER\n'
+                   f'FILE             = spice_kernels/{os.path.join("spk", "maven_orbit_v01.bsp")}\n'
+                   'MAKLABEL_OPTIONS = SPK\n'
+                   'DESCRIPTION      = Orbit kernel\n'
+                   'COMMENT          = This line must be ignored by read_list.\n'
+                   f'FILE             = spice_kernels/{os.path.join("ck", "maven_attitude_v02.bc")}\n'
+                   'MAKLABEL_OPTIONS = CK\n'
+                   'DESCRIPTION      = Attitude kernel\n')
+
+        # Writes the input file to disk. This means that the test uses actual
+        # I/O, which makes sense here because read_list() works directly with
+        # files using shutil.copy2() and open().
+        source_path.write_text(content, encoding='utf-8')
+
+        kernel_list.read_list(str(source_path))
+
+        # Check the created file.
+        assert output_path.exists()
+        assert output_path.read_text(encoding='utf-8') == content
+
+        # Check the first side effect: the read_list() function should update
+        # self.list_name with the name of the destination file.
+        assert kernel_list.list_name == 'maven_release_03.kernel_list'
+
+        # Check the second side effect: read_list() must populate
+        # self.kernel_list with the names of the kernels found in the FILE
+        # lines.
+        assert kernel_list.kernel_list == ['maven_orbit_v01.bsp',
+                                           'maven_attitude_v02.bc']
+
+        # Check that read_list call validate once.
+        validate_mock.assert_called_once_with(kernel_list)
+
+    def test_read_list_ignores_same_file_error_and_reads_existing_target(
+            self, mocker, tmp_path) -> None:
+        # Verify the SameFileError path: when the input list is already the
+        # canonical working-directory file, read_list must skip the copy, read
+        # the existing file, update state and trigger validation once.
+
+        # Mock the validate call.
+        validate_mock = mocker.patch.object(KernelList, 'validate', autospec=True)
+
+        # Build a real KernelList instance.
+        kernel_list, _, output_path = self.make_kernel_list(tmp_path)
+
+        # Define the file content.
+        content = ('KERNEL LIST HEADER\n'
+                   f'FILE             = miscellaneous/{os.path.join("orbnum", "orbn_00001.orb")}\n'
+                   'MAKLABEL_OPTIONS = N/A\n'
+                   'DESCRIPTION      = N/A\n')
+
+        # Write the file directly to the destination path that read_list() will
+        # use.
+        output_path.write_text(content, encoding='utf-8')
+
+        kernel_list.read_list(str(output_path))
+
+        # Check the file.
+        assert output_path.read_text(encoding='utf-8') == content
+
+        # Check that read_list() has read the existing file and extracted the
+        # kernel name from the FILE line.
+        assert kernel_list.list_name == 'maven_release_03.kernel_list'
+        assert kernel_list.kernel_list == ['orbn_00001.orb']
+
+        # Check that read_list call validate once.
+        validate_mock.assert_called_once_with(kernel_list)
+
+    @pytest.mark.parametrize('content, expected_kernels', [
+        ('KERNEL LIST HEADER\n'
+         'MAKLABEL_OPTIONS = N/A\n'
+         'DESCRIPTION      = N/A\n',
+         []),
+        (f'FILE             = spice_kernels/{os.path.join("spk", "maven_orbit_v01.bsp")}\n',
+         ['maven_orbit_v01.bsp']),
+        ('HEADER\n'
+         'FILE             = spice_kernels/fk/maven_frames_v01.tf\n'
+         'DESCRIPTION      = Frame kernel\n'
+         f'FILE             = spice_kernels/{os.path.join("sclk", "maven_clock_v02.tsc")}\n'
+         'MAKLABEL_OPTIONS = SCLK\n',
+         ['maven_frames_v01.tf', 'maven_clock_v02.tsc']),
+        (f'FILE             = spice_kernels/{os.path.join("spk", "maven_orbit_v01.bsp")}',
+         ['maven_orbit_v01.bs'])])
+    def test_read_list_builds_kernel_list_from_file_entries_only(
+            self, mocker, tmp_path, content, expected_kernels) -> None:
+        # TODO: The last example demonstrates the bug whereby, if there is no
+        #       EOL on the FILE line, the code removes the last character from
+        #       the line.
+
+        # Verify read_list parsing rules with several inputs: ignore non-FILE
+        # lines, build kernel_list only from FILE entries and preserve the
+        # original order.
+
+        # Mock the validate call.
+        validate_mock = mocker.patch.object(KernelList, 'validate',
+                                            autospec=True)
+
+        # Build a real KernelList instance.
+        kernel_list, _, _ = self.make_kernel_list(tmp_path)
+
+        # Build a temporal path for the input file, and write the specified data
+        # to disk.
+        source_path = tmp_path / 'input.kernel_list'
+        source_path.write_text(content, encoding='utf-8')
+
+        kernel_list.read_list(str(source_path))
+
+        assert kernel_list.kernel_list == expected_kernels
+
+        # Check that read_list call validate once.
+        validate_mock.assert_called_once_with(kernel_list)
+
+    def test_read_list_does_not_log_directly(
+            self, mocker, caplog, tmp_path) -> None:
+        # Verify that read_list does not emit logs directly. validate is mocked
+        # because validation has its own logging and must not be mixed with
+        # read_list logging.
+
+        # Mock the validate call.
+        validate_mock = mocker.patch.object(KernelList, 'validate', autospec=True)
+
+        # Build a real KernelList instance.
+        kernel_list, _, _ = self.make_kernel_list(tmp_path)
+
+        # Build a temporal path for the input file, and write the specified data
+        # to disk.
+        source_path = tmp_path / 'input.kernel_list'
+        source_path.write_text(f'FILE             = spice_kernels/{os.path.join("spk", "maven_orbit_v01.bsp")}\n',
+                               encoding='utf-8')
+
+        # Execute the method call and capture the logs.
+        with caplog.at_level(logging.INFO):
+            kernel_list.read_list(str(source_path))
+
+        # This test represents the 'happy path' for the method so, there should
+        # not be any logs.
+        assert caplog.record_tuples == []
+
+        # Check that read_list call validate once.
+        validate_mock.assert_called_once_with(kernel_list)
+
+    def test_read_list_propagates_copy_errors_without_partial_side_effects(
+            self, mocker, tmp_path) -> None:
+        # Verify that copy errors other than SameFileError are propagated and do
+        # not leave partial state updates: no output file, no list_name, no
+        # kernel_list and no validation call.
+
+        # Mock the validate call.
+        validate_mock = mocker.patch.object(KernelList, 'validate', autospec=True)
+
+        # Build a real KernelList instance.
+        kernel_list, _, output_path = self.make_kernel_list(tmp_path)
+
+        # Define an input path that not exists.
+        missing_path = tmp_path / 'missing.kernel_list'
+
+        # Execute the method and capture the exception.
+        with pytest.raises(FileNotFoundError):
+            kernel_list.read_list(str(missing_path))
+
+        # Check that the destination file has not been created.
+        assert not output_path.exists()
+        assert kernel_list.list_name == ''
+        assert kernel_list.kernel_list == []
