@@ -846,10 +846,7 @@ class TestKernelListReadList:
 
         # Check the first side effect: the read_list() function should update
         # self.list_name with the name of the destination file.
-        # TODO: the split(os.sep)[-1] is added to pass the test in Windows
-        #       systems. This is because the bug of the hard-coded slash when
-        #       build the kernel_list path.
-        assert kernel_list.list_name.split(os.sep)[-1] == 'maven_release_03.kernel_list'
+        assert kernel_list.list_name == 'maven_release_03.kernel_list'
 
         # Check the second side effect: read_list() must populate
         # self.kernel_list with the names of the kernels found in the FILE
@@ -889,10 +886,7 @@ class TestKernelListReadList:
 
         # Check that read_list() has read the existing file and extracted the
         # kernel name from the FILE line.
-        # TODO: the split(os.sep)[-1] is added to pass the test in Windows
-        #       systems. This is because the bug of the hard-coded slash when
-        #       build the kernel_list path.
-        assert kernel_list.list_name.split(os.sep)[-1] == 'maven_release_03.kernel_list'
+        assert kernel_list.list_name == 'maven_release_03.kernel_list'
         assert kernel_list.kernel_list == ['orbn_00001.orb']
 
         # Check that read_list call validate once.
@@ -903,15 +897,15 @@ class TestKernelListReadList:
          'MAKLABEL_OPTIONS = N/A\n'
          'DESCRIPTION      = N/A\n',
          []),
-        (f'FILE             = spice_kernels/{os.path.join("spk", "maven_orbit_v01.bsp")}\n',
+        (f'FILE             = {os.path.join("spice_kernels", "spk", "maven_orbit_v01.bsp")}\n',
          ['maven_orbit_v01.bsp']),
         ('HEADER\n'
          'FILE             = spice_kernels/fk/maven_frames_v01.tf\n'
          'DESCRIPTION      = Frame kernel\n'
-         f'FILE             = spice_kernels/{os.path.join("sclk", "maven_clock_v02.tsc")}\n'
+         f'FILE             = {os.path.join("spice_kernels", "sclk", "maven_clock_v02.tsc")}\n'
          'MAKLABEL_OPTIONS = SCLK\n',
          ['maven_frames_v01.tf', 'maven_clock_v02.tsc']),
-        (f'FILE             = spice_kernels/{os.path.join("spk", "maven_orbit_v01.bsp")}',
+        (f'FILE             = {os.path.join("spice_kernels", "spk", "maven_orbit_v01.bsp")}',
          ['maven_orbit_v01.bs'])])
     def test_read_list_builds_kernel_list_from_file_entries_only(
             self, mocker, tmp_path, content, expected_kernels) -> None:
@@ -957,7 +951,7 @@ class TestKernelListReadList:
         # Build a temporal path for the input file, and write the specified data
         # to disk.
         source_path = tmp_path / 'input.kernel_list'
-        source_path.write_text(f'FILE             = spice_kernels/{os.path.join("spk", "maven_orbit_v01.bsp")}\n',
+        source_path.write_text(f'FILE             = {os.path.join("spice_kernels", "spk", "maven_orbit_v01.bsp")}\n',
                                encoding='utf-8')
 
         # Execute the method call and capture the logs.

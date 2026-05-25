@@ -330,11 +330,8 @@ class KernelList:
         :param kerlist: Kernel List path
         :type kerlist: str
         """
-        # TODO: BUG; The current implementation hardcodes '/', but list_name is
-        #       later derived with os.sep. This can produce platform-dependent
-        #       results on Windows-style paths.
         kernel_list = (
-            f"{self.setup.working_directory}/"
+            f"{self.setup.working_directory}{os.sep}"
             f"{self.setup.mission_acronym}_{self.setup.run_type}_"
             f"{int(self.setup.release):02d}.kernel_list"
         )
@@ -344,8 +341,6 @@ class KernelList:
         except shutil.SameFileError:
             pass
 
-        # TODO: BUG; Splitting by os.sep is fragile when the path contains a
-        #       hardcoded separator different from the current platform separator.
         self.list_name = kernel_list.split(os.sep)[-1]
 
         #
