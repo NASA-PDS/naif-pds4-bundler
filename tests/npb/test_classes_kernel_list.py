@@ -778,10 +778,6 @@ class TestKernelListWriteList:
 
 class TestKernelListReadList:
 
-    # TODO: All routes assigned in the FILE lines are constructed with the first
-    #       separator hard-coded, as specified in the source code. This exposes
-    #       a bug documented in the read_list method of the KernelList class.
-
     @staticmethod
     def make_kernel_list(tmp_path, **setup_overrides) -> tuple[KernelList, SimpleNamespace, Path]:
         # Build a real KernelList instance with the minimum temporary setup required by
