@@ -900,7 +900,7 @@ class TestKernelListReadList:
         (f'FILE             = {os.path.join("spice_kernels", "spk", "maven_orbit_v01.bsp")}\n',
          ['maven_orbit_v01.bsp']),
         ('HEADER\n'
-         'FILE             = spice_kernels/fk/maven_frames_v01.tf\n'
+         f'FILE             = {os.path.join("spice_kernels", "fk", "maven_frames_v01.tf")}\n'
          'DESCRIPTION      = Frame kernel\n'
          f'FILE             = {os.path.join("spice_kernels", "sclk", "maven_clock_v02.tsc")}\n'
          'MAKLABEL_OPTIONS = SCLK\n',
