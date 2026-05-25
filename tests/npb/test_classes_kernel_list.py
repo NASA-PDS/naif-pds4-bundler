@@ -825,11 +825,11 @@ class TestKernelListReadList:
 
         # Define the file content.
         content = ('KERNEL LIST HEADER\n'
-                   f'FILE             = spice_kernels/{os.path.join("spk", "maven_orbit_v01.bsp")}\n'
+                   f'FILE             = {os.path.join("spice_kernels/spk", "maven_orbit_v01.bsp")}\n'
                    'MAKLABEL_OPTIONS = SPK\n'
                    'DESCRIPTION      = Orbit kernel\n'
                    'COMMENT          = This line must be ignored by read_list.\n'
-                   f'FILE             = spice_kernels/{os.path.join("ck", "maven_attitude_v02.bc")}\n'
+                   f'FILE             = {os.path.join("spice_kernels/ck", "maven_attitude_v02.bc")}\n'
                    'MAKLABEL_OPTIONS = CK\n'
                    'DESCRIPTION      = Attitude kernel\n')
 
@@ -871,7 +871,7 @@ class TestKernelListReadList:
 
         # Define the file content.
         content = ('KERNEL LIST HEADER\n'
-                   f'FILE             = miscellaneous/{os.path.join("orbnum", "orbn_00001.orb")}\n'
+                   f'FILE             = {os.path.join("miscellaneous/orbnum", "orbn_00001.orb")}\n'
                    'MAKLABEL_OPTIONS = N/A\n'
                    'DESCRIPTION      = N/A\n')
 
