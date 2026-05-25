@@ -967,9 +967,6 @@ class TestKernelListReadList:
         # not leave partial state updates: no output file, no list_name, no
         # kernel_list and no validation call.
 
-        # Mock the validate call.
-        validate_mock = mocker.patch.object(KernelList, 'validate', autospec=True)
-
         # Build a real KernelList instance.
         kernel_list, _, output_path = self.make_kernel_list(tmp_path)
 
