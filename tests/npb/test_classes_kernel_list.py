@@ -805,7 +805,7 @@ class TestKernelListReadList:
         return kernel_list, setup, output_path
 
     def test_read_list_copies_source_file_extracts_kernels_and_validates(
-            self, mocker, tmp_path) -> None:
+            self, mocker, caplog, tmp_path) -> None:
         # Verify the normal read_list workflow: copy an external kernel list
         # into the canonical working-directory path, extract only kernel names
         # from FILE entries, update public state and trigger validation once.
@@ -834,7 +834,8 @@ class TestKernelListReadList:
         # files using shutil.copy2() and open().
         source_path.write_text(content, encoding='utf-8')
 
-        kernel_list.read_list(str(source_path))
+        with caplog.at_level(logging.INFO):
+            kernel_list.read_list(str(source_path))
 
         # Check the created file.
         assert output_path.exists()
@@ -849,6 +850,10 @@ class TestKernelListReadList:
         # lines.
         assert kernel_list.kernel_list == ['maven_orbit_v01.bsp',
                                            'maven_attitude_v02.bc']
+
+        # validate is mocked, so any captured log would come directly from
+        # read_list. The happy path should not emit direct log records.
+        assert caplog.record_tuples == []
 
         # Check that read_list call validate once.
         validate_mock.assert_called_once_with(kernel_list)
@@ -928,35 +933,6 @@ class TestKernelListReadList:
         kernel_list.read_list(str(source_path))
 
         assert kernel_list.kernel_list == expected_kernels
-
-        # Check that read_list call validate once.
-        validate_mock.assert_called_once_with(kernel_list)
-
-    def test_read_list_does_not_log_directly(
-            self, mocker, caplog, tmp_path) -> None:
-        # Verify that read_list does not emit logs directly. validate is mocked
-        # because validation has its own logging and must not be mixed with
-        # read_list logging.
-
-        # Mock the validate call.
-        validate_mock = mocker.patch.object(KernelList, 'validate', autospec=True)
-
-        # Build a real KernelList instance.
-        kernel_list, _, _ = self.make_kernel_list(tmp_path)
-
-        # Build a temporal path for the input file, and write the specified data
-        # to disk.
-        source_path = tmp_path / 'input.kernel_list'
-        source_path.write_text(f'FILE             = {os.path.join("spice_kernels", "spk", "maven_orbit_v01.bsp")}\n',
-                               encoding='utf-8')
-
-        # Execute the method call and capture the logs.
-        with caplog.at_level(logging.INFO):
-            kernel_list.read_list(str(source_path))
-
-        # This test represents the 'happy path' for the method so, there should
-        # not be any logs.
-        assert caplog.record_tuples == []
 
         # Check that read_list call validate once.
         validate_mock.assert_called_once_with(kernel_list)
