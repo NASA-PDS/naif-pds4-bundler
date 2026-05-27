@@ -7,7 +7,6 @@
 # credentials to pull or use.
 #
 TAG_NAME='naif-pds4-bundler:latest'
-
 sudo  docker build -t $TAG_NAME -f rhel.Dockerfile .
 
 #
