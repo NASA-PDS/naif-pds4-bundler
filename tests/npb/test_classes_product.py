@@ -36,9 +36,9 @@ def make_product_without_init(path: Path, setup: SimpleNamespace,
     product = Product.__new__(Product)
     product_state = cast(Any, product)
 
-    product.path = path.as_posix()
-    product.setup = setup
-    product.new_product = new_product
+    product_state.path = path.as_posix()
+    product_state.setup = setup
+    product_state.new_product = new_product
 
     return product
 
