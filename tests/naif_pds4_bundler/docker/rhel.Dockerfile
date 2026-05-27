@@ -1,9 +1,11 @@
 # Red Hat Universal Base Image 9 — no subscription required
-FROM registry.access.redhat.com/ubi9/ubi:latest
+FROM registry.access.redhat.com/ubi9/ubi:9.8
 
 #
 # Install supporting libraries and Python in a single layer.
 # UBI repos provide Python 3.11 directly, so no need to compile from source.
+#
+# Create a non-root user and switch to that user.
 #
 RUN dnf -y update &&       \
     dnf install -y         \
@@ -19,12 +21,8 @@ RUN dnf -y update &&       \
         libffi-devel       \
         python3.11         \
         python3.11-pip &&  \
-    dnf clean all
-
-#
-# Create a non-root user and switch to that user.
-#
-RUN useradd -ms /bin/bash npbuser
+    dnf clean all      &&  \
+    useradd -ms /bin/bash npbuser
 
 USER npbuser
 WORKDIR /home/npbuser

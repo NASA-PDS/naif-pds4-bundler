@@ -10,17 +10,15 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Install Python and dependencies in a single layer to minimise image size.
 # Clean up apt cache afterwards to keep the image lean.
 #
+# Create a non-root user and switch to that user.
+#
 RUN apt-get update && apt-get install -y \
         git                              \
         python3                          \
         python3-pip &&                   \
     apt-get clean &&                     \
-    rm -rf /var/lib/apt/lists/*
-
-#
-# Create a non-root user and switch to that user.
-#
-RUN useradd -ms /bin/bash npbuser
+    rm -rf /var/lib/apt/lists/* &&       \
+    useradd -ms /bin/bash npbuser
 
 USER npbuser
 WORKDIR /home/npbuser
