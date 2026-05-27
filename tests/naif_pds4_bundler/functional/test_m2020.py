@@ -554,8 +554,8 @@ def test_m2020_permissions(self):
         "kernels/ck/m2020_surf_rsm_tlmres_0299_0419_v1.bc",
     )
 
-    # Combines Read permissions for Owner, Group, and Others
-    read_only = stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH
+    # Combines Read permissions for Owner and Group
+    read_only = stat.S_IRUSR | stat.S_IRGRP
     os.chmod("kernels/ck/m2020_surf_rsm_tlmres_0299_0419_v1.bc", mode=read_only)
 
     with self.assertRaises(RuntimeError):
