@@ -77,6 +77,8 @@ class Product:
 
         if self.new_product:
 
+            # TODO: There is a bug caused by the hard-coded slash. This causes
+            #       an error when run on Windows systems.
             if self.setup.pds_version == "4":
                 archive_dir = f"{self.setup.mission_acronym}_spice/"
             else:
