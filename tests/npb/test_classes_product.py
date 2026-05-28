@@ -166,7 +166,8 @@ class TestProductRegister:
 
         # Create all the necessary directories.
         product_path.parent.mkdir(parents=True)
-        product_path.write_text('kernel-content', encoding='utf-8')
+        product_content = 'kernel-content'
+        product_path.write_text(product_content, encoding='utf-8')
 
         # Create a minimal setup.
         # The attribute checksum=True enables registry scanning; pds_version='4'
@@ -193,8 +194,8 @@ class TestProductRegister:
 
         product.register()
 
-        # Calculate the real file size
-        expected_size = str(product_path.stat().st_size)
+        # Calculate the real file size.
+        expected_size = str(len(product_content))
 
         # Check the internal attributes.
         assert product._size == expected_size
@@ -231,7 +232,8 @@ class TestProductRegister:
 
         # Create all the necessary directories.
         product_path.parent.mkdir(parents=True)
-        product_path.write_text('<html />', encoding='utf-8')
+        product_content = '<html />'
+        product_path.write_text(product_content, encoding='utf-8')
 
         # Create a minimal setup with checksum verification enabled.
         setup = make_product_setup(tmp_path, checksum=True)
@@ -254,7 +256,7 @@ class TestProductRegister:
         product.register()
 
         # Check the internal attributes.
-        assert product.size == str(product_path.stat().st_size)
+        assert product.size == str(len(product_content))
         assert product.checksum == 'label-checksum'
 
         # Check that registry and label have been called once and md5 has not
@@ -284,7 +286,8 @@ class TestProductRegister:
 
         # Create all the necessary directories.
         product_path.parent.mkdir(parents=True)
-        product_path.write_text('orbit-number', encoding='utf-8')
+        product_content = 'orbit-number'
+        product_path.write_text(product_content, encoding='utf-8')
 
         # Create a minimal setup with the checksum option enabled.
         setup = make_product_setup(tmp_path, checksum=True)
@@ -308,7 +311,7 @@ class TestProductRegister:
         product.register()
 
         # Check that the file size has been calculated correctly.
-        assert product.size == str(product_path.stat().st_size)
+        assert product.size == str(len(product_content))
 
         # Check that the final checksum comes from md5().
         assert product.checksum == 'computed-checksum'
@@ -335,7 +338,8 @@ class TestProductRegister:
 
         # Create all the necessary directories.
         product_path.parent.mkdir(parents=True)
-        product_path.write_text('readme', encoding='utf-8')
+        product_content = 'readme'
+        product_path.write_text(product_content, encoding='utf-8')
 
         # Create a minimal setup with checksum reuse disabled.
         setup = make_product_setup(tmp_path, checksum=False)
@@ -356,7 +360,7 @@ class TestProductRegister:
 
         # Check that the size has been calculated correctly and that the final
         # checksum comes from md5().
-        assert product.size == str(product_path.stat().st_size)
+        assert product.size == str(len(product_content))
         assert product.checksum == 'computed-checksum'
 
         # Confirms that neither the register nor the label has been checked.
@@ -386,7 +390,8 @@ class TestProductRegister:
 
         # Create all the necessary directories.
         product_path.parent.mkdir(parents=True)
-        product_path.write_text('checksum-registry', encoding='utf-8')
+        product_content = 'checksum-registry'
+        product_path.write_text(product_content, encoding='utf-8')
 
         # Create a minimal setup with checksum reuse enabled. In this test, it
         # is enabled deliberately to demonstrate that ChecksumProduct ignores it.
@@ -409,7 +414,7 @@ class TestProductRegister:
 
         # Check that the size has been calculated correctly and that the
         # checksum comes from md5().
-        assert product._size == str(product_path.stat().st_size)
+        assert product._size == str(len(product_content))
         assert product.checksum == 'checksum-file-md5'
 
         # Check that neither registry nor label has been called.
@@ -436,7 +441,8 @@ class TestProductRegister:
 
         # Create all the necessary directories.
         product_path.parent.mkdir(parents=True)
-        product_path.write_text('kernel-content', encoding='utf-8')
+        product_content = 'kernel-content'
+        product_path.write_text(product_content, encoding='utf-8')
 
         # Create a minimal setup configured for PDS3 with checksum reuse
         # disabled.
@@ -451,7 +457,7 @@ class TestProductRegister:
 
         # Check that register() has correctly read the file size and that the
         # final checksum is the value returned by md5().
-        assert product.size == str(product_path.stat().st_size)
+        assert product.size == str(len(product_content))
         assert product.checksum == 'computed-checksum'
 
         # Check that md5() has been called once with the full product path.
