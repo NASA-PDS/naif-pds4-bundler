@@ -213,7 +213,7 @@ class TestProductRegister:
         # Check that the new product has been registered with the expected
         # relative path PDS4.
         setup.add_file.assert_called_once_with(
-            os.path.join(f'spice_kernels', 'spk', 'maven_orbit_v01.bsp'))
+            os.path.join('spice_kernels', 'spk', 'maven_orbit_v01.bsp'))
 
         # Check that the checksum has been registered using the full path and
         # the resolved checksum.
@@ -466,7 +466,7 @@ class TestProductRegister:
         # Check the key point of the test: in PDS3, the path recorded must be
         # relative to the MAVEN_1001/ volume, and the checksum must be recorded
         # using the full path and the calculated checksum.
-        setup.add_file.assert_called_once_with('data/spk/maven_orbit_v01.bsp')
+        setup.add_file.assert_called_once_with(os.path.join('data', 'spk', 'maven_orbit_v01.bsp'))
         setup.add_checksum.assert_called_once_with(str(product_path),
                                                    'computed-checksum')
 
