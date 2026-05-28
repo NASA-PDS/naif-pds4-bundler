@@ -281,7 +281,7 @@ class TestSpiceKernelProductInit:
         mock_err.assert_called_once()
 
     def test_init_stores_missions_observers_targets(self, tmp_env):
-        product, _, collection = build_product(tmp_env, name="test.bsp")
+        product, _, _ = build_product(tmp_env, name="test.bsp")
         assert product.missions == ["TEST_MISSION"]
         assert product.observers == ["SPACECRAFT"]
         assert product.targets == ["MARS"]
@@ -447,7 +447,7 @@ class TestSpiceKernelProductCoverage:
     """Tests for SpiceKernelProduct.coverage."""
 
     @staticmethod
-    def _make_product_stub(setup, kernel_type, extension, path="/tmp/fake.bsp"):
+    def _make_product_stub(setup, kernel_type, extension, path):
         product = SpiceKernelProduct.__new__(SpiceKernelProduct)
         product.setup = setup
         product.type = kernel_type
