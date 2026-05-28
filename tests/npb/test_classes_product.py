@@ -1,7 +1,7 @@
 """Tests for Product class."""
+import os.path
 from pathlib import Path
 from types import SimpleNamespace
-from typing import cast, Any
 from unittest.mock import Mock
 
 import pytest
@@ -34,11 +34,10 @@ def make_product_without_init(path: Path, setup: SimpleNamespace,
     # tests focused on register itself and avoids the constructor auto-registering
     # the product before the test is ready.
     product = Product.__new__(Product)
-    product_state = cast(Any, product)
 
-    product_state.path = path.as_posix()
-    product_state.setup = setup
-    product_state.new_product = new_product
+    product.path = str(path)
+    product.setup = setup
+    product.new_product = new_product
 
     return product
 
@@ -201,9 +200,7 @@ class TestProductRegister:
         assert product.size == expected_size
         assert product.checksum == 'registry-checksum'
 
-        expected_product_path = product_path.as_posix()
-
-        registry_mock.assert_called_once_with(expected_product_path,
+        registry_mock.assert_called_once_with(str(product_path),
                                               setup.working_directory)
 
         # Check that the tag fallback was not used and that the checksum was not
@@ -214,12 +211,12 @@ class TestProductRegister:
         # Check that the new product has been registered with the expected
         # relative path PDS4.
         setup.add_file.assert_called_once_with(
-            'spice_kernels/spk/maven_orbit_v01.bsp')
+            os.path.join(f'spice_kernels', 'spk', 'maven_orbit_v01.bsp'))
 
         # Check that the checksum has been registered using the full path and
         # the resolved checksum.
         setup.add_checksum.assert_called_once_with(
-            expected_product_path, 'registry-checksum')
+            str(product_path), 'registry-checksum')
 
     @pytest.mark.parametrize('registry_value', ['', None])
     def test_register_falls_back_to_label_checksum_when_registry_has_no_match(
@@ -234,8 +231,6 @@ class TestProductRegister:
         # Create all the necessary directories.
         product_path.parent.mkdir(parents=True)
         product_path.write_text('<html />', encoding='utf-8')
-
-        expected_product_path = product_path.as_posix()
 
         # Create a minimal setup with checksum verification enabled.
         setup = make_product_setup(tmp_path, checksum=True)
@@ -263,9 +258,9 @@ class TestProductRegister:
 
         # Check that registry and label have been called once and md5 has not
         # been called.
-        registry_mock.assert_called_once_with(expected_product_path,
+        registry_mock.assert_called_once_with(str(product_path),
                                               setup.working_directory)
-        label_mock.assert_called_once_with(expected_product_path)
+        label_mock.assert_called_once_with(str(product_path))
         md5_mock.assert_not_called()
 
         # Check that neither the product nor its checksum has been recorded
@@ -289,8 +284,6 @@ class TestProductRegister:
         # Create all the necessary directories.
         product_path.parent.mkdir(parents=True)
         product_path.write_text('orbit-number', encoding='utf-8')
-
-        expected_product_path = product_path.as_posix()
 
         # Create a minimal setup with the checksum option enabled.
         setup = make_product_setup(tmp_path, checksum=True)
@@ -320,10 +313,10 @@ class TestProductRegister:
         assert product.checksum == 'computed-checksum'
 
         # Check that registry, label and md5 calls once.
-        registry_mock.assert_called_once_with(expected_product_path,
+        registry_mock.assert_called_once_with(str(product_path),
                                               setup.working_directory)
-        label_mock.assert_called_once_with(expected_product_path)
-        md5_mock.assert_called_once_with(expected_product_path)
+        label_mock.assert_called_once_with(str(product_path))
+        md5_mock.assert_called_once_with(str(product_path))
 
         # Check that no product or checksum was recorded because
         # new_product=False.
@@ -342,8 +335,6 @@ class TestProductRegister:
         # Create all the necessary directories.
         product_path.parent.mkdir(parents=True)
         product_path.write_text('readme', encoding='utf-8')
-
-        expected_product_path = product_path.as_posix()
 
         # Create a minimal setup with checksum reuse disabled.
         setup = make_product_setup(tmp_path, checksum=False)
@@ -373,7 +364,7 @@ class TestProductRegister:
 
         # Confirms that the checksum has been calculated directly from the
         # product path.
-        md5_mock.assert_called_once_with(expected_product_path)
+        md5_mock.assert_called_once_with(str(product_path))
 
         # Check that there are no side effects because new_product=False.
         setup.add_file.assert_not_called()
@@ -402,7 +393,7 @@ class TestProductRegister:
 
         # Create a test object that appears to be a 'ChecksumProduct'.
         product = Mock(spec=checksum_product_spec)
-        product.path = product_path.as_posix()
+        product.path = product_path
         product.setup = setup
         product.new_product = False
 
@@ -446,8 +437,6 @@ class TestProductRegister:
         product_path.parent.mkdir(parents=True)
         product_path.write_text('kernel-content', encoding='utf-8')
 
-        expected_product_path = product_path.as_posix()
-
         # Create a minimal setup configured for PDS3 with checksum reuse
         # disabled.
         setup = make_product_setup(tmp_path, checksum=False, pds_version='3')
@@ -465,13 +454,13 @@ class TestProductRegister:
         assert product.checksum == 'computed-checksum'
 
         # Check that md5() has been called once with the full product path.
-        md5_mock.assert_called_once_with(expected_product_path)
+        md5_mock.assert_called_once_with(str(product_path))
 
         # Check the key point of the test: in PDS3, the path recorded must be
         # relative to the MAVEN_1001/ volume, and the checksum must be recorded
         # using the full path and the calculated checksum.
         setup.add_file.assert_called_once_with('data/spk/maven_orbit_v01.bsp')
-        setup.add_checksum.assert_called_once_with(expected_product_path,
+        setup.add_checksum.assert_called_once_with(str(product_path),
                                                    'computed-checksum')
 
     def test_register_raises_file_not_found_before_computing_checksum(

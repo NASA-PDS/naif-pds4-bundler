@@ -77,14 +77,12 @@ class Product:
 
         if self.new_product:
 
-            # TODO: There is a bug caused by the hard-coded slash. This causes
-            #       an error when run on Windows systems.
             if self.setup.pds_version == "4":
-                archive_dir = f"{self.setup.mission_acronym}_spice/"
+                archive_dir = f"{self.setup.mission_acronym}_spice"
             else:
-                archive_dir = f"{self.setup.volume_id}/"
+                archive_dir = f"{self.setup.volume_id}"
 
-            self.setup.add_file(self.path.split(archive_dir)[-1])
+            self.setup.add_file(self.path.split(f'{archive_dir}{os.sep}')[-1])
             self.setup.add_checksum(self.path, checksum)
 
     @property
