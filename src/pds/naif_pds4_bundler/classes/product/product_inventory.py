@@ -36,7 +36,7 @@ class InventoryProduct(Product):
             self.path = f"{setup.staging_directory}/index/index.tab"
             self.name = "index.tab"
 
-        elif setup.pds_version == "4":
+        else:  # setup.pds_version == "4":
 
             #
             # Determine the inventory version
@@ -107,7 +107,7 @@ class InventoryProduct(Product):
 
         if setup.pds_version == "4":
             self.label = InventoryPDS4Label(setup, collection, self)
-        elif setup.pds_version == "3":
+        else:  # setup.pds_version == "3":
             self.label = InventoryPDS3Label(setup, collection, self)
 
             #
@@ -219,7 +219,7 @@ class InventoryProduct(Product):
                             # Remove EOL characters from last element of the
                             # column.
                             #
-                            if "\n\r" in col:
+                            if "\r\n" in col:
                                 col_len = len(col) - 2
                             elif "\n" in col:
                                 col_len = len(col) - 1
@@ -296,7 +296,7 @@ class InventoryProduct(Product):
 
                 column_length = len(column)
 
-                if "\n\r" in column:
+                if "\r\n" in column:
                     column_length -= 3
                 elif "\n" in column:
                     column_length -= 2
