@@ -1,5 +1,6 @@
 """Unit tests for InventoryProduct class."""
 import logging
+from pathlib import Path
 from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
@@ -16,7 +17,7 @@ def make_setup(pds_version="4", increment=True, diff=True):
     setup.pds_version = pds_version
     setup.increment = increment
     setup.diff = diff
-    setup.staging_directory = "/staging"
+    setup.staging_directory = "staging"
     setup.bundle_directory = "/bundle"
     setup.mission_acronym = "insight"
     setup.logical_identifier = "urn:nasa:pds:insight_spice"
@@ -68,21 +69,21 @@ class TestInventoryProductInitPDS4:
          2,
          "/bundle/insight_spice/spice_kernels/collection_spice_kernels_inventory_v001.csv",
          "collection_spice_kernels_inventory_v002.csv",
-         "/staging/spice_kernels/collection_spice_kernels_inventory_v002.csv",
+         str(Path("staging/spice_kernels/collection_spice_kernels_inventory_v002.csv")),
          "2.0"),
         (True,
          [],
          1,
          "",
          "collection_spice_kernels_inventory_v001.csv",
-         "/staging/spice_kernels/collection_spice_kernels_inventory_v001.csv",
+         str(Path("staging/spice_kernels/collection_spice_kernels_inventory_v001.csv")),
          "1.0"),
         (False,
          [],
          1,
          "",
          "collection_spice_kernels_inventory_v001.csv",
-         "/staging/spice_kernels/collection_spice_kernels_inventory_v001.csv",
+         str(Path("staging/spice_kernels/collection_spice_kernels_inventory_v001.csv")),
          "1.0"),
     ])
     @patch(f"{MODULE}.glob.glob")
@@ -146,7 +147,7 @@ class TestInventoryProductInitPDS3:
             obj = InventoryProduct(setup, collection)
 
         assert obj.name == "index.tab"
-        assert obj.path == "/staging/index/index.tab"
+        assert obj.path == "staging/index/index.tab"
         assert obj.new_product is True
 
     def test_pds4_init_logic_testing(self):
@@ -166,7 +167,7 @@ class TestInventoryProductInitPDS3:
 
         assert mock_copy.call_count == 2
 
-        mock_replace.assert_called_once_with('/staging/../dsindex.lbl',
+        mock_replace.assert_called_once_with('staging/../dsindex.lbl',
                                              '"INDEX.TAB"',
                                              '"DSINDEX.TAB"',
                                              setup)
@@ -182,7 +183,7 @@ class TestInventoryProductWriteProduct:
     def _make_obj(pds_version="4"):
         obj = InventoryProduct.__new__(InventoryProduct)
         obj.setup = make_setup(pds_version=pds_version, diff=True)
-        obj.path = "/staging/spice_kernels/collection_spice_kernels_inventory_v001.csv"
+        obj.path = "staging/spice_kernels/collection_spice_kernels_inventory_v001.csv"
         obj.name = "collection_spice_kernels_inventory_v001.csv"
         return obj
 
@@ -280,7 +281,7 @@ class TestInventoryProductWritePds4CollectionProduct:
     def _make_obj(path_current="", products=None):
         obj = InventoryProduct.__new__(InventoryProduct)
         obj.setup = make_setup(pds_version="4")
-        obj.path = "/staging/spice_kernels/collection_spice_kernels_inventory_v002.csv"
+        obj.path = "staging/spice_kernels/collection_spice_kernels_inventory_v002.csv"
         obj.path_current = path_current
 
         if products is None:
@@ -386,7 +387,7 @@ class TestInventoryProductWritePds3IndexProduct:
     def _make_obj(self, increment=False, products=None):
         obj = InventoryProduct.__new__(InventoryProduct)
         obj.setup = make_setup(pds_version="3", increment=increment)
-        obj.path = "/staging/index/index.tab"
+        obj.path = "staging/index/index.tab"
 
         collection = make_collection()
         collection.list.DATA_SET_ID = "INSIGHT-M-SPICE-6-V1.0"
@@ -543,7 +544,7 @@ class TestInventoryProductValidatePds4:
         obj = InventoryProduct.__new__(InventoryProduct)
         obj.setup = make_setup()
         obj.name = "collection_spice_kernels_inventory_v001.csv"
-        obj.path = "/staging/spice_kernels/collection_spice_kernels_inventory_v001.csv"
+        obj.path = "staging/spice_kernels/collection_spice_kernels_inventory_v001.csv"
         collection = make_collection()
         collection.product = products or []
         obj.collection = collection
@@ -645,7 +646,7 @@ class TestInventoryProductCompare:
         obj = InventoryProduct.__new__(InventoryProduct)
         obj.setup = make_setup(diff=True)
         obj.name = "insight_spice/collection_spice_kernels_inventory_v002.csv"
-        obj.path = "/staging/spice_kernels/collection_spice_kernels_inventory_v002.csv"
+        obj.path = "staging/spice_kernels/collection_spice_kernels_inventory_v002.csv"
         obj.path_current = path_current
         collection = make_collection()
         obj.collection = collection
