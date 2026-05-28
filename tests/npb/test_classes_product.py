@@ -46,7 +46,8 @@ class TestProductInit:
 
     @pytest.mark.parametrize('file_name, expected_extension', [
         ('bundle_maven_spice_v001.xml', 'xml'),
-        ('readme', 'readme')])
+        ('readme', 'readme'),
+        (Path('document') / 'spiceds_v001.html', 'html')])
     def test_init_uses_configured_creation_datetime_and_initializes_attributes(
             self, mocker, tmp_path, file_name, expected_extension) -> None:
         # Verify that Product.__init__ uses setup.creation_date_time when it is already
