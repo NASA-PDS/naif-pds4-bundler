@@ -2447,12 +2447,101 @@ class TestSetupLoadKernels:
 
 class TestSetupWriteFileList:
     @staticmethod
-    def make_minimal_setup(tmp_path, file_list) -> Setup:
+    def make_minimal_setup(tmp_path, file_list: list[str]) -> Setup:
+        # Build a minimal Setup instance without executing __init__ method.
         setup = make_setup(tmp_path)
 
         setup.file_list = file_list
 
         return setup
+
+    @pytest.mark.parametrize('initial_file_list, file_entry, expected_file_list', [
+        ([], 'bundle_maven_spice_v001.xml', ['bundle_maven_spice_v001.xml']),
+        ([], 'spice_kernels/fk/maven_v11.tf', ['spice_kernels/fk/maven_v11.tf']),
+        ([], '/usr1/pds4/staging/maven/maven_spice/readme.txt',
+         ['/usr1/pds4/staging/maven/maven_spice/readme.txt']),
+        (['bundle_maven_spice_v001.xml',
+          'collection_spice_kernels_inventory_v001.csv'],
+         'document/spiceds_v001.html',
+         ['bundle_maven_spice_v001.xml',
+          'collection_spice_kernels_inventory_v001.csv',
+          'document/spiceds_v001.html'])])
+    def test_add_file_appends_expected_file_entry_to_file_list(
+            self, tmp_path, initial_file_list, file_entry, expected_file_list) -> None:
+        # Verify that add_file appends the received file entry unchanged to the
+        # in-memory file list and does not create any file on disk.
+
+        # Build a minimal Setup instance.
+        setup = self.make_minimal_setup(tmp_path, file_list=initial_file_list)
+
+        setup.add_file(file_entry)
+
+        # Check that the element has appended successfully as a list.
+        assert setup.file_list == expected_file_list
+
+        # Check that the temporary directory is still empty. This shows that
+        # add_file has not created any files.
+        assert list(tmp_path.iterdir()) == []
+
+    def test_add_file_does_not_log_when_entry_is_registered(self, tmp_path,
+                                                            caplog) -> None:
+        # Verify that add_file registers the file entry in memory without emitting
+        # logging records or creating files on disk.
+
+        # Build a minimal Setup instance.
+        setup = self.make_minimal_setup(tmp_path, file_list=[])
+
+        # Check the logging level and logging messages.
+        with caplog.at_level(logging.INFO):
+            setup.add_file('readme.txt')
+
+        # Check that the method added the file to file_list.
+        assert setup.file_list == ['readme.txt']
+
+        # Check that no logging messages were generated whilst add_file was
+        # running.
+        assert caplog.messages == []
+
+        # The method should not crete any file.
+        assert list(tmp_path.iterdir()) == []
+
+    def test_add_file_and_write_file_list_work_together(self, tmp_path,
+                                                        caplog) -> None:
+        # Verify the complete add_file/write_file_list flow: files registered in
+        # memory are persisted in the same order, one per line, using the
+        # expected file name.
+
+        # Build a minimal setup instance.
+        setup_instance = self.make_minimal_setup(tmp_path, file_list=[])
+
+        # Adds some files to file_list.
+        setup_instance.add_file('bundle_psyche_spice_v012.xml')
+        setup_instance.add_file('collection_spice_kernels_inventory_v012.csv')
+        setup_instance.add_file('spice_kernels/mk/psyche_2025_v01.tm')
+
+        # Check the logging level and logging messages.
+        with caplog.at_level(logging.INFO):
+            setup_instance.write_file_list()
+
+        # Build the expected path.
+        expected_path = tmp_path / 'maven_release_03.file_list'
+
+        # Check that the file_list has the added files.
+        assert setup_instance.file_list == ['bundle_psyche_spice_v012.xml',
+                                            'collection_spice_kernels_inventory_v012.csv',
+                                            'spice_kernels/mk/psyche_2025_v01.tm']
+
+        # Check that the correct file has been created and that no unexpected
+        # additional files have been created.
+        assert list(tmp_path.iterdir()) == [expected_path]
+
+        # Check the file content.
+        assert expected_path.read_text(encoding='utf-8') == (
+            'bundle_psyche_spice_v012.xml\n'
+            'collection_spice_kernels_inventory_v012.csv\n'
+            'spice_kernels/mk/psyche_2025_v01.tm\n')
+
+        assert caplog.messages == ['-- Run File List file written in working area.']
 
     @pytest.mark.parametrize('file_list, expected_contents', [
         (['bundle_maven_spice_v001.xml',
