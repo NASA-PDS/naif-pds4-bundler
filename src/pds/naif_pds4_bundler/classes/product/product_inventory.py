@@ -297,9 +297,9 @@ class InventoryProduct(Product):
                 column_length = len(column)
 
                 if "\r\n" in column:
-                    column_length -= 3
-                elif "\n" in column:
                     column_length -= 2
+                elif "\n" in column:
+                    column_length -= 1
                 if '"' in column:
                     column_length -= 2
                     start_bytes += 1

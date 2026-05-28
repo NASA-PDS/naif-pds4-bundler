@@ -434,7 +434,7 @@ class TestInventoryProductWritePds3IndexProduct:
             obj.write_pds3_index_product()
 
         assert obj.rows == 1
-        assert obj.column_bytes == [17, 17, 22, 22, 17, 4, 10, 2, 13, 11]
+        assert obj.column_bytes == [17, 17, 22, 22, 17, 4, 10, 2, 13, 12]
         assert obj.column_start_bytes == [1, 19, 38, 63, 87, 106, 112, 124, 129, 145]
         assert obj.row_bytes == 159
         assert obj.file_types == ['bc']
