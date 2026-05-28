@@ -63,9 +63,8 @@ class SpiceKernelProduct(Product):
 
             ker_dir = "data"
 
-        self.collection_path = setup.staging_directory + os.sep + ker_dir + os.sep
-
-        product_path = self.collection_path + self.type + os.sep
+        self.collection_path = setup.staging_directory + os.sep + ker_dir
+        product_path = self.collection_path + os.sep + self.type + os.sep
 
         #
         # We generate the kernel directory if not present

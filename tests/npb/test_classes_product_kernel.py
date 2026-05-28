@@ -1,5 +1,6 @@
 """Unit tests for SpiceKernelProduct class."""
 import os
+from pathlib import Path
 from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
@@ -183,7 +184,7 @@ class TestSpiceKernelProductInit:
             product = SpiceKernelProduct.__new__(SpiceKernelProduct)
             product.__init__(setup, "test.bsp", collection)
 
-        assert product.collection_path == f"{tmp_env['staging']}/spice_kernels/"
+        assert product.collection_path == str(Path(f"{tmp_env['staging']}/spice_kernels/"))
 
     def test_pds3_binary_kernel_sets_binary_file_format(self, tmp_env):
         product, _, _ = build_product(tmp_env, name="test.bsp", pds_version="3")
@@ -191,7 +192,7 @@ class TestSpiceKernelProductInit:
         assert product.record_type == "FIXED_LENGTH"
         assert product.record_bytes == "1024"
 
-        assert product.collection_path == f"{tmp_env['staging']}/data/"
+        assert product.collection_path == str(Path(f"{tmp_env['staging']}/data/"))
         assert product.maklabel_options == ['MAKLABEL_OPT']
 
     def test_pds3_text_kernel_sets_ascii_file_format(self, tmp_env):
@@ -200,7 +201,7 @@ class TestSpiceKernelProductInit:
         assert product.record_type == "STREAM"
         assert product.record_bytes == '"N/A"'
 
-        assert product.collection_path == f"{tmp_env['staging']}/data/"
+        assert product.collection_path == str(Path(f"{tmp_env['staging']}/data/"))
         assert product.maklabel_options == ['MAKLABEL_OPT']
 
     def test_kernel_already_in_staging_sets_new_product_true(self, tmp_env):
@@ -592,7 +593,7 @@ class TestCkKernelIds:
     """Tests for SpiceKernelProduct.ck_kernel_ids."""
 
     @staticmethod
-    def _make_product_stub(path="/tmp/fake.bc"):
+    def _make_product_stub(path):
         product = SpiceKernelProduct.__new__(SpiceKernelProduct)
         product.path = path
         return product
@@ -603,9 +604,10 @@ class TestCkKernelIds:
         ([-300, -100, -200], '-300,-200,-100'),
         ([], '')
     ])
-    def test_ck_kernel_ids(self, ids, expected_str):
+    def test_ck_kernel_ids(self, tmp_path, ids, expected_str):
         with patch(f"{_MODULE}.spiceypy.ckobj", return_value=ids):
-            product = self._make_product_stub()
+            product = self._make_product_stub(path=tmp_path / "fake.bc")
+            product.ck_kernel_ids()
             result = product.ck_kernel_ids()
 
         assert result == expected_str
@@ -618,57 +620,57 @@ class TestIkKernelIds:
     """Tests for SpiceKernelProduct.ik_kernel_ids."""
 
     @staticmethod
-    def _run_with_content(content):
+    def _run_with_content(path, content):
         product = SpiceKernelProduct.__new__(SpiceKernelProduct)
-        product.path = "/tmp/fake.ti"
+        product.path = path / "fake.ti"
 
         m = mock_open(read_data=content)
         with patch("builtins.open", m):
             return product.ik_kernel_ids()
 
-    def test_extracts_ids_from_begindata_section(self):
+    def test_extracts_ids_from_begindata_section(self, tmp_path):
         content = (
             "\\begindata\n"
             "INS-12345_FOV_SHAPE = 'CIRCLE'\n"
             "\\begintext\n"
         )
-        result = self._run_with_content(content)
+        result = self._run_with_content(tmp_path, content)
         assert result == "-12345"
 
-    def test_ignores_ids_outside_begindata(self):
+    def test_ignores_ids_outside_begindata(self, tmp_path):
         content = (
             "\\begintext\n"
             "INS-99999_COMMENT = 'ignored'\n"
             "\\begindata\n"
             "INS-11111_FOV = 1.0\n"
         )
-        result = self._run_with_content(content)
+        result = self._run_with_content(tmp_path, content)
 
         assert result == "-11111"
 
-    def test_deduplicates_ids(self):
+    def test_deduplicates_ids(self, tmp_path):
         content = (
             "\\begindata\n"
             "INS-55555_FOV_SHAPE = 'CIRCLE'\n"
             "INS-55555_FOV_SIZE = 1.0\n"
         )
-        result = self._run_with_content(content)
+        result = self._run_with_content(tmp_path, content)
         assert result == "-55555"
 
-    def test_multiple_distinct_ids(self):
+    def test_multiple_distinct_ids(self, tmp_path):
         content = (
             "\\begindata\n"
             "INS-11111_FOV = 1.0\n"
             "INS-22222_FOV = 2.0\n"
         )
-        result = self._run_with_content(content)
+        result = self._run_with_content(tmp_path, content)
         assert result == '-11111,-22222'
 
-    def test_empty_file_returns_empty_string(self):
-        result = self._run_with_content("")
+    def test_empty_file_returns_empty_string(self, tmp_path):
+        result = self._run_with_content(tmp_path,"")
         assert result == ""
 
-    def test_parse_bool_toggled_by_begintext(self):
+    def test_parse_bool_toggled_by_begintext(self, tmp_path):
         """IDs after begintext and before next begindata should be skipped."""
         content = (
             "\\begindata\n"
@@ -678,5 +680,5 @@ class TestIkKernelIds:
             "\\begindata\n"
             "INS-33333_FOV = 1.0\n"
         )
-        result = self._run_with_content(content)
+        result = self._run_with_content(tmp_path, content)
         assert result == '-11111,-33333'
