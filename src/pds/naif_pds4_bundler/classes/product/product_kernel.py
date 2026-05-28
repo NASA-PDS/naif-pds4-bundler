@@ -220,7 +220,7 @@ class SpiceKernelProduct(Product):
 
         return description
 
-    def read_maklabel_options(self) -> str:
+    def read_maklabel_options(self) -> list[str]:
         """Read the kernel list to return the ``MAKLABEL_OPTIONS``.
 
         The generated kernel list file must be used because it contains the
@@ -236,7 +236,7 @@ class SpiceKernelProduct(Product):
         )
 
         get_token = False
-        maklabel_options = False
+        maklabel_options = []
 
         with open(kernel_list_file, "r", encoding='utf-8') as lst:
             for line in lst:
@@ -361,6 +361,6 @@ class SpiceKernelProduct(Product):
                     line = line.split("_")
                     id_list.append(line[0][3:])
 
-        id_list = list(set(id_list))
+        id_list = sorted(set(id_list))
 
         return ",".join(id_list)
