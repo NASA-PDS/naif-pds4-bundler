@@ -2447,14 +2447,9 @@ class TestSetupLoadKernels:
 
 class TestSetupWriteFileList:
     @staticmethod
-    def make_minimal_setup(tmp_path, file_list: list[str],
-                           mission_acronym: str = "maven",
-                           run_type: str = "release",
-                           release: str = "3") -> Setup:
-        # Build a minimal Setup instance without executing __init__ method. Only
-        # attributes required by add_file and write_file_list are populated.
-        setup = make_setup(tmp_path, mission_acronym=mission_acronym,
-                           run_type=run_type, release=release)
+    def make_minimal_setup(tmp_path, file_list: list[str]) -> Setup:
+        # Build a minimal Setup instance without executing __init__ method.
+        setup = make_setup(tmp_path)
 
         setup.file_list = file_list
 
@@ -2517,9 +2512,7 @@ class TestSetupWriteFileList:
         # expected file name.
 
         # Build a minimal setup instance.
-        setup_instance = self.make_minimal_setup(tmp_path, file_list=[],
-                                                 mission_acronym='psyche',
-                                                 run_type='labels', release='12')
+        setup_instance = self.make_minimal_setup(tmp_path, file_list=[])
 
         # Adds some files to file_list.
         setup_instance.add_file('bundle_psyche_spice_v012.xml')
@@ -2531,7 +2524,7 @@ class TestSetupWriteFileList:
             setup_instance.write_file_list()
 
         # Build the expected path.
-        expected_path = tmp_path / 'psyche_labels_12.file_list'
+        expected_path = tmp_path / 'maven_release_03.file_list'
 
         # Check that the file_list has the added files.
         assert setup_instance.file_list == ['bundle_psyche_spice_v012.xml',
