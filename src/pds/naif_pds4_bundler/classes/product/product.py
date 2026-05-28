@@ -1,5 +1,6 @@
 """Implementation of the Product base class."""
 import os
+from pathlib import Path
 
 from ...utils import checksum_from_label
 from ...utils import checksum_from_registry
@@ -80,9 +81,13 @@ class Product:
             if self.setup.pds_version == "4":
                 archive_dir = f"{self.setup.mission_acronym}_spice"
             else:
-                archive_dir = f"{self.setup.volume_id}"
+                archive_dir = self.setup.volume_id
 
-            self.setup.add_file(self.path.split(f'{archive_dir}{os.sep}')[-1])
+            path = Path(self.path)
+            archive_dir_index = path.parts.index(archive_dir)
+            archive_path = Path(*path.parts[archive_dir_index + 1:])
+
+            self.setup.add_file(str(archive_path))
             self.setup.add_checksum(self.path, checksum)
 
     @property
