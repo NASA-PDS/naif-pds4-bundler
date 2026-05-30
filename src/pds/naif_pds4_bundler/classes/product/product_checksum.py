@@ -3,6 +3,7 @@ import glob
 import logging
 import os
 from collections import defaultdict
+from typing import Optional
 
 from .product import Product
 from ..label import ChecksumPDS3Label
@@ -28,8 +29,8 @@ class ChecksumProduct(Product):
     def __init__(self, setup, collection, add_previous_checksum: bool = True) -> None:
         """Constructor."""
         #
-        # The initialisation of the checksum class is lighter than the
-        # initialisation of the other products because the purpose is
+        # The initialization of the checksum class is lighter than the
+        # initialization of the other products because the purpose is
         # solely to obtain the LID and the VID of the checksum in order
         # to be able to include it in the miscellaneous collection
         # inventory file; the checksum file needs to be included in the
@@ -59,7 +60,7 @@ class ChecksumProduct(Product):
         safe_make_directory(product_path)
 
         #
-        # Initialise the checksum dictionary; we use a dictionary to be
+        # Initialize the checksum dictionary; we use a dictionary to be
         # able to sort it by value into a list to generate the checksum
         # table.
         #
@@ -77,13 +78,13 @@ class ChecksumProduct(Product):
         # The coverage is set by generating the checksum file but without
         # writing it.
         #
-        self.write_product(history=False, set_coverage=True)
+        self.write_product(history=None, set_coverage=True)
 
-    def generate(self, history: bool = False) -> None:
+    def generate(self, history: Optional[list] = None) -> None:
         """Write and label the Checksum file.
 
-        :param history: True if the checksum will be generated with the archive
-                        history, False otherwise
+        :param history: If not None, the checksum will be generated with the archive
+                        history.
         """
         #
         # This acts as the second part of the Checksum product initialization.
@@ -259,7 +260,7 @@ class ChecksumProduct(Product):
         """Set Product VID."""
         self.vid = f'{int(self.version)}.0'
 
-    def write_product(self, history: bool=False, set_coverage: bool=False) -> None:
+    def write_product(self, history: Optional[list] = None, set_coverage: bool=False) -> None:
         """Write the Checksum file and determine its start and stop time.
 
         This method can also be used to determine the start and stop time of
@@ -296,6 +297,10 @@ class ChecksumProduct(Product):
                         # a different name raise an error unless you are
                         # running NPB in debug mode.
                         #
+                        # TODO: There is a bug in the following `if` expression. It
+                        #       should be:
+                        #          if any(name != product_name and checksum == product.checksum
+                        #                 for name, checksum in self.md5_dict.items()):
                         if (
                             product.checksum in list(self.md5_dict.keys())
                             and self.md5_dict[product_name] != product.checksum
@@ -400,7 +405,7 @@ class ChecksumProduct(Product):
             for k, v in md5_check_dict.items():
                 logging.warning('   %s', k)
 
-                for file in v:
+                for file in sorted(v):
                     logging.warning('      %s', file)
 
         #
@@ -427,7 +432,7 @@ class ChecksumProduct(Product):
             # alphabetical characters.
             #
             # In order to preserve the order provided by mkpdssum.pl, it is
-            # necessary to "trick" Python sorting or implement a customised
+            # necessary to "trick" Python sorting or implement a customized
             # sorting function. The order in ASCII is as follows:
             #
             #    index     char
@@ -445,7 +450,7 @@ class ChecksumProduct(Product):
             #    126       ~
             #
             # In order to correct the issue there will be a modified of keys
-            # list -with file names- that will have '.' replaced by '~' and
+            # list --with file names-- that will have '.' replaced by '~' and
             # '_' replaced by '|'. This is safe since filenames do not use
             # these characters.
             #
@@ -464,7 +469,7 @@ class ChecksumProduct(Product):
             self.file_records = len(md5_dict_keys)
 
         #
-        # We remove spurious .DS_Store files if we are working with MacOS.
+        # We remove spurious .DS_Store files if we are working with macOS.
         #
         for root, _dirs, files in os.walk(self.setup.bundle_directory):
             for file in files:
