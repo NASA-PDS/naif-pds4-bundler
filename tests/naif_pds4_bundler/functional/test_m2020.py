@@ -1,6 +1,7 @@
 """Functional Test Family for Mars 2020 Archive Generation."""
 import os
 import shutil
+import stat
 
 import spiceypy
 
@@ -16,8 +17,8 @@ def post_setup(self):
     This method will be executed before each test function.
     """
     dirs = ["kernels", "kernels/fk", "kernels/lsk", "kernels/spk", "kernels/mk"]
-    for dir in dirs:
-        os.mkdir(dir)
+    for path in dirs:
+        os.mkdir(path)
 
     shutil.copy2("../data/kernels/lsk/naif0012.tls", "kernels/lsk/")
     shutil.copy2("../data/kernels/fk/m2020_v04.tf", "kernels/fk/")
@@ -174,7 +175,7 @@ def test_m2020_spk_with_unrelated_id(self):
         os.remove(spk)
 
     handle = spiceypy.spkopn(spk, "test spk file", 5000)
-    spiceypy.spk14b(handle, 1, 999, 0, "J2000",
+    spiceypy.spk14b(handle, "SEGMENT1", 999, 0, "J2000",
                     666952140.1852001, 666952240.1852001, 2)
 
     data = [
@@ -553,7 +554,9 @@ def test_m2020_permissions(self):
         "kernels/ck/m2020_surf_rsm_tlmres_0299_0419_v1.bc",
     )
 
-    os.chmod("kernels/ck/m2020_surf_rsm_tlmres_0299_0419_v1.bc", 444)
+    # Combines Read permissions for Owner and Group
+    read_only = stat.S_IRUSR | stat.S_IRGRP
+    os.chmod("kernels/ck/m2020_surf_rsm_tlmres_0299_0419_v1.bc", mode=read_only)
 
     with self.assertRaises(RuntimeError):
         run_pipeline(PipelineArgs(config=config, plan=updated_plan, silent=self.silent,

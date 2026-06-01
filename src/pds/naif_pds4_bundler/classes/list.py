@@ -861,6 +861,9 @@ class KernelList:
             #
             origin_path = origin_paths[0]
 
+            # Check that file has read permissions.
+            check_permissions(origin_path)
+
             #
             # Check bad characters and EOL for text kernels and ORBNUM files.
             # Check line length < 80 for text kernels.
@@ -899,14 +902,7 @@ class KernelList:
                 if error:
                     product_errors[product].append(error)
 
-            #
-            # Check that file has read permissions.
-            #
-            check_permissions(origin_path)
-
-            #
             # Check binary kernel endianness.
-            #
             if product.split(".")[-1].strip()[0].lower() == "b":
                 # This step currently works only for PDS4 archives, and
                 # disregards the configuration file's binary_endianness input
