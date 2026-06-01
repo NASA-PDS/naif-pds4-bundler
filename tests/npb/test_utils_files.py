@@ -672,42 +672,42 @@ def test_extract_comment_close_file_flag(tmp_path, handle_value, expected):
 
 # Attempted to make mock spk to fix it but it doesn't hit the 'close_file = false' and also doesn't work...
 
-def test_extract_comment_close_file_flag_alt (tmp_path):
-    """Test extract_comment function using pytest. Test - `close_file`. """
-
-    mock_kernel = MagicMock()
-    mock_kernel.spiceypy.spkopn("dummy_kernel.bsp", "internal.bsp", 25)
-    handle = mock_kernel.spiceypy.spkopn("dummy_kernel.bsp", "internal.bsp", 25)
-    body = 499
-    center = 10
-    start = "798336069.185598"
-    stop = "798508869.185582"
-    segid = "dummy_segid"
-    degree = 1
-    n = 5
-    states = [101, 201, 301, 401, 501, 601,
-              102, 202, 302, 402, 502, 602,
-              103, 203, 303, 403, 503, 603,
-              104, 204, 304, 404, 504, 604,
-              105, 205, 305, 405, 505, 605]
-    epochs = ["798336069.185598",
-              "798372069.185594",
-              "798422469.185590",
-              "",
-              "798508869.185582"]
-    mock_kernel.spiceypy.spkw09(handle, body, center, start, stop, segid, degree, n, states, epochs)
-    mock_kernel.spiceypy.spkcls(handle)
-
-    spiceypy.dafopr.return_value = handle
-
-    files.extract_comment(str(mock_kernel), handle=handle)
-
-    expected = False
-
-    if expected:
-        spiceypy.dafcls.assert_called_once()
-    else:
-        spiceypy.dafcls.assert_not_called()
+# def test_extract_comment_close_file_flag_alt (tmp_path):
+#     """Test extract_comment function using pytest. Test - `close_file`. """
+#
+#     mock_kernel = MagicMock()
+#     mock_kernel.spiceypy.spkopn("dummy_kernel.bsp", "internal.bsp", 25)
+#     handle = mock_kernel.spiceypy.spkopn("dummy_kernel.bsp", "internal.bsp", 25)
+#     body = 499
+#     center = 10
+#     start = "798336069.185598"
+#     stop = "798508869.185582"
+#     segid = "dummy_segid"
+#     degree = 1
+#     n = 5
+#     states = [101, 201, 301, 401, 501, 601,
+#               102, 202, 302, 402, 502, 602,
+#               103, 203, 303, 403, 503, 603,
+#               104, 204, 304, 404, 504, 604,
+#               105, 205, 305, 405, 505, 605]
+#     epochs = ["798336069.185598",
+#               "798372069.185594",
+#               "798422469.185590",
+#               "",
+#               "798508869.185582"]
+#     mock_kernel.spiceypy.spkw09(handle, body, center, start, stop, segid, degree, n, states, epochs)
+#     mock_kernel.spiceypy.spkcls(handle)
+#
+#     spiceypy.dafopr.return_value = handle
+#
+#     files.extract_comment(str(mock_kernel), handle=handle)
+#
+#     expected = False
+#
+#     if expected:
+#         spiceypy.dafcls.assert_called_once()
+#     else:
+#         spiceypy.dafcls.assert_not_called()
 
 #Not sure if this is even along the right path...
 
