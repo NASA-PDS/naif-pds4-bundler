@@ -994,11 +994,6 @@ class TestKernelListWriteCompleteList:
         validate_complete_mock = mocker.patch.object(KernelList, 'validate_complete',
                                                      autospec=True)
 
-        # Mock check_consecutive call.
-        check_consecutive_mock = mocker.patch(
-            'pds.naif_pds4_bundler.classes.list.check_consecutive',
-            return_value=True)
-
         # Build a real KernelList with a minimal setup and the expected file
         # path.
         kernel_list, _, output_path = self.make_kernel_list(tmp_path)
@@ -1035,30 +1030,23 @@ class TestKernelListWriteCompleteList:
         # Check that the method updates the complete_list attribute.
         assert kernel_list.complete_list == 'maven_complete.kernel_list'
 
-        # Check that the method extract the release numbers from the file names.
-        check_consecutive_mock.assert_called_once_with([3, 2, 1])
-
         # Check that write_complete_list ultimately requests validation of the
         # complete list, but without executing the actual implementation.
         validate_complete_mock.assert_called_once_with(kernel_list)
 
     def test_write_complete_list_accepts_no_release_lists(
-            self, mocker, caplog, tmp_path) -> None:
+            self, mocker, tmp_path) -> None:
         # Verify the empty-input path: when no release lists are found, the method still
         # creates an empty complete list, updates state and requests validation.
 
         # Mock the validate_complete and check_consecutive calls.
         validate_complete_mock = mocker.patch.object(KernelList, 'validate_complete',
                                                      autospec=True)
-        check_consecutive_mock = mocker.patch(
-            'pds.naif_pds4_bundler.classes.list.check_consecutive',
-            return_value=True)
 
         # Create a KernelList instance with a temporal and empty working_directory
         kernel_list, _, output_path = self.make_kernel_list(tmp_path)
 
-        # Capture the logs.
-        with caplog.at_level(logging.INFO):
+        with pytest.raises(ValueError):
             kernel_list.write_complete_list()
 
         # Check that the file exists and is empty.
@@ -1066,15 +1054,10 @@ class TestKernelListWriteCompleteList:
         assert output_path.read_text(encoding='utf-8') == ''
 
         # Check that the method updates the complete_list even if it is empty.
-        assert kernel_list.complete_list == 'maven_complete.kernel_list'
+        assert kernel_list.complete_list == ''
 
         # Check that check_consecutive and validate_complete called once.
-        check_consecutive_mock.assert_called_once_with([])
-        validate_complete_mock.assert_called_once_with(kernel_list)
-
-        # This test covers a case where the code executes correctly, so it
-        # shouldn't log anything
-        assert caplog.record_tuples == []
+        validate_complete_mock.assert_not_called()
 
     def test_write_complete_list_logs_added_release_lists(
             self, mocker, caplog, tmp_path) -> None:
@@ -1128,9 +1111,6 @@ class TestKernelListWriteCompleteList:
         # Mock the validate_complete and check_consecutive calls.
         validate_complete_mock = mocker.patch.object(KernelList, 'validate_complete',
                                                      autospec=True)
-        check_consecutive_mock = mocker.patch(
-            'pds.naif_pds4_bundler.classes.list.check_consecutive',
-            return_value=False)
 
         # Build a real KernelList with a minimal setup and the expected file
         # path.
@@ -1158,10 +1138,6 @@ class TestKernelListWriteCompleteList:
         # Check the logs.
         assert results == expected
 
-        # Check that the method extracts the release numbers form the release
-        # file names.
-        check_consecutive_mock.assert_called_once_with([3, 1])
-
         # Even if a warning has been issued, the method does not terminate. It
         # continues and requests full validation.
         validate_complete_mock.assert_called_once_with(kernel_list)
@@ -1175,9 +1151,6 @@ class TestKernelListWriteCompleteList:
         # Mock the validate_complete and check_consecutive calls.
         validate_complete_mock = mocker.patch.object(KernelList, 'validate_complete',
                                                      autospec=True)
-        check_consecutive_mock = mocker.patch(
-            'pds.naif_pds4_bundler.classes.list.check_consecutive',
-            return_value=True)
 
         # Build a real KernelList instance and the expected complete-list path.
         kernel_list, _, output_path = self.make_kernel_list(tmp_path)
@@ -1198,8 +1171,7 @@ class TestKernelListWriteCompleteList:
         # Check that the internal state is not updated.
         assert kernel_list.complete_list == ''
 
-        # Check that check_consecutive and validate_complete are not called.
-        check_consecutive_mock.assert_not_called()
+        # Check that validate_complete are not called.
         validate_complete_mock.assert_not_called()
 
     def test_write_complete_list_propagates_missing_release_file_without_validation(
@@ -1210,9 +1182,6 @@ class TestKernelListWriteCompleteList:
         # Mock the validate_complete and check_consecutive calls.
         validate_complete_mock = mocker.patch.object(KernelList, 'validate_complete',
                                                      autospec=True)
-        check_consecutive_mock = mocker.patch(
-            'pds.naif_pds4_bundler.classes.list.check_consecutive',
-            return_value=True)
 
         # Build a real KernelList instance and the expected complete-list path.
         kernel_list, _, output_path = self.make_kernel_list(tmp_path)
@@ -1244,8 +1213,7 @@ class TestKernelListWriteCompleteList:
             + os.sep
             + 'maven_release*.kernel_list')
 
-        # Check that check_consecutive and validate_complete are not called.
-        check_consecutive_mock.assert_not_called()
+        # Check that validate_complete are not called.
         validate_complete_mock.assert_not_called()
 
     def test_write_complete_list_propagates_validate_complete_errors_after_side_effects(
@@ -1255,9 +1223,6 @@ class TestKernelListWriteCompleteList:
         validate_complete_mock = mocker.patch.object(
             KernelList, 'validate_complete', autospec=True,
             side_effect=RuntimeError('complete validation failed'))
-        check_consecutive_mock = mocker.patch(
-            'pds.naif_pds4_bundler.classes.list.check_consecutive',
-            return_value=True)
 
         # Build a real KernelList instance and the expected complete-list path.
         kernel_list, _, output_path = self.make_kernel_list(tmp_path)
@@ -1275,9 +1240,6 @@ class TestKernelListWriteCompleteList:
         # Although the method threw an exception, the file has been created.
         assert output_path.read_text(encoding='utf-8') == 'RELEASE 01\n'
         assert kernel_list.complete_list == 'maven_complete.kernel_list'
-
-        # Check that the method extract the release number.
-        check_consecutive_mock.assert_called_once_with([1])
 
         # The validate_complete must be called once and its exception
         # propagated.
