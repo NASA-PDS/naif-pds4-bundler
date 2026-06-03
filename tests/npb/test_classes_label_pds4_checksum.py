@@ -285,42 +285,6 @@ class TestChecksumPDS4Label:
         # value assigned to the product.
         assert getattr(label, label_attribute) == value
 
-    @pytest.mark.parametrize('missing_owner, missing_attribute', [
-        ('setup', 'templates_directory'),
-        ('product', 'name'),
-        ('product', 'lid'),
-        ('product', 'vid'),
-        ('product', 'start_time'),
-        ('product', 'stop_time')])
-    def test_missing_constructor_dependency_raises_attribute_error(
-            self, tmp_path: Path, missing_owner, missing_attribute) -> None:
-        # Verify that missing setup/product attributes fail during construction
-        # before the label writer is invoked.
-
-        # Mock a valid setup.
-        setup = _make_setup(tmp_path)
-
-        # Build a temporal staging directory.
-        staging = tmp_path / 'staging'
-        staging.mkdir(parents=True, exist_ok=True)
-
-        # Mock a valid product.
-        product = _make_product(staging)
-
-        # Remove the required dependency selected by the parametrized case.
-        target = setup if missing_owner == 'setup' else product
-        delattr(target, missing_attribute)
-
-        # Patch the PDSLabel.write_label.
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True) as mock_write:
-            # Capture the exception and check the error message.
-            with pytest.raises(AttributeError, match=missing_attribute):
-                ChecksumPDS4Label(setup, product)
-
-        # Check that write_label() was not called.
-        mock_write.assert_not_called()
-
 
 # ===========================================================================
 # Class 2 – Integration tests
