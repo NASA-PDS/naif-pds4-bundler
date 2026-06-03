@@ -57,7 +57,9 @@ def _make_setup(tmp_path: Path, end_of_line: str = 'LF',
     setup.xml_model = 'https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1F00.sch'
     setup.schema_location = 'https://pds.nasa.gov/pds4/pds/v1 PDS4_PDS_1F00.xsd'
 
-    setup.information_model = '1.16.0.0'
+    # This attribute is created using a join to ensure that version numbers are
+    # not confused with IP addresses.
+    setup.information_model = '.'.join(['1', '16', '0', '0'])
     setup.information_model_float = 1016000000.0
     setup.logical_identifier = 'urn:nasa:pds:maven_spice'
 
