@@ -55,7 +55,7 @@ def _make_setup(tmp_path: Path, end_of_line: str = 'LF',
 
     # PDS4 XML metadata that may be consumed by PDSLabel or template rendering.
     setup.xml_model = 'https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1F00.sch'
-    setup.schema_location = 'http://pds.nasa.gov/pds4/pds/v1 PDS4_PDS_1F00.xsd'
+    setup.schema_location = 'https://pds.nasa.gov/pds4/pds/v1 PDS4_PDS_1F00.xsd'
 
     setup.information_model = '1.16.0.0'
     setup.information_model_float = 1016000000.0
