@@ -373,19 +373,19 @@ class TestUnitTests(TestCase):
     #
     # Readme generation.
     #
-    def test_im_format(self):
+    def test_readme_im_format(self):
         readme.test_im_format(self)
 
-    def test_im_xml_incoherent(self):
+    def test_readme_im_xml_incoherent(self):
         readme.test_im_xml_incoherent(self)
 
-    def test_im_schema_incoherent(self):
+    def test_readme_im_schema_incoherent(self):
         readme.test_im_schema_incoherent(self)
 
-    def test_im_version_ascii(self):
+    def test_readme_im_version_ascii(self):
         readme.test_im_version_ascii(self)
 
-    def test_im_version_ascii_incorrect(self):
+    def test_readme_im_version_ascii_incorrect(self):
         readme.test_im_version_ascii_incorrect(self)
 
     #
