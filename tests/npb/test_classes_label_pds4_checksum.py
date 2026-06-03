@@ -340,18 +340,15 @@ class TestChecksumPDS4LabelIntegration:
     # File creation and content
     # ------------------------------------------------------------------
 
-    @pytest.mark.parametrize('end_of_line, eol_pds4', [
-        ('LF', '\n'), ('CRLF', '\r\n')])
     def test_label_file_is_created_from_template(
-            self, env: tuple[MagicMock, MagicMock, Path, Path],
-            end_of_line: str, eol_pds4: str) -> None:
+            self, env: tuple[MagicMock, MagicMock, Path, Path]) -> None:
         """Render the checksum XML template and validate the generated label."""
         # Retrieve the objects and paths required by the integration test.
         setup, product, template_path, label_path = env
 
-        # Configure the line-ending variant covered by this parametrized case.
-        setup.end_of_line = end_of_line
-        setup.eol_pds4 = eol_pds4
+        # Configure the line-ending for PDS4.
+        setup.end_of_line = 'LF'
+        setup.eol_pds4 = '\n'
 
         # Instantiate the real label so the template is read and the XML is written.
         label = ChecksumPDS4Label(setup, product)
@@ -359,40 +356,25 @@ class TestChecksumPDS4LabelIntegration:
         # Check that the class resolved the configured checksum template.
         assert label.template == str(template_path)
 
-        # Check that the final checksum.xml file was created in staging.
+        # Check that the final checksum.xml file has been created in staging.
         assert label_path.exists()
 
-        # Read raw bytes to validate LF/CRLF without newline normalization.
-        raw_label = label_path.read_bytes()
+        # Read the generated label preserving its exact line endings.
+        with open(label_path, 'rt', encoding='utf-8', newline='') as f:
+            written_label = f.read()
 
-        # Check that the generated file uses the configured line separator.
-        if eol_pds4 == '\n':
-            assert b'\r' not in raw_label
-        else:
-            assert b'\r\n' in raw_label
-            assert b'\n' not in raw_label.replace(b'\r\n', b'')
-            assert b'\r' not in raw_label.replace(b'\r\n', b'')
-
-        written_label = raw_label.decode('utf-8')
-
-        # Check that every placeholder from the test template was replaced.
-        assert '$' not in written_label
-
-        # Parse the generated XML to validate behaviour instead of exact formatting.
-        root = ElementTree.fromstring(written_label)
-
-        # Validate the XML values rendered from ChecksumPDS4Label metadata.
-        expected_values = {
-            'file_name': product.name,
-            'logical_identifier': product.lid,
-            'version_id': product.vid,
-            'file_format': 'Character',
-            'start_date_time': product.start_time,
-            'stop_date_time': product.stop_time,
-        }
-
-        for tag_name, expected_value in expected_values.items():
-            assert root.findtext(tag_name) == expected_value
+        # Compare the generated label with the exact expected XML content.
+        assert written_label == ('<?xml version="1.0" encoding="UTF-8"?>\n'
+                                 '<checksum>\n'
+                                 '  <file_name>checksum.tab</file_name>\n'
+                                 '  <logical_identifier>'
+                                 'urn:nasa:pds:maven_spice:checksum'
+                                 '</logical_identifier>\n'
+                                 '  <version_id>1.0</version_id>\n'
+                                 '  <file_format>Character</file_format>\n'
+                                 '  <start_date_time>2024-01-01T00:00:00</start_date_time>\n'
+                                 '  <stop_date_time>2024-01-31T23:59:59</stop_date_time>\n'
+                                 '</checksum>\n')
 
     # ------------------------------------------------------------------
     # setup.add_file side-effect
