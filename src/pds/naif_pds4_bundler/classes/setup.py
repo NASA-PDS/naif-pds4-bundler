@@ -587,7 +587,7 @@ class Setup:
                         )
                 else:
                     self.schema_location = (
-                        f"https://pds.nasa.gov/pds4/pds/v1 "
+                        f"http://pds.nasa.gov/pds4/pds/v1 "
                         f"https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_{short_version}.xsd"
                     )
 
