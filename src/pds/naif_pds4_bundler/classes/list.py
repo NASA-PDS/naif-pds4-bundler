@@ -331,7 +331,7 @@ class KernelList:
         :type kerlist: str
         """
         kernel_list = (
-            f"{self.setup.working_directory}/"
+            f"{self.setup.working_directory}{os.sep}"
             f"{self.setup.mission_acronym}_{self.setup.run_type}_"
             f"{int(self.setup.release):02d}.kernel_list"
         )
@@ -350,6 +350,8 @@ class KernelList:
         with open(kernel_list, "r", encoding='utf-8') as lst:
             for line in lst:
                 if "FILE             =" in line:
+                    # TODO: BUG; If a FILE line has no trailing EOL, [:-1]
+                    #      truncates the kernel name.
                     kernels.append(line.split(os.sep)[-1][:-1])
 
         self.kernel_list = kernels
@@ -859,9 +861,7 @@ class KernelList:
             #
             origin_path = origin_paths[0]
 
-            #
             # Check that file has read permissions.
-            #
             check_permissions(origin_path)
 
             #
@@ -902,9 +902,7 @@ class KernelList:
                 if error:
                     product_errors[product].append(error)
 
-            #
             # Check binary kernel endianness.
-            #
             if product.split(".")[-1].strip()[0].lower() == "b":
                 # This step currently works only for PDS4 archives, and
                 # disregards the configuration file's binary_endianness input

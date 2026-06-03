@@ -1,71 +1,42 @@
-ARG username
-ARG password
-
-FROM registry.access.redhat.com/rhel7/rhel
-
-ENV USERN ${username}
-ENV PASSW ${password}
-
-RUN subscription-manager register --username ${USERN} --password ${PASSW} --auto-attach
+# Red Hat Universal Base Image 9 — no subscription required
+FROM registry.access.redhat.com/ubi9/ubi:9.8
 
 #
-# Install supporting libraries.
+# Install supporting libraries and Python in a single layer.
+# UBI repos provide Python 3.11 directly, so no need to compile from source.
 #
-RUN yum -y update
-RUN yum install -y gcc
-RUN yum install -y libgfortran
-RUN yum install -y git
-RUN yum install openssl -y
-RUN yum install openssl-devel -y
-RUN yum install wget -y
-RUN yum install zlib-devel -y
-RUN yum install make -y
-RUN yum install bzip2-devel -y
-RUN yum install libffi-devel -y
+# Create a non-root user and switch to that user.
+#
+RUN dnf -y update &&       \
+    dnf install -y         \
+        gcc                \
+        libgfortran        \
+        git                \
+        openssl            \
+        openssl-devel      \
+        wget               \
+        zlib-devel         \
+        make               \
+        bzip2-devel        \
+        libffi-devel       \
+        python3.11         \
+        python3.11-pip &&  \
+    dnf clean all      &&  \
+    useradd -ms /bin/bash npbuser
+
+USER npbuser
+WORKDIR /home/npbuser
 
 #
-# Install Python
+# Clone NPB
 #
-RUN wget https://www.python.org/ftp/python/3.9.6/Python-3.9.6.tgz
-RUN tar xzf Python-3.9.6.tgz
-WORKDIR Python-3.9.6
-RUN ls
-RUN ./configure
-RUN make
-RUN make install
-WORKDIR /
-RUN ls
+RUN git clone https://github.com/NASA-PDS/naif-pds4-bundler.git
 
 #
-# Install Python dependencies.
+# Install Python dependencies, NPB, and run NPB regression tests
 #
-RUN python3.9 -m pip install beautifulsoup4
-RUN python3.9 -m pip install nose
-RUN python3.9 -m pip install pytest
-RUN python3.9 -m pip install xmlschema
-RUN python3.9 -m pip install soupsieve
-RUN python3.9 -m pip install elementpath
-RUN python3.9 -m pip install coverage
-RUN python3.9 -m pip install spiceypy
-
-COPY naif-pds4-bundler root/naif-pds4-bundler/
-
-WORKDIR /root
-
-#
-# Install NPB
-#
-RUN ls
-WORKDIR /root/naif-pds4-bundler
-RUN python3.9 -m pip install -e .
-
-#
-# Run NPB regression tests
-#
-WORKDIR /root/naif-pds4-bundler/tests/naif_pds4_bundler
-RUN python3.9 -m unittest
-
-#
-# Back to the root
-#
-WORKDIR /root
+WORKDIR /home/npbuser/naif-pds4-bundler
+RUN python3.11 -m pip install --upgrade pip &&                            \
+    python3.11 -m pip install --ignore-installed "setuptools==80.10.2" && \
+    python3.11 -m pip install -e ".[dev]"                              && \
+    python3.11 -m unittest discover tests/naif_pds4_bundler

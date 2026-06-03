@@ -83,7 +83,7 @@ class SpiceKernelPDS3Label(PDSLabel):
 
         self.write_label()
 
-        if self.product.record_type == "STREAM":
+        if product.record_type == "STREAM":
             self.insert_text_label()
         else:
             self.insert_binary_label()

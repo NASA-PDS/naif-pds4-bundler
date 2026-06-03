@@ -5,11 +5,14 @@ import os
 import re
 from types import SimpleNamespace
 from typing import Generator, cast, Any
-from unittest.mock import mock_open, Mock
+from unittest.mock import mock_open, Mock, call
 
 import pytest
 
 import requests
+import spiceypy
+from spiceypy import SpiceyPyError
+
 from pds.naif_pds4_bundler.classes.setup import Setup
 
 
@@ -1877,14 +1880,668 @@ class TestSetupSetRelease:
         assert results == expected
 
 
+class TestSetupLoadKernels:
+
+    @pytest.fixture(autouse=True)
+    def clear_spice_kernel_pool(self, request) -> None:
+        """Clear the SPICE kernel pool before and after each test."""
+
+        spiceypy.kclear()
+        request.addfinalizer(spiceypy.kclear)
+
+    @staticmethod
+    def make_load_setup(tmp_path, pds_version: str = '4') -> Setup:
+        # Create a minimal Setup instance without executing Setup.__init__.
+        # Only attributes consumed by load_kernels are initialized.
+
+        setup = make_setup(tmp_path)
+
+        # Define isolated temporary directories for the test.
+        kernels_directory = tmp_path / 'kernels'
+        bundle_directory = tmp_path / 'bundle'
+
+        kernels_directory.mkdir()
+        bundle_directory.mkdir()
+
+        # Initialises the attributes that load_kernels needs to construct paths
+        # and read kernel configurations.
+        setup.pds_version = pds_version
+        setup.mission_acronym = 'maven'
+        setup.volume_id = 'MAVEN_1001'
+        setup.kernels_directory = [str(kernels_directory)]
+        setup.kernels_to_load = {}
+
+        # Initial state updated by load_kernels.
+        setup.fks = None
+        setup.sclks = None
+        setup.lsk = None
+
+        setup.bundle_directory = str(bundle_directory)
+
+        if pds_version == '4':
+
+            # Prepare the PDS4.
+            (bundle_directory / 'maven_spice' / 'spice_kernels').mkdir(parents=True)
+
+        else:
+
+            # Prepare the PDS3.
+            (bundle_directory / setup.volume_id / 'data').mkdir(parents=True)
+
+        return setup
+
+    @staticmethod
+    def write_minimal_text_kernel(kernel_path, kernel_type: str) -> str:
+        # Creates a minimal, valid SPICE kernel file for tests that use the real
+        # spiceypy.furnsh.
+
+        # Check the directory exists before writing the kernel file.
+        kernel_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Write the minimal text-kernel structure accepted by SPICE.
+        kernel_path.write_text(f'KPL/{kernel_type}\n\n'
+                               '\\begindata\n'
+                               f'DUMMY_{kernel_type}_VALUE = 1\n'
+                               '\\begintext\n',
+                               encoding='utf-8')
+
+        # Return the path as a string because load_kernels works with string
+        # paths.
+        return str(kernel_path)
+
+    @pytest.mark.parametrize('as_lists', [False, True])
+    def test_loads_existing_kernel_paths_with_mocked_spiceypy(
+            self, tmp_path, monkeypatch, caplog, as_lists) -> None:
+        # This test verifies that load_kernels detects the existing paths, calls
+        # furnsh in the correct order, updates fks, sclks and lsk, adds the PDS4
+        # file directory, and generates the expected logs.
+
+        setup_instance = self.make_load_setup(tmp_path)
+
+        # Create one existing file for each supported kernel family.
+        lsk = tmp_path / 'input' / 'naif0012.tls'
+        pck = tmp_path / 'input' / 'pck00010.tpc'
+        fk = tmp_path / 'input' / 'maven_v02.tf'
+        sclk = tmp_path / 'input' / 'maven_002.tsc'
+
+        for kernel_path in [lsk, pck, fk, sclk]:
+            kernel_path.parent.mkdir(parents=True, exist_ok=True)
+            kernel_path.touch()
+
+        kernels_to_load = {'lsk': str(lsk), 'pck': str(pck),
+                           'fk': str(fk), 'sclk': str(sclk)}
+
+        # Cover scalar strings and one-item lists.
+        if as_lists:
+            setup_instance.kernels_to_load = {
+                kernel_type: [kernel_path]
+                for kernel_type, kernel_path in kernels_to_load.items()}
+
+        else:
+            setup_instance.kernels_to_load = kernels_to_load
+
+        # Mock furnsh to verify calls without requiring valid SPICE content.
+        furnsh = Mock()
+        monkeypatch.setattr('pds.naif_pds4_bundler.classes.setup.spiceypy.furnsh',
+                            furnsh)
+
+        with caplog.at_level(logging.INFO):
+            setup_instance.load_kernels()
+
+        # Kernels must be loaded in the order implemented by load_kernels.
+        assert furnsh.call_args_list == [call(str(lsk)), call(str(pck)),
+                                         call(str(fk)), call(str(sclk))]
+
+        # Check the final state.
+        assert getattr(setup_instance, 'fks') == [str(fk)]
+        assert getattr(setup_instance, 'sclks') == [str(sclk)]
+        assert getattr(setup_instance, 'lsk') == str(lsk)
+
+        # PDS4 archive directory is appended to the search directories.
+        assert getattr(setup_instance, 'kernels_directory') == [
+            str(tmp_path / 'kernels'),
+            str(tmp_path / 'bundle' / 'maven_spice' / 'spice_kernels')]
+
+        # Check the logging messages.
+        expected = [(logging.INFO, f'-- LSK     loaded: {[str(lsk)]}'),
+                    (logging.INFO, f'-- PCK(s)   loaded: {[str(pck)]}'),
+                    (logging.INFO, f'-- FK(s)   loaded: {[str(fk)]}'),
+                    (logging.INFO, f'-- SCLK(s) loaded: {[str(sclk)]}'),
+                    (logging.INFO, '')]
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+        assert results == expected
+
+    def test_loads_multiple_non_lsk_kernel_paths_with_mocked_spiceypy(
+            self, tmp_path, monkeypatch) -> None:
+        # Verify that several PCK, FK and SCLK files may be loaded, while only
+        # one LSK is provided.
+
+        setup_instance = self.make_load_setup(tmp_path)
+
+        # Create one LSK and multiple non-LSK kernels.
+        lsk = tmp_path / 'input' / 'naif0012.tls'
+        pck_1 = tmp_path / 'input' / 'pck00009.tpc'
+        pck_2 = tmp_path / 'input' / 'pck00010.tpc'
+        fk_1 = tmp_path / 'input' / 'maven_v01.tf'
+        fk_2 = tmp_path / 'input' / 'maven_v02.tf'
+        sclk_1 = tmp_path / 'input' / 'maven_001.tsc'
+        sclk_2 = tmp_path / 'input' / 'maven_002.tsc'
+
+        # Build the files so load_kernels uses the direct path branch.
+        for kernel_path in [lsk, pck_1, pck_2, fk_1, fk_2, sclk_1, sclk_2]:
+            kernel_path.parent.mkdir(parents=True, exist_ok=True)
+            kernel_path.touch()
+
+        # Configure the kernels.
+        setup_instance.kernels_to_load = {'lsk': str(lsk),
+                                          'pck': [str(pck_1), str(pck_2)],
+                                          'fk': [str(fk_1), str(fk_2)],
+                                          'sclk': [str(sclk_1), str(sclk_2)]}
+
+        # Mock the furnsh call.
+        furnsh = Mock()
+        monkeypatch.setattr('pds.naif_pds4_bundler.classes.setup.spiceypy.furnsh',
+                            furnsh)
+
+        setup_instance.load_kernels()
+
+        # Kernels should be loaded in processing order.
+        assert furnsh.call_args_list == [call(str(lsk)), call(str(pck_1)),
+                                         call(str(pck_2)), call(str(fk_1)),
+                                         call(str(fk_2)), call(str(sclk_1)),
+                                         call(str(sclk_2))]
+
+        # Check the final state.
+        assert getattr(setup_instance, 'fks') == [str(fk_1), str(fk_2)]
+        assert getattr(setup_instance, 'sclks') == [str(sclk_1), str(sclk_2)]
+        assert getattr(setup_instance, 'lsk') == str(lsk)
+
+    @pytest.mark.parametrize('pds_version, expected_archive_parts', [
+        ('4', ['bundle', 'maven_spice', 'spice_kernels']),
+        ('3', ['bundle', 'MAVEN_1001', 'data'])])
+    def test_finds_latest_matching_kernels_in_archive_directory_with_mocked_spiceypy(
+            self, tmp_path, monkeypatch, caplog, pds_version,
+            expected_archive_parts) -> None:
+        # Verify the regex-search branch for both PDS4 and PDS3.
+        # The initial kernels directory is empty, while the archive directory
+        # contains old and new matching files. load_kernels must append the archive
+        # directory, search it recursively and load the latest matching file for each
+        # kernel type.
+
+        setup_instance = self.make_load_setup(tmp_path, pds_version=pds_version)
+
+        # Rebuild the archive directory expected for the current PDS version.
+        archive_directory = tmp_path
+        for directory_part in expected_archive_parts:
+            archive_directory = archive_directory / directory_part
+
+        # Create old and new versions for each supported kernel family.
+        old_lsk = archive_directory / 'lsk' / 'naif0011.tls'
+        new_lsk = archive_directory / 'lsk' / 'naif0012.tls'
+        old_pck = archive_directory / 'pck' / 'pck00009.tpc'
+        new_pck = archive_directory / 'pck' / 'pck00010.tpc'
+        old_fk = archive_directory / 'fk' / 'maven_v01.tf'
+        new_fk = archive_directory / 'fk' / 'maven_v02.tf'
+        old_sclk = archive_directory / 'sclk' / 'maven_001.tsc'
+        new_sclk = archive_directory / 'sclk' / 'maven_002.tsc'
+
+        # Iterates through all the defined files, creating the corresponding
+        # subdirectories.
+        for kernel_path in [
+            old_lsk, new_lsk, old_pck, new_pck, old_fk, new_fk, old_sclk, new_sclk]:
+            kernel_path.parent.mkdir(parents=True, exist_ok=True)
+            kernel_path.touch()
+
+        # Configure regex patterns instead of direct paths.
+        lsk_pattern = r'naif[0-9][0-9][0-9][0-9]\.tls'
+        pck_pattern = r'pck[0-9][0-9][0-9][0-9][0-9]\.tpc'
+        fk_pattern = r'maven_v[0-9][0-9]\.tf'
+        sclk_pattern = r'maven_[0-9][0-9][0-9]\.tsc'
+
+        # Set load_kernels to search by regular expression, not by direct path.
+        setup_instance.kernels_to_load = {'lsk': lsk_pattern,
+                                          'pck': pck_pattern,
+                                          'fk': fk_pattern,
+                                          'sclk': sclk_pattern}
+
+        # Mock the furnsh call.
+        furnsh = Mock()
+        monkeypatch.setattr(
+            'pds.naif_pds4_bundler.classes.setup.spiceypy.furnsh',
+            furnsh)
+
+        with caplog.at_level(logging.INFO):
+            setup_instance.load_kernels()
+
+        # Check that the latest versions found by the regular expression are
+        # loaded.
+        assert furnsh.call_args_list == [call(str(new_lsk)), call(str(new_pck)),
+                                         call(str(new_fk)), call(str(new_sclk))]
+
+        # Check the final state.
+        assert getattr(setup_instance, 'fks') == [str(new_fk)]
+        assert getattr(setup_instance, 'sclks') == [str(new_sclk)]
+
+        # Current implementation stores the configured LSK pattern, not the resolved
+        # LSK file path, because load_kernels ends with "self.lsk = lsk".
+        # TODO: BUG, this line highlights a bug, when the LSK pattern is not
+        #       found, load_kernels currently stores the configured pattern in
+        #       self.lsk instead of None or a resolved filename.
+        assert getattr(setup_instance, 'lsk') == lsk_pattern
+
+        # The archive directory for the selected PDS version must be appended.
+        assert str(setup_instance.kernels_directory[-1]) == str(archive_directory)
+
+        # Check the logging messages.
+        expected = [(logging.INFO, f'-- LSK     loaded: {[str(new_lsk)]}'),
+                    (logging.INFO, f'-- PCK(s)   loaded: {[str(new_pck)]}'),
+                    (logging.INFO, f'-- FK(s)   loaded: {[str(new_fk)]}'),
+                    (logging.INFO, f'-- SCLK(s) loaded: {[str(new_sclk)]}'),
+                    (logging.INFO, '')]
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+        assert results == expected
+
+    def test_uses_first_directory_that_matches_a_kernel_pattern(
+            self, tmp_path, monkeypatch) -> None:
+        # Checks directory precedence when load_kernels searches for kernels
+        # using a regex pattern.
+
+        setup_instance = self.make_load_setup(tmp_path)
+
+        # Define the first search directory. This directory is already specified
+        # in setup_instance.kernels_directory.
+        input_directory = tmp_path / 'kernels'
+
+        # Defines the PDS4 file directory that load_kernels appends to the end
+        # of kernels_directory.
+        archive_directory = tmp_path / 'bundle' / 'maven_spice' / 'spice_kernels'
+
+        # Create a path for an older LSK within the first directory.
+        input_lsk = input_directory / 'lsk' / 'naif0011.tls'
+
+        # Create a path for a newer LSK within the archive directory.
+        archive_lsk = archive_directory / 'lsk' / 'naif0012.tls'
+
+        # Iterates through the two defined kernels and creates the lsk
+        # subdirectory in each location.
+        for kernel_path in [input_lsk, archive_lsk]:
+            kernel_path.parent.mkdir(parents=True, exist_ok=True)
+            kernel_path.touch()
+
+        # Define the regex pattern that matches both files.
+        lsk_pattern = r'naif[0-9][0-9][0-9][0-9]\.tls'
+
+        # Configure load_kernels to search for an LSK by pattern.
+        setup_instance.kernels_to_load = {'lsk': lsk_pattern}
+
+        # Mock the furnsh call.
+        furnsh = Mock()
+        monkeypatch.setattr('pds.naif_pds4_bundler.classes.setup.spiceypy.furnsh',
+                            furnsh)
+
+        setup_instance.load_kernels()
+
+        # Check that the LSK for the first directory is loaded. This
+        # demonstrates that load_kernels does not continue searching the file
+        # once it has found a previous match.
+        furnsh.assert_called_once_with(str(input_lsk))
+
+        # Check the final state.
+        assert getattr(setup_instance, 'fks') == []
+        assert getattr(setup_instance, 'sclks') == []
+
+        # TODO: BUG, this line highlights a bug, when the LSK pattern is not
+        #       found, load_kernels currently stores the configured pattern in
+        #       self.lsk instead of None or a resolved filename.
+        assert getattr(setup_instance, 'lsk') == lsk_pattern
+
+    def test_ignores_unsupported_kernel_types_while_loading_supported_lsk(
+            self, tmp_path, monkeypatch) -> None:
+        # This test verifies that load_kernels ignores unsupported kernel types
+        # in its initial sorting sequence, but continues to function correctly
+        # if there is also a valid supported kernel.
+
+        setup_instance = self.make_load_setup(tmp_path)
+
+        # Create one supported LSK and one unsupported CK.
+        lsk = tmp_path / 'input' / 'naif0012.tls'
+        ck = tmp_path / 'input' / 'maven_001.bc'
+
+        # Create the both files. CK exists but should still be ignored.
+        for kernel_path in [lsk, ck]:
+            kernel_path.parent.mkdir(parents=True, exist_ok=True)
+            kernel_path.touch()
+
+        # Configure two inputs: one unsupported (ck) and one supported (lsk).
+        # The ck input should be ignored; the lsk input should be loaded.
+        setup_instance.kernels_to_load = {'ck': str(ck), 'lsk': str(lsk)}
+
+        # Mock the fursh call.
+        furnsh = Mock()
+        monkeypatch.setattr('pds.naif_pds4_bundler.classes.setup.spiceypy.furnsh',
+                            furnsh)
+
+        setup_instance.load_kernels()
+
+        # Check that furnsh has been called only once and only with the LSK.
+        furnsh.assert_called_once_with(str(lsk))
+
+        # Check the final state.
+        assert getattr(setup_instance, 'fks') == []
+        assert getattr(setup_instance, 'sclks') == []
+        assert getattr(setup_instance, 'lsk') == str(lsk)
+
+    @pytest.mark.parametrize(
+        'existing_kernels, kernels_to_load, expected_furnsh, expected_fks, '
+        'expected_sclks, expected_lsk, expected_logs', [
+            (['lsk'], {'lsk': '{lsk}',
+                       'pck': r'missing_pck_[0-9]+\.tpc',
+                       'fk': r'missing_fk_[0-9]+\.tf',
+                       'sclk': r'missing_sclk_[0-9]+\.tsc'},
+             ['lsk'], [], [], 'lsk',
+             [(logging.INFO, '-- LSK     loaded: [{lsk!r}]'),
+              (logging.INFO, '-- PCK not found.'),
+              (logging.WARNING, '-- FK not found.'),
+              (logging.ERROR, '-- SCLK not found.'),
+              (logging.INFO, '')]),
+            (['fk'], {'lsk': r'missing_lsk_[0-9]+\.tls',
+                      'pck': r'missing_pck_[0-9]+\.tpc',
+                      'fk': '{fk}',
+                      'sclk': r'missing_sclk_[0-9]+\.tsc'},
+             ['fk'], ['fk'], [], r'missing_lsk_[0-9]+\.tls',
+             [(logging.ERROR, '-- LSK not found.'),
+              (logging.INFO, '-- PCK not found.'),
+              (logging.INFO, '-- FK(s)   loaded: [{fk!r}]'),
+              (logging.ERROR, '-- SCLK not found.'),
+              (logging.INFO, '')])])
+    def test_logs_missing_kernel_families_without_calling_spiceypy_for_them(
+            self, tmp_path, monkeypatch, caplog, existing_kernels, kernels_to_load, expected_furnsh, expected_fks,
+            expected_sclks, expected_lsk, expected_logs) -> None:
+        # This test verifies the missing-kernel branches of load_kernels.
+        # It checks that missing kernels are not passed to furnsh, existing kernels
+        # are loaded, the final state is updated, and the expected logs are emitted.
+
+        setup_instance = self.make_load_setup(tmp_path)
+
+        kernel_paths = {
+            'lsk': os.path.join(str(tmp_path), 'input', 'naif0012.tls'),
+            'fk': os.path.join(str(tmp_path), 'input', 'maven_v02.tf')}
+
+        # Create only the files required by the current scenario.
+        for kernel_key in existing_kernels:
+            kernel_path = kernel_paths[kernel_key]
+            os.makedirs(os.path.dirname(kernel_path), exist_ok=True)
+            with open(kernel_path, 'w', encoding='utf-8') as kernel_file:
+                kernel_file.write('test kernel placeholder\n')
+
+        setup_instance.kernels_to_load = {
+            kernel_type: kernel_value.format(**kernel_paths)
+            for kernel_type, kernel_value in kernels_to_load.items()}
+
+        # Mock furnsh to verify that only existing kernels are loaded.
+        furnsh = Mock()
+        monkeypatch.setattr(
+            'pds.naif_pds4_bundler.classes.setup.spiceypy.furnsh',
+            furnsh)
+
+        with caplog.at_level(logging.INFO):
+            setup_instance.load_kernels()
+
+        # Missing kernels must not be passed to furnsh.
+        assert furnsh.call_args_list == [call(kernel_paths[v]) for v in expected_furnsh]
+
+        # Check the final state.
+        assert getattr(setup_instance, 'fks') == [kernel_paths[v] for v in expected_fks]
+        assert getattr(setup_instance, 'sclks') == [kernel_paths[v] for v in expected_sclks]
+
+        # TODO: BUG, when the LSK pattern is not found, load_kernels currently
+        #       stores the configured pattern in self.lsk instead of None or a
+        #       resolved filename.
+        assert getattr(setup_instance, 'lsk') == kernel_paths.get(expected_lsk, expected_lsk)
+
+        # Check the logging messages.
+        expected = [(level, msg.format(**kernel_paths)) for level, msg in expected_logs]
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+        assert results == expected
+
+    def test_raises_when_more_than_one_lsk_is_loaded(
+            self, tmp_path, monkeypatch, patch_handle_npb_error) -> None:
+        # This test checks the specific validation rule for load_kernels:
+        # multiple non-LSK kernels can be loaded, but no more than one LSK can
+        # be loaded.
+
+        setup_instance = self.make_load_setup(tmp_path)
+
+        # Create two existing LSK files.
+        first_lsk = tmp_path / 'input' / 'naif0011.tls'
+        second_lsk = tmp_path / 'input' / 'naif0012.tls'
+
+        # Iterates through the two SLKs and creates the directory and each LSK
+        # file.
+        for kernel_path in [first_lsk, second_lsk]:
+            kernel_path.parent.mkdir(parents=True, exist_ok=True)
+            kernel_path.touch()
+
+        # Create two existing LSK files.
+        setup_instance.kernels_to_load = {'lsk': [str(first_lsk), str(second_lsk)]}
+
+        # Mock the fursh call.
+        furnsh = Mock()
+        monkeypatch.setattr('pds.naif_pds4_bundler.classes.setup.spiceypy.furnsh',
+                            furnsh)
+
+        with pytest.raises(RuntimeError, match='Only one LSK should be obtained\\.'):
+            setup_instance.load_kernels()
+
+        # Both LSK files are loaded before the final validation fails.
+        assert furnsh.call_args_list == [call(str(first_lsk)),
+                                         call(str(second_lsk))]
+
+    def test_mocked_spiceypy_failure_is_captured_by_decorator(
+            self, tmp_path, monkeypatch) -> None:
+        # This test verifies that the spice_exception_handler decorator
+        # correctly catches a spiceypy error when spiceypy.furnsh fails.
+
+        setup_instance = self.make_load_setup(tmp_path)
+
+        # Create an existing LSK path so load_kernels calls spiceypy.furnsh.
+        lsk = tmp_path / 'input' / 'naif0012.tls'
+        lsk.parent.mkdir(parents=True, exist_ok=True)
+        lsk.touch()
+
+        setup_instance.kernels_to_load = {'lsk': str(lsk)}
+
+        # Force the SPICE loading call to fail with a controlled SpiceyPyError.
+        furnsh = Mock(side_effect=SpiceyPyError(short='SPICE(MOCKED)',
+                                                explain='mocked spiceypy failure'))
+        monkeypatch.setattr('pds.naif_pds4_bundler.classes.setup.spiceypy.furnsh',
+                            furnsh)
+
+        # Create a mock for handle_npb_error. When the decorator calls it, this
+        # mock will raise a RuntimeError.
+        handle_error = Mock(side_effect=RuntimeError('SPICE(MOCKED): mocked spiceypy failure'))
+        monkeypatch.setattr(
+            'pds.naif_pds4_bundler.utils.decorators.handle_npb_error',
+            handle_error)
+
+        with pytest.raises(RuntimeError, match=re.escape('SPICE(MOCKED): mocked spiceypy failure')):
+            setup_instance.load_kernels()
+
+        # Check that load_kernels actually called spiceypy.furnsh with the LSK.
+        furnsh.assert_called_once_with(str(lsk))
+
+        # Check that the decorator called handle_npb_error exactly once.
+        handle_error.assert_called_once()
+
+    def test_loads_valid_text_kernels_with_real_spiceypy_calls(
+            self, tmp_path) -> None:
+        # This test verifies the success scenario using real calls to
+        # spiceypy.furnsh, without mocking SPICE.
+
+        setup_instance = self.make_load_setup(tmp_path)
+
+        # Create minimal valid text kernels accepted by real spiceypy.furnsh.
+        lsk = self.write_minimal_text_kernel(tmp_path / 'real' / 'naif0012.tls', 'LSK')
+        pck = self.write_minimal_text_kernel(tmp_path / 'real' / 'pck00010.tpc', 'PCK')
+        fk = self.write_minimal_text_kernel(tmp_path / 'real' / 'maven_v02.tf', 'FK')
+        sclk = self.write_minimal_text_kernel(tmp_path / 'real' / 'maven_002.tsc', 'SCLK')
+
+        # Configure direct paths so load_kernels loads these files without regex.
+        setup_instance.kernels_to_load = {'lsk': lsk, 'pck': pck, 'fk': fk, 'sclk': sclk}
+
+        # The real SPICE kernel pool is global, so the test must start from a clean
+        # state before loading kernels.
+        assert spiceypy.ktotal('ALL') == 0
+
+        setup_instance.load_kernels()
+
+        # Check that all 4 kernels have been loaded.
+        assert spiceypy.ktotal('ALL') == 4
+
+        # Check the final state.
+        assert getattr(setup_instance, 'fks') == [fk]
+        assert getattr(setup_instance, 'sclks') == [sclk]
+        assert getattr(setup_instance, 'lsk') == lsk
+
+    def test_real_spiceypy_failure_is_captured_by_decorator(
+            self, tmp_path, monkeypatch) -> None:
+        # This test verifies the actual failure path of load_kernels using the
+        # real, non-mocked spiceypy.furnsh.
+
+        setup_instance = self.make_load_setup(tmp_path)
+
+        # Start from a clean SPICE kernel pool.
+        assert spiceypy.ktotal('ALL') == 0
+
+        # Load one valid kernel first, so the final ktotal(ALL) == 0 assertion proves
+        # that handle_npb_error cleared the kernel pool after the decorator ran.
+        loaded_lsk = self.write_minimal_text_kernel(
+            tmp_path / 'real' / 'loaded_before_failure.tls', 'LSK')
+        spiceypy.furnsh(loaded_lsk)
+        assert spiceypy.ktotal('ALL') == 1
+
+        # Create a meta-kernel that exists but references a missing kernel.
+        missing_kernel = 'missing_kernel.bsp'
+        broken_meta_kernel = tmp_path / 'real' / 'broken_meta_kernel.tm'
+        broken_meta_kernel.parent.mkdir(parents=True, exist_ok=True)
+        broken_meta_kernel.write_text('KPL/MK\n\n'
+                                      '\\begindata\n'
+                                      f"KERNELS_TO_LOAD = ( '{missing_kernel}' )\n"
+                                      '\\begintext\n', encoding='utf-8')
+
+        # Configura load_kernels to load the meta-kernel as a direct path.
+        setup_instance.kernels_to_load = {'lsk': str(broken_meta_kernel)}
+
+        with pytest.raises(RuntimeError, match=r'(?s).*missing_kernel\.bsp.*'):
+            setup_instance.load_kernels()
+
+        # handle_npb_error must clear the global SPICE kernel pool.
+        assert spiceypy.ktotal('ALL') == 0
+
+
 class TestSetupWriteFileList:
     @staticmethod
-    def make_minimal_setup(tmp_path, file_list) -> Setup:
+    def make_minimal_setup(tmp_path, file_list: list[str]) -> Setup:
+        # Build a minimal Setup instance without executing __init__ method.
         setup = make_setup(tmp_path)
 
         setup.file_list = file_list
 
         return setup
+
+    @pytest.mark.parametrize('initial_file_list, file_entry, expected_file_list', [
+        ([], 'bundle_maven_spice_v001.xml', ['bundle_maven_spice_v001.xml']),
+        ([], 'spice_kernels/fk/maven_v11.tf', ['spice_kernels/fk/maven_v11.tf']),
+        ([], '/usr1/pds4/staging/maven/maven_spice/readme.txt',
+         ['/usr1/pds4/staging/maven/maven_spice/readme.txt']),
+        (['bundle_maven_spice_v001.xml',
+          'collection_spice_kernels_inventory_v001.csv'],
+         'document/spiceds_v001.html',
+         ['bundle_maven_spice_v001.xml',
+          'collection_spice_kernels_inventory_v001.csv',
+          'document/spiceds_v001.html'])])
+    def test_add_file_appends_expected_file_entry_to_file_list(
+            self, tmp_path, initial_file_list, file_entry, expected_file_list) -> None:
+        # Verify that add_file appends the received file entry unchanged to the
+        # in-memory file list and does not create any file on disk.
+
+        # Build a minimal Setup instance.
+        setup = self.make_minimal_setup(tmp_path, file_list=initial_file_list)
+
+        setup.add_file(file_entry)
+
+        # Check that the element has appended successfully as a list.
+        assert setup.file_list == expected_file_list
+
+        # Check that the temporary directory is still empty. This shows that
+        # add_file has not created any files.
+        assert list(tmp_path.iterdir()) == []
+
+    def test_add_file_does_not_log_when_entry_is_registered(self, tmp_path,
+                                                            caplog) -> None:
+        # Verify that add_file registers the file entry in memory without emitting
+        # logging records or creating files on disk.
+
+        # Build a minimal Setup instance.
+        setup = self.make_minimal_setup(tmp_path, file_list=[])
+
+        # Check the logging level and logging messages.
+        with caplog.at_level(logging.INFO):
+            setup.add_file('readme.txt')
+
+        # Check that the method added the file to file_list.
+        assert setup.file_list == ['readme.txt']
+
+        # Check that no logging messages were generated whilst add_file was
+        # running.
+        assert caplog.messages == []
+
+        # The method should not crete any file.
+        assert list(tmp_path.iterdir()) == []
+
+    def test_add_file_and_write_file_list_work_together(self, tmp_path,
+                                                        caplog) -> None:
+        # Verify the complete add_file/write_file_list flow: files registered in
+        # memory are persisted in the same order, one per line, using the
+        # expected file name.
+
+        # Build a minimal setup instance.
+        setup_instance = self.make_minimal_setup(tmp_path, file_list=[])
+
+        # Adds some files to file_list.
+        setup_instance.add_file('bundle_psyche_spice_v012.xml')
+        setup_instance.add_file('collection_spice_kernels_inventory_v012.csv')
+        setup_instance.add_file('spice_kernels/mk/psyche_2025_v01.tm')
+
+        # Check the logging level and logging messages.
+        with caplog.at_level(logging.INFO):
+            setup_instance.write_file_list()
+
+        # Build the expected path.
+        expected_path = tmp_path / 'maven_release_03.file_list'
+
+        # Check that the file_list has the added files.
+        assert setup_instance.file_list == ['bundle_psyche_spice_v012.xml',
+                                            'collection_spice_kernels_inventory_v012.csv',
+                                            'spice_kernels/mk/psyche_2025_v01.tm']
+
+        # Check that the correct file has been created and that no unexpected
+        # additional files have been created.
+        assert list(tmp_path.iterdir()) == [expected_path]
+
+        # Check the file content.
+        assert expected_path.read_text(encoding='utf-8') == (
+            'bundle_psyche_spice_v012.xml\n'
+            'collection_spice_kernels_inventory_v012.csv\n'
+            'spice_kernels/mk/psyche_2025_v01.tm\n')
+
+        assert caplog.messages == ['-- Run File List file written in working area.']
 
     @pytest.mark.parametrize('file_list, expected_contents', [
         (['bundle_maven_spice_v001.xml',
@@ -1961,6 +2618,233 @@ class TestSetupWriteFileList:
 
         # Check that the register is empty.
         assert "-- Run File List file written in working area." not in caplog.messages
+
+
+class TestSetupChecksumRegistry:
+    @staticmethod
+    def make_minimal_setup(tmp_path, checksum_registry: list[str],
+                           mission_acronym: str = "maven", run_type: str = "release",
+                           release: str = "3") -> Setup:
+        # Build a minimal Setup instance without executing __init__ method. Only
+        # required attributes by add_checksum and write_checksum_registry are
+        # populated.
+        setup = make_setup(tmp_path, mission_acronym=mission_acronym,
+                           run_type=run_type, release=release)
+
+        setup.checksum_registry = checksum_registry
+
+        return setup
+
+    @pytest.mark.parametrize('path, checksum, expected_registry', [
+        ('/usr1/pds4/staging/psyche/psyche_spice/spice_kernels/ck/'
+         'psyche_ep_rec_250616_250622.bc',
+         'fadf8e23f21b18710f8cb1d3be8eeebd',
+         ['/usr1/pds4/staging/psyche/psyche_spice/spice_kernels/ck/'
+          'psyche_ep_rec_250616_250622.bc '
+          'fadf8e23f21b18710f8cb1d3be8eeebd']),
+        ('readme.txt',
+         'dca7381138766f7f36e7468d75b725c0',
+         ['readme.txt dca7381138766f7f36e7468d75b725c0'])])
+    def test_add_checksum_appends_expected_registry_entry(
+            self, tmp_path, path, checksum, expected_registry) -> None:
+        # This test, checks add_checksum independently.
+        #   - It does not write any file.
+        #   - It appends exactly one registry entry.
+        #   - The entry format is: "<path> <checksum>".
+
+        # Build a minimal setup object with an empty registry.
+        setup = self.make_minimal_setup(tmp_path, checksum_registry=[])
+
+        setup.add_checksum(path, checksum)
+
+        # Check that the record contains exactly the expected entry.
+        assert setup.checksum_registry == expected_registry
+
+        # The add_checksum operation is an in-memory operation only, so you must
+        # ensure that nothing has been written to disk.
+        assert list(tmp_path.iterdir()) == []
+
+    def test_add_checksum_preserves_existing_entries_and_appends_at_the_end(
+            self, tmp_path) -> None:
+        # Check that add_checksum preserves the existing contents of
+        # checksum_registry and adds the new entry at the end.
+
+        # Create the object using an existing entry in checksum_registry.
+        setup = self.make_minimal_setup(tmp_path,
+                                        checksum_registry=['/usr1/pds4/staging/psyche/psyche_spice/readme.txt '
+                                                           'dca7381138766f7f36e7468d75b725c0'])
+
+        # Add a second entry using the real method.
+        setup.add_checksum('/usr1/pds4/staging/psyche/psyche_spice/document/'
+                           'spiceds_v001.html', '78a6f8dbfa6c52d0d927bacb09ba6098')
+
+        # Check that the original entry remains in the first position.
+        # Furthermore, the new entry is placed at the end and retains the path
+        # checksum format.
+        assert setup.checksum_registry == ['/usr1/pds4/staging/psyche/psyche_spice/readme.txt '
+                                           'dca7381138766f7f36e7468d75b725c0',
+                                           '/usr1/pds4/staging/psyche/psyche_spice/document/'
+                                           'spiceds_v001.html 78a6f8dbfa6c52d0d927bacb09ba6098']
+
+        # The add_checksum operation is an in-memory operation only, so you must
+        # ensure that nothing has been written to disk.
+        assert list(tmp_path.iterdir()) == []
+
+    @pytest.mark.parametrize(
+        'mission_acronym, run_type, release, checksum_registry, expected_filename, expected_contents', [
+            ('maven', 'release', '3',
+             ['bundle_maven_spice_v001.xml '
+              '11111111111111111111111111111111',
+              'collection_spice_kernels_inventory_v001.csv '
+              '22222222222222222222222222222222'],
+             'maven_release_03.checksum',
+             'bundle_maven_spice_v001.xml '
+             '11111111111111111111111111111111\n'
+             'collection_spice_kernels_inventory_v001.csv '
+             '22222222222222222222222222222222\n'),
+            ('psyche', 'labels', '12',
+             ['/usr1/pds4/staging/psyche/psyche_spice/spice_kernels/mk/'
+              'psyche_2025_v01.tm c3e3082ac69ec1c8da5b6bf9bca7f617'],
+             'psyche_labels_12.checksum',
+             '/usr1/pds4/staging/psyche/psyche_spice/spice_kernels/mk/'
+             'psyche_2025_v01.tm c3e3082ac69ec1c8da5b6bf9bca7f617\n')])
+    def test_write_checksum_registry_creates_expected_file_with_expected_content(
+            self, tmp_path, mission_acronym, run_type, release,
+            checksum_registry, expected_filename, expected_contents) -> None:
+        # This test checks write_checksum_registry using a pre-prepared
+        # checksum_registry and verifies that the method creates the correct
+        # file, in the correct location, with the exact content.
+
+        # Build a minimal object needed to write the file.
+        setup = self.make_minimal_setup(tmp_path, checksum_registry=checksum_registry,
+                                        mission_acronym=mission_acronym, run_type=run_type,
+                                        release=release)
+
+        setup.write_checksum_registry()
+
+        # Build the expected path.
+        expected_path = tmp_path / expected_filename
+
+        # Check that only that file has been created.
+        assert list(tmp_path.iterdir()) == [expected_path]
+
+        # Check the exact contents of the file.
+        assert expected_path.read_text(encoding='utf-8') == expected_contents
+
+    def test_write_checksum_registry_creates_no_file_when_registry_is_empty(
+            self, tmp_path) -> None:
+        # This test checks that if the registry is empty, the method should
+        # terminate without creating a file.
+
+        # Build a setup object with an empty checksum_registry.
+        setup = self.make_minimal_setup(tmp_path, checksum_registry=[])
+
+        setup.write_checksum_registry()
+
+        # When an empty checksum is passed, the method should not create
+        # anything.
+        assert list(tmp_path.iterdir()) == []
+
+    def test_write_checksum_registry_logs_success_message_when_file_is_written(
+            self, tmp_path, monkeypatch, caplog) -> None:
+        # Build a minimal setup object with an entry in the registry.
+        setup = self.make_minimal_setup(tmp_path,
+                                        checksum_registry=['bundle_maven_spice_v001.xml '
+                                                           '11111111111111111111111111111111'])
+
+        # Mocks the open call.
+        open_mock = mock_open()
+        monkeypatch.setattr("builtins.open", open_mock)
+
+        # Captures the logs generated when the method is executed.
+        with caplog.at_level(logging.INFO):
+            setup.write_checksum_registry()
+
+        # Check that the method has opened exactly the file you expected.
+        open_mock.assert_called_once_with(
+            str(tmp_path / 'maven_release_03.checksum'), 'w', encoding='utf-8')
+
+        # Check the log message.
+        assert caplog.messages == ["-- Run Checksum Registry file written in working area."]
+
+    def test_write_checksum_registry_does_not_log_or_open_when_registry_is_empty(
+            self, tmp_path, monkeypatch, caplog) -> None:
+        # Check logging separately for the empty-registry branch.
+        # No checksum records means:
+        #   - no file opening;
+        #   - no success log message.
+
+        # Build a setup object with an empty registry.
+        setup = self.make_minimal_setup(tmp_path, checksum_registry=[])
+
+        # Mock the open call.
+        open_mock = mock_open()
+        monkeypatch.setattr("builtins.open", open_mock)
+
+        # Captures the logs generated when the method is executed.
+        with caplog.at_level(logging.INFO):
+            setup.write_checksum_registry()
+
+        # Check that the call to open is not being executed.
+        open_mock.assert_not_called()
+
+        # Check that there are none logs.
+        assert caplog.messages == []
+
+    def test_add_checksum_and_write_checksum_registry_work_together(
+            self, tmp_path) -> None:
+        # Integration test for both methods.
+        #   - add_checksum builds the in-memory registry.
+        #   - write_checksum_registry persists that registry without changing
+        #     its format or order.
+
+        # Build a setup object with an empty registry.
+        setup = self.make_minimal_setup(tmp_path, checksum_registry=[])
+
+        # Add several entries using add_checksum. This allows you to verify that
+        # the order is maintained and that the data is written across multiple
+        # lines. Also, add an entry from another subdirectory.
+        setup.add_checksum('/usr1/pds4/staging/psyche/psyche_spice/spice_kernels/ck/'
+                           'psyche_ep_rec_250616_250622.bc',
+                           'fadf8e23f21b18710f8cb1d3be8eeebd')
+        setup.add_checksum('/usr1/pds4/staging/psyche/psyche_spice/spice_kernels/ck/'
+                           'psyche_ep_rec_250623_250629.bc',
+                           '55b74c3bdc78bb8c956f0464f3c628c6')
+        setup.add_checksum('/usr1/pds4/staging/psyche/psyche_spice/document/'
+                           'spiceds_v001.html',
+                           '78a6f8dbfa6c52d0d927bacb09ba6098')
+
+        setup.write_checksum_registry()
+
+        # Build the expected values (path and registry).
+        expected_path = tmp_path / 'maven_release_03.checksum'
+
+        expected_registry = ['/usr1/pds4/staging/psyche/psyche_spice/spice_kernels/ck/'
+                             'psyche_ep_rec_250616_250622.bc '
+                             'fadf8e23f21b18710f8cb1d3be8eeebd',
+                             '/usr1/pds4/staging/psyche/psyche_spice/spice_kernels/ck/'
+                             'psyche_ep_rec_250623_250629.bc '
+                             '55b74c3bdc78bb8c956f0464f3c628c6',
+                             '/usr1/pds4/staging/psyche/psyche_spice/document/'
+                             'spiceds_v001.html 78a6f8dbfa6c52d0d927bacb09ba6098']
+
+        # Check that add_checksum has stored the registry in memory in the
+        # correct format and order.
+        assert setup.checksum_registry == expected_registry
+
+        # Check that write_checksum_registry has created exactly one file.
+        assert list(tmp_path.iterdir()) == [expected_path]
+
+        # Read the file and compare its entire contents.
+        assert expected_path.read_text(encoding='utf-8') == (
+            '/usr1/pds4/staging/psyche/psyche_spice/spice_kernels/ck/'
+            'psyche_ep_rec_250616_250622.bc '
+            'fadf8e23f21b18710f8cb1d3be8eeebd\n'
+            '/usr1/pds4/staging/psyche/psyche_spice/spice_kernels/ck/'
+            'psyche_ep_rec_250623_250629.bc '
+            '55b74c3bdc78bb8c956f0464f3c628c6\n'
+            '/usr1/pds4/staging/psyche/psyche_spice/document/'
+            'spiceds_v001.html 78a6f8dbfa6c52d0d927bacb09ba6098\n')
 
 
 class TestSetupWriteValidateConfig:

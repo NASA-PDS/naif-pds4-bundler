@@ -1,34 +1,39 @@
-FROM ubuntu:18.04
+# Pinned to a specific version for reproducibility and security
+FROM ubuntu:22.04
 
 #
-# Disable Prompt During Packages Installation.
+# Disable prompt during package installation
 #
 ENV DEBIAN_FRONTEND=noninteractive
 
 #
-# Install Python 3.8.
+# Install Python and dependencies in a single layer to minimise image size.
+# Clean up apt cache afterwards to keep the image lean.
 #
-RUN apt update
-RUN apt install -y software-properties-common
-RUN apt install -y python3.8
-RUN apt install -y python3.8-dev
-RUN apt install -y python3-pip
-RUN apt install -y python3.8-venv
+# Create a non-root user and switch to that user.
+#
+RUN apt-get update && apt-get install -y \
+        git                              \
+        python3                          \
+        python3-pip &&                   \
+    apt-get clean &&                     \
+    rm -rf /var/lib/apt/lists/* &&       \
+    useradd -ms /bin/bash npbuser
 
+USER npbuser
+WORKDIR /home/npbuser
 
 #
-# Install Git, a virtual environment, and NPB.
+# Clone NPB
 #
-RUN apt install -y git
-WORKDIR /root
 RUN git clone https://github.com/NASA-PDS/naif-pds4-bundler.git
-WORKDIR /root/naif-pds4-bundler
-RUN python3.8 -m venv venv
-RUN ./venv/bin/python3.8 -m pip install -U setuptools
-RUN ./venv/bin/python3.8 -m pip install cython
-RUN ./venv/bin/python3.8 -m pip install -e .
 
 #
-# Run NPB tests.
+# Install Python dependencies, NPB, and run NPB regression tests
 #
-RUN ./venv/bin/python3.8 -m unittest discover -s tests/naif_pds4_bundler
+WORKDIR /home/npbuser/naif-pds4-bundler
+RUN python3 -m pip install --upgrade pip &&                            \
+    python3 -m pip install --ignore-installed "setuptools==80.10.2" && \
+    python3 -m pip install -e ".[dev]"                              && \
+    python3 -m unittest discover tests/naif_pds4_bundler
+

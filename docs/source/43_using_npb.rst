@@ -783,6 +783,36 @@ If there is an issue during the generation of this file --e.g.: no internet
 connection-- the process will silently fail but the NPB run will be successful.
 
 
+Generating Release 2 and on
+---------------------------
+
+When you are ready to generate release 2+ it is very important to keep all the
+NPB byproducts in the working directory. NPB uses the previous release
+byproducts to determine the release number of the current release being
+generated. NPB also checks for duplicates between release plans and verifies
+checksums. It is also important to keep these files as a history of what
+was run and produced.
+
+Best practice - keep all release files from all releases in working/
+
+  * working/
+
+    * mars2020_release_01.xml
+    * mars2020_release_01.plan
+    * mars2020_release_01.log
+    * mars2020_release_01.checksum
+    * mars2020_release_01.file_list
+    * mars2020_release_01.kernel_list
+    * mars2020_release_01.validate_config
+    * mars2020_release_02.xml
+    * mars2020_release_02.plan
+    * mars2020_release_02.log
+    * mars2020_release_02.checksum
+    * mars2020_release_02.file_list
+    * mars2020_release_02.kernel_list
+    * mars2020_release_02.validate_config
+    * etc....
+
 Checks performed by NPB
 -----------------------
 

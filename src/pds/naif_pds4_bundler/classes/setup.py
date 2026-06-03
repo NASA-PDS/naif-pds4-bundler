@@ -987,10 +987,11 @@ class Setup:
         directories = self.kernels_directory
         if self.pds_version == "4":
             directories.append(
-                self.bundle_directory + f"/{self.mission_acronym}_spice/spice_kernels"
+                os.path.join(self.bundle_directory, f'{self.mission_acronym}_spice', 'spice_kernels')
             )
         else:
-            directories.append(self.bundle_directory + f"{self.volume_id}/data")
+
+            directories.append(os.path.join(self.bundle_directory, self.volume_id, 'data'))
 
         for kernel in self.kernels_to_load:
             if "fk" in kernel:
@@ -1123,8 +1124,12 @@ class Setup:
 
         logging.info('')
 
+        # TODO: Probably not necessary.
         self.fks = fks
         self.sclks = sclks
+        # TODO: BUG, self.lsk is set from the configured LSK pattern, which may
+        #       not be a real file. It should store the resolved LSK path, or
+        #       None if none was found.
         self.lsk = lsk
 
     def information_model_setup(self):

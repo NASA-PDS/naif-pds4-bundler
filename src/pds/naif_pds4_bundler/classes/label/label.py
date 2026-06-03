@@ -163,11 +163,10 @@ class PDSLabel:
             self.OBSERVERS = self.get_observers()
             self.TARGETS = self.get_targets()
 
-    def get_missions(self):
+    def get_missions(self) -> str:
         """Get the label mission from the context products.
 
         :return: List of missions to be included in the label
-        :rtype: list
         """
         miss = self.missions
 
@@ -186,6 +185,7 @@ class PDSLabel:
         for mis in miss:
             if mis:
                 mis_name = mis
+                mission_lid, mission_type = None, None
                 for product in context_products:
                     if product["name"][0] == mis_name and (
                         product["type"][0] == "Mission"
@@ -244,11 +244,10 @@ class PDSLabel:
 
         return ref_type
 
-    def get_observers(self):
+    def get_observers(self) -> str:
         """Get the label observers from the context products.
 
         :return: List of Observers to be included in the label
-        :rtype: list
         """
         obs = self.observers
         if not isinstance(obs, list):
@@ -266,7 +265,7 @@ class PDSLabel:
 
         for ob in obs:
             if ob:
-                ob_lid = ""
+                ob_lid, ob_type = None, None
                 ob_name = ob.split(",")[0]
                 for product in context_products:
                     if product["name"][0] == ob_name and (
@@ -305,11 +304,10 @@ class PDSLabel:
 
         return obs_list_for_label
 
-    def get_targets(self):
+    def get_targets(self) -> str:
         """Get the label targets from the context products.
 
         :return: List of Targets to be included in the label
-        :rtype: list
         """
         tars = self.targets
         if not isinstance(tars, list):
@@ -328,6 +326,7 @@ class PDSLabel:
         for tar in tars:
             if tar:
                 target_name = tar
+                target_lid, target_type = None, None
                 for product in context_products:
                     if product["name"][0].upper() == target_name.upper():
                         target_lid = product["lidvid"].split("::")[0]
@@ -400,7 +399,9 @@ class PDSLabel:
         if "inventory" in label_name:
             label_name = label_name.replace("inventory_", "")
 
-        with open(label_name, "w+", encoding='utf-8') as f:
+        # Using newline guarantees that what we write into the file is what
+        # we intend to write, independently of the platform.
+        with open(label_name, "w+", encoding='utf-8', newline='') as f:
             with open(self.template, "r", encoding='utf-8') as t:
                 for line in t:
                     line = line.rstrip()
@@ -493,18 +494,17 @@ class PDSLabel:
             val_label_name = self.name.split(os.sep)[-1]
             i = 1
 
-            while match_flag:
-                if i < len(val_label_name) - 1:
-                    val_labels = glob.glob(
-                        f"{val_label_path}{val_label_name[0:i]}*.xml"
-                    )
-                    if val_labels:
-                        val_labels = sorted(val_labels)
-                        val_label = val_labels[-1]
-                        match_flag = True
-                    else:
-                        match_flag = False
-                    i += 1
+            while match_flag and i < len(val_label_name) - 1:
+                val_labels = glob.glob(
+                    f"{val_label_path}{val_label_name[0:i]}*.xml"
+                )
+                if val_labels:
+                    val_labels = sorted(val_labels)
+                    val_label = val_labels[-1]
+                    match_flag = True
+                else:
+                    match_flag = False
+                i += 1
 
             if not val_label:
                 raise Exception("No label for comparison found.")

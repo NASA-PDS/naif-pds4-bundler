@@ -5,6 +5,7 @@ the group that NPB belongs to.
 """
 import os
 import shutil
+import stat
 
 from pds.naif_pds4_bundler.pipeline.npb import run_pipeline
 from pds.naif_pds4_bundler.utils.types.datatypes import PipelineArgs
@@ -16,8 +17,8 @@ def post_setup(self):
     This method will be executed before each test function.
     """
     dirs = ["kernels/fk", "kernels/lsk", "kernels/spk", "kernels/mk"]
-    for dir in dirs:
-        os.mkdir(dir)
+    for path in dirs:
+        os.mkdir(path)
     shutil.copy2("../data/kernels/lsk/naif0012.tls", "kernels/lsk/")
     shutil.copy2("../data/kernels/mk/m2020_v01.tm", "kernels/mk/")
     shutil.copy2("../data/kernels/mk/m2020_chronos_v01.tm", "kernels/mk/")
@@ -36,7 +37,10 @@ def test_binary_permissions(self):
         "../data/kernels/spk/m2020_surf_rover_loc_0000_0089_v1.big.bsp",
         "kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp",
     )
-    os.chmod("kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp", 0o330)
+
+    # Combines Write and Execute permissions for Owner and Group
+    custom = stat.S_IWUSR | stat.S_IXUSR | stat.S_IWGRP | stat.S_IXGRP
+    os.chmod("kernels/spk/m2020_surf_rover_loc_0000_0089_v1.bsp", mode=custom)
 
     with self.assertRaises(RuntimeError) as cm:
         run_pipeline(PipelineArgs(config=config, silent=True, log=True, faucet="Bundle"))
