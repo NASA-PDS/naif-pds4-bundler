@@ -390,6 +390,12 @@ def mk_to_list(mk, setup):
     :return: List of kernels present in the meta-kernel
     :rtype: list
     """
+    # TODO: Update the code to work also with a metakernel like the one provided
+    #       in the example #2 of the `furnsh_c` API (furnsh_ex2.tm)
+    # NOTE: This code also does not remove comments before doing the parsing
+    #       therefore it might have some issues with meta-kernels that explain
+    #       the use of the PATH_SYMBOLS, or that have an older path structure
+    #       commented out.
     path_symbol = ""
     get_symbol = False
     ker_mk_list = []
@@ -435,8 +441,13 @@ def mk_to_list(mk, setup):
 
 
 def get_latest_kernel(
-    kernel_type, paths, pattern, dates=False, excluded_kernels=False, mks=False
-):
+    kernel_type: str,
+    paths: list[str],
+    pattern:str,
+    dates: bool = False,
+    excluded_kernels: Optional[list[str]] = None,
+    mks: Optional[list[str]] = None
+) -> list[str]:
     """Get the latest kernel given a type and a pattern.
 
     Returns the name of the latest SPICE kernel of a given type present
@@ -445,31 +456,23 @@ def get_latest_kernel(
 
     :param kernel_type: SPICE Kernel type which also defines
                         the subdirectory name.
-    :type kernel_type: str
     :param paths: List of paths to the roots of the SPICE Kernels directories
                   where the kernels are store in a subdirectory named "type".
-    :type paths: str
     :param pattern: Patterns to search for that defines the kernel "type"
                     file naming scheme. This pattern follows the format of
                     the meta-kernel grammar provided in the XML configuration
                     file
-    :type pattern: str
     :param dates: Indicates that the pattern of the kernel includes dates
                   and that the last version of each kernel with a date has
                   to be included. If this parameter is set to False then
                   only the latest date and latest version is included
-    :type dates: bool
     :param excluded_kernels: Indicates that a specific kernel might have
                              to be excluded from the search.
-    :type excluded_kernels: list
     :param mks: Indicates that the kernels present in the list of provided
           meta-kernels have to be included for consideration to obtain
           the latest version of the given kernel
-    :type mks: list
     :return: Name of the latest kernels as specified by the pattern.
-    :rtype: list
     """
-    kernels = []
     kernels_with_path = []
 
     for path in paths:
@@ -494,12 +497,7 @@ def get_latest_kernel(
 
     kernels_with_path = list(dict.fromkeys(kernels_with_path))
 
-    for kernel in kernels_with_path:
-        kernel = kernel.split("/")[-1].split("'")[0]
-        if "'" in kernel:
-            kernels.append(kernel[:-1])
-        else:
-            kernels.append(kernel)
+    kernels = [path.split("/")[-1].split("'")[0] for path in kernels_with_path]
 
     #
     # Put the kernels in order
@@ -729,25 +727,18 @@ def checksum_from_registry(path, working_directory):
     :return: MD5 Sum for the file indicated by path
     :rtype: str
     """
-    checksum = ""
     checksum_registries = glob.glob(f"{working_directory}/*.checksum")
-    checksum_found = False
 
     for checksum_registry in checksum_registries:
-        if not checksum_found:
-            with open(checksum_registry, "r", encoding='utf-8') as lbl:
-                for line in lbl:
-                    if path in line:
-                        checksum = line.split()[-1]
+        with open(checksum_registry, "r", encoding='utf-8') as f:
+            for line in f:
+                if path in line:
+                    logging.warning(
+                        '-- Checksum obtained from Checksum Registry file: %s',
+                        checksum_registry)
+                    return line.split()[-1]
 
-                        logging.warning(
-                            '-- Checksum obtained from Checksum '
-                            'Registry file: %s', checksum_registry)
-
-                        checksum_found = True
-                        break
-
-    return checksum
+    return ""
 
 
 def checksum_from_label(path):
@@ -854,6 +845,7 @@ def replace_string_in_file(file, old_string, new_string, setup):
     :type new_string: str
     :param setup: NPB run Setup
     """
+    # TODO: Update this function to not use NamedTemporaryFiles or other temp solution.
     # Get the directory of the target file
     file_dir = os.path.dirname(os.path.abspath(file))
 
@@ -995,7 +987,7 @@ def check_kernel_integrity(path):
         else:
             pass
 
-    elif file_format == "Character":
+    else:  # file_format == "Character":
 
         #
         # Text kernels must have KPL architecture:
@@ -1151,8 +1143,9 @@ def check_permissions(path: str) -> None:
     # read permissions. This method works both in Unix and Windows. If
     # the read operation succeeds, don't do anything else.
     try:
-        with Path(path).open('rb'):
-            pass
+        with Path(path).open('rb') as f:
+            f.read(0)
+
     except PermissionError:
         handle_npb_error(
             f"File {path} is not readable by the account that runs NPB. "

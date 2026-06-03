@@ -1,26 +1,32 @@
 """Unit tests for the pds.naif_pds4_bundler.utils.files module."""
-import io
-import json
-import logging
 from dataclasses import dataclass
+import io
+import logging
 from pathlib import Path
 import shutil
-from xmlrpc.client import Fault
+from unittest.mock import call, MagicMock, patch
+from xml.etree import ElementTree
 
 import pytest
-import xml.etree.ElementTree as tree
-
-from unittest.mock import call, MagicMock, patch, mock_open, Mock
-
 import spiceypy
-
-import os
 
 from pds.naif_pds4_bundler.utils import files
 
 # Get the directory where the data is located.
 KERNELS = Path(__file__).parent.parent / "naif_pds4_bundler" / "data" / "kernels"
 DOCS = Path(__file__).parent.parent / "naif_pds4_bundler" / "data"
+
+# ----------------------------------------------------------------------------
+# Fixtures
+# ----------------------------------------------------------------------------
+@pytest.fixture
+def daf_handle():
+    """Provides a valid and existing DAF handle.."""
+    daf_file = str(KERNELS/"ck"/"insight_ida_enc_200829_201220_v1.bc")
+    handle = spiceypy.dafopr(daf_file)
+    yield handle
+
+    spiceypy.dafcls(handle) # Cleanup after the test finishes
 
 # ----------------------------------------------------------------------------
 # files.add_carriage_return tests
@@ -231,35 +237,17 @@ def test_check_eol(kern, eol, expected):
 @pytest.mark.parametrize("words, eol, expected", [
     ("happy\r\nday\r\n", "\r\n", ""),
     ("happy\nday\n", "\n", ""),
-    #("hello\r\nworld\r\n", "\n", "Incorrect EOL in file, LF (\\n) expected."), #this doesn't work
-    #("hello\nworld\r\n", "\r\n", "Incorrect EOL in file, CRLF (\\r\\n) expected.") #this doesn't work
+    ("hello\r\nworld\r\n", "\n", "Incorrect EOL in file, LF (\\n) expected."), #this doesn't work
+    ("hello\nworld\r\n", "\r\n", "Incorrect EOL in file, CRLF (\\r\\n) expected.") #this doesn't work
 ])
 def test_check_eol_alt(tmp_path, words, eol, expected):
     """Test check_eol function using pytest."""
     file_path = tmp_path / "test_eol.txt"
-    file_path.write_bytes(b"words")
+    with open(file_path, "wt", encoding='utf-8') as f:
+        f.write(words)
 
     result = files.check_eol(str(file_path), eol)
     assert result == expected
-
-def test_check_eol_lf_incorrect(tmp_path):
-    """Test check_eol function using pytest.
-    LF expected but file contains CRLF."""
-    file_path = tmp_path / "test_eol.txt"
-    file_path.write_bytes(b"happy\r\nday\r\n")
-
-    result = files.check_eol(str(file_path), "\n")
-    assert result == "Incorrect EOL in file, LF (\\n) expected."
-
-
-def test_check_eol_crlf_incorrect(tmp_path):
-    """Test check_eol function using pytest.
-    CRLF expected but file contains LF."""
-    file_path = tmp_path / "test_eol.txt"
-    file_path.write_bytes(b"happy\nday\r\n")
-
-    result = files.check_eol(str(file_path), "\r\n")
-    assert result == "Incorrect EOL in file, CRLF (\\r\\n) expected."
 
 def test_check_eol_logging_error(monkeypatch, tmp_path, caplog):
     """Test check_eol function using pytest.
@@ -417,7 +405,7 @@ def test_check_permissions_error(monkeypatch, tmp_path, caplog):
     def mock_handle_error(msg):
         logging.error(msg)
 
-    def raise_permission_error(*args, **kwargs):
+    def raise_permission_error(*_, **__):
         raise PermissionError()
 
 
@@ -439,14 +427,31 @@ def test_check_permissions_error(monkeypatch, tmp_path, caplog):
 # files.checksum_from_label test
 # ----------------------------------------------------------------------------
 
-@pytest.mark.parametrize("prod_path, expected",[
-    (Path(KERNELS/"ck"/"insight_ida_enc_200829_201220_v1.bc"), "22f9acc1931c8a626fac2a844fc5cee3"),
-    (Path(KERNELS/"mk"/"none.tm"), ""),
+@pytest.mark.parametrize("prod_path, expected, expected_logs",[
+    (Path(KERNELS/"ck"/"insight_ida_enc_200829_201220_v1.bc"),
+     "22f9acc1931c8a626fac2a844fc5cee3",
+     [(logging.WARNING, '-- Checksum obtained from existing label: insight_ida_enc_200829_201220_v1.xml')]),
+    (Path(KERNELS/"mk"/"none.tm"), "",
+     []),
 ])
-def test_checksum_from_label(prod_path, expected):
+def test_checksum_from_label(prod_path, expected, expected_logs, caplog):
     """Test checksum_from_label function using pytest."""
-    result = files.checksum_from_label(str(prod_path))
+    with caplog.at_level(logging.WARNING):
+        result = files.checksum_from_label(str(prod_path))
     assert result == expected
+    logs = [(r[1], r[2]) for r in caplog.record_tuples]
+    assert logs == expected_logs
+
+# TODO: Check if this option (having a label without checksum is valid for SPICE PDS4) is valid.
+def test_checksum_from_label_without_checksum(tmp_path, caplog):
+    path = tmp_path / "file.bc"
+    label = tmp_path / "file.xml"
+    label.write_text("""<?xml version="1.0" encoding="utf-8"?>""")
+    with caplog.at_level(logging.WARNING):
+        result = files.checksum_from_label(str(path))
+    logs = [(r[1], r[2]) for r in caplog.record_tuples]
+    assert result == ''
+    assert logs == []
 
 # ----------------------------------------------------------------------------
 # files.checksum_from_registry test
@@ -599,9 +604,9 @@ def test_copy_error_file(monkeypatch, tmp_path, caplog):
 ])
 def test_etree_to_dict(xml, outputs):
     """Test etree_to_dict function using pytest."""
-    eltree = tree.fromstring(xml)
+    etree = ElementTree.fromstring(xml)
 
-    result = files.etree_to_dict(eltree)
+    result = files.etree_to_dict(etree)
     assert result == outputs
 
 # ----------------------------------------------------------------------------
@@ -611,14 +616,17 @@ def test_etree_to_dict(xml, outputs):
 def test_extract_comment_ck():
     """Test extract_comment function using pytest - comment extraction from kernel."""
     comment = files.extract_comment(str(KERNELS/"ck"/"insight_ida_enc_200829_201220_v1.bc"))
-    comment_line = (" This CK file was created using CKSLICER Utility Ver. 1.3.0, October 28, 2011")
+    comment_line = " This CK file was created using CKSLICER Utility Ver. 1.3.0, October 28, 2011"
 
     assert comment_line == comment[3]
 
 @pytest.mark.parametrize("kern, comment, num",[
-    (KERNELS/"ck"/"mro_sa_psp_210705_210717p.bc", " This CK file was created using CKSLICER Utility Ver. 1.3.0, October 28, 2011", "3"),
-    (KERNELS/"ck"/"one_blank.bc", "LSK_FILE_NAME           = 'naif0012.tls'", "8"),
-    (KERNELS/"ck"/"many_blanks.bc", "LSK_FILE_NAME           = 'naif0012.tls'", "8"),
+    (KERNELS/"ck"/"mro_sa_psp_210705_210717p.bc",
+     " This CK file was created using CKSLICER Utility Ver. 1.3.0, October 28, 2011", "3"),
+    (KERNELS/"ck"/"one_blank.bc",
+     "LSK_FILE_NAME           = 'naif0012.tls'", "8"),
+    (KERNELS/"ck"/"many_blanks.bc",
+     "LSK_FILE_NAME           = 'naif0012.tls'", "8"),
 ])
 def test_extract_comment_ck_2(kern, comment, num):
     """Test extract_comment function using pytest.
@@ -633,7 +641,7 @@ def test_extract_comment_ck_2(kern, comment, num):
 def test_extract_comment_error(monkeypatch, kern, caplog):
     """Test extract_comment function using pytest. This is to test logging errors"""
 
-    def mock_handle_error(msg, setup=False):
+    def mock_handle_error(msg, **_):
         files.logging.getLogger("files").error(msg)
 
     monkeypatch.setattr(files, "handle_npb_error", mock_handle_error)
@@ -643,74 +651,34 @@ def test_extract_comment_error(monkeypatch, kern, caplog):
 
     assert f"Comment from {kern} is longer than buffer size." in caplog.text
 
-#This resolves the 'close_file = False' but is not successful...
-@pytest.mark.parametrize("handle_value, expected", [
-    (False, True),
-    (1, False),
+def test_extract_comments_with_daf_handle(daf_handle):
+    """Test that the function also operates on already opened DAF files.
+    """
+    files.extract_comment('Path is not relevant for this test.', daf_handle)
+
+    # Test if the DAF file is still open by reading the summary format
+    # associated with the handle. If the file is closed, this call will
+    # return an error (SpiceDAFNOSUCHHANDLE).
+    spiceypy.dafhsf(daf_handle)
+
+@pytest.mark.parametrize("read_comments, comments_out", [
+    (['some comment', '', 'Some other comment', '', ' ', ''], ['some comment', '', 'Some other comment', '']),
+    # TODO: Fix the bug and activate this test.
+    pytest.param(['some comment', '', 'Some other comment', ''], ['some comment', '', 'Some other comment', ''],
+                 marks=pytest.mark.skip(reason='This test fails because there is a bug in the code.')),
+    (['some comment', '', 'Some other comment'], ['some comment', '', 'Some other comment']),
+    ([' ', '', ' '], [' '])
 ])
-def test_extract_comment_close_file_flag(tmp_path, handle_value, expected):
-    """Test extract_comment function using pytest. Test - `close_file`. """
+def test_extract_comments_remove_blanks_end_of_comments(monkeypatch, daf_handle, read_comments, comments_out):
+    """Test that the function also operates on already opened DAF files.
+    """
+    # Patch the dafec call to have proper control of the comments, without having to
+    # write a new file.
+    monkeypatch.setattr("spiceypy.dafec", lambda *args: (6, read_comments, True))
 
-    mock_kernel = tmp_path / "dummy_kernel.bsp"
+    result = files.extract_comment('Path is not relevant for this test.', daf_handle)
 
-    #also doesn't work
-    # mock_kernel = MagicMock()
-    # mock_kernel.file_path = tmp_path / "test.bsp"
-    # mock_kernel.file_path.write_bytes(b"HAPPY")
-
-    spiceypy.dafopr.return_value = handle_value
-
-    files.extract_comment(str(mock_kernel), handle=handle_value)
-
-    if expected:
-        spiceypy.dafcls.assert_called_once()
-    else:
-        spiceypy.dafcls.assert_not_called()
-
-# I am not sure where to go from here. this does not pass successfully, and I am not sure how to fix it.
-
-
-# Attempted to make mock spk to fix it but it doesn't hit the 'close_file = false' and also doesn't work...
-
-# def test_extract_comment_close_file_flag_alt (tmp_path):
-#     """Test extract_comment function using pytest. Test - `close_file`. """
-#
-#     mock_kernel = MagicMock()
-#     mock_kernel.spiceypy.spkopn("dummy_kernel.bsp", "internal.bsp", 25)
-#     handle = mock_kernel.spiceypy.spkopn("dummy_kernel.bsp", "internal.bsp", 25)
-#     body = 499
-#     center = 10
-#     start = "798336069.185598"
-#     stop = "798508869.185582"
-#     segid = "dummy_segid"
-#     degree = 1
-#     n = 5
-#     states = [101, 201, 301, 401, 501, 601,
-#               102, 202, 302, 402, 502, 602,
-#               103, 203, 303, 403, 503, 603,
-#               104, 204, 304, 404, 504, 604,
-#               105, 205, 305, 405, 505, 605]
-#     epochs = ["798336069.185598",
-#               "798372069.185594",
-#               "798422469.185590",
-#               "",
-#               "798508869.185582"]
-#     mock_kernel.spiceypy.spkw09(handle, body, center, start, stop, segid, degree, n, states, epochs)
-#     mock_kernel.spiceypy.spkcls(handle)
-#
-#     spiceypy.dafopr.return_value = handle
-#
-#     files.extract_comment(str(mock_kernel), handle=handle)
-#
-#     expected = False
-#
-#     if expected:
-#         spiceypy.dafcls.assert_called_once()
-#     else:
-#         spiceypy.dafcls.assert_not_called()
-
-#Not sure if this is even along the right path...
-
+    assert result == comments_out
 
 # ----------------------------------------------------------------------------
 # files.fill_template tests
@@ -848,19 +816,82 @@ def test_get_context_products_overwrite_and_append_2(tmp_path):
     assert obs_prod["type"] == ["Rover"]
     assert obs_prod["lidvid"] == "urn:nasa:pds:context:instrument_host:spacecraft.mars2020::1.0"
 
-# default should probably be removed .... requires a json file to be updated and I
+def test_get_context_products_from_a_dict(tmp_path):
+    """Test get_context_products using pytest. setup has context_products and product is a dict and not a list.
+    TODO: Analyze if this case is possible, otherwise update the code.
+    """
+    setup = MagicMock()
+    setup.mission_name = "MARS 2020"
+    setup.observer = "Perseverance"
+    setup.target = "MARS"
+
+    #config defined context products
+    setup.context_products = {
+        "product": {"@name": "Mars 2020: Perseverance Rover",
+                    "type": "Mission",
+                    "lidvid": "urn:nasa:pds:context:investigation:mission.mars2020::1.0"}
+    }
+
+    result = files.get_context_products(setup)
+    expected = [
+        {'name': ['Perseverance'],
+         'type': ['Rover'],
+         'lidvid': 'urn:nasa:pds:context:instrument_host:spacecraft.mars2020::1.0'},
+        {'name': ['MARS'],
+         'type': ['PLANET'],
+         'lidvid': 'urn:nasa:pds:context:target:planet.mars::1.2'},
+        {'name': ['MARS 2020'],
+         'type': ['Mission'],
+         'lidvid': 'urn:nasa:pds:context:investigation:mission.mars2020::1.0'}]
+    assert result == expected
+
+def test_get_context_products_list_with_empty_dictionary(tmp_path):
+    """Test get_context_products using pytest. setup has context_products but it is a list
+    with an empty dictionary. In this case, it should go be to default.
+    TODO: Analyze if this case is possible, otherwise update the code.
+    """
+    setup = MagicMock()
+    setup.mission_name = "MARS 2020"
+    setup.observer = "Perseverance"
+    setup.target = "MARS"
+
+    #config defined context products
+    setup.context_products = {
+        "product": [{}]
+    }
+
+    result = files.get_context_products(setup)
+    expected = [
+        {'name': ['Perseverance'],
+         'type': ['Rover'],
+         'lidvid': 'urn:nasa:pds:context:instrument_host:spacecraft.mars2020::1.0'},
+        {'name': ['MARS'],
+         'type': ['PLANET'],
+         'lidvid': 'urn:nasa:pds:context:target:planet.mars::1.2'},
+        {'name': ['MARS 2020'],
+         'type': ['Mission'],
+         'lidvid': 'urn:nasa:pds:context:investigation:mission.mars2020::1.0'}]
+    assert result == expected
+
+# default should probably be removed .... requires a JSON file to be updated and I
 # do not want this capability
 
 # ----------------------------------------------------------------------------
 # files.get_latest_kernel test
 # ----------------------------------------------------------------------------
 
-def test_get_latest_kernel():
+def test_get_latest_kernel_success():
     """Test get_latest_kernel using pytest - basic."""
-    pth = KERNELS/'ck'
-    pttrn = "insight_ida_enc_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9].bc"
+    pattern = "insight_ida_enc_[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_v[0-9].bc"
 
-    result = files.get_latest_kernel("ck", str(pth), pttrn)
+    result = files.get_latest_kernel("ck", [str(KERNELS)], pattern)
+    assert result == 'insight_ida_enc_200829_201220_v1.bc'
+
+def test_get_latest_kernel_invalid_pattern_no_kernels_found():
+    """Test get_latest_kernel using pytest - basic."""
+    pattern = "([a-z]+"  # --> this produces a re.error.
+
+    result = files.get_latest_kernel("ck", [str(KERNELS)], pattern)
     assert result == []
 
 def test_get_latest_kernel_with_dates_logic(tmp_path):
@@ -889,7 +920,7 @@ def test_get_latest_kernel_with_dates_logic(tmp_path):
 
 def test_get_latest_kernel_with_mks(tmp_path):
     """Test get_latest_kernel using pytest.
-    Test that kernel strings parsed out of a MK are collected."""
+    Test that kernel strings parsed out of an MK are collected."""
     spk_pth = tmp_path / "spk"
     spk_pth.mkdir()
     (spk_pth / "mission_v01.bsp").touch()
@@ -1024,7 +1055,7 @@ def test_match_patterns_wrong_length():
 # files.md5 test
 # ----------------------------------------------------------------------------
 
-@pytest.mark.parametrize("fname,expected", [
+@pytest.mark.parametrize("fname, expected", [
     ( KERNELS / "ck" / "insight_ida_enc_200829_201220_v1.bc" , "22f9acc1931c8a626fac2a844fc5cee3"),
 ])
 def test_md5(fname, expected):
@@ -1036,13 +1067,17 @@ def test_md5(fname, expected):
 # files.mk_to_list tests
 # ----------------------------------------------------------------------------
 
-@pytest.mark.parametrize("mk", [
-    KERNELS / "mk" / "vco_v01.tm",
-    KERNELS / "mk" / "msl_v29.tm",
+@pytest.mark.parametrize("mk, num_kernels, first, last", [
+    (KERNELS / "mk" / "vco_v01.tm", 46, 'naif0012.tls', 'vco_xmga_2016_v01.bc'),
+    (KERNELS / "mk" / "msl_v29.tm", 220, 'naif0012.tls', 'msl_surf_rsm_tlmres_3192_3289_v1.bc')
 ])
-def test_mk_to_list(mk):
+def test_mk_to_list(mk, num_kernels, first, last):
     """Test mk_to_list function using pytest."""
-    assert files.mk_to_list(str(mk), False)
+    kernels = files.mk_to_list(str(mk), False)
+    assert num_kernels == len(kernels)
+    assert kernels[0] == first  # First kernel in the list
+    assert kernels[-1] == last  # Last kernel in the list
+
 
 def test_mk_to_list_error(monkeypatch, tmp_path, caplog):
     """Test mk_to_list function using pytest. This is to test logging errors"""
@@ -1056,7 +1091,7 @@ def test_mk_to_list_error(monkeypatch, tmp_path, caplog):
     mk = tmp_path / "empty_kernels.tm"
     mk.write_text(mk_content)
 
-    def mock_handle_error(msg, setup=False):
+    def mock_handle_error(msg, **_):
         files.logging.getLogger("files").error(msg)
 
     monkeypatch.setattr(files, "handle_npb_error", mock_handle_error)
@@ -1064,17 +1099,27 @@ def test_mk_to_list_error(monkeypatch, tmp_path, caplog):
     with caplog.at_level(files.logging.ERROR):
         files.mk_to_list(str(mk), setup=False)
 
-    assert f"No kernels present in {mk}. ", f"Please review MK generation." in caplog.text
+    assert [f"No kernels present in {mk}. Please review MK generation."] == caplog.messages
 
 # ----------------------------------------------------------------------------
 # files.product_mapping test
 # ----------------------------------------------------------------------------
 
-@pytest.mark.parametrize("miss_acr, rel, ker_list, text, expected", [
-    ("VOYAGER", "5" , "VOYAGER_Release_05.kernel_list", "my_kernel\n  MAPPING = success", "success"),
-    #("M2020", "1", "M2020_Release_01.kernel_list", "M2020_168_SCLKSCET.20260419.tsc\n  MAPPING = m2020_168_sclkscet_20260419.tsc", "m2020_168_sclkscet_20260419.tsc" ) #not sure how to make a real example work...
+@pytest.mark.parametrize("miss_acr, rel, ker_list, text, name, expected", [
+    ("VOYAGER",
+     "5" ,
+     "VOYAGER_Release_05.kernel_list",
+     "my_kernel\n  MAPPING = success",
+     'my_kernel',
+     "success"),
+    ("M2020",
+     "1",
+     "M2020_Release_01.kernel_list",
+     "M2020_168_SCLKSCET.20260419.tsc\n  MAPPING = m2020_168_sclkscet_20260419.tsc",
+     'M2020_168_SCLKSCET.20260419.tsc',
+     "m2020_168_sclkscet_20260419.tsc" )
 ])
-def test_product_mapping(tmp_path, miss_acr,  rel, ker_list, text, expected):
+def test_product_mapping(tmp_path, miss_acr,  rel, ker_list, text, name, expected):
     """Test product_mapping function using pytest."""
     setup = MagicMock()
     setup.working_directory = str(tmp_path)
@@ -1085,7 +1130,7 @@ def test_product_mapping(tmp_path, miss_acr,  rel, ker_list, text, expected):
     kernel_list_file = tmp_path / ker_list
     kernel_list_file.write_text(text)
 
-    result = files.product_mapping("my_kernel", setup)
+    result = files.product_mapping(name, setup)
 
     assert result == expected
 
@@ -1102,7 +1147,7 @@ def test_product_mapping_error_handling(monkeypatch, tmp_path):
     # Track calls to handle_npb_error in list
     called = []
 
-    def mock_error_handler(msg, setup=None):
+    def mock_error_handler(msg, **_):
         called.append(msg)
 
     monkeypatch.setattr(files,"handle_npb_error", mock_error_handler)
@@ -1123,18 +1168,9 @@ def test_product_mapping_cleanup(monkeypatch, tmp_path):
 
     monkeypatch.setattr("builtins.open", lambda f, read, encoding: io.StringIO(""))
 
-    called = False
-
-    def mock_error_handler(msg, setup=None):
-        nonlocal called
-        called = True
-
-    monkeypatch.setattr(files,"handle_npb_error", mock_error_handler)
-
     result = files.product_mapping("NON_EXISTENT", setup, cleanup=False)
 
     assert result is False
-    assert called is False
 
 # ----------------------------------------------------------------------------
 # files.replace_string_in_file test
@@ -1154,14 +1190,9 @@ def test_replace_string_in_file(tmp_path, contents, old_str, new_str, eol_pds3, 
     mock_setup = MagicMock()
     mock_setup.eol_pds3 = eol_pds3
 
-    try:
-        files.replace_string_in_file(str(fake_file), old_str, new_str, mock_setup)
-
-        final_content = fake_file.read_text()
-        assert final_content == expected
-    finally:
-        if os.path.exists("tmp.file"):
-            os.remove("tmp.file")
+    files.replace_string_in_file(str(fake_file), old_str, new_str, mock_setup)
+    final_content = fake_file.read_text()
+    assert final_content == expected
 
 # ----------------------------------------------------------------------------
 # files.safe_make_directory test
@@ -1293,5 +1324,5 @@ def test_type_to_pds3_type(inputs, outputs):
     ("kernels/pck/pck00010.tpc", "24")
 ])
 def test_utf8len(strn, length):
-    """Test utf8len function with pytest."""
+    """Test `utf8len` function with pytest."""
     assert files.utf8len(str(strn)) == int(length)
