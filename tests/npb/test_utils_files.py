@@ -52,7 +52,7 @@ def test_add_carriage_return(inputs, eol, outputs):
     assert result == outputs
 
 @pytest.mark.parametrize("inputs, eol, expected", [
-    ("Meww", "", [(40, "File has incorrect CR at line: Meww.")]),
+    ("Meww", "", [(logging.ERROR, "File has incorrect CR at line: Meww.")]),
     ("Meww", "", [(logging.ERROR, "File has incorrect CR at line: Meww.")]),
     ("Meww", "\n", []),
     ("Meww", "\r\n", []),
@@ -243,7 +243,7 @@ def test_check_eol(kern, eol, expected):
 def test_check_eol_alt(tmp_path, words, eol, expected):
     """Test check_eol function using pytest."""
     file_path = tmp_path / "test_eol.txt"
-    with open(file_path, "wt", encoding='utf-8') as f:
+    with open(file_path, "wt", encoding='utf-8', newline='') as f:
         f.write(words)
 
     result = files.check_eol(str(file_path), eol)
