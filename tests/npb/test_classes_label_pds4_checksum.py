@@ -193,58 +193,32 @@ class TestChecksumPDS4Label:
         # name.
         assert label.name == 'checksum.xml'
 
-    def test_setup_and_product_reference_stored(self, tmp_path: Path) -> None:
-        # Validate that the inherited constructor stores setup and product on
-        # the label.
+    def test_constructor_stores_references_and_writes_label_once(
+            self, tmp_path: Path) -> None:
+        # Validate constructor wiring and its single write_label side effect.
 
-        # Build the Setup mock that will be passed to the label constructor.
+        # Build the collaborators required by the label constructor.
         setup = _make_setup(tmp_path)
 
-        # Build the temporal staging directory.
-        staging = tmp_path / 'staging'
+        # Create the staging directory used by the mocked checksum product path.
+        staging = tmp_path / "staging"
         staging.mkdir(parents=True, exist_ok=True)
 
-        # Build the product mock that will be passed to the label constructor.
         product = _make_product(staging)
 
-        # Patch PDSLabel.write_label() to prevent actual file writing during
-        # this unit test.
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
+        # Avoid real file writing while checking the constructor side effect.
+        with patch("pds.naif_pds4_bundler.classes.label.label."
+                   "PDSLabel.write_label", autospec=True) as mock_write:
             label = ChecksumPDS4Label(setup, product)
 
-        # Check that label.setup points to the same setup object that was passed
-        # to the constructor.
-        assert label.setup == setup
+        # Verify that label.setup is exactly the same setup object that was
+        # passed to the constructor, and the same applies to label.product with
+        # the product object.
+        assert label.setup is setup
+        assert label.product is product
 
-        # Check that label.product points to the same product object that was
-        # passed to the constructor.
-        assert label.product == product
-
-    def test_write_label_called_once_during_init(self, tmp_path: Path) -> None:
-        # Validate that creating a PDS4 checksum label invokes the inherited
-        # writer once.
-
-        # Build the Setup mock with the needed attributes to instance
-        # ChecksumPDS4Label.
-        setup = _make_setup(tmp_path)
-
-        # Build a temporal staging directory.
-        staging = tmp_path / 'staging'
-        staging.mkdir(parents=True, exist_ok=True)
-
-        # Build the product mock.
-        product = _make_product(staging)
-
-        # Patch PDSLabel.write_label function to prevent the files from actually
-        # being written and to be able to count how many times write_label() has
-        # been called.
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True) as mock_write:
-            label = ChecksumPDS4Label(setup, product)
-
-        # Check that write_label() was called exactly once, and it was called on
-        # the specific label instance.
+        # Check that write_label() was called once and that it was called with
+        # the label instance.
         mock_write.assert_called_once_with(label)
 
     # ------------------------------------------------------------------
