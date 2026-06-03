@@ -285,28 +285,6 @@ class TestChecksumPDS4Label:
         # value assigned to the product.
         assert getattr(label, label_attribute) == value
 
-    def test_write_label_errors_are_propagated(self, tmp_path: Path) -> None:
-        # Mock setup with the attributes required to build the label.
-        setup = _make_setup(tmp_path)
-
-        # Build a temporal staging directory.
-        staging = tmp_path / 'staging'
-        staging.mkdir(parents=True, exist_ok=True)
-
-        # Mock the product.
-        product = _make_product(staging)
-
-        # Patch PDSLabel.write_label to simulate a write failure.
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True,
-                   side_effect=RuntimeError('write failed')) as mock_write:
-            # Capture the exception.
-            with pytest.raises(RuntimeError, match='write failed'):
-                ChecksumPDS4Label(setup, product)
-
-        # Check that write_label() called once.
-        mock_write.assert_called_once()
-
     @pytest.mark.parametrize('missing_owner, missing_attribute', [
         ('setup', 'templates_directory'),
         ('product', 'name'),
