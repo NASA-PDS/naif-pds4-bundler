@@ -13,6 +13,7 @@ import shutil
 import stat
 import sys
 from pathlib import Path
+import tempfile
 from typing import Optional
 
 import spiceypy
@@ -163,6 +164,9 @@ def type_to_pds3_type(kernel):
         "CK": "POINTING",
         "SPK": "EPHEMERIS",
         "DSK": "SHAPE",
+        "EK": "EVENTS",
+        "ORB": "ORBIT NUMBER", #these don't receive pds3 labels...
+        "MK": "METAKERNEL", #these don't receive pds3 labels...
     }
 
     try:
@@ -199,6 +203,8 @@ def type_to_extension(kernel_type):
         "CK": ["bc"],
         "SPK": ["bsp"],
         "DSK": ["bds"],
+        "EK": ["bes", "bpe", "bep", "bdb"],
+        "ORB": ["nrb","orb"],
     }
 
     kernel_extension = kernel_type_map[kernel_type]
@@ -384,6 +390,12 @@ def mk_to_list(mk, setup):
     :return: List of kernels present in the meta-kernel
     :rtype: list
     """
+    # TODO: Update the code to work also with a metakernel like the one provided
+    #       in the example #2 of the `furnsh_c` API (furnsh_ex2.tm)
+    # NOTE: This code also does not remove comments before doing the parsing
+    #       therefore it might have some issues with meta-kernels that explain
+    #       the use of the PATH_SYMBOLS, or that have an older path structure
+    #       commented out.
     path_symbol = ""
     get_symbol = False
     ker_mk_list = []
@@ -429,8 +441,13 @@ def mk_to_list(mk, setup):
 
 
 def get_latest_kernel(
-    kernel_type, paths, pattern, dates=False, excluded_kernels=False, mks=False
-):
+    kernel_type: str,
+    paths: list[str],
+    pattern:str,
+    dates: bool = False,
+    excluded_kernels: Optional[list[str]] = None,
+    mks: Optional[list[str]] = None
+) -> list[str]:
     """Get the latest kernel given a type and a pattern.
 
     Returns the name of the latest SPICE kernel of a given type present
@@ -439,31 +456,23 @@ def get_latest_kernel(
 
     :param kernel_type: SPICE Kernel type which also defines
                         the subdirectory name.
-    :type kernel_type: str
     :param paths: List of paths to the roots of the SPICE Kernels directories
                   where the kernels are store in a subdirectory named "type".
-    :type paths: str
     :param pattern: Patterns to search for that defines the kernel "type"
                     file naming scheme. This pattern follows the format of
                     the meta-kernel grammar provided in the XML configuration
                     file
-    :type pattern: str
     :param dates: Indicates that the pattern of the kernel includes dates
                   and that the last version of each kernel with a date has
                   to be included. If this parameter is set to False then
                   only the latest date and latest version is included
-    :type dates: bool
     :param excluded_kernels: Indicates that a specific kernel might have
                              to be excluded from the search.
-    :type excluded_kernels: list
     :param mks: Indicates that the kernels present in the list of provided
           meta-kernels have to be included for consideration to obtain
           the latest version of the given kernel
-    :type mks: list
     :return: Name of the latest kernels as specified by the pattern.
-    :rtype: list
     """
-    kernels = []
     kernels_with_path = []
 
     for path in paths:
@@ -488,12 +497,7 @@ def get_latest_kernel(
 
     kernels_with_path = list(dict.fromkeys(kernels_with_path))
 
-    for kernel in kernels_with_path:
-        kernel = kernel.split("/")[-1].split("'")[0]
-        if "'" in kernel:
-            kernels.append(kernel[:-1])
-        else:
-            kernels.append(kernel)
+    kernels = [path.split("/")[-1].split("'")[0] for path in kernels_with_path]
 
     #
     # Put the kernels in order
@@ -723,25 +727,18 @@ def checksum_from_registry(path, working_directory):
     :return: MD5 Sum for the file indicated by path
     :rtype: str
     """
-    checksum = ""
     checksum_registries = glob.glob(f"{working_directory}/*.checksum")
-    checksum_found = False
 
     for checksum_registry in checksum_registries:
-        if not checksum_found:
-            with open(checksum_registry, "r", encoding='utf-8') as lbl:
-                for line in lbl:
-                    if path in line:
-                        checksum = line.split()[-1]
+        with open(checksum_registry, "r", encoding='utf-8') as f:
+            for line in f:
+                if path in line:
+                    logging.warning(
+                        '-- Checksum obtained from Checksum Registry file: %s',
+                        checksum_registry)
+                    return line.split()[-1]
 
-                        logging.warning(
-                            '-- Checksum obtained from Checksum '
-                            'Registry file: %s', checksum_registry)
-
-                        checksum_found = True
-                        break
-
-    return checksum
+    return ""
 
 
 def checksum_from_label(path):
@@ -787,8 +784,8 @@ def extract_comment(path, handle=False):
     linlen = 1001
     buffsz = 100000
 
-    (lincmt, commnt, _) = spiceypy.dafec(handle, buffsz, linlen)
-    if lincmt > buffsz:
+    (lincmt, commnt, done) = spiceypy.dafec(handle, buffsz, linlen)
+    if not done:
         spiceypy.dafcls(handle)
         handle_npb_error(f"Comment from {path} is longer than buffer size.")
 
@@ -848,17 +845,26 @@ def replace_string_in_file(file, old_string, new_string, setup):
     :type new_string: str
     :param setup: NPB run Setup
     """
-    with open(file, 'r', encoding='utf-8') as f:
+    # TODO: Update this function to not use NamedTemporaryFiles or other temp solution.
+    # Get the directory of the target file
+    file_dir = os.path.dirname(os.path.abspath(file))
 
-        new_file_content = ''
-        for line in f:
+    # Read the file, replace the old string with the new one, and "force" the
+    # PDS3 carriage return.
+    new_file_content = ""
+    with open(file, 'rt', encoding='utf-8') as handle:
+        for line in handle:
             new_line = line.replace(old_string, new_string)
             new_file_content += add_carriage_return(new_line, setup.eol_pds3, setup)
 
-    with open('temp.file', 'w', encoding='utf-8') as writing_file:
-        writing_file.write(new_file_content)
+    # Create unique temp file in the same directory as the source file,
+    # and keep it so that we can replace the original one with the updated
+    # contents.
+    with tempfile.NamedTemporaryFile(
+            mode='wt', dir=file_dir, delete=False, encoding='utf-8') as tmp:
+        tmp.write(new_file_content)
 
-    shutil.move('temp.file', file)
+    shutil.move(tmp.name, file)
 
 
 def format_multiple_values(value):
@@ -981,7 +987,7 @@ def check_kernel_integrity(path):
         else:
             pass
 
-    elif file_format == "Character":
+    else:  # file_format == "Character":
 
         #
         # Text kernels must have KPL architecture:
@@ -1126,26 +1132,21 @@ def check_line_length(file):
     return error
 
 
-def check_permissions(path):
+def check_permissions(path: str) -> None:
     """Check if the file has read permissions.
-
     This method ensures that the file has the adequate file permissions.
 
     :param path: file path
-    :type path: str
-    :return: Error message if error present
-    :rtype: none
     """
+    # Try to open the file for read access. Use binary mode, since the input
+    # file might be either binary or text. If it fails, we don't have
+    # read permissions. This method works both in Unix and Windows. If
+    # the read operation succeeds, don't do anything else.
+    try:
+        with Path(path).open('rb') as f:
+            f.read(0)
 
-    #
-    # This provides the usual chmod style file permissions.
-    #
-    permissions = oct(os.stat(path)[stat.ST_MODE])[-3:]
-
-    #
-    # The first two digits must be at least 4.
-    #
-    if int(permissions[0]) < 4 or int(permissions[1]) < 4:
+    except PermissionError:
         handle_npb_error(
             f"File {path} is not readable by the account that runs NPB. "
             f"Update permissions."
