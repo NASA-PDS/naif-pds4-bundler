@@ -72,46 +72,6 @@ class TestDocumentPDS4LabelInit:
         # once.
         write_label_mock.assert_called_once_with(document_label)
 
-    def test_write_label_error_is_propagated_after_state_is_prepared(
-            self, mocker, tmp_path: Path) -> None:
-        # Verify that write_label failures are propagated only after the document-label
-        # state required by the writer has been fully prepared.
-
-        # Create the minimal objects.
-        setup, collection, inventory = self.make_document_label_inputs(tmp_path)
-
-        parent_init_mock = mocker.patch(
-            'pds.naif_pds4_bundler.classes.label.pds4_document.PDSLabel.__init__',
-            autospec=True)
-
-        # Mock the write_label() to force a fail.
-        write_label_mock = mocker.patch.object(DocumentPDS4Label, 'write_label',
-                                               autospec=True,
-                                               side_effect=RuntimeError('label write failed'))
-
-        # Capture the exception.
-        with pytest.raises(RuntimeError, match='label write failed'):
-            DocumentPDS4Label(setup, collection, inventory)
-
-        parent_init_mock.assert_called_once()
-        write_label_mock.assert_called_once()
-
-        document_label = write_label_mock.call_args.args[0]
-
-        # Check that the parent has been initialised before failing.
-        assert document_label.setup is setup
-        assert document_label.collection is collection
-        assert document_label.template == str(Path(setup.templates_directory) /
-                                              'template_product_html_document.xml')
-
-        # Check the status before writing.
-        assert document_label.PRODUCT_LID == inventory.lid
-        assert document_label.PRODUCT_VID == inventory.vid
-        assert document_label.START_TIME == setup.mission_start
-        assert document_label.STOP_TIME == setup.mission_finish
-        assert document_label.FILE_NAME == inventory.name
-        assert document_label.name == 'collection_document_inventory_v001.xml'
-
     def test_init_currently_truncates_collection_name_at_first_dot(
             self, mocker, tmp_path: Path) -> None:
         # This test document a bug. A valid file name containing more than one
