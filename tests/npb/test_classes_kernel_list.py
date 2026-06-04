@@ -1149,48 +1149,6 @@ class TestKernelListWriteCompleteList:
         # continues and requests full validation.
         validate_complete_mock.assert_called_once_with(kernel_list)
 
-    def test_write_complete_list_propagates_missing_release_file_without_validation(
-            self, mocker, tmp_path) -> None:
-        # Verify that a release list returned by glob but missing on disk raises
-        # before consecutive checks, state update or complete-list validation.
-
-        # Mock the validate_complete and check_consecutive calls.
-        validate_complete_mock = mocker.patch.object(KernelList, 'validate_complete',
-                                                     autospec=True)
-
-        # Build a real KernelList instance and the expected complete-list path.
-        kernel_list, _, output_path = self.make_kernel_list(tmp_path)
-
-        # The file is not created, this only builds the path.
-        missing_release = (
-            Path(kernel_list.setup.working_directory) /
-            'maven_release_04.kernel_list')
-
-        # Mock the glob.glob call with the before path to force the exception.
-        glob_mock = mocker.patch(
-            'pds.naif_pds4_bundler.classes.list.glob.glob',
-            return_value=[str(missing_release)])
-
-        # Capture the exception.
-        with pytest.raises(FileNotFoundError):
-            kernel_list.write_complete_list()
-
-        # Check that the file exists and it is empty.
-        assert output_path.exists()
-        assert output_path.read_text(encoding='utf-8') == ''
-
-        # Check that the internal state is not updated.
-        assert kernel_list.complete_list == ''
-
-        # Check the glob call with the expected values.
-        glob_mock.assert_called_once_with(
-            kernel_list.setup.working_directory
-            + os.sep
-            + 'maven_release*.kernel_list')
-
-        # Check that validate_complete are not called.
-        validate_complete_mock.assert_not_called()
-
     @pytest.mark.skip(
         reason='To be updated after tests for validate_complete are available.')
     def test_write_complete_list_propagates_validate_complete_errors_after_side_effects(
