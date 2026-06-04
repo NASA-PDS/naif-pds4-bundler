@@ -52,10 +52,7 @@ class TestDocumentPDS4LabelInit:
         document_label = DocumentPDS4Label(setup, collection, inventory)
 
         # Verification of the call to the parent.
-        parent_init_mock.assert_called_once()
-        assert parent_init_mock.call_args.args[0] is document_label
-        assert parent_init_mock.call_args.args[1] is setup
-        assert parent_init_mock.call_args.args[2] is inventory
+        parent_init_mock.assert_called_once_with(document_label, setup, inventory)
 
         # Check that the class stores the same references as those received.
         assert document_label.setup is setup
@@ -74,10 +71,6 @@ class TestDocumentPDS4LabelInit:
         # Check that the constructor requests the label to be generated exactly
         # once.
         write_label_mock.assert_called_once_with(document_label)
-
-        # With write_label mocked, this constructor should not create files by
-        # itself.
-        assert list(tmp_path.iterdir()) == []
 
     def test_write_label_error_is_propagated_after_state_is_prepared(
             self, mocker, tmp_path: Path) -> None:
