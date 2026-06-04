@@ -381,11 +381,16 @@ class KernelList:
 
                 logging.info('-- Adding %s', kernel_list)
 
+                # TODO: BUG; If a file matching the release kernel-list glob
+                #       does not contain a numeric release token, int() raises
+                #      ValueError before the complete list can be validated.
                 release_list.append(int(kernel_list.replace("_", ".").split(".")[-3]))
                 with open(kernel_list, "r", encoding='utf-8') as lst:
                     for line in lst:
                         c.write(line)
 
+        # TODO: BUG, If no release kernel lists are available, release_list is
+        #       empty and check_consecutive([]) raises ValueError.
         if not check_consecutive(release_list):
             logging.warning('-- Incomplete Kernel lists available: %s', release_list)
 

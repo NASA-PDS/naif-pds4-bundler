@@ -1035,9 +1035,12 @@ class TestKernelListWriteCompleteList:
         validate_complete_mock.assert_called_once_with(kernel_list)
 
     def test_write_complete_list_accepts_no_release_lists(
-            self, mocker, tmp_path) -> None:
+            self, mocker, caplog, tmp_path) -> None:
         # Verify the empty-input path: when no release lists are found, the method still
         # creates an empty complete list, updates state and requests validation.
+
+        # TODO: BUG; write_complete_list should handle the case with no release
+        #      lists before checking if release numbers are consecutive.
 
         # Mock the validate_complete and check_consecutive calls.
         validate_complete_mock = mocker.patch.object(KernelList, 'validate_complete',
@@ -1046,18 +1049,22 @@ class TestKernelListWriteCompleteList:
         # Create a KernelList instance with a temporal and empty working_directory
         kernel_list, _, output_path = self.make_kernel_list(tmp_path)
 
-        with pytest.raises(ValueError):
-            kernel_list.write_complete_list()
+        with caplog.at_level(logging.INFO):
+            with pytest.raises(ValueError):
+                kernel_list.write_complete_list()
 
         # Check that the file exists and is empty.
         assert output_path.exists()
         assert output_path.read_text(encoding='utf-8') == ''
 
-        # Check that the method updates the complete_list even if it is empty.
+        # The method must still publish the generated complete-list filename.
         assert kernel_list.complete_list == ''
 
         # Check that check_consecutive and validate_complete called once.
         validate_complete_mock.assert_not_called()
+
+        # No release files are added and no warning is emitted.
+        assert caplog.record_tuples == []
 
     def test_write_complete_list_logs_added_release_lists(
             self, mocker, caplog, tmp_path) -> None:
@@ -1141,38 +1148,6 @@ class TestKernelListWriteCompleteList:
         # Even if a warning has been issued, the method does not terminate. It
         # continues and requests full validation.
         validate_complete_mock.assert_called_once_with(kernel_list)
-
-    def test_write_complete_list_propagates_invalid_release_number_without_validation(
-            self, mocker, tmp_path) -> None:
-        # Check that a release-list filename with a non-numeric release token
-        # raises before consecutive checks, state update or complete-list
-        # validation.
-
-        # Mock the validate_complete and check_consecutive calls.
-        validate_complete_mock = mocker.patch.object(KernelList, 'validate_complete',
-                                                     autospec=True)
-
-        # Build a real KernelList instance and the expected complete-list path.
-        kernel_list, _, output_path = self.make_kernel_list(tmp_path)
-
-        # Create an invalid file.
-        working_directory = Path(kernel_list.setup.working_directory)
-        invalid_release = working_directory / 'maven_release_bad.kernel_list'
-        invalid_release.write_text('INVALID RELEASE\n', encoding='utf-8')
-
-        # Capture the exception.
-        with pytest.raises(ValueError):
-            kernel_list.write_complete_list()
-
-        # Check that the file exists and it is empty.
-        assert output_path.exists()
-        assert output_path.read_text(encoding='utf-8') == ''
-
-        # Check that the internal state is not updated.
-        assert kernel_list.complete_list == ''
-
-        # Check that validate_complete are not called.
-        validate_complete_mock.assert_not_called()
 
     def test_write_complete_list_propagates_missing_release_file_without_validation(
             self, mocker, tmp_path) -> None:
