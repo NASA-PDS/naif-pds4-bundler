@@ -42,7 +42,7 @@ class TestDocumentPDS4LabelInit:
         # executing the actual logic of PDSLabel.
         parent_init_mock = mocker.patch(
             'pds.naif_pds4_bundler.classes.label.pds4_document.PDSLabel.__init__',
-            autospec=True, return_value=None)
+            autospec=True)
 
         # Mock write_label to verify that label generation is requested without
         # creating files on disk.
@@ -89,8 +89,7 @@ class TestDocumentPDS4LabelInit:
 
         parent_init_mock = mocker.patch(
             'pds.naif_pds4_bundler.classes.label.pds4_document.PDSLabel.__init__',
-            autospec=True,
-            return_value=None)
+            autospec=True)
 
         # Mock the write_label() to force a fail.
         write_label_mock = mocker.patch.object(DocumentPDS4Label, 'write_label',
@@ -131,7 +130,7 @@ class TestDocumentPDS4LabelInit:
 
         mocker.patch(
             'pds.naif_pds4_bundler.classes.label.pds4_document.PDSLabel.__init__',
-            autospec=True, return_value=None)
+            autospec=True)
 
         mocker.patch.object(DocumentPDS4Label, 'write_label', autospec=True)
 
