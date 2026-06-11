@@ -547,6 +547,29 @@ class TestChecksumProductWriteProduct:
         m_lbl_cs.assert_not_called()
         m_md5.assert_called()
 
+    @staticmethod
+    def _run_write_product_warning_test(obj, caplog):
+        """Helper to execute the product write test and assert expected log messages."""
+        with patch(PATCHES["md5"], return_value="c" * 32), \
+             patch(PATCHES["os_walk"], return_value=[]), \
+             patch(PATCHES["os_path_isfile"], return_value=False), \
+             patch("builtins.open", mock_open()), \
+             caplog.at_level(logging.INFO):
+
+            obj.write_product(history=None, set_coverage=False)
+
+        expected = [
+            (logging.WARNING, '-- Default to version 1.'),
+            (logging.WARNING, '-- Make sure this is the first release of the archive.'),
+            (logging.WARNING, ''),
+            (logging.WARNING, '-- miscellaneous/test_file.tab does not have a label.'),
+            (logging.INFO, ''),
+            (logging.WARNING, '-- Start time set to mission start time: 2016-01-01T00:00:00Z'),
+            (logging.WARNING, '-- Stop time set to mission finish time: 2023-12-31T23:59:59Z')]
+
+        messages = [(r[1], r[2]) for r in caplog.record_tuples]
+        assert messages == expected
+
     def test_write_product_no_history_product_without_label_logs_warning(self, caplog):
         obj = self._obj_with_products()
 
@@ -555,25 +578,7 @@ class TestChecksumProductWriteProduct:
             for prod in coll.product:
                 del prod.label
 
-        with patch(PATCHES["md5"], return_value="c" * 32), \
-             patch(PATCHES["os_walk"], return_value=[]), \
-             patch(PATCHES["os_path_isfile"], return_value=False), \
-             patch("builtins.open", mock_open()), \
-             caplog.at_level(logging.INFO):
-
-            obj.write_product(history=None, set_coverage=False)
-
-        expected = [
-            (logging.WARNING, '-- Default to version 1.'),
-            (logging.WARNING, '-- Make sure this is the first release of the archive.'),
-            (logging.WARNING, ''),
-            (logging.WARNING, '-- miscellaneous/test_file.tab does not have a label.'),
-            (logging.INFO, ''),
-            (logging.WARNING, '-- Start time set to mission start time: 2016-01-01T00:00:00Z'),
-            (logging.WARNING, '-- Stop time set to mission finish time: 2023-12-31T23:59:59Z')]
-
-        messages = [(r[1], r[2]) for r in caplog.record_tuples]
-        assert messages == expected
+        self._run_write_product_warning_test(obj, caplog)
 
     def test_write_product_no_history_product_with_none_label_logs_warning(self, caplog):
         obj = self._obj_with_products()
@@ -582,25 +587,7 @@ class TestChecksumProductWriteProduct:
             for prod in coll.product:
                 prod.label = None
 
-        with patch(PATCHES["md5"], return_value="c" * 32), \
-             patch(PATCHES["os_walk"], return_value=[]), \
-             patch(PATCHES["os_path_isfile"], return_value=False), \
-             patch("builtins.open", mock_open()), \
-             caplog.at_level(logging.INFO):
-
-            obj.write_product(history=None, set_coverage=False)
-
-        expected = [
-            (logging.WARNING, '-- Default to version 1.'),
-            (logging.WARNING, '-- Make sure this is the first release of the archive.'),
-            (logging.WARNING, ''),
-            (logging.WARNING, '-- miscellaneous/test_file.tab does not have a label.'),
-            (logging.INFO, ''),
-            (logging.WARNING, '-- Start time set to mission start time: 2016-01-01T00:00:00Z'),
-            (logging.WARNING, '-- Stop time set to mission finish time: 2023-12-31T23:59:59Z')]
-
-        messages = [(r[1], r[2]) for r in caplog.record_tuples]
-        assert messages == expected
+        self._run_write_product_warning_test(obj, caplog)
 
     # TODO: This test will not be necessary when refactoring is completed.
     def test_write_product_duplicate_md5_debug_mode_logs_debug(self, caplog):
