@@ -3,6 +3,7 @@ import glob
 import logging
 import os
 from collections import defaultdict
+from pathlib import Path
 from typing import Optional
 
 from .product import Product
@@ -53,11 +54,11 @@ class ChecksumProduct(Product):
         # We generate the kernel directory if not present
         #
         if setup.pds_version == "4":
-            product_path = self.collection_path + "checksum/"
+            product_path = Path(self.collection_path, "checksum")
         else:
-            product_path = f"{setup.staging_directory}/index/"
+            product_path = Path(setup.staging_directory, "index")
 
-        safe_make_directory(product_path)
+        safe_make_directory(str(product_path))
 
         #
         # Initialize the checksum dictionary; we use a dictionary to be
@@ -146,7 +147,7 @@ class ChecksumProduct(Product):
                     # generated one.
                     #
                     self.path_current = latest_file
-                    self.name_current = latest_file.split(os.sep)[-1]
+                    self.name_current = Path(latest_file).name
 
                     latest_version = latest_file.split("_v")[-1].split(".")[0]
                     self.version = int(latest_version) + 1
@@ -173,15 +174,10 @@ class ChecksumProduct(Product):
                 logging.warning('')
 
             self.name = f"checksum_v{self.version:03}.tab"
-            self.path = (
-                self.setup.staging_directory
-                + os.sep
-                + self.collection.name
-                + os.sep
-                + "checksum"
-                + os.sep
-                + self.name
-            )
+            self.path = str(Path(self.setup.staging_directory,
+                                 self.collection.name,
+                                 "checksum",
+                                 self.name))
         else:
 
             self.name_current = "checksum.tab"
@@ -193,9 +189,7 @@ class ChecksumProduct(Product):
             )
 
             self.name = "checksum.tab"
-            self.path = (
-                self.setup.staging_directory + os.sep + "index" + os.sep + self.name
-            )
+            self.path = str(Path(self.setup.staging_directory, "index", self.name))
 
         #
         # Add each element of current checksum into the md5_sum attribute if
@@ -239,12 +233,12 @@ class ChecksumProduct(Product):
                     label_current = self.path_current.replace(".tab", ".lbl")
 
                 md5_current = md5(self.path_current)
-                self.md5_dict[checksum_dir + self.path_current.split(os.sep)[-1]] = (
+                self.md5_dict[checksum_dir + Path(self.path_current).name] = (
                     md5_current
                 )
 
                 md5_label = md5(label_current)
-                self.md5_dict[checksum_dir + label_current.split(os.sep)[-1]] = (
+                self.md5_dict[checksum_dir + Path(label_current).name] = (
                     md5_label
                 )
 

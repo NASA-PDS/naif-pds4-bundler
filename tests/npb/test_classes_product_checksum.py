@@ -1,6 +1,8 @@
 """Unit tests for the ChecksumProduct class.
 """
 import logging
+import os
+from pathlib import Path
 from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
@@ -135,7 +137,7 @@ class TestChecksumProductInit:
         obj, _ = _build_pds4(increment=False)
         assert obj.version == 1
         assert obj.path_current == ""
-        assert obj.path == "/staging/miscellaneous/checksum/checksum_v001.tab"
+        assert obj.path == str(Path("/staging/miscellaneous/checksum/checksum_v001.tab"))
         assert obj.lid == "urn:nasa:pds:em16_spice:miscellaneous:checksum_checksum"
         assert obj.vid == "1.0"
         assert obj.bytes == 0
@@ -176,7 +178,7 @@ class TestChecksumProductInit:
 
             ChecksumProduct(setup, collection)
 
-        m_mkdir.assert_called_once_with("/staging/miscellaneous/checksum/")
+        m_mkdir.assert_called_once_with(str(Path("/staging/miscellaneous/checksum/")))
 
     def test_init_pds3_creates_index_directory(self):
 
@@ -192,13 +194,13 @@ class TestChecksumProductInit:
 
             ChecksumProduct(setup, collection)
 
-        m_mkdir.assert_called_once_with("/staging/index/")
+        m_mkdir.assert_called_once_with(str(Path("/staging/index")))
 
     def test_init_pds3_sets_names_and_paths(self):
         obj = _build_pds3()
         assert obj.name == "checksum.tab"
         assert obj.name_current == "checksum.tab"
-        assert obj.path.endswith("/index/checksum.tab")
+        assert Path(obj.path).parts[-2:] == ("index", "checksum.tab")
 
         # PDS3 path skips set_product_lid / set_product_vid entirely.
         assert not hasattr(obj, "lid")
@@ -462,7 +464,7 @@ class TestChecksumProductWriteProduct:
     def test_write_product_removes_ds_store_files(self):
         obj = self._obj_with_products()
 
-        ds_store_path = "/bundle/subdir/.DS_Store"
+        ds_store_path = "/bundle/subdir" + os.sep + ".DS_Store"
         walk_result = [("/bundle/subdir", [], [".DS_Store", "real.tab"])]
 
         with patch(PATCHES["md5"], return_value="c" * 32), \
