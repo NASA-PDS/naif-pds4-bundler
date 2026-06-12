@@ -962,6 +962,42 @@ class TestKernelListReadList:
 class TestKernelListValidate:
 
     @staticmethod
+    def expected_logs(setup, output_path, *, prefix=(), presence=None,
+                      final=None, pds3=(), suffix=None):
+        """Assemble the expected validate() log sequence from reusable blocks.
+
+        The PDS4 happy flow is: [prefix] + presence + final + [pds3] + duplicates.
+        Only the differing pieces are passed by each test.
+
+        - prefix:   extra records before the presence block (e.g. badchar errors).
+        - presence: the OPS-presence verdict lines (default: 'All kernels present.').
+        - final:    the final-area verdict lines (default: 'No kernels present...').
+        - pds3:     optional PDS3 option/template block, inserted before duplicates.
+        - suffix:   records appended after the duplicates block (e.g. diff lines).
+        """
+        if presence is None:
+            presence = [(logging.INFO, '     All kernels present.')]
+        if final is None:
+            final = [(logging.INFO, '     No kernels present in final area.')]
+        if suffix is None:
+            suffix = []
+
+        return [*prefix,
+                (logging.INFO, '-- Checking that kernels are present in: '),
+                (logging.INFO, f'   {setup.kernels_directory[0]}'),
+                *presence,
+                (logging.INFO, ''),
+                (logging.INFO, f'-- Checking that kernels are present in {setup.bundle_directory}: '),
+                *final,
+                (logging.INFO, ''),
+                *pds3,
+                (logging.INFO, '-- Checking for duplicates in complete kernel list:'),
+                (logging.INFO, f'     Adding {output_path} in check.'),
+                (logging.INFO, '     List contains no duplicates.'),
+                (logging.INFO, ''),
+                *suffix]
+
+    @staticmethod
     def make_kernel_list(mocker, tmp_path, list_content, kernels,
                          present_kernels=(), badchar_errors=None,
                          duplicates=False,
@@ -1037,17 +1073,7 @@ class TestKernelListValidate:
         with caplog.at_level(logging.INFO):
             kernel_list.validate()
 
-        expected = [(logging.INFO, '-- Checking that kernels are present in: '),
-                    (logging.INFO, f'   {setup.kernels_directory[0]}'),
-                    (logging.INFO, '     All kernels present.'),
-                    (logging.INFO, ''),
-                    (logging.INFO, f'-- Checking that kernels are present in {setup.bundle_directory}: '),
-                    (logging.INFO, '     No kernels present in final area.'),
-                    (logging.INFO, ''),
-                    (logging.INFO, '-- Checking for duplicates in complete kernel list:'),
-                    (logging.INFO, f'     Adding {output_path} in check.'),
-                    (logging.INFO, '     List contains no duplicates.'),
-                    (logging.INFO, '')]
+        expected = self.expected_logs(setup, output_path)
 
         results = [(r[1], r[2]) for r in caplog.record_tuples]
 
@@ -1068,19 +1094,9 @@ class TestKernelListValidate:
         with caplog.at_level(logging.INFO):
             kernel_list.validate()
 
-        expected = [(logging.ERROR, '   check_badchar: msg 1'),
-                    (logging.ERROR, '   check_badchar: msg 2'),
-                    (logging.INFO, '-- Checking that kernels are present in: '),
-                    (logging.INFO, f'   {setup.kernels_directory[0]}'),
-                    (logging.INFO, '     All kernels present.'),
-                    (logging.INFO, ''),
-                    (logging.INFO, f'-- Checking that kernels are present in {setup.bundle_directory}: '),
-                    (logging.INFO, '     No kernels present in final area.'),
-                    (logging.INFO, ''),
-                    (logging.INFO, '-- Checking for duplicates in complete kernel list:'),
-                    (logging.INFO, f'     Adding {output_path} in check.'),
-                    (logging.INFO, '     List contains no duplicates.'),
-                    (logging.INFO, '')]
+        expected = self.expected_logs(
+            setup, output_path,prefix=[(logging.ERROR, '   check_badchar: msg 1'),
+                                       (logging.ERROR, '   check_badchar: msg 2')])
 
         results = [(r[1], r[2]) for r in caplog.record_tuples]
 
@@ -1122,21 +1138,12 @@ class TestKernelListValidate:
         with caplog.at_level(logging.INFO):
             kernel_list.validate()
 
-        expected = [(logging.INFO, '-- Checking that kernels are present in: '),
-                    (logging.INFO, f'   {setup.kernels_directory[0]}'),
-                    (logging.INFO, '     All kernels present.'),
-                    (logging.INFO, ''),
-                    (logging.INFO, f'-- Checking that kernels are present in {setup.bundle_directory}: '),
-                    (logging.INFO, '     No kernels present in final area.'),
-                    (logging.INFO, ''),
-                    (logging.INFO, '-- Display all the MAKLABEL_OPTIONS:'),
-                    (logging.INFO, ''),
-                    (logging.INFO, '-- Check that all template tags used in the list are present in template:'),
-                    (logging.INFO, ''),
-                    (logging.INFO, '-- Checking for duplicates in complete kernel list:'),
-                    (logging.INFO, f'     Adding {output_path} in check.'),
-                    (logging.INFO, '     List contains no duplicates.'),
-                    (logging.INFO, '')]
+        expected = self.expected_logs(
+            setup, output_path,
+            pds3=[(logging.INFO, '-- Display all the MAKLABEL_OPTIONS:'),
+                  (logging.INFO, ''),
+                  (logging.INFO, '-- Check that all template tags used in the list are present in template:'),
+                  (logging.INFO, '')])
 
         results = [(r[1], r[2]) for r in caplog.record_tuples]
 
@@ -1211,17 +1218,7 @@ class TestKernelListValidate:
         with caplog.at_level(logging.INFO):
             kernel_list.validate()
 
-        expected = [(logging.INFO, '-- Checking that kernels are present in: '),
-                    (logging.INFO, f'   {setup.kernels_directory[0]}'),
-                    *log_lines,
-                    (logging.INFO, ''),
-                    (logging.INFO, f'-- Checking that kernels are present in {setup.bundle_directory}: '),
-                    (logging.INFO, '     No kernels present in final area.'),
-                    (logging.INFO, ''),
-                    (logging.INFO, '-- Checking for duplicates in complete kernel list:'),
-                    (logging.INFO, f'     Adding {output_path} in check.'),
-                    (logging.INFO, '     List contains no duplicates.'),
-                    (logging.INFO, '')]
+        expected = self.expected_logs(setup, output_path, presence=log_lines)
 
         results = [(r[1], r[2]) for r in caplog.record_tuples]
 
@@ -1255,17 +1252,7 @@ class TestKernelListValidate:
 
         # The kernel absent.bsp is missing and no warning is emitted and 'all
         # kernel present' is logged.
-        expected = [(logging.INFO, '-- Checking that kernels are present in: '),
-                    (logging.INFO, f'   {setup.kernels_directory[0]}'),
-                    (logging.INFO, '     All kernels present.'),
-                    (logging.INFO, ''),
-                    (logging.INFO, f'-- Checking that kernels are present in {setup.bundle_directory}: '),
-                    (logging.INFO, '     No kernels present in final area.'),
-                    (logging.INFO, ''),
-                    (logging.INFO, '-- Checking for duplicates in complete kernel list:'),
-                    (logging.INFO, f'     Adding {output_path} in check.'),
-                    (logging.INFO, '     List contains no duplicates.'),
-                    (logging.INFO, '')]
+        expected = self.expected_logs(setup, output_path)
 
         results = [(r[1], r[2]) for r in caplog.record_tuples]
 
@@ -1292,17 +1279,9 @@ class TestKernelListValidate:
         with caplog.at_level(logging.INFO):
             kernel_list.validate()
 
-        expected = [(logging.INFO, '-- Checking that kernels are present in: '),
-                    (logging.INFO, f'   {setup.kernels_directory[0]}'),
-                    (logging.INFO, '     All kernels present.'),
-                    (logging.INFO, ''),
-                    (logging.INFO, f'-- Checking that kernels are present in {setup.bundle_directory}: '),
-                    (logging.WARNING, '     k.bsp present.'),
-                    (logging.INFO, ''),
-                    (logging.INFO, '-- Checking for duplicates in complete kernel list:'),
-                    (logging.INFO, f'     Adding {output_path} in check.'),
-                    (logging.INFO, '     List contains no duplicates.'),
-                    (logging.INFO, '')]
+        expected = self.expected_logs(
+            setup, output_path,
+            final=[(logging.WARNING, '     k.bsp present.')])
 
         results = [(r[1], r[2]) for r in caplog.record_tuples]
 
@@ -1329,22 +1308,13 @@ class TestKernelListValidate:
         with caplog.at_level(logging.INFO):
             kernel_list.validate()
 
-        expected = [(logging.INFO, '-- Checking that kernels are present in: '),
-                    (logging.INFO, f'   {setup.kernels_directory[0]}'),
-                    (logging.INFO, '     All kernels present.'),
-                    (logging.INFO, ''),
-                    (logging.INFO, f'-- Checking that kernels are present in {setup.bundle_directory}: '),
-                    (logging.INFO, '     No kernels present in final area.'),
-                    (logging.INFO, ''),
-                    (logging.INFO, '-- Display all the MAKLABEL_OPTIONS:'),
-                    (logging.INFO, f'     {option}'),
-                    (logging.INFO, ''),
-                    (logging.INFO, '-- Check that all template tags used in the list are present in template:'),
-                    *log_lines,
-                    (logging.INFO, '-- Checking for duplicates in complete kernel list:'),
-                    (logging.INFO, f'     Adding {output_path} in check.'),
-                    (logging.INFO, '     List contains no duplicates.'),
-                    (logging.INFO, '')]
+        expected = self.expected_logs(
+            setup, output_path,
+            pds3=[(logging.INFO, '-- Display all the MAKLABEL_OPTIONS:'),
+                  (logging.INFO, f'     {option}'),
+                  (logging.INFO, ''),
+                  (logging.INFO, '-- Check that all template tags used in the list are present in template:'),
+                  *log_lines])
 
         results = [(r[1], r[2]) for r in caplog.record_tuples]
 
@@ -1445,20 +1415,11 @@ class TestKernelListValidate:
         with caplog.at_level(logging.INFO):
             kernel_list.validate()
 
-        expected = [(logging.INFO, '-- Checking that kernels are present in: '),
-                    (logging.INFO, f'   {setup.kernels_directory[0]}'),
-                    (logging.INFO, '     All kernels present.'),
+        expected = self.expected_logs(
+            setup, output_path,
+            suffix=[(logging.INFO, '-- Comparing current list with previous list:'),
                     (logging.INFO, ''),
-                    (logging.INFO, f'-- Checking that kernels are present in {setup.bundle_directory}: '),
-                    (logging.INFO, '     No kernels present in final area.'),
-                    (logging.INFO, ''),
-                    (logging.INFO, '-- Checking for duplicates in complete kernel list:'),
-                    (logging.INFO, f'     Adding {output_path} in check.'),
-                    (logging.INFO, '     List contains no duplicates.'),
-                    (logging.INFO, ''),
-                    (logging.INFO, '-- Comparing current list with previous list:'),
-                    (logging.INFO, ''),
-                    (logging.ERROR, '-- Previous list not available.')]
+                    (logging.ERROR, '-- Previous list not available.')])
 
         results = [(r[1], r[2]) for r in caplog.record_tuples]
 
