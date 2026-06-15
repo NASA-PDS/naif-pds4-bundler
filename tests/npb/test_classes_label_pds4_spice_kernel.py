@@ -13,10 +13,10 @@ Two test classes are provided:
 from pathlib import Path
 import textwrap
 import xml.etree.ElementTree as ElementTree
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 
 from pds.naif_pds4_bundler.classes.label.pds4_spice_kernel import SpiceKernelPDS4Label
 
@@ -25,138 +25,50 @@ from pds.naif_pds4_bundler.classes.label.pds4_spice_kernel import SpiceKernelPDS
 # Helpers – factories for the two collaborator mocks (setup & product)
 # ---------------------------------------------------------------------------
 
-def _make_setup(tmp_path: Path, end_of_line: str = 'LF',
-                eol_pds4: str = '\n') -> MagicMock:
-    """Return a fully-configured mock Setup object for PDS4 usage.
 
-    :param tmp_path:    pytest temporary directory for project folders
-    :param end_of_line: configured end-of-line keyword (``LF`` or ``CRLF``)
-    :param eol_pds4:    physical PDS4 end-of-line sequence used by the writer
-    :return:            configured Setup mock
-    """
-    setup = MagicMock()
+@pytest.fixture()
+def helpers(base_helpers: SimpleNamespace) -> SimpleNamespace:
+    """Specialize the generic factories for SPICE kernel labels.
 
-    # Basic execution context expected by the label hierarchy.
-    setup.pds_version = '4'
-    setup.volume_id = 'maven_0001'
-    setup.mission_acronym = 'maven'
-    setup.mission_name = 'MAVEN'
-    setup.observer = 'MAVEN'
-    setup.target = 'Mars'
+        Reuses ``base_helpers.make_setup`` as-is and wraps
+        ``base_helpers.make_product`` to add the SPICE-kernel-specific fields
+        (missions/observers/targets, file_format, type, description and
+        Z-suffixed coverage) and the on-disk <staging>/<type>/<name> layout.
 
-    # Secondary context values are empty because these tests only need the
-    # primary mission, observer and target metadata.
-    setup.secondary_missions = []
-    setup.secondary_observers = []
-    setup.secondary_targets = []
+        :param base_helpers: generic Setup/base-product factories from conftest
+        :return: container with ``make_setup`` and ``make_product`` callables
+        """
 
-    # Temporary project directories used by the label writer.
-    setup.root_dir = str(tmp_path)
-    setup.templates_directory = str(tmp_path / 'templates')
-    setup.staging_directory = str(tmp_path / 'staging')
-    setup.working_directory = str(tmp_path / 'work')
-    setup.bundle_directory = str(tmp_path / 'bundle')
+    def _make_spice_kernel_product(staging_dir: Path, name: str = 'maven_orbit_v01.bsp',
+                                   kernel_type: str = 'spk') -> MagicMock:
+        # The kernel is physically placed under <staging>/<type>/<name>, matching
+        # the real Product staging layout consumed by write_label().
+        type_dir = staging_dir / kernel_type
+        type_dir.mkdir(parents=True, exist_ok=True)
 
-    # Disable unrelated diff/compare behaviour during label generation.
-    setup.diff = False
+        product = base_helpers.make_product(path=str(type_dir / name),
+                                            name=name,
+                                            lid=(f'urn:nasa:pds:maven_spice:spice_kernels:'
+                                                 f'{kernel_type}_{name}'),
+                                            collection_name='spice_kernels')
 
-    # PDS4 XML metadata that may be consumed by PDSLabel or template rendering.
-    setup.xml_model = 'https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1F00.sch'
-    setup.schema_location = 'https://pds.nasa.gov/pds4/pds/v1 PDS4_PDS_1F00.xsd'
+        # SpiceKernelPDS4Label is a 'kernel' label: missions/observers/targets are
+        # taken from the product itself (not from setup), so they must be present.
+        product.missions = ['MAVEN']
+        product.observers = ['MAVEN']
+        product.targets = ['Mars']
 
-    # This attribute is created using a join to ensure that version numbers are
-    # not confused with IP addresses.
-    setup.information_model = '.'.join(['1', '16', '0', '0'])
-    setup.information_model_float = 1016000000.0
-    setup.logical_identifier = 'urn:nasa:pds:maven_spice'
+        # SPICE-kernel specific fields copied by SpiceKernelPDS4Label.
+        product.file_format = 'Binary'
+        product.start_time = '2024-01-01T00:00:00Z'
+        product.stop_time = '2024-01-31T23:59:59Z'
+        product.type = kernel_type
+        product.description = 'Orbit reconstruction kernel'
 
-    # End-of-line configuration used when writing PDS4 XML labels.
-    setup.end_of_line = end_of_line
-    setup.eol_pds4 = eol_pds4
+        return product
 
-    # XML indentation configuration expected by the inherited writer.
-    setup.xml_tab = 1
-
-    # Simulate CLI flags used by the writer without invoking the real parser.
-    setup.args = MagicMock()
-    setup.args.silent = True
-    setup.args.verbose = False
-
-    # Mock side effect so tests can assert the generated label was registered.
-    setup.add_file = MagicMock()
-
-    return setup
-
-
-def _make_product(staging_dir: Path, name: str = 'maven_orbit_v01.bsp',
-                  kernel_type: str = 'spk') -> MagicMock:
-    """Build a realistic SPICE Kernel product mock with the attributes used
-    by label writing.
-
-    :param staging_dir: staging directory where the product physically lives
-    :param name:        SPICE kernel file name
-    :param kernel_type: kernel type (e.g. ``spk``, ``ck``); becomes
-                        KERNEL_TYPE_ID once upper-cased by the label
-    :return:            configured SPICE kernel product mock
-    """
-    # Context products may be consumed by the inherited PDS4 label logic
-    # (get_missions/get_observers/get_targets).
-    context_products = [
-        {'name': ['MAVEN'],
-         'type': ['Mission'],
-         'lidvid': 'urn:nasa:pds:context:investigation:mission.maven::1.0'},
-        {'name': ['MAVEN'],
-         'type': ['Spacecraft'],
-         'lidvid': ('urn:nasa:pds:context:instrument_host:'
-                    'spacecraft.maven::1.0')},
-        {'name': ['Mars'],
-         'type': ['Planet'],
-         'lidvid': 'urn:nasa:pds:context:target:planet.mars::1.0'}]
-
-    # The kernel is physically placed under <staging>/<type>/<name>, matching
-    # the real Product staging layout consumed by write_label().
-    type_dir = staging_dir / kernel_type
-    type_dir.mkdir(parents=True, exist_ok=True)
-
-    product = MagicMock()
-
-    # Physical SPICE kernel metadata used directly by SpiceKernelPDS4Label and
-    # by the inherited writer to derive the XML label path.
-    product.name = name
-    product.extension = name.rsplit('.', 1)[-1] if '.' in name else ''
-    product.path = str(type_dir / name)
-
-    # SpiceKernelPDS4Label is a "kernel" label: missions/observers/targets are
-    # taken from the product itself (not from setup), so they must be present.
-    product.missions = ['MAVEN']
-    product.observers = ['MAVEN']
-    product.targets = ['Mars']
-
-    # PDS4 product identifiers copied by SpiceKernelPDS4Label.
-    product.lid = f'urn:nasa:pds:maven_spice:spice_kernels:{kernel_type}_{name}'
-    product.vid = '1.0'
-
-    # SPICE-kernel specific fields copied by SpiceKernelPDS4Label.
-    product.file_format = 'Binary'
-    product.start_time = '2024-01-01T00:00:00Z'
-    product.stop_time = '2024-01-31T23:59:59Z'
-    product.type = kernel_type
-    product.description = 'Orbit reconstruction kernel'
-
-    # Creation metadata consumed by the inherited PDSLabel writer.
-    product.creation_time = '2024-02-01T12:00:00'
-    product.creation_date = '2024-02-01'
-
-    # File metadata commonly substituted in PDS4 templates.
-    product.size = '2048'
-    product.checksum = 'd41d8cd98f00b204e9800998ecf8427e'
-
-    # Collection/bundle context expected by the inherited PDS4 logic.
-    product.collection.name = 'spice_kernels'
-    product.collection.bundle.context_products = context_products
-    product.bundle.context_products = context_products
-
-    return product
+    return SimpleNamespace(make_setup=base_helpers.make_setup,
+                           make_product=_make_spice_kernel_product)
 
 
 # ===========================================================================
@@ -171,16 +83,18 @@ class TestSpiceKernelPDS4Label:
     # ------------------------------------------------------------------
 
     @pytest.fixture()
-    def label(self, tmp_path: Path) -> SpiceKernelPDS4Label:
+    def label(self, tmp_path: Path,
+              helpers: SimpleNamespace) -> SpiceKernelPDS4Label:
         """Build a SpiceKernelPDS4Label instance while mocking inherited file
         writing.
 
         :param tmp_path: pytest temporary directory
+        :param helpers:  specialized SPICE kernel factories
         :return: constructed label with write_label patched out
         """
         # Create a controlled Setup mock with the PDS4 attributes needed by the
         # label.
-        setup = _make_setup(tmp_path)
+        setup = helpers.make_setup()
 
         # Create the staging directory used by the mocked kernel product path.
         staging = tmp_path / 'staging'
@@ -188,7 +102,7 @@ class TestSpiceKernelPDS4Label:
 
         # Build a SPICE kernel product mock with the attributes read by
         # SpiceKernelPDS4Label.
-        product = _make_product(staging)
+        product = helpers.make_product(staging)
 
         # Avoid real template reading and file writing in unit tests.
         with patch('pds.naif_pds4_bundler.classes.label.label.'
@@ -242,17 +156,17 @@ class TestSpiceKernelPDS4Label:
         assert label.template == expected_template
 
     def test_constructor_stores_references_and_writes_label_once(
-            self, tmp_path: Path) -> None:
+            self, tmp_path: Path, helpers: SimpleNamespace) -> None:
         # Validate constructor wiring and its single write_label side effect.
 
         # Build the collaborators required by the label constructor.
-        setup = _make_setup(tmp_path)
+        setup = helpers.make_setup()
 
         # Create the staging directory used by the mocked kernel product path.
         staging = tmp_path / 'staging'
         staging.mkdir(parents=True, exist_ok=True)
 
-        product = _make_product(staging)
+        product = helpers.make_product(staging)
 
         # Avoid real file writing while checking the constructor side effect.
         with patch('pds.naif_pds4_bundler.classes.label.label.'
@@ -276,21 +190,22 @@ class TestSpiceKernelPDS4Label:
         ('Fk', 'FK'),
         ('ik', 'IK')])
     def test_kernel_type_id_is_upper_cased(
-            self, tmp_path: Path, product_type: str,
+            self, tmp_path: Path, helpers: SimpleNamespace, product_type: str,
             expected_kernel_type_id: str) -> None:
         # Document that KERNEL_TYPE_ID is always the upper-cased product.type,
         # regardless of the original casing.
 
         # Mock the setup so that the label can be built.
-        setup = _make_setup(tmp_path)
+        setup = helpers.make_setup()
 
         # Build a temporal staging directory.
         staging = tmp_path / 'staging'
         staging.mkdir(parents=True, exist_ok=True)
 
         # Build the product mock with the parametrized kernel type.
-        product = _make_product(staging, name=f'maven_kernel_v01.{product_type}',
-                                kernel_type=product_type)
+        product = helpers.make_product(
+            staging, name=f'maven_kernel_v01.{product_type}',
+            kernel_type=product_type)
 
         # Patch PDSLabel.write_label() to prevent actual file writing.
         with patch('pds.naif_pds4_bundler.classes.label.label.'
@@ -310,21 +225,22 @@ class TestSpiceKernelPDS4Label:
             ('name', 'no_extension_name', 'FILE_NAME'),
             ('description', '', 'SPICE_KERNEL_DESCRIPTION')])
     def test_product_values_are_copied_without_validation(
-            self, tmp_path: Path, product_attribute: str, value: str,
+            self, tmp_path: Path, helpers: SimpleNamespace,
+            product_attribute: str, value: str,
             label_attribute: str) -> None:
         # Verify that the constructor copies product values verbatim, without
         # validating or transforming them (except KERNEL_TYPE_ID, covered
         # separately).
 
         # Mock a setup with the attributes required to build the label.
-        setup = _make_setup(tmp_path)
+        setup = helpers.make_setup()
 
         # Build a temporal staging directory.
         staging = tmp_path / 'staging'
         staging.mkdir(parents=True, exist_ok=True)
 
         # Mock a product with valid values by default.
-        product = _make_product(staging)
+        product = helpers.make_product(staging)
 
         # Dynamically override the product attribute under test.
         setattr(product, product_attribute, value)
@@ -339,18 +255,18 @@ class TestSpiceKernelPDS4Label:
         assert getattr(label, label_attribute) == value
 
     def test_child_overrides_parent_field_assignments(
-            self, tmp_path: Path) -> None:
+            self, tmp_path: Path, helpers: SimpleNamespace) -> None:
         # The parent PDSLabel.__init__ does not set FILE_NAME/PRODUCT_LID/
         # PRODUCT_VID/START_TIME/STOP_TIME for kernel labels; the child sets
         # them after super().__init__(). This test guards that contract:
         # changing the product values is reflected in the final label state.
 
-        setup = _make_setup(tmp_path)
+        setup = helpers.make_setup()
         staging = tmp_path / 'staging'
         staging.mkdir(parents=True, exist_ok=True)
 
         # Distinctive values to prove the child assignment wins.
-        product = _make_product(staging)
+        product = helpers.make_product(staging)
         product.lid = 'urn:nasa:pds:maven_spice:spice_kernels:ck_distinct'
         product.vid = '9.9'
 
@@ -363,15 +279,15 @@ class TestSpiceKernelPDS4Label:
         assert label.PRODUCT_VID == '9.9'
 
     def test_constructor_raises_when_product_type_is_not_a_string(
-            self, tmp_path: Path) -> None:
+            self, tmp_path: Path, helpers: SimpleNamespace) -> None:
         # product.type.upper() requires a string; a non-string type must raise
         # because the constructor performs no defensive validation.
 
-        setup = _make_setup(tmp_path)
+        setup = helpers.make_setup()
         staging = tmp_path / 'staging'
         staging.mkdir(parents=True, exist_ok=True)
 
-        product = _make_product(staging)
+        product = helpers.make_product(staging)
 
         # Replace the kernel type with a non-string value (no .upper()).
         product.type = 12345
@@ -409,11 +325,13 @@ class TestSpiceKernelPDS4LabelIntegration:
     # ------------------------------------------------------------------
 
     @pytest.fixture()
-    def env(self, tmp_path: Path) -> tuple[MagicMock, MagicMock, Path, Path]:
+    def env(self, tmp_path: Path, helpers: SimpleNamespace
+            ) -> tuple[MagicMock, MagicMock, Path, Path]:
         """Create the temporary PDS4 template and staging environment used by
         integration tests.
 
         :param tmp_path: pytest temporary directory
+        :param helpers:  specialized SPICE kernel factories
         :return: tuple of (setup, product, template_path, expected_label_path)
         """
         # Create isolated directories for the template input and label output.
@@ -427,13 +345,13 @@ class TestSpiceKernelPDS4LabelIntegration:
         template_path.write_text(TEMPLATE_CONTENT, encoding='utf-8')
 
         # Build the setup mock and point it to the temporary integration folders.
-        setup = _make_setup(tmp_path)
+        setup = helpers.make_setup()
         setup.templates_directory = str(templates_dir)
         setup.staging_directory = str(staging_dir)
 
         # Build the SPICE kernel product whose label will be generated in
         # staging. The physical kernel lives under <staging>/spk/<name>.
-        product = _make_product(staging_dir)
+        product = helpers.make_product(staging_dir)
 
         # The inherited writer derives the XML label path from product.path by
         # replacing the ``.<extension>`` suffix with ``.xml``.
