@@ -89,7 +89,7 @@ def _expected_internal_references(kernel_lids: list[tuple[str, str]],
                                   tab: int, eol: str) -> str:
     """Build the exact ``KERNEL_INTERNAL_REFERENCES`` string expected from the
     production code, so the tests assert on the real format instead of a
-    hand-written copy that could silently diverge.
+    handwritten copy that could silently diverge.
 
     :param kernel_lids: list of (kernel_type, lowercased_kernel_name) tuples
     :param tab: value of setup.xml_tab
@@ -374,16 +374,12 @@ class TestMetaKernelPDS4Label:
 
     @pytest.mark.parametrize(
         'collection_metakernel, expected_lids', [
-            # Single kernel.
             (['naif0012.tls'],
              [('lsk', 'naif0012.tls')]),
-            # Multiple kernels, order preserved, different types.
             (['naif0012.tls', 'maven_orbit_v01.bsp', 'maven_sclk_v02.tsc'],
              [('lsk', 'naif0012.tls'),
               ('spk', 'maven_orbit_v01.bsp'),
               ('sclk', 'maven_sclk_v02.tsc')]),
-            # Mixed-case kernel names are lower-cased verbatim in the LID,
-            # including the part before the extension.
             (['MAVEN_Frames_V01.TF'],
              [('fk', 'maven_frames_v01.tf')])])
     def test_get_kernel_internal_references_builds_expected_block(
@@ -513,12 +509,6 @@ class TestMetaKernelPDS4Label:
 # Class 2 – Integration tests
 # ===========================================================================
 
-# NOTE: the template is written line by line on purpose. textwrap.dedent
-# cannot be used here because the ``$KERNEL_INTERNAL_REFERENCES`` placeholder
-# must sit at column 0 (the references block carries its own indentation), and
-# a column-0 line would make dedent compute a zero-width common prefix, leaving
-# every other line indented. Building the string explicitly keeps the template
-# unambiguous.
 TEMPLATE_CONTENT = (
     '<?xml version="1.0" encoding="UTF-8"?>\n'
     '<spice_kernel_mk>\n'
