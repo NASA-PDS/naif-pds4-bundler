@@ -28,12 +28,18 @@ class MetaKernelPDS4Label(PDSLabel):
         self.FILE_FORMAT = "Character"
         self.START_TIME = product.start_time
         self.STOP_TIME = product.stop_time
+        # TODO: BUG, product.type.upper() raises AttributeError if product.type
+        #       is not a string
         self.KERNEL_TYPE_ID = product.type.upper()
         self.PRODUCT_VID = self.product.vid
         self.SPICE_KERNEL_DESCRIPTION = product.description
 
         self.KERNEL_INTERNAL_REFERENCES = self.get_kernel_internal_references()
 
+        # TODO: BUG, split(".")[0] truncates the name at the FIRST dot, so any
+        #       product whose name contains more than one dot produces a
+        #       truncated XML label name.
+        #       e.g. maven_v01.0.tm -> maven_v01.xml instead of maven_v01.0.xml
         self.name = product.name.split(".")[0] + ".xml"
 
         self.write_label()
@@ -52,6 +58,8 @@ class MetaKernelPDS4Label(PDSLabel):
         # From the collection we only use kernels in the MK
         #
         kernel_list_for_label = ""
+        # TODO: BUG, extension_to_type(kernel) raises an unhandled KeyError
+        #       if the kernel's extension is not present in the type map.
         for kernel in self.product.collection_metakernel:
             #
             # The kernel lid cannot be obtained from the list; it is
@@ -67,7 +75,10 @@ class MetaKernelPDS4Label(PDSLabel):
                 + f"{' ' * 3 * tab}<reference_type>data_to_associate"
                 f"</reference_type>{eol}" + f"{' ' * 2 * tab}</Internal_Reference>{eol}"
             )
-
+        # TODO: BUG, when collection_metakernel is empty, kernel_list_for_label
+        #       is "" and "".rstrip() + eol evaluates to eol (e.g. "\n"),
+        #       resulting in an extra blank line in the rendered label instead
+        #       of an empty string.
         kernel_list_for_label = kernel_list_for_label.rstrip() + eol
 
         return kernel_list_for_label
