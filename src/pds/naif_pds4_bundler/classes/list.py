@@ -442,7 +442,11 @@ class KernelList:
             # MAKLABEL_OPTIONS, and DESCRIPTION entries
             #
             for line in lst:
-
+                # TODO: BUG, when performing the check using substring, there is
+                #       a possibility that a description may contain the word
+                #       FILE. If this is the case, it would be counted
+                #       incorrectly and, furthermore, the DESCRIPTION line would
+                #       not be counted at all.
                 if ("FILE" in line) and (line.split("=")[-1].strip()):
                     num_file += 1
                     #
@@ -506,6 +510,12 @@ class KernelList:
             for work_dir in self.setup.kernels_directory:
                 logging.info('   %s', work_dir)
 
+            # TODO: BUG, 'present' is initialised outside the loop and is never
+            #       reset by the kernel, if an existing kernel is found, all
+            #       kernels processed afterwards—even if they do not exist—will
+            #       be listed anyway and will not trigger any WARNING. In other
+            #       words, the behaviour depends on the order in which the
+            #       kernels are processed.
             present = False
             all_present = True
             for ker in ker_in_list:
@@ -635,6 +645,9 @@ class KernelList:
             logging.info("-- Comparing current list with previous list:")
 
             logging.info("")
+            # TODO: BUG, 'fromfile' is initialised outside the 'try block', if
+            #       'kernel_list' is empty, it raises an 'IndexError' that is
+            #       not caught.
             fromfile = kernel_lists[-1]
             try:
                 tofile = kernel_lists[-2]

@@ -959,6 +959,473 @@ class TestKernelListReadList:
         assert kernel_list.kernel_list == []
 
 
+class TestKernelListValidate:
+
+    @staticmethod
+    def expected_logs(setup, output_path, *, prefix=(), presence=None,
+                      final=None, pds3=(), suffix=None):
+        """Assemble the expected validate() log sequence from reusable blocks.
+
+        The PDS4 happy flow is: [prefix] + presence + final + [pds3] + duplicates.
+        Only the differing pieces are passed by each test.
+
+        - prefix:   extra records before the presence block (e.g. badchar errors).
+        - presence: the OPS-presence verdict lines (default: 'All kernels present.').
+        - final:    the final-area verdict lines (default: 'No kernels present...').
+        - pds3:     optional PDS3 option/template block, inserted before duplicates.
+        - suffix:   records appended after the duplicates block (e.g. diff lines).
+        """
+        if presence is None:
+            presence = [(logging.INFO, '     All kernels present.')]
+        if final is None:
+            final = [(logging.INFO, '     No kernels present in final area.')]
+        if suffix is None:
+            suffix = []
+
+        return [*prefix,
+                (logging.INFO, '-- Checking that kernels are present in: '),
+                (logging.INFO, f'   {setup.kernels_directory[0]}'),
+                *presence,
+                (logging.INFO, ''),
+                (logging.INFO, f'-- Checking that kernels are present in {setup.bundle_directory}: '),
+                *final,
+                (logging.INFO, ''),
+                *pds3,
+                (logging.INFO, '-- Checking for duplicates in complete kernel list:'),
+                (logging.INFO, f'     Adding {output_path} in check.'),
+                (logging.INFO, '     List contains no duplicates.'),
+                (logging.INFO, ''),
+                *suffix]
+
+    @staticmethod
+    def make_kernel_list(mocker, tmp_path, list_content, kernels,
+                         present_kernels=(), badchar_errors=None,
+                         duplicates=False,
+                         **setup_overrides) -> tuple[KernelList, SimpleNamespace, Path]:
+        # Create a real KernelList configured to run validate().
+
+        # Build the actual paths to the 'working', 'kernels' and 'bundle' files.
+        working_directory = tmp_path / 'working'
+        kernels_directory = tmp_path / 'kernels'
+        bundle_directory = tmp_path / 'bundle'
+        working_directory.mkdir(exist_ok=True)
+        kernels_directory.mkdir(exist_ok=True)
+        bundle_directory.mkdir(exist_ok=True)
+
+        setup_overrides.setdefault('diff', False)
+        setup_overrides.setdefault('increment', False)
+
+        # Create a setup with the attributes required to execute the validate
+        # method.
+        setup = make_kernel_list_setup(tmp_path,
+                                       mission_acronym='maven',
+                                       mission_name='MAVEN',
+                                       run_type='release',
+                                       working_directory=str(working_directory),
+                                       kernels_directory=[str(kernels_directory)],
+                                       bundle_directory=str(bundle_directory),
+                                       **setup_overrides)
+
+        # Build the kernels.
+        for name in present_kernels:
+            (kernels_directory / name).write_text('x', encoding='utf-8')
+
+        # Mock the dependencies.
+        mocker.patch('pds.naif_pds4_bundler.classes.list.check_badchar',
+                     return_value=(badchar_errors or []))
+        mocker.patch('pds.naif_pds4_bundler.classes.list.check_list_duplicates',
+                     return_value=duplicates)
+        mocker.patch('pds.naif_pds4_bundler.classes.list.extension_to_type',
+                     return_value='spk')
+
+        # Create a real KernelList.
+        kernel_list = KernelList(setup)
+        kernel_list.kernel_list = kernels
+        kernel_list.list_name = 'maven_release_03.kernel_list'
+
+        # Create the path that will open the validate method.
+        output_path = working_directory / 'maven_release_03.kernel_list'
+        output_path.write_text(list_content, encoding='utf-8')
+
+        return kernel_list, setup, output_path
+
+    @staticmethod
+    def block(file_value, options, description) -> str:
+
+        return (f"FILE             = {file_value}\n"
+                f"MAKLABEL_OPTIONS = {options}\n"
+                f"DESCRIPTION      = {description}\n")
+
+    def test_validate_happy_path_passes_all_pds4_checks(
+            self, mocker, caplog, tmp_path) -> None:
+        # Check the clean PDS4 case in one run: a coherent kernel present in the
+        # OPS area, absent from the final area, counts matching, no duplicates
+        # and no diff. This walks every success branch at once.
+
+        # Build the KernelList.
+        kernel_list, setup, output_path = self.make_kernel_list(
+            mocker, tmp_path,
+            self.block('spice_kernels/spk/maven_orbit_v01.bsp', 'SPK', 'Orbit'),
+            kernels=['maven_orbit_v01.bsp'],
+            present_kernels=('maven_orbit_v01.bsp',))
+
+        # Capture the logs and check the logging messages and logging level.
+        with caplog.at_level(logging.INFO):
+            kernel_list.validate()
+
+        expected = self.expected_logs(setup, output_path)
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+        assert results == expected
+
+    def test_validate_logs_each_badchar_error(
+            self, mocker, caplog, tmp_path) -> None:
+        # Check that when check_badchar reports problems, validate() logs every
+        # one of them as an error.
+
+        # Build a KernelList with badchar_errors messages.
+        kernel_list, setup, output_path = self.make_kernel_list(
+            mocker, tmp_path, self.block('spice_kernels/spk/k.bsp', 'SPK', 'd'),
+            kernels=['k.bsp'], present_kernels=('k.bsp',),
+            badchar_errors=['check_badchar: msg 1', 'check_badchar: msg 2'])
+
+        # Capture the logs and check the logging messages and logging level.
+        with caplog.at_level(logging.INFO):
+            kernel_list.validate()
+
+        expected = self.expected_logs(
+            setup, output_path,prefix=[(logging.ERROR, '   check_badchar: msg 1'),
+                                       (logging.ERROR, '   check_badchar: msg 2')])
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+        # Even if check_badchar reports errors, it does not stop the execution.
+        assert results == expected
+
+    def test_validate_ignores_file_line_without_value(
+            self, mocker, tmp_path) -> None:
+        # Check that even if the FILE line contains nothing after the following
+        # equal sign, a file is created anyway.
+
+        # Mock the handle_npb_error call.
+        handle_npb_error_mock = mocker.patch(
+            'pds.naif_pds4_bundler.classes.list.handle_npb_error')
+
+        # Build a KernelList with a FILE line that contains nothing after equal
+        # sign.
+        kernel_list, _, _ = self.make_kernel_list(
+            mocker, tmp_path, 'FILE             = \n', kernels=[])
+
+        kernel_list.validate()
+
+        # Check that handle_npb_error is not called.
+        handle_npb_error_mock.assert_not_called()
+
+    def test_validate_skips_none_option_token(self, mocker, caplog,
+                                              tmp_path) -> None:
+        # Check that an option literally spelled "None" is filtered out. PDS3 is
+        # used because it is the only mode that prints the collected options,
+        # which is how the filtering becomes observable.
+
+        # Build a KernelList with PDS3 and a 'None' option.
+        kernel_list, setup, output_path = self.make_kernel_list(
+            mocker, tmp_path, self.block('data/spk/k.bsp', 'None', 'd'),
+            kernels=['k.bsp'], present_kernels=('k.bsp',), pds_version='3',
+            pds3_mission_template={'DATA_SET_ID': 'X', 'maklabel_options': {}})
+
+        # Capture the logs and check the logging messages and logging level.
+        with caplog.at_level(logging.INFO):
+            kernel_list.validate()
+
+        expected = self.expected_logs(
+            setup, output_path,
+            pds3=[(logging.INFO, '-- Display all the MAKLABEL_OPTIONS:'),
+                  (logging.INFO, ''),
+                  (logging.INFO, '-- Check that all template tags used in the list are present in template:'),
+                  (logging.INFO, '')])
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+        assert results == expected
+
+    @pytest.mark.parametrize('content', [
+        ('FILE             = spice_kernels/spk/k.bsp\n'
+         'DESCRIPTION      = only a description\n'),
+        ('FILE             = spice_kernels/spk/k.bsp\n'
+         'MAKLABEL_OPTIONS = SPK\n'
+         'DESCRIPTION      = FILE naming kernel\n')])
+    def test_validate_raises_on_entry_count_mismatch(self, mocker, tmp_path,
+                                                     content) -> None:
+        # Check that diverging FILE/OPTIONS/DESCRIPTION counts abort validation.
+        # FILE and DESCRIPTION are present but the OPTIONS line is missing, so
+        # the three counts diverge and the coherence check raises.
+
+        # TODO: BUG, the second parametrized case is balanced (1 FILE, 1 OPTIONS,
+        #       1 DESCRIPTION) and SHOULD pass, but its description contains the
+        #       word 'FILE'. validate() counts lines by substring instead of
+        #       prefix, so that description is miscounted as a FILE entry, the
+        #       counts diverge and validation wrongly raises.
+
+        # Build a KernelList.
+        kernel_list, _, _ = self.make_kernel_list(
+            mocker, tmp_path, content, kernels=['k.bsp'])
+
+        # Check that an Exception is raised.
+        with pytest.raises(Exception, match='List does not have the same number of entries'):
+            kernel_list.validate()
+
+    @pytest.mark.parametrize('kernels, duplicates, expected_message', [
+        ([], False, '   unplanned.bsp not in list.'),
+        (['unplanned.bsp'], True, 'List contains duplicates.')])
+    def test_validate_reports_error_condition(self, mocker, tmp_path, kernels,
+                                              duplicates, expected_message) -> None:
+        # Check the two independent error conditions that share the same
+        # assertion shape: a kernel listed but absent from the plan, and a
+        # duplicate detected in the list.
+
+        kernel_list, _, _ = self.make_kernel_list(
+            mocker, tmp_path,
+            self.block('spice_kernels/spk/unplanned.bsp', 'SPK', 'd'),
+            kernels=kernels, present_kernels=('unplanned.bsp',),
+            duplicates=duplicates)
+
+        # This behaviour will be handled by handle_npb_error, which will raise a
+        # RuntimeError. Also, checks the returned message.
+        with pytest.raises(RuntimeError, match=expected_message):
+            kernel_list.validate()
+
+    @pytest.mark.parametrize('kernel, log_lines', [
+        ('maven_v01.tm',
+         [(logging.INFO, '     maven_v01.tm not present as expected.'),
+          (logging.INFO, '     All kernels present.')]),
+        ('absent.bsp',
+         [(logging.WARNING, '     absent.bsp not present. Kernel might be mapped.')])])
+    def test_validate_absent_kernel_logging(
+            self, mocker, caplog, tmp_path, kernel, log_lines) -> None:
+        # Check how a kernel missing from the OPS area is handled. A meta-kernel
+        # (.tm) is excused with an INFO and the "all present" verdict stands,
+        # because meta-kernels are generated later. Any other missing kernel is
+        # a WARNING and clears that verdict.
+
+        # The kernel is deliberately NOT placed on disk, so the walk is empty.
+        kernel_list, setup, output_path = self.make_kernel_list(
+            mocker, tmp_path,
+            self.block(f'spice_kernels/spk/{kernel}', 'N/A', 'd'),
+            kernels=[kernel])
+
+        # Capture the logs and check the messages.
+        with caplog.at_level(logging.INFO):
+            kernel_list.validate()
+
+        expected = self.expected_logs(setup, output_path, presence=log_lines)
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+        assert results == expected
+
+    def test_validate_present_flag_not_reset_between_kernels(
+            self, mocker, caplog, tmp_path) -> None:
+        # TODO: BUG, 'present' flag is initialised once OUTSIDE the 'for ker'
+        #       loop and never reset per kernel. As soon as one kernel is found,
+        #       every later kernel is treated as present too, so a missing
+        #       kernel listed AFTER a present one produces no warning and does
+        #       not clear all_present. The output then depends on kernel ORDER.
+
+        # Build the list using two concatenated blocks. The order is
+        # deliberate: present.bsp first, then absent.bsp. It is this order
+        # that triggers the bug.
+        content = (self.block('spice_kernels/spk/present.bsp', 'SPK', 'd')
+                   + self.block('spice_kernels/spk/absent.bsp', 'SPK', 'd'))
+
+        # Create a KernelList using the content prepared earlier. Only
+        # present.bsp (present_kernels) is loaded. However, absent.bsp does not
+        # exist on the disk, so the call to os.walk cannot find it.
+        kernel_list, setup, output_path = self.make_kernel_list(
+            mocker, tmp_path, content,
+            kernels=['present.bsp', 'absent.bsp'],
+            present_kernels=('present.bsp',))
+
+        # Capture the logs.
+        with caplog.at_level(logging.INFO):
+            kernel_list.validate()
+
+        # The kernel absent.bsp is missing and no warning is emitted and 'all
+        # kernel present' is logged.
+        expected = self.expected_logs(setup, output_path)
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+        assert results == expected
+
+    def test_validate_warns_kernel_in_final_area(
+            self, mocker, caplog, tmp_path) -> None:
+        # Check that a kernel already present in the bundle area is flagged with
+        # a warning.
+
+        # Build the KernelList
+        kernel_list, setup, output_path = self.make_kernel_list(
+            mocker, tmp_path, self.block('spice_kernels/spk/k.bsp', 'SPK', 'd'),
+            kernels=['k.bsp'], present_kernels=('k.bsp',))
+
+        # Build the exact path that is checked and the entire hierarchy. In this
+        # way, the check will return TRUE.
+        final_dir = (Path(setup.bundle_directory) / 'maven_spice'
+                     / 'spice_kernels' / 'spk')
+        final_dir.mkdir(parents=True)
+        (final_dir / 'k.bsp').write_text('x', encoding='utf-8')
+
+        # Capture the logs.
+        with caplog.at_level(logging.INFO):
+            kernel_list.validate()
+
+        expected = self.expected_logs(
+            setup, output_path,
+            final=[(logging.WARNING, '     k.bsp present.')])
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+        assert results == expected
+
+    @pytest.mark.parametrize('option, template_options, log_lines', [
+        ('SPK', {'SPK': {}}, [(logging.INFO, '     SPK is present.'),
+                              (logging.INFO, ''),]),
+        ('N/A', {}, [(logging.INFO, '')])])
+    def test_validate_pds3_option_template_check_accepts_valid_option(
+            self, mocker, caplog, tmp_path, option, template_options,
+            log_lines) -> None:
+        # Check that, if PDS3 contains an option in the template (or the N/A
+        # placeholder), it passes the template check without generating any errors.
+
+        # Build a KernelList with a PDS3.
+        kernel_list, setup, output_path = self.make_kernel_list(
+            mocker, tmp_path, self.block('data/spk/k.bsp', option, 'd'),
+            kernels=['k.bsp'], present_kernels=('k.bsp',), pds_version='3',
+            pds3_mission_template={'DATA_SET_ID': 'X',
+                                   'maklabel_options': template_options})
+
+        # Capture the logs and check the log messages.
+        with caplog.at_level(logging.INFO):
+            kernel_list.validate()
+
+        expected = self.expected_logs(
+            setup, output_path,
+            pds3=[(logging.INFO, '-- Display all the MAKLABEL_OPTIONS:'),
+                  (logging.INFO, f'     {option}'),
+                  (logging.INFO, ''),
+                  (logging.INFO, '-- Check that all template tags used in the list are present in template:'),
+                  *log_lines])
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+        assert results == expected
+
+    def test_validate_pds3_option_template_check_rejects_unknown_option(
+            self, mocker, tmp_path) -> None:
+        # Check that PDS3 has an option absent from the template (and not "N/A").
+
+        # Build a KernelList with an option that is not in the template.
+        kernel_list, _, _ = self.make_kernel_list(
+            mocker, tmp_path, self.block('data/spk/k.bsp', 'CK', 'd'),
+            kernels=['k.bsp'], present_kernels=('k.bsp',), pds_version='3',
+            pds3_mission_template={'DATA_SET_ID': 'X',
+                                   'maklabel_options': {'SPK': {}}})
+
+        # This behaviour will be handled by handle_npb_error, which will raise a
+        # RuntimeError. Also, checks the returned message.
+        with pytest.raises(RuntimeError, match='CK not in configuration.'):
+            kernel_list.validate()
+
+    def test_validate_aborts_when_complete_kernel_list_contains_duplicates(
+            self, mocker, tmp_path) -> None:
+        # Verify the second duplicate check aborts validation when duplicates
+        # are detected across the complete release-list.
+
+        # Create a block with a kernel.
+        content = self.block('spice_kernels/spk/current.bsp', 'SPK',
+                             'description')
+
+        # Build a KernelList.
+        kernel_list, setup, _ = self.make_kernel_list(
+            mocker, tmp_path, content,
+            kernels=['current.bsp'],
+            present_kernels=('current.bsp',))
+
+        # The helper mocks check_list_duplicates to False; restore the real logic
+        # so the cross-release (second) check detects the duplicate for real. The
+        # current list has no internal duplicate (first check passes); the merged
+        # release lists do (second check aborts).
+        mocker.patch('pds.naif_pds4_bundler.classes.list.check_list_duplicates',
+                     side_effect=lambda lst: len(lst) != len(set(lst)))
+
+        # Add a second release list repeating the kernel -> cross-release duplicate.
+        (Path(setup.working_directory) / 'maven_release_02.kernel_list'
+         ).write_text(
+            self.block('spice_kernels/spk/current.bsp', 'SPK', 'description'),
+            encoding='utf-8')
+
+        # This behaviour will be handled by handle_npb_error, which will raise a
+        # RuntimeError. Also, checks the returned message.
+        with pytest.raises(RuntimeError, match='List contains duplicates.'):
+            kernel_list.validate()
+
+    def test_validate_diff_compares_with_previous_list(self, mocker,
+                                                       tmp_path) -> None:
+        # Check that with diff and increment enabled and a previous release list
+        # available, compare_files is invoked with the diff argument last.
+
+        compare_files_mock = mocker.patch(
+            'pds.naif_pds4_bundler.classes.list.compare_files')
+
+        content = self.block('spice_kernels/spk/k.bsp', 'SPK', 'd')
+
+        # Build a KernelList with the flags diff and increment enabled.
+        kernel_list, setup, _ = self.make_kernel_list(
+            mocker, tmp_path, content, kernels=['k.bsp'],
+            present_kernels=('k.bsp',), diff='diff-arg', increment=True)
+
+        # Create a second list of releases to carry out the comparison.
+        (Path(setup.working_directory) / 'maven_release_02.kernel_list').write_text(
+            self.block('spice_kernels/spk/old.bsp', 'SPK', 'd'),
+            encoding='utf-8')
+
+        kernel_list.validate()
+
+        # Check that the compare_files function has been called.
+        compare_files_mock.assert_called_once()
+        assert compare_files_mock.call_args.args[-1] == 'diff-arg'
+
+    def test_validate_diff_previous_list_unavailable(self, mocker, caplog,
+                                                     tmp_path) -> None:
+        # Check the missing-previous path: with diff and increment enabled but
+        # only one release list present, kernel_lists[-2] raises IndexError,
+        # which the except clause turns into an error log instead of crashing.
+
+        # TODO: BUG; in the diff branch fromfile = kernel_lists[-1] runs BEFORE
+        #       the try, so if the glob returns nothing kernel_lists[-1] raises
+        #       an uncaught IndexError.
+
+        # Build a KernleList.
+        kernel_list, setup, output_path = self.make_kernel_list(
+            mocker, tmp_path, self.block('spice_kernels/spk/k.bsp', 'SPK', 'd'),
+            kernels=['k.bsp'], present_kernels=('k.bsp',),
+            diff='diff-arg', increment=True)
+
+        # Capture the logs and check the log messages and log level.
+        with caplog.at_level(logging.INFO):
+            kernel_list.validate()
+
+        expected = self.expected_logs(
+            setup, output_path,
+            suffix=[(logging.INFO, '-- Comparing current list with previous list:'),
+                    (logging.INFO, ''),
+                    (logging.ERROR, '-- Previous list not available.')])
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+        assert results == expected
+
+
 class TestKernelListWriteCompleteList:
 
     @staticmethod
@@ -1164,8 +1631,8 @@ class TestKernelListWriteCompleteList:
 
         # Build a valid release list.
         release_01 = (
-            Path(kernel_list.setup.working_directory) /
-            'maven_release_01.kernel_list')
+                Path(kernel_list.setup.working_directory) /
+                'maven_release_01.kernel_list')
         release_01.write_text('RELEASE 01\n', encoding='utf-8')
 
         # Capture the exception.
