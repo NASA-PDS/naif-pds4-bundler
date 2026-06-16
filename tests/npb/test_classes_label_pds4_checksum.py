@@ -13,6 +13,7 @@ Two test classes are provided:
 from pathlib import Path
 import textwrap
 import xml.etree.ElementTree as ElementTree
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -24,109 +25,27 @@ from pds.naif_pds4_bundler.classes.label.pds4_checksum import ChecksumPDS4Label
 # Helpers – factories for the two collaborator mocks (setup & product)
 # ---------------------------------------------------------------------------
 
-def _make_setup(tmp_path: Path, end_of_line: str = 'LF',
-                eol_pds4: str = "\n") -> MagicMock:
-    """Return a fully-configured mock Setup object for PDS4 usage."""
-    setup = MagicMock()
+@pytest.fixture()
+def helpers(base_helpers: SimpleNamespace) -> SimpleNamespace:
+    """Specialize the generic factories for checksum labels.
 
-    # Basic execution context expected by the label hierarchy.
-    setup.pds_version = '4'
-    setup.volume_id = 'maven_0001'
-    setup.mission_acronym = 'maven'
-    setup.mission_name = 'MAVEN'
-    setup.observer = 'MAVEN'
-    setup.target = 'Mars'
+        Reuses ``base_helpers.make_setup`` as-is and wraps
+        ``base_helpers.make_product`` to set the checksum-specific identity.
 
-    # Secondary context values are empty because these tests only need the
-    # primary mission, observer and target metadata.
-    setup.secondary_missions = []
-    setup.secondary_observers = []
-    setup.secondary_targets = []
+        :param base_helpers: generic Setup/base-product factories from conftest
+        :return: container with ``make_setup`` and ``make_product`` callables
+        """
 
-    # Temporary project directories used by the label writer.
-    setup.root_dir = str(tmp_path)
-    setup.templates_directory = str(tmp_path / 'templates')
-    setup.staging_directory = str(tmp_path / 'staging')
-    setup.working_directory = str(tmp_path / 'work')
-    setup.bundle_directory = str(tmp_path / 'bundle')
+    def _make_checksum_product(staging_dir: Path,
+                               name: str = 'checksum.tab') -> MagicMock:
+        # The checksum product lives directly under the staging directory.
+        return base_helpers.make_product(path=str(staging_dir / name),
+                                         name=name,
+                                         lid='urn:nasa:pds:maven_spice:checksum',
+                                         collection_name='miscellaneous')
 
-    # Disable unrelated diff/compare behaviour during label generation.
-    setup.diff = False
-
-    # PDS4 XML metadata that may be consumed by PDSLabel or template rendering.
-    setup.xml_model = 'https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1F00.sch'
-    setup.schema_location = 'https://pds.nasa.gov/pds4/pds/v1 PDS4_PDS_1F00.xsd'
-
-    # This attribute is created using a join to ensure that version numbers are
-    # not confused with IP addresses.
-    setup.information_model = '.'.join(['1', '16', '0', '0'])
-    setup.information_model_float = 1016000000.0
-    setup.logical_identifier = 'urn:nasa:pds:maven_spice'
-
-    # End-of-line configuration used when writing PDS4 XML labels.
-    setup.end_of_line = end_of_line
-    setup.eol_pds4 = eol_pds4
-
-    # XML indentation configuration expected by the inherited writer.
-    setup.xml_tab = 1
-
-    # Simulate CLI flags used by the writer without invoking the real parser.
-    setup.args = MagicMock()
-    setup.args.silent = True
-    setup.args.verbose = False
-
-    # Mock side effect so tests can assert the generated label was registered.
-    setup.add_file = MagicMock()
-
-    return setup
-
-
-def _make_product(staging_dir: Path, name: str = 'checksum.tab') -> MagicMock:
-    """Build a realistic Checksum product mock with the attributes used by
-    label writing."""
-
-    # Context products may be consumed by inherited PDS4 label logic.
-    context_products = [
-        {'name': ['MAVEN'],
-         'type': ['Mission'],
-         'lidvid': 'urn:nasa:pds:context:investigation:mission.maven::1.0'},
-        {'name': ['MAVEN'],
-         'type': ['Spacecraft'],
-         'lidvid': ('urn:nasa:pds:context:instrument_host:'
-                    'spacecraft.maven::1.0')},
-        {'name': ['Mars'],
-         'type': ['Planet'],
-         'lidvid': 'urn:nasa:pds:context:target:planet.mars::1.0'}]
-
-    product = MagicMock()
-
-    # Physical checksum file metadata used directly by ChecksumPDS4Label.
-    product.name = name
-    product.extension = name.rsplit('.', 1)[-1] if '.' in name else ''
-    product.path = str(staging_dir / name)
-
-    # PDS4 product identifiers copied by ChecksumPDS4Label.
-    product.lid = 'urn:nasa:pds:maven_spice:checksum'
-    product.vid = '1.0'
-
-    # Temporal coverage copied by ChecksumPDS4Label.
-    product.start_time = '2024-01-01T00:00:00'
-    product.stop_time = '2024-01-31T23:59:59'
-
-    # Creation metadata may be consumed by the inherited PDSLabel writer.
-    product.creation_time = '2024-02-01T12:00:00'
-    product.creation_date = '2024-02-01'
-
-    # File metadata commonly substituted in PDS4 templates.
-    product.size = '2048'
-    product.checksum = 'd41d8cd98f00b204e9800998ecf8427e'
-
-    # Collection/bundle context expected by some inherited PDS4 logic.
-    product.collection.name = 'miscellaneous'
-    product.collection.bundle.context_products = context_products
-    product.bundle.context_products = context_products
-
-    return product
+    return SimpleNamespace(make_setup=base_helpers.make_setup,
+                           make_product=_make_checksum_product)
 
 
 # ===========================================================================
@@ -141,12 +60,12 @@ class TestChecksumPDS4Label:
     # ------------------------------------------------------------------
 
     @pytest.fixture()
-    def label(self, tmp_path: Path) -> ChecksumPDS4Label:
+    def label(self, tmp_path: Path, helpers: SimpleNamespace) -> ChecksumPDS4Label:
         """Build a ChecksumPDS4Label instance while mocking inherited file
          writing."""
         # Create a controlled Setup mock with the PDS4 attributes needed by the
         # label.
-        setup = _make_setup(tmp_path)
+        setup = helpers.make_setup()
 
         # Create the staging directory used by the mocked checksum product path.
         staging = tmp_path / 'staging'
@@ -154,7 +73,7 @@ class TestChecksumPDS4Label:
 
         # Build a checksum product mock with the attributes read by
         # ChecksumPDS4Label.
-        product = _make_product(staging)
+        product = helpers.make_product(staging)
 
         # Avoid real template reading and file writing in unit tests.
         with patch('pds.naif_pds4_bundler.classes.label.label.'
@@ -194,17 +113,17 @@ class TestChecksumPDS4Label:
         assert label.name == 'checksum.xml'
 
     def test_constructor_stores_references_and_writes_label_once(
-            self, tmp_path: Path) -> None:
+            self, tmp_path: Path, helpers: SimpleNamespace) -> None:
         # Validate constructor wiring and its single write_label side effect.
 
         # Build the collaborators required by the label constructor.
-        setup = _make_setup(tmp_path)
+        setup = helpers.make_setup()
 
         # Create the staging directory used by the mocked checksum product path.
         staging = tmp_path / "staging"
         staging.mkdir(parents=True, exist_ok=True)
 
-        product = _make_product(staging)
+        product = helpers.make_product(staging)
 
         # Avoid real file writing while checking the constructor side effect.
         with patch("pds.naif_pds4_bundler.classes.label.label."
@@ -230,19 +149,20 @@ class TestChecksumPDS4Label:
         ('checksum', 'checksum', 'checksum.xml'),
         ('checksum.v01.tab', 'checksum.v01.tab', 'checksum.xml')])
     def test_label_name_is_derived_from_text_before_first_dot(
-            self, tmp_path: Path, product_name: str, expected_file_name: str,
+            self, tmp_path: Path, helpers: SimpleNamespace,
+            product_name: str, expected_file_name: str,
             expected_label_name: str) -> None:
         # Document how product names are converted into XML label names.
 
         # Mock the setup so that you can build the label.
-        setup = _make_setup(tmp_path)
+        setup = helpers.make_setup()
 
         # Build a temporal staging directory.
         staging = tmp_path / 'staging'
         staging.mkdir(parents=True, exist_ok=True)
 
         # Build the product mock.
-        product = _make_product(staging, name=product_name)
+        product = helpers.make_product(staging, name=product_name)
 
         # Patch PDSLabel.write_label() to prevent actual file writing.
         with patch('pds.naif_pds4_bundler.classes.label.label.'
@@ -261,17 +181,18 @@ class TestChecksumPDS4Label:
         ('start_time', 'not-a-valid-start-time', 'START_TIME'),
         ('stop_time', '', 'STOP_TIME')])
     def test_product_values_are_copied_without_validation(
-            self, tmp_path: Path, product_attribute: str, value: str,
+            self, tmp_path: Path, helpers: SimpleNamespace,
+            product_attribute: str, value: str,
             label_attribute: str) -> None:
         # Mock a setup with the attributes required to build the label.
-        setup = _make_setup(tmp_path)
+        setup = helpers.make_setup()
 
         # Build a temporal staging directory.
         staging = tmp_path / 'staging'
         staging.mkdir(parents=True, exist_ok=True)
 
         # Mock a product with valid values by default.
-        product = _make_product(staging)
+        product = helpers.make_product(staging)
 
         # Dynamically modify the product attribute
         setattr(product, product_attribute, value)
@@ -311,7 +232,8 @@ class TestChecksumPDS4LabelIntegration:
     # ------------------------------------------------------------------
 
     @pytest.fixture()
-    def env(self, tmp_path: Path) -> tuple[MagicMock, MagicMock, Path, Path]:
+    def env(self, tmp_path: Path, helpers: SimpleNamespace
+            ) -> tuple[MagicMock, MagicMock, Path, Path]:
         """Create the temporary PDS4 template and staging environment used by
          integration tests."""
 
@@ -326,12 +248,12 @@ class TestChecksumPDS4LabelIntegration:
         template_path.write_text(TEMPLATE_CONTENT, encoding='utf-8')
 
         # Build the setup mock and point it to the temporary integration folders.
-        setup = _make_setup(tmp_path)
+        setup = helpers.make_setup()
         setup.templates_directory = str(templates_dir)
         setup.staging_directory = str(staging_dir)
 
         # Build the checksum product whose label will be generated in staging.
-        product = _make_product(staging_dir)
+        product = helpers.make_product(staging_dir)
 
         # Return only the objects/paths needed by the integration tests.
         return setup, product, template_path, staging_dir / 'checksum.xml'
