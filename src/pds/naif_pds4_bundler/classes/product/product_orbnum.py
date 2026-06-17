@@ -41,7 +41,7 @@ class OrbnumFileProduct(Product):
             self.collection_path = setup.staging_directory + os.sep + "extras"
             product_path = self.collection_path + os.sep + "orbnum" + os.sep
 
-        elif setup.pds_version == "4":
+        else:  # elif setup.pds_version == "4":
             self.collection_path = setup.staging_directory + os.sep + "miscellaneous"
             product_path = self.collection_path + os.sep + "orbnum" + os.sep
 
@@ -371,32 +371,35 @@ class OrbnumFileProduct(Product):
                     orbit_number = int(line.split()[0])
                     records_length = utf8len(line)
 
-                    #
+                    # ---------------------------------------------------------
                     # Checks are performed from the first record.
-                    #
-                    if lines > header_start:
-                        if previous_orbit_number and (
+                    if previous_orbit_number and (
                             orbit_number - previous_orbit_number != 1
-                        ):
-                            logging.warning(
-                                '-- Orbit number %d record is followed by %d.',
-                                previous_orbit_number, orbit_number)
+                    ):
+                        logging.warning(
+                            '-- Orbit number %d record is followed by %d.',
+                            previous_orbit_number, orbit_number)
 
-                        if not line.strip():
-                            handle_npb_error(
-                                f"Orbnum record number {line} is blank.",
-                                setup=self.setup,
-                            )
-                        elif (
+                    # TODO: Fix. This check should be performed before the line
+                    #       orbit_number = int(line.split()[0]). If the line is is blank
+                    #       that statement will raise an IndexError.
+                    if not line.strip():
+                        handle_npb_error(
+                            f"Orbnum record number {line} is blank.",
+                            setup=self.setup,
+                        )
+                    elif (
                             line.strip() and records_length != self.record_fixed_length
-                        ):
-                            logging.warning(
-                                '-- Orbit number %d record has an incorrect '
-                                'length, the record will be expanded to cover '
-                                'the adequate fixed length.', orbit_number)
+                    ):
+                        logging.warning(
+                            '-- Orbit number %d record has an incorrect '
+                            'length, the record will be expanded to cover '
+                            'the adequate fixed length.', orbit_number)
 
-                            blank_records.append(str(orbit_number))
+                        blank_records.append(str(orbit_number))
 
+                    # TODO: Fix. This line will always be True, otherwise the code
+                    #       would have raised an IndexError or executed `handle_npb_error`.
                     if line.strip():
                         records += 1
 
@@ -878,6 +881,9 @@ class OrbnumFileProduct(Product):
                     ascii_format += "s"
                 elif "ASCII_Integer" in params_template[param]["type"]:
                     ascii_format += "d"
+
+                # TODO: Remove `else` block: dead-code. The 'type' key in the hardcoded
+                #       dictionary has only three values.
                 else:
                     handle_npb_error("Parameter type for ORBNUM file is incorrect.")
             else:
@@ -888,6 +894,9 @@ class OrbnumFileProduct(Product):
                 elif "ASCII_Integer" in params_template[param]["type"]:
                     ascii_format = "I" + length
                 else:
+
+                    # TODO: Remove `else` block: dead-code. The 'type' key in the hardcoded
+                    #       dictionary has only three values.
                     handle_npb_error("Parameter type for ORBNUM file is incorrect.")
 
             #
@@ -1199,6 +1208,9 @@ class OrbnumFileProduct(Product):
                 coverage_found = False
         elif "lookup_table" in coverage_source:
             if coverage_source["lookup_table"]:
+                # TODO: Remove these `if` block. Confirmed dead-code. The logging.warning cannot be
+                #       reached because coverage_found starts `False` and is only modified in the
+                #       mutually exclusive `if "kernel" branch`.
                 if coverage_found:
                     logging.warning(
                         "-- Orbnum file lookup table cov. found "
