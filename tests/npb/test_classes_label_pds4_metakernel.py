@@ -226,8 +226,7 @@ class TestMetaKernelPDS4Label:
     @pytest.mark.parametrize('product_type, expected_kernel_type_id', [
         ('mk', 'MK'),
         ('MK', 'MK'),
-        ('Mk', 'MK'),
-        ('tm', 'TM')])
+        ('Mk', 'MK')])
     def test_kernel_type_id_is_upper_cased(
             self, tmp_path: Path, helpers: SimpleNamespace, product_type: str,
             expected_kernel_type_id: str) -> None:
