@@ -187,7 +187,16 @@ class TestOrbnumFileProductInit:
         h1 = " " + "=" * 5 + " " + "=" * 20 + " " + "=" * 16 + "\n"
         r1 = " " + "{:>5}".format(1) + " " + "2020 JAN 01 00:00:00" + " " + "1/0496935200.000" + "\n"
         orbnum_file = os.path.join(mock_setup.orbnum_directory, "test_file.orb")
-        with open(orbnum_file, "w", newline="") as f:
+
+        # TODO: Review this. it looks like there might be an issue in the code because
+        #       the orbnum file should have a standard EOL for all platforms (Windows, Unix).
+        # Write the file already in the configured EOL so that check_eol reports
+        # it as correct and the EOL-conversion path (add_crs_to_file) is not
+        # triggered. That path is exercised separately and is not the focus of
+        # this test; running it here would also depend on platform-specific
+        # newline translation.
+        #
+        with open(orbnum_file, "w", newline=mock_setup.eol) as f:
             f.write(h0 + h1 + r1)
 
         #
