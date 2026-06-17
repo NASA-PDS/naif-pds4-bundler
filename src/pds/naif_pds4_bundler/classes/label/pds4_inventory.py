@@ -45,6 +45,11 @@ class InventoryPDS4Label(PDSLabel):
             start_times.sort()
             stop_times.sort()
 
+            # TODO: BUG; if no product in collection.product has 'checksum' in
+            #       its name, start_times and stop_times remain empty and
+            #       start_times[0] raises IndexError, aborting label generation.
+            #       The same failure occurs when collection.product is an empty
+            #       list.
             self.START_TIME = start_times[0]
             self.STOP_TIME = stop_times[-1]
 
@@ -64,6 +69,9 @@ class InventoryPDS4Label(PDSLabel):
         with open(self.product.path, 'r', encoding='utf-8') as f:
             self.N_RECORDS = str(len(f.readlines()))
 
+        # TODO: BUG; collection.name.split(".")[0] truncates at the FIRST dot,
+        #       so any collection name containing more than one dot produces an
+        #       incorrect XML label name.
         self.name = collection.name.split(".")[0] + ".xml"
         self.write_label()
 
