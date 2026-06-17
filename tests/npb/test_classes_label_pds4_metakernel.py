@@ -85,31 +85,6 @@ def helpers(base_helpers: SimpleNamespace) -> SimpleNamespace:
                            make_product=_make_metakernel_product)
 
 
-def _expected_internal_references(kernel_lids: list[tuple[str, str]],
-                                  tab: int, eol: str) -> str:
-    """Build the exact ``KERNEL_INTERNAL_REFERENCES`` string expected from the
-    production code, so the tests assert on the real format instead of a
-    handwritten copy that could silently diverge.
-
-    :param kernel_lids: list of (kernel_type, lowercased_kernel_name) tuples
-    :param tab: value of setup.xml_tab
-    :param eol: value of setup.eol_pds4
-    :return: the expected internal-references block, rstrip()-ed plus a final
-             ``eol`` exactly as the production code produces it
-    """
-    block = ''
-    for kernel_type, kernel_name in kernel_lids:
-        kernel_lid = (f'urn:nasa:pds:maven_spice:spice_kernels:'
-                      f'{kernel_type}_{kernel_name}')
-        block += (
-            f"{' ' * 2 * tab}<Internal_Reference>{eol}"
-            f"{' ' * 3 * tab}<lid_reference>{kernel_lid}</lid_reference>{eol}"
-            f"{' ' * 3 * tab}<reference_type>data_to_associate"
-            f"</reference_type>{eol}"
-            f"{' ' * 2 * tab}</Internal_Reference>{eol}")
-    return block.rstrip() + eol
-
-
 # ===========================================================================
 # Class 1 – Unit tests
 # ===========================================================================
@@ -371,20 +346,44 @@ class TestMetaKernelPDS4Label:
     # get_kernel_internal_references – the MK-specific logic
     # ------------------------------------------------------------------
 
-    @pytest.mark.parametrize(
-        'collection_metakernel, expected_lids', [
-            (['naif0012.tls'],
-             [('lsk', 'naif0012.tls')]),
-            (['naif0012.tls', 'maven_orbit_v01.bsp', 'maven_sclk_v02.tsc'],
-             [('lsk', 'naif0012.tls'),
-              ('spk', 'maven_orbit_v01.bsp'),
-              ('sclk', 'maven_sclk_v02.tsc')]),
-            (['MAVEN_Frames_V01.TF'],
-             [('fk', 'maven_frames_v01.tf')])])
+    @pytest.mark.parametrize('collection_metakernel, expected_lids, expected', [
+        (['naif0012.tls'], [('lsk', 'naif0012.tls')],
+         '  <Internal_Reference>\n'
+         '   <lid_reference>urn:nasa:pds:maven_spice:spice_kernels:'
+         'lsk_naif0012.tls</lid_reference>\n'
+         '   <reference_type>data_to_associate</reference_type>\n'
+         '  </Internal_Reference>\n'),
+        (['naif0012.tls', 'maven_orbit_v01.bsp', 'maven_sclk_v02.tsc'],
+         [('lsk', 'naif0012.tls'),
+          ('spk', 'maven_orbit_v01.bsp'),
+          ('sclk', 'maven_sclk_v02.tsc')],
+         '  <Internal_Reference>\n'
+         '   <lid_reference>urn:nasa:pds:maven_spice:spice_kernels:'
+         'lsk_naif0012.tls</lid_reference>\n'
+         '   <reference_type>data_to_associate</reference_type>\n'
+         '  </Internal_Reference>\n'
+         '  <Internal_Reference>\n'
+         '   <lid_reference>urn:nasa:pds:maven_spice:spice_kernels:'
+         'spk_maven_orbit_v01.bsp</lid_reference>\n'
+         '   <reference_type>data_to_associate</reference_type>\n'
+         '  </Internal_Reference>\n'
+         '  <Internal_Reference>\n'
+         '   <lid_reference>urn:nasa:pds:maven_spice:spice_kernels:'
+         'sclk_maven_sclk_v02.tsc</lid_reference>\n'
+         '   <reference_type>data_to_associate</reference_type>\n'
+         '  </Internal_Reference>\n'),
+        (['MAVEN_Frames_V01.TF'],
+         [('fk', 'maven_frames_v01.tf')],
+         '  <Internal_Reference>\n'
+         '   <lid_reference>urn:nasa:pds:maven_spice:spice_kernels:'
+         'fk_maven_frames_v01.tf</lid_reference>\n'
+         '   <reference_type>data_to_associate</reference_type>\n'
+         '  </Internal_Reference>\n')])
     def test_get_kernel_internal_references_builds_expected_block(
             self, tmp_path: Path, helpers: SimpleNamespace,
             collection_metakernel: list[str],
-            expected_lids: list[tuple[str, str]]) -> None:
+            expected_lids: list[tuple[str, str]],
+            expected: str) -> None:
         # Verify that the internal-references block is built from
         # collection_metakernel, one <Internal_Reference> per kernel, preserving
         # insertion order, lower-casing the kernel name in the LID, and using
@@ -403,15 +402,30 @@ class TestMetaKernelPDS4Label:
                    'PDSLabel.write_label', autospec=True):
             label = MetaKernelPDS4Label(setup, product)
 
-        expected = _expected_internal_references(
-            expected_lids, tab=setup.xml_tab, eol=setup.eol_pds4)
-
         assert label.KERNEL_INTERNAL_REFERENCES == expected
 
-    @pytest.mark.parametrize('xml_tab', [1, 2, 4])
+    @pytest.mark.parametrize('xml_tab, expected', [
+        (1,
+         '  <Internal_Reference>\n'
+         '   <lid_reference>urn:nasa:pds:maven_spice:spice_kernels:'
+         'lsk_naif0012.tls</lid_reference>\n'
+         '   <reference_type>data_to_associate</reference_type>\n'
+         '  </Internal_Reference>\n'),
+        (2,
+         '    <Internal_Reference>\n'
+         '      <lid_reference>urn:nasa:pds:maven_spice:spice_kernels:'
+         'lsk_naif0012.tls</lid_reference>\n'
+         '      <reference_type>data_to_associate</reference_type>\n'
+         '    </Internal_Reference>\n'),
+        (4,
+         '        <Internal_Reference>\n'
+         '            <lid_reference>urn:nasa:pds:maven_spice:spice_kernels:'
+         'lsk_naif0012.tls</lid_reference>\n'
+         '            <reference_type>data_to_associate</reference_type>\n'
+         '        </Internal_Reference>\n')])
     def test_get_kernel_internal_references_honours_xml_tab(
             self, tmp_path: Path, helpers: SimpleNamespace,
-            xml_tab: int) -> None:
+            xml_tab: int, expected: str) -> None:
         # The indentation of the generated block must scale with setup.xml_tab:
         # 2*tab spaces for <Internal_Reference> and 3*tab spaces for its
         # children.
@@ -429,9 +443,6 @@ class TestMetaKernelPDS4Label:
                    'PDSLabel.write_label', autospec=True):
             label = MetaKernelPDS4Label(setup, product)
 
-        expected = _expected_internal_references(
-            [('lsk', 'naif0012.tls')], tab=xml_tab, eol=setup.eol_pds4)
-
         assert label.KERNEL_INTERNAL_REFERENCES == expected
 
         # Explicitly assert the leading indentation widths to make the contract
@@ -439,10 +450,22 @@ class TestMetaKernelPDS4Label:
         first_line = label.KERNEL_INTERNAL_REFERENCES.split(setup.eol_pds4)[0]
         assert first_line == f"{' ' * 2 * xml_tab}<Internal_Reference>"
 
-    @pytest.mark.parametrize('eol_pds4', ['\n', '\r\n'])
+    @pytest.mark.parametrize('eol_pds4, expected', [
+        ('\n',
+         '  <Internal_Reference>\n'
+         '   <lid_reference>urn:nasa:pds:maven_spice:spice_kernels:'
+         'lsk_naif0012.tls</lid_reference>\n'
+         '   <reference_type>data_to_associate</reference_type>\n'
+         '  </Internal_Reference>\n'),
+        ('\r\n',
+         '  <Internal_Reference>\r\n'
+         '   <lid_reference>urn:nasa:pds:maven_spice:spice_kernels:'
+         'lsk_naif0012.tls</lid_reference>\r\n'
+         '   <reference_type>data_to_associate</reference_type>\r\n'
+         '  </Internal_Reference>\r\n')])
     def test_get_kernel_internal_references_honours_end_of_line(
             self, tmp_path: Path, helpers: SimpleNamespace,
-            eol_pds4: str) -> None:
+            eol_pds4: str, expected: str) -> None:
         # The configured PDS4 end-of-line sequence must be used as the line
         # terminator inside the generated block (and for the trailing EOL).
 
@@ -457,9 +480,6 @@ class TestMetaKernelPDS4Label:
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
             label = MetaKernelPDS4Label(setup, product)
-
-        expected = _expected_internal_references(
-            [('lsk', 'naif0012.tls')], tab=setup.xml_tab, eol=eol_pds4)
 
         assert label.KERNEL_INTERNAL_REFERENCES == expected
         assert label.KERNEL_INTERNAL_REFERENCES.endswith(eol_pds4)
