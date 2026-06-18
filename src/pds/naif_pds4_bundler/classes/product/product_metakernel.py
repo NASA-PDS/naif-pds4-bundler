@@ -109,7 +109,7 @@ class MetaKernelProduct(Product):
             product_path = self.collection_path + self.type + os.sep
 
             self.KERNELPATH = "./data"
-        elif setup.pds_version == "4":
+        else:  # elif setup.pds_version == "4":
             self.collection_path = (
                 setup.staging_directory + os.sep + "spice_kernels" + os.sep
             )
@@ -439,12 +439,15 @@ class MetaKernelProduct(Product):
                                 for val in patterns[el]:
                                     if kernel == val["@value"]:
                                         value = val["#text"]
-                                        #
+
+                                        # TODO: Review. Check if the following line of code
+                                        #       is actually required. It seems it is not.
                                         # Write the value of the pattern for
                                         # future use.
                                         #
                                         patterns[el]["&value"] = value
 
+                                # TODO: Review.
                                 if isinstance(value, list):
                                     handle_npb_error(
                                         f"-- Kernel description "
@@ -735,8 +738,7 @@ class MetaKernelProduct(Product):
         # etc. pause the pipeline to allow the user to introduce changes.
         #
         if hasattr(self, "mk_setup") and not self.setup.args.debug:
-            if hasattr(self, "mk_setup"):
-                if "interrupt_to_update" in self.mk_setup:
+            if "interrupt_to_update" in self.mk_setup:
                     if self.mk_setup["interrupt_to_update"].lower() == "true":
                         print(
                             "    * The meta-kernel might need to be updated. You can:"
@@ -776,25 +778,19 @@ class MetaKernelProduct(Product):
         # Compare meta-kernel with latest. First try with previous increment.
         #
         try:
-            match_flag = True
             val_mk_path = (
                 f"{self.setup.bundle_directory}/"
                 f"{self.setup.mission_acronym}_spice/spice_kernels/mk/"
             )
 
             val_mk_name = self.name.split(os.sep)[-1]
-            i = 1
 
-            while match_flag:
-                if i < len(val_mk_name) - 1:
-                    val_mks = glob.glob(val_mk_path + val_mk_name[0:i] + "*.tm")
-                    if val_mks:
-                        val_mks = sorted(val_mks)
-                        val_mk = val_mks[-1]
-                        match_flag = True
-                    else:
-                        match_flag = False
-                    i += 1
+            for i in range(1, len(val_mk_name) - 1):
+                val_mks = glob.glob(val_mk_path + val_mk_name[0:i] + "*.tm")
+                if val_mks:
+                    val_mk = sorted(val_mks)[-1]
+                else:
+                    break
 
             if not val_mk:
                 raise Exception("No label for comparison found.")
@@ -1037,6 +1033,12 @@ class MetaKernelProduct(Product):
                 et_incremn_finish = spiceypy.utc2et(self.setup.increment_finish[:-1])
                 et_year_start = spiceypy.utc2et(f"{self.year}-01-01T00:00:00")
 
+                # TODO: Review. Currently, the if branch is dead-code: Condition A and B
+                #       cannot be both true for any valid calendar. Condition A requires
+                #       Jan 1 of self.year to be strictly after mission_start. Condition B
+                #       requires self.year to be equal to the four digit year extracted from
+                #       mission_start.
+                #
                 if et_year_start > et_mission_start and (
                     self.year == self.setup.mission_start[:4]
                 ):
