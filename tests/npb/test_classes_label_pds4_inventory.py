@@ -700,7 +700,13 @@ class TestInventoryPDS4LabelIntegration:
         # asserted on the constructed instance, not as the physical file.
         assert label.collection.name == 'miscellaneous'
 
-        content = label_path.read_text(encoding='utf-8')
-        assert '<start_date_time>2024-01-01T00:00:00</start_date_time>' in content
-        assert '<stop_date_time>2024-02-28T00:00:00</stop_date_time>' in content
-        assert '<number_of_records>2</number_of_records>' in content
+        assert label_path.read_text(encoding='utf-8') == (
+            '<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<collection>\n'
+            '  <file_name>collection_miscellaneous_inventory_v001.csv</file_name>\n'
+            '  <collection_lid>urn:nasa:pds:maven_spice:spice_kernels</collection_lid>\n'
+            '  <collection_vid>1.0</collection_vid>\n'
+            '  <start_date_time>2024-01-01T00:00:00</start_date_time>\n'
+            '  <stop_date_time>2024-02-28T00:00:00</stop_date_time>\n'
+            '  <number_of_records>2</number_of_records>\n'
+            '</collection>\n')
