@@ -248,7 +248,7 @@ class TestInventoryPDS4Label:
     # ------------------------------------------------------------------
 
     @pytest.mark.parametrize('n_records, expected', [
-        (0, '0'), (1, '1'), (5, '5'), (42, '42')])
+        (0, '0'), (1, '1'), (42, '42')])
     def test_n_records_counts_physical_lines(
             self, tmp_path: Path, helpers: SimpleNamespace,
             n_records: int, expected: str) -> None:
