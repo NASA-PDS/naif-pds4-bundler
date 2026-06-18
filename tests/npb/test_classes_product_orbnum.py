@@ -64,6 +64,31 @@ def mock_kernels_collection():
     return collection
 
 
+@pytest.fixture
+def pds4_init_mocks():
+    """Shared patches for OrbnumFileProduct methods called during PDS4 __init__.
+
+    Both test_init_pds4_new_file and test_init_pds4_existing_file_no_overrides
+    need this identical block of patches. Returns the two mocks that each test
+    individually asserts against.
+    """
+    with (
+        patch(f"{MOD}.add_crs_to_file") as m_add_crs,
+        patch.object(OrbnumFileProduct, "read_header", return_value=["Event UTC PERI", "==="]),
+        patch.object(OrbnumFileProduct, "set_event_detection_key"),
+        patch.object(OrbnumFileProduct, "get_header_length", return_value=100),
+        patch.object(OrbnumFileProduct, "set_previous_orbnum"),
+        patch.object(OrbnumFileProduct, "read_records", return_value=10),
+        patch.object(OrbnumFileProduct, "get_sample_record", return_value="sample record"),
+        patch.object(OrbnumFileProduct, "get_description", return_value="desc"),
+        patch.object(OrbnumFileProduct, "table_character_description", return_value="table desc"),
+        patch.object(OrbnumFileProduct, "get_params"),
+        patch.object(OrbnumFileProduct, "set_params"),
+        patch.object(OrbnumFileProduct, "coverage") as m_coverage,
+    ):
+        yield {"add_crs_to_file": m_add_crs, "coverage": m_coverage}
+
+
 class TestOrbnumFileProductInit:
     """Test the __init__ method (integrates set_product_lid and set_product_vid)."""
 
@@ -80,26 +105,12 @@ class TestOrbnumFileProductInit:
     @patch(f"{MOD}.shutil.copy2")
     @patch(f"{MOD}.os.path.isfile", return_value=False)
     @patch(f"{MOD}.check_eol", return_value=True)
-    @patch(f"{MOD}.add_crs_to_file")
-    @patch.object(OrbnumFileProduct, "read_header", return_value=["Event UTC PERI", "==="])
-    @patch.object(OrbnumFileProduct, "set_event_detection_key")
-    @patch.object(OrbnumFileProduct, "get_header_length", return_value=100)
-    @patch.object(OrbnumFileProduct, "set_previous_orbnum")
-    @patch.object(OrbnumFileProduct, "read_records", return_value=10)
-    @patch.object(OrbnumFileProduct, "get_sample_record", return_value="sample record")
-    @patch.object(OrbnumFileProduct, "get_description", return_value="desc")
-    @patch.object(OrbnumFileProduct, "table_character_description", return_value="table desc")
-    @patch.object(OrbnumFileProduct, "get_params")
-    @patch.object(OrbnumFileProduct, "set_params")
-    @patch.object(OrbnumFileProduct, "coverage")
     def test_init_pds4_new_file(
         self,
-        mock_coverage, _mock_set_params, _mock_get_params, _mock_table_char,
-        _mock_get_desc, _mock_get_sample, _mock_read_records, _mock_set_prev,
-        _mock_get_header_len, _mock_set_event, _mock_read_header, _mock_add_crs,
-        mock_check_eol, _mock_isfile, _mock_copy2, _mock_safe_mkdir, _mock_label,
-        _mock_register,
-        mock_setup, mock_collection, mock_kernels_collection):
+        mock_check_eol, _mock_isfile, _mock_copy2, _mock_safe_mkdir, _mock_label, _mock_register,
+        pds4_init_mocks,
+        mock_setup, mock_collection, mock_kernels_collection,
+    ):
         """Test full PDS4 initialization with a new file."""
         obj = OrbnumFileProduct(mock_setup, "test_file.orb", mock_collection, mock_kernels_collection)
 
@@ -111,7 +122,7 @@ class TestOrbnumFileProductInit:
         assert obj.observers == ["Test Observer"]
         assert obj.targets == ["Test Target"]
         mock_check_eol.assert_called_once()
-        mock_coverage.assert_called_once()
+        pds4_init_mocks["coverage"].assert_called_once()
 
     @patch.object(Product, "register")
     @patch(f"{MOD}.safe_make_directory")
@@ -136,24 +147,10 @@ class TestOrbnumFileProductInit:
     @patch(f"{MOD}.safe_make_directory")
     @patch(f"{MOD}.os.path.isfile", return_value=True)
     @patch(f"{MOD}.check_eol", return_value=False)
-    @patch(f"{MOD}.add_crs_to_file")
-    @patch.object(OrbnumFileProduct, "read_header", return_value=["Event UTC PERI", "==="])
-    @patch.object(OrbnumFileProduct, "set_event_detection_key")
-    @patch.object(OrbnumFileProduct, "get_header_length", return_value=100)
-    @patch.object(OrbnumFileProduct, "set_previous_orbnum")
-    @patch.object(OrbnumFileProduct, "read_records", return_value=10)
-    @patch.object(OrbnumFileProduct, "get_sample_record", return_value="sample record")
-    @patch.object(OrbnumFileProduct, "get_description", return_value="desc")
-    @patch.object(OrbnumFileProduct, "table_character_description", return_value="table desc")
-    @patch.object(OrbnumFileProduct, "get_params")
-    @patch.object(OrbnumFileProduct, "set_params")
-    @patch.object(OrbnumFileProduct, "coverage")
     def test_init_pds4_existing_file_no_overrides(
         self,
-        _mock_coverage, _mock_set_params, _mock_get_params, _mock_table_char,
-        _mock_get_desc, _mock_get_sample, _mock_read_records, _mock_set_prev,
-        _mock_get_header_len, _mock_set_event, _mock_read_header, mock_add_crs,
         _mock_check_eol, _mock_isfile, _mock_safe_mkdir, _mock_label, _mock_register,
+        pds4_init_mocks,
         mock_setup, mock_collection, mock_kernels_collection,
     ):
         """When check_eol is False, add_crs_to_file is skipped; and missing mission/observer/target keys fall back to the collection values."""
@@ -164,7 +161,7 @@ class TestOrbnumFileProductInit:
         obj = OrbnumFileProduct(mock_setup, "test_file.orb", mock_collection, mock_kernels_collection)
 
         assert obj.new_product is False
-        mock_add_crs.assert_not_called()
+        pds4_init_mocks["add_crs_to_file"].assert_not_called()
         assert obj.missions == ["mission1"]
         assert obj.observers == ["obs1"]
         assert obj.targets == ["target1"]
@@ -777,67 +774,52 @@ class TestOrbnumFileProductCoverage:
 
         assert mock_parse_date.call_count == 2
 
-    # --- Group 1: kernel path-resolution fallback chain ---
+    # --- Groups 1 & 2: kernel path-resolution fallback chain and multiple-match selection ---
 
+    @pytest.mark.parametrize(
+        "listdir_config, kernel_text, setup_kwargs",
+        [
+            pytest.param(
+                {"side_effect": [OSError("not found"), ["test.bsp"]]},
+                "/path/test.bsp",
+                {"spice_name": "test_spice", "staging_directory": "/staging", "bundle_directory": "/bundle"},
+                id="fallback-to-staging",
+            ),
+            pytest.param(
+                {"side_effect": [OSError("fail"), OSError("fail"), ["test.bsp"]]},
+                "/path/test.bsp",
+                {"spice_name": "test_spice", "staging_directory": "/staging", "bundle_directory": "/bundle"},
+                id="fallback-to-bundle",
+            ),
+            pytest.param(
+                {"side_effect": [OSError("fail"), OSError("fail"), OSError("fail")]},
+                "/path/test.bsp",
+                {"spice_name": "test_spice", "staging_directory": "/staging", "bundle_directory": "/bundle"},
+                id="all-searches-fail",
+            ),
+            pytest.param(
+                {"return_value": ["other.bsp", "test.bsp"]},
+                "/path/.*\\.bsp",
+                {"spice_name": "test_spice"},
+                id="multiple-matches",
+            ),
+        ],
+    )
     @patch(f"{MOD}.spk_coverage")
     @patch(f"{MOD}.os.path.isfile", return_value=True)
-    @patch(f"{MOD}.os.listdir", side_effect=[OSError("not found"), ["test.bsp"]])
-    def test_coverage_kernel_fallback_to_staging(self, _mock_listdir, _mock_isfile, mock_spk_coverage):
-        """When listing the configured kernel path raises, the search falls back to the staging directory."""
+    @patch(f"{MOD}.os.listdir")
+    def test_coverage_kernel_path_resolution(
+        self, mock_listdir, _mock_isfile, mock_spk_coverage,
+        listdir_config, kernel_text, setup_kwargs,
+    ):
+        """Kernel path-resolution: fallback chain (configured→staging→bundle) and multiple-match selection."""
+        for attr, value in listdir_config.items():
+            setattr(mock_listdir, attr, value)
+
         obj = object.__new__(OrbnumFileProduct)
         obj.name = "test.orb"
-        obj._orbnum_type = {"coverage": {"kernel": {"#text": "/path/test.bsp", "@cutoff": "False"}}}
-        obj.setup = MagicMock(spice_name="test_spice", staging_directory="/staging", bundle_directory="/bundle")
-        mock_spk_coverage.return_value = ("2020-01-01T00:00:00Z", "2020-02-01T00:00:00Z")
-
-        obj.coverage()
-
-        assert obj.start_time == "2020-01-01T00:00:00Z"
-        assert obj.stop_time == "2020-02-01T00:00:00Z"
-
-    @patch(f"{MOD}.spk_coverage")
-    @patch(f"{MOD}.os.path.isfile", return_value=True)
-    @patch(f"{MOD}.os.listdir", side_effect=[OSError("fail"), OSError("fail"), ["test.bsp"]])
-    def test_coverage_kernel_fallback_to_bundle(self, _mock_listdir, _mock_isfile, mock_spk_coverage):
-        """When both the configured path and the staging directory raise, the search falls back to the bundle directory."""
-        obj = object.__new__(OrbnumFileProduct)
-        obj.name = "test.orb"
-        obj._orbnum_type = {"coverage": {"kernel": {"#text": "/path/test.bsp", "@cutoff": "False"}}}
-        obj.setup = MagicMock(spice_name="test_spice", staging_directory="/staging", bundle_directory="/bundle")
-        mock_spk_coverage.return_value = ("2020-01-01T00:00:00Z", "2020-02-01T00:00:00Z")
-
-        obj.coverage()
-
-        assert obj.start_time == "2020-01-01T00:00:00Z"
-        assert obj.stop_time == "2020-02-01T00:00:00Z"
-
-    @patch(f"{MOD}.spk_coverage")
-    @patch(f"{MOD}.os.path.isfile", return_value=True)
-    @patch(f"{MOD}.os.listdir", side_effect=[OSError("fail"), OSError("fail"), OSError("fail")])
-    def test_coverage_kernel_all_searches_fail(self, _mock_listdir, _mock_isfile, mock_spk_coverage):
-        """When every directory search raises (no kernels found), the originally configured kernel path is still used via os.path.isfile."""
-        obj = object.__new__(OrbnumFileProduct)
-        obj.name = "test.orb"
-        obj._orbnum_type = {"coverage": {"kernel": {"#text": "/path/test.bsp", "@cutoff": "False"}}}
-        obj.setup = MagicMock(spice_name="test_spice", staging_directory="/staging", bundle_directory="/bundle")
-        mock_spk_coverage.return_value = ("2020-01-01T00:00:00Z", "2020-02-01T00:00:00Z")
-
-        obj.coverage()
-
-        assert obj.start_time == "2020-01-01T00:00:00Z"
-        assert obj.stop_time == "2020-02-01T00:00:00Z"
-
-    # --- Group 2: multiple kernels found ---
-
-    @patch(f"{MOD}.spk_coverage")
-    @patch(f"{MOD}.os.path.isfile", return_value=True)
-    @patch(f"{MOD}.os.listdir", return_value=["other.bsp", "test.bsp"])
-    def test_coverage_kernel_multiple_matches(self, _mock_listdir, _mock_isfile, mock_spk_coverage):
-        """When multiple kernels match the pattern, the one whose basename matches the orbnum name is selected."""
-        obj = object.__new__(OrbnumFileProduct)
-        obj.name = "test.orb"
-        obj._orbnum_type = {"coverage": {"kernel": {"#text": "/path/.*\\.bsp", "@cutoff": "False"}}}
-        obj.setup = MagicMock(spice_name="test_spice")
+        obj._orbnum_type = {"coverage": {"kernel": {"#text": kernel_text, "@cutoff": "False"}}}
+        obj.setup = MagicMock(**setup_kwargs)
         mock_spk_coverage.return_value = ("2020-01-01T00:00:00Z", "2020-02-01T00:00:00Z")
 
         obj.coverage()
