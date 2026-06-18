@@ -1111,7 +1111,7 @@ class TestKernelListValidate:
         # Mock the handle_npb_error call.
         handle_npb_error_mock = mocker.patch(
             'pds.naif_pds4_bundler.classes.list.handle_npb_error')
-                
+
         # Build a KernelList with a FILE line that contains nothing after equal
         # sign.
         kernel_list, _, _ = self.make_kernel_list(
@@ -1119,6 +1119,7 @@ class TestKernelListValidate:
 
         kernel_list.validate()
 
+        # Check that handle_npb_error is not called.
         handle_npb_error_mock.assert_not_called()
 
     def test_validate_skips_none_option_token(self, mocker, caplog,
