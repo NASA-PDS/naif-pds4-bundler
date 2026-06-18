@@ -692,6 +692,13 @@ class KernelList:
 
             for line in lst:
 
+                # TODO: BUG; entry type is detected with substring ('in')
+                #       tests instead of prefix checks. Any DESCRIPTION or
+                #       OPTIONS line whose text contains the word 'FILE'
+                #       (e.g. "DESCRIPTION = FILE naming kernel") is
+                #       miscounted as an extra FILE entry, causing the
+                #       coherence check to raise on a perfectly valid list.
+                #       The same flaw applies to 'OPTIONS' and 'DESCRIPTION'.
                 if ("FILE" in line) and (line.split("=")[-1].strip()):
                     num_file += 1
                     #
@@ -764,6 +771,8 @@ class KernelList:
                     "-- Check that all template tags used in the "
                     "list are present in template:"
                 )
+                # TODO: BUG; the template path is built with a hardcoded forward
+                #       slash instead.
                 template = (
                     self.setup.root_dir + f"/config/{self.setup.mission_acronym}"
                     f"_mission_template.pds"

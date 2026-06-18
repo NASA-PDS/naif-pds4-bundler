@@ -1646,3 +1646,455 @@ class TestKernelListWriteCompleteList:
         # The validate_complete must be called once and its exception
         # propagated.
         validate_complete_mock.assert_called_once_with(kernel_list)
+
+
+class TestKernelListValidateComplete:
+    """Tests for KernelList.validate_complete.
+
+    validate_complete parses the *complete* kernel list (the merge of every
+    release list) and performs three checks:
+
+      1. FILE / MAKLABEL_OPTIONS / DESCRIPTION entry counts must match.
+      2. The collected kernels must contain no duplicates.
+      3. For PDS3 only: every MAKLABEL_OPTION used must appear in the mission
+         template file as ``--<option>``.
+
+    The method is heavily side effect driven (it logs almost everything and only
+    raises through ``handle_npb_error`` / a bare ``Exception``), so the tests
+    below isolate the *logging* from the *control-flow* boundaries exactly as the
+    sibling ``TestKernelListValidate`` class does.
+    """
+
+    @staticmethod
+    def block(file_value: str, options: str, description: str) -> str:
+        # Reuse the same three-line entry shape produced by write_list, so the
+        # fixtures read like a real complete kernel list. Kept identical to
+        # TestKernelListValidate.block to avoid diverging test vocabularies.
+        return (f"FILE             = {file_value}\n"
+                f"MAKLABEL_OPTIONS = {options}\n"
+                f"DESCRIPTION      = {description}\n")
+
+    @staticmethod
+    def make_kernel_list(mocker, tmp_path, complete_content,
+                         duplicates=False, template_content=None,
+                         **setup_overrides) -> tuple[KernelList, SimpleNamespace, Path]:
+        # Build a real KernelList wired up to run validate_complete.
+        #
+        # validate_complete only reads:
+        #   * setup.working_directory + os.sep + self.complete_list  (the list)
+        #   * setup.pds_version                                      (PDS3 branch)
+        #   * setup.mission_name                                     (error log)
+        #   * setup.root_dir / setup.mission_acronym                 (PDS3 template)
+        #   * self.json_formatted_lst                                (error log)
+        #
+        # Everything else is a boundary and is mocked.
+
+        # Real directories so the open() calls hit a genuine filesystem. Using
+        # os.sep-free pathlib joins keeps this valid on Windows too.
+        working_directory = tmp_path / 'working'
+        config_directory = tmp_path / 'config'
+        working_directory.mkdir(exist_ok=True)
+        config_directory.mkdir(exist_ok=True)
+
+        # check_list_duplicates is the only collaborator inside the method (other
+        # than handle_npb_error, mocked per-test). Default: no duplicates.
+        mocker.patch('pds.naif_pds4_bundler.classes.list.check_list_duplicates',
+                     return_value=duplicates)
+
+        # Build a minimal setup. root_dir points at tmp_path so the PDS3 template
+        # is resolved under tmp_path/config/<acronym>_mission_template.pds, which
+        # is the layout validate_complete expects.
+        setup = make_kernel_list_setup(tmp_path,
+                                       mission_acronym='maven',
+                                       mission_name='MAVEN',
+                                       working_directory=str(working_directory),
+                                       root_dir=str(tmp_path),
+                                       **setup_overrides)
+
+        kernel_list = KernelList(setup)
+
+        # complete_list is the filename validate_complete opens inside
+        # working_directory.
+        kernel_list.complete_list = 'maven_complete.kernel_list'
+        complete_path = working_directory / kernel_list.complete_list
+        complete_path.write_text(complete_content, encoding='utf-8')
+
+        # The mission template is only opened on the PDS3 path. Create it on
+        # demand so PDS4 tests do not need it on disk.
+        if template_content is not None:
+            (config_directory / 'maven_mission_template.pds').write_text(
+                template_content, encoding='utf-8')
+
+        return kernel_list, setup, complete_path
+
+    # ------------------------------------------------------------------
+    # Happy paths: counts coherent, no duplicates.
+    # ------------------------------------------------------------------
+
+    @pytest.mark.parametrize('complete_content, num_entries', [
+        (None, 1), (None, 2)])
+    def test_validate_complete_pds4_happy_path_logs_pass_and_no_duplicates(
+            self, mocker, caplog, tmp_path, complete_content, num_entries) -> None:
+        # PDS4 success flow: coherent FILE/OPTIONS/DESCRIPTION counts and no
+        # duplicates. The PDS3-only option/template blocks must be skipped, so
+        # the log ends right after the duplicates section.
+
+        # Build N coherent entries with distinct filenames (so no duplicates).
+        content = ''.join(
+            self.block(f'spice_kernels/spk/maven_{i:02d}.bsp', 'SPK', 'Orbit')
+            for i in range(num_entries))
+
+        kernel_list, _, _ = self.make_kernel_list(
+            mocker, tmp_path, content)
+
+        # Capture the logs and check the exact message/level sequence.
+        with caplog.at_level(logging.INFO):
+            kernel_list.validate_complete()
+
+        expected = [
+            (logging.INFO, '-- Checking list number of entries coherence:'),
+            (logging.INFO, f'     PASS with total of {num_entries} entries.'),
+            (logging.INFO, ''),
+            (logging.INFO, '-- Checking for duplicates in kernel list:'),
+            (logging.INFO, '     List contains no duplicates.'),
+            (logging.INFO, '')]
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+        assert results == expected
+
+    def test_validate_complete_ignores_file_and_description_lines_without_value(
+            self, mocker, caplog, tmp_path) -> None:
+        # Lines whose value after '=' is empty must not be counted. A FILE line
+        # and a DESCRIPTION line with no value are present but, because both are
+        # skipped, the three counters stay at zero and remain coherent.
+
+        # OPTIONS has no emptiness guard in the code (it is counted regardless),
+        # so we must NOT include an OPTIONS line here or the counts would
+        # diverge. This isolates the empty-value guards on FILE and DESCRIPTION.
+        content = ('FILE             = \n'
+                   'DESCRIPTION      = \n')
+
+        kernel_list, _, _ = self.make_kernel_list(mocker, tmp_path, content)
+
+        with caplog.at_level(logging.INFO):
+            kernel_list.validate_complete()
+
+        # Zero coherent entries -> still a PASS with 0 entries, no duplicates.
+        expected = [
+            (logging.INFO, '-- Checking list number of entries coherence:'),
+            (logging.INFO, '     PASS with total of 0 entries.'),
+            (logging.INFO, ''),
+            (logging.INFO, '-- Checking for duplicates in kernel list:'),
+            (logging.INFO, '     List contains no duplicates.'),
+            (logging.INFO, '')]
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+        assert results == expected
+
+    def test_validate_complete_extracts_kernel_basename_from_path(
+            self, mocker, tmp_path) -> None:
+        # The kernel basename fed into the duplicate check is taken as the text
+        # after the last '/'. Verify the exact list passed to
+        # check_list_duplicates rather than only its boolean result, because the
+        # basename extraction is its own logical branch.
+
+        content = (self.block('spice_kernels/spk/a.bsp', 'SPK', 'd')
+                   + self.block('spice_kernels/ck/b.bc', 'CK', 'd'))
+
+        kernel_list, _, _ = self.make_kernel_list(mocker, tmp_path, content)
+
+        # The helper already patches check_list_duplicates; re-patch it AFTER the
+        # helper so this mock is the active one (last patch wins) and capture the
+        # reference to assert the exact argument it receives.
+        duplicates_mock = mocker.patch(
+            'pds.naif_pds4_bundler.classes.list.check_list_duplicates',
+            return_value=False)
+
+        kernel_list.validate_complete()
+
+        # The basename (text after the last '/') are what gets deduplicated.
+        duplicates_mock.assert_called_once_with(['a.bsp', 'b.bc'])
+
+    # ------------------------------------------------------------------
+    # Entry-count mismatch: raises a bare Exception and logs the diagnostics.
+    # ------------------------------------------------------------------
+
+    @pytest.mark.parametrize('content', [
+        ('FILE             = spice_kernels/spk/k.bsp\n'
+         'DESCRIPTION      = only a description\n'),
+        ('FILE             = spice_kernels/spk/k.bsp\n'
+         'MAKLABEL_OPTIONS = SPK\n')])
+    def test_validate_complete_raises_on_entry_count_mismatch(
+            self, mocker, tmp_path, content) -> None:
+        # Diverging FILE/OPTIONS/DESCRIPTION counts must abort validation with a
+        # bare Exception (NOT handle_npb_error). This is the only failure path in
+        # validate_complete that raises directly.
+
+        kernel_list, _, _ = self.make_kernel_list(mocker, tmp_path, content)
+
+        with pytest.raises(Exception,
+                           match='List does not have the same number of entries'):
+            kernel_list.validate_complete()
+
+    def test_validate_complete_logs_entry_count_diagnostics_before_raising(
+            self, mocker, caplog, tmp_path) -> None:
+        # When the counts diverge, the method must emit the full diagnostic
+        # block (the three counters, the mission-name hint and the formatted JSON
+        # config) and only then raise. Side-effects and the raise are asserted
+        # together because the logging happens strictly before the exception.
+
+        content = ('FILE             = spice_kernels/spk/k.bsp\n'
+                   'DESCRIPTION      = d\n')
+
+        kernel_list, setup, _ = self.make_kernel_list(mocker, tmp_path, content)
+
+        # Pin a known formatted JSON config so the trailing INFO lines are
+        # deterministic. This attribute is normally produced by read_config.
+        kernel_list.json_formatted_lst = ['{', '  "k": "v"', '}']
+
+        with caplog.at_level(logging.INFO):
+            with pytest.raises(Exception,
+                               match='List does not have the same number of entries'):
+                kernel_list.validate_complete()
+
+        expected = [
+            (logging.INFO, '-- Checking list number of entries coherence:'),
+            (logging.ERROR, 'List does not have the same number of entries for:'),
+            (logging.ERROR, '   FILE             (1)'),
+            (logging.ERROR, '   MAKLABEL_OPTIONS (0)'),
+            (logging.ERROR, '   DESCRIPTION      (1)'),
+            (logging.ERROR, ''),
+            (logging.ERROR,
+             f'-- Display {setup.mission_name} kernel list configuration file to'
+             ' double-check.'),
+            (logging.INFO, '{'),
+            (logging.INFO, '  "k": "v"'),
+            (logging.INFO, '}'),
+            (logging.ERROR, '')]
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+        assert results == expected
+
+    def test_validate_complete_miscounts_description_containing_file_word(
+            self, mocker, tmp_path) -> None:
+        # TODO: BUG; validate_complete counts entry types with substring 'in'
+        #       tests instead of prefix checks (mirrors the known validate()
+        #       bug). A balanced 1 FILE / 1 OPTIONS / 1 DESCRIPTION list whose
+        #       DESCRIPTION text contains the word 'FILE' is miscounted as 2
+        #       FILE entries, so the coherent list wrongly fails the count check.
+        content = ('FILE             = spice_kernels/spk/k.bsp\n'
+                   'MAKLABEL_OPTIONS = SPK\n'
+                   'DESCRIPTION      = FILE naming kernel\n')
+
+        kernel_list, _, _ = self.make_kernel_list(mocker, tmp_path, content)
+
+        # Documents the buggy behaviour: this *should* pass but currently raises.
+        with pytest.raises(Exception,
+                           match='List does not have the same number of entries'):
+            kernel_list.validate_complete()
+
+        # ------------------------------------------------------------------
+        # Duplicate detection: routed through handle_npb_error.
+        # ------------------------------------------------------------------
+
+    def test_validate_complete_reports_duplicates_via_handle_npb_error(
+            self, mocker, tmp_path) -> None:
+        # When check_list_duplicates returns True, validate_complete calls
+        # handle_npb_error("List contains duplicates."), which always raises
+        # RuntimeError. The real function is used — exactly as
+        # TestKernelListValidate.test_validate_reports_error_condition does —
+        # because spiceypy.kclear() is safe to call with no kernels loaded.
+
+        content = self.block('spice_kernels/spk/dup.bsp', 'SPK', 'd')
+
+        kernel_list, _, _ = self.make_kernel_list(
+            mocker, tmp_path, content, duplicates=True)
+
+        with pytest.raises(RuntimeError, match='List contains duplicates.'):
+            kernel_list.validate_complete()
+
+    # ------------------------------------------------------------------
+    # PDS3 branch: option display + template presence check.
+    # ------------------------------------------------------------------
+
+    def test_validate_complete_pds3_displays_sorted_unique_options(
+            self, mocker, caplog, tmp_path) -> None:
+        # On PDS3 the method deduplicates and sorts every MAKLABEL_OPTION token
+        # and logs them, then checks each against the mission template. Use
+        # duplicated, unsorted, multi-token option lines to exercise the
+        # dedup + sort + multi-token split at once.
+
+        # TODO: BUG; the mission-template path is built with a hardcoded
+        #       forward slash (root_dir + '/config/...') instead of os.sep /
+        #       os.path.join, inconsistent with the os.sep usage elsewhere in
+        #       the method. It still works on Windows (which accepts '/'), but
+        #       it should be normalised.
+
+        content = (
+            self.block('spice_kernels/spk/a.bsp', 'SPK LSK', 'd')
+            + self.block('spice_kernels/ck/b.bc', 'CK SPK', 'd'))
+
+        # Template must contain every distinct option as --<option> to avoid the
+        # handle_npb_error escalation; this isolates the display/order logic.
+        template = '--SPK\n--LSK\n--CK\n'
+
+        kernel_list, _, _ = self.make_kernel_list(
+            mocker, tmp_path, content, pds_version='3',
+            template_content=template)
+
+        with caplog.at_level(logging.INFO):
+            kernel_list.validate_complete()
+
+        # Tokens collected: SPK, LSK, CK, SPK -> unique+sorted = CK, LSK, SPK.
+        expected = [
+            (logging.INFO, '-- Checking list number of entries coherence:'),
+            (logging.INFO, '     PASS with total of 2 entries.'),
+            (logging.INFO, ''),
+            (logging.INFO, '-- Checking for duplicates in kernel list:'),
+            (logging.INFO, '     List contains no duplicates.'),
+            (logging.INFO, ''),
+            (logging.INFO, '-- Display all the MAKLABEL_OPTIONS:'),
+            (logging.INFO, '     CK'),
+            (logging.INFO, '     LSK'),
+            (logging.INFO, '     SPK'),
+            (logging.INFO, ''),
+            (logging.INFO, '-- Check that all template tags used in the '
+                           'list are present in template:'),
+            (logging.INFO, '     CK is present.'),
+            (logging.INFO, '     LSK is present.'),
+            (logging.INFO, '     SPK is present.'),
+            (logging.INFO, '')]
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+        assert results == expected
+
+    def test_validate_complete_pds3_rejects_option_absent_from_template(
+            self, mocker, tmp_path) -> None:
+        # On PDS3, an option missing from the mission template must escalate via
+        # handle_npb_error with the "<option> not in template." message.
+
+        content = self.block('spice_kernels/ck/b.bc', 'CK', 'd')
+
+        # Template lacks --CK, so the presence check fails.
+        template = '--SPK\n--LSK\n'
+
+        kernel_list, _, _ = self.make_kernel_list(
+            mocker, tmp_path, content, pds_version='3',
+            template_content=template)
+
+        with pytest.raises(RuntimeError, match='CK not in template.'):
+            kernel_list.validate_complete()
+
+    def test_validate_complete_pds3_collects_literal_none_option(
+            self, mocker, caplog, tmp_path) -> None:
+        # Unlike validate(), validate_complete does NOT filter a literal 'None'
+        # option token: it is displayed and checked against the template like any
+        # other. This documents the behavioural divergence between the two
+        # methods and covers the multistep path with a single option.
+
+        content = self.block('spice_kernels/spk/a.bsp', 'None', 'd')
+
+        # Template must contain --None for the presence check to pass, otherwise
+        # the run would escalate. This proves 'None' is treated as a real token.
+        template = '--None\n'
+
+        kernel_list, _, _ = self.make_kernel_list(
+            mocker, tmp_path, content, pds_version='3',
+            template_content=template)
+
+        with caplog.at_level(logging.INFO):
+            kernel_list.validate_complete()
+
+        expected = [
+            (logging.INFO, '-- Checking list number of entries coherence:'),
+            (logging.INFO, '     PASS with total of 1 entries.'),
+            (logging.INFO, ''),
+            (logging.INFO, '-- Checking for duplicates in kernel list:'),
+            (logging.INFO, '     List contains no duplicates.'),
+            (logging.INFO, ''),
+            (logging.INFO, '-- Display all the MAKLABEL_OPTIONS:'),
+            (logging.INFO, '     None'),
+            (logging.INFO, ''),
+            (logging.INFO, '-- Check that all template tags used in the '
+                           'list are present in template:'),
+            (logging.INFO, '     None is present.'),
+            (logging.INFO, '')]
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+        assert results == expected
+
+    def test_validate_complete_pds3_empty_options_skips_template_loop(
+            self, mocker, caplog, tmp_path) -> None:
+        # PDS3 path where no option tokens were collected: an OPTIONS line with
+        # no value contributes to the OPTIONS count but yields no tokens, so the
+        # display and template-presence loops both run zero iterations. The
+        # template file is still opened (its readlines() result is simply
+        # unused), so it must exist.
+
+        # 1 FILE / 1 OPTIONS / 1 DESCRIPTION keeps the counts coherent while the
+        # OPTIONS value is empty -> opt_in_list stays empty.
+        content = ('FILE             = spice_kernels/spk/k.bsp\n'
+                   'MAKLABEL_OPTIONS = \n'
+                   'DESCRIPTION      = d\n')
+
+        kernel_list, _, _ = self.make_kernel_list(
+            mocker, tmp_path, content, pds_version='3',
+            template_content='--SPK\n')
+
+        with caplog.at_level(logging.INFO):
+            kernel_list.validate_complete()
+
+        expected = [
+            (logging.INFO, '-- Checking list number of entries coherence:'),
+            (logging.INFO, '     PASS with total of 1 entries.'),
+            (logging.INFO, ''),
+            (logging.INFO, '-- Checking for duplicates in kernel list:'),
+            (logging.INFO, '     List contains no duplicates.'),
+            (logging.INFO, ''),
+            (logging.INFO, '-- Display all the MAKLABEL_OPTIONS:'),
+            (logging.INFO, ''),
+            (logging.INFO, '-- Check that all template tags used in the '
+                           'list are present in template:'),
+            (logging.INFO, '')]
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+        assert results == expected
+
+    def test_validate_complete_pds3_raises_when_template_file_missing(
+            self, mocker, tmp_path) -> None:
+        # On PDS3 with at least one option, the mission template file is opened
+        # for reading. If it does not exist, open() raises FileNotFoundError and
+        # the method propagates it (there is no guard). template_content is left
+        # as None so the file is never created.
+
+        content = self.block('spice_kernels/spk/a.bsp', 'SPK', 'd')
+
+        kernel_list, _, _ = self.make_kernel_list(
+            mocker, tmp_path, content, pds_version='3')
+
+        with pytest.raises(FileNotFoundError):
+            kernel_list.validate_complete()
+
+    # ------------------------------------------------------------------
+    # I/O boundary: the complete list itself must exist.
+    # ------------------------------------------------------------------
+
+    def test_validate_complete_raises_when_complete_list_missing(
+            self, mocker, tmp_path) -> None:
+        # The very first action is opening the complete list. If complete_list
+        # points at a non-existent file, open() raises FileNotFoundError before
+        # any check runs.
+        kernel_list, _, complete_path = self.make_kernel_list(
+            mocker, tmp_path, 'placeholder\n')
+
+        # Remove the file created by the helper to force the missing-file path.
+        complete_path.unlink()
+
+        with pytest.raises(FileNotFoundError):
+            kernel_list.validate_complete()
