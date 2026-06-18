@@ -1108,12 +1108,18 @@ class TestKernelListValidate:
         # Check that even if the FILE line contains nothing after the following
         # equal sign, a file is created anyway.
 
+        # Mock the handle_npb_error call.
+        handle_npb_error_mock = mocker.patch(
+            'pds.naif_pds4_bundler.classes.list.handle_npb_error')
+                
         # Build a KernelList with a FILE line that contains nothing after equal
         # sign.
         kernel_list, _, _ = self.make_kernel_list(
             mocker, tmp_path, 'FILE             = \n', kernels=[])
 
         kernel_list.validate()
+
+        handle_npb_error_mock.assert_not_called()
 
     def test_validate_skips_none_option_token(self, mocker, caplog,
                                               tmp_path) -> None:
