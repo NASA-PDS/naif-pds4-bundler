@@ -1108,19 +1108,12 @@ class TestKernelListValidate:
         # Check that even if the FILE line contains nothing after the following
         # equal sign, a file is created anyway.
 
-        # Mock the handle_npb_error call.
-        handle_npb_error_mock = mocker.patch(
-            'pds.naif_pds4_bundler.classes.list.handle_npb_error')
-
         # Build a KernelList with a FILE line that contains nothing after equal
         # sign.
         kernel_list, _, _ = self.make_kernel_list(
             mocker, tmp_path, 'FILE             = \n', kernels=[])
 
         kernel_list.validate()
-
-        # Check that handle_npb_error is not called.
-        handle_npb_error_mock.assert_not_called()
 
     def test_validate_skips_none_option_token(self, mocker, caplog,
                                               tmp_path) -> None:
@@ -1896,37 +1889,25 @@ class TestKernelListValidateComplete:
                            match='List does not have the same number of entries'):
             kernel_list.validate_complete()
 
-    def test_validate_complete_continues_when_handle_npb_error_does_not_raise(
-            self, mocker, caplog, tmp_path) -> None:
-        # handle_npb_error is a boundary: if a future implementation only logs
-        # instead of raising, validate_complete must keep running. With PDS4 the
-        # method simply finishes after the duplicate escalation. This guards the
-        # control flow independently of handle_npb_error's raising behaviour.
-        handle_npb_error_mock = mocker.patch(
-            'pds.naif_pds4_bundler.classes.list.handle_npb_error')
+        # ------------------------------------------------------------------
+        # Duplicate detection: routed through handle_npb_error.
+        # ------------------------------------------------------------------
+
+    def test_validate_complete_reports_duplicates_via_handle_npb_error(
+            self, mocker, tmp_path) -> None:
+        # When check_list_duplicates returns True, validate_complete calls
+        # handle_npb_error("List contains duplicates."), which always raises
+        # RuntimeError. The real function is used — exactly as
+        # TestKernelListValidate.test_validate_reports_error_condition does —
+        # because spiceypy.kclear() is safe to call with no kernels loaded.
 
         content = self.block('spice_kernels/spk/dup.bsp', 'SPK', 'd')
 
         kernel_list, _, _ = self.make_kernel_list(
             mocker, tmp_path, content, duplicates=True)
 
-        with caplog.at_level(logging.INFO):
+        with pytest.raises(RuntimeError, match='List contains duplicates.'):
             kernel_list.validate_complete()
-
-        # The "no duplicates" success line must NOT appear (we took the else-less
-        # duplicate branch), and execution reaches the end without the PDS3
-        # blocks.
-        expected = [
-            (logging.INFO, '-- Checking list number of entries coherence:'),
-            (logging.INFO, '     PASS with total of 1 entries.'),
-            (logging.INFO, ''),
-            (logging.INFO, '-- Checking for duplicates in kernel list:'),
-            (logging.INFO, '')]
-
-        results = [(r[1], r[2]) for r in caplog.record_tuples]
-
-        assert results == expected
-        handle_npb_error_mock.assert_called_once_with('List contains duplicates.')
 
     # ------------------------------------------------------------------
     # PDS3 branch: option display + template presence check.
