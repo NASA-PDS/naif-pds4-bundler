@@ -928,56 +928,55 @@ class MetaKernelProduct(Product):
             # Look for the identified kernel in the collection, if the kernel
             # is not present the coverage will have to be computed.
             #
-            if kernels:
-                for kernel in kernels:
-                    ker_found = False
-                    for product in self.collection.product:
-                        if kernel == product.name:
-                            start_times.append(spiceypy.utc2et(product.start_time[:-1]))
-                            finish_times.append(spiceypy.utc2et(product.stop_time[:-1]))
-                            ker_found = True
+            for kernel in kernels:
+                ker_found = False
+                for product in self.collection.product:
+                    if kernel == product.name:
+                        start_times.append(spiceypy.utc2et(product.start_time[:-1]))
+                        finish_times.append(spiceypy.utc2et(product.stop_time[:-1]))
+                        ker_found = True
+
+                #
+                # When the kernels are not present in the current
+                # collection, the coverage is computed.
+                #
+                if not ker_found:
+                    path = (
+                        f"{self.setup.bundle_directory}/"
+                        f"{self.setup.mission_acronym}_spice/"
+                        f"spice_kernels/"
+                        f"{extension_to_type(kernel)}/{kernel}"
+                    )
 
                     #
-                    # When the kernels are not present in the current
-                    # collection, the coverage is computed.
+                    # Added check of file size for test cases.
                     #
-                    if not ker_found:
-                        path = (
-                            f"{self.setup.bundle_directory}/"
-                            f"{self.setup.mission_acronym}_spice/"
-                            f"spice_kernels/"
-                            f"{extension_to_type(kernel)}/{kernel}"
-                        )
+                    if not os.path.exists(path) or os.path.getsize(path) == 0:
+                        logging.warning(
+                            '-- File not present in final area: %s.', path)
+                        logging.warning(
+                            '   It will not be used to determine the coverage.')
 
-                        #
-                        # Added check of file size for test cases.
-                        #
-                        if not os.path.exists(path) or os.path.getsize(path) == 0:
-                            logging.warning(
-                                '-- File not present in final area: %s.', path)
-                            logging.warning(
-                                '   It will not be used to determine the coverage.')
-
+                    else:
+                        if extension_to_type(kernel) == "spk":
+                            (start_time, stop_time) = spk_coverage(
+                                path, main_name=self.setup.spice_name
+                            )
+                        elif extension_to_type(kernel) == "ck":
+                            (start_time, stop_time) = ck_coverage(path)
                         else:
-                            if extension_to_type(kernel) == "spk":
-                                (start_time, stop_time) = spk_coverage(
-                                    path, main_name=self.setup.spice_name
-                                )
-                            elif extension_to_type(kernel) == "ck":
-                                (start_time, stop_time) = ck_coverage(path)
-                            else:
-                                handle_npb_error(
-                                    "Kernel used to determine "
-                                    "coverage is not a SPK or CK "
-                                    "kernel.",
-                                    setup=self.setup,
-                                )
+                            handle_npb_error(
+                                "Kernel used to determine "
+                                "coverage is not a SPK or CK "
+                                "kernel.",
+                                setup=self.setup,
+                            )
 
-                            start_times.append(spiceypy.utc2et(start_time[:-1]))
-                            finish_times.append(spiceypy.utc2et(stop_time[:-1]))
+                        start_times.append(spiceypy.utc2et(start_time[:-1]))
+                        finish_times.append(spiceypy.utc2et(stop_time[:-1]))
 
-                            logging.info(
-                                '-- File %s used to determine coverage.', kernel)
+                        logging.info(
+                            '-- File %s used to determine coverage.', kernel)
 
         #
         # If it is a yearly meta-kernel; we need to handle it separately.
