@@ -722,12 +722,11 @@ def test_pds4_orbnum_new_im(self):
                     )
                 elif (
                     "<schema_location>http://pds.nasa.gov/pds4/pds/v1 "
-                    "http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd" in line
+                    "https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1500.xsd" in line
                 ):
                     n.write(
-                        "<schema_location>http://pds.nasa.gov/pds4/pds/"
-                        "v1 http://pds.nasa.gov/pds4/pds/v1/"
-                        "PDS4_PDS_1G00.xsd\n"
+                        "<schema_location>http://pds.nasa.gov/pds4/pds/v1 "
+                        "https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1G00.xsd\n"
                     )
                 else:
                     n.write(line)

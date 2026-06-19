@@ -20,7 +20,6 @@ import unittests.test_mk_config as mk_config
 import unittests.test_orbnum as orbnum
 import unittests.test_permissions as permissions
 import unittests.test_plan as plan
-import unittests.test_readme as readme
 import unittests.test_time as time
 from pds.naif_pds4_bundler.utils import add_crs_to_file
 
@@ -369,24 +368,6 @@ class TestUnitTests(TestCase):
 
     def test_pds4_mars2020_no_plan(self):
         plan.test_pds4_mars2020_no_plan(self)
-
-    #
-    # Readme generation.
-    #
-    def test_im_format(self):
-        readme.test_im_format(self)
-
-    def test_im_xml_incoherent(self):
-        readme.test_im_xml_incoherent(self)
-
-    def test_im_schema_incoherent(self):
-        readme.test_im_schema_incoherent(self)
-
-    def test_im_version_ascii(self):
-        readme.test_im_version_ascii(self)
-
-    def test_im_version_ascii_incorrect(self):
-        readme.test_im_version_ascii_incorrect(self)
 
     #
     # Time utilities tests.

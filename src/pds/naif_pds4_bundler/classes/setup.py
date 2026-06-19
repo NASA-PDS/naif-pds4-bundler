@@ -21,6 +21,10 @@ from ..utils import kernel_name
 from ..utils import spice_exception_handler
 
 
+# XML namespace URI: http:// is required by the PDS4 standard, not a real
+# network call.
+PDS4_NAMESPACE_URI = "http://pds.nasa.gov/pds4/pds/v1"  # NOSONAR - namespace URI, not a real URL
+
 class Setup:
     """Class that parses and processes the NPB XML configuration file.
 
@@ -587,8 +591,7 @@ class Setup:
                         )
                 else:
                     self.schema_location = (
-                        f"https://pds.nasa.gov/pds4/pds/v1 "
-                        f"https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_{short_version}.xsd"
+                        f"{PDS4_NAMESPACE_URI} https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_{short_version}.xsd"
                     )
 
                     logging.info('-- Schema Location (schema_location) not '
