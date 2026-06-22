@@ -2667,7 +2667,7 @@ class TestKernelListCheckProducts:
             self, mocker, caplog, tmp_path) -> None:
         # On an interactive run with errors, the method prints the product,
         # its error lines and the "require work" line, then raises RuntimeError.
-        mocks = self.patch_checks(mocker, check_kernel_integrity='Bad arch')
+        self.patch_checks(mocker, check_kernel_integrity='Bad arch')
         product = 'maven_test.tsc'
         self.write_kernel(tmp_path, product)
         kernel_list = self.make_kernel_list(tmp_path, kernels=[product],
