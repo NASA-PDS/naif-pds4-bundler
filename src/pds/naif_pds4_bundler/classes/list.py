@@ -888,6 +888,8 @@ class KernelList:
             #
             origin_path = origin_paths[0]
 
+            # TODO: BUG; check_permissions is called twice on the same path. This first
+            #       call discards the return value entirely, making it redundant.
             # Check that file has read permissions.
             check_permissions(origin_path)
 

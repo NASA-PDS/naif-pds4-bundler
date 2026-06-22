@@ -1,5 +1,6 @@
 """Tests for KernelList class."""
 import os.path
+import sys
 from datetime import datetime as real_datetime
 import logging
 from pathlib import Path
@@ -9,6 +10,16 @@ from types import SimpleNamespace
 import pytest
 
 from pds.naif_pds4_bundler.classes.list import KernelList
+
+# ---------------------------------------------------------------------------
+# Constants shared by TestKernelListCheckProducts
+# ---------------------------------------------------------------------------
+
+# Message logged and raised as RuntimeError when any product has errors.
+_CHECK_FATAL_MESSAGE = 'Products listed above require work.'
+
+# Message logged at INFO and printed to stdout when all checks pass.
+_CHECK_SUCCESS_MESSAGE = '-- All products checks have succeeded.'
 
 
 def make_kernel_list_setup(tmp_path, **overrides) -> SimpleNamespace:
@@ -1896,9 +1907,9 @@ class TestKernelListValidateComplete:
                            match='List does not have the same number of entries'):
             kernel_list.validate_complete()
 
-        # ------------------------------------------------------------------
-        # Duplicate detection: routed through handle_npb_error.
-        # ------------------------------------------------------------------
+    # ------------------------------------------------------------------
+    # Duplicate detection: routed through handle_npb_error.
+    # ------------------------------------------------------------------
 
     def test_validate_complete_reports_duplicates_via_handle_npb_error(
             self, mocker, tmp_path) -> None:
@@ -1934,8 +1945,8 @@ class TestKernelListValidateComplete:
         #       it should be normalised.
 
         content = (
-            self.block('spice_kernels/spk/a.bsp', 'SPK LSK', 'd')
-            + self.block('spice_kernels/ck/b.bc', 'CK SPK', 'd'))
+                self.block('spice_kernels/spk/a.bsp', 'SPK LSK', 'd')
+                + self.block('spice_kernels/ck/b.bc', 'CK SPK', 'd'))
 
         # Template must contain every distinct option as --<option> to avoid the
         # handle_npb_error escalation; this isolates the display/order logic.
@@ -2098,3 +2109,602 @@ class TestKernelListValidateComplete:
 
         with pytest.raises(FileNotFoundError):
             kernel_list.validate_complete()
+
+
+class TestKernelListCheckProducts:
+    """Tests for the ``check_products`` method.
+    """
+
+    @pytest.fixture()
+    def _text_kernel(self, tmp_path) -> tuple:
+        # Create maven_test.tsc on disk and return a silent KernelList
+        # already pointing at it. Tests that need mocks call patch_checks
+        # independently; this fixture only removes the repeated file-creation
+        # and instance-construction boilerplate.
+        expected_path = self.write_kernel(tmp_path, 'maven_test.tsc')
+        kernel_list = self.make_kernel_list(tmp_path,
+                                            kernels=['maven_test.tsc'],
+                                            silent=True, verbose=False)
+        return kernel_list, expected_path
+
+    # ------------------------------------------------------------------ #
+    # Static helpers
+    # ------------------------------------------------------------------ #
+    @staticmethod
+    def make_kernel_list(tmp_path, kernels, pds_version='4', eol='\r\n',
+                         silent=True, verbose=False) -> KernelList:
+        # Build a real KernelList without running the heavy __init__.
+        # check_products only consumes kernel_list and a handful of
+        # setup attributes, so a SimpleNamespace setup is enough.
+        #
+        # template_files, write_file_list and write_checksum_registry are
+        # required by the real handle_npb_error when setup is not None.
+        kernels_directory = tmp_path / 'kernels'
+        orbnum_directory = tmp_path / 'orbnum'
+        kernels_directory.mkdir(exist_ok=True)
+        orbnum_directory.mkdir(exist_ok=True)
+
+        setup = SimpleNamespace(
+            kernels_directory=[str(kernels_directory)],
+            orbnum_directory=str(orbnum_directory),
+            pds_version=pds_version,
+            eol=eol,
+            args=SimpleNamespace(silent=silent, verbose=verbose),
+            template_files=[],
+            write_file_list=lambda: None,
+            write_checksum_registry=lambda: None)
+
+        kernel_list = KernelList.__new__(KernelList)
+        kernel_list.kernel_list = kernels
+        kernel_list.setup = setup
+
+        return kernel_list
+
+    @staticmethod
+    def write_kernel(tmp_path, name, subdir='kernels') -> str:
+        # Create a real product file so the os.walk discovery finds it.
+        # Returns the absolute path that check_products is expected to
+        # resolve as origin_path.
+        target = tmp_path / subdir / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text('CONTENT\n', encoding='utf-8')
+        return str(target)
+
+    @staticmethod
+    def patch_checks(mocker, **return_values) -> SimpleNamespace:
+        # Resolve the module where check_products looks up its globals.
+        # KernelList.__module__ names that module and sys.modules holds
+        # the already-imported object, so no second import statement is needed.
+        list_module = sys.modules[KernelList.__module__]
+
+        # Patch every 'check_*' boundary on the list module.
+        defaults = {
+            'check_eol': None,
+            'check_badchar': [],
+            'check_line_length': [],
+            'check_kernel_integrity': None,
+            'check_binary_endianness': None,
+            'check_permissions': [],
+        }
+        defaults.update(return_values)
+
+        mocks = SimpleNamespace()
+        for name, value in defaults.items():
+            setattr(mocks, name,
+                    mocker.patch.object(list_module, name, return_value=value))
+
+        # 'product_mapping' is only reached on the fallback path; by default
+        # it returns a sentinel that never matches a real filename.
+        mocks.product_mapping = mocker.patch.object(
+            list_module, 'product_mapping', return_value='__no_match__')
+
+        # Prevent SPICE pool operations in every test.
+        mocks.kclear = mocker.patch('spiceypy.kclear')
+
+        return mocks
+
+    # ------------------------------------------------------------------ #
+    # Path discovery
+    # ------------------------------------------------------------------ #
+    @pytest.mark.parametrize('product', [
+        'm01_rec.orb', 'm01_rec.nrb', 'M01_REC.ORB', 'M01_REC.NRB'])
+    def test_check_products_orbnum_uses_orbnum_directory(
+            self, mocker, tmp_path, product) -> None:
+        # ORBNUM products (.orb/.nrb, case-insensitive) are resolved against
+        # the configured orbnum_directory instead of being searched in the
+        # kernel directories. The path is built unconditionally, even if the
+        # file does not physically exist, so no file is created here.
+        mocks = self.patch_checks(mocker)
+        kernel_list = self.make_kernel_list(tmp_path, kernels=[product])
+
+        kernel_list.check_products()
+
+        expected_path = kernel_list.setup.orbnum_directory + os.sep + product
+
+        # check_eol is the first boundary to receive the path, proving the
+        # ORBNUM branch resolved the product.
+        mocks.check_eol.assert_called_once_with(expected_path, mocker.ANY)
+        mocks.check_permissions.assert_called_with(expected_path)
+
+        # ORBNUM files skip the kernel-architecture and endianness checks.
+        mocks.check_kernel_integrity.assert_not_called()
+        mocks.check_binary_endianness.assert_not_called()
+
+    def test_check_products_resolves_kernel_by_exact_name(
+            self, mocker, tmp_path) -> None:
+        # A regular kernel is located by walking each kernel directory and
+        # matching the filename exactly. The mapping fallback must not be
+        # reached, and the discovered path must reach every file check.
+        mocks = self.patch_checks(mocker)
+        product = 'maven_test.tsc'
+        expected_path = self.write_kernel(tmp_path, product)
+        kernel_list = self.make_kernel_list(tmp_path, kernels=[product])
+
+        kernel_list.check_products()
+
+        mocks.product_mapping.assert_not_called()
+        mocks.check_eol.assert_called_once_with(expected_path, '\n')
+        mocks.check_kernel_integrity.assert_called_once_with(expected_path)
+
+    def test_check_products_resolves_kernel_via_mapping_fallback(
+            self, mocker, tmp_path) -> None:
+        # When no file matches the product name directly, discovery falls back
+        # to product_mapping and matches the mapped name instead. The file
+        # on disk is named after the mapped value, not the product, forcing the
+        # exact-match list comprehension to come back empty.
+        mapped_name = 'maven_mapped.bc'
+        expected_path = self.write_kernel(tmp_path, mapped_name)
+        product = 'maven_logical.bc'
+
+        mocks = self.patch_checks(mocker)
+        mocks.product_mapping.return_value = mapped_name
+
+        kernel_list = self.make_kernel_list(tmp_path, kernels=[product])
+        kernel_list.check_products()
+
+        mocks.product_mapping.assert_called_once_with(
+            product, kernel_list.setup, cleanup=False)
+        # '.bc' is binary: skips text checks, runs architecture + endianness.
+        mocks.check_eol.assert_not_called()
+        mocks.check_kernel_integrity.assert_called_once_with(expected_path)
+        mocks.check_binary_endianness.assert_called_once_with(
+            expected_path, endianness='little')
+
+    def test_check_products_missing_non_mk_records_error_and_skips_checks(
+            self, mocker, caplog, tmp_path) -> None:
+        # A non meta-kernel product that cannot be found anywhere records a
+        # fatal error, skips all file checks for that product via continue,
+        # and raises RuntimeError through the real handle_npb_error.
+        mocks = self.patch_checks(mocker)
+        product = 'maven_absent.tsc'
+        kernel_list = self.make_kernel_list(tmp_path, kernels=[product])
+
+        with caplog.at_level(logging.INFO):
+            with pytest.raises(RuntimeError, match=_CHECK_FATAL_MESSAGE):
+                kernel_list.check_products()
+
+        expected = [
+            (logging.WARNING, f'-- {product}'),
+            (logging.ERROR, '     Product not present in any kernel directory(ies)'),
+            (logging.ERROR, ''),
+            (logging.ERROR, f'-- {_CHECK_FATAL_MESSAGE}')]
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+        assert results == expected
+
+        # No file check ran: the product was skipped via continue.
+        mocks.check_permissions.assert_not_called()
+        mocks.check_kernel_integrity.assert_not_called()
+        # 'handle_npb_error' called kclear before raising.
+        mocks.kclear.assert_called_once()
+
+    def test_check_products_missing_meta_kernel_records_warning_only(
+            self, mocker, caplog, tmp_path) -> None:
+        # A missing meta-kernel (.tm) is benign: it will be generated later in
+        # the run, so it only raises a warning, skips file checks and does not
+        # raise RuntimeError.
+        mocks = self.patch_checks(mocker)
+        product = 'maven_release.tm'
+        kernel_list = self.make_kernel_list(tmp_path, kernels=[product])
+
+        with caplog.at_level(logging.INFO):
+            kernel_list.check_products()  # must not raise
+
+        expected = [
+            (logging.WARNING, f'-- {product}'),
+            (logging.WARNING, '     Meta-kernel will be generated during this run.')]
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+        assert results == expected
+
+        mocks.check_permissions.assert_not_called()
+        mocks.kclear.assert_not_called()
+
+    def test_check_products_present_in_multiple_directories_warns(
+            self, mocker, caplog, tmp_path) -> None:
+        # When the same kernel name exists in more than one configured kernel
+        # directory the method warns, lists every location, proceeds with the
+        # first directory and does not raise.
+        product = 'maven_dup.tsc'
+
+        # 'make_kernel_list' creates the 'kernels' directory; the second
+        # directory is created separately. Build the instance first so both
+        # directories exist before the duplicate files are written.
+        mocks = self.patch_checks(mocker)
+        kernel_list = self.make_kernel_list(tmp_path, kernels=[product])
+
+        first_dir = tmp_path / 'kernels'
+        second_dir = tmp_path / 'kernels2'
+        second_dir.mkdir(exist_ok=True)
+        first_path = first_dir / product
+        second_path = second_dir / product
+        first_path.write_text('A\n', encoding='utf-8')
+        second_path.write_text('B\n', encoding='utf-8')
+        kernel_list.setup.kernels_directory = [str(first_dir), str(second_dir)]
+
+        with caplog.at_level(logging.INFO):
+            kernel_list.check_products()
+
+        expected = [
+            (logging.WARNING, f'-- {product}'),
+            (logging.WARNING, '     Product present in multiple directories:'),
+            (logging.WARNING, f'       {first_path}'),
+            (logging.WARNING, f'       {second_path}'),
+            (logging.WARNING, '     The product in the first directory will be used.')]
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+        assert results == expected
+        # The first directory wins: every file check uses the first path.
+        mocks.check_kernel_integrity.assert_called_once_with(str(first_path))
+        mocks.kclear.assert_not_called()
+
+    # ------------------------------------------------------------------ #
+    # EOL selection and text checks
+    # ------------------------------------------------------------------ #
+    @pytest.mark.parametrize('pds_version', ['3', '4'])
+    def test_check_products_text_kernel_always_uses_lf_eol(
+            self, mocker, tmp_path, pds_version) -> None:
+        # Text kernels always receive LF regardless of the configured EOL and
+        # regardless of the PDS version. 'setup.eol' is set to CRLF to prove
+        # the override rather than echoing the input.
+        mocks = self.patch_checks(mocker)
+        product = 'maven_test.tsc'
+        expected_path = self.write_kernel(tmp_path, product)
+        kernel_list = self.make_kernel_list(tmp_path, kernels=[product],
+                                            pds_version=pds_version, eol='\r\n')
+
+        kernel_list.check_products()
+
+        mocks.check_eol.assert_called_once_with(expected_path, '\n')
+
+    @pytest.mark.parametrize('pds_version, expected_eol', [
+        ('3', '\n'), ('4', '\r\n')])
+    def test_check_products_orbnum_eol_follows_pds_version(
+            self, mocker, tmp_path, pds_version, expected_eol) -> None:
+        # ORBNUM files use LF under PDS3 and the configured EOL under PDS4.
+        # 'setup.eol' is set to CRLF so the PDS3 case proves the override.
+        mocks = self.patch_checks(mocker)
+        product = 'm01_rec.orb'
+        expected_path = str(tmp_path / 'orbnum' / product)
+        kernel_list = self.make_kernel_list(tmp_path, kernels=[product],
+                                            pds_version=pds_version, eol='\r\n')
+
+        kernel_list.check_products()
+
+        mocks.check_eol.assert_called_once_with(expected_path, expected_eol)
+
+    def test_check_products_orbnum_eol_error_is_warning(
+            self, mocker, caplog, tmp_path) -> None:
+        # A bad EOL on an ORBNUM file is recorded as a warning, so no
+        # RuntimeError is raised.
+        mocks = self.patch_checks(mocker, check_eol='Wrong EOL')
+        product = 'm01_rec.orb'
+        kernel_list = self.make_kernel_list(tmp_path, kernels=[product])
+
+        with caplog.at_level(logging.INFO):
+            kernel_list.check_products()
+
+        expected = [
+            (logging.WARNING, f'-- {product}'),
+            (logging.WARNING, '     Wrong EOL')]
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+        assert results == expected
+
+        mocks.kclear.assert_not_called()
+
+    def test_check_products_badchar_and_line_length_warn(
+            self, mocker, caplog, _text_kernel) -> None:
+        # Bad characters and over-long lines are warnings; neither raises
+        # RuntimeError. Both checks receive the kernel path, and line length
+        # applies because it is a text kernel.
+        kernel_list, expected_path = _text_kernel
+        mocks = self.patch_checks(mocker,
+                                  check_badchar=['bad char on line 1'],
+                                  check_line_length=['line 2 too long'])
+
+        with caplog.at_level(logging.INFO):
+            kernel_list.check_products()
+
+        mocks.check_badchar.assert_called_once_with(expected_path)
+        mocks.check_line_length.assert_called_once_with(expected_path)
+
+        expected = [
+            (logging.WARNING, '-- maven_test.tsc'),
+            (logging.WARNING, '     bad char on line 1'),
+            (logging.WARNING, '     line 2 too long')]
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+        assert results == expected
+
+        mocks.kclear.assert_not_called()
+
+    def test_check_products_orbnum_skips_line_length(
+            self, mocker, tmp_path) -> None:
+        # ORBNUM files are checked for bad characters but not for line length.
+        mocks = self.patch_checks(mocker)
+        product = 'm01_rec.orb'
+        kernel_list = self.make_kernel_list(tmp_path, kernels=[product])
+
+        kernel_list.check_products()
+
+        mocks.check_badchar.assert_called_once()
+        mocks.check_line_length.assert_not_called()
+
+    # ------------------------------------------------------------------ #
+    # Architecture, endianness and permissions
+    # ------------------------------------------------------------------ #
+    def test_check_products_binary_kernel_runs_endianness_not_text_checks(
+            self, mocker, tmp_path) -> None:
+        # A binary kernel (extension starting with 'b', e.g. '.bsp') skips
+        # the text checks entirely, but still runs architecture and endianness.
+        mocks = self.patch_checks(mocker)
+        product = 'maven_orbit.bsp'
+        expected_path = self.write_kernel(tmp_path, product)
+        kernel_list = self.make_kernel_list(tmp_path, kernels=[product])
+
+        kernel_list.check_products()
+
+        mocks.check_eol.assert_not_called()
+        mocks.check_badchar.assert_not_called()
+        mocks.check_line_length.assert_not_called()
+        mocks.check_kernel_integrity.assert_called_once_with(expected_path)
+        mocks.check_binary_endianness.assert_called_once_with(
+            expected_path, endianness='little')
+
+    @pytest.mark.parametrize('product, failing_check, error_text, log_line', [
+        ('maven_test.tsc', 'check_eol', 'Wrong EOL', '     Wrong EOL'),
+        ('maven_test.tsc', 'check_kernel_integrity', 'Bad architecture',
+         '     Bad architecture'),
+        ('maven_orbit.bsp', 'check_binary_endianness', 'Wrong endianness',
+         '     Wrong endianness')])
+    def test_check_products_error_findings_are_fatal(
+            self, mocker, caplog, tmp_path, product, failing_check,
+            error_text, log_line) -> None:
+        # Any check that returns an error string for a regular kernel must be
+        # logged at ERROR level and cause RuntimeError via handle_npb_error.
+        # The three error-producing checks are parametrized to prove they share
+        # the same fatal path without duplicating the test body.
+        mocks = self.patch_checks(mocker, **{failing_check: error_text})
+        self.write_kernel(tmp_path, product)
+        kernel_list = self.make_kernel_list(tmp_path, kernels=[product])
+
+        with caplog.at_level(logging.INFO):
+            with pytest.raises(RuntimeError, match=_CHECK_FATAL_MESSAGE):
+                kernel_list.check_products()
+
+        expected = [
+            (logging.WARNING, f'-- {product}'),
+            (logging.ERROR, f'{log_line}'),
+            (logging.ERROR, ''),
+            (logging.ERROR, f'-- {_CHECK_FATAL_MESSAGE}')]
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+        assert results == expected
+
+        mocks.kclear.assert_called_once()
+
+    def test_check_products_calls_permissions_twice(
+            self, mocker, caplog, _text_kernel) -> None:
+        # TODO: BUG; 'check_products' calls 'check_permissions' twice on
+        #       the same path.
+        kernel_list, expected_path = _text_kernel
+        mocks = self.patch_checks(mocker, check_permissions=['not readable'])
+
+        with caplog.at_level(logging.INFO):
+            kernel_list.check_products()
+
+        expected = [
+            (logging.WARNING, '-- maven_test.tsc'),
+            (logging.WARNING, '     not readable')]
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+        assert results == expected
+
+        assert mocks.check_permissions.call_count == 2
+        assert mocks.check_permissions.call_args_list == [
+            mocker.call(expected_path), mocker.call(expected_path)]
+
+        mocks.kclear.assert_not_called()
+
+    # ------------------------------------------------------------------ #
+    # Reporting: logging
+    # ------------------------------------------------------------------ #
+    def test_check_products_logs_header_then_warnings_then_errors_in_order(
+            self, mocker, caplog, _text_kernel) -> None:
+        # Verify the logging side of reporting end to end for a single product:
+        # header at WARNING, then each warning at WARNING, then each error at
+        # ERROR, then the empty ERROR line from handle_npb_error, and finally
+        # handle_npb_error's own fatal line at ERROR.
+        kernel_list, _ = _text_kernel
+        self.patch_checks(mocker, check_eol='Wrong EOL',
+                          check_badchar=['bad char'])
+
+        with caplog.at_level(logging.INFO):
+            with pytest.raises(RuntimeError):
+                kernel_list.check_products()
+
+        expected = [
+            (logging.WARNING, '-- maven_test.tsc'),
+            (logging.WARNING, '     bad char'),
+            (logging.ERROR, '     Wrong EOL'),
+            (logging.ERROR, ''),
+            (logging.ERROR, f'-- {_CHECK_FATAL_MESSAGE}')]
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+        assert results == expected
+
+    def test_check_products_logs_success_when_clean(
+            self, mocker, caplog, _text_kernel) -> None:
+        # A clean product produces neither warnings nor errors, so the success
+        # branch logs the message at INFO followed by an empty INFO line, and
+        # no per-product header is emitted.
+        kernel_list, _ = _text_kernel
+        self.patch_checks(mocker)
+
+        with caplog.at_level(logging.INFO):
+            kernel_list.check_products()
+
+        expected = [(logging.INFO, _CHECK_SUCCESS_MESSAGE),
+                    (logging.INFO, '')]
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+        assert results == expected
+
+    def test_check_products_multiple_products_report_independently(
+            self, mocker, caplog, tmp_path) -> None:
+        # With several products, the per-product accumulation must stay
+        # isolated: a clean kernel emits nothing, a warning-only kernel emits
+        # a header plus its warning, and an error kernel raises RuntimeError.
+        # This guards against state leaking between products in the loop.
+        clean = 'maven_clean.tsc'
+        warned = 'maven_warned.tsc'
+        failed = 'maven_failed.tsc'
+        for name in (clean, warned, failed):
+            self.write_kernel(tmp_path, name)
+
+        warned_path = str(tmp_path / 'kernels' / warned)
+        failed_path = str(tmp_path / 'kernels' / failed)
+
+        mocks = self.patch_checks(mocker)
+        # 'side_effect' discriminates by path so state cannot bleed between
+        # products: only the warned path gets a badchar result, only the failed
+        # path gets an EOL error.
+        mocks.check_badchar.side_effect = (
+            lambda path: ['bad char'] if path == warned_path else [])
+        mocks.check_eol.side_effect = (
+            lambda path, eol: 'Wrong EOL' if path == failed_path else None)
+
+        kernel_list = self.make_kernel_list(
+            tmp_path, kernels=[clean, warned, failed])
+
+        with caplog.at_level(logging.INFO):
+            with pytest.raises(RuntimeError, match=_CHECK_FATAL_MESSAGE):
+                kernel_list.check_products()
+
+        expected = [
+            (logging.WARNING, f'-- {warned}'),
+            (logging.WARNING, '     bad char'),
+            (logging.WARNING, f'-- {failed}'),
+            (logging.ERROR, '     Wrong EOL'),
+            (logging.ERROR, ''),
+            (logging.ERROR, f'-- {_CHECK_FATAL_MESSAGE}')]
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+        assert results == expected
+
+    # ------------------------------------------------------------------ #
+    # Reporting: standard output
+    # ------------------------------------------------------------------ #
+    def test_check_products_stdout_prints_warnings_when_interactive(
+            self, mocker, capsys, tmp_path) -> None:
+        # When neither 'silent' nor 'verbose' is set, the standard-output
+        # block is produced. A warning-only product is used so no RuntimeError
+        # is raised.
+        self.patch_checks(mocker, check_badchar=['bad char'])
+        product = 'maven_test.tsc'
+        self.write_kernel(tmp_path, product)
+        kernel_list = self.make_kernel_list(tmp_path, kernels=[product],
+                                            silent=False, verbose=False)
+
+        kernel_list.check_products()
+
+        captured = capsys.readouterr().out
+        assert f'   * {product}' in captured
+        assert '     bad char' in captured
+
+    @pytest.mark.parametrize('silent, verbose', [
+        (True, False), (False, True)])
+    def test_check_products_stdout_suppressed_when_not_interactive(
+            self, mocker, capsys, tmp_path, silent, verbose) -> None:
+        # When either 'silent' or 'verbose' is set, nothing is printed to
+        # standard output. A warning-only product is used so no RuntimeError
+        # is raised. Absence is asserted on the concrete lines to avoid
+        # accidental matches on the product name.
+        self.patch_checks(mocker, check_badchar=['bad char'])
+        product = 'maven_test.tsc'
+        self.write_kernel(tmp_path, product)
+        kernel_list = self.make_kernel_list(tmp_path, kernels=[product],
+                                            silent=silent, verbose=verbose)
+
+        kernel_list.check_products()
+
+        captured = capsys.readouterr().out
+        assert f'   * {product}' not in captured
+        assert '     bad char' not in captured
+
+    def test_check_products_stdout_reports_errors_and_failure_line(
+            self, mocker, caplog, tmp_path) -> None:
+        # On an interactive run with errors, the method prints the product,
+        # its error lines and the "require work" line, then raises RuntimeError.
+        self.patch_checks(mocker, check_kernel_integrity='Bad arch')
+        product = 'maven_test.tsc'
+        self.write_kernel(tmp_path, product)
+        kernel_list = self.make_kernel_list(tmp_path, kernels=[product],
+                                            silent=False, verbose=False)
+        with caplog.at_level(logging.INFO):
+            with pytest.raises(RuntimeError, match=_CHECK_FATAL_MESSAGE):
+                kernel_list.check_products()
+
+        expected = [
+            (logging.WARNING, f'-- {product}'),
+            (logging.ERROR, '     Bad arch'),
+            (logging.ERROR, ''),
+            (logging.ERROR, f'-- {_CHECK_FATAL_MESSAGE}')]
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+        assert results == expected
+
+    def test_check_products_success_stdout_printed_when_interactive(
+            self, mocker, capsys, _text_kernel) -> None:
+        # On an interactive (non-silent, non-verbose) run the success message
+        # is printed to standard output.
+        kernel_list, _ = _text_kernel
+        kernel_list.setup.args.silent = False
+        self.patch_checks(mocker)
+
+        kernel_list.check_products()
+
+        assert capsys.readouterr().out == _CHECK_SUCCESS_MESSAGE + '\n'
+
+    def test_check_products_success_stdout_suppressed_when_silent(
+            self, mocker, capsys, _text_kernel) -> None:
+        # In silent mode the success message is only logged; stdout is empty.
+        kernel_list, _ = _text_kernel
+        # The fixture already builds the instance with silent=True.
+        self.patch_checks(mocker)
+
+        kernel_list.check_products()
+
+        assert capsys.readouterr().out == ''
