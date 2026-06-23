@@ -226,35 +226,27 @@ class TestBundlePDS4Label:
     @pytest.mark.parametrize('coll_name, updated, expected_coll_name, expected_status, expected_entry', [
         ('spice_kernels', True, 'spice_kernel', 'Primary',
          ' <Bundle_Member_Entry>\n'
-         '  <lidvid_reference>'
-         'urn:nasa:pds:maven_spice:spice_kernels::1.0</lidvid_reference>\n'
+         '  <lidvid_reference>urn:nasa:pds:maven_spice:spice_kernels::1.0</lidvid_reference>\n'
          '  <member_status>Primary</member_status>\n'
-         '  <reference_type>'
-         'bundle_has_spice_kernel_collection</reference_type>\n'
+         '  <reference_type>bundle_has_spice_kernel_collection</reference_type>\n'
          ' </Bundle_Member_Entry>\n'),
         ('spice_kernels', False, 'spice_kernel', 'Secondary',
          ' <Bundle_Member_Entry>\n'
-         '  <lidvid_reference>'
-         'urn:nasa:pds:maven_spice:spice_kernels::1.0</lidvid_reference>\n'
+         '  <lidvid_reference>urn:nasa:pds:maven_spice:spice_kernels::1.0</lidvid_reference>\n'
          '  <member_status>Secondary</member_status>\n'
-         '  <reference_type>'
-         'bundle_has_spice_kernel_collection</reference_type>\n'
+         '  <reference_type>bundle_has_spice_kernel_collection</reference_type>\n'
          ' </Bundle_Member_Entry>\n'),
         ('document', True, 'document', 'Primary',
          ' <Bundle_Member_Entry>\n'
-         '  <lidvid_reference>'
-         'urn:nasa:pds:maven_spice:document::1.0</lidvid_reference>\n'
+         '  <lidvid_reference>urn:nasa:pds:maven_spice:document::1.0</lidvid_reference>\n'
          '  <member_status>Primary</member_status>\n'
-         '  <reference_type>'
-         'bundle_has_document_collection</reference_type>\n'
+         '  <reference_type>bundle_has_document_collection</reference_type>\n'
          ' </Bundle_Member_Entry>\n'),
         ('document', False, 'document', 'Secondary',
          ' <Bundle_Member_Entry>\n'
-         '  <lidvid_reference>'
-         'urn:nasa:pds:maven_spice:document::1.0</lidvid_reference>\n'
+         '  <lidvid_reference>urn:nasa:pds:maven_spice:document::1.0</lidvid_reference>\n'
          '  <member_status>Secondary</member_status>\n'
-         '  <reference_type>'
-         'bundle_has_document_collection</reference_type>\n'
+         '  <reference_type>bundle_has_document_collection</reference_type>\n'
          ' </Bundle_Member_Entry>\n')])
     def test_single_collection_entry_for_fixed_name_branches(
             self, tmp_path: Path, helpers: SimpleNamespace,
@@ -282,43 +274,33 @@ class TestBundlePDS4Label:
         ' expected_status, expected_entry', [
             (1011001000.0, 'miscellaneous', True, 'Primary',
              ' <Bundle_Member_Entry>\n'
-             '  <lidvid_reference>'
-             'urn:nasa:pds:maven_spice:miscellaneous::1.0</lidvid_reference>\n'
+             '  <lidvid_reference>urn:nasa:pds:maven_spice:miscellaneous::1.0</lidvid_reference>\n'
              '  <member_status>Primary</member_status>\n'
-             '  <reference_type>'
-             'bundle_has_miscellaneous_collection</reference_type>\n'
+             '  <reference_type>bundle_has_miscellaneous_collection</reference_type>\n'
              ' </Bundle_Member_Entry>\n'),
             (1011001000.0, 'miscellaneous', False, 'Secondary',
              ' <Bundle_Member_Entry>\n'
-             '  <lidvid_reference>'
-             'urn:nasa:pds:maven_spice:miscellaneous::1.0</lidvid_reference>\n'
+             '  <lidvid_reference>urn:nasa:pds:maven_spice:miscellaneous::1.0</lidvid_reference>\n'
              '  <member_status>Secondary</member_status>\n'
-             '  <reference_type>'
-             'bundle_has_miscellaneous_collection</reference_type>\n'
+             '  <reference_type>bundle_has_miscellaneous_collection</reference_type>\n'
              ' </Bundle_Member_Entry>\n'),
             (1016000000.0, 'miscellaneous', True, 'Primary',
              ' <Bundle_Member_Entry>\n'
-             '  <lidvid_reference>'
-             'urn:nasa:pds:maven_spice:miscellaneous::1.0</lidvid_reference>\n'
+             '  <lidvid_reference>urn:nasa:pds:maven_spice:miscellaneous::1.0</lidvid_reference>\n'
              '  <member_status>Primary</member_status>\n'
-             '  <reference_type>'
-             'bundle_has_miscellaneous_collection</reference_type>\n'
+             '  <reference_type>bundle_has_miscellaneous_collection</reference_type>\n'
              ' </Bundle_Member_Entry>\n'),
             (1011000999.0, 'member', True, 'Primary',
              ' <Bundle_Member_Entry>\n'
-             '  <lidvid_reference>'
-             'urn:nasa:pds:maven_spice:miscellaneous::1.0</lidvid_reference>\n'
+             '  <lidvid_reference>urn:nasa:pds:maven_spice:miscellaneous::1.0</lidvid_reference>\n'
              '  <member_status>Primary</member_status>\n'
-             '  <reference_type>'
-             'bundle_has_member_collection</reference_type>\n'
+             '  <reference_type>bundle_has_member_collection</reference_type>\n'
              ' </Bundle_Member_Entry>\n'),
             (1010000000.0, 'member', False, 'Secondary',
              ' <Bundle_Member_Entry>\n'
-             '  <lidvid_reference>'
-             'urn:nasa:pds:maven_spice:miscellaneous::1.0</lidvid_reference>\n'
+             '  <lidvid_reference>urn:nasa:pds:maven_spice:miscellaneous::1.0</lidvid_reference>\n'
              '  <member_status>Secondary</member_status>\n'
-             '  <reference_type>'
-             'bundle_has_member_collection</reference_type>\n'
+             '  <reference_type>bundle_has_member_collection</reference_type>\n'
              ' </Bundle_Member_Entry>\n')])
     def test_miscellaneous_branch_depends_on_information_model_threshold(
             self, tmp_path: Path, helpers: SimpleNamespace,
@@ -403,18 +385,14 @@ class TestBundlePDS4Label:
     @pytest.mark.parametrize('xml_tab, expected_entry', [
         (1, SPICE_KERNELS_PRIMARY_ENTRY),
         (2, '  <Bundle_Member_Entry>\n'
-            '    <lidvid_reference>'
-            'urn:nasa:pds:maven_spice:spice_kernels::1.0</lidvid_reference>\n'
+            '    <lidvid_reference>urn:nasa:pds:maven_spice:spice_kernels::1.0</lidvid_reference>\n'
             '    <member_status>Primary</member_status>\n'
-            '    <reference_type>'
-            'bundle_has_spice_kernel_collection</reference_type>\n'
+            '    <reference_type>bundle_has_spice_kernel_collection</reference_type>\n'
             '  </Bundle_Member_Entry>\n'),
         (4, '    <Bundle_Member_Entry>\n'
-            '        <lidvid_reference>'
-            'urn:nasa:pds:maven_spice:spice_kernels::1.0</lidvid_reference>\n'
+            '        <lidvid_reference>urn:nasa:pds:maven_spice:spice_kernels::1.0</lidvid_reference>\n'
             '        <member_status>Primary</member_status>\n'
-            '        <reference_type>'
-            'bundle_has_spice_kernel_collection</reference_type>\n'
+            '        <reference_type>bundle_has_spice_kernel_collection</reference_type>\n'
             '    </Bundle_Member_Entry>\n')])
     def test_member_entry_indentation_scales_with_xml_tab(
             self, tmp_path: Path, helpers: SimpleNamespace,
