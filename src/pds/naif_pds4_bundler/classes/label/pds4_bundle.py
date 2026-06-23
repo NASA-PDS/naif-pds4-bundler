@@ -63,6 +63,13 @@ class BundlePDS4Label(PDSLabel):
                 else:
                     self.COLL_STATUS = "Secondary"
 
+            # TODO: BUG, COLL_NAME, COLL_LIDVID, and COLL_STATUS are only
+            #   assigned inside the three named if-blocks above. If
+            #   collection.name does not match any of the three recognised
+            #   values ('spice_kernels', 'miscellaneous', 'document'), none of
+            #   the blocks run and the f-string below reads stale values from
+            #   the previous iteration (or raises AttributeError on the first
+            #   iteration, when the attributes have never been set).
             self.BUNDLE_MEMBER_ENTRIES += (
                 f"{' ' * tab}<Bundle_Member_Entry>{eol}"
                 f"{' ' * 2 * tab}<lidvid_reference>"
