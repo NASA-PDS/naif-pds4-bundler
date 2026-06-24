@@ -791,7 +791,7 @@ class MetaKernelProduct(Product):
             for i in range(1, len(val_mk_name) - 1):
                 val_mks = glob.glob(val_mk_path + val_mk_name[0:i] + "*.tm")
                 if val_mks:
-                    val_mk = sorted(val_mks)[-1]
+                    val_mk = max(val_mks)
                 else:
                     break
 

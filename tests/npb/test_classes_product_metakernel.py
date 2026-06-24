@@ -44,19 +44,12 @@ def make_setup(
     working_directory=None,
     templates_directory=None,
     mission_acronym="insight",
-    mission_name="InSight",
-    spice_name="INSIGHT",
-    institution="NAIF/JPL",
-    producer_name="John Doe",
-    logical_identifier="urn:nasa:pds:insight_spice",
     date_format="UTC",
     mission_start="2018-01-01T00:00:00Z",
     mission_finish="2023-01-01T00:00:00Z",
     increment_start=None,
     increment_finish=None,
-    eol_mk="\n",
     increment=False,
-    diff=False,
     mk_list=None,
 ):
     """Return a minimal mock Setup object for MetaKernelProduct tests."""
@@ -67,17 +60,17 @@ def make_setup(
     setup.working_directory = working_directory or "/work"
     setup.templates_directory = templates_directory or "/templates"
     setup.mission_acronym = mission_acronym
-    setup.mission_name = mission_name
-    setup.spice_name = spice_name
-    setup.institution = institution
-    setup.producer_name = producer_name
-    setup.logical_identifier = logical_identifier
+    setup.mission_name = "InSight"
+    setup.spice_name = "INSIGHT"
+    setup.institution = "NAIF/JPL"
+    setup.producer_name = "John Doe"
+    setup.logical_identifier = "urn:nasa:pds:insight_spice"
     setup.date_format = date_format
     setup.mission_start = mission_start
     setup.mission_finish = mission_finish
-    setup.eol_mk = eol_mk
+    setup.eol_mk = "\n"
     setup.increment = increment
-    setup.diff = diff
+    setup.diff = False
     # Deep-copy the shared MK_SETUP so a test that mutates self.mk_setup (e.g.
     # write_product / get_description writing back "&value") cannot leak that
     # mutation into another test through the module-level dict.
@@ -427,7 +420,7 @@ class TestMetaKernelProductInit:
         assert product.collection_metakernel == kernel_list
 
     def test_missions_observers_targets_stored_from_collection(self, tmp_path):
-        product, _, collection = build_product(tmp_path)
+        product, _, _ = build_product(tmp_path)
         assert product.missions == ["InSight"]
         assert product.observers == ["INSIGHT"]
         assert product.targets == ["MARS"]
@@ -444,7 +437,7 @@ class TestMetaKernelProductInit:
         product, _ = self._make_product(tmp_path, mk_list=list_mk_list)
         assert product.version == "01"
 
-    def test_yearly_mk_sets_year_and_YEAR_attributes(self, tmp_path):
+    def test_yearly_mk_sets_year_and_uppercase_year_attributes(self, tmp_path):
         # when the MK template contains $YEAR and the filename
         # encodes the year, self.year and self.YEAR are set accordingly.
         yearly_mk_list = [{
