@@ -561,7 +561,7 @@ class TestMetaKernelProductInit:
 
         expected = [
             (logging.INFO, '-- Generate meta-kernel: insight_v01.tm'),
-            (logging.WARNING, f'-- Meta-kernel already exists: {tmp_path}/staging/spice_kernels/mk/insight_v01.tm'),
+            (logging.WARNING, f'-- Meta-kernel already exists: {tmp_path / "staging/spice_kernels/mk/insight_v01.tm"}'),
             (logging.WARNING, '-- The meta-kernel will be generated and the one present in the '
                               'staging are will be overwritten.'),
             (logging.WARNING, '-- Note that to provide a meta-kernel as an input, it must be provided '
@@ -1765,8 +1765,8 @@ class TestMetaKernelProductCoverage:
             product.coverage()
 
         expected = [
-            (logging.WARNING, f'-- File not present in final area: {tmp_path}'
-                              '/bundle/insight_spice/spice_kernels/spk/insight_cru_ops_v01.bsp.'),
+            (logging.WARNING, '-- File not present in final area: '
+                              f'{tmp_path / "bundle/insight_spice/spice_kernels/spk/insight_cru_ops_v01.bsp"}.'),
             (logging.WARNING, '   It will not be used to determine the coverage.'),
             (logging.INFO, '-- Meta-kernel will be used to determine SPICE Collection coverage.'),
             (logging.WARNING, '-- No kernel(s) found to determine MK coverage. Times from '

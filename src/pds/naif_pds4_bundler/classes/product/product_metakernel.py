@@ -6,6 +6,7 @@ import re
 import shutil
 import subprocess
 from collections import OrderedDict
+from pathlib import Path
 
 import spiceypy
 
@@ -828,11 +829,11 @@ class MetaKernelProduct(Product):
            * check that line lengths are less than 80 characters
         """
         rel_path = self.path.split(f"/{self.setup.mission_acronym}_spice/")[-1]
-        path = (
+        path = str(Path(
             self.setup.bundle_directory.split(f"{self.setup.mission_acronym}_spice")[0]
             + f"/{self.setup.mission_acronym}_spice/"
             + rel_path
-        )
+        ))
 
         cwd = os.getcwd()
         mkdir = os.sep.join(path.split(os.sep)[:-1])
@@ -939,12 +940,12 @@ class MetaKernelProduct(Product):
                 # collection, the coverage is computed.
                 #
                 if not ker_found:
-                    path = (
+                    path = str(Path(
                         f"{self.setup.bundle_directory}/"
                         f"{self.setup.mission_acronym}_spice/"
                         f"spice_kernels/"
                         f"{extension_to_type(kernel)}/{kernel}"
-                    )
+                    ))
 
                     #
                     # Added check of file size for test cases.
