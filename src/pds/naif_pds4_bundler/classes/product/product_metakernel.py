@@ -740,6 +740,8 @@ class MetaKernelProduct(Product):
         if hasattr(self, "mk_setup") and not self.setup.args.debug:
             if "interrupt_to_update" in self.mk_setup:
                     if self.mk_setup["interrupt_to_update"].lower() == "true":
+                        # TODO: Potential issue in Windows: how does this work for
+                        #       non Unix platforms?
                         print(
                             "    * The meta-kernel might need to be updated. You can:"
                         )
