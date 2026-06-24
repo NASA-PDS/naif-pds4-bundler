@@ -39,5 +39,5 @@ jobs:
         python -m pip install -e ".[test]"
 
     - name: Run tests
-      run: pytest --cov-branch --cov-fail-under=14 -n auto
+      run: pytest --cov-branch --cov-fail-under=80 -n auto
 

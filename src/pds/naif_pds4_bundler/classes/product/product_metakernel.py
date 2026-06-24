@@ -6,6 +6,7 @@ import re
 import shutil
 import subprocess
 from collections import OrderedDict
+from pathlib import Path
 
 import spiceypy
 
@@ -109,7 +110,7 @@ class MetaKernelProduct(Product):
             product_path = self.collection_path + self.type + os.sep
 
             self.KERNELPATH = "./data"
-        elif setup.pds_version == "4":
+        else:  # elif setup.pds_version == "4":
             self.collection_path = (
                 setup.staging_directory + os.sep + "spice_kernels" + os.sep
             )
@@ -127,7 +128,7 @@ class MetaKernelProduct(Product):
             else:
                 missions_text = f"{self.setup.mission_name}, "
                 for i, sm_name in enumerate(self.setup.secondary_missions):
-                    if i == len(sm_name) - 1:
+                    if i == len(self.setup.secondary_missions) - 1:
                         missions_text += f"and {sm_name}"
                     else:
                         missions_text += f"{sm_name}, "
@@ -439,12 +440,15 @@ class MetaKernelProduct(Product):
                                 for val in patterns[el]:
                                     if kernel == val["@value"]:
                                         value = val["#text"]
-                                        #
+
+                                        # TODO: Review. Check if the following line of code
+                                        #       is actually required. It seems it is not.
                                         # Write the value of the pattern for
                                         # future use.
                                         #
                                         patterns[el]["&value"] = value
 
+                                # TODO: Review.
                                 if isinstance(value, list):
                                     handle_npb_error(
                                         f"-- Kernel description "
@@ -735,9 +739,10 @@ class MetaKernelProduct(Product):
         # etc. pause the pipeline to allow the user to introduce changes.
         #
         if hasattr(self, "mk_setup") and not self.setup.args.debug:
-            if hasattr(self, "mk_setup"):
-                if "interrupt_to_update" in self.mk_setup:
+            if "interrupt_to_update" in self.mk_setup:
                     if self.mk_setup["interrupt_to_update"].lower() == "true":
+                        # TODO: Potential issue in Windows: how does this work for
+                        #       non Unix platforms?
                         print(
                             "    * The meta-kernel might need to be updated. You can:"
                         )
@@ -776,25 +781,19 @@ class MetaKernelProduct(Product):
         # Compare meta-kernel with latest. First try with previous increment.
         #
         try:
-            match_flag = True
             val_mk_path = (
                 f"{self.setup.bundle_directory}/"
                 f"{self.setup.mission_acronym}_spice/spice_kernels/mk/"
             )
 
             val_mk_name = self.name.split(os.sep)[-1]
-            i = 1
 
-            while match_flag:
-                if i < len(val_mk_name) - 1:
-                    val_mks = glob.glob(val_mk_path + val_mk_name[0:i] + "*.tm")
-                    if val_mks:
-                        val_mks = sorted(val_mks)
-                        val_mk = val_mks[-1]
-                        match_flag = True
-                    else:
-                        match_flag = False
-                    i += 1
+            for i in range(1, len(val_mk_name) - 1):
+                val_mks = glob.glob(val_mk_path + val_mk_name[0:i] + "*.tm")
+                if val_mks:
+                    val_mk = max(val_mks)
+                else:
+                    break
 
             if not val_mk:
                 raise Exception("No label for comparison found.")
@@ -810,7 +809,7 @@ class MetaKernelProduct(Product):
             val_mk = f"{self.setup.templates_directory}/template_metakernel.tm"
 
         fromfile = self.path
-        tofile = val_mk
+        tofile = str(Path(val_mk))
         work_dir = self.setup.working_directory
 
         logging.info('-- Comparing %s...',
@@ -829,12 +828,12 @@ class MetaKernelProduct(Product):
              of the MK collection list attribute
            * check that line lengths are less than 80 characters
         """
-        rel_path = self.path.split(f"/{self.setup.mission_acronym}_spice/")[-1]
-        path = (
+        rel_path = self.path.split(f"{self.setup.mission_acronym}_spice")[-1]
+        path = str(Path(
             self.setup.bundle_directory.split(f"{self.setup.mission_acronym}_spice")[0]
             + f"/{self.setup.mission_acronym}_spice/"
             + rel_path
-        )
+        ))
 
         cwd = os.getcwd()
         mkdir = os.sep.join(path.split(os.sep)[:-1])
@@ -928,56 +927,55 @@ class MetaKernelProduct(Product):
             # Look for the identified kernel in the collection, if the kernel
             # is not present the coverage will have to be computed.
             #
-            if kernels:
-                for kernel in kernels:
-                    ker_found = False
-                    for product in self.collection.product:
-                        if kernel == product.name:
-                            start_times.append(spiceypy.utc2et(product.start_time[:-1]))
-                            finish_times.append(spiceypy.utc2et(product.stop_time[:-1]))
-                            ker_found = True
+            for kernel in kernels:
+                ker_found = False
+                for product in self.collection.product:
+                    if kernel == product.name:
+                        start_times.append(spiceypy.utc2et(product.start_time[:-1]))
+                        finish_times.append(spiceypy.utc2et(product.stop_time[:-1]))
+                        ker_found = True
+
+                #
+                # When the kernels are not present in the current
+                # collection, the coverage is computed.
+                #
+                if not ker_found:
+                    path = str(Path(
+                        f"{self.setup.bundle_directory}/"
+                        f"{self.setup.mission_acronym}_spice/"
+                        f"spice_kernels/"
+                        f"{extension_to_type(kernel)}/{kernel}"
+                    ))
 
                     #
-                    # When the kernels are not present in the current
-                    # collection, the coverage is computed.
+                    # Added check of file size for test cases.
                     #
-                    if not ker_found:
-                        path = (
-                            f"{self.setup.bundle_directory}/"
-                            f"{self.setup.mission_acronym}_spice/"
-                            f"spice_kernels/"
-                            f"{extension_to_type(kernel)}/{kernel}"
-                        )
+                    if not os.path.exists(path) or os.path.getsize(path) == 0:
+                        logging.warning(
+                            '-- File not present in final area: %s.', path)
+                        logging.warning(
+                            '   It will not be used to determine the coverage.')
 
-                        #
-                        # Added check of file size for test cases.
-                        #
-                        if not os.path.exists(path) or os.path.getsize(path) == 0:
-                            logging.warning(
-                                '-- File not present in final area: %s.', path)
-                            logging.warning(
-                                '   It will not be used to determine the coverage.')
-
+                    else:
+                        if extension_to_type(kernel) == "spk":
+                            (start_time, stop_time) = spk_coverage(
+                                path, main_name=self.setup.spice_name
+                            )
+                        elif extension_to_type(kernel) == "ck":
+                            (start_time, stop_time) = ck_coverage(path)
                         else:
-                            if extension_to_type(kernel) == "spk":
-                                (start_time, stop_time) = spk_coverage(
-                                    path, main_name=self.setup.spice_name
-                                )
-                            elif extension_to_type(kernel) == "ck":
-                                (start_time, stop_time) = ck_coverage(path)
-                            else:
-                                handle_npb_error(
-                                    "Kernel used to determine "
-                                    "coverage is not a SPK or CK "
-                                    "kernel.",
-                                    setup=self.setup,
-                                )
+                            handle_npb_error(
+                                "Kernel used to determine "
+                                "coverage is not a SPK or CK "
+                                "kernel.",
+                                setup=self.setup,
+                            )
 
-                            start_times.append(spiceypy.utc2et(start_time[:-1]))
-                            finish_times.append(spiceypy.utc2et(stop_time[:-1]))
+                        start_times.append(spiceypy.utc2et(start_time[:-1]))
+                        finish_times.append(spiceypy.utc2et(stop_time[:-1]))
 
-                            logging.info(
-                                '-- File %s used to determine coverage.', kernel)
+                        logging.info(
+                            '-- File %s used to determine coverage.', kernel)
 
         #
         # If it is a yearly meta-kernel; we need to handle it separately.
@@ -1038,6 +1036,12 @@ class MetaKernelProduct(Product):
                 et_incremn_finish = spiceypy.utc2et(self.setup.increment_finish[:-1])
                 et_year_start = spiceypy.utc2et(f"{self.year}-01-01T00:00:00")
 
+                # TODO: Review. Currently, the if branch is dead-code: Condition A and B
+                #       cannot be both true for any valid calendar. Condition A requires
+                #       Jan 1 of self.year to be strictly after mission_start. Condition B
+                #       requires self.year to be equal to the four digit year extracted from
+                #       mission_start.
+                #
                 if et_year_start > et_mission_start and (
                     self.year == self.setup.mission_start[:4]
                 ):
