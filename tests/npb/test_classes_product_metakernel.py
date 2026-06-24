@@ -1398,7 +1398,7 @@ class TestMetaKernelProductCompare:
 
         fromfile, tofile, work_dir, diff = mock_cmp.call_args[0]
         assert fromfile == product.path
-        assert tofile == f"{tmp_path}/insight_spice/spice_kernels/mk/insight_v01.tm"
+        assert tofile == str(tmp_path / "insight_spice/spice_kernels/mk/insight_v01.tm")
         assert work_dir == product.setup.working_directory
         assert diff == product.setup.diff
 
@@ -1422,7 +1422,7 @@ class TestMetaKernelProductCompare:
 
         fromfile, tofile, work_dir, diff = mock_cmp.call_args[0]
         assert fromfile == product.path
-        assert tofile == "/templates/template_metakernel.tm"
+        assert tofile == str(Path("/templates/template_metakernel.tm"))
         assert work_dir == setup.working_directory
         assert diff == setup.diff
 

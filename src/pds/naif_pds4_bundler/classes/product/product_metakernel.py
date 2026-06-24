@@ -809,7 +809,7 @@ class MetaKernelProduct(Product):
             val_mk = f"{self.setup.templates_directory}/template_metakernel.tm"
 
         fromfile = self.path
-        tofile = val_mk
+        tofile = str(Path(val_mk))
         work_dir = self.setup.working_directory
 
         logging.info('-- Comparing %s...',
@@ -828,7 +828,7 @@ class MetaKernelProduct(Product):
              of the MK collection list attribute
            * check that line lengths are less than 80 characters
         """
-        rel_path = self.path.split(f"/{self.setup.mission_acronym}_spice/")[-1]
+        rel_path = self.path.split(f"{self.setup.mission_acronym}_spice")[-1]
         path = str(Path(
             self.setup.bundle_directory.split(f"{self.setup.mission_acronym}_spice")[0]
             + f"/{self.setup.mission_acronym}_spice/"
