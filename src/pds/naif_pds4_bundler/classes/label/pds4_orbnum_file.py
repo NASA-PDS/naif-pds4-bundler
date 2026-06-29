@@ -17,7 +17,6 @@ class OrbnumFilePDS4Label(PDSLabel):
         """Constructor."""
         super().__init__(setup, product)
 
-
         self.template = str(Path(setup.templates_directory)
                             / "template_product_orbnum_table.xml")
 
@@ -50,12 +49,20 @@ class OrbnumFilePDS4Label(PDSLabel):
             eol_length = 1
         else:
             eol_length = 0
+
+        # TODO: BUG, product.record_fixed_length is used in integer arithmetic
+        #       without any type validation. If it arrives as a str, float, or
+        #       None the addition raises TypeError and aborts label generation
+        #       with no informative error message.
         self.FIELDS_LENGTH = str(product.record_fixed_length + eol_length)
         self.FIELDS = self.get_table_character_fields()
 
         if self.TABLE_CHARACTER_DESCRIPTION:
             self.TABLE_CHARACTER_DESCRIPTION = self.get_table_character_description()
 
+        # TODO: BUG, split(".")[0] truncates at the FIRST dot, not at the
+        #       file extension. A name with more than one dot loses everything
+        #       after the first.
         self.name = product.name.split(".")[0] + ".xml"
 
         self.write_label()
