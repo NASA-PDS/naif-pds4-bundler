@@ -98,6 +98,36 @@ class TestKernelListInit:
 
         read_config_mock.assert_called_once_with(kernel_list)
 
+    @pytest.mark.parametrize('kernel', [
+        'maven_001.bsp',           # SPK kernel
+        'maven_orbnum_00001.orb',  # OrbNum file
+        'maven_release_03.tm',     # Meta-kernel
+        'name with spaces.bc',     # Unusual but valid filename
+        'subdir/maven_001.bsp'])   # Path-like string (forward slash)
+    def test_add_appends_single_kernel(self, kernel) -> None:
+        # Build a KernelList instance without calling __init__ to isolate 'add'
+        # from setup/datetime/read_config dependencies; 'add' only depends on
+        # self.files.
+        kernel_list = KernelList.__new__(KernelList)
+        kernel_list.files = []
+
+        kernel_list.add(kernel)
+
+        assert kernel_list.files == [kernel]
+
+    def test_add_preserves_insertion_order_and_allows_duplicates(self) -> None:
+        # 'add' must append, not insert or deduplicate: successive calls keep
+        # insertion order and the same name added twice appears. This
+        # documents that deduplication is NOT adds responsibility.
+        kernel_list = KernelList.__new__(KernelList)
+        kernel_list.files = []
+
+        kernels = ['maven_001.bsp', 'maven_002.bsp', 'maven_001.bsp']
+        for kernel in kernels:
+            kernel_list.add(kernel)
+
+        assert kernel_list.files == kernels
+
     def test__init__calls_real_read_config(self, mocker, tmp_path) -> None:
         # This test check that  __init__ method calls a real read_config
         # execution.
