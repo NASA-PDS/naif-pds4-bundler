@@ -65,6 +65,13 @@ class SpicedsProduct(Product):
             except BaseException:
                 logging.warning("-- No previous version of spiceds_v*.html file found.")
                 if not spiceds:
+                    # TODO: BUG; handle_npb_error is annotated NoReturn but
+                    #      nothing in this code enforces that contract. If it
+                    #      were ever changed to return silently, execution would
+                    #      fall through to self.version = 1 and then
+                    #      shutil.copy2(spiceds='', ...) below, crashing with a
+                    #      confusing FileNotFoundError instead of the intended
+                    #      error message.
                     handle_npb_error(
                         "spiceds not provided and not available "
                         "from previous releases.",
@@ -145,6 +152,11 @@ class SpicedsProduct(Product):
         #
         # We add the date to the temporary file to have a unique name.
         #
+        # TODO: BUG, date.today() returns a date with no time component, so
+        #       strftime('%H:%M:%S.%f') always yields '00:00:00.000000'. The
+        #       temporary filename is therefore NOT unique across multiple runs
+        #       on the same day, which defeats the stated intent and risks
+        #       clobbering a concurrent temporary file.
         today = date.today()
         time_string = today.strftime("%Y-%m-%dT%H:%M:%S.%f")
         temporary_file = f"{self.path}.{time_string}"
@@ -214,7 +226,10 @@ class SpicedsProduct(Product):
         # Compare spiceds with latest. First try with previous increment.
         #
         try:
-
+            # TODO: BUG, path separators are hardcoded as '/' via f-strings,
+            #       unlike __init__ which uses os.sep throughout. On Windows the
+            #       forward-slash paths still resolve correctly for glob and
+            #       open, but the inconsistency is a maintenance hazard.
             val_spd_path = (
                 f"{self.setup.bundle_directory}/"
                 f"{self.setup.mission_acronym}_spice/document"
