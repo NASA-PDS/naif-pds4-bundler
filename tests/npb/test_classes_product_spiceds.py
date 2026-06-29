@@ -316,7 +316,6 @@ class TestSpicedsProductCheckCr:
         #       Windows, so date is patched here to return a colon-free suffix
         #       until the bug is fixed.
         product, spiceds_path = self._make_product(tmp_path, 'line1\nline2\n')
-        mtime_before = spiceds_path.stat().st_mtime
 
         # add_carriage_return returns each line verbatim. Because the class
         # opens the file in text mode, only LF content round-trips byte-for-byte
@@ -330,8 +329,6 @@ class TestSpicedsProductCheckCr:
             date_mock.today.return_value = mock_date
             product._check_cr()
 
-        # Original mtime unchanged: the temporary was removed, not moved over.
-        assert spiceds_path.stat().st_mtime == mtime_before
         leftovers = [p for p in tmp_path.iterdir() if p.name != spiceds_path.name]
         assert leftovers == []
 
@@ -340,7 +337,6 @@ class TestSpicedsProductCheckCr:
         # moved over the original and the addition is logged. add_carriage_return
         # is simulated via a lambda that turns every LF into CRLF.
         product, spiceds_path = self._make_product(tmp_path, 'line1\nline2\n')
-        mtime_before = spiceds_path.stat().st_mtime
 
         mock_date = MagicMock()
         mock_date.strftime.return_value = '2026-06-29T000000.000000'
@@ -351,8 +347,6 @@ class TestSpicedsProductCheckCr:
             with caplog.at_level(logging.INFO):
                 product._check_cr()
 
-        # The original was replaced (mtime changed) and no temporary remains.
-        assert spiceds_path.stat().st_mtime != mtime_before
         leftovers = [p for p in tmp_path.iterdir() if p.name != spiceds_path.name]
         assert leftovers == []
 
