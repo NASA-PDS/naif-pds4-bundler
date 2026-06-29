@@ -10,7 +10,6 @@ import logging
 import os
 import re
 import shutil
-import stat
 import sys
 from pathlib import Path
 import tempfile
@@ -686,7 +685,10 @@ def match_patterns(name, name_w_pattern, patterns):
         elif (n == "$") and value_bool:
             value += name[i]
         else:
-            raise
+            raise RuntimeError(
+                f"Pattern mismatch at index {i}: "
+                f"expected '{n}' but got '{name[i]}' in '{name}'."
+            )
 
     # Correlate the values with their position in the file name with
     # patterns.

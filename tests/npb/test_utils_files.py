@@ -1009,7 +1009,7 @@ def test_match_patterns_missing_pattern():
     name = "insight_2021_v02.tm"
     patterns = [{"@length": "2", "#text": "VERSION"}]
 
-    with pytest.raises(RuntimeError):
+    with pytest.raises(RuntimeError, match=r"Pattern mismatch at index 9: expected 'Y' but got '0'"):
         files.match_patterns(name, name_w_pattern, patterns)
 
 def test_match_patterns_typo_in_template():
@@ -1022,7 +1022,7 @@ def test_match_patterns_typo_in_template():
         {"@length": "4", "#text": "YEAR"},
     ]
 
-    with pytest.raises(RuntimeError):
+    with pytest.raises(RuntimeError, match=r"Pattern mismatch at index 9: expected 'Y' but got '0'"):
         files.match_patterns(name, name_w_pattern, patterns)
 
 def test_match_patterns_typo_in_patterns():
@@ -1035,7 +1035,7 @@ def test_match_patterns_typo_in_patterns():
         {"@length": "4", "#text": "YAR"},
     ]
 
-    with pytest.raises(RuntimeError):
+    with pytest.raises(RuntimeError, match=r"Pattern mismatch at index 9: expected 'Y' but got '0'"):
         files.match_patterns(name, name_w_pattern, patterns)
 
 def test_match_patterns_wrong_length():
@@ -1048,7 +1048,7 @@ def test_match_patterns_wrong_length():
         {"@length": "10", "#text": "YEAR"},
     ]
 
-    with pytest.raises(RuntimeError):
+    with pytest.raises(RuntimeError, match=r"Pattern mismatch at index 18: expected '_' but got 'm'"):
         files.match_patterns(name, name_w_pattern, patterns)
 
 # ----------------------------------------------------------------------------
