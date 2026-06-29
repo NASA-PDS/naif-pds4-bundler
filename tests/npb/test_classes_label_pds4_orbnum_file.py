@@ -871,8 +871,7 @@ class TestOrbnumFilePDS4LabelIntegration:
 
         # Check that the final XML file has been created in staging.
         assert label_path.exists()
-        print(label_path.read_text(encoding='utf-8'))
-        print('-' * 80)
+
         # Compare the generated label with the exact expected content. The
         # composite placeholders ($TABLE_CHARACTER_DESCRIPTION and $FIELDS) are
         # pre-rendered by the child before the writer substitutes the scalars.
