@@ -310,13 +310,24 @@ class TestSpicedsProductCheckCr:
     def test_check_cr_no_change_removes_temporary_file(self, tmp_path):
         # When add_carriage_return is a no-op, filecmp reports temp == original,
         # so the temporary copy is removed and the original is preserved.
+        # TODO: BUG; date.today() uses strftime with time directives
+        #       (%H:%M:%S.%f) but date has no time component, so the suffix is
+        #       always '00:00:00.000000'. Colons are illegal in filenames on
+        #       Windows, so date is patched here to return a colon-free suffix
+        #       until the bug is fixed.
         product, spiceds_path = self._make_product(tmp_path, 'line1\nline2\n')
         original = spiceds_path.read_bytes()
 
         # add_carriage_return returns each line verbatim. Because the class
         # opens the file in text mode, only LF content round-trips byte-for-byte
         # (CRLF would be normalised to LF on read), so filecmp reports equality.
-        with patch(f'{_MODULE}.add_carriage_return', side_effect=lambda line, eol, setup: line):
+        mock_date = MagicMock()
+        mock_date.strftime.return_value = '2026-06-29T000000.000000'
+
+        with patch(f'{_MODULE}.date') as date_mock, \
+                patch(f'{_MODULE}.add_carriage_return',
+                      side_effect=lambda line, eol, setup: line):
+            date_mock.today.return_value = mock_date
             product._check_cr()
 
         # Original unchanged and no leftover temporary files in the directory.
@@ -330,8 +341,12 @@ class TestSpicedsProductCheckCr:
         # is simulated via a lambda that turns every LF into CRLF.
         product, spiceds_path = self._make_product(tmp_path, 'line1\nline2\n')
 
-        with patch(f'{_MODULE}.add_carriage_return',
-                   side_effect=lambda line, eol, setup: line.replace('\n', '\r\n')):
+        mock_date = MagicMock()
+        mock_date.strftime.return_value = '2026-06-29T000000.000000'
+        with patch(f'{_MODULE}.date') as date_mock, \
+                patch(f'{_MODULE}.add_carriage_return',
+                      side_effect=lambda line, eol, setup: line.replace('\n', '\r\n')):
+            date_mock.today.return_value = mock_date
             with caplog.at_level(logging.INFO):
                 product._check_cr()
 
@@ -351,8 +366,12 @@ class TestSpicedsProductCheckCr:
         # eol_pds4 and the setup object.
         product, _ = self._make_product(tmp_path, 'a\nb\n', eol_pds4='\r\n')
 
-        with patch(f'{_MODULE}.add_carriage_return',
-                   side_effect=lambda line, eol, setup: line) as helper:
+        mock_date = MagicMock()
+        mock_date.strftime.return_value = '2026-06-29T000000.000000'
+        with patch(f'{_MODULE}.date') as date_mock, \
+                patch(f'{_MODULE}.add_carriage_return',
+                      side_effect=lambda line, eol, setup: line) as helper:
+            date_mock.today.return_value = mock_date
             product._check_cr()
 
         # Two lines -> two calls, each with the configured eol and setup object.

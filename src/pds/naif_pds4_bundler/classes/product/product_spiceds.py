@@ -156,7 +156,9 @@ class SpicedsProduct(Product):
         #       strftime('%H:%M:%S.%f') always yields '00:00:00.000000'. The
         #       temporary filename is therefore NOT unique across multiple runs
         #       on the same day, which defeats the stated intent and risks
-        #       clobbering a concurrent temporary file.
+        #       clobbering a concurrent temporary file. Additionally, colons are
+        #       illegal in filenames on Windows, so the suffix '00:00:00.000000'
+        #       causes an OSError.
         today = date.today()
         time_string = today.strftime("%Y-%m-%dT%H:%M:%S.%f")
         temporary_file = f"{self.path}.{time_string}"
