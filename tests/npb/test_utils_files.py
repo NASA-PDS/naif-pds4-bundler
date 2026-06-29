@@ -52,12 +52,12 @@ def test_add_carriage_return(inputs, eol, outputs):
     assert result == outputs
 
 @pytest.mark.parametrize("inputs, eol, expected", [
-    ("Meww", "", [(logging.ERROR, "File has incorrect CR at line: Meww.")]),
-    ("Meww", "", [(logging.ERROR, "File has incorrect CR at line: Meww.")]),
+    ("Meww", "", [(logging.ERROR, "Invalid EOL requested: ''.")]),
+    ("Meww", "\a", [(logging.ERROR, "Invalid EOL requested: '\\x07'.")]),
     ("Meww", "\n", []),
     ("Meww", "\r\n", []),
-    ("Meww\n", "", []),
-    ("Meww\r\n", "", []),
+    ("Meww\n", "", [(logging.ERROR, "Invalid EOL requested: ''.")]),
+    ("Meww\r\n", "", [(logging.ERROR, "Invalid EOL requested: ''.")]),
     ("Meww\n", "\r\n", []),
     ("Meww\r\n", "\n", []),
     ("Meww\n", "\n", []),
@@ -1177,10 +1177,10 @@ def test_product_mapping_cleanup(monkeypatch, tmp_path):
 # ----------------------------------------------------------------------------
 
 @pytest.mark.parametrize("contents, old_str, new_str, eol_pds3, expected", [
-    ("Howdy Cowboy\n", "Cowboy", "Cowgirl", False, "Howdy Cowgirl\n"),
-    ("Venus Saturn Mars Venus\n", "Venus", "Earth", False, "Earth Saturn Mars Earth\n"),
-    ("Mission A\nMission B\n", "Mission", "Spacecraft", True, "Spacecraft A\nSpacecraft B\n"),
-    ("Happy Kitty\n", "Kitty", "kitty", True, "Happy kitty\n"),
+    ("Howdy Cowboy\n", "Cowboy", "Cowgirl", "\n", "Howdy Cowgirl\n"),
+    ("Venus Saturn Mars Venus\n", "Venus", "Earth", "\n", "Earth Saturn Mars Earth\n"),
+    ("Mission A\nMission B\n", "Mission", "Spacecraft", "\n", "Spacecraft A\nSpacecraft B\n"),
+    ("Happy Kitty\n", "Kitty", "kitty", "\n", "Happy kitty\n"),
 ])
 def test_replace_string_in_file(tmp_path, contents, old_str, new_str, eol_pds3, expected):
     """Test replace_string_in_file function using pytest."""

@@ -211,30 +211,24 @@ def type_to_extension(kernel_type):
     return kernel_extension
 
 
-def add_carriage_return(line, eol, setup=False):
-    """Adds Carriage Return (``<CR>``) to a line.
+def add_carriage_return(line: str, eol: str, setup: object = False) -> str:
+    """Normalise the line terminator of a line to the requested EOL.
 
-    :param line: Input line
-    :type line: str
-    :param eol: EOL defined by the configuration file
-    :type eol: str
-    :return: Input line with CR
-    :rtype: str
+    Replaces any existing EOL sequence (``\\r\\n`` or ``\\n``) with ``eol``.
+    If the line contains no EOL, ``eol`` is appended. Raises an NPB error
+    if ``eol`` is not one of the two accepted values (``"\\n"`` or ``"\\r\\n"``).
+
+    :param line:  Input line to normalize.
+    :param eol:   Target end-of-line sequence; must be ``"\\n"`` or ``"\\r\\n"``.
+    :param setup: NPB run Setup object, forwarded to the error handler.
+    :return: Line with its terminator replaced or appended.
     """
-    if eol == "\r\n" and "\r\n" not in line:
-        line = line.replace("\n", "\r\n")
-    if eol == "\r\n" and "\r\n" not in line:
-        if "\r\n" not in line:
-            line += "\r\n"
-        else:
-            handle_npb_error(f"File has incorrect CR at line: {line}.", setup=setup)
-    if eol == "\n" and "\r\n" in line:
-        line = line.replace("\r\n", "\n")
-    elif eol == "\n" and "\n" not in line:
-        line += "\n"
-    else:
-        if "\n" not in line:
-            handle_npb_error(f"File has incorrect CR at line: {line}.", setup=setup)
+    if eol not in ("\n", "\r\n"):
+        handle_npb_error(f"Invalid EOL requested: {repr(eol)}.", setup=setup)
+
+    line = line.replace("\r\n", "\n").replace("\n", eol)
+    if eol not in line:
+        line += eol
 
     return line
 
