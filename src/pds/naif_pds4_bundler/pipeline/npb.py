@@ -471,7 +471,7 @@ def run_pipeline(args: PipelineArgs) -> None:
         checksum.generate()
         miscellaneous_collection.add(checksum)
 
-    elif setup.pds_version == "3":
+    else:  # if setup.pds_version == "3":
 
         document_collection = DocumentCollection(setup, bundle)
 
