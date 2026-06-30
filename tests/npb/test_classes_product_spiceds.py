@@ -94,12 +94,13 @@ class TestSpicedsProductInit:
         setup = make_setup(increment=False, diff=False)
         collection = make_collection(name='document')
 
-        with base_init_patches()[0] as copy2, \
-                base_init_patches()[1] as check_cr, \
-                base_init_patches()[2] as check_product, \
-                base_init_patches()[3] as compare, \
-                base_init_patches()[4] as base_init, \
-                base_init_patches()[5] as label:
+        patches = base_init_patches()
+        with patches[0] as copy2, \
+                patches[1] as check_cr, \
+                patches[2] as check_product, \
+                patches[3] as compare, \
+                patches[4] as base_init, \
+                patches[5] as label:
             product = SpicedsProduct(setup, collection)
 
         # Version 1 because there is no previous increment.
