@@ -1684,6 +1684,23 @@ class TestKernelListWriteCompleteList:
         # propagated.
         validate_complete_mock.assert_called_once_with(kernel_list)
 
+    def test_write_complete_list_raises_on_non_numeric_release_token(
+            self, tmp_path) -> None:
+        # Verify that a kernel list filename whose release token cannot be
+        # converted to int causes handle_npb_error to raise RuntimeError with
+        # a message that identifies both the bad token and the filename.
+
+        kernel_list, _, _ = self.make_kernel_list(tmp_path)
+        working_directory = Path(kernel_list.setup.working_directory)
+
+        # 'abc' is the token at position [-3] after replacing '_' with '.'
+        # in 'maven_release_abc.kernel_list'.
+        bad_release = working_directory / 'maven_release_abc.kernel_list'
+        bad_release.write_text('RELEASE BAD\n', encoding='utf-8')
+
+        with pytest.raises(RuntimeError, match="Non-numeric release token 'abc'"):
+            kernel_list.write_complete_list()
+
 
 class TestKernelListValidateComplete:
     """Tests for KernelList.validate_complete.
