@@ -470,7 +470,7 @@ class TestSpicedsProductCompare:
             '/bundle/insight_spice/document/spiceds_v003.html',
             '/staging/spiceds_v004.html', '/work', True)
 
-    def test_compare_falls_back_to_insight_example(self, tmp_path, caplog):
+    def test_compare_falls_back_to_insight_example(self, caplog):
         # With no previous increment (empty glob -> IndexError), _compare falls
         # back to the bundled InSight sample and logs the fallback.
 
