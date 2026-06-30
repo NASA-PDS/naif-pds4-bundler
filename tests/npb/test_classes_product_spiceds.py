@@ -475,7 +475,7 @@ class TestSpicedsProductCompare:
         # Empty glob -> [-1] raises IndexError -> fallback branch.
         with patch(f'{_MODULE}.glob.glob', return_value=[]), \
                 patch(f'{_MODULE}.compare_files') as compare_files:
-            with caplog.at_level(logging.WARNING):
+            with caplog.at_level(logging.INFO):
                 product._compare()
 
         expected_from = '/root/data/insight_spice/document/spiceds_v002.html'
@@ -484,7 +484,8 @@ class TestSpicedsProductCompare:
 
         expected = [
             (logging.WARNING, '-- No other version of spiceds_v001.html has been found.'),
-            (logging.WARNING, '-- Comparing with default InSight example.')]
+            (logging.WARNING, '-- Comparing with default InSight example.'),
+            (logging.INFO, '')]
 
         messages = [(r[1], r[2]) for r in caplog.record_tuples]
         assert messages == expected
