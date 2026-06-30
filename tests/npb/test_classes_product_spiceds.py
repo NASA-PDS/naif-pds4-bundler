@@ -445,7 +445,7 @@ class TestSpicedsProductCompare:
     """Tests for _compare, which diffs the product against a reference
     'spiceds'."""
 
-    def test_compare_uses_latest_previous_increment(self, tmp_path):
+    def test_compare_uses_latest_previous_increment(self):
         # When previous-increment spiceds exist, the highest sorted one is used
         # as the fromfile and the product path as the tofile.
         setup = make_setup(diff=True)
