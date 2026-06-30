@@ -408,7 +408,7 @@ class TestSpicedsProductCheckProduct:
         ('Intro\nBody\n', 'Intro\nBody\n'),
         ('Intro\nLast update 2024\nBody\n', 'Intro\nLast update 2023\nBody\n')])
     def test_check_product_false_when_only_trivial_changes(
-            self, tmp_path, current_text, latest_text):
+            self, tmp_path, current_text, latest_text, caplog):
         # Identical content, or only a 'Last update' line differing, means no
         # regeneration: the method returns False, removes the staged current
         # product and logs a warning.
@@ -420,10 +420,20 @@ class TestSpicedsProductCheckProduct:
         product = make_spiceds_without_init(
             latest_spiceds=str(latest), path=str(current))
 
-        assert product._check_product() is False
+        with caplog.at_level(logging.INFO):
+            result = product._check_product()
+
+        assert result is False
 
         # The staged product is deleted when it does not need updating.
         assert not current.exists()
+
+        expected = [
+            (logging.WARNING, '-- spiceds document does not need to be updated.'),
+            (logging.WARNING, ''),
+        ]
+        messages = [(r[1], r[2]) for r in caplog.record_tuples]
+        assert messages == expected
 
 
 # ---------------------------------------------------------------------------
