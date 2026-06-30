@@ -78,12 +78,12 @@ def build_product(setup, bundle, write_to_disk=False):
             patch(f'{MOD}.md5', return_value='d' * 32) as m_md5:
         if write_to_disk:
             product = ReadmeProduct(setup, bundle)
-            mocks = dict(init=m_init, label=m_label, md5=m_md5)
+            mocks = {'init': m_init, 'label': m_label, 'md5': m_md5}
             return product, mocks
 
         with patch.object(ReadmeProduct, '_write_product') as m_write:
             product = ReadmeProduct(setup, bundle)
-            mocks = dict(init=m_init, label=m_label, md5=m_md5, write=m_write)
+            mocks = {'init': m_init, 'label': m_label, 'md5': m_md5, 'write': m_write}
             return product, mocks
 
 
