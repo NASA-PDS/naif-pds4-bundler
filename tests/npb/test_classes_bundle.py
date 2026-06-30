@@ -1391,6 +1391,52 @@ class TestBundelPGetHistory:
         result = bundle._get_history()
         assert isinstance(result, dict)
 
+    # -- Same miscellaneous version not repeated -------------------------------
+
+    def test_same_misc_version_not_repeated_in_later_release(self, fake_setup):
+        """When the miscellaneous collection version is unchanged between two
+        releases, its files must appear only in the release where the version
+        was first introduced, not in subsequent releases."""
+        for rel in (1, 2):
+            _write_bundle_label(fake_setup, rel, [
+                {"lid": f"urn:nasa:pds:{MISSION}.spice:miscellaneous::1.0",
+                 "status": "Primary"},
+            ])
+        _write_collection_csv(
+            fake_setup,
+            "miscellaneous/collection_miscellaneous_inventory_v001.csv",
+            [],
+        )
+        bundle = _make_bundle(fake_setup, vid="2.0",
+                              name=f"bundle_{MISSION}_spice_v002.xml",
+                              collections=["something"])
+        result = bundle._get_history()
+        assert "miscellaneous/collection_miscellaneous_inventory_v001.csv" in result[1]
+        assert "miscellaneous/collection_miscellaneous_inventory_v001.csv" not in result[2]
+
+    # -- Same document version not repeated -----------------------------------
+
+    def test_same_document_version_not_repeated_in_later_release(self, fake_setup):
+        """When the document collection version is unchanged between two
+        releases, its files must appear only in the release where the version
+        was first introduced, not in subsequent releases."""
+        for rel in (1, 2):
+            _write_bundle_label(fake_setup, rel, [
+                {"lid": f"urn:nasa:pds:{MISSION}.spice:document::1.0",
+                 "status": "Primary"},
+            ])
+        _write_collection_csv(
+            fake_setup,
+            "document/collection_document_inventory_v001.csv",
+            [],
+        )
+        bundle = _make_bundle(fake_setup, vid="2.0",
+                              name=f"bundle_{MISSION}_spice_v002.xml",
+                              collections=["something"])
+        result = bundle._get_history()
+        assert "document/collection_document_inventory_v001.csv" in result[1]
+        assert "document/collection_document_inventory_v001.csv" not in result[2]
+
 
 # ---------------------------------------------------------------------------
 # Bundle._get_kernel_collection_products
@@ -1503,6 +1549,24 @@ class TestBundlePGetKernelCollectionProducts:
                     'spice_kernels/mk/insight_v01.tm',
                     'spice_kernels/mk/insight_v01.xml']
         assert expected == result
+
+    def test_mk_fallback_to_mk_inputs_deduplicates_products(self, fake_setup):
+        """When two MK inventory rows both resolve to the same product via
+        ``mk_inputs``, the product is added only once."""
+        fake_setup.mk_inputs = "/path/to/insight_v01.tm"
+        _write_collection_csv(
+            fake_setup,
+            "spice_kernels/collection_spice_kernels_inventory_v001.csv",
+            [
+                f"P,urn:nasa:pds:{MISSION}.spice:spice_kernels:mk_insight::1.0",
+                f"P,urn:nasa:pds:{MISSION}.spice:spice_kernels:mk_insight::2.0",
+            ],
+        )
+        bundle = _make_bundle(fake_setup, vid="1.0",
+                              name=f"bundle_{MISSION}_spice_v001.xml")
+        result = bundle._get_kernel_collection_products(1)
+        assert result.count("spice_kernels/mk/insight_v01.tm") == 1
+        assert result.count("spice_kernels/mk/insight_v01.xml") == 1
 
     def test_mk_fallback_default_2_digits_warns(self, fake_setup, caplog):
         """When neither ``setup.mk`` nor ``setup.mk_inputs`` is present, a
@@ -1629,6 +1693,18 @@ class TestBundlePGetMetakernelProductFromConfig:
         result = bundle._get_metakernel_product_from_config(3, self._csv_line())
         # Falls through to: return f"{base}v{ver:02d}.tm"
         assert result == "spice_kernels/mk/insight_v03.tm"
+
+    def test_pattern_already_a_list_is_not_rewrapped(self, fake_setup):
+        """When an element of ``mk[0]['name']`` is already a list — as
+        ``etree_to_dict`` produces when a ``<name>`` element has multiple
+        children of the same tag — it is iterated directly without being
+        wrapped in another list."""
+        fake_setup.mk = [{"name": [[{"pattern": [{"#text": "VERSION",
+                                                  "@length": "2"}]}]]}]
+        bundle = _make_bundle(fake_setup, vid="1.0",
+                              name=f"bundle_{MISSION}_spice_v001.xml")
+        result = bundle._get_metakernel_product_from_config(1, self._csv_line())
+        assert result == "spice_kernels/mk/insight_v01.tm"
 
 
 # ---------------------------------------------------------------------------
