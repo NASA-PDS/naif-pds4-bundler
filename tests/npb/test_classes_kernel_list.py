@@ -948,13 +948,9 @@ class TestKernelListReadList:
          'MAKLABEL_OPTIONS = SCLK\n',
          ['maven_frames_v01.tf', 'maven_clock_v02.tsc']),
         (f'FILE             = {os.path.join("spice_kernels", "spk", "maven_orbit_v01.bsp")}',
-         ['maven_orbit_v01.bs'])])
+         ['maven_orbit_v01.bsp'])])
     def test_read_list_builds_kernel_list_from_file_entries_only(
             self, mocker, tmp_path, content, expected_kernels) -> None:
-        # TODO: The last example demonstrates the bug whereby, if there is no
-        #       EOL on the FILE line, the code removes the last character from
-        #       the line.
-
         # Verify read_list parsing rules with several inputs: ignore non-FILE
         # lines, build kernel_list only from FILE entries and preserve the
         # original order.

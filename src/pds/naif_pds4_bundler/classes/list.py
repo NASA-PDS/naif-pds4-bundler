@@ -350,9 +350,7 @@ class KernelList:
         with open(kernel_list, "r", encoding='utf-8') as lst:
             for line in lst:
                 if "FILE             =" in line:
-                    # TODO: BUG; If a FILE line has no trailing EOL, [:-1]
-                    #      truncates the kernel name.
-                    kernels.append(line.split(os.sep)[-1][:-1])
+                    kernels.append(line.split(os.sep)[-1].rstrip("\r\n"))
 
         self.kernel_list = kernels
 
