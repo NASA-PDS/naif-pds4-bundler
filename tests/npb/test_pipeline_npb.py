@@ -47,9 +47,9 @@ class _StubChecksum:
     def __init__(self, _setup=None, _collection=None, **_kw):
         self.new_product = True
 
-    def set_coverage(self): pass
-    def generate(self, history=None): pass
-    def read_current_product(self, **_kw): pass
+    def set_coverage(self): pass  # no-op: test only observes new_product flag
+    def generate(self, history=None): pass  # no-op: output generation not under test
+    def read_current_product(self, **_kw): pass  # no-op: reading existing products not under test
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -86,19 +86,19 @@ _PATCH_TARGETS = [
 
 def _args(**overrides) -> PipelineArgs:
     """Build a minimal valid PipelineArgs, applying any overrides."""
-    defaults = dict(
-        config='dummy.xml',
-        silent=True,
-        verbose=False,
-        debug=True,
-        log=False,
-        plan=None,
-        kerlist=None,
-        faucet='',
-        clear=None,
-        checksum=False,
-        diff=None,
-    )
+    defaults = {
+        'config': 'dummy.xml',
+        'silent': True,
+        'verbose': False,
+        'debug': True,
+        'log': False,
+        'plan': None,
+        'kerlist': None,
+        'faucet': '',
+        'clear': None,
+        'checksum': False,
+        'diff': None,
+    }
     defaults.update(overrides)
     return PipelineArgs(**defaults)
 
