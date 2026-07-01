@@ -132,6 +132,8 @@ class TestReadmeProductInit:
         # When a readme already exists in the final (bundle) area:
         # _write_product is NOT called, new_product is False, no md5 is computed
         # and self.path is still rewritten to staging + bundle.name for the label.
+        # The final (bundle) area is expected to be:
+        #    bundle_dir / mission_acronym + "_spice"
         final_dir = Path(tmp_path) / 'bundle' / 'insight_spice'
         final_dir.mkdir(parents=True)
         (final_dir / 'readme.txt').write_text('existing', encoding='utf-8')
