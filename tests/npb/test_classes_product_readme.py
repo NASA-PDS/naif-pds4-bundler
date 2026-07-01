@@ -312,8 +312,9 @@ class TestReadmeProductWriteProduct:
         real_open = open
         templates = tmp_path / 'templates'
         templates.mkdir()
-        (templates / 'template_readme.txt').write_text(
-            '$SPICE_NAME\n$OVERVIEW\n', encoding='utf-8')
+        with real_open(templates / 'template_readme.txt', 'w', encoding='utf-8',
+                       newline='') as f:
+            f.write('$SPICE_NAME\n$OVERVIEW\n')
         staging = tmp_path / 'staging'
         staging.mkdir()
         out_path = staging / 'readme.txt'
