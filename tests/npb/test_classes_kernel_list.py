@@ -984,11 +984,11 @@ class TestKernelListReadList:
         kernel_list, _, output_path = self.make_kernel_list(tmp_path)
 
         # Define an input path that not exists.
-        missing_path = tmp_path / 'missing.kernel_list'
+        missing_path = str(tmp_path / 'missing.kernel_list')
 
         # Execute the method and capture the exception.
         with pytest.raises(FileNotFoundError):
-            kernel_list.read_list(str(missing_path))
+            kernel_list.read_list(missing_path)
 
         # Check that the destination file has not been created.
         assert not output_path.exists()
