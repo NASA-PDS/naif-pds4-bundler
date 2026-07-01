@@ -60,31 +60,25 @@ def make_bundle(name='bundle_insight_spice_v001.xml', vid='1.0'):
     return bundle
 
 
-def build_product(setup, bundle, write_to_disk=False):
+def build_product(setup, bundle):
     """Construct a ``ReadmeProduct`` with the heavy collaborators mocked.
 
     ``Product.__init__`` and ``BundlePDS4Label`` are always patched so no
     registration or labelling happens. ``md5`` is patched to a stable value.
-    When ``write_to_disk`` is False (the default), ``_write_product`` is also
-    patched out, isolating the constructor logic from file generation.
+    ``_write_product`` is also patched out, isolating the constructor logic
+    from file generation.
 
-    :param setup:          mock Setup object
-    :param bundle:         mock Bundle object
-    :param write_to_disk:  if True, run the real ``_write_product``
-    :return:               tuple ``(product, mocks_dict)``
+    :param setup:  mock Setup object
+    :param bundle: mock Bundle object
+    :return:       tuple ``(product, mocks_dict)``
     """
     with patch(f'{MOD}.Product.__init__', return_value=None) as m_init, \
-            patch(f'{MOD}.BundlePDS4Label') as m_label, \
-            patch(f'{MOD}.md5', return_value='d' * 32) as m_md5:
-        if write_to_disk:
-            product = ReadmeProduct(setup, bundle)
-            mocks = {'init': m_init, 'label': m_label, 'md5': m_md5}
-            return product, mocks
-
-        with patch.object(ReadmeProduct, '_write_product') as m_write:
-            product = ReadmeProduct(setup, bundle)
-            mocks = {'init': m_init, 'label': m_label, 'md5': m_md5, 'write': m_write}
-            return product, mocks
+         patch(f'{MOD}.BundlePDS4Label') as m_label, \
+         patch(f'{MOD}.md5', return_value='d' * 32) as m_md5, \
+         patch.object(ReadmeProduct, '_write_product') as m_write:
+        product = ReadmeProduct(setup, bundle)
+        mocks = {'init': m_init, 'label': m_label, 'md5': m_md5, 'write': m_write}
+        return product, mocks
 
 
 # ===========================================================================
