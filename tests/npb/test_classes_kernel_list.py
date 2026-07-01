@@ -1540,35 +1540,37 @@ class TestKernelListWriteCompleteList:
 
     def test_write_complete_list_accepts_no_release_lists(
             self, mocker, caplog, tmp_path) -> None:
-        # Verify the empty-input path: when no release lists are found, the method still
-        # creates an empty complete list, updates state and requests validation.
+        # Verify the empty-input path: when no release lists are found, the method
+        # completes without raising, creates an empty complete list, logs a
+        # warning, updates state and still requests validation.
 
-        # TODO: BUG; write_complete_list should handle the case with no release
-        #      lists before checking if release numbers are consecutive.
-
-        # Mock the validate_complete and check_consecutive calls.
+        # Mock the validate_complete call.
         validate_complete_mock = mocker.patch.object(KernelList, 'validate_complete',
                                                      autospec=True)
 
         # Create a KernelList instance with a temporal and empty working_directory
         kernel_list, _, output_path = self.make_kernel_list(tmp_path)
 
+        # Capture the logs.
         with caplog.at_level(logging.INFO):
-            with pytest.raises(ValueError):
-                kernel_list.write_complete_list()
+            kernel_list.write_complete_list()
+
+        expected = [(logging.WARNING, '-- No release kernel lists available.')]
+        results = [(record[1], record[2]) for record in caplog.record_tuples]
+
+        # Check the logs.
+        assert results == expected
 
         # Check that the file exists and is empty.
         assert output_path.exists()
         assert output_path.read_text(encoding='utf-8') == ''
 
         # The method must still publish the generated complete-list filename.
-        assert kernel_list.complete_list == ''
+        assert kernel_list.complete_list == 'maven_complete.kernel_list'
 
-        # Check that check_consecutive and validate_complete called once.
-        validate_complete_mock.assert_not_called()
-
-        # No release files are added and no warning is emitted.
-        assert caplog.record_tuples == []
+        # Check that write_complete_list ultimately requests validation of the
+        # complete list, but without executing the actual implementation.
+        validate_complete_mock.assert_called_once_with(kernel_list)
 
     def test_write_complete_list_logs_added_release_lists(
             self, mocker, caplog, tmp_path) -> None:

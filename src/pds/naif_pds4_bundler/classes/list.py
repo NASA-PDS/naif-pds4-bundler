@@ -391,9 +391,9 @@ class KernelList:
                     for line in lst:
                         c.write(line)
 
-        # TODO: BUG, If no release kernel lists are available, release_list is
-        #       empty and check_consecutive([]) raises ValueError.
-        if not check_consecutive(release_list):
+        if not release_list:
+            logging.warning('-- No release kernel lists available.')
+        elif not check_consecutive(release_list):
             logging.warning('-- Incomplete Kernel lists available: %s', release_list)
 
         self.complete_list = complete_list
