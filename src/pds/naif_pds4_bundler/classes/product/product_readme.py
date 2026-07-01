@@ -83,6 +83,12 @@ class ReadmeProduct(Product):
                         if "$SPICE_NAME" in line:
                             line = line.replace("$SPICE_NAME", self.setup.spice_name)
                             line_length = len(line) - 1
+                            # TODO: BUG; this branch uses self.setup.eol_pds4
+                            #       while the $OVERVIEW, $COGNISANT_AUTHORITY
+                            #       and plain-line (else) branches below use
+                            #       self.setup.eol instead. This inconsistency
+                            #       means the generated readme can mix two
+                            #       different line endings in the same file.
                             line = add_carriage_return(
                                 line, self.setup.eol_pds4, self.setup
                             )
@@ -90,6 +96,8 @@ class ReadmeProduct(Product):
                         elif "$UNDERLINE" in line:
                             line = line.replace("$UNDERLINE", "=" * line_length)
                             line_length = len(line) - 1
+                            # TODO: BUG; same eol_pds4 vs eol inconsistency as
+                            #       the $SPICE_NAME branch above.
                             line = add_carriage_return(
                                 line, self.setup.eol_pds4, self.setup
                             )
