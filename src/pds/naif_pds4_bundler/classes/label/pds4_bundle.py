@@ -38,38 +38,27 @@ class BundlePDS4Label(PDSLabel):
         # is generated and there have been previous releases.)
         #
         for collection in self.product.bundle.collections:
-            if collection.name == "spice_kernels":
-                self.COLL_NAME = "spice_kernel"
-                self.COLL_LIDVID = collection.lid + "::" + collection.vid
-                if collection.updated:
-                    self.COLL_STATUS = "Primary"
-                else:
-                    self.COLL_STATUS = "Secondary"
-            if collection.name == "miscellaneous":
-                if setup.information_model_float >= 1011001000.0:
-                    self.COLL_NAME = "miscellaneous"
-                else:
-                    self.COLL_NAME = "member"
-                self.COLL_LIDVID = collection.lid + "::" + collection.vid
-                if collection.updated:
-                    self.COLL_STATUS = "Primary"
-                else:
-                    self.COLL_STATUS = "Secondary"
-            if collection.name == "document":
-                self.COLL_NAME = "document"
-                self.COLL_LIDVID = collection.lid + "::" + collection.vid
-                if collection.updated:
-                    self.COLL_STATUS = "Primary"
-                else:
-                    self.COLL_STATUS = "Secondary"
 
-            # TODO: BUG, COLL_NAME, COLL_LIDVID, and COLL_STATUS are only
-            #   assigned inside the three named if-blocks above. If
-            #   collection.name does not match any of the three recognised
-            #   values ('spice_kernels', 'miscellaneous', 'document'), none of
-            #   the blocks run and the f-string below reads stale values from
-            #   the previous iteration (or raises AttributeError on the first
-            #   iteration, when the attributes have never been set).
+            if collection.name == 'spice_kernels':
+
+                # This value is singular ( spice_kernel(s) ).
+                coll_name = 'spice_kernel'
+
+            elif collection.name == 'document':
+                coll_name = 'document'
+
+            elif collection.name == "miscellaneous":
+                coll_name = "miscellaneous" if setup.information_model_float >= 1011001000.0 else "member"
+
+            else:
+                raise ValueError(
+                    f'NPB bug: the collection name {collection.name} is not '
+                    f'supported in PDS4 Bundle Label.')
+
+            self.COLL_NAME = coll_name
+            self.COLL_LIDVID = collection.lid + "::" + collection.vid
+            self.COLL_STATUS = "Primary" if collection.updated else "Secondary"
+
             self.BUNDLE_MEMBER_ENTRIES += (
                 f"{' ' * tab}<Bundle_Member_Entry>{eol}"
                 f"{' ' * 2 * tab}<lidvid_reference>"
