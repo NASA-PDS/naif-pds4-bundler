@@ -391,10 +391,11 @@ class KernelList:
                     for line in lst:
                         c.write(line)
 
-        if not release_list:
-            logging.warning('-- No release kernel lists available.')
-        elif not check_consecutive(release_list):
-            logging.warning('-- Incomplete Kernel lists available: %s', release_list)
+        try:
+            if not check_consecutive(release_list):
+                logging.warning('-- Incomplete Kernel lists available: %s', release_list)
+        except ValueError:
+            handle_npb_error('-- No release kernel lists available.')
 
         self.complete_list = complete_list
 
