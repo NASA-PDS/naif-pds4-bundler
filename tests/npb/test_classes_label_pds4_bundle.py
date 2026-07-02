@@ -445,11 +445,12 @@ class TestBundlePDS4Label:
         readme = helpers.make_readme(tmp_path / 'staging',
                                      collections=[unknown])
 
+        setup = helpers.make_setup()
         expected_message = (
             'NPB bug: the collection name unexpected_collection is not '
             'supported in PDS4 Bundle Label.')
         with pytest.raises(ValueError, match=f'^{re.escape(expected_message)}$'):
-            _build_label(helpers.make_setup(), readme)
+            _build_label(setup, readme)
 
     def test_unknown_collection_name_after_known_collection_raises_value_error(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
@@ -466,11 +467,12 @@ class TestBundlePDS4Label:
         readme = helpers.make_readme(tmp_path / 'staging',
                                      collections=[known, unknown])
 
+        setup = helpers.make_setup()
         expected_message = (
             'NPB bug: the collection name unexpected_collection is not '
             'supported in PDS4 Bundle Label.')
         with pytest.raises(ValueError, match=f'^{re.escape(expected_message)}$'):
-            _build_label(helpers.make_setup(), readme)
+            _build_label(setup, readme)
 
     @pytest.mark.parametrize('updated_value, expected_status', [
         (True, 'Primary'),
