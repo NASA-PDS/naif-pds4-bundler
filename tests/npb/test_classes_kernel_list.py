@@ -984,11 +984,11 @@ class TestKernelListReadList:
         kernel_list, _, output_path = self.make_kernel_list(tmp_path)
 
         # Define an input path that not exists.
-        missing_path = tmp_path / 'missing.kernel_list'
+        missing_path = str(tmp_path / 'missing.kernel_list')
 
         # Execute the method and capture the exception.
         with pytest.raises(FileNotFoundError):
-            kernel_list.read_list(str(missing_path))
+            kernel_list.read_list(missing_path)
 
         # Check that the destination file has not been created.
         assert not output_path.exists()
@@ -1538,37 +1538,35 @@ class TestKernelListWriteCompleteList:
         # complete list, but without executing the actual implementation.
         validate_complete_mock.assert_called_once_with(kernel_list)
 
-    def test_write_complete_list_accepts_no_release_lists(
-            self, mocker, caplog, tmp_path) -> None:
-        # Verify the empty-input path: when no release lists are found, the method still
-        # creates an empty complete list, updates state and requests validation.
+    def test_write_complete_list_raises_on_no_release_lists(
+            self, mocker, tmp_path) -> None:
+        # Verify the empty-input path: when no release lists are found,
+        # check_consecutive([]) raises ValueError (via max() on an empty
+        # sequence), which write_complete_list catches and routes through
+        # handle_npb_error, raising RuntimeError with the same message that
+        # used to be a plain warning.
 
-        # TODO: BUG; write_complete_list should handle the case with no release
-        #      lists before checking if release numbers are consecutive.
-
-        # Mock the validate_complete and check_consecutive calls.
+        # Mock the validate_complete call so this test isolates the
+        # empty-release-list path.
         validate_complete_mock = mocker.patch.object(KernelList, 'validate_complete',
                                                      autospec=True)
 
         # Create a KernelList instance with a temporal and empty working_directory
         kernel_list, _, output_path = self.make_kernel_list(tmp_path)
 
-        with caplog.at_level(logging.INFO):
-            with pytest.raises(ValueError):
-                kernel_list.write_complete_list()
+        with pytest.raises(RuntimeError, match='No release kernel lists available.'):
+            kernel_list.write_complete_list()
 
         # Check that the file exists and is empty.
         assert output_path.exists()
         assert output_path.read_text(encoding='utf-8') == ''
 
-        # The method must still publish the generated complete-list filename.
+        # The error is raised before the complete-list filename is published,
+        # so complete_list keeps its initial empty value.
         assert kernel_list.complete_list == ''
 
-        # Check that check_consecutive and validate_complete called once.
+        # validate_complete is never reached: the error is raised before it.
         validate_complete_mock.assert_not_called()
-
-        # No release files are added and no warning is emitted.
-        assert caplog.record_tuples == []
 
     def test_write_complete_list_logs_added_release_lists(
             self, mocker, caplog, tmp_path) -> None:
