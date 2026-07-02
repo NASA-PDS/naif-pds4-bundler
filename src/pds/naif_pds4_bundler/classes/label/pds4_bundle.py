@@ -41,7 +41,9 @@ class BundlePDS4Label(PDSLabel):
 
             if collection.name == 'spice_kernels':
 
-                # This value is singular ( spice_kernel(s) ).
+                # TODO: Is "spice_kernels" needed or can it be changed to
+                #       "spice_kernel" in order to simplify the code? Open for
+                #       discussion.
                 coll_name = 'spice_kernel'
 
             elif collection.name == 'document':

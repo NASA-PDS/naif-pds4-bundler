@@ -27,7 +27,6 @@ Why BundlePDS4Label differs from the other PDS4 label classes:
   For the ``miscellaneous`` collection, the reference-type suffix also depends
   on ``setup.information_model_float`` vs the threshold 1011001000.0.
 """
-import re
 from pathlib import Path
 from types import SimpleNamespace
 import xml.etree.ElementTree as ElementTree
@@ -449,7 +448,7 @@ class TestBundlePDS4Label:
         expected_message = (
             'NPB bug: the collection name unexpected_collection is not '
             'supported in PDS4 Bundle Label.')
-        with pytest.raises(ValueError, match=f'^{re.escape(expected_message)}$'):
+        with pytest.raises(ValueError, match=f'^{expected_message}$'):
             _build_label(setup, readme)
 
     def test_unknown_collection_name_after_known_collection_raises_value_error(
@@ -471,7 +470,7 @@ class TestBundlePDS4Label:
         expected_message = (
             'NPB bug: the collection name unexpected_collection is not '
             'supported in PDS4 Bundle Label.')
-        with pytest.raises(ValueError, match=f'^{re.escape(expected_message)}$'):
+        with pytest.raises(ValueError, match=f'^{expected_message}$'):
             _build_label(setup, readme)
 
     @pytest.mark.parametrize('updated_value, expected_status', [
