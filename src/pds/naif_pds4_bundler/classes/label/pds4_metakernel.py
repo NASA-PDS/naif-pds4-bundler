@@ -58,14 +58,20 @@ class MetaKernelPDS4Label(PDSLabel):
         # From the collection we only use kernels in the MK
         #
         kernel_list_for_label = ""
-        # TODO: BUG, extension_to_type(kernel) raises an unhandled KeyError
-        #       if the kernel's extension is not present in the type map.
         for kernel in self.product.collection_metakernel:
             #
             # The kernel lid cannot be obtained from the list; it is
             # merely a list of strings.
             #
-            kernel_type = extension_to_type(kernel)
+            try:
+                kernel_type = extension_to_type(kernel)
+
+            except KeyError:
+                raise ValueError(
+                    f"NPB bug: the kernel {kernel} has an extension not "
+                    f"supported by extension_to_type() in PDS4 Metakernel "
+                    f"Label.")
+
             kernel_lid = f'{self.setup.logical_identifier}:spice_kernels:{kernel_type}_{kernel.lower()}'
 
             kernel_list_for_label += (

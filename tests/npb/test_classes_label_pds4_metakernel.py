@@ -16,6 +16,7 @@ FILE_NAME / PRODUCT_LID / PRODUCT_VID / START_TIME / STOP_TIME; the child sets
 them after super().__init__(). All product values are copied verbatim, without
 validation (except KERNEL_TYPE_ID, which is upper-cased).
 """
+import re
 from pathlib import Path
 import xml.etree.ElementTree as ElementTree
 from types import SimpleNamespace
@@ -504,13 +505,10 @@ class TestMetaKernelPDS4Label:
         # Documents the current (buggy) behaviour.
         assert label.KERNEL_INTERNAL_REFERENCES == setup.eol_pds4
 
-    def test_get_kernel_internal_references_raises_for_unknown_extension(
+    def test_get_kernel_internal_references_raises_value_error_for_unknown_extension(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
-        # TODO: BUG; a kernel whose extension is not in extension_to_type's map
-        #       (e.g. ".txt") makes extension_to_type raise KeyError, which is
-        #       NOT handled by get_kernel_internal_references and aborts the MK
-        #       label generation.
-
+        # An unrecognised kernel extension fails fast with a descriptive
+        # ValueError instead of an unhandled KeyError from extension_to_type().
         setup = helpers.make_setup()
         staging = tmp_path / 'staging'
         staging.mkdir(parents=True, exist_ok=True)
@@ -518,9 +516,13 @@ class TestMetaKernelPDS4Label:
         product = helpers.make_product(
             staging, collection_metakernel=['unexpected_file.txt'])
 
+        expected_message = (
+            'NPB bug: the kernel unexpected_file.txt has an extension not '
+            'supported by extension_to_type() in PDS4 Metakernel Label.')
+
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
-            with pytest.raises(KeyError):
+            with pytest.raises(ValueError, match=f'^{re.escape(expected_message)}$'):
                 MetaKernelPDS4Label(setup, product)
 
 
