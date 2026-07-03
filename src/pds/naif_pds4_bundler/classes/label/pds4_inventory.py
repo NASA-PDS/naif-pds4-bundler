@@ -42,14 +42,19 @@ class InventoryPDS4Label(PDSLabel):
                 if "checksum" in product.name:
                     start_times.append(product.start_time)
                     stop_times.append(product.stop_time)
+
+            # Without a checksum product there is no time source for this
+            # collection; fail loudly instead of IndexError below.
+            if not start_times:
+                raise ValueError(
+                    f'NPB bug: no checksum product found in collection '
+                    f'{collection.lid}::{collection.vid}; START_TIME and '
+                    f'STOP_TIME cannot be determined for the PDS4 Collection '
+                    f'Inventory label.')
+
             start_times.sort()
             stop_times.sort()
 
-            # TODO: BUG; if no product in collection.product has 'checksum' in
-            #       its name, start_times and stop_times remain empty and
-            #       start_times[0] raises IndexError, aborting label generation.
-            #       The same failure occurs when collection.product is an empty
-            #       list.
             self.START_TIME = start_times[0]
             self.STOP_TIME = stop_times[-1]
 

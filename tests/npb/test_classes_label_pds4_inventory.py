@@ -367,12 +367,11 @@ class TestInventoryPDS4Label:
         assert label.START_TIME == '2024-01-01T00:00:00'
         assert label.STOP_TIME == '2024-01-31T00:00:00'
 
-    def test_miscellaneous_branch_without_checksums_raises_index_error(
+    def test_miscellaneous_branch_without_checksums_raises_value_error(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
-        # TODO: BUG; for the 'miscellaneous' collection, when no product name
-        #       contains 'checksum', start_times/stop_times stay empty and
-        #       start_times[0] raises IndexError. The constructor performs no
-        #       guard against an empty checksum set, aborting label generation.
+        # For the 'miscellaneous' collection, when no product name contains
+        # 'checksum', there is no time source: the constructor now raises a
+        # descriptive ValueError instead of IndexError.
         setup = helpers.make_setup()
         staging = tmp_path / 'staging'
         inventory = helpers.make_inventory(
@@ -381,30 +380,44 @@ class TestInventoryPDS4Label:
         # A collection whose products contain no 'checksum' in their names.
         non_checksum = helpers.make_checksum_product(
             'orbnum_v01.nrb', '2024-01-01T00:00:00', '2024-01-31T00:00:00')
+
         collection = helpers.make_collection(
             name='miscellaneous', coll_type='miscellaneous',
             products=[non_checksum])
 
+        expected_message = (
+            f'NPB bug: no checksum product found in collection '
+            f'{collection.lid}::{collection.vid}; START_TIME and '
+            f'STOP_TIME cannot be determined for the PDS4 Collection '
+            f'Inventory label.')
+
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
-            with pytest.raises(IndexError):
+            with pytest.raises(ValueError, match=f'^{expected_message}$'):
                 InventoryPDS4Label(setup, collection, inventory)
 
-    def test_miscellaneous_branch_with_empty_product_list_raises_index_error(
+    def test_miscellaneous_branch_with_empty_product_list_raises_value_error(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
-        # TODO: BUG; same root cause as above but with an entirely empty
-        #       collection.product list: the empty start_times still triggers
-        #       IndexError.
+        # Same root cause as above but with an entirely empty
+        # collection.product list: the empty start_times still triggers the
+        # descriptive ValueError.
         setup = helpers.make_setup()
         staging = tmp_path / 'staging'
         inventory = helpers.make_inventory(
             staging, name='collection_miscellaneous_inventory_v001.csv')
+
         collection = helpers.make_collection(
             name='miscellaneous', coll_type='miscellaneous', products=[])
 
+        expected_message = (
+            f'NPB bug: no checksum product found in collection '
+            f'{collection.lid}::{collection.vid}; START_TIME and '
+            f'STOP_TIME cannot be determined for the PDS4 Collection '
+            f'Inventory label.')
+
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
-            with pytest.raises(IndexError):
+            with pytest.raises(ValueError, match=f'^{expected_message}$'):
                 InventoryPDS4Label(setup, collection, inventory)
 
     # ------------------------------------------------------------------
