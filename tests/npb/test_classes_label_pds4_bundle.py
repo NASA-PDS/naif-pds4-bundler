@@ -431,32 +431,32 @@ class TestBundlePDS4Label:
         assert label.BUNDLE_MEMBER_ENTRIES == expected
 
     # ------------------------------------------------------------------
-    # Edge cases / known bugs
+    # Edge cases
     # ------------------------------------------------------------------
 
-    def test_unknown_collection_name_on_first_iteration_raises_attribute_error(
+    def test_unknown_collection_name_raises_value_error(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
-        # TODO: BUG, COLL_NAME, COLL_LIDVID, and COLL_STATUS are only assigned
-        #       inside the three named if-blocks. When the first collection has
-        #       an unrecognised name, none of those blocks run, so the
-        #       subsequent f-string that reads self.COLL_LIDVID raises
-        #       AttributeError.
+        # An unrecognised collection.name fails fast with a descriptive
+        # ValueError instead of silently reading stale/missing scratch state.
         unknown = helpers.make_collection(
             name='unexpected_collection',
             lid='urn:nasa:pds:maven_spice:unexpected', updated=True)
         readme = helpers.make_readme(tmp_path / 'staging',
                                      collections=[unknown])
 
-        with pytest.raises(AttributeError, match='COLL_LIDVID'):
-            _build_label(helpers.make_setup(), readme)
+        setup = helpers.make_setup()
+        expected_message = (
+            'NPB bug: the collection name unexpected_collection is not '
+            'supported in PDS4 Bundle Label.')
+        with pytest.raises(ValueError, match=f'^{expected_message}$'):
+            _build_label(setup, readme)
 
-    def test_unknown_collection_name_reuses_previous_iteration_state(
+    def test_unknown_collection_name_after_known_collection_raises_value_error(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
-        # TODO: BUG, when an unrecognised collection follows a recognised one,
-        #       COLL_NAME/COLL_LIDVID/COLL_STATUS retain the values from the
-        #       previous iteration and the f-string silently emits a duplicate
-        #       entry for that previous collection instead of failing or
-        #       skipping.
+        # An unrecognised collection.name following a recognised one must
+        # still raise immediately, rather than silently reusing the
+        # previous iteration's COLL_NAME/COLL_LIDVID/COLL_STATUS to emit a
+        # duplicate entry.
         known = helpers.make_collection(
             name='document',
             lid='urn:nasa:pds:maven_spice:document', updated=False)
@@ -466,20 +466,12 @@ class TestBundlePDS4Label:
         readme = helpers.make_readme(tmp_path / 'staging',
                                      collections=[known, unknown])
 
-        label = _build_label(helpers.make_setup(), readme)
-
-        # Both entries carry the stale document state; the unknown LID never
-        # appears because COLL_LIDVID was never updated for the second iteration.
-        doc_entry = (
-            ' <Bundle_Member_Entry>\n'
-            '  <lidvid_reference>'
-            'urn:nasa:pds:maven_spice:document::1.0</lidvid_reference>\n'
-            '  <member_status>Secondary</member_status>\n'
-            '  <reference_type>'
-            'bundle_has_document_collection</reference_type>\n'
-            ' </Bundle_Member_Entry>\n'
-        )
-        assert label.BUNDLE_MEMBER_ENTRIES == doc_entry + doc_entry
+        setup = helpers.make_setup()
+        expected_message = (
+            'NPB bug: the collection name unexpected_collection is not '
+            'supported in PDS4 Bundle Label.')
+        with pytest.raises(ValueError, match=f'^{expected_message}$'):
+            _build_label(setup, readme)
 
     @pytest.mark.parametrize('updated_value, expected_status', [
         (True, 'Primary'),
