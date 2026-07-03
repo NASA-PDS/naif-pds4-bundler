@@ -99,7 +99,7 @@ def test_binary_kernel_integrity(self):
     # Test sub-case 3: Incorrect file name.
     #
     kernel_path = "../data/kernels/ck/insight_ida_enc_200829_201220_v1.xc"
-    with self.assertRaises(KeyError):
+    with self.assertRaises(ValueError):
         check_kernel_integrity(kernel_path)
 
     #
