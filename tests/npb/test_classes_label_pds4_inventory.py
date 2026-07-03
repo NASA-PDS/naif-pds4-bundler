@@ -388,7 +388,8 @@ class TestInventoryPDS4Label:
         expected_message = (
             f'NPB bug: no checksum product found in collection '
             f'{collection.lid}::{collection.vid}; START_TIME and '
-            f'STOP_TIME cannot be determined for the miscellaneous label.')
+            f'STOP_TIME cannot be determined for the PDS4 Collection '
+            f'Inventory label.')
 
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
@@ -411,7 +412,8 @@ class TestInventoryPDS4Label:
         expected_message = (
             f'NPB bug: no checksum product found in collection '
             f'{collection.lid}::{collection.vid}; START_TIME and '
-            f'STOP_TIME cannot be determined for the miscellaneous label.')
+            f'STOP_TIME cannot be determined for the PDS4 Collection '
+            f'Inventory label.')
 
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
