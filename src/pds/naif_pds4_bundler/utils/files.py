@@ -136,12 +136,28 @@ def extension_to_type(kernel):
         #
         # Kernel is an object
         #
-        kernel_type = kernel_type_map[kernel.extension.upper()].lower()
-    except BaseException:
+        extension = kernel.extension.upper()
+    except AttributeError:
         #
         # Kernel is a string
         #
-        kernel_type = kernel_type_map[kernel.split(".")[-1].upper()].lower()
+        extension = kernel.split(".")[-1].upper()
+
+    # TODO: kernels manually provided via configuration (see the "manual
+    #       provision of meta-kernel" branch in product_metakernel.py) are
+    #       copied and parsed by mk_to_list() with no check that their
+    #       KERNELS_TO_LOAD entries are recognized SPICE kernel types, unlike
+    #       NPB-generated meta-kernels whose kernel grammars are validated
+    #       against type_to_extension() before inclusion. That input should
+    #       be validated where it enters the pipeline so a bad kernel
+    #       reference is reported with proper file/line context, instead of
+    #       only being caught here, deep inside this utility function.
+    try:
+        kernel_type = kernel_type_map[extension].lower()
+    except KeyError:
+        raise ValueError(
+            f"Unsupported kernel extension '{extension}' for kernel "
+            f"{kernel}: not present in the SPICE kernel type map.")
 
     return kernel_type
 

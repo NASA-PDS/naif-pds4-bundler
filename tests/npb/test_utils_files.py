@@ -292,9 +292,15 @@ def test_check_kernel_integrity_binary_kernel(tmp_path):
     error = files.check_kernel_integrity(str(wrong_ext))
     assert error
 
-    # Subcase 3: Incorrect file name → should raise KeyError
+    # Subcase 3: Incorrect file name → should raise ValueError
     bad_name = str(KERNELS / "ck" / "insight_ida_enc_200829_201220_v1.xc")
-    with pytest.raises(KeyError):
+
+    expected_message = (
+        "Unsupported kernel extension 'XC' for kernel "
+        "insight_ida_enc_200829_201220_v1.xc: not present in the SPICE "
+        "kernel type map.")
+
+    with pytest.raises(ValueError, match=expected_message):
         files.check_kernel_integrity(bad_name)
 
     # Subcase 4: Incorrect architecture (copy bad file into .bc)

@@ -63,14 +63,7 @@ class MetaKernelPDS4Label(PDSLabel):
             # The kernel lid cannot be obtained from the list; it is
             # merely a list of strings.
             #
-            try:
-                kernel_type = extension_to_type(kernel)
-
-            except KeyError:
-                raise ValueError(
-                    f"NPB bug: the kernel {kernel} has an extension not "
-                    f"supported by extension_to_type() in PDS4 Metakernel "
-                    f"Label.")
+            kernel_type = extension_to_type(kernel)
 
             kernel_lid = f'{self.setup.logical_identifier}:spice_kernels:{kernel_type}_{kernel.lower()}'
 

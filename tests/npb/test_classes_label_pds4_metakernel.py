@@ -16,7 +16,6 @@ FILE_NAME / PRODUCT_LID / PRODUCT_VID / START_TIME / STOP_TIME; the child sets
 them after super().__init__(). All product values are copied verbatim, without
 validation (except KERNEL_TYPE_ID, which is upper-cased).
 """
-import re
 from pathlib import Path
 import xml.etree.ElementTree as ElementTree
 from types import SimpleNamespace
@@ -517,12 +516,13 @@ class TestMetaKernelPDS4Label:
             staging, collection_metakernel=['unexpected_file.txt'])
 
         expected_message = (
-            'NPB bug: the kernel unexpected_file.txt has an extension not '
-            'supported by extension_to_type() in PDS4 Metakernel Label.')
+            "Unsupported kernel extension 'TXT' for kernel "
+            "unexpected_file.txt: not present in the SPICE kernel type "
+            "map.")
 
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
-            with pytest.raises(ValueError, match=f'^{re.escape(expected_message)}$'):
+            with pytest.raises(ValueError, match=expected_message):
                 MetaKernelPDS4Label(setup, product)
 
 
