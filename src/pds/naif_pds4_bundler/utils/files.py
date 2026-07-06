@@ -351,6 +351,11 @@ def get_context_products(setup):
                 updated_product = False
                 for registered_product in context_products:
 
+                    # Registered products are uniquely identified by name and
+                    # type together, not name alone, so matching on name only
+                    # would let one override overwrite the other. Type casing is
+                    # compared case-insensitively because the registry and
+                    # configs do not always agree on it.
                     if (registered_product["name"][0] == product["@name"]
                             and registered_product["type"][0].lower() == product["type"].lower()):
 
