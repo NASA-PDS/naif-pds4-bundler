@@ -810,6 +810,83 @@ def test_get_context_products_overwrite_and_append(tmp_path):
     assert obs_prod["type"] == ["Rover"]
     assert obs_prod["lidvid"] == "urn:nasa:pds:context:instrument_host:spacecraft.mars2020::1.3"
 
+
+def test_get_context_products_overwrite_updates_matched_entry(tmp_path):
+    """Regression test for B-08: the override must land on the registered
+    product that actually matches by name, not on an unrelated entry.
+    Uses override values that differ from the registered defaults, so a
+    version of the code that writes to the wrong entry would leave this
+    entry with its stale (pre-override) values and fail the assertions."""
+    setup = MagicMock()
+    setup.mission_name = "MARS 2020"
+    setup.observer = "Perseverance"
+    setup.target = "MARS"
+
+    setup.context_products = {
+        "product": [
+            {"@name": "Perseverance", "type": "Rover", "lidvid": "urn:nasa:pds:context:instrument_host:spacecraft.mars2020::9.9"},
+        ]
+    }
+
+    result = files.get_context_products(setup)
+
+    obs_prod = next(cp for cp in result if cp["name"][0] == "Perseverance")
+    assert obs_prod["type"] == ["Rover"]
+    assert obs_prod["lidvid"] == "urn:nasa:pds:context:instrument_host:spacecraft.mars2020::9.9"
+
+
+def test_get_context_products_same_name_different_type():
+    """Regression test: a mission and its own spacecraft/observer commonly
+    share a name in real configs (e.g. LADEE, MAVEN) but differ in type.
+    Overriding one must not clobber the other -- matching must be keyed on
+    (name, type), not name alone."""
+    setup = MagicMock()
+    setup.mission_name = "LADEE"
+    setup.observer = "LADEE"
+    setup.target = "MOON"
+
+    setup.context_products = {
+        "product": [
+            {"@name": "LADEE", "type": "Mission", "lidvid": "urn:nasa:pds:context:investigation:mission.ladee::1.3"},
+            {"@name": "LADEE", "type": "Spacecraft", "lidvid": "urn:nasa:pds:context:instrument_host:spacecraft.ladee::1.2"},
+        ]
+    }
+
+    result = files.get_context_products(setup)
+
+    ladee_entries = [cp for cp in result if cp["name"][0] == "LADEE"]
+    assert len(ladee_entries) == 2
+
+    mission = next(cp for cp in ladee_entries if cp["type"] == ["Mission"])
+    spacecraft = next(cp for cp in ladee_entries if cp["type"] == ["Spacecraft"])
+    assert mission["lidvid"] == "urn:nasa:pds:context:investigation:mission.ladee::1.3"
+    assert spacecraft["lidvid"] == "urn:nasa:pds:context:instrument_host:spacecraft.ladee::1.2"
+
+
+def test_get_context_products_type_match_is_case_insensitive():
+    """Regression test: the registry and configs don't always agree on type
+    casing (e.g. registry stores MOON as 'SATELLITE', configs say
+    'Satellite'). A case-sensitive type match would treat this as no match
+    and append a spurious duplicate entry instead of updating the existing
+    one."""
+    setup = MagicMock()
+    setup.mission_name = "MISSION"
+    setup.observer = "OBSERVER"
+    setup.target = "MOON"
+
+    setup.context_products = {
+        "product": [
+            {"@name": "MOON", "type": "Satellite", "lidvid": "urn:nasa:pds:context:target:satellite.earth.moon::9.9"},
+        ]
+    }
+
+    result = files.get_context_products(setup)
+
+    moon_entries = [cp for cp in result if cp["name"][0] == "MOON"]
+    assert len(moon_entries) == 1
+    assert moon_entries[0]["lidvid"] == "urn:nasa:pds:context:target:satellite.earth.moon::9.9"
+
+
 def test_get_context_products_overwrite_and_append_2(tmp_path):
     """Test get_context_products using pytest. Default products match products via setup.context_products."""
     setup = MagicMock()
