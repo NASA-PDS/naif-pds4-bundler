@@ -811,12 +811,12 @@ def test_get_context_products_overwrite_and_append(tmp_path):
     assert obs_prod["lidvid"] == "urn:nasa:pds:context:instrument_host:spacecraft.mars2020::1.3"
 
 
-def test_get_context_products_overwrite_updates_matched_entry(tmp_path):
-    """Regression test for B-08: the override must land on the registered
-    product that actually matches by name, not on an unrelated entry.
-    Uses override values that differ from the registered defaults, so a
-    version of the code that writes to the wrong entry would leave this
-    entry with its stale (pre-override) values and fail the assertions."""
+def test_get_context_products_overwrite_updates_matched_entry():
+    """The override must land on the registered product that actually matches by
+    name, not on an unrelated entry. Uses override values that differ from the
+    registered defaults, so a version of the code that writes to the wrong
+    entry would leave this entry with its stale (pre-override) values and fail
+    the assertions."""
     setup = MagicMock()
     setup.mission_name = "MARS 2020"
     setup.observer = "Perseverance"
@@ -836,10 +836,10 @@ def test_get_context_products_overwrite_updates_matched_entry(tmp_path):
 
 
 def test_get_context_products_same_name_different_type():
-    """Regression test: a mission and its own spacecraft/observer commonly
-    share a name in real configs (e.g. LADEE, MAVEN) but differ in type.
-    Overriding one must not clobber the other -- matching must be keyed on
-    (name, type), not name alone."""
+    """A mission and its own spacecraft/observer commonly share a name in real
+    configs (e.g. LADEE, MAVEN) but differ in type. Overriding one must not
+    clobber the other -- matching must be keyed on (name, type), not name
+    alone."""
     setup = MagicMock()
     setup.mission_name = "LADEE"
     setup.observer = "LADEE"
@@ -864,11 +864,10 @@ def test_get_context_products_same_name_different_type():
 
 
 def test_get_context_products_type_match_is_case_insensitive():
-    """Regression test: the registry and configs don't always agree on type
-    casing (e.g. registry stores MOON as 'SATELLITE', configs say
-    'Satellite'). A case-sensitive type match would treat this as no match
-    and append a spurious duplicate entry instead of updating the existing
-    one."""
+    """The registry and configs don't always agree on type casing (e.g. registry
+    stores MOON as 'SATELLITE', configs say 'Satellite'). A case-sensitive type
+    match would treat this as no match and append a spurious duplicate entry
+    instead of updating the existing one."""
     setup = MagicMock()
     setup.mission_name = "MISSION"
     setup.observer = "OBSERVER"
