@@ -967,10 +967,9 @@ def test_get_latest_kernel_excluded_kernels(tmp_path):
     assert result == " frames_v02.tf"
 
 def test_get_latest_kernel_excluded_kernels_consecutive_matches(tmp_path):
-    """Test get_latest_kernel using pytest.
-    Regression test for B-09: excluding kernels that are consecutive in
-    sorted order must not skip any of them (list.remove() during
-    iteration used to skip the element following each removed item)."""
+    """Excluding kernels that are consecutive in sorted order must not skip any
+    of them (list.remove() during iteration used to skip the element following
+    each removed item)."""
     fk_pth = tmp_path / "fk"
     fk_pth.mkdir()
 
