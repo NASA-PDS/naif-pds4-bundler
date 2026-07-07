@@ -502,9 +502,8 @@ def get_latest_kernel(
     #
     if excluded_kernels:
         for excluded_kernel in excluded_kernels:
-            for kernel in kernels:
-                if excluded_kernel.split("*")[0] in kernel:
-                    kernels.remove(kernel)
+            prefix = excluded_kernel.split("*")[0]
+            kernels = [kernel for kernel in kernels if prefix not in kernel]
 
     if not dates:
         #
