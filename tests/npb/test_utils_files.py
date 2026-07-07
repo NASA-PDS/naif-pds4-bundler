@@ -661,13 +661,12 @@ def test_extract_comments_with_daf_handle(daf_handle):
     # return an error (SpiceDAFNOSUCHHANDLE).
     spiceypy.dafhsf(daf_handle)
 
-@pytest.mark.parametrize("read_comments, comments_out", [
-    (['some comment', '', 'Some other comment', '', ' ', ''], ['some comment', '', 'Some other comment', '']),
-    # TODO: Fix the bug and activate this test.
-    pytest.param(['some comment', '', 'Some other comment', ''], ['some comment', '', 'Some other comment', ''],
-                 marks=pytest.mark.skip(reason='This test fails because there is a bug in the code.')),
+
+@pytest.mark.parametrize('read_comments, comments_out', [
+    (['some comment', '', 'Some other comment', '', ' ', ''], ['some comment', '', 'Some other comment']),
+    (['some comment', '', 'Some other comment', ''], ['some comment', '', 'Some other comment']),
     (['some comment', '', 'Some other comment'], ['some comment', '', 'Some other comment']),
-    ([' ', '', ' '], [' '])
+    ([' ', '', ' '], [])
 ])
 def test_extract_comments_remove_blanks_end_of_comments(monkeypatch, daf_handle, read_comments, comments_out):
     """Test that the function also operates on already opened DAF files.

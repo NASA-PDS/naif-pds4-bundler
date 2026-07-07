@@ -796,7 +796,7 @@ def extract_comment(path, handle=False):
             break
     if lines_to_remove > 0:
         lines_to_remove *= -1
-        commnt = commnt[: lines_to_remove + 1]
+        commnt = commnt[:lines_to_remove]
 
     if close_file:
         spiceypy.dafcls(handle)
