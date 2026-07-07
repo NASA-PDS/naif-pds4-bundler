@@ -338,7 +338,8 @@ def get_context_products(setup):
 
     #
     # Overwrite the default context products with the ones provided in the
-    # configuration file.
+    # configuration file. Both "type" and "lidvid" are overwritten with the
+    # values given in the configuration file for the matched entry.
     #
     appended_products = []
     if hasattr(setup, "context_products"):
