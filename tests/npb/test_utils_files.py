@@ -957,8 +957,8 @@ def test_get_latest_kernel_excluded_kernels(tmp_path):
     fk_pth = tmp_path / "fk"
     fk_pth.mkdir()
 
-    (fk_pth / " frames_v01.tf").touch()
-    (fk_pth / " frames_v02.tf").touch()
+    (fk_pth / "frames_v01.tf").touch()
+    (fk_pth / "frames_v02.tf").touch()
     (fk_pth / "alt_frames_v01.tf").touch()
 
     result = files.get_latest_kernel(
@@ -969,7 +969,30 @@ def test_get_latest_kernel_excluded_kernels(tmp_path):
         excluded_kernels=["alt*"]
     )
 
-    assert result == " frames_v02.tf"
+    assert result == "frames_v02.tf"
+
+def test_get_latest_kernel_excluded_kernels_consecutive_matches(tmp_path):
+    """Excluding kernels that are consecutive in sorted order must not skip any
+    of them (list.remove() during iteration used to skip the element following
+    each removed item)."""
+    fk_pth = tmp_path / "fk"
+    fk_pth.mkdir()
+
+    (fk_pth / "alt_frames_v01.tf").touch()
+    (fk_pth / "alt_frames_v02.tf").touch()
+    (fk_pth / "frames_v01.tf").touch()
+    (fk_pth / "frames_v02.tf").touch()
+    (fk_pth / "other_frames_v01.tf").touch()
+
+    result = files.get_latest_kernel(
+        kernel_type="fk",
+        paths=[str(tmp_path)],
+        pattern=r".*\.tf",
+        dates=False,
+        excluded_kernels=["alt*", "other*"]
+    )
+
+    assert result == "frames_v02.tf"
 
 # ----------------------------------------------------------------------------
 # files.kernel_name test
