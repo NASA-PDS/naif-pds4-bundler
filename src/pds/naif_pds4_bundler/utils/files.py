@@ -155,6 +155,12 @@ def extension_to_type(kernel):
     try:
         kernel_type = kernel_type_map[extension].lower()
     except KeyError:
+        # TODO: investigate whether this should raise a ValueError or go through
+        #       handle_npb_error() instead. This function has no access to a
+        #       Setup object, and handle_npb_error() writes run artifacts and
+        #       clears the SPICE kernel pool via that object, so routing through
+        #       it would require passing setup down to every one of this
+        #       function's call sites.
         raise ValueError(
             f"Unsupported kernel extension '{extension}' for kernel "
             f"{kernel}: not present in the SPICE kernel type map.")
