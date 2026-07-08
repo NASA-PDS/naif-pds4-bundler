@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, mock_open, patch
 import pytest
 
 from pds.naif_pds4_bundler.classes.product.product_kernel import SpiceKernelProduct
+from pds.naif_pds4_bundler.classes.exceptions import NPBError
 
 # ---------------------------------------------------------------------------
 # Helpers / shared fixtures
@@ -273,12 +274,12 @@ class TestSpiceKernelProductInit:
             patch(f"{_MODULE}.extension_to_type", return_value="spk"),
             patch(f"{_MODULE}.safe_make_directory"),
             patch(f"{_MODULE}.product_mapping", return_value="nonexistent.bsp"),
-            patch(f"{_MODULE}.handle_npb_error", side_effect=RuntimeError("not found")) as mock_err,
         ):
-            with pytest.raises(RuntimeError, match="not found"):
+            with pytest.raises(
+                NPBError,
+                match=f"missing.bsp not present in {tmp_env['kernel_dir']}.",
+            ):
                 SpiceKernelProduct(setup, "missing.bsp", collection)
-
-        mock_err.assert_called_once()
 
     def test_init_stores_missions_observers_targets(self, tmp_env):
         product, _, _ = build_product(tmp_env, name="test.bsp")
@@ -367,11 +368,11 @@ class TestSpiceKernelProductReadDescription:
 
         product = self._make_product_stub(setup)
 
-        with patch(f"{_MODULE}.handle_npb_error", side_effect=RuntimeError("no desc")) as mock_err:
-            with pytest.raises(RuntimeError, match="no desc"):
-                product.read_description()
-
-        mock_err.assert_called_once()
+        with pytest.raises(
+            NPBError,
+            match=f"test.bsp does not have a DESCRIPTION on {kl_path}.",
+        ):
+            product.read_description()
 
     def test_description_stripped_of_whitespace(self, tmp_env):
         setup = make_setup(working_directory=tmp_env["work"])
@@ -414,11 +415,11 @@ class TestSpiceKernelProductReadMaklabelOptions:
 
         product = self._make_product_stub(setup)
 
-        with patch(f"{_MODULE}.handle_npb_error", side_effect=RuntimeError("no maklabel")) as mock_err:
-            with pytest.raises(RuntimeError, match="no maklabel"):
-                product.read_maklabel_options()
-
-        mock_err.assert_called_once()
+        with pytest.raises(
+            NPBError,
+            match=f"test.bsp does not have a MAKLABEL_OPTIONS on {kl_path}.",
+        ):
+            product.read_maklabel_options()
 
     def test_get_token_resets_after_finding_options(self, tmp_env):
         """MAKLABEL_OPTIONS found -> get_token set to False; last match returned."""
