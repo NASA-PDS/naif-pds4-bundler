@@ -1,5 +1,6 @@
 """Unit tests for SpiceKernelProduct class."""
 import os
+import re
 from pathlib import Path
 from unittest.mock import MagicMock, mock_open, patch
 
@@ -277,7 +278,7 @@ class TestSpiceKernelProductInit:
         ):
             with pytest.raises(
                 NPBError,
-                match=f"missing.bsp not present in {tmp_env['kernel_dir']}.",
+                match=f"missing.bsp not present in {re.escape(tmp_env['kernel_dir'])}.",
             ):
                 SpiceKernelProduct(setup, "missing.bsp", collection)
 
@@ -370,7 +371,7 @@ class TestSpiceKernelProductReadDescription:
 
         with pytest.raises(
             NPBError,
-            match=f"test.bsp does not have a DESCRIPTION on {kl_path}.",
+            match=f"test.bsp does not have a DESCRIPTION on {re.escape(kl_path)}.",
         ):
             product.read_description()
 
@@ -417,7 +418,7 @@ class TestSpiceKernelProductReadMaklabelOptions:
 
         with pytest.raises(
             NPBError,
-            match=f"test.bsp does not have a MAKLABEL_OPTIONS on {kl_path}.",
+            match=f"test.bsp does not have a MAKLABEL_OPTIONS on {re.escape(kl_path)}.",
         ):
             product.read_maklabel_options()
 
