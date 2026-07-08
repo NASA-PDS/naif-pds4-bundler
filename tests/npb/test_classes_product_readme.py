@@ -9,6 +9,7 @@ from unittest.mock import MagicMock, mock_open, patch
 import pytest
 
 from pds.naif_pds4_bundler.classes.product.product_readme import ReadmeProduct
+from pds.naif_pds4_bundler.classes.exceptions import NPBError
 
 # ---------------------------------------------------------------------------
 # Patch target: every name imported into product_readme is patched here so the
@@ -216,7 +217,7 @@ class TestReadmeProductWriteProduct:
 
     def test_write_product_copies_input_when_provided_and_exists(self, tmp_path):
         # When setup.readme['input'] points to an existing file it is copied to
-        # self.path via shutil.copy; handle_npb_error is not called.
+        # self.path via shutil.copy.
         input_file = tmp_path / 'provided_readme.txt'
         input_file.write_text('provided', encoding='utf-8')
 
@@ -224,32 +225,30 @@ class TestReadmeProductWriteProduct:
         # self.path does not exist yet so the copy branch is entered.
         obj = self._make_obj(setup, str(tmp_path / 'staging' / 'readme.txt'))
 
-        with patch(f'{MOD}.shutil.copy') as m_copy, \
-                patch(f'{MOD}.handle_npb_error') as m_err:
+        with patch(f'{MOD}.shutil.copy') as m_copy:
             obj._write_product()
 
         m_copy.assert_called_once_with(str(input_file), obj.path)
-        m_err.assert_not_called()
 
     # ------------------------------------------------------------------
     # Branch: readme provided via configuration but the file is missing
     # ------------------------------------------------------------------
 
     def test_write_product_errors_when_input_file_missing(self, tmp_path):
-        # When setup.readme['input'] points to a non-existent file,
-        # handle_npb_error is called with the appropriate message and shutil.copy
-        # is never invoked.
+        # When setup.readme['input'] points to a non-existent file,  NPBError is
+        # raised with the appropriate message and shutil.copy is never invoked.
         missing = str(tmp_path / 'does_not_exist.txt')
         setup = make_setup(tmp_path, readme={'input': missing})
         obj = self._make_obj(setup, str(tmp_path / 'staging' / 'readme.txt'))
 
-        with patch(f'{MOD}.shutil.copy') as m_copy, \
-                patch(f'{MOD}.handle_npb_error') as m_err:
-            obj._write_product()
+        with patch(f'{MOD}.shutil.copy') as m_copy:
+            with pytest.raises(
+                NPBError,
+                match='Readme file provided via configuration does not exist.',
+            ):
+                obj._write_product()
 
         m_copy.assert_not_called()
-        m_err.assert_called_once_with(
-            'Readme file provided via configuration does not exist.')
 
     # ------------------------------------------------------------------
     # Branch: template generation (no 'input' key in setup.readme)
