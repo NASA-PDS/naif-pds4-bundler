@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, mock_open, patch
 import pytest
 
 from pds.naif_pds4_bundler.classes.product.product_checksum import ChecksumProduct
+from pds.naif_pds4_bundler.classes.exceptions import NPBError
 
 # ---------------------------------------------------------------------------
 # Helpers / shared fixtures
@@ -47,7 +48,6 @@ MOD = "pds.naif_pds4_bundler.classes.product.product_checksum"
 PATCHES = dict(
     safe_make_directory=f"{MOD}.safe_make_directory",
     glob_glob=f"{MOD}.glob.glob",
-    handle_npb_error=f"{MOD}.handle_npb_error",
     md5=f"{MOD}.md5",
     checksum_from_registry=f"{MOD}.checksum_from_registry",
     checksum_from_label=f"{MOD}.checksum_from_label",
@@ -91,7 +91,6 @@ def _build_pds4(
 
     with patch(PATCHES["safe_make_directory"]) as m_mkdir, \
          patch(PATCHES["glob_glob"]) as m_glob, \
-         patch(PATCHES["handle_npb_error"]) as m_err, \
          patch(PATCHES["md5"], return_value="a" * 32) as m_md5, \
          patch(PATCHES["os_walk"], return_value=[]) as m_walk, \
          patch("builtins.open", mock_open(read_data="")) as m_open:
@@ -100,7 +99,7 @@ def _build_pds4(
 
         obj = ChecksumProduct(setup, collection, add_previous_checksum)
         mocks.update(dict(
-            mkdir=m_mkdir, glob=m_glob, err=m_err, md5=m_md5,
+            mkdir=m_mkdir, glob=m_glob, md5=m_md5,
             walk=m_walk, open=m_open,
         ))
 
@@ -115,7 +114,6 @@ def _build_pds3(add_previous_checksum=False):
 
     with patch(PATCHES["safe_make_directory"]), \
          patch(PATCHES["glob_glob"], return_value=[]), \
-         patch(PATCHES["handle_npb_error"]), \
          patch(PATCHES["md5"], return_value="b" * 32), \
          patch(PATCHES["os_walk"], return_value=[]), \
          patch("builtins.open", mock_open(read_data="")):
@@ -171,7 +169,6 @@ class TestChecksumProductInit:
 
         with patch(PATCHES["safe_make_directory"]) as m_mkdir, \
              patch(PATCHES["glob_glob"], return_value=[]), \
-             patch(PATCHES["handle_npb_error"]), \
              patch(PATCHES["md5"], return_value="a" * 32), \
              patch(PATCHES["os_walk"], return_value=[]), \
              patch("builtins.open", mock_open(read_data="")):
@@ -187,7 +184,6 @@ class TestChecksumProductInit:
 
         with patch(PATCHES["safe_make_directory"]) as m_mkdir, \
              patch(PATCHES["glob_glob"], return_value=[]), \
-             patch(PATCHES["handle_npb_error"]), \
              patch(PATCHES["md5"], return_value="b" * 32), \
              patch(PATCHES["os_walk"], return_value=[]), \
              patch("builtins.open", mock_open(read_data="")):
@@ -234,7 +230,6 @@ class TestReadCurrentProduct:
 
         with patch(PATCHES["safe_make_directory"]), \
              patch(PATCHES["glob_glob"], return_value=[prev]), \
-             patch(PATCHES["handle_npb_error"]), \
              patch(PATCHES["md5"], return_value="c" * 32), \
              patch(PATCHES["os_walk"], return_value=[]), \
              patch("builtins.open", mock_open(read_data=prev_content)):
@@ -251,7 +246,7 @@ class TestReadCurrentProduct:
          'Checksum file /bundle/em16_spice/miscellaneous/checksum/checksum_v001.tab '
          'corrupted entry: 0123456789  some/file.tab\n.')
     ])
-    def test_corrupted_line_calls_handle_npb_error(self, bad_content, error) -> None:
+    def test_corrupted_line_raises_npberror(self, bad_content, error) -> None:
 
         setup = _make_setup(pds_version="4", increment=True)
         collection = _make_collection()
@@ -263,7 +258,7 @@ class TestReadCurrentProduct:
              patch(PATCHES["os_walk"], return_value=[]), \
              patch("builtins.open", mock_open(read_data=bad_content)):
 
-            with pytest.raises(RuntimeError, match=error):
+            with pytest.raises(NPBError, match=error):
                 ChecksumProduct(setup, collection, add_previous_checksum=False)
 
     def test_add_previous_checksum_true_adds_file_and_label_pds4(self):
@@ -275,7 +270,6 @@ class TestReadCurrentProduct:
 
         with patch(PATCHES["safe_make_directory"]), \
              patch(PATCHES["glob_glob"], return_value=[prev]), \
-             patch(PATCHES["handle_npb_error"]), \
              patch(PATCHES["md5"], return_value="d" * 32), \
              patch(PATCHES["os_walk"], return_value=[]), \
              patch("builtins.open", mock_open(read_data=prev_content)):
@@ -302,7 +296,6 @@ class TestReadCurrentProduct:
         # We supply valid content for that file via mock_open.
         with patch(PATCHES["safe_make_directory"]), \
              patch(PATCHES["glob_glob"], return_value=[]), \
-             patch(PATCHES["handle_npb_error"]), \
              patch(PATCHES["md5"], return_value="e" * 32), \
              patch(PATCHES["os_walk"], return_value=[]), \
              patch("builtins.open", mock_open(read_data=prev_content)):
@@ -606,7 +599,7 @@ class TestChecksumProductWriteProduct:
             obj.write_product(history=None, set_coverage=False)
 
     @pytest.mark.skip(reason="Fails due to bug in code. When fixed, the test should be executed.")
-    def test_write_product_duplicate_md5_non_debug_calls_handle_npb_error(self):
+    def test_write_product_duplicate_md5_non_debug_raises_npberror(self):
         obj = self._obj_with_products()
         obj.setup.args.debug = False
         obj.md5_dict["other/different_name.tab"] = "f" * 32
@@ -616,9 +609,9 @@ class TestChecksumProductWriteProduct:
              patch(PATCHES["os_path_isfile"], return_value=False), \
              patch("builtins.open", mock_open()):
 
-            with pytest.raises(RuntimeError, match='Two products have the same MD5 sum, '
-                                                   'the product miscellaneous/test_file.tab '
-                                                   'might be a duplicate.'):
+            with pytest.raises(NPBError, match='Two products have the same MD5 sum, '
+                                                'the product miscellaneous/test_file.tab '
+                                                'might be a duplicate.'):
                 obj.write_product(history=None, set_coverage=False)
 
     def test_write_product_pds4_sets_start_and_stop_times_from_labels(self):
