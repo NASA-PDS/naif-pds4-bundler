@@ -6,7 +6,7 @@ import shutil
 from pathlib import Path
 
 from .product import Product
-from ...pipeline.runtime import handle_npb_error
+from ..exceptions import NPBError
 from ...utils import add_carriage_return
 from ...utils import compare_files
 from ...utils import replace_string_in_file
@@ -285,7 +285,7 @@ class InventoryProduct(Product):
             # Bytes of each column is necessary to write the index label.
             #
             if not line_for_length:
-                handle_npb_error(
+                raise NPBError(
                     "The index file is incomplete since no binary "
                     "kernel is present in the archive."
                 )
