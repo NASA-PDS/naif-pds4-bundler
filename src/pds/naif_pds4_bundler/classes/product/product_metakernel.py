@@ -11,7 +11,7 @@ from pathlib import Path
 import spiceypy
 
 from .product import Product
-from ...pipeline.runtime import handle_npb_error
+from ..exceptions import NPBError
 from ...utils import check_line_length
 from ...utils import ck_coverage
 from ...utils import compare_files
@@ -100,9 +100,8 @@ class MetaKernelProduct(Product):
                 pass
 
         if not hasattr(self, "mk_setup"):
-            handle_npb_error(
-                f"Meta-kernel {self.name} has not been matched in configuration.",
-                setup=self.setup,
+            raise NPBError(
+                f"Meta-kernel {self.name} has not been matched in configuration."
             )
 
         if setup.pds_version == "3":
@@ -325,10 +324,9 @@ class MetaKernelProduct(Product):
             # Implement this exceptional check for first releases of an archive.
             #
             if "01" not in self.name:
-                handle_npb_error(
+                raise NPBError(
                     f"{self.name} version does not correspond to VID "
-                    f"1.0. Rename the MK accordingly.",
-                    setup=self.setup,
+                    f"1.0. Rename the MK accordingly."
                 )
 
         self.vid = product_vid
@@ -421,14 +419,13 @@ class MetaKernelProduct(Product):
                                         #
                                         patterns[el]["&value"] = value
                                 else:
-                                    handle_npb_error(
+                                    raise NPBError(
                                         f"Kernel pattern {patt_ker} "
                                         f"not adept to write "
                                         f"description. Remember a "
                                         f"metacharacter "
                                         f"cannot start or finish "
-                                        f"a kernel pattern.",
-                                        setup=self.setup,
+                                        f"a kernel pattern."
                                     )
                             else:
                                 #
@@ -450,11 +447,10 @@ class MetaKernelProduct(Product):
 
                                 # TODO: Review.
                                 if isinstance(value, list):
-                                    handle_npb_error(
+                                    raise NPBError(
                                         f"-- Kernel description "
                                         f"could not be updated with "
-                                        f"pattern: {value}.",
-                                        setup=self.setup,
+                                        f"pattern: {value}."
                                     )
 
                             description = description.replace("$" + el, value)
@@ -464,9 +460,8 @@ class MetaKernelProduct(Product):
             description = description.replace("  ", " ")
 
         if not description:
-            handle_npb_error(
-                f"{self.name} does not have a description on configuration file.",
-                setup=self.setup,
+            raise NPBError(
+                f"{self.name} does not have a description on configuration file."
             )
 
         return description
@@ -477,7 +472,7 @@ class MetaKernelProduct(Product):
         # Obtain meta-kernel grammar from configuration.
         #
         if "grammar" not in self.mk_setup:
-            handle_npb_error(
+            raise NPBError(
                 f"Meta-kernel grammar not defined in configuration for {self.name}"
             )
         kernel_grammar_list = self.mk_setup["grammar"]["pattern"]
@@ -964,11 +959,10 @@ class MetaKernelProduct(Product):
                         elif extension_to_type(kernel) == "ck":
                             (start_time, stop_time) = ck_coverage(path)
                         else:
-                            handle_npb_error(
+                            raise NPBError(
                                 "Kernel used to determine "
                                 "coverage is not a SPK or CK "
-                                "kernel.",
-                                setup=self.setup,
+                                "kernel."
                             )
 
                         start_times.append(spiceypy.utc2et(start_time[:-1]))

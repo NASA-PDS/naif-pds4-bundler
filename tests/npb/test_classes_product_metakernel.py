@@ -10,6 +10,7 @@ from unittest.mock import MagicMock, call, patch
 import pytest
 
 from pds.naif_pds4_bundler.classes.product.product_metakernel import MetaKernelProduct
+from pds.naif_pds4_bundler.classes.exceptions import NPBError
 
 # ---------------------------------------------------------------------------
 # Module path used to target patches
@@ -403,7 +404,7 @@ class TestMetaKernelProductInit:
 
         with (patch(f"{_MODULE}.safe_make_directory"),
               patch(f"{_MODULE}.current_date", return_value="2024-01-01")):
-            with pytest.raises(RuntimeError,
+            with pytest.raises(NPBError,
                                match="Meta-kernel insight_v01.tm has not been matched in configuration."):
                 MetaKernelProduct(setup, "insight_v01.tm", collection)
 
@@ -753,9 +754,9 @@ class TestMetaKernelProductSetProductVid:
         setup = make_setup()
         product = object.__new__(MetaKernelProduct)
         product.setup = setup
-        product.name = "insight_v05.tm"  # no "01" → handle_npb_error called
+        product.name = "insight_v05.tm"  # no "01" → NPBError raised
 
-        with pytest.raises(RuntimeError, match="version does not correspond to VID"):
+        with pytest.raises(NPBError, match="version does not correspond to VID"):
             product.set_product_vid()
 
     def test_all_zero_version_yields_dot_zero(self):
@@ -816,7 +817,7 @@ class TestMetaKernelProductGetDescription:
                 pattern.pattern: {"description": "Not matched."}
             },
         )
-        with pytest.raises(RuntimeError,
+        with pytest.raises(NPBError,
                            match="does not have a description on configuration file"):
             product.get_description()
 
@@ -893,8 +894,8 @@ class TestMetaKernelProductGetDescription:
 
     def test_kernel_pattern_template_missing_variable_raises(self):
         # when the "#text" template does not contain the variable being
-        # substituted, patt_split has length 1 (not 2) and a RuntimeError
-        # is raised.
+        # substituted, patt_split has length 1 (not 2) and an NPBError is
+        # raised.
         pattern = re.compile(r"insight_v\d+\.tm")
         product = self._make_stub(
             name="insight_v05.tm",
@@ -911,13 +912,13 @@ class TestMetaKernelProductGetDescription:
                 }
             },
         )
-        with pytest.raises(RuntimeError, match="not adept to write description"):
+        with pytest.raises(NPBError, match="not adept to write description"):
             product.get_description()
 
     def test_non_kernel_pattern_no_matching_value_raises(self):
         # when the pattern entry is a list (non-kernel lookup) and no @value
-        # matches the kernel name, value stays as the list and a RuntimeError
-        # is raised.
+        # matches the kernel name, value stays as the list and an NPBError is
+        # raised.
         pattern = re.compile(r".*\.tm")
         product = self._make_stub(
             name="no_match_v01.tm",
@@ -933,7 +934,7 @@ class TestMetaKernelProductGetDescription:
                 }
             },
         )
-        with pytest.raises(RuntimeError,
+        with pytest.raises(NPBError,
                            match="Kernel description could not be updated with pattern"):
             product.get_description()
 
@@ -995,7 +996,7 @@ class TestMetaKernelProductWriteProduct:
         product = self._make_stub(tmp_path)
         del product.mk_setup["grammar"]
 
-        with pytest.raises(RuntimeError, match="grammar not defined in configuration"):
+        with pytest.raises(NPBError, match="grammar not defined in configuration"):
             product.write_product()
 
     @pytest.mark.parametrize("padding, mk", [
@@ -1852,8 +1853,7 @@ class TestMetaKernelProductCoverage:
 
     def test_coverage_kernel_not_in_collection_non_spk_ck_raises(
             self, lsk, tmp_path):
-        # when the coverage kernel is neither SPK nor CK, a RuntimeError
-        # is raised.
+        # When the coverage kernel is neither SPK nor CK, an NPBError is raised.
         bundle_dir = tmp_path / "bundle"
         lsk_dir = bundle_dir / "insight_spice" / "spice_kernels" / "lsk"
         lsk_dir.mkdir(parents=True)
@@ -1877,7 +1877,7 @@ class TestMetaKernelProductCoverage:
                 "pattern": [r"naif\d+\.tls"]
             }
         }
-        with pytest.raises(RuntimeError, match="not a SPK or CK kernel"):
+        with pytest.raises(NPBError, match="not a SPK or CK kernel"):
             product.coverage()
 
     def test_collection_non_matching_product_skipped_in_coverage_loop(self, lsk):
