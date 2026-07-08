@@ -2,4 +2,4 @@
 
 
 class NPBError(RuntimeError):
-    """Unrecoverable error during NPB product or label processing."""
+    """Unrecoverable error during NPB execution."""
