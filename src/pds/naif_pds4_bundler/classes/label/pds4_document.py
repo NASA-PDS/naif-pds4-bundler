@@ -29,8 +29,6 @@ class DocumentPDS4Label(PDSLabel):
         self.STOP_TIME = setup.mission_finish
         self.FILE_NAME = inventory.name
 
-        # TODO: BUG, a valid file name containing more than one dot is
-        #       truncated at the first dot.
-        self.name = collection.name.split(".")[0] + ".xml"
+        self.name = Path(collection.name).stem + ".xml"
 
         self.write_label()
