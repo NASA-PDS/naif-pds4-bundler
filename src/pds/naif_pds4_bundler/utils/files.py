@@ -265,7 +265,7 @@ def add_crs_to_file(file, eol, setup=False):
     :raise: If CR cannot be added to the file
     """
     try:
-        file_crs = file.split(".")[0] + "crs_tmp"
+        file_crs = Path(file).parent / (Path(file).stem + "crs_tmp")
         with open(file, "r", encoding='utf-8') as r:
             with open(file_crs, "w+", encoding='utf-8') as f:
                 for line in r:
@@ -767,7 +767,7 @@ def checksum_from_label(path):
     :rtype: str
     """
     checksum = ""
-    product_label = path.split(".")[0] + ".xml"
+    product_label = Path(path).with_suffix(".xml")
     if os.path.exists(product_label):
         with open(product_label, "r", encoding='utf-8') as lbl:
             for line in lbl:
