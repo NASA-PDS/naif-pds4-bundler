@@ -292,15 +292,12 @@ class TestMetaKernelPDS4Label:
     @pytest.mark.parametrize('product_name, expected_label_name', [
         ('maven_v01.tm', 'maven_v01.xml'),
         ('maven', 'maven.xml'),
-        # TODO: BUG; product.name.split(".")[0] truncates at the FIRST dot, so
-        #       a legitimate multi-dot name loses everything after it.
-        ('maven_v01.0.tm', 'maven_v01.xml')])
-    def test_label_name_is_derived_from_text_before_first_dot(
+        ('maven_v01.0.tm', 'maven_v01.0.xml')])
+    def test_label_name_is_derived_from_stem(
             self, tmp_path: Path, helpers: SimpleNamespace,
             product_name: str, expected_label_name: str) -> None:
         # Document how product names are converted into XML label names. The
-        # last case proves the truncation bug shared with the other PDS4
-        # labels.
+        # last case has more than one dot; only the last suffix is replaced.
 
         # Mock the setup so that the label can be built.
         setup = helpers.make_setup()

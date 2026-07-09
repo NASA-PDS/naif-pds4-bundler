@@ -36,11 +36,7 @@ class MetaKernelPDS4Label(PDSLabel):
 
         self.KERNEL_INTERNAL_REFERENCES = self.get_kernel_internal_references()
 
-        # TODO: BUG, split(".")[0] truncates the name at the FIRST dot, so any
-        #       product whose name contains more than one dot produces a
-        #       truncated XML label name.
-        #       e.g. maven_v01.0.tm -> maven_v01.xml instead of maven_v01.0.xml
-        self.name = product.name.split(".")[0] + ".xml"
+        self.name = Path(product.name).stem + ".xml"
 
         self.write_label()
 
