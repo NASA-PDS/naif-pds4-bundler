@@ -60,10 +60,7 @@ class OrbnumFilePDS4Label(PDSLabel):
         if self.TABLE_CHARACTER_DESCRIPTION:
             self.TABLE_CHARACTER_DESCRIPTION = self.get_table_character_description()
 
-        # TODO: BUG, split(".")[0] truncates at the FIRST dot, not at the
-        #       file extension. A name with more than one dot loses everything
-        #       after the first.
-        self.name = product.name.split(".")[0] + ".xml"
+        self.name = Path(product.name).stem + ".xml"
 
         self.write_label()
 
