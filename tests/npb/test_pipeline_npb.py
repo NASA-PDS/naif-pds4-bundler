@@ -24,6 +24,7 @@ Phase → Test class mapping
  10  PDS3 path                           TestPhase10PDS3Path
  11  Staging recap + copy                TestPhase11StagingRecapAndCopy
  12  Final validation                    TestPhase12FinalValidation
+ 13  NPBError -> handle_npb_error routing TestNPBErrorHandling
 """
 from contextlib import ExitStack
 from pathlib import Path
@@ -33,6 +34,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from pds.naif_pds4_bundler.pipeline.npb import run_pipeline
+from pds.naif_pds4_bundler.classes.exceptions import NPBError
 from pds.naif_pds4_bundler.utils.types.datatypes import PipelineArgs
 
 # Imported to create specified mocks that pass isinstance checks in Phase 12.
@@ -75,6 +77,7 @@ _PATCH_TARGETS = [
     'ReadmeProduct',
     'clear_run',
     'finish_execution',
+    'handle_npb_error',
     'log_step',
     'isdir',
 ]
@@ -1050,3 +1053,179 @@ class TestPhase12FinalValidation:
         run_pipeline(_args())
         _, log_arg = mocks.finish_execution.call_args[0]
         assert log_arg is mocks.Log.return_value
+
+
+# ---------------------------------------------------------------------------
+# Phase 13 - NPBError -> handle_npb_error routing
+# ---------------------------------------------------------------------------
+
+class TestNPBErrorHandling:
+    # Phase 13 - NPBError routing
+    # Every direct product-construction call in run_pipeline (SpiceKernelProduct,
+    # OrbnumFileProduct, MetaKernelProduct, InventoryProduct, SpicedsProduct,
+    # ChecksumProduct, and ReadmeProduct) is wrapped in a try/except that catches
+    # NPBError and forwards its message to handle_npb_error along with the shared
+    # setup object. handle_npb_error itself is NoReturn in production: it performs
+    # cleanup (file list, checksum registry, template removal, kernel pool clear)
+    # and then always raises. Each test below forces exactly one construction
+    # call to raise NPBError and asserts that handle_npb_error is invoked with
+    # the exception's message and setup, confirming the routing for that
+    # specific call site rather than relying on a neighboring site to fail first.
+
+    @pytest.fixture(autouse=True)
+    def _handle_npb_error_raises(self, mocks):
+        # Mirror the real NoReturn contract so control does not fall through to
+        # code that assumes the construction succeeded.
+        mocks.handle_npb_error.side_effect = RuntimeError
+
+    def test_orbnum_file_product_error_is_routed(self, mocks):
+        # .orb/.nrb kernels are dispatched to OrbnumFileProduct in the per-kernel loop.
+        mocks.ReleasePlan.return_value.kernel_list = ['maven_2024.orb']
+        mocks.OrbnumFileProduct.side_effect = NPBError('boom orbnum')
+
+        with pytest.raises(RuntimeError):
+            run_pipeline(_args())
+
+        mocks.handle_npb_error.assert_called_once_with(
+            'boom orbnum', setup=mocks.Setup.return_value
+        )
+
+    def test_spice_kernel_product_error_is_routed(self, mocks):
+        # Non-.tm kernels are dispatched to SpiceKernelProduct in the per-kernel loop.
+        mocks.ReleasePlan.return_value.kernel_list = ['maven_2024.bc']
+        mocks.SpiceKernelProduct.side_effect = NPBError('boom kernel')
+
+        with pytest.raises(RuntimeError):
+            run_pipeline(_args())
+
+        mocks.handle_npb_error.assert_called_once_with(
+            'boom kernel', setup=mocks.Setup.return_value
+        )
+
+    def test_meta_kernel_product_error_is_routed(self, mocks):
+        # A determined meta-kernel is wrapped in a MetaKernelProduct.
+        mocks.SpiceKernelsCollection.return_value.determine_meta_kernels.return_value = {
+            'maven_v01.tm': None
+        }
+        mocks.MetaKernelProduct.side_effect = NPBError('boom mk')
+
+        with pytest.raises(RuntimeError):
+            run_pipeline(_args())
+
+        mocks.handle_npb_error.assert_called_once_with(
+            'boom mk', setup=mocks.Setup.return_value
+        )
+
+    def test_spice_kernels_collection_inventory_error_is_routed(self, mocks):
+        # An updated SPICE kernels collection gets its own InventoryProduct.
+        mocks.SpiceKernelsCollection.return_value.updated = True
+        mocks.InventoryProduct.side_effect = NPBError('boom skc inventory')
+
+        with pytest.raises(RuntimeError):
+            run_pipeline(_args())
+
+        mocks.handle_npb_error.assert_called_once_with(
+            'boom skc inventory', setup=mocks.Setup.return_value
+        )
+
+    def test_spiceds_product_error_is_routed(self, mocks):
+        # SpicedsProduct is constructed unconditionally on the PDS4 path.
+        mocks.SpicedsProduct.side_effect = NPBError('boom spiceds')
+
+        with pytest.raises(RuntimeError):
+            run_pipeline(_args())
+
+        mocks.handle_npb_error.assert_called_once_with(
+            'boom spiceds', setup=mocks.Setup.return_value
+        )
+
+    def test_document_collection_inventory_error_is_routed(self, mocks):
+        # A generated SPICEDS document triggers a document collection InventoryProduct.
+        mocks.SpicedsProduct.return_value.generated = True
+        mocks.InventoryProduct.side_effect = NPBError('boom doc inventory')
+
+        with pytest.raises(RuntimeError):
+            run_pipeline(_args())
+
+        mocks.handle_npb_error.assert_called_once_with(
+            'boom doc inventory', setup=mocks.Setup.return_value
+        )
+
+    def test_release_checksum_backfill_error_is_routed(self, mocks):
+        # The per-release backfill loop constructs one ChecksumProduct per
+        # historical release when the checksum directory does not yet exist.
+        setup = mocks.Setup.return_value
+        setup.increment = True
+        mocks.isdir.return_value = False
+        mocks.Bundle.return_value.history = {'release_01': ('data', 'label')}
+        mocks.ChecksumProduct.side_effect = NPBError('boom checksum backfill')
+
+        with pytest.raises(RuntimeError):
+            run_pipeline(_args())
+
+        mocks.handle_npb_error.assert_called_once_with(
+            'boom checksum backfill', setup=setup
+        )
+
+    def test_release_miscellaneous_inventory_error_is_routed(self, mocks):
+        # Within the backfill loop, each release also gets its own miscellaneous
+        # collection InventoryProduct.
+        setup = mocks.Setup.return_value
+        setup.increment = True
+        mocks.isdir.return_value = False
+        mocks.Bundle.return_value.history = {'release_01': ('data', 'label')}
+        mocks.InventoryProduct.side_effect = NPBError('boom release misc inventory')
+
+        with pytest.raises(RuntimeError):
+            run_pipeline(_args())
+
+        mocks.handle_npb_error.assert_called_once_with(
+            'boom release misc inventory', setup=setup
+        )
+
+    def test_miscellaneous_checksum_error_is_routed(self, mocks):
+        # The current-release checksum for the miscellaneous collection is
+        # constructed unconditionally on the PDS4 path.
+        mocks.ChecksumProduct.side_effect = NPBError('boom checksum misc')
+
+        with pytest.raises(RuntimeError):
+            run_pipeline(_args())
+
+        mocks.handle_npb_error.assert_called_once_with(
+            'boom checksum misc', setup=mocks.Setup.return_value
+        )
+
+    def test_miscellaneous_collection_inventory_error_is_routed(self, mocks):
+        # The miscellaneous collection's own InventoryProduct is constructed
+        # unconditionally on the PDS4 path.
+        mocks.InventoryProduct.side_effect = NPBError('boom misc inventory')
+
+        with pytest.raises(RuntimeError):
+            run_pipeline(_args())
+
+        mocks.handle_npb_error.assert_called_once_with(
+            'boom misc inventory', setup=mocks.Setup.return_value
+        )
+
+    def test_readme_product_error_is_routed(self, mocks):
+        # ReadmeProduct is constructed unconditionally on the PDS4 path.
+        mocks.ReadmeProduct.side_effect = NPBError('boom readme')
+
+        with pytest.raises(RuntimeError):
+            run_pipeline(_args())
+
+        mocks.handle_npb_error.assert_called_once_with(
+            'boom readme', setup=mocks.Setup.return_value
+        )
+
+    def test_pds3_checksum_error_is_routed(self, mocks):
+        # The PDS3 path constructs its own ChecksumProduct without history.
+        mocks.Setup.return_value.pds_version = '3'
+        mocks.ChecksumProduct.side_effect = NPBError('boom checksum pds3')
+
+        with pytest.raises(RuntimeError):
+            run_pipeline(_args())
+
+        mocks.handle_npb_error.assert_called_once_with(
+            'boom checksum pds3', setup=mocks.Setup.return_value
+        )
