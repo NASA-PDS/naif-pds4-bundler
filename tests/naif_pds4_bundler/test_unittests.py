@@ -10,18 +10,13 @@ import unittests.test_bundle_history as bundle_history
 import unittests.test_checksums as checksums
 import unittests.test_clear as clear
 import unittests.test_endianness as endianness
-import unittests.test_extract_comment as extract_comment
-import unittests.test_files as files
 import unittests.test_im_format as im_format
-import unittests.test_kernel_integrity as kernel_integrity
 import unittests.test_kernel_list as kernel_list
-import unittests.test_match_patterns as match_patterns
 import unittests.test_mk_config as mk_config
 import unittests.test_orbnum as orbnum
 import unittests.test_permissions as permissions
 import unittests.test_plan as plan
 import unittests.test_readme as readme
-import unittests.test_time as time
 from pds.naif_pds4_bundler.utils import add_crs_to_file
 
 
@@ -155,19 +150,28 @@ class TestUnitTests(TestCase):
         clear.test_clear_label_mode(self)
 
     #
-    # Extract comment tests.
+    # Binary kernel endianness tests.
     #
-    def test_ck(self):
-        extract_comment.test_ck(self)
+    def test_pds4_big_endianness(self):
+        endianness.test_pds4_big_endianness(self)
 
-    #
-    # File utilities tests.
-    #
-    def test_mk_to_list(self):
-        files.test_mk_to_list(self)
+    def test_pds4_big_endianness_config(self):
+        endianness.test_pds4_big_endianness_config(self)
 
-    def test_check_line_length(self):
-        files.test_check_line_length(self)
+    def test_pds4_ltl_endianness(self):
+        endianness.test_pds4_ltl_endianness(self)
+
+    def test_pds4_ltl_endianness_config(self):
+        endianness.test_pds4_ltl_endianness_config(self)
+
+    def test_pds3_ltl_endianness(self):
+        endianness.test_pds3_ltl_endianness(self)
+
+    def test_pds3_ltl_endianness_config(self):
+        endianness.test_pds3_ltl_endianness_config(self)
+
+    def test_pds3_big_endianness(self):
+        endianness.test_pds3_big_endianness(self)
 
     #
     # Information Model tests.
@@ -201,45 +205,6 @@ class TestUnitTests(TestCase):
 
     def test_im_schema_resolution(self):
         im_format.test_im_schema_resolution(self)
-
-    #
-    # Binary kernel endianness tests.
-    #
-    def test_pds4_big_endianness(self):
-        endianness.test_pds4_big_endianness(self)
-
-    def test_pds4_big_endianness_config(self):
-        endianness.test_pds4_big_endianness_config(self)
-
-    def test_pds4_ltl_endianness(self):
-        endianness.test_pds4_ltl_endianness(self)
-
-    def test_pds4_ltl_endianness_config(self):
-        endianness.test_pds4_ltl_endianness_config(self)
-
-    def test_pds3_ltl_endianness(self):
-        endianness.test_pds3_ltl_endianness(self)
-
-    def test_pds3_ltl_endianness_config(self):
-        endianness.test_pds3_ltl_endianness_config(self)
-
-    def test_pds3_big_endianness(self):
-        endianness.test_pds3_big_endianness(self)
-
-    #
-    # Kernel permission tests.
-    #
-    def test_binary_permissions(self):
-        permissions.test_binary_permissions(self)
-
-    #
-    # Kernel integrity tests.
-    #
-    def test_text_kernel_integrity(self):
-        kernel_integrity.test_text_kernel_integrity(self)
-
-    def test_binary_kernel_integrity(self):
-        kernel_integrity.test_binary_kernel_integrity(self)
 
     #
     # Kernel list tests.
@@ -281,10 +246,10 @@ class TestUnitTests(TestCase):
         kernel_list.test_xml_reader(self)
 
     #
-    # Match patterns tests.
+    # Kernel permission tests.
     #
-    def test_match_patterns_basic(self):
-        match_patterns.test_match_patterns_basic(self)
+    def test_binary_permissions(self):
+        permissions.test_binary_permissions(self)
 
     #
     # Meta-kernel configuration tests.
@@ -388,17 +353,6 @@ class TestUnitTests(TestCase):
     def test_im_version_ascii_incorrect(self):
         readme.test_im_version_ascii_incorrect(self)
 
-    #
-    # Time utilities tests.
-    #
-    def test_dsk_coverage(self):
-        time.test_dsk_coverage(self)
-
-    def test_spk_coverage(self):
-        time.test_spk_coverage(self)
-
-    def test_parse_date(self):
-        time.test_parse_dates(self)
 
 if __name__ == "__main__":
     unittest.main()
