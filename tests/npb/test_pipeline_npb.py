@@ -1126,9 +1126,10 @@ class TestNPBErrorHandling:
     def test_npb_error_is_routed_to_handle_npb_error(self, mocks, overrides, target_attr, message):
         self._apply_overrides(mocks, overrides)
         getattr(mocks, target_attr).side_effect = NPBError(message)
+        args = _args()
 
         with pytest.raises(RuntimeError, match=message):
-            run_pipeline(_args())
+            run_pipeline(args)
 
         setup = mocks.Setup.return_value
         setup.write_file_list.assert_called_once()
