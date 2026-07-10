@@ -886,6 +886,45 @@ def test_get_context_products_type_match_is_case_insensitive():
     assert moon_entries[0]["lidvid"] == "urn:nasa:pds:context:target:satellite.earth.moon::9.9"
 
 
+def test_get_context_products_override_does_not_corrupt_other_matching_entries():
+    """(name, type) is not a unique key in the registry -- e.g. ULYSSES has both
+    an ESA PSA and a NASA PDS 'Mission' entry with different lidvids. Without a
+    break after the match is applied, the loop keeps scanning and overwrites
+    every registered entry sharing that key, not just the one it matched --
+    silently corrupting the other entry.
+
+    Which of the two registered entries the override lands on depends on their
+    order in the registry file, so this only asserts on the invariant that
+    must hold either way: exactly one of the two originally-registered
+    lidvids must survive untouched. A version of the code without the break
+    overwrites both, leaving zero original lidvids in the result."""
+    setup = MagicMock()
+    setup.mission_name = "ULYSSES"
+    setup.observer = "OBSERVER"
+    setup.target = "TARGET"
+
+    original_lidvids = {
+        "urn:esa:psa:context:investigation:mission.ulysses::1.0",
+        "urn:nasa:pds:context:investigation:mission.ulysses::1.0",
+    }
+    override_lidvid = "urn:nasa:pds:context:investigation:mission.ulysses::9.9"
+
+    setup.context_products = {
+        "product": [
+            {"@name": "ULYSSES", "type": "Mission", "lidvid": override_lidvid},
+        ]
+    }
+
+    result = files.get_context_products(setup)
+
+    mission_entries = [cp for cp in result if cp["name"][0] == "ULYSSES" and cp["type"] == ["Mission"]]
+    assert len(mission_entries) == 2
+
+    lidvids = {cp["lidvid"] for cp in mission_entries}
+    assert override_lidvid in lidvids
+    assert len(lidvids & original_lidvids) == 1
+
+
 def test_get_context_products_overwrite_and_append_2(tmp_path):
     """Test get_context_products using pytest. Default products match products via setup.context_products."""
     setup = MagicMock()

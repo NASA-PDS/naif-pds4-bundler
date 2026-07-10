@@ -356,13 +356,18 @@ def get_context_products(setup):
                     # type together, not name alone, so matching on name only
                     # would let one override overwrite the other. Type casing is
                     # compared case-insensitively because the registry and
-                    # configs do not always agree on it.
+                    # configs do not always agree on it. (name, type) is still
+                    # not guaranteed unique across the registry (e.g. ULYSSES
+                    # has both an ESA PSA and a NASA PDS "Mission" entry), so
+                    # stop at the first match -- otherwise every entry sharing
+                    # the key would get overwritten too.
                     if (registered_product["name"][0] == product["@name"]
                             and registered_product["type"][0].lower() == product["type"].lower()):
 
                         updated_product = True
                         registered_product["type"] = [product["type"]]
                         registered_product["lidvid"] = product["lidvid"]
+                        break
 
                 if not updated_product:
                     appended_products.append(
