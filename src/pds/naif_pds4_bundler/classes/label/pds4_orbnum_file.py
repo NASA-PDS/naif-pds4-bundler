@@ -60,7 +60,7 @@ class OrbnumFilePDS4Label(PDSLabel):
         if self.TABLE_CHARACTER_DESCRIPTION:
             self.TABLE_CHARACTER_DESCRIPTION = self.get_table_character_description()
 
-        self.name = Path(product.name).stem + ".xml"
+        self.name = Path(product.name).with_suffix(".xml").name
 
         self.write_label()
 

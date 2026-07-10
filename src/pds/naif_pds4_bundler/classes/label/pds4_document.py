@@ -29,6 +29,6 @@ class DocumentPDS4Label(PDSLabel):
         self.STOP_TIME = setup.mission_finish
         self.FILE_NAME = inventory.name
 
-        self.name = Path(collection.name).stem + ".xml"
+        self.name = Path(collection.name).with_suffix(".xml").name
 
         self.write_label()

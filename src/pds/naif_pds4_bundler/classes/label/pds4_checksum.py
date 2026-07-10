@@ -25,6 +25,6 @@ class ChecksumPDS4Label(PDSLabel):
         self.FILE_FORMAT = "Character"
         self.START_TIME = self.product.start_time
         self.STOP_TIME = self.product.stop_time
-        self.name = Path(product.name).stem + ".xml"
+        self.name = Path(product.name).with_suffix(".xml").name
 
         self.write_label()

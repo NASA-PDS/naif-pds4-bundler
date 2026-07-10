@@ -36,7 +36,7 @@ class MetaKernelPDS4Label(PDSLabel):
 
         self.KERNEL_INTERNAL_REFERENCES = self.get_kernel_internal_references()
 
-        self.name = Path(product.name).stem + ".xml"
+        self.name = Path(product.name).with_suffix(".xml").name
 
         self.write_label()
 

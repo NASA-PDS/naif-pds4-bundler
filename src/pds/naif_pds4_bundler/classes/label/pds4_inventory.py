@@ -74,7 +74,7 @@ class InventoryPDS4Label(PDSLabel):
         with open(self.product.path, 'r', encoding='utf-8') as f:
             self.N_RECORDS = str(len(f.readlines()))
 
-        self.name = Path(collection.name).stem + ".xml"
+        self.name = Path(collection.name).with_suffix(".xml").name
         self.write_label()
 
     def get_mission_reference_type(self):
