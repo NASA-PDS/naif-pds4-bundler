@@ -147,8 +147,8 @@ class TestChecksumPDS4Label:
     @pytest.mark.parametrize('product_name, expected_file_name, expected_label_name', [
         ('checksum.tab', 'checksum.tab', 'checksum.xml'),
         ('checksum', 'checksum', 'checksum.xml'),
-        ('checksum.v01.tab', 'checksum.v01.tab', 'checksum.xml')])
-    def test_label_name_is_derived_from_text_before_first_dot(
+        ('checksum.v01.tab', 'checksum.v01.tab', 'checksum.v01.xml')])
+    def test_label_name_is_derived_from_stem(
             self, tmp_path: Path, helpers: SimpleNamespace,
             product_name: str, expected_file_name: str,
             expected_label_name: str) -> None:

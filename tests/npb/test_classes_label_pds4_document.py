@@ -72,11 +72,8 @@ class TestDocumentPDS4LabelInit:
         # once.
         write_label_mock.assert_called_once_with(document_label)
 
-    def test_init_currently_truncates_collection_name_at_first_dot(
+    def test_init_derives_collection_name_from_stem(
             self, mocker, tmp_path: Path) -> None:
-        # This test document a bug. A valid file name containing more than one
-        # dot is truncated at the first dot.
-
         # Create an object with a valid file name with more than one dot.
         setup, collection, inventory = self.make_document_label_inputs(
             tmp_path, collection_name='collection.document_inventory_v001.csv')
@@ -89,8 +86,8 @@ class TestDocumentPDS4LabelInit:
 
         document_label = DocumentPDS4Label(setup, collection, inventory)
 
-        # Represents the truncated file name because the bug.
-        assert document_label.name == 'collection.xml'
+        # Only the last suffix is replaced; earlier dots in the name are preserved.
+        assert document_label.name == 'collection.document_inventory_v001.xml'
 
 
 class TestDocumentPDS4LabelIntegration:

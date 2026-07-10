@@ -74,10 +74,7 @@ class InventoryPDS4Label(PDSLabel):
         with open(self.product.path, 'r', encoding='utf-8') as f:
             self.N_RECORDS = str(len(f.readlines()))
 
-        # TODO: BUG; collection.name.split(".")[0] truncates at the FIRST dot,
-        #       so any collection name containing more than one dot produces an
-        #       incorrect XML label name.
-        self.name = collection.name.split(".")[0] + ".xml"
+        self.name = Path(collection.name).with_suffix(".xml").name
         self.write_label()
 
     def get_mission_reference_type(self):

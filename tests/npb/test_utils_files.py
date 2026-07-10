@@ -459,6 +459,25 @@ def test_checksum_from_label_without_checksum(tmp_path, caplog):
     assert result == ''
     assert logs == []
 
+def test_checksum_from_label_multi_dot_name(tmp_path, caplog):
+    """Multi-dot kernel names must resolve to their correctly-suffixed label,
+    not one truncated at the first dot."""
+    kernel = tmp_path / "kernel.v1.2.bc"
+    kernel.write_text("dummy")
+    label = tmp_path / "kernel.v1.2.xml"
+    label.write_text(
+        "<product><md5_checksum>ABC123</md5_checksum></product>"
+    )
+
+    with caplog.at_level(logging.INFO):
+        result = files.checksum_from_label(str(kernel))
+
+    logs = [(r[1], r[2]) for r in caplog.record_tuples]
+    assert result == "ABC123"
+    assert logs == [
+        (logging.WARNING, "-- Checksum obtained from existing label: kernel.v1.2.xml")
+    ]
+
 # ----------------------------------------------------------------------------
 # files.checksum_from_registry test
 # ----------------------------------------------------------------------------

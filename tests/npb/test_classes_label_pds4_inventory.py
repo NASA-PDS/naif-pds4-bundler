@@ -421,16 +421,14 @@ class TestInventoryPDS4Label:
                 InventoryPDS4Label(setup, collection, inventory)
 
     # ------------------------------------------------------------------
-    # XML label name derivation (truncation bug)
+    # XML label name derivation
     # ------------------------------------------------------------------
 
     @pytest.mark.parametrize('collection_name, expected_label_name', [
         ('spice_kernels', 'spice_kernels.xml'),
         ('document', 'document.xml'),
-        # TODO: BUG; collection.name.split(".")[0] truncates at the FIRST dot,
-        #       so a name with more than one dot loses everything after it.
-        ('collection.document_inventory_v001.csv', 'collection.xml')])
-    def test_label_name_is_derived_from_text_before_first_dot(
+        ('collection.document_inventory_v001.csv', 'collection.document_inventory_v001.xml')])
+    def test_label_name_is_derived_from_stem(
             self, tmp_path: Path, helpers: SimpleNamespace,
             collection_name: str, expected_label_name: str) -> None:
         # Document how collection names are converted into XML label names.
