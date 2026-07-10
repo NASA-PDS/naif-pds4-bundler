@@ -396,7 +396,10 @@ def run_pipeline(args: PipelineArgs) -> None:
                         )
                     except NPBError as exc:
                         handle_npb_error(str(exc), setup=setup)
-                    release_checksum.generate(history=release)
+                    try:
+                        release_checksum.generate(history=release)
+                    except NPBError as exc:
+                        handle_npb_error(str(exc), setup=setup)
 
                     #
                     # Initialize a miscellaneous collection for this previous
@@ -474,7 +477,10 @@ def run_pipeline(args: PipelineArgs) -> None:
         miscellaneous_collection.add(checksum)
         miscellaneous_collection.set_collection_vid()
 
-        checksum.set_coverage()
+        try:
+            checksum.set_coverage()
+        except NPBError as exc:
+            handle_npb_error(str(exc), setup=setup)
 
         # The miscellaneous_collection name is "miscellaneous" (PDS4 branch),
         # therefore, we do not log the step, as we do every other time we
@@ -502,7 +508,10 @@ def run_pipeline(args: PipelineArgs) -> None:
         #   checksum and the checksum includes the md5 hash of the
         #   Miscellaneous Collection Inventory.
         #
-        checksum.generate()
+        try:
+            checksum.generate()
+        except NPBError as exc:
+            handle_npb_error(str(exc), setup=setup)
         miscellaneous_collection.add(checksum)
 
     else:  # if setup.pds_version == "3":
@@ -523,7 +532,10 @@ def run_pipeline(args: PipelineArgs) -> None:
             )
         except NPBError as exc:
             handle_npb_error(str(exc), setup=setup)
-        checksum.generate()
+        try:
+            checksum.generate()
+        except NPBError as exc:
+            handle_npb_error(str(exc), setup=setup)
         miscellaneous_collection.add(checksum)
 
     #

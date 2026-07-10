@@ -1076,7 +1076,21 @@ class TestNPBErrorHandling:
                 target = getattr(target, attr)
             setattr(target, last, value)
 
-    # Each case: (dotted attribute overrides on `mocks`, mock attribute to fail, expected message).
+    @staticmethod
+    def _resolve(mocks, dotted_path):
+        # Walks a dotted path off `mocks` (e.g. "ChecksumProduct" for a
+        # construction-site failure, or "ChecksumProduct.return_value.generate"
+        # for a failure in a call on the constructed instance) and returns the
+        # mock at the end of it, so the caller can set .side_effect on it.
+        target = mocks
+        for attr in dotted_path.split('.'):
+            target = getattr(target, attr)
+        return target
+
+    # Each case: (dotted attribute overrides on `mocks`, dotted mock attribute
+    # to fail (resolved via `_resolve`, e.g. a bare class name for a
+    # construction-site failure, or "ChecksumProduct.return_value.generate"
+    # for a failure in a call on the constructed instance), expected message).
     @pytest.mark.parametrize('overrides, target_attr, message', [
         pytest.param(
             {'ReleasePlan.return_value.kernel_list': ['maven_2024.orb']},
@@ -1122,10 +1136,37 @@ class TestNPBErrorHandling:
             {'Setup.return_value.pds_version': '3'},
             'ChecksumProduct', 'boom checksum pds3', id='pds3_checksum',
         ),
+        # The four sites below are not construction calls but post-construction
+        # calls on an already-built ChecksumProduct (.generate()/.set_coverage()),
+        # which previously sat outside any try/except NPBError. Failing them
+        # exercises the same routing via the dotted
+        # "ChecksumProduct.return_value.<method>" path.
+        pytest.param(
+            {
+                'Setup.return_value.increment': True,
+                'isdir.return_value': False,
+                'Bundle.return_value.history': {'release_01': ('data', 'label')},
+            },
+            'ChecksumProduct.return_value.generate', 'boom release checksum generate',
+            id='release_checksum_generate',
+        ),
+        pytest.param(
+            {}, 'ChecksumProduct.return_value.set_coverage', 'boom checksum set_coverage',
+            id='misc_checksum_set_coverage',
+        ),
+        pytest.param(
+            {}, 'ChecksumProduct.return_value.generate', 'boom checksum generate',
+            id='misc_checksum_generate',
+        ),
+        pytest.param(
+            {'Setup.return_value.pds_version': '3'},
+            'ChecksumProduct.return_value.generate', 'boom checksum pds3 generate',
+            id='pds3_checksum_generate',
+        ),
     ])
     def test_npb_error_is_routed_to_handle_npb_error(self, mocks, overrides, target_attr, message):
         self._apply_overrides(mocks, overrides)
-        getattr(mocks, target_attr).side_effect = NPBError(message)
+        self._resolve(mocks, target_attr).side_effect = NPBError(message)
         args = _args()
 
         with pytest.raises(RuntimeError, match=message):
