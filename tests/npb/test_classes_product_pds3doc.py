@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
 
-from pds.naif_pds4_bundler.classes.product.product_pds3doc import PDS3DocumentProduct
+from pds.naif_pds4_bundler.classes.product import PDS3DocumentProduct
 
 # ---------------------------------------------------------------------------
 # Helpers / shared fixtures
@@ -14,15 +14,15 @@ from pds.naif_pds4_bundler.classes.product.product_pds3doc import PDS3DocumentPr
 
 # Get the directory where the data is located.
 DATA = Path(__file__).parent.parent / "naif_pds4_bundler" / "data" / "msl" / "mslsp_1000"
-DATA_2 = Path(__file__).parent.parent / "naif_pds4_bundler" / "data" / "msl"
 
 @pytest.fixture
 def mock_setup():
+    """Minimal mock setup object with attributes needed to avoid crashes."""
     setup = MagicMock()
-    setup.diff = True
-    setup.bundle_directory = str(DATA_2)
-    setup.working_directory = "/working"
-    setup.volume_id = "mslsp_1000"
+    setup.diff = "diff"
+    setup.bundle_directory = "/mock/bundle"
+    setup.working_directory = "/mock/work"
+    setup.volume_id = "FakeVOL_419"
     return setup
 
 @pytest.fixture
@@ -41,23 +41,45 @@ def mock_product():
 # ---------------------------------------------------------------------------
 
 MODULE = "pds.naif_pds4_bundler.classes.product.product_pds3doc"
+PRODUCT_INIT_PATH = "pds.naif_pds4_bundler.classes.product.product.Product.__init__"
+VALIDATE_PATH = "pds.naif_pds4_bundler.classes.product.product_pds3doc.PDS3DocumentProduct._validate"
+COMPARE_FILES_PATH = "pds.naif_pds4_bundler.classes.product.product_pds3doc.compare_files"
 
 # ---------------------------------------------------------------------------
 # PDSDocumentProduct.__init__ (pds_version 3)
 # ---------------------------------------------------------------------------
 
 class TestPDS3DocumentProductInit:
-    """Tests for __init__ with pds_version == '3'."""
+    """Tests for __init__ and _validate with pds_version == '3'."""
 
    #__init__
-    def test_init_handles_path_formatting(self, mock_setup):
-        """Test that path.split handles deep paths correctly for the file name."""
+    def test_new_product_when_files_differ(self, monkeypatch, mock_setup):
+        """Test that when compare_files returns True, product is marked as new."""
 
-        full_path = str(DATA/"errata.txt")
-        product = PDS3DocumentProduct(setup=mock_setup, path=full_path)
+        monkeypatch.setattr(PRODUCT_INIT_PATH, lambda self: None)
+        monkeypatch.setattr(VALIDATE_PATH, lambda self: None)
 
-        assert product.name == "errata.txt"
+        # Force compare_files to return True (files differ)
+        monkeypatch.setattr(COMPARE_FILES_PATH, lambda *args: True)
 
+        product = PDS3DocumentProduct(mock_setup, "/path/FakeVOL_419/doc.txt")
+
+        assert product.name == "doc.txt"
+        assert product.new_product is True
+
+    def test_not_new_product_when_files_match(self, monkeypatch, mock_setup):
+        """Test that when compare_files returns False, product is marked as not new."""
+
+        monkeypatch.setattr(PRODUCT_INIT_PATH, lambda self: None)
+        monkeypatch.setattr(VALIDATE_PATH, lambda self: None)
+
+        # Force compare_files to return False (files are the same)
+        monkeypatch.setattr(COMPARE_FILES_PATH, lambda *args: False)
+
+        product = PDS3DocumentProduct(mock_setup, "/path/FakeVOL_419/doc.txt")
+
+        assert product.name == "doc.txt"
+        assert product.new_product is False
 
     #_validate
     def test_validate_cat_success(self, mock_product, caplog):
