@@ -338,7 +338,8 @@ def get_context_products(setup):
 
     #
     # Overwrite the default context products with the ones provided in the
-    # configuration file.
+    # configuration file. Both "type" and "lidvid" are overwritten with the
+    # values given in the configuration file for the matched entry.
     #
     appended_products = []
     if hasattr(setup, "context_products"):
@@ -349,13 +350,25 @@ def get_context_products(setup):
         for product in context_products_list:
             if product:
                 updated_product = False
-                index = 0
                 for registered_product in context_products:
-                    if registered_product["name"][0] == product["@name"]:
+
+                    # Registered products are uniquely identified by name and
+                    # type together, not name alone, so matching on name only
+                    # would let one override overwrite the other. Type casing is
+                    # compared case-insensitively because the registry and
+                    # configs do not always agree on it. (name, type) is still
+                    # not guaranteed unique across the registry (e.g. ULYSSES
+                    # has both an ESA PSA and a NASA PDS "Mission" entry), so
+                    # stop at the first match -- otherwise every entry sharing
+                    # the key would get overwritten too.
+                    if (registered_product["name"][0] == product["@name"]
+                            and registered_product["type"][0].lower() == product["type"].lower()):
+
                         updated_product = True
-                        context_products[index]["type"] = [product["type"]]
-                        context_products[index]["lidvid"] = product["lidvid"]
-                    # index += 1
+                        registered_product["type"] = [product["type"]]
+                        registered_product["lidvid"] = product["lidvid"]
+                        break
+
                 if not updated_product:
                     appended_products.append(
                         {

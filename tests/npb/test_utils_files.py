@@ -810,6 +810,121 @@ def test_get_context_products_overwrite_and_append(tmp_path):
     assert obs_prod["type"] == ["Rover"]
     assert obs_prod["lidvid"] == "urn:nasa:pds:context:instrument_host:spacecraft.mars2020::1.3"
 
+
+def test_get_context_products_overwrite_updates_matched_entry():
+    """The override must land on the registered product that actually matches by
+    name, not on an unrelated entry. Uses override values that differ from the
+    registered defaults, so a version of the code that writes to the wrong
+    entry would leave this entry with its stale (pre-override) values and fail
+    the assertions."""
+    setup = MagicMock()
+    setup.mission_name = "MARS 2020"
+    setup.observer = "Perseverance"
+    setup.target = "MARS"
+
+    setup.context_products = {
+        "product": [
+            {"@name": "Perseverance", "type": "Rover", "lidvid": "urn:nasa:pds:context:instrument_host:spacecraft.mars2020::9.9"},
+        ]
+    }
+
+    result = files.get_context_products(setup)
+
+    obs_prod = next(cp for cp in result if cp["name"][0] == "Perseverance")
+    assert obs_prod["type"] == ["Rover"]
+    assert obs_prod["lidvid"] == "urn:nasa:pds:context:instrument_host:spacecraft.mars2020::9.9"
+
+
+def test_get_context_products_same_name_different_type():
+    """A mission and its own spacecraft/observer commonly share a name in real
+    configs (e.g. LADEE, MAVEN) but differ in type. Overriding one must not
+    clobber the other -- matching must be keyed on (name, type), not name
+    alone."""
+    setup = MagicMock()
+    setup.mission_name = "LADEE"
+    setup.observer = "LADEE"
+    setup.target = "MOON"
+
+    setup.context_products = {
+        "product": [
+            {"@name": "LADEE", "type": "Mission", "lidvid": "urn:nasa:pds:context:investigation:mission.ladee::1.3"},
+            {"@name": "LADEE", "type": "Spacecraft", "lidvid": "urn:nasa:pds:context:instrument_host:spacecraft.ladee::1.2"},
+        ]
+    }
+
+    result = files.get_context_products(setup)
+
+    ladee_entries = [cp for cp in result if cp["name"][0] == "LADEE"]
+    assert len(ladee_entries) == 2
+
+    mission = next(cp for cp in ladee_entries if cp["type"] == ["Mission"])
+    spacecraft = next(cp for cp in ladee_entries if cp["type"] == ["Spacecraft"])
+    assert mission["lidvid"] == "urn:nasa:pds:context:investigation:mission.ladee::1.3"
+    assert spacecraft["lidvid"] == "urn:nasa:pds:context:instrument_host:spacecraft.ladee::1.2"
+
+
+def test_get_context_products_type_match_is_case_insensitive():
+    """The registry and configs don't always agree on type casing (e.g. registry
+    stores MOON as 'SATELLITE', configs say 'Satellite'). A case-sensitive type
+    match would treat this as no match and append a spurious duplicate entry
+    instead of updating the existing one."""
+    setup = MagicMock()
+    setup.mission_name = "MISSION"
+    setup.observer = "OBSERVER"
+    setup.target = "MOON"
+
+    setup.context_products = {
+        "product": [
+            {"@name": "MOON", "type": "Satellite", "lidvid": "urn:nasa:pds:context:target:satellite.earth.moon::9.9"},
+        ]
+    }
+
+    result = files.get_context_products(setup)
+
+    moon_entries = [cp for cp in result if cp["name"][0] == "MOON"]
+    assert len(moon_entries) == 1
+    assert moon_entries[0]["lidvid"] == "urn:nasa:pds:context:target:satellite.earth.moon::9.9"
+
+
+def test_get_context_products_override_does_not_corrupt_other_matching_entries():
+    """(name, type) is not a unique key in the registry -- e.g. ULYSSES has both
+    an ESA PSA and a NASA PDS 'Mission' entry with different lidvids. Without a
+    break after the match is applied, the loop keeps scanning and overwrites
+    every registered entry sharing that key, not just the one it matched --
+    silently corrupting the other entry.
+
+    Which of the two registered entries the override lands on depends on their
+    order in the registry file, so this only asserts on the invariant that
+    must hold either way: exactly one of the two originally-registered
+    lidvids must survive untouched. A version of the code without the break
+    overwrites both, leaving zero original lidvids in the result."""
+    setup = MagicMock()
+    setup.mission_name = "ULYSSES"
+    setup.observer = "OBSERVER"
+    setup.target = "TARGET"
+
+    original_lidvids = {
+        "urn:esa:psa:context:investigation:mission.ulysses::1.0",
+        "urn:nasa:pds:context:investigation:mission.ulysses::1.0",
+    }
+    override_lidvid = "urn:nasa:pds:context:investigation:mission.ulysses::9.9"
+
+    setup.context_products = {
+        "product": [
+            {"@name": "ULYSSES", "type": "Mission", "lidvid": override_lidvid},
+        ]
+    }
+
+    result = files.get_context_products(setup)
+
+    mission_entries = [cp for cp in result if cp["name"][0] == "ULYSSES" and cp["type"] == ["Mission"]]
+    assert len(mission_entries) == 2
+
+    lidvids = {cp["lidvid"] for cp in mission_entries}
+    assert override_lidvid in lidvids
+    assert len(lidvids & original_lidvids) == 1
+
+
 def test_get_context_products_overwrite_and_append_2(tmp_path):
     """Test get_context_products using pytest. Default products match products via setup.context_products."""
     setup = MagicMock()
