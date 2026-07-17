@@ -352,22 +352,19 @@ def get_context_products(setup):
                 updated_product = False
                 for registered_product in context_products:
 
-                    # Registered products are uniquely identified by name and
-                    # type together, not name alone, so matching on name only
-                    # would let one override overwrite the other. Type casing is
-                    # compared case-insensitively because the registry and
-                    # configs do not always agree on it. (name, type) is still
-                    # not guaranteed unique across the registry (e.g. ULYSSES
-                    # has both an ESA PSA and a NASA PDS "Mission" entry), so
-                    # stop at the first match -- otherwise every entry sharing
-                    # the key would get overwritten too.
+                    # Match on both name and type (case-insensitively for type,
+                    # as registry and config casing may vary) rather than name
+                    # alone to make sure the right product is updated. Because a
+                    # (name, type) pair is not guaranteed unique across the
+                    # registry (e.g., ULYSSES has both an ESA PSA and a NASA
+                    # PDS "Mission" entry), continue the loop to ensure that all
+                    # entries for that same product are updated.
                     if (registered_product["name"][0] == product["@name"]
                             and registered_product["type"][0].lower() == product["type"].lower()):
 
                         updated_product = True
                         registered_product["type"] = [product["type"]]
                         registered_product["lidvid"] = product["lidvid"]
-                        break
 
                 if not updated_product:
                     appended_products.append(
