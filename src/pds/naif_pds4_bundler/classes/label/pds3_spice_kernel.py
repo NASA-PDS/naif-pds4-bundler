@@ -201,15 +201,8 @@ class SpiceKernelPDS3Label(PDSLabel):
             # Remove empty lines at the end of the kernel, add a new line
             # character in the last line.
             #
-            lines_to_remove = 0
-            for line in reversed(kernel_lines):
-                if not line.strip():
-                    lines_to_remove += 1
-                if line.strip():
-                    break
-            lines_to_remove *= -1
-            if lines_to_remove:
-                kernel_lines = kernel_lines[:lines_to_remove]
+            while kernel_lines and not kernel_lines[-1].strip():
+                kernel_lines.pop()
 
             #
             # Add kernel list to kernel.
