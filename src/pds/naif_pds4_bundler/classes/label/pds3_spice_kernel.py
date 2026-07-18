@@ -146,8 +146,9 @@ class SpiceKernelPDS3Label(PDSLabel):
                 desc += word
                 line_len = len(word)
 
-        if line_len < 77:
-            desc += ' "\n'
+        # Close the description value with a trailing space, closing quote,
+        # and newline.
+        desc += ' "\n'
 
         return desc
 
