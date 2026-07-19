@@ -116,10 +116,9 @@ class SpiceKernelsCollection(Collection):
             #
             # If the kernel already exists, it will not be generated.
             #
-            if (
-                (hasattr(self.setup, "mk"))
-                and (self.product)
-                and (self.setup.args.faucet != "labels")
+            if (hasattr(self.setup, "mk")
+                and self.product
+                and self.setup.args.faucet != "labels"
             ):
                 if (
                     len(self.setup.mk) == 1
@@ -406,14 +405,14 @@ class SpiceKernelsCollection(Collection):
         if non_labeled_products:
             logging.error("-- The following products have not been labeled:")
             for product in non_labeled_products:
-
                 logging.error('   %s', product)
 
-                # TODO: This IF statement goes after implementing PDS3 labeling.
-                if self.setup.pds_version == "4":
-                    handle_npb_error(
-                        "Some products have not been labeled.", setup=self.setup
-                    )
+            # PDS3 labeling is not yet implemented; termination is deferred
+            # until it is. For PDS4, all products must be labeled.
+            if self.setup.pds_version == "4":
+                handle_npb_error(
+                    "Some products have not been labeled.", setup=self.setup
+                )
 
         else:
             logging.info("   OK")
