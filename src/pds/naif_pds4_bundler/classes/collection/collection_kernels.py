@@ -379,22 +379,29 @@ class SpiceKernelsCollection(Collection):
 
         non_labeled_products = []
         for product in self.product:
-            if not os.path.exists(
-                self.setup.staging_directory
-                + ker_dir
-                + product.type
-                + os.sep
-                + product.name
-            ) or not os.path.exists(
-                self.setup.staging_directory
-                + ker_dir
-                + product.type
-                + os.sep
-                + product.name.split(".")[0]
-                + lbl_ext
+            # PDS3 meta-kernels (.tm) are not labeled; all other products in
+            # both PDS versions must have both a kernel file and a label file.
+            if (
+                not (self.setup.pds_version == "3" and ".tm" in product.name)
+                and (
+                    not os.path.exists(
+                        self.setup.staging_directory
+                        + ker_dir
+                        + product.type
+                        + os.sep
+                        + product.name
+                    )
+                    or not os.path.exists(
+                        self.setup.staging_directory
+                        + ker_dir
+                        + product.type
+                        + os.sep
+                        + product.name.split(".")[0]
+                        + lbl_ext
+                    )
+                )
             ):
-                if self.setup.pds_version == "3" and ".tm" not in product.name:
-                    non_labeled_products.append(product.name)
+                non_labeled_products.append(product.name)
 
         if non_labeled_products:
             logging.error("-- The following products have not been labeled:")

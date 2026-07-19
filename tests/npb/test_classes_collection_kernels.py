@@ -882,7 +882,6 @@ class TestSpiceKernelsCollectionValidate:
         prod = MagicMock()
         prod.type = "mk"
         prod.name = "test.tm"
-        prod.label.name = "/fake/staging/spice_kernels/mk/test.xml"
         obj = self._make_obj(pds_version="3", products=[prod])
 
         # Both exists calls return False → would be unlabeled, but .tm → excluded
