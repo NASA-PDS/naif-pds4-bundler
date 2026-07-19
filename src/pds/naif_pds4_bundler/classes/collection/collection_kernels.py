@@ -359,15 +359,14 @@ class SpiceKernelsCollection(Collection):
         if non_present_products:
             logging.error("-- The following products from the list are not present:")
             for product in non_present_products:
-
                 logging.error('   %s', product)
 
-                # TODO: this is a bug. The termination of the pipeline should happen
-                #       once all the "non_present_products" are reported.
-                handle_npb_error(
-                    "Some products from the list are not present.",
-                    setup=self.setup,
-                )
+            # Report all missing products before terminating so the user can
+            # address every gap in a single run.
+            handle_npb_error(
+                "Some products from the list are not present.",
+                setup=self.setup,
+            )
 
         else:
             logging.info("   OK")

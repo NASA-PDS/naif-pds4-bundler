@@ -803,6 +803,22 @@ class TestSpiceKernelsCollectionValidate:
 
         assert messages == expected
 
+    def test_multiple_non_present_products_all_reported_before_error(self, caplog):
+        """All missing products are logged before handle_npb_error is called."""
+        obj = self._make_obj(pds_version='4', kernel_list=["missing1.bc", "missing2.bsp"])
+        with caplog.at_level(logging.INFO), patch(_EXISTS, return_value=False):
+            with pytest.raises(RuntimeError, match='Some products from the list are not present.'):
+                obj.validate()
+
+        messages = [(r[1], r[2]) for r in caplog.record_tuples]
+
+        assert messages == [
+            (logging.INFO,  '-- Checking that all the kernels from list are present...'),
+            (logging.ERROR, '-- The following products from the list are not present:'),
+            (logging.ERROR, '   missing1.bc'),
+            (logging.ERROR, '   missing2.bsp'),
+            (logging.ERROR, '-- Some products from the list are not present.')]
+
 
     @pytest.mark.parametrize("products, exists", [
         # Product missing.
