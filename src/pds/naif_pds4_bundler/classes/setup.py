@@ -320,7 +320,7 @@ class Setup:
                 r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z"
             )
             time_format = "YYYY-MM-DDThh:mm:ss.sssZ"
-        elif self.date_format == "maklabel":
+        else:  # date_format == "maklabel"; the XSD allows no other value
 
             #
             # Warn the user if the End of Line character is not the one
@@ -645,18 +645,11 @@ class Setup:
             schemas_eval.sort(reverse=True)
             schemas = [schemas[i] for i in schemas_index]
 
-            i = 0
-            while i < len(schemas_eval):
-                if config_schema < schemas_eval[i]:
-                    try:
-                        schema = schemas[i - 1]
-                    except:
-                        # TODO: Code not reachable due to bug.
-                        schema = schemas[0]
-                if config_schema >= schemas_eval[i]:
+            schema = schemas[-1]  # oldest available; fallback if config predates all templates
+            for i, eval_val in enumerate(schemas_eval):
+                if config_schema >= eval_val:
                     schema = schemas[i]
                     break
-                i += 1
 
             templates_directory = f"{self.root_dir}templates/{schema}/"
         #

@@ -1178,10 +1178,9 @@ class TestSetupCheckConfiguration:
         (im_version(2, 1, 0, 0), 'https://example.com/PDS4_PDS_2100.sch',
          'https://pds.nasa.gov/pds4/pds/v1 https://example.com/PDS4_PDS_2100.xsd',
          im_version(2, 0, 0, 0)),
-        pytest.param(im_version(1, 0, 0, 0), 'https://example.com/PDS4_PDS_1000.sch',
-                     'https://pds.nasa.gov/pds4/pds/v1 https://example.com/PDS4_PDS_1000.xsd',
-                     im_version(1, 5, 0, 0),
-                     marks=pytest.mark.skip(reason='Fails due to bug'))])
+        (im_version(1, 0, 0, 0), 'https://example.com/PDS4_PDS_1000.sch',
+         'https://pds.nasa.gov/pds4/pds/v1 https://example.com/PDS4_PDS_1000.xsd',
+         im_version(1, 5, 0, 0))])
     def test_uses_closest_available_templates_when_exact_schema_is_unavailable(
             self, tmp_path, caplog, information_model, xml_model, schema_location,
             expected_template_version) -> None:
