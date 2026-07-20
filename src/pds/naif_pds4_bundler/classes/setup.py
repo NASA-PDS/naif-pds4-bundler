@@ -320,7 +320,7 @@ class Setup:
                 r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z"
             )
             time_format = "YYYY-MM-DDThh:mm:ss.sssZ"
-        elif self.date_format == "maklabel":
+        else:  # date_format == "maklabel"; the XSD allows no other value
 
             #
             # Warn the user if the End of Line character is not the one
