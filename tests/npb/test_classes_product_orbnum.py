@@ -8,6 +8,7 @@ import pytest
 
 from pds.naif_pds4_bundler.classes.product.product import Product
 from pds.naif_pds4_bundler.classes.product.product_orbnum import OrbnumFileProduct
+from pds.naif_pds4_bundler.classes.exceptions import NPBError
 
 MOD = 'pds.naif_pds4_bundler.classes.product.product_orbnum'
 
@@ -95,8 +96,8 @@ class TestOrbnumFileProductInit:
     def test_init_no_matching_pattern(self, mock_setup, mock_collection, mock_kernels_collection):
         """Test initialization fails if filename does not match pattern."""
         mock_setup.orbnum[0]["pattern"] = r"nomatch\.txt"
-        with pytest.raises(RuntimeError, match="The orbnum file does not match any type "
-                                               "described in the configuration."):
+        with pytest.raises(NPBError, match="The orbnum file does not match any type "
+                                           "described in the configuration."):
             OrbnumFileProduct(mock_setup, "test_file.orb", mock_collection, mock_kernels_collection)
 
     @patch.object(Product, "register")
@@ -311,7 +312,7 @@ class TestOrbnumFileProductReadHeader:
         obj = object.__new__(OrbnumFileProduct)
         obj.path = "/fake/path.orb"
         obj._orbnum_type = {"header_start_line": "2"}
-        
+
         header = obj.read_header()
 
         assert header[0] == "Event UTC PERI\n"
@@ -323,17 +324,17 @@ class TestOrbnumFileProductReadHeader:
         "Event UTC PERI\nNo separator here\n"
     ])
     def test_read_header_missing_separator(self, data):
-        """Test that RuntimeError is raised when the separator line lacks '==='."""
+        """Test that NPBError is raised when the separator line lacks '==='."""
         obj = object.__new__(OrbnumFileProduct)
         obj.path = "/fake/path.orb"
         obj.name = "test_file.orb"
         obj._orbnum_type = {"header_start_line": "1"}
         obj.setup = MagicMock()
 
-        with(
+        with (
             patch("builtins.open", new_callable=mock_open, read_data=data),
-            pytest.raises(RuntimeError, match="The header of the orbnum file test_file.orb "
-                                              "is not as expected.")):
+            pytest.raises(NPBError, match="The header of the orbnum file test_file.orb "
+                                          "is not as expected.")):
             obj.read_header()
 
 
@@ -373,7 +374,7 @@ class TestOrbnumFileProductGetSampleRecord:
         obj._orbnum_type = {"header_start_line": "1"}
         obj.setup = MagicMock()
 
-        with pytest.raises(RuntimeError, match="The orbnum file has no records."):
+        with pytest.raises(NPBError, match="The orbnum file has no records."):
             obj.get_sample_record()
 
 
@@ -394,7 +395,7 @@ class TestOrbnumFileProductReadRecords:
         obj.path = "test.orb"
         obj._orbnum_type = {"header_start_line": "1"}
         obj.record_fixed_length = 7
-        
+
         records = obj.read_records()
         assert records == 2
         assert obj.blank_records == []
@@ -541,7 +542,7 @@ class TestOrbnumFileProductSetEventDetectionKey:
         obj = object.__new__(OrbnumFileProduct)
         obj.setup = MagicMock()
         header = ["Invalid Header Line"]
-        with pytest.raises(RuntimeError, match="orbnum event detection key is incorrect."):
+        with pytest.raises(NPBError, match="orbnum event detection key is incorrect."):
             obj.set_event_detection_key(header)
 
 
@@ -555,7 +556,7 @@ class TestOrbnumFileProductGetParams:
 
 class TestOrbnumFileProductSetParams:
     """Test set_params (also implicitly tests event_mapping and opposite_event_mapping)."""
-    
+
     def test_set_params(self):
         obj = object.__new__(OrbnumFileProduct)
         obj._params = ["No.", "Event UTC", "SolLon"]
@@ -565,14 +566,14 @@ class TestOrbnumFileProductSetParams:
         obj.setup = MagicMock(target="MARS", information_model_float=1007000000.0)
 
         header = ["ignore", "===== ==================== ======="]
-        
+
         obj.set_params(header)
-        
+
         assert "No." in obj.params
         assert obj.params["Event UTC"]["name"] == "Event UTC PERI"
         assert "pericenter" in obj.params["Event UTC"]["description"] # from event_mapping
         assert obj.params["SolLon"]["format"] == "%7.3f"
-        
+
     def test_set_params_legacy_im(self):
         obj = object.__new__(OrbnumFileProduct)
         obj._params = ["No.", "SolLon"]
@@ -582,7 +583,7 @@ class TestOrbnumFileProductSetParams:
         obj.setup = MagicMock(target="MARS", information_model_float=1006000000.0)
 
         header = ["ignore", "===== ======="]
-        
+
         obj.set_params(header)
         assert obj.params["No."]["format"] == "I5"
         assert obj.params["SolLon"]["format"] == "F7.3"
@@ -738,7 +739,7 @@ class TestOrbnumFileProductCoverage:
         obj._orbnum_type = {"coverage": {"kernel": {"#text": "/path/test.bsp", "@cutoff": cutoff}}}
         obj.setup = MagicMock(spice_name="test_spice")
         mock_spk_coverage.return_value = ("2020-01-01T00:00:00Z", stop_time)
-        
+
         # Mock os.listdir to pretend kernel is found in the path
         with patch(f"{MOD}.os.listdir", return_value=["test.bsp"]):
             obj.coverage()
@@ -752,7 +753,7 @@ class TestOrbnumFileProductCoverage:
         obj._orbnum_type = {"coverage": {"lookup_table": {"file": [
             {"@name": "test.orb", "start": "start_time", "finish": "end_time"}
         ]}}}
-        
+
         obj.coverage()
         assert obj.start_time == "start_time"
         assert obj.stop_time == "end_time"
@@ -765,7 +766,7 @@ class TestOrbnumFileProductCoverage:
         obj._orbnum_type = {}
         obj._sample_record = "1 2020-01-01T00:00:00 data"
         obj.utc_blanks_to_dashes = MagicMock(return_value="1 2020-01-01T00:00:00 data 2020-01-02T00:00:00")
-        
+
         mock_parse_date.return_value = datetime.datetime(2020, 1, 1)
 
         with patch("builtins.open", mock_open(read_data=b"dummy\n1 2020-01-01T00:00:00 data 2020-01-02T00:00:00\n")) as m_open:

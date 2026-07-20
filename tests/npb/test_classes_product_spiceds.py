@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from pds.naif_pds4_bundler.classes.product.product_spiceds import SpicedsProduct
+from pds.naif_pds4_bundler.classes.exceptions import NPBError
 
 # Module path used as the anchor for every patch target.
 _MODULE = 'pds.naif_pds4_bundler.classes.product.product_spiceds'
@@ -222,53 +223,43 @@ class TestSpicedsProductInit:
     def test_init_increment_no_previous_with_spiceds_provided(self):
         # Increment but glob finds nothing, yet a spiceds is provided. The
         # empty-list [-1] raises IndexError -> the except branch sets version 1
-        # and empty latest_spiceds; handle_npb_error must NOT fire because a
-        # spiceds was supplied.
+        # and empty latest_spiceds; NPBError must NOT fire because a spiceds was
+        # supplied.
         setup = make_setup(increment=True, spiceds='/input/spiceds.html')
         collection = make_collection()
 
         patches = base_init_patches()
         with patch(f'{_MODULE}.glob.glob', return_value=[]), \
-                patch(f'{_MODULE}.handle_npb_error') as npb_error, \
                 patches[0], patches[1], patches[2], \
                 patches[3], patches[4], patches[5]:
             product = SpicedsProduct(setup, collection)
 
-        npb_error.assert_not_called()
         assert product.version == 1
         assert product.latest_spiceds == ''
         assert product.name == 'spiceds_v001.html'
 
     def test_init_increment_no_previous_no_spiceds_calls_handle_error(self):
-        # Increment, no previous version AND no 'spiceds' -> handle_npb_error.
-
-        # TODO: BUG, handle_npb_error is annotated NoReturn, so the constructor
-        #       assumes it never returns. However, the code does not enforce
-        #       this structurally: if handle_npb_error were to return, execution
-        #       would fall through to shutil.copy2(spiceds='', ...) and raise
-        #       FileNotFoundError instead of the intended npb error message.
+        # Increment, no previous version AND no 'spiceds' -> NPBError raised.
         setup = make_setup(increment=True, spiceds='')
         collection = make_collection()
 
-        with patch(f'{_MODULE}.glob.glob', return_value=[]), \
-                patch(f'{_MODULE}.handle_npb_error',
-                      side_effect=SystemExit) as npb_error:
-            with pytest.raises(SystemExit):
+        with patch(f'{_MODULE}.glob.glob', return_value=[]):
+            with pytest.raises(
+                NPBError,
+                match='spiceds not provided and not available from previous releases.',
+            ):
                 SpicedsProduct(setup, collection)
 
-        npb_error.assert_called_once()
-
     def test_init_no_increment_no_spiceds_calls_handle_error(self):
-        # No increment and no spiceds -> handle_npb_error on the else branch.
+        # No increment and no spiceds -> NPBError raised on the else branch.
         setup = make_setup(increment=False, spiceds='')
         collection = make_collection()
 
-        with patch(f'{_MODULE}.handle_npb_error',
-                   side_effect=SystemExit) as npb_error:
-            with pytest.raises(SystemExit):
-                SpicedsProduct(setup, collection)
-
-        npb_error.assert_called_once()
+        with pytest.raises(
+            NPBError,
+            match='spiceds not provided and not available from previous releases.',
+        ):
+            SpicedsProduct(setup, collection)
 
     def test_init_missing_spiceds_attribute_treated_as_empty(self):
         # If accessing setup.spiceds raises, the constructor's try/except
@@ -279,12 +270,11 @@ class TestSpicedsProductInit:
         del setup.spiceds
         collection = make_collection()
 
-        with patch(f'{_MODULE}.handle_npb_error',
-                   side_effect=SystemExit) as npb_error:
-            with pytest.raises(SystemExit):
-                SpicedsProduct(setup, collection)
-
-        npb_error.assert_called_once()
+        with pytest.raises(
+            NPBError,
+            match='spiceds not provided and not available from previous releases.',
+        ):
+            SpicedsProduct(setup, collection)
 
 
 # ---------------------------------------------------------------------------

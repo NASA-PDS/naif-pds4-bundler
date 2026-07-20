@@ -8,7 +8,7 @@ import shutil
 from datetime import date
 
 from .product import Product
-from ...pipeline.runtime import handle_npb_error
+from ..exceptions import NPBError
 from ...utils import add_carriage_return
 from ...utils import compare_files
 from ..label import DocumentPDS4Label
@@ -65,17 +65,9 @@ class SpicedsProduct(Product):
             except BaseException:
                 logging.warning("-- No previous version of spiceds_v*.html file found.")
                 if not spiceds:
-                    # TODO: BUG; handle_npb_error is annotated NoReturn but
-                    #      nothing in this code enforces that contract. If it
-                    #      were ever changed to return silently, execution would
-                    #      fall through to self.version = 1 and then
-                    #      shutil.copy2(spiceds='', ...) below, crashing with a
-                    #      confusing FileNotFoundError instead of the intended
-                    #      error message.
-                    handle_npb_error(
+                    raise NPBError(
                         "spiceds not provided and not available "
-                        "from previous releases.",
-                        setup=self.setup,
+                        "from previous releases."
                     )
                 self.version = 1
                 self.latest_spiceds = ""
@@ -83,9 +75,8 @@ class SpicedsProduct(Product):
             self.version = 1
             self.latest_spiceds = ""
             if not spiceds:
-                handle_npb_error(
-                    "spiceds not provided and not available from previous releases.",
-                    setup=self.setup,
+                raise NPBError(
+                    "spiceds not provided and not available from previous releases."
                 )
 
         #

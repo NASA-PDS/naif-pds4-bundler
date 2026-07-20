@@ -24,6 +24,7 @@ Phase → Test class mapping
  10  PDS3 path                           TestPhase10PDS3Path
  11  Staging recap + copy                TestPhase11StagingRecapAndCopy
  12  Final validation                    TestPhase12FinalValidation
+ 13  NPBError -> handle_npb_error routing TestNPBErrorHandling
 """
 from contextlib import ExitStack
 from pathlib import Path
@@ -33,6 +34,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from pds.naif_pds4_bundler.pipeline.npb import run_pipeline
+from pds.naif_pds4_bundler.classes.exceptions import NPBError
 from pds.naif_pds4_bundler.utils.types.datatypes import PipelineArgs
 
 # Imported to create specified mocks that pass isinstance checks in Phase 12.
@@ -1050,3 +1052,126 @@ class TestPhase12FinalValidation:
         run_pipeline(_args())
         _, log_arg = mocks.finish_execution.call_args[0]
         assert log_arg is mocks.Log.return_value
+
+
+# ---------------------------------------------------------------------------
+# Phase 13 - NPBError -> handle_npb_error routing
+# ---------------------------------------------------------------------------
+
+class TestNPBErrorHandling:
+    # Every direct product-construction call in run_pipeline is wrapped in a
+    # try/except that catches NPBError and forwards it to the *real*
+    # handle_npb_error (not mocked here), which performs cleanup -- writes the
+    # file list and checksum registry, removes template files, clears the SPICE
+    # kernel pool -- and then always raises RuntimeError with the same message.
+    # Each case forces one construction call to raise NPBError and asserts both
+    # that cleanup ran and that the RuntimeError carries the original message.
+
+    @staticmethod
+    def _apply_overrides(mocks, overrides):
+        for path, value in overrides.items():
+            *attrs, last = path.split('.')
+            target = mocks
+            for attr in attrs:
+                target = getattr(target, attr)
+            setattr(target, last, value)
+
+    @staticmethod
+    def _resolve(mocks, dotted_path):
+        # Walks a dotted path off `mocks` (e.g. "ChecksumProduct" for a
+        # construction-site failure, or "ChecksumProduct.return_value.generate"
+        # for a failure in a call on the constructed instance) and returns the
+        # mock at the end of it, so the caller can set .side_effect on it.
+        target = mocks
+        for attr in dotted_path.split('.'):
+            target = getattr(target, attr)
+        return target
+
+    # Each case: (dotted attribute overrides on `mocks`, dotted mock attribute
+    # to fail (resolved via `_resolve`, e.g. a bare class name for a
+    # construction-site failure, or "ChecksumProduct.return_value.generate"
+    # for a failure in a call on the constructed instance), expected message).
+    @pytest.mark.parametrize('overrides, target_attr, message', [
+        pytest.param(
+            {'ReleasePlan.return_value.kernel_list': ['maven_2024.orb']},
+            'OrbnumFileProduct', 'boom orbnum', id='orbnum_file_product',
+        ),
+        pytest.param(
+            {'ReleasePlan.return_value.kernel_list': ['maven_2024.bc']},
+            'SpiceKernelProduct', 'boom kernel', id='spice_kernel_product',
+        ),
+        pytest.param(
+            {'SpiceKernelsCollection.return_value.determine_meta_kernels.return_value': {'maven_v01.tm': None}},
+            'MetaKernelProduct', 'boom mk', id='meta_kernel_product',
+        ),
+        pytest.param(
+            {'SpiceKernelsCollection.return_value.updated': True},
+            'InventoryProduct', 'boom skc inventory', id='skc_inventory',
+        ),
+        pytest.param({}, 'SpicedsProduct', 'boom spiceds', id='spiceds_product'),
+        pytest.param(
+            {'SpicedsProduct.return_value.generated': True},
+            'InventoryProduct', 'boom doc inventory', id='doc_inventory',
+        ),
+        pytest.param(
+            {
+                'Setup.return_value.increment': True,
+                'isdir.return_value': False,
+                'Bundle.return_value.history': {'release_01': ('data', 'label')},
+            },
+            'ChecksumProduct', 'boom checksum backfill', id='release_checksum_backfill',
+        ),
+        pytest.param(
+            {
+                'Setup.return_value.increment': True,
+                'isdir.return_value': False,
+                'Bundle.return_value.history': {'release_01': ('data', 'label')},
+            },
+            'InventoryProduct', 'boom release misc inventory', id='release_misc_inventory',
+        ),
+        pytest.param({}, 'ChecksumProduct', 'boom checksum misc', id='misc_checksum'),
+        pytest.param({}, 'InventoryProduct', 'boom misc inventory', id='misc_inventory'),
+        pytest.param({}, 'ReadmeProduct', 'boom readme', id='readme_product'),
+        pytest.param(
+            {'Setup.return_value.pds_version': '3'},
+            'ChecksumProduct', 'boom checksum pds3', id='pds3_checksum',
+        ),
+        # The four sites below are not construction calls but post-construction
+        # calls on an already-built ChecksumProduct (.generate()/.set_coverage()),
+        # which previously sat outside any try/except NPBError. Failing them
+        # exercises the same routing via the dotted
+        # "ChecksumProduct.return_value.<method>" path.
+        pytest.param(
+            {
+                'Setup.return_value.increment': True,
+                'isdir.return_value': False,
+                'Bundle.return_value.history': {'release_01': ('data', 'label')},
+            },
+            'ChecksumProduct.return_value.generate', 'boom release checksum generate',
+            id='release_checksum_generate',
+        ),
+        pytest.param(
+            {}, 'ChecksumProduct.return_value.set_coverage', 'boom checksum set_coverage',
+            id='misc_checksum_set_coverage',
+        ),
+        pytest.param(
+            {}, 'ChecksumProduct.return_value.generate', 'boom checksum generate',
+            id='misc_checksum_generate',
+        ),
+        pytest.param(
+            {'Setup.return_value.pds_version': '3'},
+            'ChecksumProduct.return_value.generate', 'boom checksum pds3 generate',
+            id='pds3_checksum_generate',
+        ),
+    ])
+    def test_npb_error_is_routed_to_handle_npb_error(self, mocks, overrides, target_attr, message):
+        self._apply_overrides(mocks, overrides)
+        self._resolve(mocks, target_attr).side_effect = NPBError(message)
+        args = _args()
+
+        with pytest.raises(RuntimeError, match=message):
+            run_pipeline(args)
+
+        setup = mocks.Setup.return_value
+        setup.write_file_list.assert_called_once()
+        setup.write_checksum_registry.assert_called_once()

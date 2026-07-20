@@ -7,7 +7,7 @@ import shutil
 from typing import List
 
 from .product import Product
-from ...pipeline.runtime import handle_npb_error
+from ..exceptions import NPBError
 from ...utils.time import parse_date
 from ...utils import add_crs_to_file
 from ...utils import check_eol
@@ -54,10 +54,9 @@ class OrbnumFileProduct(Product):
                 self._pattern = orbnum_type["pattern"]
 
         if not hasattr(self, "_orbnum_type"):
-            handle_npb_error(
+            raise NPBError(
                 "The orbnum file does not match any type "
-                "described in the configuration.",
-                setup=self.setup,
+                "described in the configuration."
             )
 
         if self.setup.pds_version == "4":
@@ -252,15 +251,13 @@ class OrbnumFileProduct(Product):
         # for Descending and Ascending node events (Odyssey).
         #
         if ("Event" not in header[0]) and ("Node" not in header[0]):
-            handle_npb_error(
-                f"The header of the orbnum file {self.name} is not as expected.",
-                setup=self.setup,
+            raise NPBError(
+                f"The header of the orbnum file {self.name} is not as expected."
             )
 
         if "===" not in header[1]:
-            handle_npb_error(
-                f"The header of the orbnum file {self.name} is not as expected.",
-                setup=self.setup,
+            raise NPBError(
+                f"The header of the orbnum file {self.name} is not as expected."
             )
 
         #
@@ -319,7 +316,7 @@ class OrbnumFileProduct(Product):
                         break
 
         if not sample_record:
-            handle_npb_error("The orbnum file has no records.", setup=self.setup)
+            raise NPBError("The orbnum file has no records.")
 
         sample_record = self.utc_blanks_to_dashes(sample_record)
 
@@ -384,9 +381,8 @@ class OrbnumFileProduct(Product):
                     #       orbit_number = int(line.split()[0]). If the line is is blank
                     #       that statement will raise an IndexError.
                     if not line.strip():
-                        handle_npb_error(
-                            f"Orbnum record number {line} is blank.",
-                            setup=self.setup,
+                        raise NPBError(
+                            f"Orbnum record number {line} is blank."
                         )
                     elif (
                             line.strip() and records_length != self.record_fixed_length
@@ -399,7 +395,7 @@ class OrbnumFileProduct(Product):
                         blank_records.append(str(orbit_number))
 
                     # TODO: Fix. This line will always be True, otherwise the code
-                    #       would have raised an IndexError or executed `handle_npb_error`.
+                    #       would have raised an IndexError or executed `NPBError`.
                     if line.strip():
                         records += 1
 
@@ -549,7 +545,7 @@ class OrbnumFileProduct(Product):
                     self._event_detection_key = "D-NODE"
 
         if not hasattr(self, "_event_detection_key"):
-            handle_npb_error("orbnum event detection key is incorrect.", setup=self.setup)
+            raise NPBError("orbnum event detection key is incorrect.")
 
     # TODO: Is this method really needed?
     @staticmethod
@@ -885,7 +881,7 @@ class OrbnumFileProduct(Product):
                 # TODO: Remove `else` block: dead-code. The 'type' key in the hardcoded
                 #       dictionary has only three values.
                 else:
-                    handle_npb_error("Parameter type for ORBNUM file is incorrect.")
+                    raise NPBError("Parameter type for ORBNUM file is incorrect.")
             else:
                 if "ASCII_Real" in params_template[param]["type"]:
                     ascii_format = "F" + length + "." + param_length
@@ -897,7 +893,7 @@ class OrbnumFileProduct(Product):
 
                     # TODO: Remove `else` block: dead-code. The 'type' key in the hardcoded
                     #       dictionary has only three values.
-                    handle_npb_error("Parameter type for ORBNUM file is incorrect.")
+                    raise NPBError("Parameter type for ORBNUM file is incorrect.")
 
             #
             # Parameter number (column number)

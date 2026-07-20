@@ -3,12 +3,13 @@
 from os.path import isdir
 from pathlib import Path
 
-from .runtime import clear_run, finish_execution, log_step
+from .runtime import clear_run, finish_execution, handle_npb_error, log_step
 from .. import __version__
 from ..classes.bundle import Bundle
 from ..classes.collection import DocumentCollection
 from ..classes.collection import MiscellaneousCollection
 from ..classes.collection import SpiceKernelsCollection
+from ..classes.exceptions import NPBError
 from ..classes.list import KernelList
 from ..classes.log import Log
 from ..classes.plan import ReleasePlan
@@ -235,15 +236,21 @@ def run_pipeline(args: PipelineArgs) -> None:
             # because it might require to update the kernel list if the
             # orbnum file name is updated.
             #
-            miscellaneous_collection.add(
-                OrbnumFileProduct(
-                    setup, kernel, miscellaneous_collection, spice_kernels_collection
+            try:
+                miscellaneous_collection.add(
+                    OrbnumFileProduct(
+                        setup, kernel, miscellaneous_collection, spice_kernels_collection
+                    )
                 )
-            )
+            except NPBError as exc:
+                handle_npb_error(str(exc), setup=setup)
         elif ".tm" not in kernel.lower():
-            spice_kernels_collection.add(
-                SpiceKernelProduct(setup, kernel, spice_kernels_collection)
-            )
+            try:
+                spice_kernels_collection.add(
+                    SpiceKernelProduct(setup, kernel, spice_kernels_collection)
+                )
+            except NPBError as exc:
+                handle_npb_error(str(exc), setup=setup)
 
     #
     # * Generate the Meta-kernel(s).
@@ -252,9 +259,12 @@ def run_pipeline(args: PipelineArgs) -> None:
     meta_kernels = spice_kernels_collection.determine_meta_kernels()
     if meta_kernels:
         for mk in sorted(meta_kernels):
-            meta_kernel = MetaKernelProduct(
-                setup, mk, spice_kernels_collection, user_input=meta_kernels[mk]
-            )
+            try:
+                meta_kernel = MetaKernelProduct(
+                    setup, mk, spice_kernels_collection, user_input=meta_kernels[mk]
+                )
+            except NPBError as exc:
+                handle_npb_error(str(exc), setup=setup)
             if setup.pds_version == "4":
                 spice_kernels_collection.add(meta_kernel)
             else:
@@ -312,9 +322,12 @@ def run_pipeline(args: PipelineArgs) -> None:
             spice_kernels_collection.set_collection_vid()
 
         log_step(setup, title=f'Generation of {spice_kernels_collection.name} collection')
-        spice_kernels_collection_inventory = InventoryProduct(
-            setup, spice_kernels_collection
-        )
+        try:
+            spice_kernels_collection_inventory = InventoryProduct(
+                setup, spice_kernels_collection
+            )
+        except NPBError as exc:
+            handle_npb_error(str(exc), setup=setup)
         spice_kernels_collection.add(spice_kernels_collection_inventory)
 
     if setup.pds_version == "4":
@@ -328,7 +341,10 @@ def run_pipeline(args: PipelineArgs) -> None:
         # * Generate of SPICEDS document.
         #
         log_step(setup, title='Processing spiceds file')
-        spiceds = SpicedsProduct(setup, document_collection)
+        try:
+            spiceds = SpicedsProduct(setup, document_collection)
+        except NPBError as exc:
+            handle_npb_error(str(exc), setup=setup)
 
         #
         # * If the SPICEDS document is generated, generate the
@@ -340,7 +356,10 @@ def run_pipeline(args: PipelineArgs) -> None:
             document_collection.set_collection_vid()
 
             log_step(setup, title=f'Generation of {document_collection.name} collection')
-            document_collection_inventory = InventoryProduct(setup, document_collection)
+            try:
+                document_collection_inventory = InventoryProduct(setup, document_collection)
+            except NPBError as exc:
+                handle_npb_error(str(exc), setup=setup)
             document_collection.add(document_collection_inventory)
 
         #
@@ -371,10 +390,16 @@ def run_pipeline(args: PipelineArgs) -> None:
             if not isdir(checksum_dir):
                 for release in bundle.history.items():
                     log_step(setup, title='Generate checksum file')
-                    release_checksum = ChecksumProduct(
-                        setup, miscellaneous_collection, add_previous_checksum=False
-                    )
-                    release_checksum.generate(history=release)
+                    try:
+                        release_checksum = ChecksumProduct(
+                            setup, miscellaneous_collection, add_previous_checksum=False
+                        )
+                    except NPBError as exc:
+                        handle_npb_error(str(exc), setup=setup)
+                    try:
+                        release_checksum.generate(history=release)
+                    except NPBError as exc:
+                        handle_npb_error(str(exc), setup=setup)
 
                     #
                     # Initialize a miscellaneous collection for this previous
@@ -399,9 +424,12 @@ def run_pipeline(args: PipelineArgs) -> None:
                     # The release_miscellaneous_collection name is "miscellaneous"
                     # (PDS4 branch), therefore, we do not log the step, as we do
                     # every other time we generate an InventoryProduct.
-                    release_miscellaneous_collection_inventory = InventoryProduct(
-                        setup, release_miscellaneous_collection
-                    )
+                    try:
+                        release_miscellaneous_collection_inventory = InventoryProduct(
+                            setup, release_miscellaneous_collection
+                        )
+                    except NPBError as exc:
+                        handle_npb_error(str(exc), setup=setup)
 
                     release_miscellaneous_collection.add(
                         release_miscellaneous_collection_inventory
@@ -433,7 +461,10 @@ def run_pipeline(args: PipelineArgs) -> None:
         #      updated.
         #
         log_step(setup, title='Generate checksum file')
-        checksum = ChecksumProduct(setup, miscellaneous_collection)
+        try:
+            checksum = ChecksumProduct(setup, miscellaneous_collection)
+        except NPBError as exc:
+            handle_npb_error(str(exc), setup=setup)
 
         #
         # Before adding the checksum to the current collection
@@ -446,21 +477,30 @@ def run_pipeline(args: PipelineArgs) -> None:
         miscellaneous_collection.add(checksum)
         miscellaneous_collection.set_collection_vid()
 
-        checksum.set_coverage()
+        try:
+            checksum.set_coverage()
+        except NPBError as exc:
+            handle_npb_error(str(exc), setup=setup)
 
         # The miscellaneous_collection name is "miscellaneous" (PDS4 branch),
         # therefore, we do not log the step, as we do every other time we
         # generate an InventoryProduct.
-        miscellaneous_collection_inventory = InventoryProduct(
-            setup, miscellaneous_collection
-        )
+        try:
+            miscellaneous_collection_inventory = InventoryProduct(
+                setup, miscellaneous_collection
+            )
+        except NPBError as exc:
+            handle_npb_error(str(exc), setup=setup)
         miscellaneous_collection.add(miscellaneous_collection_inventory)
 
         #
         # * Generate the Bundle label and if necessary the readme file.
         #
         log_step(setup, title='Generation of bundle products')
-        bundle.readme = ReadmeProduct(setup, bundle)
+        try:
+            bundle.readme = ReadmeProduct(setup, bundle)
+        except NPBError as exc:
+            handle_npb_error(str(exc), setup=setup)
 
         #
         # * Generate the Checksum product a posteriori in such a way
@@ -468,7 +508,10 @@ def run_pipeline(args: PipelineArgs) -> None:
         #   checksum and the checksum includes the md5 hash of the
         #   Miscellaneous Collection Inventory.
         #
-        checksum.generate()
+        try:
+            checksum.generate()
+        except NPBError as exc:
+            handle_npb_error(str(exc), setup=setup)
         miscellaneous_collection.add(checksum)
 
     else:  # if setup.pds_version == "3":
@@ -483,10 +526,16 @@ def run_pipeline(args: PipelineArgs) -> None:
         bundle.add(miscellaneous_collection)
 
         log_step(setup, title='Generate checksum file')
-        checksum = ChecksumProduct(
-            setup, miscellaneous_collection, add_previous_checksum=False
-        )
-        checksum.generate()
+        try:
+            checksum = ChecksumProduct(
+                setup, miscellaneous_collection, add_previous_checksum=False
+            )
+        except NPBError as exc:
+            handle_npb_error(str(exc), setup=setup)
+        try:
+            checksum.generate()
+        except NPBError as exc:
+            handle_npb_error(str(exc), setup=setup)
         miscellaneous_collection.add(checksum)
 
     #

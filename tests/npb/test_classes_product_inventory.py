@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, mock_open, patch
 import pytest
 
 from pds.naif_pds4_bundler.classes.product.product_inventory import InventoryProduct
+from pds.naif_pds4_bundler.classes.exceptions import NPBError
 
 # ---------------------------------------------------------------------------
 # Helpers / shared fixtures
@@ -416,8 +417,7 @@ class TestInventoryProductWritePds3IndexProduct:
 
         m = mock_open()
         with patch("builtins.open", m), \
-             patch(f"{MODULE}.type_to_extension", return_value=("CK", ".bc")), \
-             patch(f"{MODULE}.handle_npb_error"):
+             patch(f"{MODULE}.type_to_extension", return_value=("CK", ".bc")):
             obj.write_pds3_index_product()
 
         handle = m()
@@ -429,8 +429,7 @@ class TestInventoryProductWritePds3IndexProduct:
         obj = self._make_obj()
 
         m = mock_open()
-        with patch("builtins.open", m), \
-             patch(f"{MODULE}.handle_npb_error"):
+        with patch("builtins.open", m):
             obj.write_pds3_index_product()
 
         assert obj.rows == 1
@@ -450,9 +449,9 @@ class TestInventoryProductWritePds3IndexProduct:
         with patch("builtins.open", m), \
              patch(f"{MODULE}.add_carriage_return", side_effect=lambda l, eol, s: l), \
              patch(f"{MODULE}.type_to_extension", return_value=("CK", ".bc")):
-            with pytest.raises(RuntimeError, match='The index file is incomplete since no binary '
-                                                   'kernel is present in the archive.'):
-                # No rows written; handle_npb_error triggered for empty index
+            with pytest.raises(NPBError, match='The index file is incomplete since no binary '
+                                                'kernel is present in the archive.'):
+                # No rows written; NPBError raised for empty index
                 obj.write_pds3_index_product()
 
     @pytest.mark.parametrize('rows, existing_index', [
@@ -510,8 +509,7 @@ class TestInventoryProductWritePds3IndexProduct:
 
         with patch("builtins.open", side_effect=open_side_effect), \
              patch(f"{MODULE}.add_carriage_return", side_effect=lambda l, eol, s: l), \
-             patch(f"{MODULE}.type_to_extension", return_value=("CK", ".bc")), \
-             patch(f"{MODULE}.handle_npb_error"):
+             patch(f"{MODULE}.type_to_extension", return_value=("CK", ".bc")):
             obj.write_pds3_index_product()
 
         assert obj.rows == rows
@@ -525,8 +523,7 @@ class TestInventoryProductWritePds3IndexProduct:
         m = mock_open()
         with patch("builtins.open", m), \
              patch(f"{MODULE}.add_carriage_return", side_effect=lambda l, eol, s: l), \
-             patch(f"{MODULE}.type_to_extension", return_value=("CK", ".bc")), \
-             patch(f"{MODULE}.handle_npb_error"):
+             patch(f"{MODULE}.type_to_extension", return_value=("CK", ".bc")):
             obj.write_pds3_index_product()
 
         assert len(obj.file_types) == 1

@@ -6,7 +6,7 @@ import shutil
 import spiceypy
 
 from .product import Product
-from ...pipeline.runtime import handle_npb_error
+from ..exceptions import NPBError
 from ...utils import ck_coverage
 from ...utils import dsk_coverage
 from ...utils import extension_to_type
@@ -122,7 +122,7 @@ class SpiceKernelProduct(Product):
             # If after the two loops the file is not present raise an error.
             #
             if not origin_path:
-                handle_npb_error(f"{self.name} not present in {directory}.", setup=setup)
+                raise NPBError(f"{self.name} not present in {directory}.")
 
             shutil.copy2(origin_path, product_path + os.sep + self.name)
 
@@ -212,9 +212,8 @@ class SpiceKernelProduct(Product):
                     break
 
         if not description:
-            handle_npb_error(
-                f"{self.name} does not have a DESCRIPTION on {kernel_list_file}.",
-                setup=self.setup,
+            raise NPBError(
+                f"{self.name} does not have a DESCRIPTION on {kernel_list_file}."
             )
 
         return description
@@ -246,9 +245,8 @@ class SpiceKernelProduct(Product):
                     get_token = False
 
         if not maklabel_options:
-            handle_npb_error(
-                f"{self.name} does not have a MAKLABEL_OPTIONS on {kernel_list_file}.",
-                setup=self.setup,
+            raise NPBError(
+                f"{self.name} does not have a MAKLABEL_OPTIONS on {kernel_list_file}."
             )
 
         return maklabel_options
