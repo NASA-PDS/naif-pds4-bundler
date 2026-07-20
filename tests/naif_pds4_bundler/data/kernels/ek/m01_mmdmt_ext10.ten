@@ -1,0 +1,856 @@
+
+\header
+
+
+ENTRY_TIME  =   2007 JAN 10 09:34:19           
+AUTHOR  =  Anderson, Keith 
+START_TIME  =   2007 JAN 02 00:00:00           
+INSTITUTION  =  JPL 
+SYSTEM_NAME  =  MMDMT 
+\text
+
+
+   DSN MORNING REPORT SUMMARY FOR DOY: 002 OF YEAR: 2007
+
+   DSS  Project  Activity               AOS   LOS   DR/Comments
+   ===  =======  =====================  ====  ====  =======================
+   43   M01      MH22 0000UN003         1805  0655  C105446 C105445
+   63   M01      MDX2                   0655  1425
+
+
+   No DRs for this day...
+
+
+
+
+\header
+
+
+ENTRY_TIME  =   2007 JAN 10 09:35:16           
+AUTHOR  =  Anderson, Keith 
+START_TIME  =   2007 JAN 03 00:00:00           
+INSTITUTION  =  JPL 
+SYSTEM_NAME  =  MMDMT 
+\text
+
+
+   DSN MORNING REPORT SUMMARY FOR DOY: 003 OF YEAR: 2007
+
+   DSS  Project  Activity               AOS   LOS   DR/Comments
+   ===  =======  =====================  ====  ====  =======================
+   43   M01      MK12 0200DN008         1805  0655
+   55   M01      MI21 0925UN003         0655  1420  M104029
+
+   DRs:
+
+   Id #     Project  Dss  Reference  Status          Cause
+   =========================================================================
+   M104029  M01      55   003/0655   Entere          Software/MCD3-4
+
+   
+   Mcd3-4 not locking up telemetry. At Bot suspected Low Elevation
+   issue during 3way with Dss43, but at 1way swapped to Mcd3-2 (Tlp3)
+   having telemetry lock.
+   
+   TLM     LOST          32
+   
+   
+
+
+   Id #     Project  Dss  Reference  Status          Cause
+   =========================================================================
+   C105446  M01      43   003/0036   Closed          Procedural
+
+   
+   No Ranging Pre-Cal done. Used Station Delay of 0 and Rng Cal Done
+   Post Past.  STDL = 5217.635
+   
+   RNG     REC          354
+   
+   
+
+
+   Id #     Project  Dss  Reference  Status          Cause
+   =========================================================================
+   C105445  M01      43   003/0638   Entered         Link
+
+   
+   Intermittant TLM Lock due Link Margin (EL=10, SNT=47.6, Ssnr =
+   -1.25)
+   
+   TLM     DEG           17
+   
+   
+
+
+
+
+
+\header
+
+
+ENTRY_TIME  =   2007 JAN 10 09:35:50           
+AUTHOR  =  Anderson, Keith 
+START_TIME  =   2007 JAN 04 00:00:00           
+INSTITUTION  =  JPL 
+SYSTEM_NAME  =  MMDMT 
+\text
+
+
+   DSN MORNING REPORT SUMMARY FOR DOY: 004 OF YEAR: 2007
+
+   DSS  Project  Activity               AOS   LOS   DR/Comments
+   ===  =======  =====================  ====  ====  =======================
+   26   M01      MN11                   1410  2220  G107368
+   43   M01      MOX2                   2200  0655
+   55   M01      MLX1                   0655  1420
+
+   DRs:
+
+   Id #     Project  Dss  Reference  Status          Cause
+   =========================================================================
+   G107368  M01      26   004/2140   Closed          Dependency/
+
+   
+   Antenna momentarily stopped tracking. All UPS enunciators alarmed
+   for approximately five seconds. The complex had been attempting to
+   configure for generator power due to high winds. Regained control
+   of antenna and commanded back to point. All data processing back
+   to nominal.
+   
+   TLM     LOST           1
+   DOP2    LOST           1
+   RNG     LOST           6
+   
+   
+
+
+
+
+
+\header
+
+
+ENTRY_TIME  =   2007 JAN 10 09:36:36           
+AUTHOR  =  Anderson, Keith 
+START_TIME  =   2007 JAN 05 00:00:00           
+INSTITUTION  =  JPL 
+SYSTEM_NAME  =  MMDMT 
+\text
+
+
+   DSN MORNING REPORT SUMMARY FOR DOY: 005 OF YEAR: 2007
+
+   DSS  Project  Activity               AOS   LOS   DR/Comments
+   ===  =======  =====================  ====  ====  =======================
+   43   M01      MS12 0200DN008         1805  0450
+   63   M01      MP12 1055DN008         0655  1425
+
+
+   No DRs for this day...
+
+
+
+
+\header
+
+
+ENTRY_TIME  =   2007 JAN 10 09:37:47           
+AUTHOR  =  Anderson, Keith 
+START_TIME  =   2007 JAN 06 00:00:00           
+INSTITUTION  =  JPL 
+SYSTEM_NAME  =  MMDMT 
+\text
+
+
+   DSN MORNING REPORT SUMMARY FOR DOY: 006 OF YEAR: 2007
+
+   DSS  Project  Activity               AOS   LOS   DR/Comments
+   ===  =======  =====================  ====  ====  =======================
+   43   M01      MWX2                   1805  0655
+   55   M01      MT11                   0700  1425
+
+
+   No DRs for this day...
+
+
+
+
+\header
+
+
+ENTRY_TIME  =   2007 JAN 10 09:38:37           
+AUTHOR  =  Anderson, Keith 
+START_TIME  =   2007 JAN 07 00:00:00           
+INSTITUTION  =  JPL 
+SYSTEM_NAME  =  MMDMT 
+\text
+
+
+   DSN MORNING REPORT SUMMARY FOR DOY: 007 OF YEAR: 2007
+
+   DSS  Project  Activity               AOS   LOS   DR/Comments
+   ===  =======  =====================  ====  ====  =======================
+   43   M01      MKX2                   1805  0655  C105454
+   63   M01      MY12                   0700  1345
+
+
+   No DRs for this day...
+
+
+
+
+\header
+
+
+ENTRY_TIME  =   2007 JAN 10 09:39:20           
+AUTHOR  =  Anderson, Keith 
+START_TIME  =   2007 JAN 08 00:00:00           
+INSTITUTION  =  JPL 
+SYSTEM_NAME  =  MMDMT 
+\text
+
+
+   DSN MORNING REPORT SUMMARY FOR DOY: 008 OF YEAR: 2007
+
+   DSS  Project  Activity               AOS   LOS   DR/Comments
+   ===  =======  =====================  ====  ====  =======================
+   26   M01      MC12                   1400  1830
+   43   M01      MMX2                   1810  2045
+   45   M01      MD12 2100DN012         1810  0610
+   54   M01      MAX2                   0655  1145
+
+   DRs:
+
+   Id #     Project  Dss  Reference  Status          Cause
+   =========================================================================
+   C105454  M01      43   008/0634   Entered         Link
+
+   
+   RS and FS dropping in and out of lock as LOS horizon was
+   approached. SSNR at ~-3dB, SNT 52ºK, SR of 132722sps. No
+   corrective action possible.
+   
+   TLM     DEG           21
+   
+   
+
+
+
+
+
+\header
+
+
+ENTRY_TIME  =   2007 JAN 10 09:40:07           
+AUTHOR  =  Anderson, Keith 
+START_TIME  =   2007 JAN 09 00:00:00           
+INSTITUTION  =  JPL 
+SYSTEM_NAME  =  MMDMT 
+\text
+
+
+   DSN MORNING REPORT SUMMARY FOR DOY: 009 OF YEAR: 2007
+
+   DSS  Project  Activity               AOS   LOS   DR/Comments
+   ===  =======  =====================  ====  ====  =======================
+   14   M01      ME12                   1405  1820
+   43   M01      MF12 2100DN008         1800  0650
+   54   M01      MLX2                   0655  1235
+
+
+   No DRs for this day...
+
+
+
+
+\header
+
+
+ENTRY_TIME  =   2007 JAN 18 06:14:34           
+AUTHOR  =  Anderson, Keith 
+START_TIME  =   2007 JAN 10 00:00:00           
+INSTITUTION  =  JPL 
+SYSTEM_NAME  =  MMDMT 
+\text
+
+
+   DSN MORNING REPORT SUMMARY FOR DOY: 010 OF YEAR: 2007
+
+   DSS  Project  Activity               AOS   LOS   DR/Comments
+   ===  =======  =====================  ====  ====  =======================
+   25   M01      MH12                   1645  1820
+   26   M01      MH12                   1405  1800  G107400
+   43   M01      MI12 2120DN008         1800  0335  C105457
+   55   M01      MG12 1105DN008         0710  1415  M104045
+
+   DRs:
+
+   Id #     Project  Dss  Reference  Status          Cause
+   =========================================================================
+   C105457  M01      43   010/1733   Entered         Software/DCC2
+
+   lost RRP interface, with the same symptoms that
+   DCC6/RRP6 has been experiencing of late. Waited until range cal
+   completed successfully. Started low level intervention to restore
+   communication. Software restart (shell in and dcc_start), removed
+   DCC2 from link followed by placing back in link. Tried hard reset
+   at RRP. Finally tip'd in at DMT and did shutdown of DCC.
+   
+   
+   
+
+
+   Id #     Project  Dss  Reference  Status          Cause
+   =========================================================================
+   M104045  M01      55   010/0853   Entered         Hardware/FEG
+
+   
+   LATE ENTRY. Unexpected coolant flow drop caused interlock open and
+   uplink lost for six minutes from 0853-0859z. Wait for alarm to
+   clear, then reinitiate uplink MAQ.
+   
+   CMD     LOST           8
+   DOP2    LOST           8
+   RNG     LOST          46
+   
+
+
+   Id #     Project  Dss  Reference  Status          Cause
+   =========================================================================
+   G107400  M01      26   010/1637   Entere          Hardware/X20KW
+
+   
+   TXR vacuum over current interlock present. Unable to continue
+   uplink activities. Command session had been completed. Continued
+   in downlink only mode when applicable. Other data recoverable from
+   DSS25 and DSS43.
+   
+   TLM     LOST           4
+   DOP2    REC           19
+   DOP2    DEG           14
+   DOP2    LOST           4
+   RNG     LOST         103
+   
+   
+
+
+
+
+
+\header
+
+
+ENTRY_TIME  =   2007 JAN 18 06:15:19           
+AUTHOR  =  Anderson, Keith 
+START_TIME  =   2007 JAN 11 00:00:00           
+INSTITUTION  =  JPL 
+SYSTEM_NAME  =  MMDMT 
+\text
+
+
+   DSN MORNING REPORT SUMMARY FOR DOY: 011 OF YEAR: 2007
+
+   DSS  Project  Activity               AOS   LOS   DR/Comments
+   ===  =======  =====================  ====  ====  =======================
+   25   M01      ML21 1630UN006         1405  2210
+   43   M01      MMX2                   1750  0650
+   55   M01      MJ12                   0655  1410  M104047
+
+   DRs:
+
+   Id #     Project  Dss  Reference  Status          Cause
+   =========================================================================
+   M104047  M01      55   011/0751   Entere          Hardware/WGC
+
+   
+   TXR kick-off. Reflected power interlock open. Microwave coolant
+   system leakage. Equipment passed on to maintenance people.
+   
+   DOP2    LOST         379
+   RNG     LOST         379
+
+
+
+
+
+\header
+
+
+ENTRY_TIME  =   2007 JAN 18 06:16:05           
+AUTHOR  =  Anderson, Keith 
+START_TIME  =   2007 JAN 12 00:00:00           
+INSTITUTION  =  JPL 
+SYSTEM_NAME  =  MMDMT 
+\text
+
+
+   DSN MORNING REPORT SUMMARY FOR DOY: 012 OF YEAR: 2007
+
+   DSS  Project  Activity               AOS   LOS   DR/Comments
+   ===  =======  =====================  ====  ====  =======================
+   14   M01      MP12                   1615  1820
+   45   M01      MR12 2130DN012         1800  0135
+   63   M01      MNX2                   0655  1420
+
+
+   No DRs for this day...
+
+
+
+
+\header
+
+
+ENTRY_TIME  =   2007 JAN 18 06:16:51           
+AUTHOR  =  Anderson, Keith 
+START_TIME  =   2007 JAN 13 00:00:00           
+INSTITUTION  =  JPL 
+SYSTEM_NAME  =  MMDMT 
+\text
+
+
+   DSN MORNING REPORT SUMMARY FOR DOY: 013 OF YEAR: 2007
+
+   DSS  Project  Activity               AOS   LOS   DR/Comments
+   ===  =======  =====================  ====  ====  =======================
+   14   M01      MU12                   1400  1810
+   43   M01      MW12 2120DN008         1750  0650
+   55   M01      MTX2                   0650  1420
+
+
+   No DRs for this day...
+
+
+
+
+\header
+
+
+ENTRY_TIME  =   2007 JAN 18 06:17:37           
+AUTHOR  =  Anderson, Keith 
+START_TIME  =   2007 JAN 14 00:00:00           
+INSTITUTION  =  JPL 
+SYSTEM_NAME  =  MMDMT 
+\text
+
+
+   DSN MORNING REPORT SUMMARY FOR DOY: 014 OF YEAR: 2007
+
+   DSS  Project  Activity               AOS   LOS   DR/Comments
+   ===  =======  =====================  ====  ====  =======================
+   14   M01      MLX2                   1615  2205
+   25   M01      TKG PASS               1400  1725
+   45   M01      MPX2                   2335  0420
+   54   M01      MYX2                   0650  1140
+
+   DRs:
+
+   Id #     Project  Dss  Reference  Status          Cause
+   =========================================================================
+   G107408  M01      25   014/1425   Entere          Hardware/X20KW
+
+   
+   Unable to provide Uplink acquisition due to a Motor generator (MG)
+   overload causing the X20Kw transmitter status Red.
+   
+   DOP2    LOST         130
+   RNG     LOST         120
+   
+
+
+
+
+
+\header
+
+
+ENTRY_TIME  =   2007 JAN 18 06:18:23           
+AUTHOR  =  Anderson, Keith 
+START_TIME  =   2007 JAN 15 00:00:00           
+INSTITUTION  =  JPL 
+SYSTEM_NAME  =  MMDMT 
+\text
+
+
+   DSN MORNING REPORT SUMMARY FOR DOY: 015 OF YEAR: 2007
+
+   DSS  Project  Activity               AOS   LOS   DR/Comments
+   ===  =======  =====================  ====  ====  =======================
+   26   M01      MD22 1920UN003         1435  2210
+   43   M01      MQX2                   0400  0650
+   45   M01      MEX2                   2150  0250
+   54   M01      MA12                   0815  1410  M104062
+
+   DRs:
+
+   Id #     Project  Dss  Reference  Status          Cause
+   =========================================================================
+   M104062  M01      54   015/0815   Entere          Software/MCD3-3
+
+   
+   Late TLM lock. DCC6/MCD3 acq failed at BOT. Interface NOGO.
+   Boot/Re-init
+   
+   TLM     LOST           8
+   
+
+
+
+
+
+\header
+
+
+ENTRY_TIME  =   2007 JAN 18 06:19:09           
+AUTHOR  =  Anderson, Keith 
+START_TIME  =   2007 JAN 16 00:00:00           
+INSTITUTION  =  JPL 
+SYSTEM_NAME  =  MMDMT 
+\text
+
+
+   DSN MORNING REPORT SUMMARY FOR DOY: 016 OF YEAR: 2007
+
+   DSS  Project  Activity               AOS   LOS   DR/Comments
+   ===  =======  =====================  ====  ====  =======================
+   25   M01      MI11                   1400  1750
+   45   M01      MJX2                   1755  0645  C105472
+   54   M01      MF12 0805DN012         0650  1410
+
+   DRs:
+
+   Id #     Project  Dss  Reference  Status          Cause
+   =========================================================================
+   C105472  M01      45   016/2334   Entered         Hardware/ASC
+
+   EL BRAKES SET.  ASC was re-initialised
+   ok; antenna returned to point, good SSNR's/lock regained on DCC.
+   
+   TLM     DEG            4
+   
+   
+
+
+
+
+
+\header
+
+
+ENTRY_TIME  =   2007 JAN 22 06:08:37           
+AUTHOR  =  Anderson, Keith 
+START_TIME  =   2007 JAN 19 00:00:00           
+INSTITUTION  =  JPL 
+SYSTEM_NAME  =  MMDMT 
+\text
+
+
+   DSN MORNING REPORT SUMMARY FOR DOY: 019 OF YEAR: 2007
+
+   DSS  Project  Activity               AOS   LOS   DR/Comments
+   ===  =======  =====================  ====  ====  =======================
+   15   M01      MVX2                   1400  1705
+   26   M01      MPX2          DD       1845  2045
+   43   M01      MW12 2115DN80ADD       1750  0515
+   55   M01      MB22 1230UN003         1035  1415
+   63   M01      MU12                   0650  1055
+
+
+   No DRs for this day...
+
+
+
+
+\header
+
+
+ENTRY_TIME  =   2007 JAN 22 06:09:22           
+AUTHOR  =  Anderson, Keith 
+START_TIME  =   2007 JAN 20 00:00:00           
+INSTITUTION  =  JPL 
+SYSTEM_NAME  =  MMDMT 
+\text
+
+
+   DSN MORNING REPORT SUMMARY FOR DOY: 020 OF YEAR: 2007
+
+   DSS  Project  Activity               AOS   LOS   DR/Comments
+   ===  =======  =====================  ====  ====  =======================
+   15   M01      MDX2                   1400  1805
+   26   M01      MN22                   1850  2205
+   43   M01      MMX2                   1750  0645
+   63   M01      MK22 1030UN003         0645  1415
+
+
+   No DRs for this day...
+
+
+
+
+\header
+
+
+ENTRY_TIME  =   2007 JAN 29 06:38:29           
+AUTHOR  =  Anderson, Keith 
+START_TIME  =   2007 JAN 23 00:00:00           
+INSTITUTION  =  JPL 
+SYSTEM_NAME  =  MMDMT 
+\text
+
+
+   DSN MORNING REPORT SUMMARY FOR DOY: 023 OF YEAR: 2007
+
+   DSS  Project  Activity               AOS   LOS   DR/Comments
+   ===  =======  =====================  ====  ====  =======================
+   25   M01      MH12                   1515  2200
+   43   M01      MIX2                   1745  0640  C105483, C105484
+   63   M01      MEX2                   0645  1400
+
+   DRs:
+
+   Id #     Project  Dss  Reference  Status          Cause
+   =========================================================================
+   C105483  M01      43   023/1745   Entered         Software/ACA
+
+   
+   Cannot display any antenna displays.  AR112144 refers; antenna
+   tracking ok and will require a re-boot postpass to regain display
+   control.
+   
+   
+
+
+
+
+
+\header
+
+
+ENTRY_TIME  =   2007 JAN 29 06:39:14           
+AUTHOR  =  Anderson, Keith 
+START_TIME  =   2007 JAN 24 00:00:00           
+INSTITUTION  =  JPL 
+SYSTEM_NAME  =  MMDMT 
+\text
+
+
+   DSN MORNING REPORT SUMMARY FOR DOY: 024 OF YEAR: 2007
+
+   DSS  Project  Activity               AOS   LOS   DR/Comments
+   ===  =======  =====================  ====  ====  =======================
+   26   M01      MLX2                   1410  1800
+   43   M01      MN12 2220DN008         1740  0640  C105491
+   55   M01      MJ12                   0645  1410
+
+   DRs:
+
+   Id #     Project  Dss  Reference  Status          Cause
+   =========================================================================
+   C105484  M01      43   024/0634   Entere          Link
+
+   
+   RS &amp; FS dropouts seen as LOS horizon was approached. SR 132700sps,
+   SSNR ~ -3dB, SNT &gt;65ºK. No corrective action possible.
+   
+   TLM     DEG            6
+   
+   
+
+
+
+
+
+\header
+
+
+ENTRY_TIME  =   2007 JAN 29 06:40:00           
+AUTHOR  =  Anderson, Keith 
+START_TIME  =   2007 JAN 25 00:00:00           
+INSTITUTION  =  JPL 
+SYSTEM_NAME  =  MMDMT 
+\text
+
+
+   DSN MORNING REPORT SUMMARY FOR DOY: 025 OF YEAR: 2007
+
+   DSS  Project  Activity               AOS   LOS   DR/Comments
+   ===  =======  =====================  ====  ====  =======================
+   26   M01      MQ21 1740UN003         1355  2200
+   43   M01      MCX2                   1750  2145
+   45   M01      MSX2                   2335  0540
+   55   M01      MOX2                   0645  1400  M104078
+
+   DRs:
+
+   Id #     Project  Dss  Reference  Status          Cause
+   =========================================================================
+   M104079  M01      55   025/0645   Closed          Weather/
+
+   
+   Telemetry out of lock due to adverse weather. Wait for improvement.
+   
+   TLM     DEG           10
+   TLM     LOST          50
+
+
+   Id #     Project  Dss  Reference  Status          Cause
+   =========================================================================
+   C105491  M01      43   025/0336   Entered         Unknown/DCC2
+
+   
+   MCD3 &amp; SYM loop out of lock for no apparent reason. Reset symbol
+   loop and reacquired telemetry lock. SR 85k sps at ~7dB.
+   
+   TLM     LOST           3
+   
+   
+
+
+   Id #     Project  Dss  Reference  Status          Cause
+   =========================================================================
+   M104078  M01      55   025/1155   Entere          Project/
+
+   
+   SOE XB called for Uplink from 1155-1335z, but 7-Day Schedule
+   did not show Uplink support. Reported to Ops Chief and attended to
+   7-Day Schedule.
+   
+   
+
+
+   Id #     Project  Dss  Reference  Status          Cause
+   =========================================================================
+   G107453  M01      26   025/1355   Close           Dependency/
+
+   
+   Unable to perform 3 way lock with DSS-55 per SOE. This was an MSPA
+   with MGS. No briefing on the M010 side. Called OPS Chief and was 
+   told that DSS-55 had dropped their uplink earlier and there would 
+   be no 3 way activities. Acquired 1 way lock on the spacecraft.
+   
+   TLM     LOST          10
+   DOP1    LOST          10
+   
+
+
+
+
+
+\header
+
+
+ENTRY_TIME  =   2007 JAN 29 06:40:46           
+AUTHOR  =  Anderson, Keith 
+START_TIME  =   2007 JAN 26 00:00:00           
+INSTITUTION  =  JPL 
+SYSTEM_NAME  =  MMDMT 
+\text
+
+
+   DSN MORNING REPORT SUMMARY FOR DOY: 026 OF YEAR: 2007
+
+   DSS  Project  Activity               AOS   LOS   DR/Comments
+   ===  =======  =====================  ====  ====  =======================
+   43   M01      MW12 2110DN008         1740  0110  C105496, C105501
+   65   M01      MTX2                   0640  1410
+
+   DRs:
+
+   Id #     Project  Dss  Reference  Status          Cause
+   =========================================================================
+   C105496  M01      43   026/1740   Entered         Software/SPS
+
+   
+   GEO pointing file was present but empty of points. Used MRO's GEO
+   pointing set.
+   
+   
+   
+
+
+   Id #     Project  Dss  Reference  Status          Cause
+   =========================================================================
+   C105501  M01      43   026/1740   Entered         Software/DCC2
+
+   
+   Late AOS on DCC2. 1 Way predicts subset did not load correctly
+   during Pre-Cal. Alarm in connection log was "time not in header
+   range".  However, the DCC PRF display showed the 1 Way predicts as
+   being selected.  2way then 2way predicts were reselected and DCC
+   was locked to spacecraft.  This problem would have been noticed
+   prior to BOT if the DCC had not incorrectly displayed 1way on the
+   PRF display.
+   
+   TLM     LOST          11
+   DOP1    LOST          11
+   
+   
+
+
+
+
+
+\header
+
+
+ENTRY_TIME  =   2007 JAN 29 06:41:32           
+AUTHOR  =  Anderson, Keith 
+START_TIME  =   2007 JAN 27 00:00:00           
+INSTITUTION  =  JPL 
+SYSTEM_NAME  =  MMDMT 
+\text
+
+
+   DSN MORNING REPORT SUMMARY FOR DOY: 027 OF YEAR: 2007
+
+   DSS  Project  Activity               AOS   LOS   DR/Comments
+   ===  =======  =====================  ====  ====  =======================
+   14   M01      MJ12 1800DN008         1355  2200  G107464
+   45   M01      ML12 2110DN012         1745  0310
+   63   M01      MYX2                   0640  1410
+
+   DRs:
+
+   Id #     Project  Dss  Reference  Status          Cause
+   =========================================================================
+   G107464  M01      14   027/1355   Entere          Hardware/SRC
+
+   
+   Intermittent telemetry drop outs caused by faulty SR Drive cable.
+   Unable to provide corrective action until EOT. SSEs notified of
+   problem and are on site.
+   
+   TLM     DEG          188
+   
+   
+   
+
+
+
+
+
+\header
+
+
+ENTRY_TIME  =   2007 FEB 01 06:46:29           
+AUTHOR  =  Anderson, Keith 
+START_TIME  =   2007 JAN 30 00:00:00           
+INSTITUTION  =  JPL 
+SYSTEM_NAME  =  MMDMT 
+\text
+
+
+   DSN MORNING REPORT SUMMARY FOR DOY: 030 OF YEAR: 2007
+
+   DSS  Project  Activity               AOS   LOS   DR/Comments
+   ===  =======  =====================  ====  ====  =======================
+   25   M01      MG12                   1450
+   55   M01      MF12                   0640  1205
+   63   M01      MEX2                   0810  1410
+
+
+   No DRs for this day...
+
+
+

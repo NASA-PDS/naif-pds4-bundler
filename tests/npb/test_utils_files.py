@@ -169,6 +169,15 @@ def test_check_badchar(tmp_path, contents, expected):
     (Path('spk', 'm2020_cruise_od138_v1.bsp'), 'little', None),
     (Path('spk', 'mro_psp60.big.bsp'), 'little',
      "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
+    (Path('ek', 'lroevnt_2010193_2010200_v01.bes'), 'little',
+     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
+    (Path('ek','eros_n2000129x_v01_ltl.bpe'), 'little', None),
+    (Path('ek', 'eros_n2000129x_v01.bpe'), 'little',
+     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
+    (Path('ek', 'S99_CIMSSSUPa.bep'), 'little',
+     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
+    (Path('ek', '11A.bdb'), 'little',
+     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
     # Tests for "required big endian kernels."
     (Path('ck', 'insight_ida_enc_200829_201220_v1.bc'), 'big',
      "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
@@ -182,16 +191,25 @@ def test_check_badchar(tmp_path, contents, expected):
     (Path('spk', 'm2020_cruise_od138_v1.bsp'), 'big',
      "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
     (Path('spk', 'mro_psp60.big.bsp'), 'big', None),
+    (Path('ek', 'lroevnt_2010193_2010200_v01.bes'), 'big', None),
+    (Path('ek', 'eros_n2000129x_v01_ltl.bpe'), 'big',
+     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
+    (Path('ek', 'eros_n2000129x_v01.bpe'), 'big', None),
+    (Path('ek', 'S99_CIMSSSUPa.bep'), 'big', None),
+    (Path('ek', '11A.bdb'), 'big', None),
     # Tests for "invalid SPICE kernel architecture."
     (Path('ck', 'insight_ida_enc_200829_201220_v1.xc'), 'little',
      'The binary kernel does not have a DAF or DAS architecture.'),
     (Path('pck', 'pck00010.tpc'), 'little',
      'The binary kernel does not have a DAF or DAS architecture.'),
+    (Path('ek', 'm01_mmdmt_ext10.ten'), 'little',
+     'The binary kernel does not have a DAF or DAS architecture.'),
     (Path('ck', 'insight_ida_enc_200829_201220_v1.xc'), 'big',
      'The binary kernel does not have a DAF or DAS architecture.'),
     (Path('pck', 'pck00010.tpc'), 'big',
      'The binary kernel does not have a DAF or DAS architecture.'),
-    # TODO: Add tests for EKs (.bdb and .bes - .bep/.bpe too?)
+    (Path('ek', 'm01_mmdmt_ext10.ten'), 'big',
+     'The binary kernel does not have a DAF or DAS architecture.'),
 ])
 def test_check_binary_endianness(kernel, endianness, expected_error) -> None:
     """Test checking binary file format."""
@@ -1402,7 +1420,7 @@ def test_string_in_file(kern, str_to_check, reps, expected):
     ("CK", ['bc']),
     ("SPK", ['bsp']),
     ("DSK", ['bds']),
-    ("EK", ['bes','bpe', 'bep', 'bdb']),
+    ("EK", ['bes','bpe', 'bep', 'bdb', 'ten', 'tep']),
     ("ORB", ['nrb', 'orb']),
 ])
 def test_type_to_extension(inputs, outputs):
