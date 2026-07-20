@@ -1229,13 +1229,16 @@ def test_mk_to_list(mk, num_kernels, first, last):
 
 def test_mk_to_list_error(monkeypatch, tmp_path, caplog):
     """Test mk_to_list function using pytest. This is to test logging errors"""
-    mk_content = """
-    KPL/MK
-    PATH_SYMBOLS = ( 'KERNELS' )
-    \\KERNELS_TO_LOAD = (
-        # This list is intentionally empty
+    mk_content = (
+        "KPL/MK\n"
+        "\n"
+        "\\begindata\n"
+        "\n"
+        "PATH_VALUES = ( './data' )\n"
+        "PATH_SYMBOLS = ( 'KERNELS' )\n"
+        "KERNELS_TO_LOAD = (\n"
+        ")\n"
     )
-    """
     mk = tmp_path / "empty_kernels.tm"
     mk.write_text(mk_content)
 
@@ -1248,6 +1251,33 @@ def test_mk_to_list_error(monkeypatch, tmp_path, caplog):
         files.mk_to_list(str(mk), setup=False)
 
     assert [f"No kernels present in {mk}. Please review MK generation."] == caplog.messages
+
+# TODO: BUG: This demonstrates an issue with the code. The proposed metakernel is
+#       not valid. If loaded into SPICE,  it would produce a SPICE(FILEREADFAILED)
+#       error, caused by the empty kernel name. This means, that in this case, NPB
+#       shall produce an error and not silently skipping the invalid entry in the
+#       metakernel.
+def test_mk_to_list_skips_empty_kernel_after_trailing_slash(tmp_path):
+    """Kernel paths ending with '/' produce an empty string after split('/') [-1].
+    Those entries must be silently skipped while valid entries are still collected."""
+    mk_content = (
+        "KPL/MK\n"
+        "\n"
+        "\\begindata\n"
+        "\n"
+        "PATH_VALUES = ( './data' )\n"
+        "PATH_SYMBOLS = ( 'KERNELS' )\n"
+        "KERNELS_TO_LOAD = (\n"
+        "  '$KERNELS/'\n"                     # trailing slash → empty kernel name
+        "  '$KERNELS/naif0012.tls'\n"
+        ")\n"
+    )
+    mk = tmp_path / "trailing_slash.tm"
+    mk.write_text(mk_content)
+
+    kernels = files.mk_to_list(str(mk), setup=False)
+    assert kernels == ["naif0012.tls"]
+
 
 # ----------------------------------------------------------------------------
 # files.product_mapping test
