@@ -5,10 +5,10 @@ import shutil
 from types import SimpleNamespace
 
 from .product import Product
+from ..exceptions import NPBError
+from ..label import BundlePDS4Label
 from ...utils import add_carriage_return
 from ...utils import md5
-from ..label import BundlePDS4Label
-from ..exceptions import NPBError
 
 
 class ReadmeProduct(Product):

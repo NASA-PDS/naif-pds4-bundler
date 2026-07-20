@@ -7,9 +7,9 @@ from pathlib import Path
 from typing import Optional
 
 from .product import Product
+from ..exceptions import NPBError
 from ..label import ChecksumPDS3Label
 from ..label import ChecksumPDS4Label
-from ..exceptions import NPBError
 from ...utils import add_carriage_return
 from ...utils import checksum_from_label
 from ...utils import checksum_from_registry
