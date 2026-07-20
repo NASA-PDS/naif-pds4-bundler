@@ -153,6 +153,25 @@ def test_start_logs_banner_and_runtime_info(tmp_path, args, cleanup_root_logger,
     assert "bundle" in text
 
 
+@pytest.mark.parametrize("silent, verbose", [
+    (True, False),
+    (False, True),
+    (True, True),
+])
+def test_start_suppresses_stdout_when_silent_or_verbose(
+        tmp_path, cleanup_root_logger, capsys, silent, verbose
+):
+    args = PipelineArgs(
+        config="config.xml", faucet="bundle", silent=silent, verbose=verbose
+    )
+    setup = DummySetup(tmp_path, args)
+    log = Log(setup, args)
+
+    log.start()
+
+    assert capsys.readouterr().out == ""
+
+
 def test_start_logs_labeling_mode_message(tmp_path, cleanup_root_logger, caplog):
     args = PipelineArgs(config="config.xml", faucet="labels")
     setup = DummySetup(tmp_path, args)
