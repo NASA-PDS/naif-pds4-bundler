@@ -1436,6 +1436,11 @@ def test_type_to_extension(inputs, outputs):
     ("DEIMOS_K005_THO_V01.BDS", "dsk"),
     ("m01_ext3.nrb", "orb"),
     ("lroevnt_2009271_2009278_v01.bes", "ek"),
+    ("11A.bdb", "ek"),
+    ("eros_n2000129x_v01.bpe", "ek"),
+    ("S99_CIMSSSUPa.bep", "ek"),
+    ("m01_mmdmt_ext10.ten", "ek"),
+    ("fakey.tep", "ek"),
     ("m2020_chronos_v01.tm", "mk"),
 ])
 def test_type_to_extension_object(kern, expected):
