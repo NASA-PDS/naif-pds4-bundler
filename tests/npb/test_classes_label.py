@@ -5,7 +5,7 @@ Tests for PDSLabel class.
 import os
 from pathlib import Path
 from typing import cast, Type
-from unittest.mock import MagicMock, call, mock_open
+from unittest.mock import call, mock_open
 
 import pytest
 
@@ -22,97 +22,13 @@ _PATCH_GLOB = "pds.naif_pds4_bundler.classes.label.label.glob.glob"
 # ---------------------------------------------------------------------------
 # Shared builder helpers
 # ---------------------------------------------------------------------------
+# make_context_products/make_bundle/make_collection/make_product/
+# make_setup_pds4 live in conftest.py's label_test_helpers fixture, shared
+# with test_classes_label_pds4.py. Only the PDS3-flavored setup builder is
+# specific to this file.
 
-def _make_context_products():
-    """Return a minimal list of context product dicts used across tests."""
-    return [
-        {
-            "name": ["TestMission"],
-            "type": ["Mission"],
-            "lidvid": "urn:nasa:pds:testmission::1.0",
-        },
-        {
-            "name": ["TestObserver"],
-            "type": ["Spacecraft"],
-            "lidvid": "urn:nasa:pds:testobserver::1.0",
-        },
-        {
-            "name": ["TestTarget"],
-            "type": ["planet"],
-            "lidvid": "urn:nasa:pds:testtarget::1.0",
-        },
-    ]
-
-
-def _make_bundle(context_products=None):
-    bundle = MagicMock()
-    bundle.context_products = context_products or _make_context_products()
-    return bundle
-
-
-def _make_collection(bundle=None):
-    collection = MagicMock()
-    collection.bundle = bundle or _make_bundle()
-    collection.name = "spice_kernels"
-    return collection
-
-
-def _make_product(collection=None, bundle=None):
-    """Return a mock product that supplies all attributes PDSLabel touches."""
-    product = MagicMock()
-    product.collection = collection or _make_collection()
-    product.bundle = bundle or _make_bundle()
-    product.creation_time = "2024-01-01T00:00:00"
-    product.creation_date = "2024-01-01"
-    product.size = 1024
-    product.checksum = "abc123"
-    product.missions = ["TestMission"]
-    product.observers = ["TestObserver"]
-    product.targets = ["TestTarget"]
-    product.name = "test_kernel.bc"
-    product.extension = "bc"
-    product.path = "/staging/test_kernel.bc"
-    product.record_bytes = 80
-    return product
-
-
-def _make_setup_pds4(**kwargs):
-    """Return a mock setup object configured for PDS4."""
-    setup = MagicMock()
-    setup.pds_version = "4"
-    setup.root_dir = "/root"
-    setup.mission_acronym = "test"
-    setup.xml_model = "model"
-    setup.schema_location = "schema"
-    setup.information_model = ".".join(["1", "14", "0", "0"])
-    setup.information_model_float = 1014000000.0
-    setup.mission_name = "TestMission"
-    setup.observer = "TestObserver"
-    setup.target = "TestTarget"
-    setup.end_of_line = "CRLF"
-    setup.logical_identifier = "urn:nasa:pds:testmission"
-    setup.eol_pds4 = "\r\n"
-    setup.xml_tab = 2
-    setup.staging_directory = "/staging"
-    setup.working_directory = "/work"
-    setup.bundle_directory = "/bundle"
-    setup.diff = False
-    setup.args.silent = False
-    setup.args.verbose = False
-
-    # Ensure secondary_* attributes are NOT present by default
-    del setup.secondary_missions
-    del setup.secondary_observers
-    del setup.secondary_targets
-    del setup.creation_date_time
-
-    for k, v in kwargs.items():
-        setattr(setup, k, v)
-    return setup
-
-
-def _make_setup_pds3(**kwargs):
-    setup = _make_setup_pds4(**kwargs)
+def _make_setup_pds3(label_test_helpers, **kwargs):
+    setup = label_test_helpers.make_setup_pds4(**kwargs)
     setup.pds_version = "3"
     return setup
 
@@ -122,18 +38,18 @@ def _make_setup_pds3(**kwargs):
 # ---------------------------------------------------------------------------
 
 @pytest.fixture
-def setup_pds4():
-    return _make_setup_pds4()
+def setup_pds4(label_test_helpers):
+    return label_test_helpers.make_setup_pds4()
 
 
 @pytest.fixture
-def setup_pds3():
-    return _make_setup_pds3()
+def setup_pds3(label_test_helpers):
+    return _make_setup_pds3(label_test_helpers)
 
 
 @pytest.fixture
-def product():
-    return _make_product()
+def product(label_test_helpers):
+    return label_test_helpers.make_product()
 
 
 # ===========================================================================
@@ -278,7 +194,7 @@ class TestPDSLabelWriteLabel:
     """Covers PDSLabel.write_label – all branches."""
 
     @pytest.fixture
-    def label_for(self):
+    def label_for(self, label_test_helpers):
         """Factory fixture: builds a bare label ready for write_label."""
         def _build(
             pds_version="4",
@@ -288,13 +204,14 @@ class TestPDSLabelWriteLabel:
             diff=False,
             is_pds3_kernel=False,
         ):
-            setup = _make_setup_pds4() if pds_version == "4" else _make_setup_pds3()
+            setup = (label_test_helpers.make_setup_pds4() if pds_version == "4"
+                    else _make_setup_pds3(label_test_helpers))
             setup.diff = diff
             setup.pds_version = pds_version
             setup.eol_pds4 = "\r\n"
             setup.eol_pds3 = "\r\n"
 
-            product = _make_product()
+            product = label_test_helpers.make_product()
 
             if label_name_has_ext:
                 ext = ".xml" if pds_version == "4" else ".lbl"
@@ -414,13 +331,13 @@ class TestPDSLabelCompare:
     """Covers PDSLabel.compare – all three fallback levels and success path."""
 
     @pytest.fixture
-    def label_for(self):
+    def label_for(self, label_test_helpers):
         """Factory fixture: builds a bare label ready for compare."""
 
         def _build(collection_name="spice_kernels", label_name_part="kernel"):
-            setup = _make_setup_pds4()
+            setup = label_test_helpers.make_setup_pds4()
             setup.diff = "html"
-            product = _make_product()
+            product = label_test_helpers.make_product()
             product.collection.name = collection_name
             product.name = "kernel.bc"
             product.extension = "bc"

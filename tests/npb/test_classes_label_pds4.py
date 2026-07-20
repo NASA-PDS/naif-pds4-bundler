@@ -21,109 +21,19 @@ _PATCH_HANDLE_ERROR = "pds.naif_pds4_bundler.classes.label.pds4_label.handle_npb
 
 
 # ---------------------------------------------------------------------------
-# Shared builder helpers
-# ---------------------------------------------------------------------------
-
-def _make_context_products():
-    """Return a minimal list of context product dicts used across tests."""
-    return [
-        {
-            "name": ["TestMission"],
-            "type": ["Mission"],
-            "lidvid": "urn:nasa:pds:testmission::1.0",
-        },
-        {
-            "name": ["TestObserver"],
-            "type": ["Spacecraft"],
-            "lidvid": "urn:nasa:pds:testobserver::1.0",
-        },
-        {
-            "name": ["TestTarget"],
-            "type": ["planet"],
-            "lidvid": "urn:nasa:pds:testtarget::1.0",
-        },
-    ]
-
-
-def _make_bundle(context_products=None):
-    bundle = MagicMock()
-    bundle.context_products = context_products or _make_context_products()
-    return bundle
-
-
-def _make_collection(bundle=None):
-    collection = MagicMock()
-    collection.bundle = bundle or _make_bundle()
-    collection.name = "spice_kernels"
-    return collection
-
-
-def _make_product(collection=None, bundle=None):
-    """Return a mock product that supplies all attributes PDS4Label touches."""
-    product = MagicMock()
-    product.collection = collection or _make_collection()
-    product.bundle = bundle or _make_bundle()
-    product.creation_time = "2024-01-01T00:00:00"
-    product.creation_date = "2024-01-01"
-    product.size = 1024
-    product.checksum = "abc123"
-    product.missions = ["TestMission"]
-    product.observers = ["TestObserver"]
-    product.targets = ["TestTarget"]
-    product.name = "test_kernel.bc"
-    product.extension = "bc"
-    product.path = "/staging/test_kernel.bc"
-    product.record_bytes = 80
-    return product
-
-
-def _make_setup_pds4(**kwargs):
-    """Return a mock setup object configured for PDS4."""
-    setup = MagicMock()
-    setup.pds_version = "4"
-    setup.root_dir = "/root"
-    setup.mission_acronym = "test"
-    setup.xml_model = "model"
-    setup.schema_location = "schema"
-    setup.information_model = ".".join(["1", "14", "0", "0"])
-    setup.information_model_float = 1014000000.0
-    setup.mission_name = "TestMission"
-    setup.observer = "TestObserver"
-    setup.target = "TestTarget"
-    setup.end_of_line = "CRLF"
-    setup.logical_identifier = "urn:nasa:pds:testmission"
-    setup.eol_pds4 = "\r\n"
-    setup.xml_tab = 2
-    setup.staging_directory = "/staging"
-    setup.working_directory = "/work"
-    setup.bundle_directory = "/bundle"
-    setup.diff = False
-    setup.args.silent = False
-    setup.args.verbose = False
-
-    # Ensure secondary_* attributes are NOT present by default
-    del setup.secondary_missions
-    del setup.secondary_observers
-    del setup.secondary_targets
-    del setup.creation_date_time
-
-    for k, v in kwargs.items():
-        setattr(setup, k, v)
-    return setup
-
-
-# ---------------------------------------------------------------------------
 # Shared fixtures
 # ---------------------------------------------------------------------------
+# make_context_products/make_product/make_setup_pds4 come from conftest.py's
+# label_test_helpers fixture, shared with test_classes_label.py.
 
 @pytest.fixture
-def setup_pds4():
-    return _make_setup_pds4()
+def setup_pds4(label_test_helpers):
+    return label_test_helpers.make_setup_pds4()
 
 
 @pytest.fixture
-def product():
-    return _make_product()
+def product(label_test_helpers):
+    return label_test_helpers.make_product()
 
 
 # ===========================================================================
@@ -195,14 +105,14 @@ class TestPDS4LabelInit:
         ('LF', 'Line-Feed'),
         ('CRLF', 'Carriage-Return Line-Feed')
     ])
-    def test_pds4_end_of_line(self, product, eol, expected_eol_name):
-        setup = _make_setup_pds4(end_of_line=eol)
+    def test_pds4_end_of_line(self, label_test_helpers, product, eol, expected_eol_name):
+        setup = label_test_helpers.make_setup_pds4(end_of_line=eol)
         label = PDS4Label(setup, product)
         assert label.END_OF_LINE == expected_eol_name
 
-    def test_pds4_end_of_line_invalid(self, product):
+    def test_pds4_end_of_line_invalid(self, label_test_helpers, product):
         """end_of_line is invalid (neither CRLF nor LF)"""
-        setup = _make_setup_pds4(end_of_line="CR")
+        setup = label_test_helpers.make_setup_pds4(end_of_line="CR")
         with pytest.raises(RuntimeError, match=r'End of Line provided via configuration '
                                                r'is not CRLF nor LF\.'):
             PDS4Label(setup, product)
@@ -246,12 +156,12 @@ class TestPDS4LabelGetMissions:
     """Covers PDS4Label.get_missions – all branches."""
 
     @pytest.fixture
-    def label_for(self):
+    def label_for(self, label_test_helpers):
         """Factory fixture: returns a callable that builds a bare label."""
         def _build(missions, context_products=None, fallback_to_bundle=False):
-            setup = _make_setup_pds4()
-            product = _make_product()
-            ctx = context_products or _make_context_products()
+            setup = label_test_helpers.make_setup_pds4()
+            product = label_test_helpers.make_product()
+            ctx = context_products or label_test_helpers.make_context_products()
             if fallback_to_bundle:
                 product.collection = MagicMock(spec=[])  # no .bundle
                 product.bundle.context_products = ctx
@@ -338,12 +248,12 @@ class TestPDS4LabelGetObservers:
     """Covers PDS4Label.get_observers – all branches."""
 
     @pytest.fixture
-    def label_for(self):
+    def label_for(self, label_test_helpers):
         """Factory fixture: builds a bare label with given observers."""
         def _build(observers, context_products=None, fallback_to_bundle=False):
-            setup = _make_setup_pds4()
-            product = _make_product()
-            ctx = context_products or _make_context_products()
+            setup = label_test_helpers.make_setup_pds4()
+            product = label_test_helpers.make_product()
+            ctx = context_products or label_test_helpers.make_context_products()
             if fallback_to_bundle:
                 product.collection = MagicMock(spec=[])
                 product.bundle.context_products = ctx
@@ -410,12 +320,12 @@ class TestPDS4LabelGetTargets:
     """Covers PDS4Label.get_targets – all branches."""
 
     @pytest.fixture
-    def label_for(self):
+    def label_for(self, label_test_helpers):
         """Factory fixture: builds a bare label with given targets."""
         def _build(targets, context_products=None, fallback_to_bundle=False):
-            setup = _make_setup_pds4()
-            product = _make_product()
-            ctx = context_products or _make_context_products()
+            setup = label_test_helpers.make_setup_pds4()
+            product = label_test_helpers.make_product()
+            ctx = context_products or label_test_helpers.make_context_products()
             if fallback_to_bundle:
                 product.collection = MagicMock(spec=[])
                 product.bundle.context_products = ctx
