@@ -239,6 +239,25 @@ class TestOrbnumFilePDS4Label:
 
         assert label.template == expected_template
 
+    # ------------------------------------------------------------------
+    # get_*_reference_type overrides
+    # ------------------------------------------------------------------
+
+    @pytest.mark.parametrize('information_model_float, expected_mission, expected_target', [
+        (1014000000.0, 'ancillary_to_investigation', 'ancillary_to_target'),
+        (1013000000.0, 'data_to_investigation', 'data_to_target'),
+    ])
+    def test_reference_type_threshold(
+            self, information_model_float, expected_mission, expected_target) -> None:
+        # Both overrides depend only on setup.information_model_float, so a
+        # bare instance with just that attribute set is enough to exercise
+        # the >= 1014000000.0 threshold on both sides.
+        instance = object.__new__(OrbnumFilePDS4Label)
+        instance.setup = SimpleNamespace(information_model_float=information_model_float)
+
+        assert instance.get_mission_reference_type() == expected_mission
+        assert instance.get_target_reference_type() == expected_target
+
     def test_constructor_stores_references_and_writes_label_once(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
         # Validate constructor wiring and its single write_label side effect.

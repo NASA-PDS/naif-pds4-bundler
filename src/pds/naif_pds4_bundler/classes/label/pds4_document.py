@@ -2,10 +2,10 @@
 """
 from pathlib import Path
 
-from .label import PDSLabel
+from .pds4_label import PDS4Label
 
 
-class DocumentPDS4Label(PDSLabel):
+class DocumentPDS4Label(PDS4Label):
     """Class to generate a PDS4 Document Label.
 
     :param setup:      NPB execution Setup object
@@ -32,3 +32,11 @@ class DocumentPDS4Label(PDSLabel):
         self.name = Path(collection.name).with_suffix(".xml").name
 
         self.write_label()
+
+    def get_mission_reference_type(self):
+        """Get mission reference type.
+
+        :return: Literally ``document_to_investigation``
+        :rtype: str
+        """
+        return "document_to_investigation"

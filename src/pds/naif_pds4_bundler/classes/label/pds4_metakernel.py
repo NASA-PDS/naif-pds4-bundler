@@ -2,11 +2,11 @@
 """
 from pathlib import Path
 
-from .label import PDSLabel
+from .pds4_label import PDS4Label
 from ...utils import extension_to_type
 
 
-class MetaKernelPDS4Label(PDSLabel):
+class MetaKernelPDS4Label(PDS4Label):
     """Class to generate a PDS4 SPICE Kernel MK Label.
 
     :param setup:   NPB execution Setup object

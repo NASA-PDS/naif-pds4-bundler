@@ -3,10 +3,10 @@ files.
 """
 from pathlib import Path
 
-from .label import PDSLabel
+from .pds4_label import PDS4Label
 
 
-class OrbnumFilePDS4Label(PDSLabel):
+class OrbnumFilePDS4Label(PDS4Label):
     """Class to generate a PDS4 Orbit Number File Label.
 
     :param setup:   NPB execution Setup object
@@ -63,6 +63,28 @@ class OrbnumFilePDS4Label(PDSLabel):
         self.name = Path(product.name).with_suffix(".xml").name
 
         self.write_label()
+
+    def get_mission_reference_type(self):
+        """Get mission reference type.
+
+        :return: ``ancillary_to_investigation`` for information models at or
+                 above 1014000000.0, ``data_to_investigation`` otherwise
+        :rtype: str
+        """
+        if self.setup.information_model_float >= 1014000000.0:
+            return "ancillary_to_investigation"
+        return "data_to_investigation"
+
+    def get_target_reference_type(self):
+        """Get target reference type.
+
+        :return: ``ancillary_to_target`` for information models at or above
+                 1014000000.0, ``data_to_target`` otherwise
+        :rtype: str
+        """
+        if self.setup.information_model_float >= 1014000000.0:
+            return "ancillary_to_target"
+        return "data_to_target"
 
     def get_table_character_fields(self):
         """Get the Table Character fields.

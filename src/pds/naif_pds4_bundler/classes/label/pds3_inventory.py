@@ -1,9 +1,9 @@
 """Implementation of the PDS3 version of a label for Index files.
 """
-from .label import PDSLabel
+from .pds3_label import PDS3Label
 
 
-class InventoryPDS3Label(PDSLabel):
+class InventoryPDS3Label(PDS3Label):
     """PDS Label child class to generate a PDS3 Index Label.
 
     :param setup:      NPB execution Setup object

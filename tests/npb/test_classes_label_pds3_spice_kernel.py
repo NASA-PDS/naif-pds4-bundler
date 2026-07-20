@@ -11,7 +11,7 @@ from pds.naif_pds4_bundler.classes.label.pds3_spice_kernel import SpiceKernelPDS
 # Patch target strings (adjust if the real package path differs)
 # ---------------------------------------------------------------------------
 MODULE      = "pds.naif_pds4_bundler.classes.label.pds3_spice_kernel"
-PARENT_INIT = f"{MODULE}.PDSLabel.__init__"
+PARENT_INIT = f"{MODULE}.PDS3Label.__init__"
 WRITE_LABEL = f"{MODULE}.SpiceKernelPDS3Label.write_label"
 INSERT_TEXT = f"{MODULE}.SpiceKernelPDS3Label.insert_text_label"
 INSERT_BIN  = f"{MODULE}.SpiceKernelPDS3Label.insert_binary_label"

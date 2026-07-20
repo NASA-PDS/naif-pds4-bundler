@@ -2,10 +2,10 @@
 """
 from pathlib import Path
 
-from .label import PDSLabel
+from .pds3_label import PDS3Label
 
 
-class ChecksumPDS3Label(PDSLabel):
+class ChecksumPDS3Label(PDS3Label):
     """PDS Label child class to a PDS3 Checksum Label.
 
     :param setup:   NPB  execution Setup object

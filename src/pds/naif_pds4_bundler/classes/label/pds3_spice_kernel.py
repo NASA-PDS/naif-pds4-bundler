@@ -5,7 +5,7 @@ from pathlib import Path
 
 import spiceypy
 
-from .label import PDSLabel
+from .pds3_label import PDS3Label
 from ...pipeline.runtime import handle_npb_error
 from ...utils import (
     ck_coverage,
@@ -16,7 +16,7 @@ from ...utils import (
 )
 
 
-class SpiceKernelPDS3Label(PDSLabel):
+class SpiceKernelPDS3Label(PDS3Label):
     """Class to generate a PDS3 SPICE Kernel Label.
     """
 

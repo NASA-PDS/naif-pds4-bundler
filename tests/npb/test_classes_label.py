@@ -10,9 +10,10 @@ from unittest.mock import MagicMock, call, mock_open
 import pytest
 
 from pds.naif_pds4_bundler.classes.label.label import PDSLabel
+from pds.naif_pds4_bundler.classes.label.pds3_label import PDS3Label
+from pds.naif_pds4_bundler.classes.label.pds4_label import PDS4Label
 
 # Patch targets — resolved to where the names are looked up inside label.py
-_PATCH_HANDLE_ERROR = "pds.naif_pds4_bundler.classes.label.label.handle_npb_error"
 _PATCH_ADD_CR = "pds.naif_pds4_bundler.classes.label.label.add_carriage_return"
 _PATCH_COMPARE = "pds.naif_pds4_bundler.classes.label.label.compare_files"
 _PATCH_GLOB = "pds.naif_pds4_bundler.classes.label.label.glob.glob"
@@ -140,86 +141,13 @@ def product():
 # ===========================================================================
 
 class TestPDSLabelInit:
-    """Covers PDSLabel.__init__ – all branches."""
+    """Covers PDSLabel.__init__ – version-agnostic branches only.
 
-    @staticmethod
-    @pytest.fixture
-    def mock_class_methods(mocker):
-        # Mocks all three methods at once
-        mocker.patch('pds.naif_pds4_bundler.classes.label.label.PDSLabel.get_missions',
-                     return_value='MockedMission')
-        mocker.patch('pds.naif_pds4_bundler.classes.label.label.PDSLabel.get_observers',
-                     return_value='MockedObserver')
-        mocker.patch('pds.naif_pds4_bundler.classes.label.label.PDSLabel.get_targets',
-                     return_value='MockedTarget')
-
-    def test_pds4_context_from_collection_bundle(self, setup_pds4, product):
-        """pds_version == "4", context products from collection.bundle"""
-        label = PDSLabel(setup_pds4, product)
-        assert label.setup is setup_pds4
-        assert label.product is product
-        assert label.name == ""
-
-    def test_pds4_context_falls_back_to_product_bundle(self, mock_class_methods, setup_pds4, product):
-        """ pds_version == "4", context products from product.bundle
-           (collection.bundle.context_products is falsy => raises Exception)
-        """
-        product.collection.bundle.context_products = []
-        label = PDSLabel(setup_pds4, product)
-        assert label is not None
-
-    def test_pds4_context_attribute_error_falls_back(self, setup_pds4, product):
-        """collection.bundle raises AttributeError entirely"""
-        product.collection = MagicMock(spec=[])
-        label = PDSLabel(setup_pds4, product)
-        assert label is not None
-
-    def test_pds3_skips_pds4_block(self, setup_pds3, product):
-        """pds_version == "3" (skips PDS4 XML block entirely)"""
-        label = PDSLabel(setup_pds3, product)
-        assert not hasattr(label, "XML_MODEL")
-
-    def test_pds4_single_mission_name(self, mock_class_methods, setup_pds4, product):
-        label = PDSLabel(setup_pds4, product)
-        assert label.PDS4_MISSION_NAME == "TestMission"
-
-    @pytest.mark.parametrize("secondary_missions, expected_name",[
-        (["OtherMission"], "TestMission and OtherMission"),
-        (["MissionB", "MissionC"], "TestMission, MissionB, and MissionC"),
-    ])
-    def test_pds4_multiple_mission_name(self, mock_class_methods, setup_pds4, product, secondary_missions, expected_name):
-        setup_pds4.secondary_missions = secondary_missions
-        label = PDSLabel(setup_pds4, product)
-        assert label.PDS4_MISSION_NAME == expected_name
-
-    def test_pds4_single_observer_name(self, mock_class_methods, setup_pds4, product):
-        label = PDSLabel(setup_pds4, product)
-        assert label.PDS4_OBSERVER_NAME == "TestObserver spacecraft and its"
-
-    @pytest.mark.parametrize("secondary_observer, expected_name",[
-        (["OtherObserver"], "TestObserver and OtherObserver spacecraft and their"),
-        (["ObsB", "ObsC"], "TestObserver, ObsB, and ObsC spacecraft and their"),
-    ])
-    def test_pds4_multiple_observer_name(self, mock_class_methods, setup_pds4, product, secondary_observer, expected_name):
-        setup_pds4.secondary_observers = secondary_observer
-        label = PDSLabel(setup_pds4, product)
-        assert label.PDS4_OBSERVER_NAME == expected_name
-
-    @pytest.mark.parametrize("eol, expected_eol_name",[
-        ('LF', 'Line-Feed'),
-        ('CRLF', 'Carriage-Return Line-Feed')
-    ])
-    def test_pds4_end_of_line(self, product, eol, expected_eol_name):
-        setup = _make_setup_pds4(end_of_line=eol)
-        label = PDSLabel(setup, product)
-        assert label.END_OF_LINE == expected_eol_name
-
-    def test_pds4_end_of_line_invalid(self, product):
-        """end_of_line is invalid (neither CRLF nor LF)"""
-        setup = _make_setup_pds4(end_of_line="CR")
-        with pytest.raises(RuntimeError, match=r'End of Line provided via configuration '
-                                               r'is not CRLF nor LF\.'):
-            PDSLabel(setup, product)
+    The pds_version-gated behavior this class used to cover (XML_MODEL,
+    PDS4_MISSION_NAME/PDS4_OBSERVER_NAME, END_OF_LINE, MISSIONS/OBSERVERS/
+    TARGETS, and the context_products lookup) now lives on PDS4Label; see
+    test_classes_label_pds4.py::TestPDS4LabelInit.
+    """
 
     def test_uses_setup_creation_date_time(self, setup_pds4, product):
         """setup has creation_date_time"""
@@ -261,22 +189,11 @@ class TestPDSLabelInit:
         assert label.observers == product.observers
         assert label.targets == product.targets
 
-    # TODO: The following two test cases demonstrate an issue:
-    #       If they are not a list, the code to set up PDS4_MISSION_NAME
-    #       and PDS4_OBSERVER_NAME, results in a list of letters.
-    def test_pds4_secondary_missions_non_list_wrapped(self, mock_class_methods, setup_pds4, product):
-        setup_pds4.secondary_missions = "SingleMission"
-        label = PDSLabel(setup_pds4, product)
-        assert label.missions == ['TestMission', 'SingleMission']
-        # TODO: This is a bug!!!!
-        assert 'TestMission, S, i, n, g, l, e, M, i, s, s, i, o, and n' == label.PDS4_MISSION_NAME
-
-    def test_pds4_secondary_observers_non_list_wrapped(self, mock_class_methods, setup_pds4, product):
-        setup_pds4.secondary_observers = 'SingleObserver'
-        label = PDSLabel(setup_pds4, product)
-        assert label.observers == ['TestObserver', 'SingleObserver']
-        # TODO: This is a bug!!!
-        assert 'TestObserver, S, i, n, g, l, e, O, b, s, e, r, v, e, and r spacecraft and their' == label.PDS4_OBSERVER_NAME
+    # NOTE: PDS4_MISSION_NAME/PDS4_OBSERVER_NAME (and the non-list-wrapping
+    #       bug affecting them) are PDS4-only; see
+    #       test_classes_label_pds4.py::TestPDS4LabelInit for those two cases.
+    #       The list-wrapping of self.missions/self.observers itself is
+    #       version-agnostic and stays covered below and via the pds3 cases.
 
     def test_pds4_secondary_targets_non_list_wrapped(self, setup_pds4, product):
         setup_pds4.secondary_targets = 'SingleTarget'
@@ -300,12 +217,12 @@ class TestPDSLabelInit:
         label = PDSLabel(setup_pds3, product)
         assert label.targets == ['TestTarget', 'SingleTarget']
 
-    def test_pds4_secondary_missions_list(self, mock_class_methods, setup_pds4, product):
+    def test_pds4_secondary_missions_list(self, setup_pds4, product):
         setup_pds4.secondary_missions = ["MissionB", "MissionC"]
         label = PDSLabel(setup_pds4, product)
         assert label.missions == ['TestMission', "MissionB", "MissionC"]
 
-    def test_pds4_secondary_observers_list(self, mock_class_methods, setup_pds4, product):
+    def test_pds4_secondary_observers_list(self, setup_pds4, product):
         setup_pds4.secondary_observers = ["ObsB", "ObsC"]
         label = PDSLabel(setup_pds4, product)
         assert label.observers == ['TestObserver', "ObsB", "ObsC"]
@@ -330,305 +247,27 @@ class TestPDSLabelInit:
         label = PDSLabel(setup_pds3, product)
         assert label.targets == ['TestTarget', "TargetB", "TargetC"]
 
-    def test_pds4_sets_missions_targets_observers(self, mock_class_methods, setup_pds4, product):
-        setup_pds4.secondary_missions = ["MissionB", "MissionC"]
-        setup_pds4.secondary_observers = ["ObsB", "ObsC"]
-        setup_pds4.secondary_targets = ["TargetB", "TargetC"]
-
-        # Since the mock is called, the values of the MISSIONS,
-        # OBSERVERS and TARGETS should be the ones provided as return_value
-        # in the mock.
-        label = PDSLabel(setup_pds4, product)
-        assert label.MISSIONS == 'MockedMission'
-        assert label.OBSERVERS == 'MockedObserver'
-        assert label.TARGETS == 'MockedTarget'
-
 
 # ===========================================================================
-# PDSLabel.get_missions
+# PDSLabel.get_mission_reference_type / get_target_reference_type
 # ===========================================================================
 
-class TestPDSLabelGetMissions:
-    """Covers PDSLabel.get_missions – all branches."""
+class TestPDSLabelReferenceTypeNotImplemented:
+    """Covers the base class contract: PDSLabel itself defines no reference
+    type and must not silently return a default. PDS4Label's own default
+    and every leaf override are covered in their respective test files
+    (test_classes_label_pds4.py and each PDS4 leaf's test module).
+    """
 
-    @pytest.fixture
-    def label_for(self):
-        """Factory fixture: returns a callable that builds a bare label."""
-        def _build(missions, context_products=None, fallback_to_bundle=False):
-            setup = _make_setup_pds4()
-            product = _make_product()
-            ctx = context_products or _make_context_products()
-            if fallback_to_bundle:
-                product.collection = MagicMock(spec=[])  # no .bundle
-                product.bundle.context_products = ctx
-            else:
-                product.collection.bundle.context_products = ctx
-            label = PDSLabel.__new__(PDSLabel)
-            label.setup = setup
-            label.product = product
-            label.missions = missions if isinstance(missions, list) else [missions]
-            return label
-        return _build
+    def test_get_mission_reference_type_raises(self):
+        label = object.__new__(PDSLabel)
+        with pytest.raises(NotImplementedError):
+            label.get_mission_reference_type()
 
-    @pytest.mark.parametrize('missions, expected', [
-        (['TestMission'], '    <Investigation_Area>\r\n'
-                          '      <name>TestMission</name>\r\n'
-                          '      <type>Mission</type>\r\n'
-                          '      <Internal_Reference>\r\n'
-                          '        <lid_reference>urn:nasa:pds:testmission</lid_reference>\r\n'
-                          '        <reference_type>data_to_investigation</reference_type>\r\n'
-                          '      </Internal_Reference>\r\n'
-                          '    </Investigation_Area>\r\n'),
-        ('TestMission', '    <Investigation_Area>\r\n'
-                        '      <name>TestMission</name>\r\n'
-                        '      <type>Mission</type>\r\n'
-                        '      <Internal_Reference>\r\n'
-                        '        <lid_reference>urn:nasa:pds:testmission</lid_reference>\r\n'
-                        '        <reference_type>data_to_investigation</reference_type>\r\n'
-                        '      </Internal_Reference>\r\n'
-                        '    </Investigation_Area>\r\n')
-    ])
-    def test_mission(self, label_for, missions, expected):
-        label = label_for(missions)
-        label.missions = missions
-        result = label.get_missions()
-        assert result == expected
-
-    def test_context_falls_back_to_product_bundle(self, label_for):
-        result = label_for(["TestMission"], fallback_to_bundle=True).get_missions()
-        assert "TestMission" in result
-
-    def test_empty_mission_name_skipped_calls_error(self, label_for, mocker):
-        """A falsy mission entry (empty string) must be skipped."""
-        mock_err = mocker.patch(_PATCH_HANDLE_ERROR)
-        label_for([""]).get_missions()
-        mock_err.assert_called()
-
-    def test_other_investigation_type_accepted(self, label_for):
-        ctx = [
-            {
-                "name": ["TestMission"],
-                "type": ["Other Investigation"],
-                "lidvid": "urn:nasa:pds:testmission::1.0",
-            }
-        ]
-        result = label_for(["TestMission"], context_products=ctx).get_missions()
-        assert result == ('    <Investigation_Area>\r\n'
-                          '      <name>TestMission</name>\r\n'
-                          '      <type>Other Investigation</type>\r\n'
-                          '      <Internal_Reference>\r\n'
-                          '        <lid_reference>urn:nasa:pds:testmission</lid_reference>\r\n'
-                          '        <reference_type>data_to_investigation</reference_type>\r\n'
-                          '      </Internal_Reference>\r\n'
-                          '    </Investigation_Area>\r\n')
-
-    def test_no_lid_found_calls_handle_npb_error(self, label_for, mocker):
-        """No context product matches → mission_lid never set → handle_npb_error."""
-        ctx = [
-            {
-                "name": ["Different"],
-                "type": ["Mission"],
-                "lidvid": "urn:nasa:pds:different::1.0",
-            }
-        ]
-        mock_err = mocker.patch(_PATCH_HANDLE_ERROR)
-        label_for(["TestMission"], context_products=ctx).get_missions()
-        mock_err.assert_called()
-
-
-# ===========================================================================
-# PDSLabel.get_mission_reference_type
-# ===========================================================================
-
-class TestPDSLabelGetMissionReferenceType:
-    """Covers PDSLabel.get_mission_reference_type – every branch."""
-
-    @pytest.fixture
-    def label_of_class(self):
-        """Factory fixture: builds a bare label instance of the given class name."""
-        def _build(class_name, info_model_float=1014000000.0):
-            cls = cast(Type[PDSLabel], type(class_name, (PDSLabel,), {}))
-            obj = object.__new__(cls)
-            obj.setup = MagicMock()
-            obj.setup.information_model_float = info_model_float
-            return obj
-        return _build
-
-    @pytest.mark.parametrize('pds_label, model, ref_type', [
-        ('ChecksumPDS4Label', None, 'ancillary_to_investigation'),
-        ('BundlePDS4Label', None, 'bundle_to_investigation'),
-        ('DocumentPDS4Label', None, 'document_to_investigation'),
-        ('InventoryPDS4Label', None, 'collection_to_investigation'),
-        ('OrbnumFilePDS4Label', 1014000000.0, 'ancillary_to_investigation'),
-        ('OrbnumFilePDS4Label', 1013000000.0, 'data_to_investigation'),
-        ('SpiceKernelPDS4Label', None, 'data_to_investigation'),
-        ('MetaKernelPDS4Label', None, 'data_to_investigation'),
-        ('SpiceKernelPDS3Label', None, 'data_to_investigation')
-    ])
-    def test_checksum_label(self, label_of_class, pds_label, model, ref_type):
-        assert label_of_class(pds_label, model).get_mission_reference_type() == ref_type
-
-
-# ===========================================================================
-# PDSLabel.get_observers
-# ===========================================================================
-
-class TestPDSLabelGetObservers:
-    """Covers PDSLabel.get_observers – all branches."""
-
-    @pytest.fixture
-    def label_for(self):
-        """Factory fixture: builds a bare label with given observers."""
-        def _build(observers, context_products=None, fallback_to_bundle=False):
-            setup = _make_setup_pds4()
-            product = _make_product()
-            ctx = context_products or _make_context_products()
-            if fallback_to_bundle:
-                product.collection = MagicMock(spec=[])
-                product.bundle.context_products = ctx
-            else:
-                product.collection.bundle.context_products = ctx
-            label = PDSLabel.__new__(PDSLabel)
-            label.setup = setup
-            label.product = product
-            label.observers = observers if isinstance(observers, list) else [observers]
-            return label
-        return _build
-
-    def test_single_observer_spacecraft(self, label_for):
-        result = label_for(["TestObserver"]).get_observers()
-        assert "TestObserver" in result
-        assert "Observing_System_Component" in result
-
-    def test_observers_not_a_list_wrapped(self, label_for):
-        label = label_for("TestObserver")
-        label.observers = "TestObserver"  # scalar
-        assert "TestObserver" in label.get_observers()
-
-    def test_context_fallback_to_product_bundle(self, label_for):
-        result = label_for(["TestObserver"], fallback_to_bundle=True).get_observers()
-        assert "TestObserver" in result
-
-    def test_rover_type_accepted(self, label_for):
-        ctx = [{"name": ["TestObserver"], "type": ["Rover"], "lidvid": "urn:x::1.0"}]
-        assert "Rover" in label_for(["TestObserver"], ctx).get_observers()
-
-    def test_lander_type_accepted(self, label_for):
-        ctx = [{"name": ["TestObserver"], "type": ["Lander"], "lidvid": "urn:x::1.0"}]
-        assert "Lander" in label_for(["TestObserver"], ctx).get_observers()
-
-    def test_host_type_accepted(self, label_for):
-        ctx = [{"name": ["TestObserver"], "type": ["Host"], "lidvid": "urn:x::1.0"}]
-        assert "Host" in label_for(["TestObserver"], ctx).get_observers()
-
-    def test_comma_in_observer_name_strips_suffix(self, label_for):
-        """Observer names like 'Name, suffix' → only 'Name' used for look-up."""
-        ctx = [{"name": ["TestObserver"], "type": ["Spacecraft"], "lidvid": "urn:x::1.0"}]
-        assert "TestObserver" in label_for(["TestObserver, extra"], ctx).get_observers()
-
-    def test_empty_observer_skipped_calls_error(self, label_for, mocker):
-        mock_err = mocker.patch(_PATCH_HANDLE_ERROR)
-        label_for([""]).get_observers()
-        mock_err.assert_called()
-
-    def test_no_lid_calls_handle_npb_error(self, label_for, mocker):
-        ctx = [{"name": ["NoMatch"], "type": ["Spacecraft"], "lidvid": "urn:x::1.0"}]
-        mock_err = mocker.patch(_PATCH_HANDLE_ERROR)
-        label_for(["TestObserver"], ctx).get_observers()
-        mock_err.assert_called()
-
-    def test_trailing_eol_appended(self, label_for):
-        assert label_for(["TestObserver"]).get_observers().endswith("\r\n")
-
-
-# ===========================================================================
-# PDSLabel.get_targets
-# ===========================================================================
-
-class TestPDSLabelGetTargets:
-    """Covers PDSLabel.get_targets – all branches."""
-
-    @pytest.fixture
-    def label_for(self):
-        """Factory fixture: builds a bare label with given targets."""
-        def _build(targets, context_products=None, fallback_to_bundle=False):
-            setup = _make_setup_pds4()
-            product = _make_product()
-            ctx = context_products or _make_context_products()
-            if fallback_to_bundle:
-                product.collection = MagicMock(spec=[])
-                product.bundle.context_products = ctx
-            else:
-                product.collection.bundle.context_products = ctx
-            label = PDSLabel.__new__(PDSLabel)
-            label.setup = setup
-            label.product = product
-            label.targets = targets if isinstance(targets, list) else [targets]
-            return label
-        return _build
-
-    def test_single_target(self, label_for):
-        result = label_for(["TestTarget"]).get_targets()
-        assert "TestTarget" in result
-        assert "Target_Identification" in result
-
-    def test_targets_not_a_list_wrapped(self, label_for):
-        label = label_for("TestTarget")
-        label.targets = "TestTarget"  # scalar
-        assert "TestTarget" in label.get_targets()
-
-    def test_context_fallback_to_product_bundle(self, label_for):
-        result = label_for(["TestTarget"], fallback_to_bundle=True).get_targets()
-        assert "TestTarget" in result
-
-    def test_case_insensitive_name_match(self, label_for):
-        ctx = [{"name": ["TESTTARGET"], "type": ["planet"], "lidvid": "urn:x::1.0"}]
-        assert "testtarget" in label_for(["testtarget"], ctx).get_targets()
-
-    def test_empty_target_skipped_calls_error(self, label_for, mocker):
-        mock_err = mocker.patch(_PATCH_HANDLE_ERROR)
-        label_for([""]).get_targets()
-        mock_err.assert_called()
-
-    def test_trailing_eol_appended(self, label_for):
-        assert label_for(["TestTarget"]).get_targets().endswith("\r\n")
-
-
-# ===========================================================================
-# PDSLabel.get_target_reference_type
-# ===========================================================================
-
-class TestPDSLabelGetTargetReferenceType:
-    """Covers PDSLabel.get_target_reference_type – every branch."""
-
-    @pytest.fixture
-    def label_of_class(self):
-        """Factory fixture: builds a bare label instance of the given class name."""
-        def _build(class_name, info_model_float=1014000000.0):
-            cls = cast(Type[PDSLabel], type(class_name, (PDSLabel,), {}))
-            obj = object.__new__(cls)
-            obj.setup = MagicMock()
-            obj.setup.information_model_float = info_model_float
-            return obj
-        return _build
-
-    def test_checksum_label(self, label_of_class):
-        assert label_of_class("ChecksumPDS4Label").get_target_reference_type() == "ancillary_to_target"
-
-    def test_bundle_label(self, label_of_class):
-        assert label_of_class("BundlePDS4Label").get_target_reference_type() == "bundle_to_target"
-
-    def test_inventory_label(self, label_of_class):
-        assert label_of_class("InventoryPDS4Label").get_target_reference_type() == "collection_to_target"
-
-    def test_orbnum_label_new_model(self, label_of_class):
-        assert label_of_class("OrbnumFilePDS4Label", 1014000000.0).get_target_reference_type() == "ancillary_to_target"
-
-    def test_orbnum_label_old_model(self, label_of_class):
-        assert label_of_class("OrbnumFilePDS4Label", 1013000000.0).get_target_reference_type() == "data_to_target"
-
-    def test_default_label(self, label_of_class):
-        assert label_of_class("SomeOtherLabel").get_target_reference_type() == "data_to_target"
+    def test_get_target_reference_type_raises(self):
+        label = object.__new__(PDSLabel)
+        with pytest.raises(NotImplementedError):
+            label.get_target_reference_type()
 
 
 # ===========================================================================
@@ -667,8 +306,14 @@ class TestPDSLabelWriteLabel:
                 product.path = "/staging/test_kernel.bc"
                 product.extension = "bc"
 
+            # _label_extension/_eol come from whichever of PDS3Label/PDS4Label
+            # is mixed in here, driven by pds_version — exactly like the real
+            # hierarchy, where a label's class (not its name) decides its
+            # extension. cls_name only matters for write_label's unrelated
+            # "suppress trailing log line for SpiceKernelPDS3Label" check.
+            base_cls = PDS4Label if pds_version == "4" else PDS3Label
             cls_name = "SpiceKernelPDS3Label" if is_pds3_kernel else "PDSLabel"
-            cls = cast(Type[PDSLabel], type(cls_name, (PDSLabel,), {}))
+            cls = cast(Type[PDSLabel], type(cls_name, (base_cls,), {}))
             label = object.__new__(cls)
             label.setup = setup
             label.product = product
@@ -676,7 +321,7 @@ class TestPDSLabelWriteLabel:
             label.template = "/tmpl/template.xml"
 
             if is_checksum:
-                label.__class__ = type("ChecksumLabelClass", (PDSLabel,), {})
+                label.__class__ = type("ChecksumLabelClass", (base_cls,), {})
                 label.name = f"/staging{os.sep}checksum.lbl"
                 product.path = label.name
                 label.template = "/tmpl/template.lbl"

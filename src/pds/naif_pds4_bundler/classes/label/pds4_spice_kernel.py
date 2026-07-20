@@ -2,10 +2,10 @@
 """
 from pathlib import Path
 
-from .label import PDSLabel
+from .pds4_label import PDS4Label
 
 
-class SpiceKernelPDS4Label(PDSLabel):
+class SpiceKernelPDS4Label(PDS4Label):
     """Class to generate a non-MK PDS4 SPICE Kernel Label.
 
     :param setup:   NPB execution Setup object

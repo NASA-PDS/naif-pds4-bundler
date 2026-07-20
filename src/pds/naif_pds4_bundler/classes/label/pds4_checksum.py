@@ -2,10 +2,10 @@
 """
 from pathlib import Path
 
-from .label import PDSLabel
+from .pds4_label import PDS4Label
 
 
-class ChecksumPDS4Label(PDSLabel):
+class ChecksumPDS4Label(PDS4Label):
     """Class to generate a PDS4 Checksum Label.
 
     :param setup: NPB execution Setup object
@@ -28,3 +28,19 @@ class ChecksumPDS4Label(PDSLabel):
         self.name = Path(product.name).with_suffix(".xml").name
 
         self.write_label()
+
+    def get_mission_reference_type(self):
+        """Get mission reference type.
+
+        :return: Literally ``ancillary_to_investigation``
+        :rtype: str
+        """
+        return "ancillary_to_investigation"
+
+    def get_target_reference_type(self):
+        """Get target reference type.
+
+        :return: Literally ``ancillary_to_target``
+        :rtype: str
+        """
+        return "ancillary_to_target"

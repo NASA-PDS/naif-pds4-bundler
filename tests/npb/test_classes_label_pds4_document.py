@@ -39,9 +39,9 @@ class TestDocumentPDS4LabelInit:
         setup, collection, inventory = self.make_document_label_inputs(tmp_path)
 
         # This mock allows you to verify that the call is made, but without
-        # executing the actual logic of PDSLabel.
+        # executing the actual logic of PDS4Label.
         parent_init_mock = mocker.patch(
-            'pds.naif_pds4_bundler.classes.label.pds4_document.PDSLabel.__init__',
+            'pds.naif_pds4_bundler.classes.label.pds4_document.PDS4Label.__init__',
             autospec=True)
 
         # Mock write_label to verify that label generation is requested without
@@ -79,7 +79,7 @@ class TestDocumentPDS4LabelInit:
             tmp_path, collection_name='collection.document_inventory_v001.csv')
 
         mocker.patch(
-            'pds.naif_pds4_bundler.classes.label.pds4_document.PDSLabel.__init__',
+            'pds.naif_pds4_bundler.classes.label.pds4_document.PDS4Label.__init__',
             autospec=True)
 
         mocker.patch.object(DocumentPDS4Label, 'write_label', autospec=True)
@@ -248,3 +248,24 @@ class TestDocumentPDS4LabelIntegration:
 
         # The generated XML label must be registered exactly once.
         setup.add_file.assert_called_once_with(expected_label_path)
+
+    # ------------------------------------------------------------------
+    # get_*_reference_type overrides
+    # ------------------------------------------------------------------
+
+    def test_get_mission_reference_type(
+            self,
+            env: tuple[SimpleNamespace, SimpleNamespace, SimpleNamespace, Path, Path]) -> None:
+        # DocumentPDS4Label overrides the mission reference type only; the
+        # target reference type keeps PDS4Label's default (see below).
+        setup, collection, inventory, _, _ = env
+        label = DocumentPDS4Label(setup, collection, inventory)
+        assert label.get_mission_reference_type() == 'document_to_investigation'
+
+    def test_get_target_reference_type(
+            self,
+            env: tuple[SimpleNamespace, SimpleNamespace, SimpleNamespace, Path, Path]) -> None:
+        # No override on DocumentPDS4Label: falls back to PDS4Label's default.
+        setup, collection, inventory, _, _ = env
+        label = DocumentPDS4Label(setup, collection, inventory)
+        assert label.get_target_reference_type() == 'data_to_target'

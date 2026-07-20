@@ -2,10 +2,10 @@
 """
 from pathlib import Path
 
-from .label import PDSLabel
+from .pds4_label import PDS4Label
 
 
-class BundlePDS4Label(PDSLabel):
+class BundlePDS4Label(PDS4Label):
     """Class to generate a PDS4 Bundle Label.
 
     :param setup:  NPB execution Setup object
