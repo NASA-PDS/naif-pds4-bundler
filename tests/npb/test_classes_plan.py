@@ -598,6 +598,32 @@ def test_write_plan_plan_file_not_written_when_empty(tmp_path):
     assert not plan_path(setup).exists()
 
 # ---------------------------------------------------------------------------
+# 2b. Empty result — print branch:
+#     When no kernels are found, a console message is printed only when
+#     both silent and verbose are False.
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize(
+    "silent,verbose,expected_out",
+    [
+        (False, False, "-- Inputs for the release not found.\n"),  # normal interactive mode — print fires
+        (True,  False, ""),  # silent suppresses print
+        (False, True,  ""),  # verbose suppresses print
+        (True,  True,  ""),  # both flags set — print suppressed
+    ],
+)
+def test_write_plan_no_kernels_print_branch(tmp_path, capsys, silent, verbose, expected_out):
+    setup = make_setup(tmp_path)
+    setup.args.silent = silent
+    setup.args.verbose = verbose
+    rp = make_release_plan(setup)
+
+    rp.write_plan()
+
+    assert capsys.readouterr().out == expected_out
+
+
+# ---------------------------------------------------------------------------
 # 3. Mapping patterns:
 #    Kernels matched via a mapping pattern are included in the plan.
 # ---------------------------------------------------------------------------
