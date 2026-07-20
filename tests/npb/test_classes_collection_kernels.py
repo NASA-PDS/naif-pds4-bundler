@@ -803,6 +803,22 @@ class TestSpiceKernelsCollectionValidate:
 
         assert messages == expected
 
+    def test_multiple_non_present_products_all_reported_before_error(self, caplog):
+        """All missing products are logged before handle_npb_error is called."""
+        obj = self._make_obj(pds_version='4', kernel_list=["missing1.bc", "missing2.bsp"])
+        with caplog.at_level(logging.INFO), patch(_EXISTS, return_value=False):
+            with pytest.raises(RuntimeError, match='Some products from the list are not present.'):
+                obj.validate()
+
+        messages = [(r[1], r[2]) for r in caplog.record_tuples]
+
+        assert messages == [
+            (logging.INFO,  '-- Checking that all the kernels from list are present...'),
+            (logging.ERROR, '-- The following products from the list are not present:'),
+            (logging.ERROR, '   missing1.bc'),
+            (logging.ERROR, '   missing2.bsp'),
+            (logging.ERROR, '-- Some products from the list are not present.')]
+
 
     @pytest.mark.parametrize("products, exists", [
         # Product missing.
@@ -859,6 +875,61 @@ class TestSpiceKernelsCollectionValidate:
         #          assert messages == expected
         assert messages[:6] == expected
 
+    @pytest.mark.parametrize("products, exists", [
+        # Kernel file missing.
+        ([('missing.bc', 'ck')], [False]),
+        # Kernel file present but label missing.
+        ([('missing.bc', 'ck')], [True, False]),
+        # First product labeled; second kernel file missing.
+        ([('kernel.bc', 'ck'), ('missing.bc', 'ck')], [True, True, False]),
+    ])
+    def test_unlabeled_pds4_product_calls_handle_error(self, products, exists, caplog):
+        """Unlabeled PDS4 products trigger handle_npb_error after all are reported."""
+        prods = []
+        for n, t in products:
+            p = MagicMock()
+            p.name = n
+            p.type = t
+            prods.append(p)
+        obj = self._make_obj(pds_version='4', products=prods)
+        with caplog.at_level(logging.INFO), patch(_EXISTS, side_effect=exists):
+            with pytest.raises(RuntimeError, match='Some products have not been labeled.'):
+                obj.validate()
+
+        messages = [(r[1], r[2]) for r in caplog.record_tuples]
+        assert messages == [
+            (logging.INFO,  '-- Checking that all the kernels from list are present...'),
+            (logging.INFO,  '   OK'),
+            (logging.INFO,  ''),
+            (logging.INFO,  '-- Checking that all the kernels have been labeled...'),
+            (logging.ERROR, '-- The following products have not been labeled:'),
+            (logging.ERROR, '   missing.bc'),
+            (logging.ERROR, '-- Some products have not been labeled.')]
+
+    def test_multiple_unlabeled_pds4_products_all_reported_before_error(self, caplog):
+        """All unlabeled PDS4 products are logged before handle_npb_error is called."""
+        prods = []
+        for n, t in [('missing1.bc', 'ck'), ('missing2.bsp', 'spk')]:
+            p = MagicMock()
+            p.name = n
+            p.type = t
+            prods.append(p)
+        obj = self._make_obj(pds_version='4', products=prods)
+        with caplog.at_level(logging.INFO), patch(_EXISTS, return_value=False):
+            with pytest.raises(RuntimeError, match='Some products have not been labeled.'):
+                obj.validate()
+
+        messages = [(r[1], r[2]) for r in caplog.record_tuples]
+        assert messages == [
+            (logging.INFO,  '-- Checking that all the kernels from list are present...'),
+            (logging.INFO,  '   OK'),
+            (logging.INFO,  ''),
+            (logging.INFO,  '-- Checking that all the kernels have been labeled...'),
+            (logging.ERROR, '-- The following products have not been labeled:'),
+            (logging.ERROR, '   missing1.bc'),
+            (logging.ERROR, '   missing2.bsp'),
+            (logging.ERROR, '-- Some products have not been labeled.')]
+
     @pytest.mark.skip('There is a bug in the code that will cause this test to'
                       'break with FileNotFoundError.')
     def test_pds3_metakernel_excluded_from_non_labeled(self):
@@ -866,7 +937,6 @@ class TestSpiceKernelsCollectionValidate:
         prod = MagicMock()
         prod.type = "mk"
         prod.name = "test.tm"
-        prod.label.name = "/fake/staging/spice_kernels/mk/test.xml"
         obj = self._make_obj(pds_version="3", products=[prod])
 
         # Both exists calls return False → would be unlabeled, but .tm → excluded

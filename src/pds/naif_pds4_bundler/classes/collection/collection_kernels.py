@@ -116,10 +116,9 @@ class SpiceKernelsCollection(Collection):
             #
             # If the kernel already exists, it will not be generated.
             #
-            if (
-                (hasattr(self.setup, "mk"))
-                and (self.product)
-                and (self.setup.args.faucet != "labels")
+            if (hasattr(self.setup, "mk")
+                and self.product
+                and self.setup.args.faucet != "labels"
             ):
                 if (
                     len(self.setup.mk) == 1
@@ -359,15 +358,14 @@ class SpiceKernelsCollection(Collection):
         if non_present_products:
             logging.error("-- The following products from the list are not present:")
             for product in non_present_products:
-
                 logging.error('   %s', product)
 
-                # TODO: this is a bug. The termination of the pipeline should happen
-                #       once all the "non_present_products" are reported.
-                handle_npb_error(
-                    "Some products from the list are not present.",
-                    setup=self.setup,
-                )
+            # Report all missing products before terminating so the user can
+            # address every gap in a single run.
+            handle_npb_error(
+                "Some products from the list are not present.",
+                setup=self.setup,
+            )
 
         else:
             logging.info("   OK")
@@ -380,34 +378,41 @@ class SpiceKernelsCollection(Collection):
 
         non_labeled_products = []
         for product in self.product:
-            if not os.path.exists(
-                self.setup.staging_directory
-                + ker_dir
-                + product.type
-                + os.sep
-                + product.name
-            ) or not os.path.exists(
-                self.setup.staging_directory
-                + ker_dir
-                + product.type
-                + os.sep
-                + product.name.split(".")[0]
-                + lbl_ext
+            # PDS3 meta-kernels (.tm) are not labeled; all other products in
+            # both PDS versions must have both a kernel file and a label file.
+            if (
+                not (self.setup.pds_version == "3" and ".tm" in product.name)
+                and (
+                    not os.path.exists(
+                        self.setup.staging_directory
+                        + ker_dir
+                        + product.type
+                        + os.sep
+                        + product.name
+                    )
+                    or not os.path.exists(
+                        self.setup.staging_directory
+                        + ker_dir
+                        + product.type
+                        + os.sep
+                        + product.name.split(".")[0]
+                        + lbl_ext
+                    )
+                )
             ):
-                if self.setup.pds_version == "3" and ".tm" not in product.name:
-                    non_labeled_products.append(product.name)
+                non_labeled_products.append(product.name)
 
         if non_labeled_products:
             logging.error("-- The following products have not been labeled:")
             for product in non_labeled_products:
-
                 logging.error('   %s', product)
 
-                # TODO: This IF statement goes after implementing PDS3 labeling.
-                if self.setup.pds_version == "4":
-                    handle_npb_error(
-                        "Some products have not been labeled.", setup=self.setup
-                    )
+            # PDS3 labeling is not yet implemented; termination is deferred
+            # until it is. For PDS4, all products must be labeled.
+            if self.setup.pds_version == "4":
+                handle_npb_error(
+                    "Some products have not been labeled.", setup=self.setup
+                )
 
         else:
             logging.info("   OK")
