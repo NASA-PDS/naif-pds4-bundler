@@ -146,8 +146,9 @@ class SpiceKernelPDS3Label(PDSLabel):
                 desc += word
                 line_len = len(word)
 
-        if line_len < 77:
-            desc += ' "\n'
+        # Close the description value with a trailing space, closing quote,
+        # and newline.
+        desc += ' "\n'
 
         return desc
 
@@ -200,15 +201,8 @@ class SpiceKernelPDS3Label(PDSLabel):
             # Remove empty lines at the end of the kernel, add a new line
             # character in the last line.
             #
-            lines_to_remove = 0
-            for line in reversed(kernel_lines):
-                if not line.strip():
-                    lines_to_remove += 1
-                if line.strip():
-                    break
-            lines_to_remove *= -1
-            if lines_to_remove:
-                kernel_lines = kernel_lines[:lines_to_remove]
+            while kernel_lines and not kernel_lines[-1].strip():
+                kernel_lines.pop()
 
             #
             # Add kernel list to kernel.
