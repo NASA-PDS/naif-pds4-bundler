@@ -92,19 +92,6 @@ class PDSLabel:
             self.targets = product.targets
 
     @property
-    def _mission_reference_type(self):
-        """Get the mission reference type.
-
-        Version-agnostic labels have no notion of a mission reference type;
-        only PDS4 labels do. Subclasses that need one must override this.
-
-        :raises NotImplementedError: always, on the base class
-        """
-        raise NotImplementedError(
-            f"{type(self).__name__} does not define a mission reference type."
-        )
-
-    @property
     def _target_reference_type(self):
         """Get the target reference type.
 
