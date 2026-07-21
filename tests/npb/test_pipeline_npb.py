@@ -1069,7 +1069,9 @@ class TestNPBErrorHandling:
     # entirely since no setup instance exists yet. Each parametrized case
     # below forces one Block-B call site to raise NPBError and asserts both
     # that cleanup ran and that the RuntimeError carries the original
-    # message; the dedicated test below covers Block A's no-setup case.
+    # message. Two call sites need their own dedicated test instead of a
+    # table row: ReleasePlan.read_plan() (only reached with a non-default
+    # `args.plan`) and Setup() construction (Block A's no-setup case).
 
     @staticmethod
     def _apply_overrides(mocks, overrides):
@@ -1167,6 +1169,14 @@ class TestNPBErrorHandling:
             'ChecksumProduct.return_value.generate', 'boom checksum pds3 generate',
             id='pds3_checksum_generate',
         ),
+        # ReleasePlan.write_plan() is called with the default args (no
+        # kerlist, no .plan file), so it needs no extra overrides to be
+        # reached -- unlike read_plan(), which needs args.plan set to a
+        # .plan path and is covered separately below.
+        pytest.param(
+            {}, 'ReleasePlan.return_value.write_plan', 'boom write_plan',
+            id='release_plan_write_plan',
+        ),
     ])
     def test_npb_error_is_routed_to_handle_npb_error(self, mocks, overrides, target_attr, message):
         self._apply_overrides(mocks, overrides)
@@ -1174,6 +1184,21 @@ class TestNPBErrorHandling:
         args = _args()
 
         with pytest.raises(RuntimeError, match=message):
+            run_pipeline(args)
+
+        setup = mocks.Setup.return_value
+        setup.write_file_list.assert_called_once()
+        setup.write_checksum_registry.assert_called_once()
+
+    def test_npb_error_from_release_plan_read_plan_is_routed_to_handle_npb_error(self, mocks):
+        # read_plan() is only reached when args.plan is set to a .plan path
+        # (kerlist absent), so it can't be folded into the parametrize table
+        # above, which relies on the default args() reaching write_plan()
+        # instead.
+        mocks.ReleasePlan.return_value.read_plan.side_effect = NPBError('boom read_plan')
+        args = _args(plan='mission_release_01.plan')
+
+        with pytest.raises(RuntimeError, match='boom read_plan'):
             run_pipeline(args)
 
         setup = mocks.Setup.return_value

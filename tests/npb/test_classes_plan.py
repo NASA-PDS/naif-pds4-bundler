@@ -12,6 +12,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from pds.naif_pds4_bundler.classes.exceptions import NPBError
 from pds.naif_pds4_bundler.classes.plan import ReleasePlan
 
 
@@ -43,8 +44,8 @@ def test_read_plan_non_plan_extension_outside_labeling_mode_raises(tmp_path):
     setup = make_setup(tmp_path)
     rp = make_release_plan(setup)
 
-    with pytest.raises(RuntimeError, match=r'Release plan requires \*\.plan extension. '
-                                           'Single kernels are only allowed in labeling mode.'):
+    with pytest.raises(NPBError, match=r'Release plan requires \*\.plan extension. '
+                                       'Single kernels are only allowed in labeling mode.'):
         rp.read_plan(kernel_file)
 
 
@@ -68,8 +69,8 @@ def test_read_plan_txt_extension_outside_labeling_mode_raises(tmp_path):
     bad_file.write_text("maven_sc_rec_200101_200201_v01.bsp\n")
     rp = make_release_plan(setup)
 
-    with pytest.raises(RuntimeError, match=r'Release plan requires \*\.plan extension. '
-                                           'Single kernels are only allowed in labeling mode.'):
+    with pytest.raises(NPBError, match=r'Release plan requires \*\.plan extension. '
+                                       'Single kernels are only allowed in labeling mode.'):
         rp.read_plan(bad_file)
 
 # ---------------------------------------------------------------------------
@@ -712,8 +713,8 @@ def test_write_plan_missing_mk_raises_error(tmp_path):
     )
     rp = make_release_plan(setup)
 
-    with pytest.raises(RuntimeError, match="Meta-kernel provided via configuration "
-                                           "nonexistent.tm does not exist."):
+    with pytest.raises(NPBError, match="Meta-kernel provided via configuration "
+                                       "nonexistent.tm does not exist."):
         rp.write_plan()
 
 
