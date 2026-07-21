@@ -119,13 +119,10 @@ class PDSLabel:
         """Write the Label."""
         label_dictionary = vars(self)
 
-        label_extension = self._label_extension
-        eol = self._eol
-
-        if label_extension not in self.product.path:
+        if self._label_extension not in self.product.path:
             label_name = (
                 self.product.path.split(f".{self.product.extension}")[0]
-                + label_extension
+                + self._label_extension
             )
         else:
             #
@@ -154,7 +151,7 @@ class PDSLabel:
                     #
                     if label_name.split(os.sep)[-1] == "checksum.lbl":
                         line += " " * (self.product.record_bytes - len(line) - 2)
-                    line = add_carriage_return(line, eol, self.setup)
+                    line = add_carriage_return(line, self._eol, self.setup)
 
                     f.write(line)
 
