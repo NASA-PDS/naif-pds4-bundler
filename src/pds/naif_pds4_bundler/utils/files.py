@@ -1,7 +1,6 @@
 """File and Text Management Functions to support NPB Classes."""
 from collections import defaultdict
 import difflib
-import errno
 import glob
 import hashlib
 from importlib.resources import files
@@ -69,27 +68,6 @@ def md5(fname):
 
     return hash_md5.hexdigest()
 
-
-def copy(src, dest):
-    """Creates a directory and raises an error if the directory exists.
-
-    :param src: Source directory with path.
-    :type src: str
-    :param dest: Destination directory with path.
-    :type dest: str
-    """
-    try:
-        shutil.copytree(src, dest)
-    except OSError as e:
-        #
-        # If the error was caused because the source was not a directory.
-        #
-        if e.errno == errno.ENOTDIR:
-            shutil.copy(src, dest)
-        else:
-            logging.warning("-- Directory %s not copied, probably because the "
-                            "increment directory exists.\n"
-                            "Error: %s", src.split(os.sep)[-1], e)
 
 
 def safe_make_directory(path):

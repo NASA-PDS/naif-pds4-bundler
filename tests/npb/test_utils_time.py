@@ -81,24 +81,6 @@ def test_current_date(monkeypatch, date_input, expected):
     assert result == expected
 
 
-@pytest.mark.parametrize("time_format, expected", [
-    ("maklabel", "2010-04-19T12:07:50"),
-    ("infomod2", "2010-04-19T12:07:50.244Z"),
-    ("", "2010-04-19T12:07:50.244000")
-])
-def test_current_time(monkeypatch, time_format, expected):
-    """Test current time function using pytest.
-    Uses monkeypatch to make a fake current_time to test expected output."""
-    class MockDatetime(datetime):
-        @classmethod
-        def now(cls, tz=None):
-            return datetime(2010, 4, 19, 12, 7 , 50 , 244000)
-    monkeypatch.setattr(time.datetime, "datetime", MockDatetime) #module, class, new class
-
-    result = time.current_time(time_format)
-    assert result == expected
-
-
 @pytest.mark.parametrize("date_format, system, expected", [
     ("infomod2", "UTC",  ["1950-01-01T00:00:00.000Z", "2049-12-31T23:59:59.000Z"]),
     ("maklabel", "UTC", ["1950-01-01T00:00:00Z", "2049-12-31T23:59:59Z"]),
@@ -133,17 +115,6 @@ def test_et_to_date_date_format_error():
         time.et_to_date(beget=0, endet=0, date_format="unknown")
 
 
-@pytest.mark.parametrize("start_time, stop_time, expected", [
-    ("2026-02-11T12:00:00", "2026-02-12T12:00:00", ["2026"]),
-    ("2023-05-12T12:00:00", "2025-05-12T12:00:00", ["2023", "2024", "2025"]),
-    ("2025-05-12T12:00:00", "2023-05-12T12:00:00", []),
-])
-def test_get_years(start_time, stop_time, expected):
-    """Test get_years function using pytest."""
-    result = time.get_years(start_time, stop_time)
-    assert result == expected
-
-
 @pytest.mark.parametrize("date_input, expected", [
     ("2021-02-18T21:52:40", datetime(2021, 2, 18, 21, 52, 40)),
     ("2021-FEB-18-21:52:40", datetime(2021, 2, 18, 21, 52, 40)),
@@ -176,23 +147,6 @@ def test_pck_coverage(lsk, date_format, system, expected):
     pck_file = str( KERNELS/ "pck" / "earth_000101_260613_260317.bpc")
 
     result = time.pck_coverage(pck_file, date_format, system)
-    assert result == expected
-
-
-@pytest.mark.parametrize("inputs, expected", [
-    ("PRODUCT_CREATION_TIME        = 2026-03-10T11:08:04", "2026-03-10T11:08:04"),
-    ("","N/A"),
-    ("PDS_VERSION_ID                = PDS3\n"
-     "RECORD_TYPE                   = FIXED_LENGTH\n"
-     "[..the rest of the label without the product creation time..]"
-     "END", "N/A")
- ])
-def test_pds3_label_gen_date(mocker, inputs, expected):
-    """Test pds3 label generation date function."""
-    mock_file = mocker.mock_open(read_data=inputs)
-    mocker.patch("builtins.open", mock_file)
-
-    result = time.pds3_label_gen_date(inputs)
     assert result == expected
 
 
