@@ -15,6 +15,8 @@ class PDSLabel:
     :param product: Product to be labeled
     """
 
+    _label_extension: str
+
     def __init__(self, setup, product) -> None:
         """Constructor."""
         self.name = ''
