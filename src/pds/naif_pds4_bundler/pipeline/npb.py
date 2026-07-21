@@ -78,7 +78,10 @@ def run_pipeline(args: PipelineArgs) -> None:
     #     * Parse JSON into an object with attributes corresponding
     #       to dict keys.
     #
-    setup = Setup(args, __version__)
+    try:
+        setup = Setup(args, __version__)
+    except NPBError as exc:
+        handle_npb_error(str(exc))
 
     #
     # * Start the Log object
@@ -86,199 +89,410 @@ def run_pipeline(args: PipelineArgs) -> None:
     #      option is chosen.
     #    * The log file will be written in the working directory
     #
-    log = Log(setup, args)
+    try:
+        log = Log(setup, args)
 
-    #
-    # Indicate the Log object to start recording the output.
-    #
-    log.start()
+        #
+        # Indicate the Log object to start recording the output.
+        #
+        log.start()
 
-    #
-    # Add the log to the setup object with the sole purpose for the log
-    # to be accessible via setup to be able to write the product list file
-    # for an interrupted run.
-    #
-    setup.log = log
+        #
+        # Add the log to the setup object with the sole purpose for the log
+        # to be accessible via setup to be able to write the product list file
+        # for an interrupted run.
+        #
+        setup.log = log
 
-    #
-    # With the log started we check the current configuration
-    #
-    setup.check_configuration()
+        #
+        # With the log started we check the current configuration
+        #
+        setup.check_configuration()
 
-    #
-    # * Check the existence of a previous archive version.
-    #
-    log_step(setup, title='Setup the archive generation')
-    setup.set_release()
+        #
+        # * Check the existence of a previous archive version.
+        #
+        log_step(setup, title='Setup the archive generation')
+        setup.set_release()
 
-    #
-    # * If the pipeline is running to clean up a previous run, remove all the
-    #   files in the bundle and staging area indicated by the file list and
-    #   clean up the kernel list and log from the previous run.
-    #
-    if args.clear:
-        clear_run(setup)
+        #
+        # * If the pipeline is running to clean up a previous run, remove all the
+        #   files in the bundle and staging area indicated by the file list and
+        #   clean up the kernel list and log from the previous run.
+        #
+        if args.clear:
+            clear_run(setup)
 
-    #
-    #    * The pipeline can be stopped after cleaning up the previous run
-    #      by setting ``-f, --faucet`` to ``clear``.
-    #
-    if setup.faucet == "clear":
-        finish_execution(setup, log)
-        return
+        #
+        #    * The pipeline can be stopped after cleaning up the previous run
+        #      by setting ``-f, --faucet`` to ``clear``.
+        #
+        if setup.faucet == "clear":
+            finish_execution(setup, log)
+            return
 
-    #
-    # * Generate the Release Plan object.
-    # TODO: Should this one be renamed to 'Release Plan generation'?
-    log_step(setup, title='Kernel List generation')
-    release_plan = ReleasePlan(setup)
+        #
+        # * Generate the Release Plan object.
+        # TODO: Should this one be renamed to 'Release Plan generation'?
+        log_step(setup, title='Kernel List generation')
+        release_plan = ReleasePlan(setup)
 
-    #
-    #    * If a plan file is provided it is processed otherwise a plan is
-    #      generated from the kernels' directory.
-    #
-    #    * If NPB is run in label generation mode and no input products are
-    #      found, stop the execution.
-    #
-    if not args.kerlist:
-        if not args.plan or (".plan" not in args.plan):
+        #
+        #    * If a plan file is provided it is processed otherwise a plan is
+        #      generated from the kernels' directory.
+        #
+        #    * If NPB is run in label generation mode and no input products are
+        #      found, stop the execution.
+        #
+        if not args.kerlist:
+            if not args.plan or (".plan" not in args.plan):
 
-            # Stop the execution if we cannot write a release plan when we are
-            # running on "labels" mode.
-            if not release_plan.write_plan() and (args.faucet == "labels"):
-                return
+                # Stop the execution if we cannot write a release plan when we are
+                # running on "labels" mode.
+                if not release_plan.write_plan() and (args.faucet == "labels"):
+                    return
+            else:
+                release_plan.read_plan(Path(args.plan))
+
+        #
+        #    * The pipeline can be stopped after generating or reading the release
+        #      plan by setting ``-f, --faucet`` to ``plan``.
+        #
+        if setup.faucet == "plan":
+            finish_execution(setup, log)
+            return
+
+        #
+        # * Generate the Kernel List object.
+        #
+        #   If a release plan was either generated or loaded during the previous
+        #   step, load the obtained kernel_list into the KernelList object.
+        # TODO: Add kernel_list argument to the KernelList constructor.
+        # TODO: Remove this commented out code or uncomment it. The decision will
+        #       depend on whether we want to have a "step" for the generation of
+        #       the release plan or not.
+        # log_step(setup, title='Kernel List generation')
+        k_list = KernelList(setup)
+        k_list.kernel_list = release_plan.kernel_list
+
+        if not args.kerlist:
+            k_list.write_list()
         else:
-            release_plan.read_plan(Path(args.plan))
+            k_list.read_list(args.kerlist)
 
-    #
-    #    * The pipeline can be stopped after generating or reading the release
-    #      plan by setting ``-f, --faucet`` to ``plan``.
-    #
-    if setup.faucet == "plan":
-        finish_execution(setup, log)
-        return
-
-    #
-    # * Generate the Kernel List object.
-    #
-    #   If a release plan was either generated or loaded during the previous
-    #   step, load the obtained kernel_list into the KernelList object.
-    # TODO: Add kernel_list argument to the KernelList constructor.
-    # TODO: Remove this commented out code or uncomment it. The decision will
-    #       depend on whether we want to have a "step" for the generation of
-    #       the release plan or not.
-    # log_step(setup, title='Kernel List generation')
-    k_list = KernelList(setup)
-    k_list.kernel_list = release_plan.kernel_list
-
-    if not args.kerlist:
-        k_list.write_list()
-    else:
-        k_list.read_list(args.kerlist)
-
-    #
-    #    * The pipeline can be stopped after generating or reading the kernel
-    #      list plan by setting ``-f, --faucet`` to ``list``.
-    #
-    if setup.faucet == "list":
-        finish_execution(setup, log)
-        return
-
-    #
-    #    * Check the products present in the list (SPICE kernels and OrbNum
-    #      files)
-    log_step(setup, title='Check kernel list products')
-    k_list.check_products()
-
-    #
-    #    * The pipeline can be stopped after checking the kernel
-    #      list by setting ``-f, --faucet`` to ``checks``.
-    #
-    if setup.faucet == "checks":
-        finish_execution(setup, log)
-        return
-
-    #
-    # * Generate the PDS4 Bundle structure.
-    #
-    log_step(setup, title='Bundle/data set structure generation at staging area')
-    bundle = Bundle(setup)
-
-    #
-    # * Load LSK, FK and SCLK kernels for time conversions and coverage
-    #   computations.
-    #
-    log_step(setup, title='Load LSK, PCK, FK and SCLK kernels')
-    setup.load_kernels()
-
-    #
-    # * Initialize the SPICE Kernels Collection.
-    log_step(setup, title='SPICE kernel collection/data processing')
-    spice_kernels_collection = SpiceKernelsCollection(setup, bundle, k_list)
-
-    #
-    # * Initialize the Miscellaneous Collection.
-    #
-    miscellaneous_collection = MiscellaneousCollection(setup, bundle, k_list)
-
-    #
-    # * Generate the labels for each SPICE kernel or ORBNUM product and
-    #   populate the SPICE kernels collection or the Miscellaneous collection
-    #   accordingly.
-    #
-    for kernel in k_list.kernel_list:
         #
-        # * Each label is validated after generation.
+        #    * The pipeline can be stopped after generating or reading the kernel
+        #      list plan by setting ``-f, --faucet`` to ``list``.
         #
-        if (".nrb" in kernel.lower()) or (".orb" in kernel.lower()):
+        if setup.faucet == "list":
+            finish_execution(setup, log)
+            return
+
+        #
+        #    * Check the products present in the list (SPICE kernels and OrbNum
+        #      files)
+        log_step(setup, title='Check kernel list products')
+        k_list.check_products()
+
+        #
+        #    * The pipeline can be stopped after checking the kernel
+        #      list by setting ``-f, --faucet`` to ``checks``.
+        #
+        if setup.faucet == "checks":
+            finish_execution(setup, log)
+            return
+
+        #
+        # * Generate the PDS4 Bundle structure.
+        #
+        log_step(setup, title='Bundle/data set structure generation at staging area')
+        bundle = Bundle(setup)
+
+        #
+        # * Load LSK, FK and SCLK kernels for time conversions and coverage
+        #   computations.
+        #
+        log_step(setup, title='Load LSK, PCK, FK and SCLK kernels')
+        setup.load_kernels()
+
+        #
+        # * Initialize the SPICE Kernels Collection.
+        log_step(setup, title='SPICE kernel collection/data processing')
+        spice_kernels_collection = SpiceKernelsCollection(setup, bundle, k_list)
+
+        #
+        # * Initialize the Miscellaneous Collection.
+        #
+        miscellaneous_collection = MiscellaneousCollection(setup, bundle, k_list)
+
+        #
+        # * Generate the labels for each SPICE kernel or ORBNUM product and
+        #   populate the SPICE kernels collection or the Miscellaneous collection
+        #   accordingly.
+        #
+        for kernel in k_list.kernel_list:
             #
-            # The OrbnumFileProduct has to be provided the kernels collection
-            # because it might require to update the kernel list if the
-            # orbnum file name is updated.
+            # * Each label is validated after generation.
             #
-            try:
+            if (".nrb" in kernel.lower()) or (".orb" in kernel.lower()):
+                #
+                # The OrbnumFileProduct has to be provided the kernels collection
+                # because it might require to update the kernel list if the
+                # orbnum file name is updated.
+                #
                 miscellaneous_collection.add(
                     OrbnumFileProduct(
                         setup, kernel, miscellaneous_collection, spice_kernels_collection
                     )
                 )
-            except NPBError as exc:
-                handle_npb_error(str(exc), setup=setup)
-        elif ".tm" not in kernel.lower():
-            try:
+            elif ".tm" not in kernel.lower():
                 spice_kernels_collection.add(
                     SpiceKernelProduct(setup, kernel, spice_kernels_collection)
                 )
-            except NPBError as exc:
-                handle_npb_error(str(exc), setup=setup)
 
-    #
-    # * Generate the Meta-kernel(s).
-    #
-    log_step(setup, title='Generation of meta-kernel(s)')
-    meta_kernels = spice_kernels_collection.determine_meta_kernels()
-    if meta_kernels:
-        for mk in sorted(meta_kernels):
-            try:
+        #
+        # * Generate the Meta-kernel(s).
+        #
+        log_step(setup, title='Generation of meta-kernel(s)')
+        meta_kernels = spice_kernels_collection.determine_meta_kernels()
+        if meta_kernels:
+            for mk in sorted(meta_kernels):
                 meta_kernel = MetaKernelProduct(
                     setup, mk, spice_kernels_collection, user_input=meta_kernels[mk]
                 )
-            except NPBError as exc:
-                handle_npb_error(str(exc), setup=setup)
+                if setup.pds_version == "4":
+                    spice_kernels_collection.add(meta_kernel)
+                else:
+                    miscellaneous_collection.add(meta_kernel)
+
+        #
+        # * Faucet for labeling mode.
+        #
+        if args.faucet == "labels":
+
+            #
+            # * Add the SPICE Kernels Collection to the Bundle.
+            #
+            bundle.add(spice_kernels_collection)
+
+            #
+            # * List the files present in the staging area.
+            #
+            log_step(setup, title='Recap files in staging area')
+            bundle.files_in_staging()
+
+            #
+            # * Copy files to the bundle area.
+            #
+            log_step(setup, title='Copy files to the bundle area')
+            bundle.copy_to_bundle()
+
+            finish_execution(setup, log)
+            return
+
+        #
+        # * Determine the SPICE kernels Collection increment times and VID.
+        #
+        if setup.pds_version == "4":
+            log_step(setup, title='Determine archive increment start and finish times')
+            spice_kernels_collection.set_increment_times()
+            spice_kernels_collection.set_collection_vid()
+
+        #
+        # * Validate the SPICE Kernels collection:
+        #    * Note the validation of products is performed after writing the
+        #      product itself and, therefore, it is not explicitly executed
+        #      from at object initialization.
+        #    * Check if there is an XML label for each file under spice_kernels.
+        #
+        log_step(setup, title='Validate SPICE kernel collection generation')
+        spice_kernels_collection.validate()
+
+        #
+        # *  Generate the SPICE Kernels Collection Inventory product (if the
+        #    collection has been updated.)
+        #
+        if spice_kernels_collection.updated:
             if setup.pds_version == "4":
-                spice_kernels_collection.add(meta_kernel)
-            else:
-                miscellaneous_collection.add(meta_kernel)
+                spice_kernels_collection.set_collection_vid()
 
-    #
-    # * Faucet for labeling mode.
-    #
-    if args.faucet == "labels":
+            log_step(setup, title=f'Generation of {spice_kernels_collection.name} collection')
+            spice_kernels_collection_inventory = InventoryProduct(
+                setup, spice_kernels_collection
+            )
+            spice_kernels_collection.add(spice_kernels_collection_inventory)
 
-        #
-        # * Add the SPICE Kernels Collection to the Bundle.
-        #
-        bundle.add(spice_kernels_collection)
+        if setup.pds_version == "4":
+            #
+            # * Generate the Document Collection.
+            #
+            document_collection = DocumentCollection(setup, bundle)
+            document_collection.set_collection_vid()
+
+            #
+            # * Generate of SPICEDS document.
+            #
+            log_step(setup, title='Processing spiceds file')
+            spiceds = SpicedsProduct(setup, document_collection)
+
+            #
+            # * If the SPICEDS document is generated, generate the
+            #   Documents Collection Inventory.
+            #
+            if spiceds.generated:
+                document_collection.add(spiceds)
+
+                document_collection.set_collection_vid()
+
+                log_step(setup, title=f'Generation of {document_collection.name} collection')
+                document_collection_inventory = InventoryProduct(setup, document_collection)
+                document_collection.add(document_collection_inventory)
+
+            #
+            # * Add the SPICE Kernels Collection to the Bundle.
+            #   Note that the Collections are provided to the Bundle object
+            #   in a given order.
+            #
+            bundle.add(spice_kernels_collection)
+
+            #
+            # * Generate the Miscellaneous collection. The Checksum product
+            #   is initialized in such a way that its name can be obtained.
+            #
+            # * The first thing that is checked is whether if the current
+            #   Bundle has checksums, if not, all the checksums are generated,
+            #   including the corresponding Miscellaneous Collection Inventories
+            #   and labels.
+            #
+
+            # Report the Collection generation step.
+            log_step(setup, title=f'Generation of {miscellaneous_collection.kind} collection')
+
+            if setup.increment:
+                checksum_dir = (
+                    setup.bundle_directory
+                    + f"/{setup.mission_acronym}_spice/miscellaneous/checksum"
+                )
+                if not isdir(checksum_dir):
+                    for release in bundle.history.items():
+                        log_step(setup, title='Generate checksum file')
+                        release_checksum = ChecksumProduct(
+                            setup, miscellaneous_collection, add_previous_checksum=False
+                        )
+                        release_checksum.generate(history=release)
+
+                        #
+                        # Initialize a miscellaneous collection for this previous
+                        # release.
+                        #
+                        release_miscellaneous_collection = MiscellaneousCollection(
+                            setup, bundle, k_list
+                        )
+
+                        #
+                        # Add the checksum at the release miscellaneous collection
+                        # to generate the adequate inventory file and add it to
+                        # the current miscellaneous collection for it to be
+                        # present at the checksum.
+                        #
+                        release_miscellaneous_collection.add(release_checksum)
+
+                        miscellaneous_collection.add(release_checksum)
+
+                        release_miscellaneous_collection.set_collection_vid()
+
+                        # The release_miscellaneous_collection name is "miscellaneous"
+                        # (PDS4 branch), therefore, we do not log the step, as we do
+                        # every other time we generate an InventoryProduct.
+                        release_miscellaneous_collection_inventory = InventoryProduct(
+                            setup, release_miscellaneous_collection
+                        )
+
+                        release_miscellaneous_collection.add(
+                            release_miscellaneous_collection_inventory
+                        )
+                        miscellaneous_collection.add(
+                            release_miscellaneous_collection_inventory
+                        )
+
+                        #
+                        # Add release miscellaneous collection.
+                        #
+                        bundle.add(release_miscellaneous_collection)
+
+                #
+                # * Set the Miscellaneous collection VID.
+                #
+                miscellaneous_collection.set_collection_vid()
+
+            #
+            # * Add the Miscellaneous and Document Collections to the Bundle object.
+            #
+            bundle.add(miscellaneous_collection)
+            bundle.add(document_collection)
+
+            #
+            # * Generate Miscellaneous Collection and initialize the Checksum
+            #   product for the current release.
+            #    * The miscellaneous collection is the one to be guaranteed to be
+            #      updated.
+            #
+            log_step(setup, title='Generate checksum file')
+            checksum = ChecksumProduct(setup, miscellaneous_collection)
+
+            #
+            # Before adding the checksum to the current collection
+            # we need to specify that is not a new product.
+            #
+            for product in miscellaneous_collection.product:
+                if isinstance(product, ChecksumProduct):
+                    product.new_product = False
+
+            miscellaneous_collection.add(checksum)
+            miscellaneous_collection.set_collection_vid()
+
+            checksum.set_coverage()
+
+            # The miscellaneous_collection name is "miscellaneous" (PDS4 branch),
+            # therefore, we do not log the step, as we do every other time we
+            # generate an InventoryProduct.
+            miscellaneous_collection_inventory = InventoryProduct(
+                setup, miscellaneous_collection
+            )
+            miscellaneous_collection.add(miscellaneous_collection_inventory)
+
+            #
+            # * Generate the Bundle label and if necessary the readme file.
+            #
+            log_step(setup, title='Generation of bundle products')
+            bundle.readme = ReadmeProduct(setup, bundle)
+
+            #
+            # * Generate the Checksum product a posteriori in such a way
+            #   that the miscellaneous collection inventory includes the
+            #   checksum and the checksum includes the md5 hash of the
+            #   Miscellaneous Collection Inventory.
+            #
+            checksum.generate()
+            miscellaneous_collection.add(checksum)
+
+        else:  # if setup.pds_version == "3":
+
+            document_collection = DocumentCollection(setup, bundle)
+
+            log_step(setup, title='Generation of PDS3 products')
+            document_collection.get_pds3_documents()
+
+            bundle.add(spice_kernels_collection)
+            bundle.add(document_collection)
+            bundle.add(miscellaneous_collection)
+
+            log_step(setup, title='Generate checksum file')
+            checksum = ChecksumProduct(
+                setup, miscellaneous_collection, add_previous_checksum=False
+            )
+            checksum.generate()
+            miscellaneous_collection.add(checksum)
 
         #
         # * List the files present in the staging area.
@@ -287,311 +501,55 @@ def run_pipeline(args: PipelineArgs) -> None:
         bundle.files_in_staging()
 
         #
+        # * The pipeline can be stopped after generating the products and before
+        #   moving them to the ``bundle_directory`` by setting ``-f, --faucet``
+        #   to ``staging``.
+        #
+        if setup.faucet == "staging":
+            finish_execution(setup, log)
+            return
+
+        #
+        # Generate index files, this includes generating the complete
+        # kernel list.
+        #
+        # OnlyFor PDS3
+        # log_step(setup, title='Generation of complete kernel list')
+        # list.write_complete_list()
+        # spice_kernels_collection_inventory.write_index()
+
+        #
         # * Copy files to the bundle area.
         #
         log_step(setup, title='Copy files to the bundle area')
         bundle.copy_to_bundle()
 
-        finish_execution(setup, log)
-        return
+        #
+        # * The pipeline can be stopped after generating the moving the products
+        #   ``bundle_directory`` by setting ``-f, --faucet``. Ch
+        #   to ``bundle``.
+        #
+        if setup.faucet == "bundle":
+            finish_execution(setup, log)
+            return
 
-    #
-    # * Determine the SPICE kernels Collection increment times and VID.
-    #
-    if setup.pds_version == "4":
-        log_step(setup, title='Determine archive increment start and finish times')
-        spice_kernels_collection.set_increment_times()
-        spice_kernels_collection.set_collection_vid()
-
-    #
-    # * Validate the SPICE Kernels collection:
-    #    * Note the validation of products is performed after writing the
-    #      product itself and, therefore, it is not explicitly executed
-    #      from at object initialization.
-    #    * Check if there is an XML label for each file under spice_kernels.
-    #
-    log_step(setup, title='Validate SPICE kernel collection generation')
-    spice_kernels_collection.validate()
-
-    #
-    # *  Generate the SPICE Kernels Collection Inventory product (if the
-    #    collection has been updated.)
-    #
-    if spice_kernels_collection.updated:
+        #
+        # * Validate the Bundle by checking Checksum files against the updated
+        #   Bundle history and checking the bundle times.
+        #
         if setup.pds_version == "4":
-            spice_kernels_collection.set_collection_vid()
-
-        log_step(setup, title=f'Generation of {spice_kernels_collection.name} collection')
-        try:
-            spice_kernels_collection_inventory = InventoryProduct(
-                setup, spice_kernels_collection
-            )
-        except NPBError as exc:
-            handle_npb_error(str(exc), setup=setup)
-        spice_kernels_collection.add(spice_kernels_collection_inventory)
-
-    if setup.pds_version == "4":
-        #
-        # * Generate the Document Collection.
-        #
-        document_collection = DocumentCollection(setup, bundle)
-        document_collection.set_collection_vid()
+            log_step(setup, title='Validate bundle history with checksum files')
+            bundle.validate()
 
         #
-        # * Generate of SPICEDS document.
+        # * Validate Meta-kernel(s).
+        #   This is the last step since it unloads all kernels.
         #
-        log_step(setup, title='Processing spiceds file')
-        try:
-            spiceds = SpicedsProduct(setup, document_collection)
-        except NPBError as exc:
-            handle_npb_error(str(exc), setup=setup)
+        for kernel in spice_kernels_collection.product:
+            if isinstance(kernel, MetaKernelProduct):
+                log_step(setup, title=f'Meta-kernel {kernel.name} validation')
+                kernel.validate()
 
-        #
-        # * If the SPICEDS document is generated, generate the
-        #   Documents Collection Inventory.
-        #
-        if spiceds.generated:
-            document_collection.add(spiceds)
-
-            document_collection.set_collection_vid()
-
-            log_step(setup, title=f'Generation of {document_collection.name} collection')
-            try:
-                document_collection_inventory = InventoryProduct(setup, document_collection)
-            except NPBError as exc:
-                handle_npb_error(str(exc), setup=setup)
-            document_collection.add(document_collection_inventory)
-
-        #
-        # * Add the SPICE Kernels Collection to the Bundle.
-        #   Note that the Collections are provided to the Bundle object
-        #   in a given order.
-        #
-        bundle.add(spice_kernels_collection)
-
-        #
-        # * Generate the Miscellaneous collection. The Checksum product
-        #   is initialized in such a way that its name can be obtained.
-        #
-        # * The first thing that is checked is whether if the current
-        #   Bundle has checksums, if not, all the checksums are generated,
-        #   including the corresponding Miscellaneous Collection Inventories
-        #   and labels.
-        #
-
-        # Report the Collection generation step.
-        log_step(setup, title=f'Generation of {miscellaneous_collection.kind} collection')
-
-        if setup.increment:
-            checksum_dir = (
-                setup.bundle_directory
-                + f"/{setup.mission_acronym}_spice/miscellaneous/checksum"
-            )
-            if not isdir(checksum_dir):
-                for release in bundle.history.items():
-                    log_step(setup, title='Generate checksum file')
-                    try:
-                        release_checksum = ChecksumProduct(
-                            setup, miscellaneous_collection, add_previous_checksum=False
-                        )
-                    except NPBError as exc:
-                        handle_npb_error(str(exc), setup=setup)
-                    try:
-                        release_checksum.generate(history=release)
-                    except NPBError as exc:
-                        handle_npb_error(str(exc), setup=setup)
-
-                    #
-                    # Initialize a miscellaneous collection for this previous
-                    # release.
-                    #
-                    release_miscellaneous_collection = MiscellaneousCollection(
-                        setup, bundle, k_list
-                    )
-
-                    #
-                    # Add the checksum at the release miscellaneous collection
-                    # to generate the adequate inventory file and add it to
-                    # the current miscellaneous collection for it to be
-                    # present at the checksum.
-                    #
-                    release_miscellaneous_collection.add(release_checksum)
-
-                    miscellaneous_collection.add(release_checksum)
-
-                    release_miscellaneous_collection.set_collection_vid()
-
-                    # The release_miscellaneous_collection name is "miscellaneous"
-                    # (PDS4 branch), therefore, we do not log the step, as we do
-                    # every other time we generate an InventoryProduct.
-                    try:
-                        release_miscellaneous_collection_inventory = InventoryProduct(
-                            setup, release_miscellaneous_collection
-                        )
-                    except NPBError as exc:
-                        handle_npb_error(str(exc), setup=setup)
-
-                    release_miscellaneous_collection.add(
-                        release_miscellaneous_collection_inventory
-                    )
-                    miscellaneous_collection.add(
-                        release_miscellaneous_collection_inventory
-                    )
-
-                    #
-                    # Add release miscellaneous collection.
-                    #
-                    bundle.add(release_miscellaneous_collection)
-
-            #
-            # * Set the Miscellaneous collection VID.
-            #
-            miscellaneous_collection.set_collection_vid()
-
-        #
-        # * Add the Miscellaneous and Document Collections to the Bundle object.
-        #
-        bundle.add(miscellaneous_collection)
-        bundle.add(document_collection)
-
-        #
-        # * Generate Miscellaneous Collection and initialize the Checksum
-        #   product for the current release.
-        #    * The miscellaneous collection is the one to be guaranteed to be
-        #      updated.
-        #
-        log_step(setup, title='Generate checksum file')
-        try:
-            checksum = ChecksumProduct(setup, miscellaneous_collection)
-        except NPBError as exc:
-            handle_npb_error(str(exc), setup=setup)
-
-        #
-        # Before adding the checksum to the current collection
-        # we need to specify that is not a new product.
-        #
-        for product in miscellaneous_collection.product:
-            if isinstance(product, ChecksumProduct):
-                product.new_product = False
-
-        miscellaneous_collection.add(checksum)
-        miscellaneous_collection.set_collection_vid()
-
-        try:
-            checksum.set_coverage()
-        except NPBError as exc:
-            handle_npb_error(str(exc), setup=setup)
-
-        # The miscellaneous_collection name is "miscellaneous" (PDS4 branch),
-        # therefore, we do not log the step, as we do every other time we
-        # generate an InventoryProduct.
-        try:
-            miscellaneous_collection_inventory = InventoryProduct(
-                setup, miscellaneous_collection
-            )
-        except NPBError as exc:
-            handle_npb_error(str(exc), setup=setup)
-        miscellaneous_collection.add(miscellaneous_collection_inventory)
-
-        #
-        # * Generate the Bundle label and if necessary the readme file.
-        #
-        log_step(setup, title='Generation of bundle products')
-        try:
-            bundle.readme = ReadmeProduct(setup, bundle)
-        except NPBError as exc:
-            handle_npb_error(str(exc), setup=setup)
-
-        #
-        # * Generate the Checksum product a posteriori in such a way
-        #   that the miscellaneous collection inventory includes the
-        #   checksum and the checksum includes the md5 hash of the
-        #   Miscellaneous Collection Inventory.
-        #
-        try:
-            checksum.generate()
-        except NPBError as exc:
-            handle_npb_error(str(exc), setup=setup)
-        miscellaneous_collection.add(checksum)
-
-    else:  # if setup.pds_version == "3":
-
-        document_collection = DocumentCollection(setup, bundle)
-
-        log_step(setup, title='Generation of PDS3 products')
-        document_collection.get_pds3_documents()
-
-        bundle.add(spice_kernels_collection)
-        bundle.add(document_collection)
-        bundle.add(miscellaneous_collection)
-
-        log_step(setup, title='Generate checksum file')
-        try:
-            checksum = ChecksumProduct(
-                setup, miscellaneous_collection, add_previous_checksum=False
-            )
-        except NPBError as exc:
-            handle_npb_error(str(exc), setup=setup)
-        try:
-            checksum.generate()
-        except NPBError as exc:
-            handle_npb_error(str(exc), setup=setup)
-        miscellaneous_collection.add(checksum)
-
-    #
-    # * List the files present in the staging area.
-    #
-    log_step(setup, title='Recap files in staging area')
-    bundle.files_in_staging()
-
-    #
-    # * The pipeline can be stopped after generating the products and before
-    #   moving them to the ``bundle_directory`` by setting ``-f, --faucet``
-    #   to ``staging``.
-    #
-    if setup.faucet == "staging":
         finish_execution(setup, log)
-        return
-
-    #
-    # Generate index files, this includes generating the complete
-    # kernel list.
-    #
-    # OnlyFor PDS3
-    # log_step(setup, title='Generation of complete kernel list')
-    # list.write_complete_list()
-    # spice_kernels_collection_inventory.write_index()
-
-    #
-    # * Copy files to the bundle area.
-    #
-    log_step(setup, title='Copy files to the bundle area')
-    bundle.copy_to_bundle()
-
-    #
-    # * The pipeline can be stopped after generating the moving the products
-    #   ``bundle_directory`` by setting ``-f, --faucet``. Ch
-    #   to ``bundle``.
-    #
-    if setup.faucet == "bundle":
-        finish_execution(setup, log)
-        return
-
-    #
-    # * Validate the Bundle by checking Checksum files against the updated
-    #   Bundle history and checking the bundle times.
-    #
-    if setup.pds_version == "4":
-        log_step(setup, title='Validate bundle history with checksum files')
-        bundle.validate()
-
-    #
-    # * Validate Meta-kernel(s).
-    #   This is the last step since it unloads all kernels.
-    #
-    for kernel in spice_kernels_collection.product:
-        if isinstance(kernel, MetaKernelProduct):
-            log_step(setup, title=f'Meta-kernel {kernel.name} validation')
-            kernel.validate()
-
-    finish_execution(setup, log)
+    except NPBError as exc:
+        handle_npb_error(str(exc), setup=setup)

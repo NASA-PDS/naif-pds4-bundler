@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 import re
 
-from pds.naif_pds4_bundler.pipeline.runtime import handle_npb_error
+from pds.naif_pds4_bundler.classes.exceptions import NPBError
 
 
 class ReleasePlan:
@@ -51,7 +51,7 @@ class ReleasePlan:
                 pl.write(plan.split(os.sep)[-1])
 
         elif plan.suffix != ".plan":
-            handle_npb_error(
+            raise NPBError(
                 "Release plan requires *.plan extension. Single "
                 "kernels are only allowed in labeling mode."
             )
@@ -156,7 +156,7 @@ class ReleasePlan:
                 if os.path.isfile(mk_path):
                     kernels.append(mk_new_name)
                 else:
-                    handle_npb_error(
+                    raise NPBError(
                         f"Meta-kernel provided via configuration "
                         f"{mk_new_name} does not exist."
                     )

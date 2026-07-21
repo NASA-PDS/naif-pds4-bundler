@@ -1059,13 +1059,17 @@ class TestPhase12FinalValidation:
 # ---------------------------------------------------------------------------
 
 class TestNPBErrorHandling:
-    # Every direct product-construction call in run_pipeline is wrapped in a
-    # try/except that catches NPBError and forwards it to the *real*
-    # handle_npb_error (not mocked here), which performs cleanup -- writes the
-    # file list and checksum registry, removes template files, clears the SPICE
-    # kernel pool -- and then always raises RuntimeError with the same message.
-    # Each case forces one construction call to raise NPBError and asserts both
-    # that cleanup ran and that the RuntimeError carries the original message.
+    # run_pipeline wraps its body in two broad try/except blocks: Block A
+    # around Setup() construction alone, Block B around everything from
+    # Log() construction to the end. Both catch NPBError and forward it to
+    # the *real* handle_npb_error (not mocked here). Block B's handler
+    # performs cleanup -- writes the file list and checksum registry, removes
+    # template files, clears the SPICE kernel pool -- and then always raises
+    # RuntimeError with the same message; Block A's handler skips cleanup
+    # entirely since no setup instance exists yet. Each parametrized case
+    # below forces one Block-B call site to raise NPBError and asserts both
+    # that cleanup ran and that the RuntimeError carries the original
+    # message; the dedicated test below covers Block A's no-setup case.
 
     @staticmethod
     def _apply_overrides(mocks, overrides):
@@ -1175,3 +1179,19 @@ class TestNPBErrorHandling:
         setup = mocks.Setup.return_value
         setup.write_file_list.assert_called_once()
         setup.write_checksum_registry.assert_called_once()
+
+    def test_npb_error_from_setup_construction_is_routed_without_setup(self, mocks):
+        # Setup() itself failing is a special case (Block A): there is no
+        # setup instance yet, so handle_npb_error is called with no `setup`
+        # kwarg and no cleanup (write_file_list/write_checksum_registry) is
+        # attempted. Log must never be constructed either, since it depends
+        # on a successfully-built setup.
+        mocks.Setup.side_effect = NPBError('boom setup')
+        args = _args()
+
+        with pytest.raises(RuntimeError, match='boom setup'):
+            run_pipeline(args)
+
+        mocks.Log.assert_not_called()
+        mocks.Setup.return_value.write_file_list.assert_not_called()
+        mocks.Setup.return_value.write_checksum_registry.assert_not_called()
