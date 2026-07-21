@@ -163,23 +163,6 @@ class TestPDSLabelInit:
 
 
 # ===========================================================================
-# PDSLabel._target_reference_type
-# ===========================================================================
-
-class TestPDSLabelReferenceTypeNotImplemented:
-    """Covers the base class contract: PDSLabel itself defines no reference
-    type and must not silently return a default. PDS4Label's own default
-    and every leaf override are covered in their respective test files
-    (test_classes_label_pds4.py and each PDS4 leaf's test module).
-    """
-
-    def test_target_reference_type_raises(self):
-        label = object.__new__(PDSLabel)
-        with pytest.raises(NotImplementedError):
-            label._target_reference_type
-
-
-# ===========================================================================
 # PDSLabel.write_label
 # ===========================================================================
 

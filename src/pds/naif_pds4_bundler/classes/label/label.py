@@ -91,19 +91,6 @@ class PDSLabel:
             self.observers = product.observers
             self.targets = product.targets
 
-    @property
-    def _target_reference_type(self):
-        """Get the target reference type.
-
-        Version-agnostic labels have no notion of a target reference type;
-        only PDS4 labels do. Subclasses that need one must override this.
-
-        :raises NotImplementedError: always, on the base class
-        """
-        raise NotImplementedError(
-            f"{type(self).__name__} does not define a target reference type."
-        )
-
     def write_label(self):
         """Write the Label."""
         label_dictionary = vars(self)
