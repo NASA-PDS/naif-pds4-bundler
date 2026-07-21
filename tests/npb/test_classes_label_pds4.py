@@ -63,18 +63,23 @@ class TestPDS4LabelInit:
         assert label.name == ""
 
     def test_pds4_context_falls_back_to_product_bundle(self, mock_class_methods, setup_pds4, product):
-        """context products from product.bundle
-           (collection.bundle.context_products is falsy => raises Exception)
+        """Construction does not raise when collection.bundle.context_products
+        is falsy. The internal try/except silently falls back to
+        product.bundle.context_products; whether that fallback value is
+        used correctly is covered separately by each of get_missions/
+        get_observers/get_targets' own test_context_fallback_to_product_bundle
+        test.
         """
         product.collection.bundle.context_products = []
-        label = PDS4Label(setup_pds4, product)
-        assert label is not None
+        PDS4Label(setup_pds4, product)
 
     def test_pds4_context_attribute_error_falls_back(self, setup_pds4, product):
-        """collection.bundle raises AttributeError entirely"""
+        """Construction does not raise when product.collection.bundle is
+        entirely inaccessible (AttributeError); the try/except in __init__
+        swallows it and falls back to product.bundle.context_products.
+        """
         product.collection = MagicMock(spec=[])
-        label = PDS4Label(setup_pds4, product)
-        assert label is not None
+        PDS4Label(setup_pds4, product)
 
     def test_pds4_single_mission_name(self, mock_class_methods, setup_pds4, product):
         label = PDS4Label(setup_pds4, product)
