@@ -17,8 +17,8 @@ class OrbnumFilePDS4Label(PDS4Label):
         """Constructor."""
         super().__init__(setup, product)
 
-        self.template = str(Path(setup.templates_directory)
-                            / "template_product_orbnum_table.xml")
+        self._template = str(Path(setup.templates_directory)
+                             / "template_product_orbnum_table.xml")
 
         #
         # Fields from orbnum object.

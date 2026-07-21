@@ -94,8 +94,8 @@ class TestPDS3LabelWriteLabelIntegration:
         product.extension = "bc"
 
         label = PDS3Label(setup, product)
-        label.template = str(tmp_path / "template.lbl")
-        Path(label.template).write_text("Static content line\n")
+        label._template = str(tmp_path / "template.lbl")
+        Path(label._template).write_text("Static content line\n")
 
         label.write_label()
 

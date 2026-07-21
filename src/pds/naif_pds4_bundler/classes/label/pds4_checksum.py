@@ -19,8 +19,8 @@ class ChecksumPDS4Label(PDS4Label):
         """Constructor."""
         super().__init__(setup, product)
 
-        self.template = str(Path(setup.templates_directory)
-                            / "template_product_checksum_table.xml")
+        self._template = str(Path(setup.templates_directory)
+                             / "template_product_checksum_table.xml")
 
         self.FILE_NAME = product.name
         self.PRODUCT_LID = self.product.lid

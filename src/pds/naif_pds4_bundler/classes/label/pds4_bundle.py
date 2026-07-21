@@ -19,8 +19,8 @@ class BundlePDS4Label(PDS4Label):
         """Constructor."""
         super().__init__(setup, readme)
 
-        self.template = str(Path(setup.templates_directory)
-                            / "template_bundle.xml")
+        self._template = str(Path(setup.templates_directory)
+                             / "template_bundle.xml")
 
         self.BUNDLE_LID = self.product.bundle.lid
         self.BUNDLE_VID = self.product.bundle.vid

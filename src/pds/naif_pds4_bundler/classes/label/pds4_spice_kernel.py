@@ -16,8 +16,8 @@ class SpiceKernelPDS4Label(PDS4Label):
         """Constructor."""
         super().__init__(setup, product)
 
-        self.template = str(Path(setup.templates_directory)
-                            / "template_product_spice_kernel.xml")
+        self._template = str(Path(setup.templates_directory)
+                             / "template_product_spice_kernel.xml")
 
         #
         # Fields from Kernels

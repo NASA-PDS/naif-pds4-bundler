@@ -212,7 +212,7 @@ class TestPDSLabelWriteLabel:
             label.setup = setup
             label.product = product
             label.name = ""
-            label.template = "/tmpl/template.xml"
+            label._template = "/tmpl/template.xml"
             label._label_extension = ".xml" if pds_version == "4" else ".lbl"
             label._eol = "\r\n"
 
@@ -220,7 +220,7 @@ class TestPDSLabelWriteLabel:
                 label.__class__ = type("ChecksumLabelClass", (PDSLabel,), {})
                 label.name = f"/staging{os.sep}checksum.lbl"
                 product.path = label.name
-                label.template = "/tmpl/template.lbl"
+                label._template = "/tmpl/template.lbl"
                 product.extension = "lbl"
                 product.record_bytes = 80
 

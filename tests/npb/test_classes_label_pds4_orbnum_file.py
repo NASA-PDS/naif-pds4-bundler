@@ -237,7 +237,7 @@ class TestOrbnumFilePDS4Label:
             Path(label.setup.templates_directory)
             / 'template_product_orbnum_table.xml')
 
-        assert label.template == expected_template
+        assert label._template == expected_template
 
     # ------------------------------------------------------------------
     # _*_reference_type overrides
@@ -880,7 +880,7 @@ class TestOrbnumFilePDS4LabelIntegration:
         label = OrbnumFilePDS4Label(setup, product)
 
         # Check that the class resolved the configured OrbNum template.
-        assert label.template == str(template_path)
+        assert label._template == str(template_path)
 
         # The real writer mutates label.name to the generated XML file path.
         assert Path(label.name) == label_path

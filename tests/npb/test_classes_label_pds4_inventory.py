@@ -181,7 +181,7 @@ class TestInventoryPDS4Label:
             Path(label.setup.templates_directory)
             / 'template_collection_spice_kernels.xml')
 
-        assert label.template == expected_template
+        assert label._template == expected_template
 
     def test_constructor_stores_references_and_writes_label_once(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
@@ -239,7 +239,7 @@ class TestInventoryPDS4Label:
                    'PDSLabel.write_label', autospec=True):
             label = InventoryPDS4Label(setup, collection, inventory)
 
-        assert label.template == str(
+        assert label._template == str(
             Path(setup.templates_directory)
             / f'template_collection_{coll_type}.xml')
 
@@ -525,7 +525,7 @@ class TestInventoryPDS4LabelIntegration:
         label = InventoryPDS4Label(setup, collection, inventory)
 
         # The class resolved the template from collection.type.
-        assert label.template == str(template_path)
+        assert label._template == str(template_path)
 
         # The real writer mutates label.name to the generated XML file path.
         assert Path(label.name) == label_path

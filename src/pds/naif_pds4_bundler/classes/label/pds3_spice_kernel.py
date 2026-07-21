@@ -24,8 +24,8 @@ class SpiceKernelPDS3Label(PDS3Label):
         """Constructor."""
         super().__init__(mission, product)
 
-        self.template = str(Path(self.setup.templates_directory)
-                            / "template_product_spice_kernel.lbl")
+        self._template = str(Path(self.setup.templates_directory)
+                             / "template_product_spice_kernel.lbl")
 
         self.FILE_NAME = f'"{product.name}"'
         self.INTERCHANGE_FORMAT = product.file_format

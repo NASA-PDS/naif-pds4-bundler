@@ -16,8 +16,8 @@ class ChecksumPDS3Label(PDS3Label):
         """Constructor."""
         super().__init__(setup, product)
 
-        self.template = str(Path(setup.templates_directory)
-                            / "template_product_checksum_table.lbl")
+        self._template = str(Path(setup.templates_directory)
+                             / "template_product_checksum_table.lbl")
 
         self.VOLUME_ID = self.setup.volume_id.upper()
         self.PRODUCT_CREATION_TIME = product.creation_time

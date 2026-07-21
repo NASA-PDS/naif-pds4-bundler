@@ -286,7 +286,7 @@ class TestChecksumPDS4LabelIntegration:
         label = ChecksumPDS4Label(setup, product)
 
         # Check that the class resolved the configured checksum template.
-        assert label.template == str(template_path)
+        assert label._template == str(template_path)
 
         # Check that the final checksum.xml file has been created in staging.
         assert label_path.exists()

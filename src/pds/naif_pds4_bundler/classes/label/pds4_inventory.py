@@ -23,8 +23,8 @@ class InventoryPDS4Label(PDS4Label):
 
         self.collection = collection
 
-        self.template = str(Path(setup.templates_directory)
-                            / f"template_collection_{collection.type}.xml")
+        self._template = str(Path(setup.templates_directory)
+                             / f"template_collection_{collection.type}.xml")
 
         self.COLLECTION_LID = self.collection.lid
         self.COLLECTION_VID = self.collection.vid

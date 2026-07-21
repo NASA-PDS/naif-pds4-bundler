@@ -16,6 +16,8 @@ class PDSLabel:
     """
 
     _label_extension: str
+    _eol: str
+    _template: str
 
     def __init__(self, setup, product) -> None:
         """Constructor."""
@@ -115,7 +117,7 @@ class PDSLabel:
         # Using newline guarantees that what we write into the file is what
         # we intend to write, independently of the platform.
         with open(label_name, "w+", encoding='utf-8', newline='') as f:
-            with open(self.template, "r", encoding='utf-8') as t:
+            with open(self._template, "r", encoding='utf-8') as t:
                 for line in t:
                     line = line.rstrip()
                     for key, value in label_dictionary.items():

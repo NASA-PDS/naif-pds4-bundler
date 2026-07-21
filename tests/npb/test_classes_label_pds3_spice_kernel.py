@@ -102,9 +102,9 @@ class TestSpiceKernelPDS3LabelInit:
     """Tests for SpiceKernelPDS3Label.__init__."""
 
     def test_template_path_set(self):
-        """__init__ points self.template at the kernel label template file."""
+        """__init__ points self._template at the kernel label template file."""
         label = _build_label(_make_product("SPK"))
-        assert "template_product_spice_kernel.lbl" in label.template
+        assert "template_product_spice_kernel.lbl" in label._template
 
     def test_basic_attributes_set(self):
         product = _make_product("spk")

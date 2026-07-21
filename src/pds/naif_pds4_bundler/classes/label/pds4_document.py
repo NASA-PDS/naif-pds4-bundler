@@ -22,8 +22,8 @@ class DocumentPDS4Label(PDS4Label):
         self.setup = setup
         self.collection = collection
 
-        self.template = str(Path(setup.templates_directory)
-                            / "template_product_html_document.xml")
+        self._template = str(Path(setup.templates_directory)
+                             / "template_product_html_document.xml")
 
         self.PRODUCT_LID = inventory.lid
         self.PRODUCT_VID = inventory.vid

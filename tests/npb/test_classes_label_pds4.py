@@ -409,8 +409,8 @@ class TestPDS4LabelWriteLabelIntegration:
         product.extension = "bc"
 
         label = PDS4Label(setup_pds4, product)
-        label.template = str(tmp_path / "template.xml")
-        Path(label.template).write_text("Static content line\n")
+        label._template = str(tmp_path / "template.xml")
+        Path(label._template).write_text("Static content line\n")
 
         label.write_label()
 

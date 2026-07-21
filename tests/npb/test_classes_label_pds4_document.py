@@ -57,8 +57,8 @@ class TestDocumentPDS4LabelInit:
         # Check that the class stores the same references as those received.
         assert document_label.setup is setup
         assert document_label.collection is collection
-        assert document_label.template == str(Path(setup.templates_directory) /
-                                              'template_product_html_document.xml')
+        assert document_label._template == str(Path(setup.templates_directory) /
+                                               'template_product_html_document.xml')
 
         # Check the product details.
         assert document_label.PRODUCT_LID == inventory.lid
@@ -209,7 +209,7 @@ class TestDocumentPDS4LabelIntegration:
         label = DocumentPDS4Label(setup, collection, inventory)
 
         # DocumentPDS4Label must resolve the document-specific template.
-        assert label.template == str(template_path)
+        assert label._template == str(template_path)
 
         # The real writer mutates label.name to the generated XML file path.
         assert Path(label.name) == label_path
