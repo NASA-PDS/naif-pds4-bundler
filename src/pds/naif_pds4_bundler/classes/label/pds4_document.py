@@ -13,6 +13,8 @@ class DocumentPDS4Label(PDS4Label):
     :param inventory:  Inventory Product of the Collection
     """
 
+    _mission_reference_type = "document_to_investigation"
+
     def __init__(self, setup, collection, inventory) -> None:
         """Constructor."""
         super().__init__(setup, inventory)
@@ -32,11 +34,3 @@ class DocumentPDS4Label(PDS4Label):
         self.name = Path(collection.name).with_suffix(".xml").name
 
         self.write_label()
-
-    def get_mission_reference_type(self):
-        """Get mission reference type.
-
-        :return: Literally ``document_to_investigation``
-        :rtype: str
-        """
-        return "document_to_investigation"

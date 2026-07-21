@@ -91,7 +91,8 @@ class PDSLabel:
             self.observers = product.observers
             self.targets = product.targets
 
-    def get_mission_reference_type(self):
+    @property
+    def _mission_reference_type(self):
         """Get the mission reference type.
 
         Version-agnostic labels have no notion of a mission reference type;
@@ -103,7 +104,8 @@ class PDSLabel:
             f"{type(self).__name__} does not define a mission reference type."
         )
 
-    def get_target_reference_type(self):
+    @property
+    def _target_reference_type(self):
         """Get the target reference type.
 
         Version-agnostic labels have no notion of a target reference type;

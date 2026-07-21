@@ -210,14 +210,14 @@ class TestBundlePDS4Label:
         mock_write.assert_called_once_with(label)
 
     # ------------------------------------------------------------------
-    # get_*_reference_type overrides
+    # _*_reference_type overrides
     # ------------------------------------------------------------------
 
-    def test_get_mission_reference_type(self, label: BundlePDS4Label) -> None:
-        assert label.get_mission_reference_type() == 'bundle_to_investigation'
+    def test_mission_reference_type(self, label: BundlePDS4Label) -> None:
+        assert label._mission_reference_type == 'bundle_to_investigation'
 
-    def test_get_target_reference_type(self, label: BundlePDS4Label) -> None:
-        assert label.get_target_reference_type() == 'bundle_to_target'
+    def test_target_reference_type(self, label: BundlePDS4Label) -> None:
+        assert label._target_reference_type == 'bundle_to_target'
 
     # ------------------------------------------------------------------
     # BUNDLE_MEMBER_ENTRIES – per-collection rendering

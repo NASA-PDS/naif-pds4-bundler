@@ -11,6 +11,14 @@ class PDS4Label(PDSLabel):
     ``if setup.pds_version == "4":`` checks in ``PDSLabel``.
     """
 
+    # File extension used for PDS4 labels.
+    _label_extension = ".xml"
+
+    # Default Mission/Target_Reference_Type for any PDS4 label that does
+    # not override them.
+    _mission_reference_type = "data_to_investigation"
+    _target_reference_type = "data_to_target"
+
     def __init__(self, setup, product) -> None:
         """Constructor."""
         super().__init__(setup, product)
@@ -84,32 +92,9 @@ class PDS4Label(PDSLabel):
         self.TARGETS = self.get_targets()
 
     @property
-    def _label_extension(self) -> str:
-        """File extension used for PDS4 labels."""
-        return ".xml"
-
-    @property
     def _eol(self) -> str:
         """End-of-line convention used for PDS4 labels."""
         return self.setup.eol_pds4
-
-    def get_mission_reference_type(self):
-        """Get the mission reference type.
-
-        :return: Mission_Reference_Type value for PDS4 label; the default
-                 for any PDS4 label that does not override this.
-        :rtype: str
-        """
-        return "data_to_investigation"
-
-    def get_target_reference_type(self):
-        """Get the target reference type.
-
-        :return: Target_Reference_Type value for PDS4 label; the default
-                 for any PDS4 label that does not override this.
-        :rtype: str
-        """
-        return "data_to_target"
 
     def get_missions(self) -> str:
         """Get the label mission from the context products.
@@ -155,7 +140,7 @@ class PDS4Label(PDSLabel):
                     + f"{' ' * 3 * tab}<Internal_Reference>{eol}"
                     + f"{' ' * 4 * tab}<lid_reference>{mission_lid}"
                     f"</lid_reference>{eol}" + f"{' ' * 4 * tab}<reference_type>"
-                    f"{self.get_mission_reference_type()}"
+                    f"{self._mission_reference_type}"
                     f"</reference_type>{eol}"
                     + f"{' ' * 3 * tab}</Internal_Reference>{eol}"
                     + f"{' ' * 2 * tab}</Investigation_Area>{eol}"
@@ -263,7 +248,7 @@ class PDS4Label(PDSLabel):
                     + f"{' ' * 3 * tab}<Internal_Reference>{eol}"
                     + f"{' ' * 4 * tab}<lid_reference>{target_lid}"
                     f"</lid_reference>{eol}" + f"{' ' * 4 * tab}<reference_type>"
-                    f"{self.get_target_reference_type()}"
+                    f"{self._target_reference_type}"
                     f"</reference_type>{eol}"
                     + f"{' ' * 3 * tab}</Internal_Reference>{eol}"
                     + f"{' ' * 2 * tab}</Target_Identification>{eol}"

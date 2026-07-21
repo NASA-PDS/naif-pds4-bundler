@@ -366,7 +366,7 @@ class TestPDS4LabelGetTargets:
 
 
 # ===========================================================================
-# PDS4Label.get_mission_reference_type / get_target_reference_type
+# PDS4Label._mission_reference_type / _target_reference_type
 # ===========================================================================
 
 class TestPDS4LabelDefaultReferenceTypes:
@@ -380,8 +380,8 @@ class TestPDS4LabelDefaultReferenceTypes:
 
     def test_default_mission_reference_type(self):
         label = object.__new__(PDS4Label)
-        assert label.get_mission_reference_type() == "data_to_investigation"
+        assert label._mission_reference_type == "data_to_investigation"
 
     def test_default_target_reference_type(self):
         label = object.__new__(PDS4Label)
-        assert label.get_target_reference_type() == "data_to_target"
+        assert label._target_reference_type == "data_to_target"

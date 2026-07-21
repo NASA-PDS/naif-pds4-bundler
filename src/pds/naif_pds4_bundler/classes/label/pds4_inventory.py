@@ -14,6 +14,9 @@ class InventoryPDS4Label(PDS4Label):
     :param inventory:  Inventory Product of the Collection
     """
 
+    _mission_reference_type = "collection_to_investigation"
+    _target_reference_type = "collection_to_target"
+
     def __init__(self, setup, collection, inventory) -> None:
         """Constructor."""
         super().__init__(setup, inventory)
@@ -76,19 +79,3 @@ class InventoryPDS4Label(PDS4Label):
 
         self.name = Path(collection.name).with_suffix(".xml").name
         self.write_label()
-
-    def get_mission_reference_type(self):
-        """Get mission reference type.
-
-        :return: Literally ``collection_to_investigation``
-        :rtype: str
-        """
-        return "collection_to_investigation"
-
-    def get_target_reference_type(self):
-        """Get target reference type.
-
-        :return: Literally ``collection_to_target``
-        :rtype: str
-        """
-        return "collection_to_target"

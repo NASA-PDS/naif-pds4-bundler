@@ -204,16 +204,16 @@ class TestInventoryPDS4Label:
         mock_write.assert_called_once_with(label)
 
     # ------------------------------------------------------------------
-    # get_*_reference_type – the two fixed-string overrides
+    # _*_reference_type – the two fixed-string overrides
     # ------------------------------------------------------------------
 
-    def test_get_mission_reference_type(self, label: InventoryPDS4Label) -> None:
-        # The override returns the literal collection_to_investigation string.
-        assert label.get_mission_reference_type() == 'collection_to_investigation'
+    def test_mission_reference_type(self, label: InventoryPDS4Label) -> None:
+        # The override is the literal collection_to_investigation string.
+        assert label._mission_reference_type == 'collection_to_investigation'
 
-    def test_get_target_reference_type(self, label: InventoryPDS4Label) -> None:
-        # The override returns the literal collection_to_target string.
-        assert label.get_target_reference_type() == 'collection_to_target'
+    def test_target_reference_type(self, label: InventoryPDS4Label) -> None:
+        # The override is the literal collection_to_target string.
+        assert label._target_reference_type == 'collection_to_target'
 
     # ------------------------------------------------------------------
     # Template path is parametrized on collection.type

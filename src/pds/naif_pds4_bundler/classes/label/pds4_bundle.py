@@ -12,6 +12,9 @@ class BundlePDS4Label(PDS4Label):
     :param readme: Readme product
     """
 
+    _mission_reference_type = "bundle_to_investigation"
+    _target_reference_type = "bundle_to_target"
+
     def __init__(self, setup, readme) -> None:
         """Constructor."""
         super().__init__(setup, readme)
@@ -74,19 +77,3 @@ class BundlePDS4Label(PDS4Label):
             )
 
         self.write_label()
-
-    def get_mission_reference_type(self):
-        """Get mission reference type.
-
-        :return: Literally ``bundle_to_investigation``
-        :rtype: str
-        """
-        return "bundle_to_investigation"
-
-    def get_target_reference_type(self):
-        """Get target reference type.
-
-        :return: Literally ``bundle_to_target``
-        :rtype: str
-        """
-        return "bundle_to_target"

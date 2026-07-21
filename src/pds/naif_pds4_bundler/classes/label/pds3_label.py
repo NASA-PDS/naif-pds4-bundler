@@ -12,10 +12,8 @@ class PDS3Label(PDSLabel):
     checking ``setup.pds_version``.
     """
 
-    @property
-    def _label_extension(self) -> str:
-        """File extension used for PDS3 labels."""
-        return ".lbl"
+    # File extension used for PDS3 labels.
+    _label_extension = ".lbl"
 
     @property
     def _eol(self) -> str:

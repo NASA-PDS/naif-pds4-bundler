@@ -165,7 +165,7 @@ class TestPDSLabelInit:
 
 
 # ===========================================================================
-# PDSLabel.get_mission_reference_type / get_target_reference_type
+# PDSLabel._mission_reference_type / _target_reference_type
 # ===========================================================================
 
 class TestPDSLabelReferenceTypeNotImplemented:
@@ -175,15 +175,15 @@ class TestPDSLabelReferenceTypeNotImplemented:
     (test_classes_label_pds4.py and each PDS4 leaf's test module).
     """
 
-    def test_get_mission_reference_type_raises(self):
+    def test_mission_reference_type_raises(self):
         label = object.__new__(PDSLabel)
         with pytest.raises(NotImplementedError):
-            label.get_mission_reference_type()
+            label._mission_reference_type
 
-    def test_get_target_reference_type_raises(self):
+    def test_target_reference_type_raises(self):
         label = object.__new__(PDSLabel)
         with pytest.raises(NotImplementedError):
-            label.get_target_reference_type()
+            label._target_reference_type
 
 
 # ===========================================================================

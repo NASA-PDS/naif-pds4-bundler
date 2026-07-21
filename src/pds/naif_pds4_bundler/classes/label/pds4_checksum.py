@@ -12,6 +12,9 @@ class ChecksumPDS4Label(PDS4Label):
     :param product: Checksum product to label
     """
 
+    _mission_reference_type = "ancillary_to_investigation"
+    _target_reference_type = "ancillary_to_target"
+
     def __init__(self, setup, product) -> None:
         """Constructor."""
         super().__init__(setup, product)
@@ -28,19 +31,3 @@ class ChecksumPDS4Label(PDS4Label):
         self.name = Path(product.name).with_suffix(".xml").name
 
         self.write_label()
-
-    def get_mission_reference_type(self):
-        """Get mission reference type.
-
-        :return: Literally ``ancillary_to_investigation``
-        :rtype: str
-        """
-        return "ancillary_to_investigation"
-
-    def get_target_reference_type(self):
-        """Get target reference type.
-
-        :return: Literally ``ancillary_to_target``
-        :rtype: str
-        """
-        return "ancillary_to_target"

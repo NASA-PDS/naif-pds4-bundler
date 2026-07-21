@@ -250,22 +250,22 @@ class TestDocumentPDS4LabelIntegration:
         setup.add_file.assert_called_once_with(expected_label_path)
 
     # ------------------------------------------------------------------
-    # get_*_reference_type overrides
+    # _*_reference_type overrides
     # ------------------------------------------------------------------
 
-    def test_get_mission_reference_type(
+    def test_mission_reference_type(
             self,
             env: tuple[SimpleNamespace, SimpleNamespace, SimpleNamespace, Path, Path]) -> None:
         # DocumentPDS4Label overrides the mission reference type only; the
         # target reference type keeps PDS4Label's default (see below).
         setup, collection, inventory, _, _ = env
         label = DocumentPDS4Label(setup, collection, inventory)
-        assert label.get_mission_reference_type() == 'document_to_investigation'
+        assert label._mission_reference_type == 'document_to_investigation'
 
-    def test_get_target_reference_type(
+    def test_target_reference_type(
             self,
             env: tuple[SimpleNamespace, SimpleNamespace, SimpleNamespace, Path, Path]) -> None:
         # No override on DocumentPDS4Label: falls back to PDS4Label's default.
         setup, collection, inventory, _, _ = env
         label = DocumentPDS4Label(setup, collection, inventory)
-        assert label.get_target_reference_type() == 'data_to_target'
+        assert label._target_reference_type == 'data_to_target'
