@@ -10,6 +10,7 @@ test_classes_label_pds3.py for the (currently much thinner) PDS3Label
 coverage.
 """
 
+from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
@@ -385,3 +386,34 @@ class TestPDS4LabelDefaultReferenceTypes:
     def test_default_target_reference_type(self):
         label = object.__new__(PDS4Label)
         assert label._target_reference_type == "data_to_target"
+
+
+# ===========================================================================
+# PDS4Label + PDSLabel.write_label integration
+# ===========================================================================
+
+class TestPDS4LabelWriteLabelIntegration:
+    """Integration test: PDS4Label wired into the real (inherited)
+    PDSLabel.write_label. The isolated behavior of write_label itself is
+    covered, decoupled from PDS3Label/PDS4Label, in
+    test_classes_label.py::TestPDSLabelWriteLabel; this verifies the two
+    classes actually work together end to end.
+    """
+
+    def test_write_label_produces_xml_file_with_pds4_eol(
+            self, setup_pds4, product, tmp_path):
+        setup_pds4.staging_directory = str(tmp_path)
+        setup_pds4.diff = False
+        setup_pds4.args.silent = True
+        product.path = str(tmp_path / "test_kernel.bc")
+        product.extension = "bc"
+
+        label = PDS4Label(setup_pds4, product)
+        label.template = str(tmp_path / "template.xml")
+        Path(label.template).write_text("Static content line\n")
+
+        label.write_label()
+
+        written = Path(label.name)
+        assert written.suffix == ".xml"
+        assert written.read_bytes() == b"Static content line\r\n"

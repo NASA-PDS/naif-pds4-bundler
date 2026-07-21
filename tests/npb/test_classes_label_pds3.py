@@ -7,6 +7,7 @@ behavior is the _label_extension/_eol pair consumed by PDSLabel.write_label,
 and by construction it must not pick up any PDS4-only attribute.
 """
 
+from pathlib import Path
 from unittest.mock import MagicMock
 
 from pds.naif_pds4_bundler.classes.label.pds3_label import PDS3Label
@@ -72,3 +73,32 @@ class TestPDS3LabelExtensionAndEol:
         product = _make_product()
         label = PDS3Label(setup, product)
         assert label._eol == "\n"
+
+
+class TestPDS3LabelWriteLabelIntegration:
+    """Integration test: PDS3Label wired into the real (inherited)
+    PDSLabel.write_label. The isolated behavior of write_label itself is
+    covered, decoupled from PDS3Label/PDS4Label, in
+    test_classes_label.py::TestPDSLabelWriteLabel; this verifies the two
+    classes actually work together end to end.
+    """
+
+    def test_write_label_produces_lbl_file_with_pds3_eol(self, tmp_path):
+        setup = _make_setup_pds3(eol_pds3="\r\n")
+        setup.staging_directory = str(tmp_path)
+        setup.diff = False
+        setup.args.silent = True
+
+        product = _make_product()
+        product.path = str(tmp_path / "test_kernel.bc")
+        product.extension = "bc"
+
+        label = PDS3Label(setup, product)
+        label.template = str(tmp_path / "template.lbl")
+        Path(label.template).write_text("Static content line\n")
+
+        label.write_label()
+
+        written = Path(label.name)
+        assert written.suffix == ".lbl"
+        assert written.read_bytes() == b"Static content line\r\n"

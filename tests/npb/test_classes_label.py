@@ -10,8 +10,6 @@ from unittest.mock import call, mock_open
 import pytest
 
 from pds.naif_pds4_bundler.classes.label.label import PDSLabel
-from pds.naif_pds4_bundler.classes.label.pds3_label import PDS3Label
-from pds.naif_pds4_bundler.classes.label.pds4_label import PDS4Label
 
 # Patch targets — resolved to where the names are looked up inside label.py
 _PATCH_ADD_CR = "pds.naif_pds4_bundler.classes.label.label.add_carriage_return"
@@ -195,7 +193,14 @@ class TestPDSLabelWriteLabel:
 
     @pytest.fixture
     def label_for(self, label_test_helpers):
-        """Factory fixture: builds a bare label ready for write_label."""
+        """Factory fixture: builds a bare label ready for write_label.
+
+        Built directly off PDSLabel, with _label_extension/_eol assigned as
+        plain instance attributes — decoupled from PDS3Label/PDS4Label. The
+        coupling between those subclasses' real properties and write_label
+        is covered separately by the integration tests in
+        test_classes_label_pds3.py/test_classes_label_pds4.py.
+        """
         def _build(
             pds_version="4",
             label_name_has_ext=False,
@@ -208,8 +213,6 @@ class TestPDSLabelWriteLabel:
                     else _make_setup_pds3(label_test_helpers))
             setup.diff = diff
             setup.pds_version = pds_version
-            setup.eol_pds4 = "\r\n"
-            setup.eol_pds3 = "\r\n"
 
             product = label_test_helpers.make_product()
 
@@ -223,22 +226,20 @@ class TestPDSLabelWriteLabel:
                 product.path = "/staging/test_kernel.bc"
                 product.extension = "bc"
 
-            # _label_extension/_eol come from whichever of PDS3Label/PDS4Label
-            # is mixed in here, driven by pds_version — exactly like the real
-            # hierarchy, where a label's class (not its name) decides its
-            # extension. cls_name only matters for write_label's unrelated
-            # "suppress trailing log line for SpiceKernelPDS3Label" check.
-            base_cls = PDS4Label if pds_version == "4" else PDS3Label
+            # cls_name only matters for write_label's unrelated "suppress
+            # trailing log line for SpiceKernelPDS3Label" check.
             cls_name = "SpiceKernelPDS3Label" if is_pds3_kernel else "PDSLabel"
-            cls = cast(Type[PDSLabel], type(cls_name, (base_cls,), {}))
+            cls = cast(Type[PDSLabel], type(cls_name, (PDSLabel,), {}))
             label = object.__new__(cls)
             label.setup = setup
             label.product = product
             label.name = ""
             label.template = "/tmpl/template.xml"
+            label._label_extension = ".xml" if pds_version == "4" else ".lbl"
+            label._eol = "\r\n"
 
             if is_checksum:
-                label.__class__ = type("ChecksumLabelClass", (base_cls,), {})
+                label.__class__ = type("ChecksumLabelClass", (PDSLabel,), {})
                 label.name = f"/staging{os.sep}checksum.lbl"
                 product.path = label.name
                 label.template = "/tmpl/template.lbl"
