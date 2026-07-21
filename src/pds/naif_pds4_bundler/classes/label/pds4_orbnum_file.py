@@ -64,7 +64,8 @@ class OrbnumFilePDS4Label(PDS4Label):
 
         self.write_label()
 
-    def get_mission_reference_type(self):
+    @property
+    def _mission_reference_type(self):
         """Get mission reference type.
 
         :return: ``ancillary_to_investigation`` for information models at or
@@ -75,7 +76,8 @@ class OrbnumFilePDS4Label(PDS4Label):
             return "ancillary_to_investigation"
         return "data_to_investigation"
 
-    def get_target_reference_type(self):
+    @property
+    def _target_reference_type(self):
         """Get target reference type.
 
         :return: ``ancillary_to_target`` for information models at or above

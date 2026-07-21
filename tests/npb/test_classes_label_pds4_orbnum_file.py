@@ -240,7 +240,7 @@ class TestOrbnumFilePDS4Label:
         assert label.template == expected_template
 
     # ------------------------------------------------------------------
-    # get_*_reference_type overrides
+    # _*_reference_type overrides
     # ------------------------------------------------------------------
 
     @pytest.mark.parametrize('information_model_float, expected_mission, expected_target', [
@@ -255,8 +255,8 @@ class TestOrbnumFilePDS4Label:
         instance = object.__new__(OrbnumFilePDS4Label)
         instance.setup = SimpleNamespace(information_model_float=information_model_float)
 
-        assert instance.get_mission_reference_type() == expected_mission
-        assert instance.get_target_reference_type() == expected_target
+        assert instance._mission_reference_type == expected_mission
+        assert instance._target_reference_type == expected_target
 
     def test_constructor_stores_references_and_writes_label_once(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
