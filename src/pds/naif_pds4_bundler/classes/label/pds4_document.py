@@ -2,16 +2,18 @@
 """
 from pathlib import Path
 
-from .label import PDSLabel
+from .pds4_label import PDS4Label
 
 
-class DocumentPDS4Label(PDSLabel):
+class DocumentPDS4Label(PDS4Label):
     """Class to generate a PDS4 Document Label.
 
     :param setup:      NPB execution Setup object
     :param collection: Collection to label
     :param inventory:  Inventory Product of the Collection
     """
+
+    _mission_reference_type = "document_to_investigation"
 
     def __init__(self, setup, collection, inventory) -> None:
         """Constructor."""
@@ -20,8 +22,8 @@ class DocumentPDS4Label(PDSLabel):
         self.setup = setup
         self.collection = collection
 
-        self.template = str(Path(setup.templates_directory)
-                            / "template_product_html_document.xml")
+        self._template = str(Path(setup.templates_directory)
+                             / "template_product_html_document.xml")
 
         self.PRODUCT_LID = inventory.lid
         self.PRODUCT_VID = inventory.vid

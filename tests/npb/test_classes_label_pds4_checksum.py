@@ -112,6 +112,16 @@ class TestChecksumPDS4Label:
         # name.
         assert label.name == 'checksum.xml'
 
+    # ------------------------------------------------------------------
+    # _*_reference_type overrides
+    # ------------------------------------------------------------------
+
+    def test_mission_reference_type(self, label: ChecksumPDS4Label) -> None:
+        assert label._mission_reference_type == 'ancillary_to_investigation'
+
+    def test_target_reference_type(self, label: ChecksumPDS4Label) -> None:
+        assert label._target_reference_type == 'ancillary_to_target'
+
     def test_constructor_stores_references_and_writes_label_once(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
         # Validate constructor wiring and its single write_label side effect.
@@ -276,7 +286,7 @@ class TestChecksumPDS4LabelIntegration:
         label = ChecksumPDS4Label(setup, product)
 
         # Check that the class resolved the configured checksum template.
-        assert label.template == str(template_path)
+        assert label._template == str(template_path)
 
         # Check that the final checksum.xml file has been created in staging.
         assert label_path.exists()

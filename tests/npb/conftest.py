@@ -155,3 +155,112 @@ def base_helpers(tmp_path: Path) -> SimpleNamespace:
         return product
 
     return SimpleNamespace(make_setup=_make_setup, make_product=_make_product)
+
+
+# ---------------------------------------------------------------------------
+# Shared PDSLabel/PDS4Label mock factories
+# ---------------------------------------------------------------------------
+
+@pytest.fixture
+def label_test_helpers() -> SimpleNamespace:
+    """Provide the MagicMock-based factories shared by test_classes_label.py
+    (PDSLabel, version-agnostic) and test_classes_label_pds4.py (PDS4Label).
+
+    Both files need identical setup/product/context-product mocks, so the
+    factories live here once instead of being duplicated across the two
+    files (duplication that SonarCloud flagged on PR #308).
+
+    :return: container exposing make_context_products, make_bundle,
+             make_collection, make_product and make_setup_pds4
+    """
+
+    def _make_context_products():
+        """Return a minimal list of context product dicts used across tests."""
+        return [
+            {
+                "name": ["TestMission"],
+                "type": ["Mission"],
+                "lidvid": "urn:nasa:pds:testmission::1.0",
+            },
+            {
+                "name": ["TestObserver"],
+                "type": ["Spacecraft"],
+                "lidvid": "urn:nasa:pds:testobserver::1.0",
+            },
+            {
+                "name": ["TestTarget"],
+                "type": ["planet"],
+                "lidvid": "urn:nasa:pds:testtarget::1.0",
+            },
+        ]
+
+    def _make_bundle(context_products=None):
+        bundle = MagicMock()
+        bundle.context_products = context_products or _make_context_products()
+        return bundle
+
+    def _make_collection(bundle=None):
+        collection = MagicMock()
+        collection.bundle = bundle or _make_bundle()
+        collection.name = "spice_kernels"
+        return collection
+
+    def _make_product(collection=None, bundle=None):
+        """Return a mock product that supplies all attributes PDS4Label touches."""
+        product = MagicMock()
+        product.collection = collection or _make_collection()
+        product.bundle = bundle or _make_bundle()
+        product.creation_time = "2024-01-01T00:00:00"
+        product.creation_date = "2024-01-01"
+        product.size = 1024
+        product.checksum = "abc123"
+        product.missions = ["TestMission"]
+        product.observers = ["TestObserver"]
+        product.targets = ["TestTarget"]
+        product.name = "test_kernel.bc"
+        product.extension = "bc"
+        product.path = "/staging/test_kernel.bc"
+        product.record_bytes = 80
+        return product
+
+    def _make_setup_pds4(**kwargs):
+        """Return a mock setup object configured for PDS4."""
+        setup = MagicMock()
+        setup.pds_version = "4"
+        setup.root_dir = "/root"
+        setup.mission_acronym = "test"
+        setup.xml_model = "model"
+        setup.schema_location = "schema"
+        setup.information_model = ".".join(["1", "14", "0", "0"])
+        setup.information_model_float = 1014000000.0
+        setup.mission_name = "TestMission"
+        setup.observer = "TestObserver"
+        setup.target = "TestTarget"
+        setup.end_of_line = "CRLF"
+        setup.logical_identifier = "urn:nasa:pds:testmission"
+        setup.eol_pds4 = "\r\n"
+        setup.xml_tab = 2
+        setup.staging_directory = "/staging"
+        setup.working_directory = "/work"
+        setup.bundle_directory = "/bundle"
+        setup.diff = False
+        setup.args.silent = False
+        setup.args.verbose = False
+
+        # Ensure secondary_* attributes are NOT present by default
+        del setup.secondary_missions
+        del setup.secondary_observers
+        del setup.secondary_targets
+        del setup.creation_date_time
+
+        for k, v in kwargs.items():
+            setattr(setup, k, v)
+        return setup
+
+    return SimpleNamespace(
+        make_context_products=_make_context_products,
+        make_bundle=_make_bundle,
+        make_collection=_make_collection,
+        make_product=_make_product,
+        make_setup_pds4=_make_setup_pds4,
+    )

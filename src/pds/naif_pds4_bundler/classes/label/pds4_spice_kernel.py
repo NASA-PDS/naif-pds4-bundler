@@ -2,10 +2,10 @@
 """
 from pathlib import Path
 
-from .label import PDSLabel
+from .pds4_label import PDS4Label
 
 
-class SpiceKernelPDS4Label(PDSLabel):
+class SpiceKernelPDS4Label(PDS4Label):
     """Class to generate a non-MK PDS4 SPICE Kernel Label.
 
     :param setup:   NPB execution Setup object
@@ -16,8 +16,8 @@ class SpiceKernelPDS4Label(PDSLabel):
         """Constructor."""
         super().__init__(setup, product)
 
-        self.template = str(Path(setup.templates_directory)
-                            / "template_product_spice_kernel.xml")
+        self._template = str(Path(setup.templates_directory)
+                             / "template_product_spice_kernel.xml")
 
         #
         # Fields from Kernels

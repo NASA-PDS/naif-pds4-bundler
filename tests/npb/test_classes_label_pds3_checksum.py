@@ -109,7 +109,7 @@ class TestChecksumPDS3Label:
             Path(tmp_path / "templates")
             / "template_product_checksum_table.lbl"
         )
-        assert label.template == expected
+        assert label._template == expected
 
     def test_setup_and_product_reference_stored(self, tmp_path):
         setup = _make_setup(tmp_path)

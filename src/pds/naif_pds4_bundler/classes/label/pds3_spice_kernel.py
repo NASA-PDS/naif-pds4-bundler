@@ -5,7 +5,7 @@ from pathlib import Path
 
 import spiceypy
 
-from .label import PDSLabel
+from .pds3_label import PDS3Label
 from ...pipeline.runtime import handle_npb_error
 from ...utils import (
     ck_coverage,
@@ -16,7 +16,7 @@ from ...utils import (
 )
 
 
-class SpiceKernelPDS3Label(PDSLabel):
+class SpiceKernelPDS3Label(PDS3Label):
     """Class to generate a PDS3 SPICE Kernel Label.
     """
 
@@ -24,8 +24,8 @@ class SpiceKernelPDS3Label(PDSLabel):
         """Constructor."""
         super().__init__(mission, product)
 
-        self.template = str(Path(self.setup.templates_directory)
-                            / "template_product_spice_kernel.lbl")
+        self._template = str(Path(self.setup.templates_directory)
+                             / "template_product_spice_kernel.lbl")
 
         self.FILE_NAME = f'"{product.name}"'
         self.INTERCHANGE_FORMAT = product.file_format

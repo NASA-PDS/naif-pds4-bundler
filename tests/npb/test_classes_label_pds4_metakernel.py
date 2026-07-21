@@ -168,7 +168,7 @@ class TestMetaKernelPDS4Label:
             Path(label.setup.templates_directory)
             / 'template_product_spice_kernel_mk.xml')
 
-        assert label.template == expected_template
+        assert label._template == expected_template
 
     def test_constructor_stores_references_and_writes_label_once(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
@@ -604,7 +604,7 @@ class TestMetaKernelPDS4LabelIntegration:
         label = MetaKernelPDS4Label(setup, product)
 
         # Check that the class resolved the configured MK template.
-        assert label.template == str(template_path)
+        assert label._template == str(template_path)
 
         # The real writer mutates label.name to the generated XML file path.
         assert Path(label.name) == label_path

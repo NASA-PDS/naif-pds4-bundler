@@ -3,10 +3,10 @@ files.
 """
 from pathlib import Path
 
-from .label import PDSLabel
+from .pds4_label import PDS4Label
 
 
-class InventoryPDS4Label(PDSLabel):
+class InventoryPDS4Label(PDS4Label):
     """Class to generate a PDS4 Collection Inventory Label.
 
     :param setup:      NPB execution Setup object
@@ -14,14 +14,17 @@ class InventoryPDS4Label(PDSLabel):
     :param inventory:  Inventory Product of the Collection
     """
 
+    _mission_reference_type = "collection_to_investigation"
+    _target_reference_type = "collection_to_target"
+
     def __init__(self, setup, collection, inventory) -> None:
         """Constructor."""
         super().__init__(setup, inventory)
 
         self.collection = collection
 
-        self.template = str(Path(setup.templates_directory)
-                            / f"template_collection_{collection.type}.xml")
+        self._template = str(Path(setup.templates_directory)
+                             / f"template_collection_{collection.type}.xml")
 
         self.COLLECTION_LID = self.collection.lid
         self.COLLECTION_VID = self.collection.vid
@@ -76,19 +79,3 @@ class InventoryPDS4Label(PDSLabel):
 
         self.name = Path(collection.name).with_suffix(".xml").name
         self.write_label()
-
-    def get_mission_reference_type(self):
-        """Get mission reference type.
-
-        :return: Literally ``collection_to_investigation``
-        :rtype: str
-        """
-        return "collection_to_investigation"
-
-    def get_target_reference_type(self):
-        """Get target reference type.
-
-        :return: Literally ``collection_to_target``
-        :rtype: str
-        """
-        return "collection_to_target"

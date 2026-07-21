@@ -11,7 +11,7 @@ from pds.naif_pds4_bundler.classes.label.pds3_spice_kernel import SpiceKernelPDS
 # Patch target strings (adjust if the real package path differs)
 # ---------------------------------------------------------------------------
 MODULE      = "pds.naif_pds4_bundler.classes.label.pds3_spice_kernel"
-PARENT_INIT = f"{MODULE}.PDSLabel.__init__"
+PARENT_INIT = f"{MODULE}.PDS3Label.__init__"
 WRITE_LABEL = f"{MODULE}.SpiceKernelPDS3Label.write_label"
 INSERT_TEXT = f"{MODULE}.SpiceKernelPDS3Label.insert_text_label"
 INSERT_BIN  = f"{MODULE}.SpiceKernelPDS3Label.insert_binary_label"
@@ -102,9 +102,9 @@ class TestSpiceKernelPDS3LabelInit:
     """Tests for SpiceKernelPDS3Label.__init__."""
 
     def test_template_path_set(self):
-        """__init__ points self.template at the kernel label template file."""
+        """__init__ points self._template at the kernel label template file."""
         label = _build_label(_make_product("SPK"))
-        assert "template_product_spice_kernel.lbl" in label.template
+        assert "template_product_spice_kernel.lbl" in label._template
 
     def test_basic_attributes_set(self):
         product = _make_product("spk")

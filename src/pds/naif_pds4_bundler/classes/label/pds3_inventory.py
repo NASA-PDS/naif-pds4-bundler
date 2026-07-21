@@ -1,9 +1,9 @@
 """Implementation of the PDS3 version of a label for Index files.
 """
-from .label import PDSLabel
+from .pds3_label import PDS3Label
 
 
-class InventoryPDS3Label(PDSLabel):
+class InventoryPDS3Label(PDS3Label):
     """PDS Label child class to generate a PDS3 Index Label.
 
     :param setup:      NPB execution Setup object
@@ -19,7 +19,7 @@ class InventoryPDS3Label(PDSLabel):
 
         # TODO: Check why this template path is not following the approach of all
         #       other labels.
-        self.template = f'{self.root_dir}/templates/pds3/template_collection_{collection.type}.lbl'
+        self._template = f'{self.root_dir}/templates/pds3/template_collection_{collection.type}.lbl'
 
         self.VOLUME_ID = self.setup.volume_id
         self.ROW_BYTES = str(self.product.row_bytes)

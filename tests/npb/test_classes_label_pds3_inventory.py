@@ -190,7 +190,7 @@ class TestInventoryPDS3LabelUnit:
         mock_write.assert_called_once()
 
         # Template path must embed root_dir and collection.type.
-        assert label.template == f"{tmp_path}/{expected_path}"
+        assert label._template == f"{tmp_path}/{expected_path}"
         assert label.collection ==  collection
         assert label.collection.type == collection_type
 

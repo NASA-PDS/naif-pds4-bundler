@@ -2,22 +2,25 @@
 """
 from pathlib import Path
 
-from .label import PDSLabel
+from .pds4_label import PDS4Label
 
 
-class ChecksumPDS4Label(PDSLabel):
+class ChecksumPDS4Label(PDS4Label):
     """Class to generate a PDS4 Checksum Label.
 
     :param setup: NPB execution Setup object
     :param product: Checksum product to label
     """
 
+    _mission_reference_type = "ancillary_to_investigation"
+    _target_reference_type = "ancillary_to_target"
+
     def __init__(self, setup, product) -> None:
         """Constructor."""
         super().__init__(setup, product)
 
-        self.template = str(Path(setup.templates_directory)
-                            / "template_product_checksum_table.xml")
+        self._template = str(Path(setup.templates_directory)
+                             / "template_product_checksum_table.xml")
 
         self.FILE_NAME = product.name
         self.PRODUCT_LID = self.product.lid

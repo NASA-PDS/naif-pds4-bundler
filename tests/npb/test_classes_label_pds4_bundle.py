@@ -183,7 +183,7 @@ class TestBundlePDS4Label:
             self, label: BundlePDS4Label) -> None:
         # The template path is fixed to 'template_bundle.xml' under the
         # configured templates' directory.
-        assert label.template == str(
+        assert label._template == str(
             Path(label.setup.templates_directory) / 'template_bundle.xml')
 
     def test_constructor_does_not_set_name_attribute(
@@ -210,14 +210,14 @@ class TestBundlePDS4Label:
         mock_write.assert_called_once_with(label)
 
     # ------------------------------------------------------------------
-    # get_*_reference_type overrides
+    # _*_reference_type overrides
     # ------------------------------------------------------------------
 
-    def test_get_mission_reference_type(self, label: BundlePDS4Label) -> None:
-        assert label.get_mission_reference_type() == 'bundle_to_investigation'
+    def test_mission_reference_type(self, label: BundlePDS4Label) -> None:
+        assert label._mission_reference_type == 'bundle_to_investigation'
 
-    def test_get_target_reference_type(self, label: BundlePDS4Label) -> None:
-        assert label.get_target_reference_type() == 'bundle_to_target'
+    def test_target_reference_type(self, label: BundlePDS4Label) -> None:
+        assert label._target_reference_type == 'bundle_to_target'
 
     # ------------------------------------------------------------------
     # BUNDLE_MEMBER_ENTRIES – per-collection rendering
@@ -631,7 +631,7 @@ class TestBundlePDS4LabelIntegration:
 
         label = BundlePDS4Label(setup, readme)
 
-        assert label.template == str(template_path)
+        assert label._template == str(template_path)
         assert Path(label.name) == label_path
         assert label_path.exists()
         assert '$' not in label_path.read_text(encoding='utf-8')

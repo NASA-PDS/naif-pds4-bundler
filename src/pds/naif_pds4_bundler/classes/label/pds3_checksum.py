@@ -2,10 +2,10 @@
 """
 from pathlib import Path
 
-from .label import PDSLabel
+from .pds3_label import PDS3Label
 
 
-class ChecksumPDS3Label(PDSLabel):
+class ChecksumPDS3Label(PDS3Label):
     """PDS Label child class to a PDS3 Checksum Label.
 
     :param setup:   NPB  execution Setup object
@@ -16,8 +16,8 @@ class ChecksumPDS3Label(PDSLabel):
         """Constructor."""
         super().__init__(setup, product)
 
-        self.template = str(Path(setup.templates_directory)
-                            / "template_product_checksum_table.lbl")
+        self._template = str(Path(setup.templates_directory)
+                             / "template_product_checksum_table.lbl")
 
         self.VOLUME_ID = self.setup.volume_id.upper()
         self.PRODUCT_CREATION_TIME = product.creation_time

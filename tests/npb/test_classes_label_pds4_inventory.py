@@ -181,7 +181,7 @@ class TestInventoryPDS4Label:
             Path(label.setup.templates_directory)
             / 'template_collection_spice_kernels.xml')
 
-        assert label.template == expected_template
+        assert label._template == expected_template
 
     def test_constructor_stores_references_and_writes_label_once(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
@@ -204,16 +204,16 @@ class TestInventoryPDS4Label:
         mock_write.assert_called_once_with(label)
 
     # ------------------------------------------------------------------
-    # get_*_reference_type – the two fixed-string overrides
+    # _*_reference_type – the two fixed-string overrides
     # ------------------------------------------------------------------
 
-    def test_get_mission_reference_type(self, label: InventoryPDS4Label) -> None:
-        # The override returns the literal collection_to_investigation string.
-        assert label.get_mission_reference_type() == 'collection_to_investigation'
+    def test_mission_reference_type(self, label: InventoryPDS4Label) -> None:
+        # The override is the literal collection_to_investigation string.
+        assert label._mission_reference_type == 'collection_to_investigation'
 
-    def test_get_target_reference_type(self, label: InventoryPDS4Label) -> None:
-        # The override returns the literal collection_to_target string.
-        assert label.get_target_reference_type() == 'collection_to_target'
+    def test_target_reference_type(self, label: InventoryPDS4Label) -> None:
+        # The override is the literal collection_to_target string.
+        assert label._target_reference_type == 'collection_to_target'
 
     # ------------------------------------------------------------------
     # Template path is parametrized on collection.type
@@ -239,7 +239,7 @@ class TestInventoryPDS4Label:
                    'PDSLabel.write_label', autospec=True):
             label = InventoryPDS4Label(setup, collection, inventory)
 
-        assert label.template == str(
+        assert label._template == str(
             Path(setup.templates_directory)
             / f'template_collection_{coll_type}.xml')
 
@@ -525,7 +525,7 @@ class TestInventoryPDS4LabelIntegration:
         label = InventoryPDS4Label(setup, collection, inventory)
 
         # The class resolved the template from collection.type.
-        assert label.template == str(template_path)
+        assert label._template == str(template_path)
 
         # The real writer mutates label.name to the generated XML file path.
         assert Path(label.name) == label_path
