@@ -117,6 +117,37 @@ class PDS4Label(PDSLabel):
         except BaseException:
             return self.product.bundle.context_products
 
+    @staticmethod
+    def _match_context_entry(context_products, name, valid_types=None, case_insensitive=False):
+        """Find the lid/type of the context product matching ``name``.
+
+        If several entries in ``context_products`` match, the last one
+        encountered wins (matches the pre-existing behaviour of
+        get_missions/get_observers/get_targets, which never ``break`` out
+        of their matching loop).
+
+        :param context_products: List of context product dictionaries
+        :param name: Name to match against each entry's ``name``
+        :param valid_types: Iterable of acceptable ``type`` values, or
+            ``None`` to accept any type
+        :param case_insensitive: If ``True``, match ``name`` case-insensitively
+        :return: ``(lid, type)`` tuple, or ``(None, None)`` if no entry matches
+        """
+        lid, type_ = None, None
+
+        for context_product in context_products:
+            cp_name = context_product["name"][0]
+            name_matches = (
+                cp_name.upper() == name.upper() if case_insensitive else cp_name == name
+            )
+            type_matches = valid_types is None or context_product["type"][0] in valid_types
+
+            if name_matches and type_matches:
+                lid = context_product["lidvid"].split("::")[0]
+                type_ = context_product["type"][0]
+
+        return lid, type_
+
     def get_missions(self) -> str:
         """Get the label mission from the context products.
 

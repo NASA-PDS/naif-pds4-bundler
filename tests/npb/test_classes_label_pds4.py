@@ -155,6 +155,74 @@ class TestPDS4LabelInit:
 
 
 # ===========================================================================
+# PDS4Label._match_context_entry
+# ===========================================================================
+# Pure static helper shared by get_missions/get_observers/get_targets — no
+# PDS4Label instance needed to exercise it.
+
+class TestPDS4LabelMatchContextEntry:
+    """Covers PDS4Label._match_context_entry – all branches."""
+
+    @pytest.mark.parametrize(
+        "context_products, name, valid_types, case_insensitive, expected",
+        [
+            pytest.param(
+                [{"name": ["Mars"], "type": ["Target"], "lidvid": "urn:x:mars::1.0"}],
+                "Mars", ("Target",), False, ("urn:x:mars", "Target"),
+                id="match_by_name_and_type",
+            ),
+            pytest.param(
+                [{"name": ["Mars"], "type": ["Planet"], "lidvid": "urn:x:mars::1.0"}],
+                "Mars", None, False, ("urn:x:mars", "Planet"),
+                id="no_type_filter_accepts_any_type",
+            ),
+            pytest.param(
+                [{"name": ["MARS"], "type": ["Target"], "lidvid": "urn:x:mars::1.0"}],
+                "mars", None, True, ("urn:x:mars", "Target"),
+                id="case_insensitive_match",
+            ),
+            pytest.param(
+                [{"name": ["MARS"], "type": ["Target"], "lidvid": "urn:x:mars::1.0"}],
+                "mars", None, False, (None, None),
+                id="case_sensitive_by_default_no_match",
+            ),
+            pytest.param(
+                [{"name": ["Mars"], "type": ["Planet"], "lidvid": "urn:x:mars::1.0"}],
+                "Mars", ("Target",), False, (None, None),
+                id="name_matches_but_type_not_in_valid_types",
+            ),
+            pytest.param(
+                [{"name": ["Venus"], "type": ["Target"], "lidvid": "urn:x:venus::1.0"}],
+                "Mars", ("Target",), False, (None, None),
+                id="no_match_returns_none_none",
+            ),
+            pytest.param(
+                [], "Mars", None, False, (None, None),
+                id="empty_context_products_returns_none_none",
+            ),
+        ],
+    )
+    def test_match_context_entry(
+        self, context_products, name, valid_types, case_insensitive, expected
+    ):
+        result = PDS4Label._match_context_entry(
+            context_products, name, valid_types=valid_types, case_insensitive=case_insensitive
+        )
+        assert result == expected
+
+    def test_multiple_matches_last_one_wins(self):
+        """Mirrors the pre-existing getters: the matching loop never
+        ``break``s, so if more than one entry matches, the last one in
+        the list determines the result."""
+        ctx = [
+            {"name": ["Mars"], "type": ["Target"], "lidvid": "urn:x:mars-old::1.0"},
+            {"name": ["Mars"], "type": ["Target"], "lidvid": "urn:x:mars-new::2.0"},
+        ]
+        lid, type_ = PDS4Label._match_context_entry(ctx, "Mars", valid_types=("Target",))
+        assert lid == "urn:x:mars-new"
+
+
+# ===========================================================================
 # PDS4Label.get_missions
 # ===========================================================================
 
