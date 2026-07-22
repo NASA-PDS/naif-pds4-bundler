@@ -96,6 +96,27 @@ class PDS4Label(PDSLabel):
         """End-of-line convention used for PDS4 labels."""
         return self.setup.eol_pds4
 
+    def _resolve_context_products(self):
+        """Resolve the bundle context products used to label this product.
+
+        Falls back to ``product.bundle.context_products`` when
+        ``product.collection`` is unavailable. An empty (but present) list
+        is returned as-is and does not trigger the fallback; only a lookup
+        failure does.
+
+        # TODO: PDS4Label.__init__ separately resolves and discards a
+        #       context_products local with slightly different fallback
+        #       logic (it also falls back on an empty list). That dead code
+        #       and the discrepancy are tracked as a follow-up, not fixed
+        #       here.
+
+        :return: List of context product dictionaries
+        """
+        try:
+            return self.product.collection.bundle.context_products
+        except BaseException:
+            return self.product.bundle.context_products
+
     def get_missions(self) -> str:
         """Get the label mission from the context products.
 
