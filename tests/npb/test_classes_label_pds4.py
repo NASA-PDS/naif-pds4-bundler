@@ -238,7 +238,7 @@ class TestPDS4LabelMatchContextEntry:
             {"name": ["Mars"], "type": ["Target"], "lidvid": "urn:x:mars-old::1.0"},
             {"name": ["Mars"], "type": ["Target"], "lidvid": "urn:x:mars-new::2.0"},
         ]
-        lid, type_ = PDS4Label._match_context_entry(ctx, "Mars", valid_types=("Target",))
+        lid, _ = PDS4Label._match_context_entry(ctx, "Mars", valid_types=("Target",))
         assert lid == "urn:x:mars-new"
 
 
