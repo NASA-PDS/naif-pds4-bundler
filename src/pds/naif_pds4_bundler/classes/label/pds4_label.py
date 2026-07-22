@@ -148,6 +148,38 @@ class PDS4Label(PDSLabel):
 
         return lid, type_
 
+    @staticmethod
+    def _render_context_entry(eol, tab, tag, indent, name, type_, lid, reference_type):
+        """Render one Investigation_Area/Observing_System_Component/
+        Target_Identification XML block.
+
+        The three callers share this exact inner structure and differ only
+        in the wrapping ``tag`` and the base ``indent`` level (2 for
+        Investigation_Area/Target_Identification, 3 for
+        Observing_System_Component); inner elements sit at ``indent + 1``
+        and ``lid_reference``/``reference_type`` at ``indent + 2``.
+
+        :param eol: End-of-line string to use
+        :param tab: Number of spaces per indent level
+        :param tag: Wrapping element name
+        :param indent: Base indent level, in units of ``tab``
+        :param name: Value of the ``name`` element
+        :param type_: Value of the ``type`` element
+        :param lid: Value of the ``lid_reference`` element
+        :param reference_type: Value of the ``reference_type`` element
+        :return: The rendered XML block
+        """
+        return (
+            f"{' ' * indent * tab}<{tag}>{eol}"
+            f"{' ' * (indent + 1) * tab}<name>{name}</name>{eol}"
+            f"{' ' * (indent + 1) * tab}<type>{type_}</type>{eol}"
+            f"{' ' * (indent + 1) * tab}<Internal_Reference>{eol}"
+            f"{' ' * (indent + 2) * tab}<lid_reference>{lid}</lid_reference>{eol}"
+            f"{' ' * (indent + 2) * tab}<reference_type>{reference_type}</reference_type>{eol}"
+            f"{' ' * (indent + 1) * tab}</Internal_Reference>{eol}"
+            f"{' ' * indent * tab}</{tag}>{eol}"
+        )
+
     def get_missions(self) -> str:
         """Get the label mission from the context products.
 

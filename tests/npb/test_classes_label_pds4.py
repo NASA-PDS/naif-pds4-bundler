@@ -223,6 +223,68 @@ class TestPDS4LabelMatchContextEntry:
 
 
 # ===========================================================================
+# PDS4Label._render_context_entry
+# ===========================================================================
+# Pure static helper shared by get_missions/get_observers/get_targets — no
+# PDS4Label instance needed to exercise it.
+
+class TestPDS4LabelRenderContextEntry:
+    """Covers PDS4Label._render_context_entry – all branches."""
+
+    @pytest.mark.parametrize(
+        "eol, tab, tag, indent, name, type_, lid, reference_type, expected",
+        [
+            pytest.param(
+                "\r\n", 2, "Investigation_Area", 2,
+                "TestMission", "Mission", "urn:nasa:pds:testmission", "data_to_investigation",
+                '    <Investigation_Area>\r\n'
+                '      <name>TestMission</name>\r\n'
+                '      <type>Mission</type>\r\n'
+                '      <Internal_Reference>\r\n'
+                '        <lid_reference>urn:nasa:pds:testmission</lid_reference>\r\n'
+                '        <reference_type>data_to_investigation</reference_type>\r\n'
+                '      </Internal_Reference>\r\n'
+                '    </Investigation_Area>\r\n',
+                id="indent_2_matches_investigation_area_layout",
+            ),
+            pytest.param(
+                "\r\n", 2, "Observing_System_Component", 3,
+                "TestObserver", "Spacecraft", "urn:x:testobserver", "is_instrument_host",
+                '      <Observing_System_Component>\r\n'
+                '        <name>TestObserver</name>\r\n'
+                '        <type>Spacecraft</type>\r\n'
+                '        <Internal_Reference>\r\n'
+                '          <lid_reference>urn:x:testobserver</lid_reference>\r\n'
+                '          <reference_type>is_instrument_host</reference_type>\r\n'
+                '        </Internal_Reference>\r\n'
+                '      </Observing_System_Component>\r\n',
+                id="indent_3_matches_observing_system_component_layout",
+            ),
+            pytest.param(
+                "\n", 1, "Target_Identification", 2,
+                "TestTarget", "Planet", "urn:x:testtarget", "data_to_target",
+                '  <Target_Identification>\n'
+                '   <name>TestTarget</name>\n'
+                '   <type>Planet</type>\n'
+                '   <Internal_Reference>\n'
+                '    <lid_reference>urn:x:testtarget</lid_reference>\n'
+                '    <reference_type>data_to_target</reference_type>\n'
+                '   </Internal_Reference>\n'
+                '  </Target_Identification>\n',
+                id="different_eol_and_tab_are_honored_not_hardcoded",
+            ),
+        ],
+    )
+    def test_render_context_entry(
+        self, eol, tab, tag, indent, name, type_, lid, reference_type, expected
+    ):
+        result = PDS4Label._render_context_entry(
+            eol, tab, tag, indent, name, type_, lid, reference_type
+        )
+        assert result == expected
+
+
+# ===========================================================================
 # PDS4Label.get_missions
 # ===========================================================================
 
