@@ -192,24 +192,15 @@ class PDS4Label(PDSLabel):
 
         mis_list_for_label = ""
 
-        try:
-            context_products = self.product.collection.bundle.context_products
-        except BaseException:
-            context_products = self.product.bundle.context_products
+        context_products = self._resolve_context_products()
 
         eol = self.setup.eol_pds4
         tab = self.setup.xml_tab
         for mis in miss:
             if mis:
-                mis_name = mis
-                mission_lid, mission_type = None, None
-                for product in context_products:
-                    if product["name"][0] == mis_name and (
-                        product["type"][0] == "Mission"
-                        or product["type"][0] == "Other Investigation"
-                    ):
-                        mission_lid = product["lidvid"].split("::")[0]
-                        mission_type = product["type"][0]
+                mission_lid, mission_type = self._match_context_entry(
+                    context_products, mis, valid_types=("Mission", "Other Investigation")
+                )
 
                 if not mission_lid:
                     handle_npb_error(
@@ -217,17 +208,9 @@ class PDS4Label(PDSLabel):
                         setup=self.setup,
                     )
 
-                mis_list_for_label += (
-                    f"{' ' * 2 * tab}<Investigation_Area>{eol}"
-                    + f"{' ' * 3 * tab}<name>{mis_name}</name>{eol}"
-                    + f"{' ' * 3 * tab}<type>{mission_type}</type>{eol}"
-                    + f"{' ' * 3 * tab}<Internal_Reference>{eol}"
-                    + f"{' ' * 4 * tab}<lid_reference>{mission_lid}"
-                    f"</lid_reference>{eol}" + f"{' ' * 4 * tab}<reference_type>"
-                    f"{self._mission_reference_type}"
-                    f"</reference_type>{eol}"
-                    + f"{' ' * 3 * tab}</Internal_Reference>{eol}"
-                    + f"{' ' * 2 * tab}</Investigation_Area>{eol}"
+                mis_list_for_label += self._render_context_entry(
+                    eol, tab, "Investigation_Area", 2,
+                    mis, mission_type, mission_lid, self._mission_reference_type,
                 )
         if not mis_list_for_label:
             handle_npb_error(
