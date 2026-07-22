@@ -104,14 +104,13 @@ class PDS4Label(PDSLabel):
         is returned as-is and does not trigger the fallback; only a lookup
         failure does.
 
+        :return: List of context product dictionaries
+        """
         # TODO: PDS4Label.__init__ separately resolves and discards a
         #       context_products local with slightly different fallback
         #       logic (it also falls back on an empty list). That dead code
         #       and the discrepancy are tracked as a follow-up, not fixed
         #       here.
-
-        :return: List of context product dictionaries
-        """
         try:
             return self.product.collection.bundle.context_products
         except BaseException:

@@ -155,6 +155,26 @@ class TestPDS4LabelInit:
 
 
 # ===========================================================================
+# PDS4Label._resolve_context_products
+# ===========================================================================
+
+class TestPDS4LabelResolveContextProducts:
+    """Covers the one behavior not already exercised indirectly by the
+    get_missions/get_observers/get_targets fallback tests: an empty-but-
+    present context_products list is returned as-is, not treated as a
+    reason to fall back to product.bundle.context_products."""
+
+    def test_empty_list_does_not_trigger_fallback(self):
+        label = PDS4Label.__new__(PDS4Label)
+        product = MagicMock()
+        product.collection.bundle.context_products = []
+        product.bundle.context_products = ["should not be used"]
+        label.product = product
+
+        assert label._resolve_context_products() == []
+
+
+# ===========================================================================
 # PDS4Label._match_context_entry
 # ===========================================================================
 # Pure static helper shared by get_missions/get_observers/get_targets — no
