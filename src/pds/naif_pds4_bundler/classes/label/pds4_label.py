@@ -231,27 +231,18 @@ class PDS4Label(PDSLabel):
 
         obs_list_for_label = ""
 
-        try:
-            context_products = self.product.collection.bundle.context_products
-        except BaseException:
-            context_products = self.product.bundle.context_products
+        context_products = self._resolve_context_products()
 
         eol = self.setup.eol_pds4
         tab = self.setup.xml_tab
 
         for ob in obs:
             if ob:
-                ob_lid, ob_type = None, None
                 ob_name = ob.split(",")[0]
-                for product in context_products:
-                    if product["name"][0] == ob_name and (
-                        product["type"][0] == "Spacecraft"
-                        or product["type"][0] == "Rover"
-                        or product["type"][0] == "Lander"
-                        or product["type"][0] == "Host"
-                    ):
-                        ob_lid = product["lidvid"].split("::")[0]
-                        ob_type = product["type"][0]
+                ob_lid, ob_type = self._match_context_entry(
+                    context_products, ob_name,
+                    valid_types=("Spacecraft", "Rover", "Lander", "Host"),
+                )
 
                 if not ob_lid:
                     handle_npb_error(
@@ -259,17 +250,9 @@ class PDS4Label(PDSLabel):
                         setup=self.setup,
                     )
 
-                obs_list_for_label += (
-                    f"{' ' * 3 * tab}<Observing_System_Component>{eol}"
-                    + f"{' ' * (3+1) * tab}<name>{ob_name}</name>{eol}"
-                    + f"{' ' * (3+1) * tab}<type>{ob_type}</type>{eol}"
-                    + f"{' ' * (3+1) * tab}<Internal_Reference>{eol}"
-                    + f"{' ' * (3 + 2) * tab}<lid_reference>{ob_lid}"
-                    f"</lid_reference>{eol}"
-                    + f"{' ' * (3 + 2) * tab}<reference_type>is_instrument_host"
-                    f"</reference_type>{eol}"
-                    + f"{' ' * (3+1) * tab}</Internal_Reference>{eol}"
-                    + f"{' ' * 3 * tab}</Observing_System_Component>{eol}"
+                obs_list_for_label += self._render_context_entry(
+                    eol, tab, "Observing_System_Component", 3,
+                    ob_name, ob_type, ob_lid, "is_instrument_host",
                 )
 
         if not obs_list_for_label:
