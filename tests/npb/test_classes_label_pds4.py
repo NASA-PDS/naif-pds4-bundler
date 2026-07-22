@@ -492,6 +492,20 @@ class TestPDS4LabelGetTargets:
         ctx = [{"name": ["TESTTARGET"], "type": ["planet"], "lidvid": "urn:x::1.0"}]
         assert "testtarget" in label_for(["testtarget"], ctx).get_targets()
 
+    def test_no_match_renders_none_without_raising(self, label_for, mocker):
+        """Characterizes a known gap (tracked separately, not fixed here):
+        unlike get_missions/get_observers, a target with no matching
+        context product does not call handle_npb_error — lid/type fall
+        through as the literal string "None" instead. This pins the
+        current behavior, so it can't change silently; it is not an
+        endorsement of it."""
+        mock_err = mocker.patch(_PATCH_HANDLE_ERROR)
+        ctx = [{"name": ["Different"], "type": ["Target"], "lidvid": "urn:x:different::1.0"}]
+        result = label_for(["TestTarget"], ctx).get_targets()
+        mock_err.assert_not_called()
+        assert "<lid_reference>None</lid_reference>" in result
+        assert "<type>None</type>" in result
+
     def test_empty_target_skipped_calls_error(self, label_for, mocker):
         mock_err = mocker.patch(_PATCH_HANDLE_ERROR)
         label_for([""]).get_targets()

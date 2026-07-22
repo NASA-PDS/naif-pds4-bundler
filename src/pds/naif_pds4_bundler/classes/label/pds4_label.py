@@ -285,10 +285,13 @@ class PDS4Label(PDSLabel):
                 target_lid, target_type = self._match_context_entry(
                     context_products, target_name, valid_types=None, case_insensitive=True
                 )
-                # No handle_npb_error guard here if target_lid is None — this
-                # matches pre-existing behaviour (unlike get_missions/
-                # get_observers) and is tracked as a separate follow-up, not
-                # fixed as part of this refactor.
+                # TODO: BUG, unlike get_missions/get_observers above, no
+                #       handle_npb_error is raised here when target_lid is
+                #       None (no context product matched). lid/type instead
+                #       fall through as the literal string "None" into the
+                #       rendered label. Pre-existing behaviour, preserved by
+                #       this refactor and pinned by
+                #       test_no_match_renders_none_without_raising.
                 if target_type is not None:
                     target_type = target_type.capitalize()
 
