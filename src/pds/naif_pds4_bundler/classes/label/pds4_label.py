@@ -274,10 +274,7 @@ class PDS4Label(PDSLabel):
 
         tar_list_for_label = ""
 
-        try:
-            context_products = self.product.collection.bundle.context_products
-        except BaseException:
-            context_products = self.product.bundle.context_products
+        context_products = self._resolve_context_products()
 
         eol = self.setup.eol_pds4
         tab = self.setup.xml_tab
@@ -285,23 +282,19 @@ class PDS4Label(PDSLabel):
         for tar in tars:
             if tar:
                 target_name = tar
-                target_lid, target_type = None, None
-                for product in context_products:
-                    if product["name"][0].upper() == target_name.upper():
-                        target_lid = product["lidvid"].split("::")[0]
-                        target_type = product["type"][0].capitalize()
+                target_lid, target_type = self._match_context_entry(
+                    context_products, target_name, valid_types=None, case_insensitive=True
+                )
+                # No handle_npb_error guard here if target_lid is None — this
+                # matches pre-existing behaviour (unlike get_missions/
+                # get_observers) and is tracked as a separate follow-up, not
+                # fixed as part of this refactor.
+                if target_type is not None:
+                    target_type = target_type.capitalize()
 
-                tar_list_for_label += (
-                    f"{' ' * 2 * tab}<Target_Identification>{eol}"
-                    + f"{' ' * 3 * tab}<name>{target_name}</name>{eol}"
-                    + f"{' ' * 3 * tab}<type>{target_type}</type>{eol}"
-                    + f"{' ' * 3 * tab}<Internal_Reference>{eol}"
-                    + f"{' ' * 4 * tab}<lid_reference>{target_lid}"
-                    f"</lid_reference>{eol}" + f"{' ' * 4 * tab}<reference_type>"
-                    f"{self._target_reference_type}"
-                    f"</reference_type>{eol}"
-                    + f"{' ' * 3 * tab}</Internal_Reference>{eol}"
-                    + f"{' ' * 2 * tab}</Target_Identification>{eol}"
+                tar_list_for_label += self._render_context_entry(
+                    eol, tab, "Target_Identification", 2,
+                    target_name, target_type, target_lid, self._target_reference_type,
                 )
 
         if not tar_list_for_label:
