@@ -2253,14 +2253,12 @@ class TestKernelListCheckProducts:
             self, mocker, tmp_path, product) -> None:
         # ORBNUM products (.orb/.nrb, case-insensitive) are resolved against
         # the configured orbnum_directory instead of being searched in the
-        # kernel directories. The path is built unconditionally, even if the
-        # file does not physically exist, so no file is created here.
+        # kernel directories.
         mocks = self.patch_checks(mocker)
         kernel_list = self.make_kernel_list(tmp_path, kernels=[product])
+        expected_path = self.write_kernel(tmp_path, product, subdir='orbnum')
 
         kernel_list.check_products()
-
-        expected_path = kernel_list.setup.orbnum_directory + os.sep + product
 
         # check_eol is the first boundary to receive the path, proving the
         # ORBNUM branch resolved the product.
@@ -2270,6 +2268,37 @@ class TestKernelListCheckProducts:
         # ORBNUM files skip the kernel-architecture and endianness checks.
         mocks.check_kernel_integrity.assert_not_called()
         mocks.check_binary_endianness.assert_not_called()
+
+    def test_check_products_missing_orbnum_records_clear_error(
+            self, mocker, caplog, tmp_path) -> None:
+        # A missing ORBNUM file should be reported as a configuration/path
+        # error instead of falling through into later file checks.
+        mocks = self.patch_checks(mocker)
+        product = 'm01_rec.orb'
+        kernel_list = self.make_kernel_list(tmp_path, kernels=[product])
+        expected_path = kernel_list.setup.orbnum_directory + os.sep + product
+
+        with caplog.at_level(logging.INFO):
+            with pytest.raises(RuntimeError, match=_CHECK_FATAL_MESSAGE):
+                kernel_list.check_products()
+
+        expected = [
+            (logging.WARNING, f'-- {product}'),
+            (
+                logging.ERROR,
+                '     ORBNUM file not found at configured orbnum path: '
+                f'{expected_path}. Check orbnum_directory in the configuration.'
+            ),
+            (logging.ERROR, ''),
+            (logging.ERROR, f'-- {_CHECK_FATAL_MESSAGE}')]
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+        assert results == expected
+        mocks.check_permissions.assert_not_called()
+        mocks.check_eol.assert_not_called()
+        mocks.check_badchar.assert_not_called()
+        mocks.kclear.assert_called_once()
 
     def test_check_products_resolves_kernel_by_exact_name(
             self, mocker, tmp_path) -> None:
@@ -2429,7 +2458,7 @@ class TestKernelListCheckProducts:
         # 'setup.eol' is set to CRLF so the PDS3 case proves the override.
         mocks = self.patch_checks(mocker)
         product = 'm01_rec.orb'
-        expected_path = str(tmp_path / 'orbnum' / product)
+        expected_path = self.write_kernel(tmp_path, product, subdir='orbnum')
         kernel_list = self.make_kernel_list(tmp_path, kernels=[product],
                                             pds_version=pds_version, eol='\r\n')
 
@@ -2443,6 +2472,7 @@ class TestKernelListCheckProducts:
         # RuntimeError is raised.
         mocks = self.patch_checks(mocker, check_eol='Wrong EOL')
         product = 'm01_rec.orb'
+        self.write_kernel(tmp_path, product, subdir='orbnum')
         kernel_list = self.make_kernel_list(tmp_path, kernels=[product])
 
         with caplog.at_level(logging.INFO):
@@ -2490,6 +2520,7 @@ class TestKernelListCheckProducts:
         # ORBNUM files are checked for bad characters but not for line length.
         mocks = self.patch_checks(mocker)
         product = 'm01_rec.orb'
+        self.write_kernel(tmp_path, product, subdir='orbnum')
         kernel_list = self.make_kernel_list(tmp_path, kernels=[product])
 
         kernel_list.check_products()
