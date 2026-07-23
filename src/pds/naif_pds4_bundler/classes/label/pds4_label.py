@@ -156,7 +156,7 @@ class PDS4Label(PDSLabel):
         :param reference_type: Value of the ``reference_type`` element
         :return: The rendered XML block
         """
-        eol = self.setup.eol_pds4
+        eol = self._eol
         tab = self.setup.xml_tab
         return (
             f"{' ' * indent * tab}<{tag}>{eol}"
