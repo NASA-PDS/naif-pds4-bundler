@@ -181,7 +181,6 @@ class PDS4Label(PDSLabel):
 
         mis_list_for_label = ""
 
-        eol = self.setup.eol_pds4
         for mis in miss:
             if mis:
                 mission_lid, mission_type = self._match_context_entry(
@@ -202,7 +201,7 @@ class PDS4Label(PDSLabel):
             handle_npb_error(
                 f"{self.product.name} missions not defined.", setup=self.setup
             )
-        mis_list_for_label = mis_list_for_label.rstrip() + eol
+        mis_list_for_label = mis_list_for_label.rstrip() + self._eol
 
         return mis_list_for_label
 
@@ -216,8 +215,6 @@ class PDS4Label(PDSLabel):
             obs = [obs]
 
         obs_list_for_label = ""
-
-        eol = self.setup.eol_pds4
 
         for ob in obs:
             if ob:
@@ -242,7 +239,7 @@ class PDS4Label(PDSLabel):
             handle_npb_error(
                 f"{self.product.name} observers not defined.", setup=self.setup
             )
-        obs_list_for_label = obs_list_for_label.rstrip() + eol
+        obs_list_for_label = obs_list_for_label.rstrip() + self._eol
 
         return obs_list_for_label
 
@@ -256,8 +253,6 @@ class PDS4Label(PDSLabel):
             tars = [tars]
 
         tar_list_for_label = ""
-
-        eol = self.setup.eol_pds4
 
         for tar in tars:
             if tar:
@@ -286,6 +281,6 @@ class PDS4Label(PDSLabel):
 
         if not tar_list_for_label:
             handle_npb_error(f"{self.product.name} targets not defined.", setup=self.setup)
-        tar_list_for_label = tar_list_for_label.rstrip() + eol
+        tar_list_for_label = tar_list_for_label.rstrip() + self._eol
 
         return tar_list_for_label
