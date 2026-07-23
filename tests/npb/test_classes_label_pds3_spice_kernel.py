@@ -397,7 +397,7 @@ class TestSpiceKernelPDS3LabelInsertTextLabel:
         assert len(kernel_opens) >= 1
 
     def test_raises_on_missing_kpl_header(self, text_label):
-        """handle_npb_error is called when the kernel lacks a KPL/ first line."""
+        """NPBError is raised when the kernel lacks a KPL/ first line."""
         bad_kernel = "NOT_KPL\nsome data\n"
 
         with patch("builtins.open", side_effect=_open_factory(kernel_data=bad_kernel)):

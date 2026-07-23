@@ -252,7 +252,7 @@ class PDS4Label(PDSLabel):
                     target_name, case_insensitive=True
                 )
                 # TODO: BUG, unlike get_missions/get_observers above, no
-                #       handle_npb_error is raised here when target_lid is
+                #       NPBError is raised here when target_lid is
                 #       None (no context product matched). lid/type instead
                 #       fall through as the literal string "None" into the
                 #       rendered label. Pre-existing behaviour, preserved by
