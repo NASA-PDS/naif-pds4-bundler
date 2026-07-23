@@ -105,9 +105,7 @@ class PDS4Label(PDSLabel):
         """Find the lid/type of the context product matching ``name``.
 
         If several entries in ``self._context_products`` match, the last
-        one encountered wins (matches the pre-existing behaviour of
-        get_missions/get_observers/get_targets, which never ``break`` out
-        of their matching loop).
+        one encountered wins.
 
         :param name: Name to match against each entry's ``name``
         :param valid_types: Tuple of acceptable ``type`` values, or
