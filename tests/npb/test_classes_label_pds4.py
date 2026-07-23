@@ -134,14 +134,14 @@ class TestPDS4LabelInit:
         label = PDS4Label(setup_pds4, product)
         assert label.missions == ['TestMission', 'SingleMission']
         # TODO: This is a bug!!!!
-        assert 'TestMission, S, i, n, g, l, e, M, i, s, s, i, o, and n' == label.PDS4_MISSION_NAME
+        assert label.PDS4_MISSION_NAME == 'TestMission, S, i, n, g, l, e, M, i, s, s, i, o, and n'
 
     def test_pds4_secondary_observers_non_list_wrapped(self, mock_class_methods, setup_pds4, product):
         setup_pds4.secondary_observers = 'SingleObserver'
         label = PDS4Label(setup_pds4, product)
         assert label.observers == ['TestObserver', 'SingleObserver']
         # TODO: This is a bug!!!
-        assert 'TestObserver, S, i, n, g, l, e, O, b, s, e, r, v, e, and r spacecraft and their' == label.PDS4_OBSERVER_NAME
+        assert label.PDS4_OBSERVER_NAME == 'TestObserver, S, i, n, g, l, e, O, b, s, e, r, v, e, and r spacecraft and their'
 
     def test_pds4_sets_missions_targets_observers(self, mock_class_methods, setup_pds4, product):
         setup_pds4.secondary_missions = ["MissionB", "MissionC"]
