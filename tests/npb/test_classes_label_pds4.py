@@ -352,8 +352,9 @@ class TestPDS4LabelGetMissions:
 
     def test_empty_mission_name_skipped_calls_error(self, label_for):
         """A falsy mission entry (empty string) must be skipped."""
+        label = label_for([""])
         with pytest.raises(NPBError, match="missions not defined"):
-            label_for([""]).get_missions()
+            label.get_missions()
 
     def test_other_investigation_type_accepted(self, label_for):
         ctx = [
@@ -382,8 +383,9 @@ class TestPDS4LabelGetMissions:
                 "lidvid": "urn:nasa:pds:different::1.0",
             }
         ]
+        label = label_for(["TestMission"], context_products=ctx)
         with pytest.raises(NPBError, match="LID has not been obtained for mission"):
-            label_for(["TestMission"], context_products=ctx).get_missions()
+            label.get_missions()
 
 
 # ===========================================================================
@@ -442,13 +444,15 @@ class TestPDS4LabelGetObservers:
         assert "TestObserver" in label_for(["TestObserver, extra"], ctx).get_observers()
 
     def test_empty_observer_skipped_calls_error(self, label_for):
+        label = label_for([""])
         with pytest.raises(NPBError, match="observers not defined"):
-            label_for([""]).get_observers()
+            label.get_observers()
 
     def test_no_lid_raises_npberror(self, label_for):
         ctx = [{"name": ["NoMatch"], "type": ["Spacecraft"], "lidvid": "urn:x::1.0"}]
+        label = label_for(["TestObserver"], ctx)
         with pytest.raises(NPBError, match="LID has not been obtained for observer"):
-            label_for(["TestObserver"], ctx).get_observers()
+            label.get_observers()
 
     def test_trailing_eol_appended(self, label_for):
         assert label_for(["TestObserver"]).get_observers().endswith("\r\n")
@@ -510,8 +514,9 @@ class TestPDS4LabelGetTargets:
         assert "<type>None</type>" in result
 
     def test_empty_target_skipped_calls_error(self, label_for):
+        label = label_for([""])
         with pytest.raises(NPBError, match="targets not defined"):
-            label_for([""]).get_targets()
+            label.get_targets()
 
     def test_trailing_eol_appended(self, label_for):
         assert label_for(["TestTarget"]).get_targets().endswith("\r\n")
