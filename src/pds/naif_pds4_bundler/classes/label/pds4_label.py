@@ -1,5 +1,7 @@
 """PDS4 version-specific base class for PDS labels."""
 
+from typing import Iterable, Optional, Tuple
+
 from .label import PDSLabel
 from ...pipeline.runtime import handle_npb_error
 
@@ -24,11 +26,9 @@ class PDS4Label(PDSLabel):
         super().__init__(setup, product)
 
         try:
-            context_products = product.collection.bundle.context_products
-            if not context_products:
-                raise Exception("No context products from bundle in collection")
+            self._context_products = product.collection.bundle.context_products
         except BaseException:
-            context_products = product.bundle.context_products
+            self._context_products = product.bundle.context_products
 
         self.XML_MODEL = setup.xml_model
         self.SCHEMA_LOCATION = setup.schema_location
@@ -96,36 +96,19 @@ class PDS4Label(PDSLabel):
         """End-of-line convention used for PDS4 labels."""
         return self.setup.eol_pds4
 
-    def _resolve_context_products(self):
-        """Resolve the bundle context products used to label this product.
-
-        Falls back to ``product.bundle.context_products`` when
-        ``product.collection`` is unavailable. An empty (but present) list
-        is returned as-is and does not trigger the fallback; only a lookup
-        failure does.
-
-        :return: List of context product dictionaries
-        """
-        # TODO: PDS4Label.__init__ separately resolves and discards a
-        #       context_products local with slightly different fallback
-        #       logic (it also falls back on an empty list). That dead code
-        #       and the discrepancy are tracked as a follow-up, not fixed
-        #       here.
-        try:
-            return self.product.collection.bundle.context_products
-        except BaseException:
-            return self.product.bundle.context_products
-
-    @staticmethod
-    def _match_context_entry(context_products, name, valid_types=None, case_insensitive=False):
+    def _match_context_entry(
+        self,
+        name: str,
+        valid_types: Optional[Iterable[str]] = None,
+        case_insensitive: bool = False,
+    ) -> Tuple[Optional[str], Optional[str]]:
         """Find the lid/type of the context product matching ``name``.
 
-        If several entries in ``context_products`` match, the last one
-        encountered wins (matches the pre-existing behaviour of
+        If several entries in ``self._context_products`` match, the last
+        one encountered wins (matches the pre-existing behaviour of
         get_missions/get_observers/get_targets, which never ``break`` out
         of their matching loop).
 
-        :param context_products: List of context product dictionaries
         :param name: Name to match against each entry's ``name``
         :param valid_types: Iterable of acceptable ``type`` values, or
             ``None`` to accept any type
@@ -134,7 +117,7 @@ class PDS4Label(PDSLabel):
         """
         lid, type_ = None, None
 
-        for context_product in context_products:
+        for context_product in self._context_products:
             cp_name = context_product["name"][0]
             name_matches = (
                 cp_name.upper() == name.upper() if case_insensitive else cp_name == name
@@ -191,14 +174,12 @@ class PDS4Label(PDSLabel):
 
         mis_list_for_label = ""
 
-        context_products = self._resolve_context_products()
-
         eol = self.setup.eol_pds4
         tab = self.setup.xml_tab
         for mis in miss:
             if mis:
                 mission_lid, mission_type = self._match_context_entry(
-                    context_products, mis, valid_types=("Mission", "Other Investigation")
+                    mis, valid_types=("Mission", "Other Investigation")
                 )
 
                 if not mission_lid:
@@ -230,8 +211,6 @@ class PDS4Label(PDSLabel):
 
         obs_list_for_label = ""
 
-        context_products = self._resolve_context_products()
-
         eol = self.setup.eol_pds4
         tab = self.setup.xml_tab
 
@@ -239,7 +218,7 @@ class PDS4Label(PDSLabel):
             if ob:
                 ob_name = ob.split(",")[0]
                 ob_lid, ob_type = self._match_context_entry(
-                    context_products, ob_name,
+                    ob_name,
                     valid_types=("Spacecraft", "Rover", "Lander", "Host"),
                 )
 
@@ -273,8 +252,6 @@ class PDS4Label(PDSLabel):
 
         tar_list_for_label = ""
 
-        context_products = self._resolve_context_products()
-
         eol = self.setup.eol_pds4
         tab = self.setup.xml_tab
 
@@ -282,7 +259,7 @@ class PDS4Label(PDSLabel):
             if tar:
                 target_name = tar
                 target_lid, target_type = self._match_context_entry(
-                    context_products, target_name, valid_types=None, case_insensitive=True
+                    target_name, valid_types=None, case_insensitive=True
                 )
                 # TODO: BUG, unlike get_missions/get_observers above, no
                 #       handle_npb_error is raised here when target_lid is

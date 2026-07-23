@@ -56,22 +56,23 @@ class TestPDS4LabelInit:
                      return_value='MockedTarget')
 
     def test_pds4_context_from_collection_bundle(self, setup_pds4, product):
-        """context products from collection.bundle"""
+        """context products are cached from collection.bundle.context_products"""
+        ctx = product.collection.bundle.context_products
         label = PDS4Label(setup_pds4, product)
         assert label.setup is setup_pds4
         assert label.product is product
         assert label.name == ""
+        assert label._context_products is ctx
 
-    def test_pds4_context_falls_back_to_product_bundle(self, mock_class_methods, setup_pds4, product):
-        """Construction does not raise when collection.bundle.context_products
-        is falsy. The internal try/except silently falls back to
-        product.bundle.context_products; whether that fallback value is
-        used correctly is covered separately by each of get_missions/
-        get_observers/get_targets' own test_context_fallback_to_product_bundle
-        test.
+    def test_pds4_context_empty_list_is_cached_as_is(self, mock_class_methods, setup_pds4, product):
+        """An empty (but present) collection.bundle.context_products list is
+        cached as-is; it is not a lookup failure, so it does not trigger
+        the fallback to product.bundle.context_products.
         """
         product.collection.bundle.context_products = []
-        PDS4Label(setup_pds4, product)
+        product.bundle.context_products = ["should not be used"]
+        label = PDS4Label(setup_pds4, product)
+        assert label._context_products == []
 
     def test_pds4_context_attribute_error_falls_back(self, setup_pds4, product):
         """Construction does not raise when product.collection.bundle is
@@ -79,7 +80,8 @@ class TestPDS4LabelInit:
         swallows it and falls back to product.bundle.context_products.
         """
         product.collection = MagicMock(spec=[])
-        PDS4Label(setup_pds4, product)
+        label = PDS4Label(setup_pds4, product)
+        assert label._context_products is product.bundle.context_products
 
     def test_pds4_single_mission_name(self, mock_class_methods, setup_pds4, product):
         label = PDS4Label(setup_pds4, product)
@@ -155,33 +157,19 @@ class TestPDS4LabelInit:
 
 
 # ===========================================================================
-# PDS4Label._resolve_context_products
-# ===========================================================================
-
-class TestPDS4LabelResolveContextProducts:
-    """Covers the one behavior not already exercised indirectly by the
-    get_missions/get_observers/get_targets fallback tests: an empty-but-
-    present context_products list is returned as-is, not treated as a
-    reason to fall back to product.bundle.context_products."""
-
-    def test_empty_list_does_not_trigger_fallback(self):
-        label = PDS4Label.__new__(PDS4Label)
-        product = MagicMock()
-        product.collection.bundle.context_products = []
-        product.bundle.context_products = ["should not be used"]
-        label.product = product
-
-        assert label._resolve_context_products() == []
-
-
-# ===========================================================================
 # PDS4Label._match_context_entry
 # ===========================================================================
-# Pure static helper shared by get_missions/get_observers/get_targets — no
-# PDS4Label instance needed to exercise it.
+# Reads self._context_products, so exercised against a bare (__init__-
+# bypassed) instance with that attribute set directly.
 
 class TestPDS4LabelMatchContextEntry:
     """Covers PDS4Label._match_context_entry – all branches."""
+
+    @staticmethod
+    def _label_with(context_products):
+        label = PDS4Label.__new__(PDS4Label)
+        label._context_products = context_products
+        return label
 
     @pytest.mark.parametrize(
         "context_products, name, valid_types, case_insensitive, expected",
@@ -225,8 +213,9 @@ class TestPDS4LabelMatchContextEntry:
     def test_match_context_entry(
         self, context_products, name, valid_types, case_insensitive, expected
     ):
-        result = PDS4Label._match_context_entry(
-            context_products, name, valid_types=valid_types, case_insensitive=case_insensitive
+        label = self._label_with(context_products)
+        result = label._match_context_entry(
+            name, valid_types=valid_types, case_insensitive=case_insensitive
         )
         assert result == expected
 
@@ -238,7 +227,8 @@ class TestPDS4LabelMatchContextEntry:
             {"name": ["Mars"], "type": ["Target"], "lidvid": "urn:x:mars-old::1.0"},
             {"name": ["Mars"], "type": ["Target"], "lidvid": "urn:x:mars-new::2.0"},
         ]
-        lid, _ = PDS4Label._match_context_entry(ctx, "Mars", valid_types=("Target",))
+        label = self._label_with(ctx)
+        lid, _ = label._match_context_entry("Mars", valid_types=("Target",))
         assert lid == "urn:x:mars-new"
 
 
@@ -313,19 +303,21 @@ class TestPDS4LabelGetMissions:
 
     @pytest.fixture
     def label_for(self, label_test_helpers):
-        """Factory fixture: returns a callable that builds a bare label."""
-        def _build(missions, context_products=None, fallback_to_bundle=False):
+        """Factory fixture: returns a callable that builds a bare label.
+
+        Context-product resolution (collection.bundle → bundle fallback)
+        is exclusively __init__'s concern (see TestPDS4LabelInit) — this
+        bare, __init__-bypassed label sets ``_context_products`` directly,
+        the same way __init__ would have cached it.
+        """
+        def _build(missions, context_products=None):
             setup = label_test_helpers.make_setup_pds4()
             product = label_test_helpers.make_product()
             ctx = context_products or label_test_helpers.make_context_products()
-            if fallback_to_bundle:
-                product.collection = MagicMock(spec=[])  # no .bundle
-                product.bundle.context_products = ctx
-            else:
-                product.collection.bundle.context_products = ctx
             label = PDS4Label.__new__(PDS4Label)
             label.setup = setup
             label.product = product
+            label._context_products = ctx
             label.missions = missions if isinstance(missions, list) else [missions]
             return label
         return _build
@@ -353,10 +345,6 @@ class TestPDS4LabelGetMissions:
         label.missions = missions
         result = label.get_missions()
         assert result == expected
-
-    def test_context_falls_back_to_product_bundle(self, label_for):
-        result = label_for(["TestMission"], fallback_to_bundle=True).get_missions()
-        assert "TestMission" in result
 
     def test_empty_mission_name_skipped_calls_error(self, label_for, mocker):
         """A falsy mission entry (empty string) must be skipped."""
@@ -405,19 +393,21 @@ class TestPDS4LabelGetObservers:
 
     @pytest.fixture
     def label_for(self, label_test_helpers):
-        """Factory fixture: builds a bare label with given observers."""
-        def _build(observers, context_products=None, fallback_to_bundle=False):
+        """Factory fixture: builds a bare label with given observers.
+
+        Context-product resolution (collection.bundle → bundle fallback)
+        is exclusively __init__'s concern (see TestPDS4LabelInit) — this
+        bare, __init__-bypassed label sets ``_context_products`` directly,
+        the same way __init__ would have cached it.
+        """
+        def _build(observers, context_products=None):
             setup = label_test_helpers.make_setup_pds4()
             product = label_test_helpers.make_product()
             ctx = context_products or label_test_helpers.make_context_products()
-            if fallback_to_bundle:
-                product.collection = MagicMock(spec=[])
-                product.bundle.context_products = ctx
-            else:
-                product.collection.bundle.context_products = ctx
             label = PDS4Label.__new__(PDS4Label)
             label.setup = setup
             label.product = product
+            label._context_products = ctx
             label.observers = observers if isinstance(observers, list) else [observers]
             return label
         return _build
@@ -431,10 +421,6 @@ class TestPDS4LabelGetObservers:
         label = label_for("TestObserver")
         label.observers = "TestObserver"  # scalar
         assert "TestObserver" in label.get_observers()
-
-    def test_context_fallback_to_product_bundle(self, label_for):
-        result = label_for(["TestObserver"], fallback_to_bundle=True).get_observers()
-        assert "TestObserver" in result
 
     def test_rover_type_accepted(self, label_for):
         ctx = [{"name": ["TestObserver"], "type": ["Rover"], "lidvid": "urn:x::1.0"}]
@@ -477,19 +463,21 @@ class TestPDS4LabelGetTargets:
 
     @pytest.fixture
     def label_for(self, label_test_helpers):
-        """Factory fixture: builds a bare label with given targets."""
-        def _build(targets, context_products=None, fallback_to_bundle=False):
+        """Factory fixture: builds a bare label with given targets.
+
+        Context-product resolution (collection.bundle → bundle fallback)
+        is exclusively __init__'s concern (see TestPDS4LabelInit) — this
+        bare, __init__-bypassed label sets ``_context_products`` directly,
+        the same way __init__ would have cached it.
+        """
+        def _build(targets, context_products=None):
             setup = label_test_helpers.make_setup_pds4()
             product = label_test_helpers.make_product()
             ctx = context_products or label_test_helpers.make_context_products()
-            if fallback_to_bundle:
-                product.collection = MagicMock(spec=[])
-                product.bundle.context_products = ctx
-            else:
-                product.collection.bundle.context_products = ctx
             label = PDS4Label.__new__(PDS4Label)
             label.setup = setup
             label.product = product
+            label._context_products = ctx
             label.targets = targets if isinstance(targets, list) else [targets]
             return label
         return _build
@@ -503,10 +491,6 @@ class TestPDS4LabelGetTargets:
         label = label_for("TestTarget")
         label.targets = "TestTarget"  # scalar
         assert "TestTarget" in label.get_targets()
-
-    def test_context_fallback_to_product_bundle(self, label_for):
-        result = label_for(["TestTarget"], fallback_to_bundle=True).get_targets()
-        assert "TestTarget" in result
 
     def test_case_insensitive_name_match(self, label_for):
         ctx = [{"name": ["TESTTARGET"], "type": ["planet"], "lidvid": "urn:x::1.0"}]
