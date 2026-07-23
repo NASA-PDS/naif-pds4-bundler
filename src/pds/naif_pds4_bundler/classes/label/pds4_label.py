@@ -140,12 +140,6 @@ class PDS4Label(PDSLabel):
         """Render one Investigation_Area/Observing_System_Component/
         Target_Identification XML block.
 
-        The three callers share this exact inner structure and differ only
-        in the wrapping ``tag`` and the base ``indent`` level (2 for
-        Investigation_Area/Target_Identification, 3 for
-        Observing_System_Component); inner elements sit at ``indent + 1``
-        and ``lid_reference``/``reference_type`` at ``indent + 2``.
-
         :param tag: Wrapping element name
         :param indent: Base indent level, in units of ``self.setup.xml_tab``
         :param name: Value of the ``name`` element
