@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
 
+from pds.naif_pds4_bundler.classes.exceptions import NPBError
 from pds.naif_pds4_bundler.classes.label.pds3_spice_kernel import SpiceKernelPDS3Label
 
 # ---------------------------------------------------------------------------
@@ -401,7 +402,7 @@ class TestSpiceKernelPDS3LabelInsertTextLabel:
         bad_kernel = "NOT_KPL\nsome data\n"
 
         with patch("builtins.open", side_effect=_open_factory(kernel_data=bad_kernel)):
-            with pytest.raises(RuntimeError, match='architecture spec as first line.'):
+            with pytest.raises(NPBError, match='architecture spec as first line.'):
                 text_label.insert_text_label()
 
     @pytest.mark.parametrize("kernel_data, expected, logs", [

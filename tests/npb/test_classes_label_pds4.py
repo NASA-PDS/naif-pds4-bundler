@@ -120,8 +120,8 @@ class TestPDS4LabelInit:
     def test_pds4_end_of_line_invalid(self, label_test_helpers, product):
         """end_of_line is invalid (neither CRLF nor LF)"""
         setup = label_test_helpers.make_setup_pds4(end_of_line="CR")
-        with pytest.raises(RuntimeError, match=r'End of Line provided via configuration '
-                                               r'is not CRLF nor LF\.'):
+        with pytest.raises(NPBError, match=r'End of Line provided via configuration '
+                                            r'is not CRLF nor LF\.'):
             PDS4Label(setup, product)
 
     # TODO: The following two test cases demonstrate an issue:
