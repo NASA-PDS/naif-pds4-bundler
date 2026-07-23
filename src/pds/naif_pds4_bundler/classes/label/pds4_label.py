@@ -193,9 +193,10 @@ class PDS4Label(PDSLabel):
             handle_npb_error(
                 f"{self.product.name} missions not defined.", setup=self.setup
             )
-        mis_list_for_label = mis_list_for_label.rstrip() + self._eol
 
-        return mis_list_for_label
+        # Strip trailing whitespace from the last rendered entry, then
+        # append exactly one EOL.
+        return mis_list_for_label.rstrip() + self._eol
 
     def get_observers(self) -> str:
         """Get the label observers from the context products.
@@ -231,9 +232,10 @@ class PDS4Label(PDSLabel):
             handle_npb_error(
                 f"{self.product.name} observers not defined.", setup=self.setup
             )
-        obs_list_for_label = obs_list_for_label.rstrip() + self._eol
 
-        return obs_list_for_label
+        # Strip trailing whitespace from the last rendered entry, then
+        # append exactly one EOL.
+        return obs_list_for_label.rstrip() + self._eol
 
     def get_targets(self) -> str:
         """Get the label targets from the context products.
@@ -273,6 +275,7 @@ class PDS4Label(PDSLabel):
 
         if not tar_list_for_label:
             handle_npb_error(f"{self.product.name} targets not defined.", setup=self.setup)
-        tar_list_for_label = tar_list_for_label.rstrip() + self._eol
 
-        return tar_list_for_label
+        # Strip trailing whitespace from the last rendered entry, then
+        # append exactly one EOL.
+        return tar_list_for_label.rstrip() + self._eol
