@@ -135,8 +135,8 @@ class PDS4Label(PDSLabel):
         tag: str,
         indent: int,
         name: str,
-        type_: Optional[str],
-        lid: Optional[str],
+        product_type: str,
+        lid: str,
         reference_type: str,
     ) -> str:
         """Render one Investigation_Area/Observing_System_Component/
@@ -151,7 +151,7 @@ class PDS4Label(PDSLabel):
         :param tag: Wrapping element name
         :param indent: Base indent level, in units of ``self.setup.xml_tab``
         :param name: Value of the ``name`` element
-        :param type_: Value of the ``type`` element
+        :param product_type: Value of the ``type`` element
         :param lid: Value of the ``lid_reference`` element
         :param reference_type: Value of the ``reference_type`` element
         :return: The rendered XML block
@@ -161,7 +161,7 @@ class PDS4Label(PDSLabel):
         return (
             f"{' ' * indent * tab}<{tag}>{eol}"
             f"{' ' * (indent + 1) * tab}<name>{name}</name>{eol}"
-            f"{' ' * (indent + 1) * tab}<type>{type_}</type>{eol}"
+            f"{' ' * (indent + 1) * tab}<type>{product_type}</type>{eol}"
             f"{' ' * (indent + 1) * tab}<Internal_Reference>{eol}"
             f"{' ' * (indent + 2) * tab}<lid_reference>{lid}</lid_reference>{eol}"
             f"{' ' * (indent + 2) * tab}<reference_type>{reference_type}</reference_type>{eol}"
