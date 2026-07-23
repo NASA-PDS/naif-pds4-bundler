@@ -3,7 +3,7 @@
 from typing import Optional, Tuple
 
 from .label import PDSLabel
-from ...pipeline.runtime import handle_npb_error
+from ..exceptions import NPBError
 
 
 class PDS4Label(PDSLabel):
@@ -80,9 +80,8 @@ class PDS4Label(PDSLabel):
         elif setup.end_of_line == "LF":
             self.END_OF_LINE = "Line-Feed"
         else:
-            handle_npb_error(
-                "End of Line provided via configuration is not CRLF nor LF.",
-                setup=self.setup,
+            raise NPBError(
+                "End of Line provided via configuration is not CRLF nor LF."
             )
 
         self.BUNDLE_DESCRIPTION_LID = f"{setup.logical_identifier}:document:spiceds"
@@ -180,9 +179,8 @@ class PDS4Label(PDSLabel):
                 )
 
                 if not mission_lid:
-                    handle_npb_error(
-                        f"LID has not been obtained for mission {mis}.",
-                        setup=self.setup,
+                    raise NPBError(
+                        f"LID has not been obtained for mission {mis}."
                     )
 
                 mis_list_for_label += self._render_context_entry(
@@ -190,9 +188,7 @@ class PDS4Label(PDSLabel):
                     mis, mission_type, mission_lid, self._mission_reference_type,
                 )
         if not mis_list_for_label:
-            handle_npb_error(
-                f"{self.product.name} missions not defined.", setup=self.setup
-            )
+            raise NPBError(f"{self.product.name} missions not defined.")
 
         # Strip trailing whitespace from the last rendered entry, then
         # append exactly one EOL.
@@ -218,9 +214,8 @@ class PDS4Label(PDSLabel):
                 )
 
                 if not ob_lid:
-                    handle_npb_error(
-                        f"LID has not been obtained for observer {ob}.",
-                        setup=self.setup,
+                    raise NPBError(
+                        f"LID has not been obtained for observer {ob}."
                     )
 
                 obs_list_for_label += self._render_context_entry(
@@ -229,9 +224,7 @@ class PDS4Label(PDSLabel):
                 )
 
         if not obs_list_for_label:
-            handle_npb_error(
-                f"{self.product.name} observers not defined.", setup=self.setup
-            )
+            raise NPBError(f"{self.product.name} observers not defined.")
 
         # Strip trailing whitespace from the last rendered entry, then
         # append exactly one EOL.
@@ -274,7 +267,7 @@ class PDS4Label(PDSLabel):
                 )
 
         if not tar_list_for_label:
-            handle_npb_error(f"{self.product.name} targets not defined.", setup=self.setup)
+            raise NPBError(f"{self.product.name} targets not defined.")
 
         # Strip trailing whitespace from the last rendered entry, then
         # append exactly one EOL.
