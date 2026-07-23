@@ -839,7 +839,15 @@ class KernelList:
             # Identify the path(s) of each product.
             #
             if (".nrb" in product.lower()) or (".orb" in product.lower()):
-                origin_paths.append(self.setup.orbnum_directory + os.sep + product)
+                orbnum_path = os.path.join(self.setup.orbnum_directory, product)
+                if os.path.isfile(orbnum_path):
+                    origin_paths.append(orbnum_path)
+                else:
+                    product_errors[product].append(
+                        "ORBNUM file not found at configured orbnum path: "
+                        f"{orbnum_path}. Check orbnum_directory in the configuration."
+                    )
+                    continue
             else:
                 for directory in self.setup.kernels_directory:
                     try:
