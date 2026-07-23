@@ -262,8 +262,12 @@ class PDS4Label(PDSLabel):
         for tar in tars:
             if tar:
                 target_name = tar
+                # No type filter: unlike missions/observers, which are
+                # restricted to a fixed vocabulary of context-product types,
+                # a target can be any body type (planet, satellite, ring,
+                # ...), so any type is accepted.
                 target_lid, target_type = self._match_context_entry(
-                    target_name, valid_types=None, case_insensitive=True
+                    target_name, case_insensitive=True
                 )
                 # TODO: BUG, unlike get_missions/get_observers above, no
                 #       handle_npb_error is raised here when target_lid is
