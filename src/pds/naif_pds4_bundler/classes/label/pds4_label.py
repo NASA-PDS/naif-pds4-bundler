@@ -1,6 +1,6 @@
 """PDS4 version-specific base class for PDS labels."""
 
-from typing import Iterable, Optional, Tuple
+from typing import Optional, Tuple
 
 from .label import PDSLabel
 from ...pipeline.runtime import handle_npb_error
@@ -99,7 +99,7 @@ class PDS4Label(PDSLabel):
     def _match_context_entry(
         self,
         name: str,
-        valid_types: Optional[Iterable[str]] = None,
+        valid_types: Optional[Tuple[str, ...]] = None,
         case_insensitive: bool = False,
     ) -> Tuple[Optional[str], Optional[str]]:
         """Find the lid/type of the context product matching ``name``.
@@ -110,7 +110,7 @@ class PDS4Label(PDSLabel):
         of their matching loop).
 
         :param name: Name to match against each entry's ``name``
-        :param valid_types: Iterable of acceptable ``type`` values, or
+        :param valid_types: Tuple of acceptable ``type`` values, or
             ``None`` to accept any type
         :param case_insensitive: If ``True``, match ``name`` case-insensitively
         :return: ``(lid, type)`` tuple, or ``(None, None)`` if no entry matches
