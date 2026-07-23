@@ -130,8 +130,15 @@ class PDS4Label(PDSLabel):
 
         return lid, type_
 
-    @staticmethod
-    def _render_context_entry(eol, tab, tag, indent, name, type_, lid, reference_type):
+    def _render_context_entry(
+        self,
+        tag: str,
+        indent: int,
+        name: str,
+        type_: Optional[str],
+        lid: Optional[str],
+        reference_type: str,
+    ) -> str:
         """Render one Investigation_Area/Observing_System_Component/
         Target_Identification XML block.
 
@@ -141,16 +148,16 @@ class PDS4Label(PDSLabel):
         Observing_System_Component); inner elements sit at ``indent + 1``
         and ``lid_reference``/``reference_type`` at ``indent + 2``.
 
-        :param eol: End-of-line string to use
-        :param tab: Number of spaces per indent level
         :param tag: Wrapping element name
-        :param indent: Base indent level, in units of ``tab``
+        :param indent: Base indent level, in units of ``self.setup.xml_tab``
         :param name: Value of the ``name`` element
         :param type_: Value of the ``type`` element
         :param lid: Value of the ``lid_reference`` element
         :param reference_type: Value of the ``reference_type`` element
         :return: The rendered XML block
         """
+        eol = self.setup.eol_pds4
+        tab = self.setup.xml_tab
         return (
             f"{' ' * indent * tab}<{tag}>{eol}"
             f"{' ' * (indent + 1) * tab}<name>{name}</name>{eol}"
@@ -175,7 +182,6 @@ class PDS4Label(PDSLabel):
         mis_list_for_label = ""
 
         eol = self.setup.eol_pds4
-        tab = self.setup.xml_tab
         for mis in miss:
             if mis:
                 mission_lid, mission_type = self._match_context_entry(
@@ -189,7 +195,7 @@ class PDS4Label(PDSLabel):
                     )
 
                 mis_list_for_label += self._render_context_entry(
-                    eol, tab, "Investigation_Area", 2,
+                    "Investigation_Area", 2,
                     mis, mission_type, mission_lid, self._mission_reference_type,
                 )
         if not mis_list_for_label:
@@ -212,7 +218,6 @@ class PDS4Label(PDSLabel):
         obs_list_for_label = ""
 
         eol = self.setup.eol_pds4
-        tab = self.setup.xml_tab
 
         for ob in obs:
             if ob:
@@ -229,7 +234,7 @@ class PDS4Label(PDSLabel):
                     )
 
                 obs_list_for_label += self._render_context_entry(
-                    eol, tab, "Observing_System_Component", 3,
+                    "Observing_System_Component", 3,
                     ob_name, ob_type, ob_lid, "is_instrument_host",
                 )
 
@@ -253,7 +258,6 @@ class PDS4Label(PDSLabel):
         tar_list_for_label = ""
 
         eol = self.setup.eol_pds4
-        tab = self.setup.xml_tab
 
         for tar in tars:
             if tar:
@@ -272,7 +276,7 @@ class PDS4Label(PDSLabel):
                     target_type = target_type.capitalize()
 
                 tar_list_for_label += self._render_context_entry(
-                    eol, tab, "Target_Identification", 2,
+                    "Target_Identification", 2,
                     target_name, target_type, target_lid, self._target_reference_type,
                 )
 

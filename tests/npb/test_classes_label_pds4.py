@@ -11,6 +11,7 @@ coverage.
 """
 
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
@@ -235,11 +236,17 @@ class TestPDS4LabelMatchContextEntry:
 # ===========================================================================
 # PDS4Label._render_context_entry
 # ===========================================================================
-# Pure static helper shared by get_missions/get_observers/get_targets — no
-# PDS4Label instance needed to exercise it.
+# Reads self.setup.eol_pds4/self.setup.xml_tab, so exercised against a bare
+# (__init__-bypassed) instance with a stub setup carrying just those two.
 
 class TestPDS4LabelRenderContextEntry:
     """Covers PDS4Label._render_context_entry – all branches."""
+
+    @staticmethod
+    def _label_with(eol, tab):
+        label = PDS4Label.__new__(PDS4Label)
+        label.setup = SimpleNamespace(eol_pds4=eol, xml_tab=tab)
+        return label
 
     @pytest.mark.parametrize(
         "eol, tab, tag, indent, name, type_, lid, reference_type, expected",
@@ -288,9 +295,8 @@ class TestPDS4LabelRenderContextEntry:
     def test_render_context_entry(
         self, eol, tab, tag, indent, name, type_, lid, reference_type, expected
     ):
-        result = PDS4Label._render_context_entry(
-            eol, tab, tag, indent, name, type_, lid, reference_type
-        )
+        label = self._label_with(eol, tab)
+        result = label._render_context_entry(tag, indent, name, type_, lid, reference_type)
         assert result == expected
 
 
