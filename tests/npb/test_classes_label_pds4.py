@@ -16,10 +16,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from pds.naif_pds4_bundler.classes.exceptions import NPBError
 from pds.naif_pds4_bundler.classes.label.pds4_label import PDS4Label
-
-# Patch target — resolved to where the name is looked up inside pds4_label.py
-_PATCH_HANDLE_ERROR = "pds.naif_pds4_bundler.classes.label.pds4_label.handle_npb_error"
 
 
 # ---------------------------------------------------------------------------
@@ -122,8 +120,8 @@ class TestPDS4LabelInit:
     def test_pds4_end_of_line_invalid(self, label_test_helpers, product):
         """end_of_line is invalid (neither CRLF nor LF)"""
         setup = label_test_helpers.make_setup_pds4(end_of_line="CR")
-        with pytest.raises(RuntimeError, match=r'End of Line provided via configuration '
-                                               r'is not CRLF nor LF\.'):
+        with pytest.raises(NPBError, match=r'End of Line provided via configuration '
+                                            r'is not CRLF nor LF\.'):
             PDS4Label(setup, product)
 
     # TODO: The following two test cases demonstrate an issue:
@@ -352,11 +350,11 @@ class TestPDS4LabelGetMissions:
         result = label.get_missions()
         assert result == expected
 
-    def test_empty_mission_name_skipped_calls_error(self, label_for, mocker):
+    def test_empty_mission_name_skipped_calls_error(self, label_for):
         """A falsy mission entry (empty string) must be skipped."""
-        mock_err = mocker.patch(_PATCH_HANDLE_ERROR)
-        label_for([""]).get_missions()
-        mock_err.assert_called()
+        label = label_for([""])
+        with pytest.raises(NPBError, match="missions not defined"):
+            label.get_missions()
 
     def test_other_investigation_type_accepted(self, label_for):
         ctx = [
@@ -376,8 +374,8 @@ class TestPDS4LabelGetMissions:
                           '      </Internal_Reference>\r\n'
                           '    </Investigation_Area>\r\n')
 
-    def test_no_lid_found_calls_handle_npb_error(self, label_for, mocker):
-        """No context product matches → mission_lid never set → handle_npb_error."""
+    def test_no_lid_found_raises_npberror(self, label_for):
+        """No context product matches → mission_lid never set → NPBError."""
         ctx = [
             {
                 "name": ["Different"],
@@ -385,9 +383,9 @@ class TestPDS4LabelGetMissions:
                 "lidvid": "urn:nasa:pds:different::1.0",
             }
         ]
-        mock_err = mocker.patch(_PATCH_HANDLE_ERROR)
-        label_for(["TestMission"], context_products=ctx).get_missions()
-        mock_err.assert_called()
+        label = label_for(["TestMission"], context_products=ctx)
+        with pytest.raises(NPBError, match="LID has not been obtained for mission"):
+            label.get_missions()
 
 
 # ===========================================================================
@@ -445,16 +443,16 @@ class TestPDS4LabelGetObservers:
         ctx = [{"name": ["TestObserver"], "type": ["Spacecraft"], "lidvid": "urn:x::1.0"}]
         assert "TestObserver" in label_for(["TestObserver, extra"], ctx).get_observers()
 
-    def test_empty_observer_skipped_calls_error(self, label_for, mocker):
-        mock_err = mocker.patch(_PATCH_HANDLE_ERROR)
-        label_for([""]).get_observers()
-        mock_err.assert_called()
+    def test_empty_observer_skipped_calls_error(self, label_for):
+        label = label_for([""])
+        with pytest.raises(NPBError, match="observers not defined"):
+            label.get_observers()
 
-    def test_no_lid_calls_handle_npb_error(self, label_for, mocker):
+    def test_no_lid_raises_npberror(self, label_for):
         ctx = [{"name": ["NoMatch"], "type": ["Spacecraft"], "lidvid": "urn:x::1.0"}]
-        mock_err = mocker.patch(_PATCH_HANDLE_ERROR)
-        label_for(["TestObserver"], ctx).get_observers()
-        mock_err.assert_called()
+        label = label_for(["TestObserver"], ctx)
+        with pytest.raises(NPBError, match="LID has not been obtained for observer"):
+            label.get_observers()
 
     def test_trailing_eol_appended(self, label_for):
         assert label_for(["TestObserver"]).get_observers().endswith("\r\n")
@@ -502,24 +500,23 @@ class TestPDS4LabelGetTargets:
         ctx = [{"name": ["TESTTARGET"], "type": ["planet"], "lidvid": "urn:x::1.0"}]
         assert "testtarget" in label_for(["testtarget"], ctx).get_targets()
 
-    def test_no_match_renders_none_without_raising(self, label_for, mocker):
+    def test_no_match_renders_none_without_raising(self, label_for):
         """Characterizes a known gap (tracked separately, not fixed here):
         unlike get_missions/get_observers, a target with no matching
-        context product does not call handle_npb_error — lid/type fall
+        context product does not raise NPBError — lid/type fall
         through as the literal string "None" instead. This pins the
         current behavior, so it can't change silently; it is not an
-        endorsement of it."""
-        mock_err = mocker.patch(_PATCH_HANDLE_ERROR)
+        endorsement of it. No exception is raised, which is itself the
+        thing being characterized."""
         ctx = [{"name": ["Different"], "type": ["Target"], "lidvid": "urn:x:different::1.0"}]
         result = label_for(["TestTarget"], ctx).get_targets()
-        mock_err.assert_not_called()
         assert "<lid_reference>None</lid_reference>" in result
         assert "<type>None</type>" in result
 
-    def test_empty_target_skipped_calls_error(self, label_for, mocker):
-        mock_err = mocker.patch(_PATCH_HANDLE_ERROR)
-        label_for([""]).get_targets()
-        mock_err.assert_called()
+    def test_empty_target_skipped_calls_error(self, label_for):
+        label = label_for([""])
+        with pytest.raises(NPBError, match="targets not defined"):
+            label.get_targets()
 
     def test_trailing_eol_appended(self, label_for):
         assert label_for(["TestTarget"]).get_targets().endswith("\r\n")
