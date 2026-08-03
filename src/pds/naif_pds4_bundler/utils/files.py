@@ -124,7 +124,6 @@ def extension_to_type(kernel):
         "TLS": "LSK",
         "TPC": "PCK",
         "TEN": "EK",
-        "TEP": "EK",
         "BC": "CK",
         "BSP": "SPK",
         "BPC": "PCK",
@@ -229,7 +228,7 @@ def type_to_extension(kernel_type):
         "CK": ["bc"],
         "SPK": ["bsp"],
         "DSK": ["bds"],
-        "EK": ["bes", "bpe", "bep", "bdb", "ten", "tep"],
+        "EK": ["bes", "bpe", "bep", "bdb", "ten"],
         "ORB": ["nrb","orb"],
     }
 
@@ -975,6 +974,10 @@ def check_kernel_integrity(path):
 
     Text kernels must have ``KPL`` (Kernel Pool File) architecture.
 
+    **Note:** Text event kernels (``.ten``) are not validated by
+    this function as they use a different format and are not loaded via
+    standard SPICE routines.
+
     NPB checks if binary kernels have a ``DAF`` architecture and text kernels
     a ``KPL`` architecture.
 
@@ -985,16 +988,19 @@ def check_kernel_integrity(path):
     """
     error = ""
     name = path.split(os.sep)[-1].strip()
-    extension = path.split(".")[-1].strip()
+    extension = path.split(".")[-1].strip().lower()
+
+    # Filter out Text EKs since they are not loaded into SPICE
+    if extension in "ten":
+        return ""  # No validation needed for .ten - not loadable in SPICE
+
     type_file = extension_to_type(name).upper()
 
     #
     # Determine if it is a binary or a text kernel.
     #
-    if extension[0].lower() == "b":
-        file_format = "Binary"
-    else:
-        file_format = "Character"
+
+    file_format = "Binary" if extension[0] == "b" else "Character"
 
     #
     # All files that are to have labels generated must have a NAIF
@@ -1016,8 +1022,8 @@ def check_kernel_integrity(path):
         #
         if arch not in ('DAF', 'DAS'):
             error = f"Kernel {name} architecture {arch} is invalid."
-        else:
-            pass
+        # else:
+        #     pass
 
     else:  # file_format == "Character":
 

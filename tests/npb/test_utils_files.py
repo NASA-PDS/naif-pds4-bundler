@@ -358,6 +358,12 @@ def test_check_kernel_integrity_text_kernel(tmp_path):
     error = files.check_kernel_integrity(str(kernel_path))
     assert error
 
+    #subcase 6: ten file - not loadable in SPICE
+    ten_path = tmp_path / "test.ten"
+    ten_path.write_text("\\header\nAUTHOR = Test\n\\text\nTest content\n")
+    error = files.check_kernel_integrity(str(ten_path))
+    assert not error
+
 # ----------------------------------------------------------------------------
 # files.check_kernel_integrity tests
 # ----------------------------------------------------------------------------
@@ -1450,7 +1456,7 @@ def test_string_in_file(kern, str_to_check, reps, expected):
     ("CK", ['bc']),
     ("SPK", ['bsp']),
     ("DSK", ['bds']),
-    ("EK", ['bes','bpe', 'bep', 'bdb', 'ten', 'tep']),
+    ("EK", ['bes','bpe', 'bep', 'bdb', 'ten']),
     ("ORB", ['nrb', 'orb']),
 ])
 def test_type_to_extension(inputs, outputs):
@@ -1470,7 +1476,6 @@ def test_type_to_extension(inputs, outputs):
     ("eros_n2000129x_v01.bpe", "ek"),
     ("S99_CIMSSSUPa.bep", "ek"),
     ("m01_mmdmt_ext10.ten", "ek"),
-    ("fakey.tep", "ek"),
     ("m2020_chronos_v01.tm", "mk"),
 ])
 def test_type_to_extension_object(kern, expected):
