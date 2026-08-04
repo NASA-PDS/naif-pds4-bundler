@@ -260,16 +260,15 @@ class PDSLabel:
                 # Simply pick the last one
                 #
                 if "collection" in self.name.split(os.sep)[-1]:
-                    val_label = glob.glob(
-                        val_products[-1].replace("inventory_", "").split(".")[0]
-                        + ".xml"
-                    )[0]
+                    stem = Path(val_products[-1].replace("inventory_", "")).with_suffix("")
+                    val_label = glob.glob(f"{stem}.xml")[0]
                 elif "bundle" in self.name.split(os.sep)[-1]:
                     val_labels = glob.glob(f"{val_label_path}bundle_*.xml")
                     val_labels.sort()
                     val_label = val_labels[-1]
                 else:
-                    val_label = glob.glob(val_products[-1].split(".")[0] + ".xml")[0]
+                    stem = Path(val_products[-1]).with_suffix("")
+                    val_label = glob.glob(f"{stem}.xml")[0]
 
                 if not val_label:
                     raise Exception("No label for comparison found.")
@@ -310,18 +309,15 @@ class PDSLabel:
                     val_products.sort()
 
                     if "collection" in self.name.split(os.sep):
-                        val_label = glob.glob(
-                            val_products[-1].replace("inventory_", "").split(".")[0]
-                            + ".xml"
-                        )[0]
+                        stem = Path(val_products[-1].replace("inventory_", "")).with_suffix("")
+                        val_label = glob.glob(f"{stem}.xml")[0]
                     elif "bundle" in self.name.split(os.sep):
                         val_labels = glob.glob(f"{val_label_path}bundle_*.xml")
                         val_labels.sort()
                         val_label = val_labels[-1]
                     else:
-                        val_label = glob.glob(val_products[-1].split(".")[0] + ".xml")[
-                            0
-                        ]
+                        stem = Path(val_products[-1]).with_suffix("")
+                        val_label = glob.glob(f"{stem}.xml")[0]
 
                     if not val_label:
                         raise Exception("No label for comparison found.")
