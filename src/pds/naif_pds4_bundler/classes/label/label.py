@@ -185,26 +185,9 @@ class PDSLabel:
         try:
 
             match_flag = True
-            val_label_path = (
-                self.setup.bundle_directory
-                + f"/{self.setup.mission_acronym}_spice/"
-                + self.product.collection.name
-                + os.sep
+            val_label_path = self._val_label_directory(
+                self.setup.bundle_directory + f"/{self.setup.mission_acronym}_spice/"
             )
-
-            #
-            # If this is the spice_kernels collection, we need to add the
-            # kernel type directory. If it is the miscellaneous collection,
-            # add the product type.
-            #
-            if (self.product.collection.name == "spice_kernels") and (
-                "collection" not in self.name
-            ):
-                val_label_path += self.name.split(os.sep)[-2] + os.sep
-            elif (self.product.collection.name == "miscellaneous") and (
-                "collection" not in self.name
-            ):
-                val_label_path += self.name.split(os.sep)[-2] + os.sep
 
             val_label_name = self.name.split(os.sep)[-1]
             i = 1
@@ -232,25 +215,9 @@ class PDSLabel:
             #   the label of a product of the same type.
             #
             try:
-                val_label_path = (
-                    self.setup.bundle_directory
-                    + f"/{self.setup.mission_acronym}_spice/"
-                    + self.product.collection.name
-                    + os.sep
+                val_label_path = self._val_label_directory(
+                    self.setup.bundle_directory + f"/{self.setup.mission_acronym}_spice/"
                 )
-
-                #
-                # If this is the spice_kernels collection, we need to add the
-                # kernel type directory.
-                #
-                if (self.product.collection.name == "spice_kernels") and (
-                    "collection" not in self.name
-                ):
-                    val_label_path += self.name.split(os.sep)[-2] + os.sep
-                elif (self.product.collection.name == "miscellaneous") and (
-                    "collection" not in self.name
-                ):
-                    val_label_path += self.name.split(os.sep)[-2] + os.sep
 
                 product_extension = self.product.name.split(".")[-1]
                 val_products = glob.glob(f"{val_label_path}*.{product_extension}")
@@ -282,24 +249,9 @@ class PDSLabel:
                 #   a label available in the test data directories.
                 #
                 try:
-                    val_label_path = (
-                        f"{self.setup.root_dir}"
-                        f"/data/insight_spice/"
-                        f"{self.product.collection.name}/"
+                    val_label_path = self._val_label_directory(
+                        f"{self.setup.root_dir}/data/insight_spice/"
                     )
-
-                    #
-                    # If this is the spice_kernels collection, we need to
-                    # add the kernel type directory.
-                    #
-                    if (self.product.collection.name == "spice_kernels") and (
-                        "collection" not in self.name
-                    ):
-                        val_label_path += self.name.split(os.sep)[-2] + os.sep
-                    elif (self.product.collection.name == "miscellaneous") and (
-                        "collection" not in self.name
-                    ):
-                        val_label_path += self.name.split(os.sep)[-2] + os.sep
 
                     #
                     # Simply pick the last one
@@ -338,3 +290,17 @@ class PDSLabel:
             work_dir = self.setup.working_directory
 
             compare_files(fromfile, tofile, work_dir, self.setup.diff)
+
+    def _val_label_directory(self, base_dir):
+        """Build the candidate-label directory under ``base_dir`` for the
+        product's collection, appending the kernel-type/product-type
+        subdirectory when the collection is spice_kernels or miscellaneous.
+        """
+        val_label_path = base_dir + self.product.collection.name + os.sep
+
+        if self.product.collection.name in ("spice_kernels", "miscellaneous") and (
+            "collection" not in self.name
+        ):
+            val_label_path += self.name.split(os.sep)[-2] + os.sep
+
+        return val_label_path
