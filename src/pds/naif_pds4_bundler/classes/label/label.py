@@ -173,17 +173,26 @@ class PDSLabel:
         """
         logging.info("-- Comparing label...")
 
-        #
-        # 1-Look for a different version of the same file.
-        #
-        # What we do is that we keep trying to match the label name
-        # advancing one character each iteration, in such a way that
-        # we find, in order, the label that has the closest name to the
-        # one we are generating.
-        #
-        val_label = ""
-        try:
+        val_label = (
+            self._find_prior_version_label()
+            or self._find_similar_type_label()
+            or self._find_insight_fallback_label()
+        )
 
+        if val_label:
+            logging.info("")
+            compare_files(val_label, self.name, self.setup.working_directory, self.setup.diff)
+
+    def _find_prior_version_label(self):
+        """1-Look for a different version of the same file.
+
+        What we do is that we keep trying to match the label name
+        advancing one character each iteration, in such a way that
+        we find, in order, the label that has the closest name to the
+        one we are generating.
+        """
+        try:
+            val_label = ""
             match_flag = True
             val_label_path = self._val_label_directory(
                 self.setup.bundle_directory + f"/{self.setup.mission_acronym}_spice/"
@@ -207,62 +216,55 @@ class PDSLabel:
             if not val_label:
                 raise Exception("No label for comparison found.")
 
+            return val_label
+
         except Exception:
             logging.warning("-- No other version of the product label has been found.")
+            return None
+
+    def _find_similar_type_label(self):
+        """2-If a prior version of the same file cannot be found look for
+        the label of a product of the same type.
+        """
+        try:
+            val_label_path = self._val_label_directory(
+                self.setup.bundle_directory + f"/{self.setup.mission_acronym}_spice/"
+            )
+
+            product_extension = self.product.name.split(".")[-1]
+            val_products = glob.glob(f"{val_label_path}*.{product_extension}")
+            val_products.sort()
+
+            return self._pick_val_label(val_products, val_label_path, exact_match=False)
+
+        except Exception:
+            logging.warning("-- No similar label has been found.")
+            return None
+
+    def _find_insight_fallback_label(self):
+        """3-If we cannot find a kernel of the same type; for example is a
+        first version of an archive, we compare with a label available in
+        the test data directories.
+        """
+        try:
+            val_label_path = self._val_label_directory(
+                f"{self.setup.root_dir}/data/insight_spice/"
+            )
 
             #
-            # 2-If a prior version of the same file cannot be found look for
-            #   the label of a product of the same type.
+            # Simply pick the last one
             #
-            try:
-                val_label_path = self._val_label_directory(
-                    self.setup.bundle_directory + f"/{self.setup.mission_acronym}_spice/"
-                )
+            product_extension = self.product.name.split(".")[-1]
+            val_products = glob.glob(f"{val_label_path}*.{product_extension}")
+            val_products.sort()
 
-                product_extension = self.product.name.split(".")[-1]
-                val_products = glob.glob(f"{val_label_path}*.{product_extension}")
-                val_products.sort()
+            val_label = self._pick_val_label(val_products, val_label_path, exact_match=True)
+            logging.warning("-- Comparing with InSight test label.")
+            return val_label
 
-                val_label = self._pick_val_label(val_products, val_label_path, exact_match=False)
-
-            except Exception:
-
-                logging.warning("-- No similar label has been found.")
-                #
-                # 3-If we cannot find a kernel of the same type; for example
-                #   is a first version of an archive, we compare with
-                #   a label available in the test data directories.
-                #
-                try:
-                    val_label_path = self._val_label_directory(
-                        f"{self.setup.root_dir}/data/insight_spice/"
-                    )
-
-                    #
-                    # Simply pick the last one
-                    #
-                    product_extension = self.product.name.split(".")[-1]
-                    val_products = glob.glob(f"{val_label_path}*.{product_extension}")
-                    val_products.sort()
-
-                    val_label = self._pick_val_label(val_products, val_label_path, exact_match=True)
-
-                    logging.warning("-- Comparing with InSight test label.")
-                except Exception:
-                    logging.warning("-- No label for comparison found.")
-
-        #
-        # If a similar label has been found the labels are compared and a
-        # diff is being shown in the log. On top of that an HTML file with
-        # the comparison is being generated.
-        #
-        if val_label:
-            logging.info("")
-            fromfile = val_label
-            tofile = self.name
-            work_dir = self.setup.working_directory
-
-            compare_files(fromfile, tofile, work_dir, self.setup.diff)
+        except Exception:
+            logging.warning("-- No label for comparison found.")
+            return None
 
     def _val_label_directory(self, base_dir):
         """Build the candidate-label directory under ``base_dir`` for the
