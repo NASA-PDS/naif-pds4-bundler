@@ -558,3 +558,216 @@ class TestPDSLabelCompare:
         # The raise on line 611 is caught on line 615; val_label stays falsy
         # so compare_files must not have been called.
         mock_cmp.assert_not_called()
+
+
+# ===========================================================================
+# PDSLabel._val_label_directory / _pick_val_label / _find_* — direct tests
+# ===========================================================================
+# The TestPDSLabelCompare tests above only exercise these through compare(),
+# by controlling glob.glob's call sequence. That pins compare()'s overall
+# behavior but never calls the extracted helpers directly, so it doesn't
+# prove each one is independently correct in isolation. These tests call
+# them directly instead.
+
+class TestPDSLabelCompareHelpers:
+    """Direct calls to the fallback-strategy helpers extracted from compare()."""
+
+    @pytest.fixture
+    def label_for(self, label_test_helpers):
+        """Factory fixture: builds a bare label ready for compare().
+
+        Duplicated from TestPDSLabelCompare rather than inherited via
+        subclassing, since subclassing a pytest test class would cause its
+        tests to be collected and re-run a second time under this class.
+        """
+
+        def _build(collection_name="spice_kernels", label_name_part="kernel"):
+            setup = label_test_helpers.make_setup_pds4()
+            setup.diff = "html"
+            product = label_test_helpers.make_product()
+            product.collection.name = collection_name
+            product.name = "kernel.bc"
+            product.extension = "bc"
+            label = PDSLabel.__new__(PDSLabel)
+            label.setup = setup
+            label.product = product
+            label.name = str(Path(f"/staging/spice_kernels/ck/{label_name_part}.xml"))
+            return label
+
+        return _build
+
+    @staticmethod
+    def _level1_hit(hit):
+        """Return a side_effect callable that simulates finding a prior-version
+        label in the level-1 while loop, then cleanly exits that loop.
+        """
+        call_count = [0]
+
+        def _side_effect(_):
+            call_count[0] += 1
+            if call_count[0] == 1:
+                return [hit]
+            else:
+                return []
+
+        return _side_effect
+
+    # -- _val_label_directory ------------------------------------------
+
+    def test_val_label_directory_appends_subdir_for_spice_kernels(self, label_for):
+        label = label_for(collection_name="spice_kernels", label_name_part="kernel")
+        result = label._val_label_directory("/bundle/test_spice/")
+        assert result == f"/bundle/test_spice/spice_kernels{os.sep}ck{os.sep}"
+
+    def test_val_label_directory_appends_subdir_for_miscellaneous(self, label_for):
+        label = label_for(collection_name="miscellaneous", label_name_part="orbnum")
+        label.name = f"/staging/miscellaneous/orb{os.sep}orbnum.xml"
+        result = label._val_label_directory("/bundle/test_spice/")
+        assert result == f"/bundle/test_spice/miscellaneous{os.sep}orb{os.sep}"
+
+    def test_val_label_directory_no_subdir_for_other_collection(self, label_for):
+        label = label_for(collection_name="document")
+        result = label._val_label_directory("/bundle/test_spice/")
+        assert result == "/bundle/test_spice/document" + os.sep
+
+    def test_val_label_directory_no_subdir_when_collection_in_name(self, label_for):
+        label = label_for(collection_name="spice_kernels")
+        label.name = f"/staging/spice_kernels{os.sep}collection.xml"
+        result = label._val_label_directory("/bundle/test_spice/")
+        assert result == "/bundle/test_spice/spice_kernels" + os.sep
+
+    # -- _pick_val_label: exact_match=False (level-2 substring rule) ---
+
+    def test_pick_val_label_substring_collection_branch(self, label_for, mocker):
+        label = label_for()
+        label.name = f"/staging/spice_kernels{os.sep}collection_inventory.xml"
+        mock_glob = mocker.patch(_PATCH_GLOB, return_value=["/bundle/ck/old_collection.xml"])
+        result = label._pick_val_label(
+            ["/bundle/ck/inventory_old.v1.bc"], "/bundle/ck/", exact_match=False
+        )
+        assert result == "/bundle/ck/old_collection.xml"
+        mock_glob.assert_called_once_with("/bundle/ck/old.v1.xml")
+
+    def test_pick_val_label_substring_bundle_branch(self, label_for, mocker):
+        label = label_for()
+        label.name = f"/staging{os.sep}bundle_label.xml"
+        mock_glob = mocker.patch(_PATCH_GLOB, return_value=["/bundle/bundle_v1.xml"])
+        result = label._pick_val_label([], "/bundle/", exact_match=False)
+        assert result == "/bundle/bundle_v1.xml"
+        mock_glob.assert_called_once_with("/bundle/bundle_*.xml")
+
+    def test_pick_val_label_substring_else_branch_keeps_multidot_stem(self, label_for, mocker):
+        """Also a regression test for the .split('.')[0] truncation bug:
+        the stem must keep everything but the final extension, not just
+        the text before the first dot.
+        """
+        label = label_for()
+        label.name = f"/staging/ck{os.sep}kernel.xml"
+        mock_glob = mocker.patch(_PATCH_GLOB, return_value=["/bundle/ck/kernel.v01.xml"])
+        result = label._pick_val_label(
+            ["/bundle/ck/kernel.v01.bc"], "/bundle/ck/", exact_match=False
+        )
+        assert result == "/bundle/ck/kernel.v01.xml"
+        mock_glob.assert_called_once_with("/bundle/ck/kernel.v01.xml")
+
+    # -- _pick_val_label: exact_match=True (level-3 exact-component rule)
+
+    def test_pick_val_label_exact_match_collection_branch(self, label_for, mocker):
+        label = label_for()
+        label.name = f"/staging{os.sep}collection{os.sep}label.xml"
+        mock_glob = mocker.patch(_PATCH_GLOB, return_value=["/insight/ck/old_collection.xml"])
+        result = label._pick_val_label(
+            ["/insight/ck/inventory_old.bc"], "/insight/ck/", exact_match=True
+        )
+        assert result == "/insight/ck/old_collection.xml"
+        mock_glob.assert_called_once_with("/insight/ck/old.xml")
+
+    def test_pick_val_label_exact_match_bundle_branch(self, label_for, mocker):
+        label = label_for()
+        label.name = f"/staging{os.sep}bundle{os.sep}label.xml"
+        mock_glob = mocker.patch(_PATCH_GLOB, return_value=["/insight/bundle_v1.xml"])
+        result = label._pick_val_label([], "/insight/", exact_match=True)
+        assert result == "/insight/bundle_v1.xml"
+        mock_glob.assert_called_once_with("/insight/bundle_*.xml")
+
+    def test_pick_val_label_exact_match_requires_full_path_component(self, label_for, mocker):
+        """Documents the preserved level-2/level-3 discrepancy: a basename
+        that merely CONTAINS "collection" must NOT trigger the collection
+        branch when exact_match=True -- only an exact path component does.
+        """
+        label = label_for()
+        label.name = f"/staging/spice_kernels{os.sep}collection_inventory.xml"
+        mock_glob = mocker.patch(_PATCH_GLOB, return_value=["/insight/ck/kernel.xml"])
+        result = label._pick_val_label(
+            ["/insight/ck/kernel.bc"], "/insight/ck/", exact_match=True
+        )
+        # "collection_inventory.xml" contains "collection" as a substring but
+        # is not an exact path component, so this falls to the else branch,
+        # unlike the equivalent exact_match=False case above.
+        assert result == "/insight/ck/kernel.xml"
+        mock_glob.assert_called_once_with("/insight/ck/kernel.xml")
+
+    # -- _pick_val_label: failure paths ---------------------------------
+
+    def test_pick_val_label_raises_when_result_falsy(self, label_for, mocker):
+        label = label_for()
+        label.name = f"/staging/ck{os.sep}kernel.xml"
+        mocker.patch(_PATCH_GLOB, return_value=[""])
+        with pytest.raises(Exception, match="No label for comparison found."):
+            label._pick_val_label(["/bundle/ck/kernel.bc"], "/bundle/ck/", exact_match=False)
+
+    def test_pick_val_label_raises_indexerror_on_empty_products(self, label_for):
+        label = label_for()
+        label.name = f"/staging/ck{os.sep}kernel.xml"
+        with pytest.raises(IndexError):
+            label._pick_val_label([], "/bundle/ck/", exact_match=False)
+
+    # -- _find_prior_version_label ---------------------------------------
+
+    def test_find_prior_version_label_returns_hit(self, label_for, mocker):
+        label = label_for()
+        hit = "/bundle/spice_kernels/ck/kernel_old.xml"
+        mocker.patch(_PATCH_GLOB, side_effect=self._level1_hit(hit))
+        assert label._find_prior_version_label() == hit
+
+    def test_find_prior_version_label_returns_none_on_no_match(self, label_for, mocker):
+        label = label_for()
+        mocker.patch(_PATCH_GLOB, return_value=[])
+        assert label._find_prior_version_label() is None
+
+    # -- _find_similar_type_label -----------------------------------------
+
+    def test_find_similar_type_label_returns_hit(self, label_for, mocker):
+        label = label_for()
+        mocker.patch(_PATCH_GLOB, side_effect=[
+            ["/bundle/spice_kernels/ck/kern.bc"],
+            ["/bundle/spice_kernels/ck/kern.xml"],
+        ])
+        assert label._find_similar_type_label() == "/bundle/spice_kernels/ck/kern.xml"
+
+    def test_find_similar_type_label_returns_none_when_val_products_empty(self, label_for, mocker):
+        label = label_for()
+        mocker.patch(_PATCH_GLOB, return_value=[])
+        assert label._find_similar_type_label() is None
+
+    # -- _find_insight_fallback_label -------------------------------------
+
+    def test_find_insight_fallback_label_returns_hit_and_logs(self, label_for, mocker):
+        label = label_for()
+        mocker.patch(_PATCH_GLOB, side_effect=[
+            ["/root/data/insight_spice/spice_kernels/ck/insight_ck.bc"],
+            ["/root/data/insight_spice/spice_kernels/ck/insight_ck.xml"],
+        ])
+        mock_log = mocker.patch("pds.naif_pds4_bundler.classes.label.label.logging.warning")
+        result = label._find_insight_fallback_label()
+        assert result == "/root/data/insight_spice/spice_kernels/ck/insight_ck.xml"
+        # The "Comparing with..." message must only fire on success, and
+        # must be the ONLY warning logged (no leftover "not found" message).
+        mock_log.assert_called_once_with("-- Comparing with InSight test label.")
+
+    def test_find_insight_fallback_label_returns_none_when_val_products_empty(self, label_for, mocker):
+        label = label_for()
+        mocker.patch(_PATCH_GLOB, return_value=[])
+        mock_log = mocker.patch("pds.naif_pds4_bundler.classes.label.label.logging.warning")
+        assert label._find_insight_fallback_label() is None
+        mock_log.assert_called_once_with("-- No label for comparison found.")
