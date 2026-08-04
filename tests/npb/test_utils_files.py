@@ -358,11 +358,58 @@ def test_check_kernel_integrity_text_kernel(tmp_path):
     error = files.check_kernel_integrity(str(kernel_path))
     assert error
 
-    #subcase 6: ten file - not loadable in SPICE
-    ten_path = tmp_path / "test.ten"
-    ten_path.write_text("\\header\nAUTHOR = Test\n\\text\nTest content\n")
-    error = files.check_kernel_integrity(str(ten_path))
-    assert not error
+    #subcase 6: Text event kernel missing both markers should fail.
+    ten_file = tmp_path / "missing_markers.ten"
+    ten_file.write_text("This is just plain text with no event kernel markers\n")
+
+    error = files.check_kernel_integrity(str(ten_file))
+    assert error != ""
+    assert "does not contain required" in error
+    assert "\\header" in error
+    assert "\\text" in error
+
+    #subcase 6a: Text event kernel missing \\header marker should fail.
+    ten_file = tmp_path / "missing_header.ten"
+    ten_file.write_text("\\text\nSome event data\n")
+
+    error = files.check_kernel_integrity(str(ten_file))
+    assert error != ""
+    assert "does not contain required" in error
+
+    #subcase 6b: Text event kernel missing \\text marker should fail.
+    ten_file = tmp_path / "missing_text.ten"
+    ten_file.write_text("\\header\nSome header data\n")
+
+    error = files.check_kernel_integrity(str(ten_file))
+    assert error != ""
+    assert "does not contain required" in error
+
+def test_check_kernel_integrity_text_event_kernel(tmp_path, monkeypatch):
+    """Comprehensive test ensuring all exceptions are exercised for text EKs (.ten)."""
+    ten_file = tmp_path / "coverage.ten"
+
+    # Test 1: Normal operation (no exception)
+    ten_file.write_text("\\header\n\\text\n")
+    error = files.check_kernel_integrity(str(ten_file))
+    assert error == ""  # Success path
+
+    # Test 2: UnicodeDecodeError path
+    with open(ten_file, 'wb') as f:
+        f.write(b"\xff\xfe")
+    error = files.check_kernel_integrity(str(ten_file))
+    assert "encoding error" in error  # UnicodeDecodeError path
+
+    # Test 3: Generic Exception path
+    original_open = open
+
+    def mock_open_generic(*args, **kwargs):
+        if str(ten_file) in str(args[0]):
+            raise Exception("Generic exception path")
+        return original_open(*args, **kwargs)
+
+    monkeypatch.setattr("builtins.open", mock_open_generic)
+    error = files.check_kernel_integrity(str(ten_file))
+    assert "could not be read" in error  # Generic Exception path
 
 # ----------------------------------------------------------------------------
 # files.check_kernel_integrity tests
