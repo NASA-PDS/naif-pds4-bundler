@@ -224,7 +224,7 @@ class PDSLabel:
             if not val_label:
                 raise Exception("No label for comparison found.")
 
-        except BaseException:
+        except Exception:
             logging.warning("-- No other version of the product label has been found.")
 
             #
@@ -274,7 +274,7 @@ class PDSLabel:
                 if not val_label:
                     raise Exception("No label for comparison found.")
 
-            except BaseException:
+            except Exception:
 
                 logging.warning("-- No similar label has been found.")
                 #
@@ -327,7 +327,7 @@ class PDSLabel:
                         raise Exception("No label for comparison found.")
 
                     logging.warning("-- Comparing with InSight test label.")
-                except BaseException:
+                except Exception:
                     logging.warning("-- No label for comparison found.")
 
         #
