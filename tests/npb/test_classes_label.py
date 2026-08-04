@@ -614,98 +614,136 @@ class TestPDSLabelCompareHelpers:
 
     # -- _val_label_directory ------------------------------------------
 
-    def test_val_label_directory_appends_subdir_for_spice_kernels(self, label_for):
-        label = label_for(collection_name="spice_kernels", label_name_part="kernel")
+    @pytest.mark.parametrize(
+        "collection_name, name_override, expected",
+        [
+            pytest.param(
+                "spice_kernels",
+                None,
+                f"/bundle/test_spice/spice_kernels{os.sep}ck{os.sep}",
+                id="spice_kernels-appends-subdir",
+            ),
+            pytest.param(
+                "miscellaneous",
+                f"/staging/miscellaneous/orb{os.sep}orbnum.xml",
+                f"/bundle/test_spice/miscellaneous{os.sep}orb{os.sep}",
+                id="miscellaneous-appends-subdir",
+            ),
+            pytest.param(
+                "document",
+                None,
+                "/bundle/test_spice/document" + os.sep,
+                id="other-collection-no-subdir",
+            ),
+            pytest.param(
+                "spice_kernels",
+                f"/staging/spice_kernels{os.sep}collection.xml",
+                "/bundle/test_spice/spice_kernels" + os.sep,
+                id="collection-in-name-suppresses-subdir",
+            ),
+        ],
+    )
+    def test_val_label_directory(self, label_for, collection_name, name_override, expected):
+        label = label_for(collection_name=collection_name)
+        if name_override:
+            label.name = name_override
         result = label._val_label_directory("/bundle/test_spice/")
-        assert result == f"/bundle/test_spice/spice_kernels{os.sep}ck{os.sep}"
+        assert result == expected
 
-    def test_val_label_directory_appends_subdir_for_miscellaneous(self, label_for):
-        label = label_for(collection_name="miscellaneous", label_name_part="orbnum")
-        label.name = f"/staging/miscellaneous/orb{os.sep}orbnum.xml"
-        result = label._val_label_directory("/bundle/test_spice/")
-        assert result == f"/bundle/test_spice/miscellaneous{os.sep}orb{os.sep}"
+    # -- _pick_val_label: branch selection, both substring (level-2) and
+    #    exact-component (level-3) matching rules ------------------------
 
-    def test_val_label_directory_no_subdir_for_other_collection(self, label_for):
-        label = label_for(collection_name="document")
-        result = label._val_label_directory("/bundle/test_spice/")
-        assert result == "/bundle/test_spice/document" + os.sep
-
-    def test_val_label_directory_no_subdir_when_collection_in_name(self, label_for):
-        label = label_for(collection_name="spice_kernels")
-        label.name = f"/staging/spice_kernels{os.sep}collection.xml"
-        result = label._val_label_directory("/bundle/test_spice/")
-        assert result == "/bundle/test_spice/spice_kernels" + os.sep
-
-    # -- _pick_val_label: exact_match=False (level-2 substring rule) ---
-
-    def test_pick_val_label_substring_collection_branch(self, label_for, mocker):
+    @pytest.mark.parametrize(
+        "exact_match, name, val_products, val_label_path, glob_return, expected, expected_glob_call",
+        [
+            pytest.param(
+                False,
+                f"/staging/spice_kernels{os.sep}collection_inventory.xml",
+                ["/bundle/ck/inventory_old.v1.bc"],
+                "/bundle/ck/",
+                ["/bundle/ck/old_collection.xml"],
+                "/bundle/ck/old_collection.xml",
+                "/bundle/ck/old.v1.xml",
+                id="substring-collection-branch",
+            ),
+            pytest.param(
+                False,
+                f"/staging{os.sep}bundle_label.xml",
+                [],
+                "/bundle/",
+                ["/bundle/bundle_v1.xml"],
+                "/bundle/bundle_v1.xml",
+                "/bundle/bundle_*.xml",
+                id="substring-bundle-branch",
+            ),
+            pytest.param(
+                False,
+                f"/staging/ck{os.sep}kernel.xml",
+                ["/bundle/ck/kernel.v01.bc"],
+                "/bundle/ck/",
+                ["/bundle/ck/kernel.v01.xml"],
+                "/bundle/ck/kernel.v01.xml",
+                "/bundle/ck/kernel.v01.xml",
+                # Also a regression case for the .split(".")[0] truncation
+                # bug: the stem must keep everything but the final
+                # extension, not just the text before the first dot.
+                id="substring-else-branch-multidot-stem",
+            ),
+            pytest.param(
+                True,
+                f"/staging{os.sep}collection{os.sep}label.xml",
+                ["/insight/ck/inventory_old.bc"],
+                "/insight/ck/",
+                ["/insight/ck/old_collection.xml"],
+                "/insight/ck/old_collection.xml",
+                "/insight/ck/old.xml",
+                id="exact-match-collection-branch",
+            ),
+            pytest.param(
+                True,
+                f"/staging{os.sep}bundle{os.sep}label.xml",
+                [],
+                "/insight/",
+                ["/insight/bundle_v1.xml"],
+                "/insight/bundle_v1.xml",
+                "/insight/bundle_*.xml",
+                id="exact-match-bundle-branch",
+            ),
+            pytest.param(
+                True,
+                # Same basename as "substring-collection-branch" above, but
+                # here it must NOT trigger the collection branch: "collection"
+                # is only a substring of this basename, not an exact path
+                # component, and exact_match=True requires the latter. This
+                # documents the preserved level-2/level-3 discrepancy.
+                f"/staging/spice_kernels{os.sep}collection_inventory.xml",
+                ["/insight/ck/kernel.bc"],
+                "/insight/ck/",
+                ["/insight/ck/kernel.xml"],
+                "/insight/ck/kernel.xml",
+                "/insight/ck/kernel.xml",
+                id="exact-match-requires-full-component",
+            ),
+        ],
+    )
+    def test_pick_val_label_branch_selection(
+        self,
+        label_for,
+        mocker,
+        exact_match,
+        name,
+        val_products,
+        val_label_path,
+        glob_return,
+        expected,
+        expected_glob_call,
+    ):
         label = label_for()
-        label.name = f"/staging/spice_kernels{os.sep}collection_inventory.xml"
-        mock_glob = mocker.patch(_PATCH_GLOB, return_value=["/bundle/ck/old_collection.xml"])
-        result = label._pick_val_label(
-            ["/bundle/ck/inventory_old.v1.bc"], "/bundle/ck/", exact_match=False
-        )
-        assert result == "/bundle/ck/old_collection.xml"
-        mock_glob.assert_called_once_with("/bundle/ck/old.v1.xml")
-
-    def test_pick_val_label_substring_bundle_branch(self, label_for, mocker):
-        label = label_for()
-        label.name = f"/staging{os.sep}bundle_label.xml"
-        mock_glob = mocker.patch(_PATCH_GLOB, return_value=["/bundle/bundle_v1.xml"])
-        result = label._pick_val_label([], "/bundle/", exact_match=False)
-        assert result == "/bundle/bundle_v1.xml"
-        mock_glob.assert_called_once_with("/bundle/bundle_*.xml")
-
-    def test_pick_val_label_substring_else_branch_keeps_multidot_stem(self, label_for, mocker):
-        """Also a regression test for the .split('.')[0] truncation bug:
-        the stem must keep everything but the final extension, not just
-        the text before the first dot.
-        """
-        label = label_for()
-        label.name = f"/staging/ck{os.sep}kernel.xml"
-        mock_glob = mocker.patch(_PATCH_GLOB, return_value=["/bundle/ck/kernel.v01.xml"])
-        result = label._pick_val_label(
-            ["/bundle/ck/kernel.v01.bc"], "/bundle/ck/", exact_match=False
-        )
-        assert result == "/bundle/ck/kernel.v01.xml"
-        mock_glob.assert_called_once_with("/bundle/ck/kernel.v01.xml")
-
-    # -- _pick_val_label: exact_match=True (level-3 exact-component rule)
-
-    def test_pick_val_label_exact_match_collection_branch(self, label_for, mocker):
-        label = label_for()
-        label.name = f"/staging{os.sep}collection{os.sep}label.xml"
-        mock_glob = mocker.patch(_PATCH_GLOB, return_value=["/insight/ck/old_collection.xml"])
-        result = label._pick_val_label(
-            ["/insight/ck/inventory_old.bc"], "/insight/ck/", exact_match=True
-        )
-        assert result == "/insight/ck/old_collection.xml"
-        mock_glob.assert_called_once_with("/insight/ck/old.xml")
-
-    def test_pick_val_label_exact_match_bundle_branch(self, label_for, mocker):
-        label = label_for()
-        label.name = f"/staging{os.sep}bundle{os.sep}label.xml"
-        mock_glob = mocker.patch(_PATCH_GLOB, return_value=["/insight/bundle_v1.xml"])
-        result = label._pick_val_label([], "/insight/", exact_match=True)
-        assert result == "/insight/bundle_v1.xml"
-        mock_glob.assert_called_once_with("/insight/bundle_*.xml")
-
-    def test_pick_val_label_exact_match_requires_full_path_component(self, label_for, mocker):
-        """Documents the preserved level-2/level-3 discrepancy: a basename
-        that merely CONTAINS "collection" must NOT trigger the collection
-        branch when exact_match=True -- only an exact path component does.
-        """
-        label = label_for()
-        label.name = f"/staging/spice_kernels{os.sep}collection_inventory.xml"
-        mock_glob = mocker.patch(_PATCH_GLOB, return_value=["/insight/ck/kernel.xml"])
-        result = label._pick_val_label(
-            ["/insight/ck/kernel.bc"], "/insight/ck/", exact_match=True
-        )
-        # "collection_inventory.xml" contains "collection" as a substring but
-        # is not an exact path component, so this falls to the else branch,
-        # unlike the equivalent exact_match=False case above.
-        assert result == "/insight/ck/kernel.xml"
-        mock_glob.assert_called_once_with("/insight/ck/kernel.xml")
+        label.name = name
+        mock_glob = mocker.patch(_PATCH_GLOB, return_value=glob_return)
+        result = label._pick_val_label(val_products, val_label_path, exact_match=exact_match)
+        assert result == expected
+        mock_glob.assert_called_once_with(expected_glob_call)
 
     # -- _pick_val_label: failure paths ---------------------------------
 
