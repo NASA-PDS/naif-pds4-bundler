@@ -573,7 +573,7 @@ class TestPDSLabelCompareHelpers:
     """Direct calls to the fallback-strategy helpers extracted from compare()."""
 
     @pytest.fixture
-    def label_for(self, label_test_helpers):
+    def label_for_helper(self, label_test_helpers):
         """Factory fixture: builds a bare label ready for compare().
 
         Duplicated from TestPDSLabelCompare rather than inherited via
@@ -581,7 +581,7 @@ class TestPDSLabelCompareHelpers:
         tests to be collected and re-run a second time under this class.
         """
 
-        def _build(collection_name="spice_kernels", label_name_part="kernel"):
+        def _build(collection_name="spice_kernels", label_name_part="kernel", subdir="ck"):
             setup = label_test_helpers.make_setup_pds4()
             setup.diff = "html"
             product = label_test_helpers.make_product()
@@ -591,7 +591,7 @@ class TestPDSLabelCompareHelpers:
             label = PDSLabel.__new__(PDSLabel)
             label.setup = setup
             label.product = product
-            label.name = str(Path(f"/staging/spice_kernels/ck/{label_name_part}.xml"))
+            label.name = str(Path(f"/staging/{collection_name}/{subdir}/{label_name_part}.xml"))
             return label
 
         return _build
@@ -615,36 +615,38 @@ class TestPDSLabelCompareHelpers:
     # -- _val_label_directory ------------------------------------------
 
     @pytest.mark.parametrize(
-        "collection_name, name_override, expected",
+        ["collection_name", "name_override", "expected"],
         [
-            pytest.param(
+            (
                 "spice_kernels",
                 None,
                 f"/bundle/test_spice/spice_kernels{os.sep}ck{os.sep}",
-                id="spice_kernels-appends-subdir",
             ),
-            pytest.param(
+            (
                 "miscellaneous",
                 f"/staging/miscellaneous/orb{os.sep}orbnum.xml",
                 f"/bundle/test_spice/miscellaneous{os.sep}orb{os.sep}",
-                id="miscellaneous-appends-subdir",
             ),
-            pytest.param(
+            (
                 "document",
                 None,
                 "/bundle/test_spice/document" + os.sep,
-                id="other-collection-no-subdir",
             ),
-            pytest.param(
+            (
                 "spice_kernels",
                 f"/staging/spice_kernels{os.sep}collection.xml",
                 "/bundle/test_spice/spice_kernels" + os.sep,
-                id="collection-in-name-suppresses-subdir",
             ),
         ],
+        ids=[
+            "spice_kernels-appends-subdir",
+            "miscellaneous-appends-subdir",
+            "other-collection-no-subdir",
+            "collection-in-name-suppresses-subdir",
+        ],
     )
-    def test_val_label_directory(self, label_for, collection_name, name_override, expected):
-        label = label_for(collection_name=collection_name)
+    def test_val_label_directory(self, label_for_helper, collection_name, name_override, expected):
+        label = label_for_helper(collection_name=collection_name)
         if name_override:
             label.name = name_override
         result = label._val_label_directory("/bundle/test_spice/")
@@ -728,7 +730,7 @@ class TestPDSLabelCompareHelpers:
     )
     def test_pick_val_label_branch_selection(
         self,
-        label_for,
+        label_for_helper,
         mocker,
         exact_match,
         name,
@@ -738,7 +740,7 @@ class TestPDSLabelCompareHelpers:
         expected,
         expected_glob_call,
     ):
-        label = label_for()
+        label = label_for_helper()
         label.name = name
         mock_glob = mocker.patch(_PATCH_GLOB, return_value=glob_return)
         result = label._pick_val_label(val_products, val_label_path, exact_match=exact_match)
@@ -747,51 +749,51 @@ class TestPDSLabelCompareHelpers:
 
     # -- _pick_val_label: failure paths ---------------------------------
 
-    def test_pick_val_label_raises_when_result_falsy(self, label_for, mocker):
-        label = label_for()
+    def test_pick_val_label_raises_when_result_falsy(self, label_for_helper, mocker):
+        label = label_for_helper()
         label.name = f"/staging/ck{os.sep}kernel.xml"
         mocker.patch(_PATCH_GLOB, return_value=[""])
         with pytest.raises(Exception, match="No label for comparison found."):
             label._pick_val_label(["/bundle/ck/kernel.bc"], "/bundle/ck/", exact_match=False)
 
-    def test_pick_val_label_raises_indexerror_on_empty_products(self, label_for):
-        label = label_for()
+    def test_pick_val_label_raises_indexerror_on_empty_products(self, label_for_helper):
+        label = label_for_helper()
         label.name = f"/staging/ck{os.sep}kernel.xml"
         with pytest.raises(IndexError):
             label._pick_val_label([], "/bundle/ck/", exact_match=False)
 
     # -- _find_prior_version_label ---------------------------------------
 
-    def test_find_prior_version_label_returns_hit(self, label_for, mocker):
-        label = label_for()
+    def test_find_prior_version_label_returns_hit(self, label_for_helper, mocker):
+        label = label_for_helper()
         hit = "/bundle/spice_kernels/ck/kernel_old.xml"
         mocker.patch(_PATCH_GLOB, side_effect=self._level1_hit(hit))
         assert label._find_prior_version_label() == hit
 
-    def test_find_prior_version_label_returns_none_on_no_match(self, label_for, mocker):
-        label = label_for()
+    def test_find_prior_version_label_returns_none_on_no_match(self, label_for_helper, mocker):
+        label = label_for_helper()
         mocker.patch(_PATCH_GLOB, return_value=[])
         assert label._find_prior_version_label() is None
 
     # -- _find_similar_type_label -----------------------------------------
 
-    def test_find_similar_type_label_returns_hit(self, label_for, mocker):
-        label = label_for()
+    def test_find_similar_type_label_returns_hit(self, label_for_helper, mocker):
+        label = label_for_helper()
         mocker.patch(_PATCH_GLOB, side_effect=[
             ["/bundle/spice_kernels/ck/kern.bc"],
             ["/bundle/spice_kernels/ck/kern.xml"],
         ])
         assert label._find_similar_type_label() == "/bundle/spice_kernels/ck/kern.xml"
 
-    def test_find_similar_type_label_returns_none_when_val_products_empty(self, label_for, mocker):
-        label = label_for()
+    def test_find_similar_type_label_returns_none_when_val_products_empty(self, label_for_helper, mocker):
+        label = label_for_helper()
         mocker.patch(_PATCH_GLOB, return_value=[])
         assert label._find_similar_type_label() is None
 
     # -- _find_insight_fallback_label -------------------------------------
 
-    def test_find_insight_fallback_label_returns_hit_and_logs(self, label_for, mocker):
-        label = label_for()
+    def test_find_insight_fallback_label_returns_hit_and_logs(self, label_for_helper, mocker):
+        label = label_for_helper()
         mocker.patch(_PATCH_GLOB, side_effect=[
             ["/root/data/insight_spice/spice_kernels/ck/insight_ck.bc"],
             ["/root/data/insight_spice/spice_kernels/ck/insight_ck.xml"],
@@ -803,8 +805,8 @@ class TestPDSLabelCompareHelpers:
         # must be the ONLY warning logged (no leftover "not found" message).
         mock_log.assert_called_once_with("-- Comparing with InSight test label.")
 
-    def test_find_insight_fallback_label_returns_none_when_val_products_empty(self, label_for, mocker):
-        label = label_for()
+    def test_find_insight_fallback_label_returns_none_when_val_products_empty(self, label_for_helper, mocker):
+        label = label_for_helper()
         mocker.patch(_PATCH_GLOB, return_value=[])
         mock_log = mocker.patch("pds.naif_pds4_bundler.classes.label.label.logging.warning")
         assert label._find_insight_fallback_label() is None
