@@ -223,22 +223,7 @@ class PDSLabel:
                 val_products = glob.glob(f"{val_label_path}*.{product_extension}")
                 val_products.sort()
 
-                #
-                # Simply pick the last one
-                #
-                if "collection" in self.name.split(os.sep)[-1]:
-                    stem = Path(val_products[-1].replace("inventory_", "")).with_suffix("")
-                    val_label = glob.glob(f"{stem}.xml")[0]
-                elif "bundle" in self.name.split(os.sep)[-1]:
-                    val_labels = glob.glob(f"{val_label_path}bundle_*.xml")
-                    val_labels.sort()
-                    val_label = val_labels[-1]
-                else:
-                    stem = Path(val_products[-1]).with_suffix("")
-                    val_label = glob.glob(f"{stem}.xml")[0]
-
-                if not val_label:
-                    raise Exception("No label for comparison found.")
+                val_label = self._pick_val_label(val_products, val_label_path, exact_match=False)
 
             except Exception:
 
@@ -260,19 +245,7 @@ class PDSLabel:
                     val_products = glob.glob(f"{val_label_path}*.{product_extension}")
                     val_products.sort()
 
-                    if "collection" in self.name.split(os.sep):
-                        stem = Path(val_products[-1].replace("inventory_", "")).with_suffix("")
-                        val_label = glob.glob(f"{stem}.xml")[0]
-                    elif "bundle" in self.name.split(os.sep):
-                        val_labels = glob.glob(f"{val_label_path}bundle_*.xml")
-                        val_labels.sort()
-                        val_label = val_labels[-1]
-                    else:
-                        stem = Path(val_products[-1]).with_suffix("")
-                        val_label = glob.glob(f"{stem}.xml")[0]
-
-                    if not val_label:
-                        raise Exception("No label for comparison found.")
+                    val_label = self._pick_val_label(val_products, val_label_path, exact_match=True)
 
                     logging.warning("-- Comparing with InSight test label.")
                 except Exception:
@@ -304,3 +277,28 @@ class PDSLabel:
             val_label_path += self.name.split(os.sep)[-2] + os.sep
 
         return val_label_path
+
+    def _pick_val_label(self, val_products, val_label_path, exact_match):
+        """Select a validation label from val_products/val_label_path.
+
+        ``exact_match`` controls whether "collection"/"bundle" must be an
+        exact path component (used by the InSight-fallback lookup) or a
+        substring of the label's basename (used by the similar-type
+        lookup) -- a pre-existing discrepancy between the two original
+        call sites, preserved here rather than silently unified.
+        """
+        haystack = self.name.split(os.sep) if exact_match else self.name.split(os.sep)[-1]
+
+        if "collection" in haystack:
+            stem = Path(val_products[-1].replace("inventory_", "")).with_suffix("")
+            val_label = glob.glob(f"{stem}.xml")[0]
+        elif "bundle" in haystack:
+            val_label = sorted(glob.glob(f"{val_label_path}bundle_*.xml"))[-1]
+        else:
+            stem = Path(val_products[-1]).with_suffix("")
+            val_label = glob.glob(f"{stem}.xml")[0]
+
+        if not val_label:
+            raise Exception("No label for comparison found.")
+
+        return val_label
