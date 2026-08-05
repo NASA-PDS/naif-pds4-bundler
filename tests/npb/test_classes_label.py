@@ -378,7 +378,7 @@ class TestPDSLabelCompare:
     def test_level2_bundle_label(self, label_for, mocker):
         mocker.patch(_PATCH_COMPARE)
         label = label_for(label_name_part="bundle")
-        label.name = f"/staging{os.sep}bundle_label.xml"
+        label.name = str(Path("/staging/bundle_label.xml"))
         mocker.patch(_PATCH_GLOB, side_effect=[
             [],  # level-1: miss
             ["/bundle/kernel.bc"],  # level-2: val_products glob
@@ -442,7 +442,7 @@ class TestPDSLabelCompare:
     def test_level3_bundle_label(self, label_for, mocker):
         mocker.patch(_PATCH_COMPARE)
         label = label_for()
-        label.name = f"/staging{os.sep}bundle_label.xml"
+        label.name = str(Path("/staging/bundle_label.xml"))
         mocker.patch(_PATCH_GLOB, side_effect=[
             [],  # level-1: miss
             [],  # level-2: val_products empty
@@ -620,22 +620,22 @@ class TestPDSLabelCompareHelpers:
             (
                 "spice_kernels",
                 None,
-                f"/bundle/test_spice/spice_kernels{os.sep}ck{os.sep}",
+                str(Path("/bundle/test_spice", "spice_kernels", "ck")) + os.sep,
             ),
             (
                 "miscellaneous",
-                f"/staging/miscellaneous/orb{os.sep}orbnum.xml",
-                f"/bundle/test_spice/miscellaneous{os.sep}orb{os.sep}",
+                str(Path("/staging/miscellaneous/orb/orbnum.xml")),
+                str(Path("/bundle/test_spice", "miscellaneous", "orb")) + os.sep,
             ),
             (
                 "document",
                 None,
-                "/bundle/test_spice/document" + os.sep,
+                str(Path("/bundle/test_spice", "document")) + os.sep,
             ),
             (
                 "spice_kernels",
-                f"/staging/spice_kernels{os.sep}collection.xml",
-                "/bundle/test_spice/spice_kernels" + os.sep,
+                str(Path("/staging/spice_kernels/collection.xml")),
+                str(Path("/bundle/test_spice", "spice_kernels")) + os.sep,
             ),
         ],
         ids=[
@@ -668,7 +668,7 @@ class TestPDSLabelCompareHelpers:
                 "/insight/ck/",
                 ["/insight/ck/old_collection.xml"],
                 "/insight/ck/old_collection.xml",
-                "/insight/ck/old.xml",
+                str(Path("/insight/ck/old.xml")),
                 id="collection-branch-realistic-name",
             ),
             pytest.param(
@@ -686,7 +686,7 @@ class TestPDSLabelCompareHelpers:
                 "/bundle/ck/",
                 ["/bundle/ck/kernel.v01.xml"],
                 "/bundle/ck/kernel.v01.xml",
-                "/bundle/ck/kernel.v01.xml",
+                str(Path("/bundle/ck/kernel.v01.xml")),
                 # Also a regression case for the .split(".")[0] truncation
                 # bug: the stem must keep everything but the final
                 # extension, not just the text before the first dot.
@@ -702,7 +702,7 @@ class TestPDSLabelCompareHelpers:
                 "/insight/ck/",
                 ["/insight/ck/kernel.xml"],
                 "/insight/ck/kernel.xml",
-                "/insight/ck/kernel.xml",
+                str(Path("/insight/ck/kernel.xml")),
                 id="collection-directory-without-basename-match-falls-to-else",
             ),
             pytest.param(

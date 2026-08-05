@@ -195,10 +195,10 @@ class PDSLabel:
             val_label = ""
             match_flag = True
             val_label_path = self._val_label_directory(
-                self.setup.bundle_directory + f"/{self.setup.mission_acronym}_spice/"
+                str(Path(self.setup.bundle_directory) / f"{self.setup.mission_acronym}_spice")
             )
 
-            val_label_name = self.name.split(os.sep)[-1]
+            val_label_name = Path(self.name).name
             i = 1
 
             while match_flag and i < len(val_label_name) - 1:
@@ -231,7 +231,7 @@ class PDSLabel:
         """
         try:
             val_label_path = self._val_label_directory(
-                self.setup.bundle_directory + f"/{self.setup.mission_acronym}_spice/"
+                str(Path(self.setup.bundle_directory) / f"{self.setup.mission_acronym}_spice")
             )
 
             product_extension = self.product.name.split(".")[-1]
@@ -255,7 +255,7 @@ class PDSLabel:
         """
         try:
             val_label_path = self._val_label_directory(
-                f"{self.setup.root_dir}/data/insight_spice/"
+                str(Path(self.setup.root_dir) / "data" / "insight_spice")
             )
 
             #
@@ -282,21 +282,21 @@ class PDSLabel:
         :param base_dir: Root directory to build the candidate path under.
         :return: The candidate-label directory path.
         """
-        val_label_path = base_dir + self.product.collection.name + os.sep
+        val_label_path = Path(base_dir) / self.product.collection.name
 
         if self.product.collection.name in ("spice_kernels", "miscellaneous") and (
             "collection" not in self.name
         ):
-            val_label_path += self.name.split(os.sep)[-2] + os.sep
+            val_label_path = val_label_path / Path(self.name).parent.name
 
-        return val_label_path
+        return f"{val_label_path}{os.sep}"
 
     def _pick_val_label(self, val_products, val_label_path):
         """Select a validation label from val_products/val_label_path.
 
         "collection"/"bundle" are matched as a substring of the label's
-        basename (``self.name.split(os.sep)[-1]``), not as a standalone
-        path component. Real product names embed them as a prefix -- e.g.
+        basename (``Path(self.name).name``), not as a standalone path
+        component. Real product names embed them as a prefix -- e.g.
         "collection_spice_kernels_v001.xml", "bundle_insight_spice_v009.xml"
         -- never as a bare directory/path segment, so an exact-component
         check would never match real files. The similar-type and
@@ -310,7 +310,7 @@ class PDSLabel:
         :return: Path to the selected validation label.
         :raises Exception: If no label for comparison can be found.
         """
-        haystack = self.name.split(os.sep)[-1]
+        haystack = Path(self.name).name
 
         if "collection" in haystack:
             stem = Path(val_products[-1].replace("inventory_", "")).with_suffix("")
