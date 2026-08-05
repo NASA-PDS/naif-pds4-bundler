@@ -235,7 +235,7 @@ class PDSLabel:
             val_products = glob.glob(f"{val_label_path}*.{product_extension}")
             val_products.sort()
 
-            return self._pick_val_label(val_products, val_label_path, exact_match=False)
+            return self._pick_val_label(val_products, val_label_path)
 
         except Exception:
             logging.warning("-- No similar label has been found.")
@@ -258,7 +258,7 @@ class PDSLabel:
             val_products = glob.glob(f"{val_label_path}*.{product_extension}")
             val_products.sort()
 
-            val_label = self._pick_val_label(val_products, val_label_path, exact_match=True)
+            val_label = self._pick_val_label(val_products, val_label_path)
             logging.warning("-- Comparing with InSight test label.")
             return val_label
 
@@ -280,16 +280,17 @@ class PDSLabel:
 
         return val_label_path
 
-    def _pick_val_label(self, val_products, val_label_path, exact_match):
+    def _pick_val_label(self, val_products, val_label_path):
         """Select a validation label from val_products/val_label_path.
 
-        ``exact_match`` controls whether "collection"/"bundle" must be an
-        exact path component (used by the InSight-fallback lookup) or a
-        substring of the label's basename (used by the similar-type
-        lookup) -- a pre-existing discrepancy between the two original
-        call sites, preserved here rather than silently unified.
+        "collection"/"bundle" must match an exact path component of
+        ``self.name``, not merely appear as a substring of the basename
+        (e.g. "unbundled_data.xml" must not be treated as a bundle
+        label). The similar-type and InSight-fallback lookups used to
+        apply different rules here; both now use the stricter,
+        component-exact rule.
         """
-        haystack = self.name.split(os.sep) if exact_match else self.name.split(os.sep)[-1]
+        haystack = self.name.split(os.sep)
 
         if "collection" in haystack:
             stem = Path(val_products[-1].replace("inventory_", "")).with_suffix("")

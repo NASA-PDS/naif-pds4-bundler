@@ -364,7 +364,7 @@ class TestPDSLabelCompare:
     def test_level2_collection_label(self, label_for, mocker):
         mocker.patch(_PATCH_COMPARE)
         label = label_for(label_name_part="collection")
-        label.name = f"/staging/spice_kernels{os.sep}collection_label.xml"
+        label.name = f"/staging/spice_kernels{os.sep}collection{os.sep}label.xml"
         mocker.patch(_PATCH_GLOB, side_effect=[
             [],  # level-1: first (and only) call → miss, exits loop
             ["/bundle/.../inventory_coll.bc"],  # level-2: val_products glob
@@ -378,7 +378,7 @@ class TestPDSLabelCompare:
     def test_level2_bundle_label(self, label_for, mocker):
         mocker.patch(_PATCH_COMPARE)
         label = label_for(label_name_part="bundle")
-        label.name = f"/staging{os.sep}bundle_label.xml"
+        label.name = f"/staging{os.sep}bundle{os.sep}label.xml"
         mocker.patch(_PATCH_GLOB, side_effect=[
             [],  # level-1: miss
             ["/bundle/kernel.bc"],  # level-2: val_products glob
@@ -652,34 +652,32 @@ class TestPDSLabelCompareHelpers:
         result = label._val_label_directory("/bundle/test_spice/")
         assert result == expected
 
-    # -- _pick_val_label: branch selection, both substring (level-2) and
-    #    exact-component (level-3) matching rules ------------------------
+    # -- _pick_val_label: branch selection, unified exact-component
+    #    matching rule (used by both the similar-type and InSight-fallback
+    #    call sites) ------------------------------------------------------
 
     @pytest.mark.parametrize(
-        "exact_match, name, val_products, val_label_path, glob_return, expected, expected_glob_call",
+        "name, val_products, val_label_path, glob_return, expected, expected_glob_call",
         [
             pytest.param(
-                False,
-                f"/staging/spice_kernels{os.sep}collection_inventory.xml",
-                ["/bundle/ck/inventory_old.v1.bc"],
-                "/bundle/ck/",
-                ["/bundle/ck/old_collection.xml"],
-                "/bundle/ck/old_collection.xml",
-                "/bundle/ck/old.v1.xml",
-                id="substring-collection-branch",
+                f"/staging{os.sep}collection{os.sep}label.xml",
+                ["/insight/ck/inventory_old.bc"],
+                "/insight/ck/",
+                ["/insight/ck/old_collection.xml"],
+                "/insight/ck/old_collection.xml",
+                "/insight/ck/old.xml",
+                id="collection-branch",
             ),
             pytest.param(
-                False,
-                f"/staging{os.sep}bundle_label.xml",
+                f"/staging{os.sep}bundle{os.sep}label.xml",
                 [],
-                "/bundle/",
-                ["/bundle/bundle_v1.xml"],
-                "/bundle/bundle_v1.xml",
-                "/bundle/bundle_*.xml",
-                id="substring-bundle-branch",
+                "/insight/",
+                ["/insight/bundle_v1.xml"],
+                "/insight/bundle_v1.xml",
+                "/insight/bundle_*.xml",
+                id="bundle-branch",
             ),
             pytest.param(
-                False,
                 f"/staging/ck{os.sep}kernel.xml",
                 ["/bundle/ck/kernel.v01.bc"],
                 "/bundle/ck/",
@@ -689,42 +687,31 @@ class TestPDSLabelCompareHelpers:
                 # Also a regression case for the .split(".")[0] truncation
                 # bug: the stem must keep everything but the final
                 # extension, not just the text before the first dot.
-                id="substring-else-branch-multidot-stem",
+                id="else-branch-multidot-stem",
             ),
             pytest.param(
-                True,
-                f"/staging{os.sep}collection{os.sep}label.xml",
-                ["/insight/ck/inventory_old.bc"],
-                "/insight/ck/",
-                ["/insight/ck/old_collection.xml"],
-                "/insight/ck/old_collection.xml",
-                "/insight/ck/old.xml",
-                id="exact-match-collection-branch",
-            ),
-            pytest.param(
-                True,
-                f"/staging{os.sep}bundle{os.sep}label.xml",
-                [],
-                "/insight/",
-                ["/insight/bundle_v1.xml"],
-                "/insight/bundle_v1.xml",
-                "/insight/bundle_*.xml",
-                id="exact-match-bundle-branch",
-            ),
-            pytest.param(
-                True,
-                # Same basename as "substring-collection-branch" above, but
-                # here it must NOT trigger the collection branch: "collection"
-                # is only a substring of this basename, not an exact path
-                # component, and exact_match=True requires the latter. This
-                # documents the preserved level-2/level-3 discrepancy.
+                # "collection" is only a substring of this basename, not an
+                # exact path component -- must fall through to the else
+                # branch rather than the collection branch.
                 f"/staging/spice_kernels{os.sep}collection_inventory.xml",
                 ["/insight/ck/kernel.bc"],
                 "/insight/ck/",
                 ["/insight/ck/kernel.xml"],
                 "/insight/ck/kernel.xml",
                 "/insight/ck/kernel.xml",
-                id="exact-match-requires-full-component",
+                id="collection-substring-does-not-trigger-branch",
+            ),
+            pytest.param(
+                # "bundle" is only a substring of "unbundled_data.xml" (from
+                # "unbundled"), not an exact path component -- must fall
+                # through to the else branch rather than the bundle branch.
+                f"/staging/spice_kernels{os.sep}unbundled_data.xml",
+                ["/insight/ck/unbundled_data.bc"],
+                "/insight/ck/",
+                ["/insight/ck/unbundled_data.xml"],
+                "/insight/ck/unbundled_data.xml",
+                "/insight/ck/unbundled_data.xml",
+                id="bundle-substring-does-not-trigger-branch",
             ),
         ],
     )
@@ -732,7 +719,6 @@ class TestPDSLabelCompareHelpers:
         self,
         label_for_helper,
         mocker,
-        exact_match,
         name,
         val_products,
         val_label_path,
@@ -743,7 +729,7 @@ class TestPDSLabelCompareHelpers:
         label = label_for_helper()
         label.name = name
         mock_glob = mocker.patch(_PATCH_GLOB, return_value=glob_return)
-        result = label._pick_val_label(val_products, val_label_path, exact_match=exact_match)
+        result = label._pick_val_label(val_products, val_label_path)
         assert result == expected
         mock_glob.assert_called_once_with(expected_glob_call)
 
@@ -754,13 +740,13 @@ class TestPDSLabelCompareHelpers:
         label.name = f"/staging/ck{os.sep}kernel.xml"
         mocker.patch(_PATCH_GLOB, return_value=[""])
         with pytest.raises(Exception, match="No label for comparison found."):
-            label._pick_val_label(["/bundle/ck/kernel.bc"], "/bundle/ck/", exact_match=False)
+            label._pick_val_label(["/bundle/ck/kernel.bc"], "/bundle/ck/")
 
     def test_pick_val_label_raises_indexerror_on_empty_products(self, label_for_helper):
         label = label_for_helper()
         label.name = f"/staging/ck{os.sep}kernel.xml"
         with pytest.raises(IndexError):
-            label._pick_val_label([], "/bundle/ck/", exact_match=False)
+            label._pick_val_label([], "/bundle/ck/")
 
     # -- _find_prior_version_label ---------------------------------------
 
