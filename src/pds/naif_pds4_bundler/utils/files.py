@@ -993,16 +993,17 @@ def check_kernel_integrity(path):
     # Filter out Text EKs since they are not loaded into SPICE and validate them
     # differently
     if extension == "ten":
+        # Try to read the file as UTF-8
         try:
             with open(path, 'r', encoding='utf-8') as f:
                 content = f.read(2000)
-            if '\\header' not in content or '\\text' not in content:
-                return (f"Kernel {name} does not contain required text event "
-                        f"kernel markers (\\header, \\text).")
         except UnicodeDecodeError:
             return f"Kernel {name} is not a valid text file (encoding error)."
-        except Exception as e:
-            return f"Kernel {name} could not be read: {e}."
+
+        # Validate content after successful read
+        if '\\header' not in content or '\\text' not in content:
+            return (f"Kernel {name} does not contain required text event "
+                    f"kernel markers (\\header, \\text).")
 
         return ""  # Valid .ten file
 

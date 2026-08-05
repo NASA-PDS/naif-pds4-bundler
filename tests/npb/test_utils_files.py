@@ -399,18 +399,6 @@ def test_check_kernel_integrity_text_event_kernel(tmp_path, monkeypatch):
     error = files.check_kernel_integrity(str(ten_file))
     assert "encoding error" in error  # UnicodeDecodeError path
 
-    # Test 3: Generic Exception path
-    original_open = open
-
-    def mock_open_generic(*args, **kwargs):
-        if str(ten_file) in str(args[0]):
-            raise Exception("Generic exception path")
-        return original_open(*args, **kwargs)
-
-    monkeypatch.setattr("builtins.open", mock_open_generic)
-    error = files.check_kernel_integrity(str(ten_file))
-    assert "could not be read" in error  # Generic Exception path
-
 # ----------------------------------------------------------------------------
 # files.check_kernel_integrity tests
 # ----------------------------------------------------------------------------
