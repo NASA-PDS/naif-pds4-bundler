@@ -2112,9 +2112,16 @@ class TestPValidateHistory:
         """When the checksum product itself appears in history[rel], both the
         .tab and .xml are appended to products_in_checksum before comparison.
 
-        The miscellaneous collection must be present in the history so that
-        checksum_v001.tab appears there; the checksum file must therefore NOT
-        already contain itself to avoid double-counting.
+        Exercises the augmentation branch end-to-end through the real
+        CSV-driven ``_get_history`` path (unlike
+        ``test_checksum_self_reference_augmented_when_present_in_history``,
+        which stubs ``_get_history`` directly). Production code always
+        emits the checksum product LID as ``checksum_checksum``
+        (``product_checksum.py:set_product_lid``), which is what makes the
+        parsed history key equal ``miscellaneous/checksum/checksum_v001.tab``
+        — the exact key ``_validate_history`` checks for. The physical
+        checksum .tab file must NOT list itself/its label, since those are
+        appended by the method itself to avoid double-counting.
         """
         setup = self._validate_setup(tmp_path)
         # Write bundle label with both kernel and miscellaneous collections
@@ -2133,7 +2140,7 @@ class TestPValidateHistory:
         _write_collection_csv(
             setup,
             "miscellaneous/collection_miscellaneous_inventory_v001.csv",
-            [f"P,urn:nasa:pds:{MISSION}.spice:miscellaneous:checksum_{MISSION}::1.0"],
+            [f"P,urn:nasa:pds:{MISSION}.spice:miscellaneous:checksum_checksum::1.0"],
         )
 
         # Build the expected product list that _get_history will return
@@ -2144,19 +2151,19 @@ class TestPValidateHistory:
             "spice_kernels/collection_spice_kernels_v001.xml",
             "miscellaneous/collection_miscellaneous_inventory_v001.csv",
             "miscellaneous/collection_miscellaneous_v001.xml",
-            f"miscellaneous/checksum/{MISSION}_v001.tab",
-            f"miscellaneous/checksum/{MISSION}_v001.xml",
+            "miscellaneous/checksum/checksum_v001.tab",
+            "miscellaneous/checksum/checksum_v001.xml",
         ])
 
-        # The checksum file lists everything EXCEPT the self-reference entries
-        # (those are appended by the method itself after reading the file).
-        # The checksum product key the code checks for is:
-        #   miscellaneous/checksum/checksum_v001.tab
-        # which would only appear if the inventory row used "checksum_insight"
-        # rather than "checksum_{MISSION}" — here we use the raw product name
-        # so checksum_product is NOT in history[rel], keeping this test clean.
+        # The physical checksum file must NOT contain the self-reference
+        # entries (those are appended by the method itself), to avoid
+        # double-counting.
+        checksum_tab = "miscellaneous/checksum/checksum_v001.tab"
+        checksum_xml = "miscellaneous/checksum/checksum_v001.xml"
+        file_products = [p for p in history_products
+                          if p not in (checksum_tab, checksum_xml)]
         self._write_checksum(
-            self._bundle_root(setup), rel=1, products=history_products
+            self._bundle_root(setup), rel=1, products=file_products
         )
 
         bundle = self._validate_bundle(setup, vid="1.0", collections=["something"])
@@ -2173,8 +2180,8 @@ class TestPValidateHistory:
             "           'spice_kernels/collection_spice_kernels_v001.xml',",
             "           'miscellaneous/collection_miscellaneous_inventory_v001.csv',",
             "           'miscellaneous/collection_miscellaneous_v001.xml',",
-            "           'miscellaneous/checksum/insight_v001.tab',",
-            "           'miscellaneous/checksum/insight_v001.xml']}",
+            "           'miscellaneous/checksum/checksum_v001.tab',",
+            "           'miscellaneous/checksum/checksum_v001.xml']}",
             '']
         assert caplog.messages == expected
 
@@ -2274,9 +2281,7 @@ class TestPValidateHistory:
             '      readme.txt']
         assert caplog.messages == expected
 
-    def test_mismatch_raises_with_diff_message(
-            self, tmp_path, caplog
-    ):
+    def test_mismatch_raises_with_diff_message(self, tmp_path):
         """On mismatch, NPBError is always raised with the detailed diff
         message (containing the checksum file path)."""
         setup = self._validate_setup(tmp_path)
@@ -2286,10 +2291,6 @@ class TestPValidateHistory:
         self._write_checksum(self._bundle_root(setup), rel=1, products=mismatched)
 
         bundle = self._validate_bundle(setup, vid="1.0", collections=["something"])
-
-        # Mocks the "write" methods of the setup object.
-        setup.write_file_list = MagicMock()
-        setup.write_checksum_registry = MagicMock()
 
         expected_error = (
             f'Products in {re.escape(str(tmp_path / "bundle" ))}/insight_spice/miscellaneous/checksum/checksum_v001.tab '
