@@ -5,30 +5,6 @@ import datetime
 import spiceypy
 
 
-def current_time(fmt:str = "infomod2") -> str:
-    """Generates a timestamp string in ISO 8601 format (YYYY-MM-DDTHH:MM:SS).
-
-    The precision of the output is determined by the fmt argument: "maklabel"
-    provides second-level resolution, while "infomod2" provides millisecond
-    resolution with a "Z" suffix. If no recognized format is provided, the
-    function defaults to microsecond precision.
-
-    :param fmt: The desired output configuration ("maklabel" or "infomod2").
-    :returns: A formatted string representing the current system time.
-    """
-    now = datetime.datetime.now()
-
-    if fmt == "maklabel":
-        # Returns: YYYY-MM-DDTHH:MM:SS (Drops microseconds entirely)
-        return now.isoformat(timespec='seconds')
-
-    if fmt == "infomod2":
-        # Returns: YYYY-MM-DDTHH:MM:SS.mmmZ (Truncates to milliseconds)
-        return now.isoformat(timespec='milliseconds') + "Z"
-
-    # Fallback behavior
-    return now.isoformat()
-
 
 def current_date(date=""):
     """Returns the current date in ``%Y-%m-%d`` format.
@@ -379,39 +355,6 @@ def et_to_date(beget, endet, date_format="infomod2", kernel_type="Text", system=
     return [start_time_cal, stop_time_cal]
 
 
-def pds3_label_gen_date(file):
-    """Returns the creation date of a given PDS3 label.
-
-    :param path: File path
-    :type path: str
-    :return: Creation date
-    :rtype: str
-    """
-    generation_date = "N/A"
-
-    with open(file, "r", encoding='utf-8') as f:
-
-        for line in f:
-            if "PRODUCT_CREATION_TIME" in line:
-                generation_date = line.split("=")[1].strip()
-
-    return generation_date
-
-
-def get_years(start_time: str, stop_time: str) -> list[str]:
-    """Get years contained in a time period.
-
-    Returns the list of years contained in between the provided
-    start time and the stop time.
-
-    :param start_time: Start time to determine list of years
-    :param stop_time: Stop time to determine list of years
-    :return: List of years
-    """
-    start_year = start_time.split("-")[0]
-    finish_year = stop_time.split("-")[0]
-
-    return [str(y) for y in range(int(start_year), int(finish_year) + 1)]
 
 
 def parse_date(date_str: str) -> datetime.datetime:
