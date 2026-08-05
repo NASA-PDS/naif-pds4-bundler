@@ -309,12 +309,12 @@ class PDSLabel:
         :return: Path to the selected validation label.
         :raises Exception: If no label for comparison can be found.
         """
-        haystack = Path(self.name).name
+        basename = Path(self.name).name
 
-        if "collection" in haystack:
+        if "collection" in basename:
             stem = Path(max(val_products).replace("inventory_", "")).with_suffix("")
             val_label = glob.glob(f"{stem}.xml")[0]
-        elif "bundle" in haystack:
+        elif "bundle" in basename:
             val_label = max(glob.glob(f"{val_label_path}bundle_*.xml"))
         else:
             stem = Path(max(val_products)).with_suffix("")
