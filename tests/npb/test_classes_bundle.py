@@ -1921,12 +1921,10 @@ class TestBundlePReadBundleLabel:
 # branch where the checksum IS in the history (via a miscellaneous collection
 # entry) and where it is NOT (kernel-only releases).
 #
-# Error branches
-# --------------
-# Two distinct branches exist when products_in_checksum != products_in_history:
-#   a) setup.args.log is False  → handle_npb_error called with the full diff
-#   b) setup.args.log is True   → handle_npb_error called with a short message
-# Both must be tested.
+# Error
+# -----
+# When products_in_checksum != products_in_history, NPBError is always
+# raised with the full diff message (setup.args.log has no effect on this).
 # ---------------------------------------------------------------------------
 
 class TestPValidateHistory:
@@ -1963,8 +1961,10 @@ class TestPValidateHistory:
     def _validate_setup(tmp_path, *, log: bool = False) -> SimpleNamespace:
         """Return a ``SimpleNamespace`` setup suitable for _validate_history tests.
 
-        :param log:  value for ``setup.args.log`` (controls which handle_npb_error
-                     branch is taken on mismatch)
+        :param log:  value for ``setup.args.log``. No longer affects
+                     ``_validate_history``'s behavior (see module comment
+                     above); the parameter is kept only because ``args`` must
+                     expose a ``log`` attribute.
         """
         bundle_dir = tmp_path / "bundle"
         bundle_root = bundle_dir / f"{MISSION}_spice"
@@ -2249,7 +2249,7 @@ class TestPValidateHistory:
         assert caplog.messages == expected
 
     # ------------------------------------------------------------------ #
-    # 6. Mismatch — ERROR logging, args.log=False branch                  #
+    # 6. Mismatch — ERROR logging                                         #
     # ------------------------------------------------------------------ #
 
     def test_mismatch_logs_error_lines(self, tmp_path, caplog):
@@ -2271,18 +2271,15 @@ class TestPValidateHistory:
             '',
             f'-- Products in {tmp_path / "bundle"}/insight_spice/miscellaneous/checksum/checksum_v001.tab '
             f'do not correspond to the bundle release history.',
-            '      readme.txt',
-            f'-- Products in {tmp_path / "bundle"}/insight_spice/miscellaneous/checksum/checksum_v001.tab '
-            f'do not correspond to the bundle release history: \n'
-            f' readme.txt\n']
+            '      readme.txt']
         assert caplog.messages == expected
 
-    def test_mismatch_args_log_false_raises_with_diff_message(
+    def test_mismatch_raises_with_diff_message(
             self, tmp_path, caplog
     ):
-        """With args.log=False, handle_npb_error is called with the detailed
-        diff message (containing the checksum file path)."""
-        setup = self._validate_setup(tmp_path, log=False)
+        """On mismatch, NPBError is always raised with the detailed diff
+        message (containing the checksum file path)."""
+        setup = self._validate_setup(tmp_path)
         self._write_kernel_release(setup, rel=1, kernel_ver=1, kernel_rows=[])
         products = self._kernel_only_products(rel=1, ver=1)
         mismatched = [p for p in products if "readme" not in p]
@@ -2297,31 +2294,6 @@ class TestPValidateHistory:
         expected_error = (
             f'Products in {re.escape(str(tmp_path / "bundle" ))}/insight_spice/miscellaneous/checksum/checksum_v001.tab '
             'do not correspond to the bundle release history: \n readme.txt\n')
-        with pytest.raises(Exception, match=expected_error):
-            bundle._validate_history()
-
-    # ------------------------------------------------------------------ #
-    # 7. Mismatch — args.log=True branch                                  #
-    # ------------------------------------------------------------------ #
-
-    def test_mismatch_args_log_true_raises_with_short_message(
-            self, tmp_path, caplog
-    ):
-        """With args.log=True, handle_npb_error is called with the short
-        'Check generation of Checksum files.' message."""
-        setup = self._validate_setup(tmp_path, log=True)
-        self._write_kernel_release(setup, rel=1, kernel_ver=1, kernel_rows=[])
-        products = self._kernel_only_products(rel=1, ver=1)
-        mismatched = [p for p in products if "readme" not in p]
-        self._write_checksum(self._bundle_root(setup), rel=1, products=mismatched)
-
-        bundle = self._validate_bundle(setup, vid="1.0", collections=["something"])
-
-        # Mock the write_file_list method of the setup object.
-        setup.write_file_list = MagicMock()
-        setup.write_checksum_registry = MagicMock()
-
-        expected_error = 'Check generation of Checksum files.'
         with pytest.raises(Exception, match=expected_error):
             bundle._validate_history()
 
@@ -2348,10 +2320,7 @@ class TestPValidateHistory:
             '',
             f'-- Products in {tmp_path / "bundle"}/insight_spice/miscellaneous/checksum/checksum_v001.tab '
             'do not correspond to the bundle release history.',
-            '      spice_kernels/ck/nonexistent_v01.bc',
-            f'-- Products in {tmp_path / "bundle"}/insight_spice/miscellaneous/checksum/checksum_v001.tab '
-            'do not correspond to the bundle release history: \n'
-            ' spice_kernels/ck/nonexistent_v01.bc\n']
+            '      spice_kernels/ck/nonexistent_v01.bc']
         assert caplog.messages == expected
 
     # ------------------------------------------------------------------ #
@@ -2389,10 +2358,7 @@ class TestPValidateHistory:
             '',
             f'-- Products in {tmp_path / "bundle"}/insight_spice/miscellaneous/checksum/checksum_v002.tab '
             'do not correspond to the bundle release history.',
-            '      bundle_insight_spice_v002.xml',
-            f'-- Products in {tmp_path / "bundle"}/insight_spice/miscellaneous/checksum/checksum_v002.tab '
-            'do not correspond to the bundle release history: \n'
-            ' bundle_insight_spice_v002.xml\n']
+            '      bundle_insight_spice_v002.xml']
         assert caplog.messages == expected
 
     def test_first_release_matching_second_mismatch_first_logs_no_error(
@@ -2438,10 +2404,6 @@ class TestPValidateHistory:
             (logging.ERROR, f'-- Products in {tmp_path / "bundle"}/insight_spice/miscellaneous/checksum/checksum_v002.tab '
                             'do not correspond to the bundle release history.'),
             (logging.ERROR, '      bundle_insight_spice_v002.xml'),
-            (logging.ERROR, '      spice_kernels/collection_spice_kernels_v002.xml'),
-            (logging.ERROR, f'-- Products in {tmp_path / "bundle"}/insight_spice/miscellaneous/checksum/checksum_v002.tab '
-                            f'do not correspond to the bundle release history: \n'
-                            f' bundle_insight_spice_v002.xml\n'
-                            f'spice_kernels/collection_spice_kernels_v002.xml\n')]
+            (logging.ERROR, '      spice_kernels/collection_spice_kernels_v002.xml')]
         results = [(r[1], r[2]) for r in caplog.record_tuples]
         assert results == expected
