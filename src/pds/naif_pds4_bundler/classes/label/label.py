@@ -159,11 +159,10 @@ class PDSLabel:
             logging.info("")
 
     def compare(self):
-        """**Compare the Label with another label**.
+        """Compare the label with another label.
 
-        The product label is compared to a similar label. The label with which
-        the generated label is compared to is determined
-        by the first criteria that is met from the following list:
+        The label to compare against is determined by the first criteria
+        met from the following list, in order:
 
            * find a different version of the same label
            * find the label of a product of the same kind (e.g.: same kernel
@@ -184,12 +183,13 @@ class PDSLabel:
             compare_files(val_label, self.name, self.setup.working_directory, self.setup.diff)
 
     def _find_prior_version_label(self):
-        """1-Look for a different version of the same file.
+        """Look for a different version of the same file (fallback level 1).
 
-        What we do is that we keep trying to match the label name
-        advancing one character each iteration, in such a way that
-        we find, in order, the label that has the closest name to the
-        one we are generating.
+        Keeps trying to match the label name, advancing one character each
+        iteration, so that we find, in order, the label with the closest
+        name to the one being generated.
+
+        :return: Path to the matching label, or ``None`` if none is found.
         """
         try:
             val_label = ""
@@ -223,8 +223,11 @@ class PDSLabel:
             return None
 
     def _find_similar_type_label(self):
-        """2-If a prior version of the same file cannot be found look for
-        the label of a product of the same type.
+        """Look for the label of a product of the same type (fallback level 2).
+
+        Used when a prior version of the same file cannot be found.
+
+        :return: Path to the matching label, or ``None`` if none is found.
         """
         try:
             val_label_path = self._val_label_directory(
@@ -242,9 +245,13 @@ class PDSLabel:
             return None
 
     def _find_insight_fallback_label(self):
-        """3-If we cannot find a kernel of the same type; for example is a
-        first version of an archive, we compare with a label available in
-        the test data directories.
+        """Fall back to an InSight test label (fallback level 3).
+
+        Used when no kernel of the same type can be found -- for example,
+        the first version of an archive -- by comparing with a label
+        available in the test data directories.
+
+        :return: Path to the matching label, or ``None`` if none is found.
         """
         try:
             val_label_path = self._val_label_directory(
@@ -267,9 +274,13 @@ class PDSLabel:
             return None
 
     def _val_label_directory(self, base_dir):
-        """Build the candidate-label directory under ``base_dir`` for the
-        product's collection, appending the kernel-type/product-type
-        subdirectory when the collection is spice_kernels or miscellaneous.
+        """Build the candidate-label directory for the product's collection.
+
+        Appends the kernel-type/product-type subdirectory when the
+        collection is spice_kernels or miscellaneous.
+
+        :param base_dir: Root directory to build the candidate path under.
+        :return: The candidate-label directory path.
         """
         val_label_path = base_dir + self.product.collection.name + os.sep
 
@@ -283,14 +294,23 @@ class PDSLabel:
     def _pick_val_label(self, val_products, val_label_path):
         """Select a validation label from val_products/val_label_path.
 
-        "collection"/"bundle" must match an exact path component of
-        ``self.name``, not merely appear as a substring of the basename
-        (e.g. "unbundled_data.xml" must not be treated as a bundle
-        label). The similar-type and InSight-fallback lookups used to
-        apply different rules here; both now use the stricter,
-        component-exact rule.
+        "collection"/"bundle" are matched as a substring of the label's
+        basename (``self.name.split(os.sep)[-1]``), not as a standalone
+        path component. Real product names embed them as a prefix -- e.g.
+        "collection_spice_kernels_v001.xml", "bundle_insight_spice_v009.xml"
+        -- never as a bare directory/path segment, so an exact-component
+        check would never match real files. The similar-type and
+        InSight-fallback lookups used to apply different rules here
+        (substring vs. exact-component); both now use the substring rule
+        that actually matches production naming.
+
+        :param val_products: Candidate product paths, sorted ascending;
+            the last (newest) entry is used to derive the label name.
+        :param val_label_path: Directory the label is expected to live in.
+        :return: Path to the selected validation label.
+        :raises Exception: If no label for comparison can be found.
         """
-        haystack = self.name.split(os.sep)
+        haystack = self.name.split(os.sep)[-1]
 
         if "collection" in haystack:
             stem = Path(val_products[-1].replace("inventory_", "")).with_suffix("")

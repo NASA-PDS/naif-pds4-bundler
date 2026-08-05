@@ -364,7 +364,7 @@ class TestPDSLabelCompare:
     def test_level2_collection_label(self, label_for, mocker):
         mocker.patch(_PATCH_COMPARE)
         label = label_for(label_name_part="collection")
-        label.name = f"/staging/spice_kernels{os.sep}collection{os.sep}label.xml"
+        label.name = f"/staging/spice_kernels{os.sep}collection_label.xml"
         mocker.patch(_PATCH_GLOB, side_effect=[
             [],  # level-1: first (and only) call → miss, exits loop
             ["/bundle/.../inventory_coll.bc"],  # level-2: val_products glob
@@ -378,7 +378,7 @@ class TestPDSLabelCompare:
     def test_level2_bundle_label(self, label_for, mocker):
         mocker.patch(_PATCH_COMPARE)
         label = label_for(label_name_part="bundle")
-        label.name = f"/staging{os.sep}bundle{os.sep}label.xml"
+        label.name = f"/staging{os.sep}bundle_label.xml"
         mocker.patch(_PATCH_GLOB, side_effect=[
             [],  # level-1: miss
             ["/bundle/kernel.bc"],  # level-2: val_products glob
@@ -422,12 +422,12 @@ class TestPDSLabelCompare:
         mock_cmp.assert_not_called()
 
     # ------------------------------------------------------------------
-    # Level 3: "collection" segment in the name path (split by os.sep)
+    # Level 3: "collection" substring in the label's basename
     # ------------------------------------------------------------------
-    def test_level3_collection_in_name_path(self, label_for, mocker):
+    def test_level3_collection_label(self, label_for, mocker):
         mocker.patch(_PATCH_COMPARE)
         label = label_for()
-        label.name = f"/staging{os.sep}collection{os.sep}label.xml"
+        label.name = f"/staging/spice_kernels{os.sep}collection_label.xml"
         mocker.patch(_PATCH_GLOB, side_effect=[
             [],  # level-1: miss
             [],  # level-2: val_products empty
@@ -437,12 +437,12 @@ class TestPDSLabelCompare:
         label.compare()
 
     # ------------------------------------------------------------------
-    # Level 3: "bundle" segment in the name path
+    # Level 3: "bundle" substring in the label's basename
     # ------------------------------------------------------------------
-    def test_level3_bundle_in_name_path(self, label_for, mocker):
+    def test_level3_bundle_label(self, label_for, mocker):
         mocker.patch(_PATCH_COMPARE)
         label = label_for()
-        label.name = f"/staging{os.sep}bundle{os.sep}label.xml"
+        label.name = f"/staging{os.sep}bundle_label.xml"
         mocker.patch(_PATCH_GLOB, side_effect=[
             [],  # level-1: miss
             [],  # level-2: val_products empty
@@ -652,30 +652,33 @@ class TestPDSLabelCompareHelpers:
         result = label._val_label_directory("/bundle/test_spice/")
         assert result == expected
 
-    # -- _pick_val_label: branch selection, unified exact-component
+    # -- _pick_val_label: branch selection, unified substring-of-basename
     #    matching rule (used by both the similar-type and InSight-fallback
-    #    call sites) ------------------------------------------------------
+    #    call sites). Real product names embed "collection"/"bundle" as a
+    #    basename prefix (e.g. "collection_spice_kernels_v001.xml",
+    #    "bundle_insight_spice_v009.xml"), never as a standalone path
+    #    component, so the match must be substring-based to work at all. --
 
     @pytest.mark.parametrize(
         "name, val_products, val_label_path, glob_return, expected, expected_glob_call",
         [
             pytest.param(
-                f"/staging{os.sep}collection{os.sep}label.xml",
+                f"/staging/spice_kernels{os.sep}collection_spice_kernels_v001.xml",
                 ["/insight/ck/inventory_old.bc"],
                 "/insight/ck/",
                 ["/insight/ck/old_collection.xml"],
                 "/insight/ck/old_collection.xml",
                 "/insight/ck/old.xml",
-                id="collection-branch",
+                id="collection-branch-realistic-name",
             ),
             pytest.param(
-                f"/staging{os.sep}bundle{os.sep}label.xml",
+                f"/staging{os.sep}bundle_insight_spice_v009.xml",
                 [],
                 "/insight/",
                 ["/insight/bundle_v1.xml"],
                 "/insight/bundle_v1.xml",
                 "/insight/bundle_*.xml",
-                id="bundle-branch",
+                id="bundle-branch-realistic-name",
             ),
             pytest.param(
                 f"/staging/ck{os.sep}kernel.xml",
@@ -690,28 +693,32 @@ class TestPDSLabelCompareHelpers:
                 id="else-branch-multidot-stem",
             ),
             pytest.param(
-                # "collection" is only a substring of this basename, not an
-                # exact path component -- must fall through to the else
-                # branch rather than the collection branch.
-                f"/staging/spice_kernels{os.sep}collection_inventory.xml",
+                # A directory literally named "collection" must NOT trigger
+                # the collection branch -- only the basename is checked, not
+                # the full path. The basename here ("label.xml") has no
+                # "collection" substring, so this falls through to else.
+                f"/staging{os.sep}collection{os.sep}label.xml",
                 ["/insight/ck/kernel.bc"],
                 "/insight/ck/",
                 ["/insight/ck/kernel.xml"],
                 "/insight/ck/kernel.xml",
                 "/insight/ck/kernel.xml",
-                id="collection-substring-does-not-trigger-branch",
+                id="collection-directory-without-basename-match-falls-to-else",
             ),
             pytest.param(
-                # "bundle" is only a substring of "unbundled_data.xml" (from
-                # "unbundled"), not an exact path component -- must fall
-                # through to the else branch rather than the bundle branch.
+                # Known, accepted trade-off of substring matching: "bundle"
+                # is a substring of "unbundled_data.xml" (from "unbundled"),
+                # so this still triggers the bundle branch even though the
+                # file is not actually a bundle label. This is the price of
+                # a rule that must also match real names like
+                # "bundle_insight_spice_v009.xml".
                 f"/staging/spice_kernels{os.sep}unbundled_data.xml",
-                ["/insight/ck/unbundled_data.bc"],
+                [],
                 "/insight/ck/",
-                ["/insight/ck/unbundled_data.xml"],
-                "/insight/ck/unbundled_data.xml",
-                "/insight/ck/unbundled_data.xml",
-                id="bundle-substring-does-not-trigger-branch",
+                ["/insight/ck/bundle_v2.xml"],
+                "/insight/ck/bundle_v2.xml",
+                "/insight/ck/bundle_*.xml",
+                id="bundle-substring-collision-is-accepted-trade-off",
             ),
         ],
     )
