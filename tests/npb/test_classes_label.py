@@ -749,10 +749,10 @@ class TestPDSLabelCompareHelpers:
         with pytest.raises(Exception, match="No label for comparison found."):
             label._pick_val_label(["/bundle/ck/kernel.bc"], "/bundle/ck/")
 
-    def test_pick_val_label_raises_indexerror_on_empty_products(self, label_for_helper):
+    def test_pick_val_label_raises_valueerror_on_empty_products(self, label_for_helper):
         label = label_for_helper()
         label.name = f"/staging/ck{os.sep}kernel.xml"
-        with pytest.raises(IndexError):
+        with pytest.raises(ValueError):
             label._pick_val_label([], "/bundle/ck/")
 
     # -- _find_prior_version_label ---------------------------------------

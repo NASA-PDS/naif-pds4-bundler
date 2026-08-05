@@ -236,7 +236,6 @@ class PDSLabel:
 
             product_extension = self.product.name.split(".")[-1]
             val_products = glob.glob(f"{val_label_path}*.{product_extension}")
-            val_products.sort()
 
             return self._pick_val_label(val_products, val_label_path)
 
@@ -263,7 +262,6 @@ class PDSLabel:
             #
             product_extension = self.product.name.split(".")[-1]
             val_products = glob.glob(f"{val_label_path}*.{product_extension}")
-            val_products.sort()
 
             val_label = self._pick_val_label(val_products, val_label_path)
             logging.warning("-- Comparing with InSight test label.")
@@ -304,8 +302,9 @@ class PDSLabel:
         (substring vs. exact-component); both now use the substring rule
         that actually matches production naming.
 
-        :param val_products: Candidate product paths, sorted ascending;
-            the last (newest) entry is used to derive the label name.
+        :param val_products: Candidate product paths, in any order; the
+            lexicographically greatest (newest) entry is used to derive
+            the label name.
         :param val_label_path: Directory the label is expected to live in.
         :return: Path to the selected validation label.
         :raises Exception: If no label for comparison can be found.
@@ -313,12 +312,12 @@ class PDSLabel:
         haystack = Path(self.name).name
 
         if "collection" in haystack:
-            stem = Path(val_products[-1].replace("inventory_", "")).with_suffix("")
+            stem = Path(max(val_products).replace("inventory_", "")).with_suffix("")
             val_label = glob.glob(f"{stem}.xml")[0]
         elif "bundle" in haystack:
-            val_label = sorted(glob.glob(f"{val_label_path}bundle_*.xml"))[-1]
+            val_label = max(glob.glob(f"{val_label_path}bundle_*.xml"))
         else:
-            stem = Path(val_products[-1]).with_suffix("")
+            stem = Path(max(val_products)).with_suffix("")
             val_label = glob.glob(f"{stem}.xml")[0]
 
         if not val_label:
