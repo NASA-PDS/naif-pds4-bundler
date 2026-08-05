@@ -1921,10 +1921,12 @@ class TestBundlePReadBundleLabel:
 # branch where the checksum IS in the history (via a miscellaneous collection
 # entry) and where it is NOT (kernel-only releases).
 #
-# Error
-# -----
-# When products_in_checksum != products_in_history, NPBError is always
-# raised with the full diff message (setup.args.log has no effect on this).
+# Error branches
+# --------------
+# Two distinct branches exist when products_in_checksum != products_in_history:
+#   a) setup.args.log is False  → NPBError raised with the full diff
+#   b) setup.args.log is True   → NPBError raised with a short message
+# Both must be tested.
 # ---------------------------------------------------------------------------
 
 class TestPValidateHistory:
@@ -1961,10 +1963,8 @@ class TestPValidateHistory:
     def _validate_setup(tmp_path, *, log: bool = False) -> SimpleNamespace:
         """Return a ``SimpleNamespace`` setup suitable for _validate_history tests.
 
-        :param log:  value for ``setup.args.log``. No longer affects
-                     ``_validate_history``'s behavior (see module comment
-                     above); the parameter is kept only because ``args`` must
-                     expose a ``log`` attribute.
+        :param log:  value for ``setup.args.log`` (controls which NPBError
+                     branch is taken on mismatch)
         """
         bundle_dir = tmp_path / "bundle"
         bundle_root = bundle_dir / f"{MISSION}_spice"
@@ -2256,7 +2256,7 @@ class TestPValidateHistory:
         assert caplog.messages == expected
 
     # ------------------------------------------------------------------ #
-    # 6. Mismatch — ERROR logging                                         #
+    # 6. Mismatch — ERROR logging, args.log=False branch                  #
     # ------------------------------------------------------------------ #
 
     def test_mismatch_logs_error_lines(self, tmp_path, caplog):
@@ -2281,10 +2281,12 @@ class TestPValidateHistory:
             '      readme.txt']
         assert caplog.messages == expected
 
-    def test_mismatch_raises_with_diff_message(self, tmp_path):
-        """On mismatch, NPBError is always raised with the detailed diff
-        message (containing the checksum file path)."""
-        setup = self._validate_setup(tmp_path)
+    def test_mismatch_args_log_false_raises_with_diff_message(
+            self, tmp_path
+    ):
+        """With args.log=False, NPBError is raised with the detailed
+        diff message (containing the checksum file path)."""
+        setup = self._validate_setup(tmp_path, log=False)
         self._write_kernel_release(setup, rel=1, kernel_ver=1, kernel_rows=[])
         products = self._kernel_only_products(rel=1, ver=1)
         mismatched = [p for p in products if "readme" not in p]
@@ -2295,6 +2297,27 @@ class TestPValidateHistory:
         expected_error = (
             f'Products in {re.escape(str(tmp_path / "bundle" ))}/insight_spice/miscellaneous/checksum/checksum_v001.tab '
             'do not correspond to the bundle release history: \n readme.txt\n')
+        with pytest.raises(Exception, match=expected_error):
+            bundle._validate_history()
+
+    # ------------------------------------------------------------------ #
+    # 7. Mismatch — args.log=True branch                                  #
+    # ------------------------------------------------------------------ #
+
+    def test_mismatch_args_log_true_raises_with_short_message(
+            self, tmp_path
+    ):
+        """With args.log=True, NPBError is raised with the short
+        'Check generation of Checksum files.' message."""
+        setup = self._validate_setup(tmp_path, log=True)
+        self._write_kernel_release(setup, rel=1, kernel_ver=1, kernel_rows=[])
+        products = self._kernel_only_products(rel=1, ver=1)
+        mismatched = [p for p in products if "readme" not in p]
+        self._write_checksum(self._bundle_root(setup), rel=1, products=mismatched)
+
+        bundle = self._validate_bundle(setup, vid="1.0", collections=["something"])
+
+        expected_error = 'Check generation of Checksum files.'
         with pytest.raises(Exception, match=expected_error):
             bundle._validate_history()
 

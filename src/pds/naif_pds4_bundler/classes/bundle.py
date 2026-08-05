@@ -786,9 +786,12 @@ class Bundle:
 
                     logging.error('      %s', product)
 
-                raise NPBError(
-                    f"Products in {checksum_file} do not correspond "
-                    f"to the bundle release history: \n {incorrect_output}"
-                )
+                if not self.setup.args.log:
+                    raise NPBError(
+                        f"Products in {checksum_file} do not correspond "
+                        f"to the bundle release history: \n {incorrect_output}"
+                    )
+                else:
+                    raise NPBError("Check generation of Checksum files.")
 
         logging.info("")
