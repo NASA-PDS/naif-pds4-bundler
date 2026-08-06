@@ -2123,20 +2123,16 @@ class TestPValidateHistory:
         — the exact key ``_validate_history`` checks for. The physical
         checksum .tab file must NOT list itself/its label, since those are
         appended by the method itself to avoid double-counting.
+
+        Only the miscellaneous collection is declared here — a kernel
+        collection isn't needed to reach this branch and is already covered
+        by the kernel-only tests above.
         """
         setup = self._validate_setup(tmp_path)
-        # Write bundle label with both kernel and miscellaneous collections
         _write_bundle_label(setup, 1, [
-            {"lid": f"urn:nasa:pds:{MISSION}.spice:spice_kernels::1.0",
-             "status": "Primary"},
             {"lid": f"urn:nasa:pds:{MISSION}.spice:miscellaneous::1.0",
              "status": "Primary"},
         ])
-        _write_collection_csv(
-            setup,
-            "spice_kernels/collection_spice_kernels_inventory_v001.csv",
-            [],
-        )
         # Miscellaneous collection contains a checksum entry
         _write_collection_csv(
             setup,
@@ -2144,25 +2140,30 @@ class TestPValidateHistory:
             [f"P,urn:nasa:pds:{MISSION}.spice:miscellaneous:checksum_checksum::1.0"],
         )
 
-        # Build the expected product list that _get_history will return
-        history_products = sorted([
+        # These are the exact keys _validate_history's augmentation branch
+        # checks for (bundle.py: checksum_product/checksum_label), named the
+        # same way here so the two are easy to cross-reference.
+        checksum_product = "miscellaneous/checksum/checksum_v001.tab"
+        checksum_label = "miscellaneous/checksum/checksum_v001.xml"
+
+        # The products _get_history will return, in the same order as the
+        # `expected` list below (readme and the bundle label are
+        # unconditional; the rest come from the miscellaneous collection).
+        # This is a flat mix of bundle-level, collection-level and
+        # product-level files — see _get_history's docstring, which just
+        # calls this "a list of files".
+        history_products = [
             "readme.txt",
             f"bundle_{MISSION}_spice_v001.xml",
-            "spice_kernels/collection_spice_kernels_inventory_v001.csv",
-            "spice_kernels/collection_spice_kernels_v001.xml",
             "miscellaneous/collection_miscellaneous_inventory_v001.csv",
             "miscellaneous/collection_miscellaneous_v001.xml",
-            "miscellaneous/checksum/checksum_v001.tab",
-            "miscellaneous/checksum/checksum_v001.xml",
-        ])
+            checksum_product,
+            checksum_label,
+        ]
 
-        # The physical checksum file must NOT contain the self-reference
-        # entries (those are appended by the method itself), to avoid
-        # double-counting.
-        checksum_tab = "miscellaneous/checksum/checksum_v001.tab"
-        checksum_xml = "miscellaneous/checksum/checksum_v001.xml"
+        # Excludes the self-reference entries — see docstring.
         file_products = [p for p in history_products
-                          if p not in (checksum_tab, checksum_xml)]
+                          if p not in (checksum_product, checksum_label)]
         self._write_checksum(
             self._bundle_root(setup), rel=1, products=file_products
         )
@@ -2177,8 +2178,6 @@ class TestPValidateHistory:
             '',
             "    { 1: [ 'readme.txt',",
             "           'bundle_insight_spice_v001.xml',",
-            "           'spice_kernels/collection_spice_kernels_inventory_v001.csv',",
-            "           'spice_kernels/collection_spice_kernels_v001.xml',",
             "           'miscellaneous/collection_miscellaneous_inventory_v001.csv',",
             "           'miscellaneous/collection_miscellaneous_v001.xml',",
             "           'miscellaneous/checksum/checksum_v001.tab',",
