@@ -28,6 +28,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from pds.naif_pds4_bundler.classes.bundle import Bundle
+from pds.naif_pds4_bundler.classes.exceptions import NPBError
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -2271,7 +2272,7 @@ class TestPValidateHistory:
 
         bundle = self._validate_bundle(setup, vid="1.0", collections=["something"])
         with caplog.at_level(logging.ERROR):
-            with pytest.raises(Exception):
+            with pytest.raises(NPBError):
                 bundle._validate_history()
 
         expected = [
@@ -2297,7 +2298,7 @@ class TestPValidateHistory:
         expected_error = (
             f'Products in {re.escape(str(tmp_path / "bundle" ))}/insight_spice/miscellaneous/checksum/checksum_v001.tab '
             'do not correspond to the bundle release history: \n readme.txt\n')
-        with pytest.raises(Exception, match=expected_error):
+        with pytest.raises(NPBError, match=expected_error):
             bundle._validate_history()
 
     # ------------------------------------------------------------------ #
@@ -2318,7 +2319,7 @@ class TestPValidateHistory:
         bundle = self._validate_bundle(setup, vid="1.0", collections=["something"])
 
         expected_error = 'Check generation of Checksum files.'
-        with pytest.raises(Exception, match=expected_error):
+        with pytest.raises(NPBError, match=expected_error):
             bundle._validate_history()
 
     def test_mismatch_extra_product_in_checksum_is_flagged(
@@ -2337,7 +2338,7 @@ class TestPValidateHistory:
 
         bundle = self._validate_bundle(setup, vid="1.0", collections=["something"])
         with caplog.at_level(logging.ERROR):
-            with pytest.raises(Exception):
+            with pytest.raises(NPBError):
                 bundle._validate_history()
 
         expected = [
@@ -2375,7 +2376,7 @@ class TestPValidateHistory:
 
         bundle = self._validate_bundle(setup, vid="2.0", collections=["something"])
         with caplog.at_level(logging.ERROR):
-            with pytest.raises(Exception):
+            with pytest.raises(NPBError):
                 bundle._validate_history()
 
         expected = [
@@ -2409,7 +2410,7 @@ class TestPValidateHistory:
 
         bundle = self._validate_bundle(setup, vid="2.0", collections=["something"])
         with caplog.at_level(logging.INFO):
-            with pytest.raises(Exception):
+            with pytest.raises(NPBError):
                 bundle._validate_history()
 
         # INFO lines must have been emitted (history was non-empty)
