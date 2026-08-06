@@ -102,7 +102,6 @@ def extension_to_type(kernel):
         "TLS": "LSK",
         "TPC": "PCK",
         "TEN": "EK",
-        "TEP": "EK",
         "BC": "CK",
         "BSP": "SPK",
         "BPC": "PCK",
@@ -207,7 +206,7 @@ def type_to_extension(kernel_type):
         "CK": ["bc"],
         "SPK": ["bsp"],
         "DSK": ["bds"],
-        "EK": ["bes", "bpe", "bep", "bdb", "ten", "tep"],
+        "EK": ["bes", "bpe", "bep", "bdb", "ten"],
         "ORB": ["nrb","orb"],
     }
 
@@ -953,6 +952,10 @@ def check_kernel_integrity(path):
 
     Text kernels must have ``KPL`` (Kernel Pool File) architecture.
 
+    **Note:** Text event kernels (``.ten``) are validated differently
+    because they use a different format than other text kernels and are not
+    loaded via standard SPICE routines.
+
     NPB checks if binary kernels have a ``DAF`` architecture and text kernels
     a ``KPL`` architecture.
 
@@ -963,16 +966,32 @@ def check_kernel_integrity(path):
     """
     error = ""
     name = path.split(os.sep)[-1].strip()
-    extension = path.split(".")[-1].strip()
+    extension = path.split(".")[-1].strip().lower()
+
+    # Filter out Text EKs since they are not loaded into SPICE and validate them
+    # differently
+    if extension == "ten":
+        # Try to read the file as UTF-8
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                content = f.read(2000)
+        except UnicodeDecodeError:
+            return f"Kernel {name} is not a valid text file (encoding error)."
+
+        # Validate content after successful read
+        if '\\header' not in content or '\\text' not in content:
+            return (f"Kernel {name} does not contain required text event "
+                    f"kernel markers (\\header, \\text).")
+
+        return ""  # Valid .ten file
+
     type_file = extension_to_type(name).upper()
 
     #
     # Determine if it is a binary or a text kernel.
     #
-    if extension[0].lower() == "b":
-        file_format = "Binary"
-    else:
-        file_format = "Character"
+
+    file_format = "Binary" if extension[0] == "b" else "Character"
 
     #
     # All files that are to have labels generated must have a NAIF
@@ -994,8 +1013,8 @@ def check_kernel_integrity(path):
         #
         if arch not in ('DAF', 'DAS'):
             error = f"Kernel {name} architecture {arch} is invalid."
-        else:
-            pass
+        # else:
+        #     pass
 
     else:  # file_format == "Character":
 

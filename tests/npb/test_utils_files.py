@@ -358,6 +358,47 @@ def test_check_kernel_integrity_text_kernel(tmp_path):
     error = files.check_kernel_integrity(str(kernel_path))
     assert error
 
+    #subcase 6: Text event kernel missing both markers should fail.
+    ten_file = tmp_path / "missing_markers.ten"
+    ten_file.write_text("This is just plain text with no event kernel markers\n")
+
+    error = files.check_kernel_integrity(str(ten_file))
+    assert error != ""
+    assert "does not contain required" in error
+    assert "\\header" in error
+    assert "\\text" in error
+
+    #subcase 6a: Text event kernel missing \\header marker should fail.
+    ten_file = tmp_path / "missing_header.ten"
+    ten_file.write_text("\\text\nSome event data\n")
+
+    error = files.check_kernel_integrity(str(ten_file))
+    assert error != ""
+    assert "does not contain required" in error
+
+    #subcase 6b: Text event kernel missing \\text marker should fail.
+    ten_file = tmp_path / "missing_text.ten"
+    ten_file.write_text("\\header\nSome header data\n")
+
+    error = files.check_kernel_integrity(str(ten_file))
+    assert error != ""
+    assert "does not contain required" in error
+
+def test_check_kernel_integrity_text_event_kernel(tmp_path, monkeypatch):
+    """Comprehensive test ensuring all exceptions are exercised for text EKs (.ten)."""
+    ten_file = tmp_path / "coverage.ten"
+
+    # Test 1: Normal operation (no exception)
+    ten_file.write_text("\\header\n\\text\n")
+    error = files.check_kernel_integrity(str(ten_file))
+    assert error == ""  # Success path
+
+    # Test 2: UnicodeDecodeError path
+    with open(ten_file, 'wb') as f:
+        f.write(b"\xff\xfe")
+    error = files.check_kernel_integrity(str(ten_file))
+    assert "encoding error" in error  # UnicodeDecodeError path
+
 # ----------------------------------------------------------------------------
 # files.check_kernel_integrity tests
 # ----------------------------------------------------------------------------
@@ -1407,7 +1448,7 @@ def test_string_in_file(kern, str_to_check, reps, expected):
     ("CK", ['bc']),
     ("SPK", ['bsp']),
     ("DSK", ['bds']),
-    ("EK", ['bes','bpe', 'bep', 'bdb', 'ten', 'tep']),
+    ("EK", ['bes','bpe', 'bep', 'bdb', 'ten']),
     ("ORB", ['nrb', 'orb']),
 ])
 def test_type_to_extension(inputs, outputs):
@@ -1427,7 +1468,6 @@ def test_type_to_extension(inputs, outputs):
     ("eros_n2000129x_v01.bpe", "ek"),
     ("S99_CIMSSSUPa.bep", "ek"),
     ("m01_mmdmt_ext10.ten", "ek"),
-    ("fakey.tep", "ek"),
     ("m2020_chronos_v01.tm", "mk"),
 ])
 def test_type_to_extension_object(kern, expected):
