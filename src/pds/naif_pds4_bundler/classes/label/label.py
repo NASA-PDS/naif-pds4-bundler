@@ -206,8 +206,7 @@ class PDSLabel:
                     f"{val_label_path}{val_label_name[0:i]}*.xml"
                 )
                 if val_labels:
-                    val_labels = sorted(val_labels)
-                    val_label = val_labels[-1]
+                    val_label = max(val_labels)
                     match_flag = True
                 else:
                     match_flag = False
