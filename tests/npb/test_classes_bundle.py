@@ -28,6 +28,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from pds.naif_pds4_bundler.classes.bundle import Bundle
+from pds.naif_pds4_bundler.classes.exceptions import NPBError
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -1924,8 +1925,8 @@ class TestBundlePReadBundleLabel:
 # Error branches
 # --------------
 # Two distinct branches exist when products_in_checksum != products_in_history:
-#   a) setup.args.log is False  → handle_npb_error called with the full diff
-#   b) setup.args.log is True   → handle_npb_error called with a short message
+#   a) setup.args.log is False  → NPBError raised with the full diff
+#   b) setup.args.log is True   → NPBError raised with a short message
 # Both must be tested.
 # ---------------------------------------------------------------------------
 
@@ -1963,7 +1964,7 @@ class TestPValidateHistory:
     def _validate_setup(tmp_path, *, log: bool = False) -> SimpleNamespace:
         """Return a ``SimpleNamespace`` setup suitable for _validate_history tests.
 
-        :param log:  value for ``setup.args.log`` (controls which handle_npb_error
+        :param log:  value for ``setup.args.log`` (controls which NPBError
                      branch is taken on mismatch)
         """
         bundle_dir = tmp_path / "bundle"
@@ -2112,51 +2113,59 @@ class TestPValidateHistory:
         """When the checksum product itself appears in history[rel], both the
         .tab and .xml are appended to products_in_checksum before comparison.
 
-        The miscellaneous collection must be present in the history so that
-        checksum_v001.tab appears there; the checksum file must therefore NOT
-        already contain itself to avoid double-counting.
+        Exercises the augmentation branch end-to-end through the real
+        CSV-driven ``_get_history`` path (unlike
+        ``test_checksum_self_reference_augmented_when_present_in_history``,
+        which stubs ``_get_history`` directly). Production code always
+        emits the checksum product LID as ``checksum_checksum``
+        (``product_checksum.py:set_product_lid``), which is what makes the
+        parsed history key equal ``miscellaneous/checksum/checksum_v001.tab``
+        — the exact key ``_validate_history`` checks for. The physical
+        checksum .tab file must NOT list itself/its label, since those are
+        appended by the method itself to avoid double-counting.
+
+        Only the miscellaneous collection is declared here — a kernel
+        collection isn't needed to reach this branch and is already covered
+        by the kernel-only tests above.
         """
         setup = self._validate_setup(tmp_path)
-        # Write bundle label with both kernel and miscellaneous collections
         _write_bundle_label(setup, 1, [
-            {"lid": f"urn:nasa:pds:{MISSION}.spice:spice_kernels::1.0",
-             "status": "Primary"},
             {"lid": f"urn:nasa:pds:{MISSION}.spice:miscellaneous::1.0",
              "status": "Primary"},
         ])
-        _write_collection_csv(
-            setup,
-            "spice_kernels/collection_spice_kernels_inventory_v001.csv",
-            [],
-        )
         # Miscellaneous collection contains a checksum entry
         _write_collection_csv(
             setup,
             "miscellaneous/collection_miscellaneous_inventory_v001.csv",
-            [f"P,urn:nasa:pds:{MISSION}.spice:miscellaneous:checksum_{MISSION}::1.0"],
+            [f"P,urn:nasa:pds:{MISSION}.spice:miscellaneous:checksum_checksum::1.0"],
         )
 
-        # Build the expected product list that _get_history will return
-        history_products = sorted([
+        # These are the exact keys _validate_history's augmentation branch
+        # checks for (bundle.py: checksum_product/checksum_label), named the
+        # same way here so the two are easy to cross-reference.
+        checksum_product = "miscellaneous/checksum/checksum_v001.tab"
+        checksum_label = "miscellaneous/checksum/checksum_v001.xml"
+
+        # The products _get_history will return, in the same order as the
+        # `expected` list below (readme and the bundle label are
+        # unconditional; the rest come from the miscellaneous collection).
+        # This is a flat mix of bundle-level, collection-level and
+        # product-level files — see _get_history's docstring, which just
+        # calls this "a list of files".
+        history_products = [
             "readme.txt",
             f"bundle_{MISSION}_spice_v001.xml",
-            "spice_kernels/collection_spice_kernels_inventory_v001.csv",
-            "spice_kernels/collection_spice_kernels_v001.xml",
             "miscellaneous/collection_miscellaneous_inventory_v001.csv",
             "miscellaneous/collection_miscellaneous_v001.xml",
-            f"miscellaneous/checksum/{MISSION}_v001.tab",
-            f"miscellaneous/checksum/{MISSION}_v001.xml",
-        ])
+            checksum_product,
+            checksum_label,
+        ]
 
-        # The checksum file lists everything EXCEPT the self-reference entries
-        # (those are appended by the method itself after reading the file).
-        # The checksum product key the code checks for is:
-        #   miscellaneous/checksum/checksum_v001.tab
-        # which would only appear if the inventory row used "checksum_insight"
-        # rather than "checksum_{MISSION}" — here we use the raw product name
-        # so checksum_product is NOT in history[rel], keeping this test clean.
+        # Excludes the self-reference entries — see docstring.
+        file_products = [p for p in history_products
+                          if p not in (checksum_product, checksum_label)]
         self._write_checksum(
-            self._bundle_root(setup), rel=1, products=history_products
+            self._bundle_root(setup), rel=1, products=file_products
         )
 
         bundle = self._validate_bundle(setup, vid="1.0", collections=["something"])
@@ -2169,12 +2178,10 @@ class TestPValidateHistory:
             '',
             "    { 1: [ 'readme.txt',",
             "           'bundle_insight_spice_v001.xml',",
-            "           'spice_kernels/collection_spice_kernels_inventory_v001.csv',",
-            "           'spice_kernels/collection_spice_kernels_v001.xml',",
             "           'miscellaneous/collection_miscellaneous_inventory_v001.csv',",
             "           'miscellaneous/collection_miscellaneous_v001.xml',",
-            "           'miscellaneous/checksum/insight_v001.tab',",
-            "           'miscellaneous/checksum/insight_v001.xml']}",
+            "           'miscellaneous/checksum/checksum_v001.tab',",
+            "           'miscellaneous/checksum/checksum_v001.xml']}",
             '']
         assert caplog.messages == expected
 
@@ -2264,23 +2271,20 @@ class TestPValidateHistory:
 
         bundle = self._validate_bundle(setup, vid="1.0", collections=["something"])
         with caplog.at_level(logging.ERROR):
-            with pytest.raises(Exception):
+            with pytest.raises(NPBError):
                 bundle._validate_history()
 
         expected = [
             '',
             f'-- Products in {tmp_path / "bundle"}/insight_spice/miscellaneous/checksum/checksum_v001.tab '
             f'do not correspond to the bundle release history.',
-            '      readme.txt',
-            f'-- Products in {tmp_path / "bundle"}/insight_spice/miscellaneous/checksum/checksum_v001.tab '
-            f'do not correspond to the bundle release history: \n'
-            f' readme.txt\n']
+            '      readme.txt']
         assert caplog.messages == expected
 
     def test_mismatch_args_log_false_raises_with_diff_message(
-            self, tmp_path, caplog
+            self, tmp_path
     ):
-        """With args.log=False, handle_npb_error is called with the detailed
+        """With args.log=False, NPBError is raised with the detailed
         diff message (containing the checksum file path)."""
         setup = self._validate_setup(tmp_path, log=False)
         self._write_kernel_release(setup, rel=1, kernel_ver=1, kernel_rows=[])
@@ -2290,14 +2294,10 @@ class TestPValidateHistory:
 
         bundle = self._validate_bundle(setup, vid="1.0", collections=["something"])
 
-        # Mocks the "write" methods of the setup object.
-        setup.write_file_list = MagicMock()
-        setup.write_checksum_registry = MagicMock()
-
         expected_error = (
             f'Products in {re.escape(str(tmp_path / "bundle" ))}/insight_spice/miscellaneous/checksum/checksum_v001.tab '
             'do not correspond to the bundle release history: \n readme.txt\n')
-        with pytest.raises(Exception, match=expected_error):
+        with pytest.raises(NPBError, match=expected_error):
             bundle._validate_history()
 
     # ------------------------------------------------------------------ #
@@ -2305,9 +2305,9 @@ class TestPValidateHistory:
     # ------------------------------------------------------------------ #
 
     def test_mismatch_args_log_true_raises_with_short_message(
-            self, tmp_path, caplog
+            self, tmp_path
     ):
-        """With args.log=True, handle_npb_error is called with the short
+        """With args.log=True, NPBError is raised with the short
         'Check generation of Checksum files.' message."""
         setup = self._validate_setup(tmp_path, log=True)
         self._write_kernel_release(setup, rel=1, kernel_ver=1, kernel_rows=[])
@@ -2317,12 +2317,8 @@ class TestPValidateHistory:
 
         bundle = self._validate_bundle(setup, vid="1.0", collections=["something"])
 
-        # Mock the write_file_list method of the setup object.
-        setup.write_file_list = MagicMock()
-        setup.write_checksum_registry = MagicMock()
-
         expected_error = 'Check generation of Checksum files.'
-        with pytest.raises(Exception, match=expected_error):
+        with pytest.raises(NPBError, match=expected_error):
             bundle._validate_history()
 
     def test_mismatch_extra_product_in_checksum_is_flagged(
@@ -2341,17 +2337,14 @@ class TestPValidateHistory:
 
         bundle = self._validate_bundle(setup, vid="1.0", collections=["something"])
         with caplog.at_level(logging.ERROR):
-            with pytest.raises(Exception):
+            with pytest.raises(NPBError):
                 bundle._validate_history()
 
         expected = [
             '',
             f'-- Products in {tmp_path / "bundle"}/insight_spice/miscellaneous/checksum/checksum_v001.tab '
             'do not correspond to the bundle release history.',
-            '      spice_kernels/ck/nonexistent_v01.bc',
-            f'-- Products in {tmp_path / "bundle"}/insight_spice/miscellaneous/checksum/checksum_v001.tab '
-            'do not correspond to the bundle release history: \n'
-            ' spice_kernels/ck/nonexistent_v01.bc\n']
+            '      spice_kernels/ck/nonexistent_v01.bc']
         assert caplog.messages == expected
 
     # ------------------------------------------------------------------ #
@@ -2382,17 +2375,14 @@ class TestPValidateHistory:
 
         bundle = self._validate_bundle(setup, vid="2.0", collections=["something"])
         with caplog.at_level(logging.ERROR):
-            with pytest.raises(Exception):
+            with pytest.raises(NPBError):
                 bundle._validate_history()
 
         expected = [
             '',
             f'-- Products in {tmp_path / "bundle"}/insight_spice/miscellaneous/checksum/checksum_v002.tab '
             'do not correspond to the bundle release history.',
-            '      bundle_insight_spice_v002.xml',
-            f'-- Products in {tmp_path / "bundle"}/insight_spice/miscellaneous/checksum/checksum_v002.tab '
-            'do not correspond to the bundle release history: \n'
-            ' bundle_insight_spice_v002.xml\n']
+            '      bundle_insight_spice_v002.xml']
         assert caplog.messages == expected
 
     def test_first_release_matching_second_mismatch_first_logs_no_error(
@@ -2419,7 +2409,7 @@ class TestPValidateHistory:
 
         bundle = self._validate_bundle(setup, vid="2.0", collections=["something"])
         with caplog.at_level(logging.INFO):
-            with pytest.raises(Exception):
+            with pytest.raises(NPBError):
                 bundle._validate_history()
 
         # INFO lines must have been emitted (history was non-empty)
@@ -2438,10 +2428,6 @@ class TestPValidateHistory:
             (logging.ERROR, f'-- Products in {tmp_path / "bundle"}/insight_spice/miscellaneous/checksum/checksum_v002.tab '
                             'do not correspond to the bundle release history.'),
             (logging.ERROR, '      bundle_insight_spice_v002.xml'),
-            (logging.ERROR, '      spice_kernels/collection_spice_kernels_v002.xml'),
-            (logging.ERROR, f'-- Products in {tmp_path / "bundle"}/insight_spice/miscellaneous/checksum/checksum_v002.tab '
-                            f'do not correspond to the bundle release history: \n'
-                            f' bundle_insight_spice_v002.xml\n'
-                            f'spice_kernels/collection_spice_kernels_v002.xml\n')]
+            (logging.ERROR, '      spice_kernels/collection_spice_kernels_v002.xml')]
         results = [(r[1], r[2]) for r in caplog.record_tuples]
         assert results == expected

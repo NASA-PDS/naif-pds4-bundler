@@ -12,6 +12,7 @@ from xml.etree import ElementTree
 
 import spiceypy
 
+from .exceptions import NPBError
 from ..pipeline.runtime import handle_npb_error
 from ..utils import (
     check_list_duplicates,
@@ -786,12 +787,11 @@ class Bundle:
                     logging.error('      %s', product)
 
                 if not self.setup.args.log:
-                    handle_npb_error(
+                    raise NPBError(
                         f"Products in {checksum_file} do not correspond "
-                        f"to the bundle release history: \n {incorrect_output}",
-                        setup=self.setup,
+                        f"to the bundle release history: \n {incorrect_output}"
                     )
                 else:
-                    handle_npb_error("Check generation of Checksum files.", self.setup)
+                    raise NPBError("Check generation of Checksum files.")
 
         logging.info("")
