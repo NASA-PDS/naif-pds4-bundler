@@ -9,6 +9,8 @@ from typing import Optional
 from ...utils import add_carriage_return, compare_files
 from ..exceptions import NPBError
 
+_NO_VAL_LABEL_FOUND_MESSAGE = "No label for comparison found."
+
 
 class PDSLabel:
     """Class to generate a PDS Label.
@@ -317,18 +319,18 @@ class PDSLabel:
             stem = matched.with_name(matched.name.replace("inventory_", "")).with_suffix(".xml")
             matches = glob.glob(str(stem))
             if not matches:
-                raise NPBError("No label for comparison found.")
+                raise NPBError(_NO_VAL_LABEL_FOUND_MESSAGE)
             val_label = matches[0]
         elif "bundle" in basename:
             matches = glob.glob(f"{val_label_path}bundle_*.xml")
             if not matches:
-                raise NPBError("No label for comparison found.")
+                raise NPBError(_NO_VAL_LABEL_FOUND_MESSAGE)
             val_label = max(matches)
         else:
             stem = Path(max(val_products)).with_suffix(".xml")
             matches = glob.glob(str(stem))
             if not matches:
-                raise NPBError("No label for comparison found.")
+                raise NPBError(_NO_VAL_LABEL_FOUND_MESSAGE)
             val_label = matches[0]
 
         return val_label
