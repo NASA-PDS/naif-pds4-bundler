@@ -9,6 +9,7 @@ from unittest.mock import call, mock_open
 
 import pytest
 
+from pds.naif_pds4_bundler.classes.exceptions import NPBError
 from pds.naif_pds4_bundler.classes.label.label import PDSLabel
 
 # Patch targets — resolved to where the names are looked up inside label.py
@@ -741,13 +742,42 @@ class TestPDSLabelCompareHelpers:
         mock_glob.assert_called_once_with(expected_glob_call)
 
     # -- _pick_val_label: failure paths ---------------------------------
+    # Each branch does its own glob; an empty result must raise NPBError
+    # directly, not fall through to a since-removed end-of-function guard.
 
-    def test_pick_val_label_raises_when_result_falsy(self, label_for_helper, mocker):
+    @pytest.mark.parametrize(
+        "name, val_products, val_label_path",
+        [
+            (
+                f"/staging/spice_kernels{os.sep}collection_spice_kernels_v001.xml",
+                ["/insight/ck/inventory_old.bc"],
+                "/insight/ck/",
+            ),
+            (
+                f"/staging{os.sep}bundle_insight_spice_v009.xml",
+                [],
+                "/insight/",
+            ),
+            (
+                f"/staging/ck{os.sep}kernel.xml",
+                ["/bundle/ck/kernel.v01.bc"],
+                "/bundle/ck/",
+            ),
+        ],
+        ids=[
+            "collection-branch-no-match",
+            "bundle-branch-no-match",
+            "else-branch-no-match",
+        ],
+    )
+    def test_pick_val_label_raises_when_no_match(
+        self, label_for_helper, mocker, name, val_products, val_label_path
+    ):
         label = label_for_helper()
-        label.name = f"/staging/ck{os.sep}kernel.xml"
-        mocker.patch(_PATCH_GLOB, return_value=[""])
-        with pytest.raises(Exception, match="No label for comparison found."):
-            label._pick_val_label(["/bundle/ck/kernel.bc"], "/bundle/ck/")
+        label.name = name
+        mocker.patch(_PATCH_GLOB, return_value=[])
+        with pytest.raises(NPBError, match="No label for comparison found."):
+            label._pick_val_label(val_products, val_label_path)
 
     def test_pick_val_label_raises_valueerror_on_empty_products(self, label_for_helper):
         label = label_for_helper()
