@@ -2233,9 +2233,6 @@ class TestKernelListCheckProducts:
         mocks.product_mapping = mocker.patch.object(
             list_module, 'product_mapping', return_value='__no_match__')
 
-        # Prevent SPICE pool operations in every test.
-        mocks.kclear = mocker.patch('spiceypy.kclear')
-
         return mocks
 
     # ------------------------------------------------------------------ #
@@ -2309,9 +2306,7 @@ class TestKernelListCheckProducts:
             self, mocker, caplog, tmp_path) -> None:
         # A non meta-kernel product that cannot be found anywhere records a
         # fatal error, skips all file checks for that product via continue,
-        # and raises NPBError. Pool cleanup (kclear) is no longer this
-        # method's responsibility -- it happens later, in the pipeline's
-        # except-NPBError handler.
+        # and raises NPBError.
         mocks = self.patch_checks(mocker)
         product = 'maven_absent.tsc'
         kernel_list = self.make_kernel_list(tmp_path, kernels=[product])
@@ -2332,7 +2327,6 @@ class TestKernelListCheckProducts:
         # No file check ran: the product was skipped via continue.
         mocks.check_permissions.assert_not_called()
         mocks.check_kernel_integrity.assert_not_called()
-        mocks.kclear.assert_not_called()
 
     def test_check_products_missing_meta_kernel_records_warning_only(
             self, mocker, caplog, tmp_path) -> None:
@@ -2355,7 +2349,6 @@ class TestKernelListCheckProducts:
         assert results == expected
 
         mocks.check_permissions.assert_not_called()
-        mocks.kclear.assert_not_called()
 
     def test_check_products_present_in_multiple_directories_warns(
             self, mocker, caplog, tmp_path) -> None:
@@ -2394,7 +2387,6 @@ class TestKernelListCheckProducts:
         assert results == expected
         # The first directory wins: every file check uses the first path.
         mocks.check_kernel_integrity.assert_called_once_with(str(first_path))
-        mocks.kclear.assert_not_called()
 
     # ------------------------------------------------------------------ #
     # EOL selection and text checks
@@ -2435,7 +2427,7 @@ class TestKernelListCheckProducts:
             self, mocker, caplog, tmp_path) -> None:
         # A bad EOL on an ORBNUM file is recorded as a warning, so no
         # RuntimeError is raised.
-        mocks = self.patch_checks(mocker, check_eol='Wrong EOL')
+        self.patch_checks(mocker, check_eol='Wrong EOL')
         product = 'm01_rec.orb'
         kernel_list = self.make_kernel_list(tmp_path, kernels=[product])
 
@@ -2449,8 +2441,6 @@ class TestKernelListCheckProducts:
         results = [(r[1], r[2]) for r in caplog.record_tuples]
 
         assert results == expected
-
-        mocks.kclear.assert_not_called()
 
     def test_check_products_badchar_and_line_length_warn(
             self, mocker, caplog, _text_kernel) -> None:
@@ -2476,8 +2466,6 @@ class TestKernelListCheckProducts:
         results = [(r[1], r[2]) for r in caplog.record_tuples]
 
         assert results == expected
-
-        mocks.kclear.assert_not_called()
 
     def test_check_products_orbnum_skips_line_length(
             self, mocker, tmp_path) -> None:
@@ -2524,10 +2512,8 @@ class TestKernelListCheckProducts:
         # Any check that returns an error string for a regular kernel must be
         # logged at ERROR level and cause NPBError to be raised. The three
         # error-producing checks are parametrized to prove they share the
-        # same fatal path without duplicating the test body. Pool cleanup
-        # (kclear) is no longer this method's responsibility -- it happens
-        # later, in the pipeline's except-NPBError handler.
-        mocks = self.patch_checks(mocker, **{failing_check: error_text})
+        # same fatal path without duplicating the test body.
+        self.patch_checks(mocker, **{failing_check: error_text})
         self.write_kernel(tmp_path, product)
         kernel_list = self.make_kernel_list(tmp_path, kernels=[product])
 
@@ -2543,8 +2529,6 @@ class TestKernelListCheckProducts:
         results = [(r[1], r[2]) for r in caplog.record_tuples]
 
         assert results == expected
-
-        mocks.kclear.assert_not_called()
 
     def test_check_products_calls_permissions_twice(
             self, mocker, caplog, _text_kernel) -> None:
@@ -2567,8 +2551,6 @@ class TestKernelListCheckProducts:
         assert mocks.check_permissions.call_count == 2
         assert mocks.check_permissions.call_args_list == [
             mocker.call(expected_path), mocker.call(expected_path)]
-
-        mocks.kclear.assert_not_called()
 
     # ------------------------------------------------------------------ #
     # Reporting: logging
