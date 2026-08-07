@@ -4,6 +4,7 @@ import glob
 import logging
 import os
 from pathlib import Path
+from typing import Optional
 
 from ...utils import add_carriage_return, compare_files
 
@@ -158,12 +159,11 @@ class PDSLabel:
         if self.__class__.__name__ != "SpiceKernelPDS3Label":
             logging.info("")
 
-    def compare(self):
-        """**Compare the Label with another label**.
+    def compare(self) -> None:
+        """Compare the label with another label.
 
-        The product label is compared to a similar label. The label with which
-        the generated label is compared to is determined
-        by the first criteria that is met from the following list:
+        The label to compare against is determined by the first criteria
+        met from the following list, in order:
 
            * find a different version of the same label
            * find the label of a product of the same kind (e.g.: same kernel
@@ -173,172 +173,149 @@ class PDSLabel:
         """
         logging.info("-- Comparing label...")
 
-        #
-        # 1-Look for a different version of the same file.
-        #
-        # What we do is that we keep trying to match the label name
-        # advancing one character each iteration, in such a way that
-        # we find, in order, the label that has the closest name to the
-        # one we are generating.
-        #
-        val_label = ""
-        try:
+        val_label = (
+            self._find_prior_version_label()
+            or self._find_similar_type_label()
+            or self._find_insight_fallback_label()
+        )
 
-            match_flag = True
-            val_label_path = (
-                self.setup.bundle_directory
-                + f"/{self.setup.mission_acronym}_spice/"
-                + self.product.collection.name
-                + os.sep
+        if val_label:
+            logging.info("")
+            compare_files(val_label, self.name, self.setup.working_directory, self.setup.diff)
+
+    def _find_prior_version_label(self) -> Optional[str]:
+        """Look for a different version of the same file (fallback level 1).
+
+        Keeps trying to match the label name, advancing one character each
+        iteration, so that we find, in order, the label with the closest
+        name to the one being generated.
+
+        :return: Path to the matching label, or ``None`` if none is found.
+        """
+        val_label = None
+        match_flag = True
+        val_label_path = self._val_label_directory(
+            str(Path(self.setup.bundle_directory) / f"{self.setup.mission_acronym}_spice")
+        )
+
+        val_label_name = Path(self.name).name
+        i = 1
+
+        while match_flag and i < len(val_label_name) - 1:
+            val_labels = glob.glob(
+                f"{val_label_path}{val_label_name[0:i]}*.xml"
+            )
+            if val_labels:
+                val_label = max(val_labels)
+                match_flag = True
+            else:
+                match_flag = False
+            i += 1
+
+        if not val_label:
+            logging.warning("-- No other version of the product label has been found.")
+
+        return val_label
+
+    def _find_similar_type_label(self) -> Optional[str]:
+        """Look for the label of a product of the same type (fallback level 2).
+
+        Used when a prior version of the same file cannot be found.
+
+        :return: Path to the matching label, or ``None`` if none is found.
+        """
+        try:
+            val_label_path = self._val_label_directory(
+                str(Path(self.setup.bundle_directory) / f"{self.setup.mission_acronym}_spice")
+            )
+
+            product_extension = self.product.name.split(".")[-1]
+            val_products = glob.glob(f"{val_label_path}*.{product_extension}")
+
+            return self._pick_val_label(val_products, val_label_path)
+
+        except Exception:
+            logging.warning("-- No similar label has been found.")
+            return None
+
+    def _find_insight_fallback_label(self) -> Optional[str]:
+        """Fall back to an InSight test label (fallback level 3).
+
+        Used when no kernel of the same type can be found -- for example,
+        the first version of an archive -- by comparing with a label
+        available in the test data directories.
+
+        :return: Path to the matching label, or ``None`` if none is found.
+        """
+        try:
+            val_label_path = self._val_label_directory(
+                str(Path(self.setup.root_dir) / "data" / "insight_spice")
             )
 
             #
-            # If this is the spice_kernels collection, we need to add the
-            # kernel type directory. If it is the miscellaneous collection,
-            # add the product type.
+            # Simply pick the last one
             #
-            if (self.product.collection.name == "spice_kernels") and (
-                "collection" not in self.name
-            ):
-                val_label_path += self.name.split(os.sep)[-2] + os.sep
-            elif (self.product.collection.name == "miscellaneous") and (
-                "collection" not in self.name
-            ):
-                val_label_path += self.name.split(os.sep)[-2] + os.sep
+            product_extension = self.product.name.split(".")[-1]
+            val_products = glob.glob(f"{val_label_path}*.{product_extension}")
 
-            val_label_name = self.name.split(os.sep)[-1]
-            i = 1
+            val_label = self._pick_val_label(val_products, val_label_path)
+            logging.warning("-- Comparing with InSight test label.")
+            return val_label
 
-            while match_flag and i < len(val_label_name) - 1:
-                val_labels = glob.glob(
-                    f"{val_label_path}{val_label_name[0:i]}*.xml"
-                )
-                if val_labels:
-                    val_labels = sorted(val_labels)
-                    val_label = val_labels[-1]
-                    match_flag = True
-                else:
-                    match_flag = False
-                i += 1
+        except Exception:
+            logging.warning("-- No label for comparison found.")
+            return None
 
-            if not val_label:
-                raise Exception("No label for comparison found.")
+    def _val_label_directory(self, base_dir: str) -> str:
+        """Build the candidate-label directory for the product's collection.
 
-        except BaseException:
-            logging.warning("-- No other version of the product label has been found.")
+        Appends the kernel-type/product-type subdirectory when the
+        collection is spice_kernels or miscellaneous.
 
-            #
-            # 2-If a prior version of the same file cannot be found look for
-            #   the label of a product of the same type.
-            #
-            try:
-                val_label_path = (
-                    self.setup.bundle_directory
-                    + f"/{self.setup.mission_acronym}_spice/"
-                    + self.product.collection.name
-                    + os.sep
-                )
+        :param base_dir: Root directory to build the candidate path under.
+        :return: The candidate-label directory path.
+        """
+        val_label_path = Path(base_dir) / self.product.collection.name
 
-                #
-                # If this is the spice_kernels collection, we need to add the
-                # kernel type directory.
-                #
-                if (self.product.collection.name == "spice_kernels") and (
-                    "collection" not in self.name
-                ):
-                    val_label_path += self.name.split(os.sep)[-2] + os.sep
-                elif (self.product.collection.name == "miscellaneous") and (
-                    "collection" not in self.name
-                ):
-                    val_label_path += self.name.split(os.sep)[-2] + os.sep
+        if self.product.collection.name in ("spice_kernels", "miscellaneous") and (
+            "collection" not in self.name
+        ):
+            val_label_path = val_label_path / Path(self.name).parent.name
 
-                product_extension = self.product.name.split(".")[-1]
-                val_products = glob.glob(f"{val_label_path}*.{product_extension}")
-                val_products.sort()
+        return f"{val_label_path}{os.sep}"
 
-                #
-                # Simply pick the last one
-                #
-                if "collection" in self.name.split(os.sep)[-1]:
-                    val_label = glob.glob(
-                        val_products[-1].replace("inventory_", "").split(".")[0]
-                        + ".xml"
-                    )[0]
-                elif "bundle" in self.name.split(os.sep)[-1]:
-                    val_labels = glob.glob(f"{val_label_path}bundle_*.xml")
-                    val_labels.sort()
-                    val_label = val_labels[-1]
-                else:
-                    val_label = glob.glob(val_products[-1].split(".")[0] + ".xml")[0]
+    def _pick_val_label(self, val_products: list[str], val_label_path: str) -> str:
+        """Select a validation label from val_products/val_label_path.
 
-                if not val_label:
-                    raise Exception("No label for comparison found.")
+        "collection"/"bundle" are matched as a substring of the label's
+        basename (``Path(self.name).name``), not as a standalone path
+        component. Real product names embed them as a prefix -- e.g.
+        "collection_spice_kernels_v001.xml", "bundle_insight_spice_v009.xml"
+        -- never as a bare directory/path segment, so an exact-component
+        check would never match real files. The similar-type and
+        InSight-fallback lookups used to apply different rules here
+        (substring vs. exact-component); both now use the substring rule
+        that actually matches production naming.
 
-            except BaseException:
+        :param val_products: Candidate product paths, in any order; the
+            lexicographically greatest (newest) entry is used to derive
+            the label name.
+        :param val_label_path: Directory the label is expected to live in.
+        :return: Path to the selected validation label.
+        :raises Exception: If no label for comparison can be found.
+        """
+        basename = Path(self.name).name
 
-                logging.warning("-- No similar label has been found.")
-                #
-                # 3-If we cannot find a kernel of the same type; for example
-                #   is a first version of an archive, we compare with
-                #   a label available in the test data directories.
-                #
-                try:
-                    val_label_path = (
-                        f"{self.setup.root_dir}"
-                        f"/data/insight_spice/"
-                        f"{self.product.collection.name}/"
-                    )
+        if "collection" in basename:
+            stem = Path(max(val_products).replace("inventory_", "")).with_suffix(".xml")
+            val_label = glob.glob(str(stem))[0]
+        elif "bundle" in basename:
+            val_label = max(glob.glob(f"{val_label_path}bundle_*.xml"))
+        else:
+            stem = Path(max(val_products)).with_suffix(".xml")
+            val_label = glob.glob(str(stem))[0]
 
-                    #
-                    # If this is the spice_kernels collection, we need to
-                    # add the kernel type directory.
-                    #
-                    if (self.product.collection.name == "spice_kernels") and (
-                        "collection" not in self.name
-                    ):
-                        val_label_path += self.name.split(os.sep)[-2] + os.sep
-                    elif (self.product.collection.name == "miscellaneous") and (
-                        "collection" not in self.name
-                    ):
-                        val_label_path += self.name.split(os.sep)[-2] + os.sep
+        if not val_label:
+            raise Exception("No label for comparison found.")
 
-                    #
-                    # Simply pick the last one
-                    #
-                    product_extension = self.product.name.split(".")[-1]
-                    val_products = glob.glob(f"{val_label_path}*.{product_extension}")
-                    val_products.sort()
-
-                    if "collection" in self.name.split(os.sep):
-                        val_label = glob.glob(
-                            val_products[-1].replace("inventory_", "").split(".")[0]
-                            + ".xml"
-                        )[0]
-                    elif "bundle" in self.name.split(os.sep):
-                        val_labels = glob.glob(f"{val_label_path}bundle_*.xml")
-                        val_labels.sort()
-                        val_label = val_labels[-1]
-                    else:
-                        val_label = glob.glob(val_products[-1].split(".")[0] + ".xml")[
-                            0
-                        ]
-
-                    if not val_label:
-                        raise Exception("No label for comparison found.")
-
-                    logging.warning("-- Comparing with InSight test label.")
-                except BaseException:
-                    logging.warning("-- No label for comparison found.")
-
-        #
-        # If a similar label has been found the labels are compared and a
-        # diff is being shown in the log. On top of that an HTML file with
-        # the comparison is being generated.
-        #
-        if val_label:
-            logging.info("")
-            fromfile = val_label
-            tofile = self.name
-            work_dir = self.setup.working_directory
-
-            compare_files(fromfile, tofile, work_dir, self.setup.diff)
+        return val_label
