@@ -307,13 +307,13 @@ class PDSLabel:
         basename = Path(self.name).name
 
         if "collection" in basename:
-            stem = Path(max(val_products).replace("inventory_", "")).with_suffix("")
-            val_label = glob.glob(f"{stem}.xml")[0]
+            stem = Path(max(val_products).replace("inventory_", "")).with_suffix(".xml")
+            val_label = glob.glob(str(stem))[0]
         elif "bundle" in basename:
             val_label = max(glob.glob(f"{val_label_path}bundle_*.xml"))
         else:
-            stem = Path(max(val_products)).with_suffix("")
-            val_label = glob.glob(f"{stem}.xml")[0]
+            stem = Path(max(val_products)).with_suffix(".xml")
+            val_label = glob.glob(str(stem))[0]
 
         if not val_label:
             raise Exception("No label for comparison found.")
