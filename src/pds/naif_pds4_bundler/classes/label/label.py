@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Optional
 
 from ...utils import add_carriage_return, compare_files
+from ..exceptions import NPBError
 
 
 class PDSLabel:
@@ -301,21 +302,33 @@ class PDSLabel:
             lexicographically greatest (newest) entry is used to derive
             the label name.
         :param val_label_path: Directory the label is expected to live in.
+            Only the "bundle" branch uses this directly; the
+            "collection"/else branches derive their directory implicitly
+            from ``val_products`` instead, and rely on the caller having
+            globbed ``val_products`` from this same ``val_label_path`` in
+            the first place.
         :return: Path to the selected validation label.
-        :raises Exception: If no label for comparison can be found.
+        :raises NPBError: If no label for comparison can be found.
         """
         basename = Path(self.name).name
 
         if "collection" in basename:
-            stem = Path(max(val_products).replace("inventory_", "")).with_suffix(".xml")
-            val_label = glob.glob(str(stem))[0]
+            matched = Path(max(val_products))
+            stem = matched.with_name(matched.name.replace("inventory_", "")).with_suffix(".xml")
+            matches = glob.glob(str(stem))
+            if not matches:
+                raise NPBError("No label for comparison found.")
+            val_label = matches[0]
         elif "bundle" in basename:
-            val_label = max(glob.glob(f"{val_label_path}bundle_*.xml"))
+            matches = glob.glob(f"{val_label_path}bundle_*.xml")
+            if not matches:
+                raise NPBError("No label for comparison found.")
+            val_label = max(matches)
         else:
             stem = Path(max(val_products)).with_suffix(".xml")
-            val_label = glob.glob(str(stem))[0]
-
-        if not val_label:
-            raise Exception("No label for comparison found.")
+            matches = glob.glob(str(stem))
+            if not matches:
+                raise NPBError("No label for comparison found.")
+            val_label = matches[0]
 
         return val_label
