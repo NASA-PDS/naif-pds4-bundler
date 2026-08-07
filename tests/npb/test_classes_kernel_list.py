@@ -1143,11 +1143,7 @@ class TestKernelListValidate:
     def test_validate_ignores_file_line_without_value(
             self, mocker, tmp_path) -> None:
         # Check that even if the FILE line contains nothing after the following
-        # equal sign, a file is created anyway.
-
-        # Mock the handle_npb_error call.
-        handle_npb_error_mock = mocker.patch(
-            'pds.naif_pds4_bundler.classes.list.handle_npb_error')
+        # equal sign, a file is created anyway (no NPBError raised).
 
         # Build a KernelList with a FILE line that contains nothing after equal
         # sign.
@@ -1155,9 +1151,6 @@ class TestKernelListValidate:
             mocker, tmp_path, 'FILE             = \n', kernels=[])
 
         kernel_list.validate()
-
-        # Check that handle_npb_error is not called.
-        handle_npb_error_mock.assert_not_called()
 
     def test_validate_skips_none_option_token(self, mocker, caplog,
                                               tmp_path) -> None:
@@ -2315,7 +2308,9 @@ class TestKernelListCheckProducts:
             self, mocker, caplog, tmp_path) -> None:
         # A non meta-kernel product that cannot be found anywhere records a
         # fatal error, skips all file checks for that product via continue,
-        # and raises RuntimeError through the real handle_npb_error.
+        # and raises NPBError. Pool cleanup (kclear) is no longer this
+        # method's responsibility -- it happens later, in the pipeline's
+        # except-NPBError handler.
         mocks = self.patch_checks(mocker)
         product = 'maven_absent.tsc'
         kernel_list = self.make_kernel_list(tmp_path, kernels=[product])
@@ -2327,8 +2322,7 @@ class TestKernelListCheckProducts:
         expected = [
             (logging.WARNING, f'-- {product}'),
             (logging.ERROR, '     Product not present in any kernel directory(ies)'),
-            (logging.ERROR, ''),
-            (logging.ERROR, f'-- {_CHECK_FATAL_MESSAGE}')]
+            (logging.ERROR, '')]
 
         results = [(r[1], r[2]) for r in caplog.record_tuples]
 
@@ -2337,8 +2331,7 @@ class TestKernelListCheckProducts:
         # No file check ran: the product was skipped via continue.
         mocks.check_permissions.assert_not_called()
         mocks.check_kernel_integrity.assert_not_called()
-        # 'handle_npb_error' called kclear before raising.
-        mocks.kclear.assert_called_once()
+        mocks.kclear.assert_not_called()
 
     def test_check_products_missing_meta_kernel_records_warning_only(
             self, mocker, caplog, tmp_path) -> None:
@@ -2528,9 +2521,11 @@ class TestKernelListCheckProducts:
             self, mocker, caplog, tmp_path, product, failing_check,
             error_text, log_line) -> None:
         # Any check that returns an error string for a regular kernel must be
-        # logged at ERROR level and cause RuntimeError via handle_npb_error.
-        # The three error-producing checks are parametrized to prove they share
-        # the same fatal path without duplicating the test body.
+        # logged at ERROR level and cause NPBError to be raised. The three
+        # error-producing checks are parametrized to prove they share the
+        # same fatal path without duplicating the test body. Pool cleanup
+        # (kclear) is no longer this method's responsibility -- it happens
+        # later, in the pipeline's except-NPBError handler.
         mocks = self.patch_checks(mocker, **{failing_check: error_text})
         self.write_kernel(tmp_path, product)
         kernel_list = self.make_kernel_list(tmp_path, kernels=[product])
@@ -2542,14 +2537,13 @@ class TestKernelListCheckProducts:
         expected = [
             (logging.WARNING, f'-- {product}'),
             (logging.ERROR, f'{log_line}'),
-            (logging.ERROR, ''),
-            (logging.ERROR, f'-- {_CHECK_FATAL_MESSAGE}')]
+            (logging.ERROR, '')]
 
         results = [(r[1], r[2]) for r in caplog.record_tuples]
 
         assert results == expected
 
-        mocks.kclear.assert_called_once()
+        mocks.kclear.assert_not_called()
 
     def test_check_products_calls_permissions_twice(
             self, mocker, caplog, _text_kernel) -> None:
@@ -2582,8 +2576,7 @@ class TestKernelListCheckProducts:
             self, mocker, caplog, _text_kernel) -> None:
         # Verify the logging side of reporting end to end for a single product:
         # header at WARNING, then each warning at WARNING, then each error at
-        # ERROR, then the empty ERROR line from handle_npb_error, and finally
-        # handle_npb_error's own fatal line at ERROR.
+        # ERROR, then the empty ERROR line preceding the NPBError raise.
         kernel_list, _ = _text_kernel
         self.patch_checks(mocker, check_eol='Wrong EOL',
                           check_badchar=['bad char'])
@@ -2596,8 +2589,7 @@ class TestKernelListCheckProducts:
             (logging.WARNING, '-- maven_test.tsc'),
             (logging.WARNING, '     bad char'),
             (logging.ERROR, '     Wrong EOL'),
-            (logging.ERROR, ''),
-            (logging.ERROR, f'-- {_CHECK_FATAL_MESSAGE}')]
+            (logging.ERROR, '')]
 
         results = [(r[1], r[2]) for r in caplog.record_tuples]
 
@@ -2657,8 +2649,7 @@ class TestKernelListCheckProducts:
             (logging.WARNING, '     bad char'),
             (logging.WARNING, f'-- {failed}'),
             (logging.ERROR, '     Wrong EOL'),
-            (logging.ERROR, ''),
-            (logging.ERROR, f'-- {_CHECK_FATAL_MESSAGE}')]
+            (logging.ERROR, '')]
 
         results = [(r[1], r[2]) for r in caplog.record_tuples]
 
@@ -2720,8 +2711,7 @@ class TestKernelListCheckProducts:
         expected = [
             (logging.WARNING, f'-- {product}'),
             (logging.ERROR, '     Bad arch'),
-            (logging.ERROR, ''),
-            (logging.ERROR, f'-- {_CHECK_FATAL_MESSAGE}')]
+            (logging.ERROR, '')]
 
         results = [(r[1], r[2]) for r in caplog.record_tuples]
 
