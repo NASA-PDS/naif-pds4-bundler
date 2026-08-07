@@ -191,35 +191,30 @@ class PDSLabel:
 
         :return: Path to the matching label, or ``None`` if none is found.
         """
-        try:
-            val_label = ""
-            match_flag = True
-            val_label_path = self._val_label_directory(
-                str(Path(self.setup.bundle_directory) / f"{self.setup.mission_acronym}_spice")
+        val_label = None
+        match_flag = True
+        val_label_path = self._val_label_directory(
+            str(Path(self.setup.bundle_directory) / f"{self.setup.mission_acronym}_spice")
+        )
+
+        val_label_name = Path(self.name).name
+        i = 1
+
+        while match_flag and i < len(val_label_name) - 1:
+            val_labels = glob.glob(
+                f"{val_label_path}{val_label_name[0:i]}*.xml"
             )
+            if val_labels:
+                val_label = max(val_labels)
+                match_flag = True
+            else:
+                match_flag = False
+            i += 1
 
-            val_label_name = Path(self.name).name
-            i = 1
-
-            while match_flag and i < len(val_label_name) - 1:
-                val_labels = glob.glob(
-                    f"{val_label_path}{val_label_name[0:i]}*.xml"
-                )
-                if val_labels:
-                    val_label = max(val_labels)
-                    match_flag = True
-                else:
-                    match_flag = False
-                i += 1
-
-            if not val_label:
-                raise Exception("No label for comparison found.")
-
-            return val_label
-
-        except Exception:
+        if not val_label:
             logging.warning("-- No other version of the product label has been found.")
-            return None
+
+        return val_label
 
     def _find_similar_type_label(self):
         """Look for the label of a product of the same type (fallback level 2).
