@@ -1536,9 +1536,8 @@ class TestKernelListWriteCompleteList:
             self, mocker, tmp_path) -> None:
         # Verify the empty-input path: when no release lists are found,
         # check_consecutive([]) raises ValueError (via max() on an empty
-        # sequence), which write_complete_list catches and routes through
-        # handle_npb_error, raising RuntimeError with the same message that
-        # used to be a plain warning.
+        # sequence), which write_complete_list catches and re-raises as
+        # NPBError, with the same message that used to be a plain warning.
 
         # Mock the validate_complete call so this test isolates the
         # empty-release-list path.
@@ -1679,8 +1678,8 @@ class TestKernelListWriteCompleteList:
     def test_write_complete_list_raises_on_non_numeric_release_token(
             self, tmp_path) -> None:
         # Verify that a kernel list filename whose release token cannot be
-        # converted to int causes handle_npb_error to raise RuntimeError with
-        # a message that identifies both the bad token and the filename.
+        # converted to int causes NPBError to be raised with a message that
+        # identifies both the bad token and the filename.
 
         kernel_list, _, _ = self.make_kernel_list(tmp_path)
         working_directory = Path(kernel_list.setup.working_directory)
@@ -1706,9 +1705,10 @@ class TestKernelListValidateComplete:
          template file as ``--<option>``.
 
     The method is heavily side effect driven (it logs almost everything and only
-    raises through ``handle_npb_error`` / a bare ``Exception``), so the tests
-    below isolate the *logging* from the *control-flow* boundaries exactly as the
-    sibling ``TestKernelListValidate`` class does.
+    raises via ``NPBError`` -- for checks 2 and 3 -- or a bare ``Exception``
+    for check 1), so the tests below isolate the *logging* from the
+    *control-flow* boundaries exactly as the sibling ``TestKernelListValidate``
+    class does.
     """
 
     @staticmethod
@@ -1742,8 +1742,10 @@ class TestKernelListValidateComplete:
         working_directory.mkdir(exist_ok=True)
         config_directory.mkdir(exist_ok=True)
 
-        # check_list_duplicates is the only collaborator inside the method (other
-        # than handle_npb_error, mocked per-test). Default: no duplicates.
+        # check_list_duplicates is the only mocked collaborator inside the
+        # method -- there is no longer a function call to intercept on the
+        # error path, since it raises NPBError directly. Default: no
+        # duplicates.
         mocker.patch('pds.naif_pds4_bundler.classes.list.check_list_duplicates',
                      return_value=duplicates)
 
@@ -1875,8 +1877,8 @@ class TestKernelListValidateComplete:
     def test_validate_complete_raises_on_entry_count_mismatch(
             self, mocker, tmp_path, content) -> None:
         # Diverging FILE/OPTIONS/DESCRIPTION counts must abort validation with a
-        # bare Exception (NOT handle_npb_error). This is the only failure path in
-        # validate_complete that raises directly.
+        # bare Exception, not NPBError -- this is the only failure path in
+        # validate_complete that does not go through the domain exception.
 
         kernel_list, _, _ = self.make_kernel_list(mocker, tmp_path, content)
 
@@ -1943,16 +1945,13 @@ class TestKernelListValidateComplete:
             kernel_list.validate_complete()
 
     # ------------------------------------------------------------------
-    # Duplicate detection: routed through handle_npb_error.
+    # Duplicate detection: raises NPBError.
     # ------------------------------------------------------------------
 
-    def test_validate_complete_reports_duplicates_via_handle_npb_error(
+    def test_validate_complete_reports_duplicates_via_npberror(
             self, mocker, tmp_path) -> None:
-        # When check_list_duplicates returns True, validate_complete calls
-        # handle_npb_error("List contains duplicates."), which always raises
-        # RuntimeError. The real function is used — exactly as
-        # TestKernelListValidate.test_validate_reports_error_condition does —
-        # because spiceypy.kclear() is safe to call with no kernels loaded.
+        # When check_list_duplicates returns True, validate_complete raises
+        # NPBError("List contains duplicates.") directly.
 
         content = self.block('spice_kernels/spk/dup.bsp', 'SPK', 'd')
 
@@ -1983,8 +1982,9 @@ class TestKernelListValidateComplete:
                 self.block('spice_kernels/spk/a.bsp', 'SPK LSK', 'd')
                 + self.block('spice_kernels/ck/b.bc', 'CK SPK', 'd'))
 
-        # Template must contain every distinct option as --<option> to avoid the
-        # handle_npb_error escalation; this isolates the display/order logic.
+        # Template must contain every distinct option as --<option> to avoid
+        # the NPBError raised for a missing option; this isolates the
+        # display/order logic.
         template = '--SPK\n--LSK\n--CK\n'
 
         kernel_list, _, _ = self.make_kernel_list(
@@ -2020,8 +2020,8 @@ class TestKernelListValidateComplete:
 
     def test_validate_complete_pds3_rejects_option_absent_from_template(
             self, mocker, tmp_path) -> None:
-        # On PDS3, an option missing from the mission template must escalate via
-        # handle_npb_error with the "<option> not in template." message.
+        # On PDS3, an option missing from the mission template must raise
+        # NPBError with the "<option> not in template." message.
 
         content = self.block('spice_kernels/ck/b.bc', 'CK', 'd')
 
@@ -2171,9 +2171,6 @@ class TestKernelListCheckProducts:
         # Build a real KernelList without running the heavy __init__.
         # check_products only consumes kernel_list and a handful of
         # setup attributes, so a SimpleNamespace setup is enough.
-        #
-        # template_files, write_file_list and write_checksum_registry are
-        # required by the real handle_npb_error when setup is not None.
         kernels_directory = tmp_path / 'kernels'
         orbnum_directory = tmp_path / 'orbnum'
         kernels_directory.mkdir(exist_ok=True)
@@ -2184,10 +2181,7 @@ class TestKernelListCheckProducts:
             orbnum_directory=str(orbnum_directory),
             pds_version=pds_version,
             eol=eol,
-            args=SimpleNamespace(silent=silent, verbose=verbose),
-            template_files=[],
-            write_file_list=lambda: None,
-            write_checksum_registry=lambda: None)
+            args=SimpleNamespace(silent=silent, verbose=verbose))
 
         kernel_list = KernelList.__new__(KernelList)
         kernel_list.kernel_list = kernels
