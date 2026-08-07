@@ -4,6 +4,7 @@ import glob
 import logging
 import os
 from pathlib import Path
+from typing import Optional
 
 from ...utils import add_carriage_return, compare_files
 
@@ -158,7 +159,7 @@ class PDSLabel:
         if self.__class__.__name__ != "SpiceKernelPDS3Label":
             logging.info("")
 
-    def compare(self):
+    def compare(self) -> None:
         """Compare the label with another label.
 
         The label to compare against is determined by the first criteria
@@ -182,7 +183,7 @@ class PDSLabel:
             logging.info("")
             compare_files(val_label, self.name, self.setup.working_directory, self.setup.diff)
 
-    def _find_prior_version_label(self):
+    def _find_prior_version_label(self) -> Optional[str]:
         """Look for a different version of the same file (fallback level 1).
 
         Keeps trying to match the label name, advancing one character each
@@ -216,7 +217,7 @@ class PDSLabel:
 
         return val_label
 
-    def _find_similar_type_label(self):
+    def _find_similar_type_label(self) -> Optional[str]:
         """Look for the label of a product of the same type (fallback level 2).
 
         Used when a prior version of the same file cannot be found.
@@ -237,7 +238,7 @@ class PDSLabel:
             logging.warning("-- No similar label has been found.")
             return None
 
-    def _find_insight_fallback_label(self):
+    def _find_insight_fallback_label(self) -> Optional[str]:
         """Fall back to an InSight test label (fallback level 3).
 
         Used when no kernel of the same type can be found -- for example,
@@ -265,7 +266,7 @@ class PDSLabel:
             logging.warning("-- No label for comparison found.")
             return None
 
-    def _val_label_directory(self, base_dir):
+    def _val_label_directory(self, base_dir: str) -> str:
         """Build the candidate-label directory for the product's collection.
 
         Appends the kernel-type/product-type subdirectory when the
@@ -283,7 +284,7 @@ class PDSLabel:
 
         return f"{val_label_path}{os.sep}"
 
-    def _pick_val_label(self, val_products, val_label_path):
+    def _pick_val_label(self, val_products: list[str], val_label_path: str) -> str:
         """Select a validation label from val_products/val_label_path.
 
         "collection"/"bundle" are matched as a substring of the label's
