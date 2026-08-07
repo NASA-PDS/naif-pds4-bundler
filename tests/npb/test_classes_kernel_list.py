@@ -9,6 +9,7 @@ from types import SimpleNamespace
 
 import pytest
 
+from pds.naif_pds4_bundler.classes.exceptions import NPBError
 from pds.naif_pds4_bundler.classes.list import KernelList
 
 # ---------------------------------------------------------------------------
@@ -760,9 +761,9 @@ class TestKernelListWriteList:
             kernel_list_config=kernel_list_config,
             kernels=kernels)
 
-        # This behaviour will be handled by handle_npb_error, which will raise a
-        # RuntimeError. Also, checks the returned message.
-        with pytest.raises(RuntimeError, match=expected_error):
+        # This behaviour raises NPBError directly. Also, checks the returned
+        # message.
+        with pytest.raises(NPBError, match=expected_error):
             kernel_list.write_list()
 
         # Check the validate call.
@@ -1143,11 +1144,7 @@ class TestKernelListValidate:
     def test_validate_ignores_file_line_without_value(
             self, mocker, tmp_path) -> None:
         # Check that even if the FILE line contains nothing after the following
-        # equal sign, a file is created anyway.
-
-        # Mock the handle_npb_error call.
-        handle_npb_error_mock = mocker.patch(
-            'pds.naif_pds4_bundler.classes.list.handle_npb_error')
+        # equal sign, a file is created anyway (no NPBError raised).
 
         # Build a KernelList with a FILE line that contains nothing after equal
         # sign.
@@ -1155,9 +1152,6 @@ class TestKernelListValidate:
             mocker, tmp_path, 'FILE             = \n', kernels=[])
 
         kernel_list.validate()
-
-        # Check that handle_npb_error is not called.
-        handle_npb_error_mock.assert_not_called()
 
     def test_validate_skips_none_option_token(self, mocker, caplog,
                                               tmp_path) -> None:
@@ -1227,9 +1221,9 @@ class TestKernelListValidate:
             kernels=kernels, present_kernels=('unplanned.bsp',),
             duplicates=duplicates)
 
-        # This behaviour will be handled by handle_npb_error, which will raise a
-        # RuntimeError. Also, checks the returned message.
-        with pytest.raises(RuntimeError, match=expected_message):
+        # This behaviour raises NPBError directly. Also, checks the returned
+        # message.
+        with pytest.raises(NPBError, match=expected_message):
             kernel_list.validate()
 
     @pytest.mark.parametrize('kernel, log_lines', [
@@ -1368,9 +1362,9 @@ class TestKernelListValidate:
             pds3_mission_template={'DATA_SET_ID': 'X',
                                    'maklabel_options': {'SPK': {}}})
 
-        # This behaviour will be handled by handle_npb_error, which will raise a
-        # RuntimeError. Also, checks the returned message.
-        with pytest.raises(RuntimeError, match='CK not in configuration.'):
+        # This behaviour raises NPBError directly. Also, checks the returned
+        # message.
+        with pytest.raises(NPBError, match='CK not in configuration.'):
             kernel_list.validate()
 
     def test_validate_aborts_when_complete_kernel_list_contains_duplicates(
@@ -1401,9 +1395,9 @@ class TestKernelListValidate:
             self.block('spice_kernels/spk/current.bsp', 'SPK', 'description'),
             encoding='utf-8')
 
-        # This behaviour will be handled by handle_npb_error, which will raise a
-        # RuntimeError. Also, checks the returned message.
-        with pytest.raises(RuntimeError, match='List contains duplicates.'):
+        # This behaviour raises NPBError directly. Also, checks the returned
+        # message.
+        with pytest.raises(NPBError, match='List contains duplicates.'):
             kernel_list.validate()
 
     def test_validate_diff_compares_with_previous_list(self, mocker,
@@ -1542,9 +1536,8 @@ class TestKernelListWriteCompleteList:
             self, mocker, tmp_path) -> None:
         # Verify the empty-input path: when no release lists are found,
         # check_consecutive([]) raises ValueError (via max() on an empty
-        # sequence), which write_complete_list catches and routes through
-        # handle_npb_error, raising RuntimeError with the same message that
-        # used to be a plain warning.
+        # sequence), which write_complete_list catches and re-raises as
+        # NPBError, with the same message that used to be a plain warning.
 
         # Mock the validate_complete call so this test isolates the
         # empty-release-list path.
@@ -1554,7 +1547,7 @@ class TestKernelListWriteCompleteList:
         # Create a KernelList instance with a temporal and empty working_directory
         kernel_list, _, output_path = self.make_kernel_list(tmp_path)
 
-        with pytest.raises(RuntimeError, match='No release kernel lists available.'):
+        with pytest.raises(NPBError, match='No release kernel lists available.'):
             kernel_list.write_complete_list()
 
         # Check that the file exists and is empty.
@@ -1685,8 +1678,8 @@ class TestKernelListWriteCompleteList:
     def test_write_complete_list_raises_on_non_numeric_release_token(
             self, tmp_path) -> None:
         # Verify that a kernel list filename whose release token cannot be
-        # converted to int causes handle_npb_error to raise RuntimeError with
-        # a message that identifies both the bad token and the filename.
+        # converted to int causes NPBError to be raised with a message that
+        # identifies both the bad token and the filename.
 
         kernel_list, _, _ = self.make_kernel_list(tmp_path)
         working_directory = Path(kernel_list.setup.working_directory)
@@ -1696,7 +1689,7 @@ class TestKernelListWriteCompleteList:
         bad_release = working_directory / 'maven_release_abc.kernel_list'
         bad_release.write_text('RELEASE BAD\n', encoding='utf-8')
 
-        with pytest.raises(RuntimeError, match="Non-numeric release token 'abc'"):
+        with pytest.raises(NPBError, match="Non-numeric release token 'abc'"):
             kernel_list.write_complete_list()
 
 
@@ -1712,9 +1705,10 @@ class TestKernelListValidateComplete:
          template file as ``--<option>``.
 
     The method is heavily side effect driven (it logs almost everything and only
-    raises through ``handle_npb_error`` / a bare ``Exception``), so the tests
-    below isolate the *logging* from the *control-flow* boundaries exactly as the
-    sibling ``TestKernelListValidate`` class does.
+    raises via ``NPBError`` -- for checks 2 and 3 -- or a bare ``Exception``
+    for check 1), so the tests below isolate the *logging* from the
+    *control-flow* boundaries exactly as the sibling ``TestKernelListValidate``
+    class does.
     """
 
     @staticmethod
@@ -1748,8 +1742,10 @@ class TestKernelListValidateComplete:
         working_directory.mkdir(exist_ok=True)
         config_directory.mkdir(exist_ok=True)
 
-        # check_list_duplicates is the only collaborator inside the method (other
-        # than handle_npb_error, mocked per-test). Default: no duplicates.
+        # check_list_duplicates is the only mocked collaborator inside the
+        # method -- there is no longer a function call to intercept on the
+        # error path, since it raises NPBError directly. Default: no
+        # duplicates.
         mocker.patch('pds.naif_pds4_bundler.classes.list.check_list_duplicates',
                      return_value=duplicates)
 
@@ -1881,8 +1877,8 @@ class TestKernelListValidateComplete:
     def test_validate_complete_raises_on_entry_count_mismatch(
             self, mocker, tmp_path, content) -> None:
         # Diverging FILE/OPTIONS/DESCRIPTION counts must abort validation with a
-        # bare Exception (NOT handle_npb_error). This is the only failure path in
-        # validate_complete that raises directly.
+        # bare Exception, not NPBError -- this is the only failure path in
+        # validate_complete that does not go through the domain exception.
 
         kernel_list, _, _ = self.make_kernel_list(mocker, tmp_path, content)
 
@@ -1949,23 +1945,20 @@ class TestKernelListValidateComplete:
             kernel_list.validate_complete()
 
     # ------------------------------------------------------------------
-    # Duplicate detection: routed through handle_npb_error.
+    # Duplicate detection: raises NPBError.
     # ------------------------------------------------------------------
 
-    def test_validate_complete_reports_duplicates_via_handle_npb_error(
+    def test_validate_complete_reports_duplicates_via_npberror(
             self, mocker, tmp_path) -> None:
-        # When check_list_duplicates returns True, validate_complete calls
-        # handle_npb_error("List contains duplicates."), which always raises
-        # RuntimeError. The real function is used — exactly as
-        # TestKernelListValidate.test_validate_reports_error_condition does —
-        # because spiceypy.kclear() is safe to call with no kernels loaded.
+        # When check_list_duplicates returns True, validate_complete raises
+        # NPBError("List contains duplicates.") directly.
 
         content = self.block('spice_kernels/spk/dup.bsp', 'SPK', 'd')
 
         kernel_list, _, _ = self.make_kernel_list(
             mocker, tmp_path, content, duplicates=True)
 
-        with pytest.raises(RuntimeError, match='List contains duplicates.'):
+        with pytest.raises(NPBError, match='List contains duplicates.'):
             kernel_list.validate_complete()
 
     # ------------------------------------------------------------------
@@ -1989,8 +1982,9 @@ class TestKernelListValidateComplete:
                 self.block('spice_kernels/spk/a.bsp', 'SPK LSK', 'd')
                 + self.block('spice_kernels/ck/b.bc', 'CK SPK', 'd'))
 
-        # Template must contain every distinct option as --<option> to avoid the
-        # handle_npb_error escalation; this isolates the display/order logic.
+        # Template must contain every distinct option as --<option> to avoid
+        # the NPBError raised for a missing option; this isolates the
+        # display/order logic.
         template = '--SPK\n--LSK\n--CK\n'
 
         kernel_list, _, _ = self.make_kernel_list(
@@ -2026,8 +2020,8 @@ class TestKernelListValidateComplete:
 
     def test_validate_complete_pds3_rejects_option_absent_from_template(
             self, mocker, tmp_path) -> None:
-        # On PDS3, an option missing from the mission template must escalate via
-        # handle_npb_error with the "<option> not in template." message.
+        # On PDS3, an option missing from the mission template must raise
+        # NPBError with the "<option> not in template." message.
 
         content = self.block('spice_kernels/ck/b.bc', 'CK', 'd')
 
@@ -2038,7 +2032,7 @@ class TestKernelListValidateComplete:
             mocker, tmp_path, content, pds_version='3',
             template_content=template)
 
-        with pytest.raises(RuntimeError, match='CK not in template.'):
+        with pytest.raises(NPBError, match='CK not in template.'):
             kernel_list.validate_complete()
 
     def test_validate_complete_pds3_collects_literal_none_option(
@@ -2177,9 +2171,6 @@ class TestKernelListCheckProducts:
         # Build a real KernelList without running the heavy __init__.
         # check_products only consumes kernel_list and a handful of
         # setup attributes, so a SimpleNamespace setup is enough.
-        #
-        # template_files, write_file_list and write_checksum_registry are
-        # required by the real handle_npb_error when setup is not None.
         kernels_directory = tmp_path / 'kernels'
         orbnum_directory = tmp_path / 'orbnum'
         kernels_directory.mkdir(exist_ok=True)
@@ -2190,10 +2181,7 @@ class TestKernelListCheckProducts:
             orbnum_directory=str(orbnum_directory),
             pds_version=pds_version,
             eol=eol,
-            args=SimpleNamespace(silent=silent, verbose=verbose),
-            template_files=[],
-            write_file_list=lambda: None,
-            write_checksum_registry=lambda: None)
+            args=SimpleNamespace(silent=silent, verbose=verbose))
 
         kernel_list = KernelList.__new__(KernelList)
         kernel_list.kernel_list = kernels
@@ -2238,9 +2226,6 @@ class TestKernelListCheckProducts:
         # it returns a sentinel that never matches a real filename.
         mocks.product_mapping = mocker.patch.object(
             list_module, 'product_mapping', return_value='__no_match__')
-
-        # Prevent SPICE pool operations in every test.
-        mocks.kclear = mocker.patch('spiceypy.kclear')
 
         return mocks
 
@@ -2315,20 +2300,19 @@ class TestKernelListCheckProducts:
             self, mocker, caplog, tmp_path) -> None:
         # A non meta-kernel product that cannot be found anywhere records a
         # fatal error, skips all file checks for that product via continue,
-        # and raises RuntimeError through the real handle_npb_error.
+        # and raises NPBError.
         mocks = self.patch_checks(mocker)
         product = 'maven_absent.tsc'
         kernel_list = self.make_kernel_list(tmp_path, kernels=[product])
 
         with caplog.at_level(logging.INFO):
-            with pytest.raises(RuntimeError, match=_CHECK_FATAL_MESSAGE):
+            with pytest.raises(NPBError, match=_CHECK_FATAL_MESSAGE):
                 kernel_list.check_products()
 
         expected = [
             (logging.WARNING, f'-- {product}'),
             (logging.ERROR, '     Product not present in any kernel directory(ies)'),
-            (logging.ERROR, ''),
-            (logging.ERROR, f'-- {_CHECK_FATAL_MESSAGE}')]
+            (logging.ERROR, '')]
 
         results = [(r[1], r[2]) for r in caplog.record_tuples]
 
@@ -2337,8 +2321,6 @@ class TestKernelListCheckProducts:
         # No file check ran: the product was skipped via continue.
         mocks.check_permissions.assert_not_called()
         mocks.check_kernel_integrity.assert_not_called()
-        # 'handle_npb_error' called kclear before raising.
-        mocks.kclear.assert_called_once()
 
     def test_check_products_missing_meta_kernel_records_warning_only(
             self, mocker, caplog, tmp_path) -> None:
@@ -2361,7 +2343,6 @@ class TestKernelListCheckProducts:
         assert results == expected
 
         mocks.check_permissions.assert_not_called()
-        mocks.kclear.assert_not_called()
 
     def test_check_products_present_in_multiple_directories_warns(
             self, mocker, caplog, tmp_path) -> None:
@@ -2400,7 +2381,6 @@ class TestKernelListCheckProducts:
         assert results == expected
         # The first directory wins: every file check uses the first path.
         mocks.check_kernel_integrity.assert_called_once_with(str(first_path))
-        mocks.kclear.assert_not_called()
 
     # ------------------------------------------------------------------ #
     # EOL selection and text checks
@@ -2441,7 +2421,7 @@ class TestKernelListCheckProducts:
             self, mocker, caplog, tmp_path) -> None:
         # A bad EOL on an ORBNUM file is recorded as a warning, so no
         # RuntimeError is raised.
-        mocks = self.patch_checks(mocker, check_eol='Wrong EOL')
+        self.patch_checks(mocker, check_eol='Wrong EOL')
         product = 'm01_rec.orb'
         kernel_list = self.make_kernel_list(tmp_path, kernels=[product])
 
@@ -2455,8 +2435,6 @@ class TestKernelListCheckProducts:
         results = [(r[1], r[2]) for r in caplog.record_tuples]
 
         assert results == expected
-
-        mocks.kclear.assert_not_called()
 
     def test_check_products_badchar_and_line_length_warn(
             self, mocker, caplog, _text_kernel) -> None:
@@ -2482,8 +2460,6 @@ class TestKernelListCheckProducts:
         results = [(r[1], r[2]) for r in caplog.record_tuples]
 
         assert results == expected
-
-        mocks.kclear.assert_not_called()
 
     def test_check_products_orbnum_skips_line_length(
             self, mocker, tmp_path) -> None:
@@ -2528,28 +2504,25 @@ class TestKernelListCheckProducts:
             self, mocker, caplog, tmp_path, product, failing_check,
             error_text, log_line) -> None:
         # Any check that returns an error string for a regular kernel must be
-        # logged at ERROR level and cause RuntimeError via handle_npb_error.
-        # The three error-producing checks are parametrized to prove they share
-        # the same fatal path without duplicating the test body.
-        mocks = self.patch_checks(mocker, **{failing_check: error_text})
+        # logged at ERROR level and cause NPBError to be raised. The three
+        # error-producing checks are parametrized to prove they share the
+        # same fatal path without duplicating the test body.
+        self.patch_checks(mocker, **{failing_check: error_text})
         self.write_kernel(tmp_path, product)
         kernel_list = self.make_kernel_list(tmp_path, kernels=[product])
 
         with caplog.at_level(logging.INFO):
-            with pytest.raises(RuntimeError, match=_CHECK_FATAL_MESSAGE):
+            with pytest.raises(NPBError, match=_CHECK_FATAL_MESSAGE):
                 kernel_list.check_products()
 
         expected = [
             (logging.WARNING, f'-- {product}'),
             (logging.ERROR, f'{log_line}'),
-            (logging.ERROR, ''),
-            (logging.ERROR, f'-- {_CHECK_FATAL_MESSAGE}')]
+            (logging.ERROR, '')]
 
         results = [(r[1], r[2]) for r in caplog.record_tuples]
 
         assert results == expected
-
-        mocks.kclear.assert_called_once()
 
     def test_check_products_calls_permissions_twice(
             self, mocker, caplog, _text_kernel) -> None:
@@ -2573,8 +2546,6 @@ class TestKernelListCheckProducts:
         assert mocks.check_permissions.call_args_list == [
             mocker.call(expected_path), mocker.call(expected_path)]
 
-        mocks.kclear.assert_not_called()
-
     # ------------------------------------------------------------------ #
     # Reporting: logging
     # ------------------------------------------------------------------ #
@@ -2582,22 +2553,20 @@ class TestKernelListCheckProducts:
             self, mocker, caplog, _text_kernel) -> None:
         # Verify the logging side of reporting end to end for a single product:
         # header at WARNING, then each warning at WARNING, then each error at
-        # ERROR, then the empty ERROR line from handle_npb_error, and finally
-        # handle_npb_error's own fatal line at ERROR.
+        # ERROR, then the empty ERROR line preceding the NPBError raise.
         kernel_list, _ = _text_kernel
         self.patch_checks(mocker, check_eol='Wrong EOL',
                           check_badchar=['bad char'])
 
         with caplog.at_level(logging.INFO):
-            with pytest.raises(RuntimeError):
+            with pytest.raises(NPBError):
                 kernel_list.check_products()
 
         expected = [
             (logging.WARNING, '-- maven_test.tsc'),
             (logging.WARNING, '     bad char'),
             (logging.ERROR, '     Wrong EOL'),
-            (logging.ERROR, ''),
-            (logging.ERROR, f'-- {_CHECK_FATAL_MESSAGE}')]
+            (logging.ERROR, '')]
 
         results = [(r[1], r[2]) for r in caplog.record_tuples]
 
@@ -2649,7 +2618,7 @@ class TestKernelListCheckProducts:
             tmp_path, kernels=[clean, warned, failed])
 
         with caplog.at_level(logging.INFO):
-            with pytest.raises(RuntimeError, match=_CHECK_FATAL_MESSAGE):
+            with pytest.raises(NPBError, match=_CHECK_FATAL_MESSAGE):
                 kernel_list.check_products()
 
         expected = [
@@ -2657,8 +2626,7 @@ class TestKernelListCheckProducts:
             (logging.WARNING, '     bad char'),
             (logging.WARNING, f'-- {failed}'),
             (logging.ERROR, '     Wrong EOL'),
-            (logging.ERROR, ''),
-            (logging.ERROR, f'-- {_CHECK_FATAL_MESSAGE}')]
+            (logging.ERROR, '')]
 
         results = [(r[1], r[2]) for r in caplog.record_tuples]
 
@@ -2714,14 +2682,13 @@ class TestKernelListCheckProducts:
         kernel_list = self.make_kernel_list(tmp_path, kernels=[product],
                                             silent=False, verbose=False)
         with caplog.at_level(logging.INFO):
-            with pytest.raises(RuntimeError, match=_CHECK_FATAL_MESSAGE):
+            with pytest.raises(NPBError, match=_CHECK_FATAL_MESSAGE):
                 kernel_list.check_products()
 
         expected = [
             (logging.WARNING, f'-- {product}'),
             (logging.ERROR, '     Bad arch'),
-            (logging.ERROR, ''),
-            (logging.ERROR, f'-- {_CHECK_FATAL_MESSAGE}')]
+            (logging.ERROR, '')]
 
         results = [(r[1], r[2]) for r in caplog.record_tuples]
 
