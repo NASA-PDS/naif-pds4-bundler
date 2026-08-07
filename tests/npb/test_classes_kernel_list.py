@@ -9,6 +9,7 @@ from types import SimpleNamespace
 
 import pytest
 
+from pds.naif_pds4_bundler.classes.exceptions import NPBError
 from pds.naif_pds4_bundler.classes.list import KernelList
 
 # ---------------------------------------------------------------------------
@@ -760,9 +761,9 @@ class TestKernelListWriteList:
             kernel_list_config=kernel_list_config,
             kernels=kernels)
 
-        # This behaviour will be handled by handle_npb_error, which will raise a
-        # RuntimeError. Also, checks the returned message.
-        with pytest.raises(RuntimeError, match=expected_error):
+        # This behaviour raises NPBError directly. Also, checks the returned
+        # message.
+        with pytest.raises(NPBError, match=expected_error):
             kernel_list.write_list()
 
         # Check the validate call.
@@ -1220,9 +1221,9 @@ class TestKernelListValidate:
             kernels=kernels, present_kernels=('unplanned.bsp',),
             duplicates=duplicates)
 
-        # This behaviour will be handled by handle_npb_error, which will raise a
-        # RuntimeError. Also, checks the returned message.
-        with pytest.raises(RuntimeError, match=expected_message):
+        # This behaviour raises NPBError directly. Also, checks the returned
+        # message.
+        with pytest.raises(NPBError, match=expected_message):
             kernel_list.validate()
 
     @pytest.mark.parametrize('kernel, log_lines', [
@@ -1361,9 +1362,9 @@ class TestKernelListValidate:
             pds3_mission_template={'DATA_SET_ID': 'X',
                                    'maklabel_options': {'SPK': {}}})
 
-        # This behaviour will be handled by handle_npb_error, which will raise a
-        # RuntimeError. Also, checks the returned message.
-        with pytest.raises(RuntimeError, match='CK not in configuration.'):
+        # This behaviour raises NPBError directly. Also, checks the returned
+        # message.
+        with pytest.raises(NPBError, match='CK not in configuration.'):
             kernel_list.validate()
 
     def test_validate_aborts_when_complete_kernel_list_contains_duplicates(
@@ -1394,9 +1395,9 @@ class TestKernelListValidate:
             self.block('spice_kernels/spk/current.bsp', 'SPK', 'description'),
             encoding='utf-8')
 
-        # This behaviour will be handled by handle_npb_error, which will raise a
-        # RuntimeError. Also, checks the returned message.
-        with pytest.raises(RuntimeError, match='List contains duplicates.'):
+        # This behaviour raises NPBError directly. Also, checks the returned
+        # message.
+        with pytest.raises(NPBError, match='List contains duplicates.'):
             kernel_list.validate()
 
     def test_validate_diff_compares_with_previous_list(self, mocker,
@@ -1547,7 +1548,7 @@ class TestKernelListWriteCompleteList:
         # Create a KernelList instance with a temporal and empty working_directory
         kernel_list, _, output_path = self.make_kernel_list(tmp_path)
 
-        with pytest.raises(RuntimeError, match='No release kernel lists available.'):
+        with pytest.raises(NPBError, match='No release kernel lists available.'):
             kernel_list.write_complete_list()
 
         # Check that the file exists and is empty.
@@ -1689,7 +1690,7 @@ class TestKernelListWriteCompleteList:
         bad_release = working_directory / 'maven_release_abc.kernel_list'
         bad_release.write_text('RELEASE BAD\n', encoding='utf-8')
 
-        with pytest.raises(RuntimeError, match="Non-numeric release token 'abc'"):
+        with pytest.raises(NPBError, match="Non-numeric release token 'abc'"):
             kernel_list.write_complete_list()
 
 
@@ -1958,7 +1959,7 @@ class TestKernelListValidateComplete:
         kernel_list, _, _ = self.make_kernel_list(
             mocker, tmp_path, content, duplicates=True)
 
-        with pytest.raises(RuntimeError, match='List contains duplicates.'):
+        with pytest.raises(NPBError, match='List contains duplicates.'):
             kernel_list.validate_complete()
 
     # ------------------------------------------------------------------
@@ -2031,7 +2032,7 @@ class TestKernelListValidateComplete:
             mocker, tmp_path, content, pds_version='3',
             template_content=template)
 
-        with pytest.raises(RuntimeError, match='CK not in template.'):
+        with pytest.raises(NPBError, match='CK not in template.'):
             kernel_list.validate_complete()
 
     def test_validate_complete_pds3_collects_literal_none_option(
@@ -2316,7 +2317,7 @@ class TestKernelListCheckProducts:
         kernel_list = self.make_kernel_list(tmp_path, kernels=[product])
 
         with caplog.at_level(logging.INFO):
-            with pytest.raises(RuntimeError, match=_CHECK_FATAL_MESSAGE):
+            with pytest.raises(NPBError, match=_CHECK_FATAL_MESSAGE):
                 kernel_list.check_products()
 
         expected = [
@@ -2531,7 +2532,7 @@ class TestKernelListCheckProducts:
         kernel_list = self.make_kernel_list(tmp_path, kernels=[product])
 
         with caplog.at_level(logging.INFO):
-            with pytest.raises(RuntimeError, match=_CHECK_FATAL_MESSAGE):
+            with pytest.raises(NPBError, match=_CHECK_FATAL_MESSAGE):
                 kernel_list.check_products()
 
         expected = [
@@ -2582,7 +2583,7 @@ class TestKernelListCheckProducts:
                           check_badchar=['bad char'])
 
         with caplog.at_level(logging.INFO):
-            with pytest.raises(RuntimeError):
+            with pytest.raises(NPBError):
                 kernel_list.check_products()
 
         expected = [
@@ -2641,7 +2642,7 @@ class TestKernelListCheckProducts:
             tmp_path, kernels=[clean, warned, failed])
 
         with caplog.at_level(logging.INFO):
-            with pytest.raises(RuntimeError, match=_CHECK_FATAL_MESSAGE):
+            with pytest.raises(NPBError, match=_CHECK_FATAL_MESSAGE):
                 kernel_list.check_products()
 
         expected = [
@@ -2705,7 +2706,7 @@ class TestKernelListCheckProducts:
         kernel_list = self.make_kernel_list(tmp_path, kernels=[product],
                                             silent=False, verbose=False)
         with caplog.at_level(logging.INFO):
-            with pytest.raises(RuntimeError, match=_CHECK_FATAL_MESSAGE):
+            with pytest.raises(NPBError, match=_CHECK_FATAL_MESSAGE):
                 kernel_list.check_products()
 
         expected = [
