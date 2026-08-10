@@ -583,22 +583,22 @@ class TestPDSLabelCompareHelpers:
             (
                 "spice_kernels",
                 None,
-                str(Path("/bundle/test_spice", "spice_kernels", "ck")) + os.sep,
+                Path("/bundle/test_spice", "spice_kernels", "ck"),
             ),
             (
                 "miscellaneous",
                 str(Path("/staging/miscellaneous/orb/orbnum.xml")),
-                str(Path("/bundle/test_spice", "miscellaneous", "orb")) + os.sep,
+                Path("/bundle/test_spice", "miscellaneous", "orb"),
             ),
             (
                 "document",
                 None,
-                str(Path("/bundle/test_spice", "document")) + os.sep,
+                Path("/bundle/test_spice", "document"),
             ),
             (
                 "spice_kernels",
                 str(Path("/staging/spice_kernels/collection.xml")),
-                str(Path("/bundle/test_spice", "spice_kernels")) + os.sep,
+                Path("/bundle/test_spice", "spice_kernels"),
             ),
         ],
         ids=[
@@ -612,7 +612,7 @@ class TestPDSLabelCompareHelpers:
         label = label_for_helper(collection_name=collection_name)
         if name_override:
             label.name = name_override
-        result = label._val_label_directory("/bundle/test_spice/")
+        result = label._val_label_directory(Path("/bundle/test_spice"))
         assert result == expected
 
     # -- _pick_val_label: branch selection, unified substring-of-basename
@@ -627,21 +627,21 @@ class TestPDSLabelCompareHelpers:
         [
             (
                 f"/staging/spice_kernels{os.sep}collection_spice_kernels_v001.xml",
-                "/insight/ck/",
+                Path("/insight/ck/"),
                 "*.bc",
                 [Path("/insight/ck/inventory_old.bc")],
                 Path("/insight/ck/old.xml"),
             ),
             (
                 f"/staging{os.sep}bundle_insight_spice_v009.xml",
-                "/insight/",
+                Path("/insight/"),
                 "bundle_*.xml",
                 [Path("/insight/bundle_v1.xml")],
                 Path("/insight/bundle_v1.xml"),
             ),
             (
                 f"/staging/ck{os.sep}kernel.xml",
-                "/bundle/ck/",
+                Path("/bundle/ck/"),
                 "*.bc",
                 [Path("/bundle/ck/kernel.v01.bc")],
                 Path("/bundle/ck/kernel.v01.xml"),
@@ -655,7 +655,7 @@ class TestPDSLabelCompareHelpers:
                 # the full path. The basename here ("label.xml") has no
                 # "collection" substring, so this falls through to else.
                 f"/staging{os.sep}collection{os.sep}label.xml",
-                "/insight/ck/",
+                Path("/insight/ck/"),
                 "*.bc",
                 [Path("/insight/ck/kernel.bc")],
                 Path("/insight/ck/kernel.xml"),
@@ -670,7 +670,7 @@ class TestPDSLabelCompareHelpers:
                 # checked first and returns immediately, so it never checks
                 # candidate.exists() either -- max(matches) is the answer.
                 f"/staging/spice_kernels{os.sep}unbundled_data.xml",
-                "/insight/ck/",
+                Path("/insight/ck/"),
                 "bundle_*.xml",
                 [Path("/insight/ck/bundle_v2.xml")],
                 Path("/insight/ck/bundle_v2.xml"),
@@ -704,11 +704,11 @@ class TestPDSLabelCompareHelpers:
     @pytest.mark.parametrize(
         ["name", "val_label_path", "glob_return", "exists_return"],
         [
-            (f"/staging{os.sep}bundle_insight_spice_v009.xml", "/insight/", [], False),
-            (f"/staging/ck{os.sep}kernel.xml", "/bundle/ck/", [], False),
+            (f"/staging{os.sep}bundle_insight_spice_v009.xml", Path("/insight/"), [], False),
+            (f"/staging/ck{os.sep}kernel.xml", Path("/bundle/ck/"), [], False),
             (
                 f"/staging/ck{os.sep}kernel.xml",
-                "/bundle/ck/",
+                Path("/bundle/ck/"),
                 [Path("/bundle/ck/kernel.v01.bc")],
                 False,
             ),

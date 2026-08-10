@@ -173,15 +173,14 @@ class PDSLabel:
         """
         logging.info("-- Comparing label...")
 
-        val_label = (
-            self._find_prior_version_label()
-            or self._find_similar_type_label()
-            or self._find_insight_fallback_label()
-        )
+        val_label = (self._find_prior_version_label() or
+                     self._find_similar_type_label() or
+                     self._find_insight_fallback_label())
 
         if val_label:
             logging.info("")
-            compare_files(val_label, self.name, self.setup.working_directory, self.setup.diff)
+            compare_files(val_label, self.name, self.setup.working_directory,
+                          self.setup.diff)
 
     def _find_prior_version_label(self) -> Optional[str]:
         """Look for a different version of the same file (fallback level 1).
@@ -195,19 +194,20 @@ class PDSLabel:
         val_label = None
         match_flag = True
         val_label_path = self._val_label_directory(
-            str(Path(self.setup.bundle_directory) / f"{self.setup.mission_acronym}_spice")
-        )
+            Path(self.setup.bundle_directory) / f"{self.setup.mission_acronym}_spice")
 
         val_label_name = Path(self.name).name
         i = 1
 
         while match_flag and i < len(val_label_name) - 1:
+
             val_labels = glob.glob(
-                f"{val_label_path}{val_label_name[0:i]}*.xml"
-            )
+                f"{val_label_path}{os.sep}{val_label_name[0:i]}*.xml")
+
             if val_labels:
                 val_label = max(val_labels)
                 match_flag = True
+
             else:
                 match_flag = False
             i += 1
@@ -226,10 +226,12 @@ class PDSLabel:
         """
         try:
             base_dir = Path(self.setup.bundle_directory) / f"{self.setup.mission_acronym}_spice"
+
             return str(self._pick_val_label(base_dir))
 
         except Exception:
             logging.warning("-- No similar label has been found.")
+
             return None
 
     def _find_insight_fallback_label(self) -> Optional[str]:
@@ -245,13 +247,15 @@ class PDSLabel:
             base_dir = Path(self.setup.root_dir) / "data" / "insight_spice"
             val_label = str(self._pick_val_label(base_dir))
             logging.warning("-- Comparing with InSight test label.")
+
             return val_label
 
         except Exception:
             logging.warning("-- No label for comparison found.")
+
             return None
 
-    def _val_label_directory(self, base_dir: str) -> str:
+    def _val_label_directory(self, base_dir: Path) -> Path:
         """Build the candidate-label directory for the product's collection.
 
         Appends the kernel-type/product-type subdirectory when the
@@ -262,12 +266,12 @@ class PDSLabel:
         """
         val_label_path = Path(base_dir) / self.product.collection.name
 
-        if self.product.collection.name in ("spice_kernels", "miscellaneous") and (
-            "collection" not in self.name
-        ):
+        if (self.product.collection.name in ("spice_kernels", "miscellaneous")
+                and ("collection" not in self.name)):
+
             val_label_path = val_label_path / Path(self.name).parent.name
 
-        return f"{val_label_path}{os.sep}"
+        return val_label_path
 
     def _pick_val_label(self, base_dir: Path) -> Path:
         """Select a validation label from a candidate directory.
@@ -283,7 +287,7 @@ class PDSLabel:
         :return: Path to the selected validation label.
         :raises Exception: If no label for comparison can be found.
         """
-        val_label_path = Path(self._val_label_directory(str(base_dir)))
+        val_label_path = self._val_label_directory(base_dir)
         basename = Path(self.name).name
 
         # Bundle labels are matched directly by their own glob pattern;
