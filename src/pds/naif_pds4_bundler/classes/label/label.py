@@ -7,9 +7,6 @@ from pathlib import Path
 from typing import Optional
 
 from ...utils import add_carriage_return, compare_files
-from ..exceptions import NPBError
-
-_NO_VAL_LABEL_FOUND_MESSAGE = "No label for comparison found."
 
 
 class PDSLabel:
@@ -228,14 +225,8 @@ class PDSLabel:
         :return: Path to the matching label, or ``None`` if none is found.
         """
         try:
-            val_label_path = self._val_label_directory(
-                str(Path(self.setup.bundle_directory) / f"{self.setup.mission_acronym}_spice")
-            )
-
-            product_extension = self.product.name.split(".")[-1]
-            val_products = glob.glob(f"{val_label_path}*.{product_extension}")
-
-            return self._pick_val_label(val_products, val_label_path)
+            base_dir = Path(self.setup.bundle_directory) / f"{self.setup.mission_acronym}_spice"
+            return str(self._pick_val_label(base_dir))
 
         except Exception:
             logging.warning("-- No similar label has been found.")
@@ -251,17 +242,8 @@ class PDSLabel:
         :return: Path to the matching label, or ``None`` if none is found.
         """
         try:
-            val_label_path = self._val_label_directory(
-                str(Path(self.setup.root_dir) / "data" / "insight_spice")
-            )
-
-            #
-            # Simply pick the last one
-            #
-            product_extension = self.product.name.split(".")[-1]
-            val_products = glob.glob(f"{val_label_path}*.{product_extension}")
-
-            val_label = self._pick_val_label(val_products, val_label_path)
+            base_dir = Path(self.setup.root_dir) / "data" / "insight_spice"
+            val_label = str(self._pick_val_label(base_dir))
             logging.warning("-- Comparing with InSight test label.")
             return val_label
 
@@ -287,50 +269,49 @@ class PDSLabel:
 
         return f"{val_label_path}{os.sep}"
 
-    def _pick_val_label(self, val_products: list[str], val_label_path: str) -> str:
-        """Select a validation label from val_products/val_label_path.
+    def _pick_val_label(self, base_dir: Path) -> Path:
+        """Select a validation label from a candidate directory.
 
         "collection"/"bundle" are matched as a substring of the label's
         basename (``Path(self.name).name``), not as a standalone path
         component. Real product names embed them as a prefix -- e.g.
         "collection_spice_kernels_v001.xml", "bundle_insight_spice_v009.xml"
         -- never as a bare directory/path segment, so an exact-component
-        check would never match real files. The similar-type and
-        InSight-fallback lookups used to apply different rules here
-        (substring vs. exact-component); both now use the substring rule
-        that actually matches production naming.
+        check would never match real files.
 
-        :param val_products: Candidate product paths, in any order; the
-            lexicographically greatest (newest) entry is used to derive
-            the label name.
-        :param val_label_path: Directory the label is expected to live in.
-            Only the "bundle" branch uses this directly; the
-            "collection"/else branches derive their directory implicitly
-            from ``val_products`` instead, and rely on the caller having
-            globbed ``val_products`` from this same ``val_label_path`` in
-            the first place.
+        The "bundle" branch is checked first and returns before computing
+        any product candidates: it derives its match entirely from the
+        directory built from ``base_dir`` and never needs a product
+        candidate, so checking it first avoids an unused glob on every
+        bundle-label comparison. Everything else shares one path: glob
+        once for the product's own extension, then -- for "collection"
+        labels only -- strip an "inventory_" prefix before deriving the
+        candidate name.
+
+        :param base_dir: Root directory to search under.
         :return: Path to the selected validation label.
-        :raises NPBError: If no label for comparison can be found.
+        :raises Exception: If no label for comparison can be found.
         """
+        message = "No label for comparison found."
+        label_dir = Path(self._val_label_directory(str(base_dir)))
         basename = Path(self.name).name
 
-        if "collection" in basename:
-            matched = Path(max(val_products))
-            stem = matched.with_name(matched.name.replace("inventory_", "")).with_suffix(".xml")
-            matches = glob.glob(str(stem))
+        if "bundle" in basename:
+            matches = list(label_dir.glob("bundle_*.xml"))
             if not matches:
-                raise NPBError(_NO_VAL_LABEL_FOUND_MESSAGE)
-            val_label = matches[0]
-        elif "bundle" in basename:
-            matches = glob.glob(f"{val_label_path}bundle_*.xml")
-            if not matches:
-                raise NPBError(_NO_VAL_LABEL_FOUND_MESSAGE)
-            val_label = max(matches)
-        else:
-            stem = Path(max(val_products)).with_suffix(".xml")
-            matches = glob.glob(str(stem))
-            if not matches:
-                raise NPBError(_NO_VAL_LABEL_FOUND_MESSAGE)
-            val_label = matches[0]
+                raise Exception(message)
+            return max(matches)
 
-        return val_label
+        extension = Path(self.product.name).suffix
+        val_products = list(label_dir.glob(f"*{extension}"))
+        if not val_products:
+            raise Exception(message)
+
+        matched = max(val_products)
+        candidate_name = (
+            matched.name.replace("inventory_", "") if "collection" in basename else matched.name
+        )
+        candidate = matched.with_name(candidate_name).with_suffix(".xml")
+        if candidate.exists():
+            return candidate
+        raise Exception(message)
