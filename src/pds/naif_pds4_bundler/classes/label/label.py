@@ -279,39 +279,39 @@ class PDSLabel:
         -- never as a bare directory/path segment, so an exact-component
         check would never match real files.
 
-        The "bundle" branch is checked first and returns before computing
-        any product candidates: it derives its match entirely from the
-        directory built from ``base_dir`` and never needs a product
-        candidate, so checking it first avoids an unused glob on every
-        bundle-label comparison. Everything else shares one path: glob
-        once for the product's own extension, then -- for "collection"
-        labels only -- strip an "inventory_" prefix before deriving the
-        candidate name.
-
         :param base_dir: Root directory to search under.
         :return: Path to the selected validation label.
         :raises Exception: If no label for comparison can be found.
         """
-        message = "No label for comparison found."
-        label_dir = Path(self._val_label_directory(str(base_dir)))
+        val_label_path = Path(self._val_label_directory(str(base_dir)))
         basename = Path(self.name).name
 
+        # Bundle labels are matched directly by their own glob pattern;
+        # everything else is derived from the newest matching product file.
         if "bundle" in basename:
-            matches = list(label_dir.glob("bundle_*.xml"))
-            if not matches:
-                raise Exception(message)
-            return max(matches)
+            pattern = "bundle_*.xml"
+        else:
+            pattern = f"*{Path(self.product.name).suffix}"
 
-        extension = Path(self.product.name).suffix
-        val_products = list(label_dir.glob(f"*{extension}"))
-        if not val_products:
-            raise Exception(message)
+        matches = list(val_label_path.glob(pattern))
+        if not matches:
+            raise Exception("No label for comparison found.")
 
-        matched = max(val_products)
-        candidate_name = (
-            matched.name.replace("inventory_", "") if "collection" in basename else matched.name
-        )
-        candidate = matched.with_name(candidate_name).with_suffix(".xml")
-        if candidate.exists():
-            return candidate
-        raise Exception(message)
+        matched = max(matches)
+
+        if "bundle" in basename:
+            return matched
+
+        if "collection" in basename:
+            # Collection products are named "inventory_*"; the label itself
+            # drops that prefix, so it must be stripped to derive its name.
+            matched = matched.with_name(matched.name.replace("inventory_", ""))
+
+        candidate = matched.with_suffix(".xml")
+
+        # The stem match doesn't guarantee a label was actually generated
+        # for that product (e.g. it may have been skipped or failed).
+        if not candidate.exists():
+            raise Exception("No label for comparison found.")
+
+        return candidate
