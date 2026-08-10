@@ -173,6 +173,9 @@ class PDSLabel:
         """
         logging.info("-- Comparing label...")
 
+        # Try each fallback level in turn and keep the first match found:
+        # an older version of this label, then a label of the same type, then
+        # the InSight stock example.
         val_label = (self._find_prior_version_label() or
                      self._find_similar_type_label() or
                      self._find_insight_fallback_label())
@@ -205,10 +208,14 @@ class PDSLabel:
                 f"{val_label_path}{os.sep}{val_label_name[0:i]}*.xml")
 
             if val_labels:
+                # Keep the newest match (highest version number) found so far,
+                # in case a longer prefix finds nothing.
                 val_label = max(val_labels)
                 match_flag = True
 
             else:
+                # A longer prefix only narrows the search, so if this length
+                # finds nothing, no longer prefix will either.
                 match_flag = False
             i += 1
 
@@ -230,6 +237,8 @@ class PDSLabel:
             return str(self._pick_val_label(base_dir))
 
         except Exception:
+            # Not finding a match isn't an error here, just a signal to try the
+            # next fallback level, so we catch broadly on purpose.
             logging.warning("-- No similar label has been found.")
 
             return None
@@ -251,6 +260,8 @@ class PDSLabel:
             return val_label
 
         except Exception:
+            # This is the last fallback level, so reaching here means no label
+            # was found anywhere to compare against.
             logging.warning("-- No label for comparison found.")
 
             return None
@@ -266,6 +277,11 @@ class PDSLabel:
         """
         val_label_path = Path(base_dir) / self.product.collection.name
 
+        # spice_kernels and miscellaneous store their labels one level deeper,
+        # in a subdirectory per kernel/product type (e.g. "ck", "orb"). A
+        # collection label sits in the collection directory itself, not in one
+        # of those subdirectories, so it's excluded from getting that extra
+        # subdirectory appended.
         if (self.product.collection.name in ("spice_kernels", "miscellaneous")
                 and ("collection" not in self.name)):
 
@@ -301,6 +317,8 @@ class PDSLabel:
         if not matches:
             raise Exception("No label for comparison found.")
 
+        # File names carry a version number, so the alphabetically greatest
+        # path is also the newest version.
         matched = max(matches)
 
         if "bundle" in basename:
@@ -313,8 +331,8 @@ class PDSLabel:
 
         candidate = matched.with_suffix(".xml")
 
-        # The stem match doesn't guarantee a label was actually generated
-        # for that product (e.g. it may have been skipped or failed).
+        # The stem match doesn't guarantee a label was actually generated for
+        # that product (e.g. it may have been skipped or failed).
         if not candidate.exists():
             raise Exception("No label for comparison found.")
 
