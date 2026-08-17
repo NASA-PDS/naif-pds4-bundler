@@ -748,7 +748,7 @@ class TestPDSLabelCompareHelpers:
         label = label_for_helper()
         mocker.patch(_PATCH_PATH_GLOB, return_value=[Path("/bundle/spice_kernels/ck/kern.bc")])
         mocker.patch(_PATCH_PATH_EXISTS, return_value=True)
-        assert label._find_similar_type_label() == str(Path("/bundle/spice_kernels/ck/kern.xml"))
+        assert label._find_similar_type_label() == Path("/bundle/spice_kernels/ck/kern.xml")
 
     def test_find_similar_type_label_returns_none_when_val_products_empty(self, label_for_helper, mocker):
         label = label_for_helper()
@@ -766,7 +766,7 @@ class TestPDSLabelCompareHelpers:
         mocker.patch(_PATCH_PATH_EXISTS, return_value=True)
         mock_log = mocker.patch("pds.naif_pds4_bundler.classes.label.label.logging.warning")
         result = label._find_insight_fallback_label()
-        assert result == str(Path("/root/data/insight_spice/spice_kernels/ck/insight_ck.xml"))
+        assert result == Path("/root/data/insight_spice/spice_kernels/ck/insight_ck.xml")
         # The "Comparing with..." message must only fire on success, and
         # must be the ONLY warning logged (no leftover "not found" message).
         mock_log.assert_called_once_with("-- Comparing with InSight test label.")
