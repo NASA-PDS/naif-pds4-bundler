@@ -697,7 +697,7 @@ class TestPDSLabelCompareHelpers:
         mock_glob.assert_called_once_with(glob_pattern)
 
     # -- _pick_val_label: failure paths ---------------------------------
-    # The three raise sites: bundle's own glob comes up empty, the shared
+    # The three no-match sites: bundle's own glob comes up empty, the shared
     # path's val_products glob comes up empty (can't call max()), or the
     # shared path derives a candidate that doesn't exist on disk.
 
@@ -719,7 +719,7 @@ class TestPDSLabelCompareHelpers:
             "shared-branch-candidate-missing",
         ],
     )
-    def test_pick_val_label_raises_when_no_match(
+    def test_pick_val_label_returns_none_when_no_match(
         self, label_for_helper, mocker, name, val_label_path, glob_return, exists_return
     ):
         label = label_for_helper()
@@ -727,8 +727,7 @@ class TestPDSLabelCompareHelpers:
         mocker.patch.object(label, "_val_label_directory", return_value=val_label_path)
         mocker.patch(_PATCH_PATH_GLOB, return_value=glob_return)
         mocker.patch(_PATCH_PATH_EXISTS, return_value=exists_return)
-        with pytest.raises(Exception, match="No label for comparison found."):
-            label._pick_val_label(Path("/unused"))
+        assert label._pick_val_label(Path("/unused")) is None
 
     # -- _find_prior_version_label ---------------------------------------
 
