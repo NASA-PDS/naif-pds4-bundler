@@ -231,17 +231,18 @@ class PDSLabel:
 
         :return: Path to the matching label, or ``None`` if none is found.
         """
-        try:
-            base_dir = Path(self.setup.bundle_directory) / f"{self.setup.mission_acronym}_spice"
+        base_dir = Path(self.setup.bundle_directory) / f"{self.setup.mission_acronym}_spice"
+        val_label = self._pick_val_label(base_dir)
 
-            return str(self._pick_val_label(base_dir))
+        if not val_label:
 
-        except Exception:
-            # Not finding a match isn't an error here, just a signal to try the
-            # next fallback level, so we catch broadly on purpose.
+            # No match at this level -- expected, not an error; the next
+            # fallback level takes over.
             logging.warning("-- No similar label has been found.")
 
             return None
+
+        return str(val_label)
 
     def _find_insight_fallback_label(self) -> Optional[str]:
         """Fall back to an InSight test label (fallback level 3).
@@ -252,19 +253,19 @@ class PDSLabel:
 
         :return: Path to the matching label, or ``None`` if none is found.
         """
-        try:
-            base_dir = Path(self.setup.root_dir) / "data" / "insight_spice"
-            val_label = str(self._pick_val_label(base_dir))
-            logging.warning("-- Comparing with InSight test label.")
+        base_dir = Path(self.setup.root_dir) / "data" / "insight_spice"
+        val_label = self._pick_val_label(base_dir)
 
-            return val_label
-
-        except Exception:
-            # This is the last fallback level, so reaching here means no label
-            # was found anywhere to compare against.
+        if not val_label:
+            # This is the last fallback level, so reaching here means no
+            # label was found anywhere to compare against.
             logging.warning("-- No label for comparison found.")
 
             return None
+
+        logging.warning("-- Comparing with InSight test label.")
+
+        return str(val_label)
 
     def _val_label_directory(self, base_dir: Path) -> Path:
         """Build the candidate-label directory for the product's collection.
@@ -289,7 +290,7 @@ class PDSLabel:
 
         return val_label_path
 
-    def _pick_val_label(self, base_dir: Path) -> Path:
+    def _pick_val_label(self, base_dir: Path) -> Optional[Path]:
         """Select a validation label from a candidate directory.
 
         "collection"/"bundle" are matched as a substring of the label's
@@ -300,8 +301,8 @@ class PDSLabel:
         check would never match real files.
 
         :param base_dir: Root directory to search under.
-        :return: Path to the selected validation label.
-        :raises Exception: If no label for comparison can be found.
+        :return: Path to the selected validation label, or ``None`` if none
+            is found.
         """
         val_label_path = self._val_label_directory(base_dir)
         basename = Path(self.name).name
@@ -315,7 +316,9 @@ class PDSLabel:
 
         matches = list(val_label_path.glob(pattern))
         if not matches:
-            raise Exception("No label for comparison found.")
+
+            # Nothing in this directory to compare against.
+            return None
 
         # File names carry a version number, so the alphabetically greatest
         # path is also the newest version.
@@ -334,6 +337,6 @@ class PDSLabel:
         # The stem match doesn't guarantee a label was actually generated for
         # that product (e.g. it may have been skipped or failed).
         if not candidate.exists():
-            raise Exception("No label for comparison found.")
+            return None
 
         return candidate
