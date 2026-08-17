@@ -224,7 +224,7 @@ class PDSLabel:
 
         return val_label
 
-    def _find_similar_type_label(self) -> Optional[str]:
+    def _find_similar_type_label(self) -> Optional[Path]:
         """Look for the label of a product of the same type (fallback level 2).
 
         Used when a prior version of the same file cannot be found.
@@ -235,16 +235,13 @@ class PDSLabel:
         val_label = self._pick_val_label(base_dir)
 
         if not val_label:
-
             # No match at this level -- expected, not an error; the next
             # fallback level takes over.
             logging.warning("-- No similar label has been found.")
 
-            return None
+        return val_label
 
-        return str(val_label)
-
-    def _find_insight_fallback_label(self) -> Optional[str]:
+    def _find_insight_fallback_label(self) -> Optional[Path]:
         """Fall back to an InSight test label (fallback level 3).
 
         Used when no kernel of the same type can be found -- for example,
@@ -256,16 +253,14 @@ class PDSLabel:
         base_dir = Path(self.setup.root_dir) / "data" / "insight_spice"
         val_label = self._pick_val_label(base_dir)
 
-        if not val_label:
+        if val_label:
+            logging.warning("-- Comparing with InSight test label.")
+        else:
             # This is the last fallback level, so reaching here means no
             # label was found anywhere to compare against.
             logging.warning("-- No label for comparison found.")
 
-            return None
-
-        logging.warning("-- Comparing with InSight test label.")
-
-        return str(val_label)
+        return val_label
 
     def _val_label_directory(self, base_dir: Path) -> Path:
         """Build the candidate-label directory for the product's collection.
