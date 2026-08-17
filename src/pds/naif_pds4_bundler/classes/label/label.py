@@ -173,15 +173,17 @@ class PDSLabel:
         """
         logging.info("-- Comparing label...")
 
-        val_label = (
-            self._find_prior_version_label()
-            or self._find_similar_type_label()
-            or self._find_insight_fallback_label()
-        )
+        # Try each fallback level in turn and keep the first match found:
+        # an older version of this label, then a label of the same type, then
+        # the InSight stock example.
+        val_label = (self._find_prior_version_label() or
+                     self._find_similar_type_label() or
+                     self._find_insight_fallback_label())
 
         if val_label:
             logging.info("")
-            compare_files(val_label, self.name, self.setup.working_directory, self.setup.diff)
+            compare_files(val_label, self.name, self.setup.working_directory,
+                          self.setup.diff)
 
     def _find_prior_version_label(self) -> Optional[str]:
         """Look for a different version of the same file (fallback level 1).
@@ -195,20 +197,25 @@ class PDSLabel:
         val_label = None
         match_flag = True
         val_label_path = self._val_label_directory(
-            str(Path(self.setup.bundle_directory) / f"{self.setup.mission_acronym}_spice")
-        )
+            Path(self.setup.bundle_directory) / f"{self.setup.mission_acronym}_spice")
 
         val_label_name = Path(self.name).name
         i = 1
 
         while match_flag and i < len(val_label_name) - 1:
+
             val_labels = glob.glob(
-                f"{val_label_path}{val_label_name[0:i]}*.xml"
-            )
+                f"{val_label_path}{os.sep}{val_label_name[0:i]}*.xml")
+
             if val_labels:
+                # Keep the newest match (highest version number) found so far,
+                # in case a longer prefix finds nothing.
                 val_label = max(val_labels)
                 match_flag = True
+
             else:
+                # A longer prefix only narrows the search, so if this length
+                # finds nothing, no longer prefix will either.
                 match_flag = False
             i += 1
 
@@ -225,17 +232,15 @@ class PDSLabel:
         :return: Path to the matching label, or ``None`` if none is found.
         """
         try:
-            val_label_path = self._val_label_directory(
-                str(Path(self.setup.bundle_directory) / f"{self.setup.mission_acronym}_spice")
-            )
+            base_dir = Path(self.setup.bundle_directory) / f"{self.setup.mission_acronym}_spice"
 
-            product_extension = self.product.name.split(".")[-1]
-            val_products = glob.glob(f"{val_label_path}*.{product_extension}")
-
-            return self._pick_val_label(val_products, val_label_path)
+            return str(self._pick_val_label(base_dir))
 
         except Exception:
+            # Not finding a match isn't an error here, just a signal to try the
+            # next fallback level, so we catch broadly on purpose.
             logging.warning("-- No similar label has been found.")
+
             return None
 
     def _find_insight_fallback_label(self) -> Optional[str]:
@@ -248,25 +253,20 @@ class PDSLabel:
         :return: Path to the matching label, or ``None`` if none is found.
         """
         try:
-            val_label_path = self._val_label_directory(
-                str(Path(self.setup.root_dir) / "data" / "insight_spice")
-            )
-
-            #
-            # Simply pick the last one
-            #
-            product_extension = self.product.name.split(".")[-1]
-            val_products = glob.glob(f"{val_label_path}*.{product_extension}")
-
-            val_label = self._pick_val_label(val_products, val_label_path)
+            base_dir = Path(self.setup.root_dir) / "data" / "insight_spice"
+            val_label = str(self._pick_val_label(base_dir))
             logging.warning("-- Comparing with InSight test label.")
+
             return val_label
 
         except Exception:
+            # This is the last fallback level, so reaching here means no label
+            # was found anywhere to compare against.
             logging.warning("-- No label for comparison found.")
+
             return None
 
-    def _val_label_directory(self, base_dir: str) -> str:
+    def _val_label_directory(self, base_dir: Path) -> Path:
         """Build the candidate-label directory for the product's collection.
 
         Appends the kernel-type/product-type subdirectory when the
@@ -277,45 +277,63 @@ class PDSLabel:
         """
         val_label_path = Path(base_dir) / self.product.collection.name
 
-        if self.product.collection.name in ("spice_kernels", "miscellaneous") and (
-            "collection" not in self.name
-        ):
+        # spice_kernels and miscellaneous store their labels one level deeper,
+        # in a subdirectory per kernel/product type (e.g. "ck", "orb"). A
+        # collection label sits in the collection directory itself, not in one
+        # of those subdirectories, so it's excluded from getting that extra
+        # subdirectory appended.
+        if (self.product.collection.name in ("spice_kernels", "miscellaneous")
+                and ("collection" not in self.name)):
+
             val_label_path = val_label_path / Path(self.name).parent.name
 
-        return f"{val_label_path}{os.sep}"
+        return val_label_path
 
-    def _pick_val_label(self, val_products: list[str], val_label_path: str) -> str:
-        """Select a validation label from val_products/val_label_path.
+    def _pick_val_label(self, base_dir: Path) -> Path:
+        """Select a validation label from a candidate directory.
 
         "collection"/"bundle" are matched as a substring of the label's
         basename (``Path(self.name).name``), not as a standalone path
         component. Real product names embed them as a prefix -- e.g.
         "collection_spice_kernels_v001.xml", "bundle_insight_spice_v009.xml"
         -- never as a bare directory/path segment, so an exact-component
-        check would never match real files. The similar-type and
-        InSight-fallback lookups used to apply different rules here
-        (substring vs. exact-component); both now use the substring rule
-        that actually matches production naming.
+        check would never match real files.
 
-        :param val_products: Candidate product paths, in any order; the
-            lexicographically greatest (newest) entry is used to derive
-            the label name.
-        :param val_label_path: Directory the label is expected to live in.
+        :param base_dir: Root directory to search under.
         :return: Path to the selected validation label.
         :raises Exception: If no label for comparison can be found.
         """
+        val_label_path = self._val_label_directory(base_dir)
         basename = Path(self.name).name
 
-        if "collection" in basename:
-            stem = Path(max(val_products).replace("inventory_", "")).with_suffix(".xml")
-            val_label = glob.glob(str(stem))[0]
-        elif "bundle" in basename:
-            val_label = max(glob.glob(f"{val_label_path}bundle_*.xml"))
+        # Bundle labels are matched directly by their own glob pattern;
+        # everything else is derived from the newest matching product file.
+        if "bundle" in basename:
+            pattern = "bundle_*.xml"
         else:
-            stem = Path(max(val_products)).with_suffix(".xml")
-            val_label = glob.glob(str(stem))[0]
+            pattern = f"*{Path(self.product.name).suffix}"
 
-        if not val_label:
+        matches = list(val_label_path.glob(pattern))
+        if not matches:
             raise Exception("No label for comparison found.")
 
-        return val_label
+        # File names carry a version number, so the alphabetically greatest
+        # path is also the newest version.
+        matched = max(matches)
+
+        if "bundle" in basename:
+            return matched
+
+        if "collection" in basename:
+            # Collection products are named "inventory_*"; the label itself
+            # drops that prefix, so it must be stripped to derive its name.
+            matched = matched.with_name(matched.name.replace("inventory_", ""))
+
+        candidate = matched.with_suffix(".xml")
+
+        # The stem match doesn't guarantee a label was actually generated for
+        # that product (e.g. it may have been skipped or failed).
+        if not candidate.exists():
+            raise Exception("No label for comparison found.")
+
+        return candidate
