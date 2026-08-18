@@ -15,7 +15,7 @@ import requests
 import spiceypy
 import xmlschema
 
-from ..pipeline.runtime import handle_npb_error
+from .exceptions import NPBError
 from ..utils import etree_to_dict
 from ..utils import kernel_name
 from ..utils import spice_exception_handler
@@ -200,7 +200,7 @@ class Setup:
         else:
             pattern = re.compile(r"\d{4}-\d{2}-\d{2}")
             if not pattern.match(self.release_date):
-                handle_npb_error(
+                raise NPBError(
                     "release_date parameter does not match "
                     "the required format: YYYY-MM-DD."
                 )
@@ -231,7 +231,7 @@ class Setup:
             self.eol = "\n"
             self.eol_len = 1
         else:
-            handle_npb_error("End of Line provided via configuration is not CRLF nor LF.")
+            raise NPBError("End of Line provided via configuration is not CRLF nor LF.")
 
         self.end_of_line_pds4 = "CRLF"
         self.eol_pds4 = "\r\n"
@@ -264,14 +264,14 @@ class Setup:
             ):
                 self.kernel_endianness = "big"
             else:
-                handle_npb_error(
+                raise NPBError(
                     "binary_endianness configuration parameter value must be"
                     " 'big', 'BIG-IEEE', 'little' or 'LTL-IEEE'. Case is not"
                     " sensitive."
                 )
 
         if sys.byteorder != self.kernel_endianness:
-            handle_npb_error(
+            raise NPBError(
                 f"binary_endianness configuration parameter value must be "
                 f"the same as your system endianness: {sys.byteorder}."
             )
@@ -392,24 +392,24 @@ class Setup:
         #
         if hasattr(self, "mission_start") and self.mission_start:
             if not pattern.match(self.mission_start):
-                handle_npb_error(
+                raise NPBError(
                     f"mission_start parameter does not match the "
                     f"required format: {time_format}."
                 )
         if hasattr(self, "mission_finish") and self.mission_finish:
             if not pattern.match(self.mission_finish):
-                handle_npb_error(
+                raise NPBError(
                     f"mission_finish does not match the required format: {time_format}."
                 )
         if hasattr(self, "increment_start") and self.increment_start:
             if not pattern.match(self.increment_start):
-                handle_npb_error(
+                raise NPBError(
                     f"increment_start parameter does not match the "
                     f"required format: {time_format}."
                 )
         if hasattr(self, "increment_finish") and self.increment_finish:
             if not pattern.match(self.increment_finish):
-                handle_npb_error(
+                raise NPBError(
                     f"increment_finish does not match the required "
                     f"format: {time_format}."
                 )
@@ -417,7 +417,7 @@ class Setup:
             if ((not self.increment_start) and (self.increment_finish)) or (
                 (self.increment_start) and (not self.increment_finish)
             ):
-                handle_npb_error(
+                raise NPBError(
                     "If provided via configuration, increment_start and "
                     "increment_finish parameters need to be provided "
                     "together."
@@ -437,7 +437,7 @@ class Setup:
             logging.error('  staging: %s', self.staging_directory)
             logging.error('  bundle:  %s', self.bundle_directory)
 
-            handle_npb_error("Update working, staging, or bundle directory.")
+            raise NPBError("Update working, staging, or bundle directory.")
 
         #
         # Sort out if directories are provided as relative paths and
@@ -458,7 +458,7 @@ class Setup:
         if os.path.isdir(cwd + os.sep + self.working_directory):
             self.working_directory = cwd + os.sep + self.working_directory
         if not os.path.isdir(self.working_directory):
-            handle_npb_error(f"Directory does not exist: {self.working_directory}.")
+            raise NPBError(f"Directory does not exist: {self.working_directory}.")
 
         if os.path.isdir(cwd + os.sep + self.staging_directory):
             self.staging_directory = (
@@ -483,7 +483,7 @@ class Setup:
                                     ' is not used with %s faucet.', self.faucet)
 
                 else:
-                    handle_npb_error(
+                    raise NPBError(
                         f"Staging directory cannot be created: {self.staging_directory}."
                     )
 
@@ -504,7 +504,7 @@ class Setup:
                                 " used with %s faucet.", self.faucet)
 
             else:
-                handle_npb_error(
+                raise NPBError(
                     f"Bundle directory does not exist: {self.bundle_directory}."
                 )
 
@@ -515,7 +515,7 @@ class Setup:
             if os.path.isdir(cwd + os.sep + kd_name):
                 self.kernels_directory[i] = cwd + os.sep + kd_name
             if not os.path.isdir(self.kernels_directory[i]):
-                handle_npb_error(f"Directory does not exist: {kd_name}.")
+                raise NPBError(f"Directory does not exist: {kd_name}.")
 
         os.chdir(cwd)
 
@@ -552,7 +552,7 @@ class Setup:
                     xml_model_version = xml_model_version.split(".sch")[0]
 
                     if xml_model_version != short_version:
-                        handle_npb_error(
+                        raise NPBError(
                             f"PDS4 Information Model "
                             f"{short_version} "
                             f"is incoherent with the XML Model version: "
@@ -577,7 +577,7 @@ class Setup:
                     schema_loc_version = schema_loc_version.split(".xsd")[0]
 
                     if schema_loc_version != short_version:
-                        handle_npb_error(
+                        raise NPBError(
                             f"PDS4 Information Model "
                             f"{short_version} "
                             f"is incoherent with the Schema location: "
@@ -594,7 +594,7 @@ class Setup:
                     logging.info('   %s', self.schema_location)
 
             else:
-                handle_npb_error(
+                raise NPBError(
                     f"PDS4 Information Model {self.information_model}"
                     f" format from configuration is incorrect."
                 )
@@ -682,7 +682,7 @@ class Setup:
 
         elif self.pds_version == "4":
             if not os.path.isdir(self.templates_directory):
-                handle_npb_error("Path provided/derived for templates is not available.")
+                raise NPBError("Path provided/derived for templates is not available.")
             labels_check = [
                 os.path.basename(x)
                 for x in glob.glob(f"{self.root_dir}templates/1.5.0.0/*")
@@ -784,7 +784,7 @@ class Setup:
                 for pattern in patterns:
                     name_pattern = pattern["#text"]
                     if name_pattern not in metak_name_check:
-                        handle_npb_error(
+                        raise NPBError(
                             f"The meta-kernel pattern "
                             f"{name_pattern} is not provided."
                         )
@@ -797,7 +797,7 @@ class Setup:
                 # the configuration file.
                 #
                 if "$" in metak_name_check:
-                    handle_npb_error(
+                    raise NPBError(
                         f"The MK patterns {metak['@name']} do not "
                         f"correspond to the present MKs."
                     )
@@ -835,11 +835,11 @@ class Setup:
                             "configuration."
                         )
                     else:
-                        handle_npb_error(
+                        raise NPBError(
                             "Readme elements not present in configuration file."
                         )
             else:
-                handle_npb_error("Readme elements not present in configuration file.")
+                raise NPBError("Readme elements not present in configuration file.")
 
         #
         # Check if there is any uppercase character in the kernel list
@@ -1038,7 +1038,7 @@ class Setup:
             logging.info('-- LSK     loaded: %s', lsks)
 
         if len(lsks) > 1:
-            handle_npb_error("Only one LSK should be obtained.")
+            raise NPBError("Only one LSK should be obtained.")
 
         pcks = []
         for pattern in pck_patterns:
