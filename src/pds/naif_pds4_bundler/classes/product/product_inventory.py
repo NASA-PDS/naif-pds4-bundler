@@ -104,24 +104,30 @@ class InventoryProduct(Product):
 
         Product.__init__(self)
 
-        # Labeling used to happen here (PDS3/PDS4 label picked and built). It
-        # now happens in the pipeline, right after this product is built.
-        if setup.pds_version == "3":
-            #
-            # Generate dsindex files.
-            #
-            shutil.copy2(self.path, self.setup.staging_directory + "/../dsindex.tab")
-            shutil.copy2(
-                self.path.replace(".tab", ".lbl"),
-                self.setup.staging_directory + "/../dsindex.lbl",
-            )
+        # Labeling used to happen here (PDS3/PDS4 label picked and built), and
+        # so did the PDS3 dsindex-file copy below it. Both moved out:
+        # labeling to the pipeline, dsindex copying to its own method,
+        # generate_dsindex_files(), also called from the pipeline.
 
-            replace_string_in_file(
-                self.setup.staging_directory + "/../dsindex.lbl",
-                '"INDEX.TAB"',
-                '"DSINDEX.TAB"',
-                self.setup,
-            )
+    def generate_dsindex_files(self) -> None:
+        """Copy the PDS3 index file and its label to dsindex.tab/.lbl.
+
+        PDS3 only. This is a separate method, not folded into __init__,
+        because it copies ``index.lbl`` -- a file this class doesn't write.
+        ``InventoryPDS3Label`` writes it, and that label is now built by the
+        pipeline after this product's __init__ returns. Call this only
+        after that label exists, or the copy fails with a FileNotFoundError.
+        """
+        shutil.copy2(self.path, self.setup.staging_directory + "/../dsindex.tab")
+        shutil.copy2(
+            self.path.replace(".tab", ".lbl"),
+            self.setup.staging_directory + "/../dsindex.lbl")
+
+        replace_string_in_file(
+            self.setup.staging_directory + "/../dsindex.lbl",
+            '"INDEX.TAB"',
+            '"DSINDEX.TAB"',
+            self.setup)
 
     def set_product_lid(self) -> None:
         """Set the Product LID."""

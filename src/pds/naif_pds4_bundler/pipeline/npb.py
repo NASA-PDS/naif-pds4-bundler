@@ -364,7 +364,11 @@ def run_pipeline(args: PipelineArgs) -> None:
             else:
                 spice_kernels_collection_inventory.label = InventoryPDS3Label(
                     setup, spice_kernels_collection, spice_kernels_collection_inventory)
-                
+
+                # Must come after the label line above, not before: this copies
+                # index.lbl, which InventoryPDS3Label just wrote.
+                spice_kernels_collection_inventory.generate_dsindex_files()
+
             spice_kernels_collection.add(spice_kernels_collection_inventory)
 
         if setup.pds_version == "4":
