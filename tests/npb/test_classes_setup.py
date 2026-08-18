@@ -1008,10 +1008,11 @@ class TestSetupCheckConfiguration:
         # Forces that the staging directory is the same as the working directory.
         setup.staging_directory = setup.working_directory
 
-        # Captures the logging and the raised NPBError. Also checks the provided
-        # message. Now check_configuration raises NPBError directly, that line
-        # is only logged by the pipeline's except-handler (npb.py), not at this
-        # unit level.
+        # Captures the logging and the raised NPBError. Also checks the
+        # provided message. check_configuration no longer logs the final
+        # "-- Update working, staging, or bundle directory." line itself —
+        # that now only happens in the pipeline's except-handler (npb.py),
+        # not at this unit level.
         with caplog.at_level(logging.INFO):
             with pytest.raises(NPBError,
                                match='Update working, staging, or bundle '
