@@ -14,6 +14,8 @@ from ..classes.exceptions import NPBError
 from ..classes.label import BundlePDS4Label
 from ..classes.label import InventoryPDS3Label
 from ..classes.label import InventoryPDS4Label
+from ..classes.label import SpiceKernelPDS3Label
+from ..classes.label import SpiceKernelPDS4Label
 from ..classes.list import KernelList
 from ..classes.log import Log
 from ..classes.plan import ReleasePlan
@@ -250,9 +252,19 @@ def run_pipeline(args: PipelineArgs) -> None:
                     )
                 )
             elif ".tm" not in kernel.lower():
-                spice_kernels_collection.add(
-                    SpiceKernelProduct(setup, kernel, spice_kernels_collection)
-                )
+                kernel_product = SpiceKernelProduct(setup, kernel, spice_kernels_collection)
+
+                # Labeling used to happen inside SpiceKernelProduct itself; it's
+                # picked here now, same PDS3/PDS4 choice as before.
+                logging.info('-- Labeling %s...', kernel_product.name)
+
+                if setup.pds_version == "4":
+                    kernel_product.label = SpiceKernelPDS4Label(setup, kernel_product)
+
+                else:
+                    kernel_product.label = SpiceKernelPDS3Label(setup, kernel_product)
+
+                spice_kernels_collection.add(kernel_product)
 
         #
         # * Generate the Meta-kernel(s).

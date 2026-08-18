@@ -14,8 +14,6 @@ from ...utils import pck_coverage
 from ...utils import product_mapping
 from ...utils import safe_make_directory
 from ...utils import spk_coverage
-from ..label import SpiceKernelPDS3Label
-from ..label import SpiceKernelPDS4Label
 
 
 class SpiceKernelProduct(Product):
@@ -155,16 +153,10 @@ class SpiceKernelProduct(Product):
         self.targets = targets
         self.observers = observers
 
-        #
-        # The kernel is labeled.
-        #
-        logging.info('-- Labeling %s...', self.name)
-
-        if setup.pds_version == "4":
-            self.label = SpiceKernelPDS4Label(setup, self)
-        else:
+        # PDS3 labeling reads this back off the product; PDS4 doesn't need it.
+        # Labeling itself now happens in the pipeline, not here.
+        if setup.pds_version == "3":
             self.maklabel_options = self.read_maklabel_options()
-            self.label = SpiceKernelPDS3Label(setup, self)
 
     def product_lid(self) -> str:
         """Determine product logical identifier (LID).

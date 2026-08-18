@@ -78,6 +78,8 @@ _PATCH_TARGETS = [
     'BundlePDS4Label',
     'InventoryPDS3Label',
     'InventoryPDS4Label',
+    'SpiceKernelPDS3Label',
+    'SpiceKernelPDS4Label',
     'clear_run',
     'finish_execution',
     'log_step',
@@ -496,6 +498,35 @@ class TestPhase6StagingBundleAndCollections:
         mocks.ReleasePlan.return_value.kernel_list = ['maven_2024.bsp']
         run_pipeline(_args())
         mocks.SpiceKernelProduct.assert_called_once()
+
+    def test_kernel_product_labeled_with_pds4_label(self, mocks):
+        # One kernel in the list, so exactly one product is dispatched and
+        # exactly one label call to check for.
+        mocks.ReleasePlan.return_value.kernel_list = ['maven_2024.bsp']
+        run_pipeline(_args())
+        kernel_product = mocks.SpiceKernelProduct.return_value
+
+        # Unlike InventoryPDS4Label, this label class is only ever used here, so
+        # assert_called_once_with is safe (no other site shares it).
+        mocks.SpiceKernelPDS4Label.assert_called_once_with(
+            mocks.Setup.return_value, kernel_product)
+
+        # The label built above is what ends up assigned back onto the product.
+        assert kernel_product.label is mocks.SpiceKernelPDS4Label.return_value
+
+    def test_kernel_product_labeled_with_pds3_label(self, mocks):
+        # Same setup as above, but switched to PDS3.
+        mocks.Setup.return_value.pds_version = '3'
+        mocks.ReleasePlan.return_value.kernel_list = ['maven_2024.bsp']
+        run_pipeline(_args())
+        kernel_product = mocks.SpiceKernelProduct.return_value
+
+        # PDS3 picks the PDS3 label class instead -- this is the branch that
+        # used to live inside SpiceKernelProduct.__init__.
+        mocks.SpiceKernelPDS3Label.assert_called_once_with(
+            mocks.Setup.return_value, kernel_product)
+
+        assert kernel_product.label is mocks.SpiceKernelPDS3Label.return_value
 
     def test_orbnum_product_dispatched_for_nrb_kernel(self, mocks):
         # .nrb files are dispatched to OrbnumFileProduct and added to the miscellaneous collection.
