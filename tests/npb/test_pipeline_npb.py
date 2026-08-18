@@ -76,6 +76,7 @@ _PATCH_TARGETS = [
     'DocumentCollection',
     'ReadmeProduct',
     'BundlePDS4Label',
+    'DocumentPDS4Label',
     'InventoryPDS3Label',
     'InventoryPDS4Label',
     'MetaKernelPDS4Label',
@@ -839,6 +840,30 @@ class TestPhase9PDS4DocumentMiscChecksum:
         mocks.SpicedsProduct.assert_called_once_with(
             mocks.Setup.return_value, mocks.DocumentCollection.return_value
         )
+
+    def test_spiceds_labeled_with_pds4_label_when_generated(self, mocks):
+        # Force the "spiceds changed" branch so labeling actually runs.
+        mocks.SpicedsProduct.return_value.generated = True
+        run_pipeline(_args())
+        spiceds = mocks.SpicedsProduct.return_value
+        doc_col = mocks.DocumentCollection.return_value
+
+        # DocumentPDS4Label is only ever used for spiceds, so
+        # assert_called_once_with is safe (no other call site shares it).
+        mocks.DocumentPDS4Label.assert_called_once_with(
+            mocks.Setup.return_value, doc_col, spiceds)
+
+        # The label built above is what ends up assigned back onto the product.
+        assert spiceds.label is mocks.DocumentPDS4Label.return_value
+
+    def test_spiceds_not_labeled_when_not_generated(self, mocks):
+        # generated=False is the default mock value (an unchanged spiceds file
+        # needs no new release), so no override is needed here.
+        run_pipeline(_args())
+        
+        # Mirrors the guard that used to live inside SpicedsProduct itself:
+        # nothing is labeled when the file hasn't changed.
+        mocks.DocumentPDS4Label.assert_not_called()
 
     def test_document_inventory_created_when_spiceds_generated(self, mocks):
         # When a SPICEDS document is generated, it and its inventory are added to the document collection.

@@ -11,7 +11,6 @@ from .product import Product
 from ..exceptions import NPBError
 from ...utils import add_carriage_return
 from ...utils import compare_files
-from ..label import DocumentPDS4Label
 
 
 class SpicedsProduct(Product):
@@ -122,13 +121,14 @@ class SpicedsProduct(Product):
         self.generated = self._check_product()
 
         #
-        # Validate the product by comparing it and then generate the label.
+        # Validate the product by comparing it. Labeling used to happen here
+        # too, under this same self.generated check; it's built in the pipeline
+        # now, which reads self.generated to decide whether to.
         #
         if self.generated:
+
             if self.setup.diff:
                 self._compare()
-
-            self.label = DocumentPDS4Label(setup, collection, self)
 
     def set_product_lid(self) -> None:
         """Set the Product LID."""
