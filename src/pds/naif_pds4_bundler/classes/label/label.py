@@ -1,6 +1,4 @@
 """PDS Label Class and Child Classes Implementation."""
-
-import glob
 import logging
 import os
 from pathlib import Path
@@ -182,10 +180,10 @@ class PDSLabel:
 
         if val_label:
             logging.info("")
-            compare_files(val_label, self.name, self.setup.working_directory,
+            compare_files(str(val_label), self.name, self.setup.working_directory,
                           self.setup.diff)
 
-    def _find_prior_version_label(self) -> Optional[str]:
+    def _find_prior_version_label(self) -> Optional[Path]:
         """Look for a different version of the same file (fallback level 1).
 
         Keeps trying to match the label name, advancing one character each
@@ -195,29 +193,28 @@ class PDSLabel:
         :return: Path to the matching label, or ``None`` if none is found.
         """
         val_label = None
-        match_flag = True
         val_label_path = self._val_label_directory(
-            Path(self.setup.bundle_directory) / f"{self.setup.mission_acronym}_spice")
+            Path(self.setup.bundle_directory) / f"{self.setup.mission_acronym}_spice"
+        )
 
         val_label_name = Path(self.name).name
-        i = 1
 
-        while match_flag and i < len(val_label_name) - 1:
-
-            val_labels = glob.glob(
-                f"{val_label_path}{os.sep}{val_label_name[0:i]}*.xml")
-
-            if val_labels:
-                # Keep the newest match (highest version number) found so far,
-                # in case a longer prefix finds nothing.
-                val_label = max(val_labels)
-                match_flag = True
-
-            else:
-                # A longer prefix only narrows the search, so if this length
-                # finds nothing, no longer prefix will either.
-                match_flag = False
-            i += 1
+        # A file matching a longer prefix always matches every shorter prefix
+        # too, so match existence only shrinks as `i` grows: the first miss
+        # proves no longer prefix can match either, and it's safe to stop there.
+        #
+        # The loop never tests the last two characters of val_label_name
+        # (range stops at len - 2), and the trailing "*" in the glob pattern
+        # matches any remaining suffix of any length -- real version-suffixed
+        # filenames (e.g. "..._v001.xml" vs "..._v014.xml") only differ near
+        # the end, so a match this close to the full name is expected to be the
+        # immediately preceding version in practice, even though nothing here
+        # enforces it.
+        for i in range(1, len(val_label_name) - 1):
+            val_labels = list(val_label_path.glob(f"{val_label_name[0:i]}*.xml"))
+            if not val_labels:
+                break
+            val_label = max(val_labels)
 
         if not val_label:
             logging.warning("-- No other version of the product label has been found.")
@@ -271,7 +268,7 @@ class PDSLabel:
         :param base_dir: Root directory to build the candidate path under.
         :return: The candidate-label directory path.
         """
-        val_label_path = Path(base_dir) / self.product.collection.name
+        val_label_path = base_dir / self.product.collection.name
 
         # spice_kernels and miscellaneous store their labels one level deeper,
         # in a subdirectory per kernel/product type (e.g. "ck", "orb"). A

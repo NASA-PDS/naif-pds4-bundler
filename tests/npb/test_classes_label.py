@@ -14,11 +14,10 @@ from pds.naif_pds4_bundler.classes.label.label import PDSLabel
 # Patch targets — resolved to where the names are looked up inside label.py
 _PATCH_ADD_CR = "pds.naif_pds4_bundler.classes.label.label.add_carriage_return"
 _PATCH_COMPARE = "pds.naif_pds4_bundler.classes.label.label.compare_files"
-_PATCH_GLOB = "pds.naif_pds4_bundler.classes.label.label.glob.glob"
 # Path.glob/Path.exists are patched on the class itself (not label.py's
 # namespace) since `Path` is a class object, not a rebindable function
 # reference -- patching it here affects every Path instance, including
-# the ones _pick_val_label constructs internally.
+# the ones _find_prior_version_label/_pick_val_label construct internally.
 _PATCH_PATH_GLOB = "pathlib.Path.glob"
 _PATCH_PATH_EXISTS = "pathlib.Path.exists"
 
@@ -360,7 +359,7 @@ class TestPDSLabelCompare:
         label = label_for()
         hit = "/bundle/spice_kernels/ck/kernel.xml"
         mock_cmp = mocker.patch(_PATCH_COMPARE)
-        mocker.patch(_PATCH_GLOB, side_effect=self._level1_hit(hit))
+        mocker.patch(_PATCH_PATH_GLOB, side_effect=self._level1_hit(hit))
         label.compare()
         mock_cmp.assert_called_once()
 
@@ -397,8 +396,8 @@ class TestPDSLabelCompare:
         label = label_for(collection_name=collection_name, label_name_part=label_name_part)
         if name_override:
             label.name = name_override
-        mocker.patch(_PATCH_GLOB, side_effect=[[]])  # level-1: miss
-        mocker.patch(_PATCH_PATH_GLOB, return_value=glob_return)  # level-2
+        # level-1 miss, then level-2's _pick_val_label pattern glob
+        mocker.patch(_PATCH_PATH_GLOB, side_effect=[[], glob_return])
         if needs_exists:
             mocker.patch(_PATCH_PATH_EXISTS, return_value=True)
         label.compare()
@@ -436,8 +435,8 @@ class TestPDSLabelCompare:
         label = label_for(collection_name=collection_name, label_name_part=label_name_part)
         if name_override:
             label.name = name_override
-        mocker.patch(_PATCH_GLOB, side_effect=[[]])  # level-1: miss
-        mocker.patch(_PATCH_PATH_GLOB, side_effect=[[], glob_return])  # level-2 empty, level-3 hit
+        # level-1 miss, level-2's _pick_val_label pattern glob empty, level-3 hit
+        mocker.patch(_PATCH_PATH_GLOB, side_effect=[[], [], glob_return])
         if needs_exists:
             mocker.patch(_PATCH_PATH_EXISTS, return_value=True)
         label.compare()
@@ -448,7 +447,6 @@ class TestPDSLabelCompare:
     # ------------------------------------------------------------------
     def test_all_levels_fail_no_exception(self, label_for, mocker):
         mock_cmp = mocker.patch(_PATCH_COMPARE)
-        mocker.patch(_PATCH_GLOB, return_value=[])
         mocker.patch(_PATCH_PATH_GLOB, return_value=[])
         label_for().compare()
         mock_cmp.assert_not_called()
@@ -461,7 +459,7 @@ class TestPDSLabelCompare:
         label = label_for(collection_name="miscellaneous", label_name_part="orbnum")
         label.name = f"/staging/miscellaneous/orb{os.sep}orbnum.xml"
         hit = "/bundle/misc/orb/old_orbnum.xml"
-        mocker.patch(_PATCH_GLOB, side_effect=self._level1_hit(hit))
+        mocker.patch(_PATCH_PATH_GLOB, side_effect=self._level1_hit(hit))
         label.compare()
 
     # ------------------------------------------------------------------
@@ -473,7 +471,7 @@ class TestPDSLabelCompare:
         label = label_for(collection_name="document")
         label.name = f"/staging/document{os.sep}spiceds.xml"
         hit = "/bundle/document/spiceds_v1.xml"
-        mocker.patch(_PATCH_GLOB, side_effect=self._level1_hit(hit))
+        mocker.patch(_PATCH_PATH_GLOB, side_effect=self._level1_hit(hit))
         label.compare()
 
     # ------------------------------------------------------------------
@@ -487,7 +485,7 @@ class TestPDSLabelCompare:
         )
         label.name = f"/staging/spice_kernels{os.sep}collection_inventory.xml"
         hit = "/bundle/ck/old_collection_inventory.xml"
-        mocker.patch(_PATCH_GLOB, side_effect=self._level1_hit(hit))
+        mocker.patch(_PATCH_PATH_GLOB, side_effect=self._level1_hit(hit))
         label.compare()
 
     # ------------------------------------------------------------------
@@ -497,8 +495,8 @@ class TestPDSLabelCompare:
     # ------------------------------------------------------------------
     def test_level2_missing_candidate_falls_through_to_level3(self, label_for, mocker):
         mock_cmp = mocker.patch(_PATCH_COMPARE)
-        mocker.patch(_PATCH_GLOB, side_effect=[[]])  # level-1: miss
         mocker.patch(_PATCH_PATH_GLOB, side_effect=[
+            [],  # level-1: miss
             [Path("/bundle/spice_kernels/ck/kern.bc")],  # level-2: val_products found...
             [Path("/root/data/insight_spice/spice_kernels/ck/insight_ck.bc")],  # level-3: val_products
         ])
@@ -513,8 +511,8 @@ class TestPDSLabelCompare:
     # ------------------------------------------------------------------
     def test_level3_missing_candidate_suppressed_by_except(self, label_for, mocker):
         mock_cmp = mocker.patch(_PATCH_COMPARE)
-        mocker.patch(_PATCH_GLOB, side_effect=[[]])  # level-1: miss
         mocker.patch(_PATCH_PATH_GLOB, side_effect=[
+            [],  # level-1: miss
             [],  # level-2: val_products empty -> raises, falls to level-3
             [Path("/root/data/insight_spice/spice_kernels/ck/insight_ck.bc")],  # level-3: val_products
         ])
@@ -734,12 +732,12 @@ class TestPDSLabelCompareHelpers:
     def test_find_prior_version_label_returns_hit(self, label_for_helper, mocker):
         label = label_for_helper()
         hit = "/bundle/spice_kernels/ck/kernel_old.xml"
-        mocker.patch(_PATCH_GLOB, side_effect=self._level1_hit(hit))
+        mocker.patch(_PATCH_PATH_GLOB, side_effect=self._level1_hit(hit))
         assert label._find_prior_version_label() == hit
 
     def test_find_prior_version_label_returns_none_on_no_match(self, label_for_helper, mocker):
         label = label_for_helper()
-        mocker.patch(_PATCH_GLOB, return_value=[])
+        mocker.patch(_PATCH_PATH_GLOB, return_value=[])
         assert label._find_prior_version_label() is None
 
     # -- _find_similar_type_label -----------------------------------------
