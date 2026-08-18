@@ -143,7 +143,6 @@ def base_init_patches():
         patch(f"{_MODULE}.MetaKernelProduct.compare"),
         patch(f"{_MODULE}.shutil.copy2"),
         patch(f"{_MODULE}.Product.__init__", return_value=None),
-        patch(f"{_MODULE}.MetaKernelPDS4Label", return_value=MagicMock()),
     ]
 
 
@@ -345,7 +344,6 @@ class TestMetaKernelProductInit:
             patch(f"{_MODULE}.mk_to_list", return_value=[]),
             patch(f"{_MODULE}.MetaKernelProduct.coverage"),
             patch(f"{_MODULE}.Product.__init__", return_value=None),
-            patch(f"{_MODULE}.MetaKernelPDS4Label", return_value=MagicMock()),
             patch(f"{_MODULE}.get_latest_kernel", return_value=[]),
         ):
             product = MetaKernelProduct(setup, "insight_v01.tm", collection)
@@ -374,19 +372,6 @@ class TestMetaKernelProductInit:
             extra_patches=[patch(f"{_MODULE}.MetaKernelProduct.compare", compare_mock)],
         )
         assert compare_mock.called == expect_compare
-
-    @pytest.mark.parametrize("pds_version, expect_label", [
-        ("4", True),
-        ("3", False)
-    ])
-    def test_pds4_label_created_only_for_pds4(self, tmp_path, pds_version, expect_label):
-        label_mock = MagicMock()
-        self._make_product(
-            tmp_path,
-            pds_version=pds_version,
-            extra_patches=[patch(f"{_MODULE}.MetaKernelPDS4Label", label_mock)],
-        )
-        assert label_mock.called == expect_label
 
     def test_no_matching_mk_config_raises(self, tmp_path):
         staging = str(tmp_path / "staging")
@@ -530,7 +515,6 @@ class TestMetaKernelProductInit:
             patch(f"{_MODULE}.MetaKernelProduct.write_product"),
             patch(f"{_MODULE}.MetaKernelProduct.coverage"),
             patch(f"{_MODULE}.Product.__init__", return_value=None),
-            patch(f"{_MODULE}.MetaKernelPDS4Label", return_value=MagicMock()),
             patch(f"{_MODULE}.MetaKernelProduct.check_version") as mock_check_version,
         ):
             MetaKernelProduct(setup, "insight_v01.tm", collection)
@@ -553,6 +537,9 @@ class TestMetaKernelProductInit:
         with caplog.at_level(logging.INFO):
             self._make_product(tmp_path)
 
+        # The "Labeling meta-kernel..." message and its leading blank line moved
+        # to the pipeline along with label construction, so they're not logged
+        # by the product's own __init__ anymore.
         expected = [
             (logging.INFO, '-- Generate meta-kernel: insight_v01.tm'),
             (logging.WARNING, f'-- Meta-kernel already exists: {tmp_path / "staging/spice_kernels/mk/insight_v01.tm"}'),
@@ -560,9 +547,7 @@ class TestMetaKernelProductInit:
                               'staging are will be overwritten.'),
             (logging.WARNING, '-- Note that to provide a meta-kernel as an input, it must be provided '
                               'via configuration file.'),
-            (logging.INFO, ''),
-            (logging.INFO, ''),
-            (logging.INFO, '-- Labeling meta-kernel: insight_v01.tm...')]
+            (logging.INFO, '')]
 
         results = [(r[1], r[2]) for r in caplog.record_tuples]
         assert expected == results

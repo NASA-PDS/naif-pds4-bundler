@@ -78,6 +78,7 @@ _PATCH_TARGETS = [
     'BundlePDS4Label',
     'InventoryPDS3Label',
     'InventoryPDS4Label',
+    'MetaKernelPDS4Label',
     'OrbnumFilePDS4Label',
     'SpiceKernelPDS3Label',
     'SpiceKernelPDS4Label',
@@ -598,6 +599,23 @@ class TestPhase6StagingBundleAndCollections:
         mocks.MetaKernelProduct.assert_called_once()
         mocks.SpiceKernelsCollection.return_value.add.assert_called()
 
+    def test_meta_kernel_labeled_with_pds4_label(self, mocks):
+        # One meta-kernel determined, so exactly one product and one label call.
+        mocks.SpiceKernelsCollection.return_value.determine_meta_kernels.return_value = {
+            'maven_v01.tm': None
+        }
+        mocks.Setup.return_value.pds_version = '4'
+        run_pipeline(_args())
+        meta_kernel = mocks.MetaKernelProduct.return_value
+
+        # PDS4 only -- there's no PDS3 meta-kernel label, so this class is never
+        # shared with another call site.
+        mocks.MetaKernelPDS4Label.assert_called_once_with(
+            mocks.Setup.return_value, meta_kernel)
+
+        # The label built above is what ends up assigned back onto the product.
+        assert meta_kernel.label is mocks.MetaKernelPDS4Label.return_value
+
     def test_meta_kernel_product_added_to_misc_for_pds3(self, mocks):
         # In PDS3 mode, a determined meta-kernel is added to the miscellaneous collection.
         mocks.SpiceKernelsCollection.return_value.determine_meta_kernels.return_value = {
@@ -607,6 +625,17 @@ class TestPhase6StagingBundleAndCollections:
         run_pipeline(_args())
         mocks.MetaKernelProduct.assert_called_once()
         mocks.MiscellaneousCollection.return_value.add.assert_called()
+
+    def test_meta_kernel_not_labeled_for_pds3(self, mocks):
+        # Product is still built for PDS3 (dispatched to the miscellaneous
+        # collection instead), but mirrors the guard that used to live inside
+        # MetaKernelProduct itself: no label at all when not PDS4.
+        mocks.SpiceKernelsCollection.return_value.determine_meta_kernels.return_value = {
+            'maven_v01.tm': None
+        }
+        mocks.Setup.return_value.pds_version = '3'
+        run_pipeline(_args())
+        mocks.MetaKernelPDS4Label.assert_not_called()
 
     def test_no_meta_kernel_product_when_none_determined(self, mocks):
         # When determine_meta_kernels returns empty, no MetaKernelProduct is constructed.

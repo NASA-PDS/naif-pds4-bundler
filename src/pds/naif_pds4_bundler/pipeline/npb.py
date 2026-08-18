@@ -14,6 +14,7 @@ from ..classes.exceptions import NPBError
 from ..classes.label import BundlePDS4Label
 from ..classes.label import InventoryPDS3Label
 from ..classes.label import InventoryPDS4Label
+from ..classes.label import MetaKernelPDS4Label
 from ..classes.label import OrbnumFilePDS4Label
 from ..classes.label import SpiceKernelPDS3Label
 from ..classes.label import SpiceKernelPDS4Label
@@ -283,8 +284,17 @@ def run_pipeline(args: PipelineArgs) -> None:
                 meta_kernel = MetaKernelProduct(
                     setup, mk, spice_kernels_collection, user_input=meta_kernels[mk]
                 )
+
                 if setup.pds_version == "4":
+
+                    # Labeling used to happen inside MetaKernelProduct itself,
+                    # PDS4 only -- there's no PDS3 meta-kernel label.
+                    logging.info('')
+                    logging.info('-- Labeling meta-kernel: %s...', meta_kernel.name)
+                    meta_kernel.label = MetaKernelPDS4Label(setup, meta_kernel)
+
                     spice_kernels_collection.add(meta_kernel)
+
                 else:
                     miscellaneous_collection.add(meta_kernel)
 
