@@ -12,6 +12,8 @@ from ..classes.collection import MiscellaneousCollection
 from ..classes.collection import SpiceKernelsCollection
 from ..classes.exceptions import NPBError
 from ..classes.label import BundlePDS4Label
+from ..classes.label import InventoryPDS3Label
+from ..classes.label import InventoryPDS4Label
 from ..classes.list import KernelList
 from ..classes.log import Log
 from ..classes.plan import ReleasePlan
@@ -322,6 +324,17 @@ def run_pipeline(args: PipelineArgs) -> None:
             spice_kernels_collection_inventory = InventoryProduct(
                 setup, spice_kernels_collection
             )
+
+            # Only inventory built for both PDS versions, so both label classes
+            # are still picked here, same as InventoryProduct used to.
+            if setup.pds_version == "4":
+                spice_kernels_collection_inventory.label = InventoryPDS4Label(
+                    setup, spice_kernels_collection, spice_kernels_collection_inventory)
+
+            else:
+                spice_kernels_collection_inventory.label = InventoryPDS3Label(
+                    setup, spice_kernels_collection, spice_kernels_collection_inventory)
+                
             spice_kernels_collection.add(spice_kernels_collection_inventory)
 
         if setup.pds_version == "4":
@@ -348,6 +361,11 @@ def run_pipeline(args: PipelineArgs) -> None:
 
                 log_step(setup, title=f'Generation of {document_collection.name} collection')
                 document_collection_inventory = InventoryProduct(setup, document_collection)
+
+                # This branch only runs for PDS4, so there's no PDS3 label to pick.
+                document_collection_inventory.label = InventoryPDS4Label(
+                    setup, document_collection, document_collection_inventory)
+
                 document_collection.add(document_collection_inventory)
 
             #
@@ -410,6 +428,13 @@ def run_pipeline(args: PipelineArgs) -> None:
                             setup, release_miscellaneous_collection
                         )
 
+                        # This runs once per past release, always PDS4-only,
+                        # same as the site above.
+                        release_miscellaneous_collection_inventory.label = InventoryPDS4Label(
+                            setup,
+                            release_miscellaneous_collection,
+                            release_miscellaneous_collection_inventory)
+
                         release_miscellaneous_collection.add(
                             release_miscellaneous_collection_inventory
                         )
@@ -461,6 +486,11 @@ def run_pipeline(args: PipelineArgs) -> None:
             miscellaneous_collection_inventory = InventoryProduct(
                 setup, miscellaneous_collection
             )
+
+            # The current release's own miscellaneous inventory, PDS4-only.
+            miscellaneous_collection_inventory.label = InventoryPDS4Label(
+                setup, miscellaneous_collection, miscellaneous_collection_inventory)
+
             miscellaneous_collection.add(miscellaneous_collection_inventory)
 
             #

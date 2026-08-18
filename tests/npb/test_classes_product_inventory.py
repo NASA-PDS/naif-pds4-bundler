@@ -95,7 +95,6 @@ class TestInventoryProductInitPDS4:
         collection = make_collection()
 
         with patch(f"{MODULE}.InventoryProduct.write_product"), \
-             patch(f"{MODULE}.InventoryPDS4Label"), \
              patch(f"{MODULE}.Product.__init__", return_value=None):
             obj = InventoryProduct(setup, collection)
 
@@ -119,12 +118,10 @@ class TestInventoryProductInitPDS4:
         collection = make_collection()
 
         with patch(f"{MODULE}.InventoryProduct.write_product") as mock_write_product, \
-             patch(f"{MODULE}.InventoryPDS4Label") as mock_label_cls, \
              patch(f"{MODULE}.Product.__init__", return_value=None):
             InventoryProduct(setup, collection)
 
         mock_write_product.assert_called_once()
-        mock_label_cls.assert_called_once()
 
         assert mock_glob.call_count == glob_call_count
 
@@ -141,7 +138,6 @@ class TestInventoryProductInitPDS3:
         collection = make_collection()
 
         with patch(f"{MODULE}.InventoryProduct.write_product"), \
-             patch(f"{MODULE}.InventoryPDS3Label"), \
              patch(f"{MODULE}.shutil.copy2"), \
              patch(f"{MODULE}.replace_string_in_file"), \
              patch(f"{MODULE}.Product.__init__", return_value=None):
@@ -152,19 +148,17 @@ class TestInventoryProductInitPDS3:
         assert obj.new_product is True
 
     def test_pds4_init_logic_testing(self):
-        """InventoryPDS3Label is instantiated for pds_version == '3'."""
+        """dsindex files are generated for pds_version == '3'."""
         setup = make_setup(pds_version="3")
         collection = make_collection()
 
         with patch(f"{MODULE}.InventoryProduct.write_product") as mock_write_product, \
-             patch(f"{MODULE}.InventoryPDS3Label") as mock_label_cls, \
              patch(f"{MODULE}.shutil.copy2") as mock_copy, \
              patch(f"{MODULE}.replace_string_in_file") as mock_replace, \
              patch(f"{MODULE}.Product.__init__", return_value=None):
             InventoryProduct(setup, collection)
 
         mock_write_product.assert_called_once()
-        mock_label_cls.assert_called_once()
 
         assert mock_copy.call_count == 2
 

@@ -76,6 +76,8 @@ _PATCH_TARGETS = [
     'DocumentCollection',
     'ReadmeProduct',
     'BundlePDS4Label',
+    'InventoryPDS3Label',
+    'InventoryPDS4Label',
     'clear_run',
     'finish_execution',
     'log_step',
@@ -682,6 +684,38 @@ class TestPhase8CollectionMetadata:
         assert len(calls_for_skc) == 1
         skc.add.assert_called()
 
+    def test_skc_inventory_labeled_with_pds4_label(self, mocks):
+        # Force the SKC inventory branch to run at all.
+        mocks.SpiceKernelsCollection.return_value.updated = True
+        run_pipeline(_args())
+        skc = mocks.SpiceKernelsCollection.return_value
+        inventory = mocks.InventoryProduct.return_value
+
+        # The label is built with (setup, collection, inventory product).
+        # assert_any_call, not assert_called_once: the misc inventory (built
+        # later in the same run, always PDS4) calls this same label class too,
+        # so InventoryPDS4Label fires more than once.
+        mocks.InventoryPDS4Label.assert_any_call(
+            mocks.Setup.return_value, skc, inventory)
+
+        # The label built above is what actually gets assigned back.
+        assert inventory.label is mocks.InventoryPDS4Label.return_value
+
+    def test_skc_inventory_labeled_with_pds3_label(self, mocks):
+        # Same setup as above, but switched to PDS3.
+        mocks.Setup.return_value.pds_version = '3'
+        mocks.SpiceKernelsCollection.return_value.updated = True
+        run_pipeline(_args())
+        skc = mocks.SpiceKernelsCollection.return_value
+        inventory = mocks.InventoryProduct.return_value
+
+        # PDS3 has no misc-inventory branch, so this is the only call --
+        # assert_called_once_with is safe here, unlike the PDS4 test above.
+        mocks.InventoryPDS3Label.assert_called_once_with(
+            mocks.Setup.return_value, skc, inventory)
+        
+        assert inventory.label is mocks.InventoryPDS3Label.return_value
+
 
 # ---------------------------------------------------------------------------
 # Phase 9 – PDS4 document + miscellaneous + checksum
@@ -733,6 +767,21 @@ class TestPhase9PDS4DocumentMiscChecksum:
             if c[0][1] is doc_col
         ]
         assert len(inventory_calls_for_doc) >= 1
+
+    def test_document_inventory_labeled_with_pds4_label(self, mocks):
+        # This inventory only gets built when spiceds was generated.
+        mocks.SpicedsProduct.return_value.generated = True
+        run_pipeline(_args())
+        doc_col = mocks.DocumentCollection.return_value
+        inventory = mocks.InventoryProduct.return_value
+
+        # PDS4 only -- there's no PDS3 branch for the document collection.
+        # assert_any_call: the misc inventory built later shares the same mock
+        # InventoryProduct/InventoryPDS4Label return values.
+        mocks.InventoryPDS4Label.assert_any_call(
+            mocks.Setup.return_value, doc_col, inventory)
+        
+        assert inventory.label is mocks.InventoryPDS4Label.return_value
 
     def test_document_inventory_not_created_when_spiceds_not_generated(self, mocks):
         # When SPICEDS is not generated, no inventory is created for the document collection.
@@ -809,6 +858,19 @@ class TestPhase9PDS4DocumentMiscChecksum:
         run_pipeline(_args())
         mocks.MiscellaneousCollection.return_value.set_collection_vid.assert_called()
 
+    def test_miscellaneous_inventory_labeled_with_pds4_label(self, mocks):
+        # Default mocks: SKC not updated, spiceds not generated, no  backfill
+        # -- this is the only inventory built in this run, so it's the only
+        # InventoryPDS4Label call to check for.
+        run_pipeline(_args())
+        misc = mocks.MiscellaneousCollection.return_value
+        inventory = mocks.InventoryProduct.return_value
+        
+        mocks.InventoryPDS4Label.assert_called_once_with(
+            mocks.Setup.return_value, misc, inventory)
+
+        assert inventory.label is mocks.InventoryPDS4Label.return_value
+
     def test_backfill_loop_runs_when_increment_and_no_checksum_dir(self, mocks):
         # When the checksum directory is absent, one ChecksumProduct is created per past release.
         setup = mocks.Setup.return_value
@@ -826,6 +888,22 @@ class TestPhase9PDS4DocumentMiscChecksum:
             if c[1].get('add_previous_checksum') is False
         ]
         assert len(backfill_calls) == len(bundle.history)
+
+    def test_release_miscellaneous_inventory_labeled_during_backfill(self, mocks):
+        # Same trigger as the ChecksumProduct backfill test above: an increment
+        # with no existing checksum dir runs the backfill loop once per past
+        # release.
+        setup = mocks.Setup.return_value
+        setup.increment = True
+        mocks.isdir.return_value = False
+        bundle = mocks.Bundle.return_value
+        bundle.history = {'release_01': ('data', 'label'),
+                          'release_02': ('data2', 'label2')}
+        run_pipeline(_args())
+
+        # One InventoryPDS4Label call per historical release (backfill loop),
+        # plus one for the current release's own inventory.
+        assert mocks.InventoryPDS4Label.call_count == len(bundle.history) + 1
 
     def test_backfill_loop_skipped_when_checksum_dir_exists(self, mocks):
         # When the checksum directory already exists, the backfill loop does not run.

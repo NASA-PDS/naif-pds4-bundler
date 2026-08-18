@@ -11,7 +11,6 @@ from ...utils import add_carriage_return
 from ...utils import compare_files
 from ...utils import replace_string_in_file
 from ...utils import type_to_extension
-from ..label import InventoryPDS3Label, InventoryPDS4Label
 
 
 class InventoryProduct(Product):
@@ -105,11 +104,9 @@ class InventoryProduct(Product):
 
         Product.__init__(self)
 
-        if setup.pds_version == "4":
-            self.label = InventoryPDS4Label(setup, collection, self)
-        else:  # setup.pds_version == "3":
-            self.label = InventoryPDS3Label(setup, collection, self)
-
+        # Labeling used to happen here (PDS3/PDS4 label picked and built). It
+        # now happens in the pipeline, right after this product is built.
+        if setup.pds_version == "3":
             #
             # Generate dsindex files.
             #
