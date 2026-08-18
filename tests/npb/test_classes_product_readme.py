@@ -64,21 +64,22 @@ def make_bundle(name='bundle_insight_spice_v001.xml', vid='1.0'):
 def build_product(setup, bundle):
     """Construct a ``ReadmeProduct`` with the heavy collaborators mocked.
 
-    ``Product.__init__`` and ``BundlePDS4Label`` are always patched so no
-    registration or labelling happens. ``md5`` is patched to a stable value.
-    ``_write_product`` is also patched out, isolating the constructor logic
-    from file generation.
+    ``Product.__init__`` is always patched so no registration happens.
+    ``md5`` is patched to a stable value. ``_write_product`` is also patched
+    out, isolating the constructor logic from file generation. Label
+    construction is no longer part of ``ReadmeProduct``'s own constructor
+    (it now happens in the pipeline right after the product is built), so
+    there is nothing label-related to patch here.
 
     :param setup:  mock Setup object
     :param bundle: mock Bundle object
     :return:       tuple ``(product, mocks_dict)``
     """
     with patch(f'{MOD}.Product.__init__', return_value=None) as m_init, \
-         patch(f'{MOD}.BundlePDS4Label') as m_label, \
          patch(f'{MOD}.md5', return_value='d' * 32) as m_md5, \
          patch.object(ReadmeProduct, '_write_product') as m_write:
         product = ReadmeProduct(setup, bundle)
-        mocks = {'init': m_init, 'label': m_label, 'md5': m_md5, 'write': m_write}
+        mocks = {'init': m_init, 'md5': m_md5, 'write': m_write}
         return product, mocks
 
 
@@ -114,9 +115,8 @@ class TestReadmeProductInit:
         # collection is a SimpleNamespace with an empty name attribute.
         assert product.collection.name == ''
 
-        # The base Product constructor and the bundle label are invoked once each.
+        # The base Product constructor is invoked once.
         mocks['init'].assert_called_once()
-        mocks['label'].assert_called_once_with(setup, product)
 
     def test_init_final_path_points_to_bundle_name(self, tmp_path):
         # After construction self.path is rewritten to staging + bundle.name so
@@ -154,7 +154,6 @@ class TestReadmeProductInit:
         # Final path is still rewritten to the bundle name for the label.
         expected = setup.staging_directory + os.sep + bundle.name
         assert product.path == expected
-        mocks['label'].assert_called_once_with(setup, product)
 
     def test_init_logs_existing_readme_message(self, tmp_path, caplog):
         # The "already exists" path logs the corresponding info message.
@@ -170,14 +169,15 @@ class TestReadmeProductInit:
 
         expected = [
             (logging.INFO, '-- Readme file already exists in final area.'),
-            (logging.INFO, ''),
-            (logging.INFO, '-- Generating bundle label...')]
+            (logging.INFO, '')]
 
         messages = [(r[1], r[2]) for r in caplog.record_tuples]
         assert messages == expected
 
     def test_init_logs_generating_readme_messages(self, tmp_path, caplog):
-        # The "generate" path logs the generation notice and the label notice.
+        # The "generate" path logs the generation notice. The bundle-label
+        # notice is no longer logged here -- it moved to the pipeline,
+        # alongside the label construction call it describes.
         setup = make_setup(tmp_path)
         bundle = make_bundle()
 
@@ -186,8 +186,7 @@ class TestReadmeProductInit:
 
         expected = [
             (logging.INFO, '-- Generating readme file...'),
-            (logging.INFO, ''),
-            (logging.INFO, '-- Generating bundle label...')]
+            (logging.INFO, '')]
 
         messages = [(r[1], r[2]) for r in caplog.record_tuples]
 

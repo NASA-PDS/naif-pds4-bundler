@@ -1,5 +1,6 @@
 """Implementation of the NAIF PDS4 Bundler pipeline.
 """
+import logging
 from os.path import isdir
 from pathlib import Path
 
@@ -10,6 +11,7 @@ from ..classes.collection import DocumentCollection
 from ..classes.collection import MiscellaneousCollection
 from ..classes.collection import SpiceKernelsCollection
 from ..classes.exceptions import NPBError
+from ..classes.label import BundlePDS4Label
 from ..classes.list import KernelList
 from ..classes.log import Log
 from ..classes.plan import ReleasePlan
@@ -466,6 +468,9 @@ def run_pipeline(args: PipelineArgs) -> None:
             #
             log_step(setup, title='Generation of bundle products')
             bundle.readme = ReadmeProduct(setup, bundle)
+
+            logging.info("-- Generating bundle label...")
+            bundle.readme.label = BundlePDS4Label(setup, bundle.readme)
 
             #
             # * Generate the Checksum product a posteriori in such a way

@@ -75,6 +75,7 @@ _PATCH_TARGETS = [
     'SpicedsProduct',
     'DocumentCollection',
     'ReadmeProduct',
+    'BundlePDS4Label',
     'clear_run',
     'finish_execution',
     'log_step',
@@ -791,6 +792,17 @@ class TestPhase9PDS4DocumentMiscChecksum:
         mocks.ReadmeProduct.assert_called_once_with(
             mocks.Setup.return_value, mocks.Bundle.return_value
         )
+
+    def test_bundle_label_constructed_after_readme_product(self, mocks):
+        # Label construction now happens here, not inside ReadmeProduct, so
+        # this test is what guards it: built from the readme product and
+        # assigned back as product.label, which other modules read later.
+        run_pipeline(_args())
+        readme_product = mocks.ReadmeProduct.return_value
+        mocks.BundlePDS4Label.assert_called_once_with(
+            mocks.Setup.return_value, readme_product
+        )
+        assert readme_product.label is mocks.BundlePDS4Label.return_value
 
     def test_misc_collection_vid_set(self, mocks):
         # The miscellaneous collection version ID is updated after its products are finalized.
