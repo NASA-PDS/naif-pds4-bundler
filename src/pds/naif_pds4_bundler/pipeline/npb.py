@@ -14,6 +14,7 @@ from ..classes.exceptions import NPBError
 from ..classes.label import BundlePDS4Label
 from ..classes.label import InventoryPDS3Label
 from ..classes.label import InventoryPDS4Label
+from ..classes.label import OrbnumFilePDS4Label
 from ..classes.label import SpiceKernelPDS3Label
 from ..classes.label import SpiceKernelPDS4Label
 from ..classes.list import KernelList
@@ -246,11 +247,17 @@ def run_pipeline(args: PipelineArgs) -> None:
                 # because it might require to update the kernel list if the
                 # orbnum file name is updated.
                 #
-                miscellaneous_collection.add(
-                    OrbnumFileProduct(
-                        setup, kernel, miscellaneous_collection, spice_kernels_collection
-                    )
-                )
+                orbnum_product = OrbnumFileProduct(
+                    setup, kernel, miscellaneous_collection, spice_kernels_collection)
+
+                # Labeling used to happen inside OrbnumFileProduct itself, PDS4
+                # only -- there's no PDS3 label for orbnum files.
+                if setup.pds_version == "4":
+                    logging.info('-- Labeling %s...', orbnum_product.name)
+                    orbnum_product.label = OrbnumFilePDS4Label(setup, orbnum_product)
+
+                miscellaneous_collection.add(orbnum_product)
+
             elif ".tm" not in kernel.lower():
                 kernel_product = SpiceKernelProduct(setup, kernel, spice_kernels_collection)
 

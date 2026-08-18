@@ -78,6 +78,7 @@ _PATCH_TARGETS = [
     'BundlePDS4Label',
     'InventoryPDS3Label',
     'InventoryPDS4Label',
+    'OrbnumFilePDS4Label',
     'SpiceKernelPDS3Label',
     'SpiceKernelPDS4Label',
     'clear_run',
@@ -540,6 +541,31 @@ class TestPhase6StagingBundleAndCollections:
         mocks.ReleasePlan.return_value.kernel_list = ['maven_2024.orb']
         run_pipeline(_args())
         mocks.OrbnumFileProduct.assert_called_once()
+
+    def test_orbnum_product_labeled_with_pds4_label(self, mocks):
+        # One kernel in the list, so exactly one product and one label call.
+        mocks.ReleasePlan.return_value.kernel_list = ['maven_2024.orb']
+        run_pipeline(_args())
+        orbnum_product = mocks.OrbnumFileProduct.return_value
+
+        # PDS4 only -- there's no PDS3 label for orbnum files at all, so this
+        # class is never shared with another call site.
+        mocks.OrbnumFilePDS4Label.assert_called_once_with(
+            mocks.Setup.return_value, orbnum_product)
+
+        # The label built above is what ends up assigned back onto the product.
+        assert orbnum_product.label is mocks.OrbnumFilePDS4Label.return_value
+
+    def test_orbnum_product_not_labeled_for_pds3(self, mocks):
+        # Product is still built for PDS3 (it archives to "extras", not
+        # "spice_kernels")...
+        mocks.Setup.return_value.pds_version = '3'
+        mocks.ReleasePlan.return_value.kernel_list = ['maven_2024.orb']
+        run_pipeline(_args())
+
+        # ...but this mirrors the guard that used to live inside
+        # OrbnumFileProduct itself: no label at all when not PDS4.
+        mocks.OrbnumFilePDS4Label.assert_not_called()
 
     def test_tm_kernel_skipped_in_product_dispatch_loop(self, mocks):
         # .tm files are skipped; meta-kernels are handled in a later dedicated step.
