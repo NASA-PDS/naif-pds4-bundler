@@ -117,6 +117,11 @@ class InventoryProduct(Product):
         ``InventoryPDS3Label`` writes it, and that label is now built by the
         pipeline after this product's __init__ returns. Call this only
         after that label exists, or the copy fails with a FileNotFoundError.
+
+        TODO: this ordering is only enforced by the comment in npb.py next to
+              the call site, not by the type system, and no test checks the call
+              order. If the pipeline is ever reordered, this will fail with a
+              FileNotFoundError that gives no hint the real cause is ordering.
         """
         shutil.copy2(self.path, self.setup.staging_directory + "/../dsindex.tab")
         shutil.copy2(

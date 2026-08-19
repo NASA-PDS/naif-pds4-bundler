@@ -125,10 +125,8 @@ class SpicedsProduct(Product):
         # too, under this same self.generated check; it's built in the pipeline
         # now, which reads self.generated to decide whether to.
         #
-        if self.generated:
-
-            if self.setup.diff:
-                self._compare()
+        if self.generated and self.setup.diff:
+            self._compare()
 
     def set_product_lid(self) -> None:
         """Set the Product LID."""
