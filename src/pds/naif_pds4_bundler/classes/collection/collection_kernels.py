@@ -6,7 +6,7 @@ import os
 import spiceypy
 
 from .collection import Collection
-from ...pipeline.runtime import handle_npb_error
+from ..exceptions import NPBError
 from ...utils import et_to_date
 from ...utils import extension_to_type
 
@@ -55,11 +55,11 @@ class SpiceKernelsCollection(Collection):
                 for mk in mks:
                     if not os.path.exists(mk):
                         logging.info("")
-                        handle_npb_error(
+                        raise NPBError(
                             f"Meta-kernel provided via"
                             f" configuration"
-                            f" does not exist: {mk}"
-                        )
+                            f" does not exist: {mk}")
+
                     else:
                         meta_kernels[mk] = True
             else:
@@ -154,7 +154,7 @@ class SpiceKernelsCollection(Collection):
                 else:
                     existing_path = f"{self.setup.bundle_directory}/{self.setup.volume_id}/extras/mk/{meta_kernel}"
                 if os.path.exists(existing_path):
-                    handle_npb_error(f"MK already exists in the archive: {existing_path}")
+                    raise NPBError(f"MK already exists in the archive: {existing_path}")
 
         return meta_kernels
 
@@ -362,10 +362,7 @@ class SpiceKernelsCollection(Collection):
 
             # Report all missing products before terminating so the user can
             # address every gap in a single run.
-            handle_npb_error(
-                "Some products from the list are not present.",
-                setup=self.setup,
-            )
+            raise NPBError("Some products from the list are not present.")
 
         else:
             logging.info("   OK")
@@ -410,9 +407,7 @@ class SpiceKernelsCollection(Collection):
             # PDS3 labeling is not yet implemented; termination is deferred
             # until it is. For PDS4, all products must be labeled.
             if self.setup.pds_version == "4":
-                handle_npb_error(
-                    "Some products have not been labeled.", setup=self.setup
-                )
+                raise NPBError("Some products have not been labeled.")
 
         else:
             logging.info("   OK")
