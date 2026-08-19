@@ -9,7 +9,6 @@ resolves normally.
 Collaborators patched at their locations inside the module under test:
   - naif_pds4_bundler.classes.collection_kernels.os.path.exists
   - naif_pds4_bundler.classes.collection_kernels.glob.glob
-  - naif_pds4_bundler.classes.collection_kernels.handle_npb_error
   - naif_pds4_bundler.classes.collection_kernels.et_to_date
   - naif_pds4_bundler.classes.collection_kernels.spiceypy
   - naif_pds4_bundler.classes.collection.Collection.set_collection_lid
@@ -20,6 +19,7 @@ from unittest.mock import MagicMock, mock_open, patch
 import pytest
 
 from pds.naif_pds4_bundler.classes.collection.collection_kernels import SpiceKernelsCollection
+from pds.naif_pds4_bundler.classes.exceptions import NPBError
 
 
 # ---------------------------------------------------------------------------
@@ -169,10 +169,6 @@ class TestSpiceKernelsCollectionDetermineMetaKernels:
             staging_directory="/fake/staging",
             mission_start="2000-01-01T00:00:00.000Z",
             mission_finish="2040-01-01T00:00:00.000Z",
-            # Required by handle_npb_error
-            write_file_list = lambda: None,
-            write_checksum_registry = lambda: None,
-            template_files = []
         )
 
     @pytest.mark.parametrize('pds_version, files, exists', [
@@ -184,12 +180,12 @@ class TestSpiceKernelsCollectionDetermineMetaKernels:
         ('3', ["../metakernel.tm", "../data/mk.tm"], [True, False])
     ])
     def test_mk_inputs_file_not_exists_calls_handle_error(self, pds_version, files, exists, caplog):
-        """mk provided via config but file missing → handle_npb_error called."""
+        """mk provided via config but file missing → NPBError raised."""
         setup = self.make_setup(pds_version=pds_version, files=files)
         with patch(_SET_LID):
             obj = SpiceKernelsCollection(setup, make_bundle(), make_kernels())
         with patch(_EXISTS, side_effect=exists):
-            with pytest.raises(RuntimeError, match='Meta-kernel provided via configuration does not exist: ../data/mk.tm'):
+            with pytest.raises(NPBError, match='Meta-kernel provided via configuration does not exist: ../data/mk.tm'):
                 obj.determine_meta_kernels()
 
     def test_mk_inputs_no_file_key_logs_warning(self, caplog):
@@ -437,7 +433,7 @@ class TestSpiceKernelsCollectionDetermineMetaKernels:
         # First True is to check that the file exists in the "sources"?,
         # the second is to check that the file does not exist in the bundle.
         with patch(_EXISTS, side_effect=[True, True]):
-            with pytest.raises(RuntimeError, match=message):
+            with pytest.raises(NPBError, match=message):
                 obj.determine_meta_kernels()
 
 
@@ -719,10 +715,6 @@ class TestSpiceKernelsCollectionValidate:
             bundle_directory="/fake/bundle",
             mission_start="2000-01-01T00:00:00.000Z",
             mission_finish="2040-01-01T00:00:00.000Z",
-            # Required by handle_npb_error
-            write_file_list=lambda: None,
-            write_checksum_registry=lambda: None,
-            template_files=[]
         )
         kernels = make_kernels(kernel_list or [])
         with patch(_SET_LID):
@@ -787,27 +779,26 @@ class TestSpiceKernelsCollectionValidate:
         ('4', ["kernel.bc", "missing.bc"], [True, False, False, False])
     ])
     def test_non_present_product_calls_handle_error(self, pds_version, kernels, exists, caplog):
-        """Product not found in any staging location -> handle_npb_error called."""
+        """Product not found in any staging location -> NPBError raised."""
         obj = self._make_obj(pds_version=pds_version, kernel_list=kernels)
         with caplog.at_level(logging.INFO), patch(_EXISTS, side_effect=exists):
-            with pytest.raises(RuntimeError, match='Some products from the list are not present.'):
+            with pytest.raises(NPBError, match='Some products from the list are not present.'):
                 obj.validate()
 
         expected = [
             (logging.INFO, '-- Checking that all the kernels from list are present...'),
             (logging.ERROR, '-- The following products from the list are not present:'),
-            (logging.ERROR, '   missing.bc'),
-            (logging.ERROR, '-- Some products from the list are not present.')]
+            (logging.ERROR, '   missing.bc')]
 
         messages = [(r[1], r[2]) for r in caplog.record_tuples]
 
         assert messages == expected
 
     def test_multiple_non_present_products_all_reported_before_error(self, caplog):
-        """All missing products are logged before handle_npb_error is called."""
+        """All missing products are logged before NPBError is raised."""
         obj = self._make_obj(pds_version='4', kernel_list=["missing1.bc", "missing2.bsp"])
         with caplog.at_level(logging.INFO), patch(_EXISTS, return_value=False):
-            with pytest.raises(RuntimeError, match='Some products from the list are not present.'):
+            with pytest.raises(NPBError, match='Some products from the list are not present.'):
                 obj.validate()
 
         messages = [(r[1], r[2]) for r in caplog.record_tuples]
@@ -816,8 +807,7 @@ class TestSpiceKernelsCollectionValidate:
             (logging.INFO,  '-- Checking that all the kernels from list are present...'),
             (logging.ERROR, '-- The following products from the list are not present:'),
             (logging.ERROR, '   missing1.bc'),
-            (logging.ERROR, '   missing2.bsp'),
-            (logging.ERROR, '-- Some products from the list are not present.')]
+            (logging.ERROR, '   missing2.bsp')]
 
 
     @pytest.mark.parametrize("products, exists", [
@@ -884,7 +874,7 @@ class TestSpiceKernelsCollectionValidate:
         ([('kernel.bc', 'ck'), ('missing.bc', 'ck')], [True, True, False]),
     ])
     def test_unlabeled_pds4_product_calls_handle_error(self, products, exists, caplog):
-        """Unlabeled PDS4 products trigger handle_npb_error after all are reported."""
+        """Unlabeled PDS4 products trigger NPBError after all are reported."""
         prods = []
         for n, t in products:
             p = MagicMock()
@@ -893,7 +883,7 @@ class TestSpiceKernelsCollectionValidate:
             prods.append(p)
         obj = self._make_obj(pds_version='4', products=prods)
         with caplog.at_level(logging.INFO), patch(_EXISTS, side_effect=exists):
-            with pytest.raises(RuntimeError, match='Some products have not been labeled.'):
+            with pytest.raises(NPBError, match='Some products have not been labeled.'):
                 obj.validate()
 
         messages = [(r[1], r[2]) for r in caplog.record_tuples]
@@ -903,11 +893,10 @@ class TestSpiceKernelsCollectionValidate:
             (logging.INFO,  ''),
             (logging.INFO,  '-- Checking that all the kernels have been labeled...'),
             (logging.ERROR, '-- The following products have not been labeled:'),
-            (logging.ERROR, '   missing.bc'),
-            (logging.ERROR, '-- Some products have not been labeled.')]
+            (logging.ERROR, '   missing.bc')]
 
     def test_multiple_unlabeled_pds4_products_all_reported_before_error(self, caplog):
-        """All unlabeled PDS4 products are logged before handle_npb_error is called."""
+        """All unlabeled PDS4 products are logged before NPBError is raised."""
         prods = []
         for n, t in [('missing1.bc', 'ck'), ('missing2.bsp', 'spk')]:
             p = MagicMock()
@@ -916,7 +905,7 @@ class TestSpiceKernelsCollectionValidate:
             prods.append(p)
         obj = self._make_obj(pds_version='4', products=prods)
         with caplog.at_level(logging.INFO), patch(_EXISTS, return_value=False):
-            with pytest.raises(RuntimeError, match='Some products have not been labeled.'):
+            with pytest.raises(NPBError, match='Some products have not been labeled.'):
                 obj.validate()
 
         messages = [(r[1], r[2]) for r in caplog.record_tuples]
@@ -927,8 +916,7 @@ class TestSpiceKernelsCollectionValidate:
             (logging.INFO,  '-- Checking that all the kernels have been labeled...'),
             (logging.ERROR, '-- The following products have not been labeled:'),
             (logging.ERROR, '   missing1.bc'),
-            (logging.ERROR, '   missing2.bsp'),
-            (logging.ERROR, '-- Some products have not been labeled.')]
+            (logging.ERROR, '   missing2.bsp')]
 
     @pytest.mark.skip('There is a bug in the code that will cause this test to'
                       'break with FileNotFoundError.')
