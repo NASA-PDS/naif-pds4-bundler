@@ -64,17 +64,18 @@ def base_init_patches():
 
     Every constructor test that reaches the 'spiceds provided' tail needs the
     same external collaborators stubbed: the file copy into staging, the CR
-    normalisation, the product self-check, the optional comparison, the base
-    ``Product.__init__`` and the PDS4 label. A fresh list per call keeps the
-    patch objects single-use.
+    normalisation, the product self-check, the optional comparison and the
+    base ``Product.__init__``. Labeling is no longer part of this
+    constructor (it now happens in the pipeline), so there's nothing
+    label-related left to stub here. A fresh list per call keeps the patch
+    objects single-use.
     """
     return [
         patch(f'{_MODULE}.shutil.copy2'),
         patch.object(SpicedsProduct, '_check_cr'),
         patch.object(SpicedsProduct, '_check_product', return_value=True),
         patch.object(SpicedsProduct, '_compare'),
-        patch(f'{_MODULE}.Product.__init__', return_value=None),
-        patch(f'{_MODULE}.DocumentPDS4Label', return_value=MagicMock())]
+        patch(f'{_MODULE}.Product.__init__', return_value=None)]
 
 
 # ---------------------------------------------------------------------------
@@ -91,7 +92,7 @@ class TestSpicedsProductInit:
         # Common first-release path: no increment and a 'spiceds' provided.
         # Drives the whole tail of the constructor and pins down the derived
         # name/path/lid/vid plus the ordering side effects (copy, CR check,
-        # product check, label).
+        # product check).
         setup = make_setup(increment=False, diff=False)
         collection = make_collection(name='document')
 
@@ -100,8 +101,7 @@ class TestSpicedsProductInit:
                 patches[1] as check_cr, \
                 patches[2] as check_product, \
                 patches[3] as compare, \
-                patches[4] as base_init, \
-                patches[5] as label:
+                patches[4] as base_init:
             product = SpicedsProduct(setup, collection)
 
         # Version 1 because there is no previous increment.
@@ -130,43 +130,38 @@ class TestSpicedsProductInit:
         check_product.assert_called_once_with()
         base_init.assert_called_once()
 
-        # diff is False so _compare must be skipped, but the label is built.
+        # diff is False so _compare must be skipped.
         compare.assert_not_called()
-        label.assert_called_once_with(setup, collection, product)
 
     def test_init_runs_compare_when_diff_enabled(self):
-        # When setup.diff is truthy and the product is generated, _compare runs
-        # before the label is built.
+        # When setup.diff is truthy and the product is generated, _compare runs.
         setup = make_setup(increment=False, diff=True)
         collection = make_collection()
 
         patches = base_init_patches()
         with patches[0], patches[1], \
                 patches[2], patches[3] as compare, \
-                patches[4], patches[5] as label:
+                patches[4]:
             product = SpicedsProduct(setup, collection)
 
         compare.assert_called_once_with()
-        label.assert_called_once()
         assert product.generated is True
 
-    def test_init_skips_label_when_not_generated(self):
+    def test_init_skips_compare_when_not_generated(self):
         # When _check_product returns False the product is not generated, so
-        # neither the comparison nor the label run.
+        # the comparison doesn't run either -- self.generated is also what
+        # the pipeline reads to decide whether to build the label.
         setup = make_setup(increment=False, diff=True)
         collection = make_collection()
 
         patches = base_init_patches()
         with patches[0], patches[1], \
                 patch.object(SpicedsProduct, '_check_product', return_value=False), \
-                patches[3] as compare, patches[4], \
-                patches[5] as label:
+                patches[3] as compare, patches[4]:
             product = SpicedsProduct(setup, collection)
 
-        # Not generated => neither the comparison nor the label run.
         assert product.generated is False
         compare.assert_not_called()
-        label.assert_not_called()
 
     def test_init_increment_with_previous_version_and_new_spiceds(self):
         # Increment + previous 'spiceds' files + a new 'spiceds' provided. glob
@@ -185,7 +180,7 @@ class TestSpicedsProductInit:
         patches = base_init_patches()
         with patch(f'{_MODULE}.glob.glob', return_value=list(previous)) as glob_mock, \
                 patches[0] as copy2, patches[1], patches[2], \
-                patches[3], patches[4], patches[5]:
+                patches[3], patches[4]:
             product = SpicedsProduct(setup, collection)
 
         # The search path is bundle/<acronym>_spice/<collection>.
@@ -231,7 +226,7 @@ class TestSpicedsProductInit:
         patches = base_init_patches()
         with patch(f'{_MODULE}.glob.glob', return_value=[]), \
                 patches[0], patches[1], patches[2], \
-                patches[3], patches[4], patches[5]:
+                patches[3], patches[4]:
             product = SpicedsProduct(setup, collection)
 
         assert product.version == 1

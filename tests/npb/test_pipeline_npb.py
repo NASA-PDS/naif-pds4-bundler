@@ -75,6 +75,14 @@ _PATCH_TARGETS = [
     'SpicedsProduct',
     'DocumentCollection',
     'ReadmeProduct',
+    'BundlePDS4Label',
+    'DocumentPDS4Label',
+    'InventoryPDS3Label',
+    'InventoryPDS4Label',
+    'MetaKernelPDS4Label',
+    'OrbnumFilePDS4Label',
+    'SpiceKernelPDS3Label',
+    'SpiceKernelPDS4Label',
     'clear_run',
     'finish_execution',
     'log_step',
@@ -494,6 +502,35 @@ class TestPhase6StagingBundleAndCollections:
         run_pipeline(_args())
         mocks.SpiceKernelProduct.assert_called_once()
 
+    def test_kernel_product_labeled_with_pds4_label(self, mocks):
+        # One kernel in the list, so exactly one product is dispatched and
+        # exactly one label call to check for.
+        mocks.ReleasePlan.return_value.kernel_list = ['maven_2024.bsp']
+        run_pipeline(_args())
+        kernel_product = mocks.SpiceKernelProduct.return_value
+
+        # Unlike InventoryPDS4Label, this label class is only ever used here, so
+        # assert_called_once_with is safe (no other site shares it).
+        mocks.SpiceKernelPDS4Label.assert_called_once_with(
+            mocks.Setup.return_value, kernel_product)
+
+        # The label built above is what ends up assigned back onto the product.
+        assert kernel_product.label is mocks.SpiceKernelPDS4Label.return_value
+
+    def test_kernel_product_labeled_with_pds3_label(self, mocks):
+        # Same setup as above, but switched to PDS3.
+        mocks.Setup.return_value.pds_version = '3'
+        mocks.ReleasePlan.return_value.kernel_list = ['maven_2024.bsp']
+        run_pipeline(_args())
+        kernel_product = mocks.SpiceKernelProduct.return_value
+
+        # PDS3 picks the PDS3 label class instead -- this is the branch that
+        # used to live inside SpiceKernelProduct.__init__.
+        mocks.SpiceKernelPDS3Label.assert_called_once_with(
+            mocks.Setup.return_value, kernel_product)
+
+        assert kernel_product.label is mocks.SpiceKernelPDS3Label.return_value
+
     def test_orbnum_product_dispatched_for_nrb_kernel(self, mocks):
         # .nrb files are dispatched to OrbnumFileProduct and added to the miscellaneous collection.
         mocks.ReleasePlan.return_value.kernel_list = ['maven_2024.nrb']
@@ -506,6 +543,31 @@ class TestPhase6StagingBundleAndCollections:
         mocks.ReleasePlan.return_value.kernel_list = ['maven_2024.orb']
         run_pipeline(_args())
         mocks.OrbnumFileProduct.assert_called_once()
+
+    def test_orbnum_product_labeled_with_pds4_label(self, mocks):
+        # One kernel in the list, so exactly one product and one label call.
+        mocks.ReleasePlan.return_value.kernel_list = ['maven_2024.orb']
+        run_pipeline(_args())
+        orbnum_product = mocks.OrbnumFileProduct.return_value
+
+        # PDS4 only -- there's no PDS3 label for orbnum files at all, so this
+        # class is never shared with another call site.
+        mocks.OrbnumFilePDS4Label.assert_called_once_with(
+            mocks.Setup.return_value, orbnum_product)
+
+        # The label built above is what ends up assigned back onto the product.
+        assert orbnum_product.label is mocks.OrbnumFilePDS4Label.return_value
+
+    def test_orbnum_product_not_labeled_for_pds3(self, mocks):
+        # Product is still built for PDS3 (it archives to "extras", not
+        # "spice_kernels")...
+        mocks.Setup.return_value.pds_version = '3'
+        mocks.ReleasePlan.return_value.kernel_list = ['maven_2024.orb']
+        run_pipeline(_args())
+
+        # ...but this mirrors the guard that used to live inside
+        # OrbnumFileProduct itself: no label at all when not PDS4.
+        mocks.OrbnumFilePDS4Label.assert_not_called()
 
     def test_tm_kernel_skipped_in_product_dispatch_loop(self, mocks):
         # .tm files are skipped; meta-kernels are handled in a later dedicated step.
@@ -538,6 +600,23 @@ class TestPhase6StagingBundleAndCollections:
         mocks.MetaKernelProduct.assert_called_once()
         mocks.SpiceKernelsCollection.return_value.add.assert_called()
 
+    def test_meta_kernel_labeled_with_pds4_label(self, mocks):
+        # One meta-kernel determined, so exactly one product and one label call.
+        mocks.SpiceKernelsCollection.return_value.determine_meta_kernels.return_value = {
+            'maven_v01.tm': None
+        }
+        mocks.Setup.return_value.pds_version = '4'
+        run_pipeline(_args())
+        meta_kernel = mocks.MetaKernelProduct.return_value
+
+        # PDS4 only -- there's no PDS3 meta-kernel label, so this class is never
+        # shared with another call site.
+        mocks.MetaKernelPDS4Label.assert_called_once_with(
+            mocks.Setup.return_value, meta_kernel)
+
+        # The label built above is what ends up assigned back onto the product.
+        assert meta_kernel.label is mocks.MetaKernelPDS4Label.return_value
+
     def test_meta_kernel_product_added_to_misc_for_pds3(self, mocks):
         # In PDS3 mode, a determined meta-kernel is added to the miscellaneous collection.
         mocks.SpiceKernelsCollection.return_value.determine_meta_kernels.return_value = {
@@ -547,6 +626,17 @@ class TestPhase6StagingBundleAndCollections:
         run_pipeline(_args())
         mocks.MetaKernelProduct.assert_called_once()
         mocks.MiscellaneousCollection.return_value.add.assert_called()
+
+    def test_meta_kernel_not_labeled_for_pds3(self, mocks):
+        # Product is still built for PDS3 (dispatched to the miscellaneous
+        # collection instead), but mirrors the guard that used to live inside
+        # MetaKernelProduct itself: no label at all when not PDS4.
+        mocks.SpiceKernelsCollection.return_value.determine_meta_kernels.return_value = {
+            'maven_v01.tm': None
+        }
+        mocks.Setup.return_value.pds_version = '3'
+        run_pipeline(_args())
+        mocks.MetaKernelPDS4Label.assert_not_called()
 
     def test_no_meta_kernel_product_when_none_determined(self, mocks):
         # When determine_meta_kernels returns empty, no MetaKernelProduct is constructed.
@@ -681,6 +771,38 @@ class TestPhase8CollectionMetadata:
         assert len(calls_for_skc) == 1
         skc.add.assert_called()
 
+    def test_skc_inventory_labeled_with_pds4_label(self, mocks):
+        # Force the SKC inventory branch to run at all.
+        mocks.SpiceKernelsCollection.return_value.updated = True
+        run_pipeline(_args())
+        skc = mocks.SpiceKernelsCollection.return_value
+        inventory = mocks.InventoryProduct.return_value
+
+        # The label is built with (setup, collection, inventory product).
+        # assert_any_call, not assert_called_once: the misc inventory (built
+        # later in the same run, always PDS4) calls this same label class too,
+        # so InventoryPDS4Label fires more than once.
+        mocks.InventoryPDS4Label.assert_any_call(
+            mocks.Setup.return_value, skc, inventory)
+
+        # The label built above is what actually gets assigned back.
+        assert inventory.label is mocks.InventoryPDS4Label.return_value
+
+    def test_skc_inventory_labeled_with_pds3_label(self, mocks):
+        # Same setup as above, but switched to PDS3.
+        mocks.Setup.return_value.pds_version = '3'
+        mocks.SpiceKernelsCollection.return_value.updated = True
+        run_pipeline(_args())
+        skc = mocks.SpiceKernelsCollection.return_value
+        inventory = mocks.InventoryProduct.return_value
+
+        # PDS3 has no misc-inventory branch, so this is the only call --
+        # assert_called_once_with is safe here, unlike the PDS4 test above.
+        mocks.InventoryPDS3Label.assert_called_once_with(
+            mocks.Setup.return_value, skc, inventory)
+        
+        assert inventory.label is mocks.InventoryPDS3Label.return_value
+
 
 # ---------------------------------------------------------------------------
 # Phase 9 – PDS4 document + miscellaneous + checksum
@@ -719,6 +841,30 @@ class TestPhase9PDS4DocumentMiscChecksum:
             mocks.Setup.return_value, mocks.DocumentCollection.return_value
         )
 
+    def test_spiceds_labeled_with_pds4_label_when_generated(self, mocks):
+        # Force the "spiceds changed" branch so labeling actually runs.
+        mocks.SpicedsProduct.return_value.generated = True
+        run_pipeline(_args())
+        spiceds = mocks.SpicedsProduct.return_value
+        doc_col = mocks.DocumentCollection.return_value
+
+        # DocumentPDS4Label is only ever used for spiceds, so
+        # assert_called_once_with is safe (no other call site shares it).
+        mocks.DocumentPDS4Label.assert_called_once_with(
+            mocks.Setup.return_value, doc_col, spiceds)
+
+        # The label built above is what ends up assigned back onto the product.
+        assert spiceds.label is mocks.DocumentPDS4Label.return_value
+
+    def test_spiceds_not_labeled_when_not_generated(self, mocks):
+        # generated=False is the default mock value (an unchanged spiceds file
+        # needs no new release), so no override is needed here.
+        run_pipeline(_args())
+        
+        # Mirrors the guard that used to live inside SpicedsProduct itself:
+        # nothing is labeled when the file hasn't changed.
+        mocks.DocumentPDS4Label.assert_not_called()
+
     def test_document_inventory_created_when_spiceds_generated(self, mocks):
         # When a SPICEDS document is generated, it and its inventory are added to the document collection.
         mocks.SpicedsProduct.return_value.generated = True
@@ -732,6 +878,21 @@ class TestPhase9PDS4DocumentMiscChecksum:
             if c[0][1] is doc_col
         ]
         assert len(inventory_calls_for_doc) >= 1
+
+    def test_document_inventory_labeled_with_pds4_label(self, mocks):
+        # This inventory only gets built when spiceds was generated.
+        mocks.SpicedsProduct.return_value.generated = True
+        run_pipeline(_args())
+        doc_col = mocks.DocumentCollection.return_value
+        inventory = mocks.InventoryProduct.return_value
+
+        # PDS4 only -- there's no PDS3 branch for the document collection.
+        # assert_any_call: the misc inventory built later shares the same mock
+        # InventoryProduct/InventoryPDS4Label return values.
+        mocks.InventoryPDS4Label.assert_any_call(
+            mocks.Setup.return_value, doc_col, inventory)
+        
+        assert inventory.label is mocks.InventoryPDS4Label.return_value
 
     def test_document_inventory_not_created_when_spiceds_not_generated(self, mocks):
         # When SPICEDS is not generated, no inventory is created for the document collection.
@@ -792,10 +953,34 @@ class TestPhase9PDS4DocumentMiscChecksum:
             mocks.Setup.return_value, mocks.Bundle.return_value
         )
 
+    def test_bundle_label_constructed_after_readme_product(self, mocks):
+        # Label construction now happens here, not inside ReadmeProduct, so
+        # this test is what guards it: built from the readme product and
+        # assigned back as product.label, which other modules read later.
+        run_pipeline(_args())
+        readme_product = mocks.ReadmeProduct.return_value
+        mocks.BundlePDS4Label.assert_called_once_with(
+            mocks.Setup.return_value, readme_product
+        )
+        assert readme_product.label is mocks.BundlePDS4Label.return_value
+
     def test_misc_collection_vid_set(self, mocks):
         # The miscellaneous collection version ID is updated after its products are finalized.
         run_pipeline(_args())
         mocks.MiscellaneousCollection.return_value.set_collection_vid.assert_called()
+
+    def test_miscellaneous_inventory_labeled_with_pds4_label(self, mocks):
+        # Default mocks: SKC not updated, spiceds not generated, no  backfill
+        # -- this is the only inventory built in this run, so it's the only
+        # InventoryPDS4Label call to check for.
+        run_pipeline(_args())
+        misc = mocks.MiscellaneousCollection.return_value
+        inventory = mocks.InventoryProduct.return_value
+        
+        mocks.InventoryPDS4Label.assert_called_once_with(
+            mocks.Setup.return_value, misc, inventory)
+
+        assert inventory.label is mocks.InventoryPDS4Label.return_value
 
     def test_backfill_loop_runs_when_increment_and_no_checksum_dir(self, mocks):
         # When the checksum directory is absent, one ChecksumProduct is created per past release.
@@ -814,6 +999,22 @@ class TestPhase9PDS4DocumentMiscChecksum:
             if c[1].get('add_previous_checksum') is False
         ]
         assert len(backfill_calls) == len(bundle.history)
+
+    def test_release_miscellaneous_inventory_labeled_during_backfill(self, mocks):
+        # Same trigger as the ChecksumProduct backfill test above: an increment
+        # with no existing checksum dir runs the backfill loop once per past
+        # release.
+        setup = mocks.Setup.return_value
+        setup.increment = True
+        mocks.isdir.return_value = False
+        bundle = mocks.Bundle.return_value
+        bundle.history = {'release_01': ('data', 'label'),
+                          'release_02': ('data2', 'label2')}
+        run_pipeline(_args())
+
+        # One InventoryPDS4Label call per historical release (backfill loop),
+        # plus one for the current release's own inventory.
+        assert mocks.InventoryPDS4Label.call_count == len(bundle.history) + 1
 
     def test_backfill_loop_skipped_when_checksum_dir_exists(self, mocks):
         # When the checksum directory already exists, the backfill loop does not run.

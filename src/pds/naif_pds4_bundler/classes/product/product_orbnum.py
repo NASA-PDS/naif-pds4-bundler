@@ -15,7 +15,6 @@ from ...utils import get_latest_kernel
 from ...utils import safe_make_directory
 from ...utils import spk_coverage
 from ...utils import utf8len
-from ..label import OrbnumFilePDS4Label
 
 
 class OrbnumFileProduct(Product):
@@ -140,14 +139,6 @@ class OrbnumFileProduct(Product):
                 self.targets = [self._orbnum_type["target"]]
 
         super().__init__()
-
-        #
-        # The kernel is labeled.
-        #
-        if self.setup.pds_version == "4":
-            logging.info('-- Labeling %s...', self.name)
-
-            self.label = OrbnumFilePDS4Label(setup, self)
 
     def set_product_lid(self) -> None:
         """Set the Product LID."""

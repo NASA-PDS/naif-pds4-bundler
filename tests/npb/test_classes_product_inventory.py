@@ -95,7 +95,6 @@ class TestInventoryProductInitPDS4:
         collection = make_collection()
 
         with patch(f"{MODULE}.InventoryProduct.write_product"), \
-             patch(f"{MODULE}.InventoryPDS4Label"), \
              patch(f"{MODULE}.Product.__init__", return_value=None):
             obj = InventoryProduct(setup, collection)
 
@@ -119,12 +118,10 @@ class TestInventoryProductInitPDS4:
         collection = make_collection()
 
         with patch(f"{MODULE}.InventoryProduct.write_product") as mock_write_product, \
-             patch(f"{MODULE}.InventoryPDS4Label") as mock_label_cls, \
              patch(f"{MODULE}.Product.__init__", return_value=None):
             InventoryProduct(setup, collection)
 
         mock_write_product.assert_called_once()
-        mock_label_cls.assert_called_once()
 
         assert mock_glob.call_count == glob_call_count
 
@@ -141,9 +138,6 @@ class TestInventoryProductInitPDS3:
         collection = make_collection()
 
         with patch(f"{MODULE}.InventoryProduct.write_product"), \
-             patch(f"{MODULE}.InventoryPDS3Label"), \
-             patch(f"{MODULE}.shutil.copy2"), \
-             patch(f"{MODULE}.replace_string_in_file"), \
              patch(f"{MODULE}.Product.__init__", return_value=None):
             obj = InventoryProduct(setup, collection)
 
@@ -151,27 +145,55 @@ class TestInventoryProductInitPDS3:
         assert obj.path == "staging/index/index.tab"
         assert obj.new_product is True
 
-    def test_pds4_init_logic_testing(self):
-        """InventoryPDS3Label is instantiated for pds_version == '3'."""
+    def test_pds3_write_product_called_once(self):
+        """write_product() is called exactly once during __init__.
+
+        dsindex generation is no longer part of __init__ -- see
+        TestInventoryProductGenerateDsindexFiles below.
+        """
         setup = make_setup(pds_version="3")
         collection = make_collection()
 
         with patch(f"{MODULE}.InventoryProduct.write_product") as mock_write_product, \
-             patch(f"{MODULE}.InventoryPDS3Label") as mock_label_cls, \
-             patch(f"{MODULE}.shutil.copy2") as mock_copy, \
-             patch(f"{MODULE}.replace_string_in_file") as mock_replace, \
              patch(f"{MODULE}.Product.__init__", return_value=None):
             InventoryProduct(setup, collection)
 
         mock_write_product.assert_called_once()
-        mock_label_cls.assert_called_once()
+
+
+# ---------------------------------------------------------------------------
+# InventoryProduct.generate_dsindex_files
+# ---------------------------------------------------------------------------
+
+class TestInventoryProductGenerateDsindexFiles:
+    """Tests for generate_dsindex_files().
+
+    PDS3 only. Called by the pipeline after the PDS3 label has been built
+    and written to disk -- see the method's own docstring for why.
+    """
+
+    @staticmethod
+    def _make_obj():
+        obj = InventoryProduct.__new__(InventoryProduct)
+        obj.setup = make_setup(pds_version="3")
+        obj.path = "staging/index/index.tab"
+        return obj
+
+    def test_copies_index_and_label_to_dsindex(self):
+        obj = self._make_obj()
+
+        with patch(f"{MODULE}.shutil.copy2") as mock_copy, \
+             patch(f"{MODULE}.replace_string_in_file") as mock_replace:
+            obj.generate_dsindex_files()
 
         assert mock_copy.call_count == 2
+        mock_copy.assert_any_call(obj.path, "staging/../dsindex.tab")
+        mock_copy.assert_any_call("staging/index/index.lbl", "staging/../dsindex.lbl")
 
-        mock_replace.assert_called_once_with('staging/../dsindex.lbl',
-                                             '"INDEX.TAB"',
-                                             '"DSINDEX.TAB"',
-                                             setup)
+        mock_replace.assert_called_once_with(
+            "staging/../dsindex.lbl", '"INDEX.TAB"', '"DSINDEX.TAB"', obj.setup
+        )
+
 
 # ---------------------------------------------------------------------------
 # InventoryProduct.write_product

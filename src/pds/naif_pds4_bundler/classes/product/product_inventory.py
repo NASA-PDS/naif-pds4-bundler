@@ -11,7 +11,6 @@ from ...utils import add_carriage_return
 from ...utils import compare_files
 from ...utils import replace_string_in_file
 from ...utils import type_to_extension
-from ..label import InventoryPDS3Label, InventoryPDS4Label
 
 
 class InventoryProduct(Product):
@@ -105,26 +104,35 @@ class InventoryProduct(Product):
 
         Product.__init__(self)
 
-        if setup.pds_version == "4":
-            self.label = InventoryPDS4Label(setup, collection, self)
-        else:  # setup.pds_version == "3":
-            self.label = InventoryPDS3Label(setup, collection, self)
+        # Labeling used to happen here (PDS3/PDS4 label picked and built), and
+        # so did the PDS3 dsindex-file copy below it. Both moved out:
+        # labeling to the pipeline, dsindex copying to its own method,
+        # generate_dsindex_files(), also called from the pipeline.
 
-            #
-            # Generate dsindex files.
-            #
-            shutil.copy2(self.path, self.setup.staging_directory + "/../dsindex.tab")
-            shutil.copy2(
-                self.path.replace(".tab", ".lbl"),
-                self.setup.staging_directory + "/../dsindex.lbl",
-            )
+    def generate_dsindex_files(self) -> None:
+        """Copy the PDS3 index file and its label to dsindex.tab/.lbl.
 
-            replace_string_in_file(
-                self.setup.staging_directory + "/../dsindex.lbl",
-                '"INDEX.TAB"',
-                '"DSINDEX.TAB"',
-                self.setup,
-            )
+        PDS3 only. This is a separate method, not folded into __init__,
+        because it copies ``index.lbl`` -- a file this class doesn't write.
+        ``InventoryPDS3Label`` writes it, and that label is now built by the
+        pipeline after this product's __init__ returns. Call this only
+        after that label exists, or the copy fails with a FileNotFoundError.
+
+        TODO: this ordering is only enforced by the comment in npb.py next to
+              the call site, not by the type system, and no test checks the call
+              order. If the pipeline is ever reordered, this will fail with a
+              FileNotFoundError that gives no hint the real cause is ordering.
+        """
+        shutil.copy2(self.path, self.setup.staging_directory + "/../dsindex.tab")
+        shutil.copy2(
+            self.path.replace(".tab", ".lbl"),
+            self.setup.staging_directory + "/../dsindex.lbl")
+
+        replace_string_in_file(
+            self.setup.staging_directory + "/../dsindex.lbl",
+            '"INDEX.TAB"',
+            '"DSINDEX.TAB"',
+            self.setup)
 
     def set_product_lid(self) -> None:
         """Set the Product LID."""

@@ -101,14 +101,13 @@ class TestOrbnumFileProductInit:
             OrbnumFileProduct(mock_setup, "test_file.orb", mock_collection, mock_kernels_collection)
 
     @patch.object(Product, "register")
-    @patch(f"{MOD}.OrbnumFilePDS4Label")
     @patch(f"{MOD}.safe_make_directory")
     @patch(f"{MOD}.shutil.copy2")
     @patch(f"{MOD}.os.path.isfile", return_value=False)
     @patch(f"{MOD}.check_eol", return_value=True)
     def test_init_pds4_new_file(
         self,
-        mock_check_eol, _mock_isfile, _mock_copy2, _mock_safe_mkdir, _mock_label, _mock_register,
+        mock_check_eol, _mock_isfile, _mock_copy2, _mock_safe_mkdir, _mock_register,
         pds4_init_mocks,
         mock_setup, mock_collection, mock_kernels_collection,
     ):
@@ -144,13 +143,12 @@ class TestOrbnumFileProductInit:
         assert not hasattr(obj, "lid")
 
     @patch.object(Product, "register")
-    @patch(f"{MOD}.OrbnumFilePDS4Label")
     @patch(f"{MOD}.safe_make_directory")
     @patch(f"{MOD}.os.path.isfile", return_value=True)
     @patch(f"{MOD}.check_eol", return_value=False)
     def test_init_pds4_existing_file_no_overrides(
         self,
-        _mock_check_eol, _mock_isfile, _mock_safe_mkdir, _mock_label, _mock_register,
+        _mock_check_eol, _mock_isfile, _mock_safe_mkdir, _mock_register,
         pds4_init_mocks,
         mock_setup, mock_collection, mock_kernels_collection,
     ):
@@ -218,8 +216,7 @@ class TestOrbnumFileProductInit:
         for key in ("mission_name", "observer", "target"):
             mock_setup.orbnum[0].pop(key, None)
 
-        with patch(f"{MOD}.OrbnumFilePDS4Label") as mock_label, \
-                patch(f"{MOD}.get_latest_kernel", return_value=[]), \
+        with patch(f"{MOD}.get_latest_kernel", return_value=[]), \
                 patch.object(Product, "register"):
             obj = OrbnumFileProduct(mock_setup, "test_file.orb", mock_collection, mock_kernels_collection)
 
@@ -261,9 +258,6 @@ class TestOrbnumFileProductInit:
         assert obj.missions == ["mission1"]
         assert obj.observers == ["obs1"]
         assert obj.targets == ["target1"]
-
-        # The label was constructed exactly once.
-        mock_label.assert_called_once()
 
 
 class TestOrbnumFileProductSetPreviousOrbnum:

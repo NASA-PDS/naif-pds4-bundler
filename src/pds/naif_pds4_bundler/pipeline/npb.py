@@ -1,5 +1,6 @@
 """Implementation of the NAIF PDS4 Bundler pipeline.
 """
+import logging
 from os.path import isdir
 from pathlib import Path
 
@@ -10,6 +11,14 @@ from ..classes.collection import DocumentCollection
 from ..classes.collection import MiscellaneousCollection
 from ..classes.collection import SpiceKernelsCollection
 from ..classes.exceptions import NPBError
+from ..classes.label import BundlePDS4Label
+from ..classes.label import DocumentPDS4Label
+from ..classes.label import InventoryPDS3Label
+from ..classes.label import InventoryPDS4Label
+from ..classes.label import MetaKernelPDS4Label
+from ..classes.label import OrbnumFilePDS4Label
+from ..classes.label import SpiceKernelPDS3Label
+from ..classes.label import SpiceKernelPDS4Label
 from ..classes.list import KernelList
 from ..classes.log import Log
 from ..classes.plan import ReleasePlan
@@ -240,15 +249,31 @@ def run_pipeline(args: PipelineArgs) -> None:
                 # because it might require to update the kernel list if the
                 # orbnum file name is updated.
                 #
-                miscellaneous_collection.add(
-                    OrbnumFileProduct(
-                        setup, kernel, miscellaneous_collection, spice_kernels_collection
-                    )
-                )
+                orbnum_product = OrbnumFileProduct(
+                    setup, kernel, miscellaneous_collection, spice_kernels_collection)
+
+                # Labeling used to happen inside OrbnumFileProduct itself, PDS4
+                # only -- there's no PDS3 label for orbnum files.
+                if setup.pds_version == "4":
+                    logging.info('-- Labeling %s...', orbnum_product.name)
+                    orbnum_product.label = OrbnumFilePDS4Label(setup, orbnum_product)
+
+                miscellaneous_collection.add(orbnum_product)
+
             elif ".tm" not in kernel.lower():
-                spice_kernels_collection.add(
-                    SpiceKernelProduct(setup, kernel, spice_kernels_collection)
-                )
+                kernel_product = SpiceKernelProduct(setup, kernel, spice_kernels_collection)
+
+                # Labeling used to happen inside SpiceKernelProduct itself; it's
+                # picked here now, same PDS3/PDS4 choice as before.
+                logging.info('-- Labeling %s...', kernel_product.name)
+
+                if setup.pds_version == "4":
+                    kernel_product.label = SpiceKernelPDS4Label(setup, kernel_product)
+
+                else:
+                    kernel_product.label = SpiceKernelPDS3Label(setup, kernel_product)
+
+                spice_kernels_collection.add(kernel_product)
 
         #
         # * Generate the Meta-kernel(s).
@@ -260,8 +285,17 @@ def run_pipeline(args: PipelineArgs) -> None:
                 meta_kernel = MetaKernelProduct(
                     setup, mk, spice_kernels_collection, user_input=meta_kernels[mk]
                 )
+
                 if setup.pds_version == "4":
+
+                    # Labeling used to happen inside MetaKernelProduct itself,
+                    # PDS4 only -- there's no PDS3 meta-kernel label.
+                    logging.info('')
+                    logging.info('-- Labeling meta-kernel: %s...', meta_kernel.name)
+                    meta_kernel.label = MetaKernelPDS4Label(setup, meta_kernel)
+
                     spice_kernels_collection.add(meta_kernel)
+
                 else:
                     miscellaneous_collection.add(meta_kernel)
 
@@ -320,6 +354,21 @@ def run_pipeline(args: PipelineArgs) -> None:
             spice_kernels_collection_inventory = InventoryProduct(
                 setup, spice_kernels_collection
             )
+
+            # Only inventory built for both PDS versions, so both label classes
+            # are still picked here, same as InventoryProduct used to.
+            if setup.pds_version == "4":
+                spice_kernels_collection_inventory.label = InventoryPDS4Label(
+                    setup, spice_kernels_collection, spice_kernels_collection_inventory)
+
+            else:
+                spice_kernels_collection_inventory.label = InventoryPDS3Label(
+                    setup, spice_kernels_collection, spice_kernels_collection_inventory)
+
+                # Must come after the label line above, not before: this copies
+                # index.lbl, which InventoryPDS3Label just wrote.
+                spice_kernels_collection_inventory.generate_dsindex_files()
+
             spice_kernels_collection.add(spice_kernels_collection_inventory)
 
         if setup.pds_version == "4":
@@ -340,12 +389,22 @@ def run_pipeline(args: PipelineArgs) -> None:
             #   Documents Collection Inventory.
             #
             if spiceds.generated:
+                # Labeling used to happen inside SpicedsProduct itself, under
+                # the same generated check -- a spiceds file that hasn't changed
+                # since the last release isn't relabeled.
+                spiceds.label = DocumentPDS4Label(setup, document_collection, spiceds)
+
                 document_collection.add(spiceds)
 
                 document_collection.set_collection_vid()
 
                 log_step(setup, title=f'Generation of {document_collection.name} collection')
                 document_collection_inventory = InventoryProduct(setup, document_collection)
+
+                # This branch only runs for PDS4, so there's no PDS3 label to pick.
+                document_collection_inventory.label = InventoryPDS4Label(
+                    setup, document_collection, document_collection_inventory)
+
                 document_collection.add(document_collection_inventory)
 
             #
@@ -408,6 +467,13 @@ def run_pipeline(args: PipelineArgs) -> None:
                             setup, release_miscellaneous_collection
                         )
 
+                        # This runs once per past release, always PDS4-only,
+                        # same as the site above.
+                        release_miscellaneous_collection_inventory.label = InventoryPDS4Label(
+                            setup,
+                            release_miscellaneous_collection,
+                            release_miscellaneous_collection_inventory)
+
                         release_miscellaneous_collection.add(
                             release_miscellaneous_collection_inventory
                         )
@@ -459,6 +525,11 @@ def run_pipeline(args: PipelineArgs) -> None:
             miscellaneous_collection_inventory = InventoryProduct(
                 setup, miscellaneous_collection
             )
+
+            # The current release's own miscellaneous inventory, PDS4-only.
+            miscellaneous_collection_inventory.label = InventoryPDS4Label(
+                setup, miscellaneous_collection, miscellaneous_collection_inventory)
+
             miscellaneous_collection.add(miscellaneous_collection_inventory)
 
             #
@@ -466,6 +537,9 @@ def run_pipeline(args: PipelineArgs) -> None:
             #
             log_step(setup, title='Generation of bundle products')
             bundle.readme = ReadmeProduct(setup, bundle)
+
+            logging.info("-- Generating bundle label...")
+            bundle.readme.label = BundlePDS4Label(setup, bundle.readme)
 
             #
             # * Generate the Checksum product a posteriori in such a way

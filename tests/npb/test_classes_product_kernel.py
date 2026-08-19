@@ -134,8 +134,6 @@ def build_product(env, name="test.bsp", pds_version="4", extra_setup_kwargs=None
         patch(f"{_MODULE}.pck_coverage", return_value=["2000-01-01T00:00:00Z", "2020-01-01T00:00:00Z"]),
         patch(f"{_MODULE}.dsk_coverage", return_value=["2000-01-01T00:00:00Z", "2020-01-01T00:00:00Z"]),
         patch(f"{_MODULE}.Product.__init__", return_value=None),
-        patch(f"{_MODULE}.SpiceKernelPDS4Label", return_value=MagicMock()),
-        patch(f"{_MODULE}.SpiceKernelPDS3Label", return_value=MagicMock()),
     ):
         product = SpiceKernelProduct(setup, name, collection)
 
@@ -181,7 +179,6 @@ class TestSpiceKernelProductInit:
             patch(f"{_MODULE}.shutil.copy2"),
             patch(f"{_MODULE}.spk_coverage", return_value=["2000T", "2020T"]),
             patch(f"{_MODULE}.Product.__init__", return_value=None),
-            patch(f"{_MODULE}.SpiceKernelPDS4Label", return_value=MagicMock()),
         ):
             product = SpiceKernelProduct.__new__(SpiceKernelProduct)
             product.__init__(setup, "test.bsp", collection)
@@ -229,7 +226,6 @@ class TestSpiceKernelProductInit:
             patch(f"{_MODULE}.safe_make_directory"),
             patch(f"{_MODULE}.spk_coverage", return_value=["2000T", "2020T"]),
             patch(f"{_MODULE}.Product.__init__", return_value=None),
-            patch(f"{_MODULE}.SpiceKernelPDS4Label", return_value=MagicMock()),
         ):
             product = SpiceKernelProduct(setup, "test.bsp", collection)
 
@@ -255,7 +251,6 @@ class TestSpiceKernelProductInit:
             patch(f"{_MODULE}.shutil.copy2"),
             patch(f"{_MODULE}.spk_coverage", return_value=["2000T", "2020T"]),
             patch(f"{_MODULE}.Product.__init__", return_value=None),
-            patch(f"{_MODULE}.SpiceKernelPDS4Label", return_value=MagicMock()),
         ):
             product = SpiceKernelProduct(setup, "test.bsp", collection)
 
@@ -288,51 +283,17 @@ class TestSpiceKernelProductInit:
         assert product.observers == ["SPACECRAFT"]
         assert product.targets == ["MARS"]
 
-    def test_pds4_label_is_created(self, tmp_env):
-        with (
-            patch(f"{_MODULE}.extension_to_type", return_value="spk"),
-            patch(f"{_MODULE}.safe_make_directory"),
-            patch(f"{_MODULE}.shutil.copy2"),
-            patch(f"{_MODULE}.spk_coverage", return_value=["2000T", "2020T"]),
-            patch(f"{_MODULE}.Product.__init__", return_value=None),
-            patch(f"{_MODULE}.SpiceKernelPDS4Label") as mock_label,
-        ):
-            setup = make_setup(
-                pds_version="4",
-                staging_directory=tmp_env["staging"],
-                kernels_directory=[tmp_env["kernel_dir"]],
-                working_directory=tmp_env["work"],
-            )
-            write_kernel_file(tmp_env, "test.bsp")
-            write_kernel_list(tmp_env, setup, "test.bsp")
-            collection = make_collection()
+    def test_pds3_reads_maklabel_options(self, tmp_env):
+        # Labeling itself moved to the pipeline, but PDS3 labeling reads
+        # maklabel_options back off the product, so it still has to be set
+        # here.
+        product, _, _ = build_product(tmp_env, name="test.bsp", pds_version="3")
+        assert product.maklabel_options == ['MAKLABEL_OPT']
 
-            SpiceKernelProduct(setup, "test.bsp", collection)
-
-        mock_label.assert_called_once()
-
-    def test_pds3_label_is_created(self, tmp_env):
-        with (
-            patch(f"{_MODULE}.extension_to_type", return_value="spk"),
-            patch(f"{_MODULE}.safe_make_directory"),
-            patch(f"{_MODULE}.shutil.copy2"),
-            patch(f"{_MODULE}.spk_coverage", return_value=["2000T", "2020T"]),
-            patch(f"{_MODULE}.Product.__init__", return_value=None),
-            patch(f"{_MODULE}.SpiceKernelPDS3Label") as mock_label,
-        ):
-            setup = make_setup(
-                pds_version="3",
-                staging_directory=tmp_env["staging"],
-                kernels_directory=[tmp_env["kernel_dir"]],
-                working_directory=tmp_env["work"],
-            )
-            write_kernel_file(tmp_env, "test.bsp")
-            write_kernel_list(tmp_env, setup, "test.bsp")
-            collection = make_collection()
-
-            SpiceKernelProduct(setup, "test.bsp", collection)
-
-        mock_label.assert_called_once()
+    def test_pds4_does_not_set_maklabel_options(self, tmp_env):
+        # PDS4 labeling doesn't use maklabel_options at all.
+        product, _, _ = build_product(tmp_env, name="test.bsp", pds_version="4")
+        assert not hasattr(product, "maklabel_options")
 
 
 # ===========================================================================

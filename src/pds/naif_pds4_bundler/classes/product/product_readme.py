@@ -6,7 +6,6 @@ from types import SimpleNamespace
 
 from .product import Product
 from ..exceptions import NPBError
-from ..label import BundlePDS4Label
 from ...utils import add_carriage_return
 from ...utils import md5
 
@@ -57,9 +56,6 @@ class ReadmeProduct(Product):
         # Now we change the path for the difference of the name in the label
         #
         self.path = setup.staging_directory + os.sep + bundle.name
-
-        logging.info("-- Generating bundle label...")
-        self.label = BundlePDS4Label(setup, self)
 
     def _write_product(self) -> None:
         """Write the Readme product."""

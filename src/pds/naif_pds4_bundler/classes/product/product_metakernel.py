@@ -25,7 +25,6 @@ from ...utils import safe_make_directory
 from ...utils import spice_exception_handler
 from ...utils import spk_coverage
 from ...utils import type_to_extension
-from ..label import MetaKernelPDS4Label
 
 
 class MetaKernelProduct(Product):
@@ -232,13 +231,6 @@ class MetaKernelProduct(Product):
             self.observers = observers
 
         super().__init__()
-
-        if self.setup.pds_version == "4":
-
-            logging.info('')
-            logging.info('-- Labeling meta-kernel: %s...', self.name)
-
-            self.label = MetaKernelPDS4Label(setup, self)
 
     def check_version(self) -> None:
         """Check if the provided Meta-kernel version is correct."""
