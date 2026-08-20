@@ -851,8 +851,8 @@ class TestBundlePCheckTimes:
     ])
     def test_invalid_ordering(self, lsk, m_start, i_start, i_end, m_end):
         bundle = self._make_times_bundle(m_start, i_start, i_end, m_end)
-        with pytest.raises(RuntimeError, match="The resulting Mission and Increment start "
-                                               "and finish dates are incoherent."):
+        with pytest.raises(NPBError, match="The resulting Mission and Increment start "
+                                           "and finish dates are incoherent."):
             bundle._check_times()
 
 
@@ -1530,7 +1530,7 @@ class TestBundlePGetKernelCollectionProducts:
         )
         bundle = _make_bundle(fake_setup, vid="1.0",
                               name=f"bundle_{MISSION}_spice_v001.xml")
-        with pytest.raises(Exception, match='Meta-kernel version length of 4 digits is incorrect.'):
+        with pytest.raises(NPBError, match='Meta-kernel version length of 4 digits is incorrect.'):
             bundle._get_kernel_collection_products(1)
 
     def test_mk_fallback_to_mk_inputs_dict(self, fake_setup):
@@ -1647,7 +1647,7 @@ class TestBundlePGetMetakernelProductFromConfig:
         setup = self._mk_setup(fake_setup, 4)
         bundle = _make_bundle(setup, vid="1.0",
                               name=f"bundle_{MISSION}_spice_v001.xml")
-        with pytest.raises(Exception, match='Meta-kernel version length of 4 digits is incorrect.'):
+        with pytest.raises(NPBError, match='Meta-kernel version length of 4 digits is incorrect.'):
             bundle._get_metakernel_product_from_config(1, self._csv_line())
 
     def test_version_number_embedded_correctly(self, fake_setup):
