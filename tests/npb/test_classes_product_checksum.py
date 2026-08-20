@@ -53,8 +53,6 @@ PATCHES = dict(
     checksum_from_label=f"{MOD}.checksum_from_label",
     compare_files=f"{MOD}.compare_files",
     Product_init=f"{MOD}.Product.__init__",
-    ChecksumPDS4Label=f"{MOD}.ChecksumPDS4Label",
-    ChecksumPDS3Label=f"{MOD}.ChecksumPDS3Label",
     os_walk=f"{MOD}.os.walk",
     os_remove=f"{MOD}.os.remove",
     os_path_isfile=f"{MOD}.os.path.isfile",
@@ -332,40 +330,27 @@ class TestSetCoverage:
 class TestGenerate:
     """Tests for generate."""
 
-    def test_generate_pds4_creates_pds4_label(self):
-
+    def test_generate_writes_product_and_calls_parent_init(self):
+        # generate() used to also pick a label class and set self.label; that
+        # moved to npb.py, so this test checks what's left: writing the file
+        # and filling in the attributes Product.__init__ sets.
         obj, _ = _build_pds4(increment=False)
-        obj.new_product = False  # reset
-        fake_label = MagicMock()
+        obj.new_product = False  # reset, so we can check generate() flips it back to True
+        obj.label = None  # pre-set, so the assertion below proves generate() left it alone
 
         with patch.object(obj, "write_product") as m_wp, \
-             patch(PATCHES["Product_init"]) as m_parent, \
-             patch(PATCHES["ChecksumPDS4Label"], return_value=fake_label) as m_lbl4, \
-             patch(PATCHES["ChecksumPDS3Label"]) as m_lbl3:
+             patch(PATCHES["Product_init"]) as m_parent:
 
             obj.generate(history=['some_file'])
 
-        m_lbl4.assert_called_once_with(obj.setup, obj)
-        m_lbl3.assert_not_called()
         m_wp.assert_called_once_with(history=['some_file'])
         m_parent.assert_called_once()
 
-        # Generate sets new product and assigns the new label.
         assert obj.new_product is True
-        assert obj.label is fake_label
 
-    def test_generate_pds3_creates_pds3_label(self):
-        obj = _build_pds3()
-
-        with patch.object(obj, "write_product"), \
-             patch(PATCHES["Product_init"]), \
-             patch(PATCHES["ChecksumPDS4Label"]) as m_lbl4, \
-             patch(PATCHES["ChecksumPDS3Label"]) as m_lbl3:
-
-            obj.generate(history=None)
-
-        m_lbl3.assert_called_once_with(obj.setup, obj)
-        m_lbl4.assert_not_called()
+        # The regression guard for this whole refactor: if labeling ever creeps
+        # back into generate(), this is the assertion that catches it.
+        assert obj.label is None
 
 # ===========================================================================
 # ChecksumProduct.write_product

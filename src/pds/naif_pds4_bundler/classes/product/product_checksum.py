@@ -8,8 +8,6 @@ from typing import Optional
 
 from .product import Product
 from ..exceptions import NPBError
-from ..label import ChecksumPDS3Label
-from ..label import ChecksumPDS4Label
 from ...utils import add_carriage_return
 from ...utils import checksum_from_label
 from ...utils import checksum_from_registry
@@ -82,7 +80,7 @@ class ChecksumProduct(Product):
         self.write_product(history=None, set_coverage=True)
 
     def generate(self, history: Optional[list] = None) -> None:
-        """Write and label the Checksum file.
+        """Write the Checksum file.
 
         :param history: If not None, the checksum will be generated with the archive
                         history.
@@ -98,16 +96,6 @@ class ChecksumProduct(Product):
         #
         self.new_product = True
         Product.__init__(self)
-
-        #
-        # The checksum is labeled.
-        #
-        logging.info('-- Labeling %s...', self.name)
-
-        if self.setup.pds_version == "4":
-            self.label = ChecksumPDS4Label(self.setup, self)
-        else:
-            self.label = ChecksumPDS3Label(self.setup, self)
 
     def read_current_product(self, add_previous_checksum: bool = True) -> None:
         """Reads the current checksum file.

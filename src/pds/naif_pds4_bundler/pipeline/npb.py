@@ -12,6 +12,8 @@ from ..classes.collection import MiscellaneousCollection
 from ..classes.collection import SpiceKernelsCollection
 from ..classes.exceptions import NPBError
 from ..classes.label import BundlePDS4Label
+from ..classes.label import ChecksumPDS3Label
+from ..classes.label import ChecksumPDS4Label
 from ..classes.label import DocumentPDS4Label
 from ..classes.label import InventoryPDS3Label
 from ..classes.label import InventoryPDS4Label
@@ -440,6 +442,12 @@ def run_pipeline(args: PipelineArgs) -> None:
                         )
                         release_checksum.generate(history=release)
 
+                        # Labeling used to happen inside ChecksumProduct.generate()
+                        # itself. This whole branch only runs for PDS4, so
+                        # there's no PDS3 label to pick here.
+                        logging.info('-- Labeling %s...', release_checksum.name)
+                        release_checksum.label = ChecksumPDS4Label(setup, release_checksum)
+
                         #
                         # Initialize a miscellaneous collection for this previous
                         # release.
@@ -548,6 +556,13 @@ def run_pipeline(args: PipelineArgs) -> None:
             #   Miscellaneous Collection Inventory.
             #
             checksum.generate()
+
+            # Labeling used to happen inside ChecksumProduct.generate() itself.
+            # This branch only runs for PDS4, so there's no PDS3 label to pick
+            # here.
+            logging.info('-- Labeling %s...', checksum.name)
+            checksum.label = ChecksumPDS4Label(setup, checksum)
+
             miscellaneous_collection.add(checksum)
 
         else:  # if setup.pds_version == "3":
@@ -566,6 +581,13 @@ def run_pipeline(args: PipelineArgs) -> None:
                 setup, miscellaneous_collection, add_previous_checksum=False
             )
             checksum.generate()
+
+            # Labeling used to happen inside ChecksumProduct.generate() itself.
+            # This branch only runs for PDS3, so there's no PDS4 label to pick
+            # here.
+            logging.info('-- Labeling %s...', checksum.name)
+            checksum.label = ChecksumPDS3Label(setup, checksum)
+
             miscellaneous_collection.add(checksum)
 
         #
