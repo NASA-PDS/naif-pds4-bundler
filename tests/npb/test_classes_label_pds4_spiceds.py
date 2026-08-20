@@ -93,7 +93,7 @@ class TestSpicedsPDS4LabelInit:
 class TestSpicedsPDS4LabelIntegration:
     """Integration tests for SpicedsPDS4Label and the inherited writer."""
 
-    @pytest.fixture()
+    @pytest.fixture
     def env(self,
             tmp_path: Path,
             mocker) -> tuple[SimpleNamespace, SimpleNamespace, SimpleNamespace, Path, Path]:
