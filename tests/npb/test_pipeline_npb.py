@@ -49,6 +49,13 @@ class _StubChecksum:
     def __init__(self, _setup=None, _collection=None, **_kw):
         self.new_product = True
 
+        # This stub's own generate() below is a no-op, so it never needed a
+        # .name before. Now npb.py logs and reads release_checksum.name /
+        # checksum.name itself, right after calling generate() -- without this
+        # attribute, tests that swap in this stub would crash the pipeline with
+        # an AttributeError.
+        self.name = "checksum.tab"
+
     def set_coverage(self): pass  # no-op: test only observes new_product flag
     def generate(self, history=None): pass  # no-op: output generation not under test
     def read_current_product(self, **_kw): pass  # no-op: reading existing products not under test
@@ -76,6 +83,8 @@ _PATCH_TARGETS = [
     'DocumentCollection',
     'ReadmeProduct',
     'BundlePDS4Label',
+    'ChecksumPDS3Label',
+    'ChecksumPDS4Label',
     'DocumentPDS4Label',
     'InventoryPDS3Label',
     'InventoryPDS4Label',
@@ -946,6 +955,20 @@ class TestPhase9PDS4DocumentMiscChecksum:
         run_pipeline(_args())
         mocks.ChecksumProduct.return_value.generate.assert_called()
 
+    def test_checksum_labeled_with_pds4_label(self, mocks):
+        # generate() no longer builds the label itself -- npb.py must build it
+        # right after generate() returns and assign it back onto the product,
+        # the same way it already does for every other product type.
+        run_pipeline(_args())
+        checksum = mocks.ChecksumProduct.return_value
+
+        # Default mocks run no backfill loop, so this is the only checksum built
+        # in this test -- assert_called_once_with is safe here.
+        mocks.ChecksumPDS4Label.assert_called_once_with(
+            mocks.Setup.return_value, checksum)
+
+        assert checksum.label is mocks.ChecksumPDS4Label.return_value
+
     def test_readme_product_created(self, mocks):
         # A ReadmeProduct is created with the shared setup and bundle.
         run_pipeline(_args())
@@ -1015,6 +1038,24 @@ class TestPhase9PDS4DocumentMiscChecksum:
         # One InventoryPDS4Label call per historical release (backfill loop),
         # plus one for the current release's own inventory.
         assert mocks.InventoryPDS4Label.call_count == len(bundle.history) + 1
+
+    def test_release_checksum_labeled_during_backfill(self, mocks):
+        # Setting increment=True with no existing checksum directory forces the
+        # backfill loop to run once per historical release in bundle.history,
+        # rebuilding a ChecksumProduct -- and now labeling it too -- for each
+        # past release that predates this PDS4 archive.
+        setup = mocks.Setup.return_value
+        setup.increment = True
+        mocks.isdir.return_value = False
+        bundle = mocks.Bundle.return_value
+        bundle.history = {'release_01': ('data', 'label'),
+                          'release_02': ('data2', 'label2')}
+        run_pipeline(_args())
+
+        # One ChecksumPDS4Label call per historical release from the backfill
+        # loop, plus one more for the current release's own checksum, built
+        # later in the same run.
+        assert mocks.ChecksumPDS4Label.call_count == len(bundle.history) + 1
 
     def test_backfill_loop_skipped_when_checksum_dir_exists(self, mocks):
         # When the checksum directory already exists, the backfill loop does not run.
@@ -1119,6 +1160,21 @@ class TestPhase10PDS3Path:
         # The checksum file is written for the current PDS3 release.
         run_pipeline(_args())
         mocks.ChecksumProduct.return_value.generate.assert_called_once()
+
+    def test_checksum_labeled_with_pds3_label(self, mocks):
+        # This test class runs under pds_version="3" (set by the set_pds3
+        # fixture above). npb.py's PDS3 branch must pick ChecksumPDS3Label
+        # instead of ChecksumPDS4Label -- this is the same version choice
+        # that used to be an if/else inside ChecksumProduct.generate().
+        run_pipeline(_args())
+        checksum = mocks.ChecksumProduct.return_value
+
+        mocks.ChecksumPDS3Label.assert_called_once_with(
+            mocks.Setup.return_value, checksum)
+
+        mocks.ChecksumPDS4Label.assert_not_called()
+
+        assert checksum.label is mocks.ChecksumPDS3Label.return_value
 
     def test_set_increment_times_not_called_for_pds3(self, mocks):
         # Increment times are not computed for PDS3 archives.
