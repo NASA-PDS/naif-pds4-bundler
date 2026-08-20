@@ -14,11 +14,11 @@ from ..classes.exceptions import NPBError
 from ..classes.label import BundlePDS4Label
 from ..classes.label import ChecksumPDS3Label
 from ..classes.label import ChecksumPDS4Label
-from ..classes.label import DocumentPDS4Label
 from ..classes.label import InventoryPDS3Label
 from ..classes.label import InventoryPDS4Label
 from ..classes.label import MetaKernelPDS4Label
 from ..classes.label import OrbnumFilePDS4Label
+from ..classes.label import SpicedsPDS4Label
 from ..classes.label import SpiceKernelPDS3Label
 from ..classes.label import SpiceKernelPDS4Label
 from ..classes.list import KernelList
@@ -394,7 +394,7 @@ def run_pipeline(args: PipelineArgs) -> None:
                 # Labeling used to happen inside SpicedsProduct itself, under
                 # the same generated check -- a spiceds file that hasn't changed
                 # since the last release isn't relabeled.
-                spiceds.label = DocumentPDS4Label(setup, document_collection, spiceds)
+                spiceds.label = SpicedsPDS4Label(setup, document_collection, spiceds)
 
                 document_collection.add(spiceds)
 
