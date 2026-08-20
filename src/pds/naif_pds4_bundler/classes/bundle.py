@@ -13,7 +13,6 @@ from xml.etree import ElementTree
 import spiceypy
 
 from .exceptions import NPBError
-from ..pipeline.runtime import handle_npb_error
 from ..utils import (
     check_list_duplicates,
     etree_to_dict,
@@ -311,10 +310,9 @@ class Bundle:
             or (et_inc_stop > et_msn_stop)
             or (et_msn_strt >= et_msn_stop)
         ):
-            handle_npb_error(
+            raise NPBError(
                 "The resulting Mission and Increment start and finish dates "
-                "are incoherent."
-            )
+                "are incoherent.")
 
     @staticmethod
     def _get_collection_versions_from_label(label: dict) -> dict[str, list[int]]:
@@ -579,7 +577,7 @@ class Bundle:
                         # TODO: Perform these checks elsewhere, probably at setup loading.
                         #       Maybe it is worth using a "derived" attribute similar to
                         #       "version_length".
-                        handle_npb_error(
+                        raise NPBError(
                             f"Meta-kernel version length of {version_length} "
                             "digits is incorrect.")
 
