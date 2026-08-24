@@ -809,7 +809,7 @@ class TestPhase8CollectionMetadata:
         # assert_called_once_with is safe here, unlike the PDS4 test above.
         mocks.InventoryPDS3Label.assert_called_once_with(
             mocks.Setup.return_value, skc, inventory)
-        
+
         assert inventory.label is mocks.InventoryPDS3Label.return_value
 
 
@@ -869,7 +869,7 @@ class TestPhase9PDS4DocumentMiscChecksum:
         # generated=False is the default mock value (an unchanged spiceds file
         # needs no new release), so no override is needed here.
         run_pipeline(_args())
-        
+
         # Mirrors the guard that used to live inside SpicedsProduct itself:
         # nothing is labeled when the file hasn't changed.
         mocks.DocumentPDS4Label.assert_not_called()
@@ -900,7 +900,7 @@ class TestPhase9PDS4DocumentMiscChecksum:
         # InventoryProduct/InventoryPDS4Label return values.
         mocks.InventoryPDS4Label.assert_any_call(
             mocks.Setup.return_value, doc_col, inventory)
-        
+
         assert inventory.label is mocks.InventoryPDS4Label.return_value
 
     def test_document_inventory_not_created_when_spiceds_not_generated(self, mocks):
@@ -999,7 +999,7 @@ class TestPhase9PDS4DocumentMiscChecksum:
         run_pipeline(_args())
         misc = mocks.MiscellaneousCollection.return_value
         inventory = mocks.InventoryProduct.return_value
-        
+
         mocks.InventoryPDS4Label.assert_called_once_with(
             mocks.Setup.return_value, misc, inventory)
 
@@ -1326,9 +1326,15 @@ class TestNPBErrorHandling:
     # entirely since no setup instance exists yet. Each parametrized case
     # below forces one Block-B call site to raise NPBError and asserts both
     # that cleanup ran and that the RuntimeError carries the original
-    # message. Two call sites need their own dedicated test instead of a
-    # table row: ReleasePlan.read_plan() (only reached with a non-default
-    # `args.plan`) and Setup() construction (Block A's no-setup case).
+    # message. The table covers every product, collection, label, and
+    # setup.py call site in npb.py that can raise NPBError -- every class
+    # under classes/ migrated to `raise NPBError(...)` has at least one
+    # routing case here. Three call sites need their own dedicated test
+    # instead of a table row, because they're only reached with non-default
+    # args mutually exclusive with the args the table's cases share:
+    # ReleasePlan.read_plan() and KernelList.read_list() (both need a
+    # non-default `args.plan`/`args.kerlist`), and Setup() construction
+    # itself (Block A's no-setup case).
 
     @staticmethod
     def _apply_overrides(mocks, overrides):
@@ -1434,6 +1440,110 @@ class TestNPBErrorHandling:
             {}, 'ReleasePlan.return_value.write_plan', 'boom write_plan',
             id='release_plan_write_plan',
         ),
+        # The sites below were migrated to `raise NPBError(...)` after this
+        # table was first written, and never got a row: label construction,
+        # KernelList, SpiceKernelsCollection
+        # (collection_kernels.py's own class), and Bundle. Bundle.validate()
+        # covers both of its private helpers, _check_times() and
+        # _validate_history() -- both are called from validate() with Bundle
+        # fully mocked here, so there is no way to tell them apart at this
+        # boundary; one row stands for both.
+        pytest.param(
+            {'ReleasePlan.return_value.kernel_list': ['maven_2024.bc']},
+            'SpiceKernelPDS4Label', 'boom spice kernel label', id='spice_kernel_label',
+        ),
+        pytest.param(
+            {
+                'Setup.return_value.pds_version': '3',
+                'ReleasePlan.return_value.kernel_list': ['maven_2024.bc'],
+            },
+            'SpiceKernelPDS3Label', 'boom spice kernel pds3 label', id='spice_kernel_pds3_label',
+        ),
+        # PDS4Label's __init__/get_missions/get_observers/get_targets carry
+        # the raise sites; every PDS4 label class inherits them, so each is
+        # an equally valid NPBError source. PDS3Label does not share them --
+        # it only overrides _eol() -- so InventoryPDS3Label and
+        # ChecksumPDS3Label can never actually raise NPBError and get no row
+        # here (SpiceKernelPDS3Label is the one exception, with its own
+        # separate raise site). Several PDS4 classes (InventoryPDS4Label,
+        # ChecksumPDS4Label) are built at more than one call site in npb.py;
+        # each row below is one representative construction, reached via the
+        # same overrides already used by the corresponding *product*-level
+        # row above, not full per-call-site parity.
+        # One orbnum kernel in the release, so its label build is the only one that happens.
+        pytest.param(
+            {'ReleasePlan.return_value.kernel_list': ['maven_2024.orb']},
+            'OrbnumFilePDS4Label', 'boom orbnum label', id='orbnum_label',
+        ),
+        # One meta-kernel is determined, so its label build is the only one that happens.
+        pytest.param(
+            {'SpiceKernelsCollection.return_value.determine_meta_kernels.return_value': {'maven_v01.tm': None}},
+            'MetaKernelPDS4Label', 'boom mk label', id='meta_kernel_label',
+        ),
+        # Default run: the SKC and document inventories are both skipped, so
+        # the current release's own miscellaneous inventory is the only one built.
+        pytest.param({}, 'InventoryPDS4Label', 'boom misc inventory label', id='misc_inventory_label'),
+        # Forces the SKC inventory to be built under PDS3: generate_dsindex_files()
+        # runs right after the PDS3 label is assigned, copying index.lbl --
+        # this is a separate call from the InventoryProduct construction
+        # itself, and (unlike the label) it does have its own raise site.
+        pytest.param(
+            {
+                'Setup.return_value.pds_version': '3',
+                'SpiceKernelsCollection.return_value.updated': True,
+            },
+            'InventoryProduct.return_value.generate_dsindex_files',
+            'boom generate_dsindex_files', id='skc_inventory_generate_dsindex_files',
+        ),
+        # Forces the "spiceds file changed" branch, so the document gets
+        # labeled instead of being skipped as unchanged.
+        pytest.param(
+            {'SpicedsProduct.return_value.generated': True},
+            'DocumentPDS4Label', 'boom doc label', id='doc_label',
+        ),
+        # Default run: the bundle's own label is always built, right after the readme.
+        pytest.param({}, 'BundlePDS4Label', 'boom bundle label', id='bundle_label'),
+        # Default run: no backfill for past releases, so the current
+        # release's own checksum is the only one labeled.
+        pytest.param({}, 'ChecksumPDS4Label', 'boom misc checksum label', id='misc_checksum_label'),
+        # No row for ChecksumPDS3Label: like InventoryPDS3Label above, it
+        # inherits from PDS3Label, which has no raise sites of its own, so
+        # it can never actually raise NPBError.
+        pytest.param({}, 'KernelList', 'boom kernel_list construction', id='kernel_list_construction'),
+        pytest.param(
+            {}, 'KernelList.return_value.write_list', 'boom write_list',
+            id='kernel_list_write_list',
+        ),
+        pytest.param(
+            {}, 'KernelList.return_value.check_products', 'boom check_products',
+            id='kernel_list_check_products',
+        ),
+        pytest.param(
+            {}, 'SpiceKernelsCollection.return_value.determine_meta_kernels',
+            'boom determine_meta_kernels', id='skc_determine_meta_kernels',
+        ),
+        pytest.param(
+            {}, 'SpiceKernelsCollection.return_value.validate', 'boom skc validate',
+            id='skc_validate',
+        ),
+        pytest.param({}, 'Bundle', 'boom bundle construction', id='bundle_construction'),
+        pytest.param(
+            {}, 'Bundle.return_value.validate', 'boom bundle validate',
+            id='bundle_validate',
+        ),
+        # Configuration validation runs right after the log is attached to
+        # set up, before anything else in the run -- this is distinct from
+        # Setup() construction itself (Block A, covered by its own dedicated
+        # test below).
+        pytest.param(
+            {}, 'Setup.return_value.check_configuration', 'boom check_configuration',
+            id='setup_check_configuration',
+        ),
+        # Kernel loading runs once, before any product in the release is built.
+        pytest.param(
+            {}, 'Setup.return_value.load_kernels', 'boom load_kernels',
+            id='setup_load_kernels',
+        ),
     ])
     def test_npb_error_is_routed_to_handle_npb_error(self, mocks, overrides, target_attr, message):
         self._apply_overrides(mocks, overrides)
@@ -1456,6 +1566,21 @@ class TestNPBErrorHandling:
         args = _args(plan='mission_release_01.plan')
 
         with pytest.raises(RuntimeError, match='boom read_plan'):
+            run_pipeline(args)
+
+        setup = mocks.Setup.return_value
+        setup.write_file_list.assert_called_once()
+        setup.write_checksum_registry.assert_called_once()
+
+    def test_npb_error_from_kernel_list_read_list_is_routed_to_handle_npb_error(self, mocks):
+        # read_list() is only reached when args.kerlist is set, which is
+        # mutually exclusive with write_list() (the case covered by the
+        # 'kernel_list_write_list' row above), so it needs the same
+        # dedicated-test treatment as ReleasePlan.read_plan() above.
+        mocks.KernelList.return_value.read_list.side_effect = NPBError('boom read_list')
+        args = _args(kerlist='mission_release_01.kernel_list')
+
+        with pytest.raises(RuntimeError, match='boom read_list'):
             run_pipeline(args)
 
         setup = mocks.Setup.return_value
