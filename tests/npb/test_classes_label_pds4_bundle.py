@@ -45,14 +45,17 @@ WRITE_LABEL_TARGET = (
 def _build_label(setup: MagicMock, readme: MagicMock) -> BundlePDS4Label:
     """Construct a ``BundlePDS4Label`` with ``write_label`` patched to a no-op.
 
-    ``PDSLabel.__init__`` is left intact so its real attribute wiring runs.
+    ``PDSLabel.__init__`` is left intact so its real attribute wiring runs;
+    that means readme.setup must be set to setup beforehand, since the label
+    now reads setup off the product instead of taking it as a separate arg.
 
     :param setup:  configured PDS4 Setup mock
     :param readme: readme product mock carrying the ``bundle`` aggregate
     :return: constructed label instance
     """
+    readme.setup = setup
     with patch(WRITE_LABEL_TARGET, autospec=True):
-        return BundlePDS4Label(setup, readme)
+        return BundlePDS4Label(readme)
 
 
 # ---------------------------------------------------------------------------
@@ -203,7 +206,8 @@ class TestBundlePDS4Label:
         readme = helpers.make_readme(tmp_path / 'staging')
 
         with patch(WRITE_LABEL_TARGET, autospec=True) as mock_write:
-            label = BundlePDS4Label(setup, readme)
+            readme.setup = setup
+            label = BundlePDS4Label(readme)
 
         assert label.setup is setup
         assert label.product is readme
@@ -629,7 +633,9 @@ class TestBundlePDS4LabelIntegration:
         # Semantic field values are verified in test_label_file_is_valid_xml.
         setup, readme, template_path, label_path = env
 
-        label = BundlePDS4Label(setup, readme)
+        readme.setup = setup
+
+        label = BundlePDS4Label(readme)
 
         assert label._template == str(template_path)
         assert Path(label.name) == label_path
@@ -642,7 +648,9 @@ class TestBundlePDS4LabelIntegration:
         # substituted by the correct value from the label state.
         setup, readme, _, label_path = env
 
-        BundlePDS4Label(setup, readme)
+        readme.setup = setup
+
+        BundlePDS4Label(readme)
 
         expected = ('<?xml version="1.0" encoding="UTF-8"?>\n'
                     '<bundle>\n'
@@ -670,7 +678,9 @@ class TestBundlePDS4LabelIntegration:
         setup.end_of_line = 'LF'
         setup.eol_pds4 = '\n'
 
-        BundlePDS4Label(setup, readme)
+        readme.setup = setup
+
+        BundlePDS4Label(readme)
         raw = label_path.read_bytes()
 
         assert b'\r\n' not in raw
@@ -683,7 +693,9 @@ class TestBundlePDS4LabelIntegration:
         setup.end_of_line = 'CRLF'
         setup.eol_pds4 = '\r\n'
 
-        BundlePDS4Label(setup, readme)
+        readme.setup = setup
+
+        BundlePDS4Label(readme)
         raw = label_path.read_bytes()
 
         assert b'\r\n' in raw
@@ -712,7 +724,9 @@ class TestBundlePDS4LabelIntegration:
                 lid='urn:nasa:pds:maven_spice:document', updated=False)]
         readme = helpers.make_readme(staging_dir, collections=collections)
 
-        BundlePDS4Label(setup, readme)
+        readme.setup = setup
+
+        BundlePDS4Label(readme)
 
         entries = ElementTree.parse(
             Path(readme.path)).getroot().find('Bundle_Member_Entries')
@@ -758,7 +772,9 @@ class TestBundlePDS4LabelIntegration:
                 lid='urn:nasa:pds:maven_spice:document', updated=True)]
         readme = helpers.make_readme(staging_dir, collections=collections)
 
-        BundlePDS4Label(setup, readme)
+        readme.setup = setup
+
+        BundlePDS4Label(readme)
         written = Path(readme.path).read_text(encoding='utf-8')
 
         # The leaked value is the last collection's COLL_NAME ('document').
@@ -775,7 +791,9 @@ class TestBundlePDS4LabelIntegration:
         # staging directory, not as an absolute path.
         setup, readme, _, _ = env
 
-        BundlePDS4Label(setup, readme)
+        readme.setup = setup
+
+        BundlePDS4Label(readme)
 
         setup.add_file.assert_called_once_with('bundle_maven_spice_v001.xml')
 
@@ -792,7 +810,8 @@ class TestBundlePDS4LabelIntegration:
         template_path.unlink()
 
         with pytest.raises(FileNotFoundError):
-            BundlePDS4Label(setup, readme)
+            readme.setup = setup
+            BundlePDS4Label(readme)
 
         assert label_path.exists()
         assert label_path.read_text(encoding='utf-8') == ''
@@ -807,7 +826,9 @@ class TestBundlePDS4LabelIntegration:
                                  '  <file_name>$FILE_NAME</file_name>\n',
                                  encoding='utf-8')
 
-        BundlePDS4Label(setup, readme)
+        readme.setup = setup
+
+        BundlePDS4Label(readme)
 
         written = label_path.read_text(encoding='utf-8')
         assert '<file_name>bundle_maven_spice_v001.xml</file_name>' in written

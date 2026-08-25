@@ -184,7 +184,8 @@ class TestOrbnumFilePDS4Label:
                    'PDSLabel.write_label', autospec=True):
             # Instantiate the real class so its constructor assignments are
             # executed.
-            instance = OrbnumFilePDS4Label(setup, product)
+            product.setup = setup
+            instance = OrbnumFilePDS4Label(product)
 
         return instance
 
@@ -274,7 +275,8 @@ class TestOrbnumFilePDS4Label:
         # Avoid real file writing while checking the constructor side effect.
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True) as mock_write:
-            label = OrbnumFilePDS4Label(setup, product)
+            product.setup = setup
+            label = OrbnumFilePDS4Label(product)
 
         # Verify that label.setup is exactly the same setup object that was
         # passed to the constructor, and the same applies to label.product with
@@ -316,7 +318,8 @@ class TestOrbnumFilePDS4Label:
         # Patch PDSLabel.write_label() to prevent actual file writing.
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
-            label = OrbnumFilePDS4Label(setup, product)
+            product.setup = setup
+            label = OrbnumFilePDS4Label(product)
 
         # Check that the expected label attribute contains exactly the value
         # assigned to the product.
@@ -345,7 +348,8 @@ class TestOrbnumFilePDS4Label:
 
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
-            label = OrbnumFilePDS4Label(setup, product)
+            product.setup = setup
+            label = OrbnumFilePDS4Label(product)
 
         assert getattr(label, label_attribute) == expected
 
@@ -367,7 +371,8 @@ class TestOrbnumFilePDS4Label:
 
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
-            label = OrbnumFilePDS4Label(setup, product)
+            product.setup = setup
+            label = OrbnumFilePDS4Label(product)
 
         assert label.PRODUCT_LID == (
             'urn:nasa:pds:maven_spice:miscellaneous:orbnum_distinct')
@@ -396,7 +401,8 @@ class TestOrbnumFilePDS4Label:
         # Patch PDSLabel.write_label() to prevent actual file writing.
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
-            label = OrbnumFilePDS4Label(setup, product)
+            product.setup = setup
+            label = OrbnumFilePDS4Label(product)
 
         # FILE_NAME is the verbatim product name (no truncation there).
         assert label.FILE_NAME == product_name
@@ -427,7 +433,8 @@ class TestOrbnumFilePDS4Label:
 
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
-            label = OrbnumFilePDS4Label(setup, product)
+            product.setup = setup
+            label = OrbnumFilePDS4Label(product)
 
         assert label.FIELDS_LENGTH == expected
 
@@ -450,7 +457,8 @@ class TestOrbnumFilePDS4Label:
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
             with pytest.raises(TypeError):
-                OrbnumFilePDS4Label(setup, product)
+                product.setup = setup
+                OrbnumFilePDS4Label(product)
 
     # ------------------------------------------------------------------
     # get_table_character_fields / field_template – the field blocks
@@ -477,7 +485,8 @@ class TestOrbnumFilePDS4Label:
 
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
-            label = OrbnumFilePDS4Label(setup, product)
+            product.setup = setup
+            label = OrbnumFilePDS4Label(product)
 
         assert label.NUMBER_OF_FIELDS == expected_number_of_fields
 
@@ -494,7 +503,8 @@ class TestOrbnumFilePDS4Label:
 
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
-            label = OrbnumFilePDS4Label(setup, product)
+            product.setup = setup
+            label = OrbnumFilePDS4Label(product)
 
         assert label.FIELDS == ''
 
@@ -562,7 +572,8 @@ class TestOrbnumFilePDS4Label:
 
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
-            label = OrbnumFilePDS4Label(setup, product)
+            product.setup = setup
+            label = OrbnumFilePDS4Label(product)
 
         assert label.FIELDS == expected
 
@@ -580,7 +591,8 @@ class TestOrbnumFilePDS4Label:
 
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
-            label = OrbnumFilePDS4Label(setup, product)
+            product.setup = setup
+            label = OrbnumFilePDS4Label(product)
 
         # One block per param.
         assert label.FIELDS.count('<Field_Character>') == 3
@@ -629,7 +641,8 @@ class TestOrbnumFilePDS4Label:
 
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
-            label = OrbnumFilePDS4Label(setup, product)
+            product.setup = setup
+            label = OrbnumFilePDS4Label(product)
 
         assert label.FIELDS == expected
 
@@ -676,7 +689,8 @@ class TestOrbnumFilePDS4Label:
 
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
-            label = OrbnumFilePDS4Label(setup, product)
+            product.setup = setup
+            label = OrbnumFilePDS4Label(product)
 
         assert label.FIELDS == expected
         assert label.FIELDS.endswith(eol_pds4)
@@ -705,7 +719,8 @@ class TestOrbnumFilePDS4Label:
             with patch.object(OrbnumFilePDS4Label, 'field_template',
                               autospec=True,
                               return_value='STUB') as mock_field:
-                label = OrbnumFilePDS4Label(setup, product)
+                product.setup = setup
+                label = OrbnumFilePDS4Label(product)
 
         # The fields string is exactly the stubbed return value.
         assert label.FIELDS == 'STUB'
@@ -739,7 +754,8 @@ class TestOrbnumFilePDS4Label:
 
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
-            label = OrbnumFilePDS4Label(setup, product)
+            product.setup = setup
+            label = OrbnumFilePDS4Label(product)
 
         assert label.TABLE_CHARACTER_DESCRIPTION == expected
 
@@ -763,7 +779,8 @@ class TestOrbnumFilePDS4Label:
 
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
-            label = OrbnumFilePDS4Label(setup, product)
+            product.setup = setup
+            label = OrbnumFilePDS4Label(product)
 
         assert label.TABLE_CHARACTER_DESCRIPTION == expected
 
@@ -786,7 +803,8 @@ class TestOrbnumFilePDS4Label:
 
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
-            label = OrbnumFilePDS4Label(setup, product)
+            product.setup = setup
+            label = OrbnumFilePDS4Label(product)
 
         assert label.TABLE_CHARACTER_DESCRIPTION == expected
 
@@ -877,7 +895,8 @@ class TestOrbnumFilePDS4LabelIntegration:
 
         # Instantiate the real label so the template is read and the XML is
         # written.
-        label = OrbnumFilePDS4Label(setup, product)
+        product.setup = setup
+        label = OrbnumFilePDS4Label(product)
 
         # Check that the class resolved the configured OrbNum template.
         assert label._template == str(template_path)
@@ -952,7 +971,9 @@ class TestOrbnumFilePDS4LabelIntegration:
         # substituted by the label state.
         setup, product, _, label_path = env
 
-        OrbnumFilePDS4Label(setup, product)
+        product.setup = setup
+
+        OrbnumFilePDS4Label(product)
 
         # Parse the rendered label; a malformed result would raise ParseError.
         tree = ElementTree.parse(label_path)
@@ -981,7 +1002,9 @@ class TestOrbnumFilePDS4LabelIntegration:
         # Override the description to be empty.
         product.table_char_description = ''
 
-        OrbnumFilePDS4Label(setup, product)
+        product.setup = setup
+
+        OrbnumFilePDS4Label(product)
 
         tree = ElementTree.parse(label_path)
         root = tree.getroot()
@@ -1003,7 +1026,9 @@ class TestOrbnumFilePDS4LabelIntegration:
         setup.end_of_line = end_of_line
         setup.eol_pds4 = eol_pds4
 
-        OrbnumFilePDS4Label(setup, product)
+        product.setup = setup
+
+        OrbnumFilePDS4Label(product)
 
         # Read the raw bytes to inspect the actual line terminators.
         raw = label_path.read_bytes()
@@ -1029,7 +1054,8 @@ class TestOrbnumFilePDS4LabelIntegration:
         setup, product, _, label_path = env
 
         # Generate the label using the real writer.
-        OrbnumFilePDS4Label(setup, product)
+        product.setup = setup
+        OrbnumFilePDS4Label(product)
 
         # The generated label must be registered relative to staging, not
         # absolute.
@@ -1053,7 +1079,8 @@ class TestOrbnumFilePDS4LabelIntegration:
 
         # Capture the exception.
         with pytest.raises(FileNotFoundError):
-            OrbnumFilePDS4Label(setup, product)
+            product.setup = setup
+            OrbnumFilePDS4Label(product)
 
         # The writer opens the output file before the template, so the empty
         # output label is created even though writing fails.
@@ -1079,7 +1106,9 @@ class TestOrbnumFilePDS4LabelIntegration:
                                  '  <file_name>$FILE_NAME</file_name>\n',
                                  encoding='utf-8')
 
-        OrbnumFilePDS4Label(setup, product)
+        product.setup = setup
+
+        OrbnumFilePDS4Label(product)
 
         # The writer still creates the output label.
         assert label_path.exists()

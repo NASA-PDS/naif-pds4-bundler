@@ -44,7 +44,8 @@ class TestPDS3LabelInit:
     def test_construction_succeeds(self):
         setup = _make_setup_pds3()
         product = _make_product()
-        label = PDS3Label(setup, product)
+        product.setup = setup
+        label = PDS3Label(product)
         assert label.setup is setup
         assert label.product is product
 
@@ -52,7 +53,8 @@ class TestPDS3LabelInit:
         """PDS3Label must never pick up PDS4-only attributes."""
         setup = _make_setup_pds3()
         product = _make_product()
-        label = PDS3Label(setup, product)
+        product.setup = setup
+        label = PDS3Label(product)
         assert not hasattr(label, "XML_MODEL")
         assert not hasattr(label, "SCHEMA_LOCATION")
         assert not hasattr(label, "PDS4_MISSION_NAME")
@@ -65,13 +67,15 @@ class TestPDS3LabelExtensionAndEol:
     def test_label_extension_is_lbl(self):
         setup = _make_setup_pds3()
         product = _make_product()
-        label = PDS3Label(setup, product)
+        product.setup = setup
+        label = PDS3Label(product)
         assert label._label_extension == ".lbl"
 
     def test_eol_reads_setup_eol_pds3(self):
         setup = _make_setup_pds3(eol_pds3="\n")
         product = _make_product()
-        label = PDS3Label(setup, product)
+        product.setup = setup
+        label = PDS3Label(product)
         assert label._eol == "\n"
 
 
@@ -93,7 +97,9 @@ class TestPDS3LabelWriteLabelIntegration:
         product.path = str(tmp_path / "test_kernel.bc")
         product.extension = "bc"
 
-        label = PDS3Label(setup, product)
+        product.setup = setup
+
+        label = PDS3Label(product)
         label._template = str(tmp_path / "template.lbl")
         Path(label._template).write_text("Static content line\n")
 

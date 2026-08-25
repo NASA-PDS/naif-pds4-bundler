@@ -1,25 +1,37 @@
 """Implementation of the PDS3 version of a label for Index files.
 """
 from .pds3_label import PDS3Label
+from ..exceptions import NPBError
 
 
 class InventoryPDS3Label(PDS3Label):
     """PDS Label child class to generate a PDS3 Index Label.
 
-    :param setup:      NPB execution Setup object
-    :param collection: Index Collection
-    :param inventory:  Index Product
+    :param product: Index Product
     """
 
-    def __init__(self, setup, collection, inventory) -> None:
+    def __init__(self, product) -> None:
         """Constructor."""
-        super().__init__(setup, inventory)
+        # Collection-level labels depend on product.collection already being
+        # populated; check it up front so a missing collection fails with a
+        # clear message here, rather than surfacing later as a confusing
+        # AttributeError deeper in label generation. Checked before
+        # super().__init__() for consistency with the PDS4 collection
+        # labels, which need that ordering to actually be reachable (PDSLabel
+        # itself never dereferences .collection).
+        if product.collection is None:
+            raise NPBError(
+                "product.collection must be set before constructing this label."
+            )
 
-        self.collection = collection
+        # PDSLabel.__init__ sets self.setup from product.setup.
+        super().__init__(product)
+
+        self.collection = product.collection
 
         # TODO: Check why this template path is not following the approach of all
         #       other labels.
-        self._template = f'{self.root_dir}/templates/pds3/template_collection_{collection.type}.lbl'
+        self._template = f'{self.root_dir}/templates/pds3/template_collection_{self.collection.type}.lbl'
 
         self.VOLUME_ID = self.setup.volume_id
         self.ROW_BYTES = str(self.product.row_bytes)

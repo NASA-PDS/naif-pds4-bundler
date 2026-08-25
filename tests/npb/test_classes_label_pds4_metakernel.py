@@ -123,7 +123,8 @@ class TestMetaKernelPDS4Label:
                    'PDSLabel.write_label', autospec=True):
             # Instantiate the real class so its constructor assignments are
             # executed.
-            instance = MetaKernelPDS4Label(setup, product)
+            product.setup = setup
+            instance = MetaKernelPDS4Label(product)
 
         return instance
 
@@ -186,7 +187,8 @@ class TestMetaKernelPDS4Label:
         # Avoid real file writing while checking the constructor side effect.
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True) as mock_write:
-            label = MetaKernelPDS4Label(setup, product)
+            product.setup = setup
+            label = MetaKernelPDS4Label(product)
 
         # Verify that label.setup is exactly the same setup object that was
         # passed to the constructor, and the same applies to label.product with
@@ -223,7 +225,8 @@ class TestMetaKernelPDS4Label:
         # Patch PDSLabel.write_label() to prevent actual file writing.
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
-            label = MetaKernelPDS4Label(setup, product)
+            product.setup = setup
+            label = MetaKernelPDS4Label(product)
 
         # The kernel type identifier must be the upper-cased product type.
         assert label.KERNEL_TYPE_ID == expected_kernel_type_id
@@ -259,7 +262,8 @@ class TestMetaKernelPDS4Label:
         # Patch PDSLabel.write_label() to prevent actual file writing.
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
-            label = MetaKernelPDS4Label(setup, product)
+            product.setup = setup
+            label = MetaKernelPDS4Label(product)
 
         # Check that the expected label attribute contains exactly the value
         # assigned to the product.
@@ -283,7 +287,8 @@ class TestMetaKernelPDS4Label:
 
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
-            label = MetaKernelPDS4Label(setup, product)
+            product.setup = setup
+            label = MetaKernelPDS4Label(product)
 
         assert label.PRODUCT_LID == (
             'urn:nasa:pds:maven_spice:spice_kernels:mk_distinct')
@@ -312,7 +317,8 @@ class TestMetaKernelPDS4Label:
         # Patch PDSLabel.write_label() to prevent actual file writing.
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
-            label = MetaKernelPDS4Label(setup, product)
+            product.setup = setup
+            label = MetaKernelPDS4Label(product)
 
         # FILE_NAME is the verbatim product name (no truncation there).
         assert label.FILE_NAME == product_name
@@ -337,7 +343,8 @@ class TestMetaKernelPDS4Label:
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
             with pytest.raises(AttributeError):
-                MetaKernelPDS4Label(setup, product)
+                product.setup = setup
+                MetaKernelPDS4Label(product)
 
     # ------------------------------------------------------------------
     # get_kernel_internal_references – the MK-specific logic
@@ -397,7 +404,8 @@ class TestMetaKernelPDS4Label:
         # we assert on the stored value.
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
-            label = MetaKernelPDS4Label(setup, product)
+            product.setup = setup
+            label = MetaKernelPDS4Label(product)
 
         assert label.KERNEL_INTERNAL_REFERENCES == expected
 
@@ -438,7 +446,8 @@ class TestMetaKernelPDS4Label:
 
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
-            label = MetaKernelPDS4Label(setup, product)
+            product.setup = setup
+            label = MetaKernelPDS4Label(product)
 
         assert label.KERNEL_INTERNAL_REFERENCES == expected
 
@@ -476,7 +485,8 @@ class TestMetaKernelPDS4Label:
 
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
-            label = MetaKernelPDS4Label(setup, product)
+            product.setup = setup
+            label = MetaKernelPDS4Label(product)
 
         assert label.KERNEL_INTERNAL_REFERENCES == expected
         assert label.KERNEL_INTERNAL_REFERENCES.endswith(eol_pds4)
@@ -496,7 +506,8 @@ class TestMetaKernelPDS4Label:
 
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
-            label = MetaKernelPDS4Label(setup, product)
+            product.setup = setup
+            label = MetaKernelPDS4Label(product)
 
         # Documents the current (buggy) behaviour.
         assert label.KERNEL_INTERNAL_REFERENCES == setup.eol_pds4
@@ -520,7 +531,8 @@ class TestMetaKernelPDS4Label:
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
             with pytest.raises(ValueError, match=expected_message):
-                MetaKernelPDS4Label(setup, product)
+                product.setup = setup
+                MetaKernelPDS4Label(product)
 
 
 # ===========================================================================
@@ -601,7 +613,8 @@ class TestMetaKernelPDS4LabelIntegration:
 
         # Instantiate the real label so the template is read and the XML is
         # written.
-        label = MetaKernelPDS4Label(setup, product)
+        product.setup = setup
+        label = MetaKernelPDS4Label(product)
 
         # Check that the class resolved the configured MK template.
         assert label._template == str(template_path)
@@ -636,7 +649,9 @@ class TestMetaKernelPDS4LabelIntegration:
         # substituted by the label state.
         setup, product, _, label_path = env
 
-        MetaKernelPDS4Label(setup, product)
+        product.setup = setup
+
+        MetaKernelPDS4Label(product)
 
         # Parse the rendered label; a malformed result would raise ParseError.
         tree = ElementTree.parse(label_path)
@@ -662,7 +677,9 @@ class TestMetaKernelPDS4LabelIntegration:
         setup.end_of_line = end_of_line
         setup.eol_pds4 = eol_pds4
 
-        MetaKernelPDS4Label(setup, product)
+        product.setup = setup
+
+        MetaKernelPDS4Label(product)
 
         # Read the raw bytes to inspect the actual line terminators.
         raw = label_path.read_bytes()
@@ -688,7 +705,8 @@ class TestMetaKernelPDS4LabelIntegration:
         setup, product, _, label_path = env
 
         # Generate the label using the real writer.
-        MetaKernelPDS4Label(setup, product)
+        product.setup = setup
+        MetaKernelPDS4Label(product)
 
         # The generated label must be registered relative to staging, not
         # absolute.
@@ -712,7 +730,8 @@ class TestMetaKernelPDS4LabelIntegration:
 
         # Capture the exception.
         with pytest.raises(FileNotFoundError):
-            MetaKernelPDS4Label(setup, product)
+            product.setup = setup
+            MetaKernelPDS4Label(product)
 
         # The writer opens the output file before the template, so the empty
         # output label is created even though writing fails.
@@ -738,7 +757,9 @@ class TestMetaKernelPDS4LabelIntegration:
                                  '  <file_name>$FILE_NAME</file_name>\n',
                                  encoding='utf-8')
 
-        MetaKernelPDS4Label(setup, product)
+        product.setup = setup
+
+        MetaKernelPDS4Label(product)
 
         # The writer still creates the output label.
         assert label_path.exists()

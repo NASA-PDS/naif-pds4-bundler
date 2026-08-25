@@ -8,15 +8,17 @@ from .pds3_label import PDS3Label
 class ChecksumPDS3Label(PDS3Label):
     """PDS Label child class to a PDS3 Checksum Label.
 
-    :param setup:   NPB  execution Setup object
     :param product: Checksum product to label
     """
 
-    def __init__(self, setup, product) -> None:
+    def __init__(self, product) -> None:
         """Constructor."""
-        super().__init__(setup, product)
+        # PDSLabel.__init__ sets self.setup from product.setup.
+        super().__init__(product)
 
-        self._template = str(Path(setup.templates_directory)
+        # Template path now reads templates_directory via self.setup instead
+        # of a separate setup argument.
+        self._template = str(Path(self.setup.templates_directory)
                              / "template_product_checksum_table.lbl")
 
         self.VOLUME_ID = self.setup.volume_id.upper()

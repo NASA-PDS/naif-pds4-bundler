@@ -83,14 +83,14 @@ def _build_label(product, extra_setup=None):
 
     label = SpiceKernelPDS3Label.__new__(SpiceKernelPDS3Label)
 
-    with patch(PARENT_INIT, lambda self, m, p: setattr(self, "setup", setup)), \
+    with patch(PARENT_INIT, lambda self, p: setattr(self, "setup", setup)), \
          patch(WRITE_LABEL, return_value=None), \
          patch(SET_IDS,     return_value=None), \
          patch(SET_SCLK,    return_value=None), \
          patch(FORMAT_DESC, return_value='"Fake description."'), \
          patch(INSERT_BIN,  return_value=None), \
          patch(INSERT_TEXT, return_value=None):
-        SpiceKernelPDS3Label.__init__(label, MagicMock(), product)
+        SpiceKernelPDS3Label.__init__(label, product)
 
     return label
 
@@ -189,14 +189,14 @@ class TestSpiceKernelPDS3LabelInit:
 
         label = SpiceKernelPDS3Label.__new__(SpiceKernelPDS3Label)
 
-        with patch(PARENT_INIT, lambda s, m, p: setattr(s, "setup", _make_setup())), \
+        with patch(PARENT_INIT, lambda s, p: setattr(s, "setup", _make_setup())), \
              patch(WRITE_LABEL, return_value=None), \
              patch(SET_IDS,     return_value=None), \
              patch(SET_SCLK,    return_value=None), \
              patch(FORMAT_DESC, return_value='"desc"'), \
              patch(INSERT_TEXT) as mock_text, \
              patch(INSERT_BIN)  as mock_bin:
-            SpiceKernelPDS3Label.__init__(label, MagicMock(), product)
+            SpiceKernelPDS3Label.__init__(label, product)
 
         mock_text.assert_called_once()
         mock_bin.assert_not_called()
@@ -208,14 +208,14 @@ class TestSpiceKernelPDS3LabelInit:
 
         label = SpiceKernelPDS3Label.__new__(SpiceKernelPDS3Label)
 
-        with patch(PARENT_INIT, lambda s, m, p: setattr(s, "setup", _make_setup())), \
+        with patch(PARENT_INIT, lambda s, p: setattr(s, "setup", _make_setup())), \
              patch(WRITE_LABEL, return_value=None), \
              patch(SET_IDS,     return_value=None), \
              patch(SET_SCLK,    return_value=None), \
              patch(FORMAT_DESC, return_value='"desc"'), \
              patch(INSERT_TEXT) as mock_text, \
              patch(INSERT_BIN)  as mock_bin:
-            SpiceKernelPDS3Label.__init__(label, MagicMock(), product)
+            SpiceKernelPDS3Label.__init__(label, product)
 
         mock_bin.assert_called_once()
         mock_text.assert_not_called()

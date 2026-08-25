@@ -107,7 +107,9 @@ class TestInventoryPDS3LabelUnit:
         with patch(
             "pds.naif_pds4_bundler.classes.label.label.PDSLabel.write_label", autospec=True
         ):
-            instance = InventoryPDS3Label(setup, collection, product)
+            product.setup = setup
+            product.collection = collection
+            instance = InventoryPDS3Label(product)
 
         return instance
 
@@ -124,7 +126,9 @@ class TestInventoryPDS3LabelUnit:
         with patch(
             "pds.naif_pds4_bundler.classes.label.label.PDSLabel.write_label", autospec=True
         ):
-            instance = InventoryPDS3Label(setup, collection, product)
+            product.setup = setup
+            product.collection = collection
+            instance = InventoryPDS3Label(product)
 
         return instance
 
@@ -185,7 +189,9 @@ class TestInventoryPDS3LabelUnit:
         with patch(
             "pds.naif_pds4_bundler.classes.label.label.PDSLabel.write_label", autospec=True
         ) as mock_write:
-            label = InventoryPDS3Label(setup, collection, product)
+            product.setup = setup
+            product.collection = collection
+            label = InventoryPDS3Label(product)
 
         mock_write.assert_called_once()
 
@@ -205,7 +211,9 @@ class TestInventoryPDS3LabelUnit:
         with patch(
             "pds.naif_pds4_bundler.classes.label.label.PDSLabel.write_label", autospec=True
         ):
-            instance = InventoryPDS3Label(setup, _make_collection(), product)
+            product.setup = setup
+            product.collection = _make_collection()
+            instance = InventoryPDS3Label(product)
 
         assert instance.ROWS == "0"
 
@@ -221,7 +229,9 @@ class TestInventoryPDS3LabelUnit:
         with patch(
             "pds.naif_pds4_bundler.classes.label.label.PDSLabel.write_label", autospec=True
         ):
-            instance = InventoryPDS3Label(setup, _make_collection(), product)
+            product.setup = setup
+            product.collection = _make_collection()
+            instance = InventoryPDS3Label(product)
 
         assert getattr(instance, 'BYTES_01') == '50'
         assert getattr(instance, 'START_BYTE_01') == '1'
@@ -394,7 +404,11 @@ class TestInventoryPDS3LabelIntegration:
         product = env["product"]
         collection = env["collection"]
 
-        InventoryPDS3Label(setup, collection, product)
+        product.setup = setup
+
+        product.collection = collection
+
+        InventoryPDS3Label(product)
 
         assert env["label_path"].exists()
 
@@ -522,6 +536,10 @@ class TestInventoryPDS3LabelIntegration:
         product = env["product"]
         collection = env["collection"]
 
-        InventoryPDS3Label(setup, collection, product)
+        product.setup = setup
+
+        product.collection = collection
+
+        InventoryPDS3Label(product)
 
         setup.add_file.assert_called_once_with("INDEX.lbl")

@@ -10,7 +10,6 @@ from ...utils import add_carriage_return, compare_files
 class PDSLabel:
     """Class to generate a PDS Label.
 
-    :param setup:   NPB execution Setup object
     :param product: Product to be labeled
     """
 
@@ -18,17 +17,24 @@ class PDSLabel:
     _eol: str
     _template: str
 
-    def __init__(self, setup, product) -> None:
+    def __init__(self, product) -> None:
         """Constructor."""
+
+        # Label name is not known yet; write_label() fills it in later.
         self.name = ''
+
+        # Keep a reference to the product this label describes.
         self.product = product
-        self.setup = setup
+
+        # Read setup off the product instead of taking it as a separate
+        # argument -- every product already carries its own setup.
+        self.setup = product.setup
 
         #
         # Fields from setup
         #
-        self.root_dir = setup.root_dir
-        self.mission_acronym = setup.mission_acronym
+        self.root_dir = self.setup.root_dir
+        self.mission_acronym = self.setup.mission_acronym
 
         if hasattr(self.setup, "creation_date_time"):
             creation_dt = self.setup.creation_date_time

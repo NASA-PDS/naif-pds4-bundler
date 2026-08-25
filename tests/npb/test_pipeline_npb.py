@@ -520,8 +520,7 @@ class TestPhase6StagingBundleAndCollections:
 
         # Unlike InventoryPDS4Label, this label class is only ever used here, so
         # assert_called_once_with is safe (no other site shares it).
-        mocks.SpiceKernelPDS4Label.assert_called_once_with(
-            mocks.Setup.return_value, kernel_product)
+        mocks.SpiceKernelPDS4Label.assert_called_once_with(kernel_product)
 
         # The label built above is what ends up assigned back onto the product.
         assert kernel_product.label is mocks.SpiceKernelPDS4Label.return_value
@@ -535,8 +534,7 @@ class TestPhase6StagingBundleAndCollections:
 
         # PDS3 picks the PDS3 label class instead -- this is the branch that
         # used to live inside SpiceKernelProduct.__init__.
-        mocks.SpiceKernelPDS3Label.assert_called_once_with(
-            mocks.Setup.return_value, kernel_product)
+        mocks.SpiceKernelPDS3Label.assert_called_once_with(kernel_product)
 
         assert kernel_product.label is mocks.SpiceKernelPDS3Label.return_value
 
@@ -561,8 +559,7 @@ class TestPhase6StagingBundleAndCollections:
 
         # PDS4 only -- there's no PDS3 label for orbnum files at all, so this
         # class is never shared with another call site.
-        mocks.OrbnumFilePDS4Label.assert_called_once_with(
-            mocks.Setup.return_value, orbnum_product)
+        mocks.OrbnumFilePDS4Label.assert_called_once_with(orbnum_product)
 
         # The label built above is what ends up assigned back onto the product.
         assert orbnum_product.label is mocks.OrbnumFilePDS4Label.return_value
@@ -620,8 +617,7 @@ class TestPhase6StagingBundleAndCollections:
 
         # PDS4 only -- there's no PDS3 meta-kernel label, so this class is never
         # shared with another call site.
-        mocks.MetaKernelPDS4Label.assert_called_once_with(
-            mocks.Setup.return_value, meta_kernel)
+        mocks.MetaKernelPDS4Label.assert_called_once_with(meta_kernel)
 
         # The label built above is what ends up assigned back onto the product.
         assert meta_kernel.label is mocks.MetaKernelPDS4Label.return_value
@@ -784,15 +780,12 @@ class TestPhase8CollectionMetadata:
         # Force the SKC inventory branch to run at all.
         mocks.SpiceKernelsCollection.return_value.updated = True
         run_pipeline(_args())
-        skc = mocks.SpiceKernelsCollection.return_value
         inventory = mocks.InventoryProduct.return_value
 
-        # The label is built with (setup, collection, inventory product).
         # assert_any_call, not assert_called_once: the misc inventory (built
         # later in the same run, always PDS4) calls this same label class too,
         # so InventoryPDS4Label fires more than once.
-        mocks.InventoryPDS4Label.assert_any_call(
-            mocks.Setup.return_value, skc, inventory)
+        mocks.InventoryPDS4Label.assert_any_call(inventory)
 
         # The label built above is what actually gets assigned back.
         assert inventory.label is mocks.InventoryPDS4Label.return_value
@@ -802,13 +795,11 @@ class TestPhase8CollectionMetadata:
         mocks.Setup.return_value.pds_version = '3'
         mocks.SpiceKernelsCollection.return_value.updated = True
         run_pipeline(_args())
-        skc = mocks.SpiceKernelsCollection.return_value
         inventory = mocks.InventoryProduct.return_value
 
         # PDS3 has no misc-inventory branch, so this is the only call --
         # assert_called_once_with is safe here, unlike the PDS4 test above.
-        mocks.InventoryPDS3Label.assert_called_once_with(
-            mocks.Setup.return_value, skc, inventory)
+        mocks.InventoryPDS3Label.assert_called_once_with(inventory)
 
         assert inventory.label is mocks.InventoryPDS3Label.return_value
 
@@ -855,12 +846,10 @@ class TestPhase9PDS4DocumentMiscChecksum:
         mocks.SpicedsProduct.return_value.generated = True
         run_pipeline(_args())
         spiceds = mocks.SpicedsProduct.return_value
-        doc_col = mocks.DocumentCollection.return_value
 
         # DocumentPDS4Label is only ever used for spiceds, so
         # assert_called_once_with is safe (no other call site shares it).
-        mocks.DocumentPDS4Label.assert_called_once_with(
-            mocks.Setup.return_value, doc_col, spiceds)
+        mocks.DocumentPDS4Label.assert_called_once_with(spiceds)
 
         # The label built above is what ends up assigned back onto the product.
         assert spiceds.label is mocks.DocumentPDS4Label.return_value
@@ -892,14 +881,12 @@ class TestPhase9PDS4DocumentMiscChecksum:
         # This inventory only gets built when spiceds was generated.
         mocks.SpicedsProduct.return_value.generated = True
         run_pipeline(_args())
-        doc_col = mocks.DocumentCollection.return_value
         inventory = mocks.InventoryProduct.return_value
 
         # PDS4 only -- there's no PDS3 branch for the document collection.
         # assert_any_call: the misc inventory built later shares the same mock
         # InventoryProduct/InventoryPDS4Label return values.
-        mocks.InventoryPDS4Label.assert_any_call(
-            mocks.Setup.return_value, doc_col, inventory)
+        mocks.InventoryPDS4Label.assert_any_call(inventory)
 
         assert inventory.label is mocks.InventoryPDS4Label.return_value
 
@@ -964,8 +951,7 @@ class TestPhase9PDS4DocumentMiscChecksum:
 
         # Default mocks run no backfill loop, so this is the only checksum built
         # in this test -- assert_called_once_with is safe here.
-        mocks.ChecksumPDS4Label.assert_called_once_with(
-            mocks.Setup.return_value, checksum)
+        mocks.ChecksumPDS4Label.assert_called_once_with(checksum)
 
         assert checksum.label is mocks.ChecksumPDS4Label.return_value
 
@@ -982,9 +968,7 @@ class TestPhase9PDS4DocumentMiscChecksum:
         # assigned back as product.label, which other modules read later.
         run_pipeline(_args())
         readme_product = mocks.ReadmeProduct.return_value
-        mocks.BundlePDS4Label.assert_called_once_with(
-            mocks.Setup.return_value, readme_product
-        )
+        mocks.BundlePDS4Label.assert_called_once_with(readme_product)
         assert readme_product.label is mocks.BundlePDS4Label.return_value
 
     def test_misc_collection_vid_set(self, mocks):
@@ -997,11 +981,9 @@ class TestPhase9PDS4DocumentMiscChecksum:
         # -- this is the only inventory built in this run, so it's the only
         # InventoryPDS4Label call to check for.
         run_pipeline(_args())
-        misc = mocks.MiscellaneousCollection.return_value
         inventory = mocks.InventoryProduct.return_value
 
-        mocks.InventoryPDS4Label.assert_called_once_with(
-            mocks.Setup.return_value, misc, inventory)
+        mocks.InventoryPDS4Label.assert_called_once_with(inventory)
 
         assert inventory.label is mocks.InventoryPDS4Label.return_value
 
@@ -1169,8 +1151,7 @@ class TestPhase10PDS3Path:
         run_pipeline(_args())
         checksum = mocks.ChecksumProduct.return_value
 
-        mocks.ChecksumPDS3Label.assert_called_once_with(
-            mocks.Setup.return_value, checksum)
+        mocks.ChecksumPDS3Label.assert_called_once_with(checksum)
 
         mocks.ChecksumPDS4Label.assert_not_called()
 
