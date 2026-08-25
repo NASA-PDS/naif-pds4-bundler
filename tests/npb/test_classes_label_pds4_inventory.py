@@ -303,8 +303,10 @@ class TestInventoryPDS4Label:
 
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
+            # Wiring happens before the assertion block so pytest.raises only
+            # wraps the call actually expected to raise.
+            _wire_inventory(inventory, setup, collection)
             with pytest.raises(FileNotFoundError):
-                _wire_inventory(inventory, setup, collection)
                 InventoryPDS4Label(inventory)
 
     def test_constructor_raises_when_collection_missing(
@@ -438,8 +440,10 @@ class TestInventoryPDS4Label:
 
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
+            # Wiring happens before the assertion block so pytest.raises only
+            # wraps the call actually expected to raise.
+            _wire_inventory(inventory, setup, collection)
             with pytest.raises(ValueError, match=f'^{expected_message}$'):
-                _wire_inventory(inventory, setup, collection)
                 InventoryPDS4Label(inventory)
 
     def test_miscellaneous_branch_with_empty_product_list_raises_value_error(
@@ -463,8 +467,10 @@ class TestInventoryPDS4Label:
 
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
+            # Wiring happens before the assertion block so pytest.raises only
+            # wraps the call actually expected to raise.
+            _wire_inventory(inventory, setup, collection)
             with pytest.raises(ValueError, match=f'^{expected_message}$'):
-                _wire_inventory(inventory, setup, collection)
                 InventoryPDS4Label(inventory)
 
     # ------------------------------------------------------------------
@@ -675,8 +681,10 @@ class TestInventoryPDS4LabelIntegration:
 
         template_path.unlink()
 
+        # Wiring happens before the assertion block so pytest.raises only
+        # wraps the call actually expected to raise.
+        _wire_inventory(inventory, setup, collection)
         with pytest.raises(FileNotFoundError):
-            _wire_inventory(inventory, setup, collection)
             InventoryPDS4Label(inventory)
 
         # The writer opens the output file before the template, so the empty
