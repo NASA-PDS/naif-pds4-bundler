@@ -34,6 +34,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from pds.naif_pds4_bundler.classes.exceptions import NPBError
 from pds.naif_pds4_bundler.classes.label.pds4_inventory import InventoryPDS4Label
 
 
@@ -305,6 +306,23 @@ class TestInventoryPDS4Label:
             with pytest.raises(FileNotFoundError):
                 _wire_inventory(inventory, setup, collection)
                 InventoryPDS4Label(inventory)
+
+    def test_constructor_raises_when_collection_missing(
+            self, tmp_path: Path, helpers: SimpleNamespace) -> None:
+        # The guard runs before super().__init__(), so no PDSLabel patching
+        # is needed here -- construction must fail before reaching it.
+        staging = tmp_path / 'staging'
+        inventory = helpers.make_inventory(staging)
+        # This is the condition the guard checks for; every other test in
+        # this file wires a real collection via _wire_inventory().
+        inventory.collection = None
+
+        # Must be NPBError, not AttributeError -- pins the fix for a bug the
+        # code review caught: the check originally sat after
+        # super().__init__(), where PDS4Label.__init__ would already have
+        # raised a confusing AttributeError first.
+        with pytest.raises(NPBError, match="product.collection must be set"):
+            InventoryPDS4Label(inventory)
 
     # ------------------------------------------------------------------
     # Miscellaneous branch – coverage from the checksum products

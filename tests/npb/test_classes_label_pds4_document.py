@@ -4,6 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
+from pds.naif_pds4_bundler.classes.exceptions import NPBError
 from pds.naif_pds4_bundler.classes.label.pds4_document import DocumentPDS4Label
 
 
@@ -101,6 +102,21 @@ class TestDocumentPDS4LabelInit:
 
         # Only the last suffix is replaced; earlier dots in the name are preserved.
         assert document_label.name == 'collection.document_inventory_v001.xml'
+
+    def test_init_raises_when_collection_missing(self, tmp_path: Path) -> None:
+        # The guard runs before super().__init__(), so no PDS4Label patching
+        # is needed here -- construction must fail before ever reaching it.
+        _, _, inventory = self.make_document_label_inputs(tmp_path)
+        # Overrides the collection set by make_document_label_inputs; this is
+        # the condition the guard checks for.
+        inventory.collection = None
+
+        # Must be NPBError, not AttributeError -- pins the fix for a bug the
+        # code review caught: the check originally sat after
+        # super().__init__(), where PDS4Label.__init__ would already have
+        # raised a confusing AttributeError first.
+        with pytest.raises(NPBError, match="product.collection must be set"):
+            DocumentPDS4Label(inventory)
 
 
 class TestDocumentPDS4LabelIntegration:
