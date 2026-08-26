@@ -361,11 +361,11 @@ def run_pipeline(args: PipelineArgs) -> None:
             # are still picked here, same as InventoryProduct used to.
             if setup.pds_version == "4":
                 spice_kernels_collection_inventory.label = InventoryPDS4Label(
-                    spice_kernels_collection_inventory)
+                    spice_kernels_collection_inventory, spice_kernels_collection)
 
             else:
                 spice_kernels_collection_inventory.label = InventoryPDS3Label(
-                    spice_kernels_collection_inventory)
+                    spice_kernels_collection_inventory, spice_kernels_collection)
 
                 # Must come after the label line above, not before: this copies
                 # index.lbl, which InventoryPDS3Label just wrote.
@@ -394,7 +394,7 @@ def run_pipeline(args: PipelineArgs) -> None:
                 # Labeling used to happen inside SpicedsProduct itself, under
                 # the same generated check -- a spiceds file that hasn't changed
                 # since the last release isn't relabeled.
-                spiceds.label = DocumentPDS4Label(spiceds)
+                spiceds.label = DocumentPDS4Label(spiceds, document_collection)
 
                 document_collection.add(spiceds)
 
@@ -405,7 +405,7 @@ def run_pipeline(args: PipelineArgs) -> None:
 
                 # This branch only runs for PDS4, so there's no PDS3 label to pick.
                 document_collection_inventory.label = InventoryPDS4Label(
-                    document_collection_inventory)
+                    document_collection_inventory, document_collection)
 
                 document_collection.add(document_collection_inventory)
 
@@ -478,7 +478,8 @@ def run_pipeline(args: PipelineArgs) -> None:
                         # This runs once per past release, always PDS4-only,
                         # same as the site above.
                         release_miscellaneous_collection_inventory.label = InventoryPDS4Label(
-                            release_miscellaneous_collection_inventory)
+                            release_miscellaneous_collection_inventory,
+                            release_miscellaneous_collection)
 
                         release_miscellaneous_collection.add(
                             release_miscellaneous_collection_inventory
@@ -534,7 +535,7 @@ def run_pipeline(args: PipelineArgs) -> None:
 
             # The current release's own miscellaneous inventory, PDS4-only.
             miscellaneous_collection_inventory.label = InventoryPDS4Label(
-                miscellaneous_collection_inventory)
+                miscellaneous_collection_inventory, miscellaneous_collection)
 
             miscellaneous_collection.add(miscellaneous_collection_inventory)
 

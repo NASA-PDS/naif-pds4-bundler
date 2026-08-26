@@ -785,7 +785,8 @@ class TestPhase8CollectionMetadata:
         # assert_any_call, not assert_called_once: the misc inventory (built
         # later in the same run, always PDS4) calls this same label class too,
         # so InventoryPDS4Label fires more than once.
-        mocks.InventoryPDS4Label.assert_any_call(inventory)
+        mocks.InventoryPDS4Label.assert_any_call(
+            inventory, mocks.SpiceKernelsCollection.return_value)
 
         # The label built above is what actually gets assigned back.
         assert inventory.label is mocks.InventoryPDS4Label.return_value
@@ -799,7 +800,8 @@ class TestPhase8CollectionMetadata:
 
         # PDS3 has no misc-inventory branch, so this is the only call --
         # assert_called_once_with is safe here, unlike the PDS4 test above.
-        mocks.InventoryPDS3Label.assert_called_once_with(inventory)
+        mocks.InventoryPDS3Label.assert_called_once_with(
+            inventory, mocks.SpiceKernelsCollection.return_value)
 
         assert inventory.label is mocks.InventoryPDS3Label.return_value
 
@@ -849,7 +851,8 @@ class TestPhase9PDS4DocumentMiscChecksum:
 
         # DocumentPDS4Label is only ever used for spiceds, so
         # assert_called_once_with is safe (no other call site shares it).
-        mocks.DocumentPDS4Label.assert_called_once_with(spiceds)
+        mocks.DocumentPDS4Label.assert_called_once_with(
+            spiceds, mocks.DocumentCollection.return_value)
 
         # The label built above is what ends up assigned back onto the product.
         assert spiceds.label is mocks.DocumentPDS4Label.return_value
@@ -886,7 +889,8 @@ class TestPhase9PDS4DocumentMiscChecksum:
         # PDS4 only -- there's no PDS3 branch for the document collection.
         # assert_any_call: the misc inventory built later shares the same mock
         # InventoryProduct/InventoryPDS4Label return values.
-        mocks.InventoryPDS4Label.assert_any_call(inventory)
+        mocks.InventoryPDS4Label.assert_any_call(
+            inventory, mocks.DocumentCollection.return_value)
 
         assert inventory.label is mocks.InventoryPDS4Label.return_value
 
@@ -983,7 +987,8 @@ class TestPhase9PDS4DocumentMiscChecksum:
         run_pipeline(_args())
         inventory = mocks.InventoryProduct.return_value
 
-        mocks.InventoryPDS4Label.assert_called_once_with(inventory)
+        mocks.InventoryPDS4Label.assert_called_once_with(
+            inventory, mocks.MiscellaneousCollection.return_value)
 
         assert inventory.label is mocks.InventoryPDS4Label.return_value
 

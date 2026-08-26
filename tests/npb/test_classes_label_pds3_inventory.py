@@ -17,7 +17,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from pds.naif_pds4_bundler.classes.exceptions import NPBError
 from pds.naif_pds4_bundler.classes.label.pds3_inventory import InventoryPDS3Label
 
 # ---------------------------------------------------------------------------
@@ -109,8 +108,7 @@ class TestInventoryPDS3LabelUnit:
             "pds.naif_pds4_bundler.classes.label.label.PDSLabel.write_label", autospec=True
         ):
             product.setup = setup
-            product.collection = collection
-            instance = InventoryPDS3Label(product)
+            instance = InventoryPDS3Label(product, collection)
 
         return instance
 
@@ -128,8 +126,7 @@ class TestInventoryPDS3LabelUnit:
             "pds.naif_pds4_bundler.classes.label.label.PDSLabel.write_label", autospec=True
         ):
             product.setup = setup
-            product.collection = collection
-            instance = InventoryPDS3Label(product)
+            instance = InventoryPDS3Label(product, collection)
 
         return instance
 
@@ -191,8 +188,7 @@ class TestInventoryPDS3LabelUnit:
             "pds.naif_pds4_bundler.classes.label.label.PDSLabel.write_label", autospec=True
         ) as mock_write:
             product.setup = setup
-            product.collection = collection
-            label = InventoryPDS3Label(product)
+            label = InventoryPDS3Label(product, collection)
 
         mock_write.assert_called_once()
 
@@ -213,8 +209,7 @@ class TestInventoryPDS3LabelUnit:
             "pds.naif_pds4_bundler.classes.label.label.PDSLabel.write_label", autospec=True
         ):
             product.setup = setup
-            product.collection = _make_collection()
-            instance = InventoryPDS3Label(product)
+            instance = InventoryPDS3Label(product, _make_collection())
 
         assert instance.ROWS == "0"
 
@@ -231,29 +226,11 @@ class TestInventoryPDS3LabelUnit:
             "pds.naif_pds4_bundler.classes.label.label.PDSLabel.write_label", autospec=True
         ):
             product.setup = setup
-            product.collection = _make_collection()
-            instance = InventoryPDS3Label(product)
+            instance = InventoryPDS3Label(product, _make_collection())
 
         assert getattr(instance, 'BYTES_01') == '50'
         assert getattr(instance, 'START_BYTE_01') == '1'
         assert not hasattr(instance, 'BYTES_02')
-
-    def test_constructor_raises_when_collection_missing(self, tmp_path):
-        """The guard runs before super().__init__(), so construction must
-        fail with NPBError before any of PDSLabel's own logic runs."""
-        setup = _make_setup(tmp_path)
-        staging = tmp_path / "staging"
-        staging.mkdir(parents=True, exist_ok=True)
-        product = _make_product(staging)
-        product.setup = setup
-        # This is the condition the guard checks for.
-        product.collection = None
-
-        # Must be NPBError, not some other exception -- pins the fix for a
-        # bug the code review caught: the check originally sat after
-        # super().__init__() and could never run.
-        with pytest.raises(NPBError, match="product.collection must be set"):
-            InventoryPDS3Label(product)
 
 
 # ===========================================================================
@@ -424,9 +401,7 @@ class TestInventoryPDS3LabelIntegration:
 
         product.setup = setup
 
-        product.collection = collection
-
-        InventoryPDS3Label(product)
+        InventoryPDS3Label(product, collection)
 
         assert env["label_path"].exists()
 
@@ -556,8 +531,6 @@ class TestInventoryPDS3LabelIntegration:
 
         product.setup = setup
 
-        product.collection = collection
-
-        InventoryPDS3Label(product)
+        InventoryPDS3Label(product, collection)
 
         setup.add_file.assert_called_once_with("INDEX.lbl")

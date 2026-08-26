@@ -4,33 +4,27 @@ files.
 from pathlib import Path
 
 from .pds4_label import PDS4Label
-from ..exceptions import NPBError
 
 
 class InventoryPDS4Label(PDS4Label):
     """Class to generate a PDS4 Collection Inventory Label.
 
     :param product: Inventory Product of the Collection
+    :param collection: Collection the product belongs to
     """
 
     _mission_reference_type = "collection_to_investigation"
     _target_reference_type = "collection_to_target"
 
-    def __init__(self, product) -> None:
+    def __init__(self, product, collection) -> None:
         """Constructor."""
-        # Collection-level labels depend on product.collection already being
-        # populated; check it before super().__init__() runs, since
-        # PDS4Label.__init__ itself dereferences product.collection.bundle --
-        # a check placed after that call would never be reached.
-        if product.collection is None:
-            raise NPBError(
-                "product.collection must be set before constructing this label."
-            )
-
-        # PDSLabel.__init__ sets self.setup from product.setup.
+        # PDSLabel.__init__ sets self.setup from product.setup. Note
+        # PDS4Label.__init__ still dereferences product.collection.bundle
+        # internally, so product.collection must remain populated even
+        # though this class now also takes collection explicitly.
         super().__init__(product)
 
-        self.collection = product.collection
+        self.collection = collection
 
         self._template = str(Path(self.setup.templates_directory)
                              / f"template_collection_{self.collection.type}.xml")

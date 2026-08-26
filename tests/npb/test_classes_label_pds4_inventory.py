@@ -34,7 +34,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from pds.naif_pds4_bundler.classes.exceptions import NPBError
 from pds.naif_pds4_bundler.classes.label.pds4_inventory import InventoryPDS4Label
 
 
@@ -165,7 +164,7 @@ class TestInventoryPDS4Label:
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
             _wire_inventory(inventory, setup, collection)
-            instance = InventoryPDS4Label(inventory)
+            instance = InventoryPDS4Label(inventory, collection)
 
         return instance
 
@@ -215,7 +214,7 @@ class TestInventoryPDS4Label:
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True) as mock_write:
             _wire_inventory(inventory, setup, collection)
-            label = InventoryPDS4Label(inventory)
+            label = InventoryPDS4Label(inventory, collection)
 
         # setup, product (the inventory) and collection are stored as-is.
         assert label.setup is setup
@@ -260,7 +259,7 @@ class TestInventoryPDS4Label:
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
             _wire_inventory(inventory, setup, collection)
-            label = InventoryPDS4Label(inventory)
+            label = InventoryPDS4Label(inventory, collection)
 
         assert label._template == str(
             Path(setup.templates_directory)
@@ -285,7 +284,7 @@ class TestInventoryPDS4Label:
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
             _wire_inventory(inventory, setup, collection)
-            label = InventoryPDS4Label(inventory)
+            label = InventoryPDS4Label(inventory, collection)
 
         assert label.N_RECORDS == expected
 
@@ -307,24 +306,7 @@ class TestInventoryPDS4Label:
             # wraps the call actually expected to raise.
             _wire_inventory(inventory, setup, collection)
             with pytest.raises(FileNotFoundError):
-                InventoryPDS4Label(inventory)
-
-    def test_constructor_raises_when_collection_missing(
-            self, tmp_path: Path, helpers: SimpleNamespace) -> None:
-        # The guard runs before super().__init__(), so no PDSLabel patching
-        # is needed here -- construction must fail before reaching it.
-        staging = tmp_path / 'staging'
-        inventory = helpers.make_inventory(staging)
-        # This is the condition the guard checks for; every other test in
-        # this file wires a real collection via _wire_inventory().
-        inventory.collection = None
-
-        # Must be NPBError, not AttributeError -- pins the fix for a bug the
-        # code review caught: the check originally sat after
-        # super().__init__(), where PDS4Label.__init__ would already have
-        # raised a confusing AttributeError first.
-        with pytest.raises(NPBError, match="product.collection must be set"):
-            InventoryPDS4Label(inventory)
+                InventoryPDS4Label(inventory, collection)
 
     # ------------------------------------------------------------------
     # Miscellaneous branch – coverage from the checksum products
@@ -357,7 +339,7 @@ class TestInventoryPDS4Label:
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
             _wire_inventory(inventory, setup, collection)
-            label = InventoryPDS4Label(inventory)
+            label = InventoryPDS4Label(inventory, collection)
 
         assert label.START_TIME == expected_start
         assert label.STOP_TIME == expected_stop
@@ -384,7 +366,7 @@ class TestInventoryPDS4Label:
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
             _wire_inventory(inventory, setup, collection)
-            label = InventoryPDS4Label(inventory)
+            label = InventoryPDS4Label(inventory, collection)
 
         assert label.START_TIME == '2024-01-05T00:00:00'
         assert label.STOP_TIME == '2024-01-25T00:00:00'
@@ -409,7 +391,7 @@ class TestInventoryPDS4Label:
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
             _wire_inventory(inventory, setup, collection)
-            label = InventoryPDS4Label(inventory)
+            label = InventoryPDS4Label(inventory, collection)
 
         assert label.START_TIME == '2024-01-01T00:00:00'
         assert label.STOP_TIME == '2024-01-31T00:00:00'
@@ -444,7 +426,7 @@ class TestInventoryPDS4Label:
             # wraps the call actually expected to raise.
             _wire_inventory(inventory, setup, collection)
             with pytest.raises(ValueError, match=f'^{expected_message}$'):
-                InventoryPDS4Label(inventory)
+                InventoryPDS4Label(inventory, collection)
 
     def test_miscellaneous_branch_with_empty_product_list_raises_value_error(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
@@ -471,7 +453,7 @@ class TestInventoryPDS4Label:
             # wraps the call actually expected to raise.
             _wire_inventory(inventory, setup, collection)
             with pytest.raises(ValueError, match=f'^{expected_message}$'):
-                InventoryPDS4Label(inventory)
+                InventoryPDS4Label(inventory, collection)
 
     # ------------------------------------------------------------------
     # XML label name derivation
@@ -496,7 +478,7 @@ class TestInventoryPDS4Label:
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
             _wire_inventory(inventory, setup, collection)
-            label = InventoryPDS4Label(inventory)
+            label = InventoryPDS4Label(inventory, collection)
 
         assert label.name == expected_label_name
 
@@ -578,7 +560,7 @@ class TestInventoryPDS4LabelIntegration:
 
         _wire_inventory(inventory, setup, collection)
 
-        label = InventoryPDS4Label(inventory)
+        label = InventoryPDS4Label(inventory, collection)
 
         # The class resolved the template from collection.type.
         assert label._template == str(template_path)
@@ -613,7 +595,7 @@ class TestInventoryPDS4LabelIntegration:
 
         _wire_inventory(inventory, setup, collection)
 
-        InventoryPDS4Label(inventory)
+        InventoryPDS4Label(inventory, collection)
 
         tree = ElementTree.parse(label_path)
         root = tree.getroot()
@@ -641,7 +623,7 @@ class TestInventoryPDS4LabelIntegration:
 
         _wire_inventory(inventory, setup, collection)
 
-        InventoryPDS4Label(inventory)
+        InventoryPDS4Label(inventory, collection)
 
         raw = label_path.read_bytes()
 
@@ -663,7 +645,7 @@ class TestInventoryPDS4LabelIntegration:
 
         _wire_inventory(inventory, setup, collection)
 
-        InventoryPDS4Label(inventory)
+        InventoryPDS4Label(inventory, collection)
 
         expected_relative = str(
             label_path.relative_to(Path(setup.staging_directory)))
@@ -685,7 +667,7 @@ class TestInventoryPDS4LabelIntegration:
         # wraps the call actually expected to raise.
         _wire_inventory(inventory, setup, collection)
         with pytest.raises(FileNotFoundError):
-            InventoryPDS4Label(inventory)
+            InventoryPDS4Label(inventory, collection)
 
         # The writer opens the output file before the template, so the empty
         # output label is created even though writing fails.
@@ -708,7 +690,7 @@ class TestInventoryPDS4LabelIntegration:
 
         _wire_inventory(inventory, setup, collection)
 
-        InventoryPDS4Label(inventory)
+        InventoryPDS4Label(inventory, collection)
 
         assert label_path.exists()
         with open(label_path, 'rt', encoding='utf-8', newline='') as f:
@@ -766,7 +748,7 @@ class TestInventoryPDS4LabelIntegration:
 
         _wire_inventory(inventory, setup, collection)
 
-        label = InventoryPDS4Label(inventory)
+        label = InventoryPDS4Label(inventory, collection)
 
         # The writer-generated file is derived from inventory.path, stripping
         # the 'inventory_' token: '...miscellaneous_inventory_v001.csv' ->

@@ -4,7 +4,6 @@ from types import SimpleNamespace
 
 import pytest
 
-from pds.naif_pds4_bundler.classes.exceptions import NPBError
 from pds.naif_pds4_bundler.classes.label.pds4_document import DocumentPDS4Label
 
 
@@ -58,7 +57,7 @@ class TestDocumentPDS4LabelInit:
         write_label_mock = mocker.patch.object(DocumentPDS4Label, 'write_label',
                                                autospec=True)
 
-        document_label = DocumentPDS4Label(inventory)
+        document_label = DocumentPDS4Label(inventory, collection)
 
         # Verification of the call to the parent.
         parent_init_mock.assert_called_once_with(document_label, inventory)
@@ -98,25 +97,10 @@ class TestDocumentPDS4LabelInit:
 
         mocker.patch.object(DocumentPDS4Label, 'write_label', autospec=True)
 
-        document_label = DocumentPDS4Label(inventory)
+        document_label = DocumentPDS4Label(inventory, collection)
 
         # Only the last suffix is replaced; earlier dots in the name are preserved.
         assert document_label.name == 'collection.document_inventory_v001.xml'
-
-    def test_init_raises_when_collection_missing(self, tmp_path: Path) -> None:
-        # The guard runs before super().__init__(), so no PDS4Label patching
-        # is needed here -- construction must fail before ever reaching it.
-        _, _, inventory = self.make_document_label_inputs(tmp_path)
-        # Overrides the collection set by make_document_label_inputs; this is
-        # the condition the guard checks for.
-        inventory.collection = None
-
-        # Must be NPBError, not AttributeError -- pins the fix for a bug the
-        # code review caught: the check originally sat after
-        # super().__init__(), where PDS4Label.__init__ would already have
-        # raised a confusing AttributeError first.
-        with pytest.raises(NPBError, match="product.collection must be set"):
-            DocumentPDS4Label(inventory)
 
 
 class TestDocumentPDS4LabelIntegration:
@@ -239,7 +223,7 @@ class TestDocumentPDS4LabelIntegration:
         # compare the generated label with the expected full content.
         setup, collection, inventory, template_path, label_path = env
 
-        label = DocumentPDS4Label(inventory)
+        label = DocumentPDS4Label(inventory, collection)
 
         # DocumentPDS4Label must resolve the document-specific template.
         assert label._template == str(template_path)
@@ -273,7 +257,7 @@ class TestDocumentPDS4LabelIntegration:
         # its staging-relative path.
         setup, collection, inventory, _, label_path = env
 
-        DocumentPDS4Label(inventory)
+        DocumentPDS4Label(inventory, collection)
 
         # Convert the generated XML label path to the path expected in the file
         # list.
@@ -292,7 +276,7 @@ class TestDocumentPDS4LabelIntegration:
         # DocumentPDS4Label overrides the mission reference type only; the
         # target reference type keeps PDS4Label's default (see below).
         setup, collection, inventory, _, _ = env
-        label = DocumentPDS4Label(inventory)
+        label = DocumentPDS4Label(inventory, collection)
         assert label._mission_reference_type == 'document_to_investigation'
 
     def test_target_reference_type(
@@ -300,5 +284,5 @@ class TestDocumentPDS4LabelIntegration:
             env: tuple[SimpleNamespace, SimpleNamespace, SimpleNamespace, Path, Path]) -> None:
         # No override on DocumentPDS4Label: falls back to PDS4Label's default.
         setup, collection, inventory, _, _ = env
-        label = DocumentPDS4Label(inventory)
+        label = DocumentPDS4Label(inventory, collection)
         assert label._target_reference_type == 'data_to_target'
