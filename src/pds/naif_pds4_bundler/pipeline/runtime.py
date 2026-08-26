@@ -24,7 +24,7 @@ finish_execution(setup, log_manager)
 handle_npb_error(message, setup=None)
     Centralised error handler. Logs the error, flushes any partially-generated
     by-products, removes templates, clears the kernel pool, and raises a
-    ``RuntimeError``. This function never returns (return type: ``NoReturn``).
+    ``NPBError``. This function never returns (return type: ``NoReturn``).
 
 log_step(setup, title)
     Records a numbered pipeline step to the log (and optionally to stdout)
@@ -56,6 +56,8 @@ from pathlib import Path
 from typing import NoReturn, Optional, TYPE_CHECKING
 
 import spiceypy
+
+from ..classes.exceptions import NPBError
 
 if TYPE_CHECKING:
     from ..classes.setup import Setup
@@ -159,12 +161,12 @@ def handle_npb_error(message: str, setup: Optional[Setup] = None) -> NoReturn:
         - Writes file list and checksum registry if setup is provided
         - Removes template files
         - Clears SPICE kernel pool
-        - Raises RuntimeError
+        - Raises NPBError
 
     :param message: Error message
     :param setup:   Optional Setup object for writing artifacts
 
-    :raises RuntimeError: always, with the provided error message.
+    :raises NPBError: always, with the provided error message.
     """
     logging.error('-- %s', message)
 
@@ -185,7 +187,7 @@ def handle_npb_error(message: str, setup: Optional[Setup] = None) -> NoReturn:
     # Clear the kernel pool.
     spiceypy.kclear()
 
-    raise RuntimeError(message)
+    raise NPBError(message)
 
 
 def log_step(setup: Setup, title: str) -> None:

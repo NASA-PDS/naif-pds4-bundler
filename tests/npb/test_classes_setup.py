@@ -2346,13 +2346,13 @@ class TestSetupLoadKernels:
                             furnsh)
 
         # Create a mock for handle_npb_error. When the decorator calls it, this
-        # mock will raise a RuntimeError.
-        handle_error = Mock(side_effect=RuntimeError('SPICE(MOCKED): mocked spiceypy failure'))
+        # mock will raise a NPBError.
+        handle_error = Mock(side_effect=NPBError('SPICE(MOCKED): mocked spiceypy failure'))
         monkeypatch.setattr(
             'pds.naif_pds4_bundler.utils.decorators.handle_npb_error',
             handle_error)
 
-        with pytest.raises(RuntimeError, match=re.escape('SPICE(MOCKED): mocked spiceypy failure')):
+        with pytest.raises(NPBError, match=re.escape('SPICE(MOCKED): mocked spiceypy failure')):
             setup_instance.load_kernels()
 
         # Check that load_kernels actually called spiceypy.furnsh with the LSK.
@@ -2420,7 +2420,7 @@ class TestSetupLoadKernels:
         # Configura load_kernels to load the meta-kernel as a direct path.
         setup_instance.kernels_to_load = {'lsk': str(broken_meta_kernel)}
 
-        with pytest.raises(RuntimeError, match=r'(?s).*missing_kernel\.bsp.*'):
+        with pytest.raises(NPBError, match=r'(?s).*missing_kernel\.bsp.*'):
             setup_instance.load_kernels()
 
         # handle_npb_error must clear the global SPICE kernel pool.

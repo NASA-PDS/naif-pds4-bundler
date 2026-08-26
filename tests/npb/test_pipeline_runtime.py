@@ -22,6 +22,7 @@ from unittest.mock import MagicMock, call, patch
 import pytest
 import spiceypy
 
+from pds.naif_pds4_bundler.classes.exceptions import NPBError
 from pds.naif_pds4_bundler.pipeline import runtime
 
 # ---------------------------------------------------------------------------
@@ -108,7 +109,7 @@ def mock_setup():
 # the need for a real XML config file, a real SPICE installation, or any
 # other infrastructure.
 #
-# handle_npb_error raises RuntimeError. We patch it with a side_effect of RuntimeError
+# handle_npb_error raises NPBError. We patch it with a side_effect of NPBError
 # so assertions are possible.
 #
 # All filesystem interaction uses tmp_path (pytest's built-in temporary
@@ -139,8 +140,8 @@ class TestClearRun:
         with patch(
                 "pds.naif_pds4_bundler.pipeline.runtime.handle_npb_error"
         ) as mock_err:
-            mock_err.side_effect = RuntimeError("handle_npb_error called")
-            with pytest.raises(RuntimeError):
+            mock_err.side_effect = NPBError("handle_npb_error called")
+            with pytest.raises(NPBError):
                 runtime.clear_run(setup)
 
         mock_err.assert_called_once_with(message=expected_error, setup=None)
@@ -578,11 +579,11 @@ class TestFinishExecution:
 class TestHandleNpbError:
     """Tests for runtime.handle_npb_error."""
 
-    def test_always_raises_runtime_error_with_message(self, caplog):
-        """Verifies that the function always raises RuntimeError with the message."""
+    def test_always_raises_npb_error_with_message(self, caplog):
+        """Verifies that the function always raises NPBError with the message."""
         message = "Test failure message"
 
-        with pytest.raises(RuntimeError, match=message):
+        with pytest.raises(NPBError, match=message):
             runtime.handle_npb_error(message)
 
         assert f"-- {message}" in caplog.text
@@ -591,7 +592,7 @@ class TestHandleNpbError:
         """The error message must be logged at the ERROR level."""
         message = "Something went wrong"
         with caplog.at_level(logging.ERROR):
-            with pytest.raises(RuntimeError):
+            with pytest.raises(NPBError):
                 runtime.handle_npb_error(message)
 
         assert ['-- Something went wrong'] == caplog.messages
@@ -612,7 +613,7 @@ class TestHandleNpbError:
         # Mock SPICE and os.remove
         monkeypatch.setattr(spiceypy, "kclear", MagicMock())
 
-        with pytest.raises(RuntimeError):
+        with pytest.raises(NPBError):
             runtime.handle_npb_error("Error", setup=mock_setup)
 
         # Verify side effects
@@ -627,7 +628,7 @@ class TestHandleNpbError:
         mock_setup = MagicMock()
         mock_setup.template_files = []
 
-        with pytest.raises(RuntimeError):
+        with pytest.raises(NPBError):
             runtime.handle_npb_error("Error", setup=mock_setup)
 
         mock_kclear.assert_called_once()
@@ -637,7 +638,7 @@ class TestHandleNpbError:
         mock_kclear = MagicMock()
         monkeypatch.setattr(spiceypy, "kclear", mock_kclear)
 
-        with pytest.raises(RuntimeError):
+        with pytest.raises(NPBError):
             runtime.handle_npb_error("Quick Error", setup=None)
 
         mock_kclear.assert_called_once()
@@ -651,7 +652,7 @@ class TestHandleNpbError:
         temp_file.write_text("<xml/>")
         mock_setup.template_files = [str(temp_file)]
 
-        with pytest.raises(RuntimeError):
+        with pytest.raises(NPBError):
             runtime.handle_npb_error("Error", setup=mock_setup)
 
         assert not temp_file.exists(), "Template file should have been removed"
@@ -663,7 +664,7 @@ class TestHandleNpbError:
         mock_setup = MagicMock()
         mock_setup.template_files = []
 
-        with pytest.raises(RuntimeError):
+        with pytest.raises(NPBError):
             runtime.handle_npb_error("Error with no templates", setup=mock_setup)
 
         mock_setup.write_file_list.assert_called_once()
@@ -671,14 +672,14 @@ class TestHandleNpbError:
 
     def test_missing_template_does_not_raise_file_not_found(self, monkeypatch):
         """If a template listed in setup is already gone, no FileNotFoundError
-        must propagate — only the expected RuntimeError."""
+        must propagate — only the expected NPBError."""
         mock_setup = MagicMock()
         mock_setup.template_files = ["/non/existent/path.xml"]
 
         monkeypatch.setattr(spiceypy, "kclear", MagicMock())
 
         # This should not raise FileNotFoundError because of the os.path.exists check
-        with pytest.raises(RuntimeError):
+        with pytest.raises(NPBError):
             runtime.handle_npb_error("Error with missing template", setup=mock_setup)
 
 # ---------------------------------------------------------------------------
