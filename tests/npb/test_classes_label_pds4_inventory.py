@@ -37,25 +37,6 @@ import pytest
 from pds.naif_pds4_bundler.classes.label.pds4_inventory import InventoryPDS4Label
 
 
-def _wire_inventory(inventory: MagicMock, setup: MagicMock,
-                    collection: MagicMock) -> None:
-    """Attach setup/collection to the inventory product before constructing
-    the label, the way the pipeline does via product.setup/product.collection.
-
-    inventory.collection is auto-vivified by base_helpers.make_product with a
-    working collection.bundle.context_products (needed by the base class for
-    mission/observer/target lookups); that has to survive onto the replacement
-    collection mock, or those lookups fail.
-
-    :param inventory: inventory product mock (this becomes the label's product)
-    :param setup: setup mock to attach as inventory.setup
-    :param collection: collection mock to attach as inventory.collection
-    """
-    inventory.setup = setup
-    collection.bundle = inventory.collection.bundle
-    inventory.collection = collection
-
-
 # ---------------------------------------------------------------------------
 # Helpers – factories for the collaborator mocks (setup, collection, inventory)
 # ---------------------------------------------------------------------------
@@ -163,7 +144,7 @@ class TestInventoryPDS4Label:
         # PDSLabel.__init__ is intentionally NOT mocked.
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
-            _wire_inventory(inventory, setup, collection)
+            inventory.setup = setup
             instance = InventoryPDS4Label(inventory, collection)
 
         return instance
@@ -213,7 +194,7 @@ class TestInventoryPDS4Label:
 
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True) as mock_write:
-            _wire_inventory(inventory, setup, collection)
+            inventory.setup = setup
             label = InventoryPDS4Label(inventory, collection)
 
         # setup, product (the inventory) and collection are stored as-is.
@@ -258,7 +239,7 @@ class TestInventoryPDS4Label:
 
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
-            _wire_inventory(inventory, setup, collection)
+            inventory.setup = setup
             label = InventoryPDS4Label(inventory, collection)
 
         assert label._template == str(
@@ -283,7 +264,7 @@ class TestInventoryPDS4Label:
 
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
-            _wire_inventory(inventory, setup, collection)
+            inventory.setup = setup
             label = InventoryPDS4Label(inventory, collection)
 
         assert label.N_RECORDS == expected
@@ -304,7 +285,7 @@ class TestInventoryPDS4Label:
                    'PDSLabel.write_label', autospec=True):
             # Wiring happens before the assertion block so pytest.raises only
             # wraps the call actually expected to raise.
-            _wire_inventory(inventory, setup, collection)
+            inventory.setup = setup
             with pytest.raises(FileNotFoundError):
                 InventoryPDS4Label(inventory, collection)
 
@@ -338,7 +319,7 @@ class TestInventoryPDS4Label:
 
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
-            _wire_inventory(inventory, setup, collection)
+            inventory.setup = setup
             label = InventoryPDS4Label(inventory, collection)
 
         assert label.START_TIME == expected_start
@@ -365,7 +346,7 @@ class TestInventoryPDS4Label:
 
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
-            _wire_inventory(inventory, setup, collection)
+            inventory.setup = setup
             label = InventoryPDS4Label(inventory, collection)
 
         assert label.START_TIME == '2024-01-05T00:00:00'
@@ -390,7 +371,7 @@ class TestInventoryPDS4Label:
 
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
-            _wire_inventory(inventory, setup, collection)
+            inventory.setup = setup
             label = InventoryPDS4Label(inventory, collection)
 
         assert label.START_TIME == '2024-01-01T00:00:00'
@@ -424,7 +405,7 @@ class TestInventoryPDS4Label:
                    'PDSLabel.write_label', autospec=True):
             # Wiring happens before the assertion block so pytest.raises only
             # wraps the call actually expected to raise.
-            _wire_inventory(inventory, setup, collection)
+            inventory.setup = setup
             with pytest.raises(ValueError, match=f'^{expected_message}$'):
                 InventoryPDS4Label(inventory, collection)
 
@@ -451,7 +432,7 @@ class TestInventoryPDS4Label:
                    'PDSLabel.write_label', autospec=True):
             # Wiring happens before the assertion block so pytest.raises only
             # wraps the call actually expected to raise.
-            _wire_inventory(inventory, setup, collection)
+            inventory.setup = setup
             with pytest.raises(ValueError, match=f'^{expected_message}$'):
                 InventoryPDS4Label(inventory, collection)
 
@@ -477,7 +458,7 @@ class TestInventoryPDS4Label:
 
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
-            _wire_inventory(inventory, setup, collection)
+            inventory.setup = setup
             label = InventoryPDS4Label(inventory, collection)
 
         assert label.name == expected_label_name
@@ -558,7 +539,7 @@ class TestInventoryPDS4LabelIntegration:
         setup.end_of_line = 'LF'
         setup.eol_pds4 = '\n'
 
-        _wire_inventory(inventory, setup, collection)
+        inventory.setup = setup
 
         label = InventoryPDS4Label(inventory, collection)
 
@@ -593,7 +574,7 @@ class TestInventoryPDS4LabelIntegration:
         # substituted by the label state.
         setup, collection, inventory, _, label_path = env
 
-        _wire_inventory(inventory, setup, collection)
+        inventory.setup = setup
 
         InventoryPDS4Label(inventory, collection)
 
@@ -621,7 +602,7 @@ class TestInventoryPDS4LabelIntegration:
         setup.end_of_line = end_of_line
         setup.eol_pds4 = eol_pds4
 
-        _wire_inventory(inventory, setup, collection)
+        inventory.setup = setup
 
         InventoryPDS4Label(inventory, collection)
 
@@ -643,7 +624,7 @@ class TestInventoryPDS4LabelIntegration:
         # The generated XML label must be registered relative to staging.
         setup, collection, inventory, _, label_path = env
 
-        _wire_inventory(inventory, setup, collection)
+        inventory.setup = setup
 
         InventoryPDS4Label(inventory, collection)
 
@@ -665,7 +646,7 @@ class TestInventoryPDS4LabelIntegration:
 
         # Wiring happens before the assertion block so pytest.raises only
         # wraps the call actually expected to raise.
-        _wire_inventory(inventory, setup, collection)
+        inventory.setup = setup
         with pytest.raises(FileNotFoundError):
             InventoryPDS4Label(inventory, collection)
 
@@ -688,7 +669,7 @@ class TestInventoryPDS4LabelIntegration:
                                  '  <file_name>$FILE_NAME</file_name>\n',
                                  encoding='utf-8')
 
-        _wire_inventory(inventory, setup, collection)
+        inventory.setup = setup
 
         InventoryPDS4Label(inventory, collection)
 
@@ -746,7 +727,7 @@ class TestInventoryPDS4LabelIntegration:
                                              coll_type='miscellaneous',
                                              products=checksums)
 
-        _wire_inventory(inventory, setup, collection)
+        inventory.setup = setup
 
         label = InventoryPDS4Label(inventory, collection)
 
