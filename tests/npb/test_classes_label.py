@@ -572,6 +572,27 @@ class TestPDSLabelCompareHelpers:
         return _build
 
     @staticmethod
+    def _glob_matching_prefix(hit):
+        """Return a side_effect callable that mimics real Path.glob semantics
+        for the prefix-shrinking loop in _find_prior_version_label: `hit` is
+        returned only while its filename still starts with the requested
+        prefix (extracted from the f"{prefix}*.xml" pattern), and an empty
+        list otherwise. Unlike a fixed return_value/side_effect that ignores
+        the pattern argument, this ties the mock's answer to what a real
+        directory listing would actually contain for `hit`'s filename --
+        the match set can only shrink as the prefix grows, never flip from
+        empty back to non-empty, matching the invariant the loop itself
+        relies on (see the comment above the loop in label.py).
+        """
+        hit_name = Path(hit).name
+
+        def _side_effect(pattern):
+            prefix = pattern[: -len("*.xml")]
+            return [hit] if hit_name.startswith(prefix) else []
+
+        return _side_effect
+
+    @staticmethod
     def _level1_hit(hit):
         """Return a side_effect callable that simulates finding a prior-version
         label in the level-1 while loop, then cleanly exits that loop.
@@ -744,15 +765,32 @@ class TestPDSLabelCompareHelpers:
     # -- _find_prior_version_label ---------------------------------------
 
     def test_find_prior_version_label_returns_hit(self, label_for_helper, mocker):
+        """"kernel_old.xml" shares the "kernel" prefix (i=1..6) with the
+        label being generated ("kernel.xml") but diverges at i=7 ("kernel."
+        vs "kernel_"), so the loop matches for a while, then the first miss
+        at i=7 triggers `break` -- exercising the loop's early-exit branch.
+        """
         label = label_for_helper()
         hit = "/bundle/spice_kernels/ck/kernel_old.xml"
-        mocker.patch(_PATCH_PATH_GLOB, side_effect=self._level1_hit(hit))
+        mocker.patch(_PATCH_PATH_GLOB, side_effect=self._glob_matching_prefix(hit))
         assert label._find_prior_version_label() == hit
 
     def test_find_prior_version_label_returns_none_on_no_match(self, label_for_helper, mocker):
         label = label_for_helper()
         mocker.patch(_PATCH_PATH_GLOB, return_value=[])
         assert label._find_prior_version_label() is None
+
+    def test_find_prior_version_label_matches_every_prefix(self, label_for_helper, mocker):
+        """"kernel.x001.xml" shares every prefix of "kernel.xml" tested by
+        the loop (i=1..8, up to and including "kernel.x"), so the loop never
+        misses and exhausts the `for` naturally instead of exiting early via
+        `break` -- the loop's other branch, not reached by
+        test_find_prior_version_label_returns_hit's diverging hit.
+        """
+        label = label_for_helper()
+        hit = "/bundle/spice_kernels/ck/kernel.x001.xml"
+        mocker.patch(_PATCH_PATH_GLOB, side_effect=self._glob_matching_prefix(hit))
+        assert label._find_prior_version_label() == hit
 
     # -- _find_similar_type_label -----------------------------------------
 
