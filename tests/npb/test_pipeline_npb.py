@@ -1308,10 +1308,10 @@ class TestNPBErrorHandling:
     # the *real* handle_npb_error (not mocked here). Block B's handler
     # performs cleanup -- writes the file list and checksum registry, removes
     # template files, clears the SPICE kernel pool -- and then always raises
-    # RuntimeError with the same message; Block A's handler skips cleanup
+    # NPBError with the same message; Block A's handler skips cleanup
     # entirely since no setup instance exists yet. Each parametrized case
     # below forces one Block-B call site to raise NPBError and asserts both
-    # that cleanup ran and that the RuntimeError carries the original
+    # that cleanup ran and that the re-raised NPBError carries the original
     # message. The table covers every product, collection, label, and
     # setup.py call site in npb.py that can raise NPBError -- every class
     # under classes/ migrated to `raise NPBError(...)` has at least one
@@ -1536,7 +1536,7 @@ class TestNPBErrorHandling:
         self._resolve(mocks, target_attr).side_effect = NPBError(message)
         args = _args()
 
-        with pytest.raises(RuntimeError, match=message):
+        with pytest.raises(NPBError, match=message):
             run_pipeline(args)
 
         setup = mocks.Setup.return_value
@@ -1551,7 +1551,7 @@ class TestNPBErrorHandling:
         mocks.ReleasePlan.return_value.read_plan.side_effect = NPBError('boom read_plan')
         args = _args(plan='mission_release_01.plan')
 
-        with pytest.raises(RuntimeError, match='boom read_plan'):
+        with pytest.raises(NPBError, match='boom read_plan'):
             run_pipeline(args)
 
         setup = mocks.Setup.return_value
@@ -1566,7 +1566,7 @@ class TestNPBErrorHandling:
         mocks.KernelList.return_value.read_list.side_effect = NPBError('boom read_list')
         args = _args(kerlist='mission_release_01.kernel_list')
 
-        with pytest.raises(RuntimeError, match='boom read_list'):
+        with pytest.raises(NPBError, match='boom read_list'):
             run_pipeline(args)
 
         setup = mocks.Setup.return_value
@@ -1582,7 +1582,7 @@ class TestNPBErrorHandling:
         mocks.Setup.side_effect = NPBError('boom setup')
         args = _args()
 
-        with pytest.raises(RuntimeError, match='boom setup'):
+        with pytest.raises(NPBError, match='boom setup'):
             run_pipeline(args)
 
         mocks.Log.assert_not_called()
