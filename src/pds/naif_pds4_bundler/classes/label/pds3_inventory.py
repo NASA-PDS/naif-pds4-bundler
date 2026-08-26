@@ -6,20 +6,20 @@ from .pds3_label import PDS3Label
 class InventoryPDS3Label(PDS3Label):
     """PDS Label child class to generate a PDS3 Index Label.
 
-    :param setup:      NPB execution Setup object
-    :param collection: Index Collection
-    :param inventory:  Index Product
+    :param product: Index Product
+    :param collection: Collection the product belongs to
     """
 
-    def __init__(self, setup, collection, inventory) -> None:
+    def __init__(self, product, collection) -> None:
         """Constructor."""
-        super().__init__(setup, inventory)
+        # PDSLabel.__init__ sets self.setup from product.setup.
+        super().__init__(product)
 
         self.collection = collection
 
         # TODO: Check why this template path is not following the approach of all
         #       other labels.
-        self._template = f'{self.root_dir}/templates/pds3/template_collection_{collection.type}.lbl'
+        self._template = f'{self.root_dir}/templates/pds3/template_collection_{self.collection.type}.lbl'
 
         self.VOLUME_ID = self.setup.volume_id
         self.ROW_BYTES = str(self.product.row_bytes)

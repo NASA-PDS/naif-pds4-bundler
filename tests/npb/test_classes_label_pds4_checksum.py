@@ -80,7 +80,8 @@ class TestChecksumPDS4Label:
                    'PDSLabel.write_label', autospec=True):
             # Instantiate the real class so its constructor assignments are
             # executed.
-            instance = ChecksumPDS4Label(setup, product)
+            product.setup = setup
+            instance = ChecksumPDS4Label(product)
 
         return instance
 
@@ -138,7 +139,8 @@ class TestChecksumPDS4Label:
         # Avoid real file writing while checking the constructor side effect.
         with patch("pds.naif_pds4_bundler.classes.label.label."
                    "PDSLabel.write_label", autospec=True) as mock_write:
-            label = ChecksumPDS4Label(setup, product)
+            product.setup = setup
+            label = ChecksumPDS4Label(product)
 
         # Verify that label.setup is exactly the same setup object that was
         # passed to the constructor, and the same applies to label.product with
@@ -177,7 +179,8 @@ class TestChecksumPDS4Label:
         # Patch PDSLabel.write_label() to prevent actual file writing.
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
-            label = ChecksumPDS4Label(setup, product)
+            product.setup = setup
+            label = ChecksumPDS4Label(product)
 
         # Check that FILE_NAME exactly matches the original product name.
         assert label.FILE_NAME == expected_file_name
@@ -210,7 +213,8 @@ class TestChecksumPDS4Label:
         # Patch PDSLabel.write_label() to prevent actual file writing.
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True):
-            label = ChecksumPDS4Label(setup, product)
+            product.setup = setup
+            label = ChecksumPDS4Label(product)
 
         # Check that the expected attribute of the label contains exactly the
         # value assigned to the product.
@@ -283,7 +287,8 @@ class TestChecksumPDS4LabelIntegration:
         setup.eol_pds4 = '\n'
 
         # Instantiate the real label so the template is read and the XML is written.
-        label = ChecksumPDS4Label(setup, product)
+        product.setup = setup
+        label = ChecksumPDS4Label(product)
 
         # Check that the class resolved the configured checksum template.
         assert label._template == str(template_path)
@@ -321,7 +326,8 @@ class TestChecksumPDS4LabelIntegration:
         setup, product, _, _ = env
 
         # Generate the label using the real writer.
-        ChecksumPDS4Label(setup, product)
+        product.setup = setup
+        ChecksumPDS4Label(product)
 
         # The generated label must be registered relative to staging, not
         # absolute.
@@ -343,7 +349,8 @@ class TestChecksumPDS4LabelIntegration:
 
         # Capture the exception.
         with pytest.raises(FileNotFoundError):
-            ChecksumPDS4Label(setup, product)
+            product.setup = setup
+            ChecksumPDS4Label(product)
 
         # Check that the output file has been created.
         assert label_path.exists()
@@ -368,7 +375,9 @@ class TestChecksumPDS4LabelIntegration:
                                  '  <file_name>$FILE_NAME</file_name>\n',
                                  encoding='utf-8')
 
-        ChecksumPDS4Label(setup, product)
+        product.setup = setup
+
+        ChecksumPDS4Label(product)
 
         # The writer still creates the output label.
         assert label_path.exists()

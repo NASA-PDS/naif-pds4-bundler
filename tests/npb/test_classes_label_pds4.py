@@ -57,7 +57,8 @@ class TestPDS4LabelInit:
     def test_pds4_context_from_collection_bundle(self, setup_pds4, product):
         """context products are cached from collection.bundle.context_products"""
         ctx = product.collection.bundle.context_products
-        label = PDS4Label(setup_pds4, product)
+        product.setup = setup_pds4
+        label = PDS4Label(product)
         assert label.setup is setup_pds4
         assert label.product is product
         assert label.name == ""
@@ -70,7 +71,8 @@ class TestPDS4LabelInit:
         """
         product.collection.bundle.context_products = []
         product.bundle.context_products = ["should not be used"]
-        label = PDS4Label(setup_pds4, product)
+        product.setup = setup_pds4
+        label = PDS4Label(product)
         assert label._context_products == []
 
     def test_pds4_context_attribute_error_falls_back(self, setup_pds4, product):
@@ -79,11 +81,13 @@ class TestPDS4LabelInit:
         swallows it and falls back to product.bundle.context_products.
         """
         product.collection = MagicMock(spec=[])
-        label = PDS4Label(setup_pds4, product)
+        product.setup = setup_pds4
+        label = PDS4Label(product)
         assert label._context_products is product.bundle.context_products
 
     def test_pds4_single_mission_name(self, mock_class_methods, setup_pds4, product):
-        label = PDS4Label(setup_pds4, product)
+        product.setup = setup_pds4
+        label = PDS4Label(product)
         assert label.PDS4_MISSION_NAME == "TestMission"
 
     @pytest.mark.parametrize("secondary_missions, expected_name",[
@@ -92,11 +96,13 @@ class TestPDS4LabelInit:
     ])
     def test_pds4_multiple_mission_name(self, mock_class_methods, setup_pds4, product, secondary_missions, expected_name):
         setup_pds4.secondary_missions = secondary_missions
-        label = PDS4Label(setup_pds4, product)
+        product.setup = setup_pds4
+        label = PDS4Label(product)
         assert label.PDS4_MISSION_NAME == expected_name
 
     def test_pds4_single_observer_name(self, mock_class_methods, setup_pds4, product):
-        label = PDS4Label(setup_pds4, product)
+        product.setup = setup_pds4
+        label = PDS4Label(product)
         assert label.PDS4_OBSERVER_NAME == "TestObserver spacecraft and its"
 
     @pytest.mark.parametrize("secondary_observer, expected_name",[
@@ -105,7 +111,8 @@ class TestPDS4LabelInit:
     ])
     def test_pds4_multiple_observer_name(self, mock_class_methods, setup_pds4, product, secondary_observer, expected_name):
         setup_pds4.secondary_observers = secondary_observer
-        label = PDS4Label(setup_pds4, product)
+        product.setup = setup_pds4
+        label = PDS4Label(product)
         assert label.PDS4_OBSERVER_NAME == expected_name
 
     @pytest.mark.parametrize("eol, expected_eol_name",[
@@ -114,7 +121,8 @@ class TestPDS4LabelInit:
     ])
     def test_pds4_end_of_line(self, label_test_helpers, product, eol, expected_eol_name):
         setup = label_test_helpers.make_setup_pds4(end_of_line=eol)
-        label = PDS4Label(setup, product)
+        product.setup = setup
+        label = PDS4Label(product)
         assert label.END_OF_LINE == expected_eol_name
 
     def test_pds4_end_of_line_invalid(self, label_test_helpers, product):
@@ -122,21 +130,24 @@ class TestPDS4LabelInit:
         setup = label_test_helpers.make_setup_pds4(end_of_line="CR")
         with pytest.raises(NPBError, match=r'End of Line provided via configuration '
                                             r'is not CRLF nor LF\.'):
-            PDS4Label(setup, product)
+            product.setup = setup
+            PDS4Label(product)
 
     # TODO: The following two test cases demonstrate an issue:
     #       If they are not a list, the code to set up PDS4_MISSION_NAME
     #       and PDS4_OBSERVER_NAME, results in a list of letters.
     def test_pds4_secondary_missions_non_list_wrapped(self, mock_class_methods, setup_pds4, product):
         setup_pds4.secondary_missions = "SingleMission"
-        label = PDS4Label(setup_pds4, product)
+        product.setup = setup_pds4
+        label = PDS4Label(product)
         assert label.missions == ['TestMission', 'SingleMission']
         # TODO: This is a bug!!!!
         assert label.PDS4_MISSION_NAME == 'TestMission, S, i, n, g, l, e, M, i, s, s, i, o, and n'
 
     def test_pds4_secondary_observers_non_list_wrapped(self, mock_class_methods, setup_pds4, product):
         setup_pds4.secondary_observers = 'SingleObserver'
-        label = PDS4Label(setup_pds4, product)
+        product.setup = setup_pds4
+        label = PDS4Label(product)
         assert label.observers == ['TestObserver', 'SingleObserver']
         # TODO: This is a bug!!!
         assert label.PDS4_OBSERVER_NAME == 'TestObserver, S, i, n, g, l, e, O, b, s, e, r, v, e, and r spacecraft and their'
@@ -149,7 +160,8 @@ class TestPDS4LabelInit:
         # Since the mock is called, the values of the MISSIONS,
         # OBSERVERS and TARGETS should be the ones provided as return_value
         # in the mock.
-        label = PDS4Label(setup_pds4, product)
+        product.setup = setup_pds4
+        label = PDS4Label(product)
         assert label.MISSIONS == 'MockedMission'
         assert label.OBSERVERS == 'MockedObserver'
         assert label.TARGETS == 'MockedTarget'
@@ -564,7 +576,9 @@ class TestPDS4LabelWriteLabelIntegration:
         product.path = str(tmp_path / "test_kernel.bc")
         product.extension = "bc"
 
-        label = PDS4Label(setup_pds4, product)
+        product.setup = setup_pds4
+
+        label = PDS4Label(product)
         label._template = str(tmp_path / "template.xml")
         Path(label._template).write_text("Static content line\n")
 

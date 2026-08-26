@@ -8,27 +8,30 @@ from .pds4_label import PDS4Label
 class BundlePDS4Label(PDS4Label):
     """Class to generate a PDS4 Bundle Label.
 
-    :param setup:  NPB execution Setup object
-    :param readme: Readme product
+    :param product: Readme product
     """
 
     _mission_reference_type = "bundle_to_investigation"
     _target_reference_type = "bundle_to_target"
 
-    def __init__(self, setup, readme) -> None:
+    def __init__(self, product) -> None:
         """Constructor."""
-        super().__init__(setup, readme)
+        # The parameter used to be named "readme" even though it was just
+        # the product being labeled; renamed to match PDSLabel.__init__'s
+        # single-argument signature. self.product (set by the base class)
+        # already refers to the same object.
+        super().__init__(product)
 
-        self._template = str(Path(setup.templates_directory)
+        self._template = str(Path(self.setup.templates_directory)
                              / "template_bundle.xml")
 
         self.BUNDLE_LID = self.product.bundle.lid
         self.BUNDLE_VID = self.product.bundle.vid
 
-        self.AUTHOR_LIST = setup.author_list
-        self.START_TIME = setup.increment_start
-        self.STOP_TIME = setup.increment_finish
-        self.FILE_NAME = readme.name
+        self.AUTHOR_LIST = self.setup.author_list
+        self.START_TIME = self.setup.increment_start
+        self.STOP_TIME = self.setup.increment_finish
+        self.FILE_NAME = self.product.name
         self.DOI = self.setup.doi
         self.BUNDLE_MEMBER_ENTRIES = ""
 
@@ -53,7 +56,7 @@ class BundlePDS4Label(PDS4Label):
                 coll_name = 'document'
 
             elif collection.name == "miscellaneous":
-                coll_name = "miscellaneous" if setup.information_model_float >= 1011001000.0 else "member"
+                coll_name = "miscellaneous" if self.setup.information_model_float >= 1011001000.0 else "member"
 
             else:
                 raise ValueError(

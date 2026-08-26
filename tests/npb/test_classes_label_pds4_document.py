@@ -23,9 +23,12 @@ class TestDocumentPDS4LabelInit:
 
         collection = SimpleNamespace(name=collection_name)
 
+        # product.collection is read directly by DocumentPDS4Label.__init__
+        # (PDS4Label.__init__ is mocked below, so it never runs to set it).
         inventory = SimpleNamespace(lid='urn:nasa:pds:maven_spice:document:spiceds',
                                     vid='1.0',
-                                    name='spiceds_v001.html')
+                                    name='spiceds_v001.html',
+                                    collection=collection)
 
         return setup, collection, inventory
 
@@ -39,20 +42,25 @@ class TestDocumentPDS4LabelInit:
         setup, collection, inventory = self.make_document_label_inputs(tmp_path)
 
         # This mock allows you to verify that the call is made, but without
-        # executing the actual logic of PDS4Label.
+        # executing the actual logic of PDS4Label. The real PDS4Label.__init__
+        # would set self.setup/self.product from product; replicate just those
+        # two side effects so the assertions below still have something to check.
         parent_init_mock = mocker.patch(
             'pds.naif_pds4_bundler.classes.label.pds4_document.PDS4Label.__init__',
-            autospec=True)
+            autospec=True,
+            side_effect=lambda self, product: (
+                setattr(self, 'setup', setup),
+                setattr(self, 'product', product)))
 
         # Mock write_label to verify that label generation is requested without
         # creating files on disk.
         write_label_mock = mocker.patch.object(DocumentPDS4Label, 'write_label',
                                                autospec=True)
 
-        document_label = DocumentPDS4Label(setup, collection, inventory)
+        document_label = DocumentPDS4Label(inventory, collection)
 
         # Verification of the call to the parent.
-        parent_init_mock.assert_called_once_with(document_label, setup, inventory)
+        parent_init_mock.assert_called_once_with(document_label, inventory)
 
         # Check that the class stores the same references as those received.
         assert document_label.setup is setup
@@ -78,13 +86,18 @@ class TestDocumentPDS4LabelInit:
         setup, collection, inventory = self.make_document_label_inputs(
             tmp_path, collection_name='collection.document_inventory_v001.csv')
 
+        # __init__ needs self.setup even here, since _template is built from
+        # it unconditionally (not just where the test asserts on it).
         mocker.patch(
             'pds.naif_pds4_bundler.classes.label.pds4_document.PDS4Label.__init__',
-            autospec=True)
+            autospec=True,
+            side_effect=lambda self, product: (
+                setattr(self, 'setup', setup),
+                setattr(self, 'product', product)))
 
         mocker.patch.object(DocumentPDS4Label, 'write_label', autospec=True)
 
-        document_label = DocumentPDS4Label(setup, collection, inventory)
+        document_label = DocumentPDS4Label(inventory, collection)
 
         # Only the last suffix is replaced; earlier dots in the name are preserved.
         assert document_label.name == 'collection.document_inventory_v001.xml'
@@ -181,7 +194,10 @@ class TestDocumentPDS4LabelIntegration:
         inventory_path.write_text('<html>SPICE document</html>\n',
                                   encoding='utf-8')
 
-        # Inventory metadata rendered into the XML template.
+        # Inventory metadata rendered into the XML template. setup/collection
+        # are attached here because DocumentPDS4Label now reads them off the
+        # product (self.setup = product.setup, self.collection =
+        # product.collection) instead of receiving them as separate arguments.
         inventory = SimpleNamespace(
             lid='urn:nasa:pds:maven_spice:document:spiceds',
             vid='1.0',
@@ -192,6 +208,7 @@ class TestDocumentPDS4LabelIntegration:
             creation_date='2024-02-01',
             size='2048',
             checksum='d41d8cd98f00b204e9800998ecf8427e',
+            setup=setup,
             collection=collection,
             bundle=SimpleNamespace(context_products=context_products))
 
@@ -206,7 +223,7 @@ class TestDocumentPDS4LabelIntegration:
         # compare the generated label with the expected full content.
         setup, collection, inventory, template_path, label_path = env
 
-        label = DocumentPDS4Label(setup, collection, inventory)
+        label = DocumentPDS4Label(inventory, collection)
 
         # DocumentPDS4Label must resolve the document-specific template.
         assert label._template == str(template_path)
@@ -240,7 +257,7 @@ class TestDocumentPDS4LabelIntegration:
         # its staging-relative path.
         setup, collection, inventory, _, label_path = env
 
-        DocumentPDS4Label(setup, collection, inventory)
+        DocumentPDS4Label(inventory, collection)
 
         # Convert the generated XML label path to the path expected in the file
         # list.
@@ -259,7 +276,7 @@ class TestDocumentPDS4LabelIntegration:
         # DocumentPDS4Label overrides the mission reference type only; the
         # target reference type keeps PDS4Label's default (see below).
         setup, collection, inventory, _, _ = env
-        label = DocumentPDS4Label(setup, collection, inventory)
+        label = DocumentPDS4Label(inventory, collection)
         assert label._mission_reference_type == 'document_to_investigation'
 
     def test_target_reference_type(
@@ -267,5 +284,5 @@ class TestDocumentPDS4LabelIntegration:
             env: tuple[SimpleNamespace, SimpleNamespace, SimpleNamespace, Path, Path]) -> None:
         # No override on DocumentPDS4Label: falls back to PDS4Label's default.
         setup, collection, inventory, _, _ = env
-        label = DocumentPDS4Label(setup, collection, inventory)
+        label = DocumentPDS4Label(inventory, collection)
         assert label._target_reference_type == 'data_to_target'

@@ -88,7 +88,8 @@ class TestChecksumPDS3Label:
         # Patch write_label so the constructor does not touch the filesystem.
         with patch("pds.naif_pds4_bundler.classes.label.label.PDSLabel.write_label",
                    autospec=True):
-            instance = ChecksumPDS3Label(setup, product)
+            product.setup = setup
+            instance = ChecksumPDS3Label(product)
 
         return instance
 
@@ -120,7 +121,8 @@ class TestChecksumPDS3Label:
         # Patch write_label so the constructor does not touch the filesystem.
         with patch("pds.naif_pds4_bundler.classes.label.label.PDSLabel.write_label",
                    autospec=True):
-            label = ChecksumPDS3Label(setup, product)
+            product.setup = setup
+            label = ChecksumPDS3Label(product)
         assert label.setup == setup
         assert label.product == product
 
@@ -133,7 +135,8 @@ class TestChecksumPDS3Label:
 
         with patch("pds.naif_pds4_bundler.classes.label.label.PDSLabel.write_label",
                    autospec=True) as mock_write:
-            ChecksumPDS3Label(setup, product)
+            product.setup = setup
+            ChecksumPDS3Label(product)
 
         mock_write.assert_called_once()
 
@@ -156,7 +159,8 @@ class TestChecksumPDS3Label:
 
         with patch("pds.naif_pds4_bundler.classes.label.label.PDSLabel.write_label",
                    autospec=True):
-            instance = ChecksumPDS3Label(setup, product)
+            product.setup = setup
+            instance = ChecksumPDS3Label(product)
 
         assert instance.VOLUME_ID == "VG_0001"
 
@@ -170,7 +174,8 @@ class TestChecksumPDS3Label:
 
         with patch("pds.naif_pds4_bundler.classes.label.label.PDSLabel.write_label",
                    autospec=True):
-            instance = ChecksumPDS3Label(setup, product)
+            product.setup = setup
+            instance = ChecksumPDS3Label(product)
 
         assert instance.FILE_RECORDS == "0"
 
@@ -185,7 +190,8 @@ class TestChecksumPDS3Label:
 
         with patch("pds.naif_pds4_bundler.classes.label.label.PDSLabel.write_label",
                    autospec=True):
-            instance = ChecksumPDS3Label(setup, product)
+            product.setup = setup
+            instance = ChecksumPDS3Label(product)
 
         # PDSLabel.__init__ sets PRODUCT_CREATION_TIME from setup when the
         # attribute exists; ChecksumPDS3Label then *overwrites* it with the
@@ -296,7 +302,9 @@ class TestChecksumPDS3LabelIntegration:
         setup = env["setup"]
         product = env["product"]
 
-        ChecksumPDS3Label(setup, product)
+        product.setup = setup
+
+        ChecksumPDS3Label(product)
 
         assert env["label_path"].exists()
 
@@ -360,6 +368,8 @@ class TestChecksumPDS3LabelIntegration:
         setup = env["setup"]
         product = env["product"]
 
-        ChecksumPDS3Label(setup, product)
+        product.setup = setup
+
+        ChecksumPDS3Label(product)
 
         setup.add_file.assert_called_once_with("checksum.lbl")

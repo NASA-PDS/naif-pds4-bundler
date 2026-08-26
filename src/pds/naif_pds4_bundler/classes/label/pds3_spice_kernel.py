@@ -18,11 +18,16 @@ from ...utils import (
 
 class SpiceKernelPDS3Label(PDS3Label):
     """Class to generate a PDS3 SPICE Kernel Label.
+
+    :param product: SPICE Kernel product to be labeled
     """
 
-    def __init__(self, mission, product) -> None:
+    def __init__(self, product) -> None:
         """Constructor."""
-        super().__init__(mission, product)
+        # The parameter used to be named "mission" even though it was
+        # always the setup object; renamed to match PDSLabel.__init__'s
+        # single-argument signature.
+        super().__init__(product)
 
         self._template = str(Path(self.setup.templates_directory)
                              / "template_product_spice_kernel.lbl")

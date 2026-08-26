@@ -71,14 +71,16 @@ class TestPDSLabelInit:
     def test_uses_setup_creation_date_time(self, setup_pds4, product):
         """setup has creation_date_time"""
         setup_pds4.creation_date_time = "2023-06-15T12:00:00"
-        label = PDSLabel(setup_pds4, product)
+        product.setup = setup_pds4
+        label = PDSLabel(product)
         assert label.PRODUCT_CREATION_TIME == "2023-06-15T12:00:00"
         assert label.PRODUCT_CREATION_DATE == "2023-06-15"
         assert label.PRODUCT_CREATION_YEAR == "2023"
 
     def test_uses_product_creation_date(self, setup_pds4, product):
         """setup does NOT have creation_date_time → use product's dates"""
-        label = PDSLabel(setup_pds4, product)
+        product.setup = setup_pds4
+        label = PDSLabel(product)
         assert label.PRODUCT_CREATION_TIME == "2024-01-01T00:00:00"
         assert label.PRODUCT_CREATION_DATE == "2024-01-01"
         assert label.PRODUCT_CREATION_YEAR == "2024"
@@ -86,7 +88,8 @@ class TestPDSLabelInit:
     def test_non_kernel_class_builds_from_setup(self, setup_pds4, product):
         """class is NOT one of the excluded kernel classes then
         build missions/observers/targets from setup"""
-        label = PDSLabel(setup_pds4, product)
+        product.setup = setup_pds4
+        label = PDSLabel(product)
         assert "TestMission" in label.missions
         assert "TestObserver" in label.observers
         assert "TestTarget" in label.targets
@@ -102,7 +105,8 @@ class TestPDSLabelInit:
 
         # Instantiate and initialize
         label = object.__new__(cls)
-        PDSLabel.__init__(label, setup_pds4, product)
+        product.setup = setup_pds4
+        PDSLabel.__init__(label, product)
 
         assert label.missions == product.missions
         assert label.observers == product.observers
@@ -116,54 +120,64 @@ class TestPDSLabelInit:
 
     def test_pds4_secondary_targets_non_list_wrapped(self, setup_pds4, product):
         setup_pds4.secondary_targets = 'SingleTarget'
-        label = PDSLabel(setup_pds4, product)
+        product.setup = setup_pds4
+        label = PDSLabel(product)
         assert label.targets == ['TestTarget', 'SingleTarget']
 
     def test_pds3_secondary_missions_non_list_wrapped(self, setup_pds3, product):
         setup_pds3.secondary_missions = "SingleMission"
-        label = PDSLabel(setup_pds3, product)
+        product.setup = setup_pds3
+        label = PDSLabel(product)
         assert label.missions == ['TestMission', 'SingleMission']
         assert not hasattr(label, 'PDS4_MISSION_NAME')
 
     def test_pds3_secondary_observers_non_list_wrapped(self, setup_pds3, product):
         setup_pds3.secondary_observers = 'SingleObserver'
-        label = PDSLabel(setup_pds3, product)
+        product.setup = setup_pds3
+        label = PDSLabel(product)
         assert label.observers == ['TestObserver', 'SingleObserver']
         assert not hasattr(label, 'PDS4_OBSERVER_NAME')
 
     def test_pds3_secondary_targets_non_list_wrapped(self, setup_pds3, product):
         setup_pds3.secondary_targets = 'SingleTarget'
-        label = PDSLabel(setup_pds3, product)
+        product.setup = setup_pds3
+        label = PDSLabel(product)
         assert label.targets == ['TestTarget', 'SingleTarget']
 
     def test_pds4_secondary_missions_list(self, setup_pds4, product):
         setup_pds4.secondary_missions = ["MissionB", "MissionC"]
-        label = PDSLabel(setup_pds4, product)
+        product.setup = setup_pds4
+        label = PDSLabel(product)
         assert label.missions == ['TestMission', "MissionB", "MissionC"]
 
     def test_pds4_secondary_observers_list(self, setup_pds4, product):
         setup_pds4.secondary_observers = ["ObsB", "ObsC"]
-        label = PDSLabel(setup_pds4, product)
+        product.setup = setup_pds4
+        label = PDSLabel(product)
         assert label.observers == ['TestObserver', "ObsB", "ObsC"]
 
     def test_pds4_secondary_targets_list(self, setup_pds4, product):
         setup_pds4.secondary_targets = ["TargetB", "TargetC"]
-        label = PDSLabel(setup_pds4, product)
+        product.setup = setup_pds4
+        label = PDSLabel(product)
         assert label.targets == ['TestTarget', "TargetB", "TargetC"]
 
     def test_pds3_secondary_missions_list(self, setup_pds3, product):
         setup_pds3.secondary_missions = ["MissionB", "MissionC"]
-        label = PDSLabel(setup_pds3, product)
+        product.setup = setup_pds3
+        label = PDSLabel(product)
         assert label.missions == ['TestMission', "MissionB", "MissionC"]
 
     def test_pds3_secondary_observers_list(self, setup_pds3, product):
         setup_pds3.secondary_observers = ["ObsB", "ObsC"]
-        label = PDSLabel(setup_pds3, product)
+        product.setup = setup_pds3
+        label = PDSLabel(product)
         assert label.observers == ['TestObserver', "ObsB", "ObsC"]
 
     def test_pds3_secondary_targets_list(self, setup_pds3, product):
         setup_pds3.secondary_targets = ["TargetB", "TargetC"]
-        label = PDSLabel(setup_pds3, product)
+        product.setup = setup_pds3
+        label = PDSLabel(product)
         assert label.targets == ['TestTarget', "TargetB", "TargetC"]
 
 
