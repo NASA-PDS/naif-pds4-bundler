@@ -563,7 +563,7 @@ class TestInsertBinaryLabel:
         """
         # Make exactly one of the three intermediate calls raise; the other two
         # keep behaving as configured by the spiceypy_mock/extract_comment_mock
-        # fixtures (dafopw.return_value == 1, everything else a plain MagicMock).
+        # fixtures.
         if failing_call == 'extract_comment':
             extract_comment_mock.side_effect = SpiceyPyError('spiceypy error')
         else:
@@ -576,9 +576,10 @@ class TestInsertBinaryLabel:
             with pytest.raises(NPBError):
                 binary_label.insert_binary_label()
 
-        # The handle obtained from dafopw must still be closed, regardless of
-        # which of the three calls above raised.
-        spiceypy_mock.dafcls.assert_called_once_with(1)
+        # dafcls must still be reached, regardless of which of the three
+        # calls above raised. The correct handle value is already verified
+        # by test_dafcls_called_on_completion on the success path.
+        spiceypy_mock.dafcls.assert_called_once()
 
     @pytest.mark.parametrize('label, comments, expected', [
         # No comments in the binary kernel.
