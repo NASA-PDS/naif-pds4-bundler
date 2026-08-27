@@ -54,6 +54,7 @@ optional arguments:
 import sys
 
 from .cli import cli_npb
+from .classes.exceptions import NPBError
 from .pipeline import npb
 
 
@@ -79,9 +80,11 @@ def main() -> int:
 
         return 0
 
-        # TODO: Add NBPError as handler for "known issues."
-        # except NBPError:
-        #     return 1
+    # Handle known NPB errors (configuration or input data issues).
+    #
+    # Note: handle_npb_error() already logs the message before raising.
+    except NPBError:
+        return 1
 
     # Handle command line parsing errors.
     #
@@ -90,16 +93,22 @@ def main() -> int:
     except SystemExit:
         return 2
 
-    # Handle all other unexpected errors (Return code 2).
+    # Handle all other unexpected errors (Return code 3).
     #
     # Note: Since we want to make sure that if the pipeline crashes, we can
     #       capture the exception and gracefully exit, we will allow capturing
-    #       the broader possible exception.
-    except Exception: # pylint: disable=broad-exception-caught
-        # TODO: Add proper reporting for unexpected errors once the NBPError
-        #       is implemented.
-        #     print(f"An unexpected error occurred:\n\n{e}\n\n"
-        #            "Please report it via [add url]", file=sys.stderr)
+    #       the broader possible exception. Unlike the NPBError case above,
+    #       this always prints regardless of -s/--silent: it signals a bug in
+    #       the code, not an issue with the input arguments or the NPB data.
+    #
+    # TODO: PipelineArgs.__post_init__ raises ValueError for invalid CLI
+    #       arguments before `args` is assigned above, so that case lands
+    #       here as an "unexpected" error (exit 3) rather than a known one
+    #       (exit 1). Deferred to a follow-up PR: decide whether PipelineArgs
+    #       should raise NPBError instead, or whether __main__ should
+    #       special-case it.
+    except Exception as exc:  # pylint: disable=broad-exception-caught
+        print(f"An unexpected error occurred:\n\n{exc}\n", file=sys.stderr)
         return 3
 
 
