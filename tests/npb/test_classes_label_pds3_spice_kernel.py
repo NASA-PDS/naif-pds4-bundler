@@ -4,6 +4,7 @@ import logging
 from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
+from spiceypy.utils.exceptions import SpiceyPyError
 
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
 from pds.naif_pds4_bundler.classes.label.pds3_spice_kernel import SpiceKernelPDS3Label
@@ -550,6 +551,34 @@ class TestInsertBinaryLabel:
             binary_label.insert_binary_label()
 
         spiceypy_mock.dafcls.assert_called_once_with(99)
+
+    @pytest.mark.parametrize('failing_call', ['extract_comment', 'dafdc', 'dafac'])
+    def test_dafcls_called_when_error_raised(self, binary_label, spiceypy_mock, extract_comment_mock,
+                                             failing_call):
+        """dafcls is called even when extract_comment, dafdc, or dafac raises.
+
+        Parametrized over the three calls that run between dafopw and dafcls,
+        each exercised in isolation, to confirm the DAF handle is always
+        released no matter which one of them fails.
+        """
+        # Make exactly one of the three intermediate calls raise; the other two
+        # keep behaving as configured by the spiceypy_mock/extract_comment_mock
+        # fixtures (dafopw.return_value == 1, everything else a plain MagicMock).
+        if failing_call == 'extract_comment':
+            extract_comment_mock.side_effect = SpiceyPyError('spiceypy error')
+        else:
+            getattr(spiceypy_mock, failing_call).side_effect = SpiceyPyError('spiceypy error')
+
+        with patch("builtins.open", mock_open(read_data=BIN_LABEL_CONTENT)):
+            # insert_binary_label is decorated with @spice_exception_handler,
+            # which catches the SpiceyPyError and re-raises it as NPBError —
+            # so NPBError is what actually escapes the call, not SpiceyPyError.
+            with pytest.raises(NPBError):
+                binary_label.insert_binary_label()
+
+        # The handle obtained from dafopw must still be closed, regardless of
+        # which of the three calls above raised.
+        spiceypy_mock.dafcls.assert_called_once_with(1)
 
     @pytest.mark.parametrize('label, comments, expected', [
         # No comments in the binary kernel.
