@@ -51,9 +51,11 @@ optional arguments:
                         not generated.
 
 """
+import logging
 import sys
 
 from .cli import cli_npb
+from .classes.exceptions import NPBError
 from .pipeline import npb
 
 
@@ -69,6 +71,12 @@ def main() -> int:
               an issue with the command line arguments provided by the user,
               and 3 if an unexpected error occurred.
     """
+    # Note: initialized before the try block since cli_npb.parse_arguments()
+    #       can itself raise before completing the assignment below (e.g. a
+    #       ValueError from PipelineArgs validation), and the except Exception
+    #       branch needs args.silent to decide whether to print.
+    args = None
+
     try:
         # Run the command line and get the arguments provided by the user.
         # Note: debug mode is not available.
@@ -79,10 +87,6 @@ def main() -> int:
 
         return 0
 
-        # TODO: Add NBPError as handler for "known issues."
-        # except NBPError:
-        #     return 1
-
     # Handle command line parsing errors.
     #
     # Note: parse_arguments is based on argparse (if an issue is found, it
@@ -90,16 +94,32 @@ def main() -> int:
     except SystemExit:
         return 2
 
-    # Handle all other unexpected errors (Return code 2).
+    # Handle known NPB errors (configuration or input data issues).
+    #
+    # Note: handle_npb_error() already logs the message before raising.
+    except NPBError:
+        return 1
+
+    # Handle all other unexpected errors (Return code 3).
     #
     # Note: Since we want to make sure that if the pipeline crashes, we can
     #       capture the exception and gracefully exit, we will allow capturing
     #       the broader possible exception.
-    except Exception: # pylint: disable=broad-exception-caught
-        # TODO: Add proper reporting for unexpected errors once the NBPError
-        #       is implemented.
-        #     print(f"An unexpected error occurred:\n\n{e}\n\n"
-        #            "Please report it via [add url]", file=sys.stderr)
+    except Exception as exc:  # pylint: disable=broad-exception-caught
+        message = f"An unexpected error occurred:\n\n{exc}\n"
+
+        # logging.error always runs so the message reaches the log file (and the
+        # console in verbose mode); print is the only way it reaches the console
+        # in default mode, so it mirrors the -s/--silent convention used
+        # elsewhere (see Log.start/stop, runtime.log_step).
+        logging.error(message)
+
+        # args may still be None here if parse_arguments() raised before
+        # completing the assignment; getattr treats that the same as
+        # silent=False.
+        if not getattr(args, "silent", False):
+            print(message, file=sys.stderr)
+
         return 3
 
 
