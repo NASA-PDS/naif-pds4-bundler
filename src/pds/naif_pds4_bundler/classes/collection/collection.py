@@ -165,8 +165,9 @@ class Collection:
                 logging.info('')
 
             except BaseException:
-                if self.name == "spice_kernel":
+                if self.name == "spice_kernels":
                     ver = int(self.setup.release)
+
                 else:
                     ver = 1
 
