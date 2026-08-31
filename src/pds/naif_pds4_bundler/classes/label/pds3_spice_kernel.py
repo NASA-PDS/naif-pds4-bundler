@@ -238,55 +238,58 @@ class SpiceKernelPDS3Label(PDS3Label):
                 if line.strip() != "END":
                     label_lines.append(line.rstrip())
 
+        # Kept outside the try: if dafopw itself fails, there is no handle
+        # yet to close.
         handle = spiceypy.dafopw(self.product.path)
 
-        #
-        # Extract comment from the kernel.
-        #
-        commnt = extract_comment(self.product.path, handle=handle)
+        try:
+            #
+            # Extract comment from the kernel.
+            #
+            commnt = extract_comment(self.product.path, handle=handle)
 
-        #
-        # Remove the first N blank lines.
-        #
-        j = 0
-        for line in commnt:
-            if line.strip():
-                break
-            j += 1
-        if j > 0:
-            commnt = commnt[j:]
+            #
+            # Remove the first N blank lines.
+            #
+            j = 0
+            for line in commnt:
+                if line.strip():
+                    break
+                j += 1
+            if j > 0:
+                commnt = commnt[j:]
 
-        #
-        # Add a blank character in each empty line.
-        #
-        for i, line in enumerate(commnt):
-            if not line:
-                commnt[i] = " "
+            #
+            # Add a blank character in each empty line.
+            #
+            for i, line in enumerate(commnt):
+                if not line:
+                    commnt[i] = " "
 
-        #
-        # Add or replace label to comment list.
-        #
-        new_commnt = ["\\beginlabel"] + label_lines + ["\\endlabel"] + 2 * [" "]
+            #
+            # Add or replace label to comment list.
+            #
+            new_commnt = ["\\beginlabel"] + label_lines + ["\\endlabel"] + 2 * [" "]
 
-        if "\\endlabel" in commnt:
-            index = commnt.index("\\endlabel")
-            commnt = commnt[index + 1 :]
+            if "\\endlabel" in commnt:
+                index = commnt.index("\\endlabel")
+                commnt = commnt[index + 1 :]
 
-        new_commnt += commnt
+            new_commnt += commnt
 
-        #
-        # Delete comment from the kernel.
-        #
-        spiceypy.dafdc(handle)
+            #
+            # Delete comment from the kernel.
+            #
+            spiceypy.dafdc(handle)
 
-        #
-        # Insert updated comment to kernel.
-        #
-        spiceypy.dafac(handle, new_commnt)
+            #
+            # Insert updated comment to kernel.
+            #
+            spiceypy.dafac(handle, new_commnt)
 
-        #
-        # Close file handle.
-        #
-        spiceypy.dafcls(handle)
+        finally:
+            # Runs even if extract_comment, dafdc, or dafac raises, so the
+            # handle is never left open.
+            spiceypy.dafcls(handle)
 
         logging.info("-- Label inserted to binary kernel.")
