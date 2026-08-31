@@ -258,6 +258,20 @@ class TestSpiceKernelPDS3LabelSetSclkTimes:
         assert bare_label.SPACECRAFT_CLOCK_START_COUNT == '"1/100.000"'
         assert bare_label.SPACECRAFT_CLOCK_STOP_COUNT  == '"1/200.000"'
 
+    def test_ck_spiceypy_failure_raises_npberror(self, bare_label):
+        """A SpiceyPyError from bodn2c is raised as NPBError."""
+        # set_sclk_times only calls bodn2c, ck_coverage, and scdecd for CK
+        # kernels; other types return "N/A" without touching SPICE at all.
+        bare_label.product.type = "CK"
+
+        with patch(f"{MODULE}.spiceypy") as mock_spiceypy:
+            # bodn2c is the first SPICE call set_sclk_times makes for a CK
+            # kernel, so failing it is enough to exercise the error path.
+            mock_spiceypy.bodn2c.side_effect = SpiceyPyError('spiceypy error')
+
+            with pytest.raises(NPBError):
+                bare_label.set_sclk_times(bare_label.product)
+
 # ===========================================================================
 # SpiceKernelPDS3Label.set_kernel_ids
 # ===========================================================================

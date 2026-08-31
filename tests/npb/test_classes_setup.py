@@ -2345,21 +2345,13 @@ class TestSetupLoadKernels:
         monkeypatch.setattr('pds.naif_pds4_bundler.classes.setup.spiceypy.furnsh',
                             furnsh)
 
-        # Create a mock for handle_npb_error. When the decorator calls it, this
-        # mock will raise a NPBError.
-        handle_error = Mock(side_effect=NPBError('SPICE(MOCKED): mocked spiceypy failure'))
-        monkeypatch.setattr(
-            'pds.naif_pds4_bundler.utils.decorators.handle_npb_error',
-            handle_error)
-
-        with pytest.raises(NPBError, match=re.escape('SPICE(MOCKED): mocked spiceypy failure')):
+        # The decorator turns the SpiceyPyError straight into an NPBError,
+        # carrying its message text along.
+        with pytest.raises(NPBError, match=re.escape('mocked spiceypy failure')):
             setup_instance.load_kernels()
 
         # Check that load_kernels actually called spiceypy.furnsh with the LSK.
         furnsh.assert_called_once_with(str(lsk))
-
-        # Check that the decorator called handle_npb_error exactly once.
-        handle_error.assert_called_once()
 
     def test_loads_valid_text_kernels_with_real_spiceypy_calls(
             self, tmp_path) -> None:
@@ -2398,16 +2390,6 @@ class TestSetupLoadKernels:
 
         setup_instance = self.make_load_setup(tmp_path)
 
-        # Start from a clean SPICE kernel pool.
-        assert spiceypy.ktotal('ALL') == 0
-
-        # Load one valid kernel first, so the final ktotal(ALL) == 0 assertion proves
-        # that handle_npb_error cleared the kernel pool after the decorator ran.
-        loaded_lsk = self.write_minimal_text_kernel(
-            tmp_path / 'real' / 'loaded_before_failure.tls', 'LSK')
-        spiceypy.furnsh(loaded_lsk)
-        assert spiceypy.ktotal('ALL') == 1
-
         # Create a meta-kernel that exists but references a missing kernel.
         missing_kernel = 'missing_kernel.bsp'
         broken_meta_kernel = tmp_path / 'real' / 'broken_meta_kernel.tm'
@@ -2420,11 +2402,10 @@ class TestSetupLoadKernels:
         # Configura load_kernels to load the meta-kernel as a direct path.
         setup_instance.kernels_to_load = {'lsk': str(broken_meta_kernel)}
 
+        # The NPBError message spans multiple lines, so `(?s)` lets `.` match
+        # the newlines between the start of the text and "missing_kernel.bsp".
         with pytest.raises(NPBError, match=r'(?s).*missing_kernel\.bsp.*'):
             setup_instance.load_kernels()
-
-        # handle_npb_error must clear the global SPICE kernel pool.
-        assert spiceypy.ktotal('ALL') == 0
 
 
 class TestSetupWriteFileList:

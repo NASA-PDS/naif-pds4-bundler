@@ -8,6 +8,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, call, patch
 
 import pytest
+from spiceypy.utils.exceptions import SpiceyPyError
 
 from pds.naif_pds4_bundler.classes.product.product_metakernel import MetaKernelProduct
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
@@ -1835,6 +1836,39 @@ class TestMetaKernelProductCoverage:
         # et_to_date in the "infomod2" format.
         assert product.start_time == "2019-06-01T00:00:00.000Z"
         assert product.stop_time == "2019-12-01T00:00:00.000Z"
+
+    def test_coverage_spiceypy_failure_raises_npberror(self, lsk, tmp_path):
+        """A SpiceyPyError from spk_coverage is raised as NPBError."""
+        bundle_dir = tmp_path / "bundle"
+        spk_dir = bundle_dir / "insight_spice" / "spice_kernels" / "spk"
+        spk_dir.mkdir(parents=True)
+        spk_file = spk_dir / "insight_cru_ops_v01.bsp"
+        spk_file.write_bytes(b"\x00" * 16)
+
+        setup = make_setup(
+            bundle_directory=str(bundle_dir),
+            mission_start="2018-01-01T00:00:00Z",
+            mission_finish="2023-01-01T00:00:00Z",
+            mission_acronym="insight")
+
+        collection = MagicMock()
+        collection.product = []
+        product = self._make_stub(
+            setup,
+            collection=collection,
+            collection_metakernel=["insight_cru_ops_v01.bsp"])
+
+        product.mk_setup = {
+            "coverage_kernels": {
+                "pattern": [r"insight_cru_ops_v\d+\.bsp"]
+            }
+        }
+
+        with patch(f"{_MODULE}.spk_coverage",
+                   side_effect=SpiceyPyError('spiceypy error')):
+
+            with pytest.raises(NPBError):
+                product.coverage()
 
     def test_coverage_kernel_not_in_collection_non_spk_ck_raises(
             self, lsk, tmp_path):
