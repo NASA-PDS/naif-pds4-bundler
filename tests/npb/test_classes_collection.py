@@ -33,7 +33,7 @@ def make_setup(pds_version="4", increment=True, release="3",
     )
 
 
-def make_collection(c_type="spice_kernel", pds_version="4", **setup_kwargs):
+def make_collection(c_type="spice_kernels", pds_version="4", **setup_kwargs):
     """Instantiate a Collection with minimal mocking."""
     setup = make_setup(pds_version=pds_version, **setup_kwargs)
     # Patch set_collection_lid so __init__ doesn't fail on missing 'type' attr
@@ -239,8 +239,8 @@ class TestCollectionSetCollectionVid:
             col.set_collection_vid()
         assert col.vid == vid
 
-    @pytest.mark.parametrize("c_type, vid",[
-        ('spice_kernel', '7.0'),
+    @pytest.mark.parametrize("c_type, vid", [
+        ('spice_kernels', '7.0'),
         ('document', '1.0')
     ])
     def test_increment_glob_fails(self, c_type, vid, caplog):
@@ -254,8 +254,8 @@ class TestCollectionSetCollectionVid:
         assert col.vid == vid
 
     @pytest.mark.parametrize("c_type, vid", [
-        ("spice_kernel", "2.0"),
-         ("miscellaneous", "1.0")
+        ("spice_kernels", "2.0"),
+        ("miscellaneous", "1.0")
     ])
     def test_increment_glob_raises_exception(self, c_type, vid, caplog):
         """Ensure any BaseException (not just IndexError) triggers fallback."""
