@@ -8,6 +8,7 @@ import re
 from types import SimpleNamespace
 
 import pytest
+from spiceypy.utils.exceptions import SpiceyPyError
 
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
 from pds.naif_pds4_bundler.classes.list import KernelList
@@ -634,6 +635,32 @@ class TestKernelListWriteList:
 
         # Check validate call.
         mocks.validate.assert_called_once_with(kernel_list)
+
+    def test_write_list_spiceypy_failure_raises_npberror(
+            self, mocker, tmp_path) -> None:
+        """A SpiceyPyError from extract_comment is raised as NPBError."""
+
+        self.patch_write_list_file_and_validation_boundaries(mocker)
+
+        kernel = 'maven_kernel_v01.bc'
+
+        mocker.patch(
+            'pds.naif_pds4_bundler.classes.list.extract_comment',
+            side_effect=SpiceyPyError('spiceypy error'))
+
+        kernel_list_config = {
+            r'^maven_kernel_v01\.bc$': {
+                'description': 'Original kernel: $ORIGINAL',
+                'patterns': {'ORIGINAL': {'@file': 'comment',
+                                          '#text': 'ORIGINAL_NAME'}}}}
+
+        kernel_list, _, _ = self.make_kernel_list(
+            tmp_path,
+            kernel_list_config=kernel_list_config,
+            kernels=[kernel])
+
+        with pytest.raises(NPBError):
+            kernel_list.write_list()
 
     @pytest.mark.parametrize('patterns_el, kernel, expected_description', [
         ({'@value': 'edr', '#text': 'EDR'},

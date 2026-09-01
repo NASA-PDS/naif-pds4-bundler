@@ -1,8 +1,7 @@
-from unittest.mock import patch
-
 import pytest
 import spiceypy.utils.exceptions as spice_exc
 
+from pds.naif_pds4_bundler.classes.exceptions import NPBError
 from pds.naif_pds4_bundler.utils.decorators import spice_exception_handler
 
 
@@ -18,48 +17,44 @@ def test_preserves_metadata():
     assert my_test_func.__doc__ == "Original docstring."
 
 
-@patch("pds.naif_pds4_bundler.utils.decorators.handle_npb_error")
-def test_handler_without_setup_attr(mock_handler):
-    """Test case where args[0] does NOT have a 'setup' attribute."""
-    # Simulate a specific SpiceyPy 'File Not Found' exception."""
+def test_spiceypy_error_is_raised_as_npberror():
+    """A SpiceyPyError from the wrapped function escapes as NPBError."""
 
     @spice_exception_handler
     def mock_furnish(_):
         # Manually raise a specific SpiceyPy exception
         raise spice_exc.SpiceNOSUCHFILE("The file could not be located.")
 
-    mock_furnish("missing_kernel.tm")
+    # Match on the error message text; the full NPBError message is the
+    # formatted Python traceback (see the test below), which still contains
+    # this text as part of the underlying SpiceyPyError's own message.
+    with pytest.raises(NPBError, match="could not be located") as exc_info:
+        mock_furnish("missing_kernel.tm")
 
-    # Verify handle_npb_error was triggered by the SpiceyPy error
-    mock_handler.assert_called_once()
-
-    # The first argument to the handler is the formatted traceback string
-    traceback_arg = mock_handler.call_args[0][0]
-    assert "SpiceNOSUCHFILE" in traceback_arg
+    # The original SpiceyPyError should still be reachable as the cause.
+    assert isinstance(exc_info.value.__cause__, spice_exc.SpiceNOSUCHFILE)
 
 
-@patch("pds.naif_pds4_bundler.utils.decorators.handle_npb_error")
-def test_handler_with_setup_attr(mock_handler):
-    """Test case where args[0] DOES have a 'setup' attribute."""
+def test_npberror_message_is_the_formatted_traceback():
+    """Regression test for the exact message content raised as NPBError.
 
-    class MockObject:
-        def __init__(self):
-            self.setup = "mock_setup_config"
+    Pins the current behavior (NPBError(traceback.format_exc())): the
+    message must be the full Python traceback of the caught SpiceyPyError,
+    not just str(error), so the NPB call site (file/line) that triggered
+    the SPICE failure stays visible in the log. See PR #365 review.
+    """
 
-        @spice_exception_handler
-        def mock_furnish(self, _):
-            # Manually raise a specific SpiceyPy exception
-            raise spice_exc.SpiceNOSUCHFILE("The file could not be located.")
+    @spice_exception_handler
+    def mock_furnish(_):
+        raise spice_exc.SpiceNOSUCHFILE("The file could not be located.")
 
-    obj = MockObject()
-    obj.mock_furnish("missing_kernel.tm")
+    with pytest.raises(NPBError) as exc_info:
+        mock_furnish("missing_kernel.tm")
 
-    # Verify handle_npb_error was triggered by the SpiceyPy error
-    mock_handler.assert_called_once()
-
-    # The first argument to the handler is the formatted traceback string
-    traceback_arg = mock_handler.call_args[0][0]
-    assert "SpiceNOSUCHFILE" in traceback_arg
+    message = str(exc_info.value)
+    assert message.startswith("Traceback (most recent call last):")
+    assert "SpiceNOSUCHFILE" in message
+    assert "The file could not be located." in message
 
 
 def test_successful_execution_with_return_none():

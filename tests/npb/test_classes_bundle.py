@@ -26,6 +26,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
+from spiceypy.utils.exceptions import SpiceyPyError
 
 from pds.naif_pds4_bundler.classes.bundle import Bundle
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
@@ -853,6 +854,17 @@ class TestBundlePCheckTimes:
         bundle = self._make_times_bundle(m_start, i_start, i_end, m_end)
         with pytest.raises(NPBError, match="The resulting Mission and Increment start "
                                            "and finish dates are incoherent."):
+            bundle._check_times()
+
+    @patch("pds.naif_pds4_bundler.classes.bundle.spiceypy.str2et")
+    def test_spiceypy_failure_raises_npberror(self, mock_str2et):
+        """A SpiceyPyError from str2et is raised as NPBError."""
+        mock_str2et.side_effect = SpiceyPyError('spiceypy error')
+        bundle = self._make_times_bundle(
+            "2000-001T00:00:00", "2000-060T00:00:00",
+            "2000-180T00:00:00", "2001-001T00:00:00")
+
+        with pytest.raises(NPBError):
             bundle._check_times()
 
 
