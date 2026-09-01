@@ -25,18 +25,18 @@ class MetaKernelPDS4Label(PDS4Label):
         #
         # Fields from Kernels
         #
-        self.FILE_NAME = product.name
-        self.PRODUCT_LID = self.product.lid
-        self.FILE_FORMAT = "Character"
-        self.START_TIME = product.start_time
-        self.STOP_TIME = product.stop_time
+        self._label_fields["FILE_NAME"] = product.name
+        self._label_fields["PRODUCT_LID"] = self.product.lid
+        self._label_fields["FILE_FORMAT"] = "Character"
+        self._label_fields["START_TIME"] = product.start_time
+        self._label_fields["STOP_TIME"] = product.stop_time
         # TODO: BUG, product.type.upper() raises AttributeError if product.type
         #       is not a string
-        self.KERNEL_TYPE_ID = product.type.upper()
-        self.PRODUCT_VID = self.product.vid
-        self.SPICE_KERNEL_DESCRIPTION = product.description
+        self._label_fields["KERNEL_TYPE_ID"] = product.type.upper()
+        self._label_fields["PRODUCT_VID"] = self.product.vid
+        self._label_fields["SPICE_KERNEL_DESCRIPTION"] = product.description
 
-        self.KERNEL_INTERNAL_REFERENCES = self.get_kernel_internal_references()
+        self._label_fields["KERNEL_INTERNAL_REFERENCES"] = self.get_kernel_internal_references()
 
         self.name = Path(product.name).with_suffix(".xml").name
 

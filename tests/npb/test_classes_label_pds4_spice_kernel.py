@@ -124,27 +124,27 @@ class TestSpiceKernelPDS4Label:
         # construction.
 
         # Check that FILE_NAME has been copied from product.name.
-        assert label.FILE_NAME == 'maven_orbit_v01.bsp'
+        assert label._label_fields["FILE_NAME"] == 'maven_orbit_v01.bsp'
 
         # Check that the PDS4 logical identifier and the product version have
         # been copied correctly from product.lid and product.vid.
-        assert label.PRODUCT_LID == (
+        assert label._label_fields["PRODUCT_LID"] == (
             'urn:nasa:pds:maven_spice:spice_kernels:spk_maven_orbit_v01.bsp')
-        assert label.PRODUCT_VID == '1.0'
+        assert label._label_fields["PRODUCT_VID"] == '1.0'
 
         # Check that the file format is copied verbatim from product.file_format.
-        assert label.FILE_FORMAT == 'Binary'
+        assert label._label_fields["FILE_FORMAT"] == 'Binary'
 
         # Check that the time coverage is copied from product.start_time and
         # product.stop_time, respectively.
-        assert label.START_TIME == '2024-01-01T00:00:00Z'
-        assert label.STOP_TIME == '2024-01-31T23:59:59Z'
+        assert label._label_fields["START_TIME"] == '2024-01-01T00:00:00Z'
+        assert label._label_fields["STOP_TIME"] == '2024-01-31T23:59:59Z'
 
         # Check that KERNEL_TYPE_ID is the upper-cased product.type.
-        assert label.KERNEL_TYPE_ID == 'SPK'
+        assert label._label_fields["KERNEL_TYPE_ID"] == 'SPK'
 
         # Check that the kernel description is copied from product.description.
-        assert label.SPICE_KERNEL_DESCRIPTION == 'Orbit reconstruction kernel'
+        assert label._label_fields["SPICE_KERNEL_DESCRIPTION"] == 'Orbit reconstruction kernel'
 
     def test_template_path_is_spice_kernel_template(
             self, label: SpiceKernelPDS4Label) -> None:
@@ -216,7 +216,7 @@ class TestSpiceKernelPDS4Label:
             label = SpiceKernelPDS4Label(product)
 
         # The kernel type identifier must be the upper-cased product type.
-        assert label.KERNEL_TYPE_ID == expected_kernel_type_id
+        assert label._label_fields["KERNEL_TYPE_ID"] == expected_kernel_type_id
 
     @pytest.mark.parametrize(
         'product_attribute, value, label_attribute', [
@@ -256,7 +256,7 @@ class TestSpiceKernelPDS4Label:
 
         # Check that the expected label attribute contains exactly the value
         # assigned to the product.
-        assert getattr(label, label_attribute) == value
+        assert label._label_fields[label_attribute] == value
 
     def test_child_overrides_parent_field_assignments(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
@@ -279,9 +279,9 @@ class TestSpiceKernelPDS4Label:
             product.setup = setup
             label = SpiceKernelPDS4Label(product)
 
-        assert label.PRODUCT_LID == (
+        assert label._label_fields["PRODUCT_LID"] == (
             'urn:nasa:pds:maven_spice:spice_kernels:ck_distinct')
-        assert label.PRODUCT_VID == '9.9'
+        assert label._label_fields["PRODUCT_VID"] == '9.9'
 
     def test_constructor_raises_when_product_type_is_not_a_string(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:

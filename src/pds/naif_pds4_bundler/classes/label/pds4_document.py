@@ -27,11 +27,11 @@ class DocumentPDS4Label(PDS4Label):
         self._template = str(Path(self.setup.templates_directory)
                              / "template_product_html_document.xml")
 
-        self.PRODUCT_LID = self.product.lid
-        self.PRODUCT_VID = self.product.vid
-        self.START_TIME = self.setup.mission_start
-        self.STOP_TIME = self.setup.mission_finish
-        self.FILE_NAME = self.product.name
+        self._label_fields["PRODUCT_LID"] = self.product.lid
+        self._label_fields["PRODUCT_VID"] = self.product.vid
+        self._label_fields["START_TIME"] = self.setup.mission_start
+        self._label_fields["STOP_TIME"] = self.setup.mission_finish
+        self._label_fields["FILE_NAME"] = self.product.name
 
         self.name = Path(self.collection.name).with_suffix(".xml").name
 

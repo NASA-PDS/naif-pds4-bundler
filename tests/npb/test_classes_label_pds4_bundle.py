@@ -162,25 +162,25 @@ class TestBundlePDS4Label:
 
     def test_attribute_assignments(self, label: BundlePDS4Label) -> None:
         # Bundle identity comes from product.bundle, not from the product.
-        assert label.BUNDLE_LID == 'urn:nasa:pds:maven_spice'
-        assert label.BUNDLE_VID == '1.0'
+        assert label._label_fields["BUNDLE_LID"] == 'urn:nasa:pds:maven_spice'
+        assert label._label_fields["BUNDLE_VID"] == '1.0'
 
         # Scalar metadata copied verbatim from setup and readme.
-        assert label.AUTHOR_LIST == 'Doe, J.; Roe, R.'
-        assert label.DOI == '10.17189/maven_spice'
-        assert label.FILE_NAME == 'bundle_maven_spice_v001.xml'
+        assert label._label_fields["AUTHOR_LIST"] == 'Doe, J.; Roe, R.'
+        assert label._label_fields["DOI"] == '10.17189/maven_spice'
+        assert label._label_fields["FILE_NAME"] == 'bundle_maven_spice_v001.xml'
 
         # Time coverage comes from setup.increment_*, not from the product.
-        assert label.START_TIME == '2024-02-01T00:00:00Z'
-        assert label.STOP_TIME == '2024-02-28T23:59:59Z'
+        assert label._label_fields["START_TIME"] == '2024-02-01T00:00:00Z'
+        assert label._label_fields["STOP_TIME"] == '2024-02-28T23:59:59Z'
 
         # The single default collection produces exactly one member entry.
-        assert label.BUNDLE_MEMBER_ENTRIES == SPICE_KERNELS_PRIMARY_ENTRY
+        assert label._label_fields["BUNDLE_MEMBER_ENTRIES"] == SPICE_KERNELS_PRIMARY_ENTRY
 
         # Per-collection scratch attrs reflect the last processed collection.
-        assert label.COLL_NAME == 'spice_kernel'
-        assert label.COLL_LIDVID == 'urn:nasa:pds:maven_spice:spice_kernels::1.0'
-        assert label.COLL_STATUS == 'Primary'
+        assert label._label_fields["COLL_NAME"] == 'spice_kernel'
+        assert label._label_fields["COLL_LIDVID"] == 'urn:nasa:pds:maven_spice:spice_kernels::1.0'
+        assert label._label_fields["COLL_STATUS"] == 'Primary'
 
     def test_template_path_is_bundle_template(
             self, label: BundlePDS4Label) -> None:
@@ -269,9 +269,9 @@ class TestBundlePDS4Label:
 
         label = _build_label(setup, readme)
 
-        assert label.COLL_NAME == expected_coll_name
-        assert label.COLL_STATUS == expected_status
-        assert label.BUNDLE_MEMBER_ENTRIES == expected_entry
+        assert label._label_fields["COLL_NAME"] == expected_coll_name
+        assert label._label_fields["COLL_STATUS"] == expected_status
+        assert label._label_fields["BUNDLE_MEMBER_ENTRIES"] == expected_entry
 
     @pytest.mark.parametrize(
         'information_model_float, expected_coll_name, updated,'
@@ -326,9 +326,9 @@ class TestBundlePDS4Label:
 
         label = _build_label(setup, readme)
 
-        assert label.COLL_NAME == expected_coll_name
-        assert label.COLL_STATUS == expected_status
-        assert label.BUNDLE_MEMBER_ENTRIES == expected_entry
+        assert label._label_fields["COLL_NAME"] == expected_coll_name
+        assert label._label_fields["COLL_STATUS"] == expected_status
+        assert label._label_fields["BUNDLE_MEMBER_ENTRIES"] == expected_entry
 
     def test_multiple_collections_are_concatenated_in_order(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
@@ -350,7 +350,7 @@ class TestBundlePDS4Label:
 
         label = _build_label(setup, readme)
 
-        assert label.BUNDLE_MEMBER_ENTRIES == (
+        assert label._label_fields["BUNDLE_MEMBER_ENTRIES"] == (
             ' <Bundle_Member_Entry>\n'
             '  <lidvid_reference>'
             'urn:nasa:pds:maven_spice:spice_kernels::1.0</lidvid_reference>\n'
@@ -381,10 +381,10 @@ class TestBundlePDS4Label:
                              helpers.make_readme(tmp_path / 'staging',
                                                  collections=[]))
 
-        assert label.BUNDLE_MEMBER_ENTRIES == ''
-        assert not hasattr(label, 'COLL_NAME')
-        assert not hasattr(label, 'COLL_LIDVID')
-        assert not hasattr(label, 'COLL_STATUS')
+        assert label._label_fields["BUNDLE_MEMBER_ENTRIES"] == ''
+        assert 'COLL_NAME' not in label._label_fields
+        assert 'COLL_LIDVID' not in label._label_fields
+        assert 'COLL_STATUS' not in label._label_fields
 
     @pytest.mark.parametrize('xml_tab, expected_entry', [
         (1, SPICE_KERNELS_PRIMARY_ENTRY),
@@ -409,7 +409,7 @@ class TestBundlePDS4Label:
 
         label = _build_label(setup, readme)
 
-        assert label.BUNDLE_MEMBER_ENTRIES == expected_entry
+        assert label._label_fields["BUNDLE_MEMBER_ENTRIES"] == expected_entry
 
     @pytest.mark.parametrize('eol, eol_char, expected', [
         ('LF', '\n', SPICE_KERNELS_PRIMARY_ENTRY),
@@ -432,7 +432,7 @@ class TestBundlePDS4Label:
 
         label = _build_label(setup, readme)
 
-        assert label.BUNDLE_MEMBER_ENTRIES == expected
+        assert label._label_fields["BUNDLE_MEMBER_ENTRIES"] == expected
 
     # ------------------------------------------------------------------
     # Edge cases
@@ -499,7 +499,7 @@ class TestBundlePDS4Label:
 
         label = _build_label(helpers.make_setup(), readme)
 
-        assert label.COLL_STATUS == expected_status
+        assert label._label_fields["COLL_STATUS"] == expected_status
 
     @pytest.mark.parametrize('setup_attribute, value, label_attribute', [
         ('author_list', '', 'AUTHOR_LIST'),
@@ -519,7 +519,7 @@ class TestBundlePDS4Label:
 
         label = _build_label(setup, readme)
 
-        assert getattr(label, label_attribute) == value
+        assert label._label_fields[label_attribute] == value
 
     @pytest.mark.parametrize('bundle_lid, bundle_vid', [
         ('urn:nasa:pds:maven_spice', '1.0'),
@@ -536,8 +536,8 @@ class TestBundlePDS4Label:
 
         label = _build_label(helpers.make_setup(), readme)
 
-        assert label.BUNDLE_LID == bundle_lid
-        assert label.BUNDLE_VID == bundle_vid
+        assert label._label_fields["BUNDLE_LID"] == bundle_lid
+        assert label._label_fields["BUNDLE_VID"] == bundle_vid
 
     def test_file_name_is_readme_name_verbatim_without_truncation(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
@@ -548,7 +548,7 @@ class TestBundlePDS4Label:
 
         label = _build_label(helpers.make_setup(), readme)
 
-        assert label.FILE_NAME == 'bundle_maven_spice_v002.0.xml'
+        assert label._label_fields["FILE_NAME"] == 'bundle_maven_spice_v002.0.xml'
 
     def test_coll_lidvid_concatenates_lid_and_vid_verbatim(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
@@ -563,7 +563,7 @@ class TestBundlePDS4Label:
 
         label = _build_label(helpers.make_setup(), readme)
 
-        assert label.COLL_LIDVID == 'urn:nasa:pds:maven_spice:spice_kernels::3.14'
+        assert label._label_fields["COLL_LIDVID"] == 'urn:nasa:pds:maven_spice:spice_kernels::3.14'
 
 
 # ===========================================================================

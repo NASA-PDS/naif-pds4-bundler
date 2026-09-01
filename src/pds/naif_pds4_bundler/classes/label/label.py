@@ -20,6 +20,12 @@ class PDSLabel:
     def __init__(self, product) -> None:
         """Constructor."""
 
+        # Fields available for $KEY template substitution in write_label().
+        # Populated explicitly here and by subclass constructors -- unlike
+        # vars(self), this excludes internal object references (self.product,
+        # self.setup, etc.) that templates never reference.
+        self._label_fields = {}
+
         # Label name is not known yet; write_label() fills it in later.
         self.name = ''
 
@@ -36,18 +42,19 @@ class PDSLabel:
         self.root_dir = self.setup.root_dir
         self.mission_acronym = self.setup.mission_acronym
 
+        # Template-substitution values, keyed by the $KEY name templates use.
         if hasattr(self.setup, "creation_date_time"):
             creation_dt = self.setup.creation_date_time
-            self.PRODUCT_CREATION_TIME = creation_dt
-            self.PRODUCT_CREATION_DATE = creation_dt.split("T")[0]
-            self.PRODUCT_CREATION_YEAR = creation_dt.split("-")[0]
+            self._label_fields["PRODUCT_CREATION_TIME"] = creation_dt
+            self._label_fields["PRODUCT_CREATION_DATE"] = creation_dt.split("T")[0]
+            self._label_fields["PRODUCT_CREATION_YEAR"] = creation_dt.split("-")[0]
         else:
-            self.PRODUCT_CREATION_TIME = product.creation_time
-            self.PRODUCT_CREATION_DATE = product.creation_date
-            self.PRODUCT_CREATION_YEAR = product.creation_date.split("-")[0]
+            self._label_fields["PRODUCT_CREATION_TIME"] = product.creation_time
+            self._label_fields["PRODUCT_CREATION_DATE"] = product.creation_date
+            self._label_fields["PRODUCT_CREATION_YEAR"] = product.creation_date.split("-")[0]
 
-        self.FILE_SIZE = product.size
-        self.FILE_CHECKSUM = product.checksum
+        self._label_fields["FILE_SIZE"] = product.size
+        self._label_fields["FILE_CHECKSUM"] = product.checksum
 
         #
         # For labels that need to include all missions, observers and targets
@@ -102,7 +109,8 @@ class PDSLabel:
 
     def write_label(self):
         """Write the Label."""
-        label_dictionary = vars(self)
+        # Only fields explicitly opted in by constructors, not all self.
+        label_dictionary = self._label_fields
 
         if self._label_extension not in self.product.path:
             label_name = (

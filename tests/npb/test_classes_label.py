@@ -73,17 +73,19 @@ class TestPDSLabelInit:
         setup_pds4.creation_date_time = "2023-06-15T12:00:00"
         product.setup = setup_pds4
         label = PDSLabel(product)
-        assert label.PRODUCT_CREATION_TIME == "2023-06-15T12:00:00"
-        assert label.PRODUCT_CREATION_DATE == "2023-06-15"
-        assert label.PRODUCT_CREATION_YEAR == "2023"
+
+        # These are template-substitution fields, not plain attributes.
+        assert label._label_fields["PRODUCT_CREATION_TIME"] == "2023-06-15T12:00:00"
+        assert label._label_fields["PRODUCT_CREATION_DATE"] == "2023-06-15"
+        assert label._label_fields["PRODUCT_CREATION_YEAR"] == "2023"
 
     def test_uses_product_creation_date(self, setup_pds4, product):
         """setup does NOT have creation_date_time → use product's dates"""
         product.setup = setup_pds4
         label = PDSLabel(product)
-        assert label.PRODUCT_CREATION_TIME == "2024-01-01T00:00:00"
-        assert label.PRODUCT_CREATION_DATE == "2024-01-01"
-        assert label.PRODUCT_CREATION_YEAR == "2024"
+        assert label._label_fields["PRODUCT_CREATION_TIME"] == "2024-01-01T00:00:00"
+        assert label._label_fields["PRODUCT_CREATION_DATE"] == "2024-01-01"
+        assert label._label_fields["PRODUCT_CREATION_YEAR"] == "2024"
 
     def test_non_kernel_class_builds_from_setup(self, setup_pds4, product):
         """class is NOT one of the excluded kernel classes then
@@ -228,6 +230,8 @@ class TestPDSLabelWriteLabel:
             cls_name = "SpiceKernelPDS3Label" if is_pds3_kernel else "PDSLabel"
             cls = cast(Type[PDSLabel], type(cls_name, (PDSLabel,), {}))
             label = object.__new__(cls)
+            # __init__ never runs, so write_label() needs this set by hand.
+            label._label_fields = {}
             label.setup = setup
             label.product = product
             label.name = ""

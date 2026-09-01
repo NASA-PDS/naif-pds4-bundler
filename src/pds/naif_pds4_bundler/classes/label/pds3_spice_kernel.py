@@ -32,19 +32,21 @@ class SpiceKernelPDS3Label(PDS3Label):
         self._template = str(Path(self.setup.templates_directory)
                              / "template_product_spice_kernel.lbl")
 
-        self.FILE_NAME = f'"{product.name}"'
-        self.INTERCHANGE_FORMAT = product.file_format
-        self.START_TIME = product.start_time.split("Z")[0]
-        self.STOP_TIME = product.stop_time.split("Z")[0]
-        self.KERNEL_TYPE_ID = product.type.upper()
-        self.KERNEL_TYPE = type_to_pds3_type(product.type.upper())
-        self.RECORD_TYPE = product.record_type
-        self.RECORD_BYTES = product.record_bytes
-        self.SPICE_KERNEL_DESCRIPTION = self.format_description(product.description)
+        self._label_fields["FILE_NAME"] = f'"{product.name}"'
+        self._label_fields["INTERCHANGE_FORMAT"] = product.file_format
+        self._label_fields["START_TIME"] = product.start_time.split("Z")[0]
+        self._label_fields["STOP_TIME"] = product.stop_time.split("Z")[0]
+        self._label_fields["KERNEL_TYPE_ID"] = product.type.upper()
+        self._label_fields["KERNEL_TYPE"] = type_to_pds3_type(product.type.upper())
+        self._label_fields["RECORD_TYPE"] = product.record_type
+        self._label_fields["RECORD_BYTES"] = product.record_bytes
+        self._label_fields["SPICE_KERNEL_DESCRIPTION"] = self.format_description(product.description)
 
         self.set_kernel_ids(product)
         self.set_sclk_times(product)
 
+        # Field names here come from the mission's YAML config, not from
+        # source code, so they can't be assigned individually by name.
         #
         # Values from template defaults first.
         #
@@ -52,7 +54,7 @@ class SpiceKernelPDS3Label(PDS3Label):
             if item[0] != "maklabel_options":
                 maklabel_key = item[0]
                 maklabel_val = item[1]
-                self.__setattr__(maklabel_key, maklabel_val)
+                self._label_fields[maklabel_key] = maklabel_val
 
         #
         # Values extracted from the mission template.
@@ -66,25 +68,25 @@ class SpiceKernelPDS3Label(PDS3Label):
 
                 maklabel_val = format_multiple_values(maklabel_val)
 
-                self.__setattr__(maklabel_key, maklabel_val)
+                self._label_fields[maklabel_key] = maklabel_val
 
         #
         # Remove the quotes from the target name and product version type.
         #
-        if hasattr(self, "TARGET_NAME"):
-            if '"' in self.TARGET_NAME:
-                self.TARGET_NAME = self.TARGET_NAME.split('"')[1]
-        if hasattr(self, "PRODUCT_VERSION_TYPE"):
-            if '"' in self.PRODUCT_VERSION_TYPE:
-                self.PRODUCT_VERSION_TYPE = self.PRODUCT_VERSION_TYPE.split('"')[1]
-        if hasattr(self, "PLATFORM_OR_MOUNTING_NAME"):
+        if "TARGET_NAME" in self._label_fields:
+            if '"' in self._label_fields["TARGET_NAME"]:
+                self._label_fields["TARGET_NAME"] = self._label_fields["TARGET_NAME"].split('"')[1]
+        if "PRODUCT_VERSION_TYPE" in self._label_fields:
+            if '"' in self._label_fields["PRODUCT_VERSION_TYPE"]:
+                self._label_fields["PRODUCT_VERSION_TYPE"] = self._label_fields["PRODUCT_VERSION_TYPE"].split('"')[1]
+        if "PLATFORM_OR_MOUNTING_NAME" in self._label_fields:
             if (
-                '"' in self.PLATFORM_OR_MOUNTING_NAME
-                and self.PLATFORM_OR_MOUNTING_NAME != '"N/A"'
+                '"' in self._label_fields["PLATFORM_OR_MOUNTING_NAME"]
+                and self._label_fields["PLATFORM_OR_MOUNTING_NAME"] != '"N/A"'
             ):
-                self.PLATFORM_OR_MOUNTING_NAME = self.PLATFORM_OR_MOUNTING_NAME.split(
-                    '"'
-                )[1]
+                self._label_fields["PLATFORM_OR_MOUNTING_NAME"] = self._label_fields[
+                    "PLATFORM_OR_MOUNTING_NAME"
+                ].split('"')[1]
 
         self.write_label()
 
@@ -111,8 +113,8 @@ class SpiceKernelPDS3Label(PDS3Label):
             sclk_start = "N/A"
             sclk_stop = "N/A"
 
-        self.SPACECRAFT_CLOCK_START_COUNT = f'"{sclk_start}"'
-        self.SPACECRAFT_CLOCK_STOP_COUNT = f'"{sclk_stop}"'
+        self._label_fields["SPACECRAFT_CLOCK_START_COUNT"] = f'"{sclk_start}"'
+        self._label_fields["SPACECRAFT_CLOCK_STOP_COUNT"] = f'"{sclk_stop}"'
 
     def set_kernel_ids(self, product):
         """Set the SPICE Kernel ID field of the label."""
@@ -123,7 +125,7 @@ class SpiceKernelPDS3Label(PDS3Label):
         else:
             naif_instrument_id = '"N/A"'
 
-        self.NAIF_INSTRUMENT_ID = format_multiple_values(naif_instrument_id)
+        self._label_fields["NAIF_INSTRUMENT_ID"] = format_multiple_values(naif_instrument_id)
 
     def format_description(self, description):
         """Format the SPICE kernel description appropriately.

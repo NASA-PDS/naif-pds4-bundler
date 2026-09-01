@@ -29,8 +29,8 @@ class InventoryPDS4Label(PDS4Label):
         self._template = str(Path(self.setup.templates_directory)
                              / f"template_collection_{self.collection.type}.xml")
 
-        self.COLLECTION_LID = self.collection.lid
-        self.COLLECTION_VID = self.collection.vid
+        self._label_fields["COLLECTION_LID"] = self.collection.lid
+        self._label_fields["COLLECTION_VID"] = self.collection.vid
 
         #
         # The start and stop time of the miscellaneous collection
@@ -64,24 +64,24 @@ class InventoryPDS4Label(PDS4Label):
             start_times.sort()
             stop_times.sort()
 
-            self.START_TIME = start_times[0]
-            self.STOP_TIME = stop_times[-1]
+            self._label_fields["START_TIME"] = start_times[0]
+            self._label_fields["STOP_TIME"] = stop_times[-1]
 
         else:
             #
             # The increment start and stop times are still defined by the
             # spice_kernels collection.
             #
-            self.START_TIME = self.setup.increment_start
-            self.STOP_TIME = self.setup.increment_finish
+            self._label_fields["START_TIME"] = self.setup.increment_start
+            self._label_fields["STOP_TIME"] = self.setup.increment_finish
 
-        self.FILE_NAME = self.product.name
+        self._label_fields["FILE_NAME"] = self.product.name
 
         #
         # Count number of lines in the inventory file
         #
         with open(self.product.path, 'r', encoding='utf-8') as f:
-            self.N_RECORDS = str(len(f.readlines()))
+            self._label_fields["N_RECORDS"] = str(len(f.readlines()))
 
         self.name = Path(self.collection.name).with_suffix(".xml").name
         self.write_label()

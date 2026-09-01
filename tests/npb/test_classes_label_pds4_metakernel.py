@@ -136,27 +136,27 @@ class TestMetaKernelPDS4Label:
         # Validate the PDS4 MK label attributes populated during construction.
 
         # Check that FILE_NAME has been copied from product.name.
-        assert label.FILE_NAME == 'maven_v01.tm'
+        assert label._label_fields["FILE_NAME"] == 'maven_v01.tm'
 
         # Check that the PDS4 logical identifier and the product version have
         # been copied correctly from product.lid and product.vid.
-        assert label.PRODUCT_LID == (
+        assert label._label_fields["PRODUCT_LID"] == (
             'urn:nasa:pds:maven_spice:spice_kernels:mk_maven_v01.tm')
-        assert label.PRODUCT_VID == '1.0'
+        assert label._label_fields["PRODUCT_VID"] == '1.0'
 
         # Check the fixed value defined by MetaKernelPDS4Label.
-        assert label.FILE_FORMAT == 'Character'
+        assert label._label_fields["FILE_FORMAT"] == 'Character'
 
         # Check that the time coverage is copied from product.start_time and
         # product.stop_time, respectively.
-        assert label.START_TIME == '2024-01-01T00:00:00Z'
-        assert label.STOP_TIME == '2024-01-31T23:59:59Z'
+        assert label._label_fields["START_TIME"] == '2024-01-01T00:00:00Z'
+        assert label._label_fields["STOP_TIME"] == '2024-01-31T23:59:59Z'
 
         # Check that KERNEL_TYPE_ID is the upper-cased product.type.
-        assert label.KERNEL_TYPE_ID == 'MK'
+        assert label._label_fields["KERNEL_TYPE_ID"] == 'MK'
 
         # Check that the kernel description is copied from product.description.
-        assert label.SPICE_KERNEL_DESCRIPTION == 'MAVEN SPICE meta-kernel'
+        assert label._label_fields["SPICE_KERNEL_DESCRIPTION"] == 'MAVEN SPICE meta-kernel'
 
         # Check that the XML label name is derived from the product name.
         assert label.name == 'maven_v01.xml'
@@ -229,7 +229,7 @@ class TestMetaKernelPDS4Label:
             label = MetaKernelPDS4Label(product)
 
         # The kernel type identifier must be the upper-cased product type.
-        assert label.KERNEL_TYPE_ID == expected_kernel_type_id
+        assert label._label_fields["KERNEL_TYPE_ID"] == expected_kernel_type_id
 
     @pytest.mark.parametrize('product_attribute, value, label_attribute', [
         ('lid', '', 'PRODUCT_LID'),
@@ -267,7 +267,7 @@ class TestMetaKernelPDS4Label:
 
         # Check that the expected label attribute contains exactly the value
         # assigned to the product.
-        assert getattr(label, label_attribute) == value
+        assert label._label_fields[label_attribute] == value
 
     def test_child_overrides_parent_field_assignments(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
@@ -290,9 +290,9 @@ class TestMetaKernelPDS4Label:
             product.setup = setup
             label = MetaKernelPDS4Label(product)
 
-        assert label.PRODUCT_LID == (
+        assert label._label_fields["PRODUCT_LID"] == (
             'urn:nasa:pds:maven_spice:spice_kernels:mk_distinct')
-        assert label.PRODUCT_VID == '9.9'
+        assert label._label_fields["PRODUCT_VID"] == '9.9'
 
     @pytest.mark.parametrize('product_name, expected_label_name', [
         ('maven_v01.tm', 'maven_v01.xml'),
@@ -321,7 +321,7 @@ class TestMetaKernelPDS4Label:
             label = MetaKernelPDS4Label(product)
 
         # FILE_NAME is the verbatim product name (no truncation there).
-        assert label.FILE_NAME == product_name
+        assert label._label_fields["FILE_NAME"] == product_name
 
         # The XML label name is the truncated-at-first-dot value.
         assert label.name == expected_label_name
@@ -407,7 +407,7 @@ class TestMetaKernelPDS4Label:
             product.setup = setup
             label = MetaKernelPDS4Label(product)
 
-        assert label.KERNEL_INTERNAL_REFERENCES == expected
+        assert label._label_fields["KERNEL_INTERNAL_REFERENCES"] == expected
 
     @pytest.mark.parametrize('xml_tab, expected', [
         (1,
@@ -449,11 +449,11 @@ class TestMetaKernelPDS4Label:
             product.setup = setup
             label = MetaKernelPDS4Label(product)
 
-        assert label.KERNEL_INTERNAL_REFERENCES == expected
+        assert label._label_fields["KERNEL_INTERNAL_REFERENCES"] == expected
 
         # Explicitly assert the leading indentation widths to make the contract
         # unambiguous.
-        first_line = label.KERNEL_INTERNAL_REFERENCES.split(setup.eol_pds4)[0]
+        first_line = label._label_fields["KERNEL_INTERNAL_REFERENCES"].split(setup.eol_pds4)[0]
         assert first_line == f"{' ' * 2 * xml_tab}<Internal_Reference>"
 
     @pytest.mark.parametrize('eol_pds4, expected', [
@@ -488,8 +488,8 @@ class TestMetaKernelPDS4Label:
             product.setup = setup
             label = MetaKernelPDS4Label(product)
 
-        assert label.KERNEL_INTERNAL_REFERENCES == expected
-        assert label.KERNEL_INTERNAL_REFERENCES.endswith(eol_pds4)
+        assert label._label_fields["KERNEL_INTERNAL_REFERENCES"] == expected
+        assert label._label_fields["KERNEL_INTERNAL_REFERENCES"].endswith(eol_pds4)
 
     def test_get_kernel_internal_references_empty_collection_returns_only_eol(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
@@ -510,7 +510,7 @@ class TestMetaKernelPDS4Label:
             label = MetaKernelPDS4Label(product)
 
         # Documents the current (buggy) behaviour.
-        assert label.KERNEL_INTERNAL_REFERENCES == setup.eol_pds4
+        assert label._label_fields["KERNEL_INTERNAL_REFERENCES"] == setup.eol_pds4
 
     def test_get_kernel_internal_references_raises_value_error_for_unknown_extension(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:

@@ -198,34 +198,34 @@ class TestOrbnumFilePDS4Label:
         # construction.
 
         # Check that FILE_NAME has been copied from product.name.
-        assert label.FILE_NAME == 'maven_orb_v01.orb'
+        assert label._label_fields["FILE_NAME"] == 'maven_orb_v01.orb'
 
         # Check that the PDS4 logical identifier and the product version have
         # been copied correctly from product.lid and product.vid.
-        assert label.PRODUCT_LID == (
+        assert label._label_fields["PRODUCT_LID"] == (
             'urn:nasa:pds:maven_spice:miscellaneous:orbnum_maven_orb_v01.orb')
-        assert label.PRODUCT_VID == '1.0'
+        assert label._label_fields["PRODUCT_VID"] == '1.0'
 
         # Check the fixed value defined by OrbnumFilePDS4Label.
-        assert label.FILE_FORMAT == 'Character'
+        assert label._label_fields["FILE_FORMAT"] == 'Character'
 
         # Check that the time coverage is copied from product.start_time and
         # product.stop_time, respectively.
-        assert label.START_TIME == '2024-01-01T00:00:00Z'
-        assert label.STOP_TIME == '2024-01-31T23:59:59Z'
+        assert label._label_fields["START_TIME"] == '2024-01-01T00:00:00Z'
+        assert label._label_fields["STOP_TIME"] == '2024-01-31T23:59:59Z'
 
         # Check that the description is copied from product.description.
-        assert label.DESCRIPTION == 'MAVEN orbit number file'
+        assert label._label_fields["DESCRIPTION"] == 'MAVEN orbit number file'
 
         # Check that the numeric metadata is str()-coerced. HEADER_LENGTH and
         # TABLE_OFFSET both come from product.header_length because the table
         # data begins right after the header.
-        assert label.HEADER_LENGTH == '873'
-        assert label.TABLE_OFFSET == '873'
-        assert label.TABLE_RECORDS == '100'
+        assert label._label_fields["HEADER_LENGTH"] == '873'
+        assert label._label_fields["TABLE_OFFSET"] == '873'
+        assert label._label_fields["TABLE_RECORDS"] == '100'
 
         # Check that the number of fields is the str() of len(product.params).
-        assert label.NUMBER_OF_FIELDS == '3'
+        assert label._label_fields["NUMBER_OF_FIELDS"] == '3'
 
         # Check that the XML label name is derived from the product name.
         assert label.name == 'maven_orb_v01.xml'
@@ -323,7 +323,7 @@ class TestOrbnumFilePDS4Label:
 
         # Check that the expected label attribute contains exactly the value
         # assigned to the product.
-        assert getattr(label, label_attribute) == value
+        assert label._label_fields[label_attribute] == value
 
     @pytest.mark.parametrize('product_attribute, value, label_attribute, expected', [
         ('header_length', 0, 'HEADER_LENGTH', '0'),
@@ -351,7 +351,7 @@ class TestOrbnumFilePDS4Label:
             product.setup = setup
             label = OrbnumFilePDS4Label(product)
 
-        assert getattr(label, label_attribute) == expected
+        assert label._label_fields[label_attribute] == expected
 
     def test_child_overrides_parent_field_assignments(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
@@ -374,9 +374,9 @@ class TestOrbnumFilePDS4Label:
             product.setup = setup
             label = OrbnumFilePDS4Label(product)
 
-        assert label.PRODUCT_LID == (
+        assert label._label_fields["PRODUCT_LID"] == (
             'urn:nasa:pds:maven_spice:miscellaneous:orbnum_distinct')
-        assert label.PRODUCT_VID == '9.9'
+        assert label._label_fields["PRODUCT_VID"] == '9.9'
 
     @pytest.mark.parametrize('product_name, expected_label_name', [
         ('maven_orb_v01.orb', 'maven_orb_v01.xml'),
@@ -405,7 +405,7 @@ class TestOrbnumFilePDS4Label:
             label = OrbnumFilePDS4Label(product)
 
         # FILE_NAME is the verbatim product name (no truncation there).
-        assert label.FILE_NAME == product_name
+        assert label._label_fields["FILE_NAME"] == product_name
 
         # The XML label name is the truncated-at-first-dot value.
         assert label.name == expected_label_name
@@ -436,7 +436,7 @@ class TestOrbnumFilePDS4Label:
             product.setup = setup
             label = OrbnumFilePDS4Label(product)
 
-        assert label.FIELDS_LENGTH == expected
+        assert label._label_fields["FIELDS_LENGTH"] == expected
 
     def test_constructor_raises_when_record_length_is_not_numeric(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
@@ -488,7 +488,7 @@ class TestOrbnumFilePDS4Label:
             product.setup = setup
             label = OrbnumFilePDS4Label(product)
 
-        assert label.NUMBER_OF_FIELDS == expected_number_of_fields
+        assert label._label_fields["NUMBER_OF_FIELDS"] == expected_number_of_fields
 
     def test_get_table_character_fields_empty_params_returns_empty_string(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
@@ -506,7 +506,7 @@ class TestOrbnumFilePDS4Label:
             product.setup = setup
             label = OrbnumFilePDS4Label(product)
 
-        assert label.FIELDS == ''
+        assert label._label_fields["FIELDS"] == ''
 
     @pytest.mark.parametrize('name, unit, blank_records, expected', [
         ('Alt', '', False,
@@ -575,7 +575,7 @@ class TestOrbnumFilePDS4Label:
             product.setup = setup
             label = OrbnumFilePDS4Label(product)
 
-        assert label.FIELDS == expected
+        assert label._label_fields["FIELDS"] == expected
 
     def test_get_table_character_fields_concatenates_in_order(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
@@ -595,12 +595,12 @@ class TestOrbnumFilePDS4Label:
             label = OrbnumFilePDS4Label(product)
 
         # One block per param.
-        assert label.FIELDS.count('<Field_Character>') == 3
+        assert label._label_fields["FIELDS"].count('<Field_Character>') == 3
 
         # The blocks appear in insertion order.
-        assert (label.FIELDS.index('<name>No.</name>')
-                < label.FIELDS.index('<name>UTC</name>')
-                < label.FIELDS.index('<name>Alt</name>'))
+        assert (label._label_fields["FIELDS"].index('<name>No.</name>')
+                < label._label_fields["FIELDS"].index('<name>UTC</name>')
+                < label._label_fields["FIELDS"].index('<name>Alt</name>'))
 
     @pytest.mark.parametrize('xml_tab, expected', [
         (1,
@@ -644,11 +644,11 @@ class TestOrbnumFilePDS4Label:
             product.setup = setup
             label = OrbnumFilePDS4Label(product)
 
-        assert label.FIELDS == expected
+        assert label._label_fields["FIELDS"] == expected
 
         # Explicitly assert the leading indentation width to make the contract
         # unambiguous.
-        first_line = label.FIELDS.split(setup.eol_pds4)[0]
+        first_line = label._label_fields["FIELDS"].split(setup.eol_pds4)[0]
         assert first_line == f"{' ' * 4 * xml_tab}<Field_Character>"
 
     @pytest.mark.parametrize('eol_pds4, expected', [
@@ -692,8 +692,8 @@ class TestOrbnumFilePDS4Label:
             product.setup = setup
             label = OrbnumFilePDS4Label(product)
 
-        assert label.FIELDS == expected
-        assert label.FIELDS.endswith(eol_pds4)
+        assert label._label_fields["FIELDS"] == expected
+        assert label._label_fields["FIELDS"].endswith(eol_pds4)
 
     def test_field_template_forwards_all_descriptor_values(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
@@ -723,7 +723,7 @@ class TestOrbnumFilePDS4Label:
                 label = OrbnumFilePDS4Label(product)
 
         # The fields string is exactly the stubbed return value.
-        assert label.FIELDS == 'STUB'
+        assert label._label_fields["FIELDS"] == 'STUB'
 
         # field_template received every descriptor value positionally, in order,
         # with product.blank_records as the trailing ``blanks`` argument.
@@ -757,7 +757,7 @@ class TestOrbnumFilePDS4Label:
             product.setup = setup
             label = OrbnumFilePDS4Label(product)
 
-        assert label.TABLE_CHARACTER_DESCRIPTION == expected
+        assert label._label_fields["TABLE_CHARACTER_DESCRIPTION"] == expected
 
     @pytest.mark.parametrize('xml_tab, expected', [
         (1, '\n      <description>ORBNUM table</description>\n'),
@@ -782,7 +782,7 @@ class TestOrbnumFilePDS4Label:
             product.setup = setup
             label = OrbnumFilePDS4Label(product)
 
-        assert label.TABLE_CHARACTER_DESCRIPTION == expected
+        assert label._label_fields["TABLE_CHARACTER_DESCRIPTION"] == expected
 
     @pytest.mark.parametrize('eol_pds4, expected', [
         ('\n', '\n      <description>ORBNUM table</description>\n'),
@@ -806,7 +806,7 @@ class TestOrbnumFilePDS4Label:
             product.setup = setup
             label = OrbnumFilePDS4Label(product)
 
-        assert label.TABLE_CHARACTER_DESCRIPTION == expected
+        assert label._label_fields["TABLE_CHARACTER_DESCRIPTION"] == expected
 
 
 # ===========================================================================
