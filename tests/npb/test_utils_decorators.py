@@ -25,13 +25,36 @@ def test_spiceypy_error_is_raised_as_npberror():
         # Manually raise a specific SpiceyPy exception
         raise spice_exc.SpiceNOSUCHFILE("The file could not be located.")
 
-    # Match on the error message, since converting to NPBError keeps the
-    # message text but drops the SpiceNOSUCHFILE class name.
+    # Match on the error message text; the full NPBError message is the
+    # formatted Python traceback (see the test below), which still contains
+    # this text as part of the underlying SpiceyPyError's own message.
     with pytest.raises(NPBError, match="could not be located") as exc_info:
         mock_furnish("missing_kernel.tm")
 
     # The original SpiceyPyError should still be reachable as the cause.
     assert isinstance(exc_info.value.__cause__, spice_exc.SpiceNOSUCHFILE)
+
+
+def test_npberror_message_is_the_formatted_traceback():
+    """Regression test for the exact message content raised as NPBError.
+
+    Pins the current behavior (NPBError(traceback.format_exc())): the
+    message must be the full Python traceback of the caught SpiceyPyError,
+    not just str(error), so the NPB call site (file/line) that triggered
+    the SPICE failure stays visible in the log. See PR #365 review.
+    """
+
+    @spice_exception_handler
+    def mock_furnish(_):
+        raise spice_exc.SpiceNOSUCHFILE("The file could not be located.")
+
+    with pytest.raises(NPBError) as exc_info:
+        mock_furnish("missing_kernel.tm")
+
+    message = str(exc_info.value)
+    assert message.startswith("Traceback (most recent call last):")
+    assert "SpiceNOSUCHFILE" in message
+    assert "The file could not be located." in message
 
 
 def test_successful_execution_with_return_none():

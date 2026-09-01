@@ -1,4 +1,5 @@
 """Decorator module that contains decorator functions."""
+import traceback
 from functools import wraps
 
 from spiceypy.utils.exceptions import SpiceyPyError
@@ -23,7 +24,11 @@ def spice_exception_handler(func):
 
         except SpiceyPyError as error:
             # Re-raise as NPBError so SPICE failures are handled like any other
-            # NPB error; `from error` keeps the original traceback.
-            raise NPBError(str(error)) from error
+            # NPB error. The message is the formatted Python traceback (not
+            # str(error)), so the NPB call site (file/line) that triggered the
+            # SPICE failure stays visible in the log, as it did before this
+            # decorator raised NPBError directly; `from error` additionally
+            # keeps the original exception chained.
+            raise NPBError(traceback.format_exc()) from error
 
     return inner_function
