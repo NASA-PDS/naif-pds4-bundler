@@ -232,9 +232,12 @@ class TestCollectionSetCollectionVid:
          "4.0") # v003 + 1
     ])
     def test_increment_true_success_glob(self, updated, fake_versions, vid):
+        # The patch target is utils.files, not this collection module: the
+        # actual glob.glob() call now happens inside find_latest_versioned_file,
+        # which set_collection_vid delegates to.
         col, _ = self._collection(increment=True)
         col.updated = updated
-        with patch("pds.naif_pds4_bundler.classes.collection.collection.glob.glob",
+        with patch("pds.naif_pds4_bundler.utils.files.glob.glob",
                    return_value=fake_versions):
             col.set_collection_vid()
         assert col.vid == vid
@@ -246,23 +249,58 @@ class TestCollectionSetCollectionVid:
     def test_increment_glob_fails(self, c_type, vid, caplog):
         col, _ = self._collection(c_type=c_type, increment=True, release="7")
         col.updated = True
-        # glob returns empty → IndexError on [-1] → triggers except block
-        with patch("pds.naif_pds4_bundler.classes.collection.collection.glob.glob",
+        # An empty file list is a normal "nothing found yet" result, not an
+        # error: find_latest_versioned_file returns (None, None) for it, and
+        # set_collection_vid falls back to a default version (7 for
+        # spice_kernels since it tracks the release; 1 for anything else).
+        with patch("pds.naif_pds4_bundler.utils.files.glob.glob",
                    return_value=[]):
             with caplog.at_level(logging.WARNING):
                 col.set_collection_vid()
         assert col.vid == vid
 
-    @pytest.mark.parametrize("c_type, vid", [
-        ("spice_kernels", "2.0"),
-        ("miscellaneous", "1.0")
-    ])
-    def test_increment_glob_raises_exception(self, c_type, vid, caplog):
-        """Ensure any BaseException (not just IndexError) triggers fallback."""
-        col, _ = self._collection(c_type=c_type, increment=True, release="2")
+    def test_increment_glob_raises_exception_propagates(self):
+        """Test that set_collection_vid lets a glob.glob failure (e.g. a disk
+        error) propagate as an OSError, instead of silently swallowing it into a
+        fallback version the way the old `except BaseException` did.
+
+        A glob failure is a real error, not a "no previous version found" case,
+        so it must not be hidden behind a made-up version number.
+
+        TODO: This OSError propagates out of run_pipeline() (pipeline/npb.py),
+              which only catches NPBError, and is caught only by the generic
+              `except Exception` in __main__.py's main(). That handler prints a
+              one-line message and exits with code 3, but skips everything
+              handle_npb_error() normally does for a real NPBError (logging via
+              the Log object, write_file_list(), write_checksum_registry(),
+              template cleanup, spiceypy.kclear()). Fixing this properly likely
+              means a broader refactor of pipeline error handling (e.g. having
+              run_pipeline() also catch unexpected exceptions and route them
+              through handle_npb_error()), not a local change to this method --
+              tracked here since this test is what exercises that gap.
+        """
+        # Build a Collection instance to call set_collection_vid() on. The
+        # specific values chosen (c_type, release, updated) don't drive any
+        # assertion below: the exception fires inside glob.glob, before any of
+        # set_collection_vid's own logic (fallback-by-collection-type, version
+        # bump) ever gets a chance to run.
+        col, _ = self._collection(c_type="spice_kernels", increment=True, release="2")
         col.updated = False
-        with patch("pds.naif_pds4_bundler.classes.collection.collection.glob.glob",
+
+        # Replace the real glob.glob (as called from inside
+        # find_latest_versioned_file, hence patching utils.files rather than
+        # this module) with a mock that raises OSError("disk error") instead of
+        # returning a file list. This simulates a filesystem failure, which is a
+        # different scenario from "no files found" (an empty list).
+        with patch("pds.naif_pds4_bundler.utils.files.glob.glob",
                    side_effect=OSError("disk error")):
-            with caplog.at_level(logging.WARNING):
+
+            # Call the method under test inside pytest.raises: this block passes
+            # only if col.set_collection_vid() raises an OSError whose message
+            # matches "disk error". It fails if the call raises nothing (meaning
+            # the exception got swallowed somewhere) or raises a different
+            # exception type. That's the actual check: proof that the OSError
+            # reaches the caller instead of being absorbed into a fallback
+            # version.
+            with pytest.raises(OSError, match="disk error"):
                 col.set_collection_vid()
-        assert col.vid == vid
