@@ -47,7 +47,9 @@ MOD = "pds.naif_pds4_bundler.classes.product.product_checksum"
 
 PATCHES = dict(
     safe_make_directory=f"{MOD}.safe_make_directory",
-    glob_glob=f"{MOD}.glob.glob",
+    # find_latest_versioned_file (used by read_current_product) globs via
+    # pds.naif_pds4_bundler.utils.files, not this module.
+    glob_glob="pds.naif_pds4_bundler.utils.files.glob.glob",
     md5=f"{MOD}.md5",
     checksum_from_registry=f"{MOD}.checksum_from_registry",
     checksum_from_label=f"{MOD}.checksum_from_label",
@@ -93,6 +95,10 @@ def _build_pds4(
          patch(PATCHES["os_walk"], return_value=[]) as m_walk, \
          patch("builtins.open", mock_open(read_data="")) as m_open:
 
+        # find_latest_versioned_file globs two patterns (bundle + staging
+        # dir) and pools the results, so this mock is hit twice per call;
+        # returning the same glob_files both times is harmless here since
+        # duplicates don't change which entry sorts last.
         m_glob.return_value = glob_files
 
         obj = ChecksumProduct(setup, collection, add_previous_checksum)

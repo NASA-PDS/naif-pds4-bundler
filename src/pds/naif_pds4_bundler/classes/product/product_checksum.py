@@ -1,5 +1,4 @@
 """Implementation of the Checksum product class."""
-import glob
 import logging
 import os
 from collections import defaultdict
@@ -12,6 +11,7 @@ from ...utils import add_carriage_return
 from ...utils import checksum_from_label
 from ...utils import checksum_from_registry
 from ...utils import compare_files
+from ...utils import find_latest_versioned_file
 from ...utils import md5
 from ...utils import safe_make_directory
 
@@ -112,23 +112,25 @@ class ChecksumProduct(Product):
         #
         if self.setup.pds_version == "4":
             if self.setup.increment:
-                checksum_files = glob.glob(
+                # Search both the bundle directory (previous increments) and
+                # the staging directory (current, in-progress increment) for
+                # the latest checksum file already written.
+                latest_file, latest_version = find_latest_versioned_file([
                     self.setup.bundle_directory
                     + f"/{self.setup.mission_acronym}_spice/"
                     + self.collection.name
                     + os.sep
-                    + "/checksum/checksum_v*.tab"
-                )
+                    + "/checksum/checksum_v*.tab",
 
-                checksum_files += glob.glob(
                     self.setup.staging_directory
                     + os.sep
                     + self.collection.name
-                    + "/checksum/checksum_v*.tab"
-                )
-                checksum_files.sort()
-                try:
-                    latest_file = checksum_files[-1]
+                    + "/checksum/checksum_v*.tab",
+                ])
+
+                # latest_version is None either when no file matched, or when
+                # a file matched but its name didn't parse as expected.
+                if latest_file is not None and latest_version is not None:
 
                     #
                     # Store the previous version to use it to validate the
@@ -136,15 +138,15 @@ class ChecksumProduct(Product):
                     #
                     self.path_current = latest_file
                     self.name_current = Path(latest_file).name
-
-                    latest_version = latest_file.split("_v")[-1].split(".")[0]
-                    self.version = int(latest_version) + 1
+                    self.version = latest_version + 1
 
                     logging.info('-- Previous checksum file is: %s', latest_file)
                     logging.info('-- Generate version %d.', self.version)
                     logging.info('')
 
-                except BaseException:
+                else:
+                    # No usable previous checksum file: start over at v1
+                    # rather than guessing a version from a partial match.
                     self.version = 1
                     self.path_current = ""
 
