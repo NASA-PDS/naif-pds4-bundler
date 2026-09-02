@@ -10,6 +10,9 @@ from pds.naif_pds4_bundler.classes.exceptions import NPBError
 
 # Module path used as the anchor for every patch target.
 _MODULE = 'pds.naif_pds4_bundler.classes.product.product_spiceds'
+# find_latest_versioned_file (used in place of direct glob.glob calls) globs
+# via pds.naif_pds4_bundler.utils.files, not this module.
+_GLOB_GLOB = 'pds.naif_pds4_bundler.utils.files.glob.glob'
 
 
 # ---------------------------------------------------------------------------
@@ -165,10 +168,10 @@ class TestSpicedsProductInit:
 
     def test_init_increment_with_previous_version_and_new_spiceds(self):
         # Increment + previous 'spiceds' files + a new 'spiceds' provided. glob
-        # returns out-of-order versions; the constructor must sort them, pick the
-        # highest, store it as latest_spiceds/latest_version and bump version by
-        # one. Because a new 'spiceds' is also provided it continues to the staging
-        # tail rather than early-returning.
+        # returns out-of-order versions; the constructor must sort them, pick
+        # the highest, store it as latest_spiceds/latest_version and bump
+        # version by one. Because a new 'spiceds' is also provided it continues
+        # to the staging tail rather than early-returning.
         setup = make_setup(increment=True, spiceds='/input/spiceds.html')
         collection = make_collection(name='document')
 
@@ -178,7 +181,7 @@ class TestSpicedsProductInit:
             '/bundle/insight_spice/document/spiceds_v002.html']
 
         patches = base_init_patches()
-        with patch(f'{_MODULE}.glob.glob', return_value=list(previous)) as glob_mock, \
+        with patch(_GLOB_GLOB, return_value=list(previous)) as glob_mock, \
                 patches[0] as copy2, patches[1], patches[2], \
                 patches[3], patches[4]:
             product = SpicedsProduct(setup, collection)
@@ -189,7 +192,9 @@ class TestSpicedsProductInit:
         glob_mock.assert_called_once_with(expected_glob)
 
         # Highest version after sorting is v003 -> new version is 4.
-        assert product.latest_version == '003'
+        # latest_version is now an int (parsed by find_latest_versioned_file)
+        # rather than the raw zero-padded string.
+        assert product.latest_version == 3
         assert product.latest_spiceds.endswith('spiceds_v003.html')
         assert product.version == 4
         assert product.name == 'spiceds_v004.html'
@@ -203,12 +208,14 @@ class TestSpicedsProductInit:
         setup = make_setup(increment=True, spiceds='')
         collection = make_collection()
 
-        with patch(f'{_MODULE}.glob.glob',
+        with patch(_GLOB_GLOB,
                    return_value=['/bundle/insight_spice/document/spiceds_v005.html']):
             product = SpicedsProduct(setup, collection)
 
         assert product.version == 6
-        assert product.latest_version == '005'
+        # latest_version is now an int (parsed by find_latest_versioned_file)
+        # rather than the raw zero-padded string.
+        assert product.latest_version == 5
         assert product.generated is False
 
         # Early return happened before the staging tail.
@@ -216,15 +223,15 @@ class TestSpicedsProductInit:
         assert not hasattr(product, 'lid')
 
     def test_init_increment_no_previous_with_spiceds_provided(self):
-        # Increment but glob finds nothing, yet a spiceds is provided. The
-        # empty-list [-1] raises IndexError -> the except branch sets version 1
-        # and empty latest_spiceds; NPBError must NOT fire because a spiceds was
-        # supplied.
+        # Increment but glob finds nothing, yet a spiceds is provided.
+        # find_latest_versioned_file returns None -> the fallback branch sets
+        # version 1 and empty latest_spiceds; NPBError must NOT fire because a
+        # spiceds was supplied.
         setup = make_setup(increment=True, spiceds='/input/spiceds.html')
         collection = make_collection()
 
         patches = base_init_patches()
-        with patch(f'{_MODULE}.glob.glob', return_value=[]), \
+        with patch(_GLOB_GLOB, return_value=[]), \
                 patches[0], patches[1], patches[2], \
                 patches[3], patches[4]:
             product = SpicedsProduct(setup, collection)
@@ -238,7 +245,7 @@ class TestSpicedsProductInit:
         setup = make_setup(increment=True, spiceds='')
         collection = make_collection()
 
-        with patch(f'{_MODULE}.glob.glob', return_value=[]):
+        with patch(_GLOB_GLOB, return_value=[]):
             with pytest.raises(
                 NPBError,
                 match='spiceds not provided and not available from previous releases.',
@@ -442,7 +449,7 @@ class TestSpicedsProductCompare:
             '/bundle/insight_spice/document/spiceds_v003.html',
             '/bundle/insight_spice/document/spiceds_v002.html']
 
-        with patch(f'{_MODULE}.glob.glob', return_value=list(found)) as glob_mock, \
+        with patch(_GLOB_GLOB, return_value=list(found)) as glob_mock, \
                 patch(f'{_MODULE}.compare_files') as compare_files:
             product._compare()
 
@@ -456,8 +463,9 @@ class TestSpicedsProductCompare:
             '/staging/spiceds_v004.html', '/work', True)
 
     def test_compare_falls_back_to_insight_example(self, caplog):
-        # With no previous increment (empty glob -> IndexError), _compare falls
-        # back to the bundled InSight sample and logs the fallback.
+        # With no previous increment (empty glob -> find_latest_versioned_file
+        # returns None), _compare falls back to the bundled InSight sample and
+        # logs the fallback.
 
         # TODO: BUG, _compare builds val_spd_path and the InSight fallback path
         #       with hardcoded '/' separators via f-strings, unlike __init__
@@ -468,8 +476,8 @@ class TestSpicedsProductCompare:
         product = make_spiceds_without_init(
             setup=setup, name='spiceds_v001.html', path='/staging/spiceds_v001.html')
 
-        # Empty glob -> [-1] raises IndexError -> fallback branch.
-        with patch(f'{_MODULE}.glob.glob', return_value=[]), \
+        # Empty glob -> find_latest_versioned_file returns None -> fallback branch.
+        with patch(_GLOB_GLOB, return_value=[]), \
                 patch(f'{_MODULE}.compare_files') as compare_files:
             with caplog.at_level(logging.INFO):
                 product._compare()
