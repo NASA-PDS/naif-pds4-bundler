@@ -258,16 +258,26 @@ class MetaKernelProduct(Product):
 
         versions.sort()
         try:
+            # Position of the version digits within the filename: the "?"
+            # wildcards mark where they sit, since VERSION was substituted with
+            # "?" * len(...) above.
             version_index = pattern.find("?")
 
+            # Take the highest-sorted (i.e. latest) matched filename, drop its
+            # directory path, and slice out just the version digits at that same
+            # position/width.
             version = versions[-1].split(os.sep)[-1]
             version = version[version_index : version_index + len(self.values[key])]
+
+            # Parse the previous increment's version and bump it by one: this is
+            # what *this* product's version is expected to be.
             version = int(version) + 1
 
             if version == int(self.version):
                 logging.info(
                     '-- Version from kernel list and from previous increment '
                     'agree: %d.', version)
+
             else:
                 logging.warning(
                     '-- The meta-kernel version is not as expected from previous '
@@ -278,7 +288,10 @@ class MetaKernelProduct(Product):
                 logging.warning(
                     '   It is recommended to stop the execution and fix the issue.')
 
-        except BaseException:
+        except (IndexError, ValueError):
+            # IndexError: no previous MK matched (versions is empty).
+            # ValueError: the version substring sliced out of the matched
+            # filename, or self.version itself, isn't a valid integer.
             logging.warning('-- Meta-kernel from previous increment is not available.')
             logging.warning('   Version will be set to: %s.', self.version)
 
