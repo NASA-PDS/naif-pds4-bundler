@@ -548,6 +548,52 @@ def get_latest_kernel(
         return kernels_date
 
 
+def find_latest_versioned_file(
+        patterns: list[str],
+        delimiter: str = "_v") -> tuple[Optional[str], Optional[int]]:
+    """Find the most recent versioned file matching one or more glob patterns.
+
+    Globs every pattern in ``patterns``, pools the results, sorts them
+    lexically, and takes the last entry. The version number is parsed from that
+    filename by splitting on ``delimiter`` and taking the leading digits of what
+    follows, up to the first ``"."``.
+
+    :param patterns: Glob patterns to search. Results from all patterns are
+                     pooled before sorting, so callers that search more than one
+                     directory (e.g. a bundle directory and a staging directory)
+                     pass more than one pattern.
+    :type patterns: list[str]
+    :param delimiter: Filename delimiter preceding the version number.
+    :type delimiter: str
+    :return: ``(path, version)`` of the latest match. ``(None, None)`` if no
+             file matches; ``(path, None)`` if a file matches but its version
+             cannot be parsed as an int.
+    :rtype: tuple[Optional[str], Optional[int]]
+    """
+    # Pool results across all patterns before sorting, since lexical order only
+    # reflects "latest" once every candidate directory is in one list.
+    candidates = []
+    for pattern in patterns:
+        candidates += glob.glob(pattern)
+
+    candidates.sort()
+
+    if not candidates:
+        return None, None
+
+    latest = candidates[-1]
+    try:
+        version = int(latest.split(delimiter)[-1].split(".")[0])
+
+    except ValueError:
+        # A match was found but its version couldn't be parsed (unexpected
+        # filename shape). Still return the path: some callers only need it and
+        # don't care about the version.
+        return latest, None
+
+    return latest, version
+
+
 def check_consecutive(lst):
     """Check if a list has consecutive numbers.
 

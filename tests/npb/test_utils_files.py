@@ -750,6 +750,60 @@ def test_fill_template(tmp_path, contents, dct, expected):
     assert result == expected
 
 # ----------------------------------------------------------------------------
+# files.find_latest_versioned_file tests
+# ----------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("files_to_create, patterns, delimiter, expected_name, expected_version", [
+    # A single glob pattern returns the highest-sorting match and its version.
+    (["checksum_v001.tab", "checksum_v002.tab", "checksum_v010.tab"],
+     ["checksum_v*.tab"], "_v", "checksum_v010.tab", 10),
+    # Sorting is lexical, not numeric: "checksum_v9.tab" > "checksum_v10.tab"
+    # ('9' > '1'). Harmless as long as version numbers stay zero-padded to a
+    # fixed width, but the helper doesn't itself guarantee that width.
+    (["checksum_v9.tab", "checksum_v10.tab"],
+     ["checksum_v*.tab"], "_v", "checksum_v9.tab", 9),
+    # Two glob patterns (e.g. bundle dir + staging dir) are pooled before
+    # sorting.
+    (["bundle/inventory_v001.csv", "staging/inventory_v002.csv"],
+     ["bundle/inventory_v*.csv", "staging/inventory_v*.csv"], "_v",
+     "staging/inventory_v002.csv", 2),
+    # No matching file falls back to (None, None).
+    ([], ["missing_v*.tab"], "_v", None, None),
+    # A match whose filename the delimiter can't split still returns its path.
+    (["checksum_no_version.tab"], ["checksum_*.tab"], "_v",
+     "checksum_no_version.tab", None),
+    # A caller-supplied delimiter (e.g. collection.py's un-underscored "v") is
+    # honored.
+    (["spice_kernelsv003.xml"], ["spice_kernels*.xml"], "v",
+     "spice_kernelsv003.xml", 3)])
+def test_find_latest_versioned_file(tmp_path, files_to_create, patterns,
+                                    delimiter, expected_name, expected_version):
+    """Test that find_latest_versioned_file finds the lexically-latest file
+    across one or more glob patterns and parses its version, falling back to
+    (None, None) or (path, None) when nothing matches or the version can't be
+    parsed.
+    """
+    # Paths are relative to tmp_path so the "pools multiple patterns" case
+    # can create files under bundle/ and staging/ subdirectories; mkdir
+    # them on demand since most cases don't need any subdirectory.
+    for rel_name in files_to_create:
+        file_path = tmp_path / rel_name
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        file_path.write_text("")
+
+    # Patterns are also tmp_path-relative in the parametrize table, since the
+    # absolute tmp_path isn't known until the test runs.
+    full_patterns = [str(tmp_path / pattern) for pattern in patterns]
+    path, version = files.find_latest_versioned_file(full_patterns, delimiter=delimiter)
+
+    # expected_name is None for the no-match case, where the function
+    # itself returns None rather than a tmp_path-rooted string.
+    expected_path = str(tmp_path / expected_name) if expected_name is not None else None
+    assert path == expected_path
+    assert version == expected_version
+
+# ----------------------------------------------------------------------------
 # files.format_multiple_values tests
 # ----------------------------------------------------------------------------
 
