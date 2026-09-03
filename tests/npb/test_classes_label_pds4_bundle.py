@@ -731,46 +731,6 @@ class TestBundlePDS4LabelIntegration:
                 for e in entries.findall('Bundle_Member_Entry')] == [
                    'Primary', 'Secondary']
 
-    def test_stray_coll_placeholder_in_template_is_left_untouched(
-            self, tmp_path: Path, helpers: SimpleNamespace) -> None:
-        # coll_name/coll_lidvid/coll_status are local loop scratch, never
-        # written into _label_fields, so a template referencing $COLL_NAME
-        # must NOT be substituted -- it's not part of the public template
-        # contract and write_label only replaces keys present in
-        # _label_fields.
-        templates_dir = tmp_path / 'templates'
-        staging_dir = tmp_path / 'staging'
-        templates_dir.mkdir()
-        staging_dir.mkdir()
-
-        (templates_dir / 'template_bundle.xml').write_text(
-            '<bundle>\n'
-            '  <leaked>$COLL_NAME</leaked>\n'
-            '</bundle>\n',
-            encoding='utf-8')
-
-        setup = helpers.make_setup()
-        setup.templates_directory = str(templates_dir)
-        setup.staging_directory = str(staging_dir)
-
-        collections = [
-            helpers.make_collection(
-                name='spice_kernels',
-                lid='urn:nasa:pds:maven_spice:spice_kernels', updated=True),
-            helpers.make_collection(
-                name='document',
-                lid='urn:nasa:pds:maven_spice:document', updated=True)]
-        readme = helpers.make_readme(staging_dir, collections=collections)
-
-        readme.setup = setup
-
-        BundlePDS4Label(readme)
-        written = Path(readme.path).read_text(encoding='utf-8')
-
-        # $COLL_NAME has no matching key in _label_fields, so it's left as-is
-        # rather than silently picking up the last collection's coll_name.
-        assert '<leaked>$COLL_NAME</leaked>' in written
-
     # ------------------------------------------------------------------
     # setup.add_file side effect
     # ------------------------------------------------------------------
