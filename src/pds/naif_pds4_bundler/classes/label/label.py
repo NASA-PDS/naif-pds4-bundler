@@ -109,9 +109,6 @@ class PDSLabel:
 
     def write_label(self):
         """Write the Label."""
-        # Only fields explicitly opted in by constructors, not all self.
-        label_dictionary = self._label_fields
-
         if self._label_extension not in self.product.path:
             label_name = (
                 self.product.path.split(f".{self.product.extension}")[0]
@@ -133,7 +130,8 @@ class PDSLabel:
             with open(self._template, "r", encoding='utf-8') as t:
                 for line in t:
                     line = line.rstrip()
-                    for key, value in label_dictionary.items():
+                    # Only fields explicitly opted in by constructors, not all self.
+                    for key, value in self._label_fields.items():
                         if isinstance(value, str) and key in line and "$" in line:
                             line = line.replace("$" + key, value)
 

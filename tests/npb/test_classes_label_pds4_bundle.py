@@ -175,12 +175,10 @@ class TestBundlePDS4Label:
         assert label._label_fields["STOP_TIME"] == '2024-02-28T23:59:59Z'
 
         # The single default collection produces exactly one member entry.
+        # COLL_NAME/COLL_LIDVID/COLL_STATUS are local loop scratch, not
+        # _label_fields entries -- their values are only observable through
+        # the rendered BUNDLE_MEMBER_ENTRIES above.
         assert label._label_fields["BUNDLE_MEMBER_ENTRIES"] == SPICE_KERNELS_PRIMARY_ENTRY
-
-        # Per-collection scratch attrs reflect the last processed collection.
-        assert label._label_fields["COLL_NAME"] == 'spice_kernel'
-        assert label._label_fields["COLL_LIDVID"] == 'urn:nasa:pds:maven_spice:spice_kernels::1.0'
-        assert label._label_fields["COLL_STATUS"] == 'Primary'
 
     def test_template_path_is_bundle_template(
             self, label: BundlePDS4Label) -> None:
@@ -227,26 +225,26 @@ class TestBundlePDS4Label:
     # BUNDLE_MEMBER_ENTRIES – per-collection rendering
     # ------------------------------------------------------------------
 
-    @pytest.mark.parametrize('coll_name, updated, expected_coll_name, expected_status, expected_entry', [
-        ('spice_kernels', True, 'spice_kernel', 'Primary',
+    @pytest.mark.parametrize('coll_name, updated, expected_entry', [
+        ('spice_kernels', True,
          ' <Bundle_Member_Entry>\n'
          '  <lidvid_reference>urn:nasa:pds:maven_spice:spice_kernels::1.0</lidvid_reference>\n'
          '  <member_status>Primary</member_status>\n'
          '  <reference_type>bundle_has_spice_kernel_collection</reference_type>\n'
          ' </Bundle_Member_Entry>\n'),
-        ('spice_kernels', False, 'spice_kernel', 'Secondary',
+        ('spice_kernels', False,
          ' <Bundle_Member_Entry>\n'
          '  <lidvid_reference>urn:nasa:pds:maven_spice:spice_kernels::1.0</lidvid_reference>\n'
          '  <member_status>Secondary</member_status>\n'
          '  <reference_type>bundle_has_spice_kernel_collection</reference_type>\n'
          ' </Bundle_Member_Entry>\n'),
-        ('document', True, 'document', 'Primary',
+        ('document', True,
          ' <Bundle_Member_Entry>\n'
          '  <lidvid_reference>urn:nasa:pds:maven_spice:document::1.0</lidvid_reference>\n'
          '  <member_status>Primary</member_status>\n'
          '  <reference_type>bundle_has_document_collection</reference_type>\n'
          ' </Bundle_Member_Entry>\n'),
-        ('document', False, 'document', 'Secondary',
+        ('document', False,
          ' <Bundle_Member_Entry>\n'
          '  <lidvid_reference>urn:nasa:pds:maven_spice:document::1.0</lidvid_reference>\n'
          '  <member_status>Secondary</member_status>\n'
@@ -254,8 +252,7 @@ class TestBundlePDS4Label:
          ' </Bundle_Member_Entry>\n')])
     def test_single_collection_entry_for_fixed_name_branches(
             self, tmp_path: Path, helpers: SimpleNamespace,
-            coll_name: str, updated: bool, expected_coll_name: str,
-            expected_status: str, expected_entry: str) -> None:
+            coll_name: str, updated: bool, expected_entry: str) -> None:
         # Covers the spice_kernels and document name branches and both values of
         # collection.updated. expected_entry is a handwritten literal, not a
         # formula that mirrors the source code.
@@ -269,38 +266,35 @@ class TestBundlePDS4Label:
 
         label = _build_label(setup, readme)
 
-        assert label._label_fields["COLL_NAME"] == expected_coll_name
-        assert label._label_fields["COLL_STATUS"] == expected_status
         assert label._label_fields["BUNDLE_MEMBER_ENTRIES"] == expected_entry
 
     @pytest.mark.parametrize(
-        'information_model_float, expected_coll_name, updated,'
-        ' expected_status, expected_entry', [
-            (1011001000.0, 'miscellaneous', True, 'Primary',
+        'information_model_float, updated, expected_entry', [
+            (1011001000.0, True,
              ' <Bundle_Member_Entry>\n'
              '  <lidvid_reference>urn:nasa:pds:maven_spice:miscellaneous::1.0</lidvid_reference>\n'
              '  <member_status>Primary</member_status>\n'
              '  <reference_type>bundle_has_miscellaneous_collection</reference_type>\n'
              ' </Bundle_Member_Entry>\n'),
-            (1011001000.0, 'miscellaneous', False, 'Secondary',
+            (1011001000.0, False,
              ' <Bundle_Member_Entry>\n'
              '  <lidvid_reference>urn:nasa:pds:maven_spice:miscellaneous::1.0</lidvid_reference>\n'
              '  <member_status>Secondary</member_status>\n'
              '  <reference_type>bundle_has_miscellaneous_collection</reference_type>\n'
              ' </Bundle_Member_Entry>\n'),
-            (1016000000.0, 'miscellaneous', True, 'Primary',
+            (1016000000.0, True,
              ' <Bundle_Member_Entry>\n'
              '  <lidvid_reference>urn:nasa:pds:maven_spice:miscellaneous::1.0</lidvid_reference>\n'
              '  <member_status>Primary</member_status>\n'
              '  <reference_type>bundle_has_miscellaneous_collection</reference_type>\n'
              ' </Bundle_Member_Entry>\n'),
-            (1011000999.0, 'member', True, 'Primary',
+            (1011000999.0, True,
              ' <Bundle_Member_Entry>\n'
              '  <lidvid_reference>urn:nasa:pds:maven_spice:miscellaneous::1.0</lidvid_reference>\n'
              '  <member_status>Primary</member_status>\n'
              '  <reference_type>bundle_has_member_collection</reference_type>\n'
              ' </Bundle_Member_Entry>\n'),
-            (1010000000.0, 'member', False, 'Secondary',
+            (1010000000.0, False,
              ' <Bundle_Member_Entry>\n'
              '  <lidvid_reference>urn:nasa:pds:maven_spice:miscellaneous::1.0</lidvid_reference>\n'
              '  <member_status>Secondary</member_status>\n'
@@ -308,8 +302,8 @@ class TestBundlePDS4Label:
              ' </Bundle_Member_Entry>\n')])
     def test_miscellaneous_branch_depends_on_information_model_threshold(
             self, tmp_path: Path, helpers: SimpleNamespace,
-            information_model_float: float, expected_coll_name: str,
-            updated: bool, expected_status: str, expected_entry: str) -> None:
+            information_model_float: float, updated: bool,
+            expected_entry: str) -> None:
         # Covers the miscellaneous name branch. The threshold >= 1011001000.0
         # selects 'miscellaneous'; below it selects the legacy 'member'. Both
         # Primary and Secondary are parametrized to guarantee are both reached.
@@ -326,8 +320,6 @@ class TestBundlePDS4Label:
 
         label = _build_label(setup, readme)
 
-        assert label._label_fields["COLL_NAME"] == expected_coll_name
-        assert label._label_fields["COLL_STATUS"] == expected_status
         assert label._label_fields["BUNDLE_MEMBER_ENTRIES"] == expected_entry
 
     def test_multiple_collections_are_concatenated_in_order(
@@ -375,16 +367,12 @@ class TestBundlePDS4Label:
 
     def test_empty_collections_list_leaves_member_entries_empty(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
-        # An empty collections list must leave BUNDLE_MEMBER_ENTRIES as '' and
-        # must never create the per-collection scratch attributes.
+        # An empty collections list must leave BUNDLE_MEMBER_ENTRIES as ''.
         label = _build_label(helpers.make_setup(),
                              helpers.make_readme(tmp_path / 'staging',
                                                  collections=[]))
 
         assert label._label_fields["BUNDLE_MEMBER_ENTRIES"] == ''
-        assert 'COLL_NAME' not in label._label_fields
-        assert 'COLL_LIDVID' not in label._label_fields
-        assert 'COLL_STATUS' not in label._label_fields
 
     @pytest.mark.parametrize('xml_tab, expected_entry', [
         (1, SPICE_KERNELS_PRIMARY_ENTRY),
@@ -459,7 +447,7 @@ class TestBundlePDS4Label:
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
         # An unrecognised collection.name following a recognised one must
         # still raise immediately, rather than silently reusing the
-        # previous iteration's COLL_NAME/COLL_LIDVID/COLL_STATUS to emit a
+        # previous iteration's coll_name/coll_lidvid/coll_status to emit a
         # duplicate entry.
         known = helpers.make_collection(
             name='document',
@@ -499,7 +487,8 @@ class TestBundlePDS4Label:
 
         label = _build_label(helpers.make_setup(), readme)
 
-        assert label._label_fields["COLL_STATUS"] == expected_status
+        assert (f'<member_status>{expected_status}</member_status>'
+                in label._label_fields["BUNDLE_MEMBER_ENTRIES"])
 
     @pytest.mark.parametrize('setup_attribute, value, label_attribute', [
         ('author_list', '', 'AUTHOR_LIST'),
@@ -563,7 +552,9 @@ class TestBundlePDS4Label:
 
         label = _build_label(helpers.make_setup(), readme)
 
-        assert label._label_fields["COLL_LIDVID"] == 'urn:nasa:pds:maven_spice:spice_kernels::3.14'
+        assert ('<lidvid_reference>urn:nasa:pds:maven_spice:spice_kernels::3.14'
+                '</lidvid_reference>'
+                in label._label_fields["BUNDLE_MEMBER_ENTRIES"])
 
 
 # ===========================================================================
@@ -740,14 +731,13 @@ class TestBundlePDS4LabelIntegration:
                 for e in entries.findall('Bundle_Member_Entry')] == [
                    'Primary', 'Secondary']
 
-    def test_stray_coll_placeholder_in_template_is_substituted_by_writer(
+    def test_stray_coll_placeholder_in_template_is_left_untouched(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
-        # TODO: BUG, it substitutes every public string attribute of the label
-        #       whose name appears in a template line, including the scratch
-        #       attrs COLL_NAME, COLL_LIDVID, COLL_STATUS. These are
-        #       implementation details of BundlePDS4Label and not part of the
-        #       public template contract. A template containing $COLL_NAME would
-        #       silently receive the last collection's value.
+        # coll_name/coll_lidvid/coll_status are local loop scratch, never
+        # written into _label_fields, so a template referencing $COLL_NAME
+        # must NOT be substituted -- it's not part of the public template
+        # contract and write_label only replaces keys present in
+        # _label_fields.
         templates_dir = tmp_path / 'templates'
         staging_dir = tmp_path / 'staging'
         templates_dir.mkdir()
@@ -777,9 +767,9 @@ class TestBundlePDS4LabelIntegration:
         BundlePDS4Label(readme)
         written = Path(readme.path).read_text(encoding='utf-8')
 
-        # The leaked value is the last collection's COLL_NAME ('document').
-        assert '<leaked>document</leaked>' in written
-        assert '$COLL_NAME' not in written
+        # $COLL_NAME has no matching key in _label_fields, so it's left as-is
+        # rather than silently picking up the last collection's coll_name.
+        assert '<leaked>$COLL_NAME</leaked>' in written
 
     # ------------------------------------------------------------------
     # setup.add_file side effect

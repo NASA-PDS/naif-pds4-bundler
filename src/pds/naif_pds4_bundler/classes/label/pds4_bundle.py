@@ -63,21 +63,20 @@ class BundlePDS4Label(PDS4Label):
                     f'NPB bug: the collection name {collection.name} is not '
                     f'supported in PDS4 Bundle Label.')
 
-            # COLL_NAME/COLL_LIDVID/COLL_STATUS are scratch values, reused and
-            # overwritten each iteration; only the XML appended below
-            # survives past the loop.
-            self._label_fields["COLL_NAME"] = coll_name
-            self._label_fields["COLL_LIDVID"] = collection.lid + "::" + collection.vid
-            self._label_fields["COLL_STATUS"] = "Primary" if collection.updated else "Secondary"
+            # coll_lidvid/coll_status are scratch, local to this iteration --
+            # no template substitutes them, only the XML appended below
+            # (BUNDLE_MEMBER_ENTRIES) is ever read from _label_fields.
+            coll_lidvid = collection.lid + "::" + collection.vid
+            coll_status = "Primary" if collection.updated else "Secondary"
 
             self._label_fields["BUNDLE_MEMBER_ENTRIES"] += (
                 f"{' ' * tab}<Bundle_Member_Entry>{eol}"
                 f"{' ' * 2 * tab}<lidvid_reference>"
-                f"{self._label_fields['COLL_LIDVID']}</lidvid_reference>{eol}"
+                f"{coll_lidvid}</lidvid_reference>{eol}"
                 f"{' ' * 2 * tab}<member_status>"
-                f"{self._label_fields['COLL_STATUS']}</member_status>{eol}"
+                f"{coll_status}</member_status>{eol}"
                 f"{' ' * 2 * tab}<reference_type>"
-                f"bundle_has_{self._label_fields['COLL_NAME']}_collection"
+                f"bundle_has_{coll_name}_collection"
                 f"</reference_type>{eol}"
                 f"{' ' * tab}</Bundle_Member_Entry>{eol}"
             )
