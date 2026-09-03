@@ -94,20 +94,20 @@ class TestChecksumPDS4Label:
         # construction.
 
         # Check that FILE_NAME has been copied from product.name.
-        assert label.FILE_NAME == 'checksum.tab'
+        assert label._label_fields["FILE_NAME"] == 'checksum.tab'
 
         # Check that the PDS4 logical identifier and the product version have
         # been copied correctly from product.lid.
-        assert label.PRODUCT_LID == 'urn:nasa:pds:maven_spice:checksum'
-        assert label.PRODUCT_VID == '1.0'
+        assert label._label_fields["PRODUCT_LID"] == 'urn:nasa:pds:maven_spice:checksum'
+        assert label._label_fields["PRODUCT_VID"] == '1.0'
 
         # Check a fixed value defined by ChecksumPDS4Label.
-        assert label.FILE_FORMAT == 'Character'
+        assert label._label_fields["FILE_FORMAT"] == 'Character'
 
         # Verifies that the start and end times of the time coverage are copied
         # from product.start_time and product.stop_time, respectively.
-        assert label.START_TIME == '2024-01-01T00:00:00'
-        assert label.STOP_TIME == '2024-01-31T23:59:59'
+        assert label._label_fields["START_TIME"] == '2024-01-01T00:00:00'
+        assert label._label_fields["STOP_TIME"] == '2024-01-31T23:59:59'
 
         # Check that the XML label name is derived correctly from the product
         # name.
@@ -183,7 +183,7 @@ class TestChecksumPDS4Label:
             label = ChecksumPDS4Label(product)
 
         # Check that FILE_NAME exactly matches the original product name.
-        assert label.FILE_NAME == expected_file_name
+        assert label._label_fields["FILE_NAME"] == expected_file_name
 
         # Check the name of the generated XML tag.
         assert label.name == expected_label_name
@@ -216,9 +216,9 @@ class TestChecksumPDS4Label:
             product.setup = setup
             label = ChecksumPDS4Label(product)
 
-        # Check that the expected attribute of the label contains exactly the
+        # Check that the expected field of the label contains exactly the
         # value assigned to the product.
-        assert getattr(label, label_attribute) == value
+        assert label._label_fields[label_attribute] == value
 
 
 # ===========================================================================

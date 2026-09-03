@@ -38,9 +38,9 @@ class PDS4Label(PDSLabel):
             self._context_products = product.bundle.context_products
 
         # Fixed PDS4 header fields that come straight from setup.
-        self.XML_MODEL = self.setup.xml_model
-        self.SCHEMA_LOCATION = self.setup.schema_location
-        self.INFORMATION_MODEL_VERSION = self.setup.information_model
+        self._label_fields["XML_MODEL"] = self.setup.xml_model
+        self._label_fields["SCHEMA_LOCATION"] = self.setup.schema_location
+        self._label_fields["INFORMATION_MODEL_VERSION"] = self.setup.information_model
 
         #
         # Needs to be built for several Missions.
@@ -63,10 +63,10 @@ class PDS4Label(PDSLabel):
                     else:
                         missions_text += f"{sm_name}, "
 
-            self.PDS4_MISSION_NAME = f"{missions_text}"
+            self._label_fields["PDS4_MISSION_NAME"] = f"{missions_text}"
 
         else:
-            self.PDS4_MISSION_NAME = f"{self.setup.mission_name}"
+            self._label_fields["PDS4_MISSION_NAME"] = f"{self.setup.mission_name}"
 
         #
         # Needs to be built for several observers.
@@ -89,19 +89,19 @@ class PDS4Label(PDSLabel):
                     else:
                         observers_text += f"{so_name}, "
 
-            self.PDS4_OBSERVER_NAME = f"{observers_text} spacecraft and their"
+            self._label_fields["PDS4_OBSERVER_NAME"] = f"{observers_text} spacecraft and their"
 
         else:
-            self.PDS4_OBSERVER_NAME = f"{self.setup.observer} spacecraft and its"
+            self._label_fields["PDS4_OBSERVER_NAME"] = f"{self.setup.observer} spacecraft and its"
 
         # PDS4 labels always render CRLF in the model name, regardless of which
         # line ending the file itself actually uses.
-        self.END_OF_LINE_PDS4 = "Carriage-Return Line-Feed"
+        self._label_fields["END_OF_LINE_PDS4"] = "Carriage-Return Line-Feed"
         if self.setup.end_of_line == "CRLF":
-            self.END_OF_LINE = "Carriage-Return Line-Feed"
+            self._label_fields["END_OF_LINE"] = "Carriage-Return Line-Feed"
 
         elif self.setup.end_of_line == "LF":
-            self.END_OF_LINE = "Line-Feed"
+            self._label_fields["END_OF_LINE"] = "Line-Feed"
 
         else:
             raise NPBError(
@@ -110,11 +110,13 @@ class PDS4Label(PDSLabel):
         # Every bundle description links to the spiceds document -- it's the
         # one document guaranteed to exist for any mission, regardless of
         # which product this label actually belongs to.
-        self.BUNDLE_DESCRIPTION_LID = f"{self.setup.logical_identifier}:document:spiceds"
+        self._label_fields["BUNDLE_DESCRIPTION_LID"] = f"{self.setup.logical_identifier}:document:spiceds"
 
-        self.MISSIONS = self.get_missions()
-        self.OBSERVERS = self.get_observers()
-        self.TARGETS = self.get_targets()
+        # Each is a block of rendered XML (not a plain name or list) built
+        # from the context products matching self.missions/observers/targets.
+        self._label_fields["MISSIONS"] = self.get_missions()
+        self._label_fields["OBSERVERS"] = self.get_observers()
+        self._label_fields["TARGETS"] = self.get_targets()
 
     @property
     def _eol(self) -> str:

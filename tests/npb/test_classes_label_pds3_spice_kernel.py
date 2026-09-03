@@ -68,6 +68,7 @@ def bare_label():
     """SpiceKernelPDS3Label instance with __init__ skipped."""
 
     label = SpiceKernelPDS3Label.__new__(SpiceKernelPDS3Label)
+    label._label_fields = {}
     label.setup = _make_setup()
     label.product = _make_product()
     label.name = "/fake/output/fake_kernel.lbl"
@@ -84,7 +85,9 @@ def _build_label(product, extra_setup=None):
 
     label = SpiceKernelPDS3Label.__new__(SpiceKernelPDS3Label)
 
-    with patch(PARENT_INIT, lambda self, p: setattr(self, "setup", setup)), \
+    with patch(PARENT_INIT, lambda self, p: (
+            setattr(self, "setup", setup),
+            setattr(self, "_label_fields", {}))), \
          patch(WRITE_LABEL, return_value=None), \
          patch(SET_IDS,     return_value=None), \
          patch(SET_SCLK,    return_value=None), \
@@ -111,22 +114,22 @@ class TestSpiceKernelPDS3LabelInit:
     def test_basic_attributes_set(self):
         product = _make_product("spk")
         label = _build_label(product)
-        assert label.FILE_NAME == f'"{product.name}"'
-        assert label.INTERCHANGE_FORMAT == product.file_format
-        assert label.RECORD_BYTES == product.record_bytes
-        assert "Z" not in label.START_TIME
-        assert "Z" not in label.STOP_TIME
-        assert label.KERNEL_TYPE_ID == "SPK"
+        assert label._label_fields["FILE_NAME"] == f'"{product.name}"'
+        assert label._label_fields["INTERCHANGE_FORMAT"] == product.file_format
+        assert label._label_fields["RECORD_BYTES"] == product.record_bytes
+        assert "Z" not in label._label_fields["START_TIME"]
+        assert "Z" not in label._label_fields["STOP_TIME"]
+        assert label._label_fields["KERNEL_TYPE_ID"] == "SPK"
 
     def test_maklabel_defaults_applied(self):
         """Template-level defaults from pds3_mission_template are set on the label."""
         label = _build_label(_make_product("SPK"))
-        assert getattr(label, "MISSION_NAME") == '"FAKE MISSION"'
+        assert label._label_fields["MISSION_NAME"] == '"FAKE MISSION"'
 
     def test_maklabel_options_override_defaults(self):
         """Per-option values (maklabel_options) override template defaults."""
         label = _build_label(_make_product("SPK"))
-        assert getattr(label, "DATA_SET_ID") == '"FAKE-DS-1000-V1.0"'
+        assert label._label_fields["DATA_SET_ID"] == '"FAKE-DS-1000-V1.0"'
 
     @pytest.mark.parametrize("target_i, target_o", [
         ('"MARS"', 'MARS'),
@@ -144,7 +147,7 @@ class TestSpiceKernelPDS3LabelInit:
         }
 
         label = _build_label(product, extra_setup=setup)
-        assert label.TARGET_NAME == target_o
+        assert label._label_fields["TARGET_NAME"] == target_o
 
     @pytest.mark.parametrize("product_version_i, product_version_o", [
         ('"ACTUAL"', 'ACTUAL'),
@@ -162,7 +165,7 @@ class TestSpiceKernelPDS3LabelInit:
         }
 
         label = _build_label(product, extra_setup=setup)
-        assert label.PRODUCT_VERSION_TYPE == product_version_o
+        assert label._label_fields["PRODUCT_VERSION_TYPE"] == product_version_o
 
     @pytest.mark.parametrize("platform_i, platform_o", [
         ('"ODY SPACECRAFT"', 'ODY SPACECRAFT'),
@@ -181,7 +184,7 @@ class TestSpiceKernelPDS3LabelInit:
         }
 
         label = _build_label(product, extra_setup=setup)
-        assert label.PLATFORM_OR_MOUNTING_NAME == platform_o
+        assert label._label_fields["PLATFORM_OR_MOUNTING_NAME"] == platform_o
 
     def test_stream_record_type_calls_insert_text(self):
         """STREAM kernels invoke insert_text_label, not insert_binary_label."""
@@ -190,7 +193,9 @@ class TestSpiceKernelPDS3LabelInit:
 
         label = SpiceKernelPDS3Label.__new__(SpiceKernelPDS3Label)
 
-        with patch(PARENT_INIT, lambda s, p: setattr(s, "setup", _make_setup())), \
+        with patch(PARENT_INIT, lambda s, p: (
+                setattr(s, "setup", _make_setup()),
+                setattr(s, "_label_fields", {}))), \
              patch(WRITE_LABEL, return_value=None), \
              patch(SET_IDS,     return_value=None), \
              patch(SET_SCLK,    return_value=None), \
@@ -209,7 +214,9 @@ class TestSpiceKernelPDS3LabelInit:
 
         label = SpiceKernelPDS3Label.__new__(SpiceKernelPDS3Label)
 
-        with patch(PARENT_INIT, lambda s, p: setattr(s, "setup", _make_setup())), \
+        with patch(PARENT_INIT, lambda s, p: (
+                setattr(s, "setup", _make_setup()),
+                setattr(s, "_label_fields", {}))), \
              patch(WRITE_LABEL, return_value=None), \
              patch(SET_IDS,     return_value=None), \
              patch(SET_SCLK,    return_value=None), \
@@ -234,8 +241,8 @@ class TestSpiceKernelPDS3LabelSetSclkTimes:
         bare_label.product.type = "SPK"
         bare_label.set_sclk_times(bare_label.product)
 
-        assert bare_label.SPACECRAFT_CLOCK_START_COUNT == '"N/A"'
-        assert bare_label.SPACECRAFT_CLOCK_STOP_COUNT  == '"N/A"'
+        assert bare_label._label_fields["SPACECRAFT_CLOCK_START_COUNT"] == '"N/A"'
+        assert bare_label._label_fields["SPACECRAFT_CLOCK_STOP_COUNT"]  == '"N/A"'
 
     @pytest.mark.parametrize("system", ['UTC', 'TBD'])
     def test_ck_calls_spice_functions(self, bare_label, system):
@@ -255,8 +262,8 @@ class TestSpiceKernelPDS3LabelSetSclkTimes:
         assert mock_spiceypy.scdecd.call_count == 2
 
         # CK SCLK tick values are wrapped in double quotes on the label.
-        assert bare_label.SPACECRAFT_CLOCK_START_COUNT == '"1/100.000"'
-        assert bare_label.SPACECRAFT_CLOCK_STOP_COUNT  == '"1/200.000"'
+        assert bare_label._label_fields["SPACECRAFT_CLOCK_START_COUNT"] == '"1/100.000"'
+        assert bare_label._label_fields["SPACECRAFT_CLOCK_STOP_COUNT"]  == '"1/200.000"'
 
     def test_ck_spiceypy_failure_raises_npberror(self, bare_label):
         """A SpiceyPyError from bodn2c is raised as NPBError."""
@@ -294,7 +301,7 @@ class TestSpiceKernelPDS3LabelSetKernelIds:
         bare_label.set_kernel_ids(bare_label.product)
 
         bare_label.product.ck_kernel_ids.assert_called_once()
-        assert bare_label.NAIF_INSTRUMENT_ID == naif_inst_id
+        assert bare_label._label_fields["NAIF_INSTRUMENT_ID"] == naif_inst_id
 
     def test_ik_delegates_to_product(self, bare_label):
         """IK kernels source the ID from product.ik_kernel_ids()."""
@@ -304,7 +311,7 @@ class TestSpiceKernelPDS3LabelSetKernelIds:
         bare_label.set_kernel_ids(bare_label.product)
 
         bare_label.product.ik_kernel_ids.assert_called_once()
-        assert bare_label.NAIF_INSTRUMENT_ID == '-236600'
+        assert bare_label._label_fields["NAIF_INSTRUMENT_ID"] == '-236600'
 
     def test_other_type_returns_na(self, bare_label):
         """Non-CK/IK kernels get NAIF_INSTRUMENT_ID = '"N/A"'."""
@@ -312,7 +319,7 @@ class TestSpiceKernelPDS3LabelSetKernelIds:
 
         bare_label.set_kernel_ids(bare_label.product)
 
-        assert bare_label.NAIF_INSTRUMENT_ID == '"N/A"'
+        assert bare_label._label_fields["NAIF_INSTRUMENT_ID"] == '"N/A"'
 
 # ===========================================================================
 # SpiceKernelPDS3Label.format_description

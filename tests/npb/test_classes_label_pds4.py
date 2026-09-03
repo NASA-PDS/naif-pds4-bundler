@@ -88,7 +88,7 @@ class TestPDS4LabelInit:
     def test_pds4_single_mission_name(self, mock_class_methods, setup_pds4, product):
         product.setup = setup_pds4
         label = PDS4Label(product)
-        assert label.PDS4_MISSION_NAME == "TestMission"
+        assert label._label_fields["PDS4_MISSION_NAME"] == "TestMission"
 
     @pytest.mark.parametrize("secondary_missions, expected_name",[
         (["OtherMission"], "TestMission and OtherMission"),
@@ -98,12 +98,12 @@ class TestPDS4LabelInit:
         setup_pds4.secondary_missions = secondary_missions
         product.setup = setup_pds4
         label = PDS4Label(product)
-        assert label.PDS4_MISSION_NAME == expected_name
+        assert label._label_fields["PDS4_MISSION_NAME"] == expected_name
 
     def test_pds4_single_observer_name(self, mock_class_methods, setup_pds4, product):
         product.setup = setup_pds4
         label = PDS4Label(product)
-        assert label.PDS4_OBSERVER_NAME == "TestObserver spacecraft and its"
+        assert label._label_fields["PDS4_OBSERVER_NAME"] == "TestObserver spacecraft and its"
 
     @pytest.mark.parametrize("secondary_observer, expected_name",[
         (["OtherObserver"], "TestObserver and OtherObserver spacecraft and their"),
@@ -113,7 +113,7 @@ class TestPDS4LabelInit:
         setup_pds4.secondary_observers = secondary_observer
         product.setup = setup_pds4
         label = PDS4Label(product)
-        assert label.PDS4_OBSERVER_NAME == expected_name
+        assert label._label_fields["PDS4_OBSERVER_NAME"] == expected_name
 
     @pytest.mark.parametrize("eol, expected_eol_name",[
         ('LF', 'Line-Feed'),
@@ -123,7 +123,7 @@ class TestPDS4LabelInit:
         setup = label_test_helpers.make_setup_pds4(end_of_line=eol)
         product.setup = setup
         label = PDS4Label(product)
-        assert label.END_OF_LINE == expected_eol_name
+        assert label._label_fields["END_OF_LINE"] == expected_eol_name
 
     def test_pds4_end_of_line_invalid(self, label_test_helpers, product):
         """end_of_line is invalid (neither CRLF nor LF)"""
@@ -142,7 +142,7 @@ class TestPDS4LabelInit:
         label = PDS4Label(product)
         assert label.missions == ['TestMission', 'SingleMission']
         # TODO: This is a bug!!!!
-        assert label.PDS4_MISSION_NAME == 'TestMission, S, i, n, g, l, e, M, i, s, s, i, o, and n'
+        assert label._label_fields["PDS4_MISSION_NAME"] == 'TestMission, S, i, n, g, l, e, M, i, s, s, i, o, and n'
 
     def test_pds4_secondary_observers_non_list_wrapped(self, mock_class_methods, setup_pds4, product):
         setup_pds4.secondary_observers = 'SingleObserver'
@@ -150,7 +150,7 @@ class TestPDS4LabelInit:
         label = PDS4Label(product)
         assert label.observers == ['TestObserver', 'SingleObserver']
         # TODO: This is a bug!!!
-        assert label.PDS4_OBSERVER_NAME == 'TestObserver, S, i, n, g, l, e, O, b, s, e, r, v, e, and r spacecraft and their'
+        assert label._label_fields["PDS4_OBSERVER_NAME"] == 'TestObserver, S, i, n, g, l, e, O, b, s, e, r, v, e, and r spacecraft and their'
 
     def test_pds4_sets_missions_targets_observers(self, mock_class_methods, setup_pds4, product):
         setup_pds4.secondary_missions = ["MissionB", "MissionC"]
@@ -162,9 +162,9 @@ class TestPDS4LabelInit:
         # in the mock.
         product.setup = setup_pds4
         label = PDS4Label(product)
-        assert label.MISSIONS == 'MockedMission'
-        assert label.OBSERVERS == 'MockedObserver'
-        assert label.TARGETS == 'MockedTarget'
+        assert label._label_fields["MISSIONS"] == 'MockedMission'
+        assert label._label_fields["OBSERVERS"] == 'MockedObserver'
+        assert label._label_fields["TARGETS"] == 'MockedTarget'
 
 
 # ===========================================================================

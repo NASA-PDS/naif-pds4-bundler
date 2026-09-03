@@ -25,30 +25,33 @@ class OrbnumFilePDS4Label(PDS4Label):
         #
         # Fields from orbnum object.
         #
-        self.FILE_NAME = product.name
-        self.PRODUCT_LID = self.product.lid
-        self.PRODUCT_VID = self.product.vid
-        self.FILE_FORMAT = "Character"
-        self.START_TIME = product.start_time
-        self.STOP_TIME = product.stop_time
-        self.DESCRIPTION = product.description
-        self.HEADER_LENGTH = str(product.header_length)
-        self.TABLE_CHARACTER_DESCRIPTION = product.table_char_description
+        self._label_fields["FILE_NAME"] = product.name
+        self._label_fields["PRODUCT_LID"] = self.product.lid
+        self._label_fields["PRODUCT_VID"] = self.product.vid
+        self._label_fields["FILE_FORMAT"] = "Character"
+        self._label_fields["START_TIME"] = product.start_time
+        self._label_fields["STOP_TIME"] = product.stop_time
+        self._label_fields["DESCRIPTION"] = product.description
+        self._label_fields["HEADER_LENGTH"] = str(product.header_length)
+        self._label_fields["TABLE_CHARACTER_DESCRIPTION"] = product.table_char_description
 
         #
         # The orbnum table data starts one byte after the header section.
         #
-        self.TABLE_OFFSET = str(product.header_length)
-        self.TABLE_RECORDS = str(product.records)
+        self._label_fields["TABLE_OFFSET"] = str(product.header_length)
+        self._label_fields["TABLE_RECORDS"] = str(product.records)
 
         #
         # The ORBNUM utility produces an information ground set regardless
         # of the parameters listed in ORBIT_PARAMS. This set consists of 4
         # parameters.
         #
-        self.NUMBER_OF_FIELDS = str(len(product.params.keys()))
-        if self.END_OF_LINE == "Carriage-Return Line-Feed":
+        self._label_fields["NUMBER_OF_FIELDS"] = str(len(product.params.keys()))
+
+        # END_OF_LINE was set by the parent PDS4Label.__init__, not here.
+        if self._label_fields["END_OF_LINE"] == "Carriage-Return Line-Feed":
             eol_length = 1
+
         else:
             eol_length = 0
 
@@ -56,11 +59,11 @@ class OrbnumFilePDS4Label(PDS4Label):
         #       without any type validation. If it arrives as a str, float, or
         #       None the addition raises TypeError and aborts label generation
         #       with no informative error message.
-        self.FIELDS_LENGTH = str(product.record_fixed_length + eol_length)
-        self.FIELDS = self.get_table_character_fields()
+        self._label_fields["FIELDS_LENGTH"] = str(product.record_fixed_length + eol_length)
+        self._label_fields["FIELDS"] = self.get_table_character_fields()
 
-        if self.TABLE_CHARACTER_DESCRIPTION:
-            self.TABLE_CHARACTER_DESCRIPTION = self.get_table_character_description()
+        if self._label_fields["TABLE_CHARACTER_DESCRIPTION"]:
+            self._label_fields["TABLE_CHARACTER_DESCRIPTION"] = self.get_table_character_description()
 
         self.name = Path(product.name).with_suffix(".xml").name
 

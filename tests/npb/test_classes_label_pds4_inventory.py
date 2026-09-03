@@ -158,18 +158,18 @@ class TestInventoryPDS4Label:
         # construction for the non-miscellaneous (else) branch.
 
         # FILE_NAME is copied verbatim from inventory.name.
-        assert label.FILE_NAME == 'collection_spice_kernels_inventory_v001.csv'
+        assert label._label_fields["FILE_NAME"] == 'collection_spice_kernels_inventory_v001.csv'
 
         # The collection identifiers are copied from collection.lid/vid.
-        assert label.COLLECTION_LID == 'urn:nasa:pds:maven_spice:spice_kernels'
-        assert label.COLLECTION_VID == '1.0'
+        assert label._label_fields["COLLECTION_LID"] == 'urn:nasa:pds:maven_spice:spice_kernels'
+        assert label._label_fields["COLLECTION_VID"] == '1.0'
 
         # In the else branch the coverage comes from setup.increment_*.
-        assert label.START_TIME == '2024-02-01T00:00:00Z'
-        assert label.STOP_TIME == '2024-02-28T23:59:59Z'
+        assert label._label_fields["START_TIME"] == '2024-02-01T00:00:00Z'
+        assert label._label_fields["STOP_TIME"] == '2024-02-28T23:59:59Z'
 
         # N_RECORDS is the line count of the physical inventory file, as a str.
-        assert label.N_RECORDS == '3'
+        assert label._label_fields["N_RECORDS"] == '3'
 
         # The XML label name is derived from collection.name (no dot here).
         assert label.name == 'spice_kernels.xml'
@@ -267,7 +267,7 @@ class TestInventoryPDS4Label:
             inventory.setup = setup
             label = InventoryPDS4Label(inventory, collection)
 
-        assert label.N_RECORDS == expected
+        assert label._label_fields["N_RECORDS"] == expected
 
     def test_constructor_raises_when_inventory_file_missing(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
@@ -322,8 +322,8 @@ class TestInventoryPDS4Label:
             inventory.setup = setup
             label = InventoryPDS4Label(inventory, collection)
 
-        assert label.START_TIME == expected_start
-        assert label.STOP_TIME == expected_stop
+        assert label._label_fields["START_TIME"] == expected_start
+        assert label._label_fields["STOP_TIME"] == expected_stop
 
     def test_miscellaneous_branch_ignores_non_checksum_products(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
@@ -349,8 +349,8 @@ class TestInventoryPDS4Label:
             inventory.setup = setup
             label = InventoryPDS4Label(inventory, collection)
 
-        assert label.START_TIME == '2024-01-05T00:00:00'
-        assert label.STOP_TIME == '2024-01-25T00:00:00'
+        assert label._label_fields["START_TIME"] == '2024-01-05T00:00:00'
+        assert label._label_fields["STOP_TIME"] == '2024-01-25T00:00:00'
 
     def test_miscellaneous_branch_does_not_use_increment_times(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
@@ -374,8 +374,8 @@ class TestInventoryPDS4Label:
             inventory.setup = setup
             label = InventoryPDS4Label(inventory, collection)
 
-        assert label.START_TIME == '2024-01-01T00:00:00'
-        assert label.STOP_TIME == '2024-01-31T00:00:00'
+        assert label._label_fields["START_TIME"] == '2024-01-01T00:00:00'
+        assert label._label_fields["STOP_TIME"] == '2024-01-31T00:00:00'
 
     def test_miscellaneous_branch_without_checksums_raises_value_error(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:

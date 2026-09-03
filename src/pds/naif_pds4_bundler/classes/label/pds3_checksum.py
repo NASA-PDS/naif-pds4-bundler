@@ -21,11 +21,11 @@ class ChecksumPDS3Label(PDS3Label):
         self._template = str(Path(self.setup.templates_directory)
                              / "template_product_checksum_table.lbl")
 
-        self.VOLUME_ID = self.setup.volume_id.upper()
-        self.PRODUCT_CREATION_TIME = product.creation_time
-        self.RECORD_BYTES = str(self.product.record_bytes)
-        self.FILE_RECORDS = str(self.product.file_records)
-        self.BYTES = str(self.product.bytes)
+        self._label_fields["VOLUME_ID"] = self.setup.volume_id.upper()
+        self._label_fields["PRODUCT_CREATION_TIME"] = product.creation_time
+        self._label_fields["RECORD_BYTES"] = str(self.product.record_bytes)
+        self._label_fields["FILE_RECORDS"] = str(self.product.file_records)
+        self._label_fields["BYTES"] = str(self.product.bytes)
 
         self.name = "checksum.lbl"
 

@@ -132,10 +132,10 @@ class TestInventoryPDS3LabelUnit:
 
     def test_template_keys_scalar_fields(self, label):
         """VOLUME_ID must be assigned from setup.volume_id (not uppercased)."""
-        assert label.VOLUME_ID == "vg_0001"
-        assert label.ROW_BYTES == "232"
-        assert label.ROWS == "100"
-        assert label.INDEXED_FILE_NAME == "*.bc"
+        assert label._label_fields["VOLUME_ID"] == "vg_0001"
+        assert label._label_fields["ROW_BYTES"] == "232"
+        assert label._label_fields["ROWS"] == "100"
+        assert label._label_fields["INDEXED_FILE_NAME"] == "*.bc"
 
     @pytest.mark.parametrize("i,expected_bytes,expected_start", [
         (idx, COLUMN_BYTES[idx], COLUMN_START_BYTES[idx])
@@ -144,21 +144,21 @@ class TestInventoryPDS3LabelUnit:
     def test_template_keys_dynamic_attributes(self, label, i, expected_bytes, expected_start):
         # BYTES_NN must be set as a string for every column (1-based).
         attr = f"BYTES_{i + 1:02d}"
-        assert hasattr(label, attr), f"Missing attribute {attr}"
-        assert getattr(label, attr) == str(expected_bytes)
+        assert attr in label._label_fields, f"Missing field {attr}"
+        assert label._label_fields[attr] == str(expected_bytes)
 
         # START_BYTE_NN must be set as a string for every column (1-based).
         attr = f"START_BYTE_{i + 1:02d}"
-        assert hasattr(label, attr), f"Missing attribute {attr}"
-        assert getattr(label, attr) == str(expected_start)
+        assert attr in label._label_fields, f"Missing field {attr}"
+        assert label._label_fields[attr] == str(expected_start)
 
     def test_no_extra_column_attributes(self, label):
         """No column attribute for index 11 or beyond must be set."""
-        assert not hasattr(label, f"BYTES_{NUM_COLUMNS + 1:02d}")
-        assert not hasattr(label, f"START_BYTE_{NUM_COLUMNS + 1:02d}")
+        assert f"BYTES_{NUM_COLUMNS + 1:02d}" not in label._label_fields
+        assert f"START_BYTE_{NUM_COLUMNS + 1:02d}" not in label._label_fields
 
     def test_indexed_file_name_multiple_types(self, label_multi):
-        assert label_multi.INDEXED_FILE_NAME == ('{\r\n'
+        assert label_multi._label_fields["INDEXED_FILE_NAME"] == ('{\r\n'
                                                  '                               "*.bc",\r\n'
                                                  '                               "*.tf"\r\n'
                                                  '                             }\n')
@@ -211,7 +211,7 @@ class TestInventoryPDS3LabelUnit:
             product.setup = setup
             instance = InventoryPDS3Label(product, _make_collection())
 
-        assert instance.ROWS == "0"
+        assert instance._label_fields["ROWS"] == "0"
 
     def test_single_column_only(self, tmp_path):
         """Constructor must work when the product exposes only one column."""
@@ -228,9 +228,9 @@ class TestInventoryPDS3LabelUnit:
             product.setup = setup
             instance = InventoryPDS3Label(product, _make_collection())
 
-        assert getattr(instance, 'BYTES_01') == '50'
-        assert getattr(instance, 'START_BYTE_01') == '1'
-        assert not hasattr(instance, 'BYTES_02')
+        assert instance._label_fields['BYTES_01'] == '50'
+        assert instance._label_fields['START_BYTE_01'] == '1'
+        assert 'BYTES_02' not in instance._label_fields
 
 
 # ===========================================================================

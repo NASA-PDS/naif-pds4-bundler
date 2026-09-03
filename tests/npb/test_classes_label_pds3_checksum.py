@@ -97,11 +97,11 @@ class TestChecksumPDS3Label:
     # Regular Tests
     # ------------------------------------------------------------------
     def test_attribute_assignments(self, label):
-        assert label.VOLUME_ID == "VG_0001"
-        assert label.PRODUCT_CREATION_TIME == "2024-01-15T12:00:00"
-        assert label.RECORD_BYTES == "80"
-        assert label.FILE_RECORDS == "42"
-        assert label.BYTES == "46"
+        assert label._label_fields["VOLUME_ID"] == "VG_0001"
+        assert label._label_fields["PRODUCT_CREATION_TIME"] == "2024-01-15T12:00:00"
+        assert label._label_fields["RECORD_BYTES"] == "80"
+        assert label._label_fields["FILE_RECORDS"] == "42"
+        assert label._label_fields["BYTES"] == "46"
         assert label.name == "checksum.lbl"
 
     def test_template_path_uses_setup_directory(self, tmp_path, label):
@@ -162,7 +162,7 @@ class TestChecksumPDS3Label:
             product.setup = setup
             instance = ChecksumPDS3Label(product)
 
-        assert instance.VOLUME_ID == "VG_0001"
+        assert instance._label_fields["VOLUME_ID"] == "VG_0001"
 
     def test_zero_file_records(self, tmp_path):
         """RECORD_BYTES must tolerate a product with zero file records."""
@@ -177,7 +177,7 @@ class TestChecksumPDS3Label:
             product.setup = setup
             instance = ChecksumPDS3Label(product)
 
-        assert instance.FILE_RECORDS == "0"
+        assert instance._label_fields["FILE_RECORDS"] == "0"
 
     def test_creation_time_override_from_setup(self, tmp_path):
         """When setup.creation_date_time exists, PRODUCT_CREATION_TIME must
@@ -196,7 +196,7 @@ class TestChecksumPDS3Label:
         # PDSLabel.__init__ sets PRODUCT_CREATION_TIME from setup when the
         # attribute exists; ChecksumPDS3Label then *overwrites* it with the
         # product value. Assert the child-class assignment wins.
-        assert instance.PRODUCT_CREATION_TIME == product.creation_time
+        assert instance._label_fields["PRODUCT_CREATION_TIME"] == product.creation_time
 
 
 # ===========================================================================

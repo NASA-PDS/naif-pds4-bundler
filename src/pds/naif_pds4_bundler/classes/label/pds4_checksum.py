@@ -24,12 +24,12 @@ class ChecksumPDS4Label(PDS4Label):
         self._template = str(Path(self.setup.templates_directory)
                              / "template_product_checksum_table.xml")
 
-        self.FILE_NAME = product.name
-        self.PRODUCT_LID = self.product.lid
-        self.PRODUCT_VID = self.product.vid
-        self.FILE_FORMAT = "Character"
-        self.START_TIME = self.product.start_time
-        self.STOP_TIME = self.product.stop_time
+        self._label_fields["FILE_NAME"] = product.name
+        self._label_fields["PRODUCT_LID"] = self.product.lid
+        self._label_fields["PRODUCT_VID"] = self.product.vid
+        self._label_fields["FILE_FORMAT"] = "Character"
+        self._label_fields["START_TIME"] = self.product.start_time
+        self._label_fields["STOP_TIME"] = self.product.stop_time
         self.name = Path(product.name).with_suffix(".xml").name
 
         self.write_label()

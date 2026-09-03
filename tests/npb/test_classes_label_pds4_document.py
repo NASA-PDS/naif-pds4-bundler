@@ -50,7 +50,8 @@ class TestDocumentPDS4LabelInit:
             autospec=True,
             side_effect=lambda self, product: (
                 setattr(self, 'setup', setup),
-                setattr(self, 'product', product)))
+                setattr(self, 'product', product),
+                setattr(self, '_label_fields', {})))
 
         # Mock write_label to verify that label generation is requested without
         # creating files on disk.
@@ -69,11 +70,11 @@ class TestDocumentPDS4LabelInit:
                                                'template_product_html_document.xml')
 
         # Check the product details.
-        assert document_label.PRODUCT_LID == inventory.lid
-        assert document_label.PRODUCT_VID == inventory.vid
-        assert document_label.START_TIME == setup.mission_start
-        assert document_label.STOP_TIME == setup.mission_finish
-        assert document_label.FILE_NAME == inventory.name
+        assert document_label._label_fields["PRODUCT_LID"] == inventory.lid
+        assert document_label._label_fields["PRODUCT_VID"] == inventory.vid
+        assert document_label._label_fields["START_TIME"] == setup.mission_start
+        assert document_label._label_fields["STOP_TIME"] == setup.mission_finish
+        assert document_label._label_fields["FILE_NAME"] == inventory.name
         assert document_label.name == 'collection_document_inventory_v001.xml'
 
         # Check that the constructor requests the label to be generated exactly
@@ -93,7 +94,8 @@ class TestDocumentPDS4LabelInit:
             autospec=True,
             side_effect=lambda self, product: (
                 setattr(self, 'setup', setup),
-                setattr(self, 'product', product)))
+                setattr(self, 'product', product),
+                setattr(self, '_label_fields', {})))
 
         mocker.patch.object(DocumentPDS4Label, 'write_label', autospec=True)
 
