@@ -1,4 +1,5 @@
 """Implementation of the Checksum product class."""
+import glob
 import logging
 import os
 from collections import defaultdict
@@ -115,7 +116,7 @@ class ChecksumProduct(Product):
                 # Search both the bundle directory (previous increments) and
                 # the staging directory (current, in-progress increment) for
                 # the latest checksum file already written.
-                latest_file, latest_version = find_latest_versioned_file([
+                checksum_patterns = [
                     self.setup.bundle_directory
                     + f"/{self.setup.mission_acronym}_spice/"
                     + self.collection.name
@@ -126,7 +127,15 @@ class ChecksumProduct(Product):
                     + os.sep
                     + self.collection.name
                     + "/checksum/checksum_v*.tab",
-                ])
+                ]
+                checksum_candidates = [
+                    Path(match)
+                    for pattern in checksum_patterns
+                    for match in glob.glob(pattern)
+                ]
+                latest_file, latest_version = find_latest_versioned_file(
+                    checksum_candidates
+                )
 
                 # latest_version is None either when no file matched, or when
                 # a file matched but its name didn't parse as expected.
@@ -137,7 +146,7 @@ class ChecksumProduct(Product):
                     # generated one.
                     #
                     self.path_current = latest_file
-                    self.name_current = Path(latest_file).name
+                    self.name_current = latest_file.name
                     self.version = latest_version + 1
 
                     logging.info('-- Previous checksum file is: %s', latest_file)
@@ -215,7 +224,11 @@ class ChecksumProduct(Product):
 
                 if self.setup.pds_version == "4":
                     checksum_dir = f"{self.collection.name}/checksum/"
-                    label_current = self.path_current.replace(".tab", ".xml")
+                    # self.path_current is a Path here (only ever a truthy
+                    # plain string in the PDS3 branch below), so .replace()
+                    # would try (and fail) to rename a file on disk --
+                    # with_suffix() is the string-substitution equivalent.
+                    label_current = self.path_current.with_suffix(".xml")
                 else:
                     checksum_dir = "index/"
                     label_current = self.path_current.replace(".tab", ".lbl")

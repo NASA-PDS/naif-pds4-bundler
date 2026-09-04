@@ -549,49 +549,43 @@ def get_latest_kernel(
 
 
 def find_latest_versioned_file(
-        patterns: list[str],
-        delimiter: str = "_v") -> tuple[Optional[str], Optional[int]]:
-    """Find the most recent versioned file matching one or more glob patterns.
+        paths: list[Path]) -> tuple[Optional[Path], Optional[int]]:
+    """Return the candidate with the highest version number in its filename.
 
-    Globs every pattern in ``patterns``, pools the results, sorts them
-    lexically, and takes the last entry. The version number is parsed from that
-    filename by splitting on ``delimiter`` and taking the leading digits of what
-    follows, up to the first ``"."``.
+    A candidate's version is the digits immediately following ``"_v"`` at
+    the end of its filename stem (the extension is not considered). Among
+    candidates with a parseable version, the numerically highest one wins;
+    if two candidates share the same version, the one listed earlier in
+    ``paths`` is returned.
 
-    :param patterns: Glob patterns to search. Results from all patterns are
-                     pooled before sorting, so callers that search more than one
-                     directory (e.g. a bundle directory and a staging directory)
-                     pass more than one pattern.
-    :type patterns: list[str]
-    :param delimiter: Filename delimiter preceding the version number.
-    :type delimiter: str
-    :return: ``(path, version)`` of the latest match. ``(None, None)`` if no
-             file matches; ``(path, None)`` if a file matches but its version
-             cannot be parsed as an int.
-    :rtype: tuple[Optional[str], Optional[int]]
+    :param paths: Candidate file paths to compare. This function does not
+                  search the filesystem; the caller resolves candidates
+                  first (e.g. by globbing one or more directories).
+    :type paths: list[Path]
+    :return: ``(path, version)`` of the candidate with the highest version.
+             ``(None, None)`` if ``paths`` is empty. ``(paths[0], None)``
+             if no candidate's filename matches the ``"_v<digits>"``
+             pattern.
+    :rtype: tuple[Optional[Path], Optional[int]]
     """
-    # Pool results across all patterns before sorting, since lexical order only
-    # reflects "latest" once every candidate directory is in one list.
-    candidates = []
-    for pattern in patterns:
-        candidates += glob.glob(pattern)
+    # Matches the digits after "_v" only when they reach the end of the
+    # stem (Path.stem has already stripped the file's extension).
+    version_re = re.compile(r"_v(\d+)$")
 
-    candidates.sort()
+    # Builds (path, version) pairs one at a time, as max() below asks for
+    # them. A path whose stem doesn't end in "_v<digits>" produces no
+    # match and is left out of this sequence entirely.
+    versioned = ((path, int(match.group(1)))
+                 for path in paths if (match := version_re.search(path.stem)))
 
-    if not candidates:
-        return None, None
+    # Returned by max() only when the sequence above is empty, i.e. no
+    # candidate's filename matched.
+    fallback = (paths[0], None) if paths else (None, None)
 
-    latest = candidates[-1]
-    try:
-        version = int(latest.split(delimiter)[-1].split(".")[0])
-
-    except ValueError:
-        # A match was found but its version couldn't be parsed (unexpected
-        # filename shape). Still return the path: some callers only need it and
-        # don't care about the version.
-        return latest, None
-
-    return latest, version
+    # Picks the pair with the highest version (pv[1]). If two candidates
+    # share the same version, the earlier one in `paths` wins, since max()
+    # keeps the first pair it saw once no later one beats it.
+    return max(versioned, key=lambda pv: pv[1], default=fallback)
 
 
 def check_consecutive(lst):

@@ -1,6 +1,8 @@
 """Collection Class amd Child Classes Implementation."""
+import glob
 import logging
 import re
+from pathlib import Path
 from typing import Tuple
 
 from ...utils import find_latest_versioned_file
@@ -140,18 +142,21 @@ class Collection:
         """
         if self.setup.increment:
 
-            # delimiter="v" (not "_v") matches this collection's naming
-            # convention (e.g. "spice_kernels_v003"), preserving the
-            # pre-existing parsing behavior as-is.
-            latest_file, latest_version = find_latest_versioned_file(
-                [
-                    f"{self.setup.bundle_directory}/"
-                    f"{self.setup.mission_acronym}_spice/"
-                    f"{self.name}/*{self.name}*",
+            # Glob both directories ourselves and hand the resolved paths to
+            # find_latest_versioned_file, which just picks the best one.
+            candidate_patterns = [
+                f"{self.setup.bundle_directory}/"
+                f"{self.setup.mission_acronym}_spice/"
+                f"{self.name}/*{self.name}*",
 
-                    f"{self.setup.staging_directory}/{self.name}/*{self.name}*"
-                ], delimiter="v"
-            )
+                f"{self.setup.staging_directory}/{self.name}/*{self.name}*"
+            ]
+            candidates = [
+                Path(match)
+                for pattern in candidate_patterns
+                for match in glob.glob(pattern)
+            ]
+            latest_file, latest_version = find_latest_versioned_file(candidates)
 
             # latest_version is None either when no file matched, or when a file
             # matched but its name didn't parse as expected.

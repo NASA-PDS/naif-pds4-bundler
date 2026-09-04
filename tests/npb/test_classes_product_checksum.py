@@ -47,9 +47,9 @@ MOD = "pds.naif_pds4_bundler.classes.product.product_checksum"
 
 PATCHES = dict(
     safe_make_directory=f"{MOD}.safe_make_directory",
-    # find_latest_versioned_file (used by read_current_product) globs via
-    # pds.naif_pds4_bundler.utils.files, not this module.
-    glob_glob="pds.naif_pds4_bundler.utils.files.glob.glob",
+    # read_current_product globs candidates itself and hands the resolved
+    # paths to find_latest_versioned_file, so glob.glob is patched here.
+    glob_glob=f"{MOD}.glob.glob",
     md5=f"{MOD}.md5",
     checksum_from_registry=f"{MOD}.checksum_from_registry",
     checksum_from_label=f"{MOD}.checksum_from_label",
@@ -163,7 +163,8 @@ class TestChecksumProductInit:
         obj, _ = _build_pds4(increment=True, glob_files=[prev])
         assert obj.version == 2
         assert obj.name == "checksum_v002.tab"
-        assert obj.path_current == prev
+        # path_current is a Path when a previous file was found.
+        assert str(obj.path_current) == prev
         assert obj.vid == "2.0"
 
     def test_init_pds4_creates_checksum_directory(self):

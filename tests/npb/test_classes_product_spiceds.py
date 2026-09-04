@@ -1,6 +1,7 @@
 """Unit tests for the SpicedsProduct class."""
 import logging
 import os
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -10,9 +11,9 @@ from pds.naif_pds4_bundler.classes.exceptions import NPBError
 
 # Module path used as the anchor for every patch target.
 _MODULE = 'pds.naif_pds4_bundler.classes.product.product_spiceds'
-# find_latest_versioned_file (used in place of direct glob.glob calls) globs
-# via pds.naif_pds4_bundler.utils.files, not this module.
-_GLOB_GLOB = 'pds.naif_pds4_bundler.utils.files.glob.glob'
+# SpicedsProduct globs candidates itself and hands the resolved paths to
+# find_latest_versioned_file, so glob.glob is patched on this module.
+_GLOB_GLOB = f'{_MODULE}.glob.glob'
 
 
 # ---------------------------------------------------------------------------
@@ -195,7 +196,7 @@ class TestSpicedsProductInit:
         # latest_version is now an int (parsed by find_latest_versioned_file)
         # rather than the raw zero-padded string.
         assert product.latest_version == 3
-        assert product.latest_spiceds.endswith('spiceds_v003.html')
+        assert product.latest_spiceds.name == 'spiceds_v003.html'
         assert product.version == 4
         assert product.name == 'spiceds_v004.html'
         assert product.vid == '4.0'
@@ -457,9 +458,10 @@ class TestSpicedsProductCompare:
         expected_glob = '/bundle/insight_spice/document/spiceds_v*.html'
         glob_mock.assert_called_once_with(expected_glob)
 
-        # fromfile is the highest sorted match; tofile is the product path.
+        # fromfile is the highest sorted match (now a Path); tofile is the
+        # product path (unchanged, a plain string).
         compare_files.assert_called_once_with(
-            '/bundle/insight_spice/document/spiceds_v003.html',
+            Path('/bundle/insight_spice/document/spiceds_v003.html'),
             '/staging/spiceds_v004.html', '/work', True)
 
     def test_compare_falls_back_to_insight_example(self, caplog):
@@ -482,7 +484,8 @@ class TestSpicedsProductCompare:
             with caplog.at_level(logging.INFO):
                 product._compare()
 
-        expected_from = '/root/data/insight_spice/document/spiceds_v002.html'
+        # The InSight fallback path is also wrapped in Path() by _compare now.
+        expected_from = Path('/root/data/insight_spice/document/spiceds_v002.html')
         compare_files.assert_called_once_with(
             expected_from, '/staging/spiceds_v001.html', '/work', True)
 
