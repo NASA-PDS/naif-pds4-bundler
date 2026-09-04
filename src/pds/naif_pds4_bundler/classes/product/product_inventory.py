@@ -9,6 +9,7 @@ from .product import Product
 from ..exceptions import NPBError
 from ...utils import add_carriage_return
 from ...utils import compare_files
+from ...utils import find_latest_versioned_file
 from ...utils import replace_string_in_file
 from ...utils import type_to_extension
 
@@ -41,38 +42,49 @@ class InventoryProduct(Product):
             # Determine the inventory version
             #
             if self.setup.increment:
-                inventory_files = glob.glob(
+                # Search both the bundle directory (previous increments) and the
+                # staging directory (current, in-progress increment) for the
+                # latest inventory file already written.
+                inventory_patterns = [
                     self.setup.bundle_directory
                     + f"/{self.setup.mission_acronym}_spice"
                     + os.sep
                     + collection.name
                     + os.sep
-                    + f"collection_{collection.name}_inventory_v*.csv"
-                )
-                inventory_files += glob.glob(
+                    + f"collection_{collection.name}_inventory_v*.csv",
+
                     self.setup.staging_directory
                     + os.sep
                     + collection.name
                     + os.sep
                     + f"collection_{collection.name}_inventory_v*.csv"
+                ]
+                inventory_candidates = [
+                    Path(match)
+                    for pattern in inventory_patterns
+                    for match in glob.glob(pattern)
+                ]
+                latest_file, latest_version = find_latest_versioned_file(
+                    inventory_candidates
                 )
-                inventory_files.sort()
-                try:
-                    latest_file = inventory_files[-1]
+
+                # latest_version is None either when no file matched, or when
+                # a file matched but its name didn't parse as expected.
+                if latest_file is not None and latest_version is not None:
 
                     #
                     # We store the previous version to use it to validate the
                     # generated one.
                     #
                     self.path_current = latest_file
-
-                    latest_version = latest_file.split("_v")[-1].split(".")[0]
-                    self.version = int(latest_version) + 1
+                    self.version = latest_version + 1
 
                     logging.info('-- Previous inventory file is: %s', latest_file)
                     logging.info('-- Generate version %d.', self.version)
 
-                except BaseException:
+                else:
+                    # No usable previous inventory file: start over at v1 rather
+                    # than guessing a version from a partial match.
                     self.version = 1
                     self.path_current = ""
 

@@ -620,6 +620,46 @@ class TestMetaKernelProductCheckVersion:
         results = [(r[1], r[2]) for r in caplog.record_tuples]
         assert expected == results
 
+    def test_previous_mk_with_unparsable_version_logs_warning(self, tmp_path, caplog):
+        """Test that check_version falls back to its "not available" warning
+        when a previous MK is found by glob but its version substring isn't a
+        valid integer -- the ValueError branch of the narrowed `except
+        (IndexError, ValueError)`, as opposed to the IndexError branch (glob
+        finds nothing at all) covered by test_no_previous_mk_logs_warning.
+        """
+        bundle = str(tmp_path / "bundle")
+        mk_dir = tmp_path / "bundle" / "insight_spice" / "spice_kernels" / "mk"
+        mk_dir.mkdir(parents=True)
+
+        # Writes a real file on disk so glob.glob() (called inside
+        # check_version) actually matches it. "XX" is 2 characters, the same
+        # width as the "02" version below, so the filename satisfies the glob
+        # pattern ("insight_v??.tm") -- it's only int("XX") that fails.
+        (mk_dir / "insight_vXX.tm").write_text("KPL/MK\n", encoding="utf-8")
+
+        setup = make_setup(bundle_directory=bundle, increment=True,
+                           mission_acronym="insight")
+        # _make_stub builds a MetaKernelProduct without calling __init__,
+        # setting just the attributes check_version reads: the product's own
+        # name/version, and mk_setup["@name"] (the naming pattern used to
+        # build the glob and to locate the version digits within it).
+        product = self._make_stub(setup, "insight_v02.tm", version="02")
+
+        # check_version() logs internally rather than returning a value, so
+        # caplog is how the test observes what branch actually ran.
+        with caplog.at_level(logging.INFO):
+            product.check_version()
+
+        # The fallback branch always logs these two warnings, regardless of
+        # whether it was reached via IndexError or ValueError -- this is what
+        # confirms the ValueError case takes the same fallback path.
+        expected = [
+            (logging.WARNING, '-- Meta-kernel from previous increment is not available.'),
+            (logging.WARNING, '   Version will be set to: 02.')]
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+        assert expected == results
+
     def test_year_substituted_in_pattern(self, tmp_path, caplog):
         bundle = str(tmp_path / "bundle")
         mk_dir = tmp_path / "bundle" / "insight_spice" / "spice_kernels" / "mk"

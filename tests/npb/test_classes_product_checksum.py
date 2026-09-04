@@ -47,6 +47,8 @@ MOD = "pds.naif_pds4_bundler.classes.product.product_checksum"
 
 PATCHES = dict(
     safe_make_directory=f"{MOD}.safe_make_directory",
+    # read_current_product globs candidates itself and hands the resolved
+    # paths to find_latest_versioned_file, so glob.glob is patched here.
     glob_glob=f"{MOD}.glob.glob",
     md5=f"{MOD}.md5",
     checksum_from_registry=f"{MOD}.checksum_from_registry",
@@ -93,6 +95,10 @@ def _build_pds4(
          patch(PATCHES["os_walk"], return_value=[]) as m_walk, \
          patch("builtins.open", mock_open(read_data="")) as m_open:
 
+        # find_latest_versioned_file globs two patterns (bundle + staging
+        # dir) and pools the results, so this mock is hit twice per call;
+        # returning the same glob_files both times is harmless here since
+        # duplicates don't change which entry sorts last.
         m_glob.return_value = glob_files
 
         obj = ChecksumProduct(setup, collection, add_previous_checksum)
@@ -157,7 +163,8 @@ class TestChecksumProductInit:
         obj, _ = _build_pds4(increment=True, glob_files=[prev])
         assert obj.version == 2
         assert obj.name == "checksum_v002.tab"
-        assert obj.path_current == prev
+        # path_current is a Path when a previous file was found.
+        assert str(obj.path_current) == prev
         assert obj.vid == "2.0"
 
     def test_init_pds4_creates_checksum_directory(self):

@@ -548,6 +548,46 @@ def get_latest_kernel(
         return kernels_date
 
 
+def find_latest_versioned_file(
+        paths: list[Path]) -> tuple[Optional[Path], Optional[int]]:
+    """Return the candidate with the highest version number in its filename.
+
+    A candidate's version is the digits immediately following ``"_v"`` at
+    the end of its filename stem (the extension is not considered). Among
+    candidates with a parseable version, the numerically highest one wins;
+    if two candidates share the same version, the one listed earlier in
+    ``paths`` is returned.
+
+    :param paths: Candidate file paths to compare. This function does not
+                  search the filesystem; the caller resolves candidates
+                  first (e.g. by globbing one or more directories).
+    :type paths: list[Path]
+    :return: ``(path, version)`` of the candidate with the highest version.
+             ``(None, None)`` if ``paths`` is empty. ``(paths[0], None)``
+             if no candidate's filename matches the ``"_v<digits>"``
+             pattern.
+    :rtype: tuple[Optional[Path], Optional[int]]
+    """
+    # Matches the digits after "_v" only when they reach the end of the
+    # stem (Path.stem has already stripped the file's extension).
+    version_re = re.compile(r"_v(\d+)$")
+
+    # Builds (path, version) pairs one at a time, as max() below asks for
+    # them. A path whose stem doesn't end in "_v<digits>" produces no
+    # match and is left out of this sequence entirely.
+    versioned = ((path, int(match.group(1)))
+                 for path in paths if (match := version_re.search(path.stem)))
+
+    # Returned by max() only when the sequence above is empty, i.e. no
+    # candidate's filename matched.
+    fallback = (paths[0], None) if paths else (None, None)
+
+    # Picks the pair with the highest version (pv[1]). If two candidates
+    # share the same version, the earlier one in `paths` wins, since max()
+    # keeps the first pair it saw once no later one beats it.
+    return max(versioned, key=lambda pv: pv[1], default=fallback)
+
+
 def check_consecutive(lst):
     """Check if a list has consecutive numbers.
 

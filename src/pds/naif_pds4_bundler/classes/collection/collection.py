@@ -2,7 +2,10 @@
 import glob
 import logging
 import re
+from pathlib import Path
 from typing import Tuple
+
+from ...utils import find_latest_versioned_file
 
 
 class Collection:
@@ -130,41 +133,52 @@ class Collection:
         """Set the Bundle VID.
 
         In general Collection versions are not equal to the release number.
-        If the collection has been updated we obtain the increased
-        version, but if it has not been updated we use the previous
-        version.
+        If the collection has been updated we obtain the increased version, but
+        if it has not been updated we use the previous version.
 
-        Given the case thatt he version cannot be determined: if it is the
-        SPICE kernels collection assume is the same version as the bundle,
-        otherwise we set it to 1.
+        Given the case that he version cannot be determined: if it is the SPICE
+        kernels collection assume is the same version as the bundle, otherwise
+        we set it to 1.
         """
         if self.setup.increment:
-            try:
-                versions = glob.glob(
-                    f"{self.setup.bundle_directory}/"
-                    f"{self.setup.mission_acronym}_spice/"
-                    f"{self.name}/*{self.name}*"
-                )
-                versions += glob.glob(
-                    f"{self.setup.staging_directory}/{self.name}/*{self.name}*"
-                )
 
-                versions.sort()
+            # Glob both directories ourselves and hand the resolved paths to
+            # find_latest_versioned_file, which just picks the best one.
+            candidate_patterns = [
+                f"{self.setup.bundle_directory}/"
+                f"{self.setup.mission_acronym}_spice/"
+                f"{self.name}/*{self.name}*",
 
-                if self.updated:
-                    version = int(versions[-1].split("v")[-1].split(".")[0]) + 1
-                else:
-                    version = int(versions[-1].split("v")[-1].split(".")[0])
+                f"{self.setup.staging_directory}/{self.name}/*{self.name}*"
+            ]
+            candidates = [
+                Path(match)
+                for pattern in candidate_patterns
+                for match in glob.glob(pattern)
+            ]
+            latest_file, latest_version = find_latest_versioned_file(candidates)
+
+            # latest_version is None either when no file matched, or when a file
+            # matched but its name didn't parse as expected.
+            if latest_file is not None and latest_version is not None:
+
+                # A collection that hasn't changed keeps its previous version;
+                # only an updated collection bumps it.
+                version = latest_version + 1 if self.updated else latest_version
 
                 vid = f'{version}.0'
 
                 logging.info(
                     '-- Collection of %s version set to %s, derived from:',
                     self.type, version)
-                logging.info('   %s', versions[-1])
+                logging.info('   %s', latest_file)
                 logging.info('')
 
-            except BaseException:
+            else:
+
+                # No usable previous version found: fall back to the bundle
+                # release number for the SPICE kernels collection (it always
+                # tracks the release), or to 1 for any other collection.
                 if self.name == "spice_kernels":
                     ver = int(self.setup.release)
 

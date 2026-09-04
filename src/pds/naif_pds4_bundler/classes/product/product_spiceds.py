@@ -6,11 +6,13 @@ import logging
 import os
 import shutil
 from datetime import date
+from pathlib import Path
 
 from .product import Product
 from ..exceptions import NPBError
 from ...utils import add_carriage_return
 from ...utils import compare_files
+from ...utils import find_latest_versioned_file
 
 
 class SpicedsProduct(Product):
@@ -44,32 +46,49 @@ class SpicedsProduct(Product):
             + os.sep
             + collection.name
         )
+
         if self.setup.increment:
-            spiceds_files = glob.glob(path + os.sep + "spiceds_v*.html")
-            spiceds_files.sort()
-            try:
-                latest_spiceds = spiceds_files[-1]
-                latest_version = latest_spiceds.split("_v")[-1].split(".")[0]
+            spiceds_candidates = [
+                Path(match)
+                for match in glob.glob(path + os.sep + "spiceds_v*.html")
+            ]
+
+            latest_spiceds, latest_version = find_latest_versioned_file(
+                spiceds_candidates
+            )
+
+            # latest_version is None either when no file matched, or when a file
+            # matched but its name didn't parse as expected.
+            if latest_spiceds is not None and latest_version is not None:
                 self.latest_spiceds = latest_spiceds
                 self.latest_version = latest_version
-                self.version = int(latest_version) + 1
+                self.version = latest_version + 1
 
                 if not spiceds:
 
+                    # No new spiceds was supplied in the configuration, so the
+                    # previous increment's file is reused as-is: nothing to
+                    # stage, no version bump beyond what was just derived.
                     logging.info('-- Previous spiceds found: %s', latest_spiceds)
 
                     self.generated = False
                     return
 
-            except BaseException:
+            else:
                 logging.warning("-- No previous version of spiceds_v*.html file found.")
+
                 if not spiceds:
+
+                    # Nothing to fall back to: no previous file and no new one
+                    # provided in the configuration.
                     raise NPBError(
                         "spiceds not provided and not available "
                         "from previous releases."
                     )
+
                 self.version = 1
                 self.latest_spiceds = ""
+
         else:
             self.version = 1
             self.latest_spiceds = ""
@@ -216,30 +235,32 @@ class SpicedsProduct(Product):
         #
         # Compare spiceds with latest. First try with previous increment.
         #
-        try:
-            # TODO: BUG, path separators are hardcoded as '/' via f-strings,
-            #       unlike __init__ which uses os.sep throughout. On Windows the
-            #       forward-slash paths still resolve correctly for glob and
-            #       open, but the inconsistency is a maintenance hazard.
-            val_spd_path = (
-                f"{self.setup.bundle_directory}/"
-                f"{self.setup.mission_acronym}_spice/document"
-            )
+        # TODO: BUG, path separators are hardcoded as '/' via f-strings,
+        #       unlike __init__ which uses os.sep throughout. On Windows the
+        #       forward-slash paths still resolve correctly for glob and
+        #       open, but the inconsistency is a maintenance hazard.
+        val_spd_path = (
+            f"{self.setup.bundle_directory}/"
+            f"{self.setup.mission_acronym}_spice/document"
+        )
 
-            val_spds = glob.glob(f"{val_spd_path}/spiceds_v*.html")
-            val_spds.sort()
-            val_spd = val_spds[-1]
+        # Only the path is needed here, not a version, so the returned version
+        # is ignored.
+        val_spd_candidates = [
+            Path(match) for match in glob.glob(f"{val_spd_path}/spiceds_v*.html")
+        ]
+        val_spd, _ = find_latest_versioned_file(val_spd_candidates)
 
-        except BaseException:
+        if val_spd is None:
 
             #
-            # If previous increment does not work, compare with InSight
-            # example.
+            # No spiceds from a previous increment was found: compare with the
+            # InSight example bundled with NPB instead.
             #
             logging.warning('-- No other version of %s has been found.', self.name)
             logging.warning('-- Comparing with default InSight example.')
 
-            val_spd = (
+            val_spd = Path(
                 f"{self.setup.root_dir}/data/insight_spice/document/spiceds_v002.html"
             )
 

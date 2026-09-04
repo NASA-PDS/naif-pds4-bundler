@@ -99,7 +99,10 @@ class TestInventoryProductInitPDS4:
             obj = InventoryProduct(setup, collection)
 
         assert obj.version == current
-        assert obj.path_current == path_current
+        # path_current is a Path when a previous file was found, and the
+        # plain sentinel string "" otherwise -- str() normalizes both for
+        # comparison against the parametrized (always-string) expectation.
+        assert str(obj.path_current) == path_current
         assert obj.name == name
         assert obj.path == path
         assert obj.lid == "urn:nasa:pds:insight_spice:document:spiceds"

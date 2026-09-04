@@ -750,6 +750,48 @@ def test_fill_template(tmp_path, contents, dct, expected):
     assert result == expected
 
 # ----------------------------------------------------------------------------
+# files.find_latest_versioned_file tests
+# ----------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("paths, expected_name, expected_version", [
+    # The highest version wins even when it isn't the last candidate listed.
+    (["checksum_v010.tab", "checksum_v002.tab", "checksum_v001.tab"],
+     "checksum_v010.tab", 10),
+    # Versions are compared numerically, not lexically: "_v10" beats "_v9"
+    # even though "9" sorts after "1" as characters.
+    (["checksum_v9.tab", "checksum_v10.tab"], "checksum_v10.tab", 10),
+    # Directory names never affect the comparison: "aaa_staging" sorts
+    # before "bundle_zzz" lexically, but its file has the higher version.
+    (["bundle_zzz/inventory_v001.csv", "aaa_staging/inventory_v010.csv"],
+     "aaa_staging/inventory_v010.csv", 10),
+    # No candidates at all.
+    ([], None, None),
+    # No candidate's filename ends in "_v<digits>": the first path is
+    # returned with an unknown version instead of nothing.
+    (["checksum_no_version.tab"], "checksum_no_version.tab", None),
+    # A non-matching filename in the pool is skipped, not picked as a
+    # fallback winner: the one real match still wins.
+    (["readme.txt", "checksum_v003.tab"], "checksum_v003.tab", 3),
+])
+def test_find_latest_versioned_file(paths, expected_name, expected_version):
+    """find_latest_versioned_file compares candidates by the version parsed
+    from their filename stem and returns the numerically highest one,
+    falling back to (None, None) or (paths[0], None) when nothing matches.
+
+    The function no longer touches the filesystem (the caller resolves
+    candidates itself), so this test passes Path objects directly instead
+    of creating real files under tmp_path.
+    """
+    candidate_paths = [Path(p) for p in paths]
+
+    path, version = files.find_latest_versioned_file(candidate_paths)
+
+    expected_path = Path(expected_name) if expected_name is not None else None
+    assert path == expected_path
+    assert version == expected_version
+
+# ----------------------------------------------------------------------------
 # files.format_multiple_values tests
 # ----------------------------------------------------------------------------
 
