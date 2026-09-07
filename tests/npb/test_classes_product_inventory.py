@@ -60,15 +60,25 @@ MODULE = "pds.naif_pds4_bundler.classes.product.product_inventory"
 # InventoryProduct.__init__ (pds_version 4)
 # ---------------------------------------------------------------------------
 
+# The expected "previous inventory file" candidate. Built by joining path
+# segments (never embedding "/" inside a string literal) so it's correct on both
+# POSIX and Windows. Kept as a Path -- the parametrized comparison below is
+# obj.path_current == path_current, and obj.path_current is itself a Path when a
+# previous file was found, so Path.__eq__ (parsed path parts) applies instead of
+# a separator-sensitive string comparison.
+PREV_INVENTORY_PATH = Path("bundle", "insight_spice", "spice_kernels",
+                           "collection_spice_kernels_inventory_v001.csv")
+
+
 class TestInventoryProductInitPDS4:
     """Tests for __init__ with pds_version == '4'."""
 
     @pytest.mark.parametrize("increment, previous_version, current, "
-                             "path_current, name, path, vid",[
+                             "path_current, name, path, vid", [
         (True,
-         ["/bundle/insight_spice/spice_kernels/collection_spice_kernels_inventory_v001.csv"],
+         [str(PREV_INVENTORY_PATH)],
          2,
-         "/bundle/insight_spice/spice_kernels/collection_spice_kernels_inventory_v001.csv",
+         PREV_INVENTORY_PATH,
          "collection_spice_kernels_inventory_v002.csv",
          str(Path("staging/spice_kernels/collection_spice_kernels_inventory_v002.csv")),
          "2.0"),
@@ -99,10 +109,12 @@ class TestInventoryProductInitPDS4:
             obj = InventoryProduct(setup, collection)
 
         assert obj.version == current
-        # path_current is a Path when a previous file was found, and the
-        # plain sentinel string "" otherwise -- str() normalizes both for
-        # comparison against the parametrized (always-string) expectation.
-        assert str(obj.path_current) == path_current
+
+        # path_current is a Path when a previous file was found, and the plain
+        # sentinel string "" otherwise. path_current (parametrized) is the
+        # matching type in each case, so this compares Path == Path (parsed path
+        # parts, not separator-sensitive strings) or "" == "".
+        assert obj.path_current == path_current
         assert obj.name == name
         assert obj.path == path
         assert obj.lid == "urn:nasa:pds:insight_spice:document:spiceds"
