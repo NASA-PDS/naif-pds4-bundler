@@ -187,9 +187,12 @@ class TestSpicedsProductInit:
                 patches[3], patches[4]:
             product = SpicedsProduct(setup, collection)
 
-        # The search path is bundle/<acronym>_spice/<collection>.
-        expected_glob = os.path.join(
-            '/bundle', 'insight_spice', 'document', 'spiceds_v*.html')
+        # The search path is bundle/<acronym>_spice/<collection>. Built via
+        # Path (not os.path.join) to match find_latest_versioned_file's own
+        # Path-based construction: Path normalizes "/bundle" to "\bundle" on
+        # Windows, which os.path.join would leave untouched.
+        expected_glob = str(
+            Path('/bundle', 'insight_spice', 'document', 'spiceds_v*.html'))
         glob_mock.assert_called_once_with(expected_glob)
 
         # Highest version after sorting is v003 -> new version is 4.
@@ -454,8 +457,12 @@ class TestSpicedsProductCompare:
                 patch(f'{_MODULE}.compare_files') as compare_files:
             product._compare()
 
-        # The glob targets the bundle document directory
-        expected_glob = '/bundle/insight_spice/document/spiceds_v*.html'
+        # The glob targets the bundle document directory. Built via Path (not
+        # a raw literal) to match find_latest_versioned_file's own
+        # Path-based construction: Path normalizes "/bundle" to "\bundle" on
+        # Windows, which the old hardcoded literal didn't account for.
+        expected_glob = str(
+            Path('/bundle', 'insight_spice', 'document', 'spiceds_v*.html'))
         glob_mock.assert_called_once_with(expected_glob)
 
         # fromfile is the highest sorted match (now a Path); tofile is the
