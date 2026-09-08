@@ -1,5 +1,4 @@
 """Implementation of the Checksum product class."""
-import glob
 import logging
 import os
 from collections import defaultdict
@@ -116,30 +115,21 @@ class ChecksumProduct(Product):
                 # Search both the bundle directory (previous increments) and
                 # the staging directory (current, in-progress increment) for
                 # the latest checksum file already written.
-                checksum_patterns = [
-                    self.setup.bundle_directory
-                    + f"/{self.setup.mission_acronym}_spice/"
-                    + self.collection.name
-                    + os.sep
-                    + "/checksum/checksum_v*.tab",
+                checksum_dirs = [
+                    Path(self.setup.bundle_directory)
+                    / f"{self.setup.mission_acronym}_spice"
+                    / self.collection.name / "checksum",
 
-                    self.setup.staging_directory
-                    + os.sep
-                    + self.collection.name
-                    + "/checksum/checksum_v*.tab",
-                ]
-                checksum_candidates = [
-                    Path(match)
-                    for pattern in checksum_patterns
-                    for match in glob.glob(pattern)
+                    Path(self.setup.staging_directory)
+                    / self.collection.name / "checksum",
                 ]
                 latest_file, latest_version = find_latest_versioned_file(
-                    checksum_candidates
+                    checksum_dirs, "checksum_v*.tab"
                 )
 
                 # latest_version is None either when no file matched, or when
                 # a file matched but its name didn't parse as expected.
-                if latest_file is not None and latest_version is not None:
+                if latest_version is not None:
 
                     #
                     # Store the previous version to use it to validate the

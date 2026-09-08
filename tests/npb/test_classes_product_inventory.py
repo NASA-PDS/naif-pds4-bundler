@@ -97,7 +97,7 @@ class TestInventoryProductInitPDS4:
          str(Path("staging/spice_kernels/collection_spice_kernels_inventory_v001.csv")),
          "1.0"),
     ])
-    @patch(f"{MODULE}.glob.glob")
+    @patch("pds.naif_pds4_bundler.utils.files.glob.glob")
     def test_pds4_attribute_settings(self, mock_glob, increment, previous_version,
                                            current, path_current, name, path, vid):
         mock_glob.return_value = previous_version
@@ -125,7 +125,7 @@ class TestInventoryProductInitPDS4:
         (True, 2),
         (False, 0)
     ])
-    @patch(f"{MODULE}.glob.glob")
+    @patch("pds.naif_pds4_bundler.utils.files.glob.glob")
     def test_pds4_init_logic_testing(self, mock_glob, increment, glob_call_count):
         """new_product is always True after __init__."""
         mock_glob.return_value = []

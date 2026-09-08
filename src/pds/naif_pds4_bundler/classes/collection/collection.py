@@ -1,5 +1,4 @@
 """Collection Class amd Child Classes Implementation."""
-import glob
 import logging
 import re
 from pathlib import Path
@@ -142,25 +141,18 @@ class Collection:
         """
         if self.setup.increment:
 
-            # Glob both directories ourselves and hand the resolved paths to
-            # find_latest_versioned_file, which just picks the best one.
-            candidate_patterns = [
-                f"{self.setup.bundle_directory}/"
-                f"{self.setup.mission_acronym}_spice/"
-                f"{self.name}/*{self.name}*",
-
-                f"{self.setup.staging_directory}/{self.name}/*{self.name}*"
+            candidate_dirs = [
+                Path(f"{self.setup.bundle_directory}/"
+                     f"{self.setup.mission_acronym}_spice/{self.name}"),
+                Path(f"{self.setup.staging_directory}/{self.name}"),
             ]
-            candidates = [
-                Path(match)
-                for pattern in candidate_patterns
-                for match in glob.glob(pattern)
-            ]
-            latest_file, latest_version = find_latest_versioned_file(candidates)
+            latest_file, latest_version = find_latest_versioned_file(
+                candidate_dirs, f"*{self.name}*"
+            )
 
             # latest_version is None either when no file matched, or when a file
             # matched but its name didn't parse as expected.
-            if latest_file is not None and latest_version is not None:
+            if latest_version is not None:
 
                 # A collection that hasn't changed keeps its previous version;
                 # only an updated collection bumps it.

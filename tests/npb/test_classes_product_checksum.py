@@ -64,9 +64,9 @@ MOD = "pds.naif_pds4_bundler.classes.product.product_checksum"
 
 PATCHES = dict(
     safe_make_directory=f"{MOD}.safe_make_directory",
-    # read_current_product globs candidates itself and hands the resolved
-    # paths to find_latest_versioned_file, so glob.glob is patched here.
-    glob_glob=f"{MOD}.glob.glob",
+    # find_latest_versioned_file globs candidates itself now, so glob.glob
+    # is patched where it's actually called: inside utils.files.
+    glob_glob="pds.naif_pds4_bundler.utils.files.glob.glob",
     md5=f"{MOD}.md5",
     checksum_from_registry=f"{MOD}.checksum_from_registry",
     checksum_from_label=f"{MOD}.checksum_from_label",

@@ -213,7 +213,10 @@ class TestCollectionSetCollectionVid:
         return col, setup
 
     def test_no_increment_uses_release(self, caplog):
-        """Increment is False."""
+        """When increment is False, the collection VID is set directly from
+        the bundle release number instead of being derived from a previous
+        version on disk.
+        """
         col, _ = self._collection(increment=False, release="5")
         col.set_collection_vid()
         assert col.vid == "5.0"
@@ -232,12 +235,11 @@ class TestCollectionSetCollectionVid:
          "4.0") # v003 + 1
     ])
     def test_increment_true_success_glob(self, updated, fake_versions, vid):
-        # set_collection_vid globs both directories itself and hands the
-        # resolved paths to find_latest_versioned_file, so the patch target
-        # is this collection module's own glob.glob.
+        # find_latest_versioned_file globs both directories itself now, so
+        # the patch target is utils.files' own glob.glob.
         col, _ = self._collection(increment=True)
         col.updated = updated
-        with patch("pds.naif_pds4_bundler.classes.collection.collection.glob.glob",
+        with patch("pds.naif_pds4_bundler.utils.files.glob.glob",
                    return_value=fake_versions):
             col.set_collection_vid()
         assert col.vid == vid
@@ -253,7 +255,7 @@ class TestCollectionSetCollectionVid:
         # error: find_latest_versioned_file returns (None, None) for it, and
         # set_collection_vid falls back to a default version (7 for
         # spice_kernels since it tracks the release; 1 for anything else).
-        with patch("pds.naif_pds4_bundler.classes.collection.collection.glob.glob",
+        with patch("pds.naif_pds4_bundler.utils.files.glob.glob",
                    return_value=[]):
             with caplog.at_level(logging.WARNING):
                 col.set_collection_vid()
@@ -287,12 +289,12 @@ class TestCollectionSetCollectionVid:
         col, _ = self._collection(c_type="spice_kernels", increment=True, release="2")
         col.updated = False
 
-        # Replace the real glob.glob (called directly from set_collection_vid
-        # now, hence patching this module rather than utils.files) with a
-        # mock that raises OSError("disk error") instead of returning a file
-        # list. This simulates a filesystem failure, which is a different
+        # Replace the real glob.glob (called from find_latest_versioned_file
+        # in utils.files, not from this module directly) with a mock that
+        # raises OSError("disk error") instead of returning a file list.
+        # This simulates a filesystem failure, which is a different
         # scenario from "no files found" (an empty list).
-        with patch("pds.naif_pds4_bundler.classes.collection.collection.glob.glob",
+        with patch("pds.naif_pds4_bundler.utils.files.glob.glob",
                    side_effect=OSError("disk error")):
 
             # Call the method under test inside pytest.raises: this block passes

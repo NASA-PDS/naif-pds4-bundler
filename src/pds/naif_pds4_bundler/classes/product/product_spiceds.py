@@ -1,7 +1,6 @@
 """Implementation of the SPICE DS file product class."""
 import difflib
 import filecmp
-import glob
 import logging
 import os
 import shutil
@@ -48,18 +47,13 @@ class SpicedsProduct(Product):
         )
 
         if self.setup.increment:
-            spiceds_candidates = [
-                Path(match)
-                for match in glob.glob(path + os.sep + "spiceds_v*.html")
-            ]
-
             latest_spiceds, latest_version = find_latest_versioned_file(
-                spiceds_candidates
+                [Path(path)], "spiceds_v*.html"
             )
 
             # latest_version is None either when no file matched, or when a file
             # matched but its name didn't parse as expected.
-            if latest_spiceds is not None and latest_version is not None:
+            if latest_version is not None:
                 self.latest_spiceds = latest_spiceds
                 self.latest_version = latest_version
                 self.version = latest_version + 1
@@ -246,10 +240,9 @@ class SpicedsProduct(Product):
 
         # Only the path is needed here, not a version, so the returned version
         # is ignored.
-        val_spd_candidates = [
-            Path(match) for match in glob.glob(f"{val_spd_path}/spiceds_v*.html")
-        ]
-        val_spd, _ = find_latest_versioned_file(val_spd_candidates)
+        val_spd, _ = find_latest_versioned_file(
+            [Path(val_spd_path)], "spiceds_v*.html"
+        )
 
         if val_spd is None:
 

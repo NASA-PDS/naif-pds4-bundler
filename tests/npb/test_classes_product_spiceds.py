@@ -11,9 +11,9 @@ from pds.naif_pds4_bundler.classes.exceptions import NPBError
 
 # Module path used as the anchor for every patch target.
 _MODULE = 'pds.naif_pds4_bundler.classes.product.product_spiceds'
-# SpicedsProduct globs candidates itself and hands the resolved paths to
-# find_latest_versioned_file, so glob.glob is patched on this module.
-_GLOB_GLOB = f'{_MODULE}.glob.glob'
+# find_latest_versioned_file globs candidates itself now, so glob.glob is
+# patched where it's actually called: inside utils.files.
+_GLOB_GLOB = 'pds.naif_pds4_bundler.utils.files.glob.glob'
 
 
 # ---------------------------------------------------------------------------

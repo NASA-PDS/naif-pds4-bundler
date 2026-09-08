@@ -45,32 +45,21 @@ class InventoryProduct(Product):
                 # Search both the bundle directory (previous increments) and the
                 # staging directory (current, in-progress increment) for the
                 # latest inventory file already written.
-                inventory_patterns = [
-                    self.setup.bundle_directory
-                    + f"/{self.setup.mission_acronym}_spice"
-                    + os.sep
-                    + collection.name
-                    + os.sep
-                    + f"collection_{collection.name}_inventory_v*.csv",
+                inventory_dirs = [
+                    Path(self.setup.bundle_directory)
+                    / f"{self.setup.mission_acronym}_spice"
+                    / collection.name,
 
-                    self.setup.staging_directory
-                    + os.sep
-                    + collection.name
-                    + os.sep
-                    + f"collection_{collection.name}_inventory_v*.csv"
-                ]
-                inventory_candidates = [
-                    Path(match)
-                    for pattern in inventory_patterns
-                    for match in glob.glob(pattern)
+                    Path(self.setup.staging_directory) / collection.name,
                 ]
                 latest_file, latest_version = find_latest_versioned_file(
-                    inventory_candidates
+                    inventory_dirs,
+                    f"collection_{collection.name}_inventory_v*.csv"
                 )
 
                 # latest_version is None either when no file matched, or when
                 # a file matched but its name didn't parse as expected.
-                if latest_file is not None and latest_version is not None:
+                if latest_version is not None:
 
                     #
                     # We store the previous version to use it to validate the

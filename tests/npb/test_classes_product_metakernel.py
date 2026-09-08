@@ -622,19 +622,21 @@ class TestMetaKernelProductCheckVersion:
 
     def test_previous_mk_with_unparsable_version_logs_warning(self, tmp_path, caplog):
         """Test that check_version falls back to its "not available" warning
-        when a previous MK is found by glob but its version substring isn't a
-        valid integer -- the ValueError branch of the narrowed `except
-        (IndexError, ValueError)`, as opposed to the IndexError branch (glob
-        finds nothing at all) covered by test_no_previous_mk_logs_warning.
+        when a previous MK is found by glob but its version substring doesn't
+        match find_latest_versioned_file's "_v<digits>" pattern -- the
+        `latest_version is None` (match found, no parseable version) case,
+        as opposed to the "no candidates at all" case covered by
+        test_no_previous_mk_logs_warning.
         """
         bundle = str(tmp_path / "bundle")
         mk_dir = tmp_path / "bundle" / "insight_spice" / "spice_kernels" / "mk"
         mk_dir.mkdir(parents=True)
 
         # Writes a real file on disk so glob.glob() (called inside
-        # check_version) actually matches it. "XX" is 2 characters, the same
-        # width as the "02" version below, so the filename satisfies the glob
-        # pattern ("insight_v??.tm") -- it's only int("XX") that fails.
+        # find_latest_versioned_file) actually matches it. "XX" is 2
+        # characters, the same width as the "02" version below, so the
+        # filename satisfies the glob pattern ("insight_v??.tm") -- it's only
+        # the "_v(\d+)$" version regex that fails to match "_vXX".
         (mk_dir / "insight_vXX.tm").write_text("KPL/MK\n", encoding="utf-8")
 
         setup = make_setup(bundle_directory=bundle, increment=True,
@@ -651,8 +653,9 @@ class TestMetaKernelProductCheckVersion:
             product.check_version()
 
         # The fallback branch always logs these two warnings, regardless of
-        # whether it was reached via IndexError or ValueError -- this is what
-        # confirms the ValueError case takes the same fallback path.
+        # whether it was reached because no file matched at all or because a
+        # file matched but its version didn't parse -- this is what confirms
+        # the unparsable-version case takes the same fallback path.
         expected = [
             (logging.WARNING, '-- Meta-kernel from previous increment is not available.'),
             (logging.WARNING, '   Version will be set to: 02.')]
