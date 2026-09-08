@@ -11,9 +11,9 @@ from pds.naif_pds4_bundler.classes.exceptions import NPBError
 
 # Module path used as the anchor for every patch target.
 _MODULE = 'pds.naif_pds4_bundler.classes.product.product_spiceds'
-# find_latest_versioned_file globs candidates itself now, so glob.glob is
-# patched where it's actually called: inside utils.files.
-_GLOB_GLOB = 'pds.naif_pds4_bundler.utils.files.glob.glob'
+# find_latest_versioned_file globs candidates itself now via Path.glob, so
+# that's what's patched here instead of anything in this module.
+_GLOB_GLOB = 'pathlib.Path.glob'
 
 
 # ---------------------------------------------------------------------------
@@ -182,18 +182,18 @@ class TestSpicedsProductInit:
             '/bundle/insight_spice/document/spiceds_v002.html']
 
         patches = base_init_patches()
-        with patch(_GLOB_GLOB, return_value=list(previous)) as glob_mock, \
+        with patch(_GLOB_GLOB, autospec=True, return_value=list(previous)) as glob_mock, \
                 patches[0] as copy2, patches[1], patches[2], \
                 patches[3], patches[4]:
             product = SpicedsProduct(setup, collection)
 
-        # The search path is bundle/<acronym>_spice/<collection>. Built via
-        # Path (not os.path.join) to match find_latest_versioned_file's own
-        # Path-based construction: Path normalizes "/bundle" to "\bundle" on
-        # Windows, which os.path.join would leave untouched.
-        expected_glob = str(
-            Path('/bundle', 'insight_spice', 'document', 'spiceds_v*.html'))
-        glob_mock.assert_called_once_with(expected_glob)
+        # The search path is bundle/<acronym>_spice/<collection>. Asserted as
+        # a Path (via autospec=True, which makes the mock receive the
+        # directory as its own argument) rather than a joined string, since
+        # Path equality compares parsed components and is therefore correct
+        # on both POSIX and Windows regardless of separator style.
+        glob_mock.assert_called_once_with(
+            Path('/bundle', 'insight_spice', 'document'), 'spiceds_v*.html')
 
         # Highest version after sorting is v003 -> new version is 4.
         # latest_version is now an int (parsed by find_latest_versioned_file)
@@ -453,17 +453,17 @@ class TestSpicedsProductCompare:
             '/bundle/insight_spice/document/spiceds_v003.html',
             '/bundle/insight_spice/document/spiceds_v002.html']
 
-        with patch(_GLOB_GLOB, return_value=list(found)) as glob_mock, \
+        with patch(_GLOB_GLOB, autospec=True, return_value=list(found)) as glob_mock, \
                 patch(f'{_MODULE}.compare_files') as compare_files:
             product._compare()
 
-        # The glob targets the bundle document directory. Built via Path (not
-        # a raw literal) to match find_latest_versioned_file's own
-        # Path-based construction: Path normalizes "/bundle" to "\bundle" on
-        # Windows, which the old hardcoded literal didn't account for.
-        expected_glob = str(
-            Path('/bundle', 'insight_spice', 'document', 'spiceds_v*.html'))
-        glob_mock.assert_called_once_with(expected_glob)
+        # The glob targets the bundle document directory. Asserted as a Path
+        # (via autospec=True, which makes the mock receive the directory as
+        # its own argument) rather than a joined string, since Path equality
+        # compares parsed components and is therefore correct on both POSIX
+        # and Windows regardless of separator style.
+        glob_mock.assert_called_once_with(
+            Path('/bundle', 'insight_spice', 'document'), 'spiceds_v*.html')
 
         # fromfile is the highest sorted match (now a Path); tofile is the
         # product path (unchanged, a plain string).

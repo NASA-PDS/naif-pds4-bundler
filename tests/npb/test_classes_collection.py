@@ -235,11 +235,11 @@ class TestCollectionSetCollectionVid:
          "4.0") # v003 + 1
     ])
     def test_increment_true_success_glob(self, updated, fake_versions, vid):
-        # find_latest_versioned_file globs both directories itself now, so
-        # the patch target is utils.files' own glob.glob.
+        # find_latest_versioned_file globs both directories itself now via
+        # Path.glob, so the patch target is pathlib.Path.glob.
         col, _ = self._collection(increment=True)
         col.updated = updated
-        with patch("pds.naif_pds4_bundler.utils.files.glob.glob",
+        with patch("pathlib.Path.glob",
                    return_value=fake_versions):
             col.set_collection_vid()
         assert col.vid == vid
@@ -255,14 +255,14 @@ class TestCollectionSetCollectionVid:
         # error: find_latest_versioned_file returns (None, None) for it, and
         # set_collection_vid falls back to a default version (7 for
         # spice_kernels since it tracks the release; 1 for anything else).
-        with patch("pds.naif_pds4_bundler.utils.files.glob.glob",
+        with patch("pathlib.Path.glob",
                    return_value=[]):
             with caplog.at_level(logging.WARNING):
                 col.set_collection_vid()
         assert col.vid == vid
 
     def test_increment_glob_raises_exception_propagates(self):
-        """Test that set_collection_vid lets a glob.glob failure (e.g. a disk
+        """Test that set_collection_vid lets a Path.glob failure (e.g. a disk
         error) propagate as an OSError, instead of silently swallowing it into a
         fallback version the way the old `except BaseException` did.
 
@@ -283,18 +283,18 @@ class TestCollectionSetCollectionVid:
         """
         # Build a Collection instance to call set_collection_vid() on. The
         # specific values chosen (c_type, release, updated) don't drive any
-        # assertion below: the exception fires inside glob.glob, before any of
+        # assertion below: the exception fires inside Path.glob, before any of
         # set_collection_vid's own logic (fallback-by-collection-type, version
         # bump) ever gets a chance to run.
         col, _ = self._collection(c_type="spice_kernels", increment=True, release="2")
         col.updated = False
 
-        # Replace the real glob.glob (called from find_latest_versioned_file
+        # Replace the real Path.glob (called from find_latest_versioned_file
         # in utils.files, not from this module directly) with a mock that
         # raises OSError("disk error") instead of returning a file list.
         # This simulates a filesystem failure, which is a different
         # scenario from "no files found" (an empty list).
-        with patch("pds.naif_pds4_bundler.utils.files.glob.glob",
+        with patch("pathlib.Path.glob",
                    side_effect=OSError("disk error")):
 
             # Call the method under test inside pytest.raises: this block passes

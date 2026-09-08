@@ -46,8 +46,9 @@ def _make_collection(name="miscellaneous"):
 # POSIX and Windows. Kept as a Path -- comparisons against obj.path_current
 # (also a Path) use Path.__eq__, which compares parsed path parts rather than
 # separator-sensitive strings. str(PREV_CHECKSUM_PATH) is used only where an
-# actual string is required: standing in for a glob.glob() match (which is
-# always a str), or building a regex.
+# actual string is required: standing in for a Path.glob() match (a plain str
+# works too, since find_latest_versioned_file wraps every match in Path()), or
+# building a regex.
 PREV_CHECKSUM_PATH = Path("bundle", "em16_spice", "miscellaneous",
                           "checksum", "checksum_v001.tab")
 
@@ -64,9 +65,9 @@ MOD = "pds.naif_pds4_bundler.classes.product.product_checksum"
 
 PATCHES = dict(
     safe_make_directory=f"{MOD}.safe_make_directory",
-    # find_latest_versioned_file globs candidates itself now, so glob.glob
-    # is patched where it's actually called: inside utils.files.
-    glob_glob="pds.naif_pds4_bundler.utils.files.glob.glob",
+    # find_latest_versioned_file globs candidates itself via Path.glob, so
+    # that's what's patched here instead of anything in this module.
+    glob_glob="pathlib.Path.glob",
     md5=f"{MOD}.md5",
     checksum_from_registry=f"{MOD}.checksum_from_registry",
     checksum_from_label=f"{MOD}.checksum_from_label",
@@ -238,7 +239,7 @@ class TestChecksumProductInit:
             str(PREV_CHECKSUM_PATH.parent / "checksum_v9.tab"),
         ]
 
-        # glob.glob returns unsorted; find_latest_versioned_file picks by
+        # Path.glob returns unsorted; find_latest_versioned_file picks by
         # numeric version, not list order or lexical string order.
         obj, _ = _build_pds4(increment=True, glob_files=files)
         assert obj.version == 11

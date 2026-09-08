@@ -557,7 +557,7 @@ def find_latest_versioned_file(
     ``"_v"`` at the end of its filename stem (the extension is not considered).
     Among candidates with a parseable version, the numerically highest one wins;
     if two candidates share the same version, the one found first (directories
-    searched in ``paths`` order, ``glob.glob`` order within a directory) is
+    searched in ``paths`` order, matching order within a directory) is
     returned.
 
     :param paths: Directories to search for ``pattern``.
@@ -574,7 +574,7 @@ def find_latest_versioned_file(
     candidates = [
         Path(match)
         for directory in paths
-        for match in glob.glob(str(Path(directory) / pattern))
+        for match in Path(directory).glob(pattern)
     ]
 
     # Matches the digits after "_v" only when they reach the end of the
