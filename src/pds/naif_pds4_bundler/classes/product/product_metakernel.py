@@ -18,7 +18,6 @@ from ...utils import compare_files
 from ...utils import current_date
 from ...utils import et_to_date
 from ...utils import extension_to_type
-from ...utils import find_latest_versioned_file
 from ...utils import get_latest_kernel
 from ...utils import match_patterns
 from ...utils import mk_to_list
@@ -251,37 +250,53 @@ class MetaKernelProduct(Product):
             else:
                 pattern = pattern.replace("$" + key, "?" * len(self.values[key]))
 
-        mk_dir = Path(
+        versions = glob.glob(
             f"{self.setup.bundle_directory}/"
-            f"{self.setup.mission_acronym}_spice/spice_kernels/mk"
+            f"{self.setup.mission_acronym}_spice/"
+            f"spice_kernels/mk/{pattern}"
         )
-        _, latest_version = find_latest_versioned_file([mk_dir], pattern)
 
-        # latest_version is None either when no previous MK matched, or when
-        # one matched but its name didn't parse as expected.
-        if latest_version is None:
+        versions.sort()
+        try:
+            # Position of the version digits within the filename: the "?"
+            # wildcards mark where they sit, since VERSION was substituted with
+            # "?" * len(...) above.
+            version_index = pattern.find("?")
+
+            # Take the highest-sorted (i.e. latest) matched filename, drop its
+            # directory path, and slice out just the version digits at that same
+            # position/width. Width is always VERSION's length -- YEAR is never
+            # substituted with "?", so it can't be the key `?` marks.
+            version = versions[-1].split(os.sep)[-1]
+            version = version[
+                version_index : version_index + len(self.values["VERSION"])
+            ]
+
+            # Parse the previous increment's version and bump it by one: this is
+            # what *this* product's version is expected to be.
+            version = int(version) + 1
+
+            if version == int(self.version):
+                logging.info(
+                    '-- Version from kernel list and from previous increment '
+                    'agree: %d.', version)
+
+            else:
+                logging.warning(
+                    '-- The meta-kernel version is not as expected from previous '
+                    'increment.')
+                logging.warning(
+                    '   Version set to: %d, whereas it is expected to be: %d.',
+                    int(self.version), version)
+                logging.warning(
+                    '   It is recommended to stop the execution and fix the issue.')
+
+        except (IndexError, ValueError):
+            # IndexError: no previous MK matched (versions is empty).
+            # ValueError: the version substring sliced out of the matched
+            # filename, or self.version itself, isn't a valid integer.
             logging.warning('-- Meta-kernel from previous increment is not available.')
             logging.warning('   Version will be set to: %s.', self.version)
-            return
-
-        # Bump the previous increment's version by one: this is what *this*
-        # product's version is expected to be.
-        version = latest_version + 1
-
-        if version == int(self.version):
-            logging.info(
-                '-- Version from kernel list and from previous increment '
-                'agree: %d.', version)
-
-        else:
-            logging.warning(
-                '-- The meta-kernel version is not as expected from previous '
-                'increment.')
-            logging.warning(
-                '   Version set to: %d, whereas it is expected to be: %d.',
-                int(self.version), version)
-            logging.warning(
-                '   It is recommended to stop the execution and fix the issue.')
 
     def set_product_lid(self) -> None:
         """Set the Meta-kernel LID."""
