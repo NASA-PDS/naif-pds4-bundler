@@ -38,17 +38,14 @@ class SpicedsProduct(Product):
         # Obtain the previous spiceds file if it exists
         #
         path = (
-            setup.bundle_directory
-            + os.sep
-            + setup.mission_acronym
-            + "_spice"
-            + os.sep
-            + collection.name
+            Path(setup.bundle_directory)
+            / f"{setup.mission_acronym}_spice"
+            / collection.name
         )
 
         if self.setup.increment:
             latest_spiceds, latest_version = find_latest_versioned_file(
-                [Path(path)], "spiceds_v*.html"
+                [path], "spiceds_v*.html"
             )
 
             # latest_version is None either when no file matched, or when a file
@@ -229,22 +226,23 @@ class SpicedsProduct(Product):
         #
         # Compare spiceds with latest. First try with previous increment.
         #
-        # TODO: BUG, path separators are hardcoded as '/' via f-strings,
-        #       unlike __init__ which uses os.sep throughout. On Windows the
-        #       forward-slash paths still resolve correctly for glob and
-        #       open, but the inconsistency is a maintenance hazard.
         val_spd_path = (
-            f"{self.setup.bundle_directory}/"
-            f"{self.setup.mission_acronym}_spice/document"
+            Path(self.setup.bundle_directory)
+            / f"{self.setup.mission_acronym}_spice"
+            / "document"
         )
 
         # Only the path is needed here, not a version, so the returned version
         # is ignored.
-        val_spd, _ = find_latest_versioned_file(
-            [Path(val_spd_path)], "spiceds_v*.html"
+        #
+        # TODO: BUG, "spiceds_v*.html" matches "_v" followed by anything, not
+        #       just digits, so a non-numeric match can silently be returned
+        #       as `fromfile` here instead of None.
+        fromfile, _ = find_latest_versioned_file(
+            [val_spd_path], "spiceds_v*.html"
         )
 
-        if val_spd is None:
+        if fromfile is None:
 
             #
             # No spiceds from a previous increment was found: compare with the
@@ -253,12 +251,11 @@ class SpicedsProduct(Product):
             logging.warning('-- No other version of %s has been found.', self.name)
             logging.warning('-- Comparing with default InSight example.')
 
-            val_spd = Path(
+            fromfile = Path(
                 f"{self.setup.root_dir}/data/insight_spice/document/spiceds_v002.html"
             )
 
         logging.info("")
-        fromfile = val_spd
         tofile = self.path
         work_dir = self.setup.working_directory
 
