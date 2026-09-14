@@ -843,11 +843,17 @@ class TestCompare:
             obj.setup.diff,
         )
 
-    def test_compare_logs_warning_on_exception(self, caplog):
+    def test_compare_logs_warning_on_missing_previous_file(self, caplog):
+        """compare() falls back to a warning when the previous checksum file
+        doesn't exist yet - the real-world condition its except OSError is
+        written for, since compare_files() opens the file with open()."""
         obj, _ = _build_pds4(increment=False)
         obj.path_current = "/prev/checksum_v001.tab"
 
-        with patch(PATCHES["compare_files"], side_effect=Exception("boom")), \
+        # FileNotFoundError is an OSError subclass, matching what
+        # compare_files() actually raises when path_current is missing.
+        with patch(PATCHES["compare_files"],
+                   side_effect=FileNotFoundError("boom")), \
              caplog.at_level(logging.INFO):
             obj.compare()
 
@@ -860,3 +866,16 @@ class TestCompare:
 
         messages = [(r[1], r[2]) for r in caplog.record_tuples]
         assert messages == expected
+
+    def test_compare_propagates_unexpected_exception(self, caplog):
+        """A bug inside compare_files() that isn't a missing-file case (here a
+        generic Exception, standing in for e.g. a TypeError from a real defect)
+        must propagate, not be misreported as "previous checksum does not
+        exist" - proving except OSError no longer masks it."""
+        obj, _ = _build_pds4(increment=False)
+        obj.path_current = "/prev/checksum_v001.tab"
+
+        with patch(PATCHES["compare_files"], side_effect=Exception("boom")), \
+             caplog.at_level(logging.INFO):
+            with pytest.raises(Exception, match="boom"):
+                obj.compare()

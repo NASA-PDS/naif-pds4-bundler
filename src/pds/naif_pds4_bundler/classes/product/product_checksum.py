@@ -193,7 +193,9 @@ class ChecksumProduct(Product):
                     try:
                         (md5_file, filename) = line.split()
 
-                    except Exception:
+                    # Unpacking fails with ValueError unless the line has
+                    # exactly two whitespace-separated fields.
+                    except ValueError:
                         raise NPBError(
                             f"Checksum file {self.path_current} is corrupted."
                         )
@@ -560,7 +562,9 @@ class ChecksumProduct(Product):
                 self.setup.diff,
             )
 
-        except Exception:
+        # compare_files() raises OSError if either checksum file can't be
+        # opened.
+        except OSError:
             logging.warning("-- Checksum from previous increment does not exist.")
 
         logging.info("")
