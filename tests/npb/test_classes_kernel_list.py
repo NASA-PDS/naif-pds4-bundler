@@ -2323,6 +2323,36 @@ class TestKernelListCheckProducts:
         mocks.check_binary_endianness.assert_called_once_with(
             expected_path, endianness='little')
 
+    def test_check_products_mapping_fallback_bug_propagates(self, mocker,
+                                                            tmp_path) -> None:
+        """A bug inside product_mapping (TypeError) is not a "file not
+        found" case, so it must propagate instead of being misreported
+        as a missing product. This proves the fallback except clause was
+        narrowed from Exception to IndexError: before the fix, any
+        exception here - including this one - was silently swallowed."""
+        # A file must exist in the kernels directory so os.walk yields a
+        # candidate filename for check_products to compare against; otherwise
+        # the fallback list comprehension has nothing to iterate over and never
+        # calls product_mapping at all.
+        self.write_kernel(tmp_path, 'maven_mapped.bc')
+
+        mocks = self.patch_checks(mocker)
+
+        # Force the mapping call to fail with a bug-like exception instead of
+        # returning a name, standing in for a real defect in product_mapping.
+        mocks.product_mapping.side_effect = TypeError("boom")
+
+        # This name deliberately doesn't match any file on disk, so the
+        # exact-match lookup fails first (IndexError, correctly swallowed) and
+        # check_products falls through to the product_mapping path.
+        product = 'maven_logical.bc'
+        kernel_list = self.make_kernel_list(tmp_path, kernels=[product])
+
+        # The TypeError from product_mapping must reach the caller unchanged,
+        # not be turned into a "product not present" NPBError.
+        with pytest.raises(TypeError, match="boom"):
+            kernel_list.check_products()
+
     def test_check_products_missing_non_mk_records_error_and_skips_checks(
             self, mocker, caplog, tmp_path) -> None:
         # A non meta-kernel product that cannot be found anywhere records a

@@ -132,18 +132,21 @@ class KernelList:
                                 "mklabel_options"
                             ]
 
-                        except Exception:
+                        # "mklabel_options" is an optional config key.
+                        except KeyError:
                             options = ""
 
                         try:
                             patterns = self.json_config[pattern.pattern]["patterns"]
 
-                        except Exception:
+                        # "patterns" is an optional config key.
+                        except KeyError:
                             patterns = False
 
                         try:
                             mapping = self.json_config[pattern.pattern]["mapping"]
-                        except Exception:
+                        # "mapping" is an optional config key.
+                        except KeyError:
                             mapping = ""
 
                         #
@@ -662,7 +665,9 @@ class KernelList:
                 work_dir = self.setup.working_directory
                 compare_files(fromfile, tofile, work_dir, self.setup.diff)
 
-            except Exception:
+            # kernel_lists[-2] raises IndexError with a single prior list;
+            # compare_files() raises OSError if either file can't be opened.
+            except (IndexError, OSError):
                 logging.error("-- Previous list not available.")
 
     def validate_complete(self):
@@ -857,7 +862,9 @@ class KernelList:
                         ]
                         origin_paths.append(file[0])
 
-                    except Exception:
+                    # file[0] raises IndexError when no file matched the product
+                    # name.
+                    except IndexError:
 
                         try:
                             file = [
@@ -869,7 +876,9 @@ class KernelList:
                             ]
                             origin_paths.append(file[0])
 
-                        except Exception:
+                        # file[0] raises IndexError when no file matched the
+                        # mapped name either.
+                        except IndexError:
                             pass
 
             if not origin_paths and ".tm" not in product.lower():
