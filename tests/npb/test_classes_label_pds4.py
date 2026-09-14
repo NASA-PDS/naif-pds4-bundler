@@ -85,6 +85,25 @@ class TestPDS4LabelInit:
         label = PDS4Label(product)
         assert label._context_products is product.bundle.context_products
 
+    def test_pds4_context_unexpected_error_propagates(self, setup_pds4, product):
+        """A failure resolving collection.bundle that isn't "no .collection"
+        (here TypeError, standing in for a real bug) must propagate, not be
+        silently treated as the missing-collection fallback case."""
+
+        class _RaisingCollection:
+            """Stand-in whose .bundle access raises instead of resolving,
+            unlike a MagicMock(spec=[]) which raises AttributeError."""
+
+            @property
+            def bundle(self):
+                raise TypeError("boom")
+
+        product.collection = _RaisingCollection()
+        product.setup = setup_pds4
+
+        with pytest.raises(TypeError, match="boom"):
+            PDS4Label(product)
+
     def test_pds4_single_mission_name(self, mock_class_methods, setup_pds4, product):
         product.setup = setup_pds4
         label = PDS4Label(product)

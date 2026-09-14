@@ -34,7 +34,9 @@ class PDS4Label(PDSLabel):
         try:
             self._context_products = product.collection.bundle.context_products
 
-        except Exception:
+        # Products with no collection (e.g. the bundle readme) have no
+        # .collection attribute to chain off.
+        except AttributeError:
             self._context_products = product.bundle.context_products
 
         # Fixed PDS4 header fields that come straight from setup.
