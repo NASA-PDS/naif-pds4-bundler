@@ -3,6 +3,7 @@ from dataclasses import dataclass
 import io
 import logging
 from pathlib import Path
+import re
 import shutil
 from unittest.mock import call, MagicMock, patch
 from xml.etree import ElementTree
@@ -125,6 +126,21 @@ def test_add_crs_to_file_logging_error(monkeypatch, caplog):
     results = [(r[1], r[2]) for r in caplog.record_tuples]
 
     assert results == expected
+
+
+def test_add_crs_to_file_invalid_eol_propagates(tmp_path):
+    """An invalid `eol` is a caller bug (add_carriage_return raises its own
+    NPBError for it), not a file I/O failure - it must propagate with its
+    own message rather than being masked as a generic "adding error"."""
+    from pds.naif_pds4_bundler.classes.exceptions import NPBError
+
+    fake_file = tmp_path / "file.txt"
+    fake_file.write_text("Kitty\n")
+
+    # eol="bad-eol" is neither "\n" nor "\r\n", so add_carriage_return raises
+    # NPBError before any file I/O happens; match checks that message survives.
+    with pytest.raises(NPBError, match="Invalid EOL requested"):
+        files.add_crs_to_file(str(fake_file), eol="bad-eol", setup=False)
 
 # ----------------------------------------------------------------------------
 # files.check_badchar tests
@@ -1093,12 +1109,14 @@ def test_get_latest_kernel_success():
     result = files.get_latest_kernel("ck", [str(KERNELS)], pattern)
     assert result == 'insight_ida_enc_200829_201220_v1.bc'
 
-def test_get_latest_kernel_invalid_pattern_no_kernels_found():
-    """Test get_latest_kernel using pytest - basic."""
-    pattern = "([a-z]+"  # --> this produces a re.error.
 
-    result = files.get_latest_kernel("ck", [str(KERNELS)], pattern)
-    assert result == []
+def test_get_latest_kernel_invalid_pattern_raises():
+    """An invalid regex pattern is a configuration bug, not a "no kernels
+    found" condition, and must propagate rather than be masked as one."""
+    pattern = "([a-z]+"  # unbalanced parenthesis: re.search raises re.error
+
+    with pytest.raises(re.error):
+        files.get_latest_kernel("ck", [str(KERNELS)], pattern)
 
 def test_get_latest_kernel_with_dates_logic(tmp_path):
     """Test get_latest_kernel using pytest.

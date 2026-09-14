@@ -82,7 +82,8 @@ def safe_make_directory(path):
         logging.info('-- Generated directory: %s  ', path)
         logging.info('')
 
-    except Exception:
+    # os.mkdir fails with OSError: exists, missing parent, or no permission.
+    except OSError:
         pass
 
 
@@ -178,7 +179,7 @@ def type_to_pds3_type(kernel):
         #
         kernel_type = kernel_type_map[kernel.extension.upper()]
 
-    except Exception:
+    except AttributeError:
         #
         # Kernel is a string
         #
@@ -256,7 +257,8 @@ def add_crs_to_file(file, eol, setup=False):
                     f.write(line)
         shutil.move(file_crs, file)
 
-    except Exception:
+    # open()/shutil.move() raise OSError on filesystem failures.
+    except OSError:
         handle_npb_error(f"Carriage return adding error for {file}.", setup)
 
 
@@ -438,7 +440,9 @@ def mk_to_list(mk, setup):
                     path_symbol = "$" + line.split("'")[1]
                     get_symbol = False
 
-                except Exception:
+                # split("'")[1] raises IndexError when the line has no
+                # quote-delimited value (e.g. PATH_SYMBOLS on its own line).
+                except IndexError:
                     pass
 
     if not ker_mk_list:
@@ -495,7 +499,8 @@ def get_latest_kernel(
                 f for f in os.listdir(f"{kernel_path}/") if re.search(pattern, f)
             ]
 
-        except Exception:
+        # os.listdir raises OSError when the type subdirectory is missing.
+        except OSError:
             pass
 
     if mks:
@@ -529,7 +534,8 @@ def get_latest_kernel(
         try:
             return kernels.pop()
 
-        except Exception:
+        # list.pop() raises IndexError when kernels is empty.
+        except IndexError:
             logging.warning("        No kernels found with pattern %s", pattern)
             return []
     else:
