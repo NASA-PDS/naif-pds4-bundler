@@ -56,7 +56,9 @@ class Setup:
             )
             schema.validate(args.config)
 
-        except Exception as inst:
+        # xmlschema.XMLSchemaException is the base class for every error the
+        # library raises, including parse and validation failures.
+        except xmlschema.XMLSchemaException as inst:
             if not args.debug:
                 print(inst)
             raise
@@ -477,7 +479,8 @@ class Setup:
             try:
                 os.mkdir(cwd + os.sep + self.staging_directory)
 
-            except Exception:
+            # os.mkdir() raises OSError on filesystem failures.
+            except OSError:
 
                 if self.faucet in ["plan", "list", "checks"]:
                     logging.warning('-- Staging directory cannot be created but'
@@ -749,7 +752,8 @@ class Setup:
                             line = line.rstrip()
                             xml_tab = len(line) - len(xml_tag)
 
-            except Exception:
+            # open() raises OSError when template_bundle.xml doesn't exist.
+            except OSError:
                 logging.warning(
                     "-- XML Template not found to determine XML Tab. It has been set to 2."
                 )
@@ -904,7 +908,10 @@ class Setup:
 
                 increment = True
 
-            except Exception:
+            # releases[-1] raises IndexError on an empty glob (no bundle label
+            # yet); int(...) raises ValueError if the version segment can't be
+            # parsed.
+            except (IndexError, ValueError):
 
                 if self.pds_version == "4":
                     logging.warning(
@@ -941,7 +948,11 @@ class Setup:
 
                     increment = True
 
-                except Exception:
+                # Same (IndexError, ValueError) as above: an empty glob (no
+                # kernel list yet) or an unparseable version segment. Also
+                # catches the bare `raise` above, which re-raises the outer
+                # except's IndexError/ValueError into this block.
+                except (IndexError, ValueError):
 
                     logging.warning("-- This is the first release.")
 
@@ -1212,7 +1223,9 @@ class Setup:
         try:
             r = requests.get(pds_schematron_location, allow_redirects=True)
 
-        except Exception:
+        # requests.exceptions.RequestException is the base class for every error
+        # the library raises, e.g. no internet connection.
+        except requests.exceptions.RequestException:
 
             logging.warning(
                 '-- PDS Validate Tool configuration file not written.')
@@ -1229,7 +1242,9 @@ class Setup:
         try:
             r = requests.get(pds_schema_location, allow_redirects=True)
 
-        except Exception:
+        # requests.exceptions.RequestException is the base class for every error
+        # the library raises, e.g. no internet connection.
+        except requests.exceptions.RequestException:
 
             logging.warning(
                 '-- PDS Validate Tool configuration file not written.')

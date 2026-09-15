@@ -12,6 +12,7 @@ import pytest
 import requests
 import spiceypy
 from spiceypy import SpiceyPyError
+import xmlschema
 
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
 from pds.naif_pds4_bundler.classes.setup import Setup
@@ -374,9 +375,11 @@ class TestSetupInit:
         config_path = tmp_path / 'invalid_configuration.xml'
 
         # Mock the value that the call to xmlschema.XMLSchema11 will return.
-        # This simulates a fail XML validation.
+        # This simulates a fail XML validation. XMLSchemaException is the base
+        # class every real xmlschema validation failure raises.
         schema = Mock()
-        schema.validate.side_effect = ValueError('invalid configuration')
+        schema.validate.side_effect = xmlschema.XMLSchemaException(
+            'invalid configuration')
         schema_class = Mock(return_value=schema)
 
         # Mock the xmlschema.XMLSchema11 call with an invalid schema to force
@@ -389,14 +392,14 @@ class TestSetupInit:
         args = self.make_args(config_path, debug=debug)
 
         # The constructor is called directly with the mocked attributes so that
-        # we can catch the valueError exception.
-        with pytest.raises(ValueError, match='invalid configuration'):
+        # we can catch the exception.
+        with pytest.raises(xmlschema.XMLSchemaException, match='invalid configuration'):
             Setup(args, '9.9.9')
 
         # Check that validate should call once.
         schema.validate.assert_called_once_with(str(config_path))
 
-        # Check the expected result. If a ValueError occurs, it should display
+        # Check the expected result. If the exception occurs, it should display
         # the message 'invalid configuration'.
         assert capsys.readouterr().out == expected_stdout
 
@@ -1732,6 +1735,19 @@ class TestSetupSetRelease:
         assert setup.release == '001'
         assert setup.current_release == ''
         assert setup.increment is False
+
+    def test_release_lookup_propagates_unrelated_exception(
+            self, tmp_path, monkeypatch) -> None:
+        # A bug that isn't an empty glob or a malformed version (here a stand-in
+        # TypeError) must propagate, not be silently treated as "first
+        # release" - proving except (IndexError, ValueError) no longer masks it.
+        setup = self.make_release_setup(tmp_path, pds_version='4')
+
+        monkeypatch.setattr('pds.naif_pds4_bundler.classes.setup.glob.glob',
+                            Mock(side_effect=TypeError('boom')))
+
+        with pytest.raises(TypeError, match='boom'):
+            setup.set_release()
 
     def test_logs_expected_messages_when_clear_argument_is_provided(
             self, tmp_path, caplog) -> None:
