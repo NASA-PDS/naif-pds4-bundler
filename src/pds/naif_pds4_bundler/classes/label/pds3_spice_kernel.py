@@ -22,6 +22,9 @@ class SpiceKernelPDS3Label(PDS3Label):
     :param product: SPICE Kernel product to be labeled
     """
 
+    # write_label() does not emit a trailing blank log line for this class.
+    _trailing_blank_log = False
+
     def __init__(self, product) -> None:
         """Constructor."""
         # The parameter used to be named "mission" even though it was

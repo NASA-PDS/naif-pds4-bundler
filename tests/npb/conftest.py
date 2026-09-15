@@ -36,12 +36,74 @@ CONTEXT_PRODUCTS = [
      'type': ['Planet'],
      'lidvid': 'urn:nasa:pds:context:target:planet.mars::1.0'}]
 
+# Context-product entries for a name that diverges from CONTEXT_PRODUCTS
+# above, used by _context_from_product effect tests (across every PDS4 leaf
+# label class's test file) to tell which source -- product or setup -- a
+# label actually used.
+DIVERGENT_CONTEXT_PRODUCTS = [
+    {'name': ['ProductMission'],
+     'type': ['Mission'],
+     'lidvid': 'urn:nasa:pds:context:investigation:mission.productmission::1.0'},
+    {'name': ['ProductObserver'],
+     'type': ['Spacecraft'],
+     'lidvid': ('urn:nasa:pds:context:instrument_host:'
+                'spacecraft.productobserver::1.0')},
+    {'name': ['ProductTarget'],
+     'type': ['Planet'],
+     'lidvid': 'urn:nasa:pds:context:target:planet.producttarget::1.0'}]
+
+
+@pytest.fixture
+def context_effect_helpers() -> SimpleNamespace:
+    """Shared helpers for the _context_from_product effect tests repeated
+    across every PDS4 leaf label class's test file.
+
+    :return: container exposing ``diverge`` and ``assert_source``
+    """
+
+    def _diverge(product_like) -> None:
+        """Give a product-like object (product/readme/inventory) names that
+        differ from setup's defaults ("MAVEN"/"MAVEN"/"Mars"), plus a
+        matching context-product entry for each.
+
+        :param product_like: object read/written by PDSLabel/PDS4Label as
+            "product" -- must expose ``.collection.bundle.context_products``
+        """
+        product_like.missions = ['ProductMission']
+        product_like.observers = ['ProductObserver']
+        product_like.targets = ['ProductTarget']
+        # Without a matching entry, get_missions/get_observers/get_targets
+        # raise NPBError before assert_source() gets to check anything.
+        product_like.collection.bundle.context_products += DIVERGENT_CONTEXT_PRODUCTS
+
+    def _assert_source(label, from_product: bool) -> None:
+        """Assert whether MISSIONS/OBSERVERS/TARGETS came from the product
+        or from setup.
+
+        :param label: constructed label to check ``_label_fields`` on
+        :param from_product: True if the product's names must win,
+            False if setup's must
+        """
+        product_names = {'MISSIONS': 'ProductMission',
+                         'OBSERVERS': 'ProductObserver',
+                         'TARGETS': 'ProductTarget'}
+        setup_names = {'MISSIONS': 'MAVEN', 'OBSERVERS': 'MAVEN', 'TARGETS': 'Mars'}
+        if from_product:
+            want, avoid = product_names, setup_names
+        else:
+            want, avoid = setup_names, product_names
+        for key in ('MISSIONS', 'OBSERVERS', 'TARGETS'):
+            assert want[key] in label._label_fields[key]
+            assert avoid[key] not in label._label_fields[key]
+
+    return SimpleNamespace(diverge=_diverge, assert_source=_assert_source)
+
 
 # ---------------------------------------------------------------------------
 # Generic Setup + base Product factories
 # ---------------------------------------------------------------------------
 
-@pytest.fixture()
+@pytest.fixture
 def base_helpers(tmp_path: Path) -> SimpleNamespace:
     """Provide the generic PDS4 mock factories shared by every label test.
 

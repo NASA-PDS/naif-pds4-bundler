@@ -241,6 +241,16 @@ TEMPLATE_CONTENT = textwrap.dedent("""\
 class TestChecksumPDS4LabelIntegration:
     """Integration tests for ChecksumPDS4Label + PDSLabel + template."""
 
+    def test_context_from_product_attribute_is_false(self):
+        """Pins _context_from_product to PDSLabel's inherited default: this
+        class does not override it, so it must stay False."""
+        assert ChecksumPDS4Label._context_from_product is False
+
+    def test_trailing_blank_log_attribute_is_true(self):
+        """Pins _trailing_blank_log to PDSLabel's inherited default: this
+        class does not override it, so it must stay True."""
+        assert ChecksumPDS4Label._trailing_blank_log is True
+
     # ------------------------------------------------------------------
     # Fixtures
     # ------------------------------------------------------------------
@@ -271,6 +281,26 @@ class TestChecksumPDS4LabelIntegration:
 
         # Return only the objects/paths needed by the integration tests.
         return setup, product, template_path, staging_dir / 'checksum.xml'
+
+    # ------------------------------------------------------------------
+    # _context_from_product effect
+    # ------------------------------------------------------------------
+
+    def test_context_from_product_effect_on_context_fields(
+            self, env: tuple[MagicMock, MagicMock, Path, Path],
+            context_effect_helpers: SimpleNamespace) -> None:
+        """Inherited _context_from_product=False must source MISSIONS/
+        OBSERVERS/TARGETS from setup, not from the product."""
+        setup, product, _, _ = env
+
+        # product now differs from setup
+        context_effect_helpers.diverge(product)
+
+        product.setup = setup
+        label = ChecksumPDS4Label(product)
+
+        # setup must win
+        context_effect_helpers.assert_source(label, from_product=False)
 
     # ------------------------------------------------------------------
     # File creation and content

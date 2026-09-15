@@ -12,6 +12,9 @@ class MetaKernelPDS4Label(PDS4Label):
     :param product: MK product to label
     """
 
+    # Missions, observers and targets are read from the product, not setup.
+    _context_from_product = True
+
     def __init__(self, product) -> None:
         """Constructor."""
         # PDSLabel.__init__ sets self.setup from product.setup.

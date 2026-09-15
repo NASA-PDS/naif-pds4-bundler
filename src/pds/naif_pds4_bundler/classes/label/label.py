@@ -17,6 +17,13 @@ class PDSLabel:
     _eol: str
     _template: str
 
+    # Whether missions/observers/targets come from the product itself instead
+    # of from setup.
+    _context_from_product: bool = False
+
+    # Whether write_label() emits a trailing blank logging.info("") line.
+    _trailing_blank_log: bool = True
+
     def __init__(self, product) -> None:
         """Constructor."""
 
@@ -57,10 +64,11 @@ class PDSLabel:
         self._label_fields["FILE_CHECKSUM"] = product.checksum
 
         #
-        # For labels that need to include all missions, observers and targets
-        # of the setup.
+        # If False, missions, observers and targets are built below from
+        # setup (plus any secondary ones); if True (the else branch), they
+        # are copied directly from the product instead.
         #
-        if type(self).__name__ not in ('SpiceKernelPDS4Label', 'MetaKernelPDS4Label', 'OrbnumFilePDS4Label'):
+        if not self._context_from_product:
             #
             # Obtain all Missions
             #
@@ -166,7 +174,9 @@ class PDSLabel:
         if self.setup.diff:
             self.compare()
 
-        if self.__class__.__name__ != "SpiceKernelPDS3Label":
+        # If True, emits a blank log line after this label's own messages,
+        # separating them from whatever is logged next.
+        if self._trailing_blank_log:
             logging.info("")
 
     def compare(self) -> None:

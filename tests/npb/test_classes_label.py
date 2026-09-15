@@ -96,23 +96,37 @@ class TestPDSLabelInit:
         assert "TestObserver" in label.observers
         assert "TestTarget" in label.targets
 
-    @pytest.mark.parametrize("class_name", [
-        "SpiceKernelPDS4Label",
-        "InSightLabel",
-        "MavenLabel"
-    ])
-    def test_kernel_class_uses_product_missions(self, setup_pds4, product, class_name):
-        # Dynamically create the class with the parametrized name
-        cls = cast(Type[PDSLabel], type(class_name, (PDSLabel,), {}))
-
-        # Instantiate and initialize
-        label = object.__new__(cls)
+    @pytest.mark.parametrize(
+        ["context_from_product", "expect_product_source"],
+        [(True, True), (False, False)],
+        ids=["context_from_product-True-uses-product", "context_from_product-False-uses-setup"],
+    )
+    def test_context_from_product_selects_source(
+        self, setup_pds4, product, context_from_product, expect_product_source
+    ):
+        """_context_from_product must select which side missions/observers/
+        targets come from -- proven by making product and setup values
+        differ, so a regression that reads the wrong source fails visibly."""
         product.setup = setup_pds4
+        product.missions = ["ProductMission"]
+        product.observers = ["ProductObserver"]
+        product.targets = ["ProductTarget"]
+
+        cls = cast(
+            Type[PDSLabel],
+            type("Label", (PDSLabel,), {"_context_from_product": context_from_product}),
+        )
+        label = object.__new__(cls)
         PDSLabel.__init__(label, product)
 
-        assert label.missions == product.missions
-        assert label.observers == product.observers
-        assert label.targets == product.targets
+        if expect_product_source:
+            assert label.missions == product.missions
+            assert label.observers == product.observers
+            assert label.targets == product.targets
+        else:
+            assert label.missions == [setup_pds4.mission_name]
+            assert label.observers == [setup_pds4.observer]
+            assert label.targets == [setup_pds4.target]
 
     # NOTE: PDS4_MISSION_NAME/PDS4_OBSERVER_NAME (and the non-list-wrapping
     #       bug affecting them) are PDS4-only; see
@@ -225,10 +239,11 @@ class TestPDSLabelWriteLabel:
                 product.path = "/staging/test_kernel.bc"
                 product.extension = "bc"
 
-            # cls_name only matters for write_label's unrelated "suppress
-            # trailing log line for SpiceKernelPDS3Label" check.
-            cls_name = "SpiceKernelPDS3Label" if is_pds3_kernel else "PDSLabel"
-            cls = cast(Type[PDSLabel], type(cls_name, (PDSLabel,), {}))
+            # is_pds3_kernel only matters for write_label's unrelated
+            # "suppress trailing log line" check, via the real
+            # _trailing_blank_log attribute (not a class-name match).
+            namespace = {"_trailing_blank_log": False} if is_pds3_kernel else {}
+            cls = cast(Type[PDSLabel], type("Label", (PDSLabel,), namespace))
             label = object.__new__(cls)
             # __init__ never runs, so write_label() needs this set by hand.
             label._label_fields = {}
@@ -301,9 +316,18 @@ class TestPDSLabelWriteLabel:
         label.write_label()
         mock_cmp.assert_called_once()
 
-    def test_spice_kernel_pds3_label_no_trailing_log_info(self, label_for, mocker):
-        """SpiceKernelPDS3Label must NOT emit a trailing logging.info('') call."""
-        label = label_for(is_pds3_kernel=True)
+    @pytest.mark.parametrize(
+        ["is_pds3_kernel", "expected_empty_calls"],
+        [(True, 0), (False, 1)],
+        ids=["trailing_blank_log-False-suppresses",
+             "trailing_blank_log-True-default-emits"],
+    )
+    def test_trailing_blank_log_gates_log_info(
+        self, label_for, mocker, is_pds3_kernel, expected_empty_calls
+    ):
+        """_trailing_blank_log (False for SpiceKernelPDS3Label, True by
+        default elsewhere) must gate the trailing logging.info('') call."""
+        label = label_for(is_pds3_kernel=is_pds3_kernel)
         mock_log = mocker.patch("pds.naif_pds4_bundler.classes.label.label.logging.info")
         mocker.patch("builtins.open", mock_open(read_data=""))
         mocker.patch(_PATCH_ADD_CR, side_effect=lambda line, eol, setup: line + "\n")
@@ -311,7 +335,7 @@ class TestPDSLabelWriteLabel:
         mocker.patch.object(label.setup, "add_file")
         label.write_label()
         empty_calls = [c for c in mock_log.call_args_list if c == call("")]
-        assert len(empty_calls) == 0
+        assert len(empty_calls) == expected_empty_calls
 
     def test_silent_mode_suppresses_print(self, label_for, mocker):
         label = label_for()
@@ -831,3 +855,25 @@ class TestPDSLabelCompareHelpers:
         mock_log = mocker.patch("pds.naif_pds4_bundler.classes.label.label.logging.warning")
         assert label._find_insight_fallback_label() is None
         mock_log.assert_called_once_with("-- No label for comparison found.")
+
+
+# ===========================================================================
+# PDSLabel context/logging attribute defaults
+# ===========================================================================
+# Each leaf class's own override of these attributes is pinned in that
+# class's own test file instead of here.
+
+class TestPDSLabelContextAttributeDefaults:
+    """Pin the base PDSLabel defaults for _context_from_product/
+    _trailing_blank_log."""
+
+    @pytest.mark.parametrize(
+        ["attr", "expected"],
+        [
+            ("_context_from_product", False),
+            ("_trailing_blank_log", True),
+        ],
+        ids=["context-default-False", "trailing-log-default-True"],
+    )
+    def test_default_attribute(self, attr, expected):
+        assert getattr(PDSLabel, attr) is expected
