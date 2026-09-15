@@ -1,6 +1,7 @@
 """Time Functions to support NPB Classes."""
 import calendar
 import datetime
+import logging
 
 import spiceypy
 
@@ -55,7 +56,7 @@ def spk_coverage(path, main_name="", date_format="infomod2", system="UTC"):
     :param main_name: Mission observer name.
     :type main_name: str
     :param date_format: Date format, the default is the one
-                        provided by the PDS4 Information Model 2.0 that
+                        provided by the PDS4 Information Model that
                         rounds the milliseconds and then implements an
                         inward addition for the coverage start time and
                         inward subtraction for the coverage stop time.
@@ -124,7 +125,7 @@ def ck_coverage(path, timsys="TDB", date_format="infomod2", system="UTC"):
     :param timsys: Determines whether if the time system is SCLK or not
     :type timsys: str
     :param date_format: Date format, the default is the one
-                        provided by the PDS4 Information Model 2.0 that
+                        provided by the PDS4 Information Model that
                         rounds the milliseconds and then implements an
                         inward addition for the coverage start time and
                         inward subtraction for the coverage stop time.
@@ -190,7 +191,7 @@ def pck_coverage(path, date_format="infomod2", system="UTC"):
     :param path: File path
     :type path: str
     :param date_format: Date format, the default is the one
-                        provided by the PDS4 Information Model 2.0 that
+                        provided by the PDS4 Information Model that
                         rounds the milliseconds and then implements an
                         inward addition for the coverage start time and
                         inward subtraction for the coverage stop time.
@@ -249,7 +250,7 @@ def dsk_coverage(path, date_format="infomod2", system="UTC"):
     :param path: File path
     :type path: str
     :param date_format: Date format, the default is the one
-                        provided by the PDS4 Information Model 2.0 that
+                        provided by the PDS4 Information Model that
                         rounds the milliseconds and then implements an
                         inward addition for the coverage start time and
                         inward subtraction for the coverage stop time.
@@ -298,6 +299,288 @@ def dsk_coverage(path, date_format="infomod2", system="UTC"):
     stop_time = max(endet)
 
     return et_to_date(start_time, stop_time, date_format=date_format, system=system)
+
+
+def ek_coverage(path, date_format="infomod2", system="UTC"):
+    """Returns the coverage of an EK file following MAKLABEL's approach.
+
+    MAKLABEL extracts EK coverage by:
+    1. Loading the EK with FURNSH to make it queryable
+    2. Examining segment metadata to identify time columns
+    3. Querying all rows and manually finding MIN/MAX
+    4. Converting time values to ET if needed
+
+    NOTE - Text event kernels (.ten) do not have queryable coverage and
+           return empty strings.
+
+    The function assumes that the appropriate kernels (LSK) have already been
+    loaded.
+
+    :param path: File path
+    :type path: str
+    :param date_format: Date format, the default is the one
+                        provided by the PDS4 Information Model that
+                        rounds the milliseconds and then implements an
+                        inward addition for the coverage start time and
+                        inward subtraction for the coverage stop time.
+                        The other option is the MAKLABEL style that
+                        rounds to the second
+    :type date_format: str
+    :param system: Determine the output time system: UTC or TDB
+    :type system: str
+    :raise: if the date_format parameter argument is not ``infomod2`` or
+            ``maklabel``
+    :return: start and finish coverage, or empty strings if no time data found
+    :rtype: list of str
+    """
+    extension = path.split(".")[-1].strip().lower()
+
+    # Log entry for debugging
+    logging.debug(f"Extracting EK coverage from: {path}")
+
+    # Text event kernels (.ten) don't have queryable coverage
+    if extension == "ten":
+        logging.debug("  Text event kernel (.ten) - returning empty coverage")
+        return ["", ""]
+
+    # Load the EK to make it queryable
+    try:
+        spiceypy.furnsh(path)
+    except spiceypy.exceptions.SpiceyError as e:
+        logging.warning(f"  Failed to load EK file {path}: {e}")
+        return ["", ""]
+
+    try:
+        # Open for segment examination
+        handle = spiceypy.dasopr(path)
+
+        try:
+            nseg = spiceypy.eknseg(handle)
+            logging.debug(f"  Found {nseg} segment(s)")
+
+            if nseg == 0:
+                logging.debug("  No segments found - returning empty coverage")
+                return ["", ""]
+
+            beget = []
+            endet = []
+            segments_with_time = 0
+
+            for segno in range(nseg):
+                try:
+                    # Get segment summary: returns SpiceEKSegSum named tuple
+                    segsum = spiceypy.ekssum(handle, segno)
+
+                    if segsum.nrows == 0:
+                        # No rows in this segment
+                        logging.debug(f"  Segment {segno}: {segsum.tabnam} - skipping (0 rows)")
+                        continue
+
+                    table_name = segsum.tabnam
+                    cnames = segsum.cnames if segsum.cnames else []
+
+                    # Filter out empty column names (BES files can have empty strings for unused slots)
+                    cnames = [name for name in cnames if name]
+
+                    if not cnames:
+                        logging.debug(f"  Segment {segno}: {table_name} - skipping (no columns)")
+                        continue
+
+                    # Look for time columns - prioritize ET columns
+                    start_col = None
+                    stop_col = None
+
+                    # First pass: look for ET or single TIME column
+                    for idx, col_name in enumerate(cnames):
+                        col_upper = col_name.upper()
+                        if col_upper == 'ET':
+                            start_col = col_name
+                            stop_col = col_name
+                            break
+                        elif col_upper in ['TIME', 'EPOCH', 'EVT_TIME', 'EVENT_TIME']:
+                            start_col = col_name
+                            stop_col = col_name
+                            break
+
+                    # Second pass: look for START/STOP pairs
+                    if not start_col:
+                        start_candidates = ['START_TIME', 'START_ET', 'START',
+                                          'BEGIN_TIME', 'START_UTC', 'BEGIN_ET']
+                        stop_candidates = ['STOP_TIME', 'STOP_ET', 'STOP',
+                                         'END_TIME', 'STOP_UTC', 'END_ET']
+
+                        for start_name in start_candidates:
+                            for idx, col_name in enumerate(cnames):
+                                if col_name.upper() == start_name:
+                                    start_col = col_name
+                                    break
+                            if start_col:
+                                break
+
+                        for stop_name in stop_candidates:
+                            for idx, col_name in enumerate(cnames):
+                                if col_name.upper() == stop_name:
+                                    stop_col = col_name
+                                    break
+                            if stop_col:
+                                break
+
+                    # If we have at least a start column, proceed
+                    if not start_col:
+                        logging.debug(f"  Segment {segno}: {table_name} - skipping (no time columns)")
+                        continue
+
+                    # Use the same column for both if only one found
+                    if not stop_col:
+                        stop_col = start_col
+
+                    # Query all rows (no MIN/MAX - workaround for limited EK query support)
+                    try:
+                        query = f"SELECT {start_col}"
+                        if stop_col != start_col:
+                            query += f", {stop_col}"
+                        query += f" FROM {table_name}"
+
+                        logging.debug(f"  Segment {segno}: {table_name} - querying {segsum.nrows} rows")
+
+                        nmrows, error, errmsg = spiceypy.ekfind(query, 256)
+
+                        if error or nmrows == 0:
+                            # Query failed or no results
+                            logging.debug(f"  Segment {segno}: Query failed or returned 0 rows")
+                            continue
+
+                        # Fetch values from all rows to find min/max
+                        # Limit to reasonable number to avoid performance issues
+                        max_rows_to_check = min(nmrows, 10000)
+
+                        segment_times = []
+
+                        for row in range(max_rows_to_check):
+                            try:
+                                # Fetch start time value
+                                start_et = _ek_fetch_row_value(0, row, 0)
+
+                                # Fetch stop time value (same column if single time column)
+                                if stop_col != start_col:
+                                    stop_et = _ek_fetch_row_value(1, row, 0)
+                                else:
+                                    stop_et = start_et
+
+                                if start_et is not None:
+                                    segment_times.append(start_et)
+                                if stop_et is not None and stop_et != start_et:
+                                    segment_times.append(stop_et)
+
+                            except (spiceypy.exceptions.SpiceyError, ValueError, IndexError) as e:
+                                # Failed to fetch this row, continue
+                                logging.debug(f"  Segment {segno}: Row {row} fetch failed: {type(e).__name__}")
+                                continue
+
+                        if segment_times:
+                            beget.append(min(segment_times))
+                            endet.append(max(segment_times))
+                            segments_with_time += 1
+                            logging.debug(f"  Segment {segno}: {table_name} - found {len(segment_times)} time values")
+
+                    except spiceypy.exceptions.SpiceyError as e:
+                        # Query failed, skip this segment
+                        logging.debug(f"  Segment {segno}: Query failed: {e}")
+                        continue
+
+                except spiceypy.exceptions.SpiceyError as e:
+                    # Segment processing failed, skip it
+                    logging.debug(f"  Segment {segno}: Processing failed: {e}")
+                    continue
+
+            if not beget or not endet:
+                # No time-tagged segments found
+                logging.info(f"  No time data found in {nseg} segment(s)")
+                return ["", ""]
+
+            start_time = min(beget)
+            stop_time = max(endet)
+
+            logging.debug(f"  Extracted coverage from {segments_with_time} segment(s)")
+
+        finally:
+            # Close the EK file
+            spiceypy.dascls(handle)
+
+    finally:
+        # Unload the EK
+        spiceypy.unload(path)
+
+    result = et_to_date(start_time, stop_time, date_format=date_format, system=system)
+    logging.debug(f"  Coverage: {result[0]} to {result[1]}")
+    return result
+
+
+def _ek_fetch_row_value(selidx, row, element):
+    """Helper to fetch EK value from query result and convert to ET.
+
+    Tries multiple fetch methods to handle different column types:
+    - ekgd for double precision (ET values)
+    - ekgi for integer values
+    - ekgc for character/time strings (converts to ET)
+
+    :param selidx: Index of parent column in SELECT clause
+    :type selidx: int
+    :param row: Row to fetch from
+    :type row: int
+    :param element: Index of element within column entry
+    :type element: int
+    :return: Time value in ET, or None if fetch failed
+    :rtype: float or None
+    """
+    # Try double precision first (most common for ET)
+    try:
+        result = spiceypy.ekgd(selidx, row, element)
+        if len(result) >= 2:
+            value, is_null = result[0], result[-1]
+            if not is_null:
+                return float(value)
+    except spiceypy.exceptions.SpiceyError:
+        pass  # Not a double column, try next type
+
+    # Try integer (some EKs use integer SCLK values)
+    try:
+        result = spiceypy.ekgi(selidx, row, element)
+        if len(result) >= 2:
+            value, is_null = result[0], result[-1]
+            if not is_null:
+                # Assume integer is already in ET or SCLK
+                # For now, treat as ET - proper SCLK conversion would need spacecraft ID
+                return float(value)
+    except spiceypy.exceptions.SpiceyError:
+        pass  # Not an integer column, try next type
+
+    # Try character/time string
+    try:
+        result = spiceypy.ekgc(selidx, row, element, 256)
+
+        # Handle both (str, bool) and (int, str, bool) return formats
+        if len(result) == 2:
+            value_str, is_null = result
+        elif len(result) >= 3:
+            value_str, is_null = result[1], result[2]
+        else:
+            return None
+
+        if not is_null and value_str:
+            # Try to convert as UTC string to ET
+            try:
+                return spiceypy.str2et(value_str.strip())
+            except spiceypy.exceptions.SpiceyError:
+                # Not a valid time string - might be non-time character data
+                pass
+
+    except spiceypy.exceptions.SpiceyError:
+        pass  # Not a character column
+
+    # All fetch methods failed
+    return None
+
 
 
 def et_to_date(beget, endet, date_format="infomod2", kernel_type="Text", system="UTC"):

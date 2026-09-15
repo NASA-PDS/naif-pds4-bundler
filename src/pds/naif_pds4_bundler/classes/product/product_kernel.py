@@ -16,6 +16,7 @@ from ...utils import safe_make_directory
 from ...utils import spk_coverage
 from ..label import SpiceKernelPDS3Label
 from ..label import SpiceKernelPDS4Label
+from ...utils.time import ek_coverage
 
 
 class SpiceKernelProduct(Product):
@@ -310,6 +311,20 @@ class SpiceKernelProduct(Product):
                 coverage += dsk_coverage(
                     self.path, date_format=self.setup.date_format, system=system
                 )
+            # elif self.type.lower() == "ek":
+            #     coverage += ek_coverage(
+            #         self.path, date_format=self.setup.date_format, system=system
+            #     )
+            elif self.type.lower() == "ek":
+                coverage += ek_coverage(
+                    self.path, date_format=self.setup.date_format, system=system
+                )
+                # If EK has no time coverage, use mission defaults
+                if coverage == ["", ""]:
+                    if self.setup.pds_version == "3":
+                        coverage = ['"N/A"', '"N/A"']
+                    else:
+                        coverage = [self.setup.mission_start, self.setup.mission_finish]
             else:
                 if self.setup.pds_version == "3":
                     coverage = ['"N/A"', '"N/A"']

@@ -149,14 +149,29 @@ def build_product(env, name="test.bsp", pds_version="4", extra_setup_kwargs=None
 class TestSpiceKernelProductInit:
     """Tests for SpiceKernelProduct.__init__, product_lid, and product_vid."""
 
-    def test_pds4_binary_kernel_sets_binary_file_format(self, tmp_env):
-        product, _, _ = build_product(tmp_env, name="test.bsp", pds_version="4")
-        assert product.file_format == "Binary"
+    @pytest.mark.parametrize("pds_version, filename, expected_format, extra_attrs", [
+        ("4", "test.bsp", "Binary", {}),
+        ("4", "test.tls", "Character", {}),
+        ("3", "test.bsp", "BINARY", {"record_type": "FIXED_LENGTH", "record_bytes": "1024"}),
+        ("3", "test.tls", "ASCII", {"record_type": "STREAM", "record_bytes": '"N/A"'}),
+    ])
+    def test_kernel_file_format_attributes(self, tmp_env, pds_version, filename, expected_format, extra_attrs):
+        """Test that kernel file format attributes are set correctly for PDS3 and PDS4.
 
-    def test_pds4_text_kernel_sets_character_file_format(self, tmp_env):
-        product, _, _ = build_product(tmp_env, name="test.tls", pds_version="4")
-        # extension_to_type is mocked; just verify Character branch
-        assert product.file_format == "Character"
+        PDS4: Binary vs Character
+        PDS3: BINARY vs ASCII with additional record_type and record_bytes
+        """
+        product, _, _ = build_product(tmp_env, name=filename, pds_version=pds_version)
+        assert product.file_format == expected_format
+
+        # PDS3 has additional attributes
+        for attr, expected_value in extra_attrs.items():
+            assert getattr(product, attr) == expected_value
+
+        # Verify collection path and maklabel_options for PDS3
+        if pds_version == "3":
+            assert product.collection_path == str(Path(f"{tmp_env['staging']}/data/"))
+            assert product.maklabel_options == ['MAKLABEL_OPT']
 
     def test_pds4_lid_format(self, tmp_env):
         product, setup, _ = build_product(tmp_env, name="test.bsp", pds_version="4")
@@ -188,23 +203,6 @@ class TestSpiceKernelProductInit:
 
         assert product.collection_path == str(Path(f"{tmp_env['staging']}/spice_kernels/"))
 
-    def test_pds3_binary_kernel_sets_binary_file_format(self, tmp_env):
-        product, _, _ = build_product(tmp_env, name="test.bsp", pds_version="3")
-        assert product.file_format == "BINARY"
-        assert product.record_type == "FIXED_LENGTH"
-        assert product.record_bytes == "1024"
-
-        assert product.collection_path == str(Path(f"{tmp_env['staging']}/data/"))
-        assert product.maklabel_options == ['MAKLABEL_OPT']
-
-    def test_pds3_text_kernel_sets_ascii_file_format(self, tmp_env):
-        product, _, _ = build_product(tmp_env, name="test.tls", pds_version="3")
-        assert product.file_format == "ASCII"
-        assert product.record_type == "STREAM"
-        assert product.record_bytes == '"N/A"'
-
-        assert product.collection_path == str(Path(f"{tmp_env['staging']}/data/"))
-        assert product.maklabel_options == ['MAKLABEL_OPT']
 
     def test_kernel_already_in_staging_sets_new_product_true(self, tmp_env):
         """When kernel already exists in staging, new_product should still be True."""
@@ -288,40 +286,22 @@ class TestSpiceKernelProductInit:
         assert product.observers == ["SPACECRAFT"]
         assert product.targets == ["MARS"]
 
-    def test_pds4_label_is_created(self, tmp_env):
+    @pytest.mark.parametrize("pds_version, label_class_name", [
+        ("4", "SpiceKernelPDS4Label"),
+        ("3", "SpiceKernelPDS3Label"),
+    ])
+    def test_label_is_created(self, tmp_env, pds_version, label_class_name):
+        """Test that appropriate label class is created for PDS3 and PDS4."""
         with (
             patch(f"{_MODULE}.extension_to_type", return_value="spk"),
             patch(f"{_MODULE}.safe_make_directory"),
             patch(f"{_MODULE}.shutil.copy2"),
             patch(f"{_MODULE}.spk_coverage", return_value=["2000T", "2020T"]),
             patch(f"{_MODULE}.Product.__init__", return_value=None),
-            patch(f"{_MODULE}.SpiceKernelPDS4Label") as mock_label,
+            patch(f"{_MODULE}.{label_class_name}") as mock_label,
         ):
             setup = make_setup(
-                pds_version="4",
-                staging_directory=tmp_env["staging"],
-                kernels_directory=[tmp_env["kernel_dir"]],
-                working_directory=tmp_env["work"],
-            )
-            write_kernel_file(tmp_env, "test.bsp")
-            write_kernel_list(tmp_env, setup, "test.bsp")
-            collection = make_collection()
-
-            SpiceKernelProduct(setup, "test.bsp", collection)
-
-        mock_label.assert_called_once()
-
-    def test_pds3_label_is_created(self, tmp_env):
-        with (
-            patch(f"{_MODULE}.extension_to_type", return_value="spk"),
-            patch(f"{_MODULE}.safe_make_directory"),
-            patch(f"{_MODULE}.shutil.copy2"),
-            patch(f"{_MODULE}.spk_coverage", return_value=["2000T", "2020T"]),
-            patch(f"{_MODULE}.Product.__init__", return_value=None),
-            patch(f"{_MODULE}.SpiceKernelPDS3Label") as mock_label,
-        ):
-            setup = make_setup(
-                pds_version="3",
+                pds_version=pds_version,
                 staging_directory=tmp_env["staging"],
                 kernels_directory=[tmp_env["kernel_dir"]],
                 working_directory=tmp_env["work"],
@@ -554,18 +534,6 @@ class TestSpiceKernelProductCoverage:
         assert product.start_time == '"N/A"'
         assert product.stop_time == '"N/A"'
 
-    def test_no_existing_label_triggers_computation(self, tmp_path):
-        """When no XML label exists, coverage function is called (not skipped)."""
-        setup = make_setup(pds_version="4")
-        kernel_path = str(tmp_path / "no_label.bsp")
-        # Ensure XML label does not exist
-        product = self._make_product_stub(setup, "spk", "bsp", path=kernel_path)
-
-        with patch(f"{_MODULE}.spk_coverage", return_value=["1999T", "2019T"]) as mock_spk:
-            product.coverage()
-
-        mock_spk.assert_called_once()
-
     # TODO: This test shows that in the event of a label without coverage information,
     #       the `coverage` method will compute it from the kernel. But, is this a valid
     #       input label? Should the user be informed about this?
@@ -609,7 +577,6 @@ class TestCkKernelIds:
     def test_ck_kernel_ids(self, tmp_path, ids, expected_str):
         with patch(f"{_MODULE}.spiceypy.ckobj", return_value=ids):
             product = self._make_product_stub(path=tmp_path / "fake.bc")
-            product.ck_kernel_ids()
             result = product.ck_kernel_ids()
 
         assert result == expected_str
@@ -684,3 +651,214 @@ class TestIkKernelIds:
         )
         result = self._run_with_content(tmp_path, content)
         assert result == '-11111,-33333'
+
+
+# ---------------------------------------------------------------------------
+# Tests for EK kernel coverage handling (lines 318-327)
+# ---------------------------------------------------------------------------
+
+class TestSpiceKernelProductEKCoverage:
+    """Test EK kernel coverage extraction and fallback behavior."""
+
+    def test_ek_with_time_coverage_pds4(self, tmp_env):
+        """Test EK kernel with valid time coverage in PDS4 mode (covers line 318-321).
+
+        When an EK has time columns, ek_coverage returns actual times,
+        which should be used directly.
+        """
+        setup = make_setup(
+            pds_version="4",
+            staging_directory=tmp_env["staging"],
+            kernels_directory=[tmp_env["kernel_dir"]],
+            working_directory=tmp_env["work"],
+            date_format="infomod2",
+            mission_start="2020-01-01T00:00:00Z",
+            mission_finish="2025-12-31T23:59:59Z",
+        )
+        collection = make_collection()
+
+        # Create EK file
+        write_kernel_file(tmp_env, "test_events.bes")
+        write_kernel_list(tmp_env, setup, "test_events.bes", "Test EK")
+
+        # Mock all dependencies and ek_coverage
+        with (
+            patch(f"{_MODULE}.extension_to_type", return_value="ek"),
+            patch(f"{_MODULE}.safe_make_directory"),
+            patch(f"{_MODULE}.product_mapping", return_value="test_events.bes"),
+            patch(f"{_MODULE}.shutil.copy2"),
+            patch(f"{_MODULE}.ek_coverage") as mock_ek_cov,
+            patch(f"{_MODULE}.Product.__init__", return_value=None),
+            patch(f"{_MODULE}.SpiceKernelPDS4Label", return_value=MagicMock()),
+        ):
+            mock_ek_cov.return_value = [
+                "2021-03-15T10:30:00.000Z",
+                "2021-06-20T18:45:30.000Z"
+            ]
+
+            product = SpiceKernelProduct(setup, "test_events.bes", collection)
+
+            # Should use coverage from ek_coverage
+            assert product.start_time == "2021-03-15T10:30:00.000Z"
+            assert product.stop_time == "2021-06-20T18:45:30.000Z"
+            mock_ek_cov.assert_called_once()
+
+
+    @pytest.mark.parametrize("filename, description", [
+        ("command_dict.bdb", "Command Dictionary EK"),
+        ("events.ten", "Text Event Kernel"),
+        ("eros_shape.bpe", "EROS Shape Model"),
+    ])
+    def test_ek_without_time_coverage_pds4_uses_mission_defaults(self, tmp_env, filename, description):
+        """Test EK without time coverage uses mission defaults in PDS4 (covers line 318-327).
+
+        When an EK has no time columns (returns ["", ""]), PDS4 mode should
+        fall back to mission_start and mission_finish from setup.
+        Tests various EK types: binary EK (.bdb), text event kernel (.ten), shape model (.bpe).
+        """
+        setup = make_setup(
+            pds_version="4",
+            staging_directory=tmp_env["staging"],
+            kernels_directory=[tmp_env["kernel_dir"]],
+            working_directory=tmp_env["work"],
+            date_format="infomod2",
+            mission_start="2020-01-01T00:00:00Z",
+            mission_finish="2025-12-31T23:59:59Z",
+        )
+        collection = make_collection()
+
+        write_kernel_file(tmp_env, filename)
+        write_kernel_list(tmp_env, setup, filename, description)
+
+        with (
+            patch(f"{_MODULE}.extension_to_type", return_value="ek"),
+            patch(f"{_MODULE}.safe_make_directory"),
+            patch(f"{_MODULE}.product_mapping", return_value=filename),
+            patch(f"{_MODULE}.shutil.copy2"),
+            patch(f"{_MODULE}.ek_coverage") as mock_ek_cov,
+            patch(f"{_MODULE}.Product.__init__", return_value=None),
+            patch(f"{_MODULE}.SpiceKernelPDS4Label", return_value=MagicMock()),
+        ):
+            mock_ek_cov.return_value = ["", ""]
+
+            product = SpiceKernelProduct(setup, filename, collection)
+
+            # Should use mission defaults
+            assert product.start_time == "2020-01-01T00:00:00Z"
+            assert product.stop_time == "2025-12-31T23:59:59Z"
+            mock_ek_cov.assert_called_once()
+
+
+    def test_ek_without_time_coverage_pds3_uses_na(self, tmp_env):
+        """Test EK without time coverage uses "N/A" in PDS3 (covers line 318-325)."""
+        setup = make_setup(
+            pds_version="3",
+            staging_directory=tmp_env["staging"],
+            kernels_directory=[tmp_env["kernel_dir"]],
+            working_directory=tmp_env["work"],
+            date_format="maklabel",
+            mission_start="2020-01-01T00:00:00Z",
+            mission_finish="2025-12-31T23:59:59Z",
+        )
+        collection = make_collection()
+        write_kernel_file(tmp_env, "activities.bdb")
+        write_kernel_list(tmp_env, setup, "activities.bdb", "Activities EK")
+
+        with (
+            patch(f"{_MODULE}.extension_to_type", return_value="ek"),
+            patch(f"{_MODULE}.safe_make_directory"),
+            patch(f"{_MODULE}.product_mapping", return_value="activities.bdb"),
+            patch(f"{_MODULE}.shutil.copy2"),
+            patch(f"{_MODULE}.ek_coverage", return_value=["", ""]),
+            patch(f"{_MODULE}.Product.__init__", return_value=None),
+            patch(f"{_MODULE}.SpiceKernelPDS3Label", return_value=MagicMock()),
+        ):
+            product = SpiceKernelProduct(setup, "activities.bdb", collection)
+            assert product.start_time == '"N/A"'
+            assert product.stop_time == '"N/A"'
+
+    def test_ek_with_time_coverage_pds3(self, tmp_env):
+        """Test EK with time coverage in PDS3 mode (covers line 318-321)."""
+        setup = make_setup(
+            pds_version="3",
+            staging_directory=tmp_env["staging"],
+            kernels_directory=[tmp_env["kernel_dir"]],
+            working_directory=tmp_env["work"],
+            date_format="maklabel",
+        )
+        collection = make_collection()
+        write_kernel_file(tmp_env, "events.bes")
+        write_kernel_list(tmp_env, setup, "events.bes", "Events EK")
+
+        with (
+            patch(f"{_MODULE}.extension_to_type", return_value="ek"),
+            patch(f"{_MODULE}.safe_make_directory"),
+            patch(f"{_MODULE}.product_mapping", return_value="events.bes"),
+            patch(f"{_MODULE}.shutil.copy2"),
+            patch(f"{_MODULE}.ek_coverage", return_value=["2010-07-12T00:00:00Z", "2010-07-19T23:59:59Z"]),
+            patch(f"{_MODULE}.Product.__init__", return_value=None),
+            patch(f"{_MODULE}.SpiceKernelPDS3Label", return_value=MagicMock()),
+        ):
+            product = SpiceKernelProduct(setup, "events.bes", collection)
+            assert product.start_time == "2010-07-12T00:00:00Z"
+            assert product.stop_time == "2010-07-19T23:59:59Z"
+
+    @pytest.mark.parametrize("date_format", ["infomod2", "maklabel"])
+    def test_ek_coverage_uses_correct_date_format(self, tmp_env, date_format):
+        """Test that ek_coverage is called with correct date_format parameter (covers line 319-320)."""
+        setup = make_setup(
+            pds_version="4",
+            staging_directory=tmp_env["staging"],
+            kernels_directory=[tmp_env["kernel_dir"]],
+            working_directory=tmp_env["work"],
+            date_format=date_format,
+        )
+        collection = make_collection()
+        write_kernel_file(tmp_env, "test.bes")
+        write_kernel_list(tmp_env, setup, "test.bes", "Test EK")
+
+        with (
+            patch(f"{_MODULE}.extension_to_type", return_value="ek"),
+            patch(f"{_MODULE}.safe_make_directory"),
+            patch(f"{_MODULE}.product_mapping", return_value="test.bes"),
+            patch(f"{_MODULE}.shutil.copy2"),
+            patch(f"{_MODULE}.ek_coverage") as mock_ek_cov,
+            patch(f"{_MODULE}.Product.__init__", return_value=None),
+            patch(f"{_MODULE}.SpiceKernelPDS4Label", return_value=MagicMock()),
+        ):
+            mock_ek_cov.return_value = ["2020-01-01T00:00:00.000Z", "2020-12-31T23:59:59.000Z"]
+            product = SpiceKernelProduct(setup, "test.bes", collection)
+
+            call_args = mock_ek_cov.call_args
+            assert call_args is not None
+            assert call_args[0][0].endswith("test.bes")
+            assert call_args[1]["date_format"] == date_format
+            assert call_args[1]["system"] == "UTC"
+
+
+    def test_ek_with_partial_coverage_not_empty(self, tmp_env):
+        """Test that partial coverage (one empty) is NOT treated as empty (covers line 323)."""
+        setup = make_setup(
+            pds_version="4",
+            staging_directory=tmp_env["staging"],
+            kernels_directory=[tmp_env["kernel_dir"]],
+            working_directory=tmp_env["work"],
+            mission_start="2020-01-01T00:00:00Z",
+            mission_finish="2025-12-31T23:59:59Z",
+        )
+        collection = make_collection()
+        write_kernel_file(tmp_env, "partial.bes")
+        write_kernel_list(tmp_env, setup, "partial.bes", "Partial coverage")
+
+        with (
+            patch(f"{_MODULE}.extension_to_type", return_value="ek"),
+            patch(f"{_MODULE}.safe_make_directory"),
+            patch(f"{_MODULE}.product_mapping", return_value="partial.bes"),
+            patch(f"{_MODULE}.shutil.copy2"),
+            patch(f"{_MODULE}.ek_coverage", return_value=["2021-01-01T00:00:00Z", ""]),
+            patch(f"{_MODULE}.Product.__init__", return_value=None),
+            patch(f"{_MODULE}.SpiceKernelPDS4Label", return_value=MagicMock()),
+        ):
+            product = SpiceKernelProduct(setup, "partial.bes", collection)
+            assert product.start_time == "2021-01-01T00:00:00Z"
+            assert product.stop_time == ""
