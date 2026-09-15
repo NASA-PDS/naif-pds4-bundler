@@ -9,6 +9,7 @@ from collections import OrderedDict
 from pathlib import Path
 
 import spiceypy
+from spiceypy.utils.exceptions import SpiceyPyError
 
 from .product import Product
 from ..exceptions import NPBError
@@ -96,7 +97,11 @@ class MetaKernelProduct(Product):
                     self.year = values["YEAR"]
                     self.YEAR = values["YEAR"]
 
-            except Exception:
+            # match_patterns() raises RuntimeError when the name doesn't match
+            # this metak's pattern, and IndexError when it's shorter than
+            # expected; values["VERSION"] raises KeyError when this metak has no
+            # VERSION pattern.
+            except (RuntimeError, IndexError, KeyError):
                 pass
 
         if not hasattr(self, "mk_setup"):
@@ -320,7 +325,9 @@ class MetaKernelProduct(Product):
         try:
             product_vid = str(self.version).lstrip("0") + ".0"
 
-        except Exception:
+        # self.version is only set when __init__'s match_patterns() found a
+        # VERSION pattern; otherwise it's never assigned -> AttributeError.
+        except AttributeError:
 
             logging.warning(
                 '-- %s No VID explicit in kernel name: set to 1.0', self.name)
@@ -357,7 +364,8 @@ class MetaKernelProduct(Product):
                 try:
                     patterns = self.json_config[pattern.pattern]["patterns"]
 
-                except Exception:
+                # "patterns" is an optional config key.
+                except KeyError:
                     patterns = False
 
                 #
@@ -572,7 +580,8 @@ class MetaKernelProduct(Product):
                                 f'{self.name.split("_v")[0]}*.tm'
                             )
 
-                        except Exception:
+                        # glob.glob() raises OSError on filesystem failure.
+                        except OSError:
 
                             if self.setup.increment:
                                 logging.warning(
@@ -589,7 +598,10 @@ class MetaKernelProduct(Product):
                             excluded_kernels=excluded_kernels,
                             mks=mks,
                         )
-                    except Exception as e:
+
+                    # get_latest_kernel() raises OSError when a meta-kernel
+                    # listed in mks can no longer be opened.
+                    except OSError as e:
                         logging.warning('-- Exception: %s', e)
 
                         latest_kernel = []
@@ -805,9 +817,11 @@ class MetaKernelProduct(Product):
                     break
 
             if not val_mk:
-                raise Exception("No label for comparison found.")
+                raise FileNotFoundError("No label for comparison found.")
 
-        except Exception:
+        # The block above self-raises FileNotFoundError when no previous MK
+        # version exists; glob.glob() can also raise OSError on I/O failure.
+        except (FileNotFoundError, OSError):
             #
             # If previous increment does not work, compare with the MK
             # template.
@@ -869,7 +883,8 @@ class MetaKernelProduct(Product):
                     "present in meta-kernel.",
                 )
 
-        except Exception:
+        # spiceypy.furnsh()/ktotal() raise SpiceyPyError on SPICE failures.
+        except SpiceyPyError:
             logging.error("-- The MK could not be loaded with the SPICE API FURNSH.")
 
         spiceypy.kclear()
@@ -1028,7 +1043,9 @@ class MetaKernelProduct(Product):
             stop_time = spiceypy.et2utc(max(finish_times), "ISOC", 3, 80) + "Z"
             logging.info('-- Meta-kernel coverage: %s - %s', start_time, stop_time)
 
-        except Exception:
+        # min()/max() raise ValueError on empty start_times/finish_times;
+        # spiceypy.et2utc() raises SpiceyPyError on SPICE failures.
+        except (ValueError, SpiceyPyError):
             #
             # The alternative is to set the increment times to the increment
             # or mission times provided via configuration.

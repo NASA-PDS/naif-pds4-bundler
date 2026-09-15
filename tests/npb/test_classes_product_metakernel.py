@@ -1199,17 +1199,30 @@ class TestMetaKernelProductWriteProduct:
 
     def test_get_latest_kernel_exception_logs_warning_and_continues(
             self, tmp_path, caplog):
+        """get_latest_kernel() raises OSError when a meta-kernel listed in
+        mks can no longer be opened - the except OSError logs and moves on."""
         product = self._make_stub(tmp_path, grammar_patterns=["naif0012.tls"])
 
         with (
             caplog.at_level(logging.WARNING),
             patch(f"{_MODULE}.get_latest_kernel",
-                  side_effect=ValueError("bad kernel path")),
+                  side_effect=OSError("bad kernel path"))
         ):
             product.write_product()  # must not raise
 
         assert "bad kernel path" in caplog.text
         assert product.product == product.path
+
+    def test_get_latest_kernel_propagates_unrelated_exception(self, tmp_path):
+        """A bug in get_latest_kernel() that isn't a missing-file case (here a
+        stand-in ValueError) must propagate, not be silently reported as an
+        "Exception" warning - proving except OSError no longer masks it."""
+        product = self._make_stub(tmp_path, grammar_patterns=["naif0012.tls"])
+
+        with patch(f"{_MODULE}.get_latest_kernel",
+                   side_effect=ValueError("boom")):
+            with pytest.raises(ValueError, match="boom"):
+                product.write_product()
 
     def test_scalar_latest_kernel_wrapped_in_list(self, tmp_path):
         # when get_latest_kernel returns a plain string (not a list)
@@ -1568,7 +1581,7 @@ class TestMetaKernelProductValidate:
         with (
             caplog.at_level(logging.INFO),
             patch(f"{_MODULE}.spiceypy.kclear") as mock_kclear,
-            patch(f"{_MODULE}.spiceypy.furnsh", side_effect=RuntimeError("fail")),
+            patch(f"{_MODULE}.spiceypy.furnsh", side_effect=SpiceyPyError("fail")),
             patch(f"{_MODULE}.check_line_length", return_value=[]),
             patch("os.chdir"),
         ):
@@ -1583,6 +1596,20 @@ class TestMetaKernelProductValidate:
         # kclear must be called after the except block to guarantee cleanup
         # even when furnsh raises.
         assert mock_kclear.call_count == 2
+
+    def test_furnsh_unrelated_exception_propagates(self, tmp_path):
+        """A bug that isn't a SPICE failure (here a stand-in RuntimeError)
+        must propagate, not be silently reported as a FURNSH error - proving
+        except SpiceyPyError no longer masks it."""
+        product, _ = self._make_stub(tmp_path)
+
+        with (
+            patch(f"{_MODULE}.spiceypy.kclear"),
+            patch(f"{_MODULE}.spiceypy.furnsh", side_effect=RuntimeError("boom")),
+            patch("os.chdir")
+        ):
+            with pytest.raises(RuntimeError, match="boom"):
+                product.validate()
 
     def test_line_length_errors_logged_as_warnings(self, tmp_path, caplog):
         product, _ = self._make_stub(tmp_path)
@@ -1644,7 +1671,7 @@ class TestMetaKernelProductValidate:
 
         with (
             patch(f"{_MODULE}.spiceypy.kclear"),
-            patch(f"{_MODULE}.spiceypy.furnsh", side_effect=RuntimeError("fail")),
+            patch(f"{_MODULE}.spiceypy.furnsh", side_effect=SpiceyPyError("fail")),
             patch(f"{_MODULE}.check_line_length", return_value=[]),
             patch("os.chdir") as mock_chdir,
         ):
