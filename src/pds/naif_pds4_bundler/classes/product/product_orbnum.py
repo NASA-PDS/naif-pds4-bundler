@@ -203,7 +203,10 @@ class OrbnumFileProduct(Product):
                 version_pattern = r"_[vV]\[0\-9\]*[\.]"
                 version_match = re.search(version_pattern, self._pattern)
                 pattern = ".".join(self._pattern.split(version_match.group(0)))
-            except Exception:
+
+            # re.search() returns None when the pattern has no explicit version
+            # token, and .group(0) on None raises AttributeError.
+            except AttributeError:
                 #
                 # The pattern already does not have an explicit version
                 # number.
@@ -1105,7 +1108,9 @@ class OrbnumFileProduct(Product):
                         x for x in os.listdir(cov_path) if re.fullmatch(cov_patn, x)
                     ]
 
-                except Exception:
+                # os.listdir() raises OSError when the configured directory
+                # doesn't exist.
+                except OSError:
                     cov_kers = []
 
                 #
@@ -1119,7 +1124,9 @@ class OrbnumFileProduct(Product):
                             x for x in os.listdir(cov_path) if re.fullmatch(cov_patn, x)
                         ]
 
-                    except Exception:
+                    # os.listdir() raises OSError when the staging directory
+                    # doesn't exist.
+                    except OSError:
                         cov_kers = []
 
                     #
@@ -1136,7 +1143,9 @@ class OrbnumFileProduct(Product):
                                 if re.fullmatch(cov_patn, x)
                             ]
 
-                        except Exception:
+                        # os.listdir() raises OSError when the bundle
+                        # directory doesn't exist.
+                        except OSError:
                             cov_kers = []
 
                 if cov_kers:
@@ -1262,7 +1271,9 @@ class OrbnumFileProduct(Product):
                 stop = parse_date(stop_time)
                 stop_time = stop.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-            except Exception:
+            # parse_date() raises ValueError when stop_time matches neither
+            # of its supported formats.
+            except ValueError:
                 #
                 # Exception to cope with orbnum files without all the ground
                 # set of parameters.

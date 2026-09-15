@@ -297,6 +297,20 @@ class TestOrbnumFileProductSetPreviousOrbnum:
         assert obj._previous_version == "1"
         assert obj._previous_orbnum == ""
 
+    @patch(f"{MOD}.get_latest_kernel", return_value=[])
+    def test_set_previous_orbnum_propagates_unrelated_exception(
+            self, _mock_get_latest):
+        """A bug that raises something other than AttributeError (here a
+        non-string _pattern, a stand-in for a real defect) must propagate, not
+        be silently treated as "no explicit version" - proving except
+        AttributeError no longer masks it."""
+        obj = object.__new__(OrbnumFileProduct)
+        obj.setup = MagicMock()
+        obj._pattern = None
+
+        with pytest.raises(TypeError):
+            obj.set_previous_orbnum()
+
 
 class TestOrbnumFileProductReadHeader:
     """Test reading and verifying the ORBNUM file header."""
@@ -821,6 +835,22 @@ class TestOrbnumFileProductCoverage:
 
         assert obj.start_time == "2020-01-01T00:00:00Z"
         assert obj.stop_time == "2020-02-01T00:00:00Z"
+
+    @patch(f"{MOD}.spk_coverage")
+    @patch(f"{MOD}.os.path.isfile", return_value=True)
+    @patch(f"{MOD}.os.listdir", side_effect=TypeError("boom"))
+    def test_coverage_kernel_lookup_propagates_unrelated_exception(
+        self, _mock_listdir, _mock_isfile, _mock_spk_coverage):
+        """A bug in os.listdir() that isn't a missing-directory case (here a
+        stand-in TypeError) must propagate, not be silently treated as
+        "kernel not found" - proving except OSError no longer masks it."""
+        obj = object.__new__(OrbnumFileProduct)
+        obj.name = "test.orb"
+        obj._orbnum_type = {"coverage": {"kernel": {"#text": "/path/test.bsp", "@cutoff": "False"}}}
+        obj.setup = MagicMock(spice_name="test_spice", staging_directory="/staging", bundle_directory="/bundle")
+
+        with pytest.raises(TypeError, match="boom"):
+            obj.coverage()
 
     # --- Group 3: cutoff edge case ---
 
