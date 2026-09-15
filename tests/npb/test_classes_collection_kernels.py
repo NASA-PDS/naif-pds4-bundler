@@ -577,6 +577,37 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
         assert setup.increment_finish == "2040-001T00:00:00.000Z"
         assert "Mission stop time will be used" in caplog.text
 
+    def test_min_max_propagates_unrelated_exception(self, lsk):
+        """A real bug that produces an unorderable start_time (e.g. None from a
+        broken product, standing in for a real defect) raises TypeError from
+        min(), which must propagate rather than be reported as "No MKs
+        found" - proving except ValueError no longer masks it."""
+        prod1 = MagicMock()
+        prod1.mk_sets_coverage = True
+        prod1.start_time = "2010-001T00:00:00.000Z"
+        prod1.stop_time = "2020-001T00:00:00.000Z"
+
+        prod2 = MagicMock()
+        prod2.mk_sets_coverage = True
+        
+        # None stands in for a real defect (e.g. a product whose start_time
+        # was never set) - str/None can't be compared, so min() raises
+        # TypeError instead of the ValueError the except clause expects.
+        prod2.start_time = None
+        prod2.stop_time = "2021-001T00:00:00.000Z"
+
+        setup = self._plain_setup()
+
+        with patch(_SET_LID):
+            obj = SpiceKernelsCollection(setup, make_bundle(), make_kernels())
+
+        obj.product = [prod1, prod2]
+
+        # TypeError must escape set_increment_times() unhandled, not be
+        # swallowed and reported as "No MKs found".
+        with pytest.raises(TypeError):
+            obj.set_increment_times()
+
     # ------------------------------------------------------------------ #
     # previous bundle try block                                            #
     # ------------------------------------------------------------------ #

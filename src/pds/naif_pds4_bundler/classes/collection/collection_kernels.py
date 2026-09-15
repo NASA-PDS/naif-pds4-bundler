@@ -4,6 +4,7 @@ import logging
 import os
 
 import spiceypy
+from spiceypy.utils.exceptions import SpiceyPyError
 
 from .collection import Collection
 from ..exceptions import NPBError
@@ -189,7 +190,9 @@ class SpiceKernelsCollection(Collection):
             increment_start = min(increment_starts)
             increment_finish = max(increment_finishs)
 
-        except Exception:
+        # min()/max() raise ValueError when no MK sets the increment coverage,
+        # i.e. increment_starts/increment_finishs are empty.
+        except ValueError:
             #
             # If no MKs are provided in the increment. First check if an
             # increment stop time has been provided as an input
@@ -282,7 +285,9 @@ class SpiceKernelsCollection(Collection):
                 increment_finish = prev_increment_finish
                 logging.warning("-- Increment finish corrected form previous bundle.")
 
-        except Exception:
+        # bundles[-1] raises IndexError when no previous bundle label glob
+        # matches; open() raises OSError if the matched file can't be read.
+        except (IndexError, OSError):
             logging.warning("-- Previous bundle not found.")
 
         #
@@ -297,7 +302,8 @@ class SpiceKernelsCollection(Collection):
                 self.setup.date_format,
             )
 
-        except Exception:
+        # spiceypy.utc2et() raises SpiceyPyError when no LSK is loaded.
+        except SpiceyPyError:
             logging.warning(
                 "-- A leapseconds kernel (LSK) has not been loaded. "
                 "Increment start/finish times will not be corrected."
