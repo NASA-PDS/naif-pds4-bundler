@@ -108,20 +108,40 @@ def test_add_crs_to_file_success_alt(tmp_path, inputs, outputs):
 
     assert fake_file.read_text() == outputs
 
-def test_add_crs_to_file_logging_error(monkeypatch, caplog):
-    """Test add_crs_to_file function using pytest.
-    This is to test logging errors"""
+
+def _nonexistent_file(tmp_path):
+    # Never created: open() raises FileNotFoundError, an OSError subclass.
+    return tmp_path / "does-not-exist" / "file.txt"
+
+
+def _non_utf8_file(tmp_path):
+    # Real file with bytes that aren't valid UTF-8 (e.g. a legacy-encoded
+    # kernel comment): open(..., encoding='utf-8') raises UnicodeDecodeError
+    # while reading it.
+    bad_file = tmp_path / "file.txt"
+    bad_file.write_bytes(b"\xff\xfe not valid utf-8\n")
+    return bad_file
+
+
+# Both a missing file and a non-UTF-8 file must reach the same
+# handle_npb_error() path - proving except (OSError, UnicodeDecodeError)
+# catches both real conditions rather than propagating either raw.
+@pytest.mark.parametrize("make_bad_file", [
+    pytest.param(_nonexistent_file, id="missing-file"),
+    pytest.param(_non_utf8_file, id="non-utf8-file"),
+])
+def test_add_crs_to_file_logs_error(monkeypatch, tmp_path, caplog, make_bad_file):
     def mock_handle_error(msg, setup):
         if not setup:
             logging.error(msg)
 
     monkeypatch.setattr(files, "handle_npb_error", mock_handle_error)
-    bad_path = "/bad/path/file.txt"
+    bad_file = make_bad_file(tmp_path)
 
     with caplog.at_level(files.logging.ERROR):
-        files.add_crs_to_file(bad_path, eol="\n")
+        files.add_crs_to_file(str(bad_file), eol="\n", setup=False)
 
-    expected = [(logging.ERROR, 'Carriage return adding error for /bad/path/file.txt.')]
+    expected = [(logging.ERROR, f'Carriage return adding error for {bad_file}.')]
 
     results = [(r[1], r[2]) for r in caplog.record_tuples]
 
@@ -1118,6 +1138,27 @@ def test_get_latest_kernel_invalid_pattern_raises():
     with pytest.raises(re.error):
         files.get_latest_kernel("ck", [str(KERNELS)], pattern)
 
+
+@pytest.mark.parametrize("type_dir_exists", [
+    pytest.param(False, id="missing-type-directory-oserror"),
+    pytest.param(True, id="existing-type-directory-no-matches"),
+])
+def test_get_latest_kernel_logs_warning_when_no_kernels_found(
+        tmp_path, caplog, type_dir_exists):
+    """No kernels ever match: kernels.pop() at the end of get_latest_kernel()
+    raises IndexError. The type subdirectory can either not exist at all
+    (os.listdir() raises OSError, caught earlier and silently skipped) or
+    exist but be empty (os.listdir() succeeds with []) - either way the
+    function must log a warning and return [] rather than crash."""
+    if type_dir_exists:
+        (tmp_path / "ck").mkdir()
+
+    with caplog.at_level(logging.WARNING):
+        result = files.get_latest_kernel("ck", [str(tmp_path)], r".*\.bc")
+
+    assert result == []
+    assert "No kernels found with pattern" in caplog.text
+
 def test_get_latest_kernel_with_dates_logic(tmp_path):
     """Test get_latest_kernel using pytest.
     Test filtering versions when dates=True in config.
@@ -1475,16 +1516,30 @@ def test_replace_string_in_file(tmp_path, contents, old_str, new_str, eol_pds3, 
 # files.safe_make_directory test
 # ----------------------------------------------------------------------------
 
-def test_safe_make_directory(tmp_path):
-    """Test safe_make_directory function using pytest.
-    This is for a successful case"""
+def test_safe_make_directory_existing_directory_is_silently_ignored(tmp_path, caplog):
+    """The directory already exists, so os.mkdir() raises FileExistsError (an
+    OSError subclass) - the except OSError: pass fallback swallows it
+    silently, without logging anything, unlike the real success path covered
+    by test_safe_make_directory_logging below."""
     path = tmp_path / "dir_path"
     path.mkdir()
 
-    files.safe_make_directory(str(path))
+    with caplog.at_level(logging.INFO):
+        files.safe_make_directory(str(path))
 
     assert path.exists()
     assert path.is_dir()
+    assert caplog.record_tuples == []
+
+def test_safe_make_directory_propagates_unrelated_exception(mocker, tmp_path):
+    """A bug in os.mkdir() that isn't a filesystem failure (here a stand-in
+    TypeError) must propagate, not be silently swallowed - proving except
+    OSError no longer masks it."""
+    mocker.patch("os.mkdir", side_effect=TypeError("boom"))
+    path = tmp_path / "dir_path"
+
+    with pytest.raises(TypeError, match="boom"):
+        files.safe_make_directory(str(path))
 
 def test_safe_make_directory_logging(mocker, tmp_path):
     """Test safe_make_directory function using pytest.
@@ -1593,6 +1648,13 @@ def test_type_to_extension_object(kern, expected):
 def test_type_to_pds3_type(inputs, outputs):
     """Test type_to_pds3 function using pytest."""
     assert files.type_to_pds3_type(inputs) == outputs
+
+def test_type_to_pds3_type_accepts_kernel_object_with_extension_attribute():
+    """type_to_pds3_type() also accepts an object with an .extension
+    attribute (the try branch) rather than only a plain string (the
+    except AttributeError fallback exercised by every case above)."""
+    kernel = MagicMock(extension="ik")
+    assert files.type_to_pds3_type(kernel) == "INSTRUMENT"
 
 # ----------------------------------------------------------------------------
 # files.utf8len test

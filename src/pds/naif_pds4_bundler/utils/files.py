@@ -19,6 +19,12 @@ from spiceypy.utils.exceptions import SpiceUNSUPPORTEDBFF
 
 from ..pipeline.runtime import handle_npb_error
 
+#: Raised by open()/read() on a text file that can't be read (OSError) or
+#: isn't valid UTF-8 (UnicodeDecodeError, for files opened with
+#: encoding='utf-8'). Shared by the several call sites that read a text file
+#: and treat either failure the same way.
+FILE_READ_ERRORS = (OSError, UnicodeDecodeError)
+
 
 def etree_to_dict(etree):
     """Convert between XML and JSON.
@@ -179,6 +185,8 @@ def type_to_pds3_type(kernel):
         #
         kernel_type = kernel_type_map[kernel.extension.upper()]
 
+    # kernel.extension raises AttributeError when kernel is a plain string
+    # (no .extension attribute), meaning it's a filename, not an object.
     except AttributeError:
         #
         # Kernel is a string
@@ -257,8 +265,9 @@ def add_crs_to_file(file, eol, setup=False):
                     f.write(line)
         shutil.move(file_crs, file)
 
-    # open()/shutil.move() raise OSError on filesystem failures.
-    except OSError:
+    # open()/shutil.move() raise OSError on filesystem failures, or
+    # UnicodeDecodeError if file isn't valid UTF-8.
+    except FILE_READ_ERRORS:
         handle_npb_error(f"Carriage return adding error for {file}.", setup)
 
 
@@ -440,8 +449,8 @@ def mk_to_list(mk, setup):
                     path_symbol = "$" + line.split("'")[1]
                     get_symbol = False
 
-                # split("'")[1] raises IndexError when the line has no
-                # quote-delimited value (e.g. PATH_SYMBOLS on its own line).
+                # split("'")[1] raises IndexError with no quote-delimited value
+                # (e.g. PATH_SYMBOLS on its own line).
                 except IndexError:
                     pass
 
