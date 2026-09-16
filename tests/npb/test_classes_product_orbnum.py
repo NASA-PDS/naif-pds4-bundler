@@ -1,6 +1,7 @@
 import datetime
 import logging
 import os
+import re
 from pathlib import Path
 from unittest.mock import patch, mock_open, MagicMock
 
@@ -852,6 +853,28 @@ class TestOrbnumFileProductCoverage:
         with pytest.raises(TypeError, match="boom"):
             obj.coverage()
 
+    @patch(f"{MOD}.os.listdir", return_value=["dummy.bsp"])
+    def test_coverage_kernel_lookup_invalid_pattern_raises(self, _mock_listdir):
+        """An invalid regex kernel pattern from the mission's orbnum
+        configuration is a configuration bug, not a "kernel not found"
+        condition, and must propagate rather than be masked as one -
+        matching utils.files.get_latest_kernel's same design intent for
+        pattern arguments (see test_get_latest_kernel_invalid_pattern_raises).
+        os.listdir() must return at least one entry so the pattern is
+        actually evaluated via re.fullmatch()."""
+        obj = object.__new__(OrbnumFileProduct)
+        obj.name = "test.orb"
+        obj._orbnum_type = {
+            "coverage": {"kernel": {
+                # Unbalanced parenthesis: re.fullmatch() raises re.error.
+                "#text": "/path/([a-z]+.bsp", "@cutoff": "False"}}}
+        obj.setup = MagicMock(spice_name="test_spice",
+                              staging_directory="/staging",
+                              bundle_directory="/bundle")
+
+        with pytest.raises(re.error):
+            obj.coverage()
+
     # --- Group 3: cutoff edge case ---
 
     @patch(f"{MOD}.spk_coverage")
@@ -990,3 +1013,30 @@ class TestOrbnumFileProductCoverage:
             obj.coverage()
 
         assert obj.stop_time == "2021-01-01T00:00:00Z"
+
+    @patch(f"{MOD}.parse_date")
+    def test_coverage_fallback_stop_time_propagates_unrelated_exception(
+            self, mock_parse_date):
+        """A bug in parse_date() that isn't the documented "unsupported
+        format" case (here a stand-in TypeError) must propagate, not be
+        silently treated as a parse failure - proving except ValueError no
+        longer masks it."""
+        obj = object.__new__(OrbnumFileProduct)
+        obj.name = "test.orb"
+        obj.path = "/path/test.orb"
+        obj._orbnum_type = {}
+        obj._sample_record = "1 2021-01-01T00:00:00Z data"
+        obj.utc_blanks_to_dashes = MagicMock(
+            return_value="123 2021-Jan-01-00:00:00 x 2021-Jan-02-00:00:00"
+        )
+        mock_parse_date.side_effect = [
+            datetime.datetime(2021, 1, 1),
+            TypeError("boom"),
+        ]
+
+        fallback_mock = _make_fallback_file_mock(
+            b"123 2021-Jan-01-00:00:00 x 2021-Jan-02-00:00:00\n"
+        )
+        with patch("builtins.open", return_value=fallback_mock):
+            with pytest.raises(TypeError, match="boom"):
+                obj.coverage()

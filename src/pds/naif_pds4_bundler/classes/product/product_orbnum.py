@@ -17,6 +17,16 @@ from ...utils import spk_coverage
 from ...utils import utf8len
 
 
+def _matching_kernels(directory: str, pattern: str) -> List[str]:
+    """List entries of directory matching pattern, or [] if it doesn't exist."""
+    try:
+        return [x for x in os.listdir(directory) if re.fullmatch(pattern, x)]
+
+    # os.listdir() raises OSError when directory doesn't exist.
+    except OSError:
+        return []
+
+
 class OrbnumFileProduct(Product):
     """Class that represents an OrbNum file.
 
@@ -204,8 +214,8 @@ class OrbnumFileProduct(Product):
                 version_match = re.search(version_pattern, self._pattern)
                 pattern = ".".join(self._pattern.split(version_match.group(0)))
 
-            # re.search() returns None when the pattern has no explicit version
-            # token, and .group(0) on None raises AttributeError.
+            # re.search() returns None with no explicit version token, and
+            # .group(0) on None raises AttributeError.
             except AttributeError:
                 #
                 # The pattern already does not have an explicit version
@@ -1103,31 +1113,14 @@ class OrbnumFileProduct(Product):
                 #
                 cov_path = os.sep.join(coverage_kernel.split(os.sep)[:-1])
 
-                try:
-                    cov_kers = [
-                        x for x in os.listdir(cov_path) if re.fullmatch(cov_patn, x)
-                    ]
-
-                # os.listdir() raises OSError when the configured directory
-                # doesn't exist.
-                except OSError:
-                    cov_kers = []
+                cov_kers = _matching_kernels(cov_path, cov_patn)
 
                 #
                 # Check if the SPK kernel is present in the increment.
                 #
                 if not cov_kers:
                     cov_path = f"{self.setup.staging_directory}/spice_kernels/spk"
-
-                    try:
-                        cov_kers = [
-                            x for x in os.listdir(cov_path) if re.fullmatch(cov_patn, x)
-                        ]
-
-                    # os.listdir() raises OSError when the staging directory
-                    # doesn't exist.
-                    except OSError:
-                        cov_kers = []
+                    cov_kers = _matching_kernels(cov_path, cov_patn)
 
                     #
                     # Check if the SPK kernel is present in the bundle
@@ -1135,18 +1128,7 @@ class OrbnumFileProduct(Product):
                     #
                     if not cov_kers:
                         cov_path = f"{self.setup.bundle_directory}/spice_kernels/spk"
-
-                        try:
-                            cov_kers = [
-                                x
-                                for x in os.listdir(cov_path)
-                                if re.fullmatch(cov_patn, x)
-                            ]
-
-                        # os.listdir() raises OSError when the bundle
-                        # directory doesn't exist.
-                        except OSError:
-                            cov_kers = []
+                        cov_kers = _matching_kernels(cov_path, cov_patn)
 
                 if cov_kers:
                     coverage_found = True
@@ -1271,8 +1253,8 @@ class OrbnumFileProduct(Product):
                 stop = parse_date(stop_time)
                 stop_time = stop.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-            # parse_date() raises ValueError when stop_time matches neither
-            # of its supported formats.
+            # parse_date() raises ValueError when stop_time matches neither of
+            # its supported formats.
             except ValueError:
                 #
                 # Exception to cope with orbnum files without all the ground
