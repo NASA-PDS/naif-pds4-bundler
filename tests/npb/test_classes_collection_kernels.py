@@ -18,6 +18,8 @@ from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
 
+from spiceypy.utils.exceptions import SpiceyPyError
+
 from pds.naif_pds4_bundler.classes.collection.collection_kernels import SpiceKernelsCollection
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
 
@@ -30,6 +32,7 @@ _SET_LID      = "pds.naif_pds4_bundler.classes.collection.collection.Collection.
 _EXISTS       = "pds.naif_pds4_bundler.classes.collection.collection_kernels.os.path.exists"
 _GLOB         = "pds.naif_pds4_bundler.classes.collection.collection_kernels.glob.glob"
 _OPEN         = "builtins.open"
+_UTC2ET       = "pds.naif_pds4_bundler.classes.collection.collection_kernels.spiceypy.utc2et"
 
 
 # ---------------------------------------------------------------------------
@@ -477,11 +480,17 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
         assert setup.increment_start  == "2010-01-01T00:00:00Z"
         assert setup.increment_finish == "2020-01-01T00:00:00Z"
 
-    def test_product_without_mk_sets_coverage_attr_ignored(self, lsk):
-        """Products lacking mk_sets_coverage attribute are skipped."""
-        prod = MagicMock(spec=[])  # no attributes → hasattr returns False
+    @pytest.mark.parametrize("make_prod", [
+        pytest.param(lambda: MagicMock(spec=[]), id="attribute-missing"),
+        pytest.param(lambda: MagicMock(mk_sets_coverage=False), id="attribute-false"),
+    ])
+    def test_mk_sets_coverage_missing_or_false_ignored(self, lsk, make_prod):
+        """Products with no mk_sets_coverage attribute (hasattr fails) or with
+        it explicitly set to False (the boolean check fails) are both skipped
+        for coverage - with no qualifying products, min([]) raises and the
+        except block falls through to mission start/finish defaults."""
+        prod = make_prod()
 
-        # With no qualifying products, min([]) raises → except block fires.
         setup2 = _Setup(
             pds_version="4",
             args=MagicMock(faucet="plan"),
@@ -498,31 +507,6 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
 
         with patch(_GLOB, return_value=[]):
             obj2.set_increment_times()
-
-        # Falls through to mission start/finish defaults
-        assert setup2.increment_start  == "2000-01-01T00:00:00.000Z"
-        assert setup2.increment_finish == "2040-01-01T00:00:00.000Z"
-
-    def test_mk_sets_coverage_false_ignored(self, lsk):
-        """Products with mk_sets_coverage=False are not used for coverage."""
-        prod = MagicMock()
-        prod.mk_sets_coverage = False
-        setup2 = _Setup(
-            pds_version="4",
-            args=MagicMock(faucet="plan"),
-            mission_start="2000-001T00:00:00.000Z",
-            mission_finish="2040-001T00:00:00.000Z",
-            mission_acronym="test",
-            bundle_directory="/fake/bundle",
-            staging_directory="/fake/staging",
-            date_format="infomod2",
-        )
-        with patch(_SET_LID):
-            obj = SpiceKernelsCollection(setup2, make_bundle(), make_kernels())
-        obj.product = [prod]
-
-        with patch(_GLOB, return_value=[]):
-            obj.set_increment_times()
 
         assert setup2.increment_start  == "2000-01-01T00:00:00.000Z"
         assert setup2.increment_finish == "2040-01-01T00:00:00.000Z"
@@ -607,6 +591,26 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
         # swallowed and reported as "No MKs found".
         with pytest.raises(TypeError):
             obj.set_increment_times()
+
+    def test_missing_start_stop_time_falls_back_to_mission_times(self, lsk):
+        """A product with mk_sets_coverage=True but no start_time/stop_time
+        attributes (e.g. a real defect) raises AttributeError when appended,
+        which must be handled the same as the empty-list ValueError case -
+        falling back to mission start/finish - rather than crashing
+        set_increment_times() with increment_start/finish left unset."""
+        prod = MagicMock(spec=["mk_sets_coverage"])
+        prod.mk_sets_coverage = True
+
+        setup = self._plain_setup()
+        with patch(_SET_LID):
+            obj = SpiceKernelsCollection(setup, make_bundle(), make_kernels())
+        obj.product = [prod]
+
+        with patch(_GLOB, return_value=[]):
+            obj.set_increment_times()
+
+        assert setup.increment_start == "2000-01-01T00:00:00Z"
+        assert setup.increment_finish == "2040-01-01T00:00:00Z"
 
     # ------------------------------------------------------------------ #
     # previous bundle try block                                            #
@@ -706,12 +710,57 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
 
         assert "Previous bundle not found" in caplog.text
 
+    @pytest.mark.parametrize("open_side_effect", [
+        pytest.param(OSError("permission denied"), id="oserror-file-unreadable"),
+        pytest.param(
+            UnicodeDecodeError("utf-8", b"\xff", 0, 1, "invalid start byte"),
+            id="unicodedecodeerror-non-utf8-label"),
+    ])
+    def test_prev_bundle_unreadable_logs_warning(
+            self, lsk, caplog, open_side_effect):
+        """A previous bundle label that glob matches but can't be opened
+        (OSError) or isn't valid UTF-8 (UnicodeDecodeError, since it's opened
+        with encoding='utf-8') must fall back to the same "not found" warning
+        as a missing file, not crash - proving
+        except (IndexError, OSError, UnicodeDecodeError) catches both."""
+        import logging
+        setup = self._plain_setup()
+        with patch(_SET_LID):
+            obj = SpiceKernelsCollection(setup, make_bundle(), make_kernels())
+        obj.product = []
+
+        with caplog.at_level(logging.WARNING), \
+             patch(_GLOB, return_value=["/fake/bundle_v001.xml"]), \
+             patch(_OPEN, side_effect=open_side_effect):
+            obj.set_increment_times()
+
+        assert "Previous bundle not found" in caplog.text
+
+    def test_prev_bundle_missing_tags_logs_warning(self, lsk, caplog):
+        """A previous bundle label that glob matches and opens successfully
+        but doesn't contain the expected <start_date_time>/<stop_date_time>
+        tags (e.g. a stray/older-schema file) must fall back to the same
+        "not found" warning as a missing file, not crash with NameError."""
+        import logging
+        setup = self._plain_setup()
+        with patch(_SET_LID):
+            obj = SpiceKernelsCollection(setup, make_bundle(), make_kernels())
+        obj.product = []
+
+        with caplog.at_level(logging.WARNING), \
+             patch(_GLOB, return_value=["/fake/bundle_v001.xml"]), \
+             patch(_OPEN, mock_open(read_data="<not_a_tag>foo</not_a_tag>\n")):
+            obj.set_increment_times()
+
+        assert "Previous bundle not found" in caplog.text
+
     # ------------------------------------------------------------------ #
     # spiceypy / et_to_date try block                                     #
     # ------------------------------------------------------------------ #
 
     def test_spiceypy_failure_logs_lsk_warning(self, caplog):
-        """spiceypy.utc2et raises → LSK warning logged, times unchanged."""
+        """spiceypy.utc2et raises SpiceyPyError (no LSK loaded) → LSK warning
+        logged, increment times left unchanged."""
         import logging
         setup = self._plain_setup(
             increment_start="2010-001T00:00:00.000Z",
@@ -721,13 +770,14 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
             obj = SpiceKernelsCollection(setup, make_bundle(), make_kernels())
         obj.product = []
 
-        mock_spice = MagicMock()
-        mock_spice.utc2et.side_effect = Exception("No LSK loaded")
-
-        with caplog.at_level(logging.WARNING), patch(_GLOB, return_value=[]):
+        with (caplog.at_level(logging.WARNING),
+              patch(_GLOB, return_value=[]),
+              patch(_UTC2ET, side_effect=SpiceyPyError("SPICE(NOLEAPSECONDS)"))):
             obj.set_increment_times()
 
         assert "leapseconds kernel" in caplog.text
+        assert setup.increment_start  == "2010-001T00:00:00.000Z"
+        assert setup.increment_finish == "2020-001T00:00:00.000Z"
 
 
 # ===========================================================================
