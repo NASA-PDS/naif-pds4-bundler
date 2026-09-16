@@ -17,6 +17,7 @@ import xmlschema
 
 from .exceptions import NPBError
 from ..utils import etree_to_dict
+from ..utils import FILE_READ_ERRORS
 from ..utils import kernel_name
 from ..utils import spice_exception_handler
 
@@ -56,7 +57,12 @@ class Setup:
             )
             schema.validate(args.config)
 
-        except Exception as inst:
+        # xmlschema.XMLSchemaException is the base class for every error the
+        # library raises, including schema-validation and malformed-XML
+        # failures: schema.validate() wraps a malformed document's parse
+        # error as XMLResourceParseError, itself an XMLSchemaException
+        # subclass, rather than letting a bare SyntaxError escape.
+        except xmlschema.XMLSchemaException as inst:
             if not args.debug:
                 print(inst)
             raise
@@ -477,7 +483,8 @@ class Setup:
             try:
                 os.mkdir(cwd + os.sep + self.staging_directory)
 
-            except Exception:
+            # os.mkdir() raises OSError on filesystem failures.
+            except OSError:
 
                 if self.faucet in ["plan", "list", "checks"]:
                     logging.warning('-- Staging directory cannot be created but'
@@ -749,7 +756,9 @@ class Setup:
                             line = line.rstrip()
                             xml_tab = len(line) - len(xml_tag)
 
-            except Exception:
+            # open() raises OSError when template_bundle.xml doesn't exist,
+            # or UnicodeDecodeError if it isn't valid UTF-8.
+            except FILE_READ_ERRORS:
                 logging.warning(
                     "-- XML Template not found to determine XML Tab. It has been set to 2."
                 )
@@ -904,7 +913,9 @@ class Setup:
 
                 increment = True
 
-            except Exception:
+            # releases[-1] raises IndexError on an empty glob; int(...) raises
+            # ValueError on a bad version segment.
+            except (IndexError, ValueError):
 
                 if self.pds_version == "4":
                     logging.warning(
@@ -941,7 +952,10 @@ class Setup:
 
                     increment = True
 
-                except Exception:
+                # releases[-1] raises IndexError with no matching kernel_list
+                # files; int(...) raises ValueError if the release number
+                # parsed from the filename isn't a valid integer.
+                except (IndexError, ValueError):
 
                     logging.warning("-- This is the first release.")
 
@@ -1212,7 +1226,9 @@ class Setup:
         try:
             r = requests.get(pds_schematron_location, allow_redirects=True)
 
-        except Exception:
+        # requests.exceptions.RequestException is the base class for every error
+        # the library raises.
+        except requests.exceptions.RequestException:
 
             logging.warning(
                 '-- PDS Validate Tool configuration file not written.')
@@ -1229,7 +1245,9 @@ class Setup:
         try:
             r = requests.get(pds_schema_location, allow_redirects=True)
 
-        except Exception:
+        # requests.exceptions.RequestException is the base class for every error
+        # the library raises.
+        except requests.exceptions.RequestException:
 
             logging.warning(
                 '-- PDS Validate Tool configuration file not written.')

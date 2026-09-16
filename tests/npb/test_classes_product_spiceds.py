@@ -2,7 +2,7 @@
 import logging
 import os
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, PropertyMock
 
 import pytest
 
@@ -268,10 +268,10 @@ class TestSpicedsProductInit:
             SpicedsProduct(setup, collection)
 
     def test_init_missing_spiceds_attribute_treated_as_empty(self):
-        # If accessing setup.spiceds raises, the constructor's try/except
-        # BaseException must swallow it and treat 'spiceds' as empty, behaving
-        # exactly like spiceds='' (here on the no-increment else branch). A mock
-        # with the attribute deleted makes access raise AttributeError.
+        # If setup.spiceds is missing, the constructor's except AttributeError
+        # must swallow it and treat 'spiceds' as empty, behaving exactly like
+        # spiceds='' (here on the no-increment else branch). A mock with the
+        # attribute deleted makes access raise AttributeError.
         setup = make_setup(increment=False)
         del setup.spiceds
         collection = make_collection()
@@ -280,6 +280,21 @@ class TestSpicedsProductInit:
             NPBError,
             match='spiceds not provided and not available from previous releases.',
         ):
+            SpicedsProduct(setup, collection)
+
+    def test_init_unexpected_spiceds_access_error_propagates(self):
+        """A failure reading setup.spiceds that isn't "the attribute is missing"
+        (here a RuntimeError, standing in for a real bug) must propagate, not be
+        silently treated as spiceds='' - proving except AttributeError no longer
+        masks it."""
+        setup = make_setup(increment=False)
+
+        # PropertyMock lets a MagicMock attribute raise on access instead of
+        # just returning a value, unlike a plain assignment.
+        type(setup).spiceds = PropertyMock(side_effect=RuntimeError("boom"))
+        collection = make_collection()
+
+        with pytest.raises(RuntimeError, match="boom"):
             SpicedsProduct(setup, collection)
 
 

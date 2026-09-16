@@ -19,6 +19,12 @@ from spiceypy.utils.exceptions import SpiceUNSUPPORTEDBFF
 
 from ..pipeline.runtime import handle_npb_error
 
+#: Raised by open()/read() on a text file that can't be read (OSError) or
+#: isn't valid UTF-8 (UnicodeDecodeError, for files opened with
+#: encoding='utf-8'). Shared by the several call sites that read a text file
+#: and treat either failure the same way.
+FILE_READ_ERRORS = (OSError, UnicodeDecodeError)
+
 
 def etree_to_dict(etree):
     """Convert between XML and JSON.
@@ -82,7 +88,8 @@ def safe_make_directory(path):
         logging.info('-- Generated directory: %s  ', path)
         logging.info('')
 
-    except Exception:
+    # os.mkdir fails with OSError: exists, missing parent, or no permission.
+    except OSError:
         pass
 
 
@@ -178,7 +185,9 @@ def type_to_pds3_type(kernel):
         #
         kernel_type = kernel_type_map[kernel.extension.upper()]
 
-    except Exception:
+    # kernel.extension raises AttributeError when kernel is a plain string
+    # (no .extension attribute), meaning it's a filename, not an object.
+    except AttributeError:
         #
         # Kernel is a string
         #
@@ -256,7 +265,9 @@ def add_crs_to_file(file, eol, setup=False):
                     f.write(line)
         shutil.move(file_crs, file)
 
-    except Exception:
+    # open()/shutil.move() raise OSError on filesystem failures, or
+    # UnicodeDecodeError if file isn't valid UTF-8.
+    except FILE_READ_ERRORS:
         handle_npb_error(f"Carriage return adding error for {file}.", setup)
 
 
@@ -438,7 +449,9 @@ def mk_to_list(mk, setup):
                     path_symbol = "$" + line.split("'")[1]
                     get_symbol = False
 
-                except Exception:
+                # split("'")[1] raises IndexError with no quote-delimited value
+                # (e.g. PATH_SYMBOLS on its own line).
+                except IndexError:
                     pass
 
     if not ker_mk_list:
@@ -495,7 +508,8 @@ def get_latest_kernel(
                 f for f in os.listdir(f"{kernel_path}/") if re.search(pattern, f)
             ]
 
-        except Exception:
+        # os.listdir raises OSError when the type subdirectory is missing.
+        except OSError:
             pass
 
     if mks:
@@ -529,7 +543,8 @@ def get_latest_kernel(
         try:
             return kernels.pop()
 
-        except Exception:
+        # list.pop() raises IndexError when kernels is empty.
+        except IndexError:
             logging.warning("        No kernels found with pattern %s", pattern)
             return []
     else:

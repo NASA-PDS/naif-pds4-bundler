@@ -4,11 +4,13 @@ import logging
 import os
 
 import spiceypy
+from spiceypy.utils.exceptions import SpiceyPyError
 
 from .collection import Collection
 from ..exceptions import NPBError
 from ...utils import et_to_date
 from ...utils import extension_to_type
+from ...utils import FILE_READ_ERRORS
 
 
 class SpiceKernelsCollection(Collection):
@@ -189,7 +191,10 @@ class SpiceKernelsCollection(Collection):
             increment_start = min(increment_starts)
             increment_finish = max(increment_finishs)
 
-        except Exception:
+        # min()/max() raise ValueError when no MK sets the increment coverage
+        # (both lists are empty); prod.start_time/stop_time access raises
+        # AttributeError if a matched product lacks the coverage attributes.
+        except (ValueError, AttributeError):
             #
             # If no MKs are provided in the increment. First check if an
             # increment stop time has been provided as an input
@@ -254,12 +259,21 @@ class SpiceKernelsCollection(Collection):
             )
             bundles.sort()
 
+            prev_increment_start = None
+            prev_increment_finish = None
             with open(bundles[-1], "r", encoding='utf-8') as b:
                 for line in b:
                     if "<start_date_time>" in line:
                         prev_increment_start = line.split(">")[-2].split("<")[0]
                     if "<stop_date_time>" in line:
                         prev_increment_finish = line.split(">")[-2].split("<")[0]
+
+            # A matched bundle label lacking either tag is treated the same
+            # as no previous bundle being found.
+            if prev_increment_start is None or prev_increment_finish is None:
+                raise IndexError(
+                    f"{bundles[-1]} is missing start/stop date tags."
+                )
 
             #
             # Provide different logging level depending on the times'
@@ -282,7 +296,11 @@ class SpiceKernelsCollection(Collection):
                 increment_finish = prev_increment_finish
                 logging.warning("-- Increment finish corrected form previous bundle.")
 
-        except Exception:
+        # bundles[-1] raises IndexError with no matching glob (also raised
+        # above if the matched label lacks the expected tags); open() raises
+        # OSError if the file can't be read, or UnicodeDecodeError if it
+        # isn't valid UTF-8 (opened with encoding='utf-8').
+        except (IndexError, *FILE_READ_ERRORS):
             logging.warning("-- Previous bundle not found.")
 
         #
@@ -297,7 +315,8 @@ class SpiceKernelsCollection(Collection):
                 self.setup.date_format,
             )
 
-        except Exception:
+        # spiceypy.utc2et() raises SpiceyPyError when no LSK is loaded.
+        except SpiceyPyError:
             logging.warning(
                 "-- A leapseconds kernel (LSK) has not been loaded. "
                 "Increment start/finish times will not be corrected."

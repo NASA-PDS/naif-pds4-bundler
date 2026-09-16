@@ -11,6 +11,7 @@ from ...utils import add_carriage_return
 from ...utils import checksum_from_label
 from ...utils import checksum_from_registry
 from ...utils import compare_files
+from ...utils import FILE_READ_ERRORS
 from ...utils import find_latest_versioned_file
 from ...utils import md5
 from ...utils import safe_make_directory
@@ -193,7 +194,9 @@ class ChecksumProduct(Product):
                     try:
                         (md5_file, filename) = line.split()
 
-                    except Exception:
+                    # Unpacking fails with ValueError unless the line has
+                    # exactly two whitespace-separated fields.
+                    except ValueError:
                         raise NPBError(
                             f"Checksum file {self.path_current} is corrupted."
                         )
@@ -560,7 +563,9 @@ class ChecksumProduct(Product):
                 self.setup.diff,
             )
 
-        except Exception:
+        # compare_files() raises OSError/UnicodeDecodeError if either checksum
+        # file can't be opened or read.
+        except FILE_READ_ERRORS:
             logging.warning("-- Checksum from previous increment does not exist.")
 
         logging.info("")
