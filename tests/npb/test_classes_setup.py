@@ -362,11 +362,27 @@ class TestSetupInit:
         # As this is a valid and correct execution, no logs should be generated.
         assert caplog.record_tuples == []
 
-    @pytest.mark.parametrize('debug, expected_stdout', [
-        (False, 'invalid configuration\n'),
-        (True, '')])
+    @pytest.mark.parametrize('debug, expected_stdout, side_effect', [
+        pytest.param(
+            False, 'invalid configuration\n',
+            xmlschema.XMLSchemaException('invalid configuration'),
+            id="validation-error-debug-false"),
+        pytest.param(
+            True, '',
+            xmlschema.XMLSchemaException('invalid configuration'),
+            id="validation-error-debug-true"),
+        pytest.param(
+            False, 'invalid configuration\n',
+            # A malformed XML document (not just a schema-validation
+            # mismatch) is wrapped by xmlschema as XMLResourceParseError,
+            # itself an XMLSchemaException subclass - verified directly
+            # against the real library, not just documented here.
+            xmlschema.exceptions.XMLResourceParseError('invalid configuration'),
+            id="malformed-xml-debug-false"),
+    ])
     def test_prints_schema_validation_error_only_when_debug_is_false(
-            self, tmp_path, monkeypatch, capsys, debug, expected_stdout) -> None:
+            self, tmp_path, monkeypatch, capsys, debug, expected_stdout,
+            side_effect) -> None:
         # This test verifies that 'Setup.__init__' correctly handles an early
         # XML validation error, printing it only in non-debug mode and always
         # re-running the test.
@@ -375,11 +391,9 @@ class TestSetupInit:
         config_path = tmp_path / 'invalid_configuration.xml'
 
         # Mock the value that the call to xmlschema.XMLSchema11 will return.
-        # This simulates a fail XML validation. XMLSchemaException is the base
-        # class every real xmlschema validation failure raises.
+        # This simulates a fail XML validation.
         schema = Mock()
-        schema.validate.side_effect = xmlschema.XMLSchemaException(
-            'invalid configuration')
+        schema.validate.side_effect = side_effect
         schema_class = Mock(return_value=schema)
 
         # Mock the xmlschema.XMLSchema11 call with an invalid schema to force
@@ -393,7 +407,7 @@ class TestSetupInit:
 
         # The constructor is called directly with the mocked attributes so that
         # we can catch the exception.
-        with pytest.raises(xmlschema.XMLSchemaException, match='invalid configuration'):
+        with pytest.raises(type(side_effect), match='invalid configuration'):
             Setup(args, '9.9.9')
 
         # Check that validate should call once.
@@ -972,6 +986,30 @@ class TestSetupCheckConfiguration:
                                  'missing_staging\\.'):
             setup.check_configuration()
 
+    def test_staging_directory_creation_propagates_unrelated_exception(
+            self, tmp_path, monkeypatch) -> None:
+        """A bug in os.mkdir() that isn't a filesystem failure (here a
+        stand-in TypeError) must propagate, not be silently reported as
+        "Staging directory cannot be created" - proving except OSError no
+        longer masks it."""
+
+        # Move the test to the temporal directory.
+        monkeypatch.chdir(tmp_path)
+
+        # Build a setup using a faucet that needs the staging directory.
+        setup = self.make_check_setup(tmp_path, relative_paths=True, faucet='bundle')
+
+        # Forces a non-existent staging directory.
+        setup.staging_directory = 'missing_staging'
+
+        monkeypatch.setattr(
+            'pds.naif_pds4_bundler.classes.setup.os.mkdir',
+            Mock(side_effect=TypeError('boom')),
+        )
+
+        with pytest.raises(TypeError, match='boom'):
+            setup.check_configuration()
+
     def test_raises_when_bundle_directory_is_missing_for_used_faucet(
             self, tmp_path, monkeypatch) -> None:
         # Move the test to the temporal directory.
@@ -1262,12 +1300,27 @@ class TestSetupCheckConfiguration:
         assert (tmp_path / 'work' / 'template_collection.xml').exists()
         assert setup.xml_tab == 6
 
-    def test_sets_default_xml_tab_when_template_bundle_is_missing(
-            self, tmp_path, caplog) -> None:
+    @pytest.mark.parametrize("write_non_utf8_template", [
+        pytest.param(False, id="missing-file"),
+        pytest.param(True, id="non-utf8-file"),
+    ])
+    def test_sets_default_xml_tab_when_template_bundle_is_unreadable(
+            self, tmp_path, caplog, write_non_utf8_template) -> None:
+        """A missing template_bundle.xml (OSError) and one that exists but isn't
+        valid UTF-8 (UnicodeDecodeError, since it's opened with
+        encoding='utf-8') must both fall back to the same default xml_tab,
+        proving except (OSError, UnicodeDecodeError) catches both."""
 
         # Create the templates without template_bundle.xml.
-        root_dir = self.make_templates_root(tmp_path, versions=(im_version(1, 5, 0, 0),),
+        version = im_version(1, 5, 0, 0)
+        root_dir = self.make_templates_root(tmp_path, versions=(version,),
                                             include_bundle_template=False)
+
+        if write_non_utf8_template:
+            bad_path = os.path.join(root_dir, 'templates', version, 'template_bundle.xml')
+
+            with open(bad_path, 'wb') as f:
+                f.write(b'\xff\xfe not valid utf-8\n')
 
         # Build the setup.
         setup = self.make_check_setup(tmp_path, information_model=im_version(1, 5, 0, 0),
