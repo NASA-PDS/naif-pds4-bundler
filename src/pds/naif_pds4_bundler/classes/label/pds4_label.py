@@ -34,8 +34,8 @@ class PDS4Label(PDSLabel):
         try:
             self._context_products = product.collection.bundle.context_products
 
-        # Products with no collection (e.g. the bundle readme) have no
-        # .collection attribute to chain off.
+        # Products with no real collection (e.g. the bundle readme) have a
+        # placeholder .collection with no .bundle attribute to chain off.
         except AttributeError:
             self._context_products = product.bundle.context_products
 
