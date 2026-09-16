@@ -20,6 +20,7 @@ from ..utils import check_permissions
 from ..utils import compare_files
 from ..utils import extension_to_type
 from ..utils import extract_comment
+from ..utils import FILE_READ_ERRORS
 from ..utils import fill_template
 from ..utils import product_mapping
 from ..utils import spice_exception_handler
@@ -665,9 +666,9 @@ class KernelList:
                 work_dir = self.setup.working_directory
                 compare_files(fromfile, tofile, work_dir, self.setup.diff)
 
-            # kernel_lists[-2] raises IndexError with a single prior list;
-            # compare_files() raises OSError if either file can't be opened.
-            except (IndexError, OSError):
+            # kernel_lists[-2] raises IndexError; compare_files() raises
+            # OSError/UnicodeDecodeError on a bad file.
+            except (IndexError, *FILE_READ_ERRORS):
                 logging.error("-- Previous list not available.")
 
     def validate_complete(self):
@@ -876,9 +877,11 @@ class KernelList:
                             ]
                             origin_paths.append(file[0])
 
-                        # file[0] raises IndexError when no file matched the
-                        # mapped name either.
-                        except IndexError:
+                        # file[0] raises IndexError with no mapped-name match;
+                        # product_mapping() raises OSError if the release's
+                        # kernel_list doesn't exist yet, or ValueError if
+                        # setup.release isn't a valid integer.
+                        except (IndexError, OSError, ValueError):
                             pass
 
             if not origin_paths and ".tm" not in product.lower():

@@ -1483,6 +1483,69 @@ class TestKernelListValidate:
 
         assert results == expected
 
+    @pytest.mark.parametrize("side_effect", [
+        pytest.param(OSError("boom"), id="oserror-bad-file"),
+        pytest.param(
+            UnicodeDecodeError("utf-8", b"\xff", 0, 1, "invalid start byte"),
+            id="unicodedecodeerror-non-utf8"),
+    ])
+    def test_validate_diff_previous_list_compare_files_error(
+            self, mocker, caplog, tmp_path, side_effect) -> None:
+        """compare_files() opens both lists with encoding='utf-8' and can fail
+        with either an OSError (e.g. the file becomes unreadable between the
+        glob and the open) or UnicodeDecodeError (a legacy previous list that
+        isn't valid UTF-8) - except (IndexError, OSError, UnicodeDecodeError)
+        must catch both, falling back to the same "not available" error as a
+        missing file."""
+        compare_files_mock = mocker.patch(
+            'pds.naif_pds4_bundler.classes.list.compare_files')
+        compare_files_mock.side_effect = side_effect
+
+        content = self.block('spice_kernels/spk/k.bsp', 'SPK', 'd')
+
+        # Unlike test_validate_diff_previous_list_unavailable above, a SECOND
+        # release list must exist on disk: this test is about compare_files()
+        # itself failing, which only runs once kernel_lists[-2] has already
+        # succeeded (a single-file glob would raise IndexError before
+        # compare_files() is ever called, testing the wrong code path).
+        kernel_list, setup, _ = self.make_kernel_list(
+            mocker, tmp_path, content, kernels=['k.bsp'],
+            present_kernels=('k.bsp',), diff='diff-arg', increment=True)
+
+        (Path(setup.working_directory) / 'maven_release_02.kernel_list').write_text(
+            self.block('spice_kernels/spk/old.bsp', 'SPK', 'd'),
+            encoding='utf-8')
+
+        with caplog.at_level(logging.INFO):
+            kernel_list.validate()
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+        assert (logging.ERROR, '-- Previous list not available.') in results
+
+    def test_validate_diff_previous_list_propagates_unrelated_exception(
+            self, mocker, tmp_path) -> None:
+        """A bug in compare_files() that isn't a missing-file or bad-encoding
+        case (here a stand-in TypeError) must propagate and crash validate(),
+        not be misreported as "previous list not available" - proving
+        except (IndexError, OSError, UnicodeDecodeError) is still a narrow
+        catch, not a route back to swallowing everything."""
+        compare_files_mock = mocker.patch(
+            'pds.naif_pds4_bundler.classes.list.compare_files')
+        compare_files_mock.side_effect = TypeError("boom")
+
+        content = self.block('spice_kernels/spk/k.bsp', 'SPK', 'd')
+
+        kernel_list, setup, _ = self.make_kernel_list(
+            mocker, tmp_path, content, kernels=['k.bsp'],
+            present_kernels=('k.bsp',), diff='diff-arg', increment=True)
+
+        (Path(setup.working_directory) / 'maven_release_02.kernel_list').write_text(
+            self.block('spice_kernels/spk/old.bsp', 'SPK', 'd'),
+            encoding='utf-8')
+
+        with pytest.raises(TypeError, match="boom"):
+            kernel_list.validate()
+
 
 class TestKernelListWriteCompleteList:
 
@@ -2352,6 +2415,44 @@ class TestKernelListCheckProducts:
         # not be turned into a "product not present" NPBError.
         with pytest.raises(TypeError, match="boom"):
             kernel_list.check_products()
+
+    @pytest.mark.parametrize("side_effect", [
+        pytest.param(
+            FileNotFoundError("maven_release_01.kernel_list"),
+            id="missing-kernel-list-file"),
+        pytest.param(
+            ValueError("invalid literal for int() with base 10: 'bad'"),
+            id="non-numeric-setup-release"),
+    ])
+    def test_check_products_mapping_fallback_reports_absent(
+            self, mocker, caplog, tmp_path, side_effect) -> None:
+        """product_mapping() unconditionally opens the current release's
+        .kernel_list file (raising FileNotFoundError if check_products() runs
+        before that file exists, e.g. a checks-only run) and computes
+        int(setup.release) first (raising ValueError if setup.release is
+        misconfigured). Either way, this must be treated as a real "no
+        mapping" result - "product not present" - not crash, proving the
+        fallback except clause covers OSError and ValueError, not just
+        IndexError."""
+        # A file must exist so os.walk yields a candidate for check_products
+        # to compare against and fall through to product_mapping (see the
+        # bug_propagates test above for the same reasoning).
+        self.write_kernel(tmp_path, 'maven_mapped.bc')
+
+        mocks = self.patch_checks(mocker)
+        mocks.product_mapping.side_effect = side_effect
+
+        product = 'maven_logical.bc'
+        kernel_list = self.make_kernel_list(tmp_path, kernels=[product])
+
+        with caplog.at_level(logging.INFO):
+            with pytest.raises(NPBError, match=_CHECK_FATAL_MESSAGE):
+                kernel_list.check_products()
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+        assert (logging.ERROR,
+                '     Product not present in any kernel directory(ies)'
+                ) in results
 
     def test_check_products_missing_non_mk_records_error_and_skips_checks(
             self, mocker, caplog, tmp_path) -> None:
