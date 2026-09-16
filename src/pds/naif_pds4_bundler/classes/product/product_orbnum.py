@@ -1106,12 +1106,12 @@ class OrbnumFileProduct(Product):
                 # useful to determine the coverage of multiple orbnum files
                 # provided in the plan.
                 #
-                cov_patn = coverage_kernel.split(os.sep)[-1]
+                cov_patn = os.path.basename(coverage_kernel)
 
                 #
                 # Start checking the path provided in the configuration file.
                 #
-                cov_path = os.sep.join(coverage_kernel.split(os.sep)[:-1])
+                cov_path = os.path.dirname(coverage_kernel)
 
                 cov_kers = _matching_kernels(cov_path, cov_patn)
 
