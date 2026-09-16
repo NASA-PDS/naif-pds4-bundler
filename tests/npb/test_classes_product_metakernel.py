@@ -394,6 +394,93 @@ class TestMetaKernelProductInit:
                                match="Meta-kernel insight_v01.tm has not been matched in configuration."):
                 MetaKernelProduct(setup, "insight_v01.tm", collection)
 
+    @pytest.mark.parametrize("mk_list", [
+        pytest.param(
+            [{
+                "@name": "insight_v$VERSION.tm",
+                # No "@length" key: match_patterns() indexes pattern["@length"]
+                # unconditionally, so this raises KeyError *inside*
+                # match_patterns() - before self.mk_setup is ever assigned,
+                # unlike a KeyError from values["VERSION"] (see note below).
+                "name": [{"pattern": {"#text": "VERSION"}}],
+                "grammar": {"pattern": []},
+                "metadata": {"description": ""},
+            }],
+            id="keyerror-pattern-missing-length-attribute",
+        ),
+        pytest.param(
+            [{
+                "@name": "insight_v01.tmX",
+                "name": [],
+                "grammar": {"pattern": []},
+                "metadata": {"description": ""},
+            }],
+            id="indexerror-literal-pattern-longer-than-name",
+        ),
+        pytest.param(
+            # "@name" pattern matches "insight_v01.tm" on its face, so
+            # match_patterns() gets far enough to reach int(pattern["@length"])
+            # and fail there with a non-numeric "@length" (int("bad") fails) -
+            # this isolates the ValueError path from the plain-mismatch
+            # RuntimeError path already covered by
+            # test_no_matching_mk_config_raises above.
+            [{
+                "@name": "insight_v$VERSION.tm",
+                "name": [{"pattern": {"#text": "VERSION", "@length": "bad"}}],
+                "grammar": {"pattern": []},
+                "metadata": {"description": ""},
+            }],
+            id="valueerror-non-numeric-length-attribute",
+        ),
+    ])
+    def test_pattern_match_failure_modes_skip_candidate(self, tmp_path, mk_list):
+        """Three more match_patterns() failure modes besides the plain-mismatch
+        RuntimeError (already covered by test_no_matching_mk_config_raises
+        above): a pattern dict missing its "@length" attribute
+        (match_patterns() raises KeyError before returning), a literal pattern
+        longer than the actual kernel name (match_patterns()'s char-by-char
+        walk runs past the end of the name and raises IndexError), and a
+        non-numeric "@length" attribute (raises ValueError). All three must be
+        skipped like a genuine mismatch - with no other candidate, that means
+        falling through to the normal "not matched" NPBError.
+
+        Note: a KeyError from values["VERSION"] instead (a pattern that matches
+        fully but captures no "VERSION" group) is NOT equivalent to these two:
+        self.mk_setup is assigned right before that line, so the candidate
+        counts as matched and __init__ falls through to set_product_vid()'s
+        own "no VID explicit" AttributeError fallback instead - already covered
+        by test_no_version_attribute_defaults_to_1_0_when_name_has_01."""
+        staging = str(tmp_path / "staging")
+        os.makedirs(staging, exist_ok=True)
+
+        setup = make_setup(staging_directory=staging, mk_list=mk_list)
+        collection = make_collection()
+
+        with (patch(f"{_MODULE}.safe_make_directory"),
+              patch(f"{_MODULE}.current_date", return_value="2024-01-01")):
+            with pytest.raises(NPBError,
+                               match="Meta-kernel insight_v01.tm has not been matched in configuration."):
+                MetaKernelProduct(setup, "insight_v01.tm", collection)
+
+    def test_metak_matching_propagates_unrelated_exception(self, tmp_path):
+        """A bug in match_patterns() that isn't one of the four expected
+        failure modes (here a stand-in AttributeError) must propagate and
+        crash construction, not be silently absorbed as "this candidate
+        didn't match" - proving the widened tuple is still a narrow catch,
+        not a route back to swallowing everything."""
+        staging = str(tmp_path / "staging")
+        os.makedirs(staging, exist_ok=True)
+
+        setup = make_setup(staging_directory=staging)
+        collection = make_collection()
+
+        with (patch(f"{_MODULE}.safe_make_directory"),
+              patch(f"{_MODULE}.current_date", return_value="2024-01-01"),
+              patch(f"{_MODULE}.match_patterns", side_effect=AttributeError("boom"))):
+
+            with pytest.raises(AttributeError, match="boom"):
+                MetaKernelProduct(setup, "insight_v01.tm", collection)
+
     def test_collection_metakernel_set_from_mk_to_list(self, tmp_path):
         kernel_list = ["naif0012.tls", "insight_v01.bsp"]
         # The extra patch shadows the base mk_to_list patch so the product
@@ -763,7 +850,7 @@ class TestMetaKernelProductSetProductVid:
 
     def test_no_version_attribute_defaults_to_1_0_when_name_has_01(self, caplog):
         product = self._make_stub(name="insight_v01.tm")
-        # No version attribute set → triggers BaseException handler.
+        # No version attribute set → triggers AttributeError handler.
         # Check the logging level and logging messages.
         with caplog.at_level(logging.INFO):
             product.set_product_vid()
@@ -1197,20 +1284,29 @@ class TestMetaKernelProductWriteProduct:
 
         assert ("previous increment" in caplog.text) == expect_warning
 
+    @pytest.mark.parametrize("side_effect, expected_snippet", [
+        pytest.param(OSError("bad kernel path"), "bad kernel path",
+                    id="oserror-mk-unreadable"),
+        pytest.param(
+            UnicodeDecodeError("utf-8", b"\xff", 0, 1, "invalid start byte"),
+            "invalid start byte",
+            id="unicodedecodeerror-mk-not-utf8"),
+    ])
     def test_get_latest_kernel_exception_logs_warning_and_continues(
-            self, tmp_path, caplog):
-        """get_latest_kernel() raises OSError when a meta-kernel listed in
-        mks can no longer be opened - the except OSError logs and moves on."""
+            self, tmp_path, caplog, side_effect, expected_snippet):
+        """get_latest_kernel() raises OSError when a meta-kernel listed in mks
+        can no longer be opened, or UnicodeDecodeError when it isn't valid
+        UTF-8 (get_latest_kernel() reads mk files with encoding='utf-8') -
+        except (OSError, UnicodeDecodeError) logs and moves on either way."""
         product = self._make_stub(tmp_path, grammar_patterns=["naif0012.tls"])
 
         with (
             caplog.at_level(logging.WARNING),
-            patch(f"{_MODULE}.get_latest_kernel",
-                  side_effect=OSError("bad kernel path"))
+            patch(f"{_MODULE}.get_latest_kernel", side_effect=side_effect)
         ):
             product.write_product()  # must not raise
 
-        assert "bad kernel path" in caplog.text
+        assert expected_snippet in caplog.text
         assert product.product == product.path
 
     def test_get_latest_kernel_propagates_unrelated_exception(self, tmp_path):
@@ -1463,7 +1559,16 @@ class TestMetaKernelProductCompare:
         assert work_dir == product.setup.working_directory
         assert diff == product.setup.diff
 
-    def test_compare_falls_back_to_template_when_no_previous(self, tmp_path, caplog):
+    @pytest.mark.parametrize("glob_side_effect", [
+        pytest.param(None, id="no-previous-mk-found"),
+        pytest.param(OSError("glob failed"), id="glob-raises-oserror"),
+    ])
+    def test_compare_falls_back_to_template_when_no_previous(
+            self, tmp_path, caplog, glob_side_effect):
+        """No previous MK version matches (self-raised FileNotFoundError) and
+        glob.glob() itself failing (OSError) must both fall back to comparing
+        against the MK template - proving
+        except (FileNotFoundError, OSError) catches both."""
         mk_dir = tmp_path / "insight_spice" / "spice_kernels" / "mk"
         mk_dir.mkdir(parents=True)
         # No previous MK files.
@@ -1478,6 +1583,7 @@ class TestMetaKernelProductCompare:
         product.path = f"{tmp_path}/insight_spice/spice_kernels/mk/insight_v01.tm"
 
         with (patch(f"{_MODULE}.compare_files") as mock_cmp,
+              patch(f"{_MODULE}.glob.glob", side_effect=glob_side_effect, return_value=[]),
               caplog.at_level(logging.INFO)):
             product.compare()
 
@@ -1600,16 +1706,22 @@ class TestMetaKernelProductValidate:
     def test_furnsh_unrelated_exception_propagates(self, tmp_path):
         """A bug that isn't a SPICE failure (here a stand-in RuntimeError)
         must propagate, not be silently reported as a FURNSH error - proving
-        except SpiceyPyError no longer masks it."""
+        except SpiceyPyError no longer masks it. The kernel pool and cwd
+        must still be restored (via finally) so the propagating exception
+        doesn't leak state into the next MK validated in the same run."""
         product, _ = self._make_stub(tmp_path)
+        cwd = os.getcwd()
 
         with (
-            patch(f"{_MODULE}.spiceypy.kclear"),
+            patch(f"{_MODULE}.spiceypy.kclear") as mock_kclear,
             patch(f"{_MODULE}.spiceypy.furnsh", side_effect=RuntimeError("boom")),
-            patch("os.chdir")
+            patch("os.chdir") as mock_chdir,
         ):
             with pytest.raises(RuntimeError, match="boom"):
                 product.validate()
+
+        assert mock_kclear.call_count == 2
+        assert mock_chdir.call_args_list[-1] == call(cwd)
 
     def test_line_length_errors_logged_as_warnings(self, tmp_path, caplog):
         product, _ = self._make_stub(tmp_path)
@@ -1805,6 +1917,49 @@ class TestMetaKernelProductCoverage:
         assert product.start_time == "2019-01-01T00:00:00.000Z"
         assert product.stop_time == "2020-01-01T00:00:00.000Z"
         assert product.mk_sets_coverage
+
+    def test_spiceypy_failure_falls_back_to_config_times(self, lsk, caplog):
+        """spiceypy.et2utc() raising is a SPICE failure distinct from the
+        min()/max() ValueError on empty lists (already covered by
+        test_yearly_mk_exception_coverage) - proving
+        except (ValueError, SpiceyPyError) also catches it, falling back to
+        the same "times from configuration" path used when no coverage
+        kernel is found at all."""
+        setup = make_setup(
+            mission_start="2018-01-01T00:00:00Z",
+            mission_finish="2023-01-01T00:00:00Z",
+            increment_start="2019-01-01T00:00:00Z",
+            increment_finish="2019-12-31T00:00:00Z",
+            date_format="infomod2",
+        )
+        collection = self._make_collection_with_kernel(
+            "insight_cru_ops_v01.bsp",
+            "2019-01-01T00:00:00Z",
+            "2020-01-01T00:00:00Z",
+        )
+        product = self._make_stub(
+            setup,
+            collection=collection,
+            collection_metakernel=["insight_cru_ops_v01.bsp"],
+        )
+        product.mk_setup = {
+            "coverage_kernels": {
+                "pattern": [r"insight_cru_ops_v\d+\.bsp"]
+            }
+        }
+
+        with (patch(f"{_MODULE}.spiceypy.et2utc",
+                   side_effect=SpiceyPyError("SPICE(BADTIMESTRING)")),
+              caplog.at_level(logging.WARNING)):
+            product.coverage()
+
+        assert product.start_time == "2019-01-01T00:00:00Z"
+        assert product.stop_time == "2019-12-31T00:00:00Z"
+        assert (
+            "No kernel(s) found to determine MK coverage. "
+            "Times from configuration will be used: "
+            "2019-01-01T00:00:00Z - 2019-12-31T00:00:00Z"
+        ) in caplog.text
 
     def test_coverage_kernel_not_in_collection_missing_file_logs_warning(
             self, lsk, tmp_path, caplog):

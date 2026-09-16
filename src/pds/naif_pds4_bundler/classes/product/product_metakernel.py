@@ -19,6 +19,7 @@ from ...utils import compare_files
 from ...utils import current_date
 from ...utils import et_to_date
 from ...utils import extension_to_type
+from ...utils import FILE_READ_ERRORS
 from ...utils import get_latest_kernel
 from ...utils import match_patterns
 from ...utils import mk_to_list
@@ -97,11 +98,11 @@ class MetaKernelProduct(Product):
                     self.year = values["YEAR"]
                     self.YEAR = values["YEAR"]
 
-            # match_patterns() raises RuntimeError when the name doesn't match
-            # this metak's pattern, and IndexError when it's shorter than
-            # expected; values["VERSION"] raises KeyError when this metak has no
-            # VERSION pattern.
-            except (RuntimeError, IndexError, KeyError):
+            # match_patterns() raises RuntimeError/IndexError/ValueError on a
+            # bad pattern; values["VERSION"] raises KeyError. NPBError and
+            # NPBInternalError also subclass RuntimeError, so if either is
+            # ever raised inside this block it would be swallowed here too.
+            except (RuntimeError, IndexError, KeyError, ValueError):
                 pass
 
         if not hasattr(self, "mk_setup"):
@@ -325,8 +326,8 @@ class MetaKernelProduct(Product):
         try:
             product_vid = str(self.version).lstrip("0") + ".0"
 
-        # self.version is only set when __init__'s match_patterns() found a
-        # VERSION pattern; otherwise it's never assigned -> AttributeError.
+        # self.version is only set when __init__'s match succeeded; otherwise
+        # it's never assigned -> AttributeError.
         except AttributeError:
 
             logging.warning(
@@ -599,9 +600,10 @@ class MetaKernelProduct(Product):
                             mks=mks,
                         )
 
-                    # get_latest_kernel() raises OSError when a meta-kernel
-                    # listed in mks can no longer be opened.
-                    except OSError as e:
+                    # get_latest_kernel() raises OSError when a mk it was given
+                    # can no longer be opened, or UnicodeDecodeError if it
+                    # isn't valid UTF-8 (read with encoding='utf-8').
+                    except FILE_READ_ERRORS as e:
                         logging.warning('-- Exception: %s', e)
 
                         latest_kernel = []
@@ -819,8 +821,8 @@ class MetaKernelProduct(Product):
             if not val_mk:
                 raise FileNotFoundError("No label for comparison found.")
 
-        # The block above self-raises FileNotFoundError when no previous MK
-        # version exists; glob.glob() can also raise OSError on I/O failure.
+        # Self-raises FileNotFoundError with no previous MK version; glob.glob()
+        # can also raise OSError.
         except (FileNotFoundError, OSError):
             #
             # If previous increment does not work, compare with the MK
@@ -862,32 +864,36 @@ class MetaKernelProduct(Product):
         mkdir = os.sep.join(path.split(os.sep)[:-1])
         os.chdir(mkdir)
 
-        spiceypy.kclear()
         try:
-            spiceypy.furnsh(path)
+            spiceypy.kclear()
+            try:
+                spiceypy.furnsh(path)
 
-            #
-            # In KTOTAL, all meta-kernels are counted in the total; therefore
-            # we need to subtract 1 kernel.
-            #
-            ker_num_fr = spiceypy.ktotal("ALL") - 1
-            ker_num_mk = len(self.collection_metakernel)
+                #
+                # In KTOTAL, all meta-kernels are counted in the total; therefore
+                # we need to subtract 1 kernel.
+                #
+                ker_num_fr = spiceypy.ktotal("ALL") - 1
+                ker_num_mk = len(self.collection_metakernel)
 
-            logging.info('-- Kernels loaded with FURNSH: %d', ker_num_fr)
-            logging.info('-- Kernels present in %s: %d', self.name, ker_num_mk)
+                logging.info('-- Kernels loaded with FURNSH: %d', ker_num_fr)
+                logging.info('-- Kernels present in %s: %d', self.name, ker_num_mk)
 
-            if ker_num_fr != ker_num_mk:
-                spiceypy.kclear()
-                logging.error(
-                    "-- Number of kernels loaded is not equal to kernels "
-                    "present in meta-kernel.",
-                )
+                if ker_num_fr != ker_num_mk:
+                    logging.error(
+                        "-- Number of kernels loaded is not equal to kernels "
+                        "present in meta-kernel.",
+                    )
 
-        # spiceypy.furnsh()/ktotal() raise SpiceyPyError on SPICE failures.
-        except SpiceyPyError:
-            logging.error("-- The MK could not be loaded with the SPICE API FURNSH.")
-
-        spiceypy.kclear()
+            # spiceypy.furnsh()/ktotal() raise SpiceyPyError on SPICE failures.
+            except SpiceyPyError:
+                logging.error("-- The MK could not be loaded with the SPICE API FURNSH.")
+        finally:
+            # Guarantee the kernel pool and working directory are restored
+            # even if an unrelated exception propagates out of the try above,
+            # so a bug here doesn't corrupt state for the next MK validated.
+            spiceypy.kclear()
+            os.chdir(cwd)
 
         line_length_errors = check_line_length(path)
         if line_length_errors:
@@ -896,8 +902,6 @@ class MetaKernelProduct(Product):
             )
             for line in line_length_errors:
                 logging.warning('   %s', line)
-
-        os.chdir(cwd)
 
     @spice_exception_handler
     def coverage(self) -> None:
@@ -1043,8 +1047,8 @@ class MetaKernelProduct(Product):
             stop_time = spiceypy.et2utc(max(finish_times), "ISOC", 3, 80) + "Z"
             logging.info('-- Meta-kernel coverage: %s - %s', start_time, stop_time)
 
-        # min()/max() raise ValueError on empty start_times/finish_times;
-        # spiceypy.et2utc() raises SpiceyPyError on SPICE failures.
+        # min()/max() raise ValueError on empty lists; spiceypy.et2utc() raises
+        # SpiceyPyError on SPICE failures.
         except (ValueError, SpiceyPyError):
             #
             # The alternative is to set the increment times to the increment
