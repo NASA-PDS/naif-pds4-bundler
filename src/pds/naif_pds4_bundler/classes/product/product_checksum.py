@@ -11,6 +11,7 @@ from ...utils import add_carriage_return
 from ...utils import checksum_from_label
 from ...utils import checksum_from_registry
 from ...utils import compare_files
+from ...utils import FILE_READ_ERRORS
 from ...utils import find_latest_versioned_file
 from ...utils import md5
 from ...utils import safe_make_directory
@@ -562,9 +563,9 @@ class ChecksumProduct(Product):
                 self.setup.diff,
             )
 
-        # compare_files() raises OSError if either checksum file can't be
-        # opened.
-        except OSError:
+        # compare_files() raises OSError/UnicodeDecodeError if either checksum
+        # file can't be opened or read.
+        except FILE_READ_ERRORS:
             logging.warning("-- Checksum from previous increment does not exist.")
 
         logging.info("")

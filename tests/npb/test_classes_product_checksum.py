@@ -843,17 +843,24 @@ class TestCompare:
             obj.setup.diff,
         )
 
-    def test_compare_logs_warning_on_missing_previous_file(self, caplog):
-        """compare() falls back to a warning when the previous checksum file
-        doesn't exist yet - the real-world condition its except OSError is
-        written for, since compare_files() opens the file with open()."""
+    # Both errors must hit the same fallback: a missing previous file
+    # (FileNotFoundError, an OSError subclass - compare_files() opens it with
+    # open()) and a previous file that exists but isn't valid UTF-8
+    # (UnicodeDecodeError - compare_files() opens with encoding='utf-8').
+    # Only the side_effect differs, so one parametrized test covers both.
+    @pytest.mark.parametrize("side_effect", [
+        pytest.param(FileNotFoundError("boom"), id="missing-file"),
+        pytest.param(
+            UnicodeDecodeError("utf-8", b"\xff", 0, 1, "invalid start byte"),
+            id="non-utf8-file"),
+    ])
+    def test_compare_logs_warning_on_previous_file_error(self, caplog, side_effect):
+        """compare() falls back to the same warning for either error - proving
+        except (OSError, UnicodeDecodeError) catches both real conditions."""
         obj, _ = _build_pds4(increment=False)
         obj.path_current = "/prev/checksum_v001.tab"
 
-        # FileNotFoundError is an OSError subclass, matching what
-        # compare_files() actually raises when path_current is missing.
-        with patch(PATCHES["compare_files"],
-                   side_effect=FileNotFoundError("boom")), \
+        with patch(PATCHES["compare_files"], side_effect=side_effect), \
              caplog.at_level(logging.INFO):
             obj.compare()
 
