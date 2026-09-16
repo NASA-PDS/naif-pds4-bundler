@@ -821,9 +821,9 @@ class MetaKernelProduct(Product):
             if not val_mk:
                 raise FileNotFoundError("No label for comparison found.")
 
-        # Self-raises FileNotFoundError with no previous MK version; glob.glob()
-        # can also raise OSError.
-        except (FileNotFoundError, OSError):
+        # Self-raises FileNotFoundError with no previous MK version - a
+        # subclass of OSError, which also covers a real glob.glob() failure.
+        except OSError:
             #
             # If previous increment does not work, compare with the MK
             # template.
