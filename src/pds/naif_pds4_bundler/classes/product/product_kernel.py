@@ -311,10 +311,6 @@ class SpiceKernelProduct(Product):
                 coverage += dsk_coverage(
                     self.path, date_format=self.setup.date_format, system=system
                 )
-            # elif self.type.lower() == "ek":
-            #     coverage += ek_coverage(
-            #         self.path, date_format=self.setup.date_format, system=system
-            #     )
             elif self.type.lower() == "ek":
                 coverage += ek_coverage(
                     self.path, date_format=self.setup.date_format, system=system
