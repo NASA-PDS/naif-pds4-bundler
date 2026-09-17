@@ -301,6 +301,60 @@ def dsk_coverage(path, date_format="infomod2", system="UTC"):
     return et_to_date(start_time, stop_time, date_format=date_format, system=system)
 
 
+def _find_ek_time_columns(table_name):
+    """Find time columns in an EK table by directly querying common patterns.
+
+    This approach bypasses spiceypy.ekssum() column name truncation issues
+    (e.g., BEGIN_TIME reported as EGIN_TIME in some EK files) by directly
+    attempting queries with known time column patterns.
+
+    :param table_name: Name of the EK table to query
+    :type table_name: str
+    :return: Tuple of (start_column, stop_column, is_single_column) if found,
+             None if no time columns found
+    :rtype: tuple or None
+    """
+    # Priority order: most common patterns first
+    time_patterns = [
+        # Single time column (use for both start/stop)
+        ('ET', 'ET', True),
+        ('TIME', 'TIME', True),
+        ('EPOCH', 'EPOCH', True),
+        ('EVT_TIME', 'EVT_TIME', True),
+        ('EVENT_TIME', 'EVENT_TIME', True),
+
+        # Start/Stop pairs (most common first)
+        ('BEGIN_TIME', 'END_TIME', False),
+        ('START_TIME', 'STOP_TIME', False),
+        ('START_TIME', 'END_TIME', False),
+        ('BEGIN_ET', 'END_ET', False),
+        ('START_ET', 'STOP_ET', False),
+        ('START_UTC', 'STOP_UTC', False),
+        ('BEGIN_UTC', 'END_UTC', False),
+    ]
+
+    for start_col, stop_col, is_single in time_patterns:
+        try:
+            # Build query
+            if is_single:
+                query = f"SELECT {start_col} FROM {table_name}"
+            else:
+                query = f"SELECT {start_col}, {stop_col} FROM {table_name}"
+
+            # Try the query
+            nmrows, error, errmsg = spiceypy.ekfind(query, 256)
+
+            if not error and nmrows > 0:
+                # Success! These columns exist and have data
+                logging.debug(f"    Found time columns via query: {start_col}, {stop_col}")
+                return (start_col, stop_col, is_single)
+
+        except spiceypy.exceptions.SpiceyError:
+            continue  # Try next pattern
+
+    return None  # No time columns found
+
+
 def ek_coverage(path, date_format="infomod2", system="UTC"):
     """Returns the coverage of an EK file following MAKLABEL's approach.
 
@@ -365,6 +419,7 @@ def ek_coverage(path, date_format="infomod2", system="UTC"):
             beget = []
             endet = []
             segments_with_time = 0
+            processed_tables = set()  # Track which tables we've already queried
 
             for segno in range(nseg):
                 try:
@@ -377,62 +432,83 @@ def ek_coverage(path, date_format="infomod2", system="UTC"):
                         continue
 
                     table_name = segsum.tabnam
-                    cnames = segsum.cnames if segsum.cnames else []
 
-                    # Filter out empty column names (BES files can have empty strings for unused slots)
-                    cnames = [name for name in cnames if name]
-
-                    if not cnames:
-                        logging.debug(f"  Segment {segno}: {table_name} - skipping (no columns)")
+                    # Skip if we've already processed this table
+                    # (SPICE EK queries return ALL rows from a table across all segments)
+                    if table_name in processed_tables:
+                        logging.debug(f"  Segment {segno}: {table_name} - skipping (already processed)")
                         continue
 
-                    # Look for time columns - prioritize ET columns
-                    start_col = None
-                    stop_col = None
+                    processed_tables.add(table_name)
 
-                    # First pass: look for ET or single TIME column
-                    for idx, col_name in enumerate(cnames):
-                        col_upper = col_name.upper()
-                        if col_upper == 'ET':
-                            start_col = col_name
-                            stop_col = col_name
-                            break
-                        elif col_upper in ['TIME', 'EPOCH', 'EVT_TIME', 'EVENT_TIME']:
-                            start_col = col_name
-                            stop_col = col_name
-                            break
+                    # Try query-first approach to find time columns
+                    # This bypasses spiceypy.ekssum() column name truncation issues
+                    time_cols = _find_ek_time_columns(table_name)
 
-                    # Second pass: look for START/STOP pairs
-                    if not start_col:
-                        start_candidates = ['START_TIME', 'START_ET', 'START',
-                                          'BEGIN_TIME', 'START_UTC', 'BEGIN_ET']
-                        stop_candidates = ['STOP_TIME', 'STOP_ET', 'STOP',
-                                         'END_TIME', 'STOP_UTC', 'END_ET']
+                    if time_cols:
+                        # Found time columns via direct query
+                        start_col, stop_col, is_single = time_cols
+                    else:
+                        # Fallback: inspect cnames from ekssum (may have truncated names)
+                        logging.debug(f"  Segment {segno}: {table_name} - trying cnames fallback")
+                        cnames = segsum.cnames if segsum.cnames else []
 
-                        for start_name in start_candidates:
-                            for idx, col_name in enumerate(cnames):
-                                if col_name.upper() == start_name:
-                                    start_col = col_name
-                                    break
-                            if start_col:
+                        # Filter out empty column names (BES files can have empty strings for unused slots)
+                        cnames = [name for name in cnames if name]
+
+                        if not cnames:
+                            logging.debug(f"  Segment {segno}: {table_name} - skipping (no columns)")
+                            continue
+
+                        # Look for time columns - prioritize ET columns
+                        start_col = None
+                        stop_col = None
+
+                        # First pass: look for ET or single TIME column
+                        for idx, col_name in enumerate(cnames):
+                            col_upper = col_name.upper()
+                            if col_upper == 'ET':
+                                start_col = col_name
+                                stop_col = col_name
+                                break
+                            elif col_upper in ['TIME', 'EPOCH', 'EVT_TIME', 'EVENT_TIME']:
+                                start_col = col_name
+                                stop_col = col_name
                                 break
 
-                        for stop_name in stop_candidates:
-                            for idx, col_name in enumerate(cnames):
-                                if col_name.upper() == stop_name:
-                                    stop_col = col_name
+                        # Second pass: look for START/STOP pairs (including truncated patterns)
+                        if not start_col:
+                            # Include truncated patterns like 'EGIN_TIME' for 'BEGIN_TIME'
+                            start_candidates = ['START_TIME', 'START_ET', 'START',
+                                              'BEGIN_TIME', 'EGIN_TIME',  # truncated BEGIN_TIME
+                                              'START_UTC', 'BEGIN_ET']
+                            stop_candidates = ['STOP_TIME', 'STOP_ET', 'STOP',
+                                             'END_TIME', 'STOP_UTC', 'END_ET']
+
+                            for start_name in start_candidates:
+                                for idx, col_name in enumerate(cnames):
+                                    if col_name.upper() == start_name:
+                                        start_col = col_name
+                                        break
+                                if start_col:
                                     break
-                            if stop_col:
-                                break
 
-                    # If we have at least a start column, proceed
-                    if not start_col:
-                        logging.debug(f"  Segment {segno}: {table_name} - skipping (no time columns)")
-                        continue
+                            for stop_name in stop_candidates:
+                                for idx, col_name in enumerate(cnames):
+                                    if col_name.upper() == stop_name:
+                                        stop_col = col_name
+                                        break
+                                if stop_col:
+                                    break
 
-                    # Use the same column for both if only one found
-                    if not stop_col:
-                        stop_col = start_col
+                        # If we have at least a start column, proceed
+                        if not start_col:
+                            logging.debug(f"  Segment {segno}: {table_name} - skipping (no time columns)")
+                            continue
+
+                        # Use the same column for both if only one found
+                        if not stop_col:
+                            stop_col = start_col
 
                     # Query all rows (no MIN/MAX - workaround for limited EK query support)
                     try:
@@ -451,12 +527,10 @@ def ek_coverage(path, date_format="infomod2", system="UTC"):
                             continue
 
                         # Fetch values from all rows to find min/max
-                        # Limit to reasonable number to avoid performance issues
-                        max_rows_to_check = min(nmrows, 10000)
-
+                        # Process ALL rows (no artificial limit) to ensure we get true min/max
                         segment_times = []
 
-                        for row in range(max_rows_to_check):
+                        for row in range(nmrows):
                             try:
                                 # Fetch start time value
                                 start_et = _ek_fetch_row_value(0, row, 0)

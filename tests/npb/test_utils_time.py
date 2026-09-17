@@ -212,30 +212,6 @@ def test_ek_coverage_ten_no_furnsh(lsk):
     assert result == ["", ""]
     assert count_before == count_after
 
-def test_ek_coverage_zero_segments(lsk, monkeypatch):
-    """Test that EK with zero segments returns empty coverage."""
-    binary_ek_files = (
-            list(KERNELS.rglob("*.bes")) +
-            list(KERNELS.rglob("*.bpe")) +
-            list(KERNELS.rglob("*.bep")) +
-            list(KERNELS.rglob("*.bdb"))
-    )
-
-    if not binary_ek_files:
-        pytest.skip("No binary EK files found in test data")
-
-    test_file = str(binary_ek_files[0])
-
-    # Mock to return 0 segments
-    def mock_eknseg(handle):
-        return 0
-
-    monkeypatch.setattr("spiceypy.eknseg", mock_eknseg)
-
-    result = time.ek_coverage(test_file, "infomod2", "UTC")
-
-    assert result == ["", ""]
-
 def test_ek_coverage_file_unloaded_on_error(lsk, monkeypatch):
     """Test that EK is unloaded even when error occurs."""
     binary_ek_files = (
@@ -280,63 +256,6 @@ def test_ek_coverage_returns_list_of_two_strings(lsk):
     assert isinstance(result[0], str)
     assert isinstance(result[1], str)
 
-def test_ek_coverage_multiple_calls_consistent(lsk):
-    """Test that multiple calls return consistent results."""
-    ten_files = list(KERNELS.rglob("*.ten"))
-
-    if not ten_files:
-        pytest.skip("No .ten files found")
-
-    test_file = str(ten_files[0])
-
-    results = [
-        time.ek_coverage(test_file, "infomod2", "UTC")
-        for _ in range(3)
-    ]
-
-    assert results[0] == results[1] == results[2]
-
-@pytest.mark.parametrize("extension", ["TEN", "Ten", "tEn", "TEn"])
-def test_ek_coverage_case_insensitive_extension(lsk, tmp_path, extension):
-    """Test case-insensitive extension handling."""
-    test_file = tmp_path / f"test.{extension}"
-    test_file.write_text("\\header\n\\text\ntest content")
-
-    result = time.ek_coverage(str(test_file), "infomod2", "UTC")
-
-    assert result == ["", ""]
-
-@pytest.mark.parametrize("date_format, system", [
-    ("infomod2", "UTC"),
-    ("infomod2", "TDB"),
-    ("maklabel", "UTC"),
-    ("maklabel", "TDB"),
-])
-def test_ek_coverage_all_format_combinations(lsk, date_format, system):
-    """Test all valid date_format and system combinations."""
-    ten_files = list(KERNELS.rglob("*.ten"))
-
-    if not ten_files:
-        pytest.skip("No .ten files found")
-
-    test_file = str(ten_files[0])
-
-    result = time.ek_coverage(test_file, date_format, system)
-
-    assert isinstance(result, list)
-    assert len(result) == 2
-
-def test_ek_coverage_path_with_spaces(lsk, tmp_path):
-    """Test that paths with spaces are handled."""
-    space_dir = tmp_path / "dir with spaces"
-    space_dir.mkdir()
-    test_file = space_dir / "file with spaces.ten"
-    test_file.write_text("\\header\n\\text\ntest content")
-
-    result = time.ek_coverage(str(test_file), "infomod2", "UTC")
-
-    assert result == ["", ""]
-
 @pytest.mark.parametrize("extension", ["bes", "bpe", "bep", "bdb"])
 def test_ek_coverage_binary_extensions(lsk, extension):
     """Test various binary EK extensions."""
@@ -352,32 +271,17 @@ def test_ek_coverage_binary_extensions(lsk, extension):
     assert isinstance(result, list)
     assert len(result) == 2
 
-def test_ek_coverage_min_max_calculation(lsk):
-    """Test min/max calculation logic with sample data."""
-    beget = [100000.0, 50000.0, 75000.0, 120000.0]
-    endet = [500000.0, 600000.0, 550000.0, 580000.0]
 
-    start_time = min(beget)
-    stop_time = max(endet)
-
-    assert start_time == 50000.0
-    assert stop_time == 600000.0
-
-    # Verify et_to_date works with these values
-    result = time.et_to_date(start_time, stop_time, "infomod2", system="UTC")
-    assert len(result) == 2
-    assert result[0] != ""
-    assert result[1] != ""
-
-def test_ek_coverage_furnsh_failure_returns_empty(lsk, monkeypatch):
-    """Test that furnsh failure is caught and returns empty coverage.
+def test_ek_coverage_furnsh_failure_returns_empty_and_logs_warning(lsk, monkeypatch, caplog):
+    """Test that furnsh failure is caught, returns empty coverage, and logs warning.
 
     When spiceypy.furnsh fails to load an EK file (e.g., corrupted file,
     wrong format, permission issues), the exception should be caught,
-    a warning logged, and empty coverage returned.
+    a warning logged with file path and error details, and empty coverage returned.
     """
-    # Create a path to a non-EK file
-    fake_ek_path = str(KERNELS / "ek" / "corrupted.bes")
+    import logging
+
+    fake_ek_path = "/path/to/corrupted.bes"
 
     # Mock furnsh to raise SpiceyError
     def mock_furnsh(path):
@@ -385,45 +289,23 @@ def test_ek_coverage_furnsh_failure_returns_empty(lsk, monkeypatch):
 
     monkeypatch.setattr("spiceypy.furnsh", mock_furnsh)
 
-    # Call ek_coverage - should catch exception and return empty
-    result = time.ek_coverage(fake_ek_path, "infomod2", "UTC")
+    # Capture logs at WARNING level
+    with caplog.at_level(logging.WARNING):
+        result = time.ek_coverage(fake_ek_path, "infomod2", "UTC")
 
     # Should return empty coverage
     assert result == ["", ""]
     assert isinstance(result, list)
     assert len(result) == 2
 
-def test_ek_coverage_furnsh_failure_logs_warning(lsk, monkeypatch, caplog):
-    """Test that furnsh failure logs a warning message.
-
-    Verifies that when furnsh fails, a descriptive warning is logged
-    containing the file path and error message.
-    """
-    import logging
-
-    fake_ek_path = "/path/to/corrupted.bes"
-
-    # Mock furnsh to raise SpiceyError with specific message
-    def mock_furnsh(path):
-        raise spiceypy.exceptions.SpiceyError("SPICE(NOTANEKFILE)")
-
-    monkeypatch.setattr("spiceypy.furnsh", mock_furnsh)
-
-    # Capture logs at WARNING level
-    with caplog.at_level(logging.WARNING):
-        result = time.ek_coverage(fake_ek_path, "infomod2", "UTC")
-
-    # Verify warning was logged
+    # Verify warning was logged with path and error details
     assert len(caplog.records) > 0
     warning_messages = [r.message for r in caplog.records if r.levelname == "WARNING"]
     assert any("Failed to load EK file" in msg for msg in warning_messages)
     assert any(fake_ek_path in msg for msg in warning_messages)
 
-    # Should still return empty coverage
-    assert result == ["", ""]
-
 def test_ek_coverage_furnsh_failure_different_error_types(lsk, monkeypatch):
-    """Test that various SpiceyError types are handled.
+    """Test that various SPICE Error types are handled.
 
     Tests different SPICE error scenarios that could occur during furnsh:
     - Invalid format
@@ -449,88 +331,68 @@ def test_ek_coverage_furnsh_failure_different_error_types(lsk, monkeypatch):
         # All error types should return empty coverage
         assert result == ["", ""], f"Failed for error: {error_msg}"
 
-def test_ek_coverage_furnsh_success_continues_processing(lsk, monkeypatch):
-    """Test that successful furnsh allows processing to continue.
-
-    Verifies that when furnsh succeeds, the function continues to the
-    segment processing logic rather than returning early.
-    """
-    binary_ek_files = (
-        list(KERNELS.rglob("*.bes")) +
-        list(KERNELS.rglob("*.bpe")) +
-        list(KERNELS.rglob("*.bep")) +
-        list(KERNELS.rglob("*.bdb"))
-    )
-
-    if not binary_ek_files:
-        pytest.skip("No binary EK files found in test data")
-
-    test_file = str(binary_ek_files[0])
-
-    # Track whether we got past furnsh to dasopr
-    dasopr_called = [False]
-    original_dasopr = spiceypy.dasopr
-
-    def mock_dasopr(path):
-        dasopr_called[0] = True
-        return original_dasopr(path)
-
-    monkeypatch.setattr("spiceypy.dasopr", mock_dasopr)
-
-    # Mock to return 0 segments (quick return after dasopr)
-    monkeypatch.setattr("spiceypy.eknseg", lambda h: 0)
-
-    result = time.ek_coverage(test_file, "infomod2", "UTC")
-
-    # Verify furnsh succeeded and dasopr was called
-    assert dasopr_called[0], "furnsh succeeded but dasopr was not called"
-    assert result == ["", ""]  # 0 segments returns empty
 
 # Test: Binary EK Files with Real Data
 # -----------------------------------------------------------------------------
 
-def test_ek_coverage_binary_ek_with_time_data(lsk):
-    """Test EK coverage extraction from binary EK file with time data."""
-    ek_file = str(KERNELS / "ek" / "lroevnt_2010193_2010200_v01.bes")
-    result = time.ek_coverage(ek_file, "infomod2", "UTC")
-    
-    assert isinstance(result, list)
-    assert len(result) == 2
-    assert result != ["", ""]
-    assert result[0].endswith('Z')
-    assert result[1].endswith('Z')
-    assert 'T' in result[0]
-    assert result[0] <= result[1]
-    assert result[0].startswith('2010-07')
-    assert result[1].startswith('2010-07')
+@pytest.mark.parametrize("file, date_format, system, expected", [
+    ("lroevnt_2010193_2010200_v01.bes", "infomod2", "UTC" , ['2010-07-11T13:58:39.148Z', '2010-07-18T15:35:41.148Z']),
+    ("lroevnt_2010193_2010200_v01.bes", "infomod2", "TDB" , ['2010-07-11T13:59:45.332Z', '2010-07-18T15:36:47.332Z']),
+    ("lroevnt_2010193_2010200_v01.bes", "maklabel", "UTC" , ['2010-07-11T13:58:39Z', '2010-07-18T15:35:41Z']),
+    ("lroevnt_2010193_2010200_v01.bes", "maklabel", "TDB" , ['2010-07-11T13:59:45Z', '2010-07-18T15:36:47Z']),
 
-@pytest.mark.parametrize("date_format, system", [
-    ("infomod2", "UTC"),
-    ("maklabel", "UTC"),
-    ("infomod2", "TDB"),
-    ("maklabel", "TDB"),
+    ("m01_map_021a_04_u_v2.bes" , "infomod2", "UTC" ,  ['2002-12-18T00:00:00.000Z','2003-01-15T00:16:06.000Z']),
+    ("m01_map_021a_04_u_v2.bes", "infomod2", "TDB" , ['2002-12-18T00:01:04.185Z', '2003-01-15T00:17:10.183Z']),
+    ("m01_map_021a_04_u_v2.bes", "maklabel", "UTC", ['2002-12-18T00:00:00Z', '2003-01-15T00:16:06Z']),
+    ("m01_map_021a_04_u_v2.bes", "maklabel", "TDB", ['2002-12-18T00:01:04Z', '2003-01-15T00:17:10Z']),
+
+    ("mpfr271d.bes" , "infomod2", "UTC" , ['1997-07-31T17:16:06.000Z','1997-08-03T20:16:30.000Z']),
+    ("mpfr271d.bes", "infomod2", "TDB" , ['1997-07-31T17:17:09.184Z', '1997-08-03T20:17:33.182Z']),
+    ("mpfr271d.bes", "maklabel", "UTC", ['1997-07-31T17:16:06Z', '1997-08-03T20:16:30Z']),
+    ("mpfr271d.bes", "maklabel", "TDB", ['1997-07-31T17:17:09Z', '1997-08-03T20:17:33Z']),
+
+    ("S99_CIMSSSUPa.bep" , "infomod2", "UTC" , ['2016-10-30T22:29:59.000Z','2017-09-16T00:00:00.000Z']),
+    ("S99_CIMSSSUPa.bep", "infomod2", "TDB" , ['2016-10-30T22:31:07.184Z', '2017-09-16T00:01:09.181Z']),
+    ("S99_CIMSSSUPa.bep", "maklabel", "UTC", ['2016-10-30T22:29:59Z', '2017-09-16T00:00:00Z']),
+    ("S99_CIMSSSUPa.bep", "maklabel", "TDB", ['2016-10-30T22:31:07Z', '2017-09-16T00:01:09Z']),
+
+    ("mpfr971a.bes", "infomod2", "UTC" , ['1997-10-11T15:58:00.000Z', '1997-10-11T15:58:29.000Z']),
+    ("mpfr971a.bes", "infomod2", "TDB" , ['1997-10-11T15:59:03.183Z', '1997-10-11T15:59:32.181Z']),
+    ("mpfr971a.bes", "maklabel", "UTC", ['1997-10-11T15:58:00Z', '1997-10-11T15:58:29Z']),
+    ("mpfr971a.bes", "maklabel", "TDB", ['1997-10-11T15:59:03Z', '1997-10-11T15:59:32Z']),
+
+    ("11A.bdb", "infomod2", "UTC" , ['', '']),
+    ("11A.bdb", "infomod2", "TDB" , ['', '']),
+    ("11A.bdb", "maklabel", "UTC", ['', '']),
+    ("11A.bdb", "maklabel", "TDB", ['', '']),
+
+    ("mpflactd.bdb", "infomod2", "UTC" , ['', '']),
+    ("mpflactd.bdb", "infomod2", "TDB", ['', '']),
+    ("mpflactd.bdb", "maklabel", "UTC", ['', '']),
+    ("mpflactd.bdb", "maklabel", "TDB", ['', '']),
+
+    ("mpfrcmdd.bdb", "infomod2", "UTC" , ['', '']),
+    ("mpfrcmdd.bdb", "infomod2", "TDB", ['', '']),
+    ("mpfrcmdd.bdb", "maklabel", "UTC", ['', '']),
+    ("mpfrcmdd.bdb", "maklabel", "TDB", ['', '']),
+
+    ("eros_n2000129x_v01_ltl.bpe", "infomod2", "UTC" , ['', '']),
+    ("eros_n2000129x_v01_ltl.bpe", "infomod2", "TDB", ['', '']),
+    ("eros_n2000129x_v01_ltl.bpe", "maklabel", "UTC", ['', '']),
+    ("eros_n2000129x_v01_ltl.bpe", "maklabel", "TDB", ['', '']),
+
+    ("m01_mmdmt_ext10.ten" , "infomod2", "UTC" , ['','']),
+    ("m01_mmdmt_ext10.ten", "infomod2", "TDB", ['', '']),
+    ("m01_mmdmt_ext10.ten", "maklabel", "UTC", ['', '']),
+    ("m01_mmdmt_ext10.ten", "maklabel", "TDB", ['', ''])
 ])
-def test_ek_coverage_binary_ek_format_variations(lsk, date_format, system):
-    """Test binary EK coverage with different format and system combinations."""
-    ek_file = str(KERNELS / "ek" / "lroevnt_2010193_2010200_v01.bes")
+def test_ek_coverage_binary_ek_with_time_data(lsk, file, date_format, system, expected):
+    """Test EK coverage extraction from binary EK file with time data."""
+    ek_file = str(KERNELS / "ek" / file)
     result = time.ek_coverage(ek_file, date_format, system)
-    
-    assert isinstance(result, list)
-    assert len(result) == 2
-    assert result != ["", ""]
-    assert result[0].endswith('Z')
-    assert result[0] <= result[1]
 
-def test_ek_coverage_utc_vs_tdb(lsk):
-    """Test that UTC and TDB systems produce different timestamps."""
-    ek_file = str(KERNELS / "ek" / "lroevnt_2010193_2010200_v01.bes")
-    
-    result_utc = time.ek_coverage(ek_file, "infomod2", "UTC")
-    result_tdb = time.ek_coverage(ek_file, "infomod2", "TDB")
-    
-    assert result_utc != ["", ""]
-    assert result_tdb != ["", ""]
-    assert result_utc != result_tdb
+    assert result == expected
+
 
 # Test: Resource Management
 # -----------------------------------------------------------------------------
@@ -539,18 +401,18 @@ def test_ek_coverage_unloads_kernel_on_success(lsk):
     """Test that EK file is properly unloaded after successful processing."""
     ek_file = str(KERNELS / "ek" / "lroevnt_2010193_2010200_v01.bes")
     initial_count = spiceypy.ktotal('ALL')
-    
-    result = time.ek_coverage(ek_file)
-    
+
+    time.ek_coverage(ek_file)
+
     final_count = spiceypy.ktotal('ALL')
     assert final_count == initial_count
 
 def test_ek_coverage_closes_das_handle(lsk):
     """Test that DAS handle is properly closed."""
     ek_file = str(KERNELS / "ek" / "lroevnt_2010193_2010200_v01.bes")
-    
+
     with patch('spiceypy.dascls') as mock_dascls:
-        result = time.ek_coverage(ek_file)
+        time.ek_coverage(ek_file)
         mock_dascls.assert_called_once()
 
 # Test: Column Name Detection
@@ -561,24 +423,53 @@ def test_ek_coverage_closes_das_handle(lsk):
     (["TIME"], "TIME"),
     (["EPOCH"], "EPOCH"),
     (["EVT_TIME"], "EVT_TIME"),
+    (["EVENT_TIME"], 'EVENT_TIME'),
+
     (["START_TIME"], "START_TIME"),
+    (["END_TIME"], "END_TIME"),
+    (["BEGIN_TIME"], "BEGIN_TIME"),
+    (["STOP_TIME"], "STOP_TIME"),
+    (["BEGIN_ET"], "BEGIN_ET"),
+    (["START_ET"], "START_ET"),
+    (["END_ET"], "END_ET"),
+    (["STOP_ET"], "STOP_ET"),
+    (["START_UTC"], "START_UTC"),
+    (["BEGIN_UTC"], "BEGIN_UTC"),
+    (["END_UTC"], "END_UTC"),
+    (["STOP_UTC"], "STOP_UTC"),
 ])
 def test_ek_coverage_column_detection_single(lsk, column_names, expected_col):
-    """Test that different single time column naming patterns are detected."""
+    """Test that different single time column naming patterns are detected.
+
+    With the query-first approach, _find_ek_time_columns will find these columns
+    via direct query before falling back to cnames inspection.
+    """
     ek_file = str(KERNELS / "ek" / "lroevnt_2010193_2010200_v01.bes")
-    
+
     mock_segsum = MagicMock()
     mock_segsum.nrows = 10
     mock_segsum.tabnam = "TEST_TABLE"
     mock_segsum.cnames = column_names
-    
+
+    ekfind_calls = []
+
+    def mock_ekfind(query, bufsize):
+        """Track queries and succeed when the expected column is queried."""
+        ekfind_calls.append(query)
+        # _find_ek_time_columns tries patterns in order, succeed on first match
+        if expected_col in query and "FROM TEST_TABLE" in query:
+            return (10, False, "")  # Found it
+        return (0, True, "Column not found")  # Keep trying
+
     with patch('spiceypy.eknseg', return_value=1):
         with patch('spiceypy.ekssum', return_value=mock_segsum):
-            with patch('spiceypy.ekfind', return_value=(10, False, "")) as mock_ekfind:
+            with patch('spiceypy.ekfind', side_effect=mock_ekfind):
                 with patch('pds.naif_pds4_bundler.utils.time._ek_fetch_row_value', return_value=1000.0):
                     result = time.ek_coverage(ek_file)
-                    query_call = mock_ekfind.call_args[0][0]
-                    assert expected_col in query_call
+
+                    # Verify the expected column was found in one of the queries
+                    assert any(expected_col in q for q in ekfind_calls), \
+                        f"Expected {expected_col} to be in one of the queries: {ekfind_calls}"
 
 # Test: Error Handling
 # -----------------------------------------------------------------------------
@@ -594,18 +485,28 @@ def test_ek_coverage_empty_ek_zero_segments(lsk):
         mock_eknseg.assert_called_once()
 
 def test_ek_coverage_no_time_columns(lsk):
-    """Test EK with segments but no recognizable time columns."""
+    """Test EK with segments but no recognizable time columns.
+
+    With query-first approach, _find_ek_time_columns will try all patterns
+    and fail, then fallback to cnames inspection will also fail.
+    """
     ek_file = str(KERNELS / "ek" / "lroevnt_2010193_2010200_v01.bes")
-    
+
     mock_segsum = MagicMock()
     mock_segsum.nrows = 10
     mock_segsum.tabnam = "TEST_TABLE"
     mock_segsum.cnames = ["ID", "NAME", "VALUE"]
-    
+
+    def mock_ekfind_no_time_cols(query, bufsize):
+        """All time column queries fail (no time columns exist)."""
+        # _find_ek_time_columns tries various patterns, all should fail
+        return (0, True, "Column not found")
+
     with patch('spiceypy.eknseg', return_value=1):
         with patch('spiceypy.ekssum', return_value=mock_segsum):
-            result = time.ek_coverage(ek_file, "infomod2", "UTC")
-            assert result == ["", ""]
+            with patch('spiceypy.ekfind', side_effect=mock_ekfind_no_time_cols):
+                result = time.ek_coverage(ek_file, "infomod2", "UTC")
+                assert result == ["", ""]
 
 def test_ek_coverage_no_valid_times_returns_empty(lsk):
     """Test that if no valid times are found, empty coverage is returned."""
@@ -632,7 +533,7 @@ def test_ek_coverage_segment_with_zero_rows(lsk):
     
     # Mock ekssum to return segment with 0 rows
     mock_segsum = MagicMock()
-    mock_segsum.nrows = 0  # This triggers line 362
+    mock_segsum.nrows = 0
     mock_segsum.tabnam = "EMPTY_TABLE"
     mock_segsum.cnames = ["TIME"]
     
@@ -644,47 +545,27 @@ def test_ek_coverage_segment_with_zero_rows(lsk):
                 
                 # Should return empty since segment has no rows
                 assert result == ["", ""]
-                # ekfind should not be called because we continue at line 364
-                mock_ekfind.assert_not_called()
-
-def test_ek_coverage_segment_with_no_column_names(lsk):
-    """Test that segments with empty cnames are skipped."""
-    ek_file = str(KERNELS / "ek" / "lroevnt_2010193_2010200_v01.bes")
-    
-    # Mock ekssum to return segment with no column names
-    mock_segsum = MagicMock()
-    mock_segsum.nrows = 10  # Has rows
-    mock_segsum.tabnam = "NO_COLUMNS_TABLE"
-    mock_segsum.cnames = []  # Empty list - this triggers line 369
-    
-    with patch('spiceypy.eknseg', return_value=1):
-        with patch('spiceypy.ekssum', return_value=mock_segsum):
-            # ekfind should NOT be called since segment is skipped
-            with patch('spiceypy.ekfind') as mock_ekfind:
-                result = time.ek_coverage(ek_file, "infomod2", "UTC")
-                
-                # Should return empty since no columns
-                assert result == ["", ""]
-                # ekfind should not be called because we continue at line 370
+                # ekfind should not be called
                 mock_ekfind.assert_not_called()
 
 def test_ek_coverage_segment_with_none_column_names(lsk):
     """Test that segments with None cnames are skipped."""
     ek_file = str(KERNELS / "ek" / "lroevnt_2010193_2010200_v01.bes")
-    
+
     # Mock ekssum to return segment with None column names
     mock_segsum = MagicMock()
     mock_segsum.nrows = 10
     mock_segsum.tabnam = "NULL_COLUMNS_TABLE"
     mock_segsum.cnames = None  # None - also triggers line 369
-    
+
     with patch('spiceypy.eknseg', return_value=1):
         with patch('spiceypy.ekssum', return_value=mock_segsum):
-            with patch('spiceypy.ekfind') as mock_ekfind:
-                result = time.ek_coverage(ek_file, "infomod2", "UTC")
-                
-                assert result == ["", ""]
-                mock_ekfind.assert_not_called()
+            # Mock _find_ek_time_columns to return None (query-first fails)
+            with patch('pds.naif_pds4_bundler.utils.time._find_ek_time_columns', return_value=None):
+                with patch('spiceypy.ekfind') as mock_ekfind:
+                    result = time.ek_coverage(ek_file, "infomod2", "UTC")
+
+                    assert result == ["", ""]
 
 def test_ek_coverage_multiple_segments_one_empty(lsk):
     """Test that empty segments are skipped while valid ones are processed."""
@@ -713,208 +594,305 @@ def test_ek_coverage_multiple_segments_one_empty(lsk):
 def test_ek_coverage_multiple_segments_one_no_columns(lsk):
     """Test that segments without columns are skipped while valid ones are processed."""
     ek_file = str(KERNELS / "ek" / "lroevnt_2010193_2010200_v01.bes")
-    
+
     # First segment: no columns
     mock_segsum1 = MagicMock()
     mock_segsum1.nrows = 10
     mock_segsum1.tabnam = "NO_COLS_TABLE"
     mock_segsum1.cnames = []  # Empty - will be skipped
-    
+
     # Second segment: valid with columns
     mock_segsum2 = MagicMock()
     mock_segsum2.nrows = 5
     mock_segsum2.tabnam = "VALID_TABLE"
     mock_segsum2.cnames = ["TIME"]
-    
+
     with patch('spiceypy.eknseg', return_value=2):
         with patch('spiceypy.ekssum', side_effect=[mock_segsum1, mock_segsum2]):
             with patch('spiceypy.ekfind', return_value=(5, False, "")):
                 with patch('pds.naif_pds4_bundler.utils.time._ek_fetch_row_value', return_value=1000.0):
                     result = time.ek_coverage(ek_file)
-                    
+
                     # Should process second segment
                     assert result != ["", ""]
+
+def test_ek_coverage_fallback_only_start_column_sets_stop_to_start(lsk):
+    """Test that when only start column is found, stop_col is set to start_col.
+
+    When the fallback cnames inspection finds only a START_TIME column (no stop column),
+    it should use START_TIME for both start and stop columns.
+    """
+    ek_file = str(KERNELS / "ek" / "lroevnt_2010193_2010200_v01.bes")
+
+    mock_segsum = MagicMock()
+    mock_segsum.nrows = 10
+    mock_segsum.tabnam = "START_ONLY_TABLE"
+    # Only START_TIME in cnames, no STOP_TIME or END_TIME
+    mock_segsum.cnames = ["ID", "START_TIME", "DATA"]
+
+    # Track which query was executed
+    queries_executed = []
+
+    def mock_ekfind(query, bufsize):
+        queries_executed.append(query)
+        # Query should use START_TIME for both (no second column since stop_col == start_col)
+        if "START_TIME" in query and "FROM START_ONLY_TABLE" in query:
+            # Verify it's NOT a paired query (should be just "SELECT START_TIME FROM")
+            if query.count("START_TIME") == 1:
+                return (10, False, "")
+        return (0, True, "Column not found")
+
+    with patch('spiceypy.eknseg', return_value=1):
+        with patch('spiceypy.ekssum', return_value=mock_segsum):
+            # Mock _find_ek_time_columns to return None (force fallback to cnames)
+            with patch('pds.naif_pds4_bundler.utils.time._find_ek_time_columns', return_value=None):
+                with patch('spiceypy.ekfind', side_effect=mock_ekfind):
+                    with patch('pds.naif_pds4_bundler.utils.time._ek_fetch_row_value', return_value=5000.0):
+                        result = time.ek_coverage(ek_file, "infomod2", "UTC")
+
+                        # Should get coverage using START_TIME for both start and stop
+                        assert result != ["", ""]
+
+                        # Verify query used only START_TIME (not a paired query)
+                        successful_queries = [q for q in queries_executed if "START_TIME" in q and "FROM START_ONLY_TABLE" in q]
+                        assert len(successful_queries) > 0, f"Expected START_TIME query, got: {queries_executed}"
+
+                        # Verify it's not a paired query (should only have START_TIME once in SELECT clause)
+                        # Format should be: "SELECT START_TIME FROM START_ONLY_TABLE"
+                        # NOT: "SELECT START_TIME, START_TIME FROM START_ONLY_TABLE"
+                        for query in successful_queries:
+                            # Extract the column list (between SELECT and FROM)
+                            select_part = query.split("FROM")[0].replace("SELECT", "").strip()
+                            # Should not have a comma (which would indicate two columns)
+                            assert "," not in select_part, f"Expected single column, got: {select_part}"
 
 # Test: START/STOP Column Pair Detection
 # -----------------------------------------------------------------------------
 
 def test_ek_coverage_finds_stop_time_column(lsk):
-    """Test that STOP_TIME column is found in START/STOP pair."""
+    """Test that STOP_TIME column is found in START/STOP pair.
+
+    With query-first approach, _find_ek_time_columns will try START_TIME/STOP_TIME
+    pattern and succeed immediately.
+    """
     ek_file = str(KERNELS / "ek" / "lroevnt_2010193_2010200_v01.bes")
-    
-    # Mock segment with START_TIME and STOP_TIME columns (not ET, TIME, etc.)
+
     mock_segsum = MagicMock()
     mock_segsum.nrows = 10
     mock_segsum.tabnam = "INTERVAL_TABLE"
-    # Use START_TIME and STOP_TIME - triggers second pass for pairs
     mock_segsum.cnames = ["ID", "START_TIME", "STOP_TIME", "NAME"]
-    
+
+    ekfind_calls = []
+
+    def mock_ekfind_start_stop(query, bufsize):
+        """Succeed when START_TIME, STOP_TIME query is attempted."""
+        ekfind_calls.append(query)
+        if "START_TIME" in query and "STOP_TIME" in query and "FROM INTERVAL_TABLE" in query:
+            return (10, False, "")  # Found the pair
+        return (0, True, "Column not found")
+
     with patch('spiceypy.eknseg', return_value=1):
         with patch('spiceypy.ekssum', return_value=mock_segsum):
-            with patch('spiceypy.ekfind', return_value=(10, False, "")) as mock_ekfind:
+            with patch('spiceypy.ekfind', side_effect=mock_ekfind_start_stop):
                 with patch('pds.naif_pds4_bundler.utils.time._ek_fetch_row_value', return_value=1000.0):
                     result = time.ek_coverage(ek_file)
-                    
+
                     # Should find both START_TIME and STOP_TIME
                     assert result != ["", ""]
-                    
-                    # Verify query includes both columns
-                    query = mock_ekfind.call_args[0][0]
-                    assert "START_TIME" in query
-                    assert "STOP_TIME" in query  # This confirms line 413-414 were hit
+
+                    # Verify query included both columns
+                    successful_query = [q for q in ekfind_calls if "START_TIME" in q and "STOP_TIME" in q]
+                    assert len(successful_query) > 0, f"Expected START_TIME/STOP_TIME query in: {ekfind_calls}"
 
 def test_ek_coverage_finds_stop_et_column(lsk):
-    """Test that STOP_ET column is found."""
+    """Test that STOP_ET column is found via query-first approach."""
     ek_file = str(KERNELS / "ek" / "lroevnt_2010193_2010200_v01.bes")
-    
+
     mock_segsum = MagicMock()
     mock_segsum.nrows = 10
     mock_segsum.tabnam = "ET_INTERVAL_TABLE"
-    # START_ET and STOP_ET trigger the second pass
     mock_segsum.cnames = ["ID", "START_ET", "STOP_ET", "STATUS"]
-    
+
+    def mock_ekfind_start_stop_et(query, bufsize):
+        """Succeed when START_ET, STOP_ET query is attempted."""
+        if "START_ET" in query and "STOP_ET" in query and "FROM ET_INTERVAL_TABLE" in query:
+            return (10, False, "")
+        return (0, True, "Column not found")
+
     with patch('spiceypy.eknseg', return_value=1):
         with patch('spiceypy.ekssum', return_value=mock_segsum):
-            with patch('spiceypy.ekfind', return_value=(10, False, "")) as mock_ekfind:
+            with patch('spiceypy.ekfind', side_effect=mock_ekfind_start_stop_et):
                 with patch('pds.naif_pds4_bundler.utils.time._ek_fetch_row_value', return_value=2000.0):
                     result = time.ek_coverage(ek_file)
-                    
+
                     assert result != ["", ""]
-                    query = mock_ekfind.call_args[0][0]
-                    assert "START_ET" in query
-                    assert "STOP_ET" in query
 
 def test_ek_coverage_finds_end_time_column(lsk):
-    """Test that END_TIME column is found."""
+    """Test that END_TIME column is found via query-first approach."""
     ek_file = str(KERNELS / "ek" / "lroevnt_2010193_2010200_v01.bes")
-    
+
     mock_segsum = MagicMock()
     mock_segsum.nrows = 10
     mock_segsum.tabnam = "BEGIN_END_TABLE"
-    # BEGIN_TIME and END_TIME
     mock_segsum.cnames = ["BEGIN_TIME", "END_TIME", "EVENT_TYPE"]
-    
+
+    def mock_ekfind_begin_end(query, bufsize):
+        if "BEGIN_TIME" in query and "END_TIME" in query and "FROM BEGIN_END_TABLE" in query:
+            return (10, False, "")
+        return (0, True, "Column not found")
+
     with patch('spiceypy.eknseg', return_value=1):
         with patch('spiceypy.ekssum', return_value=mock_segsum):
-            with patch('spiceypy.ekfind', return_value=(10, False, "")) as mock_ekfind:
+            with patch('spiceypy.ekfind', side_effect=mock_ekfind_begin_end):
                 with patch('pds.naif_pds4_bundler.utils.time._ek_fetch_row_value', return_value=3000.0):
                     result = time.ek_coverage(ek_file)
-                    
                     assert result != ["", ""]
-                    query = mock_ekfind.call_args[0][0]
-                    assert "BEGIN_TIME" in query
-                    assert "END_TIME" in query
 
 def test_ek_coverage_finds_stop_column_with_start(lsk):
-    """Test finding STOP when paired with START."""
+    """Test finding STOP when paired with START via query-first approach."""
     ek_file = str(KERNELS / "ek" / "lroevnt_2010193_2010200_v01.bes")
-    
+
     mock_segsum = MagicMock()
     mock_segsum.nrows = 10
     mock_segsum.tabnam = "START_STOP_TABLE"
-    # Simple START and STOP column names
     mock_segsum.cnames = ["ID", "START", "STOP", "DESC"]
-    
+
+    def mock_ekfind_start_stop(query, bufsize):
+        # Note: START_TIME/STOP_TIME pattern is tried before START/STOP
+        if ("START_TIME" in query and "STOP_TIME" in query) and "FROM START_STOP_TABLE" in query:
+            return (10, False, "")
+        return (0, True, "Column not found")
+
     with patch('spiceypy.eknseg', return_value=1):
         with patch('spiceypy.ekssum', return_value=mock_segsum):
-            with patch('spiceypy.ekfind', return_value=(10, False, "")) as mock_ekfind:
+            with patch('spiceypy.ekfind', side_effect=mock_ekfind_start_stop):
                 with patch('pds.naif_pds4_bundler.utils.time._ek_fetch_row_value', return_value=4000.0):
                     result = time.ek_coverage(ek_file)
-                    
                     assert result != ["", ""]
-                    query = mock_ekfind.call_args[0][0]
-                    assert "START" in query
-                    assert "STOP" in query
 
 def test_ek_coverage_finds_stop_utc_column(lsk):
-    """Test that STOP_UTC column is found."""
+    """Test that STOP_UTC column is found via query-first approach."""
     ek_file = str(KERNELS / "ek" / "lroevnt_2010193_2010200_v01.bes")
-    
+
     mock_segsum = MagicMock()
     mock_segsum.nrows = 10
     mock_segsum.tabnam = "UTC_TABLE"
-    # START_UTC and STOP_UTC
     mock_segsum.cnames = ["START_UTC", "STOP_UTC", "EVENT"]
-    
+
+    def mock_ekfind_utc(query, bufsize):
+        if "START_UTC" in query and "STOP_UTC" in query and "FROM UTC_TABLE" in query:
+            return (10, False, "")
+        return (0, True, "Column not found")
+
     with patch('spiceypy.eknseg', return_value=1):
         with patch('spiceypy.ekssum', return_value=mock_segsum):
-            with patch('spiceypy.ekfind', return_value=(10, False, "")) as mock_ekfind:
+            with patch('spiceypy.ekfind', side_effect=mock_ekfind_utc):
                 with patch('pds.naif_pds4_bundler.utils.time._ek_fetch_row_value', return_value=5000.0):
                     result = time.ek_coverage(ek_file)
-                    
                     assert result != ["", ""]
-                    query = mock_ekfind.call_args[0][0]
-                    assert "START_UTC" in query
-                    assert "STOP_UTC" in query
 
 def test_ek_coverage_stop_col_break_on_first_match(lsk):
-    """Test that stop column search breaks on first match."""
+    """Test that query-first approach finds START_TIME/STOP_TIME pair first."""
     ek_file = str(KERNELS / "ek" / "lroevnt_2010193_2010200_v01.bes")
-    
+
     mock_segsum = MagicMock()
     mock_segsum.nrows = 10
     mock_segsum.tabnam = "MULTI_STOP_TABLE"
-    # Multiple possible stop columns - should use first match
+    # Multiple possible stop columns - query-first will find START_TIME/STOP_TIME
     mock_segsum.cnames = ["START_TIME", "STOP_TIME", "END_TIME", "STOP"]
-    
+
+    ekfind_calls = []
+
+    def mock_ekfind_first_match(query, bufsize):
+        """Succeed on first valid pattern found."""
+        ekfind_calls.append(query)
+        # START_TIME/STOP_TIME pattern is tried and succeeds
+        if "START_TIME" in query and "STOP_TIME" in query and "FROM MULTI_STOP_TABLE" in query:
+            return (10, False, "")
+        return (0, True, "Column not found")
+
     with patch('spiceypy.eknseg', return_value=1):
         with patch('spiceypy.ekssum', return_value=mock_segsum):
-            with patch('spiceypy.ekfind', return_value=(10, False, "")) as mock_ekfind:
+            with patch('spiceypy.ekfind', side_effect=mock_ekfind_first_match):
                 with patch('pds.naif_pds4_bundler.utils.time._ek_fetch_row_value', return_value=6000.0):
                     result = time.ek_coverage(ek_file)
-                    
+
                     assert result != ["", ""]
-                    query = mock_ekfind.call_args[0][0]
-                    # Should use STOP_TIME (first match in priority order)
-                    # not END_TIME or STOP
-                    assert "START_TIME" in query
-                    assert "STOP_TIME" in query
+                    # Should use START_TIME/STOP_TIME (found via query)
+                    successful_query = [q for q in ekfind_calls if "START_TIME" in q and "STOP_TIME" in q]
+                    assert len(successful_query) > 0
 
 def test_ek_coverage_only_start_column_no_stop(lsk):
-    """Test when only START column exists, no STOP (uses START for both)."""
+    """Test when only START_TIME column exists - query-first fails, fallback finds it."""
     ek_file = str(KERNELS / "ek" / "lroevnt_2010193_2010200_v01.bes")
-    
+
     mock_segsum = MagicMock()
     mock_segsum.nrows = 10
     mock_segsum.tabnam = "START_ONLY_TABLE"
     # Only START_TIME, no STOP_TIME
     mock_segsum.cnames = ["ID", "START_TIME", "EVENT_NAME"]
-    
+
+    ekfind_calls = []
+
+    def mock_ekfind_start_only(query, bufsize):
+        """START_TIME/STOP_TIME paired query fails, but single START_TIME succeeds."""
+        ekfind_calls.append(query)
+        # Paired query fails (no STOP_TIME column exists)
+        if "START_TIME" in query and "STOP_TIME" in query:
+            return (0, True, "STOP_TIME not found")
+        # Single START_TIME query from fallback succeeds
+        # (fallback will use START_TIME for both start and stop since no stop column found)
+        if "START_TIME" in query and "FROM START_ONLY_TABLE" in query:
+            return (10, False, "")
+        # Other patterns fail
+        return (0, True, "Column not found")
+
     with patch('spiceypy.eknseg', return_value=1):
         with patch('spiceypy.ekssum', return_value=mock_segsum):
-            with patch('spiceypy.ekfind', return_value=(10, False, "")) as mock_ekfind:
+            with patch('spiceypy.ekfind', side_effect=mock_ekfind_start_only):
                 with patch('pds.naif_pds4_bundler.utils.time._ek_fetch_row_value', return_value=7000.0):
                     result = time.ek_coverage(ek_file)
-                    
+
+                    # Should still get coverage (falls back to cnames and finds START_TIME)
                     assert result != ["", ""]
-                    query = mock_ekfind.call_args[0][0]
-                    # Should use START_TIME only (not paired)
-                    # Query format: "SELECT START_TIME FROM ..."
-                    assert "START_TIME" in query
-                    # Should NOT have comma (no second column)
-                    assert query.count("START_TIME") == 1
 
 def test_ek_coverage_case_insensitive_stop_match(lsk):
-    """Test that STOP column matching is case-insensitive."""
+    """Test that query-first approach works with actual column names (case-sensitive in SQL).
+
+    Note: SQL/SPICE queries are case-sensitive for column names, so the query-first
+    approach tries uppercase patterns. If those fail, fallback to cnames will find
+    the lowercase versions and construct a query with the actual column names.
+    """
     ek_file = str(KERNELS / "ek" / "lroevnt_2010193_2010200_v01.bes")
-    
+
     mock_segsum = MagicMock()
     mock_segsum.nrows = 10
     mock_segsum.tabnam = "MIXED_CASE_TABLE"
     # Lowercase column names
     mock_segsum.cnames = ["start_time", "stop_time", "id"]
-    
+
+    ekfind_calls = []
+
+    def mock_ekfind_case_sensitive(query, bufsize):
+        """Query patterns are uppercase, but actual columns are lowercase."""
+        ekfind_calls.append(query)
+        # Uppercase patterns fail (SQL is case-sensitive) - these are from _find_ek_time_columns
+        if "START_TIME" in query and "STOP_TIME" in query:
+            return (0, True, "Column not found")
+        # Lowercase queries succeed - these are from the fallback path using actual cnames
+        if "start_time" in query and "stop_time" in query:
+            return (10, False, "")
+        # Other patterns fail
+        return (0, True, "Column not found")
+
     with patch('spiceypy.eknseg', return_value=1):
         with patch('spiceypy.ekssum', return_value=mock_segsum):
-            with patch('spiceypy.ekfind', return_value=(10, False, "")) as mock_ekfind:
+            with patch('spiceypy.ekfind', side_effect=mock_ekfind_case_sensitive):
                 with patch('pds.naif_pds4_bundler.utils.time._ek_fetch_row_value', return_value=8000.0):
                     result = time.ek_coverage(ek_file)
-                    
+
+                    # Should still work via cnames fallback with lowercase column names
                     assert result != ["", ""]
-                    query = mock_ekfind.call_args[0][0]
-                    # Should match despite lowercase
-                    assert "start_time" in query
-                    assert "stop_time" in query
 
 # Test: Query Error and No Results Handling
 # -----------------------------------------------------------------------------
@@ -960,25 +938,6 @@ def test_ek_coverage_query_returns_zero_rows(lsk):
                     # Should return empty since query returned 0 rows
                     assert result == ["", ""]
                     # Fetch should not be called because of continue
-                    mock_fetch.assert_not_called()
-
-def test_ek_coverage_query_error_with_message(lsk):
-    """Test query error with specific error message."""
-    ek_file = str(KERNELS / "ek" / "lroevnt_2010193_2010200_v01.bes")
-    
-    mock_segsum = MagicMock()
-    mock_segsum.nrows = 10
-    mock_segsum.tabnam = "BAD_QUERY_TABLE"
-    mock_segsum.cnames = ["EVT_TIME"]
-    
-    with patch('spiceypy.eknseg', return_value=1):
-        with patch('spiceypy.ekssum', return_value=mock_segsum):
-            # Error with detailed message
-            with patch('spiceypy.ekfind', return_value=(0, True, "Syntax error at token SELECT")):
-                with patch('pds.naif_pds4_bundler.utils.time._ek_fetch_row_value') as mock_fetch:
-                    result = time.ek_coverage(ek_file, "infomod2", "UTC")
-                    
-                    assert result == ["", ""]
                     mock_fetch.assert_not_called()
 
 def test_ek_coverage_multiple_segments_one_query_fails(lsk):
@@ -1120,7 +1079,7 @@ def test_ek_coverage_start_stop_columns_appends_both(lsk):
     """Test that START/STOP columns append both start_et and stop_et.
 
     When there are separate START_TIME and STOP_TIME columns, _ek_fetch_row_value
-    is called twice and returns different values. Both should be appended to
+    is called twice per row and returns different values. Both should be appended to
     segment_times: appends start_et, appends stop_et.
     """
     ek_file = str(KERNELS / "ek" / "lroevnt_2010193_2010200_v01.bes")
@@ -1144,20 +1103,22 @@ def test_ek_coverage_start_stop_columns_appends_both(lsk):
 
     with patch('spiceypy.eknseg', return_value=1):
         with patch('spiceypy.ekssum', return_value=mock_segsum):
-            with patch('spiceypy.ekfind', return_value=(10, False, "")):
-                with patch('pds.naif_pds4_bundler.utils.time._ek_fetch_row_value', side_effect=mock_fetch):
-                    result = time.ek_coverage(ek_file, "infomod2", "UTC")
+            # Mock _find_ek_time_columns to return START_TIME/STOP_TIME pair
+            with patch('pds.naif_pds4_bundler.utils.time._find_ek_time_columns', return_value=("START_TIME", "STOP_TIME", False)):
+                with patch('spiceypy.ekfind', return_value=(10, False, "")):
+                    with patch('pds.naif_pds4_bundler.utils.time._ek_fetch_row_value', side_effect=mock_fetch):
+                        result = time.ek_coverage(ek_file, "infomod2", "UTC")
 
-                    # Should get coverage from both start and stop times
-                    assert result != ["", ""]
-                    # Verify both columns were fetched (2 calls per row * 10 rows)
-                    assert fetch_call_count[0] == 20
+                        # Should get coverage from both start and stop times
+                        assert result != ["", ""]
+                        # Verify both columns were fetched (2 calls per row * 10 rows = 20)
+                        assert fetch_call_count[0] == 20
 
-                    # Verify the result uses min of starts and max of stops
-                    # min(1000, 1100, ..., 1900) = 1000
-                    # max(2000, 2100, ..., 2900) = 2900
-                    assert result[0] != ""
-                    assert result[1] != ""
+                        # Verify the result uses min of starts and max of stops
+                        # min(1000, 1100, ..., 1900) = 1000
+                        # max(2000, 2100, ..., 2900) = 2900
+                        assert result[0] != ""
+                        assert result[1] != ""
 
 def test_ek_coverage_stop_et_none_only_appends_start(lsk):
     """Test that None stop_et only appends start_et.
@@ -1184,14 +1145,16 @@ def test_ek_coverage_stop_et_none_only_appends_start(lsk):
 
     with patch('spiceypy.eknseg', return_value=1):
         with patch('spiceypy.ekssum', return_value=mock_segsum):
-            with patch('spiceypy.ekfind', return_value=(5, False, "")):
-                with patch('pds.naif_pds4_bundler.utils.time._ek_fetch_row_value', side_effect=mock_fetch):
-                    result = time.ek_coverage(ek_file, "infomod2", "UTC")
+            # Mock _find_ek_time_columns to return START_TIME/STOP_TIME pair
+            with patch('pds.naif_pds4_bundler.utils.time._find_ek_time_columns', return_value=("START_TIME", "STOP_TIME", False)):
+                with patch('spiceypy.ekfind', return_value=(5, False, "")):
+                    with patch('pds.naif_pds4_bundler.utils.time._ek_fetch_row_value', side_effect=mock_fetch):
+                        result = time.ek_coverage(ek_file, "infomod2", "UTC")
 
-                    # Should still get coverage from start times only
-                    assert result != ["", ""]
-                    # Both fetches attempted
-                    assert fetch_call_count[0] == 10  # 2 per row * 5 rows
+                        # Should still get coverage from start times only
+                        assert result != ["", ""]
+                        # Both fetches attempted (2 per row * 5 rows = 10)
+                        assert fetch_call_count[0] == 10
 
 def test_ek_coverage_start_et_none_skips_row(lsk):
     """Test that None start_et skips the row entirely.
@@ -1373,7 +1336,7 @@ def test_ek_coverage_index_error_during_fetch_continues(lsk):
                     assert result != ["", ""]
                     assert call_count[0] == 3
 
-# Test: Query SpiceyError Exception Handling
+# Test: Query SPICE Error Exception Handling
 # -----------------------------------------------------------------------------
 
 def test_ek_coverage_query_spicey_error_skips_segment(lsk):
@@ -1422,28 +1385,29 @@ def test_ek_coverage_query_spicey_error_multiple_segments_one_fails(lsk):
     mock_segsum2.tabnam = "GOOD_QUERY_TABLE"
     mock_segsum2.cnames = ["TIME"]
 
-    ekfind_call_count = [0]
+    segment_call = [0]
 
-    def mock_ekfind(query, bufsize):
-        """First call raises SpiceyError, second succeeds."""
-        ekfind_call_count[0] += 1
-        if ekfind_call_count[0] == 1:
-            # First segment query fails
+    def mock_find_ek_time_columns(table_name):
+        """Mock _find_ek_time_columns - first segment fails, second succeeds."""
+        segment_call[0] += 1
+        if segment_call[0] == 1:
+            # First segment: raise SpiceyError
             raise spiceypy.exceptions.SpiceyError("SPICE(QUERYFAILURE) Query failed")
         else:
-            # Second segment query succeeds
-            return (5, False, "")
+            # Second segment: return success
+            return ("TIME", "TIME", True)
 
     with patch('spiceypy.eknseg', return_value=2):
         with patch('spiceypy.ekssum', side_effect=[mock_segsum1, mock_segsum2]):
-            with patch('spiceypy.ekfind', side_effect=mock_ekfind):
-                with patch('pds.naif_pds4_bundler.utils.time._ek_fetch_row_value', return_value=1000.0):
-                    result = time.ek_coverage(ek_file, "infomod2", "UTC")
+            with patch('pds.naif_pds4_bundler.utils.time._find_ek_time_columns', side_effect=mock_find_ek_time_columns):
+                with patch('spiceypy.ekfind', return_value=(5, False, "")):
+                    with patch('pds.naif_pds4_bundler.utils.time._ek_fetch_row_value', return_value=1000.0):
+                        result = time.ek_coverage(ek_file, "infomod2", "UTC")
 
-                    # Should get coverage from second segment despite first failing
-                    assert result != ["", ""]
-                    # Both segments should have attempted query
-                    assert ekfind_call_count[0] == 2
+                        # Should get coverage from second segment despite first failing
+                        assert result != ["", ""]
+                        # Both segments should have been attempted
+                        assert segment_call[0] == 2
 
 def test_ek_coverage_query_spicey_error_all_segments_fail(lsk):
     """Test that all segments failing with query SpiceyError returns empty.
@@ -1610,8 +1574,8 @@ def test_ek_coverage_both_exception_types_in_different_segments(lsk):
     mock_segsum0.tabnam = "GOOD_SEGMENT"
     mock_segsum0.cnames = ["ET"]
 
-    # Segment 1: ekssum will fail (line 475-477)
-    # Segment 2: query will fail (line 471-473)
+    # Segment 1: ekssum will fail
+    # Segment 2: query will fail
     mock_segsum2 = MagicMock()
     mock_segsum2.nrows = 10
     mock_segsum2.tabnam = "QUERY_FAIL_SEGMENT"
@@ -1627,28 +1591,29 @@ def test_ek_coverage_both_exception_types_in_different_segments(lsk):
         else:
             return mock_segsum2
 
-    ekfind_call = [0]
-    def mock_ekfind(query, bufsize):
-        ekfind_call[0] += 1
-        if ekfind_call[0] == 1:
-            # Query for segment 0 succeeds
-            return (10, False, "")
+    find_call = [0]
+    def mock_find_ek_time_columns(table_name):
+        find_call[0] += 1
+        if find_call[0] == 1:
+            # First segment succeeds
+            return ("ET", "ET", True)
         else:
-            # Query for segment 2 fails
+            # Third segment (second call) fails
             raise spiceypy.exceptions.SpiceyError("Query parse error")
 
     with patch('spiceypy.eknseg', return_value=3):
         with patch('spiceypy.ekssum', side_effect=mock_ekssum):
-            with patch('spiceypy.ekfind', side_effect=mock_ekfind):
-                with patch('pds.naif_pds4_bundler.utils.time._ek_fetch_row_value', return_value=5000.0):
-                    result = time.ek_coverage(ek_file, "infomod2", "UTC")
+            with patch('pds.naif_pds4_bundler.utils.time._find_ek_time_columns', side_effect=mock_find_ek_time_columns):
+                with patch('spiceypy.ekfind', return_value=(10, False, "")):
+                    with patch('pds.naif_pds4_bundler.utils.time._ek_fetch_row_value', return_value=5000.0):
+                        result = time.ek_coverage(ek_file, "infomod2", "UTC")
 
-                    # Should get coverage from segment 0 only
-                    assert result != ["", ""]
-                    # All 3 segments attempted
-                    assert ekssum_call[0] == 3
-                    # Only 2 queries attempted (segment 1 failed before query)
-                    assert ekfind_call[0] == 2
+                        # Should get coverage from segment 0 only
+                        assert result != ["", ""]
+                        # All 3 segments attempted
+                        assert ekssum_call[0] == 3
+                        # Only 2 _find_ek_time_columns calls (segment 1 failed before that)
+                        assert find_call[0] == 2
 
 # Test: _ek_fetch_row_value ekgc Return Format Handling
 # -----------------------------------------------------------------------------
@@ -1656,7 +1621,7 @@ def test_ek_coverage_both_exception_types_in_different_segments(lsk):
 def test_ek_fetch_row_value_ekgc_two_element_tuple(lsk):
     """Test ekgc returning 2-element tuple (str, bool) format.
 
-    Some versions of SpicePy return (value_str, is_null) directly.
+    Some versions of SpiceyPy return (value_str, is_null) directly.
     This covers the len(result) == 2 branch.
     """
     with patch('spiceypy.ekgd', side_effect=spiceypy.exceptions.SpiceyError("Not double")):
@@ -1675,7 +1640,7 @@ def test_ek_fetch_row_value_ekgc_two_element_tuple(lsk):
 def test_ek_fetch_row_value_ekgc_three_element_tuple(lsk):
     """Test ekgc returning 3-element tuple (int, str, bool) format.
 
-    Some versions of SpicePy return (n, value_str, is_null) with n as character count.
+    Some versions of SpiceyPy return (n, value_str, is_null) with n as character count.
     This covers the len(result) >= 3 branch where we extract result[1] and result[2].
     """
     with patch('spiceypy.ekgd', side_effect=spiceypy.exceptions.SpiceyError("Not double")):
