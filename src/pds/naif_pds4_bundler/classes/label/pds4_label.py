@@ -279,13 +279,15 @@ class PDS4Label(PDSLabel):
                 target_lid, target_type = self._match_context_entry(
                     target_name, case_insensitive=True
                 )
-                # TODO: BUG, unlike get_missions/get_observers above, no
-                #       NPBError is raised here when target_lid is
-                #       None (no context product matched). lid/type instead
-                #       fall through as the literal string "None" into the
-                #       rendered label. Pre-existing behaviour, preserved by
-                #       this refactor and pinned by
-                #       test_no_match_renders_none_without_raising.
+
+                # Handle the case where no target LID was found: without this
+                # check, the label would be built with "None" as the value,
+                # instead of stopping with a clear error.
+                if not target_lid:
+                    raise NPBError(
+                        f"LID has not been obtained for target {tar}."
+                    )
+
                 if target_type is not None:
                     target_type = target_type.capitalize()
 
