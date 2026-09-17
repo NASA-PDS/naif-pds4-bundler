@@ -288,8 +288,9 @@ class PDS4Label(PDSLabel):
                         f"LID has not been obtained for target {tar}."
                     )
 
-                if target_type is not None:
-                    target_type = target_type.capitalize()
+                # If we got here we already have a real match, so there's always
+                # a type to capitalize.
+                target_type = target_type.capitalize()
 
                 tar_list_for_label += self._render_context_entry(
                     "Target_Identification", 2,
