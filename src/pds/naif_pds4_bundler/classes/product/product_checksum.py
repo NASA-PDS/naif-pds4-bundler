@@ -25,6 +25,10 @@ class ChecksumProduct(Product):
                                   be added, False otherwise
     """
 
+    # Checksum files must always be recomputed via md5(); never reused from
+    # the registry or product label (see Product._always_recompute_checksum).
+    _always_recompute_checksum: bool = True
+
     def __init__(self, setup, collection, add_previous_checksum: bool = True) -> None:
         """Constructor."""
         #

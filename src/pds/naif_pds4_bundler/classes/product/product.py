@@ -17,6 +17,10 @@ class Product:
     Subclasses must call ``register()`` once the product file exists on disk.
     """
 
+    # Overridden to True by ChecksumProduct: checksum files must always be
+    # recomputed, never reused from the checksum registry or product label.
+    _always_recompute_checksum: bool = False
+
     # TODO: update this method to have path and setup as input arguments.
     #
     #   def __init__(self, path: str, setup) -> None:
@@ -52,26 +56,23 @@ class Product:
         stat_info = os.stat(self.path)
         self._size = str(stat_info.st_size)
 
-        #
         # If specified via configuration, try to obtain the checksum from a
         # checksum registry file, if not present, try to obtain it from the
-        # label if the product is in the staging area. Otherwise, compute the
-        # checksum.
-        #
-        # Checksums for checksum files are always re-calculated.
-        #
-        if self.__class__.__name__ != "ChecksumProduct":
-            if self.setup.args.checksum:
-                checksum = checksum_from_registry(
-                    self.path, self.setup.working_directory
-                )
-                if not checksum:
-                    checksum = checksum_from_label(self.path)
-            else:
-                checksum = ""
+        # label if the product is in the staging area. Otherwise, (or if
+        # _always_recompute_checksum is set), compute the checksum directly.
+        checksum = ""
+
+        # Skip the registry/label lookup entirely if checksum reuse is off.
+        if not self._always_recompute_checksum and self.setup.args.checksum:
+            checksum = checksum_from_registry(
+                self.path, self.setup.working_directory
+            )
+
             if not checksum:
-                checksum = str(md5(self.path))
-        else:
+                checksum = checksum_from_label(self.path)
+
+        # md5() never comes back empty, so this is always the final fallback.
+        if not checksum:
             checksum = str(md5(self.path))
 
         self.checksum = checksum

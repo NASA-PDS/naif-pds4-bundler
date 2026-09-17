@@ -8,6 +8,7 @@ import pytest
 
 import pds.naif_pds4_bundler.classes.product.product as product_module
 from pds.naif_pds4_bundler.classes.product.product import Product
+from pds.naif_pds4_bundler.classes.product.product_checksum import ChecksumProduct
 
 
 def make_product_setup(tmp_path: Path, checksum: bool = False,
@@ -29,11 +30,12 @@ def make_product_setup(tmp_path: Path, checksum: bool = False,
 
 
 def make_product_without_init(path: Path, setup: SimpleNamespace,
-                              new_product: bool = True) -> Product:
-    # Build a Product instance without calling __init__. This keeps register
-    # tests focused on register itself and avoids the constructor auto-registering
-    # the product before the test is ready.
-    product = Product.__new__(Product)
+                              new_product: bool = True,
+                              cls: type = Product) -> Product:
+    # Build a Product (or subclass) instance without calling __init__. This
+    # keeps register tests focused on register itself and avoids the
+    # constructor auto-registering the product before the test is ready.
+    product = cls.__new__(cls)
 
     product.path = str(path)
     product.setup = setup
@@ -377,14 +379,9 @@ class TestProductRegister:
 
     def test_register_recalculates_checksum_for_checksum_product(self, mocker,
                                                                  tmp_path) -> None:
-        # Verify the ChecksumProduct-specific branch: register() must always
-        # recalculate checksum files with md5(), skipping checksum registry and
-        # label lookup even when checksum reuse is enabled.
-
-        # Build a minimal class named 'ChecksumProduct'. It does not inherit
-        # from Product.
-        checksum_product_spec = type('ChecksumProduct', (), {})
-
+        """register() always recomputes checksums for ChecksumProduct instances,
+        skipping the registry/label lookup even when checksum reuse is enabled.
+        """
         # Build a realistic path for the product.
         product_path = tmp_path / 'maven_spice' / 'maven_release_03.checksum'
 
@@ -397,11 +394,9 @@ class TestProductRegister:
         # is enabled deliberately to demonstrate that ChecksumProduct ignores it.
         setup = make_product_setup(tmp_path, checksum=True)
 
-        # Create a test object that appears to be a 'ChecksumProduct'.
-        product = Mock(spec=checksum_product_spec)
-        product.path = product_path
-        product.setup = setup
-        product.new_product = False
+        # Build a real (uninitialized) ChecksumProduct instance.
+        product = make_product_without_init(product_path, setup, new_product=False,
+                                            cls=ChecksumProduct)
 
         # Mock the registry, label and md5 calls.
         registry_mock = mocker.patch.object(product_module,
@@ -410,7 +405,7 @@ class TestProductRegister:
         md5_mock = mocker.patch.object(product_module, 'md5',
                                        return_value='checksum-file-md5')
 
-        Product.register(product)
+        product.register()
 
         # Check that the size has been calculated correctly and that the
         # checksum comes from md5().
@@ -425,9 +420,18 @@ class TestProductRegister:
         # path.
         md5_mock.assert_called_once_with(product.path)
 
-        # Check that there are no side effects because new_product=False.
+        # Check that neither the product nor its checksum has been recorded
+        # because new_product=False.
         setup.add_file.assert_not_called()
         setup.add_checksum.assert_not_called()
+
+    @pytest.mark.parametrize('cls, expected_always_recompute', [
+        (Product, False),
+        (ChecksumProduct, True)])
+    def test_always_recompute_checksum_attribute_default_and_override(
+            self, cls, expected_always_recompute) -> None:
+        """Product defaults to False; ChecksumProduct overrides it to True."""
+        assert cls._always_recompute_checksum is expected_always_recompute
 
     def test_register_registers_new_pds3_product_with_volume_relative_path(
             self, mocker, tmp_path) -> None:
