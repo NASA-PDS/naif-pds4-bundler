@@ -1,4 +1,5 @@
 """Tests for Product class."""
+import hashlib
 import os.path
 from pathlib import Path
 from types import SimpleNamespace
@@ -7,7 +8,9 @@ from unittest.mock import Mock
 import pytest
 
 import pds.naif_pds4_bundler.classes.product.product as product_module
+import pds.naif_pds4_bundler.classes.product.product_checksum as checksum_module
 from pds.naif_pds4_bundler.classes.product.product import Product
+from pds.naif_pds4_bundler.classes.product.product_checksum import ChecksumProduct
 
 
 def make_product_setup(tmp_path: Path, checksum: bool = False,
@@ -29,11 +32,12 @@ def make_product_setup(tmp_path: Path, checksum: bool = False,
 
 
 def make_product_without_init(path: Path, setup: SimpleNamespace,
-                              new_product: bool = True) -> Product:
-    # Build a Product instance without calling __init__. This keeps register
-    # tests focused on register itself and avoids the constructor auto-registering
-    # the product before the test is ready.
-    product = Product.__new__(Product)
+                              new_product: bool = True,
+                              cls: type = Product) -> Product:
+    # Build a Product (or subclass) instance without calling __init__. This
+    # keeps register tests focused on register itself and avoids the
+    # constructor auto-registering the product before the test is ready.
+    product = cls.__new__(cls)
 
     product.path = str(path)
     product.setup = setup
@@ -152,367 +156,249 @@ class TestProductInit:
         register_mock.assert_called_once_with(product)
 
 
-class TestProductRegister:
+class TestProductComputeChecksum:
 
-    def test_register_uses_checksum_registry_and_registers_new_pds4_product(
+    @pytest.mark.parametrize(
+        'reuse, registry, label, expected, registry_calls, label_calls, md5_calls', [
+            (True, 'reg', 'lab', 'reg', 1, 0, 0),
+            (True, '', 'lab', 'lab', 1, 1, 0),
+            (True, None, 'lab', 'lab', 1, 1, 0),
+            (True, '', '', 'md5', 1, 1, 1),
+            (True, None, None, 'md5', 1, 1, 1),
+            (False, 'reg', 'lab', 'md5', 0, 0, 1)])
+    def test_compute_checksum_resolves_registry_then_label_then_md5(
+            self, mocker, tmp_path, reuse, registry, label, expected,
+            registry_calls, label_calls, md5_calls) -> None:
+        """The checksum comes from the registry, then the label, then md5().
+
+        With checksum reuse on, a registry hit is used as is. If the registry
+        gives nothing (empty string or None) we try the label, and if that is
+        empty too we compute md5(). With reuse off, only md5() is used. The
+        call counts show which sources were actually asked along the way.
+        """
+        # Preparation: every lookup returns the value of the case, and md5
+        # returns a fixed marker so we can tell where the result came from.
+        setup = make_product_setup(tmp_path, checksum=reuse)
+        product = make_product_without_init(tmp_path / 'p.bsp', setup)
+        registry_mock = mocker.patch.object(
+            product_module, 'checksum_from_registry', return_value=registry)
+        label_mock = mocker.patch.object(
+            product_module, 'checksum_from_label', return_value=label)
+        md5_mock = mocker.patch.object(product_module, 'md5', return_value='md5')
+
+        # Execution.
+        checksum = product._compute_checksum()
+
+        # Verification: the right source won and the others were left alone.
+        assert checksum == expected
+        assert registry_mock.call_count == registry_calls
+        assert label_mock.call_count == label_calls
+        assert md5_mock.call_count == md5_calls
+
+    def test_compute_checksum_passes_path_and_working_directory_to_lookups(
             self, mocker, tmp_path) -> None:
-        # Verify the main PDS4 registration path: register() reads the file size, reuses
-        # the checksum found in the checksum registry, skips fallback checksum sources,
-        # and registers a new product using its maven_spice-relative archive path.
+        """Each checksum source receives the arguments it needs.
 
-        # Build the product path within a realistic PDS4 structure.
-        product_path = (tmp_path / 'bundle' / 'maven_spice' / 'spice_kernels' /
-                        'spk' / 'maven_orbit_v01.bsp')
-
-        # Create all the necessary directories.
-        product_path.parent.mkdir(parents=True)
-        product_content = 'kernel-content'
-        product_path.write_text(product_content, encoding='utf-8')
-
-        # Create a minimal setup.
-        # The attribute checksum=True enables registry scanning; pds_version='4'
-        # enables PDS4 path logic.
-        setup = make_product_setup(tmp_path, checksum=True, pds_version='4')
-
-        # Create a Product instance ready run a register() call.
-        product = make_product_without_init(product_path, setup)
-
-        # Mock the function that searches for the checksum in the record and
-        # force it to find it.
-        registry_mock = mocker.patch(
-            'pds.naif_pds4_bundler.classes.product.product.checksum_from_registry',
-            return_value='registry-checksum')
-
-        # Mock the fallback function from the tag to verify that it is not used.
-        label_mock = mocker.patch(
-            'pds.naif_pds4_bundler.classes.product.product.checksum_from_label')
-
-        # Mock the MD5 calculation to verify that the checksum is not
-        # recalculated.
-        md5_mock = mocker.patch(
-            'pds.naif_pds4_bundler.classes.product.product.md5')
-
-        product.register()
-
-        # Calculate the real file size.
-        expected_size = str(len(product_content))
-
-        # Check the internal attributes.
-        assert product._size == expected_size
-        assert product.size == expected_size
-        assert product.checksum == 'registry-checksum'
-
-        registry_mock.assert_called_once_with(str(product_path),
-                                              setup.working_directory)
-
-        # Check that the tag fallback was not used and that the checksum was not
-        # calculated.
-        label_mock.assert_not_called()
-        md5_mock.assert_not_called()
-
-        # Check that the new product has been registered with the expected
-        # relative path PDS4.
-        setup.add_file.assert_called_once_with(
-            os.path.join('spice_kernels', 'spk', 'maven_orbit_v01.bsp'))
-
-        # Check that the checksum has been registered using the full path and
-        # the resolved checksum.
-        setup.add_checksum.assert_called_once_with(
-            str(product_path), 'registry-checksum')
-
-    @pytest.mark.parametrize('registry_value', ['', None])
-    def test_register_falls_back_to_label_checksum_when_registry_has_no_match(
-            self, mocker, tmp_path, registry_value) -> None:
-        # Verify that register() falls back to checksum_from_label() when checksum
-        # lookup is enabled but the checksum registry does not contain a value, without
-        # recalculating md5 or registering the product when new_product is False.
-
-        # Build a realistic timeline for the product.
-        product_path = tmp_path / 'maven_spice' / 'document' / 'spiceds_v001.html'
-
-        # Create all the necessary directories.
-        product_path.parent.mkdir(parents=True)
-        product_content = '<html />'
-        product_path.write_text(product_content, encoding='utf-8')
-
-        # Create a minimal setup with checksum verification enabled.
+        The registry lookup takes the product path and the working directory,
+        while the label lookup and md5() only take the path. The first two
+        return nothing here, so that all three get called.
+        """
+        # Preparation: reuse on and empty lookups, so we go through every source.
         setup = make_product_setup(tmp_path, checksum=True)
-        product = make_product_without_init(product_path, setup, new_product=False)
+        product = make_product_without_init(tmp_path / 'p.bsp', setup)
+        registry_mock = mocker.patch.object(
+            product_module, 'checksum_from_registry', return_value='')
+        label_mock = mocker.patch.object(
+            product_module, 'checksum_from_label', return_value='')
+        md5_mock = mocker.patch.object(product_module, 'md5', return_value='md5')
 
-        # Mock the search in the registry and ensure that no checksum is found.
-        registry_mock = mocker.patch(
-            'pds.naif_pds4_bundler.classes.product.product.checksum_from_registry',
-            return_value=registry_value)
+        # Execution.
+        product._compute_checksum()
 
-        # Mock the search in the tag and ensure that a checksum is found.
-        label_mock = mocker.patch(
-            'pds.naif_pds4_bundler.classes.product.product.checksum_from_label',
-            return_value='label-checksum')
+        # Verification: exact arguments, and in the right order.
+        registry_mock.assert_called_once_with(product.path, setup.working_directory)
+        label_mock.assert_called_once_with(product.path)
+        md5_mock.assert_called_once_with(product.path)
 
-        # Mock md5() to verify that it is not being used.
-        md5_mock = mocker.patch(
-            'pds.naif_pds4_bundler.classes.product.product.md5')
+    def test_compute_checksum_returns_real_md5_of_file_content(
+            self, tmp_path) -> None:
+        """The checksum is the actual md5 digest of the file content.
 
-        product.register()
-
-        # Check the internal attributes.
-        assert product.size == str(len(product_content))
-        assert product.checksum == 'label-checksum'
-
-        # Check that registry and label have been called once and md5 has not
-        # been called.
-        registry_mock.assert_called_once_with(str(product_path),
-                                              setup.working_directory)
-        label_mock.assert_called_once_with(str(product_path))
-        md5_mock.assert_not_called()
-
-        # Check that neither the product nor its checksum has been recorded
-        # because new_product=False.
-        setup.add_file.assert_not_called()
-        setup.add_checksum.assert_not_called()
-
-    @pytest.mark.parametrize('registry_value, label_value', [
-        ('', ''),
-        (None, None)])
-    def test_register_computes_md5_when_registry_and_label_have_no_checksum(
-            self, mocker, tmp_path, registry_value, label_value) -> None:
-        # Verify the final checksum fallback: when checksum lookup is enabled but both
-        # the registry and the product label return no checksum, register() computes the
-        # checksum with md5() and does not register setup side effects for existing products.
-
-        # Build a realistic path for the product.
-        product_path = (tmp_path / 'maven_spice' / 'miscellaneous' /
-                        'orbnum' / 'orbn_00001.orb')
-
-        # Create all the necessary directories.
-        product_path.parent.mkdir(parents=True)
-        product_content = 'orbit-number'
-        product_path.write_text(product_content, encoding='utf-8')
-
-        # Create a minimal setup with the checksum option enabled.
-        setup = make_product_setup(tmp_path, checksum=True)
-        product = make_product_without_init(product_path, setup, new_product=False)
-
-        # Mock the registry lookup and force it not to return a checksum.
-        registry_mock = mocker.patch(
-            'pds.naif_pds4_bundler.classes.product.product.checksum_from_registry',
-            return_value=registry_value)
-
-        # Mock the search by tag and also forces it not to return a checksum.
-        label_mock = mocker.patch(
-            'pds.naif_pds4_bundler.classes.product.product.checksum_from_label',
-            return_value=label_value)
-
-        # Mock the MD5 calculation to return a fixed, verifiable value.
-        md5_mock = mocker.patch(
-            'pds.naif_pds4_bundler.classes.product.product.md5',
-            return_value='computed-checksum')
-
-        product.register()
-
-        # Check that the file size has been calculated correctly.
-        assert product.size == str(len(product_content))
-
-        # Check that the final checksum comes from md5().
-        assert product.checksum == 'computed-checksum'
-
-        # Check that registry, label and md5 calls once.
-        registry_mock.assert_called_once_with(str(product_path),
-                                              setup.working_directory)
-        label_mock.assert_called_once_with(str(product_path))
-        md5_mock.assert_called_once_with(str(product_path))
-
-        # Check that no product or checksum was recorded because
-        # new_product=False.
-        setup.add_file.assert_not_called()
-        setup.add_checksum.assert_not_called()
-
-    def test_register_computes_md5_without_reading_registry_when_checksum_is_disabled(
-            self, mocker, tmp_path) -> None:
-        # Verify that register() skips registry and label checksum lookup when checksum
-        # reuse is disabled, computes the checksum directly with md5(), and does not
-        # register setup side effects for existing products.
-
-        # Build a realistic path for the product.
-        product_path = tmp_path / 'maven_spice' / 'readme.txt'
-
-        # Create all the necessary directories.
-        product_path.parent.mkdir(parents=True)
-        product_content = 'readme'
-        product_path.write_text(product_content, encoding='utf-8')
-
-        # Create a minimal setup with checksum reuse disabled.
+        Every other test mocks md5(). This one runs the real thing, so a bad
+        hookup to the hashing helper, or a wrong return type, would show up.
+        """
+        # Preparation: a real file, with reuse off so md5 is the only source.
+        path = tmp_path / 'readme.txt'
+        path.write_bytes(b'readme')
         setup = make_product_setup(tmp_path, checksum=False)
-        product = make_product_without_init(product_path, setup, new_product=False)
+        product = make_product_without_init(path, setup)
 
-        # Mock registry and label to verify that they are not being used.
-        registry_mock = mocker.patch(
-            'pds.naif_pds4_bundler.classes.product.product.checksum_from_registry')
-        label_mock = mocker.patch(
-            'pds.naif_pds4_bundler.classes.product.product.checksum_from_label')
+        # Execution.
+        checksum = product._compute_checksum()
 
-        # Mock the MD5 calculation and force a stable result.
-        md5_mock = mocker.patch(
-            'pds.naif_pds4_bundler.classes.product.product.md5',
-            return_value='computed-checksum')
+        # Verification: same value as an independent hashlib computation.
+        assert checksum == hashlib.md5(b'readme').hexdigest()
 
-        product.register()
+    def test_checksum_product_ignores_registry_and_label(
+            self, mocker, tmp_path) -> None:
+        """A ChecksumProduct always recomputes its checksum with md5().
 
-        # Check that the size has been calculated correctly and that the final
-        # checksum comes from md5().
-        assert product.size == str(len(product_content))
-        assert product.checksum == 'computed-checksum'
-
-        # Confirms that neither the register nor the label has been checked.
-        registry_mock.assert_not_called()
-        label_mock.assert_not_called()
-
-        # Confirms that the checksum has been calculated directly from the
-        # product path.
-        md5_mock.assert_called_once_with(str(product_path))
-
-        # Check that there are no side effects because new_product=False.
-        setup.add_file.assert_not_called()
-        setup.add_checksum.assert_not_called()
-
-    def test_register_recalculates_checksum_for_checksum_product(self, mocker,
-                                                                 tmp_path) -> None:
-        # Verify the ChecksumProduct-specific branch: register() must always
-        # recalculate checksum files with md5(), skipping checksum registry and
-        # label lookup even when checksum reuse is enabled.
-
-        # Build a minimal class named 'ChecksumProduct'. It does not inherit
-        # from Product.
-        checksum_product_spec = type('ChecksumProduct', (), {})
-
-        # Build a realistic path for the product.
-        product_path = tmp_path / 'maven_spice' / 'maven_release_03.checksum'
-
-        # Create all the necessary directories.
-        product_path.parent.mkdir(parents=True)
-        product_content = 'checksum-registry'
-        product_path.write_text(product_content, encoding='utf-8')
-
-        # Create a minimal setup with checksum reuse enabled. In this test, it
-        # is enabled deliberately to demonstrate that ChecksumProduct ignores it.
+        A checksum file must never reuse a stored value, so the registry and
+        the label must not be consulted, even when checksum reuse is on.
+        """
+        # Preparation: reuse on, to prove the override ignores it. md5 is
+        # patched in product_checksum because that is where the override
+        # looks it up.
         setup = make_product_setup(tmp_path, checksum=True)
-
-        # Create a test object that appears to be a 'ChecksumProduct'.
-        product = Mock(spec=checksum_product_spec)
-        product.path = product_path
-        product.setup = setup
-        product.new_product = False
-
-        # Mock the registry, label and md5 calls.
+        product = make_product_without_init(tmp_path / 'x.checksum', setup,
+                                            cls=ChecksumProduct)
         registry_mock = mocker.patch.object(product_module,
                                             'checksum_from_registry')
         label_mock = mocker.patch.object(product_module, 'checksum_from_label')
-        md5_mock = mocker.patch.object(product_module, 'md5',
-                                       return_value='checksum-file-md5')
+        md5_mock = mocker.patch.object(checksum_module, 'md5',
+                                       return_value='fresh-md5')
 
-        Product.register(product)
+        # Execution.
+        checksum = product._compute_checksum()
 
-        # Check that the size has been calculated correctly and that the
-        # checksum comes from md5().
-        assert product._size == str(len(product_content))
-        assert product.checksum == 'checksum-file-md5'
-
-        # Check that neither registry nor label has been called.
+        # Verification: we got the md5 value and never touched the other sources.
+        assert checksum == 'fresh-md5'
         registry_mock.assert_not_called()
         label_mock.assert_not_called()
-
-        # Check that the checksum was recalculated using md5() with the correct
-        # path.
         md5_mock.assert_called_once_with(product.path)
 
-        # Check that there are no side effects because new_product=False.
+
+class TestProductRegister:
+
+    @pytest.mark.parametrize('pds_version, parts, expected_relative', [
+        ('4', ('bundle', 'maven_spice', 'spice_kernels', 'spk', 'k.bsp'),
+         os.path.join('spice_kernels', 'spk', 'k.bsp')),
+        ('3', ('bundle', 'MAVEN_1001', 'data', 'spk', 'k.bsp'),
+         os.path.join('data', 'spk', 'k.bsp'))])
+    def test_register_records_new_product_relative_to_archive_dir(
+            self, mocker, tmp_path, pds_version, parts, expected_relative) -> None:
+        """A new product is registered with its path inside the archive.
+
+        In PDS4 the archive directory is '<mission>_spice' and in PDS3 it is
+        the volume id. Either way, the size and checksum end up on the product
+        and the setup is told about the file using the path below that
+        directory.
+        """
+        # Preparation: a real file in the layout of each PDS version. The
+        # checksum is fixed, since how it is resolved is not what we test here.
+        path = tmp_path.joinpath(*parts)
+        path.parent.mkdir(parents=True)
+        path.write_text('kernel-content', encoding='utf-8')
+        setup = make_product_setup(tmp_path, pds_version=pds_version)
+        product = make_product_without_init(path, setup)
+        mocker.patch.object(Product, '_compute_checksum', return_value='hook-sum')
+
+        # Execution.
+        product.register()
+
+        # Verification: size and checksum are stored on the product.
+        assert product.size == str(len('kernel-content'))
+        assert product.checksum == 'hook-sum'
+
+        # The setup gets the archive-relative path and the full-path checksum.
+        setup.add_file.assert_called_once_with(expected_relative)
+        setup.add_checksum.assert_called_once_with(str(path), 'hook-sum')
+
+    def test_register_does_not_record_existing_product(
+            self, mocker, tmp_path) -> None:
+        """Only products flagged as new are registered in the setup.
+
+        For an existing product (new_product=False) the size and checksum are
+        still set, but the setup must not be told anything about it.
+        """
+        # Preparation: a real file, not flagged as new, and a fixed checksum.
+        path = tmp_path / 'maven_spice' / 'readme.txt'
+        path.parent.mkdir(parents=True)
+        path.write_text('readme', encoding='utf-8')
+        setup = make_product_setup(tmp_path)
+        product = make_product_without_init(path, setup, new_product=False)
+        mocker.patch.object(Product, '_compute_checksum', return_value='hook-sum')
+
+        # Execution.
+        product.register()
+
+        # Verification: attributes are set, but nothing is registered.
+        assert product.size == str(len('readme'))
+        assert product.checksum == 'hook-sum'
         setup.add_file.assert_not_called()
         setup.add_checksum.assert_not_called()
 
-    def test_register_registers_new_pds3_product_with_volume_relative_path(
-            self, mocker, tmp_path) -> None:
-        # Verify the PDS3 new-product registration path: register() computes the file
-        # size and checksum, then registers the product using the path relative to the
-        # configured volume_id directory instead of the PDS4 mission_spice directory.
+    def test_register_uses_real_checksum_resolution_for_base_product(
+            self, tmp_path) -> None:
+        """register() and the real _compute_checksum() work together.
 
-        # Build a realistic PDS3 path.
-        product_path = (tmp_path / 'bundle' / 'MAVEN_1001' / 'data' /
-                        'spk' / 'maven_orbit_v01.bsp')
+        The other register() tests patch the checksum hook. This one leaves
+        it alone (only the setup is fake), so the connection between the two
+        is checked once, end to end.
+        """
+        # Preparation: a real file, with reuse off so md5 is the only source.
+        path = tmp_path / 'maven_spice' / 'readme.txt'
+        path.parent.mkdir(parents=True)
+        path.write_bytes(b'readme')
+        setup = make_product_setup(tmp_path, checksum=False)
+        product = make_product_without_init(path, setup, new_product=False)
 
-        # Create all the necessary directories.
-        product_path.parent.mkdir(parents=True)
-        product_content = 'kernel-content'
-        product_path.write_text(product_content, encoding='utf-8')
-
-        # Create a minimal setup configured for PDS3 with checksum reuse
-        # disabled.
-        setup = make_product_setup(tmp_path, checksum=False, pds_version='3')
-        product = make_product_without_init(product_path, setup)
-
-        # Mock the md5() function to produce a stable and verifiable checksum.
-        md5_mock = mocker.patch('pds.naif_pds4_bundler.classes.product.product.md5',
-                                return_value='computed-checksum')
-
+        # Execution.
         product.register()
 
-        # Check that register() has correctly read the file size and that the
-        # final checksum is the value returned by md5().
-        assert product.size == str(len(product_content))
-        assert product.checksum == 'computed-checksum'
+        # Verification: the stored checksum is the real md5 of the content.
+        assert product.checksum == hashlib.md5(b'readme').hexdigest()
 
-        # Check that md5() has been called once with the full product path.
-        md5_mock.assert_called_once_with(str(product_path))
+    def test_register_dispatches_to_checksum_product_override(
+            self, mocker, tmp_path) -> None:
+        """register() uses the ChecksumProduct version of the checksum hook.
 
-        # Check the key point of the test: in PDS3, the path recorded must be
-        # relative to the MAVEN_1001/ volume, and the checksum must be recorded
-        # using the full path and the calculated checksum.
-        setup.add_file.assert_called_once_with(os.path.join('data', 'spk', 'maven_orbit_v01.bsp'))
-        setup.add_checksum.assert_called_once_with(str(product_path),
-                                                   'computed-checksum')
+        A ChecksumProduct should end up with the md5 checksum and never look
+        in the registry, even if checksum reuse is enabled.
+        """
+        # Preparation: reuse on, and md5 patched where the override uses it.
+        path = tmp_path / 'maven_spice' / 'release.checksum'
+        path.parent.mkdir(parents=True)
+        path.write_text('checksum-registry', encoding='utf-8')
+        setup = make_product_setup(tmp_path, checksum=True)
+        product = make_product_without_init(path, setup, new_product=False,
+                                            cls=ChecksumProduct)
+        registry_mock = mocker.patch.object(product_module,
+                                            'checksum_from_registry')
+        mocker.patch.object(checksum_module, 'md5', return_value='fresh-md5')
+
+        # Execution.
+        product.register()
+
+        # Verification: the override's checksum was stored and the registry
+        # was skipped.
+        assert product.checksum == 'fresh-md5'
+        registry_mock.assert_not_called()
 
     def test_register_raises_file_not_found_before_computing_checksum(
             self, mocker, tmp_path) -> None:
-        # Verify that register() fails immediately when the product file does not exist,
-        # preserving the previous product state and avoiding checksum or setup
-        # registration side effects.
+        """A missing file makes register() fail early and change nothing.
 
-        # Creates a path to a file that does not exist, causing a
-        # FileNotFoundError to be raised.
-        product_path = tmp_path / 'maven_spice' / 'missing.xml'
-
-        # Create a minimal setup with checksum verification enabled. Even if it
-        # is enabled, the method should not reach that logic because the file
-        # does not exist.
+        The size is read first, so a missing file must raise FileNotFoundError
+        before any checksum is computed or anything is registered, and the
+        product keeps the state it had before.
+        """
+        # Preparation: a path that does not exist, with reuse on (it must not
+        # matter), and a previous state that has to survive the failure.
         setup = make_product_setup(tmp_path, checksum=True)
-
-        # Initialise a previous state to demonstrate that the early failure does
-        # not overwrite those attributes.
-        product = make_product_without_init(product_path, setup, new_product=True)
+        product = make_product_without_init(tmp_path / 'missing.xml', setup)
         product.checksum = 'previous-checksum'
         product._size = 'previous-size'
+        hook_mock = mocker.patch.object(Product, '_compute_checksum')
 
-        # Mocks registry, label and md5 calls.
-        registry_mock = mocker.patch(
-            'pds.naif_pds4_bundler.classes.product.product.checksum_from_registry')
-        label_mock = mocker.patch(
-            'pds.naif_pds4_bundler.classes.product.product.checksum_from_label')
-        md5_mock = mocker.patch(
-            'pds.naif_pds4_bundler.classes.product.product.md5')
-
+        # Execution.
         with pytest.raises(FileNotFoundError):
             product.register()
 
-        # Check that the checksum above has not been altered and that the file
-        # size has not changed.
+        # Verification: old state untouched, no checksum computed and nothing
+        # registered in the setup.
         assert product.checksum == 'previous-checksum'
         assert product.size == 'previous-size'
-
-        # Check that no attempt has been made to resolve or calculate any
-        # checksums.
-        registry_mock.assert_not_called()
-        label_mock.assert_not_called()
-        md5_mock.assert_not_called()
-
-        # Check that no files or checksums have been recorded in the setup.
+        hook_mock.assert_not_called()
         setup.add_file.assert_not_called()
         setup.add_checksum.assert_not_called()
