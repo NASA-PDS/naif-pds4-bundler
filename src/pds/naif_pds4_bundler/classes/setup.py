@@ -445,8 +445,6 @@ class Setup:
         #
         cwd = os.getcwd()
 
-        os.chdir("/")
-
         #
         # Set the staging directory WRT PDS3 or PDS4
         #
@@ -519,8 +517,6 @@ class Setup:
                 self.kernels_directory[i] = cwd + os.sep + kd_name
             if not os.path.isdir(self.kernels_directory[i]):
                 raise NPBError(f"Directory does not exist: {kd_name}.")
-
-        os.chdir(cwd)
 
         #
         # Check IM, XML model, and Schema Location coherence (given that is not
