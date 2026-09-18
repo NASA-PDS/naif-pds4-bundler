@@ -25,10 +25,6 @@ class ChecksumProduct(Product):
                                   be added, False otherwise
     """
 
-    # Checksum files must always be recomputed via md5(); never reused from
-    # the registry or product label (see Product._always_recompute_checksum).
-    _always_recompute_checksum: bool = True
-
     def __init__(self, setup, collection, add_previous_checksum: bool = True) -> None:
         """Constructor."""
         #
@@ -74,6 +70,10 @@ class ChecksumProduct(Product):
         if setup.pds_version == "4":
             self.set_product_lid()
             self.set_product_vid()
+
+    def _compute_checksum(self) -> str:
+        """Always recompute via md5(); never reuse the registry or label."""
+        return str(md5(self.path))
 
     def set_coverage(self) -> None:
         """Determine the coverage of the Checksum file."""

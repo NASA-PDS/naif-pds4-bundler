@@ -17,10 +17,6 @@ class Product:
     Subclasses must call ``register()`` once the product file exists on disk.
     """
 
-    # Overridden to True by ChecksumProduct: checksum files must always be
-    # recomputed, never reused from the checksum registry or product label.
-    _always_recompute_checksum: bool = False
-
     # TODO: update this method to have path and setup as input arguments.
     #
     #   def __init__(self, path: str, setup) -> None:
@@ -56,24 +52,7 @@ class Product:
         stat_info = os.stat(self.path)
         self._size = str(stat_info.st_size)
 
-        # If specified via configuration, try to obtain the checksum from a
-        # checksum registry file, if not present, try to obtain it from the
-        # label if the product is in the staging area. Otherwise, (or if
-        # _always_recompute_checksum is set), compute the checksum directly.
-        checksum = ""
-
-        # Skip the registry/label lookup entirely if checksum reuse is off.
-        if not self._always_recompute_checksum and self.setup.args.checksum:
-            checksum = checksum_from_registry(
-                self.path, self.setup.working_directory
-            )
-
-            if not checksum:
-                checksum = checksum_from_label(self.path)
-
-        # md5() never comes back empty, so this is always the final fallback.
-        if not checksum:
-            checksum = str(md5(self.path))
+        checksum = self._compute_checksum()
 
         self.checksum = checksum
 
@@ -90,6 +69,33 @@ class Product:
 
             self.setup.add_file(str(archive_path))
             self.setup.add_checksum(self.path, checksum)
+
+    def _compute_checksum(self) -> str:
+        """Resolve the product checksum.
+
+        If specified via configuration, try to obtain it from a checksum
+        registry file and, if not present, from the label (if the product is
+        in the staging area). Otherwise, compute it directly. Subclasses
+        override this when the checksum must always be recomputed.
+        """
+        # Reusing a known checksum only makes sense if the user asked for it.
+        if self.setup.args.checksum:
+            checksum = checksum_from_registry(
+                self.path, self.setup.working_directory
+            )
+
+            # The registry may not know the file, so fall back to its label.
+            if not checksum:
+                checksum = checksum_from_label(self.path)
+
+            # Either lookup can come back empty (or None), so only return
+            # here when one of them really found something.
+            if checksum:
+                return checksum
+
+        # Last resort. It never comes back empty, so a checksum is always
+        # returned, and it is also the only path taken when reuse is off.
+        return str(md5(self.path))
 
     @property
     def size(self) -> str:
