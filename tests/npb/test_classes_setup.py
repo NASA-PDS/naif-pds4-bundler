@@ -701,10 +701,9 @@ class TestSetupCheckConfiguration:
 
     @pytest.fixture(autouse=True)
     def patch_handle_npb_error_and_restore_cwd(self, monkeypatch) -> Generator[None, None, None]:
-        """The current directory is saved, as the check_configuration function
-        switches between directories and eventually returns to the original
-        directory. If a test fails, the working directory is restored to its
-        original state."""
+        """check_configuration no longer switches directories, so this is now a
+        defensive safety net rather than a required workaround: restores the
+        working directory in case a test leaves it changed."""
 
         original_cwd = os.getcwd()
 
@@ -1043,6 +1042,44 @@ class TestSetupCheckConfiguration:
         with pytest.raises(NPBError, match=re.escape(f'Directory does not exist: '
                                                       f'{tmp_path / "missing_work"}.')):
             setup.check_configuration()
+
+    @pytest.mark.parametrize('attribute, bad_value', [
+        ('working_directory', 'missing_work'),
+        ('staging_directory', 'missing_staging'),
+        ('bundle_directory', 'missing_bundle'),
+        ('kernels_directory', ['missing_kernels']),
+    ], ids=['working_directory_missing', 'staging_directory_uncreatable',
+            'bundle_directory_missing', 'kernel_directory_missing'])
+    def test_restores_process_cwd_after_directory_validation_failure(
+            self, tmp_path, monkeypatch, attribute, bad_value) -> None:
+        """check_configuration used to chdir("/") with no try/finally around its
+        directory-validation NPBError raises, permanently corrupting the process
+        working directory whenever one of these checks failed. os.getcwd() must
+        be unchanged after each of the four failure paths below.
+
+        os.mkdir is unconditionally patched to fail: it is only actually invoked
+        by the staging_directory case, and is a harmless no-op patch for the
+        other three, keeping this single test body identical across all
+        parametrized cases.
+        """
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setattr(
+            'pds.naif_pds4_bundler.classes.setup.os.mkdir',
+            Mock(side_effect=OSError('permission denied')),
+        )
+
+        setup = self.make_check_setup(tmp_path, relative_paths=True)
+        setattr(setup, attribute, bad_value)
+
+        original_cwd = os.getcwd()
+
+        with pytest.raises(NPBError):
+            setup.check_configuration()
+
+        # On unfixed code this collapses to os.getcwd() == "/" for every case,
+        # since check_configuration chdir("/")-ed and never chdir'd back before
+        # raising.
+        assert os.getcwd() == original_cwd
 
     @pytest.mark.parametrize('date_format, values, expected_message', [
         ('maklabel', {'mission_start': '2020-01-01T00:00:00.000Z'},
