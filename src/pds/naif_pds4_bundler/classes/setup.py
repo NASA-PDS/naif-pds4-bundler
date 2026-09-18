@@ -445,8 +445,6 @@ class Setup:
         #
         cwd = os.getcwd()
 
-        os.chdir("/")
-
         #
         # Set the staging directory WRT PDS3 or PDS4
         #
@@ -477,7 +475,8 @@ class Setup:
             try:
                 os.mkdir(cwd + os.sep + self.staging_directory)
 
-            except Exception:
+            # os.mkdir() raises OSError on filesystem failures.
+            except OSError:
 
                 if self.faucet in ["plan", "list", "checks"]:
                     logging.warning('-- Staging directory cannot be created but'
@@ -517,8 +516,6 @@ class Setup:
                 self.kernels_directory[i] = cwd + os.sep + kd_name
             if not os.path.isdir(self.kernels_directory[i]):
                 raise NPBError(f"Directory does not exist: {kd_name}.")
-
-        os.chdir(cwd)
 
         #
         # Check IM, XML model, and Schema Location coherence (given that is not
