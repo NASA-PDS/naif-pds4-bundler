@@ -196,6 +196,17 @@ class TestSpiceKernelPDS3LabelInit:
         label = _build_label(product, extra_setup=setup)
         assert label._label_fields["PLATFORM_OR_MOUNTING_NAME"] == platform_o
 
+    @pytest.mark.parametrize("field", [
+        "TARGET_NAME",
+        "PRODUCT_VERSION_TYPE",
+        "PLATFORM_OR_MOUNTING_NAME",
+    ])
+    def test_quote_stripping_skips_absent_field(self, field):
+        """A field missing from the label is left absent (no KeyError)."""
+        label = _build_label(_make_product("SPK"))
+
+        assert field not in label._label_fields
+
     def test_stream_record_type_calls_insert_text(self):
         """STREAM kernels invoke insert_text_label, not insert_binary_label."""
         product = _make_product("SPK")
