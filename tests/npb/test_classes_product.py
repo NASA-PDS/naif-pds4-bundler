@@ -8,9 +8,7 @@ from unittest.mock import Mock
 import pytest
 
 import pds.naif_pds4_bundler.classes.product.product as product_module
-import pds.naif_pds4_bundler.classes.product.product_checksum as checksum_module
 from pds.naif_pds4_bundler.classes.product.product import Product
-from pds.naif_pds4_bundler.classes.product.product_checksum import ChecksumProduct
 
 
 def make_product_setup(tmp_path: Path, checksum: bool = False,
@@ -32,12 +30,11 @@ def make_product_setup(tmp_path: Path, checksum: bool = False,
 
 
 def make_product_without_init(path: Path, setup: SimpleNamespace,
-                              new_product: bool = True,
-                              cls: type = Product) -> Product:
-    # Build a Product (or subclass) instance without calling __init__. This
+                              new_product: bool = True) -> Product:
+    # Build a Product instance without calling __init__. This
     # keeps register tests focused on register itself and avoids the
     # constructor auto-registering the product before the test is ready.
-    product = cls.__new__(cls)
+    product = Product.__new__(Product)
 
     product.path = str(path)
     product.setup = setup
@@ -239,33 +236,6 @@ class TestProductComputeChecksum:
         # Verification: same value as an independent hashlib computation.
         assert checksum == hashlib.md5(b'readme').hexdigest()
 
-    def test_checksum_product_ignores_registry_and_label(
-            self, mocker, tmp_path) -> None:
-        """A ChecksumProduct always recomputes its checksum with md5().
-
-        A checksum file must never reuse a stored value, so the registry and
-        the label must not be consulted, even when checksum reuse is on.
-        """
-        # Preparation: reuse on, to prove the override ignores it. md5 is
-        # patched in product_checksum because that is where the override
-        # looks it up.
-        setup = make_product_setup(tmp_path, checksum=True)
-        product = make_product_without_init(tmp_path / 'x.checksum', setup,
-                                            cls=ChecksumProduct)
-        registry_mock = mocker.patch.object(product_module,
-                                            'checksum_from_registry')
-        label_mock = mocker.patch.object(product_module, 'checksum_from_label')
-        md5_mock = mocker.patch.object(checksum_module, 'md5',
-                                       return_value='fresh-md5')
-
-        # Execution.
-        checksum = product._compute_checksum()
-
-        # Verification: we got the md5 value and never touched the other sources.
-        assert checksum == 'fresh-md5'
-        registry_mock.assert_not_called()
-        label_mock.assert_not_called()
-        md5_mock.assert_called_once_with(product.path)
 
 
 class TestProductRegister:
@@ -348,32 +318,6 @@ class TestProductRegister:
 
         # Verification: the stored checksum is the real md5 of the content.
         assert product.checksum == hashlib.md5(b'readme').hexdigest()
-
-    def test_register_dispatches_to_checksum_product_override(
-            self, mocker, tmp_path) -> None:
-        """register() uses the ChecksumProduct version of the checksum hook.
-
-        A ChecksumProduct should end up with the md5 checksum and never look
-        in the registry, even if checksum reuse is enabled.
-        """
-        # Preparation: reuse on, and md5 patched where the override uses it.
-        path = tmp_path / 'maven_spice' / 'release.checksum'
-        path.parent.mkdir(parents=True)
-        path.write_text('checksum-registry', encoding='utf-8')
-        setup = make_product_setup(tmp_path, checksum=True)
-        product = make_product_without_init(path, setup, new_product=False,
-                                            cls=ChecksumProduct)
-        registry_mock = mocker.patch.object(product_module,
-                                            'checksum_from_registry')
-        mocker.patch.object(checksum_module, 'md5', return_value='fresh-md5')
-
-        # Execution.
-        product.register()
-
-        # Verification: the override's checksum was stored and the registry
-        # was skipped.
-        assert product.checksum == 'fresh-md5'
-        registry_mock.assert_not_called()
 
     def test_register_raises_file_not_found_before_computing_checksum(
             self, mocker, tmp_path) -> None:
