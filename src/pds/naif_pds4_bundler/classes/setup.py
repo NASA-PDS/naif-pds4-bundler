@@ -286,25 +286,13 @@ class Setup:
             self.volume_id = ""
 
     @staticmethod
-    def _filesystem_root(cwd):
-        """Gives the root of the filesystem that ``cwd`` is on.
-
-        :param cwd: absolute path of a directory
-        :type cwd: str
-        :return: the root directory
-        :rtype: str
-        """
-        # splitdrive returns "" when the path has no drive part, so this is
-        # then just the separator.
-        return os.path.splitdrive(cwd)[0] + os.sep
-
-    @staticmethod
     def _find_directory(path, cwd):
         """Finds where a directory from the configuration really is.
 
-        It looks under ``cwd`` first and then under the root of the filesystem.
-        Both are full paths, so the process working directory is never touched.
-        An absolute path just matches itself on the second lookup.
+        It looks under ``cwd`` first and then under the root of the
+        filesystem. Both are full paths, so the process working directory is
+        never touched. An absolute path resolves to itself directly, on
+        either candidate.
 
         :param path: directory as written in the configuration
         :type path: str
@@ -313,19 +301,11 @@ class Setup:
         :return: the first candidate that is a directory, or None if neither is
         :rtype: str or None
         """
-        # Plain concatenation on purpose: a value like "/inputs" is tried
-        # under cwd before being taken as absolute.
-        under_cwd = cwd + os.sep + path
-
-        # join leaves an absolute path alone and puts a relative one under
-        # the root.
-        under_root = os.path.join(Setup._filesystem_root(cwd), path)
-
-        for candidate in (under_cwd, under_root):
-            if os.path.isdir(candidate):
-                return candidate
-
-        return None
+        candidates = (
+            os.path.join(cwd, path),
+            os.path.join(Path(cwd).anchor, path),
+        )
+        return next((c for c in candidates if os.path.isdir(c)), None)
 
     def check_configuration(self):
         """Performs the following checks to the loaded configuration items:
@@ -505,15 +485,14 @@ class Setup:
         # Staging can't go through _find_directory. If it's found under the run
         # directory we always append the mission dir, but if it's found under
         # the root we only append it when the configured value doesn't already
-        # have it.
-        root_candidate = os.path.join(
-            self._filesystem_root(cwd), self.staging_directory
-        )
+        # have it. An absolute value skips the cwd branch entirely and always
+        # goes through that second, conditional-append path, since it may
+        # already point at its final location.
+        under_cwd = os.path.join(cwd, self.staging_directory)
+        root_candidate = os.path.join(Path(cwd).anchor, self.staging_directory)
 
-        if os.path.isdir(cwd + os.sep + self.staging_directory):
-            self.staging_directory = (
-                cwd + os.sep + self.staging_directory + os.sep + mission_dir
-            )
+        if not os.path.isabs(self.staging_directory) and os.path.isdir(under_cwd):
+            self.staging_directory = os.path.join(under_cwd, mission_dir)
 
         elif not os.path.isdir(root_candidate):
             logging.warning(
@@ -525,9 +504,9 @@ class Setup:
             # fine. Otherwise, the non-existence must trigger an error.
             #
             try:
-                os.mkdir(cwd + os.sep + self.staging_directory)
+                os.mkdir(under_cwd)
 
-            # os.mkdir() raises OSError on filesystem failures.
+            # os.mkdir fails with OSError: missing parent, or no permission.
             except OSError:
 
                 if self.faucet in ["plan", "list", "checks"]:
@@ -549,16 +528,16 @@ class Setup:
             if append_mission_dir:
                 self.staging_directory += os.sep + mission_dir
 
-        self.bundle_directory = (
-            self._find_directory(self.bundle_directory, cwd) or self.bundle_directory
-        )
+        found = self._find_directory(self.bundle_directory, cwd)
 
-        #
-        # If the faucet is set to plan, kerlist, or checks, this is just
-        # fine. Otherwise, the non-existence must trigger an error.
-        #
-        if not os.path.isdir(self.bundle_directory):
+        if found:
+            self.bundle_directory = found
 
+        else:
+            #
+            # If the faucet is set to plan, kerlist, or checks, this is just
+            # fine. Otherwise, the non-existence must trigger an error.
+            #
             if self.faucet in ["plan", "list", "checks"]:
                 logging.warning("-- Bundle directory does not exist but is not"
                                 " used with %s faucet.", self.faucet)
