@@ -1917,13 +1917,12 @@ class TestMetaKernelProductCoverage:
         assert product.stop_time == "2020-01-01T00:00:00.000Z"
         assert product.mk_sets_coverage
 
-    def test_spiceypy_failure_falls_back_to_config_times(self, lsk, caplog):
+    def test_spiceypy_failure_propagates_as_npberror(self, lsk):
         """spiceypy.et2utc() raising is a SPICE failure distinct from the
         min()/max() ValueError on empty lists (already covered by
-        test_yearly_mk_exception_coverage) - proving
-        except (ValueError, SpiceyPyError) also catches it, falling back to
-        the same "times from configuration" path used when no coverage
-        kernel is found at all."""
+        test_yearly_mk_exception_coverage) - the @spice_exception_handler
+        decorator on coverage() converts it to NPBError instead of it being
+        caught locally and falling back to config times."""
         setup = make_setup(
             mission_start="2018-01-01T00:00:00Z",
             mission_finish="2023-01-01T00:00:00Z",
@@ -1947,18 +1946,10 @@ class TestMetaKernelProductCoverage:
             }
         }
 
-        with (patch(f"{_MODULE}.spiceypy.et2utc",
-                   side_effect=SpiceyPyError("SPICE(BADTIMESTRING)")),
-              caplog.at_level(logging.WARNING)):
-            product.coverage()
-
-        assert product.start_time == "2019-01-01T00:00:00Z"
-        assert product.stop_time == "2019-12-31T00:00:00Z"
-        assert (
-            "No kernel(s) found to determine MK coverage. "
-            "Times from configuration will be used: "
-            "2019-01-01T00:00:00Z - 2019-12-31T00:00:00Z"
-        ) in caplog.text
+        with patch(f"{_MODULE}.spiceypy.et2utc",
+                   side_effect=SpiceyPyError("SPICE(BADTIMESTRING)")):
+            with pytest.raises(NPBError):
+                product.coverage()
 
     def test_coverage_kernel_not_in_collection_missing_file_logs_warning(
             self, lsk, tmp_path, caplog):

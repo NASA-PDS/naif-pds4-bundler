@@ -1044,9 +1044,8 @@ class MetaKernelProduct(Product):
             stop_time = spiceypy.et2utc(max(finish_times), "ISOC", 3, 80) + "Z"
             logging.info('-- Meta-kernel coverage: %s - %s', start_time, stop_time)
 
-        # min()/max() raise ValueError on empty lists; spiceypy.et2utc() raises
-        # SpiceyPyError on SPICE failures.
-        except (ValueError, SpiceyPyError):
+        # min()/max() raise ValueError on empty lists.
+        except ValueError:
             #
             # The alternative is to set the increment times to the increment
             # or mission times provided via configuration.
