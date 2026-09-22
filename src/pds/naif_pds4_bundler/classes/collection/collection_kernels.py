@@ -192,9 +192,11 @@ class SpiceKernelsCollection(Collection):
             increment_finish = max(increment_finishs)
 
         # min()/max() raise ValueError when no MK sets the increment coverage
-        # (both lists are empty); prod.start_time/stop_time access raises
-        # AttributeError if a matched product lacks the coverage attributes.
-        except (ValueError, AttributeError):
+        # (both lists are empty), or TypeError if the collected start/stop times
+        # are of incompatible types (e.g. None or mixed str/datetime);
+        # prod.start_time/stop_time access raises AttributeError if a matched
+        # product lacks the coverage attributes.
+        except (ValueError, AttributeError, TypeError):
             #
             # If no MKs are provided in the increment. First check if an
             # increment stop time has been provided as an input
@@ -268,13 +270,6 @@ class SpiceKernelsCollection(Collection):
                     if "<stop_date_time>" in line:
                         prev_increment_finish = line.split(">")[-2].split("<")[0]
 
-            # A matched bundle label lacking either tag is treated the same
-            # as no previous bundle being found.
-            if prev_increment_start is None or prev_increment_finish is None:
-                raise IndexError(
-                    f"{bundles[-1]} is missing start/stop date tags."
-                )
-
             #
             # Provide different logging level depending on the times'
             # combination.
@@ -296,11 +291,12 @@ class SpiceKernelsCollection(Collection):
                 increment_finish = prev_increment_finish
                 logging.warning("-- Increment finish corrected form previous bundle.")
 
-        # bundles[-1] raises IndexError with no matching glob (also raised
-        # above if the matched label lacks the expected tags); open() raises
-        # OSError if the file can't be read, or UnicodeDecodeError if it
-        # isn't valid UTF-8 (opened with encoding='utf-8').
-        except (IndexError, *FILE_READ_ERRORS):
+        # bundles[-1] raises IndexError with no matching glob; a matched label
+        # missing the start/stop tags leaves prev_increment_start or _finish as
+        # None, so comparing it below raises TypeError; open() raises OSError if
+        # the file can't be read, or UnicodeDecodeError if it isn't valid UTF-8
+        # (opened with encoding='utf-8').
+        except (IndexError, TypeError, *FILE_READ_ERRORS):
             logging.warning("-- Previous bundle not found.")
 
         #

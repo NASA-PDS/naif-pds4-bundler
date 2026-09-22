@@ -561,11 +561,11 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
         assert setup.increment_finish == "2040-001T00:00:00.000Z"
         assert "Mission stop time will be used" in caplog.text
 
-    def test_min_max_propagates_unrelated_exception(self, lsk):
-        """A real bug that produces an unorderable start_time (e.g. None from a
-        broken product, standing in for a real defect) raises TypeError from
-        min(), which must propagate rather than be reported as "No MKs
-        found" - proving except ValueError no longer masks it."""
+    def test_min_max_type_error_falls_back_to_mission_times(self, lsk):
+        """An unorderable start_time (e.g. None from a product whose start_time
+        was never set) raises TypeError from min(), which is now handled the
+        same as the empty-list ValueError case - falling back to mission
+        start/finish."""
         prod1 = MagicMock()
         prod1.mk_sets_coverage = True
         prod1.start_time = "2010-001T00:00:00.000Z"
@@ -573,10 +573,8 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
 
         prod2 = MagicMock()
         prod2.mk_sets_coverage = True
-        
-        # None stands in for a real defect (e.g. a product whose start_time
-        # was never set) - str/None can't be compared, so min() raises
-        # TypeError instead of the ValueError the except clause expects.
+
+        # str/None can't be compared, so min() raises TypeError.
         prod2.start_time = None
         prod2.stop_time = "2021-001T00:00:00.000Z"
 
@@ -587,10 +585,13 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
 
         obj.product = [prod1, prod2]
 
-        # TypeError must escape set_increment_times() unhandled, not be
-        # swallowed and reported as "No MKs found".
-        with pytest.raises(TypeError):
+        with patch(_GLOB, return_value=[]):
             obj.set_increment_times()
+
+        # lsk loaded, so increment_start/finish are reformatted via et_to_date
+        # (see test_no_mk_no_increment_start_falls_back_to_mission_start).
+        assert setup.increment_start == '2000-01-01T00:00:00Z'
+        assert setup.increment_finish == '2040-01-01T00:00:00Z'
 
     def test_missing_start_stop_time_falls_back_to_mission_times(self, lsk):
         """A product with mk_sets_coverage=True but no start_time/stop_time
