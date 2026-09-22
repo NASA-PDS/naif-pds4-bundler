@@ -2421,19 +2421,23 @@ class TestKernelListCheckProducts:
             FileNotFoundError("maven_release_01.kernel_list"),
             id="missing-kernel-list-file"),
         pytest.param(
+            UnicodeDecodeError("utf-8", b"\xff", 0, 1, "invalid start byte"),
+            id="non-utf8-kernel-list-file"),
+        pytest.param(
             ValueError("invalid literal for int() with base 10: 'bad'"),
             id="non-numeric-setup-release"),
     ])
     def test_check_products_mapping_fallback_reports_absent(
             self, mocker, caplog, tmp_path, side_effect) -> None:
         """product_mapping() unconditionally opens the current release's
-        .kernel_list file (raising FileNotFoundError if check_products() runs
-        before that file exists, e.g. a checks-only run) and computes
+        .kernel_list file with encoding='utf-8' (raising FileNotFoundError if
+        check_products() runs before that file exists, e.g. a checks-only
+        run, or UnicodeDecodeError if it isn't valid UTF-8) and computes
         int(setup.release) first (raising ValueError if setup.release is
         misconfigured). Either way, this must be treated as a real "no
         mapping" result - "product not present" - not crash, proving the
-        fallback except clause covers OSError and ValueError, not just
-        IndexError."""
+        fallback except clause covers FILE_READ_ERRORS and ValueError, not
+        just IndexError."""
         # A file must exist so os.walk yields a candidate for check_products
         # to compare against and fall through to product_mapping (see the
         # bug_propagates test above for the same reasoning).

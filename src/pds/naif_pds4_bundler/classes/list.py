@@ -878,10 +878,12 @@ class KernelList:
                             origin_paths.append(file[0])
 
                         # file[0] raises IndexError with no mapped-name match;
-                        # product_mapping() raises OSError if the release's
-                        # kernel_list doesn't exist yet, or ValueError if
-                        # setup.release isn't a valid integer.
-                        except (IndexError, OSError, ValueError):
+                        # product_mapping() opens the kernel_list with
+                        # encoding='utf-8', so it can raise OSError if the
+                        # file doesn't exist yet or UnicodeDecodeError if
+                        # it's not valid UTF-8; ValueError if setup.release
+                        # isn't a valid integer.
+                        except (IndexError, ValueError, *FILE_READ_ERRORS):
                             pass
 
             if not origin_paths and ".tm" not in product.lower():
