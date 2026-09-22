@@ -1290,6 +1290,7 @@ def test_match_patterns_basic():
 
     assert values == {"YEAR": "2021", "VERSION": "02"}
 
+
 def test_match_patterns_missing_pattern():
     """Test match_patterns utils function using pytest.
     Check for missing patterns."""
@@ -1297,8 +1298,9 @@ def test_match_patterns_missing_pattern():
     name = "insight_2021_v02.tm"
     patterns = [{"@length": "2", "#text": "VERSION"}]
 
-    with pytest.raises(RuntimeError, match=r"Pattern mismatch at index 9: expected 'Y' but got '0'"):
+    with pytest.raises(ValueError, match=r"Pattern mismatch at index 9: expected 'Y' but got '0'"):
         files.match_patterns(name, name_w_pattern, patterns)
+
 
 def test_match_patterns_typo_in_template():
     """Test match_patterns utils function using pytest.
@@ -1310,8 +1312,9 @@ def test_match_patterns_typo_in_template():
         {"@length": "4", "#text": "YEAR"},
     ]
 
-    with pytest.raises(RuntimeError, match=r"Pattern mismatch at index 9: expected 'Y' but got '0'"):
+    with pytest.raises(ValueError, match=r"Pattern mismatch at index 9: expected 'Y' but got '0'"):
         files.match_patterns(name, name_w_pattern, patterns)
+
 
 def test_match_patterns_typo_in_patterns():
     """Test match_patterns utils function using pytest.
@@ -1323,8 +1326,9 @@ def test_match_patterns_typo_in_patterns():
         {"@length": "4", "#text": "YAR"},
     ]
 
-    with pytest.raises(RuntimeError, match=r"Pattern mismatch at index 9: expected 'Y' but got '0'"):
+    with pytest.raises(ValueError, match=r"Pattern mismatch at index 9: expected 'Y' but got '0'"):
         files.match_patterns(name, name_w_pattern, patterns)
+
 
 def test_match_patterns_wrong_length():
     """Test match_patterns utils function using pytest.
@@ -1336,7 +1340,7 @@ def test_match_patterns_wrong_length():
         {"@length": "10", "#text": "YEAR"},
     ]
 
-    with pytest.raises(RuntimeError, match=r"Pattern mismatch at index 18: expected '_' but got 'm'"):
+    with pytest.raises(ValueError, match=r"Pattern mismatch at index 18: expected '_' but got 'm'"):
         files.match_patterns(name, name_w_pattern, patterns)
 
 # ----------------------------------------------------------------------------

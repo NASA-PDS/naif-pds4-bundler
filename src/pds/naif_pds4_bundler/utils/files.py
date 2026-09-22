@@ -756,7 +756,7 @@ def match_patterns(name, name_w_pattern, patterns):
         elif (n == "$") and value_bool:
             value += name[i]
         else:
-            raise RuntimeError(
+            raise ValueError(
                 f"Pattern mismatch at index {i}: "
                 f"expected '{n}' but got '{name[i]}' in '{name}'."
             )

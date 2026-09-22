@@ -421,9 +421,8 @@ class TestMetaKernelProductInit:
             # "@name" pattern matches "insight_v01.tm" on its face, so
             # match_patterns() gets far enough to reach int(pattern["@length"])
             # and fail there with a non-numeric "@length" (int("bad") fails) -
-            # this isolates the ValueError path from the plain-mismatch
-            # RuntimeError path already covered by
-            # test_no_matching_mk_config_raises above.
+            # this isolates that ValueError from the plain-mismatch ValueError
+            # already covered by test_no_matching_mk_config_raises above.
             [{
                 "@name": "insight_v$VERSION.tm",
                 "name": [{"pattern": {"#text": "VERSION", "@length": "bad"}}],
@@ -435,7 +434,7 @@ class TestMetaKernelProductInit:
     ])
     def test_pattern_match_failure_modes_skip_candidate(self, tmp_path, mk_list):
         """Three more match_patterns() failure modes besides the plain-mismatch
-        RuntimeError (already covered by test_no_matching_mk_config_raises
+        ValueError (already covered by test_no_matching_mk_config_raises
         above): a pattern dict missing its "@length" attribute
         (match_patterns() raises KeyError before returning), a literal pattern
         longer than the actual kernel name (match_patterns()'s char-by-char

@@ -98,11 +98,9 @@ class MetaKernelProduct(Product):
                     self.year = values["YEAR"]
                     self.YEAR = values["YEAR"]
 
-            # match_patterns() raises RuntimeError/IndexError/ValueError on a
-            # bad pattern; values["VERSION"] raises KeyError. NPBError and
-            # NPBInternalError also subclass RuntimeError, so if either is
-            # ever raised inside this block it would be swallowed here too.
-            except (RuntimeError, IndexError, KeyError, ValueError):
+            # match_patterns() raises IndexError/ValueError on a bad pattern;
+            # values["VERSION"] raises KeyError.
+            except (IndexError, KeyError, ValueError):
                 pass
 
         if not hasattr(self, "mk_setup"):
